@@ -125,7 +125,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class TreeDropAdapter extends ViewerDropAdapter {
 	private int detail = DND.DROP_NONE;
 	private int feedback = DND.FEEDBACK_NONE;
-	
+
 	/**
 	 * @param viewer
 	 */
@@ -133,7 +133,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		super(viewer);
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerDropAdapter#drop(org.eclipse.swt.dnd.DropTargetEvent)
 	 */
@@ -166,11 +166,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 		}
-		
+
 		if ("gtk".equalsIgnoreCase(SWT.getPlatform()) && event.detail == 0) {
 			event.detail = DND.DROP_MOVE;
 		}
-		
+
 		detail = event.detail;
 		if (ConvertigoPlugin.clipboardManagerDND.objects == null) {
 			// DRAG not done from the treeview
@@ -190,27 +190,27 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public void dragOver(DropTargetEvent event) {
 		super.dragOver(event);
-		
+
 		// Overrides feedback: by default is DND.FEEDBACK_SELECT
 		feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
-		
+
 		boolean shouldFeedBack = true;
 		if (PaletteSourceTransfer.getInstance().isSupportedType(event.currentDataType)) {
 			int currentLocation = getCurrentLocation();
 			switch (currentLocation) {
-				case LOCATION_BEFORE:
-					feedback = DND.FEEDBACK_INSERT_BEFORE;
-					break;
-				case LOCATION_AFTER:
-					feedback = DND.FEEDBACK_INSERT_AFTER;
-					break;
-				case LOCATION_ON:
-				default:
-					break;
+			case LOCATION_BEFORE:
+				feedback = DND.FEEDBACK_INSERT_BEFORE;
+				break;
+			case LOCATION_AFTER:
+				feedback = DND.FEEDBACK_INSERT_AFTER;
+				break;
+			case LOCATION_ON:
+			default:
+				break;
 			}
 			shouldFeedBack = false;
 		}
-		
+
 		// Handles feedback for objects that can be ordered
 		if (shouldFeedBack && getCurrentOperation() == DND.DROP_MOVE) {
 			Object targetObject = getCurrentTarget();
@@ -229,15 +229,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (!srcInherited) {
 								int currentLocation = getCurrentLocation();
 								switch (currentLocation) {
-									case LOCATION_BEFORE:
-										feedback = DND.FEEDBACK_INSERT_BEFORE;
-										break;
-									case LOCATION_AFTER:
-										feedback = DND.FEEDBACK_INSERT_AFTER;
-										break;
-									case LOCATION_ON:
-									default:
-										break;
+								case LOCATION_BEFORE:
+									feedback = DND.FEEDBACK_INSERT_BEFORE;
+									break;
+								case LOCATION_AFTER:
+									feedback = DND.FEEDBACK_INSERT_AFTER;
+									break;
+								case LOCATION_ON:
+								default:
+									break;
 								}
 							}
 						}
@@ -245,7 +245,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 		}
-		
+
 		// Set feedback
 		event.feedback = feedback;
 	}
@@ -257,11 +257,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public boolean performDrop(Object data) {
 		MobileBuilder mb = null;
-		
+
 		Engine.logStudio.info("---------------------- Drop started ----------------------");
 		try {
 			Object targetObject = getCurrentTarget();
-			
+
 			IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 			if (editorPart != null) {
 				IEditorInput input = editorPart.getEditorInput();
@@ -274,13 +274,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					mb = editorInput.getApplication().getProject().getMobileBuilder();
 				}
 			}
-			
+
 			// Handle objects copy or move with Drag and drop
 			if (targetObject instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)targetObject;
 				if (targetTreeObject != null) {
 					ProjectExplorerView	explorerView = targetTreeObject.getProjectExplorerView();
-					
+
 					Document document = null;
 					try {
 						Shell shell = Display.getDefault().getActiveShell();
@@ -292,7 +292,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								mb.prepareBatchBuild();
 							}
 							BatchOperationHelper.start();
-							
+
 							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
 							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
 							TreeObject sourceObject = (TreeObject) getSelectedObject();
@@ -308,7 +308,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							} else {
 								ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
 							}
-							
+
 							BatchOperationHelper.stop();
 							return true;
 						} catch (SAXException sax) {
@@ -331,7 +331,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						if (e instanceof InvalidOperationException) {
 							document = null;
 						}
-						
+
 						// Case of unauthorized databaseObject paste
 						if (document != null) {
 							try {
@@ -341,10 +341,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									boolean unauthorized = false;
 									int len = nodeList.getLength();
 									Node node;
-									
+
 									// case of folder, retrieve owner object
 									targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(targetTreeObject);
-									
+
 									if (detail == DND.DROP_COPY) {
 										for (int i = 0 ; i < len ; i++) {
 											node = (Node) nodeList.item(i);
@@ -372,7 +372,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									else {
 										unauthorized = true; // Real unauthorized databaseObject
 									}
-									
+
 									if (unauthorized) {
 										throw e;
 									}
@@ -403,17 +403,17 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			DatabaseObject databaseObject = (DatabaseObject)object;
 			String dboName = databaseObject.getName();
 			String name = null;
-			
+
 			boolean bContinue = true;
 			int index = 0;
-			
+
 			while (bContinue) {
 				if (bChangeName) {
 					if (index == 0) name = dboName;
 					else name = dboName + index;
 					databaseObject.setName(name);
 				}
-				
+
 				databaseObject.hasChanged = true;
 				databaseObject.bNew = true;
 
@@ -424,34 +424,34 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				catch(ObjectWithSameNameException owsne) {
 					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement))
 						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-						
+
 					if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step))
 						throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
-					
+
 					// Silently ignore
 					index++;
 				}
 			}
-			
+
 			NodeList childNodes = node.getChildNodes();
 			int len = childNodes.getLength();
-	            
+
 			Node childNode;
 			String childNodeName;
-	            
+
 			for (int i = 0 ; i < len ; i++) {
 				childNode = childNodes.item(i);
-	                
+
 				if (childNode.getNodeType() != Node.ELEMENT_NODE) continue;
-	                
+
 				childNodeName = childNode.getNodeName();
-	                
-				if (!(childNodeName.equalsIgnoreCase("property")) && 
-					!(childNodeName.equalsIgnoreCase("handlers")) &&
-					!(childNodeName.equalsIgnoreCase("wsdltype")) &&
-					!(childNodeName.equalsIgnoreCase("docdata")) &&
-					!(childNodeName.equalsIgnoreCase("beandata")) &&
-					!(childNodeName.equalsIgnoreCase("dnd"))) {
+
+				if (!(childNodeName.equalsIgnoreCase("property")) &&
+						!(childNodeName.equalsIgnoreCase("handlers")) &&
+						!(childNodeName.equalsIgnoreCase("wsdltype")) &&
+						!(childNodeName.equalsIgnoreCase("docdata")) &&
+						!(childNodeName.equalsIgnoreCase("beandata")) &&
+						!(childNodeName.equalsIgnoreCase("dnd"))) {
 					paste(childNode, databaseObject, bChangeName);
 				}
 			}
@@ -462,27 +462,27 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		return null;
 	}
-	
+
 	private boolean paste(Node node, TreeObject targetTreeObject) throws EngineException {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
-			
+
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
-			
+
 			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
-				
+
 				if (parent instanceof XMLElementStep)
 					return false;
 				if (parent instanceof IThenElseContainer)
 					return false;
-				
+
 				// Add a TransactionStep
 				if (databaseObject instanceof Transaction) {
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String connectorName = ((Element)element.getElementsByTagName("connector").item(0)).getAttribute("name");
-					
+
 					Transaction transaction = (Transaction)databaseObject;
 					TransactionStep transactionStep = new TransactionStep();
 					transactionStep.setSourceTransaction(projectName + TransactionStep.SOURCE_SEPARATOR + connectorName +
@@ -507,7 +507,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add a SequenceStep
 				else if (databaseObject instanceof Sequence) {
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-					
+
 					Sequence seq = (Sequence)databaseObject;
 					SequenceStep sequenceStep = new SequenceStep();
 					sequenceStep.setSourceSequence(projectName + SequenceStep.SOURCE_SEPARATOR + seq.getName());
@@ -529,7 +529,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 			// URLMAPPER
 			else if (parent instanceof UrlMappingOperation) {
-				
+
 				// Set associated requestable, add all parameters for operation
 				if (databaseObject instanceof RequestableObject) {
 					String dboQName = "";
@@ -542,7 +542,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								"." + ((Element)element.getElementsByTagName("connector").item(0)).getAttribute("name") +
 								"." + databaseObject.getName();
 					}
-					
+
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
 					if (operation.getComment().isEmpty()) {
@@ -560,10 +560,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						else if (count == 3) {
 							variables = ((TransactionWithVariables)p.getConnectorByName(st.nextToken()).getTransactionByName(st.nextToken())).getVariablesList();
 						}
-						
+
 						for (RequestableVariable variable: variables) {
-    						String variableName = variable.getName();
-    						Object variableValue = variable.getValueOrNull();
+							String variableName = variable.getName();
+							Object variableValue = variable.getValueOrNull();
 							UrlMappingParameter parameter = null;
 							try {
 								parameter = operation.getParameterByName(variableName);
@@ -573,14 +573,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								boolean acceptForm = operation.getMethod().equalsIgnoreCase(HttpMethodType.POST.name()) ||
 										operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
 								parameter = acceptForm ? new FormParameter() : new QueryParameter();
-    							parameter.setName(variableName);
-    	        				parameter.setComment(variable.getComment());
-    	        				parameter.setArray(false);
-    	        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
-    	        				parameter.setMultiValued(variable.isMultiValued());
-    	        				parameter.setRequired(variable.isRequired());
-    	        				parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
-    	        				parameter.setMappedVariableName(variableName);
+								parameter.setName(variableName);
+								parameter.setComment(variable.getComment());
+								parameter.setArray(false);
+								parameter.setExposed(((RequestableVariable)variable).isWsdl());
+								parameter.setMultiValued(variable.isMultiValued());
+								parameter.setRequired(variable.isRequired());
+								parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
+								parameter.setMappedVariableName(variableName);
 								parameter.bNew = true;
 								operation.add(parameter);
 								operation.hasChanged = true;
@@ -588,7 +588,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 					}
 					catch (Exception e) {}
-					
+
 					return true;
 				}
 				// Add a parameter to mapping operation
@@ -607,13 +607,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
 						parameter = acceptForm ? new FormParameter() : new QueryParameter();
 						parameter.setName(variableName);
-        				parameter.setComment(variable.getComment());
-        				parameter.setArray(false);
-        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
-        				parameter.setMultiValued(variable.isMultiValued());
-        				parameter.setRequired(variable.isRequired());
-        				parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
-        				parameter.setMappedVariableName(variableName);
+						parameter.setComment(variable.getComment());
+						parameter.setArray(false);
+						parameter.setExposed(((RequestableVariable)variable).isWsdl());
+						parameter.setMultiValued(variable.isMultiValued());
+						parameter.setRequired(variable.isRequired());
+						parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
+						parameter.setMappedVariableName(variableName);
 						parameter.bNew = true;
 						operation.add(parameter);
 						operation.hasChanged = true;
@@ -636,27 +636,27 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	private boolean pasteMobileComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
 		// MOBILE COMPONENTS
 		if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
-			
+
 			if (parent.priority == databaseObject.priority) {
 				return true;
 			}
-			
+
 			// Case dbo is a Sequence
 			if (databaseObject instanceof Sequence) {
 				Sequence sequence = (Sequence)databaseObject;
-				
+
 				// Add child components to fill the form
 				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIForm) {
 					com.twinsoft.convertigo.beans.mobile.components.UIForm uiForm = GenericUtils.cast(parent);
 					try {
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						
+
 						// add an onSubmit event with a callSequence
 						com.twinsoft.convertigo.beans.mobile.components.UIControlEvent event = new com.twinsoft.convertigo.beans.mobile.components.UIControlEvent();
 						event.setEventName(com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent.onSubmit.name());
 						event.bNew = true;
 						event.hasChanged = true;
-						
+
 						DatabaseObject call = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
 						if (call != null && call instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction) {
 							com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction dynAction = GenericUtils.cast(call);
@@ -667,24 +667,24 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 						call.bNew = true;
 						call.hasChanged = true;
-						
+
 						event.add(call);
-						
+
 						// add a list of item with label & input for each variable
 						DatabaseObject dboList = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("List"));
 						for (RequestableVariable variable: sequence.getVariables()) {
 							DatabaseObject dboItem = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ListItem"));
 							dboList.add(dboItem);
-							
+
 							DatabaseObject dboLabel = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("Label"));
 							dboItem.add(dboLabel);
-							
+
 							com.twinsoft.convertigo.beans.mobile.components.UIText uiText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
 							uiText.bNew = true;
 							uiText.hasChanged = true;
 							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(variable.getName()+":"));
 							dboLabel.add(uiText);
-							
+
 							DatabaseObject dboInput = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("Input"));
 							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) {
 								com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
@@ -695,10 +695,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								dboItem.add(dboInput);
 							}
 						}
-						
+
 						// add a buttonset with a submit and a reset button
 						DatabaseObject dboBtnSet = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ButtonSet"));
-						
+
 						DatabaseObject dboSubmit = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("SubmitButton"));
 						dboBtnSet.add(dboSubmit);
 						com.twinsoft.convertigo.beans.mobile.components.UIText sText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
@@ -706,7 +706,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						sText.hasChanged = true;
 						sText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType("Submit"));
 						dboSubmit.add(sText);
-						
+
 						DatabaseObject dboReset = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ResetButton"));
 						dboBtnSet.add(dboReset);
 						com.twinsoft.convertigo.beans.mobile.components.UIText rText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
@@ -714,7 +714,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						rText.hasChanged = true;
 						rText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType("Reset"));
 						dboReset.add(rText);
-						
+
 						uiForm.add(event);
 						uiForm.add(dboList);
 						uiForm.add(dboBtnSet);
@@ -725,16 +725,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					return true;
 				}
 				// Add a CallSequenceAction
-				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
+				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
-					) {
+						) {
 					com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(parent);
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-					
+
 					DatabaseObject call = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
 					if (call != null && call instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction) {
 						com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction dynAction = GenericUtils.cast(call);
@@ -743,7 +743,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
 							call.bNew = true;
 							call.hasChanged = true;
-							
+
 							uiComponent.add(call);
 							uiComponent.hasChanged = true;
 						}
@@ -754,28 +754,28 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// Case dbo is a SharedAction
 			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
 				com.twinsoft.convertigo.beans.mobile.components.UIActionStack stack = GenericUtils.cast(databaseObject);
-				
+
 				// Add an InvokeAction
-				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
+				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
-					) {
+						) {
 					com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(parent);
-					
+
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-					
+
 					DatabaseObject invokeAction = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
 					com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
 					if (invoke != null) {
 						invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
 						invoke.bNew = true;
 						invoke.hasChanged = true;
-						
+
 						uiComponent.add(invoke);
 						uiComponent.hasChanged = true;
 					}
@@ -785,25 +785,25 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// Case dbo is a SharedComponent
 			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
 				com.twinsoft.convertigo.beans.mobile.components.UISharedComponent usc = GenericUtils.cast(databaseObject);
-				
+
 				// Add a UseShared component
-				if (parent instanceof  com.twinsoft.convertigo.beans.mobile.components.PageComponent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent || 
-						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIElement && 
+				if (parent instanceof  com.twinsoft.convertigo.beans.mobile.components.PageComponent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIElement &&
 						!(parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIUseShared)
-					) {
+						) {
 					com.twinsoft.convertigo.beans.mobile.components.MobileComponent mc = GenericUtils.cast(parent);
-					
+
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-					
+
 					com.twinsoft.convertigo.beans.mobile.components.UIUseShared use = new com.twinsoft.convertigo.beans.mobile.components.UIUseShared();
 					if (use != null) {
 						use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
 						use.bNew = true;
 						use.hasChanged = true;
-						
+
 						mc.add(use);
 						mc.hasChanged = true;
 					}
@@ -813,31 +813,31 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		return false;
 	}
-	
+
 	private boolean pasteNgxComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
 		// NGX COMPONENTS
 		if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
-			
+
 			if (parent.priority == databaseObject.priority) {
 				return true;
 			}
-			
+
 			// Case dbo is a Sequence
 			if (databaseObject instanceof Sequence) {
 				Sequence sequence = (Sequence)databaseObject;
-				
+
 				// Add child components to fill the form
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm) {
 					com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm = GenericUtils.cast(parent);
 					try {
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						
+
 						// add an onSubmit event with a callSequence
 						com.twinsoft.convertigo.beans.ngx.components.UIControlEvent event = new com.twinsoft.convertigo.beans.ngx.components.UIControlEvent();
 						event.setEventName(com.twinsoft.convertigo.beans.ngx.components.UIControlEvent.AttrEvent.onSubmit.name());
 						event.bNew = true;
 						event.hasChanged = true;
-						
+
 						DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
 						if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 							com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
@@ -848,24 +848,24 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 						call.bNew = true;
 						call.hasChanged = true;
-						
+
 						event.add(call);
-						
+
 						// add a list of item with label & input for each variable
 						DatabaseObject dboList = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("List"));
 						for (RequestableVariable variable: sequence.getVariables()) {
 							DatabaseObject dboItem = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ListItem"));
 							dboList.add(dboItem);
-							
+
 							DatabaseObject dboLabel = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Label"));
 							dboItem.add(dboLabel);
-							
+
 							com.twinsoft.convertigo.beans.ngx.components.UIText uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
 							uiText.bNew = true;
 							uiText.hasChanged = true;
 							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()+":"));
 							dboLabel.add(uiText);
-							
+
 							DatabaseObject dboInput = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Input"));
 							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
 								com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
@@ -876,10 +876,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								dboItem.add(dboInput);
 							}
 						}
-						
+
 						// add a buttonset with a submit and a reset button
 						DatabaseObject dboBtnSet = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ButtonSet"));
-						
+
 						DatabaseObject dboSubmit = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("SubmitButton"));
 						dboBtnSet.add(dboSubmit);
 						com.twinsoft.convertigo.beans.ngx.components.UIText sText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
@@ -887,7 +887,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						sText.hasChanged = true;
 						sText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType("Submit"));
 						dboSubmit.add(sText);
-						
+
 						DatabaseObject dboReset = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ResetButton"));
 						dboBtnSet.add(dboReset);
 						com.twinsoft.convertigo.beans.ngx.components.UIText rText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
@@ -895,7 +895,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						rText.hasChanged = true;
 						rText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType("Reset"));
 						dboReset.add(rText);
-						
+
 						uiForm.add(event);
 						uiForm.add(dboList);
 						uiForm.add(dboBtnSet);
@@ -908,15 +908,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add a CallSequenceAction
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
-					) {
+						) {
 					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-					
+
 					DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
 					if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 						com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
@@ -925,7 +925,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
 							call.bNew = true;
 							call.hasChanged = true;
-							
+
 							uiComponent.add(call);
 							uiComponent.hasChanged = true;
 						}
@@ -936,29 +936,29 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// Case dbo is a SharedAction
 			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
 				com.twinsoft.convertigo.beans.ngx.components.UIActionStack stack = GenericUtils.cast(databaseObject);
-				
+
 				// Add an InvokeAction
-				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
+				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
-					) {
+						) {
 					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
-					
+
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-					
+
 					DatabaseObject invokeAction = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
 					com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
 					if (invoke != null) {
 						invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
 						invoke.bNew = true;
 						invoke.hasChanged = true;
-						
+
 						uiComponent.add(invoke);
 						uiComponent.hasChanged = true;
 					}
@@ -968,26 +968,26 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// Case dbo is a SharedComponent
 			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
 				com.twinsoft.convertigo.beans.ngx.components.UISharedComponent usc = GenericUtils.cast(databaseObject);
-				
+
 				// Add a UseShared component
-				if (parent instanceof  com.twinsoft.convertigo.beans.ngx.components.PageComponent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent || 
-						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIElement && 
+				if (parent instanceof  com.twinsoft.convertigo.beans.ngx.components.PageComponent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIElement &&
 						!(parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared)
-					) {
+						) {
 					com.twinsoft.convertigo.beans.ngx.components.MobileComponent mc = GenericUtils.cast(parent);
-					
+
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-					
+
 					com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
 					if (use != null) {
 						String compQName = projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName();
 						use.setSharedComponentQName(compQName);
 						use.bNew = true;
 						use.hasChanged = true;
-						
+
 						mc.add(use);
 						mc.hasChanged = true;
 					}
@@ -997,14 +997,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		return false;
 	}
-	
+
 	private boolean move(Node node, TreeObject targetTreeObject) throws EngineException {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
-			
+
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
-			
+
 			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
 				;
@@ -1023,14 +1023,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								"." + ((Element)element.getElementsByTagName("connector").item(0)).getAttribute("name") +
 								"." + databaseObject.getName();
 					}
-					
+
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
 					if (operation.getComment().isEmpty()) {
 						operation.setComment(databaseObject.getComment());
 					}
 					operation.hasChanged = true;
-					
+
 					return true;
 				}
 			}
@@ -1058,12 +1058,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (mobileSource != null) {
 				if (target instanceof MobileUIComponentTreeObject) {
 					MobileUIComponentTreeObject mcto = GenericUtils.cast(target);
-					
+
 					com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
 					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
 						return false;
 					}
-					
+
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
 						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
 							if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
@@ -1074,12 +1074,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 				if (target instanceof NgxUIComponentTreeObject) {
 					NgxUIComponentTreeObject mcto = GenericUtils.cast(target);
-					
+
 					com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
 					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
 						return false;
 					}
-					
+
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
 						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
 							if (!((NgxSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
@@ -1136,7 +1136,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					StepSource stepSource = StepSourceTransfer.getInstance().getStepSource();
 					if (stepSource != null) {
 						Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable) ob).getParent() : ob);
-						
+
 						// Check for drop to a step in the same sequence
 						Long key = Long.valueOf(stepSource.getPriority());
 						Step sourceStep = targetStep.getSequence().loadedSteps.get(key);
@@ -1157,14 +1157,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		if (PaletteSourceTransfer.getInstance().isSupportedType(transferType)) {
 			if (target instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)target;
-				
+
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
 					try {
 						String xmlData = paletteSource.getXmlData();
 						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-						
+
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
 							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
 							if (!ProjectExplorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
@@ -1206,7 +1206,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		return false;
 	}
-	
+
 	public void getNextSiblings(List<TreeObject> siblings, TreeParent parent, Object object) {
 		if ((parent != null) && (object != null)) {
 			if (parent.hasChildren()) {
@@ -1227,51 +1227,51 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 	}
-		
+
 	private void performDrop(Object data, final ProjectExplorerView explorerView, TreeObject targetTreeObject) throws EngineException, IOException {
 		boolean needReload = false;
 		final DatabaseObject dbo;
-		
+
 		if (data instanceof String) {
 			String source = data.toString();
 			if (targetTreeObject instanceof ObjectsFolderTreeObject) {
 				ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject) targetTreeObject;
 				dbo = (DatabaseObject) folderTreeObject.getParent().getObject();
 				switch (folderTreeObject.folderType) {
-					case ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS:
-						if (dbo instanceof HtmlScreenClass) {
-							// Creates a XPath criteria for this screen class
-							if (!dbo.equals(((HtmlConnector)dbo.getConnector()).getDefaultScreenClass())) {
-								((HtmlScreenClass)dbo).addCriteria(createXPath(source));
-								needReload = true;
-							}
-						}
-						break;
-						
-					case ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES:
-						if (dbo instanceof HtmlScreenClass) {
-							// Creates an inherited screen class with an XPath criteria for this screen class
-							HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority + 1);
-							((HtmlScreenClass)dbo).addInheritedScreenClass(newSc);
-							newSc.addCriteria(createXPath(source));
+				case ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS:
+					if (dbo instanceof HtmlScreenClass) {
+						// Creates a XPath criteria for this screen class
+						if (!dbo.equals(((HtmlConnector)dbo.getConnector()).getDefaultScreenClass())) {
+							((HtmlScreenClass)dbo).addCriteria(createXPath(source));
 							needReload = true;
 						}
-						break;
-						
-					case ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES:
-						if (dbo instanceof HtmlScreenClass) {
-			    			NewObjectWizard newObjectWizard = new NewObjectWizard(dbo, "com.twinsoft.convertigo.beans.core.ExtractionRule",source,null);
-			        		WizardDialog wzdlg = new WizardDialog(Display.getDefault().getActiveShell(), newObjectWizard);
-			        		wzdlg.setPageSize(850, 650);
-			        		wzdlg.open();
-			        		needReload = true;
-						}
-						break;
-						
-					default:
-						break;
+					}
+					break;
+
+				case ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES:
+					if (dbo instanceof HtmlScreenClass) {
+						// Creates an inherited screen class with an XPath criteria for this screen class
+						HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority + 1);
+						((HtmlScreenClass)dbo).addInheritedScreenClass(newSc);
+						newSc.addCriteria(createXPath(source));
+						needReload = true;
+					}
+					break;
+
+				case ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES:
+					if (dbo instanceof HtmlScreenClass) {
+						NewObjectWizard newObjectWizard = new NewObjectWizard(dbo, "com.twinsoft.convertigo.beans.core.ExtractionRule",source,null);
+						WizardDialog wzdlg = new WizardDialog(Display.getDefault().getActiveShell(), newObjectWizard);
+						wzdlg.setPageSize(850, 650);
+						wzdlg.open();
+						needReload = true;
+					}
+					break;
+
+				default:
+					break;
 				}
-				
+
 				if (needReload)
 					reloadTreeObject(explorerView, folderTreeObject.getParent());
 			}
@@ -1308,13 +1308,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					}
 					// Add new row with xpath
 					else if (targetTreeObject instanceof PropertyTableTreeObject) {
-//						// See Ticket #679 : Drag and drop without Control
-//						PropertyTableTreeObject description = (PropertyTableTreeObject)targetTreeObject;
-//						pto = description.addNewRow();
-//						needReload = true;
-//						if ((pto != null) && (pto instanceof IXPathable)) {
-//							((IXPathable)pto).setXpath("."+source);
-//						}
+						//						// See Ticket #679 : Drag and drop without Control
+						//						PropertyTableTreeObject description = (PropertyTableTreeObject)targetTreeObject;
+						//						pto = description.addNewRow();
+						//						needReload = true;
+						//						if ((pto != null) && (pto instanceof IXPathable)) {
+						//							((IXPathable)pto).setXpath("."+source);
+						//						}
 						String label = ((PropertyTableTreeObject)targetTreeObject).getRowDefaultLabel().toLowerCase();
 						throw new EngineException("Please hold on the 'Ctrl' key while dragging to create a new "+label);
 					}
@@ -1339,18 +1339,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 					}
 				}
-				
+
 				if (needReload) {
 					pto = (pto == null) ? (IPropertyTreeObject)targetTreeObject:pto;
 					targetTreeObject = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
-		    		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-		   				//reloadTreeObject(explorerView, targetTreeObject);
-			    		
-    					TreeParent treeParent = targetTreeObject.getParent();
-    					if (treeParent instanceof FolderTreeObject)
-    						treeParent = treeParent.getParent();
-				    	explorerView.objectChanged(new CompositeEvent(treeParent.getObject(),pto.getPath()));
-		    		}
+					if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+						//reloadTreeObject(explorerView, targetTreeObject);
+
+						TreeParent treeParent = targetTreeObject.getParent();
+						if (treeParent instanceof FolderTreeObject)
+							treeParent = treeParent.getParent();
+						explorerView.objectChanged(new CompositeEvent(treeParent.getObject(),pto.getPath()));
+					}
 				}
 			}
 		}
@@ -1358,7 +1358,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 				final DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)targetTreeObject;
 				dbo = (DatabaseObject)targetTreeObject.getObject();
-				
+
 				final Set<PropertyDescriptor> propertyDescriptors = new TreeSet<PropertyDescriptor>(new Comparator<PropertyDescriptor>() {
 
 					@Override
@@ -1366,34 +1366,34 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						return o1.getDisplayName().compareTo(o2.getDisplayName());
 					}
 				});
-				
+
 				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.smartType));
 				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.sourceDefinition));
 				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.sourcesDefinition));
-				
+
 				if (!propertyDescriptors.isEmpty()) {
 					// Retrieve Source definition
 					final XMLVector<String> sourceDefinition = new XMLVector<String>(2);
 					sourceDefinition.add(((StepSource) data).getPriority());
 					sourceDefinition.add(((StepSource) data).getXpath());
-					
+
 					SelectionListener selectionListener = new SelectionListener() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							PropertyDescriptor propertyDescriptor = (e == null) ?
 									propertyDescriptors.iterator().next() :
-									(PropertyDescriptor) e.widget.getData();
+										(PropertyDescriptor) e.widget.getData();
 							String propertyName = propertyDescriptor.getName();
-							
+
 							if (propertyDescriptor.getPropertyType().isAssignableFrom(SmartType.class)) {
 								SmartType smartType = new SmartType();
 								smartType.setMode(Mode.SOURCE);
 								smartType.setSourceDefinition(sourceDefinition);
-								
+
 								databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getName(), smartType);
 							} else if (propertyName.equals("sourceDefinition")) {
 								// Use setPropertyValue in order to set object's value and fire necessary events
-								databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getName(), sourceDefinition);							
+								databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getName(), sourceDefinition);
 							} else if (propertyName.equals("sourcesDefinition")) {
 								try {
 									XMLVector<XMLVector<Object>> sourcesDefinition = GenericUtils.cast(propertyDescriptor.getReadMethod().invoke(dbo));
@@ -1408,32 +1408,32 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									ConvertigoPlugin.logError("failed to add to sourcesDefinition of " + dbo.getName());
 								}
 							}
-							
+
 							// Properties view needs to be refreshed
 							refreshPropertiesView(explorerView, databaseObjectTreeObject);
 						}
-						
+
 						@Override
 						public void widgetDefaultSelected(SelectionEvent e) {
 						}
 					};
-					
+
 					if (propertyDescriptors.size() == 1) {
 						selectionListener.widgetSelected(null);
 					} else {
 						Shell shell = ConvertigoPlugin.getMainShell();
 						Menu dropMenu = new Menu(shell, SWT.POP_UP);
-		                shell.setMenu(dropMenu);
-		                
-		                for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
-			                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
-			                itemCheck.setText(propertyDescriptor.getDisplayName());
-			                itemCheck.setData(propertyDescriptor);
-			                itemCheck.addSelectionListener(selectionListener);
-		                }
-		                dropMenu.setVisible(true);
+						shell.setMenu(dropMenu);
+
+						for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
+							MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+							itemCheck.setText(propertyDescriptor.getDisplayName());
+							itemCheck.setData(propertyDescriptor);
+							itemCheck.addSelectionListener(selectionListener);
+						}
+						dropMenu.setVisible(true);
 					}
-				}				
+				}
 			}
 		}
 		else if (data instanceof PaletteSource) {
@@ -1442,7 +1442,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
 					targetTreeObject = folderTreeObject.getParent();
 				}
-				
+
 				if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 					boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
 					boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
@@ -1451,7 +1451,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						targetTreeObject = dbotree.getParent();
 					}
 					DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
-					
+
 					String xmlData = ((PaletteSource)data).getXmlData();
 					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 					Element rootElement = document.getDocumentElement();
@@ -1461,10 +1461,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					Node node;
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE) {
+						DatabaseObject dbop = null;
 						for (int i = 0 ; i < len ; i++) {
 							node = (Node) nodeList.item(i);
 							if (node.getNodeType() != Node.TEXT_NODE) {
-								DatabaseObject dbop = paste(node, parent, true);
+								dbop = paste(node, parent, true);
 								if (dbop == null) {
 									throw new Exception();
 								}
@@ -1485,6 +1486,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
 							}
 						}
+						if (dbop != null) {
+							reloadTreeObject(explorerView, dbotree.findTreeObjectByUserObject(dbop));
+						}
 					}
 				}
 				else {
@@ -1497,12 +1501,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		else if (data instanceof MobileSource) {
 			try {
 				String jsonString = ((MobileSource)data).getJsonString();
-				
+
 				if (targetTreeObject instanceof MobileUIComponentTreeObject) {
 					Shell shell = ConvertigoPlugin.getMainShell();
 					Menu dropMenu = new Menu(shell, SWT.POP_UP);
-	                shell.setMenu(dropMenu);
-					
+					shell.setMenu(dropMenu);
+
 					MobileUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
 						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
@@ -1510,19 +1514,19 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (!cspd.isReadOnly()) {
 								String propertyName = (String) cspd.getId();
 								String propertyLabel = (String) cspd.getDisplayName();
-				                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
-				                itemCheck.setText(propertyLabel);
-				                itemCheck.addSelectionListener(new SelectionListener() {
+								MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+								itemCheck.setText(propertyLabel);
+								itemCheck.addSelectionListener(new SelectionListener() {
 									@Override
 									public void widgetSelected(SelectionEvent e) {
 										com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType cst = new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType();
 										cst.setMode(com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode.SOURCE);
 										cst.setSmartValue(jsonString);
-										
+
 										mcto.setPropertyValue(propertyName, cst);
 										refreshPropertiesView(explorerView, mcto);
 									}
-									
+
 									@Override
 									public void widgetDefaultSelected(SelectionEvent e) {
 									}
@@ -1535,28 +1539,28 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				if (targetTreeObject instanceof NgxUIComponentTreeObject) {
 					Shell shell = ConvertigoPlugin.getMainShell();
 					Menu dropMenu = new Menu(shell, SWT.POP_UP);
-	                shell.setMenu(dropMenu);
-					
-	                NgxUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
+					shell.setMenu(dropMenu);
+
+					NgxUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
 						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
 							NgxSmartSourcePropertyDescriptor cspd = GenericUtils.cast(descriptor);
 							if (!cspd.isReadOnly()) {
 								String propertyName = (String) cspd.getId();
 								String propertyLabel = (String) cspd.getDisplayName();
-				                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
-				                itemCheck.setText(propertyLabel);
-				                itemCheck.addSelectionListener(new SelectionListener() {
+								MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+								itemCheck.setText(propertyLabel);
+								itemCheck.addSelectionListener(new SelectionListener() {
 									@Override
 									public void widgetSelected(SelectionEvent e) {
 										com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType cst = new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType();
 										cst.setMode(com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode.SOURCE);
 										cst.setSmartValue(jsonString);
-										
+
 										mcto.setPropertyValue(propertyName, cst);
 										refreshPropertiesView(explorerView, mcto);
 									}
-									
+
 									@Override
 									public void widgetDefaultSelected(SelectionEvent e) {
 									}
@@ -1565,7 +1569,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 					}
 					dropMenu.setVisible(true);
-					
+
 				}
 				else {
 					throw new Exception();
@@ -1575,23 +1579,23 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 	}
-	
+
 	private void reloadTreeObject(ProjectExplorerView explorerView, TreeObject treeObject) throws EngineException, IOException {
-        explorerView.reloadTreeObject(treeObject);
-        explorerView.setSelectedTreeObject(treeObject);
-        
-        // Properties view needs to be refreshed
-        refreshPropertiesView(explorerView, treeObject);
+		explorerView.reloadTreeObject(treeObject);
+		explorerView.setSelectedTreeObject(treeObject);
+
+		// Properties view needs to be refreshed
+		refreshPropertiesView(explorerView, treeObject);
 	}
 
 	private void refreshPropertiesView(ProjectExplorerView explorerView, TreeObject treeObject) {
 		StructuredSelection structuredSelection = new StructuredSelection(treeObject);
-		
+
 		PropertySheet propertySheet = ConvertigoPlugin.getDefault().getPropertiesView();
 		propertySheet.partActivated(explorerView);
 		propertySheet.selectionChanged(explorerView, structuredSelection);
 	}
-	
+
 	private XPath createXPath(String source) throws EngineException {
 		XPath xpCriterion = new XPath();
 		xpCriterion.setXpath(source);
@@ -1599,7 +1603,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		xpCriterion.bNew = true;
 		return xpCriterion;
 	}
-	
+
 	private HtmlScreenClass createHtmlScreenClass(long priority) throws EngineException {
 		HtmlScreenClass htmlSc = new HtmlScreenClass();
 		htmlSc.priority = priority;
@@ -1607,5 +1611,5 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		htmlSc.bNew = true;
 		return htmlSc;
 	}
-	
+
 }

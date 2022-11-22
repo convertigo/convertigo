@@ -4126,6 +4126,14 @@
       </view>
       <view
             category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
+            icon="icons/palette_16x16.png"
+            id="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
+            name="Palette"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
             icon="icons/palette_16x16.png"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
