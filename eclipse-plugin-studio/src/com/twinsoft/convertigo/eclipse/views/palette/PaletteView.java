@@ -31,9 +31,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
@@ -61,6 +63,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -130,12 +133,12 @@ public class PaletteView extends ViewPart {
 		String searchText() {
 			return searchText;
 		}
-		
+
 		@Override
 		public int compareTo(Item o) {
 			return name().compareTo(o.name());
 		}
-		
+
 		abstract Image image();
 		abstract String id();
 		abstract String name();
@@ -192,11 +195,15 @@ public class PaletteView extends ViewPart {
 
 	public void init(Composite parent) {
 		GridLayout gl;
+		GridData gd;
+		RowLayout rl;
 		SashForm sash = new SashForm(parent, SWT.HORIZONTAL);
+		RGB rgb = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND).getRGB();
+		sash.setData("style", "background-color: rgb(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ")");
 
 		Composite left = new Composite(sash, SWT.NONE);
 		left.setLayout(gl = new GridLayout(1, true));
-		gl.marginHeight = gl.marginWidth = 0;
+		gl.marginHeight = gl.marginWidth = gl.verticalSpacing = 0;
 
 		Composite search = new Composite(left, SWT.NONE);
 		search.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -233,25 +240,35 @@ public class PaletteView extends ViewPart {
 				searchText.setText("");
 			}
 		});
+		Composite topBag = new Composite(left, SWT.NONE);
+		topBag.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		topBag.setLayout(rl = new RowLayout());
+		rl.marginTop = rl.marginRight = rl.marginBottom = rl.marginLeft = 0;
+
+		Composite border = new Composite(left, SWT.NONE);
+		border.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
+		gd.heightHint = 1;
+		border.setData("style", "background-color: rgb(0, 200, 247)");
 
 		ScrolledComposite scroll = new ScrolledComposite(left, SWT.V_SCROLL);
+		scroll.setData("style", "color: inherit; background-color: inherit");
 		scroll.setExpandVertical(true);
 		scroll.setExpandHorizontal(true);
 		scroll.setLayoutData(new GridData(GridData.FILL_BOTH));
-		scroll.setMinHeight(50000);
 
 		Composite bag = new Composite(scroll, SWT.NONE);
+		bag.setData("style", "color: inherit; background-color: inherit");
 		scroll.setContent(bag);
-		RowLayout rowLayout = new RowLayout();
-		bag.setLayout(rowLayout);
-		
+		bag.setLayout(rl = new RowLayout());
+		rl.marginTop = rl.marginRight = rl.marginBottom = rl.marginLeft = 0;
+
 		Composite right = new Composite(sash, SWT.NONE);
 		right.setLayout(gl = new GridLayout(1, false));
-		
+
 		CLabel fav = new CLabel(right, SWT.NONE);
 		fav.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		fav.setCursor(handCursor);
-		
+
 		Runnable updateFav = () -> {
 			Control latestSelected = (Control) bag.getData("LatestSelected");
 			fav.setEnabled(false);
@@ -269,16 +286,16 @@ public class PaletteView extends ViewPart {
 					}
 				}
 			}
-			
+
 			fav.setText("Add to favorite");
 			try {
 				fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/unstar_32x32.png"));
 			} catch (IOException e1) {
 			}
 		};
-		
+
 		updateFav.run();
-		
+
 		fav.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
@@ -304,10 +321,9 @@ public class PaletteView extends ViewPart {
 				updateFav.run();
 			}
 		});
-		
+
 		C8oBrowser browser = new C8oBrowser(right, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.setBackground(parent.getBackground());
 		browser.setUseExternalBrowser(true);
 
 		MouseListener mouseListener = new MouseAdapter() {
@@ -322,14 +338,13 @@ public class PaletteView extends ViewPart {
 				}
 				Control latestSelected = (Control) bag.getData("LatestSelected");
 				if (latestSelected != null) {
-					latestSelected.setData("style", null);
+					latestSelected.setData("style", "color: inherit; background-color: inherit");
 				}
 				bag.setData("LatestSelected", c);
 				c.setData("style", "color: blue; background-color: lightcyan");
-				CompositeElement.getEngine(bag).applyStyles(bag, true);
-				
+				CompositeElement.getEngine(sash).applyStyles(sash, true);
+
 				String propertiesDescription = item.propertiesDescription();
-				browser.setBackground(parent.getBackground());
 				browser.setText("<html>" +
 						"<head>" +
 						"<script type=\"text/javascript\">" +
@@ -344,9 +359,9 @@ public class PaletteView extends ViewPart {
 						"background-color: $background$ } \n" +
 						"a { color: $link$; }" +
 						"</style>" +
-						"</head><body><p>" 
-						+ "<font size=\"4.5\"><u><b>" + item.name() + "</b></u></font>" + "<br><br>" 
-						+ "<i>" + item.shortDescription() + "</i>" + "<br><br>" 
+						"</head><body><p>"
+						+ "<font size=\"4.5\"><u><b>" + item.name() + "</b></u></font>" + "<br><br>"
+						+ "<i>" + item.shortDescription() + "</i>" + "<br><br>"
 						+ item.longDescription() + "<br><br>"
 						+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
 						+ propertiesDescription
@@ -376,9 +391,14 @@ public class PaletteView extends ViewPart {
 							BeanInfo bi = (BeanInfo) beanInfoClass.getConstructor().newInstance();
 							BeanDescriptor bd = bi.getBeanDescriptor();
 							String description = b.isDocumented() ? bd.getShortDescription() : "Not yet documented |";
+							String i = cn;
+							for (int j = 1; all.containsKey(i);j++) {
+								i = cn + j;
+							}
+							String id = i;
 							Class<?> cls = Class.forName(cn);
 							Constructor<?> constructor = cls.getConstructor();
-							all.put(cn, new Item() {
+							all.put(id, new Item() {
 
 								@Override
 								public String category() {
@@ -433,7 +453,7 @@ public class PaletteView extends ViewPart {
 											return o1.getDisplayName().compareTo(o2.getDisplayName());
 										} else if(o1.isExpert()) {
 											return 1;
-										} else { 
+										} else {
 											return -1;
 										}
 									});
@@ -450,7 +470,7 @@ public class PaletteView extends ViewPart {
 
 								@Override
 								String id() {
-									return cn;
+									return id;
 								}
 							});
 						}
@@ -537,7 +557,7 @@ public class PaletteView extends ViewPart {
 					}
 				});
 			}
-			
+
 			String pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.favorites");
 			if (StringUtils.isNotBlank(pref)) {
 				for (String h: pref.split(",")) {
@@ -555,14 +575,16 @@ public class PaletteView extends ViewPart {
 					}
 				}
 			}
-			
+
 			MakeLabel makeLabel = (p, txt) -> {
-				Label lb = new Label(bag, SWT.NONE);
-				RowData r = new RowData();
-				lb.setLayoutData(r);
-				r.width = 4000;
-				lb.setText("  " + txt);
-				lb.setData("style", "color: black; background-color: grey");
+				Label lb = new Label(p, SWT.NONE);
+				RowData rowData = new RowData();
+				lb.setLayoutData(rowData);
+				rowData.width = 4000;
+				rowData.exclude = true;
+				lb.setVisible(false);
+				lb.setText("    " + txt);
+				lb.setData("style", "color: black; background-color: lightgrey");
 				lb.setData("Label", txt);
 				return lb;
 			};
@@ -575,18 +597,22 @@ public class PaletteView extends ViewPart {
 						text = text.substring(0, id) + '\n' + text.substring(id + 1);
 					} else {
 						id = Math.min(18, text.length() / 2);
+						text = text.substring(0, id) + '\n' + text.substring(id);
 					}
 				}
 				CLabel clabel = new CLabel(p, SWT.NONE);
 				RowData rowData = new RowData();
 				clabel.setLayoutData(rowData);
 				rowData.width = 160;
+				rowData.exclude = true;
+				clabel.setVisible(false);
 				clabel.setImage(item.image());
 				clabel.setText(text);
 				clabel.setAlignment(SWT.LEFT);
 				clabel.setToolTipText(RegexpUtils.removeTag.matcher(item.shortDescription()).replaceAll(""));
 				clabel.setCursor(handCursor);
 				clabel.setData("Item", item);
+				clabel.setData("style", "color: inherit; background-color: inherit");
 				clabel.addMouseListener(mouseListener);
 
 				DragSource source = new DragSource(clabel, operations);
@@ -595,8 +621,8 @@ public class PaletteView extends ViewPart {
 				return clabel;
 			};
 
-			Control favoriteslabel = makeLabel.make(bag, "Favorites");
-			Control lastUsedlabel = makeLabel.make(bag, "Last used");
+			Control favoriteslabel = makeLabel.make(topBag, "Favorites");
+			Control lastUsedlabel = makeLabel.make(topBag, "Last used");
 
 			for (Item item: all.values()) {
 				if (!item.category().equals(lastParent)
@@ -637,8 +663,8 @@ public class PaletteView extends ViewPart {
 					boolean empty = true;
 					for (Control c: bag.getChildren()) {
 						Item item = (Item) c.getData("Item");
-						boolean ok = c.getData("Clone") == null;
-						if (ok && item != null) {
+						boolean ok = false;
+						if (item != null) {
 							ok = selected != null;
 							ok = ok && item.allowedIn(selected);
 							if (empty && ok) {
@@ -653,11 +679,15 @@ public class PaletteView extends ViewPart {
 								}
 							}
 						} else if (c.getData("Label") != null) {
-							ok = false;
 							headerLabel = c;
 						}
 						c.setVisible(ok);
 						((RowData) c.getLayoutData()).exclude = !ok;
+					}
+
+					for (Control c: topBag.getChildren()) {
+						c.setVisible(false);
+						((RowData) c.getLayoutData()).exclude = true;
 					}
 
 					if (!empty) {
@@ -667,41 +697,46 @@ public class PaletteView extends ViewPart {
 							Control existing = null;
 							for (Control c: bag.getChildren()) {
 								if (lu.equals(c.getData("Item"))) {
-									if (c.getData("Clone") != null) {
-										existing = c;
-									} else if (c.isVisible()) {
+									if (c.isVisible()) {
+										for (Control tc: topBag.getChildren()) {
+											if (lu.equals(tc.getData("Item"))) {
+												existing = tc;
+												break;
+											}
+										}
 										found = true;
 										if (existing == null) {
-											existing = makeItem.make(bag, lu);
-											existing.setData("Clone", Boolean.TRUE);
+											existing = makeItem.make(topBag, lu);
 										}
-
 										existing.moveBelow(moveBelow);
 										moveBelow = existing;
 										existing.setVisible(true);
 										((RowData) existing.getLayoutData()).exclude = false;
-										break;
 									}
+									break;
 								}
 							}
 						}
 						favoriteslabel.setVisible(found);
 						((RowData) favoriteslabel.getLayoutData()).exclude = !found;
-						
+
 						found = false;
 						moveBelow = lastUsedlabel;
 						int maxVisible = MAX_USED_VISIBLE;
 						for (Item lu: lastUsed) {
 							Control existing = null;
 							for (Control c: bag.getChildren()) {
-								if (lu.equals(c.getData("Item")) && !favorites.contains(lu)) {
-									if (c.getData("Clone") != null) {
-										existing = c;
-									} else if (c.isVisible()) {
+								if (lu.equals(c.getData("Item"))) {
+									if (c.isVisible() && !favorites.contains(lu)) {
+										for (Control tc: topBag.getChildren()) {
+											if (lu.equals(tc.getData("Item"))) {
+												existing = tc;
+												break;
+											}
+										}
 										found = true;
 										if (existing == null) {
-											existing = makeItem.make(bag, lu);
-											existing.setData("Clone", Boolean.TRUE);
+											existing = makeItem.make(topBag, lu);
 										}
 
 										existing.moveBelow(moveBelow);
@@ -711,6 +746,7 @@ public class PaletteView extends ViewPart {
 										maxVisible--;
 										break;
 									}
+									break;
 								}
 							}
 							if (maxVisible == 0) {
@@ -728,34 +764,32 @@ public class PaletteView extends ViewPart {
 					}
 
 					int clear = MAX_USED_VISIBLE;
-					for (Control c: bag.getChildren()) {
-						if (c.getData("Clone") != null) {
+					for (Control c: topBag.getChildren()) {
+						Object o = c.getData("Item");
+						if (o != null && !favorites.contains(o)) {
 							if (clear-- < 0) {
 								c.dispose();
 							}
-						} else if (c.getData("Item") != null) {
-							break;
 						}
 					}
 
 					Control lastSelected = (Control) bag.getData("LatestSelected");
 					if (lastSelected == null || !lastSelected.isVisible()) {
-						for (Control c: bag.getChildren()) {
-							if (c.getData("Item") != null && c.isVisible()) {
-								Event event = new Event();
-								event.widget = c;
-								c.notifyListeners(SWT.MouseDown, event);
-								break;
-							}
+						Optional<Control> opt = Stream.concat(Arrays.stream(topBag.getChildren()), Arrays.stream(bag.getChildren()))
+								.filter(c -> c.getData("Item") != null && c.isVisible()).findFirst();
+						if (opt.isPresent()) {
+							Event event = new Event();
+							event.widget = opt.get();
+							event.widget.notifyListeners(SWT.MouseDown, event);
 						}
 					}
 					bag.setData("last", last);
-					bag.layout();
+					left.layout(true, true);
 					bag.notifyListeners(SWT.Resize, new Event());
 				}
 
 			});
-			
+
 			Runnable initPev = () -> {
 				ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 				if (pev == null) {
@@ -791,7 +825,7 @@ public class PaletteView extends ViewPart {
 				pev.addSelectionChangedListener(selectionListener);
 				selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
 			};
-			
+
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener2() {
 				@Override
 				public void partOpened(IWorkbenchPartReference partRef) {
@@ -800,15 +834,15 @@ public class PaletteView extends ViewPart {
 						return;
 					}
 					if (partRef.getPart(false) instanceof ProjectExplorerView) {
-						initPev.run();
+						ConvertigoPlugin.asyncExec(initPev);
 					}
 				}
 			});
-			
-			initPev.run();
-			searchText.notifyListeners(SWT.Modify, new Event());
+
 			sash.setWeights(70, 30);
 			parent.layout(true);
+
+			ConvertigoPlugin.asyncExec(initPev);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
