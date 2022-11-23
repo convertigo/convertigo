@@ -37,7 +37,7 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 	
 	private static IFile getTmpFile(Connector connector, String filename) {
 		try {
-			return ConvertigoPlugin.getDefault().getProjectPluginResource(connector.getProject().getName()).getFile("_private/editor/" + filename);
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(connector.getProject().getName()).getFile("_private/editor/" + connector.getShortQName() + "/" + filename);
 		} catch (Exception e) {
 		}
 		return null;
