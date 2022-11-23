@@ -750,33 +750,39 @@
                minimized="false"
                relative="org.eclipse.egit.ui.RepositoriesView"/>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+               id="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
                ratio="0.35"
                relationship="left"
                relative="org.eclipse.ui.editorss"/>
          <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
+         </view>
+         <view
                id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
          </view>
          <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>

@@ -277,7 +277,7 @@ public class PaletteView extends ViewPart {
 				if (item != null) {
 					fav.setEnabled(true);
 					if (favorites.contains(item)) {
-						fav.setText("Remove from favorite");
+						fav.setText("Remove\nfrom favorite");
 						try {
 							fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_32x32.png"));
 						} catch (IOException e1) {
@@ -287,7 +287,7 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
-			fav.setText("Add to favorite");
+			fav.setText("Add to\nfavorite");
 			try {
 				fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/unstar_32x32.png"));
 			} catch (IOException e1) {
