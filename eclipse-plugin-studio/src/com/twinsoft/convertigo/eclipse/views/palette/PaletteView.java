@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -101,13 +102,11 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class PaletteView extends ViewPart {
 	protected static final int MAX_USED_HISTORY = 50;
-	protected static final int MAX_USED_VISIBLE = 9;
+	protected static final int MAX_USED_VISIBLE = 8;
 
 	private Cursor handCursor;
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
-	private Deque<Item> lastUsed = new LinkedList<>();
-	private Set<Item> favorites = new TreeSet<>();
 	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
 
 	abstract class Item implements Comparable<Item> {
@@ -157,6 +156,10 @@ public class PaletteView extends ViewPart {
 		Control make(Composite parent, String txt);
 	}
 
+	private interface UpdateLabel {
+		void update(CLabel label);
+	}
+
 	public PaletteView() {
 	}
 
@@ -194,6 +197,11 @@ public class PaletteView extends ViewPart {
 	}
 
 	public void init(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
+		Deque<Item> lastUsed = new LinkedList<>();
+		Set<Item> favorites = new TreeSet<>();
+		Set<String> hiddenCategories = new HashSet<>();
+		
 		GridLayout gl;
 		GridData gd;
 		RowLayout rl;
@@ -229,7 +237,7 @@ public class PaletteView extends ViewPart {
 
 		CLabel clear = new CLabel(search, SWT.NONE);
 		try {
-			clear.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/delete.gif"));
+			clear.setImage(plugin.getStudioIcon("icons/studio/delete.gif"));
 		} catch (IOException e2) {
 			clear.setText("X");
 		}
@@ -243,7 +251,7 @@ public class PaletteView extends ViewPart {
 		Composite topBag = new Composite(left, SWT.NONE);
 		topBag.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		topBag.setLayout(rl = new RowLayout());
-		rl.marginTop = rl.marginRight = rl.marginBottom = rl.marginLeft = 0;
+		rl.marginTop = rl.marginRight = rl.marginLeft = 0;
 
 		Composite border = new Composite(left, SWT.NONE);
 		border.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
@@ -576,16 +584,55 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
+			pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.hiddenCategories");
+			if (StringUtils.isNotBlank(pref)) {
+				hiddenCategories.clear();
+				for (String h: pref.split(",")) {
+					hiddenCategories.add(h);
+				}
+			}
+			
+			UpdateLabel updateLabel = (lb) -> {
+				try {
+					if (lb.getData("Show") == Boolean.TRUE) {
+						lb.setImage(plugin.getStudioIcon("icons/studio/show.gif"));
+					} else {
+						lb.setImage(plugin.getStudioIcon("icons/studio/hide.gif"));
+					}
+				} catch (IOException e1) {
+				}
+			};
+			
 			MakeLabel makeLabel = (p, txt) -> {
-				Label lb = new Label(p, SWT.NONE);
+				CLabel lb = new CLabel(p, SWT.NONE);
 				RowData rowData = new RowData();
 				lb.setLayoutData(rowData);
 				rowData.width = 4000;
 				rowData.exclude = true;
 				lb.setVisible(false);
 				lb.setText("    " + txt);
+				lb.setAlignment(SWT.LEFT);
 				lb.setData("style", "color: black; background-color: lightgrey");
 				lb.setData("Label", txt);
+				lb.setData("Show", !hiddenCategories.contains(txt));
+				updateLabel.update(lb);
+				lb.setCursor(handCursor);
+				lb.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent e) {
+						boolean show = lb.getData("Show") != Boolean.TRUE;
+						lb.setData("Show", show);
+						updateLabel.update(lb);
+						if (show) {
+							hiddenCategories.remove(txt);
+						} else {
+							hiddenCategories.add(txt);
+						}
+						String str = hiddenCategories.stream().collect(Collectors.joining(","));
+						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.hiddenCategories", str);
+						searchText.notifyListeners(SWT.Modify, new Event());
+					}
+				});
 				return lb;
 			};
 
@@ -633,15 +680,17 @@ public class PaletteView extends ViewPart {
 			}
 
 			bag.addControlListener(new ControlListener() {
-
 				@Override
 				public void controlResized(ControlEvent e) {
 					ConvertigoPlugin.asyncExec(() -> {
 						int min = -1;
-						Control last = (Control) bag.getData("last");
-						if (last != null) {
-							Rectangle r = last.getBounds();
-							min = r.y + r.height;
+						Control[] children = bag.getChildren();
+						for (int i = children.length - 1; i >= 0; i--) {
+							if (children[i].isVisible()) {
+								Rectangle r = children[i].getBounds();
+								min = r.y + r.height;
+								break;
+							}
 						}
 						scroll.setMinHeight(min);
 					});
@@ -653,11 +702,12 @@ public class PaletteView extends ViewPart {
 			});
 
 			searchText.addModifyListener(new ModifyListener() {
-
 				@Override
 				public void modifyText(ModifyEvent e) {
 					String text = searchText.getText().toLowerCase();
-					Control last = null;
+					favoriteslabel.setEnabled(text.isEmpty());
+					lastUsedlabel.setEnabled(text.isEmpty());
+					
 					DatabaseObject selected = (DatabaseObject) bag.getData("selected");
 					Control headerLabel = null;
 					boolean empty = true;
@@ -671,15 +721,17 @@ public class PaletteView extends ViewPart {
 								empty = false;
 							}
 							ok = ok && (text.isEmpty() || item.searchText().contains(text));
+							c.setData("Ok", ok);
 							if (ok) {
-								last = c;
 								if (headerLabel != null && headerLabel.getData("Label").equals(item.category())) {
 									headerLabel.setVisible(true);
 									((RowData) headerLabel.getLayoutData()).exclude = false;
+									ok = !text.isEmpty() || headerLabel.getData("Show") == Boolean.TRUE;
 								}
 							}
 						} else if (c.getData("Label") != null) {
 							headerLabel = c;
+							c.setEnabled(text.isEmpty());
 						}
 						c.setVisible(ok);
 						((RowData) c.getLayoutData()).exclude = !ok;
@@ -693,65 +745,73 @@ public class PaletteView extends ViewPart {
 					if (!empty) {
 						boolean found = false;
 						Control moveBelow = favoriteslabel;
-						for (Item lu: favorites) {
-							Control existing = null;
-							for (Control c: bag.getChildren()) {
-								if (lu.equals(c.getData("Item"))) {
-									if (c.isVisible()) {
-										for (Control tc: topBag.getChildren()) {
-											if (lu.equals(tc.getData("Item"))) {
-												existing = tc;
-												break;
+						if (!text.isEmpty() || favoriteslabel.getData("Show") == Boolean.TRUE) {
+							for (Item lu: favorites) {
+								Control existing = null;
+								for (Control c: bag.getChildren()) {
+									if (lu.equals(c.getData("Item"))) {
+										if (c.getData("Ok") == Boolean.TRUE) {
+											for (Control tc: topBag.getChildren()) {
+												if (lu.equals(tc.getData("Item"))) {
+													existing = tc;
+													break;
+												}
 											}
+											found = true;
+											if (existing == null) {
+												existing = makeItem.make(topBag, lu);
+											}
+											existing.moveBelow(moveBelow);
+											moveBelow = existing;
+											existing.setVisible(true);
+											((RowData) existing.getLayoutData()).exclude = false;
 										}
-										found = true;
-										if (existing == null) {
-											existing = makeItem.make(topBag, lu);
-										}
-										existing.moveBelow(moveBelow);
-										moveBelow = existing;
-										existing.setVisible(true);
-										((RowData) existing.getLayoutData()).exclude = false;
+										break;
 									}
-									break;
 								}
 							}
+						} else {
+							found = true;
 						}
 						favoriteslabel.setVisible(found);
 						((RowData) favoriteslabel.getLayoutData()).exclude = !found;
 
 						found = false;
 						moveBelow = lastUsedlabel;
-						int maxVisible = MAX_USED_VISIBLE;
-						for (Item lu: lastUsed) {
-							Control existing = null;
-							for (Control c: bag.getChildren()) {
-								if (lu.equals(c.getData("Item"))) {
-									if (c.isVisible() && !favorites.contains(lu)) {
-										for (Control tc: topBag.getChildren()) {
-											if (lu.equals(tc.getData("Item"))) {
-												existing = tc;
-												break;
+						if (!text.isEmpty() || moveBelow.getData("Show") == Boolean.TRUE) {
+							int maxVisible = MAX_USED_VISIBLE;
+							for (Item lu: lastUsed) {
+								Control existing = null;
+								for (Control c: bag.getChildren()) {
+									if (lu.equals(c.getData("Item"))) {
+										if (c.getData("Ok") == Boolean.TRUE && !favorites.contains(lu)) {
+											for (Control tc: topBag.getChildren()) {
+												if (lu.equals(tc.getData("Item"))) {
+													existing = tc;
+													break;
+												}
 											}
-										}
-										found = true;
-										if (existing == null) {
-											existing = makeItem.make(topBag, lu);
-										}
+											found = true;
+											if (existing == null) {
+												existing = makeItem.make(topBag, lu);
+											}
 
-										existing.moveBelow(moveBelow);
-										moveBelow = existing;
-										existing.setVisible(true);
-										((RowData) existing.getLayoutData()).exclude = false;
-										maxVisible--;
+											existing.moveBelow(moveBelow);
+											moveBelow = existing;
+											existing.setVisible(true);
+											((RowData) existing.getLayoutData()).exclude = false;
+											maxVisible--;
+											break;
+										}
 										break;
 									}
+								}
+								if (maxVisible == 0) {
 									break;
 								}
 							}
-							if (maxVisible == 0) {
-								break;
-							}
+						} else {
+							found = true;
 						}
 						lastUsedlabel.setVisible(found);
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
@@ -783,11 +843,9 @@ public class PaletteView extends ViewPart {
 							event.widget.notifyListeners(SWT.MouseDown, event);
 						}
 					}
-					bag.setData("last", last);
 					left.layout(true, true);
 					bag.notifyListeners(SWT.Resize, new Event());
 				}
-
 			});
 
 			Runnable initPev = () -> {
