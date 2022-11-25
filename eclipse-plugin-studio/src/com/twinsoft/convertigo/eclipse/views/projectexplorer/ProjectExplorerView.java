@@ -159,7 +159,6 @@ import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
@@ -323,6 +322,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x11D;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT = 0x11E;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT = 0x11F;
+	
+	public static final int TREE_OBJECT_TYPE_DBO_REFERENCE = 0x120;
+	public static final int TREE_OBJECT_TYPE_DBO_VARIABLE = 0x121;
+	public static final int TREE_OBJECT_TYPE_DBO_INDEX = 0x122;
+	public static final int TREE_OBJECT_TYPE_DBO_MB_MENU = 0x123;
+	public static final int TREE_OBJECT_TYPE_DBO_MB_STYLE = 0x124;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -2924,126 +2929,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			DatabaseObject databaseObject = (DatabaseObject) treeNode.getObject();
 
-			if (databaseObject instanceof Project) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT;
-			}
-			else if (databaseObject instanceof Connector) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CONNECTOR;
-			}
-			else if (databaseObject instanceof Sequence) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE;
-			}
-			else if (databaseObject instanceof MobileApplication) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION;
-			}
-			else if (databaseObject instanceof MobilePlatform) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM;
-			}
-			/**************************************************************************************************/
-			/***                 com.twinsoft.convertigo.beans.mobile.components                           ****/
-			/**************************************************************************************************/
-			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
-				if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT;
-				}
-			}
-			/**************************************************************************************************/
-			/***                 com.twinsoft.convertigo.beans.ngx.components                              ****/
-			/**************************************************************************************************/
-			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
-				if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT;
-				}
-			}
-			else if (databaseObject instanceof UrlMapper) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPER;
-			}
-			else if (databaseObject instanceof UrlMapping) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPING;
-			}
-			else if (databaseObject instanceof UrlMappingOperation) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION;
-			}
-			else if (databaseObject instanceof UrlMappingParameter) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER;
-			}
-			else if (databaseObject instanceof UrlMappingResponse) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE;
-			}
-			else if (databaseObject instanceof Criteria) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CRITERIA;
-			}
-			else if (databaseObject instanceof ExtractionRule) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_EXTRACTION_RULE;
-			}
-			else if (databaseObject instanceof Pool) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_POOL;
-			}
-			else if (databaseObject instanceof Transaction) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_TRANSACTION;
-			}
-			else if (databaseObject instanceof BlockFactory) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_BLOCK_FACTORY;
-			}
-			else if (databaseObject instanceof Sheet) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SHEET;
-			}
-			else if (databaseObject instanceof StatementWithExpressions) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS;
-				if (databaseObject instanceof FunctionStatement) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;
-				}
-			}
-			else if (databaseObject instanceof Statement) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT;
-			}
-			else if (databaseObject instanceof StepWithExpressions) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS;
-				if (databaseObject instanceof FunctionStep) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;
-				}
-			}
-			else if (databaseObject instanceof Step) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP;
-			}
-			else if (databaseObject instanceof TestCase) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_TESTCASE;
-			}
-			else if (databaseObject instanceof ScreenClass) {
-				if (databaseObject.getParent() instanceof Project) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_ROOT_SCREEN_CLASS;
-				}
-				else {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS;
-				}
-			}
-			else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_DOCUMENT;
-			}
-			else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_LISTENER;
-			}
+			result = getDatabaseObjectType(databaseObject);
 
 			if (((DatabaseObjectTreeObject)treeNode).isInherited) {
 				result |= ProjectExplorerView.TREE_OBJECT_TYPE_DBO_INHERITED;
@@ -3053,6 +2939,145 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 
 		return ProjectExplorerView.TREE_OBJECT_TYPE_UNKNOWN;
+	}
+
+	public static int getDatabaseObjectType(DatabaseObject databaseObject) {
+		int result = 0;
+		if (databaseObject instanceof Project) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT;
+		}
+		else if (databaseObject instanceof Connector) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CONNECTOR;
+		}
+		else if (databaseObject instanceof Sequence) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE;
+		}
+		else if (databaseObject instanceof MobileApplication) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION;
+		}
+		else if (databaseObject instanceof MobilePlatform) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM;
+		}
+		/**************************************************************************************************/
+		/***                 com.twinsoft.convertigo.beans.mobile.components                           ****/
+		/**************************************************************************************************/
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+			if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu)
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MB_MENU;
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIStyle)
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MB_STYLE;
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT;
+			}
+		}
+		/**************************************************************************************************/
+		/***                 com.twinsoft.convertigo.beans.ngx.components                              ****/
+		/**************************************************************************************************/
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu)
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MB_MENU;
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle)
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MB_STYLE;
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT;
+			}
+		}
+		else if (databaseObject instanceof UrlMapper) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPER;
+		}
+		else if (databaseObject instanceof UrlMapping) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPING;
+		}
+		else if (databaseObject instanceof UrlMappingOperation) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION;
+		}
+		else if (databaseObject instanceof UrlMappingParameter) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER;
+		}
+		else if (databaseObject instanceof UrlMappingResponse) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE;
+		}
+		else if (databaseObject instanceof Criteria) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CRITERIA;
+		}
+		else if (databaseObject instanceof ExtractionRule) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_EXTRACTION_RULE;
+		}
+		else if (databaseObject instanceof Pool) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_POOL;
+		}
+		else if (databaseObject instanceof Transaction) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_TRANSACTION;
+		}
+		else if (databaseObject instanceof BlockFactory) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_BLOCK_FACTORY;
+		}
+		else if (databaseObject instanceof Sheet) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SHEET;
+		}
+		else if (databaseObject instanceof StatementWithExpressions) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS;
+			if (databaseObject instanceof FunctionStatement) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;
+			}
+		}
+		else if (databaseObject instanceof Statement) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT;
+		}
+		else if (databaseObject instanceof FunctionStep) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;
+		}
+		else if (databaseObject instanceof Step) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP;
+		}
+		else if (databaseObject instanceof TestCase) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_TESTCASE;
+		}
+		else if (databaseObject instanceof ScreenClass) {
+			if (databaseObject.getParent() instanceof Project) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_ROOT_SCREEN_CLASS;
+			}
+			else {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS;
+			}
+		}
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_DOCUMENT;
+		}
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_LISTENER;
+		}
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Reference) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_REFERENCE;
+		}
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Variable) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_VARIABLE;
+		}
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
+			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_INDEX;
+		}
+		return result;
 	}
 
 	public TreePath[] getSelectionPaths() {

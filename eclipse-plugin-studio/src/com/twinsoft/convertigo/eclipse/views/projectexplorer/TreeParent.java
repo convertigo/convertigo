@@ -156,4 +156,16 @@ public abstract class TreeParent extends TreeObject {
 			return children.size();
 		}
 	}
+	
+	public TreeObject getFirstChild() {
+		synchronized (children) {
+			return children.isEmpty() ? null : children.get(0);
+		}
+	}
+	
+	public TreeObject getLastChild() {
+		synchronized (children) {
+			return children.isEmpty() ? null : children.get(children.size() - 1);
+		}
+	}
 }

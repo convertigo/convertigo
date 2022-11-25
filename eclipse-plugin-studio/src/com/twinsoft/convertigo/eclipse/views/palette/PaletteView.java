@@ -91,6 +91,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -136,6 +137,10 @@ public class PaletteView extends ViewPart {
 		@Override
 		public int compareTo(Item o) {
 			return name().compareTo(o.name());
+		}
+		
+		boolean allowedIn(int folderType) {
+			return folderType == ProjectExplorerView.getDatabaseObjectType(newDatabaseObject());
 		}
 
 		abstract Image image();
@@ -201,7 +206,7 @@ public class PaletteView extends ViewPart {
 		Deque<Item> lastUsed = new LinkedList<>();
 		Set<Item> favorites = new TreeSet<>();
 		Set<String> hiddenCategories = new HashSet<>();
-		
+
 		GridLayout gl;
 		GridData gd;
 		RowLayout rl;
@@ -389,7 +394,8 @@ public class PaletteView extends ViewPart {
 						String beansName = bs.getName().isEmpty() ? categoryName : bs.getName();
 						for (DboBean b: bs.getBeans()) {
 							String cn = b.getClassName();
-							if (cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
+							if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
+									|| cn.startsWith("com.twinsoft.convertigo.beans.mobile.components."))
 									&& !cn.endsWith("PageComponent")) {
 								continue;
 							}
@@ -406,6 +412,7 @@ public class PaletteView extends ViewPart {
 							String id = i;
 							Class<?> cls = Class.forName(cn);
 							Constructor<?> constructor = cls.getConstructor();
+							DatabaseObject dbo = (DatabaseObject) constructor.newInstance();
 							all.put(id, new Item() {
 
 								@Override
@@ -434,19 +441,14 @@ public class PaletteView extends ViewPart {
 
 								@Override
 								DatabaseObject newDatabaseObject() {
-									try {
-										return (DatabaseObject) constructor.newInstance();
-									} catch (Exception e) {
-										e.printStackTrace();
-										return null;
-									}
+									return dbo;
 								}
 
 								@Override
 								boolean allowedIn(DatabaseObject parent) {
 									try {
 										return DatabaseObjectsManager.checkParent(parent.getClass(), b);
-									} catch (ClassNotFoundException e) {
+									} catch (Exception e) {
 										return false;
 									}
 								}
@@ -499,18 +501,23 @@ public class PaletteView extends ViewPart {
 							event.doit = true;
 							event.data = sXml;
 							PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
-							if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
-								lastUsed.removeFirstOccurrence(item);
-								lastUsed.addFirst(item);
-								while (lastUsed.size() > MAX_USED_HISTORY) {
-									lastUsed.pollLast();
-								}
-								String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
-								ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.history", str);
-							}
 						}
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
+					}
+				}
+
+				@Override
+				public void dragFinished(DragSourceEvent event) {
+					Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
+					if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
+						lastUsed.removeFirstOccurrence(item);
+						lastUsed.addFirst(item);
+						while (lastUsed.size() > MAX_USED_HISTORY) {
+							lastUsed.pollLast();
+						}
+						String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
+						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.history", str);
 					}
 				}
 
@@ -522,6 +529,7 @@ public class PaletteView extends ViewPart {
 
 			for (Component comp: ComponentManager.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
+				DatabaseObject dbo = ComponentManager.createBeanFromHint(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -546,7 +554,54 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return ComponentManager.createBeanFromHint(comp);
+						return dbo;
+					}
+
+					@Override
+					boolean allowedIn(DatabaseObject parent) {
+						return comp.isAllowedIn(parent);
+					}
+
+					@Override
+					String propertiesDescription() {
+						return comp.getPropertiesDescription();
+					}
+
+					@Override
+					String id() {
+						return id;
+					}
+				});
+			}
+
+			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
+				String id = "mb " + comp.getName();
+				DatabaseObject dbo = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
+				all.put(id, new Item() {
+
+					@Override
+					public String category() {
+						return comp.getGroup();
+					}
+
+					@Override
+					public String name() {
+						return comp.getLabel();
+					}
+
+					@Override
+					String description() {
+						return comp.getDescription();
+					}
+
+					@Override
+					Image image() {
+						return getImage(comp.getImagePath());
+					}
+
+					@Override
+					DatabaseObject newDatabaseObject() {
+						return dbo;
 					}
 
 					@Override
@@ -591,7 +646,7 @@ public class PaletteView extends ViewPart {
 					hiddenCategories.add(h);
 				}
 			}
-			
+
 			UpdateLabel updateLabel = (lb) -> {
 				try {
 					if (lb.getData("Show") == Boolean.TRUE) {
@@ -602,7 +657,7 @@ public class PaletteView extends ViewPart {
 				} catch (IOException e1) {
 				}
 			};
-			
+
 			MakeLabel makeLabel = (p, txt) -> {
 				CLabel lb = new CLabel(p, SWT.NONE);
 				RowData rowData = new RowData();
@@ -707,16 +762,21 @@ public class PaletteView extends ViewPart {
 					String text = searchText.getText().toLowerCase();
 					favoriteslabel.setEnabled(text.isEmpty());
 					lastUsedlabel.setEnabled(text.isEmpty());
-					
-					DatabaseObject selected = (DatabaseObject) bag.getData("selected");
+
+					DatabaseObject selected = (DatabaseObject) bag.getData("Selected");
+					DatabaseObject parent = (DatabaseObject) bag.getData("Parent");
+					Integer folderType = (Integer) bag.getData("FolderType");
 					Control headerLabel = null;
 					boolean empty = true;
 					for (Control c: bag.getChildren()) {
 						Item item = (Item) c.getData("Item");
 						boolean ok = false;
 						if (item != null) {
-							ok = selected != null;
-							ok = ok && item.allowedIn(selected);
+							if (selected != null) {
+								ok = item.allowedIn(selected);
+							} else {
+								ok = folderType != null && item.allowedIn(folderType) && item.allowedIn(parent);
+							}
 							if (empty && ok) {
 								empty = false;
 							}
@@ -818,7 +878,8 @@ public class PaletteView extends ViewPart {
 					}
 
 					if (empty && selected != null) {
-						bag.setData("selected", selected.getParent());
+						bag.setData("Selected", parent);
+						bag.setData("Parent", parent.getParent());
 						modifyText(e);
 						return;
 					}
@@ -841,6 +902,14 @@ public class PaletteView extends ViewPart {
 							Event event = new Event();
 							event.widget = opt.get();
 							event.widget.notifyListeners(SWT.MouseDown, event);
+						} else {
+							browser.setText("<html><head>" +
+									"<script type=\"text/javascript\">" +
+									"document.oncontextmenu = new Function(\"return false\");" +
+									"</script>" +
+									"<style type=\"text/css\">" +
+									"body {background-color: $background$;} \n" +
+									"</style></head><body></body></html>");
 						}
 					}
 					left.layout(true, true);
@@ -864,11 +933,32 @@ public class PaletteView extends ViewPart {
 						if (selection.getFirstElement() instanceof TreeObject) {
 							TreeObject to = (TreeObject) selection.getFirstElement();
 							while (to != null) {
-								if (to instanceof DatabaseObjectTreeObject) {
+								Integer folderType = null;
+								DatabaseObject selected = null;
+								Object parent = null;
+								Boolean clear = null;
+								if (to instanceof ObjectsFolderTreeObject) {
+									ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
+									Integer last = (Integer) bag.getData("FolderType");
+									try  {
+										folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
+									} catch (Exception e2) {
+										folderType = 0;
+									}
+									parent = folder.getParent() == null ? null : folder.getParent().getObject();
+									clear = last == null || last != folderType;
+								} else if (to instanceof DatabaseObjectTreeObject) {
 									DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
-									DatabaseObject last = (DatabaseObject) bag.getData("selected");
-									bag.setData("selected", dbot.getObject());
-									if (last == null || !last.getClass().equals(dbot.getObject().getClass())) {
+									DatabaseObject last = (DatabaseObject) bag.getData("Selected");
+									selected = dbot.getObject();
+									parent = selected.getParent();
+									clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
+								}
+								if (clear != null) {
+									bag.setData("FolderType", folderType);
+									bag.setData("Selected", selected);
+									bag.setData("Parent", parent);
+									if (clear == true) {
 										searchText.setText("");
 									} else {
 										searchText.notifyListeners(SWT.Modify, new Event());

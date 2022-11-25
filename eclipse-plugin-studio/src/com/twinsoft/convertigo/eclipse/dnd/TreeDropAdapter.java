@@ -1156,8 +1156,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		if (PaletteSourceTransfer.getInstance().isSupportedType(transferType)) {
 			if (target instanceof TreeObject) {
-				TreeObject targetTreeObject = (TreeObject)target;
-
+				TreeObject targetTreeObject = (TreeObject) target;
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
 					try {
@@ -1166,14 +1165,22 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
 
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
-							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
-							if (!ProjectExplorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
+							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject) targetTreeObject;
+							int folderType = 0;
+							try  {
+								folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folderTreeObject.getFirstChild().getObject());
+							} catch (Exception e) {}
+							int dboType = ProjectExplorerView.getDatabaseObjectType(databaseObject);
+							if (folderType != dboType && !ProjectExplorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
 								return false;
 							}
 							// continue
 							targetTreeObject = folderTreeObject.getParent();
 						}
 						if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+							if (getCurrentLocation() != 3) {
+								targetTreeObject = ((DatabaseObjectTreeObject) targetTreeObject).getParentDatabaseObjectTreeObject();
+							}
 							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
 							if (targetDatabaseObject != null) {
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
@@ -1475,6 +1482,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								}
 							}
 						}
+						
+						if (dbop != null) {
+							NewObjectWizard.afterBeanAdded(dbop, parent, parent.hasChanged);
+						}
+						
 						reloadTreeObject(explorerView, targetTreeObject);
 						if (dbotree != targetTreeObject) {
 							explorerView.moveLastTo((TreeParent) targetTreeObject, dbotree, insertBefore);
