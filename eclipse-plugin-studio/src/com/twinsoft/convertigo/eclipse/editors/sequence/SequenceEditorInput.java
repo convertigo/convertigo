@@ -37,7 +37,7 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 	
 	private static IFile getTmpFile(Sequence sequence, String filename) {
 		try {
-			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/editor/" + filename);
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/editor/" + sequence.getShortQName() + "/" + filename);
 		} catch (Exception e) {
 		}
 		return null;

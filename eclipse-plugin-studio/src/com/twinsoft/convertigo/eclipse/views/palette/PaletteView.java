@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -90,6 +91,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -101,13 +103,11 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class PaletteView extends ViewPart {
 	protected static final int MAX_USED_HISTORY = 50;
-	protected static final int MAX_USED_VISIBLE = 9;
+	protected static final int MAX_USED_VISIBLE = 8;
 
 	private Cursor handCursor;
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
-	private Deque<Item> lastUsed = new LinkedList<>();
-	private Set<Item> favorites = new TreeSet<>();
 	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
 
 	abstract class Item implements Comparable<Item> {
@@ -138,6 +138,10 @@ public class PaletteView extends ViewPart {
 		public int compareTo(Item o) {
 			return name().compareTo(o.name());
 		}
+		
+		boolean allowedIn(int folderType) {
+			return folderType == ProjectExplorerView.getDatabaseObjectType(newDatabaseObject());
+		}
 
 		abstract Image image();
 		abstract String id();
@@ -155,6 +159,10 @@ public class PaletteView extends ViewPart {
 
 	private interface MakeLabel {
 		Control make(Composite parent, String txt);
+	}
+
+	private interface UpdateLabel {
+		void update(CLabel label);
 	}
 
 	public PaletteView() {
@@ -194,6 +202,11 @@ public class PaletteView extends ViewPart {
 	}
 
 	public void init(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
+		Deque<Item> lastUsed = new LinkedList<>();
+		Set<Item> favorites = new TreeSet<>();
+		Set<String> hiddenCategories = new HashSet<>();
+
 		GridLayout gl;
 		GridData gd;
 		RowLayout rl;
@@ -229,7 +242,7 @@ public class PaletteView extends ViewPart {
 
 		CLabel clear = new CLabel(search, SWT.NONE);
 		try {
-			clear.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/delete.gif"));
+			clear.setImage(plugin.getStudioIcon("icons/studio/delete.gif"));
 		} catch (IOException e2) {
 			clear.setText("X");
 		}
@@ -243,7 +256,7 @@ public class PaletteView extends ViewPart {
 		Composite topBag = new Composite(left, SWT.NONE);
 		topBag.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		topBag.setLayout(rl = new RowLayout());
-		rl.marginTop = rl.marginRight = rl.marginBottom = rl.marginLeft = 0;
+		rl.marginTop = rl.marginRight = rl.marginLeft = 0;
 
 		Composite border = new Composite(left, SWT.NONE);
 		border.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
@@ -277,7 +290,7 @@ public class PaletteView extends ViewPart {
 				if (item != null) {
 					fav.setEnabled(true);
 					if (favorites.contains(item)) {
-						fav.setText("Remove from favorite");
+						fav.setText("Remove\nfrom favorite");
 						try {
 							fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_32x32.png"));
 						} catch (IOException e1) {
@@ -287,7 +300,7 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
-			fav.setText("Add to favorite");
+			fav.setText("Add to\nfavorite");
 			try {
 				fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/unstar_32x32.png"));
 			} catch (IOException e1) {
@@ -381,7 +394,8 @@ public class PaletteView extends ViewPart {
 						String beansName = bs.getName().isEmpty() ? categoryName : bs.getName();
 						for (DboBean b: bs.getBeans()) {
 							String cn = b.getClassName();
-							if (cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
+							if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
+									|| cn.startsWith("com.twinsoft.convertigo.beans.mobile.components."))
 									&& !cn.endsWith("PageComponent")) {
 								continue;
 							}
@@ -398,6 +412,7 @@ public class PaletteView extends ViewPart {
 							String id = i;
 							Class<?> cls = Class.forName(cn);
 							Constructor<?> constructor = cls.getConstructor();
+							DatabaseObject dbo = (DatabaseObject) constructor.newInstance();
 							all.put(id, new Item() {
 
 								@Override
@@ -426,19 +441,14 @@ public class PaletteView extends ViewPart {
 
 								@Override
 								DatabaseObject newDatabaseObject() {
-									try {
-										return (DatabaseObject) constructor.newInstance();
-									} catch (Exception e) {
-										e.printStackTrace();
-										return null;
-									}
+									return dbo;
 								}
 
 								@Override
 								boolean allowedIn(DatabaseObject parent) {
 									try {
 										return DatabaseObjectsManager.checkParent(parent.getClass(), b);
-									} catch (ClassNotFoundException e) {
+									} catch (Exception e) {
 										return false;
 									}
 								}
@@ -491,18 +501,23 @@ public class PaletteView extends ViewPart {
 							event.doit = true;
 							event.data = sXml;
 							PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
-							if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
-								lastUsed.removeFirstOccurrence(item);
-								lastUsed.addFirst(item);
-								while (lastUsed.size() > MAX_USED_HISTORY) {
-									lastUsed.pollLast();
-								}
-								String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
-								ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.history", str);
-							}
 						}
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
+					}
+				}
+
+				@Override
+				public void dragFinished(DragSourceEvent event) {
+					Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
+					if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
+						lastUsed.removeFirstOccurrence(item);
+						lastUsed.addFirst(item);
+						while (lastUsed.size() > MAX_USED_HISTORY) {
+							lastUsed.pollLast();
+						}
+						String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
+						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.history", str);
 					}
 				}
 
@@ -514,6 +529,7 @@ public class PaletteView extends ViewPart {
 
 			for (Component comp: ComponentManager.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
+				DatabaseObject dbo = ComponentManager.createBeanFromHint(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -538,7 +554,54 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return ComponentManager.createBeanFromHint(comp);
+						return dbo;
+					}
+
+					@Override
+					boolean allowedIn(DatabaseObject parent) {
+						return comp.isAllowedIn(parent);
+					}
+
+					@Override
+					String propertiesDescription() {
+						return comp.getPropertiesDescription();
+					}
+
+					@Override
+					String id() {
+						return id;
+					}
+				});
+			}
+
+			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
+				String id = "mb " + comp.getName();
+				DatabaseObject dbo = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
+				all.put(id, new Item() {
+
+					@Override
+					public String category() {
+						return comp.getGroup();
+					}
+
+					@Override
+					public String name() {
+						return comp.getLabel();
+					}
+
+					@Override
+					String description() {
+						return comp.getDescription();
+					}
+
+					@Override
+					Image image() {
+						return getImage(comp.getImagePath());
+					}
+
+					@Override
+					DatabaseObject newDatabaseObject() {
+						return dbo;
 					}
 
 					@Override
@@ -576,16 +639,55 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
+			pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.hiddenCategories");
+			if (StringUtils.isNotBlank(pref)) {
+				hiddenCategories.clear();
+				for (String h: pref.split(",")) {
+					hiddenCategories.add(h);
+				}
+			}
+
+			UpdateLabel updateLabel = (lb) -> {
+				try {
+					if (lb.getData("Show") == Boolean.TRUE) {
+						lb.setImage(plugin.getStudioIcon("icons/studio/show.gif"));
+					} else {
+						lb.setImage(plugin.getStudioIcon("icons/studio/hide.gif"));
+					}
+				} catch (IOException e1) {
+				}
+			};
+
 			MakeLabel makeLabel = (p, txt) -> {
-				Label lb = new Label(p, SWT.NONE);
+				CLabel lb = new CLabel(p, SWT.NONE);
 				RowData rowData = new RowData();
 				lb.setLayoutData(rowData);
 				rowData.width = 4000;
 				rowData.exclude = true;
 				lb.setVisible(false);
 				lb.setText("    " + txt);
+				lb.setAlignment(SWT.LEFT);
 				lb.setData("style", "color: black; background-color: lightgrey");
 				lb.setData("Label", txt);
+				lb.setData("Show", !hiddenCategories.contains(txt));
+				updateLabel.update(lb);
+				lb.setCursor(handCursor);
+				lb.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseDown(MouseEvent e) {
+						boolean show = lb.getData("Show") != Boolean.TRUE;
+						lb.setData("Show", show);
+						updateLabel.update(lb);
+						if (show) {
+							hiddenCategories.remove(txt);
+						} else {
+							hiddenCategories.add(txt);
+						}
+						String str = hiddenCategories.stream().collect(Collectors.joining(","));
+						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.hiddenCategories", str);
+						searchText.notifyListeners(SWT.Modify, new Event());
+					}
+				});
 				return lb;
 			};
 
@@ -633,15 +735,17 @@ public class PaletteView extends ViewPart {
 			}
 
 			bag.addControlListener(new ControlListener() {
-
 				@Override
 				public void controlResized(ControlEvent e) {
 					ConvertigoPlugin.asyncExec(() -> {
 						int min = -1;
-						Control last = (Control) bag.getData("last");
-						if (last != null) {
-							Rectangle r = last.getBounds();
-							min = r.y + r.height;
+						Control[] children = bag.getChildren();
+						for (int i = children.length - 1; i >= 0; i--) {
+							if (children[i].isVisible()) {
+								Rectangle r = children[i].getBounds();
+								min = r.y + r.height;
+								break;
+							}
 						}
 						scroll.setMinHeight(min);
 					});
@@ -653,33 +757,41 @@ public class PaletteView extends ViewPart {
 			});
 
 			searchText.addModifyListener(new ModifyListener() {
-
 				@Override
 				public void modifyText(ModifyEvent e) {
 					String text = searchText.getText().toLowerCase();
-					Control last = null;
-					DatabaseObject selected = (DatabaseObject) bag.getData("selected");
+					favoriteslabel.setEnabled(text.isEmpty());
+					lastUsedlabel.setEnabled(text.isEmpty());
+
+					DatabaseObject selected = (DatabaseObject) bag.getData("Selected");
+					DatabaseObject parent = (DatabaseObject) bag.getData("Parent");
+					Integer folderType = (Integer) bag.getData("FolderType");
 					Control headerLabel = null;
 					boolean empty = true;
 					for (Control c: bag.getChildren()) {
 						Item item = (Item) c.getData("Item");
 						boolean ok = false;
 						if (item != null) {
-							ok = selected != null;
-							ok = ok && item.allowedIn(selected);
+							if (selected != null) {
+								ok = item.allowedIn(selected);
+							} else {
+								ok = folderType != null && item.allowedIn(folderType) && item.allowedIn(parent);
+							}
 							if (empty && ok) {
 								empty = false;
 							}
 							ok = ok && (text.isEmpty() || item.searchText().contains(text));
+							c.setData("Ok", ok);
 							if (ok) {
-								last = c;
 								if (headerLabel != null && headerLabel.getData("Label").equals(item.category())) {
 									headerLabel.setVisible(true);
 									((RowData) headerLabel.getLayoutData()).exclude = false;
+									ok = !text.isEmpty() || headerLabel.getData("Show") == Boolean.TRUE;
 								}
 							}
 						} else if (c.getData("Label") != null) {
 							headerLabel = c;
+							c.setEnabled(text.isEmpty());
 						}
 						c.setVisible(ok);
 						((RowData) c.getLayoutData()).exclude = !ok;
@@ -693,72 +805,81 @@ public class PaletteView extends ViewPart {
 					if (!empty) {
 						boolean found = false;
 						Control moveBelow = favoriteslabel;
-						for (Item lu: favorites) {
-							Control existing = null;
-							for (Control c: bag.getChildren()) {
-								if (lu.equals(c.getData("Item"))) {
-									if (c.isVisible()) {
-										for (Control tc: topBag.getChildren()) {
-											if (lu.equals(tc.getData("Item"))) {
-												existing = tc;
-												break;
+						if (!text.isEmpty() || favoriteslabel.getData("Show") == Boolean.TRUE) {
+							for (Item lu: favorites) {
+								Control existing = null;
+								for (Control c: bag.getChildren()) {
+									if (lu.equals(c.getData("Item"))) {
+										if (c.getData("Ok") == Boolean.TRUE) {
+											for (Control tc: topBag.getChildren()) {
+												if (lu.equals(tc.getData("Item"))) {
+													existing = tc;
+													break;
+												}
 											}
+											found = true;
+											if (existing == null) {
+												existing = makeItem.make(topBag, lu);
+											}
+											existing.moveBelow(moveBelow);
+											moveBelow = existing;
+											existing.setVisible(true);
+											((RowData) existing.getLayoutData()).exclude = false;
 										}
-										found = true;
-										if (existing == null) {
-											existing = makeItem.make(topBag, lu);
-										}
-										existing.moveBelow(moveBelow);
-										moveBelow = existing;
-										existing.setVisible(true);
-										((RowData) existing.getLayoutData()).exclude = false;
+										break;
 									}
-									break;
 								}
 							}
+						} else {
+							found = true;
 						}
 						favoriteslabel.setVisible(found);
 						((RowData) favoriteslabel.getLayoutData()).exclude = !found;
 
 						found = false;
 						moveBelow = lastUsedlabel;
-						int maxVisible = MAX_USED_VISIBLE;
-						for (Item lu: lastUsed) {
-							Control existing = null;
-							for (Control c: bag.getChildren()) {
-								if (lu.equals(c.getData("Item"))) {
-									if (c.isVisible() && !favorites.contains(lu)) {
-										for (Control tc: topBag.getChildren()) {
-											if (lu.equals(tc.getData("Item"))) {
-												existing = tc;
-												break;
+						if (!text.isEmpty() || moveBelow.getData("Show") == Boolean.TRUE) {
+							int maxVisible = MAX_USED_VISIBLE;
+							for (Item lu: lastUsed) {
+								Control existing = null;
+								for (Control c: bag.getChildren()) {
+									if (lu.equals(c.getData("Item"))) {
+										if (c.getData("Ok") == Boolean.TRUE && !favorites.contains(lu)) {
+											for (Control tc: topBag.getChildren()) {
+												if (lu.equals(tc.getData("Item"))) {
+													existing = tc;
+													break;
+												}
 											}
-										}
-										found = true;
-										if (existing == null) {
-											existing = makeItem.make(topBag, lu);
-										}
+											found = true;
+											if (existing == null) {
+												existing = makeItem.make(topBag, lu);
+											}
 
-										existing.moveBelow(moveBelow);
-										moveBelow = existing;
-										existing.setVisible(true);
-										((RowData) existing.getLayoutData()).exclude = false;
-										maxVisible--;
+											existing.moveBelow(moveBelow);
+											moveBelow = existing;
+											existing.setVisible(true);
+											((RowData) existing.getLayoutData()).exclude = false;
+											maxVisible--;
+											break;
+										}
 										break;
 									}
+								}
+								if (maxVisible == 0) {
 									break;
 								}
 							}
-							if (maxVisible == 0) {
-								break;
-							}
+						} else {
+							found = true;
 						}
 						lastUsedlabel.setVisible(found);
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
 					}
 
 					if (empty && selected != null) {
-						bag.setData("selected", selected.getParent());
+						bag.setData("Selected", parent);
+						bag.setData("Parent", parent.getParent());
 						modifyText(e);
 						return;
 					}
@@ -781,13 +902,19 @@ public class PaletteView extends ViewPart {
 							Event event = new Event();
 							event.widget = opt.get();
 							event.widget.notifyListeners(SWT.MouseDown, event);
+						} else {
+							browser.setText("<html><head>" +
+									"<script type=\"text/javascript\">" +
+									"document.oncontextmenu = new Function(\"return false\");" +
+									"</script>" +
+									"<style type=\"text/css\">" +
+									"body {background-color: $background$;} \n" +
+									"</style></head><body></body></html>");
 						}
 					}
-					bag.setData("last", last);
 					left.layout(true, true);
 					bag.notifyListeners(SWT.Resize, new Event());
 				}
-
 			});
 
 			Runnable initPev = () -> {
@@ -806,11 +933,32 @@ public class PaletteView extends ViewPart {
 						if (selection.getFirstElement() instanceof TreeObject) {
 							TreeObject to = (TreeObject) selection.getFirstElement();
 							while (to != null) {
-								if (to instanceof DatabaseObjectTreeObject) {
+								Integer folderType = null;
+								DatabaseObject selected = null;
+								Object parent = null;
+								Boolean clear = null;
+								if (to instanceof ObjectsFolderTreeObject) {
+									ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
+									Integer last = (Integer) bag.getData("FolderType");
+									try  {
+										folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
+									} catch (Exception e2) {
+										folderType = 0;
+									}
+									parent = folder.getParent() == null ? null : folder.getParent().getObject();
+									clear = last == null || last != folderType;
+								} else if (to instanceof DatabaseObjectTreeObject) {
 									DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
-									DatabaseObject last = (DatabaseObject) bag.getData("selected");
-									bag.setData("selected", dbot.getObject());
-									if (last == null || !last.getClass().equals(dbot.getObject().getClass())) {
+									DatabaseObject last = (DatabaseObject) bag.getData("Selected");
+									selected = dbot.getObject();
+									parent = selected.getParent();
+									clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
+								}
+								if (clear != null) {
+									bag.setData("FolderType", folderType);
+									bag.setData("Selected", selected);
+									bag.setData("Parent", parent);
+									if (clear == true) {
 										searchText.setText("");
 									} else {
 										searchText.notifyListeners(SWT.Modify, new Event());
