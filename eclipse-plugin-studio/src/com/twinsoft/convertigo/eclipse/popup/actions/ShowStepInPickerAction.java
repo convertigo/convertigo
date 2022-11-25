@@ -39,61 +39,58 @@ import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 public class ShowStepInPickerAction extends MyAbstractAction {
 
 	protected boolean showSource = false;
-	
+
 	public ShowStepInPickerAction() {
 		super();
 	}
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if (treeObject != null) {
-    				if (treeObject instanceof DatabaseObjectTreeObject) {
-    					DatabaseObject selectedDbo = ((DatabaseObjectTreeObject)treeObject).getObject();
-	    				if (selectedDbo != null) {
-	    					StepSourceEvent event = null;
-	    					if (showSource) {
-	    						if (selectedDbo instanceof Step) {
-	    							Step step = (Step) selectedDbo;
-	    							Set<StepSource> sources = step.getSources();
-	    							if (!sources.isEmpty()) {
-	    								event = new StepSourceEvent(sources.iterator().next());
-	    							} else {
-	            						throw new Exception("No Source defined"); 
-	            					}
-	    						}
-	    					} else {
-	    						event = new StepSourceEvent(selectedDbo);
-	    					}
-	    					
-	    					if (event != null) {
-	            				SourcePickerView spv = ConvertigoPlugin.getDefault().getSourcePickerView();
-	            				if (spv == null) {
-	            					spv = (SourcePickerView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
-	            				}
-	            				if (spv != null) {
-	            					spv.sourceSelected(event);
-	            				}
-	    					}
-	    				}
-    				}
-    			}
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				if (treeObject != null) {
+					if (treeObject instanceof DatabaseObjectTreeObject) {
+						DatabaseObject selectedDbo = ((DatabaseObjectTreeObject)treeObject).getObject();
+						if (selectedDbo != null) {
+							StepSourceEvent event = null;
+							if (showSource) {
+								if (selectedDbo instanceof Step) {
+									Step step = (Step) selectedDbo;
+									Set<StepSource> sources = step.getSources();
+									if (!sources.isEmpty()) {
+										event = new StepSourceEvent(sources.iterator().next());
+									} else {
+										throw new Exception("No Source defined");
+									}
+								}
+							} else {
+								event = new StepSourceEvent(selectedDbo);
+							}
+
+							if (event != null) {
+								SourcePickerView spv = (SourcePickerView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+								if (spv != null) {
+									spv.sourceSelected(event);
+								}
+							}
+						}
+					}
+				}
 			}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to show object in Picker!");
-        }
-        finally {
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to show object in Picker!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 }
