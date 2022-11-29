@@ -259,7 +259,6 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	public void selectItemsInTree(TreeItem[] items) {
 		Tree tree = twsDomTree.getTree();
 		tree.setSelection(items);
-		tree.setFocus();
 	}
 
 	public TreeItem[] findTreeItems(String xpath) {
