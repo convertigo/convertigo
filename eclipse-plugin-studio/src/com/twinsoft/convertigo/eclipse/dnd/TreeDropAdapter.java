@@ -1454,11 +1454,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
 					boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
 					DatabaseObjectTreeObject dbotree = (DatabaseObjectTreeObject) targetTreeObject;
-					if (insertBefore || insertAfter) {
-						targetTreeObject = dbotree.getParent();
-					}
-					DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
-
+					DatabaseObject parent = (insertBefore || insertAfter) ? dbotree.getObject().getParent() : dbotree.getObject();
+					
 					String xmlData = ((PaletteSource)data).getXmlData();
 					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 					Element rootElement = document.getDocumentElement();
@@ -1487,10 +1484,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							NewObjectWizard.afterBeanAdded(dbop, parent, parent.hasChanged);
 						}
 						
-						reloadTreeObject(explorerView, targetTreeObject);
-						if (dbotree != targetTreeObject) {
-							explorerView.moveLastTo((TreeParent) targetTreeObject, dbotree, insertBefore);
+						if (insertBefore || insertAfter) {
+							reloadTreeObject(explorerView, dbotree.getParentDatabaseObjectTreeObject());
+							explorerView.moveLastTo(dbotree.getParent(), dbotree, insertBefore);
+						} else {
+							reloadTreeObject(explorerView, dbotree);
 						}
+						
 						// Refresh ngx palette view
 						if (needNgxPaletteReload) {
 							NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
@@ -1499,7 +1499,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 						}
 						if (dbop != null) {
-							reloadTreeObject(explorerView, dbotree.findTreeObjectByUserObject(dbop));
+							explorerView.setSelectedTreeObject(dbotree.findTreeObjectByUserObject(dbop));
 						}
 					}
 				}

@@ -496,7 +496,9 @@ public class PaletteView extends ViewPart {
 				public void dragStart(DragSourceEvent event) {
 					try {
 						Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
-						String sXml = ClipboardAction.dnd.copy(item.newDatabaseObject());
+						DatabaseObject dbo = item.newDatabaseObject();
+						dbo.priority = dbo.getNewOrderValue();
+						String sXml = ClipboardAction.dnd.copy(dbo);
 						if (sXml != null) {
 							event.doit = true;
 							event.data = sXml;
