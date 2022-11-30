@@ -20,7 +20,9 @@
 package com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -146,12 +148,23 @@ public class TwsDomTree extends TreeWrapper {
 			t.setData("childs", childs);
 			t.setItemCount(childs.length);
 			TreeItem[] items = t.getItems();
-			while (items.length == 1) {
-				t.showItem(items[0]);
-				items = items[0].getItems();
+			LinkedList<TreeItem> itemsToShow = new LinkedList<TreeItem>(Arrays.asList(items));
+			int cpt = 20;
+			while (!itemsToShow.isEmpty() && cpt > 0) {
+				TreeItem item = itemsToShow.pollFirst();
+				t.showItem(item);
+				if (item.getImage() != imageText) {
+					cpt--;
+					if (item.getItemCount() < 10 && item.getImage() != imageAttrib) {
+						itemsToShow.addAll(Arrays.asList(item.getItems()));
+					}
+				}
 			}
-			if (items.length > 0) {
-				t.showItem(items[0]);
+			while (!itemsToShow.isEmpty()) {
+				TreeItem item = itemsToShow.pollFirst();
+				if (item.getImage() == imageText) {
+					t.showItem(item);
+				}
 			}
 		}
 	}

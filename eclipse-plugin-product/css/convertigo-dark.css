@@ -34,6 +34,7 @@
   color: white;
   swt-selection-background-color: rgb(81, 86, 88);
   swt-selection-foreground-color: white;
+  background-color: #242424;
 }
 
 NewProjectWizardComposite1, NewProjectWizardComposite2, NewProjectWizardComposite3,
