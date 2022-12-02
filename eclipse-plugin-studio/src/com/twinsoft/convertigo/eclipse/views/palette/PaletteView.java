@@ -53,6 +53,7 @@ import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -82,6 +83,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -90,6 +92,8 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -105,6 +109,7 @@ public class PaletteView extends ViewPart {
 	protected static final int MAX_USED_HISTORY = 50;
 	protected static final int MAX_USED_VISIBLE = 8;
 
+	private Composite parent;
 	private Cursor handCursor;
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
@@ -198,10 +203,11 @@ public class PaletteView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
-		ConvertigoPlugin.runAtStartup(() -> init(parent));
+		this.parent = parent;
+		ConvertigoPlugin.runAtStartup(() -> refresh(1));
 	}
 
-	public void init(Composite parent) {
+	public void init() {
 		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		Deque<Item> lastUsed = new LinkedList<>();
 		Set<Item> favorites = new TreeSet<>();
@@ -322,7 +328,7 @@ public class PaletteView extends ViewPart {
 							favorites.add(item);
 						}
 						String str = favorites.stream().map(Item::id).collect(Collectors.joining(","));
-						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.favorites", str);
+						ConvertigoPlugin.setProperty("palette.favorites", str);
 						searchText.notifyListeners(SWT.Modify, new Event());
 					}
 				}
@@ -385,6 +391,7 @@ public class PaletteView extends ViewPart {
 		};
 
 		try {
+			all.clear();
 			for (DboGroup g: Engine.theApp.getDboExplorerManager().getGroups()) {
 				String groupName = g.getName();
 				for (DboCategory c: g.getCategories()) {
@@ -519,7 +526,7 @@ public class PaletteView extends ViewPart {
 							lastUsed.pollLast();
 						}
 						String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
-						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.history", str);
+						ConvertigoPlugin.setProperty("palette.history", str);
 					}
 				}
 
@@ -623,7 +630,7 @@ public class PaletteView extends ViewPart {
 				});
 			}
 
-			String pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.favorites");
+			String pref = ConvertigoPlugin.getProperty("palette.favorites");
 			if (StringUtils.isNotBlank(pref)) {
 				for (String h: pref.split(",")) {
 					if (all.containsKey(h)) {
@@ -632,7 +639,7 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
-			pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.history");
+			pref = ConvertigoPlugin.getProperty("palette.history");
 			if (StringUtils.isNotBlank(pref)) {
 				for (String h: pref.split(",")) {
 					if (all.containsKey(h)) {
@@ -641,7 +648,7 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
-			pref = ConvertigoPlugin.getDefault().getPreferenceStore().getString("palette.hiddenCategories");
+			pref = ConvertigoPlugin.getProperty("palette.hiddenCategories");
 			if (StringUtils.isNotBlank(pref)) {
 				hiddenCategories.clear();
 				for (String h: pref.split(",")) {
@@ -686,7 +693,7 @@ public class PaletteView extends ViewPart {
 							hiddenCategories.add(txt);
 						}
 						String str = hiddenCategories.stream().collect(Collectors.joining(","));
-						ConvertigoPlugin.getDefault().getPreferenceStore().setValue("palette.hiddenCategories", str);
+						ConvertigoPlugin.setProperty("palette.hiddenCategories", str);
 						searchText.notifyListeners(SWT.Modify, new Event());
 					}
 				});
@@ -974,6 +981,35 @@ public class PaletteView extends ViewPart {
 				};
 				pev.addSelectionChangedListener(selectionListener);
 				selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
+				
+				TreeObjectListener tol = new TreeObjectListener() {
+					@Override
+					public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+						if (bag.isDisposed()) {
+							pev.removeTreeObjectListener(this);
+						}
+					}
+					
+					@Override
+					public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+						if (bag.isDisposed()) {
+							pev.removeTreeObjectListener(this);
+							return;
+						}
+						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
+						if (treeObject.getObject() instanceof IExposeAble && "exposed".equals(treeObjectEvent.propertyName)) {
+							refresh();
+						}
+					}
+					
+					@Override
+					public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+						if (bag.isDisposed()) {
+							pev.removeTreeObjectListener(this);
+						}
+					}
+				};
+				pev.addTreeObjectListener(tol);
 			};
 
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener2() {
@@ -988,8 +1024,22 @@ public class PaletteView extends ViewPart {
 					}
 				}
 			});
-
-			sash.setWeights(70, 30);
+			
+			
+			pref = ConvertigoPlugin.getProperty("palette.sash");
+			try {
+				String[] prefs = pref.split(";");
+				sash.setWeights(Integer.parseInt(prefs[0]), Integer.parseInt(prefs[1]));
+			} catch (Exception e) {
+				sash.setWeights(70, 30);
+			}
+			left.addControlListener(new ControlAdapter() {
+				@Override
+				public void controlResized(ControlEvent e) {
+					int w[] = sash.getWeights();
+					ConvertigoPlugin.setProperty("palette.sash", w[0] + ";" + w[1]);
+				}
+			});
 			parent.layout(true);
 
 			ConvertigoPlugin.asyncExec(initPev);
@@ -1002,5 +1052,20 @@ public class PaletteView extends ViewPart {
 	public void setFocus() {
 		searchText.setFocus();
 	}
-
+	
+	public void refresh() {
+		refresh(500);
+	}
+	
+	public void refresh(long threshold) {
+		Engine.execute(() -> {
+			ComponentManager.reloadComponents();
+			parent.getDisplay().asyncExec(() -> {
+				for (Control c: parent.getChildren()) {
+					c.dispose();
+				}
+				init();
+			});
+		}, threshold);
+	}
 }

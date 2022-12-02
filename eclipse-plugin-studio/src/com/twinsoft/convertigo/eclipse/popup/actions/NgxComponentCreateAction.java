@@ -31,7 +31,6 @@ import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -51,7 +50,7 @@ public class NgxComponentCreateAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
@@ -100,10 +99,7 @@ public class NgxComponentCreateAction extends MyAbstractAction {
 		
 		// Refresh ngx palette view
 		if (createdDatabaseObject instanceof UIActionStack || createdDatabaseObject instanceof UISharedRegularComponent) {
-			NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-			if (ngxPaletteView != null) {
-				ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-			}
+			ConvertigoPlugin.getDefault().refreshPaletteView();
 		}
 		
 		/* No more needed since #20 correction : see DatabaseObjectTreeObject:setParent(TreeParent parent)

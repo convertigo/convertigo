@@ -127,6 +127,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
+import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
@@ -1276,6 +1277,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return ngxPaletteView;
 	}
 
+	public PaletteView getPaletteView() {
+		PaletteView paletteView = null;
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.palette.PaletteView");
+			if (viewPart != null)
+				paletteView = (PaletteView)viewPart;
+		}
+		return paletteView;
+	}
+
 	/**
 	 * Gets the source picker view.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
@@ -1843,6 +1855,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			if (page != null) {
 				page.refresh();
 			}
+		}
+	}
+	
+	public void refreshPaletteView() {
+		NgxPaletteView ngxPaletteView = getNgxPaletteView();
+		if (ngxPaletteView != null) {
+			ngxPaletteView.refresh();
+		}
+		PaletteView paletteView = getPaletteView();
+		if (paletteView != null) {
+			paletteView.refresh();
 		}
 	}
 	

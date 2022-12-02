@@ -91,7 +91,6 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -1493,10 +1492,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						
 						// Refresh ngx palette view
 						if (needNgxPaletteReload) {
-							NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-							if (ngxPaletteView != null) {
-								ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-							}
+							ConvertigoPlugin.getDefault().refreshPaletteView();
 						}
 						if (dbop != null) {
 							explorerView.setSelectedTreeObject(dbotree.findTreeObjectByUserObject(dbop));
