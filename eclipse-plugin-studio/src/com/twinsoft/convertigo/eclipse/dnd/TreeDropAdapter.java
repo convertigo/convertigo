@@ -1180,7 +1180,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (getCurrentLocation() != 3) {
 								targetTreeObject = ((DatabaseObjectTreeObject) targetTreeObject).getParentDatabaseObjectTreeObject();
 							}
-							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
+							
+							DatabaseObject targetDatabaseObject = targetTreeObject == null ? null : ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 							if (targetDatabaseObject != null) {
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 									return false;
