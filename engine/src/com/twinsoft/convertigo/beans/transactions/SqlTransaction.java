@@ -1202,7 +1202,12 @@ public class SqlTransaction extends TransactionWithVariables {
 								for (int j = 0; j < fields.getLength(); j++) {
 									Pair<String, String> info = types.get(j + 1);
 									Element field = ((Element) fields.item(j));
-									field.setAttribute("type", info.getRight());
+									String type = info.getRight();
+									if (!"string".equals(type) && org.apache.commons.lang3.StringUtils.isBlank(field.getTextContent())) {
+										// see #686, useful for JSON requester
+										type = "null";
+									}
+									field.setAttribute("type", type);
 									if (!field.getTagName().equals(info.getLeft())) {
 										field.setAttribute("originalKeyName", info.getLeft());
 									}
