@@ -232,10 +232,11 @@ public class PaletteView extends ViewPart {
 		
 		Composite top = new Composite(parent, SWT.NONE);
 		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		top.setLayout(new GridLayout(3, false));
+		top.setLayout(new GridLayout(4, false));
 		
 		ToolBar bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiLink = new ToolItem(bar, SWT.CHECK);
+		tiLink.setToolTipText("Link with the 'Projects tree' selection");
 		ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
 		try {
 			tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
@@ -246,6 +247,7 @@ public class PaletteView extends ViewPart {
 		
 		bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiInternal = new ToolItem(bar, SWT.CHECK);
+		tiInternal.setToolTipText("Built-in objects visibility");
 		ConvertigoPlugin.asyncExec(() -> tiInternal.setBackground(null));
 		try {
 			tiInternal.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/convertigo_logo_16x16.png"));
@@ -255,6 +257,7 @@ public class PaletteView extends ViewPart {
 		tiInternal.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.internal")));
 		
 		ToolItem tiShared = new ToolItem(bar, SWT.CHECK);
+		tiShared.setToolTipText("Shared objects visibility");
 		ConvertigoPlugin.asyncExec(() -> tiShared.setBackground(null));
 		try {
 			tiShared.setImage(ConvertigoPlugin.getDefault().getBeanIcon(CachedIntrospector.getBeanInfo(UISharedComponent.class), BeanInfo.ICON_COLOR_16x16));
@@ -262,6 +265,10 @@ public class PaletteView extends ViewPart {
 			tiShared.setText("Shared");
 		}
 		tiShared.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.shared")));
+		
+		bar = new ToolBar(top, SWT.NONE);
+		
+		ToolItem fav = new ToolItem(bar, SWT.PUSH);
 		
 		searchText = new Text(top, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL);
 		searchText.setMessage("Search…");
@@ -281,6 +288,14 @@ public class PaletteView extends ViewPart {
 		SelectionListener tiListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				ToolItem ti = (ToolItem) e.widget;
+				if (!ti.getSelection()) {
+					if (ti == tiShared) {
+						tiInternal.setSelection(true);
+					} else {
+						tiShared.setSelection(true);
+					}
+				}
 				searchText.notifyListeners(SWT.Modify, new Event());
 			}
 		};
@@ -321,10 +336,6 @@ public class PaletteView extends ViewPart {
 		Composite right = new Composite(sash, SWT.NONE);
 		right.setLayout(gl = new GridLayout(1, false));
 
-		CLabel fav = new CLabel(right, SWT.NONE);
-		fav.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fav.setCursor(handCursor);
-
 		Runnable updateFav = () -> {
 			Control latestSelected = (Control) bag.getData("LatestSelected");
 			fav.setEnabled(false);
@@ -333,9 +344,9 @@ public class PaletteView extends ViewPart {
 				if (item != null) {
 					fav.setEnabled(true);
 					if (favorites.contains(item)) {
-						fav.setText("Remove\nfrom favorite");
+						fav.setToolTipText("Remove from favorite");
 						try {
-							fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_32x32.png"));
+							fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_16x16.png"));
 						} catch (IOException e1) {
 						}
 						return;
@@ -343,18 +354,19 @@ public class PaletteView extends ViewPart {
 				}
 			}
 
-			fav.setText("Add to\nfavorite");
+			fav.setToolTipText("Add to favorite");
 			try {
-				fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/unstar_32x32.png"));
+				fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/unstar_16x16.png"));
 			} catch (IOException e1) {
 			}
 		};
 
 		updateFav.run();
 
-		fav.addMouseListener(new MouseAdapter() {
+		fav.addSelectionListener(new SelectionAdapter() {
+			
 			@Override
-			public void mouseDown(MouseEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				Control latestSelected = (Control) bag.getData("LatestSelected");
 				if (latestSelected != null) {
 					Item item = (Item) latestSelected.getData("Item");
@@ -369,9 +381,9 @@ public class PaletteView extends ViewPart {
 						searchText.notifyListeners(SWT.Modify, new Event());
 					}
 				}
-				fav.setText("Remove from favorite");
+				fav.setToolTipText("Remove from favorite");
 				try {
-					fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_32x32.png"));
+					fav.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/star_16x16.png"));
 				} catch (IOException e1) {
 				}
 				updateFav.run();
@@ -929,7 +941,7 @@ public class PaletteView extends ViewPart {
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
 					}
 
-					if (empty && selected != null) {
+					if (empty && selected != null && parent != null) {
 						PaletteView.this.parent.setData("Selected", parent);
 						PaletteView.this.parent.setData("Parent", parent.getParent());
 						modifyText(e);
