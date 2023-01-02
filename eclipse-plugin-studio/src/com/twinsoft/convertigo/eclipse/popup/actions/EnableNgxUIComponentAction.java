@@ -42,32 +42,32 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-        	boolean needNgxPaletteReload = false;
-        	
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			DatabaseObjectTreeObject treeObject = null;
-    			UIComponent component = null;
-    			
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+
+		try {
+			boolean needNgxPaletteReload = false;
+
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				DatabaseObjectTreeObject treeObject = null;
+				UIComponent component = null;
+
+				TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
 				for (int i = treeObjects.length-1 ; i>=0  ; i--) {
 					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
 					if (treeObject instanceof NgxUIComponentTreeObject) {
 						NgxUIComponentTreeObject componentTreeObject = GenericUtils.cast(treeObject);
 						component = (UIComponent)componentTreeObject.getObject();
 						component.setEnabled(true);
-						
+
 						componentTreeObject.setEnabled(true);
 						componentTreeObject.hasBeenModified(true);
-		                
-		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", false, true);
-		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+
+						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", false, true);
+						explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
 
 						if (component instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
 								component instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
@@ -75,10 +75,10 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 						}
 					}
 				}
-				
+
 				explorerView.refreshSelectedTreeObjects();
-    		}
-    		
+			}
+
 			// Refresh ngx palette view
 			if (needNgxPaletteReload) {
 				NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
@@ -86,13 +86,13 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 					ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
 				}
 			}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to enable component!");
-        }
-        finally {
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to enable component!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
-	}	
+		}
+	}
 }

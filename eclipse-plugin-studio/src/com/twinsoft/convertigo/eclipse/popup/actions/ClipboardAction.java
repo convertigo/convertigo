@@ -48,7 +48,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -66,7 +65,7 @@ import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
 	public final static ClipboardAction dnd = new ClipboardAction(ConvertigoPlugin.clipboardManagerDND);
-	
+
 	protected ClipboardManager clipboardManager;
 
 	protected ClipboardAction(ClipboardManager clipboardManager) {
@@ -84,7 +83,7 @@ public class ClipboardAction extends MyAbstractAction {
 		}
 		return sXml;
 	}
-	
+
 	public String copy(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
@@ -94,7 +93,7 @@ public class ClipboardAction extends MyAbstractAction {
 		}
 		return sXml;
 	}
-	
+
 	public String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
@@ -102,7 +101,7 @@ public class ClipboardAction extends MyAbstractAction {
 			clipboardManager.objectsType = type;
 			clipboardManager.isCopy = true;
 			sXml = clipboardManager.copy(selectedPaths);
-			
+
 			for (int i = 0 ; i < selectedPaths.length ; i++) {
 				TreeObject treeObject = (TreeObject)selectedPaths[i].getLastPathComponent();
 				if (treeObject instanceof ProjectTreeObject)
@@ -120,7 +119,7 @@ public class ClipboardAction extends MyAbstractAction {
 		}
 		return sXml;
 	}
-	
+
 	public String cut(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = copy(explorerView, selectedPaths, type);
 		if (sXml != null) {
@@ -133,18 +132,18 @@ public class ClipboardAction extends MyAbstractAction {
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		paste(source, shell, explorerView, selectedTreeObject, false);
 	}
-	
+
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		if ((explorerView != null) && (selectedTreeObject != null)) {
 			TreeObject targetTreeObject = null;
 			Object targetObject = null;
-			
+
 			if (selectedTreeObject instanceof FolderTreeObject) {
 				if (selectedTreeObject.getParent() instanceof IDesignTreeObject) {
 					selectedTreeObject = selectedTreeObject.getParent();
 				}
 			}
-			
+
 			if (selectedTreeObject instanceof IPropertyTreeObject) {
 				targetTreeObject = selectedTreeObject;
 				targetObject = selectedTreeObject;
@@ -158,112 +157,112 @@ public class ClipboardAction extends MyAbstractAction {
 				}
 			}
 			else {
-    			targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(selectedTreeObject); // case of folder, retrieve owner object
-    			targetObject = (DatabaseObject)targetTreeObject.getObject();
-    			
-    			// This is for enabling copy/paste inside the same data directory,
-    			// i.e. without having to select the parent database object.
-    			if (clipboardManager.objectsType == ProjectExplorerView.getTreeObjectType(new TreePath(targetTreeObject))) {
-    				// Exception: if the copied object is a screen class,
-    				// it must be different from the currently selected object.
-    				if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
-    					CustomDialog customDialog = new CustomDialog(
-    							shell,
-    							"Paste a Screenclass",
-    							"Do you want to paste the Screenclass as a sibling or as an inherited ScreenClass?",
-    							500, 150,
-    							new ButtonSpec("As a sibling", true),
-    							new ButtonSpec("As an iherited", false),
-    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
-    					);
-    					int response = customDialog.open();
-    					if (response == 0)
-    						targetObject = ((DatabaseObject)targetObject).getParent();
-    					else if (response == 2)
-    						return;
-    				}
-    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
-    					if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
-    						targetObject = ((DatabaseObject)targetObject).getParent();
-    					}
-    					else {
-    						CustomDialog customDialog = new CustomDialog(
-        							shell,
-        							"Paste a statement",
-        							"Do you want to paste the statement as a sibling or a child statement?",
-        							500, 150,
-        							new ButtonSpec("As a sibling", true),
-        							new ButtonSpec("As a child", false),
-        							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
-        					);
-        					int response = customDialog.open();
-	    					if (response == 0) {
-	    						targetObject = ((DatabaseObject)targetObject).getParent();
-	    					}
-	    					else if (response == 2) {
-	    						return;
-	    					}
-    					}
-    				}
-    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT) {
-    					if (!clipboardManager.isCut) {
-	    					CustomDialog customDialog = new CustomDialog(
-	    							shell,
-	    							"Paste a Component",
-	    							"Do you want to paste the Component as a sibling or as a child component?",
-	    							500, 150,
-	    							new ButtonSpec("As a sibling", true),
-	    							new ButtonSpec("As a child", false),
-	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
-	    					);
-	    					int response = customDialog.open();
-	    					if (response == 0) {
-	    						targetObject = ((DatabaseObject)targetObject).getParent();
-	    					} else if (response == 2) {
-	    						return;
-	    					}
-    					}
-    				}
-    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
-    						clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
-    					targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
-    					if (targetObject == null) return;
-    				}
-    				else if (isDND && clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE) {
-    					// Do not change target to parent
-    				}
-    				else {
-   						targetObject = ((DatabaseObject)targetObject).getParent();
-    				}
-    				
+				targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(selectedTreeObject); // case of folder, retrieve owner object
+				targetObject = (DatabaseObject)targetTreeObject.getObject();
+
+				// This is for enabling copy/paste inside the same data directory,
+				// i.e. without having to select the parent database object.
+				if (clipboardManager.objectsType == ProjectExplorerView.getTreeObjectType(new TreePath(targetTreeObject))) {
+					// Exception: if the copied object is a screen class,
+					// it must be different from the currently selected object.
+					if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
+						CustomDialog customDialog = new CustomDialog(
+								shell,
+								"Paste a Screenclass",
+								"Do you want to paste the Screenclass as a sibling or as an inherited ScreenClass?",
+								500, 150,
+								new ButtonSpec("As a sibling", true),
+								new ButtonSpec("As an iherited", false),
+								new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+								);
+						int response = customDialog.open();
+						if (response == 0)
+							targetObject = ((DatabaseObject)targetObject).getParent();
+						else if (response == 2)
+							return;
+					}
+					else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
+						if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
+							targetObject = ((DatabaseObject)targetObject).getParent();
+						}
+						else {
+							CustomDialog customDialog = new CustomDialog(
+									shell,
+									"Paste a statement",
+									"Do you want to paste the statement as a sibling or a child statement?",
+									500, 150,
+									new ButtonSpec("As a sibling", true),
+									new ButtonSpec("As a child", false),
+									new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+									);
+							int response = customDialog.open();
+							if (response == 0) {
+								targetObject = ((DatabaseObject)targetObject).getParent();
+							}
+							else if (response == 2) {
+								return;
+							}
+						}
+					}
+					else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT) {
+						if (!clipboardManager.isCut) {
+							CustomDialog customDialog = new CustomDialog(
+									shell,
+									"Paste a Component",
+									"Do you want to paste the Component as a sibling or as a child component?",
+									500, 150,
+									new ButtonSpec("As a sibling", true),
+									new ButtonSpec("As a child", false),
+									new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+									);
+							int response = customDialog.open();
+							if (response == 0) {
+								targetObject = ((DatabaseObject)targetObject).getParent();
+							} else if (response == 2) {
+								return;
+							}
+						}
+					}
+					else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
+							clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
+						targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
+						if (targetObject == null) return;
+					}
+					else if (isDND && clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE) {
+						// Do not change target to parent
+					}
+					else {
+						targetObject = ((DatabaseObject)targetObject).getParent();
+					}
+
 					targetTreeObject = explorerView.findTreeObjectByUserObject(((DatabaseObject)targetObject));
-    			}
+				}
 				else {
 					if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
-						clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
+							clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
 						targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
 						if (targetObject == null) return;
 					}
 				}
 			}
-			
-            if (clipboardManager.isCut) {
-        		TreeParent targetTreeParent = null;
-        		String targetPath = targetTreeObject.getPath();
-        		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-        			targetTreeParent = ((DatabaseObjectTreeObject)targetTreeObject).getOwnerDatabaseObjectTreeObject();
-    			}
-        		else if (targetTreeObject instanceof IPropertyTreeObject) {
-        			targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
-        		}
-        		else if (targetTreeObject instanceof IDesignTreeObject) {
-        			targetTreeParent = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
-        		}
-        			
-            	for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
-            		// Cut & paste
+
+			if (clipboardManager.isCut) {
+				TreeParent targetTreeParent = null;
+				String targetPath = targetTreeObject.getPath();
+				if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+					targetTreeParent = ((DatabaseObjectTreeObject)targetTreeObject).getOwnerDatabaseObjectTreeObject();
+				}
+				else if (targetTreeObject instanceof IPropertyTreeObject) {
+					targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
+				}
+				else if (targetTreeObject instanceof IDesignTreeObject) {
+					targetTreeParent = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
+				}
+
+				for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
+					// Cut & paste
 					clipboardManager.cutAndPaste(clipboardManager.objects[i], targetTreeObject);
-					
+
 					// Updating the tree
 					// Report 4.5: fix #401
 					//explorerView.reloadTreeObject(clipboardManager.parentTreeNodeOfCutObjects[i]);
@@ -272,106 +271,103 @@ public class ClipboardAction extends MyAbstractAction {
 					if (!(parentTreeNodeOfCutObjects instanceof IDesignTreeObject)) {
 						explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
 					}
-            	}
-            	
-            	if (targetTreeObject != null) {
-                	if (targetTreeObject.getParent() == null)
-                		targetTreeObject = explorerView.findTreeObjectByPath(targetTreeParent, targetPath);
-                	
-                	if (targetTreeObject != null)
-                		targetTreeObject.getProjectTreeObject().hasBeenModified(true);// Report 4.5: fix #401
-            	}
-            	
-            	clipboardManager.reset();
-            } else if (source != null) {
-            	// Paste
-                clipboardManager.paste(source, targetObject, true);
+				}
 
-                // Case of project copy
-                if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
-                	Object[] pastedObjects = clipboardManager.pastedObjects;
-                	for (int i=0; i<pastedObjects.length; i++) {
-                		Object object = pastedObjects[i];
-                		if ((object != null) && (object instanceof Project)) {
-                			Project project = (Project)object;
-                			String oldName = project.getName();
-                			try {
-                				Project importedProject = importProjectTempArchive(oldName, explorerView);
-                				if (importedProject != null) {
-                					String newName = importedProject.getName();
-                					explorerView.importProjectTreeObject(newName, true, oldName);
-                				}
-                				else throw new EngineException("Unable to import project temporary archive");
-                			}
-                			catch (Exception e) {
-                				throw new EngineException("Unable to paste project", e);
-                			}
-                		}
-                	}
-                }
-        	}
-			
-            boolean needNgxPaletteReload = false;
-        	Object[] pastedObjects = clipboardManager.pastedObjects;
-        	if (pastedObjects != null) {
-	        	for (int i=0; i<pastedObjects.length; i++) {
-	        		Object object = pastedObjects[i];
-	        		if (object != null && 
-	        			 (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
-	        				object instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent)) {
-	        			needNgxPaletteReload = true;
-	        			break;
-	        		}
-	        	}
-        	}
-        	
-            // Updating the tree
-            if (targetTreeObject != null) {
-            	TreeObject treeObjectToReload = targetTreeObject;
-            	TreeObject treeObjectToSelect = targetTreeObject;
-        		if (targetTreeObject instanceof IPropertyTreeObject) {
-        			treeObjectToSelect = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
-        			treeObjectToReload = treeObjectToSelect;
-            		if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
-            			treeObjectToReload = treeObjectToReload.getParent();
-    					if (treeObjectToReload instanceof FolderTreeObject)
-    						treeObjectToReload = treeObjectToReload.getParent();
-            		}
-        		}
-        		if (targetTreeObject instanceof IDesignTreeObject) {
-        			treeObjectToSelect = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
-        			treeObjectToReload = treeObjectToSelect;
-            		if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
-            			treeObjectToReload = treeObjectToReload.getParent();
-    					if (treeObjectToReload instanceof FolderTreeObject)
-    						treeObjectToReload = treeObjectToReload.getParent();
-            		}
-        		}
-        		
-        		if (treeObjectToReload != null) {
-	                //explorerView.reloadTreeObject(targetTreeObject);
-	                //explorerView.setSelectedTreeObject(targetTreeObject);
-        			explorerView.objectChanged(new CompositeEvent(treeObjectToReload.getObject(),treeObjectToSelect.getPath()));
-        		}
-            }
-            
+				if (targetTreeObject != null) {
+					if (targetTreeObject.getParent() == null)
+						targetTreeObject = explorerView.findTreeObjectByPath(targetTreeParent, targetPath);
+
+					if (targetTreeObject != null)
+						targetTreeObject.getProjectTreeObject().hasBeenModified(true);// Report 4.5: fix #401
+				}
+
+				clipboardManager.reset();
+			} else if (source != null) {
+				// Paste
+				clipboardManager.paste(source, targetObject, true);
+
+				// Case of project copy
+				if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
+					Object[] pastedObjects = clipboardManager.pastedObjects;
+					for (int i=0; i<pastedObjects.length; i++) {
+						Object object = pastedObjects[i];
+						if ((object != null) && (object instanceof Project)) {
+							Project project = (Project)object;
+							String oldName = project.getName();
+							try {
+								Project importedProject = importProjectTempArchive(oldName, explorerView);
+								if (importedProject != null) {
+									String newName = importedProject.getName();
+									explorerView.importProjectTreeObject(newName, true, oldName);
+								}
+								else throw new EngineException("Unable to import project temporary archive");
+							}
+							catch (Exception e) {
+								throw new EngineException("Unable to paste project", e);
+							}
+						}
+					}
+				}
+			}
+
+			boolean needNgxPaletteReload = false;
+			Object[] pastedObjects = clipboardManager.pastedObjects;
+			if (pastedObjects != null) {
+				for (int i=0; i<pastedObjects.length; i++) {
+					Object object = pastedObjects[i];
+					if (object != null &&
+							(object instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+									object instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent)) {
+						needNgxPaletteReload = true;
+						break;
+					}
+				}
+			}
+
+			// Updating the tree
+			if (targetTreeObject != null) {
+				TreeObject treeObjectToReload = targetTreeObject;
+				TreeObject treeObjectToSelect = targetTreeObject;
+				if (targetTreeObject instanceof IPropertyTreeObject) {
+					treeObjectToSelect = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
+					treeObjectToReload = treeObjectToSelect;
+					if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
+						treeObjectToReload = treeObjectToReload.getParent();
+						if (treeObjectToReload instanceof FolderTreeObject)
+							treeObjectToReload = treeObjectToReload.getParent();
+					}
+				}
+				if (targetTreeObject instanceof IDesignTreeObject) {
+					treeObjectToSelect = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
+					treeObjectToReload = treeObjectToSelect;
+					if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
+						treeObjectToReload = treeObjectToReload.getParent();
+						if (treeObjectToReload instanceof FolderTreeObject)
+							treeObjectToReload = treeObjectToReload.getParent();
+					}
+				}
+
+				if (treeObjectToReload != null) {
+					//explorerView.reloadTreeObject(targetTreeObject);
+					//explorerView.setSelectedTreeObject(targetTreeObject);
+					explorerView.objectChanged(new CompositeEvent(treeObjectToReload.getObject(),treeObjectToSelect.getPath()));
+				}
+			}
+
 			// Refresh ngx palette view
 			if (needNgxPaletteReload) {
-				NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-				if (ngxPaletteView != null) {
-					ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-				}
+				ConvertigoPlugin.getDefault().refreshPaletteView();
 			}
 		}
 	}
-	
+
 	private Object pasteStep(Shell shell, String source, DatabaseObject targetObject) throws ParserConfigurationException, SAXException, IOException {
 		// Can only paste on Sequence or Step
 		if (targetObject instanceof Sequence)
 			return targetObject;
 		else if (!(targetObject instanceof Step))
 			return null;
-		
+
 		// cannot paste to IThenElseContainer
 		if (targetObject instanceof IThenElseContainer)
 			return null;
@@ -411,21 +407,21 @@ public class ClipboardAction extends MyAbstractAction {
 						return null;
 					}
 				}
-				// Case of step which may contain children 
+				// Case of step which may contain children
 				else if (targetObject instanceof StepWithExpressions){
 					// Case paste on itself -> ask user what to do
 					if ((size==1) && (ob.getClass().equals(targetObject.getClass()))) {
 						if (((Step)ob).getName().equals(targetObject.getName())) {
 							CustomDialog customDialog = new CustomDialog(
-	    							shell,
-	    							"Paste a step",
-	    							"Do you want to paste the step as a sibling or a child step?",
-	    							500, 150,
-	    							new ButtonSpec("As a sibling", true),
-	    							new ButtonSpec("As a child", false),
-	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
-	    					);
-	    					int response = customDialog.open();
+									shell,
+									"Paste a step",
+									"Do you want to paste the step as a sibling or a child step?",
+									500, 150,
+									new ButtonSpec("As a sibling", true),
+									new ButtonSpec("As a child", false),
+									new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+									);
+							int response = customDialog.open();
 							if (response == 0) {
 								return targetObject.getParent();
 							}
@@ -453,13 +449,13 @@ public class ClipboardAction extends MyAbstractAction {
 				}
 			}
 		}
-		
+
 		return targetObject;
 	}
-	
+
 	private void makeProjectTempArchive(ProjectTreeObject projectTreeObject) throws EngineException {
-		Project project = projectTreeObject.getObject();		
-				
+		Project project = projectTreeObject.getObject();
+
 		try {
 			File exportDirectory = new File(Engine.USER_WORKSPACE_PATH + "/temp");
 			if (!exportDirectory.exists()) exportDirectory.mkdir();
@@ -470,7 +466,7 @@ public class ClipboardAction extends MyAbstractAction {
 			throw new EngineException("Unable to make a project copy archive",e);
 		}
 	}
-	
+
 	private Project importProjectTempArchive(String projectName, ProjectExplorerView explorerView) throws EngineException {
 		try {
 			// Get an available target project name
@@ -479,21 +475,21 @@ public class ClipboardAction extends MyAbstractAction {
 			while (explorerView.getProjectRootObject(targetProjectName) != null) {
 				targetProjectName = projectName + index++;
 			}
-			
+
 			// Get the original temporary project archive
 			File importDirectory = new File(Engine.USER_WORKSPACE_PATH + "/temp");
 			if (!importDirectory.exists()) importDirectory.mkdir();
 			String importDirectoryPath, importArchiveFilename;
 			importDirectoryPath = importDirectory.getCanonicalPath();
 			importArchiveFilename = importDirectoryPath + "/" + projectName +".car";
-			
+
 			// Deploy archive to target project
 			Project importedProject = Engine.theApp.databaseObjectsManager.deployProject(importArchiveFilename, targetProjectName, true, true);
-			
+
 			// Try to delete archive
 			try { new File(importArchiveFilename).delete(); }
 			catch (Exception e) {}
-			
+
 			return importedProject;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import project archive",e);

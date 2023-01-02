@@ -66,7 +66,6 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -87,56 +86,56 @@ import com.twinsoft.convertigo.engine.enums.DeleteProjectOption;
 public class DatabaseObjectDeleteAction extends MyAbstractAction {
 
 	private List<DatabaseObjectTreeObject> treeNodesToUpdate;
-	
+
 	public DatabaseObjectDeleteAction() {
 		super();
 	}
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-        	boolean needNgxPaletteReload = false;
-        	treeNodesToUpdate = new ArrayList<>();
-        	
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject[] selectedTreeObjects = explorerView.getSelectedTreeObjects();
-    			if (selectedTreeObjects != null) {
-    				Collection<DatabaseObjectTreeObject> treeObjects = new HashSet<>(selectedTreeObjects.length);
-    				for (TreeObject t: Arrays.asList(selectedTreeObjects)) {
-    					if (t instanceof DatabaseObjectTreeObject) {
-    						treeObjects.add((DatabaseObjectTreeObject) t);
-    						
-    						DatabaseObject dbo = ((DatabaseObjectTreeObject) t).getObject();
-    						if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
-    								dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
-    							needNgxPaletteReload = true;
-    						}
-    					}
-    				};
-    				
-    				if (treeObjects.size() > 1) {
-    					for (DatabaseObjectTreeObject t: new ArrayList<>(treeObjects)) {
-    						TreeObject parent = t.getParent();
-    						while (parent != null) {
-    							if (treeObjects.contains(parent)) {
-    								treeObjects.remove(t);
-    								parent = null;
-    							} else {
-    								parent = parent.getParent();
-    							}
-    						}
-    					};
-    				}
-    				
-    				if (treeObjects.size() > 1) {
-    					List<DatabaseObjectTreeObject> list = new ArrayList<>(treeObjects);
-    					Collections.sort(list, new Comparator<DatabaseObjectTreeObject>() {
+
+		try {
+			boolean needNgxPaletteReload = false;
+			treeNodesToUpdate = new ArrayList<>();
+
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject[] selectedTreeObjects = explorerView.getSelectedTreeObjects();
+				if (selectedTreeObjects != null) {
+					Collection<DatabaseObjectTreeObject> treeObjects = new HashSet<>(selectedTreeObjects.length);
+					for (TreeObject t: Arrays.asList(selectedTreeObjects)) {
+						if (t instanceof DatabaseObjectTreeObject) {
+							treeObjects.add((DatabaseObjectTreeObject) t);
+
+							DatabaseObject dbo = ((DatabaseObjectTreeObject) t).getObject();
+							if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+									dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+								needNgxPaletteReload = true;
+							}
+						}
+					};
+
+					if (treeObjects.size() > 1) {
+						for (DatabaseObjectTreeObject t: new ArrayList<>(treeObjects)) {
+							TreeObject parent = t.getParent();
+							while (parent != null) {
+								if (treeObjects.contains(parent)) {
+									treeObjects.remove(t);
+									parent = null;
+								} else {
+									parent = parent.getParent();
+								}
+							}
+						};
+					}
+
+					if (treeObjects.size() > 1) {
+						List<DatabaseObjectTreeObject> list = new ArrayList<>(treeObjects);
+						Collections.sort(list, new Comparator<DatabaseObjectTreeObject>() {
 
 							@Override
 							public int compare(DatabaseObjectTreeObject o1, DatabaseObjectTreeObject o2) {
@@ -151,68 +150,68 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 								return o1.getName().compareTo(o2.getName());
 							}
 						});
-    					treeObjects = list;
-    				}
-    				
-    				MultipleDeletionDialog dialog = new MultipleDeletionDialog(shell, "Object Deletion", treeObjects.size() != 1);
-    				
-    				for (DatabaseObjectTreeObject treeObject: treeObjects) {
-    		        	String message = java.text.MessageFormat.format("Do you really want to delete the {0} \"{1}\" and all its sub-objects?", treeObject instanceof ProjectTreeObject ? "project" : "object", treeObject.getName());
-    					
-    		        	if (treeObject instanceof ProjectTreeObject) {
-    		        		message += "\nProject location: " + ((Project) treeObject.getObject()).getDirPath();
-        					dialog.setToggle("Delete project content on disk (cannot be undone)", false);
-        				} else {
-        					dialog.removeToggle();
-        				}
-    		        	
-    		        	if (!dialog.shouldBeDeleted(message)) {
-    		        		continue;
-    		        	}
-    		        	
-    		        	try {
-	    					if (treeObject instanceof ProjectTreeObject) {
-	    						((ProjectTreeObject) treeObject).closeAllEditors();
-	    		        	} else if (treeObject instanceof SequenceTreeObject) {
-	    						((ProjectTreeObject) ((SequenceTreeObject) treeObject).getParent().getParent()).closeSequenceEditors((Sequence) treeObject.getObject());
-	    		        	} else if (treeObject instanceof ConnectorTreeObject) {
-	    						((ProjectTreeObject) ((ConnectorTreeObject) treeObject).getParent().getParent()).closeConnectorEditors((Connector) treeObject.getObject());
-	    		        	} else if (treeObject instanceof StepTreeObject) {
-	    						// We close the editor linked with the SimpleStep (=SequenceJsStep)
-	    						if (treeObject.getObject() instanceof SimpleStep) {
-	    							boolean find = false;
-	    							SimpleStep simpleStep = (SimpleStep) treeObject.getObject();
-	    							IWorkbenchPage page = this.getActivePage();	
-	    							IEditorReference[] editors = page.getEditorReferences();
-	    							int _i = 0;
-	    							while (find != true && _i < editors.length) {
-	    								IEditorReference editor = editors[_i];
-	    								IEditorInput input = editor.getEditorInput();
-	    								if (input instanceof JScriptEditorInput) {
-	    									if (simpleStep.equals(((JScriptEditorInput) input).getDatabaseObject())) {
-	    										find = true;
-	    	    								IEditorPart editorPart = page.findEditor(input);
-	    	    								if (editorPart != null) {
-		    										page.activate(editorPart);
-		    										page.closeEditor(editorPart, false);
-	    	    								}
-	    									}
-	    								}
-	    								++_i;
-	    							}
-	    						}
-	    					} else if (treeObject instanceof MobileComponentTreeObject) {
-	    						((MobileComponentTreeObject) treeObject).closeAllEditors(false);
-	    					}
-	    					
-	    					if (treeObject instanceof ProjectTreeObject) {
-	    						explorerView.removeProjectTreeObject(treeObject);
-	    		        		final Project project = (Project) treeObject.getObject();
-	    		        		Job rmProject = new Job("Remove '" + project.getName() + "' project") {
-	
+						treeObjects = list;
+					}
+
+					MultipleDeletionDialog dialog = new MultipleDeletionDialog(shell, "Object Deletion", treeObjects.size() != 1);
+
+					for (DatabaseObjectTreeObject treeObject: treeObjects) {
+						String message = java.text.MessageFormat.format("Do you really want to delete the {0} \"{1}\" and all its sub-objects?", treeObject instanceof ProjectTreeObject ? "project" : "object", treeObject.getName());
+
+						if (treeObject instanceof ProjectTreeObject) {
+							message += "\nProject location: " + ((Project) treeObject.getObject()).getDirPath();
+							dialog.setToggle("Delete project content on disk (cannot be undone)", false);
+						} else {
+							dialog.removeToggle();
+						}
+
+						if (!dialog.shouldBeDeleted(message)) {
+							continue;
+						}
+
+						try {
+							if (treeObject instanceof ProjectTreeObject) {
+								((ProjectTreeObject) treeObject).closeAllEditors();
+							} else if (treeObject instanceof SequenceTreeObject) {
+								((ProjectTreeObject) ((SequenceTreeObject) treeObject).getParent().getParent()).closeSequenceEditors((Sequence) treeObject.getObject());
+							} else if (treeObject instanceof ConnectorTreeObject) {
+								((ProjectTreeObject) ((ConnectorTreeObject) treeObject).getParent().getParent()).closeConnectorEditors((Connector) treeObject.getObject());
+							} else if (treeObject instanceof StepTreeObject) {
+								// We close the editor linked with the SimpleStep (=SequenceJsStep)
+								if (treeObject.getObject() instanceof SimpleStep) {
+									boolean find = false;
+									SimpleStep simpleStep = (SimpleStep) treeObject.getObject();
+									IWorkbenchPage page = this.getActivePage();
+									IEditorReference[] editors = page.getEditorReferences();
+									int _i = 0;
+									while (find != true && _i < editors.length) {
+										IEditorReference editor = editors[_i];
+										IEditorInput input = editor.getEditorInput();
+										if (input instanceof JScriptEditorInput) {
+											if (simpleStep.equals(((JScriptEditorInput) input).getDatabaseObject())) {
+												find = true;
+												IEditorPart editorPart = page.findEditor(input);
+												if (editorPart != null) {
+													page.activate(editorPart);
+													page.closeEditor(editorPart, false);
+												}
+											}
+										}
+										++_i;
+									}
+								}
+							} else if (treeObject instanceof MobileComponentTreeObject) {
+								((MobileComponentTreeObject) treeObject).closeAllEditors(false);
+							}
+
+							if (treeObject instanceof ProjectTreeObject) {
+								explorerView.removeProjectTreeObject(treeObject);
+								final Project project = (Project) treeObject.getObject();
+								Job rmProject = new Job("Remove '" + project.getName() + "' project") {
+
 									@Override
 									protected IStatus run(IProgressMonitor monitor) {
-			    		        		try {
+										try {
 											delete(project, dialog.getToggleState());
 										} catch (Exception e) {
 											ConvertigoPlugin.logException(e, "Unable to delete the '" + project.getName() + "' project.");
@@ -220,111 +219,108 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 										}
 										return Status.OK_STATUS;
 									}
-	    		        			
-	    		        		};
-	    		        		rmProject.schedule();
-	    		        	} else {
-	        					delete(treeObject);
-	    						// prevents treeObject and its childs to receive further TreeObjectEvents
-	    						if (treeObject instanceof TreeObjectListener) {
-	    							explorerView.removeTreeObjectListener(treeObject);
-	    						}
-	    						treeObject.removeAllChildren();
-	    					}
-	    					
-	    					explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
-    		        	} catch (Exception e) {
-    		        		ConvertigoPlugin.logException(e, "Unable to delete the current selected object.");
+
+								};
+								rmProject.schedule();
+							} else {
+								delete(treeObject);
+								// prevents treeObject and its childs to receive further TreeObjectEvents
+								if (treeObject instanceof TreeObjectListener) {
+									explorerView.removeTreeObjectListener(treeObject);
+								}
+								treeObject.removeAllChildren();
+							}
+
+							explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+						} catch (Exception e) {
+							ConvertigoPlugin.logException(e, "Unable to delete the current selected object.");
 						}
-    				};
-    				
-    				// Updating the tree and the properties panel
-    				Enumeration<DatabaseObjectTreeObject> enumeration = Collections.enumeration(treeNodesToUpdate);
-    				DatabaseObjectTreeObject parentTreeObject;
-    				while (enumeration.hasMoreElements()) {
-    					parentTreeObject = enumeration.nextElement();
-    					if (parentTreeObject != null) {
-        					explorerView.reloadTreeObject(parentTreeObject);
-        					explorerView.setSelectedTreeObject(parentTreeObject);
-    					}
-    				}
-    				
-    				// Refresh tree to show potential 'broken' steps
-    				explorerView.refreshTree();
-    				
-					// Refresh ngx palette view
-					if (needNgxPaletteReload) {
-						NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-						if (ngxPaletteView != null) {
-							ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+					};
+
+					// Updating the tree and the properties panel
+					Enumeration<DatabaseObjectTreeObject> enumeration = Collections.enumeration(treeNodesToUpdate);
+					DatabaseObjectTreeObject parentTreeObject;
+					while (enumeration.hasMoreElements()) {
+						parentTreeObject = enumeration.nextElement();
+						if (parentTreeObject != null) {
+							explorerView.reloadTreeObject(parentTreeObject);
+							explorerView.setSelectedTreeObject(parentTreeObject);
 						}
 					}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to delete object!");
-        }
-        finally {
+
+					// Refresh tree to show potential 'broken' steps
+					explorerView.refreshTree();
+
+					// Refresh ngx palette view
+					if (needNgxPaletteReload) {
+						ConvertigoPlugin.getDefault().refreshPaletteView();
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to delete object!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 	private void delete(DatabaseObjectTreeObject treeObject) throws CoreException, ConvertigoException {
-		
+
 		DatabaseObjectTreeObject parentTreeObject = null;
 		TreeParent treeParent = treeObject.getParent();
-		
+
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		DatabaseObject parent = databaseObject.getParent();
-		
+
 		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject))) {
 			treeParent = treeParent.getParent();
 		}
-		
+
 		if (treeParent != null) {
 			parentTreeObject = (DatabaseObjectTreeObject) treeParent;
 		}
-		
+
 		delete(databaseObject, false);
-		
+
 		/*if ((parent != null) && (!parent.hasChanged))
 			ConvertigoPlugin.projectManager.save(parent, false);*/
-		
+
 		// Do not save after a deletion anymore
 		if (parent != null) {
 			parentTreeObject.hasBeenModified(true);
 		}
-				
+
 		if ((parentTreeObject != null) && !treeNodesToUpdate.contains(parentTreeObject)) {
 			treeNodesToUpdate.add(parentTreeObject);
 		}
-		
+
 	}
-	
+
 	private void delete(DatabaseObject databaseObject, boolean deleteProjectOnDisk) throws EngineException, CoreException {
-		
+
 		if (databaseObject instanceof Connector) {
 			if (((Connector) databaseObject).isDefault) {
 				throw new EngineException("Cannot delete the default connector!");
 			}
-			
+
 			String dirPath, projectName;
 			File dir;
-			
+
 			projectName = databaseObject.getParentName();
-			
+
 			MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			messageBox.setText("Also delete linked resources?");
-			
+
 			// Delete soap templates for this connector
 			dirPath = Engine.projectDir(projectName) + "/soap-templates/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
 				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
-						"Do you also want to delete folder:\n\n\""+dirPath+"\""); 
-				if (messageBox.open() == SWT.YES) {			
+						"Do you also want to delete folder:\n\n\""+dirPath+"\"");
+				if (messageBox.open() == SWT.YES) {
 					try {
 						DatabaseObjectsManager.deleteDir(dir);
 					} catch (IOException e) {
@@ -332,15 +328,15 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 					}
 				}
 			}
-			
+
 			// Delete directory corresponding to connector under Traces directory
 			dirPath = Engine.projectDir(projectName) + "/Traces/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
 				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
-						"Do you also want to delete folder:\n\n\""+dirPath+"\""); 
-				
-				if (messageBox.open() == SWT.YES) {		
+						"Do you also want to delete folder:\n\n\""+dirPath+"\"");
+
+				if (messageBox.open() == SWT.YES) {
 					try {
 						DatabaseObjectsManager.deleteDir(dir);
 					} catch (IOException e) {
@@ -362,13 +358,13 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		}
 		else if (databaseObject instanceof Statement) {
 			if ((databaseObject instanceof ThenStatement) ||
-				(databaseObject instanceof ElseStatement)) {
+					(databaseObject instanceof ElseStatement)) {
 				throw new EngineException("Cannot delete this statement!");
 			}
 		}
 		else if (databaseObject instanceof Step) {
 			if ((databaseObject instanceof ThenStep) ||
-				(databaseObject instanceof ElseStep)) {
+					(databaseObject instanceof ElseStep)) {
 				throw new EngineException("Cannot delete this step!");
 			}
 		}
@@ -377,7 +373,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			File resourceFolder = mobilePlatform.getResourceFolder();
 			if (resourceFolder.exists()) {
 				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-				messageBox.setMessage("Do you want to delete the whole resource folder \"" + mobilePlatform.getRelativeResourcePath() + "\"?"); 
+				messageBox.setMessage("Do you want to delete the whole resource folder \"" + mobilePlatform.getRelativeResourcePath() + "\"?");
 				messageBox.setText("Delete the \""+resourceFolder.getName()+"\" folder?");
 				if (messageBox.open() == SWT.YES) {
 					FileUtils.deleteQuietly(resourceFolder);
@@ -389,9 +385,9 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 				throw new EngineException("Cannot delete the root page!");
 			}
 		}
-		
+
 		String dboQName = databaseObject.getQName();
-		
+
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
@@ -405,22 +401,22 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		else {
 			databaseObject.delete();
 		}
-		
+
 		if (databaseObject instanceof CouchDbConnector) {
 			CouchDbConnector couchDbConnector = (CouchDbConnector)databaseObject;
 			String db = couchDbConnector.getDatabaseName();
 			if (!db.isEmpty()) {
 				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-				messageBox.setMessage("Do you want to delete the \""+db+"\" database from the CouchDb server?"); 
+				messageBox.setMessage("Do you want to delete the \""+db+"\" database from the CouchDb server?");
 				messageBox.setText("Delete the database?");
 				if (messageBox.open() == SWT.YES) {
 					couchDbConnector.getCouchClient().deleteDatabase(db);
 				}
 			}
 		}
-		
+
 		ConvertigoPlugin.logDebug("The object \"" + dboQName + "\" has been deleted from the database repository!");
-    }
-	
+	}
+
 	//TODO : add DeleteEdit class
 }

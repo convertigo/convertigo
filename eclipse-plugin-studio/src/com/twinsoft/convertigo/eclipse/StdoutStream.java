@@ -36,11 +36,13 @@ public class StdoutStream extends PrintStream {
 	}
 	
 	public void print(String s) {
-		if (consoleStream != null && !consoleStream.isClosed()) {
-			consoleStream.print(s);
-		}
+		ConvertigoPlugin.asyncExec(() -> {
+			if (consoleStream != null && !consoleStream.isClosed()) {
+				consoleStream.print(s);
+			}
+		});
 	}
-	
+
 	public void println() {
 		print("\n");
 	}

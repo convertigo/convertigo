@@ -1749,7 +1749,7 @@ public class Engine {
 		return bXulRunner;
 	}
 	
-	public static void execute(final Runnable runnable) {
+	public static void execute(Runnable runnable) {
 		executor.execute(() -> {
 			Thread th = Thread.currentThread();
 			String name = th.getName();
@@ -1767,6 +1767,53 @@ public class Engine {
 				}
 			}
 		});
+	}
+	
+	private static Map<Class<? extends Runnable>, boolean[]> executeThreshold = new HashMap<>(); 
+	public static void execute(Runnable runnable, long threshold) {
+		synchronized (executeThreshold) {
+			boolean[] doit = executeThreshold.get(runnable.getClass());
+			if (doit != null) {
+				synchronized (doit) {
+					doit[0] = false;
+					doit.notify();
+				}
+			}
+			boolean[] _doit = {true};
+			synchronized (_doit) {
+				executeThreshold.put(runnable.getClass(), _doit);
+				executor.execute(() -> {
+					Thread th = Thread.currentThread();
+					String name = th.getName();
+					try {
+						synchronized (_doit) {
+							_doit.notify();
+							_doit.wait(threshold);
+						}
+						if (_doit[0]) {
+							synchronized (executeThreshold) {
+								executeThreshold.remove(runnable.getClass());
+							}
+							runnable.run();
+						}
+					} catch (Throwable t) {
+						if (Engine.logEngine != null) {
+							Engine.logEngine.trace("Convertigo executor terminated with a throwable.", t);
+						} else {
+							System.err.println("Convertigo executor terminated with a throwable.\n" + t);
+						}
+					} finally {
+						if (!name.equals(th.getName())) {
+							th.setName(name);
+						}
+					}
+				});
+				try {
+					_doit.wait();
+				} catch (Exception e) {
+				}
+			}
+		}
 	}
 	
 	public static File projectFile(String projectName) {

@@ -206,7 +206,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAc
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.UndoAction;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -322,7 +321,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x11D;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT = 0x11E;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT = 0x11F;
-	
+
 	public static final int TREE_OBJECT_TYPE_DBO_REFERENCE = 0x120;
 	public static final int TREE_OBJECT_TYPE_DBO_VARIABLE = 0x121;
 	public static final int TREE_OBJECT_TYPE_DBO_INDEX = 0x122;
@@ -440,12 +439,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void createPartControl(Composite parent) {
 		parent.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).spacing(0, 0).create());
 		viewContentProvider = new ViewContentProvider(this);
-		
+
 		Composite stack = new Composite(parent, SWT.NONE);
 		stack.setLayoutData(new GridData(GridData.FILL_BOTH));
 		StackLayout stackLayout = new StackLayout();
 		stack.setLayout(stackLayout);
-		
+
 		Composite rateUsBar = new Composite(parent, SWT.NONE);
 		rateUsBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		rateUsBar.setLayout(GridLayoutFactory.fillDefaults().numColumns(5).margins(0, 0).spacing(2, 2).create());
@@ -456,7 +455,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				{"1", null, "icons/studio/linkedin-16.png", "https://www.linkedin.com/company/convertigo/"},
 				{null, null, "icons/studio/close-16.png", null}
 		};
-		
+
 		for (String[] def: rateDef) {
 			try {
 				Button rateUsButton = new Button(rateUsBar, SWT.PUSH);
@@ -484,7 +483,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} catch (Exception e2) {
 			}
 		}
-		
+
 		Label noEngine = new Label(stack, SWT.CENTER);
 		noEngine.setText("\n"
 				+ "Convertigo Studio isn't completely installed,\n"
@@ -498,20 +497,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				ConvertigoPlugin.getDefault().runSetup();
 			}
 		});
-		
+
 		Composite noProject = new Composite(stack, SWT.NONE);
 		noProject.setLayout(new GridLayout(1, false));
-		
+
 		ToolBar toolbar = new ToolBar(noProject, SWT.VERTICAL | SWT.FLAT);
 		toolbar.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, true));
-		
+
 		String[][] defs = {
-			{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
-			{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
-			{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
-			{"Start another type of project", "convertigo_logo_32x32.png", null}
+				{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
+				{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
+				{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
+				{"Start another type of project", "convertigo_logo_32x32.png", null}
 		};
-		
+
 		SelectionListener listener = new SelectionListener() {
 
 			@Override
@@ -522,15 +521,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				IEvaluationService evaluationService = (IEvaluationService) PlatformUI.getWorkbench()
 						.getActiveWorkbenchWindow().getService(IEvaluationService.class);
 				try {
-					
+
 					for (IWizardDescriptor c : PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getWizards()) {
 						System.out.println(c.getId() + ": " + c.getLabel() + " " + c.getCategory().getId());
 					}
-					
+
 					for (IWizardCategory c: PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getCategories()) {
 						System.out.println(c.getId() + ": " + c.getLabel() + " " + Arrays.toString(c.getWizards()));
 					}
-					
+
 					Command c = commandService.getCommand("org.eclipse.ui.newWizard");
 
 					Map<String, String> params = new HashMap<String, String>();
@@ -546,10 +545,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 		};
-		
+
 		for (int i = 0; i < defs.length; i++) {
 			ToolItem btn = new ToolItem(toolbar, SWT.PUSH);
 			btn.setText("     " + defs[i][0] + "     ");
@@ -562,7 +561,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			btn.addSelectionListener(listener);
 		}
-		
+
 		viewer = new TreeViewer(stack,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
@@ -573,7 +572,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					ConvertigoPlugin.asyncExec(() -> super.refresh(element));
 					packColumns();
 				}
-				
+
 				if (viewContentProvider.getTreeRoot() != null && viewContentProvider.getTreeRoot().hasChildren()) {
 					if (stackLayout.topControl != getTree()) {
 						stackLayout.topControl = getTree();
@@ -664,7 +663,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			// Studio mode
 			Engine.setObjectsProvider(this);
-			
+
 			// Loads projects
 			if (Engine.isStarted) {
 				((ViewContentProvider) viewer.getContentProvider()).loadProjects();
@@ -805,7 +804,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		//statusLine.setMessage("Convertigo Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion + " - " + analyzeKey());
 		statusLine.setMessage("Convertigo EMS Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
 	}
-	
+
 	private void fillContextMenu(IMenuManager manager) {
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -914,7 +913,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
-		
+
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 
@@ -1074,7 +1073,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 					if (projectTreeObject != null) {
 						ConvertigoPlugin.projectManager.setCurrentProject(projectTreeObject);
-						
+
 						IProject prj = projectTreeObject.getIProject();
 						List<Object> res = new LinkedList<>();
 						TreeObject current = treeObject;
@@ -1093,9 +1092,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						while (res.get(0) != prj) {
 							res.add(0, ((IResource) res.get(0)).getParent());
 						}
-						
+
 						Object[] resObj = res.toArray();
-						
+
 						try {
 							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 							ProjectExplorer pe;
@@ -1314,13 +1313,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								}
 
 								newName = text.getText();
-										
-									// Save and close editors
-										if (theTreeObject instanceof IClosableTreeObject) {
-											((IClosableTreeObject) theTreeObject).closeAllEditors(true);
-									}
 
-										if (theTreeObject instanceof DatabaseObjectTreeObject) {
+								// Save and close editors
+								if (theTreeObject instanceof IClosableTreeObject) {
+									((IClosableTreeObject) theTreeObject).closeAllEditors(true);
+								}
+
+								if (theTreeObject instanceof DatabaseObjectTreeObject) {
 									DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject) theTreeObject;
 									if (dbObjectTreeObject.rename(newName, Boolean.TRUE)) {
 										item.setText(newName);
@@ -1347,7 +1346,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)theTreeObject;
 									if (ddfto.rename(newName, Boolean.TRUE)) {
 										item.setText(newName);
-												needRefresh = true;
+										needRefresh = true;
 									}
 								}
 								//FALL THROUGH
@@ -1499,7 +1498,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							} else {
 								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName);
 							}
-						BatchOperationHelper.start();
+							BatchOperationHelper.start();
 							ProjectExplorerView.this.refreshTree();
 							ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
 							ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
@@ -1537,7 +1536,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									}
 								}
 							}
-						BatchOperationHelper.stop();
+							BatchOperationHelper.stop();
 							Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
@@ -1556,13 +1555,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
 										structuredSelection);
-							
+
 							// Refresh ngx palette view
 							if (needNgxPaletteReload) {
-								NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-								if (ngxPaletteView != null) {
-									ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-								}
+								ConvertigoPlugin.getDefault().refreshPaletteView();
 							}
 						}
 						if (needProjectReload) {
@@ -1841,35 +1837,35 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
 							if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
 								databaseObjectTreeObject = new MobileApplicationComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES;
 								databaseObjectTreeObject = new MobileRouteComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 								databaseObjectTreeObject = new MobileRouteEventComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS;
 								databaseObjectTreeObject = new MobileRouteActionComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 								databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS;
 								databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS;
 								databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MENUS;
 								databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
 								if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAttribute) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES;
@@ -1910,23 +1906,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 							if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
 								databaseObjectTreeObject = new NgxApplicationComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 								databaseObjectTreeObject = new NgxPageComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS;
 								databaseObjectTreeObject = new NgxUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS;
 								databaseObjectTreeObject = new NgxUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MENUS;
 								databaseObjectTreeObject = new NgxUIComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
+
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
 								if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES;
@@ -2060,11 +2056,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							} else {
 								databaseObjectTreeObject = new ListenerTreeObject(viewer, listener, false);
 							}
-							
+
 						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_INDEXES;
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
-							
+
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
@@ -2317,7 +2313,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	/**
 	 * Parses as a DOM the IFile passed in argument ..
-	 * 
+	 *
 	 * @param 	file to parse
 	 * @return 	parsed Document
 	 */
@@ -2510,12 +2506,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				ConvertigoPlugin.logException(e, "Unable to unload the project '" + projectTreeObject.getName() + "'");
 			}
 
-			// Refresh ngx palette view
-			NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-			if (ngxPaletteView != null) {
-				ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-			}
-			
+			ConvertigoPlugin.getDefault().refreshPaletteView();
+
 			return unloadedProjectTreeObject;
 		}
 		return null;
@@ -2769,11 +2761,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} else {
 				databaseProject = databaseObject.getProject();
 			}
-			
+
 			if (databaseProject == null) {
 				return null;
 			}
-			
+
 			ViewContentProvider provider = (ViewContentProvider) viewer.getContentProvider();
 			if (provider != null) {
 				Object[] objects = provider.getChildren(provider.getTreeRoot());
@@ -3130,7 +3122,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public TreeObject getProjectRootObject(String projectName) throws EngineException {
 		return ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
 	}
-	
+
 	public Collection<ProjectTreeObject> getOpenedProjects() {
 		return ((ViewContentProvider) viewer.getContentProvider()).getOpenedProjects();
 	}
@@ -3189,7 +3181,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void objectDetected(EngineEvent engineEvent) {
 		final Object source = engineEvent.getSource();
 		boolean highlightDetectedObject = ConvertigoPlugin.getHighlightDetectedObject();
-		
+
 		if (source instanceof Step) {
 			try {
 				highlightDetectedObject = Boolean.TRUE.equals(RequestAttribute.debug.get(((Step) source).getSequence().context.httpServletRequest));
@@ -3357,7 +3349,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		} else {
 			return false;
 		}
-		
+
 		Engine.execute(() -> {
 			Exception[] exception = {null};
 			try {
@@ -3373,7 +3365,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						if (projectTreeObject[0] == null) {
 							importProjectTreeObject(projectName);
 						} else {
-//							// recreate project resource
+							//							// recreate project resource
 							ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 							reloadProject(projectTreeObject[0]);
 						}
@@ -3393,10 +3385,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 			}
 		});
-		
+
 		return true;
 	}
-	
+
 	public Comparator<TreeObject> getViewerComparator() {
 		Comparator<TreeObject> comparator = null;
 		ViewerComparator sorter = viewer != null ? viewer.getComparator() : new ViewerComparator();
@@ -3408,7 +3400,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		};
 		return comparator;
 	}
-	
+
 	public void moveChildTo(TreeParent parent, TreeObject src, TreeObject target, boolean insertBefore) {
 		List<? extends TreeObject> children = parent.getChildren();
 		int destPosition = children.indexOf(target);
@@ -3427,7 +3419,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 	}
-	
+
 	public void moveLastTo(TreeParent parent, TreeObject target, boolean insertBefore) {
 		moveChildTo(parent, null, target, insertBefore);
 	}
@@ -3438,36 +3430,36 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		/**************************************************************************************************/
 		if (databaseObject != null && databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
 			switch (folderType) {
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAttribute &&
-							!(databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlAttr);
-				case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent ;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIStyle;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIStackVariable ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UICompVariable ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAttribute &&
+						!(databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlAttr);
+			case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent ;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIStyle;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIStackVariable ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UICompVariable ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 			}
 		}
 		/**************************************************************************************************/
@@ -3475,33 +3467,33 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		/**************************************************************************************************/
 		if (databaseObject != null && databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 			switch (folderType) {
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
-					//return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
-					return (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr) &&
-							!(databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr);
-				case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UICompVariable ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
+				//return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
+				return (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr) &&
+						!(databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr);
+			case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle;
+			case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
+				return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UICompVariable ||
+						databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 			}
 		}
 		return false;
