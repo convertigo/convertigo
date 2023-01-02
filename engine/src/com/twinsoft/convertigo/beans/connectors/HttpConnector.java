@@ -858,8 +858,11 @@ public class HttpConnector extends Connector {
 	public byte[] getData(Context context) throws IOException, EngineException {
 		return getData(context, sUrl);
 	}
-	
 	public byte[] getData(Context context, String sUrl) throws IOException, EngineException {
+		return getData(context, sUrl, false);
+	}
+	
+	public byte[] getData(Context context, String sUrl, boolean forceGET) throws IOException, EngineException {
 		HttpMethod method = null;
 
 		// Fire event for plugins
@@ -921,10 +924,21 @@ public class HttpConnector extends Connector {
 			
 			// Retrieve HTTP method
 			HttpMethodType httpVerb = httpTransaction.getHttpVerb();
-			String sHttpVerb = httpVerb.name();
-			final String sCustomHttpVerb = httpTransaction.getCustomHttpVerb();
+			String customHttpVerb = httpTransaction.getCustomHttpVerb();
 			
-			if (sCustomHttpVerb.length() > 0) {
+			if (forceGET) {
+				if (httpVerb == HttpMethodType.POST) {
+					httpVerb = HttpMethodType.GET;
+				}
+				if ("POST".equalsIgnoreCase(customHttpVerb)) {
+					customHttpVerb = "GET";
+				}
+			}
+			
+			String sHttpVerb = httpVerb.name();
+			
+			if (customHttpVerb.length() > 0) {
+				final String sCustomHttpVerb = customHttpVerb;
 				Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb + " overridden to '" + sCustomHttpVerb + "'");
 				
 				switch (httpVerb) {
@@ -1024,7 +1038,7 @@ public class HttpConnector extends Connector {
 
 			// Setting POST or PUT parameters if any
 			Engine.logBeans.debug("(HttpConnector) Setting " + httpVerb + " data");
-			if (method instanceof EntityEnclosingMethod) {
+			if (method instanceof EntityEnclosingMethod && !forceGET) {
 				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
 				AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 				
@@ -1360,7 +1374,8 @@ public class HttpConnector extends Connector {
 						(  statuscode == HttpStatus.SC_MOVED_TEMPORARILY
 						|| statuscode == HttpStatus.SC_MOVED_PERMANENTLY
 						|| statuscode == HttpStatus.SC_SEE_OTHER
-						|| statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
+						|| statuscode == HttpStatus.SC_TEMPORARY_REDIRECT
+						|| statuscode == 308)) {
 					Header location = method.getResponseHeader("Location");
 					if (location != null) {
 						newuri = location.getValue();
@@ -1376,7 +1391,7 @@ public class HttpConnector extends Connector {
 
 						redirectUrl = getAbsoluteUrl(method, newuri);
 						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
-						result = getData(context, redirectUrl);
+						result = getData(context, redirectUrl, statuscode < HttpStatus.SC_TEMPORARY_REDIRECT);
 					} else {
 						Engine.logBeans.debug("(HttpConnector) Invalid redirect!");
 					}
