@@ -493,8 +493,16 @@ public class HttpConnector extends Connector {
 				httpVariable = variable;
 			}
 			httpObjectVariableValue = httpTransaction.getParameterValue(variable);
-
-			bIgnoreVariable = urlPathVariableList.contains(variable) ||
+			
+			bIgnoreVariable = false;
+			for (DynamicHttpVariable v: DynamicHttpVariable.values()) {
+				bIgnoreVariable = v.name().endsWith("_") ? variable.startsWith(v.name()) : variable.equals(v.name());
+				if (bIgnoreVariable) {
+					break;
+				}
+			}
+			bIgnoreVariable = bIgnoreVariable ||
+								urlPathVariableList.contains(variable) ||
 								httpObjectVariableValue == null ||
 								variable.startsWith(DynamicHttpVariable.__header_.name()) ||
 								httpVariable.isEmpty() ||

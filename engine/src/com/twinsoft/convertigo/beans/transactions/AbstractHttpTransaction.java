@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
@@ -361,13 +362,18 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 					headerName = headerName.substring(DynamicHttpVariable.__header_.name().length());
 				}
 				NameValuePair nvp = new BasicNameValuePair(headerName, (String) var.getValueOrNull());
-				map.put(varName, nvp);
+				map.put(headerName, nvp);
 			} else if (v.getName().equals(DynamicHttpVariable.__uri.name())) {
 				Object o = v.getDefaultValue();
 				if (o != null && o instanceof String) {
 					uri = (String) o;
 				}
 			}
+		}
+		Variable v = getVariable(DynamicHttpVariable.__contentType.name());
+		if (v != null) {
+			String h = HeaderName.ContentType.value();
+			map.put(h, new BasicNameValuePair(h, (String) v.getValueOrNull()));
 		}
 
 		// Overrides uri using given __uri request parameter

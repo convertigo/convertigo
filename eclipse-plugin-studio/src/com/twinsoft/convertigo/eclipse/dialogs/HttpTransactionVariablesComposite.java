@@ -226,6 +226,9 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 				try {
 					RequestableHttpVariable newDboVar = new RequestableHttpVariable();
 					newDboVar.setName(v.name());
+					if (v == DynamicHttpVariable.__body) {
+						newDboVar.setHttpMethod("POST");
+					}
 					httpTransaction.addVariable(newDboVar);
 				} catch (EngineException e) {
 				}
