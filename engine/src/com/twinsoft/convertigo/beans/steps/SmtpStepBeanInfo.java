@@ -64,11 +64,13 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.smtpRecipients.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.smtpRecipients.short_description"));
 			properties[4].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[4].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[5] = new PropertyDescriptor("smtpSubject", beanClass, "getSmtpSubject", "setSmtpSubject");
 			properties[5].setDisplayName(getExternalizedString("property.smtpSubject.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.smtpSubject.short_description"));
 			properties[5].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[5].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[6] = new PropertyDescriptor("smtpAuthType", beanClass, "getSmtpAuthType", "setSmtpAuthType");
 			properties[6].setDisplayName(getExternalizedString("property.smtpAuthType.display_name"));
@@ -86,18 +88,21 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			properties[8].setDisplayName(getExternalizedString("property.smtpSender.display_name"));
 			properties[8].setShortDescription(getExternalizedString("property.smtpSender.short_description"));
 			properties[8].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[8].setValue(MULTILINE, Boolean.TRUE);
 			properties[8].setExpert(true);
 
 			properties[9] = new PropertyDescriptor("xslFilepath", beanClass, "getXslFilepath", "setXslFilepath");
 			properties[9].setDisplayName(getExternalizedString("property.xslFilepath.display_name"));
 			properties[9].setShortDescription(getExternalizedString("property.xslFilepath.short_description"));
 			properties[9].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[9].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[10] = new PropertyDescriptor("contentType", beanClass, "getContentType", "setContentType");
 			properties[10].setDisplayName(getExternalizedString("property.contentType.display_name"));
 			properties[10].setShortDescription(getExternalizedString("property.contentType.short_description"));
 			properties[10].setExpert(true);
 			properties[10].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[10].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[11] = new PropertyDescriptor("attachments", beanClass, "getAttachments", "setAttachments");
 			properties[11].setDisplayName(getExternalizedString("property.attachments.display_name"));

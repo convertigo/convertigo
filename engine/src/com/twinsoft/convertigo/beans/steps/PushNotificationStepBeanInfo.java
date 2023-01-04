@@ -50,16 +50,19 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.gcmapikey.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.gcmapikey.short_description"));
 			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[2] = new PropertyDescriptor("clientCertificate", beanClass, "getClientCertificate", "setClientCertificate");
 			properties[2].setDisplayName(getExternalizedString("property.clientcertificate.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.clientcertificate.short_description"));
 			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[2].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[3] = new PropertyDescriptor("certificatePassword", beanClass, "getCertificatePassword", "setCertificatePassword");
 			properties[3].setDisplayName(getExternalizedString("property.certificatepassword.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.certificatepassword.short_description"));
 			properties[3].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[3].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[4] = new PropertyDescriptor("apnsNotificationType", beanClass, "getApnsNotificationType", "setApnsNotificationType");
 			properties[4].setDisplayName(getExternalizedString("property.apnsnotificationtype.display_name"));
@@ -77,11 +80,13 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
 			properties[6].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[6].setValue(MULTILINE, Boolean.TRUE);
 
 			properties[7] = new PropertyDescriptor("useProductionAPNS", beanClass, "getUseProductionAPNS", "setUseProductionAPNS");
 			properties[7].setDisplayName(getExternalizedString("property.useProductionAPNS.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.useProductionAPNS.short_description"));
 			properties[7].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[7].setValue(MULTILINE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

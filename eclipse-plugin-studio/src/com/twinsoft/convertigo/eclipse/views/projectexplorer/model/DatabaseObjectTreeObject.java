@@ -99,6 +99,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDe
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.TextGenericCellEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -555,6 +556,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				boolean multiline = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.MULTILINE));
 				int style = isMasked ? SWT.PASSWORD : multiline ? SWT.MULTI : SWT.NONE;
 				boolean nillable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE));
+				boolean scriptable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.SCRIPTABLE));
 				if (nillable) {
 					if (value instanceof String) {
 						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
@@ -563,6 +565,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					}
 				} else if (multiline) {
 					propertyDescriptor = new DataPropertyDescriptor(name, displayName, TextGenericCellEditor.class, style, this, databaseObjectPropertyDescriptor);
+				} else if (scriptable) {
+					propertyDescriptor = new ScriptablePropertyDescriptor(name, displayName);
 				}
 			}
 		}

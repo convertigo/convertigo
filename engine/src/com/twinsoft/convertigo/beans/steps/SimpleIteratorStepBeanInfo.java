@@ -51,6 +51,7 @@ public class SimpleIteratorStepBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.startIndex.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.startIndex.short_description"));
 			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
 
 			PropertyDescriptor property = getPropertyDescriptor("condition");
 			property.setDisplayName(getExternalizedString("property.condition.display_name"));
