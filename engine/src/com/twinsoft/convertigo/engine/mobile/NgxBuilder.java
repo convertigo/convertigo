@@ -2289,15 +2289,15 @@ public class NgxBuilder extends MobileBuilder {
 						String content = FileUtils.readFileToString(tplAngularJson, "UTF-8");
 						JSONObject jsonObject = new JSONObject(content);
 
-						JSONObject jsonOptions = jsonObject
-								.getJSONObject("projects")
-								.getJSONObject("app")
-								.getJSONObject("architect")
-								.getJSONObject("build")
-								.getJSONObject("options");
-
 						JSONArray jsonArray = null;
 						try {
+							JSONObject jsonOptions = jsonObject
+									.getJSONObject("projects")
+									.getJSONObject("app")
+									.getJSONObject("architect")
+									.getJSONObject("build")
+									.getJSONObject("options");
+
 							// Assets
 							jsonArray = jsonOptions.getJSONArray("assets");
 							for (String asset: build_assets) {
@@ -2339,6 +2339,32 @@ public class NgxBuilder extends MobileBuilder {
 							e.printStackTrace();
 						}
 
+						try {
+							JSONObject jsonServe = jsonObject
+									.getJSONObject("projects")
+									.getJSONObject("app")
+									.getJSONObject("architect")
+									.getJSONObject("build")
+									.getJSONObject("configurations")
+									.getJSONObject("serve");
+							
+							// Assets
+							jsonArray = jsonServe.getJSONArray("assets");
+							for (String asset: build_assets) {
+								if (jsonArrayContains(jsonArray, asset)) {
+									continue;
+								}
+								try {
+									JSONObject jsonAsset = new JSONObject(asset);
+									jsonArray.put(jsonAsset);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
 						setNeedPkgUpdate(true);
 
 						File angularJson = new File(ionicWorkDir, "angular.json");
