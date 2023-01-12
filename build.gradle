@@ -23,6 +23,8 @@ ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserVersion = '6.23.1'
+ext.jxBrowserGroup = 'com.convertigo.lib'
+//ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.swaggerUiVersion = '3.19.3'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
@@ -177,6 +179,41 @@ publishing {
 			artifactId 'jxbrowser-license'
 			version '2019.04.02'
 			artifact 'resources/jxbrowser-license.jar'
+		}
+		
+		jxBrowser (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserLinux64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-linux64'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-linux64-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserMac (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-mac'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-mac-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserWin32 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-win32'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-win32-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserWin64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-win64'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-win64-${jxBrowserVersion}.jar"
 		}
 		
 		ojdbc (MavenPublication) {

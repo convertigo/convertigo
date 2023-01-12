@@ -1,5 +1,5 @@
 dependencies {
-	runtime 'com.teamdev.jxbrowser:jxbrowser-win64:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
+	runtime jxBrowserGroup + ':jxbrowser-win64:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 }
 
 task writeManifest(dependsOn: syncLib) {
