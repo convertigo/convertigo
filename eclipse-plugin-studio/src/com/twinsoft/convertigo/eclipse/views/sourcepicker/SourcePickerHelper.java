@@ -30,6 +30,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
@@ -219,7 +220,9 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	}
 
 	private void setSourceXPath(String xpath) {
-		stepSourceDefinition.set(1, xpath);
+		if (stepSourceDefinition != null) {
+			stepSourceDefinition.set(1, xpath);
+		}
 	}
 
 	private Step getTargetStep(Step step) throws EngineException {
@@ -249,6 +252,16 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	}
 
 	public void setStepSourceDefinition(XMLVector<String> stepSourceDefinition) {
+		if (xpathEvaluator != null) {
+			StyledText xpath = xpathEvaluator.getXpath();
+			if (stepSourceDefinition != null && !stepSourceDefinition.isEmpty()) {
+				xpath.setEnabled(true);
+			} else {
+				xpath.setEnabled(false);
+				xpath.setText("");
+			}
+			xpathEvaluator.getXpath().setEnabled(stepSourceDefinition != null && !stepSourceDefinition.isEmpty());
+		}
 		this.stepSourceDefinition = stepSourceDefinition;
 	}
 

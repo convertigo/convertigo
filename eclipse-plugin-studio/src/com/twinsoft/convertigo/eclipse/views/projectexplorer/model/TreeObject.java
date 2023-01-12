@@ -139,6 +139,14 @@ public abstract class TreeObject implements IAdaptable {
 		return projectTreeObject;
 	}
 	
+	public DatabaseObjectTreeObject getDatabaseObjectTreeObject() {
+		TreeObject to = this;
+		while (to != null && !(to instanceof DatabaseObjectTreeObject)) {
+			to = to.getParent();
+		}
+		return (DatabaseObjectTreeObject) to;
+	}
+	
 	public ConnectorTreeObject getConnectorTreeObject() {
 		ConnectorTreeObject connectorTreeObject = null;
 		

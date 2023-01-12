@@ -36,15 +36,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DragSourceAdapter;
-import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -54,15 +45,15 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.w3c.dom.Attr;
@@ -75,6 +66,8 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree.KeyAccelerator;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree.MenuMaker;
+import com.twinsoft.convertigo.eclipse.property_editors.StepXpathEvaluatorComposite;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -92,7 +85,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	private Label lab = null;
 	protected String lastEval = null;
 	protected String currentAnchor = null;
-	private Map<String, Button> buttonsMap = null;
+	private Map<String, ToolItem> buttonsMap = null;
 	private Text nodeData = null;
 	protected TwsDomTree nodesResult = null;
 	private Color highlightColor = new Color(Display.getDefault(),255,255,121);
@@ -114,7 +107,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 
 			public void widgetSelected(SelectionEvent e) {
 				Node node = (Node)e.item.getData();
-				if (node != null) {
+				if (nodeData != null && node != null) {
 					// display the normalized text ..
 					String temp = XMLUtils.getNormalizedText(node);
 					temp = temp.replace('\n', ' ').trim();
@@ -133,10 +126,11 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		}
 		
 		refreshButtonsEnable();
+//		setBackground(getDisplay().getSystemColor(SWT.COLOR_BLUE));
 	}
 	
 	protected void refreshButtonsEnable() {
-		for (Button button : buttonsMap.values()) {
+		for (ToolItem button : buttonsMap.values()) {
 			if (button != null && !button.isDisposed()) {
 				boolean enable = true;
 				String name = (String) button.getData("name");
@@ -167,7 +161,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	
 	abstract protected boolean isButtonEnabled(String name);
 	
-	protected void enableButton(Button button, boolean enable) {
+	protected void enableButton(ToolItem button, boolean enable) {
 		Boolean b = Boolean.valueOf(enable);
 		if (button.getData("enable") == null || !button.getData("enable").equals(b)) {
 			String imageURL = "" + button.getData("image_url");
@@ -200,10 +194,22 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		gdf.margins(1, 1).spacing(1, 1).equalWidth(false);
 		
 		setLayout(gdf.numColumns(2).create());
-		//TODO:setBackground(new Color(Display.getDefault(),255,0,121));
+		
+		lab = new Label(this, SWT.NONE);
+		lab.setText("xPath");
+		
+		xpath = new StyledText(this, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		xpath.setData("style", SwtUtils.isDark() ?
+				"background-color: black; color: white" :
+					"background-color: white; color: black");
+		xpath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		xpath.setToolTipText("ctrl+up : backward history\n"
+				+ "ctrl+down : forward history");
+		xpath.setWordWrap(true);
+		
 		Composite buttons = new Composite(this, SWT.NONE);
-		buttons.setLayoutData(new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END));
+		buttons.setLayoutData(new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
 		
 		String[] buttonsDefNames = new String[]{"name", "tooltip", "disable_msg", "image_url", "other"};
 		String [][][] buttonsDefinition = getButtonsDefinition();
@@ -242,16 +248,17 @@ abstract public class XpathEvaluatorComposite extends Composite {
 
 		buttons.setLayout(gdf.numColumns(buttonsDef.length).create());
 
-		buttonsMap = new HashMap<String, Button>();
+		buttonsMap = new HashMap<String, ToolItem>();
 		for (int i = 0; i < buttonsDef.length; i++) {
 			String[][] columnDef = buttonsDef[i];
-			Composite column = new Composite(buttons, SWT.NONE);
-			column.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
-			column.setLayout(new FillLayout(SWT.VERTICAL));
+			ToolBar column = new ToolBar(buttons, SWT.VERTICAL);
 			
 			for (int j = 0; j < columnDef.length; j++) {
 				String[] buttonDef = columnDef[j];
-				Button button = new Button(column, SWT.FLAT);
+				if (this instanceof StepXpathEvaluatorComposite && "anchor".equals(buttonDef[0])) {
+					continue;
+				}
+				ToolItem button = new ToolItem(column, SWT.FLAT);
 				buttonsMap.put(buttonDef[0], button);
 				for (int k = 0; k < buttonsDefNames.length; k++) {
 					button.setData(buttonsDefNames[k], buttonDef[k]);
@@ -261,24 +268,6 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			}
 		}
 		
-		Composite evaluator = new Composite(this, SWT.NONE);
-		evaluator.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		evaluator.setLayout(gdf.numColumns(1).create());
-		
-		Composite evaluator_up = new Composite(evaluator, SWT.NONE);
-		evaluator_up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		evaluator_up.setLayout(gdf.numColumns(2).create());
-		
-		lab = new Label(evaluator_up, SWT.NONE);
-		lab.setText("xPath");
-		lab.setToolTipText("ctrl+up : backward history\nctrl+down : forward history\nYou can drag the xPath edit zone to the project tree on :\n - \"Inherited screen classes\" folder to create ScreenClasses\n - \"Criterias\" folder to create Criterias\n - \"Extraction Rules\" folder to create ExtractionRules");
-		
-		xpath = new StyledText(evaluator_up, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
-		xpath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		xpath.setWordWrap(true);
 		xpath.addVerifyKeyListener(new VerifyKeyListener() {
 			public void verifyKey(VerifyEvent event) {
 				if (event.stateMask == SWT.CTRL) {
@@ -313,79 +302,31 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			}
 		});
 
-		SashForm evaluator_down = new SashForm(evaluator, SWT.HORIZONTAL);
-		evaluator_down.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		nodesResult = new TwsDomTree(evaluator_down, SWT.MULTI);
-		new TreeColumn(nodesResult.getTree(), SWT.LEFT).setText("Document");
-		new TreeColumn(nodesResult.getTree(), SWT.RIGHT).setText("Value");
-		nodesResult.setHeaderVisible(true);
-		
-		nodesResult.getColumn(0).setWidth(400);
-		
-		nodeData = new Text(evaluator_down, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
-		nodeData.setEditable(false);
-		
-		evaluator_down.setWeights(new int[] {70, 30});
+		if (this instanceof StepXpathEvaluatorComposite) {
+			nodesResult = new TwsDomTree(this, SWT.BORDER | SWT.MULTI);
+			nodesResult.setLayoutData(new GridData(GridData.FILL_BOTH));
+		} else {
+			SashForm evaluator_down = new SashForm(this, SWT.HORIZONTAL);
+			evaluator_down.setLayoutData(new GridData(GridData.FILL_BOTH));
+			
+			nodesResult = new TwsDomTree(evaluator_down, SWT.BORDER | SWT.MULTI);
+			new TreeColumn(nodesResult.getTree(), SWT.LEFT).setText("Document");
+			new TreeColumn(nodesResult.getTree(), SWT.RIGHT).setText("Value");
+			nodesResult.setHeaderVisible(true);
+			
+			nodesResult.getColumn(0).setWidth(400);
+			
+			nodeData = new Text(evaluator_down, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
+			nodeData.setEditable(false);
+			
+			evaluator_down.setWeights(new int[] {70, 30});
+		}
 	}
 	
 	protected void AddDndSupport() {
-		// DND support
-		int ops = DND.DROP_COPY | DND.DROP_MOVE;
-		Transfer[] transfers = new Transfer[] {TextTransfer.getInstance()};
-		
-		DropTarget target = new DropTarget(xpath, ops);
-		target.setTransfer(transfers);
-		target.addDropListener(new DropTargetAdapter() {
-			@Override
-			public void drop(DropTargetEvent droptargetevent) {
-				xpath.setText(droptargetevent.data.toString());
-				performCalcXpath();
-			}
-		});
-		
-		DragSource source;
-		source = new DragSource(xpath, ops);
-		source.setTransfer(transfers);
-		source.addDragListener(new DragSourceAdapter() {	 	   	
-			@Override
-			public void dragSetData(DragSourceEvent event) {
-		 	     // Provide the data of the requested type.
-		 	     if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-		 	    	 String XPath = (currentAnchor == null) ?
-	 	    			 xpath.getText()
-	 	    			 : xpath.getText().substring(currentAnchor.length());
-		 	         event.data = XPath;
-		 	     }
-		 	}
-			@Override
-			public void dragStart(DragSourceEvent event) {
-				event.doit = !xpath.getText().equals("");
-			}
-		});
-		
-		source = new DragSource(lab, ops);
-		source.setTransfer(transfers);
-		source.addDragListener(new DragSourceAdapter() {
-			@Override
-			public void dragSetData(DragSourceEvent event) {
-		 	     // Provide the data of the requested type.
-		 	     if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-		 	    	 String XPath = currentAnchor == null ?
-	 	    			 xpath.getText()
-	 	    			 : xpath.getText().substring(currentAnchor.length());
-		 	         event.data = XPath;
-		 	     }
-		 	}
-			@Override
-			public void dragStart(DragSourceEvent event) {
-				event.doit = !xpath.getText().equals("");
-			}
-		});
 	}
 	
 	public void setXpathText(String nodeXpath) {
-		//TODO:if (currentAnchor != null) nodeXpath = currentAnchor + calcRelativeXpath(htmlDesign.getWebViewer().getDom(), currentAnchor, nodeXpath);
 		xpath.setText(nodeXpath);
 		lastEval = null;
 		refreshButtonsEnable();
@@ -406,12 +347,10 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	}
 	
 	protected void setAnchor(boolean disabled) {
-		//TODO:Button anchor = (Button) buttonsMap.get("anchor");
 		isAnchorDisabled = disabled;
 		if (currentAnchor == null) {
 			currentAnchor = xpath.getText();
 			xpath.setStyleRange(new StyleRange(0, currentAnchor.length(), Display.getCurrent().getSystemColor(SWT.COLOR_BLACK), highlightColor));
-			//TODO:anchor.setBackground(highlightColor);
 		} else if (!isAnchorDisabled) {
 			currentAnchor = null;
 			xpath.setStyleRange(null);
@@ -440,7 +379,9 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			nodesResult.removeAll();
 			ConvertigoPlugin.logDebug3("Remove all End");
 		}
-		nodeData.setText("");
+		if (nodeData != null) {
+			nodeData.setText("");
+		}
 	}
 
 	public String getSelectionXpath() {
@@ -602,11 +543,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	}
 	
 	public void dispose() {
-		/*TODO:imageAnchor.dispose();
-		imageCalcXpath.dispose();
-		imageScreenclass.dispose();
-		imageCriteria.dispose();
-		imageExtractionRule.dispose();*/
+		highlightColor.dispose();
 		super.dispose();
 	}
 

@@ -159,7 +159,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 	private void initialize() {
 		GridLayout gridLayout = new GridLayout ();
 		gridLayout.numColumns = 8;
-		this.setLayout (gridLayout);
+		setLayout (gridLayout);
 
 		createButtons();
 		createSashForm();
@@ -324,8 +324,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		xpathSashForm = new SashForm(sashForm, SWT.NONE);
 		xpathSashForm.setOrientation(SWT.HORIZONTAL );
 		xpathSashForm.setLayoutData(gd);
-		
 		sourcePicker.createXPathEvaluator(new StepXpathEvaluatorComposite(xpathSashForm, SWT.NONE, sourcePicker));
+		sourcePicker.getXpathEvaluator().setBackground(getBackground());
 	}
 	
 	private void createSequenceTree() {

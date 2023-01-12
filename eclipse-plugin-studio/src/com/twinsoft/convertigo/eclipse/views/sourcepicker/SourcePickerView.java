@@ -19,17 +19,25 @@
 
 package com.twinsoft.convertigo.eclipse.views.sourcepicker;
 
+import java.util.Arrays;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerComposite;
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerComposite;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -44,6 +52,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 	private SourcePickerComposite spc;
 	private NgxPickerComposite npc;
 	private MobilePickerComposite mpc;
+	private ISelection lastSelection;
 	
 	public SourcePickerView() {
 	}
@@ -54,9 +63,41 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 		spc = new SourcePickerComposite(parent, SWT.NONE);
 		npc = new NgxPickerComposite(parent, false);
 		mpc = new MobilePickerComposite(parent, false);
+		
+		SelectionAdapter selectionListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String val = ((ToolItem) e.widget).getSelection() ? "on" : "off";
+				ConvertigoPlugin.setProperty("sourcepicker.link", val);
+				if ("on".equals(val) && lastSelection != null) {
+					selectionChanged((ProjectExplorerView) null, lastSelection);
+				}
+			}
+		};
+		
+		for (ToolItem tiLink: Arrays.asList(spc.getTiLink(), npc.getTiLink(), mpc.getTiLink())) {
+			tiLink.setToolTipText("Link with the 'Projects tree' selection");
+			try {
+				tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
+			} catch (Exception e3) {
+				tiLink.setText("Link");
+			}
+			tiLink.setSelection(!"off".equals(ConvertigoPlugin.getProperty("sourcepicker.link")));
+			tiLink.addSelectionListener(selectionListener);
+			ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
+		}
+		
 		stack.topControl = spc;
 		stack.topControl.getParent().layout(true);
 		getSite().getPage().addSelectionListener(this);
+		
+		ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (pev != null) {
+			ITreeSelection selection = pev.viewer.getStructuredSelection();
+			if (selection != null) {
+				selectionChanged(pev, selection);
+			}
+		}
 	}
 	
 	
@@ -95,31 +136,45 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (selection instanceof IStructuredSelection && part instanceof ProjectExplorerView) {
+		if (selection instanceof IStructuredSelection && (part == null || part instanceof ProjectExplorerView)) {
+			if("off".equals(ConvertigoPlugin.getProperty("sourcepicker.link"))) {
+				lastSelection = selection;
+				return;
+			}
+			
 			TreeObject selected = (TreeObject) ((IStructuredSelection) selection).getFirstElement();
 			if (selected == stack.topControl.getParent().getData("LastSelected")) {
 				return;
 			}
 			stack.topControl.getParent().setData("LastSelected", selected);
-			DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) (selected instanceof DatabaseObjectTreeObject ? selected : selected.getParent());
+			if (selected == null) {
+				return;
+			}
+			DatabaseObjectTreeObject dbot = selected.getDatabaseObjectTreeObject();
+			if (dbot == null) {
+				return;
+			}
 			DatabaseObject dbo = dbot.getObject();
-			if (dbo instanceof Step) {
+			if (dbo instanceof Step || dbo instanceof StepVariable) {
 				if (stack.topControl != spc) {
 					stack.topControl = spc;
 					stack.topControl.getParent().layout(true);
 				}
+				spc.getTiLink().setSelection(true);
 				spc.sourceSelected(new StepSourceEvent(dbo));
 			} else if (dbo.getClass().getName().contains(".ngx.")) {
 				if (stack.topControl != npc) {
 					stack.topControl = npc;
 					stack.topControl.getParent().layout(true);
 				}
+				npc.getTiLink().setSelection(true);
 				npc.setCurrentInput(selected, null);
 			} else if (dbo.getClass().getName().contains(".mobile.")) {
 				if (stack.topControl != mpc) {
 					stack.topControl = mpc;
 					stack.topControl.getParent().layout(true);
 				}
+				mpc.getTiLink().setSelection(true);
 				mpc.setCurrentInput(selected, null);
 			}
 		}

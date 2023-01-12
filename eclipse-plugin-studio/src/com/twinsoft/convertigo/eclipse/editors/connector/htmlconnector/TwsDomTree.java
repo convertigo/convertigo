@@ -362,7 +362,9 @@ public class TwsDomTree extends TreeWrapper {
 	}
 
 	public void addMenuMaker(MenuMaker menuMaker) {
-		menuMakers.add(menuMaker);
+		if (menuMaker != null) {
+			menuMakers.add(menuMaker);
+		}
 	}
 
 	public void addKeyAccelerator(KeyAccelerator keyAccelerator) {

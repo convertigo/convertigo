@@ -85,6 +85,10 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -95,10 +99,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction;
@@ -135,7 +135,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class MobilePickerComposite extends Composite {
 
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
+	private ToolItem tiLink, btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
@@ -204,7 +204,7 @@ public class MobilePickerComposite extends Composite {
 						// internalView (GetViewTransaction)
 						if (CouchDbConnector.internalView.equals(transaction)) {
 							if (dbo instanceof DesignDocument) {
-								DesignDocument dd = (DesignDocument)dbo;
+								DesignDocument dd = (DesignDocument) dbo;
 								CouchDbConnector cc = dd.getConnector();
 								if (cc.getName().equals(connector) && cc.getProject().getName().equals(project)) {
 									GetViewTransaction gvt = (GetViewTransaction) cc.getTransactionByName(CouchDbConnector.internalView);
@@ -216,13 +216,11 @@ public class MobilePickerComposite extends Composite {
 											jsonOutput.remove("reason");
 											jsonOutput.remove("attr");
 											
-											Display.getDefault().asyncExec(new Runnable() {
-												public void run() {
-													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-														modelTreeViewer.setInput(jsonOutput);
-														initTreeSelection(modelTreeViewer, null);
-														updateMessage();
-													}
+											ConvertigoPlugin.asyncExec(() -> {
+												if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+													modelTreeViewer.setInput(jsonOutput);
+													initTreeSelection(modelTreeViewer, null);
+													updateMessage();
 												}
 											});
 											
@@ -256,13 +254,11 @@ public class MobilePickerComposite extends Composite {
 													jsonObject.put("out", jsonOutput);
 												}
 												
-												Display.getDefault().asyncExec(new Runnable() {
-													public void run() {
-														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-															modelTreeViewer.setInput(jsonObject);
-															initTreeSelection(modelTreeViewer, null);
-															updateMessage();
-														}
+												ConvertigoPlugin.asyncExec(() -> {
+													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+														modelTreeViewer.setInput(jsonObject);
+														initTreeSelection(modelTreeViewer, null);
+														updateMessage();
 													}
 												});
 											}
@@ -298,13 +294,11 @@ public class MobilePickerComposite extends Composite {
 													jsonObject.put("out", jsonOutput);
 												}
 												
-												Display.getDefault().asyncExec(new Runnable() {
-													public void run() {
-														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-															modelTreeViewer.setInput(jsonObject);
-															initTreeSelection(modelTreeViewer, null);
-															updateMessage();
-														}
+												ConvertigoPlugin.asyncExec(() -> {
+													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+														modelTreeViewer.setInput(jsonObject);
+														initTreeSelection(modelTreeViewer, null);
+														updateMessage();
 													}
 												});
 											}
@@ -318,10 +312,8 @@ public class MobilePickerComposite extends Composite {
 					}
 				}
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					setWidgetsEnabled(true);
-				}
+			ConvertigoPlugin.asyncExec(() -> {
+				setWidgetsEnabled(true);
 			});
 		}
 	};
@@ -331,11 +323,8 @@ public class MobilePickerComposite extends Composite {
 		this.isParentDialog = isParentDialog;
 		makeUI(this);
 		updateMessage();
-		ConvertigoPlugin.runAtStartup(new Runnable() {
-			@Override
-			public void run() {
-				Engine.theApp.addEngineListener(engineListener);
-			}
+		ConvertigoPlugin.runAtStartup(() -> {
+			Engine.theApp.addEngineListener(engineListener);
 		});
 	}
 	
@@ -441,7 +430,10 @@ public class MobilePickerComposite extends Composite {
 		
 		int btnStyle = SWT.CHECK;
 		Image image = null;
-				
+		
+		tiLink = new ToolItem(toolbar, SWT.CHECK);		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
 			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
@@ -650,6 +642,12 @@ public class MobilePickerComposite extends Composite {
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
 		}
+		
+		ConvertigoPlugin.asyncExec(() -> {
+			for (ToolItem ti : btnSequence.getParent().getItems()) {
+				ti.setBackground(null);
+			}
+		});
 	}
 	
 	private Filter getFilter() {
@@ -838,26 +836,6 @@ public class MobilePickerComposite extends Composite {
 		message.setText(msgTxt);
 	}
 	
-//	private List<String> getSourceList() {
-//		TVObject tvoSelected = null;
-//		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
-//		if (selected != null && selected instanceof TVObject) {
-//			tvoSelected = (TVObject)selected;
-//		}
-//		
-//		List<String> sourceList =  new ArrayList<String>();
-//		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
-//		for (TVObject tvo : tvoList) {
-//			if (tvo.equals(tvoSelected)) {
-//				sourceList.add(0, tvo.getSource());
-//			}
-//			else {
-//				sourceList.add(tvo.getSource());
-//			}
-//		}
-//		return sourceList;
-//	}
-	
 	private List<SourceData> getModelData() {
 		TVObject tvoSelected = null;
 		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
@@ -890,43 +868,6 @@ public class MobilePickerComposite extends Composite {
 		}
 		return path;
 	}
-	
-//	private void updateText() {
-//		boolean isDirective = btnIteration.getSelection();
-//		boolean isForm = btnForm.getSelection();
-//		boolean isGlobal = btnGlobal.getSelection();
-//		List<String> sourceData = getSourceList();
-//		int size = sourceData.size();
-//		
-//		StringBuffer buf = new StringBuffer();
-//		if ((isDirective || isForm || isGlobal) && size > 0) {
-//			String data = sourceData.get(0);
-//			if (!data.isEmpty()) {
-//				buf.append(data);
-//			}
-//		}
-//		else {
-//			for (String data : sourceData) {
-//				if (!data.isEmpty()) {
-//					buf.append(buf.length() > 0 ? ", ":"").append(data);
-//				}
-//			}
-//		}
-//		
-//		String path = getModelPath();
-//		String searchPath = "root";
-//		int index = path.indexOf(searchPath);
-//		if (index != -1) {
-//			path = path.substring(index + searchPath.length());
-//		}
-//		
-//		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
-//		t_data.setText(computedText);
-//	}
-
-//	private void updateText(String s) {
-//		t_custom.setText(s);
-//	}
 	
 	private void updateTexts() {
 		Filter filter = getFilter();
@@ -1121,38 +1062,36 @@ public class MobilePickerComposite extends Composite {
 				String viewName = ddoc + "/" + view;
 				String includeDocs = params.get("include_docs");
 				
-				Display.getDefault().asyncExec(new Runnable() {
-					public void run() {
-						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				ConvertigoPlugin.asyncExec(() -> {
+					IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
-						ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
-						if (connectorEditor == null) {
-							try {
-								connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-												"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-							} catch (PartInitException e) {
-								ConvertigoPlugin.logException(e,
-										"Error while loading the connector editor '"
-												+ connector.getName() + "'");
-							}
+					ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+					if (connectorEditor == null) {
+						try {
+							connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+											"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+						} catch (PartInitException e) {
+							ConvertigoPlugin.logException(e,
+									"Error while loading the connector editor '"
+											+ connector.getName() + "'");
 						}
-						
-	    				if (connectorEditor != null) {
-	    					// activate connector's editor
-	    					activePage.activate(connectorEditor);
-	    					
-	    					// set transaction's parameters
-	    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-	    					((GetViewTransaction)transaction).setViewname(viewName);
-	   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-	   										    					
-	    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-	   						view_reduce.setValueOrNull(false);
-	    					
-	    					// execute view transaction
-	    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
-	    				}
 					}
+					
+    				if (connectorEditor != null) {
+    					// activate connector's editor
+    					activePage.activate(connectorEditor);
+    					
+    					// set transaction's parameters
+    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+    					((GetViewTransaction)transaction).setViewname(viewName);
+   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+   										    					
+    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+   						view_reduce.setValueOrNull(false);
+    					
+    					// execute view transaction
+    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+    				}
 				});
 			}
 			// case of UIForm
@@ -1252,52 +1191,7 @@ public class MobilePickerComposite extends Composite {
 							String docid = ionBean.getProperty("_id").getValue().toString();
 							Connector connector = (Connector) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 							if (connector != null) {
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-
-										ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
-										if (connectorEditor == null) {
-											try {
-												connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-																"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-											} catch (PartInitException e) {
-												ConvertigoPlugin.logException(e,
-														"Error while loading the connector editor '"
-																+ connector.getName() + "'");
-											}
-										}
-										
-					    				if (connectorEditor != null) {
-					    					// activate connector's editor
-					    					activePage.activate(connectorEditor);
-					    					
-					    					// set transaction's parameters
-					    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
-					    					Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
-					    					var_docid.setValueOrNull(docid);
-					    					
-					    					// execute view transaction
-					    					connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
-					    				}
-									}
-								});
-								
-							}
-						}
-						else if ("FullSyncViewAction".equals(name)) {
-							String fsview = ionBean.getProperty("fsview").getValue().toString();
-							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
-							String reduce =  ionBean.getProperty("reduce").getValue().toString();
-							
-							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
-							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-							Connector connector = dd.getConnector();
-							
-							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
-							
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
+								ConvertigoPlugin.asyncExec(() -> {
 									IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
 									ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
@@ -1317,17 +1211,57 @@ public class MobilePickerComposite extends Composite {
 				    					activePage.activate(connectorEditor);
 				    					
 				    					// set transaction's parameters
-				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-				    					((GetViewTransaction)transaction).setViewname(viewName);
-				   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-				   										    					
-				    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-				   						view_reduce.setValueOrNull(reduce);
+				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
+				    					Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
+				    					var_docid.setValueOrNull(docid);
 				    					
 				    					// execute view transaction
-				    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+				    					connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
 				    				}
+								});
+							}
+						}
+						else if ("FullSyncViewAction".equals(name)) {
+							String fsview = ionBean.getProperty("fsview").getValue().toString();
+							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
+							String reduce =  ionBean.getProperty("reduce").getValue().toString();
+							
+							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
+							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							Connector connector = dd.getConnector();
+							
+							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
+							
+							ConvertigoPlugin.asyncExec(() -> {
+								IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+								ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+								if (connectorEditor == null) {
+									try {
+										connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+														"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+									} catch (PartInitException e) {
+										ConvertigoPlugin.logException(e,
+												"Error while loading the connector editor '"
+														+ connector.getName() + "'");
+									}
 								}
+								
+			    				if (connectorEditor != null) {
+			    					// activate connector's editor
+			    					activePage.activate(connectorEditor);
+			    					
+			    					// set transaction's parameters
+			    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+			    					((GetViewTransaction)transaction).setViewname(viewName);
+			   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+			   										    					
+			    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+			   						view_reduce.setValueOrNull(reduce);
+			    					
+			    					// execute view transaction
+			    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+			    				}
 							});
 						} else if (name.startsWith("FullSync")) {
 							if (ionBean.getProperty("requestable") != null) {
@@ -1403,41 +1337,33 @@ public class MobilePickerComposite extends Composite {
 	private void updateModel(TVObject tvObject) {
 		Object object = tvObject.getObject();
 		if (object != null) {
-			Thread t = new Thread(new Runnable() {
-				public void run() {
-					isUpdating = true;
+			Thread t = new Thread(() -> {
+				isUpdating = true;
+				
+				ConvertigoPlugin.asyncExec(() -> {
+					setWidgetsEnabled(false);
+					updateMessage("generating model...");
+				});
+				
+				try {
+					Map<String, Object> data = lookupModelData(tvObject);
+					JSONObject jsonModel = getJsonModel(data, null);
 					
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							setWidgetsEnabled(false);
-							updateMessage("generating model...");
-						}
+					ConvertigoPlugin.asyncExec(() -> {
+						modelTreeViewer.setInput(jsonModel);
+						initTreeSelection(modelTreeViewer, null);
+						setWidgetsEnabled(true);
+						updateMessage();
 					});
+				} catch (Exception e) {
+					e.printStackTrace();
 					
-					try {
-						Map<String, Object> data = lookupModelData(tvObject);
-						JSONObject jsonModel = getJsonModel(data, null);
-						
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								modelTreeViewer.setInput(jsonModel);
-								initTreeSelection(modelTreeViewer, null);
-								setWidgetsEnabled(true);
-								updateMessage();
-							}
-						});
-					} catch (Exception e) {
-						e.printStackTrace();
-						
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								setWidgetsEnabled(true);
-								updateMessage();
-							}
-						});
-					} finally {
-						isUpdating = false;
-					}
+					ConvertigoPlugin.asyncExec(() -> {
+						setWidgetsEnabled(true);
+						updateMessage();
+					});
+				} finally {
+					isUpdating = false;
 				}
 			});
 			t.start();
@@ -1607,5 +1533,9 @@ public class MobilePickerComposite extends Composite {
 			resetViewers();
 			updateMessage();
 		}
+	}
+	
+	public ToolItem getTiLink() {
+		return tiLink;
 	}
 }

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.sourcepicker;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -28,13 +29,11 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -53,29 +52,24 @@ public class SourcePickerComposite extends Composite {
 	private SashForm mainSashForm, treesSashForm, xpathSashForm;
 	private DatabaseObject selectedDbo = null;
 	
-	private final String show_step_source 		= "   Show step's source   ";
+	private final String show_step_source 		= "Show step's source";
 	private final String show_variable_source 	= "Show variable's source";
 	private final String remove_source 			= "Remove source";
 	
 	public SourcePickerComposite(Composite parent, int style) {
 		super(parent, style);
 		sourcePicker = new SourcePickerHelper();
-		GridLayout gl = new GridLayout(3,false);
-		setLayout(gl);
+		setLayout(new GridLayout(1, true));
 		createHelpContent();
 		createSashForm();
+		StyledText xp = sourcePicker.getXpathEvaluator().getXpath();
+		xp.setToolTipText(xp.getToolTipText() + "\nYou can drag the xPath edit zone on a project tree Step");
+		sourcePicker.getXpathEvaluator().getLabel().setToolTipText("Drag me on a project tree Step");
 	}
 	
 	private void createSashForm() {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
-		gd.horizontalSpan = 3;
-		mainSashForm = new SashForm(this, SWT.NONE);
-		mainSashForm.setOrientation(SWT.VERTICAL );
-		mainSashForm.setLayoutData(gd);
+		mainSashForm = new SashForm(this, SWT.VERTICAL);
+		mainSashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
 		createTreeSashForm();
 		createXpathSashForm();
 	}
@@ -104,95 +98,39 @@ public class SourcePickerComposite extends Composite {
 		createXPathEvaluator();
 	}
 	
-	private Text stepTag, stepType, stepName, stepComment;
-	private Button showBtn, remBtn;
+	private ToolItem tiLink, showBtn, remBtn;
 	
 	private void createHelpContent() {
-		// Tag
-		Label tagLabel = new Label (this, SWT.NONE);
-		tagLabel.setText("Tag :");
+		ToolBar tb = new ToolBar(this, SWT.NONE);
+		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		GridData stepTagData = new GridData();
-		stepTagData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		stepTag = new Text(this, SWT.NONE);
-		stepTag.setText("");
-		stepTag.setEnabled(false);
-		stepTag.setLayoutData(stepTagData);
-
-		// Help
-		GridData helpTextData = new GridData();
-		helpTextData.verticalSpan = 5;
-		helpTextData.grabExcessHorizontalSpace = true;
-		helpTextData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		Text helpText = new Text(this, SWT.BORDER|SWT.MULTI);
-		helpText.setEditable(false);
-		helpText.setText("Note :\nDrag items to a step \nin the Projects view \nto link the source.");
-		helpText.setLayoutData(helpTextData);
-
-		// Type
-		Label typeLabel = new Label(this, SWT.NONE);
-		typeLabel.setText("Type :");
+		tiLink = new ToolItem(tb, SWT.CHECK);		
+		new ToolItem(tb, SWT.SEPARATOR);
 		
-		GridData stepTypeData = new GridData();
-		stepTypeData.minimumWidth = 250;
-		stepTypeData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		stepType = new Text(this, SWT.NONE);
-		stepType.setText("");
-		stepType.setEnabled(false);
-		stepType.setLayoutData(stepTypeData);
-
-		// Name
-		Label nameLabel = new Label(this, SWT.NONE);
-		nameLabel.setText("Name :");
-		
-		GridData stepNameData = new GridData();
-		stepNameData.minimumWidth = 250;
-		stepNameData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		stepName = new Text(this, SWT.NONE);
-		stepName.setText("");
-		stepName.setEnabled(false);
-		stepName.setLayoutData(stepNameData);
-
-		// Comment
-		GridData commentLabelData = new GridData();
-		commentLabelData.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-		Label commentLabel = new Label(this, SWT.NONE);
-		commentLabel.setText("Comment :");
-		commentLabel.setLayoutData(commentLabelData);
-		
-		GridData stepCommentData = new GridData();
-		stepCommentData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		stepComment = new Text(this, SWT.MULTI|SWT.WRAP);
-		stepComment.setText("\n\n");
-		stepComment.setEnabled(false);
-		stepComment.setLayoutData(stepCommentData);
-		
-		// Buttons
-		FillLayout fl = new FillLayout();
-		fl.spacing = 10;
-		GridData data4 = new GridData();
-		data4.horizontalSpan=2;
-		data4.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-		data4.horizontalAlignment = org.eclipse.swt.layout.GridData.END;
-		Composite cbtns = new Composite(this, SWT.NONE);
-		cbtns.setLayout(fl);
-		cbtns.setLayoutData(data4);
-		
-		showBtn = new Button(cbtns, SWT.NONE | SWT.TOGGLE);
-		showBtn.setText(show_step_source);
+		showBtn = new ToolItem(tb, SWT.NONE);
+		showBtn.setToolTipText(show_step_source);
 		showBtn.setEnabled(false);
+		try {
+			showBtn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/find.gif"));
+		} catch (Exception e3) {
+			showBtn.setText("Source");
+		}
 		showBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				remBtn.setEnabled(!showBtn.getSelection());
-				showStep(selectedDbo, showBtn.getSelection());
+				showStep(selectedDbo, true);
 			}
 		});
 		
-		
-		remBtn = new Button(cbtns, SWT.NONE);
-		remBtn.setText(remove_source);
+		remBtn = new ToolItem(tb, SWT.PUSH);
+		remBtn.setToolTipText(remove_source);
 		remBtn.setEnabled(false);
+		try {
+			remBtn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/delete.gif"));
+		} catch (Exception e3) {
+			remBtn.setText("Remove");
+		}
 		remBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -242,25 +180,14 @@ public class SourcePickerComposite extends Composite {
 	}
 
 	private void fillHelpContent() {
-		String tag = "", type = "", name = "", comment = "";
 		String textBtn = show_step_source;
 		boolean enableBtn = false;
 		if (selectedDbo != null) {
-			if (selectedDbo instanceof Step)
-				tag = ((Step)selectedDbo).getStepNodeName();
-			type = selectedDbo.getClass().getSimpleName();
-			name = selectedDbo.getName();
-			comment = selectedDbo.getComment();
 			textBtn = (selectedDbo instanceof Step) ? show_step_source:show_variable_source;
 			if (selectedDbo instanceof IStepSourceContainer)
 				enableBtn = !((IStepSourceContainer)selectedDbo).getSourceDefinition().isEmpty();
 		}
-		
-		stepTag.setText(tag);
-		stepType.setText(type);
-		stepName.setText(name);
-		stepComment.setText(comment);
-		showBtn.setText(textBtn);
+		showBtn.setToolTipText(textBtn);
 		showBtn.setEnabled(enableBtn);
 		showBtn.setSelection(false);
 		remBtn.setEnabled(enableBtn);
@@ -340,5 +267,9 @@ public class SourcePickerComposite extends Composite {
 
 	public Object getObject() {
 		return selectedDbo;
+	}
+	
+	public ToolItem getTiLink() {
+		return tiLink;
 	}
 }

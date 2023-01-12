@@ -240,7 +240,7 @@ public class PaletteView extends ViewPart {
 		ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
 		try {
 			tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
-		} catch (IOException e3) {
+		} catch (Exception e3) {
 			tiLink.setText("Link");
 		}
 		tiLink.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.link")));
@@ -251,7 +251,7 @@ public class PaletteView extends ViewPart {
 		ConvertigoPlugin.asyncExec(() -> tiInternal.setBackground(null));
 		try {
 			tiInternal.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/convertigo_logo_16x16.png"));
-		} catch (IOException e3) {
+		} catch (Exception e3) {
 			tiInternal.setText("Internal");
 		}
 		tiInternal.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.internal")));
@@ -339,7 +339,7 @@ public class PaletteView extends ViewPart {
 		Runnable updateFav = () -> {
 			Control latestSelected = (Control) bag.getData("LatestSelected");
 			fav.setEnabled(false);
-			if (latestSelected != null) {
+			if (latestSelected != null && !latestSelected.isDisposed()) {
 				Item item = (Item) latestSelected.getData("Item");
 				if (item != null) {
 					fav.setEnabled(true);
@@ -368,7 +368,7 @@ public class PaletteView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Control latestSelected = (Control) bag.getData("LatestSelected");
-				if (latestSelected != null) {
+				if (latestSelected != null && !latestSelected.isDisposed()) {
 					Item item = (Item) latestSelected.getData("Item");
 					if (item != null) {
 						if (favorites.contains(item)) {
@@ -405,7 +405,7 @@ public class PaletteView extends ViewPart {
 					return;
 				}
 				Control latestSelected = (Control) bag.getData("LatestSelected");
-				if (latestSelected != null) {
+				if (latestSelected != null && !latestSelected.isDisposed()) {
 					latestSelected.setData("style", "color: inherit; background-color: inherit");
 				}
 				bag.setData("LatestSelected", c);
@@ -959,7 +959,7 @@ public class PaletteView extends ViewPart {
 					}
 
 					Control lastSelected = (Control) bag.getData("LatestSelected");
-					if (lastSelected == null || !lastSelected.isVisible()) {
+					if (lastSelected == null || lastSelected.isDisposed() || !lastSelected.isVisible()) {
 						Optional<Control> opt = Stream.concat(Arrays.stream(topBag.getChildren()), Arrays.stream(bag.getChildren()))
 								.filter(c -> c.getData("Item") != null && c.isVisible()).findFirst();
 						if (opt.isPresent()) {
@@ -1127,7 +1127,9 @@ public class PaletteView extends ViewPart {
 
 	@Override
 	public void setFocus() {
-		searchText.setFocus();
+		if (searchText != null && !searchText.isDisposed()) {
+			searchText.setFocus();
+		}
 	}
 	
 	public void refresh() {

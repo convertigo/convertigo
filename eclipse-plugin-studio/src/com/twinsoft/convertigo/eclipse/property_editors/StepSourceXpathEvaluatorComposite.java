@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -29,14 +30,18 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 
 public class StepSourceXpathEvaluatorComposite extends StepXpathEvaluatorComposite {
+	private Cursor handCursor;
 
 	public StepSourceXpathEvaluatorComposite(Composite parent, int style, IStepSourceEditor stepSourceEditorComposite) {
 		super(parent, style, stepSourceEditorComposite);
+		getXpath().setEnabled(false);
 	}
 
 	@Override
@@ -70,9 +75,19 @@ public class StepSourceXpathEvaluatorComposite extends StepXpathEvaluatorComposi
 		source.setTransfer(dragTransfers);
 		source.addDragListener(listener);
 		
-		source = new DragSource(getLabel(), ops);
+		Label lab = getLabel();
+		source = new DragSource(lab, ops);
 		source.setTransfer(dragTransfers);
 		source.addDragListener(listener);
+		
+		handCursor = new Cursor(lab.getDisplay(), SWT.CURSOR_HAND);
+		lab.setToolTipText("Drag me on the project tree to set the current xPath");
+		lab.setCursor(handCursor);
 	}
-	
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		handCursor.dispose();
+	}
 }

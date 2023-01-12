@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
+import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree.MenuMaker;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.XpathEvaluatorComposite;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 
@@ -35,7 +36,6 @@ public class StepXpathEvaluatorComposite extends XpathEvaluatorComposite {
 	
 	public StepXpathEvaluatorComposite(Composite parent, int style, IStepSourceEditor stepSourceEditorComposite) {
 		super(parent, style);
-		getLabel().setToolTipText("ctrl+up : backward history\nctrl+down : forward history");
 		this.stepSourceEditorComposite = stepSourceEditorComposite;
 		this.noPredicate = true;
 	}
@@ -103,5 +103,11 @@ public class StepXpathEvaluatorComposite extends XpathEvaluatorComposite {
 	protected Object getDragData() {
 		return stepSourceEditorComposite.getDragData();
 	}
+
+	@Override
+	protected MenuMaker makeShowInBrowserMenuMaker() {
+		return null;
+	}
+	
 	
 }

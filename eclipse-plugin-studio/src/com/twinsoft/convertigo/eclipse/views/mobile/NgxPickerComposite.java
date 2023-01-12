@@ -89,7 +89,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -182,7 +181,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class NgxPickerComposite extends Composite {	
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal, btnIcon, btnAsset;
+	private ToolItem tiLink, btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal, btnIcon, btnAsset;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
@@ -301,13 +300,11 @@ public class NgxPickerComposite extends Composite {
 											jsonOutput.remove("reason");
 											jsonOutput.remove("attr");
 
-											Display.getDefault().asyncExec(new Runnable() {
-												public void run() {
-													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-														modelTreeViewer.setInput(jsonOutput);
-														initTreeSelection(modelTreeViewer, null);
-														updateMessage();
-													}
+											ConvertigoPlugin.asyncExec(() -> {
+												if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+													modelTreeViewer.setInput(jsonOutput);
+													initTreeSelection(modelTreeViewer, null);
+													updateMessage();
 												}
 											});
 
@@ -341,13 +338,11 @@ public class NgxPickerComposite extends Composite {
 													jsonObject.put("out", jsonOutput);
 												}
 
-												Display.getDefault().asyncExec(new Runnable() {
-													public void run() {
-														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-															modelTreeViewer.setInput(jsonObject);
-															initTreeSelection(modelTreeViewer, null);
-															updateMessage();
-														}
+												ConvertigoPlugin.asyncExec(() -> {
+													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+														modelTreeViewer.setInput(jsonObject);
+														initTreeSelection(modelTreeViewer, null);
+														updateMessage();
 													}
 												});
 											}
@@ -383,13 +378,11 @@ public class NgxPickerComposite extends Composite {
 													jsonObject.put("out", jsonOutput);
 												}
 
-												Display.getDefault().asyncExec(new Runnable() {
-													public void run() {
-														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
-															modelTreeViewer.setInput(jsonObject);
-															initTreeSelection(modelTreeViewer, null);
-															updateMessage();
-														}
+												ConvertigoPlugin.asyncExec(() -> {
+													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+														modelTreeViewer.setInput(jsonObject);
+														initTreeSelection(modelTreeViewer, null);
+														updateMessage();
 													}
 												});
 											}
@@ -403,10 +396,8 @@ public class NgxPickerComposite extends Composite {
 					}
 				}
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					setWidgetsEnabled(true);
-				}
+			ConvertigoPlugin.asyncExec(() -> {
+				setWidgetsEnabled(true);
 			});
 		}
 	};
@@ -432,7 +423,6 @@ public class NgxPickerComposite extends Composite {
 
 	private void makeUI(Composite parent) {
 		GridLayout gl = new GridLayout(1, false);
-		gl.marginHeight = gl.marginWidth = 0;
 		parent.setLayout(gl);
 
 		StackLayout stackLayout = new StackLayout();
@@ -441,7 +431,9 @@ public class NgxPickerComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				for (ToolItem i: btnSequence.getParent().getItems()) {
-					i.setSelection(false);
+					if (i != tiLink && i != e.widget) {
+						i.setSelection(false);
+					}
 				}
 				ToolItem button = (ToolItem) e.widget;
 				button.setSelection(true);
@@ -520,7 +512,10 @@ public class NgxPickerComposite extends Composite {
 
 		int btnStyle = SWT.CHECK;
 		Image image = null;
-
+		
+		tiLink = new ToolItem(toolbar, SWT.CHECK);		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
 			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/sequences/images/genericsequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
@@ -1270,6 +1265,12 @@ public class NgxPickerComposite extends Composite {
 				}
 			});
 		});
+		
+		ConvertigoPlugin.asyncExec(() -> {
+			for (ToolItem ti : btnSequence.getParent().getItems()) {
+				ti.setBackground(null);
+			}
+		});
 	}
 
 	private Filter getFilter() {
@@ -1317,7 +1318,7 @@ public class NgxPickerComposite extends Composite {
 		checkboxTreeViewer.setInput(null);
 		modelTreeViewer.setInput(null);
 		for (ToolItem item: btnSequence.getParent().getItems()) {
-			if (item.getSelection()) {
+			if (item.getSelection() && item != tiLink) {
 				item.notifyListeners(SWT.Selection, null);
 			}
 		}
@@ -1334,7 +1335,9 @@ public class NgxPickerComposite extends Composite {
 	private void setWidgetsEnabled(boolean enabled) {
 		try {
 			for (ToolItem i: btnSequence.getParent().getItems()) {
-				i.setEnabled(enabled);
+				if (i != tiLink) {
+					i.setEnabled(enabled);
+				}
 			}
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
@@ -1510,43 +1513,6 @@ public class NgxPickerComposite extends Composite {
 		}
 		return path;
 	}
-
-	//	private void updateText() {
-	//		boolean isDirective = btnIteration.getSelection();
-	//		boolean isForm = btnForm.getSelection();
-	//		boolean isGlobal = btnGlobal.getSelection();
-	//		List<String> sourceData = getSourceList();
-	//		int size = sourceData.size();
-	//		
-	//		StringBuffer buf = new StringBuffer();
-	//		if ((isDirective || isForm || isGlobal) && size > 0) {
-	//			String data = sourceData.get(0);
-	//			if (!data.isEmpty()) {
-	//				buf.append(data);
-	//			}
-	//		}
-	//		else {
-	//			for (String data : sourceData) {
-	//				if (!data.isEmpty()) {
-	//					buf.append(buf.length() > 0 ? ", ":"").append(data);
-	//				}
-	//			}
-	//		}
-	//		
-	//		String path = getModelPath();
-	//		String searchPath = "root";
-	//		int index = path.indexOf(searchPath);
-	//		if (index != -1) {
-	//			path = path.substring(index + searchPath.length());
-	//		}
-	//		
-	//		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
-	//		t_data.setText(computedText);
-	//	}
-
-	//	private void updateText(String s) {
-	//		t_custom.setText(s);
-	//	}
 
 	private void updateTexts() {
 		Filter filter = getFilter();
@@ -1741,37 +1707,35 @@ public class NgxPickerComposite extends Composite {
 				String viewName = ddoc + "/" + view;
 				String includeDocs = params.get("include_docs");
 
-				Display.getDefault().asyncExec(new Runnable() {
-					public void run() {
-						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				ConvertigoPlugin.asyncExec(() -> {
+					IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
-						ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
-						if (connectorEditor == null) {
-							try {
-								connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-										"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-							} catch (PartInitException e) {
-								ConvertigoPlugin.logException(e,
-										"Error while loading the connector editor '"
-												+ connector.getName() + "'");
-							}
+					ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+					if (connectorEditor == null) {
+						try {
+							connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+									"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+						} catch (PartInitException e) {
+							ConvertigoPlugin.logException(e,
+									"Error while loading the connector editor '"
+											+ connector.getName() + "'");
 						}
+					}
 
-						if (connectorEditor != null) {
-							// activate connector's editor
-							activePage.activate(connectorEditor);
+					if (connectorEditor != null) {
+						// activate connector's editor
+						activePage.activate(connectorEditor);
 
-							// set transaction's parameters
-							Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-							((GetViewTransaction)transaction).setViewname(viewName);
-							((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+						// set transaction's parameters
+						Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+						((GetViewTransaction)transaction).setViewname(viewName);
+						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
 
-							Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-							view_reduce.setValueOrNull(false);
+						Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+						view_reduce.setValueOrNull(false);
 
-							// execute view transaction
-							connectorEditor.getDocument(CouchDbConnector.internalView, false);
-						}
+						// execute view transaction
+						connectorEditor.getDocument(CouchDbConnector.internalView, false);
 					}
 				});
 			}
@@ -1872,52 +1836,7 @@ public class NgxPickerComposite extends Composite {
 							String docid = ionBean.getProperty("_id").getValue().toString();
 							Connector connector = (Connector) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 							if (connector != null) {
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-
-										ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
-										if (connectorEditor == null) {
-											try {
-												connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-														"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-											} catch (PartInitException e) {
-												ConvertigoPlugin.logException(e,
-														"Error while loading the connector editor '"
-																+ connector.getName() + "'");
-											}
-										}
-
-										if (connectorEditor != null) {
-											// activate connector's editor
-											activePage.activate(connectorEditor);
-
-											// set transaction's parameters
-											Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
-											Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
-											var_docid.setValueOrNull(docid);
-
-											// execute view transaction
-											connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
-										}
-									}
-								});
-
-							}
-						}
-						else if ("FullSyncViewAction".equals(name)) {
-							String fsview = ionBean.getProperty("fsview").getValue().toString();
-							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
-							String reduce =  ionBean.getProperty("reduce").getValue().toString();
-
-							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
-							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-							Connector connector = dd.getConnector();
-
-							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
-
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
+								ConvertigoPlugin.asyncExec(() -> {
 									IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
 									ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
@@ -1937,16 +1856,56 @@ public class NgxPickerComposite extends Composite {
 										activePage.activate(connectorEditor);
 
 										// set transaction's parameters
-										Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-										((GetViewTransaction)transaction).setViewname(viewName);
-										((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-
-										Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-										view_reduce.setValueOrNull(reduce);
+										Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
+										Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
+										var_docid.setValueOrNull(docid);
 
 										// execute view transaction
-										connectorEditor.getDocument(CouchDbConnector.internalView, false);
+										connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
 									}
+								});
+							}
+						}
+						else if ("FullSyncViewAction".equals(name)) {
+							String fsview = ionBean.getProperty("fsview").getValue().toString();
+							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
+							String reduce =  ionBean.getProperty("reduce").getValue().toString();
+
+							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
+							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							Connector connector = dd.getConnector();
+
+							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
+
+							ConvertigoPlugin.asyncExec(() -> {
+								IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+								ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+								if (connectorEditor == null) {
+									try {
+										connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+												"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+									} catch (PartInitException e) {
+										ConvertigoPlugin.logException(e,
+												"Error while loading the connector editor '"
+														+ connector.getName() + "'");
+									}
+								}
+
+								if (connectorEditor != null) {
+									// activate connector's editor
+									activePage.activate(connectorEditor);
+
+									// set transaction's parameters
+									Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+									((GetViewTransaction)transaction).setViewname(viewName);
+									((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+
+									Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+									view_reduce.setValueOrNull(reduce);
+
+									// execute view transaction
+									connectorEditor.getDocument(CouchDbConnector.internalView, false);
 								}
 							});
 						} else if (name.startsWith("FullSync")) {
@@ -2023,41 +1982,33 @@ public class NgxPickerComposite extends Composite {
 	private void updateModel(TVObject tvObject) {
 		Object object = tvObject.getObject();
 		if (object != null) {
-			Thread t = new Thread(new Runnable() {
-				public void run() {
-					isUpdating = true;
+			Thread t = new Thread(() -> {
+				isUpdating = true;
 
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							setWidgetsEnabled(false);
-							updateMessage("generating model...");
-						}
+				ConvertigoPlugin.asyncExec(() -> {
+					setWidgetsEnabled(false);
+					updateMessage("generating model...");
+				});
+
+				try {
+					Map<String, Object> data = lookupModelData(tvObject);
+					JSONObject jsonModel = getJsonModel(data, null);
+
+					ConvertigoPlugin.asyncExec(() -> {
+						modelTreeViewer.setInput(jsonModel);
+						initTreeSelection(modelTreeViewer, null);
+						setWidgetsEnabled(true);
+						updateMessage();
 					});
+				} catch (Exception e) {
+					e.printStackTrace();
 
-					try {
-						Map<String, Object> data = lookupModelData(tvObject);
-						JSONObject jsonModel = getJsonModel(data, null);
-
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								modelTreeViewer.setInput(jsonModel);
-								initTreeSelection(modelTreeViewer, null);
-								setWidgetsEnabled(true);
-								updateMessage();
-							}
-						});
-					} catch (Exception e) {
-						e.printStackTrace();
-
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								setWidgetsEnabled(true);
-								updateMessage();
-							}
-						});
-					} finally {
-						isUpdating = false;
-					}
+					ConvertigoPlugin.asyncExec(() -> {
+						setWidgetsEnabled(true);
+						updateMessage();
+					});
+				} finally {
+					isUpdating = false;
 				}
 			});
 			t.start();
@@ -2160,7 +2111,7 @@ public class NgxPickerComposite extends Composite {
 
 	public void setCurrentInput(Object selected, String source) {
 		if (isUpdating) return;
-
+		
 		currentMC = null;
 		setWidgetsEnabled(true);
 
@@ -2236,5 +2187,9 @@ public class NgxPickerComposite extends Composite {
 		
 		resetViewers();
 		updateMessage();
+	}
+	
+	public ToolItem getTiLink() {
+		return tiLink;
 	}
 }
