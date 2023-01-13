@@ -23,9 +23,16 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
+@Table(indexes = {
+	@Index(columnList = "creationDate", name = "creationDate_idx"),
+	@Index(columnList = "customerName", name = "customerName_idx"),
+	@Index(columnList = "sessionID", name = "sessionID_idx")
+})
 public class Ticket {
 	private long id;
 	protected long creationDate		= 0L;

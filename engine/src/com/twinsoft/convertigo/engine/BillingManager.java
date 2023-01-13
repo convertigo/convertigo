@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.billing.Ticket;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
@@ -155,6 +156,39 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			if (deviceUUID != null) {
 				ticket.setDeviceUUID(deviceUUID);
 			}
+			
+			synchronized (tickets) {
+				tickets.add(ticket);
+				tickets.notify();
+			}
+		} catch (Exception e) {
+			throw new EngineException("Ticket create failed", e);
+		}
+	}
+	
+	public synchronized void insertBilling(HttpSessionListener sessionListener, String operation) throws EngineException {
+		if (isDestroying) {
+			return;
+		}
+		if (managers.isEmpty()) {
+			return;
+		}
+		
+		try {
+			long now = System.currentTimeMillis();
+			long time = now - sessionListener.getCreationTime();
+			Ticket ticket = new Ticket();
+			ticket.setCreationDate(now);
+			ticket.setClientIp(sessionListener.getClientIP());
+			ticket.setCustomerName(customer_name);
+			ticket.setUserName(sessionListener.getAuthenticatedUser());
+			ticket.setConnectorType("session");
+			ticket.setConnectorName(operation);
+			ticket.setResponseTime(time);
+			ticket.setScore(HttpSessionListener.countSessions());
+			ticket.setSessionID(sessionListener.getSessionID());
+			ticket.setUserAgent(sessionListener.getUserAgent());
+			ticket.setDeviceUUID(sessionListener.getUuid());
 			
 			synchronized (tickets) {
 				tickets.add(ticket);

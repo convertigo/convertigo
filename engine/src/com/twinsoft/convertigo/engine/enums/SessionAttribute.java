@@ -34,7 +34,8 @@ public enum SessionAttribute {
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__"),
 	sessionListener,
-	xsrfToken;
+	xsrfToken,
+	userAgent;
 	
 	String value;
 	
@@ -56,12 +57,15 @@ public enum SessionAttribute {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+
 	public <E> E get(HttpSession session) {
-		if (session != null) {
-			return (E) session.getAttribute(value());
-		}
-		return null;
+		return get(session, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <E> E get(HttpSession session, E defaultValue) {
+		E res = session == null ? null : (E) session.getAttribute(value());
+		return res == null ? defaultValue : res;
 	}
 	
 	public boolean has(HttpSession session) {
@@ -78,11 +82,11 @@ public enum SessionAttribute {
 	}
 	
 	public String string(HttpSession session) {
-		Object obj;
-		if (session != null && (obj = session.getAttribute(value())) != null) {
-			return obj.toString();
-		} else {
-			return null;
-		}
+		return string(session, null);
+	}
+	
+	public String string(HttpSession session, String defaultValue) {
+		Object res = session == null ? null : session.getAttribute(value());
+		return res == null ? defaultValue : res.toString();
 	}
 }

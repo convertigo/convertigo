@@ -44,6 +44,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
@@ -62,14 +63,28 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
 	private static final Set<String> devices = Collections.synchronizedSet(new HashSet<>());
 
+	String httpSessionID;
+	String clientIP;
+	String userAgent;
+	String uuid;
+	String authenticatedUser = "";
+	long creationTime;
+	
 	public void valueBound(HttpSessionBindingEvent event) {
 		try {
 			Engine.logEngine.debug("HTTP session starting...");
 			HttpSession httpSession = event.getSession();
-			String httpSessionID = httpSession.getId();
+			
+			httpSessionID = httpSession.getId();
+			creationTime = httpSession.getCreationTime();
+			clientIP = SessionAttribute.clientIP.get(httpSession, "");
+			userAgent = SessionAttribute.userAgent.get(httpSession, "");
+			uuid = SessionAttribute.deviceUUID.get(httpSession, "");
+			
 			httpSessions.put(httpSessionID, httpSession);
+			Engine.theApp.billingManager.insertBilling(this, "start");
+			
 			Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
-
 			if (Engine.isEngineMode() && !devices.contains(httpSessionID)) {
 				int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 				int currentCV = countSessions();
@@ -107,6 +122,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		try {
 			Engine.logContext.debug("HTTP session stopping...");
 			HttpSession httpSession = event.getSession();
+			Engine.theApp.billingManager.insertBilling(this, "stop");
 			String httpSessionID = httpSession.getId();
 
 			if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
@@ -116,6 +132,32 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		} catch(Exception e) {
 			Engine.logContext.error("Exception during unbinding HTTP session listener", e);
 		}
+	}
+	
+	
+
+	public String getSessionID() {
+		return httpSessionID;
+	}
+
+	public String getClientIP() {
+		return clientIP;
+	}
+
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public String getAuthenticatedUser() {
+		return authenticatedUser;
+	}
+
+	public long getCreationTime() {
+		return creationTime;
 	}
 
 	static public void terminateSession(String httpSessionID) {
@@ -153,6 +195,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	static public void checkSession(HttpServletRequest request) throws TASException {
 		HttpSession httpSession = request.getSession(true);
 		SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
+		SessionAttribute.userAgent.set(httpSession, HeaderName.UserAgent.getHeader(request));
 		String uuid = request.getParameter(Parameter.DeviceUUID.getName());
 		if (StringUtils.isNotBlank(uuid)) {
 			SessionAttribute.deviceUUID.set(httpSession, uuid);
@@ -173,6 +216,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 					throw new RuntimeException((Throwable) t);
 				}
 			}
+		} else {
+			HttpSessionListener listener = SessionAttribute.sessionListener.get(httpSession);
+			listener.authenticatedUser = SessionAttribute.authenticatedUser.get(httpSession, "");
 		}
 	}
 
