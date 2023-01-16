@@ -130,7 +130,6 @@ public class SqlTransaction extends TransactionWithVariables {
 	/** Holds value of property xmlOutput. */
 	private int xmlOutput = XmlMode.flat_element.ordinal();
 	private transient XmlMode xmlMode = XmlMode.parse(xmlOutput);
-	private transient Map<String,List<List<Object>>> tables = null;
 
 	enum XmlMode {
 		raw,						// 0
@@ -728,6 +727,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 			// Append output results
 			if (sql_output != null) {
+				generateJsonTypes(tables, sql_output);
 				Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 				Element appended = (Element) outputDocumentRootElement.appendChild(sql_output);
 
@@ -743,7 +743,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 
 	private void getQueryResults(ResultSet rs, int nb, Element xsd_parent, String query, List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws EngineException, SQLException, UnsupportedEncodingException {
-		tables = null;
+		Map<String,List<List<Object>>> tables = null;
 		List<List<Map<String,String>>> rows = null;
 		List<String> columnHeaders = null;
 		List<List<String>> lines = null;
@@ -894,6 +894,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 
 		if (sql_output != null) {
+			generateJsonTypes(tables, sql_output);
 			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 			outputDocumentRootElement.appendChild(sql_output);
 		}
@@ -1171,55 +1172,6 @@ public class SqlTransaction extends TransactionWithVariables {
 				}
 			}
 
-			if (generateJsonTypes) {
-				TwsCachedXPathAPI xpathApi = context.getXpathApi();
-				Element sql_out = (Element) xpathApi.selectSingleNode(context.outputDocument, "/*/sql_output");
-				if (Engine.logBeans.isTraceEnabled()) {
-					Engine.logEngine.trace("(SqlTransaction) outputDocument before json: " + XMLUtils.prettyPrintDOM(context.outputDocument));
-					Engine.logEngine.trace("(SqlTransaction) tables before json: " + tables);
-				}
-				if (tables != null) {
-					sql_out.setAttribute("type", "array");
-
-					if (xmlMode == XmlMode.flat_element) {
-						Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
-						for (List<List<Object>> columns: tables.values()) {
-							for (List<Object> col: columns) {
-								String cls = ((String) col.get(2)).toLowerCase();
-								String type = "string";
-								if (cls.startsWith("java.lang.")) {
-									type = cls.substring(10);
-								}
-								types.put((Integer) col.get(0), ImmutablePair.of((String) col.get(1), type));
-							}
-						}
-						NodeList rows = xpathApi.selectNodeList(context.outputDocument, "/*/sql_output/*");
-						for (int i = 0; i < rows.getLength(); i++) {
-							Element row = ((Element) rows.item(i));
-							row.setAttribute("type", "object");
-							if (types != null) {
-								NodeList fields = xpathApi.selectNodeList(row, "*");
-								for (int j = 0; j < fields.getLength(); j++) {
-									Pair<String, String> info = types.get(j + 1);
-									Element field = ((Element) fields.item(j));
-									String type = info.getRight();
-									if (!"string".equals(type) && org.apache.commons.lang3.StringUtils.isBlank(field.getTextContent())) {
-										// see #686, useful for JSON requester
-										type = "null";
-									}
-									field.setAttribute("type", type);
-									if (!field.getTagName().equals(info.getLeft())) {
-										field.setAttribute("originalKeyName", info.getLeft());
-									}
-								}
-							}
-						}
-					}
-				} else {
-					sql_out.setAttribute("type", "string");
-				}
-			}
-
 			// Store learned schema
 			if (Engine.isStudioMode() && xsd_parent != null) {
 				Document doc = xsd_parent.getOwnerDocument();
@@ -1245,6 +1197,66 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 
+	private void generateJsonTypes(Map<String, List<List<Object>>> tables, Element sql_out) {
+		try {
+			if (generateJsonTypes) {
+				TwsCachedXPathAPI xpathApi = context.getXpathApi();
+				if (Engine.logBeans.isTraceEnabled()) {
+					Engine.logEngine.trace("(SqlTransaction) sql_output before json: " + XMLUtils.prettyPrintDOM(sql_out));
+					Engine.logEngine.trace("(SqlTransaction) tables before json: " + tables);
+				}
+				if (tables != null) {
+					sql_out.setAttribute("type", "array");
+	
+					if (xmlMode == XmlMode.flat_element) {
+						int k = 0;
+						Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
+						for (List<List<Object>> columns: tables.values()) {
+							for (List<Object> col: columns) {
+								String cls = ((String) col.get(2)).toLowerCase();
+								String type = "string";
+								if (cls.startsWith("java.lang.")) {
+									type = cls.substring(10);
+								}
+								if (types.size() == 0 && (Integer) col.get(0) > 1) { // case first column index > 1 (OUT parameter)
+									k = (Integer) col.get(0) - 1;
+								}
+								types.put((Integer) col.get(0) - k, ImmutablePair.of((String) col.get(1), type));
+							}
+						}
+						NodeList rows = xpathApi.selectNodeList(sql_out, "./*");
+						for (int i = 0; i < rows.getLength(); i++) {
+							Element row = ((Element) rows.item(i));
+							row.setAttribute("type", "object");
+							if (types != null) {
+								NodeList fields = xpathApi.selectNodeList(row, "*");
+								for (int j = 0; j < fields.getLength(); j++) {
+									Element field = ((Element) fields.item(j));
+									Pair<String, String> info = types.get(j + 1);
+									if (info != null) {
+										String type = info.getRight();
+										if (!"string".equals(type) && org.apache.commons.lang3.StringUtils.isBlank(field.getTextContent())) {
+											// see #686, useful for JSON requester
+											type = "null";
+										}
+										field.setAttribute("type", type);
+										if (!field.getTagName().equals(info.getLeft())) {
+											field.setAttribute("originalKeyName", info.getLeft());
+										}
+									}
+								}
+							}
+						}
+					}
+				} else {
+					sql_out.setAttribute("type", "string");
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("(SqlTransaction) Unabled to generate output json types for "+ this.getName(), e);
+		}
+	}
+	
 	private Element getSchemaContainerElement() {
 		if (Engine.isStudioMode()) {
 			Document doc = createDOM(getEncodingCharSet());
