@@ -402,11 +402,12 @@ public class EnginePropertiesManager {
 		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
 
 		/** LOGS */
-		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", LogLevels.WARN.getValue(), "Log4J admin logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Text)
-		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue() + ", AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue(), "Log4J audit context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", LogLevels.INHERITED.getValue(), "Log4J beans logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1073,7 +1074,19 @@ public class EnginePropertiesManager {
 		for (PropertyName propertyName : PropertyName.values()) {
 			String sPropertyName = propertyName.toString();
 			if (sPropertyName.startsWith("log4j.")) {
-				log4jProperties.setProperty(sPropertyName, getProperty(propertyName));
+				String sPropertyValue = getProperty(propertyName);
+				if (propertyName == PropertyName.LOG4J_LOGGER_CEMS || propertyName == PropertyName.LOG4J_LOGGER_CEMS_CONTEXT_AUDIT) {
+					if (sPropertyValue.isEmpty()) {
+						sPropertyValue = LogLevels.INFO.getValue();
+					}
+					int id = sPropertyValue.indexOf(",");
+					if (id > -1) {
+						sPropertyValue = sPropertyValue.substring(0, id);
+						setProperty(propertyName, sPropertyValue);
+					}
+					sPropertyValue += propertyName == PropertyName.LOG4J_LOGGER_CEMS ? ", CemsAppender" : ", AuditAppender";
+				}
+				log4jProperties.setProperty(sPropertyName, sPropertyValue);
 			}
 		}
 
