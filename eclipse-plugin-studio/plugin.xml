@@ -755,12 +755,6 @@
                relationship="left"
                relative="org.eclipse.ui.editorss"/>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
-               minimized="false"
-               relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
-         </view>
-         <view
                id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                minimized="false"
                relationship="stack"
@@ -768,6 +762,12 @@
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
                minimized="false"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">

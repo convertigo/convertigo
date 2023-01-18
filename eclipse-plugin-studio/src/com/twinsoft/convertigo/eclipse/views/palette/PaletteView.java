@@ -237,7 +237,7 @@ public class PaletteView extends ViewPart {
 		ToolBar bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiLink = new ToolItem(bar, SWT.CHECK);
 		tiLink.setToolTipText("Link with the 'Projects tree' selection");
-		ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
+		tiLink.setData("style", "background: unset");
 		try {
 			tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
 		} catch (Exception e3) {
@@ -248,7 +248,7 @@ public class PaletteView extends ViewPart {
 		bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiInternal = new ToolItem(bar, SWT.CHECK);
 		tiInternal.setToolTipText("Built-in objects visibility");
-		ConvertigoPlugin.asyncExec(() -> tiInternal.setBackground(null));
+		tiInternal.setData("style", "background: unset");
 		try {
 			tiInternal.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/convertigo_logo_16x16.png"));
 		} catch (Exception e3) {
@@ -258,7 +258,7 @@ public class PaletteView extends ViewPart {
 		
 		ToolItem tiShared = new ToolItem(bar, SWT.CHECK);
 		tiShared.setToolTipText("Shared objects visibility");
-		ConvertigoPlugin.asyncExec(() -> tiShared.setBackground(null));
+		tiShared.setData("style", "background: unset");
 		try {
 			tiShared.setImage(ConvertigoPlugin.getDefault().getBeanIcon(CachedIntrospector.getBeanInfo(UISharedComponent.class), BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e3) {

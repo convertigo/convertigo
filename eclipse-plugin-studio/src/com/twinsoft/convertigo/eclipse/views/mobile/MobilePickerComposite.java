@@ -643,11 +643,9 @@ public class MobilePickerComposite extends Composite {
 			source.addDragListener(dragAdapter);
 		}
 		
-		ConvertigoPlugin.asyncExec(() -> {
-			for (ToolItem ti : btnSequence.getParent().getItems()) {
-				ti.setBackground(null);
-			}
-		});
+		for (ToolItem ti: btnSequence.getParent().getItems()) {
+			ti.setData("style", "background: unset");
+		}
 	}
 	
 	private Filter getFilter() {
