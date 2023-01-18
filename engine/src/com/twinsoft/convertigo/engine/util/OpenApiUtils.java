@@ -261,7 +261,7 @@ public class OpenApiUtils {
 		}
 
 		// Generated models from XmlSchema
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
+		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName+".yaml" );
 		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
 		
@@ -480,7 +480,7 @@ public class OpenApiUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
+		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName+".yaml" );
 		
 		// generate yaml file if needed

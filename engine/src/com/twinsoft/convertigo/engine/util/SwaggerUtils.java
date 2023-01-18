@@ -232,7 +232,7 @@ public class SwaggerUtils {
 		}
 		
 		// Generated models from XSD
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
+		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
 		if (doIt) {
 			try {
