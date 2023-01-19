@@ -17,7 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-$.getScript('js/jquery/jquery-treeview/jquery.treeview.js');
+$.getScript('js/jquery/tree.jquery.js');
 
 function project_Edit_init() {
 	project_Edit_update();
@@ -96,116 +96,88 @@ function loadProjectGSymbol(projectName){
 // This variable contains the XML DOM returned by the database_objects.Get service
 var xmlDatabaseObject;
 var project_Name;
+var treeItemId = 0;
+
+function dboXmlToJson($xml) {
+	var o = {};
+	$xml.children().each(function() {
+		var $this = $(this);
+		var c = $this.attr("category");
+		var a = c in o ? o[c] : (o[c] = []);
+		var j = {
+			id: treeItemId++,
+			name: $this.attr("name"),
+			qname: $this.attr("qname"),
+			beanClass: $this.attr("beanClass"),
+			comment: $this.attr("comment")
+		};
+		a.push(j);
+		if ($this.attr("hasChildren") == "true") {
+			j.children = dboXmlToJson($this);
+		}
+	});
+	var ks = Object.keys(o);
+	if (Object.keys(o).length == 0) {
+		o = [];
+	} else  if (Object.keys(o).length == 1) {
+		o = Object.values(o)[0];
+	} else {
+		o = Object.keys(o).map(k => ({
+			id: treeItemId++,
+			name: k,
+			children: o[k]
+		}));	
+	}
+	return o;
+}
 
 function loadProject(projectName) {
 	project_Name = projectName;
 	startWait(30);
-
-	callService("projects.Get", function(xml) {
+	$("#projectEditDivJQTree").tree("destroy");
+	callService("studio.database_objects.GetChildren", function(xml) {
+		// set the title of the widget
+		$("#project_Edit h3").first().text("Project " + projectName);
+		
 		$("#project_Edit").show();
 		
-		// set the title of the widget
-		$("#project_Edit h3").first().text("Project " + $(xml).find("project").attr("name"));
-		
-		// create the project node
-		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + htmlEncode($(xml).find("project").first().attr('qname')) + '">'+
-			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=com.twinsoft.convertigo.beans.core.Project" />'
-				+ htmlEncode($(xml).find("project").attr("name")) + '</span></div></div>';
-		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";
-		$("#projectEditDivTree").html(htmlProjectEditDivTree);
-
-		// create the tree
-		constructTree($(xml).find("project"), $("#projectEditTree"));
-		$("#projectEditTree").treeview( {
-			animated : "fast",
-			collapsed : true
-		});
-
-		// interaction hover
-		$(".projectEdit-selectableElement > div").hover(function() {
-			$(this).addClass("hover");
-		}, function() {
-			$(this).removeClass("hover");
-		});
-
-		// interaction on click
-		$(".projectEdit-selectableElement >div>span, #projectTreeWidgetRoot").click(function() {
-			$("*[class~=projectEdit-editedObject]").each(function() {
-				$(this).removeClass("projectEdit-editedObject");
+		var data = dboXmlToJson($(xml.documentElement));
+		$("#projectEditDivJQTree").tree({
+			data: data,
+			onCreateLi: function(node, $li, isSelected) {
+				if ('beanClass' in node) {
+					$li.find('.jqtree-title').prepend('<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + node.beanClass + '" />');
+					$li.attr('title', node.comment);
+				} else {
+					$li.find('.jqtree-title').prepend('<img src="images/folder.gif" />');
+				}
+			}
+		}).on("tree.open", function(e) {
+			e.node.children.forEach(function(c) {
+				if ('qname' in c) {
+					callService("studio.database_objects.GetChildren", function(xml) {
+						var subdata = dboXmlToJson($(xml).find("dbo:first"));
+						$("#projectEditDivJQTree").tree("loadData", subdata, c);
+					}, {qname: c.qname});
+				}
 			});
-			$(this).addClass("projectEdit-editedObject");
-			 
-			
-			loadElement($(this).parents(".projectEdit-selectableElement:first").attr("qname"), $(this));
-			return false;
+		}).on("tree.click", function(e) {
+			$("#projectEditDivJQTree").tree('openNode', e.node);
+			if ('qname' in e.node) {
+				loadElement(e.node.qname);
+			}
 		});
-
-		$("#projectTreeWidgetRoot").click();
-		endWait();
-	}, {"projectName":project_Name});
-
-}
-
-function constructTree($xml, $tree) {
-	var tagName;
-	var displayName;
-	var accessibilityIcon;
-	var autostartIcon;
-	var img;
-	var treeCategories=new Array();
-	// for each element of project.Get
-	$xml.children("*").each(function() {
-		tagName = this.nodeName;
-		// if the category (connector, transaction,...) is not already added
-		if (!treeCategories[tagName]) {
-			// add the category
-			$tree.append('<li><span><img src="images/folder.gif" />' + formatFolderName(tagName) + '</span><ul></ul></li>');
-			treeCategories[tagName]=$tree.find("ul").last();
-		}
-		var $currentNode = treeCategories[tagName];
-		displayName = $(this).attr("name");
-		
-		accessibilityIcon = $(this).attr("accessibility") === "Public" ? "🚪" : 
-			($(this).attr("accessibility") === "Private" ? "🔒" : 
-				($(this).attr("accessibility") === "Hidden" ? "👓" : "" ));
-
-		autostartIcon = $(this).attr("autostart") === "true" ? "💡" : "";
-		
-		if (displayName != undefined) {
-			// add the element
-			img = '<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + $(this).attr("classname") + '" />';
-			$currentNode.append('<li class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '"><div>' + img + 
-					(accessibilityIcon != "" ? '<span class="accessibility-icon">' + accessibilityIcon + '</span>' : "" ) +
-					(autostartIcon != "" ? '<span class="accessibility-icon">' + autostartIcon + '</span>' : "" ) +
-					'<span>' + displayName + '</span></div><ul></ul></li>');
-			// construct the sons of the element
-			constructTree($(this), $currentNode.find("ul").last());
-		}
-
-	});
-
-}
-
-function formatFolderName(tagName){
-	if( tagName == "screenclass" )
-		return "Screen classes";
-	if( tagName == "extractionrule" )
-		return "Extraction rules";
-	if( tagName == "criteria" )
-		return "Criteria";
-	var newName = tagName.substring(0,1).toUpperCase()+ tagName.substring(1);
-	if( tagName.substring(tagName.length-1) == "s" ){
-		newName += "es";
-	}else{
-		newName += "s";
-	}
-	return newName;
+		window.setTimeout(() => {
+			$("#projectEditDivJQTree .jqtree-toggler:first").click().remove();
+			endWait();
+		}, 10);
+	}, {qname: project_Name});
 }
 
 function loadElement(elementQName, $treeitem) {
-
+	
 	callService("database_objects.Get", function(xml) {
-
+		
 		var $projectEditObjectPropertiesListTable = $("#projectEditTemplate .projectEditPropertyTable").clone();
 		var $xml = $(xml);
 		var caroleOdd = true;
