@@ -34,7 +34,7 @@ public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 	
 	private static final long serialVersionUID = 1430960819073513105L;
 	
-	private String nodeName = "authenticatedUserID";
+	private String nodeName = getName();
 	
 	public GetAuthenticatedUserStep() {
 		super();
@@ -91,5 +91,18 @@ public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 			return nodeValue;
 		}
 		return "";
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "authenticatedUserID";
 	}
 }

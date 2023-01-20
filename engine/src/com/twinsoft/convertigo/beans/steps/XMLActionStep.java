@@ -36,7 +36,7 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	private static final long serialVersionUID = -3582328787633662760L;
 	
 	private XMLVector<XMLVector<Object>> sourcesDefinition = new XMLVector<XMLVector<Object>>();
-	private String nodeName = "element";
+	private String nodeName = getName();
 	
 	public XMLActionStep() {
 		super();
@@ -161,4 +161,16 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	
 	abstract protected String getActionName();
 	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "element";
+	}
 }

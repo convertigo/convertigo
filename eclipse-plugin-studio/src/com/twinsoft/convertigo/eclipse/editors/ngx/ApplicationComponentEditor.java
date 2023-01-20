@@ -110,8 +110,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
+import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
@@ -194,8 +194,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					});
 				} else if (paletteSource != null) {
-					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+					DatabaseObject source = PaletteSourceTransfer.getInstance().getPaletteSource().getDatabaseObject();
 					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
 						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
 							if (uic instanceof UIControlEvent) {
@@ -222,7 +221,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
 							BatchOperationHelper.start();
-							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+							TreeDropAdapter.paste(source, fTarget, true);
 							if (fTarget != exHighlightMobileComponent) {
 								view.moveLastTo(treeObject, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
 							}

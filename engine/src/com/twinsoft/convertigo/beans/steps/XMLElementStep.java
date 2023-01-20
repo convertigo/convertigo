@@ -45,7 +45,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	private static final long serialVersionUID = -427374285639844989L;
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
-	private String nodeName = "element";
+	private String nodeName = getName();
 	private String nodeText = "";
 	
 	public XMLElementStep() {
@@ -160,5 +160,18 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 			element.setSchemaTypeName(getSimpleTypeAffectation());
 		}
 		return element;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return super.defaultBeanName(displayName).toLowerCase();
 	}
 }

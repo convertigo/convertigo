@@ -50,7 +50,7 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 	private static final long serialVersionUID = 3276050659362959159L;
 	
 	private String expression = "";
-	private String nodeName = "element";
+	private String nodeName = getName();
 	private String nodeText = "";
 	
 	public ElementStep() {
@@ -190,5 +190,18 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		element.setSchemaTypeName(getSimpleTypeAffectation());
 		return element;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return super.defaultBeanName(displayName).toLowerCase();
 	}
 }

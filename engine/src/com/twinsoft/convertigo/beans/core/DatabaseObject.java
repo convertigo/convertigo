@@ -179,7 +179,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		try {
 			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
 			BeanDescriptor bd = bi.getBeanDescriptor();
-			setBeanName(StringUtils.normalize(bd.getDisplayName())); // normalize
+			setBeanName(StringUtils.normalize(defaultBeanName(bd.getDisplayName()))); // normalize
 																		// bean
 																		// name
 																		// #283
@@ -428,7 +428,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (name.length() == 0) {
 			throw new EngineException("The object name cannot be empty!");
 		}
+		String oldName = this.name;
 		this.name = name;
+		if (!name.equals(oldName)) {
+			onBeanNameChanged(oldName, name);
+		}
 	}
 
 	/**
@@ -1422,5 +1426,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	
 	public FolderType getFolderType() {
 		return FolderType.NONE;
+	}
+	
+	protected void onBeanNameChanged(String oldName, String newName) {
+	}
+	
+	protected String defaultBeanName(String displayName) {
+		return displayName;
 	}
 }

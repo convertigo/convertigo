@@ -119,7 +119,6 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TreeDropAdapter extends ViewerDropAdapter {
@@ -160,9 +159,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		} else {
 			for (TransferData transferData : event.dataTypes) {
-				if (MobileSourceTransfer.getInstance().isSupportedType(transferData)) {
-					event.data = MobileSourceTransfer.getInstance().getMobileSource();
-					break;
+				try {
+					if (MobileSourceTransfer.getInstance().isSupportedType(transferData)) {
+						event.data = MobileSourceTransfer.getInstance().getMobileSource();
+						break;
+					}
+				} catch (Exception e) {
+					// from palette
 				}
 			}
 		}
@@ -397,41 +400,45 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 	}
 
+	public static void paste(DatabaseObject databaseObject, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
+		String dboName = databaseObject.getName();
+		String name = null;
+
+		boolean bContinue = true;
+		int index = 0;
+
+		while (bContinue) {
+			if (bChangeName) {
+				if (index == 0) name = dboName;
+				else name = dboName + index;
+				databaseObject.setName(name);
+			}
+
+			databaseObject.hasChanged = true;
+			databaseObject.bNew = true;
+
+			try {
+				if (parentDatabaseObject != null) parentDatabaseObject.add(databaseObject);
+				bContinue = false;
+			}
+			catch(ObjectWithSameNameException owsne) {
+				if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement))
+					throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
+
+				if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step))
+					throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
+
+				// Silently ignore
+				index++;
+			}
+		}
+	}
+	
 	public DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject)object;
-			String dboName = databaseObject.getName();
-			String name = null;
-
-			boolean bContinue = true;
-			int index = 0;
-
-			while (bContinue) {
-				if (bChangeName) {
-					if (index == 0) name = dboName;
-					else name = dboName + index;
-					databaseObject.setName(name);
-				}
-
-				databaseObject.hasChanged = true;
-				databaseObject.bNew = true;
-
-				try {
-					if (parentDatabaseObject != null) parentDatabaseObject.add(databaseObject);
-					bContinue = false;
-				}
-				catch(ObjectWithSameNameException owsne) {
-					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement))
-						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-
-					if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step))
-						throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
-
-					// Silently ignore
-					index++;
-				}
-			}
+			paste(databaseObject, parentDatabaseObject, bChangeName);
 
 			NodeList childNodes = node.getChildNodes();
 			int len = childNodes.getLength();
@@ -1160,9 +1167,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
 					try {
-						String xmlData = paletteSource.getXmlData();
-						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
-						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
+						DatabaseObject databaseObject = paletteSource.getDatabaseObject();
 
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
 							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject) targetTreeObject;
@@ -1456,50 +1461,38 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
 					DatabaseObjectTreeObject dbotree = (DatabaseObjectTreeObject) targetTreeObject;
 					DatabaseObject parent = (insertBefore || insertAfter) ? dbotree.getObject().getParent() : dbotree.getObject();
-					
-					String xmlData = ((PaletteSource)data).getXmlData();
-					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
-					Element rootElement = document.getDocumentElement();
-					NodeList nodeList = rootElement.getChildNodes();
+
 					boolean needNgxPaletteReload = false;
-					int len = nodeList.getLength();
-					Node node;
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE) {
-						DatabaseObject dbop = null;
-						for (int i = 0 ; i < len ; i++) {
-							node = (Node) nodeList.item(i);
-							if (node.getNodeType() != Node.TEXT_NODE) {
-								try {
-									Element prop = (Element) TwsCachedXPathAPI.getInstance().selectNode(node, "property[@name='name']/*");
-									String name = prop.getAttribute("value");
-									name = explorerView.edit(targetTreeObject, name);
-									prop.setAttribute("value", name);
-								} catch (Exception e) {
-									Engine.logStudio.debug("Cannot rename on drop", e);
-								}
-								dbop = paste(node, parent, true);
-								if (dbop == null) {
-									throw new Exception();
-								}
-								if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
-										dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
-									needNgxPaletteReload = true;
-								}
-							}
+						DatabaseObject dbop = ((PaletteSource) data).getDatabaseObject();
+						try {
+							String name = dbop.getName();
+							name = explorerView.edit(targetTreeObject, name);
+							dbop.setName(name);
+						} catch (Exception e) {
+							Engine.logStudio.debug("Cannot rename on drop", e);
 						}
-						
+						paste(dbop, parent, true);
+						if (dbop == null) {
+							throw new Exception();
+						}
+						if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+								dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+							needNgxPaletteReload = true;
+						}
+
 						if (dbop != null) {
 							NewObjectWizard.afterBeanAdded(dbop, parent, parent.hasChanged);
 						}
-						
+
 						if (insertBefore || insertAfter) {
 							reloadTreeObject(explorerView, dbotree.getParentDatabaseObjectTreeObject());
 							explorerView.moveLastTo(dbotree.getParent(), dbotree, insertBefore);
 						} else {
 							reloadTreeObject(explorerView, dbotree);
 						}
-						
+
 						// Refresh ngx palette view
 						if (needNgxPaletteReload) {
 							ConvertigoPlugin.getDefault().refreshPaletteView();

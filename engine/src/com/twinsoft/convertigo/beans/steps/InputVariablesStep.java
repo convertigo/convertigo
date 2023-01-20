@@ -54,7 +54,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 
 	private static final long serialVersionUID = 3276050659362959158L;
 
-	private String nodeName = "inputVars";
+	private String nodeName = getName();
 
 	transient Map<String, Object> variables = new LinkedHashMap<String, Object>();
 
@@ -206,5 +206,18 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		} else {
 			return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
 		}
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "inputVars";
 	}
 }

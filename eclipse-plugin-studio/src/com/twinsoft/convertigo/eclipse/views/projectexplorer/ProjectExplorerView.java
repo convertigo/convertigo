@@ -1235,7 +1235,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		text.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
-				switch (event.keyCode) {
+				switch (event.character) {
+				case SWT.LF:
 				case SWT.CR:
 					v[0] = text.getText();
 				case SWT.ESC:
@@ -1595,15 +1596,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ISelectionListener listener = null;
 
+							ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 							// refresh properties view
-							listener = ConvertigoPlugin.getDefault().getPropertiesView();
-							if (listener != null)
+							listener = plugin.getPropertiesView();
+							if (listener != null) {
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
 										structuredSelection);
-
+								plugin.refreshPropertiesView();
+							}
+							plugin.getPropertiesView().setPinned(isCarbon);
 							// refresh references view
-							listener = ConvertigoPlugin.getDefault().getReferencesView();
+							listener = plugin.getReferencesView();
 							if (listener != null)
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
@@ -1611,7 +1615,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 							// Refresh ngx palette view
 							if (needNgxPaletteReload) {
-								ConvertigoPlugin.getDefault().refreshPaletteView();
+								plugin.refreshPaletteView();
 							}
 						}
 						if (needProjectReload) {

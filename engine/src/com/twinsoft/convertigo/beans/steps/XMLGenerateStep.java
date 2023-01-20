@@ -28,7 +28,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 abstract public class XMLGenerateStep extends Step {
 	private static final long serialVersionUID = 1384625418225432309L;
 	
-	private String nodeName = "element";
+	private String nodeName = getName();
 	
 	public XMLGenerateStep() {
 		super();
@@ -91,4 +91,16 @@ abstract public class XMLGenerateStep extends Step {
 	
 	abstract protected String getActionName();
 	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "element";
+	}
 }

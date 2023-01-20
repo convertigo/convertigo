@@ -94,7 +94,6 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -552,14 +551,10 @@ public class PaletteView extends ViewPart {
 				public void dragStart(DragSourceEvent event) {
 					try {
 						Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
-						DatabaseObject dbo = item.newDatabaseObject();
+						DatabaseObject dbo = item.newDatabaseObject().clone();
 						dbo.priority = dbo.getNewOrderValue();
-						String sXml = ClipboardAction.dnd.copy(dbo);
-						if (sXml != null) {
-							event.doit = true;
-							event.data = sXml;
-							PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
-						}
+						event.doit = true;
+						PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}

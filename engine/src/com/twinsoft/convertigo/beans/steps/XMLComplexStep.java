@@ -36,7 +36,7 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
-	private String nodeName = "complex";
+	private String nodeName = getName();
 	
 	public XMLComplexStep() {
 		super();
@@ -94,5 +94,18 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		return (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return super.defaultBeanName(displayName).toLowerCase();
 	}
 }

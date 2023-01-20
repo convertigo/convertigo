@@ -63,7 +63,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 
 	private transient String sourceFilePath = "";
 	
-	private String nodeName = "hash";
+	private String nodeName = getName();
 	
 	private String offset = "0";
 	
@@ -231,5 +231,18 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	
 	public boolean isGenerateElement() {
 		return true;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.equals(nodeName)) {
+			nodeName = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "hash";
 	}
 }
