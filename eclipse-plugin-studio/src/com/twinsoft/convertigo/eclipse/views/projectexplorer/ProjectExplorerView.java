@@ -85,6 +85,8 @@ import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
@@ -113,6 +115,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -281,6 +284,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
@@ -1211,6 +1215,55 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				editingTextCtrl.setText(newText);
 			}
 		}
+	}
+	
+	public String edit(TreeObject treeObject, String value) {
+		final String[] v = {value};
+		Tree tree = viewer.getTree();
+		Widget w = viewer.testFindItem(treeObject);
+		TreeItem treeItem = w != null && w instanceof TreeItem ? (TreeItem) w : tree.getSelection()[0];
+		TreeEditor editor = new TreeEditor(tree);
+		editor.horizontalAlignment = SWT.LEFT;
+		editor.grabHorizontal = true;
+		Composite composite = new Composite(tree, SWT.NONE);
+		GridLayout gl = new GridLayout(2, false);
+		gl.marginHeight = gl.marginWidth = 0;
+		composite.setLayout(gl);
+		Label label = new Label(composite, SWT.NONE);
+		label.setText("New object name:");
+		Text text = new Text(composite, SWT.NONE);
+		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		text.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent event) {
+				switch (event.keyCode) {
+				case SWT.CR:
+					v[0] = text.getText();
+				case SWT.ESC:
+					composite.dispose();
+					editor.dispose();
+					break;
+				}
+			}
+		});
+		text.addFocusListener(new FocusAdapter() {
+			public void focusLost(FocusEvent event) {
+				v[0] = text.getText();
+				composite.dispose();
+				editor.dispose();
+			}
+		});
+		text.setText(value);
+		text.selectAll();
+		text.setFocus();
+		editor.setEditor(composite, treeItem);
+		Display display = text.getDisplay();
+		while (!composite.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+		value = StringUtils.normalize(v[0]);
+		return value;
 	}
 
 	private void edit(TreeObject treeObject) {

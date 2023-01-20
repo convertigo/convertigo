@@ -119,6 +119,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TreeDropAdapter extends ViewerDropAdapter {
@@ -1469,6 +1470,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						for (int i = 0 ; i < len ; i++) {
 							node = (Node) nodeList.item(i);
 							if (node.getNodeType() != Node.TEXT_NODE) {
+								try {
+									Element prop = (Element) TwsCachedXPathAPI.getInstance().selectNode(node, "property[@name='name']/*");
+									String name = prop.getAttribute("value");
+									name = explorerView.edit(targetTreeObject, name);
+									prop.setAttribute("value", name);
+								} catch (Exception e) {
+									Engine.logStudio.debug("Cannot rename on drop", e);
+								}
 								dbop = paste(node, parent, true);
 								if (dbop == null) {
 									throw new Exception();
