@@ -120,9 +120,10 @@ public class WriteCSVStep extends WriteFileStep {
 				for (int i = 0; i < nodeList.getLength(); i++) {
 					Node nodey = nodeList.item(i);
 					if (nodey.getNodeType() == Node.ELEMENT_NODE) {// first
+						Element ely = (Element) nodey;
 						// level
 						if (titleLine) {
-							titlesY.add(transform(((Element) nodey).getTagName()));
+							titlesY.add(transform(ely.hasAttribute("originalKeyName") ? ely.getAttribute("originalKeyName") : ely.getTagName()));
 						}
 
 						if (nodey.hasChildNodes()) {
@@ -131,9 +132,10 @@ public class WriteCSVStep extends WriteFileStep {
 							for (int j = 0; j < listx.getLength(); j++) {
 								Node nodex = listx.item(j);
 								if (nodex.getNodeType() == Node.ELEMENT_NODE) {// second
+									Element elx = (Element) nodex;
 									// level
 									if (titleLine && (i == 0)) {
-										titlesX.add(transform(((Element) nodex).getTagName()));
+										titlesX.add(transform(elx.hasAttribute("originalKeyName") ? elx.getAttribute("originalKeyName") : elx.getTagName()));
 									}
 									line.add(transform(nodex.getTextContent()));
 								}
