@@ -126,6 +126,7 @@ public class PaletteView extends ViewPart {
 		String shortDescription;
 		String longDescription;
 		String searchText;
+		DatabaseObject dbo;
 
 		Item() {
 			String[] beanDescriptions = description().split("\\|");
@@ -152,11 +153,15 @@ public class PaletteView extends ViewPart {
 		}
 		
 		boolean allowedIn(int folderType) {
-			return folderType == ProjectExplorerView.getDatabaseObjectType(newDatabaseObject());
+			return folderType == ProjectExplorerView.getDatabaseObjectType(databaseObject());
 		}
 		
 		boolean builtIn() {
 			return true;
+		}
+		
+		DatabaseObject databaseObject() {
+			return dbo == null ? dbo = newDatabaseObject() : dbo; 
 		}
 		
 		abstract Image image();
@@ -467,7 +472,6 @@ public class PaletteView extends ViewPart {
 							String id = i;
 							Class<?> cls = Class.forName(cn);
 							Constructor<?> constructor = cls.getConstructor();
-							DatabaseObject dbo = (DatabaseObject) constructor.newInstance();
 							all.put(id, new Item() {
 
 								@Override
@@ -496,7 +500,13 @@ public class PaletteView extends ViewPart {
 
 								@Override
 								DatabaseObject newDatabaseObject() {
-									return dbo;
+									try {
+										return (DatabaseObject) constructor.newInstance();
+									} catch (RuntimeException e) {
+										throw e;
+									} catch (Exception e) {
+										throw new RuntimeException(e);
+									}
 								}
 
 								@Override
@@ -551,7 +561,7 @@ public class PaletteView extends ViewPart {
 				public void dragStart(DragSourceEvent event) {
 					try {
 						Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
-						DatabaseObject dbo = item.newDatabaseObject().clone();
+						DatabaseObject dbo = item.newDatabaseObject();
 						dbo.priority = dbo.getNewOrderValue();
 						event.doit = true;
 						PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
@@ -573,16 +583,10 @@ public class PaletteView extends ViewPart {
 						ConvertigoPlugin.setProperty("palette.history", str);
 					}
 				}
-
-				@Override
-				public void dragSetData(DragSourceEvent event) {
-					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-				}
 			};
 
 			for (Component comp: ComponentManager.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
-				DatabaseObject dbo = ComponentManager.createBeanFromHint(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -607,7 +611,7 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return dbo;
+						return ComponentManager.createBeanFromHint(comp);
 					}
 
 					@Override
@@ -634,7 +638,6 @@ public class PaletteView extends ViewPart {
 
 			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
 				String id = "mb " + comp.getName();
-				DatabaseObject dbo = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -659,7 +662,7 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return dbo;
+						return com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
 					}
 
 					@Override

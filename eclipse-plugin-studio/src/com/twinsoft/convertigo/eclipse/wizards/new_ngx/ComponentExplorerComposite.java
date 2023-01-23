@@ -299,11 +299,6 @@ public class ComponentExplorerComposite extends Composite {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
 				}
-
-				@Override
-				public void dragSetData(DragSourceEvent event) {
-					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-				}
 			});
 		}
 

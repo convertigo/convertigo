@@ -108,13 +108,11 @@ import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
+import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -149,9 +147,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDrop(JsObject o) {
 			try {
-				String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				DatabaseObject target = exHighlightMobileComponent;
-				DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+				DatabaseObject source = PaletteSourceTransfer.getInstance().getPaletteSource().getDatabaseObject();
 				if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
 					for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
 						if (uic instanceof UIControlEvent) {
@@ -174,11 +171,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						if (mb != null) {
 							mb.prepareBatchBuild();
 						}
-
-						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
-						TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
+						
 						BatchOperationHelper.start();
-						ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+						TreeDropAdapter.paste(source, fTarget, true);
 						BatchOperationHelper.stop();
 					} catch (Exception e) {
 						Engine.logStudio.debug("Failed to drop: " + e.getMessage());
