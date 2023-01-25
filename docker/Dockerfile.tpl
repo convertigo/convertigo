@@ -64,8 +64,9 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ## create a 'convertigo' user and fix some rights
 
 RUN useradd -s /bin/false -m convertigo \
-    && mkdir -p /workspace/lib /workspace/classes \
+    && mkdir -p /workspace \
     && chown -R convertigo:convertigo /workspace \
+    && chmod -R 777 /workspace \
     && echo "convertigo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/convertigo \
     && chmod 0440 /etc/sudoers.d/convertigo
 
@@ -94,7 +95,8 @@ RUN sed -i.bak \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
     && chown -R convertigo:convertigo conf temp work logs \
-    && chmod -w conf/*
+    && chmod -w conf/* \
+    && chmod 777 conf/context.xml conf/server.xml
 
 ENV CONVERTIGO_VERSION %VERSION%
 
@@ -113,11 +115,12 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
     && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
     && mkdir -p webapps/ROOT webapps/convertigo \
-    && mkdir /certs \
+    && mkdir /certs && chmod 777 /certs \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
         && (chmod -f a+x WEB-INF/xvnc/* || true) \
         && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
+        && chmod 777 WEB-INF/web.xml WEB-INF/lib WEB-INF/classes \
         && rm -rf /tmp/*)
 
 ## copy the ROOT index that redirect to the 'convertigo' webapp

@@ -8,7 +8,8 @@
         fi
         if [ "$TUNNEL_PORT" = "28080" ]; then
             /usr/local/bin/chisel server --port 28080 $TUNNEL_KEY $TUNNEL_AUTH --reverse --socks5 --proxy http://localhost:28081 2>&1 >/var/log/chisel &
-            sed -i.bak2 -e 's/"28080"/"28081"/' $CATALINA_HOME/conf/server.xml
+            $(TMPSED=`sed -e "s/"28080"/"28081"/" $CATALINA_HOME/conf/server.xml` && \
+                echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
         else
             /usr/local/bin/chisel server --port $TUNNEL_PORT $TUNNEL_KEY $TUNNEL_AUTH --reverse --socks5 2>&1 >/var/log/chisel &
         fi

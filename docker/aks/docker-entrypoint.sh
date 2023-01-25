@@ -42,9 +42,13 @@ if [ "$1" = "convertigo" ]; then
     
     ## add custom jar or class to the convertigo server
     
-    cp -r /workspace/lib/* $WEB_INF/lib/ 2>/dev/null
-    cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
+    if [ -d /workspace/lib/ ]; then
+        cp -r /workspace/lib/* $WEB_INF/lib/ 2>/dev/null
+    fi
     
+    if [ -d /workspace/classes/ ]; then
+        cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
+    fi
     
     ## check and adapt the Java Xmx for limited devices
     
@@ -89,32 +93,37 @@ if [ "$1" = "convertigo" ]; then
     fi
     
     if [ "$COOKIE_PATH" != "" ]; then
-        sed -i.bak -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml
+        $(TMPSED=`sed -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/conf/context.xml)
         echo "Configure sessionCookiePath to $COOKIE_PATH"
         unset COOKIE_PATH
     fi
     
     if [ "$COOKIE_SECURE" = "true" ]; then
-        sed -i.bak -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+        $(TMPSED=`sed -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
         echo "Configure Cookie secure to 'true'"
     else
-    	sed -i.bak -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    	$(TMPSED=`sed -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
     	echo "Configure Cookie secure to 'false'"
     fi
     unset COOKIE_SECURE
     
     if [ "$COOKIE_SAMESITE" != "" ]; then
-        sed -i.bak -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml
+        $(TMPSED=`sed -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/conf/context.xml)
         echo "Configure sameSiteCookies to $COOKIE_SAMESITE"
         unset COOKIE_SAMESITE
     fi
     
     if [ "$SESSION_TIMEOUT" != "" ]; then
-        sed -i.bak -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+        $(TMPSED=`sed -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
         echo "Configure session-timeout to $SESSION_TIMEOUT"
     fi
     
-    if [ "$DISABLE_SUDO" = "true" ]; then
+    if [ "$UID" = 0 ] && [ "$DISABLE_SUDO" = "true" ]; then
         rm /etc/sudoers.d/convertigo
         echo "Disable 'sudo'"
     fi
@@ -167,10 +176,12 @@ if [ "$1" = "convertigo" ]; then
     if [ -f "/certs/key.pem" ] && [ -f "/certs/cert.pem" ] && [ -f "/certs/chain.pem" ]; then
         echo "Enable SSL configuration for Tomcat"
         chmod a+r /certs/*
-        sed -i.ssl -e 's,--SSL<,--SSL--><,' -e 's,>SSL--,><!--SSL--,' $CATALINA_HOME/conf/server.xml
+        $(TMPSED=`sed -e 's,--SSL<,--SSL--><,' -e 's,>SSL--,><!--SSL--,' $CATALINA_HOME/conf/server.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
     else
         echo "Disable SSL configuration for Tomcat"
-        sed -i.ssl -e 's,--SSL--><,--SSL<,' -e 's,><!--SSL--,>SSL--,' $CATALINA_HOME/conf/server.xml
+        $(TMPSED=`sed -e 's,--SSL--><,--SSL<,' -e 's,><!--SSL--,>SSL--,' $CATALINA_HOME/conf/server.xml` && \
+            echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
     fi
     
     
@@ -183,7 +194,8 @@ if [ "$1" = "convertigo" ]; then
         fi
         if [ "$TUNNEL_PORT" = "28080" ]; then
             /usr/local/bin/chisel server --port 28080 $TUNNEL_KEY $TUNNEL_AUTH --reverse --socks5 --proxy http://localhost:28081 2>&1 >/var/log/chisel &
-            sed -i.bak2 -e 's/"28080"/"28081"/' $CATALINA_HOME/conf/server.xml
+            $(TMPSED=`sed -e "s/"28080"/"28081"/" $CATALINA_HOME/conf/server.xml` && \
+                echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
         else
             /usr/local/bin/chisel server --port $TUNNEL_PORT $TUNNEL_KEY $TUNNEL_AUTH --reverse --socks5 2>&1 >/var/log/chisel &
         fi
@@ -191,7 +203,11 @@ if [ "$1" = "convertigo" ]; then
     for i in $(set | grep "_SERVICE_\|_PORT" | cut -f1 -d=); do unset $i; done
     
     
-    exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
+    if [ "$UID" = "0" ]; then
+        exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
+    else
+        exec $CATALINA_HOME/bin/catalina.sh run
+    fi
 fi
 
 exec "$@"
