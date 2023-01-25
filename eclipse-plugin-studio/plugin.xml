@@ -130,7 +130,7 @@
          point="org.eclipse.ui.newWizards">
       <category
             id="com.twinsoft.convertigo.eclipse.convertigofrontend"
-            name="Convertigo Low Code Front-End">
+            name="Convertigo Low Code FullStack Web/Desktop or Mobile app">
       </category>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigobackend"
@@ -150,12 +150,12 @@
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigofrontend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            icon="icons/studio/web_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"
-            name="Convertigo Low Code Front-End project"
+            name="Convertigo Low Code FullStack Web/Desktop or Mobile app project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a NGX Mobile Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
+            <description>Creates a NGX Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
             {
               "url": "template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.1.0.zip",
               "doPage1": true
@@ -672,7 +672,7 @@
        <wizard
             category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
             name="Convertigo HelloWorld sample project"
             preferredPerspectives="convertigo"

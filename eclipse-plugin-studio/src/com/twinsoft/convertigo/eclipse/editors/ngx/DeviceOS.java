@@ -25,7 +25,8 @@ import org.eclipse.swt.widgets.Display;
 public enum DeviceOS {
 	android("Android"),
 	ios("iOS", "iPhone"),
-	windows("Windows Phone");
+	windows("Windows Phone"),
+	web("Desktop/Web");
 	
 	private String displayName;
 	private String agent;

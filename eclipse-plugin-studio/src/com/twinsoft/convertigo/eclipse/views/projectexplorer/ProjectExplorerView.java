@@ -509,9 +509,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		toolbar.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, true));
 
 		String[][] defs = {
-				{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
+				{"Start Low Code FullStack Web/Desktop or Mobile app project", "web_color_32x32.png", "NewNgxBuilderWizard"},
 				{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
-				{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
+				{"Start Hello World sample project", "panel_color_32x32.gif", "NewSampleHelloWorldWizard"},
 				{"Start another type of project", "convertigo_logo_32x32.png", null}
 		};
 
