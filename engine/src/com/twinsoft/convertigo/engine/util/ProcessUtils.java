@@ -273,7 +273,7 @@ public class ProcessUtils {
 	}
 	
 	public static String getNodeOs() {
-		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? "linux-x64" : "darwin-x64";
+		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? "linux-x64" : "aarch64".equals(System.getProperty("os.arch")) ? "darwin-arm64" : "darwin-x64";
 	}
 	
 	public static File getLocalNodeDir(String version) {
