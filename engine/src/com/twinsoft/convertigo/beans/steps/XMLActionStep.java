@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 abstract public class XMLActionStep extends Step implements IStepSourcesContainer, ISimpleTypeAffectation {
 	private static final long serialVersionUID = -3582328787633662760L;
@@ -163,8 +164,8 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

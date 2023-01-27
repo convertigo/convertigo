@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerator {
 
@@ -235,8 +236,8 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

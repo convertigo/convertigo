@@ -428,11 +428,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (name.length() == 0) {
 			throw new EngineException("The object name cannot be empty!");
 		}
-		String oldName = this.name;
 		this.name = name;
-		if (!name.equals(oldName)) {
-			onBeanNameChanged(oldName, name);
-		}
 	}
 
 	/**
@@ -448,39 +444,38 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (name.length() == 0) {
 			throw new EngineException("The object name cannot be empty!");
 		}
-
-		// warns if bean name is not normalized
-		if (!name.equals(StringUtils.normalize(name))) {
-			Engine.logBeans.warn("Unnormalized name: \"" + name + "\" for databaseObject ("
-					+ getClass().getSimpleName() + ")");
-		}
-
+		
+		String[] newName = {StringUtils.normalize(name)};
 		if (parent != null) {
 			FolderType fd = getFolderType();
-			try {
-				new WalkHelper() {
-
-					@Override
-					protected void walk(DatabaseObject databaseObject) throws Exception {
-						if (DatabaseObject.this.parent == databaseObject) {
-							super.walk(databaseObject);
-						} else if (DatabaseObject.this != databaseObject && fd.equals(databaseObject.getFolderType()) && name.equals(databaseObject.getName())) {
-							throw new ObjectWithSameNameException("Unable to add the object \""
-									+ name
-									+ "\" because an object with the same name already exists.");
+			boolean ok = false;
+			while (!ok) {
+				try {
+					ok = true;
+					new WalkHelper() {
+		
+						@Override
+						protected void walk(DatabaseObject databaseObject) throws Exception {
+							if (DatabaseObject.this.parent == databaseObject) {
+								super.walk(databaseObject);
+							} else if (DatabaseObject.this != databaseObject && fd.equals(databaseObject.getFolderType()) && newName[0].equals(databaseObject.getName())) {
+								throw new ObjectWithSameNameException("");
+							}
 						}
-					}
-					
-				}.init(parent);
-			} catch (ObjectWithSameNameException e) {
-				throw e;
-			} catch (Exception e) {
-				// should not occurs
+						
+					}.init(parent);
+				} catch (ObjectWithSameNameException e) {
+					ok = false;
+					newName[0] = incrementName(newName[0]);
+				} catch (Exception e) {
+					// should not occurs
+				}
 			}
 		}
-		
+		String oldName = this.name;
 		// set new name and new computed file name
-		setBeanName(name);
+		setBeanName(newName[0]);
+		onBeanNameChanged(oldName, name);
 	}
 	
 	public static String incrementName(String name) {

@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class JsonArrayStep extends StepWithExpressions implements IStepSmartTypeContainer, IComplexTypeAffectation, IElementRefAffectation {
@@ -168,7 +169,8 @@ public class JsonArrayStep extends StepWithExpressions implements IStepSmartType
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (key != null && key.getMode() == Mode.PLAIN && oldName.equals(key.getExpression())) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
 			key.setExpression(newName);
 			hasChanged = true;
 		}

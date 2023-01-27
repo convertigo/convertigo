@@ -218,8 +218,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

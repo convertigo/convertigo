@@ -29,6 +29,7 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffectation {
 	
@@ -95,8 +96,8 @@ public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

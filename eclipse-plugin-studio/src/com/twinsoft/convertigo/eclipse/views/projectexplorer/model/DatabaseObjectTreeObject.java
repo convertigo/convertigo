@@ -112,7 +112,6 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
@@ -1185,10 +1184,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public boolean rename(String newName, boolean bDialog) {
 		try {
-			if (!StringUtils.isNormalized(newName)) {
-				throw new ConvertigoException("The name \"" + newName + "\" must be normalized.\nDon't start with number and don't use non ASCII caracters.");
-			}
-
 			DatabaseObject databaseObject = getObject();
 			String oldName = databaseObject.getName();
 

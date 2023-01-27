@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 abstract public class XMLGenerateStep extends Step {
 	private static final long serialVersionUID = 1384625418225432309L;
@@ -93,8 +94,8 @@ abstract public class XMLGenerateStep extends Step {
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

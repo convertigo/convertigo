@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class XMLComplexStep extends StepWithExpressions implements IComplexTypeAffectation, IElementRefAffectation {
 
@@ -98,8 +99,8 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.equals(nodeName)) {
-			nodeName = newName;
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
 			hasChanged = true;
 		}
 	}

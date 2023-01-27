@@ -433,7 +433,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 	}
-	
+
 	public DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
 		if (object instanceof DatabaseObject) {
@@ -1186,7 +1186,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (getCurrentLocation() != 3) {
 								targetTreeObject = ((DatabaseObjectTreeObject) targetTreeObject).getParentDatabaseObjectTreeObject();
 							}
-							
+
 							DatabaseObject targetDatabaseObject = targetTreeObject == null ? null : ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 							if (targetDatabaseObject != null) {
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
@@ -1466,13 +1466,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE) {
 						DatabaseObject dbop = ((PaletteSource) data).getDatabaseObject();
-						try {
-							String name = dbop.getName();
-							name = explorerView.edit(targetTreeObject, name);
-							dbop.setName(name);
-						} catch (Exception e) {
-							Engine.logStudio.debug("Cannot rename on drop", e);
-						}
+
 						paste(dbop, parent, true);
 						if (dbop == null) {
 							throw new Exception();
@@ -1491,14 +1485,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							explorerView.moveLastTo(dbotree.getParent(), dbotree, insertBefore);
 						} else {
 							reloadTreeObject(explorerView, dbotree);
-						}
-
-						// Refresh ngx palette view
-						if (needNgxPaletteReload) {
-							ConvertigoPlugin.getDefault().refreshPaletteView();
+							explorerView.setSelectedTreeObject(dbotree.findTreeObjectByUserObject(dbop));
 						}
 						if (dbop != null) {
-							explorerView.setSelectedTreeObject(dbotree.findTreeObjectByUserObject(dbop));
+							try {
+								explorerView.renameSelectedTreeObject(true);
+							} catch (Exception e) {
+								Engine.logStudio.debug("Cannot rename on drop", e);
+							}
+							// Refresh ngx palette view
+							if (needNgxPaletteReload) {
+								ConvertigoPlugin.getDefault().refreshPaletteView();
+							}
 						}
 					}
 				}
