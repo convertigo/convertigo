@@ -186,7 +186,7 @@ if [ "$1" = "convertigo" ]; then
     
     %ON_LAUNCH%
     
-    if [ "$UID" = "0" ]; then
+    if [ $(id -u) = "0" ]; then
         exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run

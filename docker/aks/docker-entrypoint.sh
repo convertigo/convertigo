@@ -203,7 +203,7 @@ if [ "$1" = "convertigo" ]; then
     for i in $(set | grep "_SERVICE_\|_PORT" | cut -f1 -d=); do unset $i; done
     
     
-    if [ "$UID" = "0" ]; then
+    if [ $(id -u) = "0" ]; then
         exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run
