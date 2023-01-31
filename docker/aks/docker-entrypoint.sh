@@ -123,7 +123,7 @@ if [ "$1" = "convertigo" ]; then
         echo "Configure session-timeout to $SESSION_TIMEOUT"
     fi
     
-    if [ "$UID" = 0 ] && [ "$DISABLE_SUDO" = "true" ]; then
+    if [ $(id -u) = "0" ] && [ "$DISABLE_SUDO" = "true" ]; then
         rm /etc/sudoers.d/convertigo
         echo "Disable 'sudo'"
     fi
