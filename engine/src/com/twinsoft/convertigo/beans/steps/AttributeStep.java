@@ -242,6 +242,6 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "attribute";
 	}
 }

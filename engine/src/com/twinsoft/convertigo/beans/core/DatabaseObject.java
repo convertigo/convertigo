@@ -475,7 +475,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		String oldName = this.name;
 		// set new name and new computed file name
 		setBeanName(newName[0]);
-		onBeanNameChanged(oldName, name);
+		if (!isImporting) {
+			onBeanNameChanged(oldName, name);
+		}
 	}
 	
 	public static String incrementName(String name) {

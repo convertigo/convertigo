@@ -178,6 +178,6 @@ public class JsonArrayStep extends StepWithExpressions implements IStepSmartType
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "array";
 	}
 }

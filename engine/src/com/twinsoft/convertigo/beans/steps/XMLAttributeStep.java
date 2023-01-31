@@ -226,6 +226,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "attribute";
 	}
 }

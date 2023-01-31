@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -57,7 +58,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		super();
 		setOutput(true);
 		this.xml = true;
-		key.setExpression("object");
+		key.setExpression(getName());
 	}
 
 	@Override
@@ -212,5 +213,19 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	@Override
 	public String toJsString() {
 		return null;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
+			key.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "object";
 	}
 }

@@ -203,6 +203,6 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "element";
 	}
 }

@@ -221,6 +221,6 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "field";
 	}
 }

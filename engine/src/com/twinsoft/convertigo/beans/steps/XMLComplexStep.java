@@ -107,6 +107,6 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "complex";
 	}
 }

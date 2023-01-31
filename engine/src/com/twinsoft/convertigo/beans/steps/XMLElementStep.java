@@ -173,6 +173,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "element";
 	}
 }

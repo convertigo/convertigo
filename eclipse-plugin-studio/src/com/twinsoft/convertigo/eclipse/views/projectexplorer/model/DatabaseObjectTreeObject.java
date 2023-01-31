@@ -1146,36 +1146,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
-		// Verify if an object with the same name exists
-		TreeObject siblingTreeObject = this;
-		while ((siblingTreeObject = siblingTreeObject.getPreviousSibling()) != null) {
-			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-				if (!siblingDatabaseObjectTreeObject.isInherited) {
-					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
-					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equalsIgnoreCase(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
-					}
-				}
-			}
-		}
-
-		siblingTreeObject = this;
-		while ((siblingTreeObject = siblingTreeObject.getNextSibling()) != null) {
-			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-				if (!siblingDatabaseObjectTreeObject.isInherited) {
-					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
-
-					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equalsIgnoreCase(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
-					}
-				}
-			}
-		}
-
 		DatabaseObject databaseObject = getObject();
 		databaseObject.setName(newName);
 		databaseObject.hasChanged = true;
@@ -1189,10 +1159,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 			if (newName.equals(oldName)) {
 				return true;
-			}
-
-			if (newName.equalsIgnoreCase(oldName)) {
-				throw new ConvertigoException("The rename operation is case insensitive.");
 			}
 
 			rename_(newName, bDialog);

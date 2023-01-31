@@ -176,6 +176,6 @@ public class JsonObjectStep extends StepWithExpressions implements IStepSmartTyp
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return super.defaultBeanName(displayName).toLowerCase();
+		return "object";
 	}
 }
