@@ -69,12 +69,12 @@ public class UIDynamicMenu extends UIDynamicElement {
 		return "start";
 	}
 	
-	protected void markMenuAsDirty() throws EngineException {
-		ApplicationComponent app = (ApplicationComponent) getParent();
-		if (app != null) {
-			app.markApplicationAsDirty();
-		}
-	}
+//	protected void markMenuAsDirty() throws EngineException {
+//		ApplicationComponent app = (ApplicationComponent) getParent();
+//		if (app != null) {
+//			app.markApplicationAsDirty();
+//		}
+//	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
 		Set<UIComponent> done = new HashSet<>();

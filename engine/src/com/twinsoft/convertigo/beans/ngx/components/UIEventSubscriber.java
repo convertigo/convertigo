@@ -107,11 +107,11 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
 	}
 	

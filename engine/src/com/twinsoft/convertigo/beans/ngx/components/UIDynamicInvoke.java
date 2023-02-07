@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 
 public class UIDynamicInvoke extends UIDynamicAction {
 
@@ -49,7 +52,11 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	
 	@Override
 	protected boolean isBroken() {
-		return getTargetSharedAction() == null;
+		if (!ComponentRefManager.isEnabled(this.getQName())) {
+			return true;
+		}
+		
+		return getSharedActionQName().isEmpty() || getTargetSharedAction() == null || !getTargetSharedAction().isEnabled();
 	}
 	
 	@Override
@@ -140,8 +147,16 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	}
 	
 	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		// TODO Auto-generated method stub
+		super.computeScripts(jsonScripts);
+	}
+
+	@Override
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		super.addContributors(done, contributors);
+		
+		if (!isEnabled()) return;
 		
 		// Now, add target stack contributors
 		if (!isBroken()) {
@@ -153,6 +168,8 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	@Override
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
 		super.addInfos(done, infoMap);
+		
+		if (!isEnabled()) return;
 		
 		// Now, add target stack infos
 		if (!isBroken()) {

@@ -112,14 +112,7 @@ public abstract class MobileBuilder {
 	}
 	
     static public String projectName(String qname) {
-    	if (qname != null && !qname.isBlank()) {
-    		try {
-    			return qname.split("\\.")[0];
-    		} catch (Exception e) {
-    			e.printStackTrace();
-    		}
-    	}
-    	return "none";
+    	return ComponentRefManager.projectName(qname);
     }
     
 	static public int compareVersions(String v1, String v2) {
@@ -404,7 +397,7 @@ public abstract class MobileBuilder {
 		return getTplPageTsImports().containsKey(name);
 	}
 	
-	private void writeWorker(File file) throws IOException {
+	protected void writeWorker(File file) throws IOException {
 		writeWorker(file, false);
 	}
 	
@@ -552,4 +545,8 @@ public abstract class MobileBuilder {
 	public abstract String getTempTsRelativePath(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void writePageTempTs(final IPageComponent pageComponent) throws EngineException;
 	public abstract void writeCompTempTs(final ISharedComponent sharedComponent) throws EngineException;
+
+	public void appChanged() throws EngineException {
+		
+	}
 }

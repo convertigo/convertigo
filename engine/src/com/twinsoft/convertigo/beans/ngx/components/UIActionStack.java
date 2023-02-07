@@ -87,11 +87,11 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
 	}
 	

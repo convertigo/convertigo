@@ -55,10 +55,15 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
@@ -67,7 +72,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject {
@@ -102,17 +109,80 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		super.treeObjectRemoved(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
-				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
-					// a shared component has been deleted from this app
-					if (deletedObject instanceof UISharedRegularComponent) {
-						File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)deletedObject).getIconFileName());
-						FileUtils.deleteQuietly(iconFile);
+				String projectName = getObject().getProject().getName();
+				boolean doUpdate = false;
+				if (deletedTreeObject != null) {
+					String deletedobjectQName = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject().getQName();
+					deletedobjectQName += "." + deletedObject.getName();
+
+					if (deletedTreeObject.isChildOf(this)) {
+						// an shared object of this app has been deleted
+						if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
+							for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
+								ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
+							}
+							
+							// delete shared component icon file
+							if (deletedObject instanceof UISharedRegularComponent) {
+								File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)deletedObject).getIconFileName());
+								FileUtils.deleteQuietly(iconFile);
+							}
+						}
+						// a UIUseShared has been deleted
+						if (deletedObject instanceof UIUseShared) {
+							UIUseShared uius = (UIUseShared)deletedObject;
+							String compQName = uius.getSharedComponentQName();
+							if (!compQName.isEmpty()) {
+								ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
+							}
+						}
+						// a UIDynamicInvoke has been deleted
+						if (deletedObject instanceof UIDynamicInvoke) {
+							UIDynamicInvoke uidi = (UIDynamicInvoke)deletedObject;
+							String compQName = uidi.getSharedActionQName();
+							if (!compQName.isEmpty()) {
+								ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
+							}
+						}
+					} else {
+						// an external shared object has been deleted and was used in this app
+						if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
+							for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
+								ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
+								doUpdate = true;
+							}
+						}
+						// an object has been removed from an external object used in this app
+						if (deletedTreeObject.getParentDatabaseObjectTreeObject().getObject() instanceof UIComponent) {
+							UIComponent puic = (UIComponent) deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+							UIActionStack uias = puic.getSharedAction();
+							if (uias != null && uias.isEnabled()) {
+								if (ComponentRefManager.isCompUsedBy(uias.getQName(), projectName)) {
+									doUpdate = true;
+								}
+							}
+							UISharedComponent uisc = puic.getSharedComponent();
+							if (uisc != null && uisc.isEnabled()) {
+								if (ComponentRefManager.isCompUsedBy(uisc.getQName(), projectName)) {
+									doUpdate = true;
+								}
+							}
+						}
 					}
 				}
+				
+				if (deletedTreeObject.isChildOf(this) || doUpdate) {
+					if (!done.add(getObject())) {
+						return;
+					}
+					getObject().updateSourceFiles();
+				}				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -120,11 +190,16 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		
 	}
 
+	protected void updateNgxApp() {
+		
+	}
+	
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -134,24 +209,62 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-				if (dbo.bNew && getObject().equals(dbo.getParent())) {
-					// a page has been added to this app
-					if (dbo instanceof PageComponent) {
-						((PageComponent)dbo).markPageAsDirty();
-					}
-					
-					// a shared component has been added to this app
-					if (dbo instanceof UISharedRegularComponent) {
-						File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)dbo).getIconFileName());
-						if (!iconFile.exists()) {
-							Image image = ConvertigoPlugin.getDefault().getBeanIcon(dbo, BeanInfo.ICON_COLOR_32x32);
-							ImageLoader saver = new ImageLoader();
-							saver.data = new ImageData[] { image.getImageData() };
-							saver.save(iconFile.getCanonicalPath(), SWT.IMAGE_PNG);
+				String projectName = getObject().getProject().getName();
+				boolean doUpdate = false;
+				if (dbo.bNew) {
+					if (dbo instanceof UIComponent) {
+						if (doto.isChildOf(this)) {
+							// a shared component has been added to this app
+							if (dbo instanceof UISharedRegularComponent) {
+								File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)dbo).getIconFileName());
+								if (!iconFile.exists()) {
+									Image image = ConvertigoPlugin.getDefault().getBeanIcon(dbo, BeanInfo.ICON_COLOR_32x32);
+									ImageLoader saver = new ImageLoader();
+									saver.data = new ImageData[] { image.getImageData() };
+									saver.save(iconFile.getCanonicalPath(), SWT.IMAGE_PNG);
+								}
+							}
+							// a UIDynamicInvoke has been added to this app
+							if (dbo instanceof UIDynamicInvoke) {
+								UIDynamicInvoke uidi = (UIDynamicInvoke)dbo;
+								String compQName = uidi.getSharedActionQName();
+								if (!compQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).addConsumer(compQName, uidi.getQName());
+								}
+							}
+							// a UIUseShared has been added to this app
+							if (dbo instanceof UIUseShared) {
+								UIUseShared uius = (UIUseShared)dbo;
+								String compQName = uius.getSharedComponentQName();
+								if (!compQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).addConsumer(compQName, uius.getQName());
+								}
+							}
+						} else {
+							// an external shared action has changed and is used in this app
+							UIActionStack uias = ((UIComponent)dbo).getSharedAction();
+							if (uias != null && uias.isEnabled()) {
+								if (ComponentRefManager.isCompUsedBy(uias.getQName(), projectName)) {
+									doUpdate = true;
+								}
+							}
+							// an external shared component has changed and is used in this app
+							UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
+							if (uisc != null && uisc.isEnabled()) {
+								if (ComponentRefManager.isCompUsedBy(uisc.getQName(), projectName)) {
+									doUpdate = true;
+								}
+							}
 						}
 					}
-					
 				}
+				
+				if (dbo.bNew && (doto.isChildOf(this) || doUpdate)) {
+					if (!done.add(getObject())) {
+						return;
+					}
+					getObject().updateSourceFiles();
+				}				
 			} catch (Exception e) {}
 		}
 	}
@@ -174,116 +287,144 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-				ApplicationComponent ac = getObject();
-				
-				// for Page or Menu or Component or Action
-				if (ac.equals(dbo.getParent())) {
-					markApplicationAsDirty(done);
-					
-					if (propertyName.equals("name")) {
-						String oldName = (String)oldValue;
-						String newName = (String)newValue;
-						
-						boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
-						if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
-							
-							if (dbo instanceof UISharedRegularComponent) {
-								UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
-								try {
-									File oldIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(oldName));
-									File newIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(newName));
-									if (oldIconFile.exists() && !newIconFile.exists()) {
-										oldIconFile.renameTo(newIconFile);
-									}
-								} catch (Exception e) {}
-							}
-						}
-					}
-				}
-				// for any component inside a route
-				else if (ac.equals(dbo.getParent().getParent())) {
-					markApplicationAsDirty(done);
-				}
-				// for any UI component inside a menu or a stack
-				else if (dbo instanceof UIComponent) {
-					UIComponent uic = (UIComponent)dbo;
-					
-					UIDynamicMenu menu = uic.getMenu();
-					if (menu != null) {
-						if (ac.equals(menu.getParent())) {
-//							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-//								if (!newValue.equals(oldValue)) {
-//									try {
-//										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-//										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-//										if (uic.getUIForm() != null) {
-//											String form = uic.getUIForm().getFormGroupName();
-//											if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-//												this.viewer.refresh();
-//											}
+//				ApplicationComponent ac = getObject();
+//				
+//				// for Page or Menu or Component or Action
+//				if (ac.equals(dbo.getParent())) {
+//					markApplicationAsDirty(done);
+//					
+//					if (propertyName.equals("name")) {
+//						String oldName = (String)oldValue;
+//						String newName = (String)newValue;
+//						
+//						boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
+//						if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+//							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+//							
+//							if (dbo instanceof UISharedRegularComponent) {
+//								UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
+//								try {
+//									File oldIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(oldName));
+//									File newIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(newName));
+//									if (oldIconFile.exists() && !newIconFile.exists()) {
+//										oldIconFile.renameTo(newIconFile);
+//									}
+//								} catch (Exception e) {}
+//							}
+//						}
+//					}
+//				}
+//				// for any component inside a route
+//				else if (ac.equals(dbo.getParent().getParent())) {
+//					markApplicationAsDirty(done);
+//				}
+//				// for any UI component inside a menu or a stack
+//				else if (dbo instanceof UIComponent) {
+//					UIComponent uic = (UIComponent)dbo;
+//					
+//					UIDynamicMenu menu = uic.getMenu();
+//					if (menu != null) {
+//						if (ac.equals(menu.getParent())) {
+//							markApplicationAsDirty(done);
+//						}
+//					}
+//				}
+//				// for this application
+//				else if (this.equals(doto)) {
+//					if (propertyName.equals("isPWA")) {
+//						if (!newValue.equals(oldValue)) {
+//							markPwaAsDirty();
+//						}
+//					} else if (propertyName.equals("componentScriptContent")) {
+//						if (!newValue.equals(oldValue)) {
+//							markComponentTsAsDirty();
+//							markApplicationAsDirty(done);
+//						}
+//					} else if (propertyName.equals("useClickForTap")) {
+//						for (TreeObject to: this.getChildren()) {
+//							if (to instanceof ObjectsFolderTreeObject) {
+//								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
+//								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+//									for (TreeObject cto: ofto.getChildren()) {
+//										if (cto instanceof NgxPageComponentTreeObject) {
+//											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
 //										}
-//									} catch (Exception e) {}
+//									}
 //								}
 //							}
-							
-							markApplicationAsDirty(done);
-						}
-					}
-				}
-				// for this application
-				else if (this.equals(doto)) {
-					if (propertyName.equals("isPWA")) {
-						if (!newValue.equals(oldValue)) {
-							markPwaAsDirty();
-						}
-					} else if (propertyName.equals("componentScriptContent")) {
-						if (!newValue.equals(oldValue)) {
-							markComponentTsAsDirty();
-							markApplicationAsDirty(done);
-						}
-					} else if (propertyName.equals("useClickForTap")) {
-						for (TreeObject to: this.getChildren()) {
-							if (to instanceof ObjectsFolderTreeObject) {
-								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
-								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
-									for (TreeObject cto: ofto.getChildren()) {
-										if (cto instanceof NgxPageComponentTreeObject) {
-											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
-										}
-									}
-								}
-							}
-						}
-						markApplicationAsDirty(done);
-					} else if (propertyName.equals("tplProjectName")) {
+//						}
+//						markApplicationAsDirty(done);
+//					} else if (propertyName.equals("tplProjectName")) {
+//						// close app editor and reinitialize builder
+//						Project project = ac.getProject();
+//						Engine.logStudio.info("tplProjectName property of " + project + " changed, reloading builder...");
+//						closeAllEditors(false);
+//						MobileBuilder.releaseBuilder(project);
+//						MobileBuilder.initBuilder(project);
+//						
+//						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
+//						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
+//						
+//						// force app sources regeneration
+//						for (TreeObject to: this.getChildren()) {
+//							if (to instanceof ObjectsFolderTreeObject) {
+//								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
+//								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+//									for (TreeObject cto: ofto.getChildren()) {
+//										if (cto instanceof NgxPageComponentTreeObject) {
+//											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
+//										}
+//									}
+//								}
+//							}
+//						}
+//						markApplicationAsDirty(done);
+//						
+//						// delete node modules and alert user
+//						final File nodeModules = new File(project.getDirPath(), "/_private/ionic/node_modules");
+//						if (nodeModules.exists()) {
+//							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
+//							dialog.open();
+//							dialog.run(true, false, new IRunnableWithProgress() {
+//								@Override
+//								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//									monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
+//									String alert = "template changed!";
+//									if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
+//										alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
+//									} else {
+//										alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
+//									}
+//									monitor.done();
+//									ConvertigoPlugin.infoMessageBox(alert);
+//								}
+//							});
+//						}
+//						
+//					} else {
+//						markApplicationAsDirty(done);
+//					}
+//				}
+				
+				boolean doUpdate = false;
+				String projectName = getObject().getProject().getName();
+				if (doto.equals(this)) {
+					// application tpl has changed
+					if (propertyName.equals("tplProjectName")) {
+						Engine.logStudio.info("tplProjectName property of " + projectName + " changed, reloading builder...");
+						
 						// close app editor and reinitialize builder
-						Project project = ac.getProject();
-						Engine.logStudio.info("tplProjectName property of " + project + " changed, reloading builder...");
+						Project project = getObject().getProject();
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
 						
-						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
+						// refresh resources
+						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
 						
-						// force app sources regeneration
-						for (TreeObject to: this.getChildren()) {
-							if (to instanceof ObjectsFolderTreeObject) {
-								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
-								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
-									for (TreeObject cto: ofto.getChildren()) {
-										if (cto instanceof NgxPageComponentTreeObject) {
-											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
-										}
-									}
-								}
-							}
-						}
-						markApplicationAsDirty(done);
-						
 						// delete node modules and alert user
-						final File nodeModules = new File(project.getDirPath(), "/_private/ionic/node_modules");
+						final File nodeModules = new File(getObject().getProject().getDirPath(), "/_private/ionic/node_modules");
 						if (nodeModules.exists()) {
 							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
 							dialog.open();
@@ -302,9 +443,112 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 								}
 							});
 						}
+						return;
+					}
+				}
+				if (dbo instanceof UIComponent) {
+					if (doto.isChildOf(this)) {
+						if (dbo instanceof UISharedRegularComponent || dbo instanceof UIActionStack) {
+							// a shared component or shared action of this app changed its name
+							if (propertyName.equals("name")) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								
+								// modify consumers
+								ComponentRefManager.get(Mode.use).copyKey(oldName, newName);
+								
+								// rename shared component icon file
+								if (dbo instanceof UISharedRegularComponent) {
+									UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
+									try {
+										File oldIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(oldName));
+										File newIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(newName));
+										if (oldIconFile.exists() && !newIconFile.exists()) {
+											oldIconFile.renameTo(newIconFile);
+										}
+									} catch (Exception e) {}
+								}
+							}
+						}
 						
+						if (dbo instanceof UIDynamicInvoke) {
+							UIDynamicInvoke uidi = (UIDynamicInvoke)dbo;
+							String useQName = uidi.getQName();
+							// a UIDynamicInvoke of this app changed its target shared component
+							if (propertyName.equals("stack")) {
+								String oldCompQName = (String) oldValue;
+								String newCompQName = (String) newValue;
+								if (!oldCompQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
+								}
+								if (!newCompQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).addConsumer(newCompQName, useQName);
+								}
+							}
+							// a UIDynamicInvoke of this app changed its enablement
+							if (propertyName.equals("isEnabled")) {
+								boolean oldEnabled = (Boolean) oldValue;
+								boolean newEnabled = (Boolean) newValue;
+								String compQName = uidi.getSharedActionQName();
+								if (!compQName.isEmpty() && !oldEnabled && newEnabled) {
+									ComponentRefManager.get(Mode.use).addConsumer(compQName, useQName);
+								}
+								if (!compQName.isEmpty() && oldEnabled && !newEnabled) {
+									ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
+								}
+							}
+						}
+						if (dbo instanceof UIUseShared) {
+							UIUseShared uius = (UIUseShared)dbo;
+							String useQName = uius.getQName();
+							// a UIUseShared of this app changed its target shared component
+							if (propertyName.equals("sharedcomponent")) {
+								String oldCompQName = (String) oldValue;
+								String newCompQName = (String) newValue;
+								if (!oldCompQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
+								}
+								if (!newCompQName.isEmpty()) {
+									ComponentRefManager.get(Mode.use).addConsumer(newCompQName, useQName);
+								}
+							}
+							// a UIUseShared of this app changed its enablement
+							if (propertyName.equals("isEnabled")) {
+								boolean oldEnabled = (Boolean) oldValue;
+								boolean newEnabled = (Boolean) newValue;
+								String compQName = uius.getSharedComponentQName();
+								if (!compQName.isEmpty() && !oldEnabled && newEnabled) {
+									ComponentRefManager.get(Mode.use).addConsumer(compQName, useQName);
+								}
+								if (!compQName.isEmpty() && oldEnabled && !newEnabled) {
+									ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
+								}
+							}
+						}
 					} else {
-						markApplicationAsDirty(done);
+						// an external shared action has changed and is used in this app
+						UIActionStack uias = ((UIComponent)dbo).getSharedAction();
+						if (uias != null) {
+							if (ComponentRefManager.isCompUsedBy(uias.getQName(), projectName)) {
+								doUpdate = true;
+							}
+						}
+						// an external shared component has changed and is used in this app
+						UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
+						if (uisc != null) {
+							if (ComponentRefManager.isCompUsedBy(uisc.getQName(), projectName)) {
+								doUpdate = true;
+							}
+						}
+					}
+				}
+				
+				if (doto.equals(this) || doto.isChildOf(this) || doUpdate) {
+					if (!done.add(getObject())) {
+						return;
+					}
+					if (oldValue != null && newValue != null) {
+						getObject().updateSourceFiles();
 					}
 				}
 			} catch (Exception e) {}
@@ -316,36 +560,36 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		super.hasBeenModified(bModified);
 	}
 	
-	protected void markComponentTsAsDirty() {
-		ApplicationComponent ac = getObject();
-		try {
-			ac.markComponentTsAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
-	}
-	
-	protected void markApplicationAsDirty(Set<Object> done) {
-		ApplicationComponent ac = getObject();
-		if (!done.add(ac)) {
-			return;
-		}
-		//System.out.println("---markApplicationAsDirty, with done : '" + done + "'");
-		try {
-			ac.markApplicationAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the application source files for '" + ac.getName() + "'");	}
-	}
-	
-	protected void markPwaAsDirty() {
-		ApplicationComponent ac = getObject();
-		try {
-			ac.markPwaAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the application PWA state for '" + ac.getName() + "'");	}
-	}
+//	protected void markComponentTsAsDirty() {
+//		ApplicationComponent ac = getObject();
+//		try {
+//			ac.markComponentTsAsDirty();
+//		} catch (EngineException e) {
+//			ConvertigoPlugin.logException(e,
+//					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
+//	}
+//	
+//	protected void markApplicationAsDirty(Set<Object> done) {
+//		ApplicationComponent ac = getObject();
+//		if (!done.add(ac)) {
+//			return;
+//		}
+//		//System.out.println("---markApplicationAsDirty, with done : '" + done + "'");
+//		try {
+//			ac.markApplicationAsDirty();
+//		} catch (EngineException e) {
+//			ConvertigoPlugin.logException(e,
+//					"Error while writing the application source files for '" + ac.getName() + "'");	}
+//	}
+//	
+//	protected void markPwaAsDirty() {
+//		ApplicationComponent ac = getObject();
+//		try {
+//			ac.markPwaAsDirty();
+//		} catch (EngineException e) {
+//			ConvertigoPlugin.logException(e,
+//					"Error while writing the application PWA state for '" + ac.getName() + "'");	}
+//	}
 
 	public void editAppComponentTsFile() {
 		final ApplicationComponent application = getObject();

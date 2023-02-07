@@ -29,7 +29,7 @@ import java.util.Map;
 public abstract class Contributor {
 	private MobileComponent container = null;
 	
-	public void forContainer(MobileComponent container, ILambda lambda) {
+	public void forContainer(final MobileComponent container, ILambda lambda) {
 		setContainer(container);
 		lambda.apply();
 		setContainer(null);

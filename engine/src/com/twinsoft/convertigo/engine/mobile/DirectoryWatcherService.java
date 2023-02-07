@@ -223,9 +223,7 @@ public class DirectoryWatcherService implements Runnable {
             	
             	String compDirName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
 	            if (compDirName != null) {
-	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compDirName))) {
-		    			if (pname(useQName).equals(project.getName()))
-		    				continue;
+	            	for (String useQName: ComponentRefManager.getCompConsumersForUpdate(getCompQName(compDirName), project, null)) {
 		        		try {
 		        			String destSubPath = filepath.substring(filepath.indexOf("_private/ionic/src"));
 		        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);

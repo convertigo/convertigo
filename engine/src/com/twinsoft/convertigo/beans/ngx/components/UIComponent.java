@@ -281,7 +281,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	markAsDirty();
+//    	markAsDirty();
     }
     
     protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -313,7 +313,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	markAsDirty();
+//    	markAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -373,7 +373,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		checkSubLoaded();
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
+//		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -383,9 +383,9 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		
         insertOrderedComponent(uiComponent, after);
         
-        if (isNew || isCut) {
-        	markAsDirty();
-        }
+//        if (isNew || isCut) {
+//        	markAsDirty();
+//        }
 	}
 	
 	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
@@ -400,7 +400,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		
         removeOrderedComponent(uiComponent.priority);
         
-    	markAsDirty();
+//    	markAsDirty();
 	}
 
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
@@ -676,27 +676,27 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return "";
 	}
 	
-	public void markAsDirty() throws EngineException {
-    	PageComponent page = getPage();
-    	if (page != null) {
-    		page.markPageAsDirty();
-    	} else {
-	    	UIDynamicMenu menu = getMenu();
-	    	if (menu != null) {
-	    		menu.markMenuAsDirty();
-	    	} else {
-	    		UISharedComponent uisc = getSharedComponent();
-	    		if (uisc != null && uisc.isRegular()) {
-	    			uisc.markCompAsDirty();
-	    		} else {
-		    		ApplicationComponent app = getApplication();
-		    		if (app != null) {
-		    			app.markApplicationAsDirty();
-		    		}
-	    		}
-	    	}
-    	}
-	}
+//	public void markAsDirty() throws EngineException {
+//    	PageComponent page = getPage();
+//    	if (page != null) {
+//    		page.markPageAsDirty();
+//    	} else {
+//	    	UIDynamicMenu menu = getMenu();
+//	    	if (menu != null) {
+//	    		menu.markMenuAsDirty();
+//	    	} else {
+//	    		UISharedComponent uisc = getSharedComponent();
+//	    		if (uisc != null && uisc.isRegular()) {
+//	    			uisc.markCompAsDirty();
+//	    		} else {
+//		    		ApplicationComponent app = getApplication();
+//		    		if (app != null) {
+//		    			app.markApplicationAsDirty();
+//		    		}
+//	    		}
+//	    	}
+//    	}
+//	}
 
 	protected Contributor getContributor() {
 		return null;
@@ -707,6 +707,9 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 			if (!done.add(this)) {
 				return;
 			}
+			
+			if (!isEnabled()) return;
+			
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {

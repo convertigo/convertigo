@@ -993,7 +993,7 @@ public class ComponentManager {
 	}
 
 	public static boolean isTplCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
-		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
+		if (parentDatabaseObject.getParent() != null && parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
 			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplVersion(getTplRequired(databaseObject)) >= 0;
 			if (!compatible) {
 				Engine.logStudio.warn("The '"+databaseObject.getName()+"' component isn't compatible with your Template project."

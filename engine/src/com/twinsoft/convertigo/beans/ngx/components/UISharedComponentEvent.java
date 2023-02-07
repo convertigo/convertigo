@@ -66,14 +66,16 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 		String computeEvent(MobileComponent mc, List<UISharedComponentEvent> eventList) {
 			StringBuffer children = new StringBuffer();
 			Set<String> done = new HashSet<String>();
-			for (UISharedComponentEvent pageEvent : eventList) {
-				if (pageEvent.getComponentEvent().equals(this)) {
+			for (UISharedComponentEvent compEvent : eventList) {
+				if (compEvent.getComponentEvent().equals(this)) {
 					String functionCall = "";
 					String scope = this.equals(ComponentEvent.onChanges) ? "changes: changes" : "";
 					if (mc instanceof UISharedComponent) {
-						IScriptComponent main = pageEvent.getMainScriptComponent();
+						IScriptComponent main = compEvent.getMainScriptComponent();
 						if (mc.equals(((UISharedComponent)main))) {
-							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:'"+ this.event +"'}})";
+							if (((UISharedComponent)mc).isEnabled()) {
+								functionCall = "this." + compEvent.getEventFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:'"+ this.event +"'}})";
+							}
 						} else {
 							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier)) {
@@ -81,14 +83,14 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 							}
 						}
 					} else {
-						IScriptComponent main = pageEvent.getMainScriptComponent();
+						IScriptComponent main = compEvent.getMainScriptComponent();
 						if (main instanceof UISharedComponent) {
 							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}
 						} else {
-							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:'"+ this.event +"'}})";
+							functionCall = "this." + compEvent.getEventFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:'"+ this.event +"'}})";
 						}
 					}
 					if (!functionCall.isBlank()) {
@@ -181,11 +183,11 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
 	}
 	

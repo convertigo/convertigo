@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.mobile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,7 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +45,7 @@ import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
@@ -47,6 +55,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.Contributor;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
+import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
@@ -110,20 +119,39 @@ public class NgxBuilder extends MobileBuilder {
 
 					boolean hasMovedAppOrServFiles = false;
 					boolean hasMovedPageFiles = false;
+					boolean hasMovedCompFiles = false;
 					boolean hasMovedCfgFiles = false;
 					boolean hasMovedFiles = false;
+					boolean hasDeletedFiles = false;
 
-					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
+					Engine.logEngine.debug("(MobileBuilder) Start to handle " + map.size() + " files.");
 
 					// Move all files
-					for (String path: map.keySet()) {
+					int cw = 0, cd = 0;
+					List<String> pathList = new ArrayList<String>(map.keySet());
+					List<String> toWrite = new ArrayList<String>();
+					List<String> toDelete = new ArrayList<String>();
+					Collections.sort(pathList, new AppFileComparator());
+					for (String path: pathList /*map.keySet()*/) {
+						if (isDeletedFile(path)) {
+							toDelete.add(path);
+							cd++;
+						} else {
+							toWrite.add(path);
+							cw++;
+						}
+					}
+					for (String path: toWrite) {
 						try {
 							FileUtils.write(new File(path), map.get(path), "UTF-8");
 							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
 							hasMovedFiles = true;
-
+							
 							if (isAppFile(path) || isServiceFile(path)) {
 								hasMovedAppOrServFiles = true;
+							}
+							if (isCompFile(path)) {
+								hasMovedCompFiles = true;
 							}
 							if (isPageFile(path)) {
 								hasMovedPageFiles = true;
@@ -131,14 +159,26 @@ public class NgxBuilder extends MobileBuilder {
 							if (path.endsWith("package.json") || path.endsWith("angular.json")) {
 								hasMovedCfgFiles = true;
 							}
-						} catch (IOException e) {
-							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+						} catch (Exception e) {
+							Engine.logEngine.warn("(MobileBuilder) Failed to write the new content of " + path, e);							
 						}
 					}
-					if (hasMovedFiles) {
+					if (cw > 0) Engine.logEngine.debug("(MobileBuilder) End to move " + cw + " files.");
+					for (String path: toDelete) {
+						try {
+							File f = new File(path);
+							File dir = f.getParentFile();
+							//FileUtils.deleteDirectory(dir);
+							org.apache.commons.io.FileUtils.forceDelete(dir);
+							Engine.logEngine.debug("(MobileBuilder) Deleted " + dir.getPath());
+							hasDeletedFiles = true;
+						} catch (Exception e) {}
+					}
+					if (cd > 0) Engine.logEngine.debug("(MobileBuilder) End to delete " + cd + " files.");
+					
+					if (hasMovedFiles || hasDeletedFiles) {
 						NgxBuilder.this.updateEnvFile();
 					}
-					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
 
 					// Need package installation
 					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
@@ -146,7 +186,7 @@ public class NgxBuilder extends MobileBuilder {
 						NgxBuilder.this.firePackageUpdated();
 					}
 
-					if (hasMovedFiles) {
+					if (hasMovedFiles || hasDeletedFiles) {
 						if (buildMutex != null) {
 							synchronized (buildMutex) {
 								try {
@@ -208,21 +248,79 @@ public class NgxBuilder extends MobileBuilder {
 	DirectoryWatcherService watcherService = null;
 	MbWorker worker = null;
 
+	protected static String FakeDeleted = "fake_deleted.ts";
+	
+	static class AppFileComparator implements Comparator<String> {
+		public int compare(String path1, String path2) {
+			String pound1 = isCompFile(path1) ? "0" : isPageFile(path1) ? "1" : "2";
+			String pound2 = isCompFile(path2) ? "0" : isPageFile(path2) ? "1" : "2";
+	    	return pound1.compareTo(pound2);
+	    }
+	}
+	
+	static private boolean isDeletedFile(String path) {
+		return path.endsWith(FakeDeleted);
+	}
+	 
 	static private boolean isAppFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "app.";
 		return path == null ? false : path.indexOf(search) != -1;
 	}
-
+	
 	static private boolean isPageFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "pages" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
-
+	
+	static private boolean isCompFile(String path) {
+		String search = File.separator + "src" + File.separator + "app" + File.separator + "components" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+	
 	static private boolean isServiceFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "services" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
-
+	
+	static boolean existTargetComp(String compDirName) {
+	   return compQName(compDirName) != null;
+	}
+	    
+    static protected String compQName(String compDirName) {
+    	if (compDirName != null && !compDirName.isEmpty()) {
+	    	String pname = compDirName.substring(0, compDirName.indexOf('.'));
+	    	
+	    	String projectName = null;
+	    	List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+	    	for (String s : projectNames) {
+	    		if (s.toLowerCase().equals(pname)) {
+	    			projectName = s;
+	    			break;
+	    		}
+	    	}
+	    	
+	    	if (projectName != null) {
+		    	Project project = null;
+		    	try {
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+				} catch (EngineException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    	if (project != null) {
+			    	MobileApplication mobileApplication = project.getMobileApplication();
+			    	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
+			    	for (UISharedComponent uisc: app.getSharedComponentList()) {
+			    		if (compDirName.equals(UISharedComponent.getNsCompDirName(uisc))) {
+			    			return uisc.getQName();
+			    		}
+			    	}
+		    	}
+	    	}
+    	}
+    	return null;
+    }
+	    
 	protected NgxBuilder(Project project) {
 		super(project);
 		initDirs("src");
@@ -265,7 +363,8 @@ public class NgxBuilder extends MobileBuilder {
 
 		if (project != null) {
 			try {
-				project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
+				//project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
+				appPwaChanged(project.getMobileApplication().getApplicationComponent());
 			} catch (Exception e) {
 				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
 			}
@@ -558,6 +657,10 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	public void appChanged() throws EngineException {
+		updateSourceFiles(true);
+	}
+	
 	@Override
 	public void appTsChanged(final IApplicationComponent appComponent, boolean forceTemp) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
@@ -745,7 +848,7 @@ public class NgxBuilder extends MobileBuilder {
 					pushedFiles = new HashMap<String, CharSequence>();
 				}
 
-				if (queue == null) {
+				/*if (queue == null) {
 					queue = new LinkedBlockingQueue<Map<String, CharSequence>>();
 				}
 
@@ -756,20 +859,20 @@ public class NgxBuilder extends MobileBuilder {
 					} else {
 						worker.process();
 					}
-				}
+				}*/
 
 				if (watcherService == null) {
 					updateConsumer();
 					updateConsumers();
 
-					if (Engine.isStudioMode()) {
+					/*if (Engine.isStudioMode()) {
 						try {
 							watcherService = new DirectoryWatcherService(project, true);
 							watcherService.start();
 						} catch (Exception e) {
 							Engine.logEngine.warn(e.getMessage());
 						}
-					}
+					}*/
 				}
 			}
 
@@ -779,7 +882,7 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	public void updateConsumer() {
-		ComponentRefManager crf = ComponentRefManager.get(Mode.use);
+		/*ComponentRefManager crf = ComponentRefManager.get(Mode.use);
 		for (String compQName: crf.getKeys()) {
 			for (String useQName: crf.getAllConsumers(compQName)) {
 				if (projectName(useQName).equals(project.getName())) {
@@ -795,6 +898,17 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 			}
+		}*/
+		for (String pname: ComponentRefManager.getProjectsForUpdate(project.getName())) {
+			try {
+				Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
+				if (p != null) {
+					((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				Engine.logEngine.warn("Unable to update consummer for project "+ pname + ": "+ e.getMessage());
+			}
 		}
 	}
 
@@ -802,10 +916,10 @@ public class NgxBuilder extends MobileBuilder {
 		updateConsumers(null);
 	}
 
-	private void updateConsumers(Project to) {
+	private void updateConsumers(final Project to) {
 		MobileApplication mobileApplication = project.getMobileApplication();
 		ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
-		for (UISharedComponent uisc: app.getSharedComponentList()) {
+		for (final UISharedComponent uisc: app.getSharedComponentList()) {
 			updateConsumers(uisc, to);
 		}
 	}
@@ -815,47 +929,51 @@ public class NgxBuilder extends MobileBuilder {
 		String compName = uisc.getName();
 		String compQName = uisc.getQName();
 
-		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
-			if (projectName(useQName).equals(project.getName()))
-				continue;
-			if (to != null && !to.getName().equals(projectName(useQName)))
-				continue;
+		for (String useQName: ComponentRefManager.getCompConsumersForUpdate(compQName, project, to)) {
 			try {
 				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
 				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
 
 				if (src.exists() && shouldUpdate(src, dest)) {
+					Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
+					boolean isDestMobileBuilderInitialized = dest_project != null && dest_project.isMobileBuilderInitialized();
+					if (initDone && isDestMobileBuilderInitialized) {
+						if (uisc.isEnabled() && !ComponentRefManager.isEnabled(useQName)) {
+							Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" ignoring " + compQName + " modifications");
+							continue;
+						}
+					}
+					Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" taking into account " + compQName + " modifications");
 					Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
 					FileUtils.copyDirectory(src, dest, ComponentRefManager.copyFileFilter, true);
 
-					Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
-					if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
+					if (isDestMobileBuilderInitialized) {
 						dest_project.getMobileBuilder().updateEnvFile();
 					}
 				}
 			} catch (Exception e) {
 				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
 			}
-		}
+    	}
 	}
 
 	// for deleted files
-	private void updateConsumers(String compName, String compQName) {
-		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
-			if (projectName(useQName).equals(project.getName()))
-				continue;
-			try {
-				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
-				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
-				if (!src.exists() && dest.exists()) {
-					FileUtils.deleteQuietly(dest);
-					ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
-				}
-			} catch (Exception e) {
-				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
-			}
-		}
-	}
+//	private void updateConsumers(String compName, String compQName) {
+//		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
+//			if (projectName(useQName).equals(project.getName()))
+//				continue;
+//			try {
+//				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
+//				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
+//				if (!src.exists() && dest.exists()) {
+//					FileUtils.deleteQuietly(dest);
+//					ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
+//				}
+//			} catch (Exception e) {
+//				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
+//			}
+//		}
+//	}
 
 	static private boolean shouldUpdate(File dirSrc, File dirDest) {
 		for (final File src : dirSrc.listFiles()) {
@@ -958,7 +1076,7 @@ public class NgxBuilder extends MobileBuilder {
 				watcherService = null;
 			}
 
-			if (worker != null) {
+			/*if (worker != null) {
 				worker.isRunning = false;
 				try {
 					worker.join();
@@ -975,7 +1093,7 @@ public class NgxBuilder extends MobileBuilder {
 					e.printStackTrace();
 				}
 				queue = null;
-			}
+			}*/
 
 			if (pushedFiles != null) {
 				pushedFiles.clear();
@@ -1055,32 +1173,264 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private void updateSourceFiles() throws EngineException {
+		updateSourceFiles(false);
+	}
+	
+//	private void updateSourceFiles(boolean reset) throws EngineException {
+//		ExecutorService executor = null;
+//		try {
+//			final MobileApplication mobileApplication = project.getMobileApplication();
+//			if (mobileApplication != null) {
+//				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+//				if (application != null) {
+//					String appTplVersion = application.requiredTplVersion();
+//					if (compareVersions(tplVersion, appTplVersion) >= 0) {
+//						long t0 = System.currentTimeMillis();
+//						
+//						List<MobileComponent> list = new ArrayList<MobileComponent>();
+//						list.addAll(application.getSharedComponentList());
+//						list.addAll(application.getPageComponentList());
+//						int size = list.size();
+//						executor = Executors.newFixedThreadPool(size);
+//						CompletionService<String> completion = new ExecutorCompletionService<String>(executor);
+//						for (MobileComponent mbc: list) {
+//					    	completion.submit(new Callable<String>() {
+//								@Override
+//								public String call() throws Exception {
+//									if (mbc instanceof UISharedComponent) {
+//										Engine.logEngine.debug("Start for component "+ mbc.getName() + ": "+ System.currentTimeMillis());
+//										writeCompSourceFiles((UISharedComponent)mbc, reset);
+//										Engine.logEngine.debug("End for component "+ mbc.getName() + ": "+ System.currentTimeMillis());
+//										return ("writeCompSourceFiles for component "+ mbc.getName() + " done");
+//									}
+//									else if (mbc instanceof PageComponent) {
+//										Engine.logEngine.debug("Start for page "+ mbc.getName() + ": "+ System.currentTimeMillis());
+//										writePageSourceFiles((PageComponent)mbc, reset);
+//										Engine.logEngine.debug("End for page "+ mbc.getName() + ": "+ System.currentTimeMillis());
+//										return ("writePageSourceFiles for page "+ mbc.getName() + " done");
+//									}
+//									return "done";
+//								}
+//							});
+//						}
+//					    for (int i = 0; i < size; i++) {
+//					    	try {
+//					    		String s = completion.take().get();
+//					    		Engine.logEngine.debug(s);
+//					    	} catch (Exception e) {
+//					    		e.printStackTrace();
+//					    		throw e;
+//					    	}
+//					    }
+//						
+//				    	completion.submit(new Callable<String>() {
+//							@Override
+//							public String call() throws Exception {
+//								removeUselessComps(application);
+//								return "removeUselessComps done";
+//							}
+//						});
+//				    	completion.submit(new Callable<String>() {
+//							@Override
+//							public String call() throws Exception {
+//								removeUselessPages(application);
+//								return "removeUselessPages done";
+//							}
+//						});
+//				    	completion.submit(new Callable<String>() {
+//							@Override
+//							public String call() throws Exception {
+//								writeAppSourceFiles(application, reset);
+//								return "writeAppSourceFiles done";
+//							}
+//						});
+//				    	completion.submit(new Callable<String>() {
+//							@Override
+//							public String call() throws Exception {
+//								if (initDone) {
+//									updateConsumer();
+//									
+//								}
+//								return "updateConsumer done";
+//							}
+//						});
+//					    for (int i = 0; i < 4; i++) {
+//					    	try {
+//					    		String s = completion.take().get();
+//					    		Engine.logEngine.debug(s);
+//					    	} catch (Exception e) {
+//					    		e.printStackTrace();
+//					    		throw e;
+//					    	}
+//					    }
+//				    	
+//						long t1 = System.currentTimeMillis();
+//						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
+//					} else {
+//						cleanDirectories();
+//						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
+//								"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
+//								"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
+//					}
+//				}
+//			}
+//		}
+//		catch (EngineException e) {
+//			throw e;
+//		}
+//		catch (Exception e) {
+//			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
+//		} finally {
+//			if (executor != null) {
+//				executor.shutdown();
+//			}
+//		}
+//	}
+	
+	private Callable<String> newCallable(final MobileComponent mbc, boolean reset) {
+		return new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				String s = Thread.currentThread().getName();
+				long t0 = System.currentTimeMillis();
+				if (mbc instanceof UISharedComponent) {
+					writeCompSourceFiles((UISharedComponent)mbc, reset);
+				}
+				else if (mbc instanceof PageComponent) {
+					writePageSourceFiles((PageComponent)mbc, reset);
+				}
+				long t1 = System.currentTimeMillis();
+				return ("["+s+"] writeSourceFiles for "+ mbc.getClass().getName() + " " + mbc.getName() + " done in "+ (t1-t0) + "ms");
+			}
+		};
+	}
+	
+	private void updateSourceFiles(boolean reset) throws EngineException {
+		ExecutorService executor = null;
 		try {
-			MobileApplication mobileApplication = project.getMobileApplication();
+			final MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
-				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
 				if (application != null) {
 					String appTplVersion = application.requiredTplVersion();
 					if (compareVersions(tplVersion, appTplVersion) >= 0) {
-						for (UISharedComponent comp: application.getSharedComponentList()) {
-							if (comp.isRegular()) {
-								writeCompSourceFiles(comp);
+						long t0 = System.currentTimeMillis();
+						
+						List<Callable<String>> sList = new ArrayList<Callable<String>>();
+						for (MobileComponent mbc: application.getSharedComponentList()) {
+							sList.add(newCallable(mbc, reset));
+						}
+						List<Callable<String>> pList = new ArrayList<Callable<String>>();
+						for (MobileComponent mbc: application.getPageComponentList()) {
+							pList.add(newCallable(mbc, reset));
+						}
+						
+						List<Callable<String>> applist = new ArrayList<Callable<String>>();
+						applist.add(new Callable<String>() {
+							@Override
+							public String call() throws Exception {
+								removeUselessComps(application);
+								return "removeUselessComps done";
 							}
-						}
-						for (PageComponent page : getEnabledPages(application)) {
-							writePageSourceFiles(page);
-						}
-						writeAppSourceFiles(application);
-						removeUselessPages(application);
+						});
+						applist.add(new Callable<String>() {
+							@Override
+							public String call() throws Exception {
+								removeUselessPages(application);
+								return "removeUselessPages done";
+							}
+						});
+						applist.add(new Callable<String>() {
+							@Override
+							public String call() throws Exception {
+								writeAppSourceFiles(application, reset);
+								return "writeAppSourceFiles done";
+							}
+						});
+						applist.add(new Callable<String>() {
+							@Override
+							public String call() throws Exception {
+								if (initDone) {
+									updateConsumer();
+									
+								}
+								return "updateConsumer done";
+							}
+						});
+						
+						long tx = System.currentTimeMillis();
+						int availableProcessors = Runtime.getRuntime().availableProcessors(); 
+						Engine.logEngine.debug("Start executor after "+ (tx - t0) + " with " + availableProcessors + " available processors");
+						//executor = Executors.newFixedThreadPool(mbclist.size()+applist.size());
+						executor = Executors.newCachedThreadPool();
+						
+					    List<Future<String>> resultList = null;
+					    try {
+					      resultList = executor.invokeAll(sList);
+					    } catch (InterruptedException e) {
+					      e.printStackTrace();
+					    }
+					 
+					    if (resultList != null) {
+					        for (int i = 0; i < resultList.size(); i++) {
+					            Future<String> future = resultList.get(i);
+					            try {
+					              String result = future.get();
+					              Engine.logEngine.debug(result);
+					            } catch (Exception e) {
+					              e.printStackTrace();
+					            }
+					          }
+					        resultList.clear();
+						    resultList = null;
+					    }
 
-						Engine.logEngine.trace("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+					    try {
+						      resultList = executor.invokeAll(pList);
+						    } catch (InterruptedException e) {
+						      e.printStackTrace();
+						    }
+						 
+						    if (resultList != null) {
+						        for (int i = 0; i < resultList.size(); i++) {
+						            Future<String> future = resultList.get(i);
+						            try {
+						              String result = future.get();
+						              Engine.logEngine.debug(result);
+						            } catch (Exception e) {
+						              e.printStackTrace();
+						            }
+						          }
+						        resultList.clear();
+							    resultList = null;
+						    }
+					    
+					    try {
+					      resultList = executor.invokeAll(applist);
+					    } catch (InterruptedException e) {
+					      e.printStackTrace();
+					    }
+					 
+					    if (resultList != null) {
+					        for (int i = 0; i < resultList.size(); i++) {
+					            Future<String> future = resultList.get(i);
+					            try {
+					              String result = future.get();
+					              Engine.logEngine.debug(result);
+					            } catch (Exception e) {
+					              e.printStackTrace();
+					            }
+					          }
+					    }
+				    	
+						long t1 = System.currentTimeMillis();
+						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
 					} else {
 						cleanDirectories();
 						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
 								"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
 								"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
-
 				}
 			}
 		}
@@ -1089,12 +1439,16 @@ public class NgxBuilder extends MobileBuilder {
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
+		} finally {
+			if (executor != null) {
+				executor.shutdown();
+			}
 		}
 	}
 
 	private void writePageTemplate(PageComponent page) throws EngineException {
 		try {
-			if (page != null && page.isEnabled()) {
+			if (page != null /*&& page.isEnabled()*/) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
@@ -1130,7 +1484,7 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageStyle(PageComponent page) throws EngineException {
 		try {
-			if (page != null && page.isEnabled()) {
+			if (page != null /*&& page.isEnabled()*/) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
@@ -1475,11 +1829,11 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageTs(PageComponent page) throws EngineException {
 		try {
-			if (page != null && page.isEnabled()) {
+			if (page != null /*&& page.isEnabled()*/) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
+				writeFile(pageTsFile, getPageTsContent(page, true), "UTF-8");
 
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
@@ -1495,7 +1849,7 @@ public class NgxBuilder extends MobileBuilder {
 		try {
 			if (comp != null) {
 				File compTsFile = new File(compDir(comp), compFileName(comp) + ".ts");
-				writeFile(compTsFile, getCompTsContent(comp), "UTF-8");
+				writeFile(compTsFile, getCompTsContent(comp, true), "UTF-8");
 
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for component '"+comp.getName()+"'");
@@ -1562,7 +1916,7 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageModuleTs(PageComponent page) throws EngineException {
 		try {
-			if (page != null && page.isEnabled()) {
+			if (page != null /*&& page.isEnabled()*/) {
 				if (page.compareToTplVersion("7.7.0.2") >= 0) {
 					String pageName = page.getName();
 					File pageDir = pageDir(page);
@@ -1864,6 +2218,10 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private String getPageTsContent(PageComponent page) throws IOException {
+		return getPageTsContent(page, false);
+	}
+	
+	private String getPageTsContent(PageComponent page, boolean checkEnable) throws IOException {
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
 		//String c8o_PageIonicName = pageName;
@@ -1878,7 +2236,9 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_PageDeclarations = page.getComputedDeclarations();
 		String c8o_PageConstructors = page.getComputedConstructors();
 		String c8o_PageFunctions = page.getComputedFunctions();
-		String c8o_UserCustoms = page.getScriptContent().getString();
+		
+		String scriptcontentstring = page.getScriptContent().getString();
+		String c8o_UserCustoms = checkEnable ? (page.isEnabled() ? scriptcontentstring : "") : scriptcontentstring;
 
 		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
@@ -1912,8 +2272,12 @@ public class NgxBuilder extends MobileBuilder {
 
 		return tsContent;
 	}
-
+	
 	private String getCompTsContent(UISharedComponent comp) throws IOException {
+		return getCompTsContent(comp, false);
+	}
+
+	private String getCompTsContent(UISharedComponent comp, boolean checkEnable) throws IOException {
 		String c8o_CompName = compName(comp);
 		String c8o_CompChangeDetection = "ChangeDetectionStrategy.Default"; //comp.getChangeDetectionStrategy();
 		String c8o_CompTplUrl = compFileName(comp) + ".html";
@@ -1926,7 +2290,9 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_CompInitializations = comp.getComputedInitializations();
 		String c8o_CompFinallizations = comp.getComputedDispositions();
 		String c8o_CompFunctions = comp.getComputedFunctions();
-		String c8o_UserCustoms = comp.getScriptContent().getString();
+		
+		String scriptcontentstring = comp.getScriptContent().getString();
+		String c8o_UserCustoms = checkEnable ? (comp.isEnabled() ? scriptcontentstring : "") : scriptcontentstring;
 
 		File compTplTs = new File(ionicTplDir, "src/comp.tpl");
 		String tsContent = FileUtils.readFileToString(compTplTs, "UTF-8");
@@ -1941,7 +2307,7 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInitializations\\*/",c8o_CompInitializations);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
-
+		
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 		Matcher matcher = pattern.matcher(tsContent);
 		while (matcher.find()) {
@@ -1954,7 +2320,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFunctions\\*/", Matcher.quoteReplacement(c8o_CompFunctions));
-
+		
 		return tsContent;
 	}
 
@@ -2102,6 +2468,7 @@ public class NgxBuilder extends MobileBuilder {
 		Set<String> module_ng_declarations =  new HashSet<String>();
 		Set<String> module_ng_components =  new HashSet<String>();
 
+		if (comp.isEnabled()) {
 		List<Contributor> contributors = comp.getContributors();
 		for (Contributor contributor : contributors) {
 			contributor.forContainer(comp, () -> {
@@ -2113,6 +2480,8 @@ public class NgxBuilder extends MobileBuilder {
 				module_ng_components.addAll(contributor.getModuleNgComponents());
 			});
 		}
+		}
+		
 		// fix for BrowserAnimationsModule until it will be handled in config
 		module_ts_imports.remove("BrowserAnimationsModule");
 		module_ng_imports.remove("BrowserAnimationsModule");
@@ -2416,6 +2785,16 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 
+				// Shared components contributors
+				for (UISharedComponent comp: app.getSharedComponentList()) {
+					if (comp.isRegular()) {
+						List<Contributor> contributors = comp.getContributors();
+						for (Contributor contributor : contributors) {
+							cfg_plugins.putAll(contributor.getConfigPlugins());
+						}
+					}
+				}
+				
 				String mandatoryPlugins = "";
 				for (String plugin: cfg_plugins.keySet()) {
 					try {
@@ -2604,7 +2983,7 @@ public class NgxBuilder extends MobileBuilder {
 				int i=1;
 
 				//Pages contributors
-				List<PageComponent> pages = getEnabledPages(app);
+				List<PageComponent> pages = app.getPageComponentList();//getEnabledPages(app);
 				for (PageComponent page : pages) {
 					synchronized (page) {
 						String pageDirName = pageDir(page).getName();
@@ -3021,7 +3400,7 @@ public class NgxBuilder extends MobileBuilder {
 		File compDir = new File(componentsDir, UISharedComponent.getNsCompDirName(compQName, compName));
 		deleteDir(compDir);
 		if (initDone) {
-			updateConsumers(compName, compQName);
+			//updateConsumers(compName, compQName);
 		}
 	}
 
@@ -3031,7 +3410,7 @@ public class NgxBuilder extends MobileBuilder {
 			List<String> pageDirectories = new ArrayList<String>();
 			pageDirectories.add(ionicPagesDir.getAbsolutePath());
 
-			List<PageComponent> pages = application.getPageComponentList();
+			List<PageComponent> pages = application.getPageComponentList();//getEnabledPages(application);
 			for (PageComponent page : pages) {
 				File pageDir = pageDir(page);
 				pageDirectories.add(pageDir.getAbsolutePath());
@@ -3039,7 +3418,37 @@ public class NgxBuilder extends MobileBuilder {
 			for (File dir: FileUtils.listFilesAndDirs(ionicPagesDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
 				if (!pageDirectories.contains(dir.getAbsolutePath())) {
 					try {
-						FileUtils.deleteDirectory(dir);
+						//FileUtils.deleteDirectory(dir);
+						deleteSourceDir(dir);
+					}
+					catch(Exception e) {}
+				}
+			}
+		}
+	}
+
+	private void removeUselessComps(ApplicationComponent application) {
+		if (application != null) {
+			File ionicComponentsDir = componentsDir;
+			if (!ionicComponentsDir.exists()) return;
+			
+			List<String> compDirectories = new ArrayList<String>();
+			compDirectories.add(ionicComponentsDir.getAbsolutePath());
+
+			List<UISharedComponent> comps = application.getSharedComponentList();
+			for (UISharedComponent comp : comps) {
+				File compDir = compDir(comp);
+				compDirectories.add(compDir.getAbsolutePath());
+			}
+			String prefix = project.getName().toLowerCase() + ".";
+			for (File dir: FileUtils.listFilesAndDirs(ionicComponentsDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
+				if (!compDirectories.contains(dir.getAbsolutePath())) {
+					try {
+						String compDirName = dir.getName();
+						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName)) {
+							//FileUtils.deleteDirectory(dir);
+							deleteSourceDir(dir);
+						}
 					}
 					catch(Exception e) {}
 				}
@@ -3048,8 +3457,16 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
+		writeAppSourceFiles(application, false);
+	}
+	
+	private void writeAppSourceFiles(ApplicationComponent application, boolean reset) throws EngineException {
 		try {
 			if (application != null) {
+				if (reset) {
+					application.reset();
+				}
+				
 				FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
 
 				writeAppPackageJson(application);
@@ -3072,8 +3489,16 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private void writePageSourceFiles(PageComponent page) throws EngineException {
+		writePageSourceFiles(page, false);
+	}
+	
+	private void writePageSourceFiles(PageComponent page, boolean reset) throws EngineException {
 		String pageName = page.getName();
 		try {
+			if (reset) {
+				page.reset();
+			}
+			
 			File pageDir = pageDir(page);
 			pageDir.mkdirs();
 
@@ -3094,9 +3519,33 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	private void deleteSourceDir(File dir) throws EngineException {
+		try {
+			if (dir != null && dir.exists()) {
+				File deletedTsFile = new File(dir, FakeDeleted);
+				writeFile(deletedTsFile, "", "UTF-8");
+
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Deleted directory '"+dir+"'");
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page ts file",e);
+		}
+	}
+	
 	private void writeCompSourceFiles(UISharedComponent comp) throws EngineException {
+		writeCompSourceFiles(comp, false);
+	}
+	
+	private void writeCompSourceFiles(UISharedComponent comp, boolean reset) throws EngineException {
 		String compName = comp.getName();
 		try {
+			if (reset) {
+				comp.reset();
+			}
+			
 			File compDir = compDir(comp);
 			compDir.mkdirs();
 
@@ -3210,6 +3659,145 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		} catch (Exception e) {
 			;
+		}
+	}
+
+	@Override
+	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		// Replace eol characters with system line separators
+		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		
+		if (initDone && Engine.isStudioMode()) {
+			synchronized (writtenFiles) {
+				// Checks for content changes
+				if (file.exists()) {
+					String excontent = null;
+					if (writtenFiles.contains(file)) {
+						File nFile = toTmpFile(file);
+						if (nFile.exists()) {
+							excontent = FileUtils.readFileToString(nFile, encoding);
+						} else {
+							excontent = FileUtils.readFileToString(file, encoding);
+						}
+					} else {
+						excontent = FileUtils.readFileToString(file, encoding);
+					}
+					
+					if (content.equals(excontent)) {
+						Engine.logEngine.trace("(MobileBuilder) No change for " + file.getPath());
+						return;
+					}
+				}
+				
+				// write file
+				if (buildMutex == null) {
+					if (file.getPath().endsWith(FakeDeleted)) {
+						try {
+							File dir = file.getParentFile();
+							FileUtils.deleteDirectory(dir);
+							Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
+						} catch (Exception e) {}
+					} else {
+						FileUtils.write(file, content, encoding);
+						Engine.logEngine.debug("(MobileBuilder) Wrote file " + file.getPath());
+					}
+				}
+				// defers the write of file
+				else {
+					// write to temporary directory (for file edition)
+					writtenFiles.add(file);
+					File nFile = toTmpFile(file);
+					nFile.getParentFile().mkdirs();
+					FileUtils.write(nFile, content, encoding);
+					
+					// store files modifications
+					if (file.getPath().endsWith(FakeDeleted)) {
+						Engine.logEngine.trace("(MobileBuilder) Defers the deletion of " + nFile.getParentFile().getPath());
+					} else {
+						Engine.logEngine.trace("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+					}
+					if (pushedFiles != null) {
+						synchronized (pushedFiles) {
+							pushedFiles.put(file.getPath(), content);
+						}
+					}
+				}
+			}
+		} else {
+			//FileUtils.write(file, content, encoding);
+			if (file.getPath().endsWith(FakeDeleted)) {
+				try {
+					File dir = file.getParentFile();
+					FileUtils.deleteDirectory(dir);
+				} catch (Exception e) {}
+			} else {
+				FileUtils.write(file, content, encoding);
+			}
+		}
+		
+		writeWorker(file);
+	}
+	
+	@Override
+	protected synchronized void moveFilesForce() {
+		if (pushedFiles != null /*&& queue != null*/) {
+			synchronized (pushedFiles) {
+				int size = pushedFiles.size();
+				if (size > 0) {
+					Engine.logEngine.debug("(MobileBuilder) >>> moveFilesForce : "+ size +" files");
+					Map<String, CharSequence> map = new HashMap<String, CharSequence>();
+					map.putAll(Collections.unmodifiableMap(pushedFiles));
+					pushedFiles.clear();
+					
+					List<String> pathList = new ArrayList<String>(map.keySet());
+					Collections.sort(pathList, new AppFileComparator());
+					
+					boolean hasMovedFiles = false, hasDeletedFiles = false, hasMovedCfgFiles = false;
+					
+					// retrieve necessary external component files
+					updateConsumer();
+					
+					// write or delete files
+					for (String path: pathList) {
+						File file = new File(path);
+						if (file.getPath().endsWith(FakeDeleted)) {
+							try {
+								File dir = file.getParentFile();
+								//FileUtils.deleteDirectory(dir);
+								org.apache.commons.io.FileUtils.forceDelete(dir);
+								Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
+								hasDeletedFiles = true;
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						} else {
+							try {
+								FileUtils.write(file, map.get(path), "UTF-8");
+								Engine.logEngine.debug("(MobileBuilder) Wrote file " + file.getPath());
+								hasMovedFiles = true;
+								if (path.endsWith("package.json") || path.endsWith("angular.json")) {
+									hasMovedCfgFiles = true;
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					
+					// update env file
+					if (hasMovedFiles || hasDeletedFiles) {
+						NgxBuilder.this.updateEnvFile();
+					}
+
+					// Need package installation
+					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
+						NgxBuilder.this.firePackageUpdated();
+					}
+				} else {
+					// retrieve necessary external component files
+					//updateConsumer();
+				}
+			}
 		}
 	}
 

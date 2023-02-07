@@ -209,7 +209,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	markPageAsDirty();
+//    	markPageAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -233,7 +233,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	markPageAsDirty();
+    	//markPageAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -275,7 +275,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		checkSubLoaded();
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
+//		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -285,9 +285,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		
         insertOrderedComponent(uiComponent, after);
         
-        if (isNew || isCut) {
-        	markPageAsDirty();
-        }
+//        if (isNew || isCut) {
+//        	markPageAsDirty();
+//        }
 	}
 	
 	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
@@ -302,7 +302,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		
         removeOrderedComponent(uiComponent.priority);
         
-        markPageAsDirty();
+//      markPageAsDirty();
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -628,14 +628,21 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	private transient String contributorsShot = null;
 	
+	private Object lock1 = new Object();
+	
 	public List<Contributor> getContributors() {
 		if (contributors == null) {
-			doGetContributors();
+			synchronized (lock1) {
+				doGetContributors();
+			}
 		}
 		return contributors;
 	}
 	
-	protected synchronized void doGetContributors() {
+//	protected synchronized void doGetContributors() {
+	protected void doGetContributors() {
+		if (contributors != null) return;
+		
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 
@@ -644,7 +651,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 		//}	
 			
-		contributorsShot = contributors.toString();
+		//contributorsShot = contributors.toString();
 	}
 	
 	private transient JSONObject computedContents = null;
@@ -666,15 +673,30 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return jsonObject;
 	}
 	
+	public synchronized void reset() {
+		if (contributors != null) {
+			contributors.clear();
+		}
+		contributors = null;
+		computedContents = null;
+		contributorsShot = null;
+	}
+	
+	private Object lock2 = new Object();
+	
 	public JSONObject getComputedContents() {
 		if (computedContents == null) {
-			doComputeContents();
+			synchronized (lock2) {
+				doComputeContents();
+			}
 		}
 		return computedContents;
 	}
 	
-	protected synchronized void doComputeContents() {
+	protected void doComputeContents() {
 		try {
+			if (computedContents != null) return;
+			
 			pageImports.clear();
 			pageDeclarations.clear();
 			pageConstructors.clear();
@@ -695,75 +717,75 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 	}
 	
-	public void markPageAsDirty() throws EngineException {
-		if (_markPageAsDirty == null) {
-			_markPageAsDirty = () -> {
-				if (isImporting) {
-					return;
-				}
-				try {
-					//System.out.println("---markPageAsDirty...");
-					JSONObject oldComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
-					
-					doComputeContents();
-					
-					JSONObject newComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
-					
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getJSONObject("scripts").toString()
-								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-							getProject().getMobileBuilder().pageTsChanged(this, true);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("style")
-								.equals(oldComputedContent.getString("style")))) {
-							getProject().getMobileBuilder().pageStyleChanged(this);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("template")
-								.equals(oldComputedContent.getString("template")))) {
-							getProject().getMobileBuilder().pageTemplateChanged(this);
-						}
-					}
-					
-					String oldContributors = contributorsShot == null ? null:contributorsShot;
-					doGetContributors();
-					String newContributors = contributorsShot == null ? null:contributorsShot;
-					if (oldContributors != null && newContributors != null) {
-						if (!(oldContributors.equals(newContributors))) {
-							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
-						}
-					}
-					
-					
-				} catch (JSONException e) {
-					e.printStackTrace();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			};
-		}
-		checkBatchOperation(_markPageAsDirty);
-	}
+//	public void markPageAsDirty() throws EngineException {
+//		if (_markPageAsDirty == null) {
+//			_markPageAsDirty = () -> {
+//				if (isImporting) {
+//					return;
+//				}
+//				try {
+//					//System.out.println("---markPageAsDirty...");
+//					JSONObject oldComputedContent = computedContents == null ? 
+//							null :new JSONObject(computedContents.toString());
+//					
+//					doComputeContents();
+//					
+//					JSONObject newComputedContent = computedContents == null ? 
+//							null :new JSONObject(computedContents.toString());
+//					
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getJSONObject("scripts").toString()
+//								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+//							getProject().getMobileBuilder().pageTsChanged(this, true);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("style")
+//								.equals(oldComputedContent.getString("style")))) {
+//							getProject().getMobileBuilder().pageStyleChanged(this);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("template")
+//								.equals(oldComputedContent.getString("template")))) {
+//							getProject().getMobileBuilder().pageTemplateChanged(this);
+//						}
+//					}
+//					
+//					String oldContributors = contributorsShot == null ? null:contributorsShot;
+//					doGetContributors();
+//					String newContributors = contributorsShot == null ? null:contributorsShot;
+//					if (oldContributors != null && newContributors != null) {
+//						if (!(oldContributors.equals(newContributors))) {
+//							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
+//						}
+//					}
+//					
+//					
+//				} catch (JSONException e) {
+//					e.printStackTrace();
+//				} catch (Exception e) {
+//					throw new RuntimeException(e);
+//				}
+//			};
+//		}
+//		checkBatchOperation(_markPageAsDirty);
+//	}
 	
-	public void markPageTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().pageTsChanged(this, false);
-	}
-	
-	public void markPageModuleTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().pageModuleTsChanged(this);
-	}
-	
-	public void markPageEnabledAsDirty() throws EngineException {
-		if (isEnabled())
-			getProject().getMobileBuilder().pageEnabled(this);
-		else
-			getProject().getMobileBuilder().pageDisabled(this);
-	}
+//	public void markPageTsAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().pageTsChanged(this, false);
+//	}
+//	
+//	public void markPageModuleTsAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().pageModuleTsChanged(this);
+//	}
+//	
+//	public void markPageEnabledAsDirty() throws EngineException {
+//		if (isEnabled())
+//			getProject().getMobileBuilder().pageEnabled(this);
+//		else
+//			getProject().getMobileBuilder().pageDisabled(this);
+//	}
 
 	public String getComputedImports() {
 		try {
@@ -984,10 +1006,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		
 		// Component typescripts
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			component.computeScripts(jsonScripts);
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				component.computeScripts(jsonScripts);
+			}
 		}
 	}
 	
@@ -1002,6 +1026,10 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public String computeTemplate() {
+		if (!isEnabled()) {
+			return "";
+		}
+		
 		// compute page template
 		StringBuilder sb = new StringBuilder();
 		Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -1016,7 +1044,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		
 		// then add all necessary shared component templates
-		String sharedTemplates = "";
+		/*String sharedTemplates = "";
 		if (!pageTemplates.isEmpty()) {
 			sharedTemplates += "<!-- ====== SHARED TEMPLATES ====== -->"+ System.lineSeparator();
 			for (String sharedTemplate: pageTemplates.values()) {
@@ -1026,7 +1054,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			sharedTemplates += System.lineSeparator();
 		}
 		
-		return sharedTemplates + sb.toString();
+		return sharedTemplates + sb.toString();*/
+		return sb.toString();
 	}
 
 	public String getComputedStyle() {

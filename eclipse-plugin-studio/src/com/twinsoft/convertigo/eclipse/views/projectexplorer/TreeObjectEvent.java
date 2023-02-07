@@ -61,10 +61,11 @@ public class TreeObjectEvent extends EventObject {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + 
-				"[source=" + source + 
+				"@"+ hashCode()+"[source=" + source + 
 				", propertyName=" + propertyName +
 				", oldValue=" + oldValue +
 				", newValue=" + newValue +
+				", update=" + update +
 				", done="+ done +"]";
 	}
 	

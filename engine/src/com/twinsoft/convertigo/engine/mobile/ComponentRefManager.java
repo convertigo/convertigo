@@ -28,10 +28,21 @@ import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
+import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
+import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
 import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentRefManager implements DatabaseObjectListener {
@@ -70,8 +81,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	public void addConsumer(String compQName, String useQName) {
-		if (compQName.startsWith(MobileBuilder.projectName(useQName) + "."))
-			return;
+//		if (compQName.startsWith(projectName(useQName) + "."))
+//			return;
 		synchronized (consumers) {
 			if (consumers.get(compQName) == null) {
 				consumers.put(compQName, new HashSet<String>());
@@ -107,7 +118,130 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public Set<String> getAllConsumers(String compQName) {
+    static public boolean isEnabled(String qname) {
+    	try {
+    		if (qname != null && !qname.isEmpty()) {
+	    		DatabaseObject dbo = getDatabaseObjectByQName(qname);
+	    		if (dbo != null) {
+	    			DatabaseObject databaseObject = dbo;
+	    			while (!(databaseObject instanceof IScriptComponent) && databaseObject != null) { 
+	    				if (databaseObject instanceof UIComponent) {
+	    					if (!((UIComponent)databaseObject).isEnabled()) {
+	    						return false;
+	    					}
+	    					if (databaseObject instanceof UIUseShared) {
+	    						UIUseShared uius = (UIUseShared)databaseObject;
+	    						String comQName = uius.getSharedComponentQName();
+	    						if (!comQName.isEmpty() && !isEnabled(comQName)) {
+	    							return false;
+	    						}
+	    					}
+	    					if (databaseObject instanceof UIDynamicInvoke) {
+	    						UIDynamicInvoke uidi = (UIDynamicInvoke)databaseObject;
+	    						String comQName = uidi.getSharedActionQName();
+	    						if (!comQName.isEmpty() && !isEnabled(comQName)) {
+	    							return false;
+	    						}
+	    					}
+	    				}
+	    				databaseObject = databaseObject.getParent();
+	    				if (databaseObject instanceof UIActionStack) {
+	    					break;
+	    				}
+	    			}
+	    			if (databaseObject != null) {
+		    			if (databaseObject instanceof ApplicationComponent) {
+		    				return true;
+		    			} else if (databaseObject instanceof PageComponent) {
+		    				return ((PageComponent)databaseObject).isEnabled();
+		    			} else if (databaseObject instanceof UISharedComponent) {
+		    				return ((UISharedComponent)databaseObject).isEnabled();
+		    			} else if (databaseObject instanceof UIActionStack) {
+		    				return ((UIActionStack)databaseObject).isEnabled();
+		    			}
+	    			}
+	    		}
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    	return false;
+    }
+    
+    static private DatabaseObject getDatabaseObjectByQName(String qname) {
+    	try {
+			qname = qname.replaceFirst("\\.\\w+?:$", "");
+			String[] name = qname.split("\\.");
+			String project = name[0];
+			DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project, false);
+			for (int i = 1; i < name.length; i++) {
+				dbo = dbo.getDatabaseObjectChild(name[i]);
+			}
+			return dbo;
+    	} catch (Exception e) {
+    		return null;
+    	}
+	}
+    
+    static public String projectName(String qname) {
+    	if (qname != null && !qname.isBlank()) {
+    		try {
+    			return qname.split("\\.")[0];
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	return "none";
+    }
+    
+    static public boolean isCompUsedBy(String compQName, String projectName) {
+		for (String useQName: getAllCompConsumers(compQName)) {
+			if (projectName(useQName).equals(projectName)) {
+				return true;
+			}
+		}
+    	return false;
+    }
+    
+    static public Set<String> getCompConsumersUsedBy(String compQName, String projectName) {
+    	Set<String> set = new HashSet<String>();
+    	for (String useQName: getAllCompConsumers(compQName)) {
+			if (projectName(useQName).equals(projectName)) {
+				set.add(useQName);
+			}
+		}
+    	return Collections.unmodifiableSet(set);
+    }
+
+    static public Set<String> getProjectsForUpdate(String projectName) {
+    	Set<String> set = new HashSet<String>();
+		for (String compQName: ComponentRefManager.get(Mode.use).getKeys()) {
+			for (String useQName: getAllCompConsumers(compQName)) {
+				if (projectName(useQName).equals(projectName)) {
+					set.add(projectName(compQName));
+				}
+			}
+		}
+    	return Collections.unmodifiableSet(set);
+    }
+
+    static public Set<String> getCompConsumersForUpdate(String compQName, Project project, Project to) {
+    	Set<String> set = new HashSet<String>();
+		for (String useQName: getAllCompConsumers(compQName)) {
+			if (projectName(useQName).equals(project.getName()))
+				continue;
+			if (to != null && !to.getName().equals(projectName(useQName)))
+				continue;
+			set.add(useQName);
+		}
+    	return Collections.unmodifiableSet(set);
+    }
+    
+    static public Set<String> getAllCompConsumers(String compQName) {
+    	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getAllConsumers(compQName));
+    }
+    
+	private Set<String> getAllConsumers(String compQName) {
 		Set<String> set = new HashSet<String>();
 		try {
 	    	for (String keyQName: getKeys()) {
@@ -130,7 +264,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
 				set.addAll(consumers.get(compQName));
 			}
 		}
-
+		
+		//System.out.println("consumers for "+ compQName + ": "+ set);
 		return Collections.unmodifiableSet(set);
 	}
 	
@@ -162,6 +297,12 @@ public class ComponentRefManager implements DatabaseObjectListener {
 			com.twinsoft.convertigo.beans.ngx.components.UIUseShared uius = GenericUtils.cast(dbo);
 			String useQName = uius.getQName();
 			String compQName = uius.getSharedComponentQName();
+			addConsumer(compQName, useQName);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke) {
+			com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke uidi = GenericUtils.cast(dbo);
+			String useQName = uidi.getQName();
+			String compQName = uidi.getSharedActionQName();
 			addConsumer(compQName, useQName);
 		}
 	}

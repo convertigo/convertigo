@@ -80,7 +80,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 					if (mc instanceof UISharedComponent) {
 						IScriptComponent main = pageEvent.getMainScriptComponent();
 						if (mc.equals(((UISharedComponent)main))) {
-							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+							if (((UISharedComponent)mc).isEnabled()) {
+								functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+							}
 						} else {
 							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier) && isAllowed(mc)) {
@@ -102,6 +104,11 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 						children.append("\t\t\t" + functionCall).append(System.lineSeparator());
 					}
 				}
+			}
+			
+			if (mc instanceof PageComponent && !((PageComponent) mc).isEnabled()) {
+				children = new StringBuffer();
+				children.append("\t\t\t").append(System.lineSeparator());
 			}
 			
 			StringBuffer sb = new StringBuffer();
@@ -193,11 +200,11 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
 	}
 	

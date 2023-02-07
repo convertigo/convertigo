@@ -304,6 +304,10 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		return "";
 	}
 	
+	public void reset() {
+		
+	}
+	
 	public String getComputedConstructors() {
 		return "";
 	}
@@ -324,11 +328,11 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		return new ArrayList<Contributor>();
 	}
 	
-	public void markCompTsAsDirty() throws EngineException {
-		// does nothing
-	}
-		
-	public void markCompAsDirty() throws EngineException {
-		// does nothing
-	}
+//	public void markCompTsAsDirty() throws EngineException {
+//		// does nothing
+//	}
+//		
+//	public void markCompAsDirty() throws EngineException {
+//		// does nothing
+//	}
 }

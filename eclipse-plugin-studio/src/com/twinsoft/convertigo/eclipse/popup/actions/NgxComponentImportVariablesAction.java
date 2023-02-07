@@ -176,15 +176,15 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 							}
 							
 		    				if (dynAction.hasChanged) {
-		    					IScriptComponent main = dynAction.getMainScriptComponent();
-		    					if (main != null) {
-		    						if (main instanceof ApplicationComponent) {
-		    							((ApplicationComponent)main).markApplicationAsDirty();
-		    						}
-		    						if (main instanceof PageComponent) {
-		    							((PageComponent)main).markPageAsDirty();
-		    						}
-		    					}
+//		    					IScriptComponent main = dynAction.getMainScriptComponent();
+//		    					if (main != null) {
+//		    						if (main instanceof ApplicationComponent) {
+//		    							((ApplicationComponent)main).markApplicationAsDirty();
+//		    						}
+//		    						if (main instanceof PageComponent) {
+//		    							((PageComponent)main).markPageAsDirty();
+//		    						}
+//		    					}
 		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
@@ -218,15 +218,15 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 							}
 							
 		    				if (useShared.hasChanged) {
-		    					IScriptComponent main = useShared.getMainScriptComponent();
-		    					if (main != null) {
-		    						if (main instanceof ApplicationComponent) {
-		    							((ApplicationComponent)main).markApplicationAsDirty();
-		    						}
-		    						if (main instanceof PageComponent) {
-		    							((PageComponent)main).markPageAsDirty();
-		    						}
-		    					}
+//		    					IScriptComponent main = useShared.getMainScriptComponent();
+//		    					if (main != null) {
+//		    						if (main instanceof ApplicationComponent) {
+//		    							((ApplicationComponent)main).markApplicationAsDirty();
+//		    						}
+//		    						if (main instanceof PageComponent) {
+//		    							((PageComponent)main).markPageAsDirty();
+//		    						}
+//		    					}
 		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);

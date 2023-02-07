@@ -112,13 +112,15 @@ public class UIUseShared extends UIElement {
 	
 	public List<String> getEventNames() {
 		List<String> list = new ArrayList<String>();
-		UISharedComponent targetSharedComp = this.getTargetSharedComponent();
-		if (targetSharedComp != null) {
-			for (UICompEvent uice: targetSharedComp.getUICompEventList()) {
-				String eventName = uice.getAttrName();
-				if (!eventName.isBlank()) {
-					if (!list.contains(eventName)) {
-						list.add(eventName);
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent targetSharedComp = this.getTargetSharedComponent();
+			if (targetSharedComp != null) {
+				for (UICompEvent uice: targetSharedComp.getUICompEventList()) {
+					String eventName = uice.getAttrName();
+					if (!eventName.isBlank()) {
+						if (!list.contains(eventName)) {
+							list.add(eventName);
+						}
 					}
 				}
 			}
@@ -130,12 +132,14 @@ public class UIUseShared extends UIElement {
 		UISharedComponent parentSharedComp = ((UIUseShared)this.getOriginal()).getSharedComponent();
 		// if UIUseShared is in a UISharedComponent
 		if (parentSharedComp != null) {
-			UISharedComponent targetSharedComp = this.getTargetSharedComponent();
-			// if UIUseShared has a target UISharedComponent
-			if (targetSharedComp != null) {
-				// if they are the same
-				if (parentSharedComp.priority == targetSharedComp.priority) {
-					return true;
+			if (!getSharedComponentQName().isEmpty()) {
+				UISharedComponent targetSharedComp = this.getTargetSharedComponent();
+				// if UIUseShared has a target UISharedComponent
+				if (targetSharedComp != null) {
+					// if they are the same
+					if (parentSharedComp.priority == targetSharedComp.priority) {
+						return true;
+					}
 				}
 			}
 		}
@@ -145,7 +149,10 @@ public class UIUseShared extends UIElement {
 	@Override
 	public String computeTemplate() {
 		String computed = "";
-		if (isEnabled()) {
+		
+		if (!isEnabled()) return "";
+		
+		if (!getSharedComponentQName().isEmpty()) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null && uisc.isEnabled()) {
 				if (uisc.isRegular()) {
@@ -257,37 +264,41 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!isRecursive()) {
-				IScriptComponent main = getMainScriptComponent();
-				if (main != null && uisc.isRegular()) {
-					try {
-						String imports = jsonScripts.getString("imports");
-						if (main.addImport("ViewChild", "@angular/core")) {
-							imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+		if (!isEnabled()) return;
+		
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null /*&& uisc.isEnabled()*/) {
+				if (!isRecursive()) {
+					IScriptComponent main = getMainScriptComponent();
+					if (main != null && uisc.isRegular()) {
+						try {
+							String imports = jsonScripts.getString("imports");
+							if (main.addImport("ViewChild", "@angular/core")) {
+								imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+							}
+							if (main.addImport("ViewChildren", "@angular/core")) {
+								imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
+							}
+							if (main.addImport("QueryList", "@angular/core")) {
+								imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
+							}
+							jsonScripts.put("imports", imports);
+							
+							String declarations = jsonScripts.getString("declarations");
+							declarations += addViewChild(main, uisc.getIdentifier());// for compatibility with 8.0.0
+							declarations += addViewChild(main, uisc.getNsIdentifier());
+							if (!this.getIdentifier().isBlank()) {
+								declarations += addViewChild(main, this.getIdentifier());
+							}
+							jsonScripts.put("declarations", declarations);
+						} catch (JSONException e) {
+							e.printStackTrace();
 						}
-						if (main.addImport("ViewChildren", "@angular/core")) {
-							imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
-						}
-						if (main.addImport("QueryList", "@angular/core")) {
-							imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
-						}
-						jsonScripts.put("imports", imports);
 						
-						String declarations = jsonScripts.getString("declarations");
-						declarations += addViewChild(main, uisc.getIdentifier());// for compatibility with 8.0.0
-						declarations += addViewChild(main, uisc.getNsIdentifier());
-						if (!this.getIdentifier().isBlank()) {
-							declarations += addViewChild(main, this.getIdentifier());
+						for (UIComponent uic: getUIComponentList()) {
+							uic.computeScripts(jsonScripts);
 						}
-						jsonScripts.put("declarations", declarations);
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-					
-					for (UIComponent uic: getUIComponentList()) {
-						uic.computeScripts(jsonScripts);
 					}
 				}
 			}
@@ -310,10 +321,14 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public String computeStyle() {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!isRecursive()) {
-				return uisc.computeStyle(this);
+		//if (!isEnabled()) return "";
+		
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null /*&& uisc.isEnabled()*/) {
+				if (!isRecursive()) {
+					return uisc.computeStyle(this);
+				}
 			}
 		}
 		return "";
@@ -322,13 +337,18 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
-			if (!isRecursive()) {
-				uisc.addPageEvent(this, done, eventList);
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isEnabled()) return;
+		
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null && uisc.isEnabled()) {
+				if (!isRecursive()) {
+					uisc.addPageEvent(this, done, eventList);
+				}
 			}
 		}
 	}
@@ -336,43 +356,59 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
-			if (!isRecursive()) {
-				uisc.addEventSubscriber(this, done, eventList);
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isEnabled()) return;
+		
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null && uisc.isEnabled()) {
+				if (!isRecursive()) {
+					uisc.addEventSubscriber(this, done, eventList);
+				}
 			}
 		}
 	}
 
 	@Override
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
-		if(!done.add(this)) {
+		if (!done.add(this)) {
 			return;
 		}
+		
+		//if (!isEnabled()) return;
+		
 		for (UIComponent uic : getUIComponentList()) {
 			uic.addContributors(done, contributors);
 		}
-		
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!isRecursive()) {
-				uisc.addContributors(this, done, contributors);
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null /*&& uisc.isEnabled()*/) {
+				if (!isRecursive()) {
+					uisc.addContributors(this, done, contributors);
+				}
 			}
+		} else {
+			Engine.logBeans.warn("(UIUseShared) Component@"+ this.priority +" \""+ this.toString() +"\" has no target shared component defined !");
 		}
 	}
 	
 	@Override
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
-			if (!isRecursive()) {
-				uisc.addInfos(this, done, infoMap);
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isEnabled()) return;
+		
+		if (!getSharedComponentQName().isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null && uisc.isEnabled()) {
+				if (!isRecursive()) {
+					uisc.addInfos(this, done, infoMap);
+				}
 			}
 		}
 	}

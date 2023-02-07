@@ -1517,8 +1517,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								}
 								if (theTreeObject instanceof NgxPageComponentTreeObject) {
 									try {
-										mbo.pageRenamed((com.twinsoft.convertigo.beans.ngx.components.PageComponent) theTreeObject.getObject(), oldName);
-									} catch (EngineException e1) {
+										//mbo.pageRenamed((com.twinsoft.convertigo.beans.ngx.components.PageComponent) theTreeObject.getObject(), oldName);
+									} catch (Exception e1) {
 										e1.printStackTrace();
 									}
 								}
@@ -1529,9 +1529,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										}
 										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
 											needNgxPaletteReload = true;
-											mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);
+											//mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);
 										}
-									} catch (EngineException e1) {
+									} catch (Exception e1) {
 										e1.printStackTrace();
 									}
 								}

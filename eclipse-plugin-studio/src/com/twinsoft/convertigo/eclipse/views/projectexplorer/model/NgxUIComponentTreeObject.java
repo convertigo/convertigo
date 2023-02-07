@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInfiniteScroll;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
@@ -82,6 +83,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIFont;
 import com.twinsoft.convertigo.beans.ngx.components.UIFontStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
@@ -1075,7 +1077,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DatabaseObject dbo = doto.getObject();
 
 			try {
-				if (this.equals(treeObject)) {
+				/*if (this.equals(treeObject)) {
 					// a use has been added by dnd a library shared component from palette
 					if (dbo.bNew && dbo instanceof UIUseShared) {
 						UIUseShared use = GenericUtils.cast(dbo);
@@ -1101,7 +1103,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					else if (dbo instanceof UISharedComponent) {
 						handleSharedComponentChanged((UISharedComponent) dbo, done);
 					}
-				}
+				}*/
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1120,7 +1122,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
-				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
+				/*if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
 					UIComponent parentDbo = getObject();
 
 					if (deletedObject instanceof UIUseShared) {
@@ -1138,7 +1140,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					else if (uisc != null) {
 						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
 					}
-				}
+				}*/
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1165,44 +1167,47 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DatabaseObject dbo = doto.getObject();
 
 			try {
-				if (this.equals(treeObject)) {
-					if (propertyName.equals("scriptContent")) {
-						if (!newValue.equals(oldValue)) {
-							markMainTsAsDirty();
-							markMainAsDirty(getObject(), done);
-						}
-					} else {
-						if (propertyName.equals("sharedcomponent")) {
-							if (!newValue.equals(oldValue)) {
-								if (!((String)newValue).isBlank()) {
-									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getQName());
-									((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
-								}
-							}
-						}
-
-						markMainAsDirty(getObject(), done);
-					}
-
-					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
-					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
-					if (uisa != null && !uisa.equals(getObject())) {
-						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-					}
-					if (uisc != null && !uisc.equals(getObject())) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-					}
-				} else {
-					if (propertyName.equals("name")) {
-						handlesBeanNameChanged(treeObjectEvent);
-					}
-
-					if (dbo instanceof UIActionStack) {
-						handleSharedActionChanged((UIActionStack) dbo, done);
-					}
-					else if (dbo instanceof UISharedComponent) {
-						handleSharedComponentChanged((UISharedComponent) dbo, done);
-					}
+//				if (this.equals(treeObject)) {
+//					if (propertyName.equals("scriptContent")) {
+//						if (!newValue.equals(oldValue)) {
+//							markMainTsAsDirty();
+//							markMainAsDirty(getObject(), done);
+//						}
+//					} else {
+//						if (propertyName.equals("sharedcomponent")) {
+//							if (!newValue.equals(oldValue)) {
+//								if (!((String)newValue).isBlank()) {
+//									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getQName());
+//									((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
+//								}
+//							}
+//						}
+//
+//						markMainAsDirty(getObject(), done);
+//					}
+//
+//					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
+//					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
+//					if (uisa != null && !uisa.equals(getObject())) {
+//						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
+//					}
+//					if (uisc != null && !uisc.equals(getObject())) {
+//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+//					}
+//				} else {
+//					if (propertyName.equals("name")) {
+//						handlesBeanNameChanged(treeObjectEvent);
+//					}
+//
+//					if (dbo instanceof UIActionStack) {
+//						handleSharedActionChanged((UIActionStack) dbo, done);
+//					}
+//					else if (dbo instanceof UISharedComponent) {
+//						handleSharedComponentChanged((UISharedComponent) dbo, done);
+//					}
+//				}
+				if (propertyName.equals("name")) {
+					handlesBeanNameChanged(treeObjectEvent);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1210,98 +1215,102 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 
-	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
-		if (sharedAction != null) {
-			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
-			if (getObject() instanceof UIDynamicInvoke) {
-				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
-					UIActionStack uisa = udi.getSharedAction();
-					UISharedComponent uisc = udi.getSharedComponent();
+//	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
+//		if (sharedAction != null) {
+//			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
+//			if (getObject() instanceof UIDynamicInvoke) {
+//				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+//				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
+//					UIActionStack uisa = udi.getSharedAction();
+//					UISharedComponent uisc = udi.getSharedComponent();
+//
+//					// udi inside a shared action
+//					if (uisa != null && !uisa.equals(sharedAction)) {
+//						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
+//					}
+//					// udi inside a shared component
+//					else if (uisc != null) {
+//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+//					}
+//					// udi inside a page or menu
+//					else {
+//						try {
+//							markMainAsDirty(udi, done);
+//						} catch (EngineException e) {
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
+//		if (sharedComponent != null) {
+//			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
+//			if (getObject() instanceof UIUseShared) {
+//				UIUseShared udu = (UIUseShared)getObject();
+//
+//				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
+//					UISharedComponent uisc = udu.getSharedComponent();
+//					// udu inside a shared component
+//					if (uisc != null && !uisc.equals(sharedComponent)) {
+//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+//					}
+//					// udu inside a page or menu
+//					else {
+//						try {
+//							markMainAsDirty(udu, done);
+//						} catch (EngineException e) {
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
 
-					// udi inside a shared action
-					if (uisa != null && !uisa.equals(sharedAction)) {
-						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-					}
-					// udi inside a shared component
-					else if (uisc != null) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-					}
-					// udi inside a page or menu
-					else {
-						try {
-							markMainAsDirty(udi, done);
-						} catch (EngineException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
+//	protected void markMainTsAsDirty() {
+//		if (getObject() instanceof UISharedComponent) {
+//			UISharedComponent comp = (UISharedComponent)getObject();
+//			try {
+//				comp.markCompTsAsDirty();
+//			} catch (EngineException e) {
+//				ConvertigoPlugin.logException(e,
+//						"Error while writing the component.ts file for component '" + comp.getName() + "'");
+//			}
+//		}
+//	}
+
+//	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
+//		if (uic != null) {
+//			IScriptComponent main = uic.getMainScriptComponent();
+//			if (main != null) {
+//				if (!done.add(main)) {
+//					return;
+//				}
+//				//System.out.println("---markMainAsDirty for dbo@"+ uic.priority +" " + uic.toString() + ", with done : '" + done + "'");
+//				if (main instanceof UISharedComponent) {
+//					((UISharedComponent)main).markCompAsDirty();
+//				}
+//				if (main instanceof ApplicationComponent) {
+//					((ApplicationComponent)main).markApplicationAsDirty();
+//				}
+//				if (main instanceof PageComponent) {
+//					((PageComponent)main).markPageAsDirty();
+//				}
+//			}
+//		}
+//	}
+
+//	protected void markMainAsDirty(UIComponent uic) throws EngineException {
+//		markMainAsDirty(uic, new HashSet<Object>());
+//	}
+
+	protected void appUpdateSourceFiles(UIComponent uic) throws EngineException {
+		uic.getApplication().updateSourceFiles();
 	}
-
-	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
-		if (sharedComponent != null) {
-			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
-			if (getObject() instanceof UIUseShared) {
-				UIUseShared udu = (UIUseShared)getObject();
-
-				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
-					UISharedComponent uisc = udu.getSharedComponent();
-					// udu inside a shared component
-					if (uisc != null && !uisc.equals(sharedComponent)) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-					}
-					// udu inside a page or menu
-					else {
-						try {
-							markMainAsDirty(udu, done);
-						} catch (EngineException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
-	}
-
-	protected void markMainTsAsDirty() {
-		if (getObject() instanceof UISharedComponent) {
-			UISharedComponent comp = (UISharedComponent)getObject();
-			try {
-				comp.markCompTsAsDirty();
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writing the component.ts file for component '" + comp.getName() + "'");
-			}
-		}
-	}
-
-	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
-		if (uic != null) {
-			IScriptComponent main = uic.getMainScriptComponent();
-			if (main != null) {
-				if (!done.add(main)) {
-					return;
-				}
-				//System.out.println("---markMainAsDirty for dbo@"+ uic.priority +" " + uic.toString() + ", with done : '" + done + "'");
-				if (main instanceof UISharedComponent) {
-					((UISharedComponent)main).markCompAsDirty();
-				}
-				if (main instanceof ApplicationComponent) {
-					((ApplicationComponent)main).markApplicationAsDirty();
-				}
-				if (main instanceof PageComponent) {
-					((PageComponent)main).markPageAsDirty();
-				}
-			}
-		}
-	}
-
-	protected void markMainAsDirty(UIComponent uic) throws EngineException {
-		markMainAsDirty(uic, new HashSet<Object>());
-	}
-
+	
 	protected static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
 		if (uic1 != null && uic2 != null) {
 			try {
@@ -1432,7 +1441,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					hasBeenModified(true);
 					viewer.refresh();
 
-					markMainAsDirty(getObject());
+					//markMainAsDirty(getObject());
+					appUpdateSourceFiles(getObject());
 				}
 
 
@@ -1471,7 +1481,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					hasBeenModified(true);
 
 					viewer.refresh();
-					markMainAsDirty(getObject());
+					//markMainAsDirty(getObject());
+					appUpdateSourceFiles(getObject());
 				}
 
 			} catch (Exception e) {
@@ -1514,7 +1525,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												markMainAsDirty(udi);
+												//markMainAsDirty(udi);
+												appUpdateSourceFiles(udi);
 
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
@@ -1534,7 +1546,31 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				UICompVariable variable = (UICompVariable)databaseObject;
 				UISharedComponent comp = variable.getSharedComponent();
 				if (comp != null) {
-					// rename variable for UseShared
+					// rename related UICompEvent
+					if (getObject() instanceof UICompEvent) {
+						UICompEvent uice = (UICompEvent) getObject();
+						if (uice.getSharedComponent().equals(comp)) {
+							String _oldValue = oldValue + "Change";
+							String _newValue = newValue + "Change";
+							if (uice.getName().equals(_oldValue)) {
+								try {
+									uice.setName((String) _newValue);
+									uice.hasChanged = true;
+									
+									hasBeenModified(true);
+									viewer.refresh();
+									//markMainAsDirty(uice);
+									appUpdateSourceFiles(uice);
+
+									notifyDataseObjectPropertyChanged(uice, "name", _oldValue, _newValue, new HashSet<Object>());
+								} catch (EngineException e) {
+									ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for UICompEvent !");
+								}
+							}
+						}
+					}
+					
+					// rename variable and event for UseShared
 					if (getObject() instanceof UIUseShared) {
 						UIUseShared uus = (UIUseShared)getObject();
 						if (uus.getSharedComponentQName().equals(comp.getQName())) {
@@ -1555,12 +1591,34 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												markMainAsDirty(uus);
+												//markMainAsDirty(uus);
+												appUpdateSourceFiles(uus);
 
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
-												break;
+												//break;
 											} catch (EngineException e) {
 												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for UseShared !");
+											}
+										}
+									}
+									if (component instanceof UIControlEvent) {
+										UIControlEvent uice = (UIControlEvent)component;
+										String _oldValue = oldValue + "Change";
+										String _newValue = newValue + "Change";
+										if (uice.getEventName().equals(_oldValue)) {
+											try {
+												uice.setEventName((String) _newValue);
+												uice.hasChanged = true;
+
+												hasBeenModified(true);
+												viewer.refresh();
+												//markMainAsDirty(uus);
+												appUpdateSourceFiles(uus);
+
+												notifyDataseObjectPropertyChanged(uice, "eventName", _oldValue, _newValue, new HashSet<Object>());
+												//break;
+											} catch (EngineException e) {
+												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' event for UseShared !");
 											}
 										}
 									}
@@ -1596,7 +1654,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												markMainAsDirty(uus);
+												//markMainAsDirty(uus);
+												appUpdateSourceFiles(uus);
 
 												notifyDataseObjectPropertyChanged(uice, "eventName", oldValue, newValue, new HashSet<Object>());
 												break;
@@ -1641,7 +1700,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 														hasBeenModified(true);
 														viewer.refresh();
-														markMainAsDirty(uia);
+														//markMainAsDirty(uia);
+														appUpdateSourceFiles(uia);
 
 														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 														break;
@@ -1684,7 +1744,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}*/
 
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
-		TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
+		TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, TreeObjectEvent.UPDATE_LOCAL, done);
 		ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
 	}
 }

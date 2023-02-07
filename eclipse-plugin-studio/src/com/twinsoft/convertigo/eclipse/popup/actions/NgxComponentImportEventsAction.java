@@ -104,15 +104,15 @@ public class NgxComponentImportEventsAction extends MyAbstractAction {
 							}
 							
 		    				if (useShared.hasChanged) {
-		    					IScriptComponent main = useShared.getMainScriptComponent();
-		    					if (main != null) {
-		    						if (main instanceof ApplicationComponent) {
-		    							((ApplicationComponent)main).markApplicationAsDirty();
-		    						}
-		    						if (main instanceof PageComponent) {
-		    							((PageComponent)main).markPageAsDirty();
-		    						}
-		    					}
+//		    					IScriptComponent main = useShared.getMainScriptComponent();
+//		    					if (main != null) {
+//		    						if (main instanceof ApplicationComponent) {
+//		    							((ApplicationComponent)main).markApplicationAsDirty();
+//		    						}
+//		    						if (main instanceof PageComponent) {
+//		    							((PageComponent)main).markPageAsDirty();
+//		    						}
+//		    					}
 		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);

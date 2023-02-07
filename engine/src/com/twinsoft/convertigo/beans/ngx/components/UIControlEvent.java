@@ -159,11 +159,11 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-    		markAsDirty();
+//    		markAsDirty();
         }
 	}
 	

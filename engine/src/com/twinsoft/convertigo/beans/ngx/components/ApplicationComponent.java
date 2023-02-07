@@ -80,6 +80,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	private boolean useClickForTap = false;
 	
 	transient private Runnable _markApplicationAsDirty;
+	transient private Runnable _updateSourceFiles;
 	
 	public ApplicationComponent() {
 		super();
@@ -378,7 +379,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	markApplicationAsDirty();
+//    	markApplicationAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -410,25 +411,25 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	markApplicationAsDirty();
+//    	markApplicationAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
 		increaseOrder(databaseObject,null);
-		if (databaseObject instanceof PageComponent) {
-			markComponentTsAsDirty();
-		} else {
-			markApplicationAsDirty();
-		}
+//		if (databaseObject instanceof PageComponent) {
+//			markComponentTsAsDirty();
+//		} else {
+//			markApplicationAsDirty();
+//		}
 	}
 
 	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
 		decreaseOrder(databaseObject,null);
-		if (databaseObject instanceof PageComponent) {
-			markComponentTsAsDirty();
-		} else {
-			markApplicationAsDirty();
-		}
+//		if (databaseObject instanceof PageComponent) {
+//			markComponentTsAsDirty();
+//		} else {
+//			markApplicationAsDirty();
+//		}
 	}
     
     /**
@@ -501,10 +502,10 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		insertOrderedPage(pageComponent, after);
 		
-		if (pageComponent.bNew) {
+		/*if (pageComponent.bNew) {
 			pageComponent.doComputeContents();
 			getProject().getMobileBuilder().pageAdded(pageComponent);
-		}
+		}*/
 	}
 
 	protected void removePageComponent(PageComponent pageComponent) throws EngineException {
@@ -513,7 +514,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		removeOrderedPage(pageComponent.priority);
 		
-		getProject().getMobileBuilder().pageRemoved(pageComponent);
+		//getProject().getMobileBuilder().pageRemoved(pageComponent);
 	}
 
 	public List<PageComponent> getPageComponentList() {
@@ -585,9 +586,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		insertOrderedMenu(menuComponent, after);
 		
-		if (menuComponent.bNew) {
-			markApplicationAsDirty();
-		}
+//		if (menuComponent.bNew) {
+//			markApplicationAsDirty();
+//		}
 	}
 
 	protected void removeMenuComponent(UIDynamicMenu menuComponent) throws EngineException {
@@ -596,7 +597,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		removeOrderedMenu(menuComponent.priority);
 		
-		markApplicationAsDirty();
+//		markApplicationAsDirty();
 	}
 	
 	public List<UIDynamicMenu> getMenuComponentList() {
@@ -732,7 +733,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     	}
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
+//		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -742,9 +743,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
         insertOrderedComponent(uiComponent, after);
         
-        if (isNew || isCut) {
-        	markApplicationAsDirty();
-        }
+//        if (isNew || isCut) {
+//        	markApplicationAsDirty();
+//        }
 	}
 	
 	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
@@ -762,7 +763,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
         if (uiComponent != null && uiComponent.equals(this.theme)) {
     		this.theme = null;
         }
-        markApplicationAsDirty();
+//      markApplicationAsDirty();
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -825,9 +826,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		insertOrderedSharedAction(stackComponent, after);
 		
-		if (stackComponent.bNew) {
-			markApplicationAsDirty();
-		}
+//		if (stackComponent.bNew) {
+//			markApplicationAsDirty();
+//		}
 	}
 
 	protected void removeSharedAction(UIActionStack stackComponent) throws EngineException {
@@ -836,7 +837,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		removeOrderedSharedAction(stackComponent.priority);
 		
-		markApplicationAsDirty();
+//		markApplicationAsDirty();
 	}
 
 	public List<UIActionStack> getSharedActionList() {
@@ -862,14 +863,14 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		insertOrderedSharedComponent(stackComponent, after);
 		
-		if (stackComponent.bNew) {
-			if (stackComponent.isRegular()) {
-				stackComponent.doComputeContents();
-				getProject().getMobileBuilder().compAdded((ISharedComponent) stackComponent);
-			}
-			
-			markApplicationAsDirty();
-		}
+//		if (stackComponent.bNew) {
+//			if (stackComponent.isRegular()) {
+//				stackComponent.doComputeContents();
+//				getProject().getMobileBuilder().compAdded((ISharedComponent) stackComponent);
+//			}
+//			
+//			markApplicationAsDirty();
+//		}
 	}
 
 	protected void removeSharedComponent(UISharedComponent stackComponent) throws EngineException {
@@ -878,11 +879,11 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		removeOrderedSharedComponent(stackComponent.priority);
 		
-		markApplicationAsDirty();
-		
-		if (stackComponent instanceof UISharedRegularComponent) {
-			getProject().getMobileBuilder().compRemoved((UISharedRegularComponent)stackComponent);
-		}
+//		markApplicationAsDirty();
+//		
+//		if (stackComponent instanceof UISharedRegularComponent) {
+//			getProject().getMobileBuilder().compRemoved((UISharedRegularComponent)stackComponent);
+//		}
 	}
 
 	public List<UISharedComponent> getSharedComponentList() {
@@ -1058,14 +1059,21 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	
 	private transient String contributorsShot = null;
 	
+	private Object lock1 = new Object();
+	
 	public List<Contributor> getContributors() {
 		if (contributors == null) {
-			doGetContributors();
+			synchronized (lock1) {
+				doGetContributors();
+			}
 		}
 		return contributors;
 	}
 	
-	protected synchronized void doGetContributors() {
+//	protected synchronized void doGetContributors() {
+	protected void doGetContributors() {
+		if (contributors != null) return;
+		
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		for (UIFont uiFont : getUIFontList()) {
@@ -1084,7 +1092,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			actionStack.addContributors(done, contributors);
 		}
 		
-		contributorsShot = contributors.toString();
+		//contributorsShot = contributors.toString();
 	}
     
 	private transient JSONObject computedContents = null;
@@ -1108,15 +1116,30 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return jsonObject;
 	}
 	
+	public synchronized void reset() {
+		if (contributors != null) {
+			contributors.clear();
+		}
+		contributors = null;
+		computedContents = null;
+		contributorsShot = null;
+	}
+	
+	private Object lock2 = new Object();
+	
 	public JSONObject getComputedContents() {
 		if (computedContents == null) {
-			doComputeContents();
+			synchronized (lock2) {
+				doComputeContents();
+			}
 		}
 		return computedContents;
 	}
 	
-	protected synchronized void doComputeContents() {
+	protected void doComputeContents() {
 		try {
+			if (computedContents != null) return;
+			
 			appImports.clear();
 			appDeclarations.clear();
 			appConstructors.clear();
@@ -1138,91 +1161,107 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 	}
 	
-    public void markApplicationAsDirty() throws EngineException {
-    	if (_markApplicationAsDirty == null) {
-    		_markApplicationAsDirty = () -> {
+    public void updateSourceFiles() throws EngineException {
+    	if (_updateSourceFiles == null) {
+    		_updateSourceFiles = () -> {
 				if (isImporting) {
 					return;
 				}
 				try {
-					//System.out.println("---markApplicationAsDirty...");
-					JSONObject oldComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
-					
-					doComputeContents();
-					
-					JSONObject newComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
-					
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getJSONObject("scripts").toString()
-								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-							getProject().getMobileBuilder().appTsChanged(this, true);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("style")
-								.equals(oldComputedContent.getString("style")))) {
-							getProject().getMobileBuilder().appStyleChanged(this);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("theme")
-								.equals(oldComputedContent.getString("theme")))) {
-							getProject().getMobileBuilder().appThemeChanged(this);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("route")
-								.equals(oldComputedContent.getString("route")))) {
-							getProject().getMobileBuilder().appRouteChanged(this);
-						}
-					}
-					if (oldComputedContent != null && newComputedContent != null) {
-						if (!(newComputedContent.getString("template")
-								.equals(oldComputedContent.getString("template")))) {
-							getProject().getMobileBuilder().appTemplateChanged(this);
-						}
-					}
-					
-					String oldContributors = contributorsShot == null ? null:contributorsShot;
-					doGetContributors();
-					String newContributors = contributorsShot == null ? null:contributorsShot;
-					if (oldContributors != null && newContributors != null) {
-						if (!(oldContributors.equals(newContributors))) {
-							getProject().getMobileBuilder().appContributorsChanged(this);
-						}
-					}
-					
-				} catch (JSONException e) {
-					e.printStackTrace();
+					getProject().getMobileBuilder().appChanged();
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
     		};
     	}
-    	checkBatchOperation(_markApplicationAsDirty);
+    	checkBatchOperation(_updateSourceFiles);
     }
-    
-	public void markRootAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appRootChanged(this);
-	}
-	
-	public void markComponentTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appCompTsChanged(this);
-	}
-
-	public void markModuleTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appModuleTsChanged(this);
-	}
+//    public void markApplicationAsDirty() throws EngineException {
+//    	if (_markApplicationAsDirty == null) {
+//    		_markApplicationAsDirty = () -> {
+//				if (isImporting) {
+//					return;
+//				}
+//				try {
+//					//System.out.println("---markApplicationAsDirty...");
+//					JSONObject oldComputedContent = computedContents == null ? 
+//							null :new JSONObject(computedContents.toString());
+//					
+//					doComputeContents();
+//					
+//					JSONObject newComputedContent = computedContents == null ? 
+//							null :new JSONObject(computedContents.toString());
+//					
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getJSONObject("scripts").toString()
+//								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+//							getProject().getMobileBuilder().appTsChanged(this, true);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("style")
+//								.equals(oldComputedContent.getString("style")))) {
+//							getProject().getMobileBuilder().appStyleChanged(this);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("theme")
+//								.equals(oldComputedContent.getString("theme")))) {
+//							getProject().getMobileBuilder().appThemeChanged(this);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("route")
+//								.equals(oldComputedContent.getString("route")))) {
+//							getProject().getMobileBuilder().appRouteChanged(this);
+//						}
+//					}
+//					if (oldComputedContent != null && newComputedContent != null) {
+//						if (!(newComputedContent.getString("template")
+//								.equals(oldComputedContent.getString("template")))) {
+//							getProject().getMobileBuilder().appTemplateChanged(this);
+//						}
+//					}
+//					
+//					String oldContributors = contributorsShot == null ? null:contributorsShot;
+//					doGetContributors();
+//					String newContributors = contributorsShot == null ? null:contributorsShot;
+//					if (oldContributors != null && newContributors != null) {
+//						if (!(oldContributors.equals(newContributors))) {
+//							getProject().getMobileBuilder().appContributorsChanged(this);
+//						}
+//					}
+//					
+//				} catch (JSONException e) {
+//					e.printStackTrace();
+//				} catch (Exception e) {
+//					throw new RuntimeException(e);
+//				}
+//    		};
+//    	}
+//    	checkBatchOperation(_markApplicationAsDirty);
+//    }
+   
+//	public void markRootAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().appRootChanged(this);
+//	}
+//	
+//	public void markComponentTsAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().appCompTsChanged(this);
+//	}
+//
+//	public void markModuleTsAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().appModuleTsChanged(this);
+//	}
 	
 	public void markPwaAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appPwaChanged(this);
+		//getProject().getMobileBuilder().appPwaChanged(this);
+		updateSourceFiles();
 	}
 	
-	public void markContributorsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appContributorsChanged(this);
-	}
+//	public void markContributorsAsDirty() throws EngineException {
+//		getProject().getMobileBuilder().appContributorsChanged(this);
+//	}
 	
     /*
      * The computed template (see app.html)
@@ -1429,11 +1468,11 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		// Pages scss
 		for (PageComponent pc: getPageComponentList()) {
-			if (pc.isEnabled()) {
+			//if (pc.isEnabled()) {
 				String pageName = pc.getName();
 				String pageDir = pageName.toLowerCase();
 				sb.append("@use \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
-			}
+			//}
 		}
 		sb.append(System.lineSeparator());
 		
