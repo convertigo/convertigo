@@ -1904,4 +1904,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 		prodJob.schedule();
 	}
+	
+	public String getCurrentUrl() {
+		return c8oBrowser != null ? c8oBrowser.getURL() : "";
+	}
 }

@@ -772,6 +772,11 @@
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
          </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
+               width="300px"
+               relationship="right"
+               relative="org.eclipse.ui.editorss"/>
          <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>
          <hiddenMenuItem id="sourceMenuId"></hiddenMenuItem>
@@ -4028,6 +4033,14 @@
             icon="icons/palette_16x16.png"
             id="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
             name="Palette"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
+            name="Tutorial"
             restorable="true">
       </view>
       <view
