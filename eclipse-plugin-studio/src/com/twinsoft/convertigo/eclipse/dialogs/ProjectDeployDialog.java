@@ -46,6 +46,8 @@ import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
 import com.twinsoft.convertigo.engine.util.RemoteAdminException;
@@ -324,6 +326,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			bFinished = true;
 
 			ConvertigoPlugin.logDebug("Deployment successfull!");
+			Engine.theApp.eventManager.dispatchEvent(new StudioEvent("deployment", project.getName()), StudioEventListener.class);
 		}
 		finally {
 			final Display display = getParentShell().getDisplay();

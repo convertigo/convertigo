@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.tuto;
 
+import java.beans.BeanInfo;
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.InputStream;
 import java.util.regex.Matcher;
@@ -53,8 +55,11 @@ import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
-public class TutoView extends ViewPart {
+public class TutoView extends ViewPart implements StudioEventListener {
 	public class API {
 
 		@JsAccessible
@@ -73,13 +78,22 @@ public class TutoView extends ViewPart {
 	private C8oBrowser browser;
 	private Shell dialog;
 	private JSONArray controls;
+	private String lastDeployment;
+	private String lastLink;
 	
 	public TutoView() {
 		api = new API();
+		ConvertigoPlugin.runAtStartup(() -> {
+			Engine.theApp.eventManager.addListener(this, StudioEventListener.class);
+		});
 	}
 
 	@Override
 	public void dispose() {
+		try {
+			Engine.theApp.eventManager.removeListener(this, StudioEventListener.class);
+		} catch (Exception e) {
+		}
 		controls = null;
 		browser.dispose();
 		main.dispose();
@@ -210,10 +224,32 @@ public class TutoView extends ViewPart {
 	
 	private boolean checkControl(JSONObject control) throws JSONException {
 		String type = control.has("type") ? control.getString("type") : "";
-		if ("qnameExists".equals(type) || control.has("qname")) {
-			String qname = control.getString("qname");
+		if ("qnameExists".equals(type)) {
 			try {
+				String qname = control.getString("qname");
 				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+				return dbo != null;
+			} catch (Exception e) {
+			}
+		} else if ("property".equals(type)) {
+			try {
+				String qname = control.getString("qname");
+				String name = control.getString("name");
+				String expression = control.getString("expression");
+				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+				BeanInfo bi = CachedIntrospector.getBeanInfo(dbo.getClass());
+
+				PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
+
+				for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+					if (propertyDescriptor.getName().equals(name)) {
+						Object v = propertyDescriptor.getReadMethod().invoke(dbo);
+						if (v != null) {
+							return v.toString().matches(expression);
+						}
+						return false;
+					}
+				}
 				return dbo != null;
 			} catch (Exception e) {
 			}
@@ -253,11 +289,30 @@ public class TutoView extends ViewPart {
 					}
 				}
 			}
+		} else if ("deployment".equals(type)) {
+			if (lastDeployment != null) {
+				String project = control.getString("project");
+				return lastDeployment.equals(project);
+			}
+		} else if ("linkOpen".equals(type)) {
+			if (lastLink != null) {
+				String expression = control.getString("expression");
+				return lastLink.matches(expression);
+			}
 		}
 		return false;
 	}
 	
 	@Override
 	public void setFocus() {
+	}
+
+	@Override
+	public void onEvent(StudioEvent event) {
+		if ("deployment".equals(event.type())) {
+			lastDeployment = event.payload();
+		} else if ("linkOpen".equals(event.type())) {
+			lastLink = event.payload();
+		}
 	}
 }

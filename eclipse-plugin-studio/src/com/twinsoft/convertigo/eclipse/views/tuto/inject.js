@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-	$(document).on("click", "img", e => IDE.message({
+	if (!("$" in window)) {
+		return;
+	}
+	console.log("init");
+	$(document).on("click", ".expandablegif", e => IDE.message({
 		"type": "imgEnter",
 		"url": e.target.getAttribute("src")
 	})).on("click", "a:contains('ᐅ')", e => {
