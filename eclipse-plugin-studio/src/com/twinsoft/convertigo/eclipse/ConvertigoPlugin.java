@@ -374,7 +374,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				int level = ModalContext.getModalLevel();
 				if (level > 0) {
 					// prevents double modal windows: dead lock on linux/gtk studio
-					syncExec(this);
+					asyncExec(this);
 					return;
 				}
 
@@ -394,7 +394,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (Thread.currentThread().equals(Display.getDefault().getThread())) {
 			runnable.run();
 		} else {
-			syncExec(runnable);
+			asyncExec(runnable);
 		}
 		return result;
 	}
