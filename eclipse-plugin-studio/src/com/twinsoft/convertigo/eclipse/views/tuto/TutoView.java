@@ -140,7 +140,7 @@ public class TutoView extends ViewPart implements StudioEventListener {
 			if (dialog != null && !dialog.isDisposed()) {
 				dialog.close();
 			}
-			dialog = new Shell(main.getShell(), SWT.CLOSE | SWT.TITLE | SWT.RESIZE | SWT.ON_TOP);
+			dialog = new Shell(main.getShell(), SWT.CLOSE | SWT.TITLE | SWT.RESIZE | SWT.MODELESS | SWT.BORDER);
 			dialog.setImages(main.getShell().getImages());
 			dialog.setData("url", url);
 			
