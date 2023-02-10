@@ -382,6 +382,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 						objectName, objectType,
 						propertyName, propertyValue,
 						undefinedSymboles, showCheckBox);
+				dialogGlobalSymbols.setBlockOnOpen(true);
 				dialogGlobalSymbols.open();
 
 				result[0] = dialogGlobalSymbols.getCreateAction();
@@ -394,7 +395,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (Thread.currentThread().equals(Display.getDefault().getThread())) {
 			runnable.run();
 		} else {
-			asyncExec(runnable);
+			syncExec(runnable);
 		}
 		return result;
 	}
