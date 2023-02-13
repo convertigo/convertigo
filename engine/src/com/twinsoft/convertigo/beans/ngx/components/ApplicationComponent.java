@@ -1059,21 +1059,14 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	
 	private transient String contributorsShot = null;
 	
-	private Object lock1 = new Object();
-	
-	public List<Contributor> getContributors() {
+	public synchronized List<Contributor> getContributors() {
 		if (contributors == null) {
-			synchronized (lock1) {
-				doGetContributors();
-			}
+			doGetContributors();
 		}
 		return contributors;
 	}
 	
-//	protected synchronized void doGetContributors() {
 	protected void doGetContributors() {
-		if (contributors != null) return;
-		
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		for (UIFont uiFont : getUIFontList()) {
@@ -1125,21 +1118,19 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		contributorsShot = null;
 	}
 	
-	private Object lock2 = new Object();
+	public synchronized boolean isReset() {
+		return contributors == null;
+	}
 	
-	public JSONObject getComputedContents() {
+	public synchronized JSONObject getComputedContents() {
 		if (computedContents == null) {
-			synchronized (lock2) {
-				doComputeContents();
-			}
+			doComputeContents();
 		}
 		return computedContents;
 	}
 	
 	protected void doComputeContents() {
 		try {
-			if (computedContents != null) return;
-			
 			appImports.clear();
 			appDeclarations.clear();
 			appConstructors.clear();

@@ -60,6 +60,7 @@ public abstract class MobileBuilder {
 	
 	protected boolean needPkgUpdate = false;
 	protected boolean initDone = false;
+	protected boolean isReleasing = false;
 	protected boolean autoBuild = true;
 	protected boolean isPWA = false;
 	
@@ -84,6 +85,7 @@ public abstract class MobileBuilder {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
 				String message = e.getMessage();
+				message = message == null ? "unknown":message;
 				if (Engine.isCliMode()) {
 					throw new RuntimeException("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message, e);
 				}

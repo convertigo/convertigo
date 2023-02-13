@@ -308,6 +308,10 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		
 	}
 	
+	public boolean isReset() {
+		return false;
+	}
+	
 	public String getComputedConstructors() {
 		return "";
 	}

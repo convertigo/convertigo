@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
@@ -118,9 +119,16 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				String projectName = getObject().getProject().getName();
 				boolean doUpdate = false;
 				if (deletedTreeObject != null) {
-					String deletedobjectQName = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject().getQName();
-					deletedobjectQName += "." + deletedObject.getName();
+					DatabaseObject parentOfDeleted = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+					String deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
 
+					if (deletedTreeObject.isChildOf(this)) {
+						resetMainScriptComponents(parentOfDeleted);
+					}
+					for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
+						resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
+					}
+					
 					if (deletedTreeObject.isChildOf(this)) {
 						// an shared object of this app has been deleted
 						if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
@@ -181,6 +189,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
+					getObject().reset();
 					getObject().updateSourceFiles();
 				}				
 			} catch (Exception e) {
@@ -263,6 +272,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
+					getObject().reset();
+					resetMainScriptComponents(dbo);
 					getObject().updateSourceFiles();
 				}				
 			} catch (Exception e) {}
@@ -547,6 +558,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
+					getObject().reset();
+					resetMainScriptComponents(dbo);
 					if (oldValue != null && newValue != null) {
 						getObject().updateSourceFiles();
 					}
@@ -555,6 +568,77 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		}
 	}
 	
+	private static void resetMainScriptComponents(DatabaseObject dbo) {
+		resetMainScriptComponents(dbo, 0);
+	}
+	
+	private static void resetMainScriptComponents(DatabaseObject dbo, int level) {
+		try {
+			if (dbo != null) {
+				if (dbo instanceof ApplicationComponent) {
+					ApplicationComponent app = (ApplicationComponent)dbo;
+					if (!app.isReset()) {
+						app.reset();
+						Engine.logEngine.debug("Application "+ app.getName() + " has been reset");
+						return;
+					}
+				} else if (dbo instanceof PageComponent) {
+					PageComponent page = (PageComponent)dbo;
+					if (!page.isReset()) {
+						page.reset();
+						Engine.logEngine.debug("PageComponent "+ page.getName() + " has been reset");
+						return;
+					}
+				} else if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					IScriptComponent main = uic.getMainScriptComponent();
+					if (main != null) {
+						if (main instanceof ApplicationComponent) {
+							ApplicationComponent app = (ApplicationComponent)main;
+							if (!app.isReset()) {
+								app.reset();
+								Engine.logEngine.debug("Application "+ app.getName() + " has been reset");
+							}
+						} else if (main instanceof PageComponent) {
+							PageComponent page = (PageComponent)main;
+							if (!page.isReset()) {
+								page.reset();
+								Engine.logEngine.debug("PageComponent "+ page.getName() + " has been reset");
+							}
+						} else if (main instanceof UISharedComponent) {
+							UISharedComponent uisc = (UISharedComponent)main;
+							if (!uisc.isReset()) {
+								uisc.reset();
+								Engine.logEngine.debug("UISharedComponent "+ uisc.getName() + " has been reset");
+							}
+						}
+					}
+					
+					if (level == 1) {
+						return;
+					}
+					
+					// reset direct UIDynamicInvoke components
+					UIActionStack uias = uic.getSharedAction();
+					if (uias != null) {
+						for (String useQName: ComponentRefManager.getCompConsumers(uias.getQName())) {
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), 1);
+						}
+					}
+					// reset direct UIUseShared components
+					UISharedComponent uisc = uic.getSharedComponent();
+					if (uisc != null) {
+						for (String useQName: ComponentRefManager.getCompConsumers(uisc.getQName())) {
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), 1);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+		
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);

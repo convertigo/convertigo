@@ -658,7 +658,7 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	public void appChanged() throws EngineException {
-		updateSourceFiles(true);
+		updateSourceFiles();
 	}
 	
 	@Override
@@ -882,23 +882,6 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	public void updateConsumer() {
-		/*ComponentRefManager crf = ComponentRefManager.get(Mode.use);
-		for (String compQName: crf.getKeys()) {
-			for (String useQName: crf.getAllConsumers(compQName)) {
-				if (projectName(useQName).equals(project.getName())) {
-					String pname = projectName(compQName);
-					try {
-						Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
-						if (p != null) {
-							((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						Engine.logEngine.warn("Unable to update consummer for project "+ pname + ": "+ e.getMessage());
-					}
-				}
-			}
-		}*/
 		for (String pname: ComponentRefManager.getProjectsForUpdate(project.getName())) {
 			try {
 				Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
@@ -1068,7 +1051,8 @@ public class NgxBuilder extends MobileBuilder {
 
 		if (isIonicTemplateBased()) {
 			Engine.logEngine.info("(NgxBuilder) Releasing builder for ionic project '"+ project.getName() +"' ...");
-
+			isReleasing = true;
+			
 			moveFilesForce();
 
 			if (watcherService != null) {
@@ -1134,6 +1118,7 @@ public class NgxBuilder extends MobileBuilder {
 
 			storeEnvFile();
 
+			isReleasing = false;
 			initDone = false;
 			Engine.logEngine.info("(NgxBuilder) Released builder for ionic project '"+ project.getName() +"'");
 		}
@@ -1172,132 +1157,19 @@ public class NgxBuilder extends MobileBuilder {
 		return pages;
 	}
 
-	private void updateSourceFiles() throws EngineException {
-		updateSourceFiles(false);
-	}
-	
-//	private void updateSourceFiles(boolean reset) throws EngineException {
-//		ExecutorService executor = null;
-//		try {
-//			final MobileApplication mobileApplication = project.getMobileApplication();
-//			if (mobileApplication != null) {
-//				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-//				if (application != null) {
-//					String appTplVersion = application.requiredTplVersion();
-//					if (compareVersions(tplVersion, appTplVersion) >= 0) {
-//						long t0 = System.currentTimeMillis();
-//						
-//						List<MobileComponent> list = new ArrayList<MobileComponent>();
-//						list.addAll(application.getSharedComponentList());
-//						list.addAll(application.getPageComponentList());
-//						int size = list.size();
-//						executor = Executors.newFixedThreadPool(size);
-//						CompletionService<String> completion = new ExecutorCompletionService<String>(executor);
-//						for (MobileComponent mbc: list) {
-//					    	completion.submit(new Callable<String>() {
-//								@Override
-//								public String call() throws Exception {
-//									if (mbc instanceof UISharedComponent) {
-//										Engine.logEngine.debug("Start for component "+ mbc.getName() + ": "+ System.currentTimeMillis());
-//										writeCompSourceFiles((UISharedComponent)mbc, reset);
-//										Engine.logEngine.debug("End for component "+ mbc.getName() + ": "+ System.currentTimeMillis());
-//										return ("writeCompSourceFiles for component "+ mbc.getName() + " done");
-//									}
-//									else if (mbc instanceof PageComponent) {
-//										Engine.logEngine.debug("Start for page "+ mbc.getName() + ": "+ System.currentTimeMillis());
-//										writePageSourceFiles((PageComponent)mbc, reset);
-//										Engine.logEngine.debug("End for page "+ mbc.getName() + ": "+ System.currentTimeMillis());
-//										return ("writePageSourceFiles for page "+ mbc.getName() + " done");
-//									}
-//									return "done";
-//								}
-//							});
-//						}
-//					    for (int i = 0; i < size; i++) {
-//					    	try {
-//					    		String s = completion.take().get();
-//					    		Engine.logEngine.debug(s);
-//					    	} catch (Exception e) {
-//					    		e.printStackTrace();
-//					    		throw e;
-//					    	}
-//					    }
-//						
-//				    	completion.submit(new Callable<String>() {
-//							@Override
-//							public String call() throws Exception {
-//								removeUselessComps(application);
-//								return "removeUselessComps done";
-//							}
-//						});
-//				    	completion.submit(new Callable<String>() {
-//							@Override
-//							public String call() throws Exception {
-//								removeUselessPages(application);
-//								return "removeUselessPages done";
-//							}
-//						});
-//				    	completion.submit(new Callable<String>() {
-//							@Override
-//							public String call() throws Exception {
-//								writeAppSourceFiles(application, reset);
-//								return "writeAppSourceFiles done";
-//							}
-//						});
-//				    	completion.submit(new Callable<String>() {
-//							@Override
-//							public String call() throws Exception {
-//								if (initDone) {
-//									updateConsumer();
-//									
-//								}
-//								return "updateConsumer done";
-//							}
-//						});
-//					    for (int i = 0; i < 4; i++) {
-//					    	try {
-//					    		String s = completion.take().get();
-//					    		Engine.logEngine.debug(s);
-//					    	} catch (Exception e) {
-//					    		e.printStackTrace();
-//					    		throw e;
-//					    	}
-//					    }
-//				    	
-//						long t1 = System.currentTimeMillis();
-//						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
-//					} else {
-//						cleanDirectories();
-//						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
-//								"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
-//								"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
-//					}
-//				}
-//			}
-//		}
-//		catch (EngineException e) {
-//			throw e;
-//		}
-//		catch (Exception e) {
-//			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
-//		} finally {
-//			if (executor != null) {
-//				executor.shutdown();
-//			}
-//		}
-//	}
-	
-	private Callable<String> newCallable(final MobileComponent mbc, boolean reset) {
+	private Callable<String> newCallable(final MobileComponent mbc) {
 		return new Callable<String>() {
 			@Override
 			public String call() throws Exception {
 				String s = Thread.currentThread().getName();
 				long t0 = System.currentTimeMillis();
 				if (mbc instanceof UISharedComponent) {
-					writeCompSourceFiles((UISharedComponent)mbc, reset);
+					//writeCompSourceFiles((UISharedComponent)mbc);
+					call_writeCompSourceFiles((UISharedComponent)mbc);
 				}
 				else if (mbc instanceof PageComponent) {
-					writePageSourceFiles((PageComponent)mbc, reset);
+					//writePageSourceFiles((PageComponent)mbc);
+					call_writePageSourceFiles((PageComponent)mbc);
 				}
 				long t1 = System.currentTimeMillis();
 				return ("["+s+"] writeSourceFiles for "+ mbc.getClass().getName() + " " + mbc.getName() + " done in "+ (t1-t0) + "ms");
@@ -1305,7 +1177,7 @@ public class NgxBuilder extends MobileBuilder {
 		};
 	}
 	
-	private void updateSourceFiles(boolean reset) throws EngineException {
+	private void updateSourceFiles() throws EngineException {
 		ExecutorService executor = null;
 		try {
 			final MobileApplication mobileApplication = project.getMobileApplication();
@@ -1317,81 +1189,127 @@ public class NgxBuilder extends MobileBuilder {
 						long t0 = System.currentTimeMillis();
 						
 						List<Callable<String>> sList = new ArrayList<Callable<String>>();
-						for (MobileComponent mbc: application.getSharedComponentList()) {
-							sList.add(newCallable(mbc, reset));
+						for (UISharedComponent uisc: application.getSharedComponentList()) {
+							if (uisc.isReset()) {
+								sList.add(newCallable(uisc));
+							}
 						}
 						List<Callable<String>> pList = new ArrayList<Callable<String>>();
-						for (MobileComponent mbc: application.getPageComponentList()) {
-							pList.add(newCallable(mbc, reset));
+						for (PageComponent page: application.getPageComponentList()) {
+							if (page.isReset()) {
+								sList.add(newCallable(page));
+							}
 						}
 						
-						List<Callable<String>> applist = new ArrayList<Callable<String>>();
-						applist.add(new Callable<String>() {
-							@Override
-							public String call() throws Exception {
-								removeUselessComps(application);
-								return "removeUselessComps done";
-							}
-						});
-						applist.add(new Callable<String>() {
-							@Override
-							public String call() throws Exception {
-								removeUselessPages(application);
-								return "removeUselessPages done";
-							}
-						});
-						applist.add(new Callable<String>() {
-							@Override
-							public String call() throws Exception {
-								writeAppSourceFiles(application, reset);
-								return "writeAppSourceFiles done";
-							}
-						});
-						applist.add(new Callable<String>() {
-							@Override
-							public String call() throws Exception {
-								if (initDone) {
-									updateConsumer();
-									
+						List<Callable<String>> aList = new ArrayList<Callable<String>>();
+						if (application.isReset()) {
+							aList.add(new Callable<String>() {
+								@Override
+								public String call() throws Exception {
+									String s = Thread.currentThread().getName();
+									long t0 = System.currentTimeMillis();
+									removeUselessComps(application);
+									long t1 = System.currentTimeMillis();
+									return ("["+s+"] removeUselessComps for application " + application.getName() + " done in "+ (t1-t0) + "ms");
 								}
-								return "updateConsumer done";
+							});
+							aList.add(new Callable<String>() {
+								@Override
+								public String call() throws Exception {
+									String s = Thread.currentThread().getName();
+									long t0 = System.currentTimeMillis();
+									removeUselessPages(application);
+									long t1 = System.currentTimeMillis();
+									return ("["+s+"] removeUselessPages for application " + application.getName() + " done in "+ (t1-t0) + "ms");
+								}
+							});
+							aList.add(new Callable<String>() {
+								@Override
+								public String call() throws Exception {
+									String s = Thread.currentThread().getName();
+									long t0 = System.currentTimeMillis();
+									//writeAppSourceFiles(application);
+									call_writeAppSourceFiles(application);
+									long t1 = System.currentTimeMillis();
+									return ("["+s+"] writeAppSourceFiles for application " + application.getName() + " done in "+ (t1-t0) + "ms");
+								}
+							});
+							if (initDone && buildMutex == null) {
+								aList.add(new Callable<String>() {
+									@Override
+									public String call() throws Exception {
+										String s = Thread.currentThread().getName();
+										long t0 = System.currentTimeMillis();
+										updateConsumer();
+										long t1 = System.currentTimeMillis();
+										return ("["+s+"] updateConsumer for application " + application.getName() + " done in "+ (t1-t0) + "ms");
+									}
+								});
 							}
-						});
+						}
 						
 						long tx = System.currentTimeMillis();
 						int availableProcessors = Runtime.getRuntime().availableProcessors(); 
-						Engine.logEngine.debug("Start executor after "+ (tx - t0) + " with " + availableProcessors + " available processors");
-						//executor = Executors.newFixedThreadPool(mbclist.size()+applist.size());
+						Engine.logEngine.trace("Start executor after "+ (tx - t0) + " with " + availableProcessors + " available processors");
 						executor = Executors.newCachedThreadPool();
 						
 					    List<Future<String>> resultList = null;
-					    try {
-					      resultList = executor.invokeAll(sList);
-					    } catch (InterruptedException e) {
-					      e.printStackTrace();
-					    }
-					 
-					    if (resultList != null) {
-					        for (int i = 0; i < resultList.size(); i++) {
-					            Future<String> future = resultList.get(i);
-					            try {
-					              String result = future.get();
-					              Engine.logEngine.debug(result);
-					            } catch (Exception e) {
-					              e.printStackTrace();
-					            }
-					          }
-					        resultList.clear();
-						    resultList = null;
-					    }
-
-					    try {
-						      resultList = executor.invokeAll(pList);
+						if (sList.size() > 0) {
+						    try {
+						      resultList = executor.invokeAll(sList);
 						    } catch (InterruptedException e) {
 						      e.printStackTrace();
 						    }
 						 
 						    if (resultList != null) {
+						    	if (Engine.logEngine.isTraceEnabled()) {
+							        for (int i = 0; i < resultList.size(); i++) {
+							            Future<String> future = resultList.get(i);
+							            try {
+							              String result = future.get();
+							              Engine.logEngine.trace(result);
+							            } catch (Exception e) {
+							              e.printStackTrace();
+							            }
+							        }
+						    	}
+						        resultList.clear();
+							    resultList = null;
+						    }
+						}
+						
+						if (pList.size() > 0) {
+						    try {
+						    	resultList = executor.invokeAll(pList);
+							} catch (InterruptedException e) {
+							    e.printStackTrace();
+							}
+							 
+							if (resultList != null) {
+								if (Engine.logEngine.isTraceEnabled()) {
+							        for (int i = 0; i < resultList.size(); i++) {
+							            Future<String> future = resultList.get(i);
+							            try {
+							              String result = future.get();
+							              Engine.logEngine.trace(result);
+							            } catch (Exception e) {
+							              e.printStackTrace();
+							            }
+							        }
+								}
+						        resultList.clear();
+							    resultList = null;
+							}
+						}
+						
+					    try {
+					      resultList = executor.invokeAll(aList);
+					    } catch (InterruptedException e) {
+					      e.printStackTrace();
+					    }
+					 
+					    if (resultList != null) {
+					    	//if (Engine.logEngine.isTraceEnabled()) {
 						        for (int i = 0; i < resultList.size(); i++) {
 						            Future<String> future = resultList.get(i);
 						            try {
@@ -1400,29 +1318,20 @@ public class NgxBuilder extends MobileBuilder {
 						            } catch (Exception e) {
 						              e.printStackTrace();
 						            }
-						          }
+						        }
 						        resultList.clear();
 							    resultList = null;
-						    }
-					    
-					    try {
-					      resultList = executor.invokeAll(applist);
-					    } catch (InterruptedException e) {
-					      e.printStackTrace();
-					    }
-					 
-					    if (resultList != null) {
-					        for (int i = 0; i < resultList.size(); i++) {
-					            Future<String> future = resultList.get(i);
-					            try {
-					              String result = future.get();
-					              Engine.logEngine.debug(result);
-					            } catch (Exception e) {
-					              e.printStackTrace();
-					            }
-					          }
+					    	//}
 					    }
 				    	
+					    sList.clear();
+					    sList = null;
+					    pList.clear();
+					    pList = null;
+					    aList.clear();
+					    aList = null;
+					    
+					    
 						long t1 = System.currentTimeMillis();
 						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
 					} else {
@@ -1873,8 +1782,8 @@ public class NgxBuilder extends MobileBuilder {
 
 				String c8o_PageChildRoute = "";
 				String c8o_PageChildRoutes = "";
-				List<Contributor> contributors = page.getContributors();
-				for (Contributor contributor : contributors) {
+				//List<Contributor> contributors = ;
+				for (Contributor contributor : page.getContributors()) {
 					for (String route: contributor.getModuleNgRoutes(page.getSegment())) {
 						if (route.indexOf("redirectTo") == -1) {
 							c8o_PageChildRoutes += c8o_PageChildRoutes.isEmpty() ? System.lineSeparator() : "";
@@ -1910,7 +1819,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to write ionic app routing ts file",e);
+			throw new EngineException("Unable to write ionic page routing ts file",e);
 		}
 	}
 
@@ -3456,17 +3365,169 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
-		writeAppSourceFiles(application, false);
+	private void call_writeAppSourceFiles(ApplicationComponent application) throws EngineException {
+		ExecutorService executor = null;
+		try {
+			if (application == null) return;
+			
+			FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
+			
+			List<Callable<String>> callList = new ArrayList<Callable<String>>();
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppPackageJson(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppPackageJson for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppBuildSettings(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppBuildSettings for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppPluginsConfig(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppPluginsConfig for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppServiceTs(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppServiceTs for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppModuleTs(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppModuleTs for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppComponentTs(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppComponentTs for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppTemplate(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppTemplate for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppStyle(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppStyle for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppTheme(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppTheme for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					long t0 = System.currentTimeMillis();
+					writeAppRoutingTs(application);
+					long t1 = System.currentTimeMillis();
+					String result = "["+Thread.currentThread().getName()+"] writeAppRoutingTs for app done in "+ (t1-t0) + "ms [t0="+t0+"]";
+					Engine.logEngine.debug(result);
+					return result;
+				}
+			});
+			
+			executor = Executors.newFixedThreadPool(10);
+		    List<Future<String>> resultList = null;
+			if (callList.size() > 0) {
+			    try {
+			      resultList = executor.invokeAll(callList);
+			    } catch (InterruptedException e) {
+			      e.printStackTrace();
+			    }
+			 
+			    if (resultList != null) {
+			    	/*if (Engine.logEngine.isDebugEnabled()) {
+				        for (int i = 0; i < resultList.size(); i++) {
+				            Future<String> future = resultList.get(i);
+				            try {
+				              String result = future.get();
+				              Engine.logEngine.debug(result);
+				            } catch (Exception e) {
+				              e.printStackTrace();
+				            }
+				        }
+			    	}*/
+			        resultList.clear();
+				    resultList = null;
+			    }
+			}
+			callList.clear();
+			callList = null;
+			
+			if (initDone) {
+				Engine.logEngine.trace("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write application source files for ionic project '"+ project.getName() +"'",e);
+		} finally {
+			if (executor != null) {
+				executor.shutdown();
+			}
+		}
 	}
 	
-	private void writeAppSourceFiles(ApplicationComponent application, boolean reset) throws EngineException {
+	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
-				if (reset) {
-					application.reset();
-				}
-				
 				FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
 
 				writeAppPackageJson(application);
@@ -3488,17 +3549,109 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void writePageSourceFiles(PageComponent page) throws EngineException {
-		writePageSourceFiles(page, false);
-	}
-	
-	private void writePageSourceFiles(PageComponent page, boolean reset) throws EngineException {
+	private void call_writePageSourceFiles(PageComponent page) throws EngineException {
+		ExecutorService executor = null;
 		String pageName = page.getName();
 		try {
-			if (reset) {
-				page.reset();
-			}
+			File pageDir = pageDir(page);
+			pageDir.mkdirs();
+
+			FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
+
+			List<Callable<String>> callList = new ArrayList<Callable<String>>();
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writePageTs(page);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writePageTs for page " + page.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writePageModuleTs(page);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writePageModuleTs for page " + page.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writePageRoutingTs(page);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writePageRoutingTs for page " + page.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writePageStyle(page);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writePageStyle for page " + page.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writePageTemplate(page);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writePageTemplate for page " + page.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
 			
+			executor = Executors.newFixedThreadPool(5);
+		    List<Future<String>> resultList = null;
+			if (callList.size() > 0) {
+			    try {
+			      resultList = executor.invokeAll(callList);
+			    } catch (InterruptedException e) {
+			      e.printStackTrace();
+			    }
+			 
+			    if (resultList != null && Engine.logEngine.isDebugEnabled()) {
+			        for (int i = 0; i < resultList.size(); i++) {
+			            Future<String> future = resultList.get(i);
+			            try {
+			              String result = future.get();
+			              Engine.logEngine.trace(result);
+			            } catch (Exception e) {
+			              e.printStackTrace();
+			            }
+			          }
+			        resultList.clear();
+				    resultList = null;
+			    }
+			}
+			callList.clear();
+			callList = null;
+			
+			if (initDone) {
+				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write source files for page '"+pageName+"'",e);
+		} finally {
+			if (executor != null) {
+				executor.shutdown();
+			}
+		}
+	}
+	
+	private void writePageSourceFiles(PageComponent page) throws EngineException {
+		String pageName = page.getName();
+		try {
 			File pageDir = pageDir(page);
 			pageDir.mkdirs();
 
@@ -3535,17 +3688,99 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
-	private void writeCompSourceFiles(UISharedComponent comp) throws EngineException {
-		writeCompSourceFiles(comp, false);
-	}
-	
-	private void writeCompSourceFiles(UISharedComponent comp, boolean reset) throws EngineException {
+	private void call_writeCompSourceFiles(UISharedComponent comp) throws EngineException {
+		ExecutorService executor = null;
 		String compName = comp.getName();
 		try {
-			if (reset) {
-				comp.reset();
-			}
+			File compDir = compDir(comp);
+			compDir.mkdirs();
+
+			FileUtils.deleteQuietly(new File(compDir, compFileName(comp) + ".temp.ts"));
+
+			List<Callable<String>> callList = new ArrayList<Callable<String>>();
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writeCompTs(comp);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writeCompTs for component " + comp.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writeCompModuleTs(comp);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writeCompModuleTs for component " + comp.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writeCompStyle(comp);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writeCompStyle for component " + comp.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
+			callList.add(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					String s = Thread.currentThread().getName();
+					long t0 = System.currentTimeMillis();
+					writeCompTemplate(comp);
+					long t1 = System.currentTimeMillis();
+					return ("["+s+"] writeCompTemplate for component " + comp.getName() + " done in "+ (t1-t0) + "ms");
+				}
+			});
 			
+			executor = Executors.newFixedThreadPool(4);
+		    List<Future<String>> resultList = null;
+			if (callList.size() > 0) {
+			    try {
+			      resultList = executor.invokeAll(callList);
+			    } catch (InterruptedException e) {
+			      e.printStackTrace();
+			    }
+			 
+			    if (resultList != null && Engine.logEngine.isDebugEnabled()) {
+			        for (int i = 0; i < resultList.size(); i++) {
+			            Future<String> future = resultList.get(i);
+			            try {
+			              String result = future.get();
+			              Engine.logEngine.trace(result);
+			            } catch (Exception e) {
+			              e.printStackTrace();
+			            }
+			          }
+			        resultList.clear();
+				    resultList = null;
+			    }
+			}
+			callList.clear();
+			callList = null;
+			
+			if (initDone) {
+				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for component '"+compName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write source files for component '"+compName+"'",e);
+		} finally {
+			if (executor != null) {
+				executor.shutdown();
+			}
+		}
+	}
+
+	private void writeCompSourceFiles(UISharedComponent comp) throws EngineException {
+		String compName = comp.getName();
+		try {
 			File compDir = compDir(comp);
 			compDir.mkdirs();
 
@@ -3741,6 +3976,12 @@ public class NgxBuilder extends MobileBuilder {
 	@Override
 	protected synchronized void moveFilesForce() {
 		if (pushedFiles != null /*&& queue != null*/) {
+			
+			if (!isReleasing) {
+				// retrieve necessary external component files
+				updateConsumer();
+			}
+			
 			synchronized (pushedFiles) {
 				int size = pushedFiles.size();
 				if (size > 0) {
@@ -3753,9 +3994,6 @@ public class NgxBuilder extends MobileBuilder {
 					Collections.sort(pathList, new AppFileComparator());
 					
 					boolean hasMovedFiles = false, hasDeletedFiles = false, hasMovedCfgFiles = false;
-					
-					// retrieve necessary external component files
-					updateConsumer();
 					
 					// write or delete files
 					for (String path: pathList) {
@@ -3793,9 +4031,6 @@ public class NgxBuilder extends MobileBuilder {
 					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
 						NgxBuilder.this.firePackageUpdated();
 					}
-				} else {
-					// retrieve necessary external component files
-					//updateConsumer();
 				}
 			}
 		}

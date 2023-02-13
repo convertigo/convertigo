@@ -224,22 +224,15 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	private transient String contributorsShot = null;
 	
-	private Object lock1 = new Object();
-	
 	@Override
-	public List<Contributor> getContributors() {
+	public synchronized List<Contributor> getContributors() {
 		if (contributors == null) {
-			synchronized (lock1) {
-				doGetContributors();
-			}
+			doGetContributors();
 		}
 		return contributors;
 	}
 	
-//	protected synchronized void doGetContributors() {
 	protected void doGetContributors() {
-		if (contributors != null) return;
-		
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
@@ -280,13 +273,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		contributorsShot = null;
 	}
 	
-	private Object lock2 = new Object();
+	public synchronized boolean isReset() {
+		return contributors == null;
+	}
 	
-	public JSONObject getComputedContents() {
+	public synchronized JSONObject getComputedContents() {
 		if (computedContents == null) {
-			synchronized (lock2) {
-				doComputeContents();
-			}
+			doComputeContents();
 		}
 		return computedContents;
 	}
@@ -294,8 +287,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	@Override
 	protected void doComputeContents() {
 		try {
-			if (computedContents != null) return;
-			
 			pageImports.clear();
 			pageDeclarations.clear();
 			pageConstructors.clear();
@@ -774,11 +765,12 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 
 	@Override
 	protected void addContributors(UIUseShared uiUse, Set<UIComponent> done, List<Contributor> contributors) {
-		if (!done.add(this)) {
+		/*if (!done.add(this)) {
 			return;
-		}
+		}*/
 		
 		//if (!isEnabled()) return;
+		if (getParent() == null) return;
 		
 		Contributor contributor = getContributor(uiUse);
 		if (contributor != null) {

@@ -80,7 +80,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void addConsumer(String compQName, String useQName) {
+	public void addConsumer(final String compQName, final String useQName) {
 //		if (compQName.startsWith(projectName(useQName) + "."))
 //			return;
 		synchronized (consumers) {
@@ -93,7 +93,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void removeConsumer(String compQName, String useQName) {
+	public void removeConsumer(final String compQName, final String useQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
 				consumers.get(compQName).remove(useQName);
@@ -101,7 +101,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void copyKey(String old_qname, String new_qname) {
+	public void copyKey(final String old_qname, final String new_qname) {
 		synchronized (consumers) {
 			if (consumers.get(old_qname) != null) {
 				Set<String> newSet = new HashSet<String>(consumers.get(old_qname));
@@ -110,7 +110,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void removeKey(String compQName) {
+	public void removeKey(final String compQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
 				consumers.remove(compQName);
@@ -168,7 +168,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return false;
     }
     
-    static private DatabaseObject getDatabaseObjectByQName(String qname) {
+    static public DatabaseObject getDatabaseObjectByQName(String qname) {
     	try {
 			qname = qname.replaceFirst("\\.\\w+?:$", "");
 			String[] name = qname.split("\\.");
@@ -241,7 +241,11 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getAllConsumers(compQName));
     }
     
-	private Set<String> getAllConsumers(String compQName) {
+    static public Set<String> getCompConsumers(String compQName) {
+    	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getConsumers(compQName));
+    }
+    
+	private Set<String> getAllConsumers(final String compQName) {
 		Set<String> set = new HashSet<String>();
 		try {
 	    	for (String keyQName: getKeys()) {
@@ -269,7 +273,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		return Collections.unmodifiableSet(set);
 	}
 	
-	private Set<String> getConsumers(String compQName) {
+	private Set<String> getConsumers(final String compQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
 				return Collections.unmodifiableSet(consumers.get(compQName));
