@@ -1293,9 +1293,16 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return treeObjectEvent.done;
 	}
+	protected Set<Object> checkReset(TreeObjectEvent treeObjectEvent) {
+		if (treeObjectEvent.reset == null) {
+			treeObjectEvent.reset = new HashSet<Object>();
+		}
+		return treeObjectEvent.reset;
+	}
 
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
+		checkReset(treeObjectEvent);
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		if (!(treeObject.equals(this)))
 			getDescriptors();// refresh editors (e.g labels in combobox)
@@ -1303,6 +1310,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
+		checkReset(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 
 		if (!(treeObject.equals(this))) {
@@ -1338,6 +1346,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
+		checkReset(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 
 		String propertyName = (String)treeObjectEvent.propertyName;

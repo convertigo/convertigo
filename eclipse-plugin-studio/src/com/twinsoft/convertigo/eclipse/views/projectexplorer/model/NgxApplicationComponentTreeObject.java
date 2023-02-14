@@ -56,12 +56,10 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
-import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
-import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
@@ -72,7 +70,6 @@ import com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
@@ -111,6 +108,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
+		Set<Object> reset = checkReset(treeObjectEvent);
 		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
@@ -123,10 +121,10 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					String deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
 
 					if (deletedTreeObject.isChildOf(this)) {
-						resetMainScriptComponents(parentOfDeleted);
+						resetMainScriptComponents(parentOfDeleted, reset);
 					}
 					for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
-						resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
+						resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
 					}
 					
 					if (deletedTreeObject.isChildOf(this)) {
@@ -189,7 +187,10 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
-					getObject().reset();
+					if (reset.add(getObject())) {
+						getObject().reset();
+						Engine.logEngine.trace("App "+ getObject().getQName() + " has been reset");
+					}
 					getObject().updateSourceFiles();
 				}				
 			} catch (Exception e) {
@@ -209,6 +210,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
+		Set<Object> reset = checkReset(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -272,8 +274,11 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
-					getObject().reset();
-					resetMainScriptComponents(dbo);
+					if (reset.add(getObject())) {
+						getObject().reset();
+						Engine.logEngine.trace("App "+ getObject().getQName() + " has been reset");
+					}
+					resetMainScriptComponents(dbo, reset);
 					getObject().updateSourceFiles();
 				}				
 			} catch (Exception e) {}
@@ -286,6 +291,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
+		Set<Object> reset = checkReset(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -558,8 +564,11 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					if (!done.add(getObject())) {
 						return;
 					}
-					getObject().reset();
-					resetMainScriptComponents(dbo);
+					if (reset.add(getObject())) {
+						getObject().reset();
+						Engine.logEngine.trace("App "+ getObject().getQName() + " has been reset");
+					}
+					resetMainScriptComponents(dbo, reset);
 					if (oldValue != null && newValue != null) {
 						getObject().updateSourceFiles();
 					}
@@ -568,44 +577,49 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		}
 	}
 	
-	private static void resetMainScriptComponents(DatabaseObject dbo) {
+	private static void resetMainScriptComponents(DatabaseObject dbo, Set<Object> reset) {
 		try {
 			if (dbo != null) {
+				if (!reset.add(dbo)) {
+					return;
+				}
+				
 				if (dbo instanceof ApplicationComponent) {
 					ApplicationComponent app = (ApplicationComponent)dbo;
 					if (!app.isReset()) {
 						app.reset();
-						Engine.logEngine.debug("Application "+ app.getName() + " has been reset");
+						Engine.logEngine.trace("App "+ app.getQName() + " has been reset");
 						return;
 					}
 				} else if (dbo instanceof PageComponent) {
 					PageComponent page = (PageComponent)dbo;
 					if (!page.isReset()) {
 						page.reset();
-						Engine.logEngine.debug("PageComponent "+ page.getName() + " has been reset");
+						Engine.logEngine.trace("Page "+ page.getQName() + " has been reset");
 						return;
 					}
 				} else if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					IScriptComponent main = uic.getMainScriptComponent();
 					if (main != null) {
+						reset.add(main);
 						if (main instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)main;
 							if (!app.isReset()) {
 								app.reset();
-								Engine.logEngine.debug("Application "+ app.getName() + " has been reset");
+								Engine.logEngine.trace("App "+ app.getQName() + " has been reset");
 							}
 						} else if (main instanceof PageComponent) {
 							PageComponent page = (PageComponent)main;
 							if (!page.isReset()) {
 								page.reset();
-								Engine.logEngine.debug("PageComponent "+ page.getName() + " has been reset");
+								Engine.logEngine.trace("Page "+ page.getQName() + " has been reset");
 							}
 						} else if (main instanceof UISharedComponent) {
 							UISharedComponent uisc = (UISharedComponent)main;
 							if (!uisc.isReset()) {
 								uisc.reset();
-								Engine.logEngine.debug("UISharedComponent "+ uisc.getName() + " has been reset");
+								Engine.logEngine.trace("Comp "+ uisc.getQName() + " has been reset");
 							}
 						}
 					}
@@ -614,14 +628,14 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					UIActionStack uias = uic.getSharedAction();
 					if (uias != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uias.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
 						}
 					}
 					// reset direct UIUseShared components
 					UISharedComponent uisc = uic.getSharedComponent();
 					if (uisc != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uisc.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
 						}
 					}
 				}

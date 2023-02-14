@@ -220,9 +220,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
     }
 
     static public Set<String> getProjectsForUpdate(String projectName) {
-    	Set<String> keys = ComponentRefManager.get(Mode.use).getKeys();
     	Set<String> set = new HashSet<String>();
-		for (String compQName: keys) {
+		for (String compQName: ComponentRefManager.get(Mode.use).copyKeys()) {
 			for (String useQName: getAllCompConsumers(compQName)) {
 				if (projectName(useQName).equals(projectName)) {
 					set.add(projectName(compQName));
@@ -297,6 +296,14 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	private Set<String> getKeys() {
 		synchronized (consumers) {
 			return Collections.unmodifiableSet(consumers.keySet());
+		}
+	}
+
+	private Set<String> copyKeys() {
+		synchronized (consumers) {
+			Set<String> set = new HashSet<String>();
+			set.addAll(Collections.unmodifiableSet(consumers.keySet()));
+			return set;
 		}
 	}
 	
