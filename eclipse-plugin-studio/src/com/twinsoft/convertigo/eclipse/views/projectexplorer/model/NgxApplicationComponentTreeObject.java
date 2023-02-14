@@ -569,10 +569,6 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	}
 	
 	private static void resetMainScriptComponents(DatabaseObject dbo) {
-		resetMainScriptComponents(dbo, 0);
-	}
-	
-	private static void resetMainScriptComponents(DatabaseObject dbo, int level) {
 		try {
 			if (dbo != null) {
 				if (dbo instanceof ApplicationComponent) {
@@ -614,22 +610,18 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 						}
 					}
 					
-					if (level == 1) {
-						return;
-					}
-					
 					// reset direct UIDynamicInvoke components
 					UIActionStack uias = uic.getSharedAction();
 					if (uias != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uias.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), 1);
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
 						}
 					}
 					// reset direct UIUseShared components
 					UISharedComponent uisc = uic.getSharedComponent();
 					if (uisc != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uisc.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), 1);
+							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName));
 						}
 					}
 				}

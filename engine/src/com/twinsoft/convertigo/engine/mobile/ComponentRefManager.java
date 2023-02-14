@@ -29,11 +29,10 @@ import java.util.Set;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
-import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
@@ -42,7 +41,6 @@ import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
 import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentRefManager implements DatabaseObjectListener {
@@ -118,51 +116,59 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-    static public boolean isEnabled(String qname) {
+	static public boolean isEnabled(String qname) {
+		if (qname != null && !qname.isEmpty()) {
+			DatabaseObject dbo = getDatabaseObjectByQName(qname);
+			if (dbo != null && dbo.getParent() != null) {
+				return isEnabled(dbo);
+			}
+		}
+		return false;
+	}
+	
+    static public boolean isEnabled(DatabaseObject dbo) {
     	try {
-    		if (qname != null && !qname.isEmpty()) {
-	    		DatabaseObject dbo = getDatabaseObjectByQName(qname);
-	    		if (dbo != null) {
-	    			DatabaseObject databaseObject = dbo;
-	    			while (!(databaseObject instanceof IScriptComponent) && databaseObject != null) { 
-	    				if (databaseObject instanceof UIComponent) {
-	    					if (!((UIComponent)databaseObject).isEnabled()) {
-	    						return false;
-	    					}
-	    					if (databaseObject instanceof UIUseShared) {
-	    						UIUseShared uius = (UIUseShared)databaseObject;
-	    						String comQName = uius.getSharedComponentQName();
-	    						if (!comQName.isEmpty() && !isEnabled(comQName)) {
-	    							return false;
-	    						}
-	    					}
-	    					if (databaseObject instanceof UIDynamicInvoke) {
-	    						UIDynamicInvoke uidi = (UIDynamicInvoke)databaseObject;
-	    						String comQName = uidi.getSharedActionQName();
-	    						if (!comQName.isEmpty() && !isEnabled(comQName)) {
-	    							return false;
-	    						}
-	    					}
-	    				}
-	    				databaseObject = databaseObject.getParent();
-	    				if (databaseObject instanceof UIActionStack) {
-	    					break;
-	    				}
+    		if (dbo != null) {
+    			DatabaseObject databaseObject = dbo;
+    			while (!(databaseObject instanceof IScriptComponent) && databaseObject != null) { 
+    				if (databaseObject instanceof UIComponent) {
+    					if (!((UIComponent)databaseObject).isEnabled()) {
+    						return false;
+    					}
+    					
+    					if (databaseObject instanceof UIUseShared) {
+    						UIUseShared uius = (UIUseShared)databaseObject;
+    						UISharedComponent uisc = uius.getTargetSharedComponent();
+    						if (uisc == null || (uisc != null && !uisc.isEnabled())) {
+    							return false;
+    						}
+    					}
+    					if (databaseObject instanceof UIDynamicInvoke) {
+    						UIDynamicInvoke uidi = (UIDynamicInvoke)databaseObject;
+    						UIActionStack uias = uidi.getTargetSharedAction();
+    						if (uias == null || (uias != null && !uias.isEnabled())) {
+    							return false;
+    						}
+    					}
+    				}
+    				databaseObject = databaseObject.getParent();
+    				if (databaseObject instanceof UIActionStack) {
+    					break;
+    				}
+    			}
+    			if (databaseObject != null) {
+	    			if (databaseObject instanceof ApplicationComponent) {
+	    				return true;
+	    			} else if (databaseObject instanceof PageComponent) {
+	    				return ((PageComponent)databaseObject).isEnabled();
+	    			} else if (databaseObject instanceof UISharedComponent) {
+	    				return ((UISharedComponent)databaseObject).isEnabled();
+	    			} else if (databaseObject instanceof UIActionStack) {
+	    				return ((UIActionStack)databaseObject).isEnabled();
 	    			}
-	    			if (databaseObject != null) {
-		    			if (databaseObject instanceof ApplicationComponent) {
-		    				return true;
-		    			} else if (databaseObject instanceof PageComponent) {
-		    				return ((PageComponent)databaseObject).isEnabled();
-		    			} else if (databaseObject instanceof UISharedComponent) {
-		    				return ((UISharedComponent)databaseObject).isEnabled();
-		    			} else if (databaseObject instanceof UIActionStack) {
-		    				return ((UIActionStack)databaseObject).isEnabled();
-		    			}
-	    			}
-	    		}
+    			}
     		}
-    	} catch (Exception e) {
+     	} catch (Exception e) {
     		e.printStackTrace();
     	}
     	return false;
@@ -214,8 +220,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
     }
 
     static public Set<String> getProjectsForUpdate(String projectName) {
+    	Set<String> keys = ComponentRefManager.get(Mode.use).getKeys();
     	Set<String> set = new HashSet<String>();
-		for (String compQName: ComponentRefManager.get(Mode.use).getKeys()) {
+		for (String compQName: keys) {
 			for (String useQName: getAllCompConsumers(compQName)) {
 				if (projectName(useQName).equals(projectName)) {
 					set.add(projectName(compQName));
@@ -245,10 +252,15 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getConsumers(compQName));
     }
     
-	private Set<String> getAllConsumers(final String compQName) {
+	private synchronized Set<String> getAllConsumers(String compQName) {
+		Set<String> keys;
+		synchronized (consumers) {
+			keys = Collections.unmodifiableSet(consumers.keySet());
+		}
+		
 		Set<String> set = new HashSet<String>();
 		try {
-	    	for (String keyQName: getKeys()) {
+	    	for (String keyQName: keys) {
 	    		if (!keyQName.equals(compQName)) {
 		    		for (String useQName: getConsumers(compQName)) {
 		    			if (useQName.startsWith(keyQName)) {
@@ -282,7 +294,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 
-	public Set<String> getKeys() {
+	private Set<String> getKeys() {
 		synchronized (consumers) {
 			return Collections.unmodifiableSet(consumers.keySet());
 		}

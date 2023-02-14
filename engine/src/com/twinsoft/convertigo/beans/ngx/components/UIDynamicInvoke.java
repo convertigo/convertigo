@@ -52,11 +52,11 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	
 	@Override
 	protected boolean isBroken() {
-		if (!ComponentRefManager.isEnabled(this.getQName())) {
-			return true;
+		boolean isBroken = getSharedActionQName().isEmpty() || getTargetSharedAction() == null || !getTargetSharedAction().isEnabled();
+		if (!isBroken) {
+			isBroken = !ComponentRefManager.isEnabled(this);
 		}
-		
-		return getSharedActionQName().isEmpty() || getTargetSharedAction() == null || !getTargetSharedAction().isEnabled();
+		return isBroken;
 	}
 	
 	@Override
