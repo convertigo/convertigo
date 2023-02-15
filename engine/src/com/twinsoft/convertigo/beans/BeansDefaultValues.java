@@ -572,6 +572,7 @@ public class BeansDefaultValues {
 				String classname = node.getNodeValue();
 				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).getConstructor().newInstance();
 				Element def = dbo.toXml(document);
+				((Element) xpath.selectNode(def, "property[@name='name']/*")).setAttribute("value", "");
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");
 				}

@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.admin.services.database_objects;
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
@@ -79,14 +78,14 @@ public class Set extends XmlService {
 		Element response = document.createElement("response");
 		
 		try {
-			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
+			
 			
 			xpath = new TwsCachedXPathAPI();
 			post = XMLUtils.parseDOM(request.getInputStream());
 			postElt = document.importNode(post.getFirstChild(), true);
 
 			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
-			DatabaseObject object = map.get(objectQName);
+			DatabaseObject object = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(objectQName);
 
 //			String comment = getPropertyValue(object, "comment").toString();
 //			object.setComment(comment);
@@ -97,9 +96,6 @@ public class Set extends XmlService {
 				String objectNewName = getPropertyValue(object, "name").toString();
 				
 				Engine.theApp.databaseObjectsManager.renameProject(project, objectNewName);
-				
-				map.remove(objectQName);
-				map.put(project.getQName(), project);
 			}
 
 			BeanInfo bi = CachedIntrospector.getBeanInfo(object.getClass());

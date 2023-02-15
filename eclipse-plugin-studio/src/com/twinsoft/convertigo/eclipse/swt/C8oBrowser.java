@@ -96,7 +96,11 @@ public class C8oBrowser extends Composite {
 		};
 		getBrowser().mainFrame().get().document().get().addEventListener(EventType.CLICK, observer, false);
 		getBrowser().navigation().on(FrameLoadFinished.class, event -> {
-			event.frame().document().get().addEventListener(EventType.CLICK, observer, false);
+			try {
+				event.frame().document().get().addEventListener(EventType.CLICK, observer, false);
+			} catch (Exception e) {
+				// can fail on img
+			}
 		});
 	}
 	

@@ -19,14 +19,24 @@
 
 package com.twinsoft.convertigo.eclipse.dnd;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+
 public class PaletteSource {
 	private String xmlData = null;
+	private DatabaseObject dbo = null;
 	
-	public PaletteSource(String xmlData) {
-		this.xmlData = xmlData;
+	public PaletteSource(DatabaseObject dbo) {
+		this.dbo = dbo;
 	}
 	
 	public String getXmlData() {
+		if (xmlData == null) {
+			xmlData = "";
+		}
 		return xmlData;
+	}
+	
+	public DatabaseObject getDatabaseObject() {
+		return dbo;
 	}
 }

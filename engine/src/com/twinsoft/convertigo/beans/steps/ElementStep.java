@@ -44,13 +44,14 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ElementStep extends StepWithExpressions implements IComplexTypeAffectation, ISimpleTypeAffectation, IElementRefAffectation {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
 	private String expression = "";
-	private String nodeName = "element";
+	private String nodeName = getName();
 	private String nodeText = "";
 	
 	public ElementStep() {
@@ -190,5 +191,18 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		element.setSchemaTypeName(getSimpleTypeAffectation());
 		return element;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "element";
 	}
 }

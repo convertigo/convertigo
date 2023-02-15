@@ -10,7 +10,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scriptContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -29,7 +29,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedTemplate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scriptContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -48,7 +48,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedAction"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIFontStyle" priority="0" version="   8   1   0">
@@ -71,7 +71,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FontStyle"/>
+            <java.lang.String value=""/>
         </property>
         <property name="ruleTargets">
             <java.lang.String value=""/>
@@ -98,7 +98,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Font"/>
+            <java.lang.String value=""/>
         </property>
         <property name="styleContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -125,7 +125,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   8   0   0">
@@ -147,7 +147,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="   8   0   0">
@@ -164,7 +164,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Read_CSV"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -217,7 +217,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent_Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICompEvent" priority="0" version="   8   0   0">
@@ -236,7 +236,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent_BindingEvent"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     
@@ -254,7 +254,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="NgxApp"/>
+            <java.lang.String value=""/>
         </property>
         <property name="splitPaneLayout">
             <java.lang.String value="not set"/>
@@ -280,7 +280,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Ionic3App"/>
+            <java.lang.String value=""/>
         </property>
         <property name="splitPaneLayout">
             <java.lang.String value="not set"/>
@@ -342,7 +342,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Application"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requireUserConfirmation">
             <java.lang.Boolean value="false"/>
@@ -362,7 +362,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent_Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="value">
             <java.lang.String value="''"/>
@@ -423,7 +423,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="CustomAsyncAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="package_dependencies">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -486,7 +486,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="CustomAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="package_dependencies">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -513,7 +513,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Read_XML"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -559,7 +559,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Read_JSON"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -598,7 +598,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="textValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
@@ -617,7 +617,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="textValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
@@ -645,7 +645,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Write_JSON"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -708,7 +708,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="ResetDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -762,7 +762,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutUpdate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -831,7 +831,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -891,7 +891,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attbase64">
             <java.lang.String value=""/>
@@ -963,7 +963,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1023,7 +1023,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PurgeDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1083,7 +1083,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostUpdate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1149,7 +1149,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_name">
             <java.lang.String value=""/>
@@ -1206,7 +1206,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostServerRestart"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -1257,7 +1257,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostReplicate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_cancel">
             <java.lang.String value=""/>
@@ -1335,7 +1335,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostFind"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_bookmark">
             <java.lang.String value=""/>
@@ -1425,7 +1425,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1494,7 +1494,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostCompact"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1551,7 +1551,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostBulkDocuments"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_all_or_nothing">
             <java.lang.String value=""/>
@@ -1623,7 +1623,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1716,7 +1716,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1770,7 +1770,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetView"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -1896,7 +1896,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -1947,7 +1947,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerUuids"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_count">
             <java.lang.String value=""/>
@@ -2001,7 +2001,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerUpdates"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_feed">
             <java.lang.String value=""/>
@@ -2064,7 +2064,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerTasks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -2115,7 +2115,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerStats"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -2172,7 +2172,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerLog"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_bytes">
             <java.lang.String value=""/>
@@ -2229,7 +2229,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerInfo"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -2280,7 +2280,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerDatabases"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_descending">
             <java.lang.String value=""/>
@@ -2346,7 +2346,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -2403,7 +2403,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -2496,7 +2496,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attname">
             <java.lang.String value=""/>
@@ -2562,7 +2562,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDatabaseInfo"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -2616,7 +2616,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -2667,7 +2667,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -2724,7 +2724,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -2787,7 +2787,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attname">
             <java.lang.String value=""/>
@@ -2853,7 +2853,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -2913,7 +2913,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="CustomTransaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -2967,7 +2967,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="CopyDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -3036,7 +3036,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="AllDocs"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -3180,7 +3180,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="XML_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -3255,7 +3255,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SQL_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -3316,7 +3316,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="Site_Clipper_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -3368,7 +3368,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="SAP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -3417,7 +3417,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="SAP_logon_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -3508,7 +3508,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="JSON_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -3584,7 +3584,7 @@
             </array>
         </property>
         <property name="name">
-            <java.lang.String value="Javelin_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="onlyOnePage">
             <java.lang.Boolean value="false"/>
@@ -3684,7 +3684,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -3784,7 +3784,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTML_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -3911,7 +3911,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="Download_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -3971,7 +3971,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="CICS_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputMap">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -4024,7 +4024,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SMTP_send"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -4109,7 +4109,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="JSON_to_XML"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -4146,7 +4146,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Object"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -4183,7 +4183,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Field"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -4228,7 +4228,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Array"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -4262,7 +4262,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="JsonSource"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -4309,7 +4309,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scriptContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -4325,7 +4325,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedTemplate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scriptContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -4345,7 +4345,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="UseVariable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="varValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
@@ -4369,7 +4369,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="EmitAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4393,7 +4393,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4413,7 +4413,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchCase_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="passThrough">
             <java.lang.Boolean value="false"/>
@@ -4430,7 +4430,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchDefault_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="passThrough">
             <java.lang.Boolean value="false"/>
@@ -4450,7 +4450,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4470,7 +4470,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchCase_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="passThrough">
             <java.lang.Boolean value="false"/>
@@ -4487,7 +4487,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SwitchDefault_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="passThrough">
             <java.lang.Boolean value="false"/>
@@ -4504,7 +4504,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="UseSharedComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4524,7 +4524,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Theme"/>
+            <java.lang.String value=""/>
         </property>
         <property name="styleContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -4541,7 +4541,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Style"/>
+            <java.lang.String value=""/>
         </property>
         <property name="styleContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -4557,7 +4557,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedAction_Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="value">
             <java.lang.String value="''"/>
@@ -4572,7 +4572,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="PageEvent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="viewEvent">
             <java.lang.String value="onDidEnter"/>
@@ -4589,7 +4589,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Form"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4606,7 +4606,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Subscribe_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="topic">
             <java.lang.String value=""/>
@@ -4623,7 +4623,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Tag"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4646,7 +4646,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicTag"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4669,7 +4669,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="TabButton"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4707,7 +4707,7 @@
             <java.lang.String value="'item\'s title'"/>
         </property>
         <property name="name">
-            <java.lang.String value="MenuItems"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4742,7 +4742,7 @@
             <java.lang.String value="'item\'s title'"/>
         </property>
         <property name="name">
-            <java.lang.String value="MenuItem"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4765,7 +4765,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Menu"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4788,7 +4788,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IterateAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4811,7 +4811,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="InvokeAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4837,7 +4837,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="AutoInfiniteScroll"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scrollaction">
             <java.lang.String value=""/>
@@ -4863,7 +4863,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfElseAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4886,7 +4886,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicElement"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4909,7 +4909,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4932,7 +4932,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicAttr"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="true"/>
@@ -4961,7 +4961,7 @@
             <java.lang.String value="single"/>
         </property>
         <property name="name">
-            <java.lang.String value="Animate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -4984,7 +4984,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -5005,7 +5005,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Fragment"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlVariable" priority="0" version="   8   0   0">
@@ -5016,7 +5016,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="varValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
@@ -5053,7 +5053,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Directive"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -5079,7 +5079,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Attr"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard" priority="0" version="   8   0   0">
@@ -5093,7 +5093,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="AppGuard"/>
+            <java.lang.String value=""/>
         </property>
         <property name="topic">
             <java.lang.String value="canActivate"/>
@@ -5110,7 +5110,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="AppEvent"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAnimation" priority="0" version="   8   0   0">
@@ -5135,7 +5135,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Animation"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack" priority="0" version="   8   0   0">
@@ -5146,7 +5146,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedAction"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent" priority="0" version="   8   0   0">
@@ -5157,7 +5157,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Loop_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="varIndexName">
             <java.lang.String value="index"/>
@@ -5174,7 +5174,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Finally_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent" priority="0" version="   8   0   0">
@@ -5185,7 +5185,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Failure_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent" priority="0" version="   8   0   0">
@@ -5196,7 +5196,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Error_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent" priority="0" version="   8   0   0">
@@ -5207,7 +5207,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Else_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent" isRoot="false" priority="0" version="   8   0   0">
@@ -5236,7 +5236,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Page"/>
+            <java.lang.String value=""/>
         </property>
         <property name="preloadPriority">
             <java.lang.String value="low"/>
@@ -5286,7 +5286,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attbase64">
             <java.lang.String value=""/>
@@ -5361,7 +5361,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -5433,7 +5433,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostBulkDocuments"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_all_or_nothing">
             <java.lang.String value=""/>
@@ -5547,7 +5547,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="XML_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -5658,7 +5658,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="JSON_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -5755,7 +5755,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -5855,7 +5855,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTML_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -5937,7 +5937,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Generic_Sequence"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -5985,7 +5985,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="5984"/>
@@ -6010,7 +6010,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Json_Index"/>
+            <java.lang.String value=""/>
         </property>
     </index>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction" default="false" priority="0" version="   7   7   0">
@@ -6042,7 +6042,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostFind"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_bookmark">
             <java.lang.String value=""/>
@@ -6126,7 +6126,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Page"/>
+            <java.lang.String value=""/>
         </property>
         <property name="preloadPriority">
             <java.lang.String value="low"/>
@@ -6178,7 +6178,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="CustomAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="package_dependencies">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -6220,7 +6220,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -6280,7 +6280,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostReplicate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_cancel">
             <java.lang.String value=""/>
@@ -6358,7 +6358,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetView"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -6484,7 +6484,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerUpdates"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_feed">
             <java.lang.String value=""/>
@@ -6547,7 +6547,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="AllDocs"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -6628,7 +6628,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Finally_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     
@@ -6643,7 +6643,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="textValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
@@ -6659,7 +6659,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent_Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="value">
             <java.lang.String value="''"/>
@@ -6694,7 +6694,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerDatabases"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_descending">
             <java.lang.String value=""/>
@@ -6736,7 +6736,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="PutOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -6753,7 +6753,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="PostOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -6770,7 +6770,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -6787,7 +6787,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="GetOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -6804,7 +6804,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -6830,7 +6830,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Project_reference"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -6863,7 +6863,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     
@@ -6883,7 +6883,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   7   6   2">
@@ -6899,7 +6899,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Application"/>
+            <java.lang.String value=""/>
         </property>
         <property name="splitPaneLayout">
             <java.lang.String value="not set"/>
@@ -6925,7 +6925,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfElseAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -6943,7 +6943,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Else_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective" priority="0" version="   7   6   0">
@@ -6974,7 +6974,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Directive"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -6994,7 +6994,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="UseSharedComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -7014,7 +7014,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponent"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent" priority="0" version="   7   6   0">
@@ -7025,7 +7025,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Loop_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="varIndexName">
             <java.lang.String value="index"/>
@@ -7048,7 +7048,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IterateAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -7069,7 +7069,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="AppEvent"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   7   6   0">
@@ -7085,7 +7085,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Application"/>
+            <java.lang.String value=""/>
         </property>
         <property name="splitPaneLayout">
             <java.lang.String value="not set"/>
@@ -7108,7 +7108,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="AutoInfiniteScroll"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scrollaction">
             <java.lang.String value=""/>
@@ -7149,7 +7149,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PurgeDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -7209,7 +7209,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="AllDocs"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -7281,7 +7281,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedAction_Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="value">
             <java.lang.String value="''"/>
@@ -7302,7 +7302,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="InvokeAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -7322,7 +7322,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedAction"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   6   0">
@@ -7357,7 +7357,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="5984"/>
@@ -7398,7 +7398,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="CouchDB_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="5984"/>
@@ -7421,7 +7421,7 @@
             <java.lang.String value="new variable"/>
         </property>
         <property name="name">
-            <java.lang.String value="Call_Single_Valued_Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -7451,7 +7451,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="CustomValidator"/>
+            <java.lang.String value=""/>
         </property>
         <property name="validatorValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -7485,7 +7485,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="QueryParameter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -7517,7 +7517,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="PathParameter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="true"/>
@@ -7549,7 +7549,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="HeaderParameter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -7581,7 +7581,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="FormParameter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -7616,7 +7616,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="BodyParameter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -7633,7 +7633,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="BasicAuthentication"/>
+            <java.lang.String value=""/>
         </property>
     </urlauthentication>
     <step classname="com.twinsoft.convertigo.beans.steps.PdfFormStep" priority="0" version="   7   6   0">
@@ -7657,7 +7657,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Form_PDF"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -7697,7 +7697,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Hash_code"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="hash"/>
@@ -7739,7 +7739,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="textValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
@@ -7755,7 +7755,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="varValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
@@ -7782,7 +7782,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Event"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     
@@ -7802,7 +7802,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Attr"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAnimation" priority="0" version="   7   6   0">
@@ -7827,7 +7827,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Animation"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction" default="false" priority="0" version="   7   6   0">
@@ -7859,7 +7859,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="ResetDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -7913,7 +7913,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutUpdate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -7982,7 +7982,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -8042,7 +8042,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attname">
             <java.lang.String value=""/>
@@ -8108,7 +8108,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PutDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8162,7 +8162,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostUpdate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8228,7 +8228,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_name">
             <java.lang.String value=""/>
@@ -8285,7 +8285,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostServerRestart"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -8336,7 +8336,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostReplicate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_cancel">
             <java.lang.String value=""/>
@@ -8414,7 +8414,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8480,7 +8480,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostCompact"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8537,7 +8537,7 @@
             <java.lang.String value="fromAuthenticatedUser"/>
         </property>
         <property name="name">
-            <java.lang.String value="PostBulkDocuments"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_all_or_nothing">
             <java.lang.String value=""/>
@@ -8606,7 +8606,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8699,7 +8699,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8753,7 +8753,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetView"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -8870,7 +8870,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -8921,7 +8921,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerUuids"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_count">
             <java.lang.String value=""/>
@@ -8975,7 +8975,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerUpdates"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_feed">
             <java.lang.String value=""/>
@@ -9035,7 +9035,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerTasks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -9086,7 +9086,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerStats"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -9143,7 +9143,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerLog"/>
+            <java.lang.String value=""/>
         </property>
         <property name="q_bytes">
             <java.lang.String value=""/>
@@ -9200,7 +9200,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerInfo"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -9251,7 +9251,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerDatabases"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -9302,7 +9302,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -9359,7 +9359,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -9452,7 +9452,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attname">
             <java.lang.String value=""/>
@@ -9518,7 +9518,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="GetDatabaseInfo"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -9572,7 +9572,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteSession"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -9623,7 +9623,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteServerConfig"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_key">
             <java.lang.String value=""/>
@@ -9680,7 +9680,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -9743,7 +9743,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDocumentAttachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_attname">
             <java.lang.String value=""/>
@@ -9809,7 +9809,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteDatabase"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -9869,7 +9869,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="CustomTransaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -9923,7 +9923,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="CopyDocument"/>
+            <java.lang.String value=""/>
         </property>
         <property name="p_db">
             <java.lang.String value=""/>
@@ -10034,7 +10034,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="XML_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -10109,7 +10109,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SQL_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -10170,7 +10170,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="Site_Clipper_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -10222,7 +10222,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="SAP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -10271,7 +10271,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="SAP_logon_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -10362,7 +10362,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
         <property name="name">
-            <java.lang.String value="JSON_HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -10438,7 +10438,7 @@
             </array>
         </property>
         <property name="name">
-            <java.lang.String value="Javelin_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="onlyOnePage">
             <java.lang.Boolean value="false"/>
@@ -10538,7 +10538,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -10638,7 +10638,7 @@
             <java.lang.String value="GET"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTML_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requestTemplate">
             <java.lang.String value=""/>
@@ -10722,7 +10722,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="CICS_transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputMap">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -10785,7 +10785,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Generic_Sequence"/>
+            <java.lang.String value=""/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -10863,7 +10863,7 @@
             <java.lang.Integer value="2"/>
         </property>
         <property name="name">
-            <java.lang.String value="Menu"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -10904,7 +10904,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Edit_field"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -11058,7 +11058,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Videotex_commands"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -11099,7 +11099,7 @@
             <java.lang.String value="new variable"/>
         </property>
         <property name="name">
-            <java.lang.String value="Test_single_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -11122,7 +11122,7 @@
             <java.lang.String value="new variable"/>
         </property>
         <property name="name">
-            <java.lang.String value="Test_multi_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -11148,7 +11148,7 @@
             <java.lang.String value="new variable"/>
         </property>
         <property name="name">
-            <java.lang.String value="Call_multi_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -11187,7 +11187,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Request_single_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="personalizable">
             <java.lang.Boolean value="false"/>
@@ -11230,7 +11230,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Request_multi_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="personalizable">
             <java.lang.Boolean value="false"/>
@@ -11290,7 +11290,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_single_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="personalizable">
             <java.lang.Boolean value="false"/>
@@ -11348,7 +11348,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_multi_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="personalizable">
             <java.lang.Boolean value="false"/>
@@ -11393,7 +11393,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_single_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -11422,7 +11422,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_multi_valued_variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="required">
             <java.lang.Boolean value="false"/>
@@ -11488,7 +11488,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Transform"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11539,7 +11539,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Split"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11590,7 +11590,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Sort"/>
+            <java.lang.String value=""/>
         </property>
         <property name="optionSort">
             <java.lang.String value=""/>
@@ -11653,7 +11653,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Generate_dates"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11722,7 +11722,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="Error_structure"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -11754,7 +11754,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Element"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11803,7 +11803,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Date_Time"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11852,7 +11852,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Count"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11895,7 +11895,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Copy"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -11932,7 +11932,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Concat"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -11975,7 +11975,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Complex"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="complex"/>
@@ -12010,7 +12010,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Attribute"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="attribute"/>
@@ -12074,7 +12074,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Write_XML"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12129,7 +12129,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Write_CSV"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12187,7 +12187,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Write_binary_from_Base64"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12230,7 +12230,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jWhile"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12273,7 +12273,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Call_Transaction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12309,7 +12309,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jThen"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12341,7 +12341,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jSource"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12392,7 +12392,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SMTP_send"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12462,7 +12462,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Sleep"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12497,7 +12497,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Sequence_JS"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12529,7 +12529,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jSimpleSource"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12575,7 +12575,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jIterator"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12610,7 +12610,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_response_status"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12662,7 +12662,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_response_header"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12694,7 +12694,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_authenticated_user"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12739,7 +12739,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_in_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12774,7 +12774,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_object_in_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12814,7 +12814,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_from_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12849,7 +12849,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_from_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -12884,7 +12884,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_object_from_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="true"/>
@@ -12919,7 +12919,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Serial"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -12963,7 +12963,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Call_Sequence"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13002,7 +13002,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Return"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13034,7 +13034,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Rename_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="newName">
             <java.lang.String value=""/>
@@ -13075,7 +13075,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_session"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13110,7 +13110,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_context"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13142,7 +13142,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_authenticated_user"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13177,7 +13177,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Read_XML"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13218,7 +13218,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Read_CSV"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13283,7 +13283,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Push_Notifications"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13342,7 +13342,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Process_execute"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13380,7 +13380,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Parallel"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13418,7 +13418,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Move_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13465,7 +13465,7 @@
             <java.lang.String value="cems.Context"/>
         </property>
         <property name="name">
-            <java.lang.String value="Log"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13500,7 +13500,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="List_directory"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13563,7 +13563,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="LDAP_Authentication"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13608,7 +13608,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Iterator"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13651,7 +13651,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfIsInThenElse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13696,7 +13696,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfIsIn"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13738,7 +13738,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Input_variables"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="inputVars"/>
@@ -13776,7 +13776,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jIfThenElse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13811,7 +13811,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jIf"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13846,7 +13846,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfFileExistsThenElse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13881,7 +13881,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfFileExists"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13916,7 +13916,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfExistThenElse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13956,7 +13956,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfExist"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -13998,7 +13998,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_request_header"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14030,7 +14030,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_authenticated_user"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="authenticatedUserID"/>
@@ -14066,7 +14066,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jFunction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14104,7 +14104,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jException"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14136,7 +14136,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jElse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14171,7 +14171,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jElement"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="element"/>
@@ -14212,7 +14212,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Duplicate_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14253,7 +14253,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jDoWhile"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14285,7 +14285,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Delete_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14326,7 +14326,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Create_directory"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14361,7 +14361,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Copy_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14402,7 +14402,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jBreak"/>
+            <java.lang.String value=""/>
         </property>
         <property name="output">
             <java.lang.Boolean value="false"/>
@@ -14437,7 +14437,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="jAttribute"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nodeName">
             <java.lang.String value="attribute"/>
@@ -14484,7 +14484,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="While"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.WaitTriggerStatement" priority="0" version="   7   6   0">
@@ -14495,7 +14495,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Wait_synchronization"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -14521,7 +14521,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Then"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.TabManagementStatement" priority="0" version="   7   6   0">
@@ -14541,7 +14541,7 @@
             <java.lang.String value="1"/>
         </property>
         <property name="name">
-            <java.lang.String value="Tab_management"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.SimpleStatement" priority="0" version="   7   6   0">
@@ -14555,7 +14555,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Transaction_JS"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement" priority="0" version="   7   6   0">
@@ -14575,7 +14575,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="onExit"/>
+            <java.lang.String value=""/>
         </property>
         <property name="normalizedScreenClassName">
             <java.lang.String value=""/>
@@ -14598,7 +14598,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="onTransactionDefaultHandlerExit"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement" priority="0" version="   7   6   0">
@@ -14618,7 +14618,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="onEntry"/>
+            <java.lang.String value=""/>
         </property>
         <property name="normalizedScreenClassName">
             <java.lang.String value=""/>
@@ -14641,7 +14641,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="onTransactionDefaultHandlerEntry"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ReturnStatement" priority="0" version="   7   6   0">
@@ -14655,7 +14655,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Return"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.RecordForSiteClipperStatement" priority="0" version="   7   6   0">
@@ -14669,7 +14669,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Recorder_for_Site_Clipper"/>
+            <java.lang.String value=""/>
         </property>
         <property name="urlRegex">
             <java.lang.String value=".*"/>
@@ -14689,7 +14689,7 @@
             <java.lang.String value="&quot;about:blank&quot;"/>
         </property>
         <property name="name">
-            <java.lang.String value="Navigation_bar"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -14724,7 +14724,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Mouse_action"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -14780,7 +14780,7 @@
             <java.lang.String value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Mouse_action_advanced"/>
+            <java.lang.String value=""/>
         </property>
         <property name="screenX">
             <java.lang.String value="-1"/>
@@ -14830,7 +14830,7 @@
             <java.lang.String value="INFO"/>
         </property>
         <property name="name">
-            <java.lang.String value="Log"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.KeyStatement" priority="0" version="   7   6   0">
@@ -14862,7 +14862,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Key_action"/>
+            <java.lang.String value=""/>
         </property>
         <property name="shiftKey">
             <java.lang.Boolean value="false"/>
@@ -14903,7 +14903,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Inject_JS_in_browser"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -14943,7 +14943,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Input_HTML_set_value"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -14984,7 +14984,7 @@
             <java.lang.String value="by index"/>
         </property>
         <property name="name">
-            <java.lang.String value="Input_HTML_set_selected"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -15022,7 +15022,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Input_HTML_set_file"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -15060,7 +15060,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Input_HTML_set_checked"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -15095,7 +15095,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfXpathExistsThenElse"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement" priority="0" version="   7   6   0">
@@ -15109,7 +15109,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfXpathExists"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement" priority="0" version="   7   6   0">
@@ -15123,7 +15123,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfThenElse"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.IfStatement" priority="0" version="   7   6   0">
@@ -15137,7 +15137,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="If"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.HandlerStatement" priority="0" version="   7   6   0">
@@ -15157,7 +15157,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="onTransactionStarted"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.HTTPUploadStatement" priority="0" version="   7   6   0">
@@ -15194,7 +15194,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_upload_request"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="80"/>
@@ -15252,7 +15252,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_request"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="80"/>
@@ -15290,7 +15290,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_URL"/>
+            <java.lang.String value=""/>
         </property>
         <property name="variableName">
             <java.lang.String value="//todo"/>
@@ -15307,7 +15307,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="variableName">
             <java.lang.String value="nodeText"/>
@@ -15327,7 +15327,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_nodes"/>
+            <java.lang.String value=""/>
         </property>
         <property name="variableName">
             <java.lang.String value="nodeList"/>
@@ -15347,7 +15347,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Get_attachment"/>
+            <java.lang.String value=""/>
         </property>
         <property name="policy">
             <java.lang.String value="localfile_override"/>
@@ -15367,7 +15367,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Function"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ExceptionStatement" priority="0" version="   7   6   0">
@@ -15381,7 +15381,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Exception"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ElseStatement" priority="0" version="   7   6   0">
@@ -15392,7 +15392,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Else"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.DoWhileStatement" priority="0" version="   7   6   0">
@@ -15406,7 +15406,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Do_while"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.CredentialsStatement" priority="0" version="   7   6   0">
@@ -15420,7 +15420,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Credentials"/>
+            <java.lang.String value=""/>
         </property>
         <property ciphered="true" name="password">
             <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
@@ -15443,7 +15443,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Create_event"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trigger">
             <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
@@ -15475,7 +15475,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Cookies_Get"/>
+            <java.lang.String value=""/>
         </property>
         <property name="separator">
             <java.lang.String value="|"/>
@@ -15495,7 +15495,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Cookies_Add"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement" priority="0" version="   7   6   0">
@@ -15506,7 +15506,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Continue_with_Site_Clipper"/>
+            <java.lang.String value=""/>
         </property>
         <property name="siteClipperConnectorName">
             <java.lang.String value=""/>
@@ -15526,7 +15526,7 @@
             <java.lang.String value="keyname"/>
         </property>
         <property name="name">
-            <java.lang.String value="Context_Set"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement" priority="0" version="   7   6   0">
@@ -15540,7 +15540,7 @@
             <java.lang.String value="keyname"/>
         </property>
         <property name="name">
-            <java.lang.String value="Context_Get"/>
+            <java.lang.String value=""/>
         </property>
         <property name="variable">
             <java.lang.String value="varname"/>
@@ -15557,7 +15557,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Context_Add_text_node"/>
+            <java.lang.String value=""/>
         </property>
         <property name="node">
             <java.lang.String value=""/>
@@ -15574,7 +15574,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Container"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.CallFunctionStatement" priority="0" version="   7   6   0">
@@ -15588,7 +15588,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Call_function"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement" priority="0" version="   7   6   0">
@@ -15644,7 +15644,7 @@
             <java.lang.String value="noChange"/>
         </property>
         <property name="name">
-            <java.lang.String value="Browser_property_change"/>
+            <java.lang.String value=""/>
         </property>
         <property name="pluginMode">
             <java.lang.String value="noChange"/>
@@ -15664,7 +15664,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Break"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <statement classname="com.twinsoft.convertigo.beans.statements.AdoptClientCookies" priority="0" version="   7   6   0">
@@ -15675,7 +15675,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Adopt_client_cookies"/>
+            <java.lang.String value=""/>
         </property>
     </statement>
     <extractionrule classname="com.twinsoft.convertigo.beans.sna.Subfile" priority="0" version="   7   6   0">
@@ -15698,7 +15698,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Subfile"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -15763,7 +15763,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="_5250_extended_objects"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -15804,7 +15804,7 @@
             <java.lang.String value=".-"/>
         </property>
         <property name="name">
-            <java.lang.String value="AS400_menu"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -16268,7 +16268,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SNA_commands"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -16304,7 +16304,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Site_Clipper_screen_class"/>
+            <java.lang.String value=""/>
         </property>
         <property name="orderedCriterias">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -16330,7 +16330,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Javelin_screen_class"/>
+            <java.lang.String value=""/>
         </property>
         <property name="orderedCriterias">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -16356,7 +16356,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="HTML_screen_class"/>
+            <java.lang.String value=""/>
         </property>
         <property name="orderedCriterias">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -16383,7 +16383,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="PutOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -16397,7 +16397,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="PostOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -16412,7 +16412,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="PathMapping"/>
+            <java.lang.String value=""/>
         </property>
         <property name="path">
             <java.lang.String value="/"/>
@@ -16426,7 +16426,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="OperationResponse"/>
+            <java.lang.String value=""/>
         </property>
         <property name="statusCode">
             <java.lang.String value="200"/>
@@ -16444,7 +16444,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="HeadOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -16458,7 +16458,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="GetOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -16473,7 +16473,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="DeleteOperation"/>
+            <java.lang.String value=""/>
         </property>
         <property name="outputContent">
             <java.lang.String value="toJson"/>
@@ -16497,7 +16497,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SOAP_web_service"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16520,7 +16520,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="REST_web_service"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16543,7 +16543,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Import_Project_schema"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16569,7 +16569,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Include_XSD_schema"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16592,7 +16592,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Import_XSD_schema"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16615,7 +16615,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Import_WSDL_schema"/>
+            <java.lang.String value=""/>
         </property>
         <property name="needAuthentication">
             <java.lang.Boolean value="false"/>
@@ -16632,7 +16632,7 @@
             <java.lang.String value="wp8"/>
         </property>
         <property name="name">
-            <java.lang.String value="Windows_Phone_8"/>
+            <java.lang.String value=""/>
         </property>
         <property name="winphonePublisherIdTitle">
             <java.lang.String value=""/>
@@ -16646,7 +16646,7 @@
             <java.lang.String value="windows"/>
         </property>
         <property name="name">
-            <java.lang.String value="Windows"/>
+            <java.lang.String value=""/>
         </property>
     </mobileplatform>
     <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.IOs" priority="0" version="   7   6   0">
@@ -16663,7 +16663,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="iOS"/>
+            <java.lang.String value=""/>
         </property>
     </mobileplatform>
     <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.Android" priority="0" version="   7   6   0">
@@ -16683,7 +16683,7 @@
             <java.lang.String value="android"/>
         </property>
         <property name="name">
-            <java.lang.String value="Android"/>
+            <java.lang.String value=""/>
         </property>
     </mobileplatform>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UITheme" priority="0" version="   7   6   0">
@@ -16694,7 +16694,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Theme"/>
+            <java.lang.String value=""/>
         </property>
         <property name="styleContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -16711,7 +16711,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Style"/>
+            <java.lang.String value=""/>
         </property>
         <property name="styleContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -16727,7 +16727,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="PageEvent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="viewEvent">
             <java.lang.String value="onDidEnter"/>
@@ -16754,7 +16754,7 @@
             <java.lang.String value="not set"/>
         </property>
         <property name="name">
-            <java.lang.String value="ControlValidator"/>
+            <java.lang.String value=""/>
         </property>
         <property name="pattern">
             <java.lang.String value="not set"/>
@@ -16777,7 +16777,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Form"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16794,7 +16794,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Subscribe_Handler"/>
+            <java.lang.String value=""/>
         </property>
         <property name="topic">
             <java.lang.String value=""/>
@@ -16811,7 +16811,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Tag"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16834,7 +16834,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicTag"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16857,7 +16857,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicTab"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16895,7 +16895,7 @@
             <java.lang.String value="'item\\'s title'"/>
         </property>
         <property name="name">
-            <java.lang.String value="MenuItems"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16930,7 +16930,7 @@
             <java.lang.String value="'item\\'s title'"/>
         </property>
         <property name="name">
-            <java.lang.String value="MenuItem"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16953,7 +16953,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Menu"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16976,7 +16976,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicElement"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -16999,7 +16999,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicComponent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -17028,7 +17028,7 @@
             <java.lang.String value="single"/>
         </property>
         <property name="name">
-            <java.lang.String value="Animate"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -17051,7 +17051,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -17095,7 +17095,7 @@
             </xmlizable>
         </property>
         <property name="name">
-            <java.lang.String value="CustomAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="package_dependencies">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -17119,7 +17119,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Fragment"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     
@@ -17135,7 +17135,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Failure_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent" priority="0" version="   7   6   0">
@@ -17146,7 +17146,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Error_Handler"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent" priority="0" version="   7   6   0">
@@ -17160,7 +17160,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SequenceEvent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="source">
             <java.lang.String value=""/>
@@ -17177,7 +17177,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSyncEvent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="source">
             <java.lang.String value=""/>
@@ -17200,7 +17200,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="ExceptionAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="page">
             <java.lang.String value=""/>
@@ -17226,7 +17226,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="CustomEvent"/>
+            <java.lang.String value=""/>
         </property>
         <property name="source">
             <java.lang.String value="*"/>
@@ -17246,7 +17246,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DataAction"/>
+            <java.lang.String value=""/>
         </property>
         <property name="page">
             <java.lang.String value=""/>
@@ -17269,7 +17269,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="NavRoute"/>
+            <java.lang.String value=""/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   6   0">
@@ -17292,7 +17292,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Page"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scriptContent">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
@@ -17315,7 +17315,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Delete_nodes"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value=""/>
@@ -17329,7 +17329,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="text">
             <java.lang.String value=""/>
@@ -17349,7 +17349,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_link"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetBlank">
             <java.lang.Boolean value="false"/>
@@ -17372,7 +17372,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_image"/>
+            <java.lang.String value=""/>
         </property>
         <property name="text">
             <java.lang.String value=""/>
@@ -17395,7 +17395,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_button"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetBlank">
             <java.lang.Boolean value="false"/>
@@ -17418,7 +17418,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Set_HTTP_Pool_Policy"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ScriptInjector" priority="0" version="   7   6   0">
@@ -17438,7 +17438,7 @@
             <java.lang.String value="head_bottom"/>
         </property>
         <property name="name">
-            <java.lang.String value="Script_injector"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteLocationHeader" priority="0" version="   7   6   0">
@@ -17449,7 +17449,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Rewrite_location_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteAbsoluteUrl" priority="0" version="   7   6   0">
@@ -17460,7 +17460,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Rewrite_absolute_URL"/>
+            <java.lang.String value=""/>
         </property>
         <property name="rewriteCss">
             <java.lang.Boolean value="true"/>
@@ -17480,7 +17480,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Response_JS"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript" priority="0" version="   7   6   0">
@@ -17494,7 +17494,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Request_JS"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ReplaceString" priority="0" version="   7   6   0">
@@ -17505,7 +17505,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Replace_string"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17528,7 +17528,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_response_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromRequest" priority="0" version="   7   6   0">
@@ -17545,7 +17545,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_request_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromResponse" priority="0" version="   7   6   0">
@@ -17556,7 +17556,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_response_cache_headers"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromRequest" priority="0" version="   7   6   0">
@@ -17567,7 +17567,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Remove_request_cache_headers"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfResponse" priority="0" version="   7   6   0">
@@ -17584,7 +17584,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Modify_response_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfRequest" priority="0" version="   7   6   0">
@@ -17601,7 +17601,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Modify_request_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.CssInjector" priority="0" version="   7   6   0">
@@ -17621,7 +17621,7 @@
             <java.lang.String value="head_bottom"/>
         </property>
         <property name="name">
-            <java.lang.String value="CSS_injector"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetValue" priority="0" version="   7   6   0">
@@ -17632,7 +17632,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Client_instruction_set_value"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetPath">
             <java.lang.String value="&quot;#targetId&quot;"/>
@@ -17649,7 +17649,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Client_instruction_set_checked"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetPath">
             <java.lang.String value="&quot;#targetId&quot;"/>
@@ -17666,7 +17666,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Client_instruction_click"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetPath">
             <java.lang.String value="&quot;#targetId&quot;"/>
@@ -17686,7 +17686,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_response_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToRequest" priority="0" version="   7   6   0">
@@ -17703,7 +17703,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Add_request_header"/>
+            <java.lang.String value=""/>
         </property>
     </extractionrule>
     <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchUrl" priority="0" version="   7   6   0">
@@ -17714,7 +17714,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="URL"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17728,7 +17728,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Status_Code"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17742,7 +17742,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Regular_expression"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17756,7 +17756,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="MIME_type"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value="text/"/>
@@ -17773,7 +17773,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Response_header"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17790,7 +17790,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Request_header"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -17810,7 +17810,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_Update_Listener_View"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetSequence">
             <java.lang.String value=""/>
@@ -17830,7 +17830,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_Update_Listener_Filter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetFilter">
             <java.lang.String value="_doc_ids"/>
@@ -17850,7 +17850,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_Delete_Listener_View"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetSequence">
             <java.lang.String value=""/>
@@ -17870,7 +17870,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="FullSync_Delete_Listener_Filter"/>
+            <java.lang.String value=""/>
         </property>
         <property name="targetFilter">
             <java.lang.String value="_doc_ids"/>
@@ -17890,7 +17890,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Design_document"/>
+            <java.lang.String value=""/>
         </property>
         <docdata><![CDATA[{}]]></docdata>
     </document>
@@ -17902,7 +17902,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="UrlMapper"/>
+            <java.lang.String value=""/>
         </property>
         <property name="prefix">
             <java.lang.String value=""/>
@@ -17913,7 +17913,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Test_Case"/>
+            <java.lang.String value=""/>
         </property>
     </testcase>
     <sheet classname="com.twinsoft.convertigo.beans.core.Sheet" priority="0" version="   7   6   0">
@@ -17924,7 +17924,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Style_sheet"/>
+            <java.lang.String value=""/>
         </property>
         <property name="url">
             <java.lang.String value=""/>
@@ -17958,7 +17958,7 @@
             <java.lang.String value="docChildNodes"/>
         </property>
         <property name="name">
-            <java.lang.String value="Project"/>
+            <java.lang.String value=""/>
         </property>
         <property name="namespaceUri">
             <java.lang.String value=""/>
@@ -17992,7 +17992,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Pool"/>
+            <java.lang.String value=""/>
         </property>
         <property name="numberOfContexts">
             <java.lang.Integer value="1"/>
@@ -18059,7 +18059,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Mobile_application"/>
+            <java.lang.String value=""/>
         </property>
         <property name="requireUserConfirmation">
             <java.lang.Boolean value="false"/>
@@ -18106,7 +18106,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SQL_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="systemTablesQuery">
             <java.lang.String value=""/>
@@ -18149,7 +18149,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Site_Clipper_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="trustAllServerCertificates">
             <java.lang.Boolean value="false"/>
@@ -18187,7 +18187,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="SAP_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property ciphered="true" name="password">
             <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
@@ -18242,7 +18242,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Proxy_HTTP_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="80"/>
@@ -18293,7 +18293,7 @@
             <java.lang.Integer value="0"/>
         </property>
         <property name="name">
-            <java.lang.String value="Javelin_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="serviceCode">
             <java.lang.String value="none"/>
@@ -18345,7 +18345,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="80"/>
@@ -18400,7 +18400,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTML_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="parseMode">
             <java.lang.String value="m4_5"/>
@@ -18437,7 +18437,7 @@
             <java.lang.String value="localhost"/>
         </property>
         <property name="name">
-            <java.lang.String value="CICS_connector"/>
+            <java.lang.String value=""/>
         </property>
         <property name="port">
             <java.lang.Integer value="2006"/>
@@ -18457,7 +18457,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="XPath"/>
+            <java.lang.String value=""/>
         </property>
         <property name="reverseResult">
             <java.lang.Boolean value="false"/>
@@ -18474,7 +18474,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Variable"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value=""/>
@@ -18491,7 +18491,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="recurse">
             <java.lang.Boolean value="false"/>
@@ -18525,7 +18525,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Table"/>
+            <java.lang.String value=""/>
         </property>
         <property name="tagName">
             <java.lang.String value="XMLTable"/>
@@ -18550,7 +18550,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Record"/>
+            <java.lang.String value=""/>
         </property>
         <property name="tagName">
             <java.lang.String value="XMLRecord"/>
@@ -18582,7 +18582,7 @@
             <java.lang.Long value="100"/>
         </property>
         <property name="name">
-            <java.lang.String value="Print_screen"/>
+            <java.lang.String value=""/>
         </property>
         <property name="scale">
             <java.lang.Float value="1.0"/>
@@ -18608,7 +18608,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Node_list"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value=""/>
@@ -18622,7 +18622,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Node"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value=""/>
@@ -18636,7 +18636,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Page_URL"/>
+            <java.lang.String value=""/>
         </property>
         <property name="tagName">
             <java.lang.String value="HttpUrl"/>
@@ -18653,7 +18653,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="HTTP_headers"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value="/"/>
@@ -18726,7 +18726,7 @@
             <java.lang.String value="off"/>
         </property>
         <property name="name">
-            <java.lang.String value="Advanced_Web_Clipper"/>
+            <java.lang.String value=""/>
         </property>
         <property name="xpath">
             <java.lang.String value=""/>
@@ -18805,7 +18805,7 @@
             <java.lang.String value="off"/>
         </property>
         <property name="name">
-            <java.lang.String value="Web_Clipper"/>
+            <java.lang.String value=""/>
         </property>
         <property name="transactionName">
             <java.lang.String value=""/>
@@ -18819,7 +18819,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="URL"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regexp">
             <java.lang.String value=""/>
@@ -18845,7 +18845,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Trim_spaces"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -18892,7 +18892,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Translate_text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -18939,7 +18939,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Tag_name"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19014,7 +19014,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Table"/>
+            <java.lang.String value=""/>
         </property>
         <property name="offset">
             <java.lang.Integer value="0"/>
@@ -19076,7 +19076,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Tab_boxes"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19144,7 +19144,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Style_of_blocks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19193,7 +19193,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Split_string_to_table"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19258,7 +19258,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Split_block"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19299,7 +19299,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Slider"/>
+            <java.lang.String value=""/>
         </property>
         <property name="screenHiddenPattern">
             <java.lang.String value=":"/>
@@ -19346,7 +19346,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Separator"/>
+            <java.lang.String value=""/>
         </property>
         <property name="nbOccurrences">
             <java.lang.Integer value="10"/>
@@ -19393,7 +19393,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Replace_text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regExp">
             <java.lang.Boolean value="false"/>
@@ -19446,7 +19446,7 @@
             <java.lang.Integer value="-1"/>
         </property>
         <property name="name">
-            <java.lang.String value="Delete_blocks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regularExpression">
             <java.lang.String value=""/>
@@ -19484,7 +19484,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Regular_expression"/>
+            <java.lang.String value=""/>
         </property>
         <property name="regularExpression">
             <java.lang.String value=""/>
@@ -19522,7 +19522,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Record"/>
+            <java.lang.String value=""/>
         </property>
         <property name="perPage">
             <java.lang.Boolean value="false"/>
@@ -19566,7 +19566,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Radio_button"/>
+            <java.lang.String value=""/>
         </property>
         <property name="options">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
@@ -19645,7 +19645,7 @@
             <java.lang.Integer value="4"/>
         </property>
         <property name="name">
-            <java.lang.String value="Panel"/>
+            <java.lang.String value=""/>
         </property>
         <property name="removeBlocksInBorder">
             <java.lang.Boolean value="true"/>
@@ -19722,7 +19722,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="Move_blocks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19766,7 +19766,7 @@
             <java.lang.String value=" "/>
         </property>
         <property name="name">
-            <java.lang.String value="Merge_blocks"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19840,7 +19840,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Image"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19881,7 +19881,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Find_string"/>
+            <java.lang.String value=""/>
         </property>
         <property name="reverseResult">
             <java.lang.Boolean value="false"/>
@@ -19907,7 +19907,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Fields_for_VT_emulators"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -19978,7 +19978,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Field_Text"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20010,7 +20010,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Emulator_technology"/>
+            <java.lang.String value=""/>
         </property>
         <property name="reverseResult">
             <java.lang.Boolean value="false"/>
@@ -20021,7 +20021,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Empty_screen"/>
+            <java.lang.String value=""/>
         </property>
         <property name="reverseResult">
             <java.lang.Boolean value="false"/>
@@ -20032,7 +20032,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Default_block_factory"/>
+            <java.lang.String value=""/>
         </property>
     </blockfactory>
     <extractionrule classname="com.twinsoft.convertigo.beans.common.Date" priority="0" version="   7   6   0">
@@ -20109,7 +20109,7 @@
             <java.lang.String value="fr"/>
         </property>
         <property name="name">
-            <java.lang.String value="Date"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20168,7 +20168,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Container"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20220,7 +20220,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Commands"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20272,7 +20272,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Choice"/>
+            <java.lang.String value=""/>
         </property>
         <property name="radio">
             <java.lang.Boolean value="false"/>
@@ -20349,7 +20349,7 @@
             <java.lang.Boolean value="false"/>
         </property>
         <property name="name">
-            <java.lang.String value="Checkbox"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20393,7 +20393,7 @@
             <java.lang.Integer value="0"/>
         </property>
         <property name="name">
-            <java.lang.String value="Letter_case"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20464,7 +20464,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Button"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>
@@ -20514,7 +20514,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="name">
-            <java.lang.String value="Attribute"/>
+            <java.lang.String value=""/>
         </property>
         <property name="selectionAttribute">
             <java.lang.Integer value="-1"/>

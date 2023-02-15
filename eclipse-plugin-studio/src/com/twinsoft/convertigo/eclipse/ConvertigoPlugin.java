@@ -374,7 +374,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				int level = ModalContext.getModalLevel();
 				if (level > 0) {
 					// prevents double modal windows: dead lock on linux/gtk studio
-					syncExec(this);
+					asyncExec(this);
 					return;
 				}
 
@@ -382,6 +382,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 						objectName, objectType,
 						propertyName, propertyValue,
 						undefinedSymboles, showCheckBox);
+				dialogGlobalSymbols.setBlockOnOpen(true);
 				dialogGlobalSymbols.open();
 
 				result[0] = dialogGlobalSymbols.getCreateAction();

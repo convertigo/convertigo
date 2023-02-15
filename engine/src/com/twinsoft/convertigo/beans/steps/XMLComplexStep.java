@@ -31,12 +31,13 @@ import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class XMLComplexStep extends StepWithExpressions implements IComplexTypeAffectation, IElementRefAffectation {
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
-	private String nodeName = "complex";
+	private String nodeName = getName();
 	
 	public XMLComplexStep() {
 		super();
@@ -94,5 +95,18 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		return (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "complex";
 	}
 }

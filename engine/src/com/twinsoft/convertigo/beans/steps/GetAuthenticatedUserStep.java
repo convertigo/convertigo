@@ -29,12 +29,13 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffectation {
 	
 	private static final long serialVersionUID = 1430960819073513105L;
 	
-	private String nodeName = "authenticatedUserID";
+	private String nodeName = getName();
 	
 	public GetAuthenticatedUserStep() {
 		super();
@@ -91,5 +92,18 @@ public class GetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 			return nodeValue;
 		}
 		return "";
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "authenticatedUserID";
 	}
 }

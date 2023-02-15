@@ -68,7 +68,6 @@ import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
@@ -262,11 +261,8 @@ public class ComponentExplorerComposite extends Composite {
 						Component c = (Component) objectsMap.get(label);
 						DatabaseObject dbo = ComponentManager.createBean(c);
 						if (dbo != null) {
-							String sXml = ClipboardAction.dnd.copy(dbo);
-							if (sXml != null) {
-								event.doit = true;
-								PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
-							}
+							event.doit = true;
+							PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
 						} else {
 							throw new Exception("Invalid database object : null");
 						}

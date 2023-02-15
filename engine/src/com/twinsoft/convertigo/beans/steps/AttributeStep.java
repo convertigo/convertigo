@@ -50,7 +50,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 	private static final long serialVersionUID = 4426876799938289068L;
 
 	private String expression = "";
-	private String nodeName = "attribute";
+	private String nodeName = getName();
 	private String nodeText = "";
 	
 	private String nodeNameSpace = "";
@@ -230,5 +230,18 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 	@Override
 	public boolean isOutput() {
 		return true;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "attribute";
 	}
 }

@@ -31,12 +31,13 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 abstract public class XMLActionStep extends Step implements IStepSourcesContainer, ISimpleTypeAffectation {
 	private static final long serialVersionUID = -3582328787633662760L;
 	
 	private XMLVector<XMLVector<Object>> sourcesDefinition = new XMLVector<XMLVector<Object>>();
-	private String nodeName = "element";
+	private String nodeName = getName();
 	
 	public XMLActionStep() {
 		super();
@@ -161,4 +162,16 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	
 	abstract protected String getActionName();
 	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "element";
+	}
 }

@@ -94,7 +94,6 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -127,6 +126,7 @@ public class PaletteView extends ViewPart {
 		String shortDescription;
 		String longDescription;
 		String searchText;
+		DatabaseObject dbo;
 
 		Item() {
 			String[] beanDescriptions = description().split("\\|");
@@ -153,11 +153,15 @@ public class PaletteView extends ViewPart {
 		}
 		
 		boolean allowedIn(int folderType) {
-			return folderType == ProjectExplorerView.getDatabaseObjectType(newDatabaseObject());
+			return folderType == ProjectExplorerView.getDatabaseObjectType(databaseObject());
 		}
 		
 		boolean builtIn() {
 			return true;
+		}
+		
+		DatabaseObject databaseObject() {
+			return dbo == null ? dbo = newDatabaseObject() : dbo; 
 		}
 		
 		abstract Image image();
@@ -237,7 +241,7 @@ public class PaletteView extends ViewPart {
 		ToolBar bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiLink = new ToolItem(bar, SWT.CHECK);
 		tiLink.setToolTipText("Link with the 'Projects tree' selection");
-		ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
+		tiLink.setData("style", "background: unset");
 		try {
 			tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
 		} catch (Exception e3) {
@@ -248,7 +252,7 @@ public class PaletteView extends ViewPart {
 		bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiInternal = new ToolItem(bar, SWT.CHECK);
 		tiInternal.setToolTipText("Built-in objects visibility");
-		ConvertigoPlugin.asyncExec(() -> tiInternal.setBackground(null));
+		tiInternal.setData("style", "background: unset");
 		try {
 			tiInternal.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/convertigo_logo_16x16.png"));
 		} catch (Exception e3) {
@@ -258,7 +262,7 @@ public class PaletteView extends ViewPart {
 		
 		ToolItem tiShared = new ToolItem(bar, SWT.CHECK);
 		tiShared.setToolTipText("Shared objects visibility");
-		ConvertigoPlugin.asyncExec(() -> tiShared.setBackground(null));
+		tiShared.setData("style", "background: unset");
 		try {
 			tiShared.setImage(ConvertigoPlugin.getDefault().getBeanIcon(CachedIntrospector.getBeanInfo(UISharedComponent.class), BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e3) {
@@ -468,7 +472,6 @@ public class PaletteView extends ViewPart {
 							String id = i;
 							Class<?> cls = Class.forName(cn);
 							Constructor<?> constructor = cls.getConstructor();
-							DatabaseObject dbo = (DatabaseObject) constructor.newInstance();
 							all.put(id, new Item() {
 
 								@Override
@@ -497,7 +500,13 @@ public class PaletteView extends ViewPart {
 
 								@Override
 								DatabaseObject newDatabaseObject() {
-									return dbo;
+									try {
+										return (DatabaseObject) constructor.newInstance();
+									} catch (RuntimeException e) {
+										throw e;
+									} catch (Exception e) {
+										throw new RuntimeException(e);
+									}
 								}
 
 								@Override
@@ -554,12 +563,8 @@ public class PaletteView extends ViewPart {
 						Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
 						DatabaseObject dbo = item.newDatabaseObject();
 						dbo.priority = dbo.getNewOrderValue();
-						String sXml = ClipboardAction.dnd.copy(dbo);
-						if (sXml != null) {
-							event.doit = true;
-							event.data = sXml;
-							PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
-						}
+						event.doit = true;
+						PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
@@ -578,16 +583,10 @@ public class PaletteView extends ViewPart {
 						ConvertigoPlugin.setProperty("palette.history", str);
 					}
 				}
-
-				@Override
-				public void dragSetData(DragSourceEvent event) {
-					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-				}
 			};
 
 			for (Component comp: ComponentManager.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
-				DatabaseObject dbo = ComponentManager.createBeanFromHint(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -612,7 +611,7 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return dbo;
+						return ComponentManager.createBeanFromHint(comp);
 					}
 
 					@Override
@@ -639,7 +638,6 @@ public class PaletteView extends ViewPart {
 
 			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
 				String id = "mb " + comp.getName();
-				DatabaseObject dbo = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
 				all.put(id, new Item() {
 
 					@Override
@@ -664,7 +662,7 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return dbo;
+						return com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(comp);
 					}
 
 					@Override

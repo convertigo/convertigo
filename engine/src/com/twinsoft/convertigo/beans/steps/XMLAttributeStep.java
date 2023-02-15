@@ -43,7 +43,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	private static final long serialVersionUID = 61436680158858545L;
 
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
-	private String nodeName = "attribute";
+	private String nodeName = getName();
 	
 	private String nodeNameSpace = "";
 	public String getNodeNameSpace() {
@@ -214,5 +214,18 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	@Override
 	public boolean isOutput() {
 		return true;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "attribute";
 	}
 }

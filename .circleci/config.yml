@@ -518,6 +518,7 @@ jobs:
           dir_w64=eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64
           dir_lin=eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64
           dir_mac=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64
+          dir_mac_arm=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/aarch64
           
           if [ -d ${dir_w64} ]; then
              (mv /tmp/c8o_jre/win ${dir_w64}/jre
@@ -554,6 +555,15 @@ jobs:
               echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" >> ${dir_mac_web}/build.txt
               mv ${dir_mac} convertigo-studio-$CONVERTIGO_VERSION-macosx
               tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx &
+          fi
+          if [ -d ${dir_mac_arm} ]; then
+              mv /tmp/c8o_jre/mac-arm ${dir_mac_arm}/ConvertigoStudio.app/Contents/jre
+              dir_mac_arm_web=$(dirname ${dir_mac_arm}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
+              echo "build.version=${convertigoRevision}" > ${dir_mac_arm_web}/build.txt
+              echo "build.date=$(date)" >> ${dir_mac_arm_web}/build.txt
+              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.tar.gz" >> ${dir_mac_arm_web}/build.txt
+              mv ${dir_mac_arm} convertigo-studio-$CONVERTIGO_VERSION-macosx-arm
+              tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx-arm &
           fi
           for job in $(jobs -p); do
               wait $job

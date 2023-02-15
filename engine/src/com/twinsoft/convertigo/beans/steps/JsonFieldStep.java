@@ -37,9 +37,11 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonFieldType;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
@@ -53,7 +55,7 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("field");
+		key.setExpression(getName());
 	}
 
 	public JsonFieldStep clone() throws CloneNotSupportedException {
@@ -196,5 +198,29 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 	@Override
 	public String toJsString() {
 		return null;
-	}	
+	}
+
+	@Override
+	public void setName(String name) throws EngineException {
+		String oldName = getName();
+		super.setName(name);
+		String newName = getName();
+		if (!oldName.equals(newName) && key.getMode() == Mode.PLAIN && oldName.equals(key.getExpression())) {
+			key.setExpression(newName);
+		}
+	}
+
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
+			key.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "field";
+	}
 }

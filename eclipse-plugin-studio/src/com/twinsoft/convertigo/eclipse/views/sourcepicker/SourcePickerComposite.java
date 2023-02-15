@@ -32,6 +32,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
@@ -49,7 +50,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 public class SourcePickerComposite extends Composite {
 
 	private SourcePickerHelper sourcePicker = null;
-	private SashForm mainSashForm, treesSashForm, xpathSashForm;
 	private DatabaseObject selectedDbo = null;
 	
 	private final String show_step_source 		= "Show step's source";
@@ -68,34 +68,32 @@ public class SourcePickerComposite extends Composite {
 	}
 	
 	private void createSashForm() {
-		mainSashForm = new SashForm(this, SWT.VERTICAL);
+		SashForm mainSashForm = new SashForm(this, SWT.VERTICAL);
 		mainSashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-		createTreeSashForm();
-		createXpathSashForm();
-	}
-	
-	private void createTreeSashForm() {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
-		treesSashForm = new SashForm(mainSashForm, SWT.NONE);
-		treesSashForm.setOrientation(SWT.HORIZONTAL );
-		treesSashForm.setLayoutData(gd);
-		createXhtmlTree();
-	}
-	
-	private void createXpathSashForm() {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
-		xpathSashForm = new SashForm(mainSashForm, SWT.NONE);
-		xpathSashForm.setOrientation(SWT.HORIZONTAL );
-		xpathSashForm.setLayoutData(gd);
-		createXPathEvaluator();
+		sourcePicker.createXhtmlTree(mainSashForm);
+		
+		// DND support
+		int ops = DND.DROP_COPY | DND.DROP_MOVE;
+		Transfer[] transfers = new Transfer[] {StepSourceTransfer.getInstance()};
+		
+		DragSource source = new DragSource(sourcePicker.getTwsDomTree().getTree(), ops);
+		source.setTransfer(transfers);
+		source.addDragListener(new DragSourceAdapter() {
+			@Override
+			public void dragStart(DragSourceEvent event) {
+				event.doit = true;
+				StepSourceTransfer.getInstance().setStepSource(sourcePicker.getDragData());
+			}
+		});
+		Composite composite = new Composite(mainSashForm, SWT.NONE);
+		composite.setLayout(new GridLayout(1, false));
+		Label label = new Label(composite, SWT.NONE);
+		label.setText("Drag nodes or 'xPath' and drop on Steps");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+		sourcePicker.createXPathEvaluator(new StepSourceXpathEvaluatorComposite(composite, SWT.NONE, sourcePicker));
+		sourcePicker.getXpathEvaluator().setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		mainSashForm.setWeights(70,30);
 	}
 	
 	private ToolItem tiLink, showBtn, remBtn;
@@ -137,29 +135,10 @@ public class SourcePickerComposite extends Composite {
 				removeSource();
 			}
 		});
-	}
-	
-	private void createXhtmlTree() {
-		sourcePicker.createXhtmlTree(treesSashForm);
 		
-		// DND support
-		int ops = DND.DROP_COPY | DND.DROP_MOVE;
-		Transfer[] transfers = new Transfer[] {StepSourceTransfer.getInstance()};
-		
-		DragSource source = new DragSource(sourcePicker.getTwsDomTree().getTree(), ops);
-		source.setTransfer(transfers);
-		source.addDragListener(new DragSourceAdapter() {
-			@Override
-			public void dragStart(DragSourceEvent event) {
-				event.doit = true;
-				StepSourceTransfer.getInstance().setStepSource(sourcePicker.getDragData());
-			}
-		});
-		
-	}
-	
-	private void createXPathEvaluator() {
-		sourcePicker.createXPathEvaluator(new StepSourceXpathEvaluatorComposite(xpathSashForm, SWT.NONE, sourcePicker));
+		for (ToolItem ti: tb.getItems()) {
+			ti.setData("style", "background: unset");
+		}
 	}
 	
 	public void sourceSelected(StepSourceEvent stepSourceEvent) {

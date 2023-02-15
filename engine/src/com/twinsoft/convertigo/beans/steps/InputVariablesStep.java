@@ -48,13 +48,14 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class InputVariablesStep extends Step implements ISchemaParticleGenerator {
 
 	private static final long serialVersionUID = 3276050659362959158L;
 
-	private String nodeName = "inputVars";
+	private String nodeName = getName();
 
 	transient Map<String, Object> variables = new LinkedHashMap<String, Object>();
 
@@ -206,5 +207,18 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		} else {
 			return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
 		}
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "inputVars";
 	}
 }

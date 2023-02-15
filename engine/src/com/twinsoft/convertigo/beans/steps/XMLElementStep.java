@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation, ISimpleTypeAffectation, IElementRefAffectation {
@@ -45,7 +46,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	private static final long serialVersionUID = -427374285639844989L;
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
-	private String nodeName = "element";
+	private String nodeName = getName();
 	private String nodeText = "";
 	
 	public XMLElementStep() {
@@ -160,5 +161,18 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 			element.setSchemaTypeName(getSimpleTypeAffectation());
 		}
 		return element;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(nodeName)) {
+			nodeName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "element";
 	}
 }

@@ -32,6 +32,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
 
 public class ProjectDeploySuccessfulDialog extends Dialog {
 	
@@ -68,6 +71,7 @@ public class ProjectDeploySuccessfulDialog extends Dialog {
 		link.addListener (SWT.Selection, new Listener () {
 			
 			public void handleEvent(Event event) {
+				Engine.theApp.eventManager.dispatchEvent(new StudioEvent("linkOpen", event.text), StudioEventListener.class);
 				org.eclipse.swt.program.Program.launch(event.text);
 			}
 			

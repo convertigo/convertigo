@@ -35,8 +35,10 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class JsonObjectStep extends StepWithExpressions implements IStepSmartTypeContainer {
@@ -49,7 +51,7 @@ public class JsonObjectStep extends StepWithExpressions implements IStepSmartTyp
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("object");
+		key.setExpression(getName());
 	}
 
 	public JsonObjectStep clone() throws CloneNotSupportedException {
@@ -161,5 +163,19 @@ public class JsonObjectStep extends StepWithExpressions implements IStepSmartTyp
 		}
 		smartTypes.add(key);
 		return smartTypes;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
+			key.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "object";
 	}
 }

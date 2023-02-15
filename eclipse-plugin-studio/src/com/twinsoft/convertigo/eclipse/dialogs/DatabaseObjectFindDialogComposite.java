@@ -19,21 +19,18 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
 
 public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite {
-
-	private Label label1 = null;
+	
 	private Combo combo = null;
-	private Label label2 = null;
 	private Text text = null;
 	private Button checkBox1 = null;
 	private Button checkBox2 = null;
@@ -43,31 +40,22 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 	}
 
 	protected void initialize() {
-		GridData gridData3 = new GridData();
-		gridData3.grabExcessHorizontalSpace = false;
-		GridData gridData2 = new GridData();
-		gridData2.horizontalAlignment = GridData.BEGINNING;
-		gridData2.grabExcessHorizontalSpace = false;
-		gridData2.horizontalSpan = 2;
-		gridData2.verticalAlignment = GridData.CENTER;
-		GridData gridData = new GridData();
-		label1 = new Label(this, SWT.NONE);
-		label1.setText("Object type");
-		label1.setLayoutData(gridData);
+		setLayout(new GridLayout(2, false));
+		
+		Label label = new Label(this, SWT.NONE);
+		label.setText("Object type");
+		
 		createCombo();
-		label2 = new Label(this, SWT.NONE);
-		label2.setText("Substring");
+		
+		label = new Label(this, SWT.NONE);
+		label.setText("Substring");
 		text = new Text(this, SWT.BORDER);
-		text.setLayoutData(gridData3);
+		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		checkBox1 = new Button(this, SWT.CHECK);
 		checkBox1.setText("Match case");
-		//checkBox1.setLayoutData(gridData2);
+		
 		checkBox2 = new Button(this, SWT.CHECK);
 		checkBox2.setText("Regular expression");
-		GridLayout gridLayout = new GridLayout();
-		gridLayout.numColumns = 2;
-		this.setLayout(gridLayout);
-		setSize(new Point(226, 125));
 		
 		combo.select(0);
 		text.setText("");
@@ -78,12 +66,8 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 	 *
 	 */
 	private void createCombo() {
-		GridData gridData1 = new GridData();
-		gridData1.grabExcessHorizontalSpace = false;
-		gridData1.verticalAlignment = GridData.CENTER;
-		gridData1.horizontalAlignment = GridData.BEGINNING;
 		combo = new Combo(this, SWT.NONE);
-		combo.setLayoutData(gridData1);
+		combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		combo.add("*");
 		combo.add("Mobile component");
 		combo.add("Screen class");
@@ -124,4 +108,4 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		return null;
 	}
 	
-}  //  @jve:decl-index=0:visual-constraint="10,10"
+}

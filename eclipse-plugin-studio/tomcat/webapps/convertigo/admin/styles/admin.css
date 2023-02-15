@@ -110,6 +110,7 @@ li {
 	size: 12px;
 	line-height: 18px;
 	list-style-image: url(../images/dote.png);
+	padding-left: px;
 }
 
 .fix1 {
@@ -1723,9 +1724,6 @@ a.start {
     font-weight: bold;  
     cursor: pointer;
 }
-#projectEditDivTree li {
-	list-style-image: none;
-}
 .projectEdit-selectableElement {
 	cursor: pointer;
 }
@@ -1734,12 +1732,6 @@ a.start {
 	/*background-color:red;*/
 	color: black;
 	font-weight: bold;
-}
-#projectEditDivTree {
-	float: left;
-	width: 30%;
-	height: 100%;
-	margin-top: 10px;	
 }
 #projectEditObjectProperties {
 	width: 68%;
@@ -1797,7 +1789,22 @@ a.start {
 	float: right;
 	margin: 3px;
 }
+ul.jqtree-tree li.jqtree_common {
+	list-style-image: unset;
+}
+#projectEditDivJQTree {
+	float: left;
+	width: 30%;
+	height: 100%;
+}
 
+#projectEditDivJQTree ul.jqtree-tree li.jqtree-selected > .jqtree-element,
+#projectEditDivJQTree ul.jqtree-tree li.jqtree-selected > .jqtree-element:hover {
+    background-color: #d0ecff;
+    background: linear-gradient(#c6e7ff, #f9fcff);
+    text-shadow: unset;
+	font-weight:bold;
+}
 /* = Global Symbols
 -------------------------- */
 #projectEditUndefinedSymbolsInfo {

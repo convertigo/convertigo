@@ -1265,12 +1265,10 @@ public class NgxPickerComposite extends Composite {
 				}
 			});
 		});
-		
-		ConvertigoPlugin.asyncExec(() -> {
-			for (ToolItem ti : btnSequence.getParent().getItems()) {
-				ti.setBackground(null);
-			}
-		});
+
+		for (ToolItem ti : btnSequence.getParent().getItems()) {
+			ti.setData("style", "background: unset");
+		}
 	}
 
 	private Filter getFilter() {

@@ -30,6 +30,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -49,18 +50,26 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	private int objectType;
 	private List<DatabaseObjectTreeObject> vDatabaseObjects = new ArrayList<DatabaseObjectTreeObject>(64);
 	private TreeObject firstSelected = null;
-	
+
 	private DatabaseObjectFindDialogComposite databaseObjectFindDialogComposite = null;
-	
+
 	public DatabaseObjectFindDialog(Shell parentShell) {
 		this(parentShell, DatabaseObjectFindDialogComposite.class, "Find an Object");
 	}
-	
+
 	public DatabaseObjectFindDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell, dialogAreaClass, dialogTitle);
-		setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
+		setShellStyle(getShellStyle());
 		setBlockOnOpen(false);
 		getDatabaseObjects(null);
+	}
+	
+	
+
+	@Override
+	public void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+		newShell.setSize(500, 200);
 	}
 
 	@Override
@@ -71,40 +80,40 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 
 	@Override
 	protected int getShellStyle() {
-		return SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE;
+		return SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE;
 	}
 
 	@Override
 	protected void okPressed() {
 		if (dialogComposite instanceof DatabaseObjectFindDialogComposite) {
 			databaseObjectFindDialogComposite = (DatabaseObjectFindDialogComposite)dialogComposite;
-	        objectTextSubstring = (String)databaseObjectFindDialogComposite.getValue("Substring");
-	        bMatchCase = ((Boolean)databaseObjectFindDialogComposite.getValue("matchCase")).equals(Boolean.TRUE);
-	        bRegExp = ((Boolean)databaseObjectFindDialogComposite.getValue("isRegExp")).equals(Boolean.TRUE);
-	        objectType = Integer.parseInt((String)databaseObjectFindDialogComposite.getValue("ObjectType"));
-	        findDatabaseObject();
+			objectTextSubstring = (String)databaseObjectFindDialogComposite.getValue("Substring");
+			bMatchCase = ((Boolean)databaseObjectFindDialogComposite.getValue("matchCase")).equals(Boolean.TRUE);
+			bRegExp = ((Boolean)databaseObjectFindDialogComposite.getValue("isRegExp")).equals(Boolean.TRUE);
+			objectType = Integer.parseInt((String)databaseObjectFindDialogComposite.getValue("ObjectType"));
+			findDatabaseObject();
 		}
 	}
-	
+
 	private void getDatabaseObjects(TreeParent treeObject) {
 		ProjectTreeObject projectTreeObject = ConvertigoPlugin.projectManager.currentProjectTreeObject;
-		
+
 		TreeParent treeParent = treeObject;
 		if (treeObject == null) {
 			treeParent = projectTreeObject;
-			
+
 			TreeObject treeSelected = ConvertigoPlugin.getDefault().getProjectExplorerView().getFirstSelectedTreeObject();
-    		while (treeSelected != null && !(treeSelected instanceof TreeParent)) {
-    			treeSelected = treeSelected.getParent();
-    		}
-    		if (treeSelected != null) {
-    			treeParent = (TreeParent)treeSelected;
-    		}
+			while (treeSelected != null && !(treeSelected instanceof TreeParent)) {
+				treeSelected = treeSelected.getParent();
+			}
+			if (treeSelected != null) {
+				treeParent = (TreeParent)treeSelected;
+			}
 			if (firstSelected == null) {
 				firstSelected = treeSelected;
 			}
 		}
-		
+
 		List<? extends TreeObject> children = treeParent.getChildren();
 		children.sort(ConvertigoPlugin.getDefault().getProjectExplorerView().getViewerComparator());
 		for (TreeObject child : children) {
@@ -123,97 +132,97 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	protected void findDatabaseObject() {
 		Pattern pattern = null;
 		String substring = "";
-		
+
 		try {
 			pattern = bRegExp ? (bMatchCase ? Pattern.compile(objectTextSubstring) : 
-												Pattern.compile(objectTextSubstring, Pattern.CASE_INSENSITIVE)) : null;
+				Pattern.compile(objectTextSubstring, Pattern.CASE_INSENSITIVE)) : null;
 		} catch (Exception pex) {
 			ConvertigoPlugin.errorMessageBox(pex.getClass().getName()+ ":\n"+ pex.getMessage());
 			return;
 		}
-		
+
 		substring = bMatchCase ? objectTextSubstring : objectTextSubstring.toLowerCase();
-		
-        while (true) {
-    		Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
-            while (enumDatabaseObjects.hasMoreElements()) {
-            	DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) enumDatabaseObjects.nextElement();
-                DatabaseObject databaseObject = databaseObjectTreeObject.getObject(); 
-                boolean bContinue = false;
 
-                switch(objectType) {
-                    case 0: // *
-                        bContinue = true;
-                        break;
-                    case 1: // Mobile Component
-                    	bContinue = databaseObject.getDatabaseType().equals("MobileComponent");
-                    	break;
-                    case 2: // Screen class
-                        bContinue = databaseObject.getDatabaseType().equals("ScreenClass");
-                        break;
-                    case 3: // Criteria
-                        bContinue = databaseObject.getDatabaseType().equals("Criteria");
-                        break;
-                    case 4: // Extraction rule
-                        bContinue = databaseObject.getDatabaseType().equals("ExtractionRule");
-                        break;
-                    case 5: // Sheet
-                        bContinue = databaseObject.getDatabaseType().equals("Sheet");
-                        break;
-                    case 6: // Transaction
-                        bContinue = databaseObject.getDatabaseType().equals("Transaction");
-                        break;
-                    case 7: // Statement
-                        bContinue = databaseObject.getDatabaseType().equals("Statement");
-                        break;
-                    case 8: // Sequence
-                        bContinue = databaseObject.getDatabaseType().equals("Sequence");
-                        break;
-                    case 9: // Step
-                        bContinue = databaseObject.getDatabaseType().equals("Step");
-                        break;
-                }
+		while (true) {
+			Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
+			while (enumDatabaseObjects.hasMoreElements()) {
+				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) enumDatabaseObjects.nextElement();
+				DatabaseObject databaseObject = databaseObjectTreeObject.getObject(); 
+				boolean bContinue = false;
 
-                if (bContinue) {
-                    String text = databaseObjectTreeObject.toString();
-                	try {
-                		text = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
+				switch(objectType) {
+				case 0: // *
+				bContinue = true;
+				break;
+				case 1: // Mobile Component
+					bContinue = databaseObject.getDatabaseType().equals("MobileComponent");
+					break;
+				case 2: // Screen class
+					bContinue = databaseObject.getDatabaseType().equals("ScreenClass");
+					break;
+				case 3: // Criteria
+					bContinue = databaseObject.getDatabaseType().equals("Criteria");
+					break;
+				case 4: // Extraction rule
+					bContinue = databaseObject.getDatabaseType().equals("ExtractionRule");
+					break;
+				case 5: // Sheet
+					bContinue = databaseObject.getDatabaseType().equals("Sheet");
+					break;
+				case 6: // Transaction
+					bContinue = databaseObject.getDatabaseType().equals("Transaction");
+					break;
+				case 7: // Statement
+					bContinue = databaseObject.getDatabaseType().equals("Statement");
+					break;
+				case 8: // Sequence
+					bContinue = databaseObject.getDatabaseType().equals("Sequence");
+					break;
+				case 9: // Step
+					bContinue = databaseObject.getDatabaseType().equals("Step");
+					break;
+				}
+
+				if (bContinue) {
+					String text = databaseObjectTreeObject.toString();
+					try {
+						text = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-                	
-                	boolean bFound = false;
-                	if (bRegExp) {
-                		Matcher matcher = pattern.matcher(text);
-                		bFound = matcher.find();
-                	} else {
-                    	text = bMatchCase ? text : text.toLowerCase();
-                		bFound = text.indexOf(substring) != -1;
-                	}
-                	
-                    if (bFound) { // Object found !!!
-                    	//System.out.println(text);
-                    	ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject));
-                    	vDatabaseObjects.remove(databaseObjectTreeObject);
-                    	return;
-                    }
-                }
-            }
 
-    		TreeObject treeSelected = firstSelected == null ? ConvertigoPlugin.projectManager.currentProjectTreeObject : firstSelected;
-        	MessageBox messageBox = new MessageBox(getShell(),SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+					boolean bFound = false;
+					if (bRegExp) {
+						Matcher matcher = pattern.matcher(text);
+						bFound = matcher.find();
+					} else {
+						text = bMatchCase ? text : text.toLowerCase();
+						bFound = text.indexOf(substring) != -1;
+					}
+
+					if (bFound) { // Object found !!!
+						//System.out.println(text);
+						ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject));
+						vDatabaseObjects.remove(databaseObjectTreeObject);
+						return;
+					}
+				}
+			}
+
+			TreeObject treeSelected = firstSelected == null ? ConvertigoPlugin.projectManager.currentProjectTreeObject : firstSelected;
+			MessageBox messageBox = new MessageBox(getShell(),SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
 			String message = "End of the search for "+ treeSelected.toString() +" object.\nDo you want to retry the search from the beginning?";
-        	messageBox.setMessage(message);
-        	int ret = messageBox.open();
-        	if (ret == SWT.YES) {
-        		ConvertigoPlugin.getDefault().getProjectExplorerView().setSelectedTreeObject(treeSelected);
-        		vDatabaseObjects.clear();
-        		getDatabaseObjects(null);
-        	}
-        	else {
-        		return;
-        	}
-        }
-    }
-	
+			messageBox.setMessage(message);
+			int ret = messageBox.open();
+			if (ret == SWT.YES) {
+				ConvertigoPlugin.getDefault().getProjectExplorerView().setSelectedTreeObject(treeSelected);
+				vDatabaseObjects.clear();
+				getDatabaseObjects(null);
+			}
+			else {
+				return;
+			}
+		}
+	}
+
 }

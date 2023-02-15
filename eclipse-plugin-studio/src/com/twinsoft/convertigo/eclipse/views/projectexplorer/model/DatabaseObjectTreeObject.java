@@ -112,7 +112,6 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
@@ -1147,36 +1146,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
-		// Verify if an object with the same name exists
-		TreeObject siblingTreeObject = this;
-		while ((siblingTreeObject = siblingTreeObject.getPreviousSibling()) != null) {
-			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-				if (!siblingDatabaseObjectTreeObject.isInherited) {
-					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
-					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equalsIgnoreCase(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
-					}
-				}
-			}
-		}
-
-		siblingTreeObject = this;
-		while ((siblingTreeObject = siblingTreeObject.getNextSibling()) != null) {
-			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-				if (!siblingDatabaseObjectTreeObject.isInherited) {
-					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
-
-					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equalsIgnoreCase(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
-					}
-				}
-			}
-		}
-
 		DatabaseObject databaseObject = getObject();
 		databaseObject.setName(newName);
 		databaseObject.hasChanged = true;
@@ -1185,19 +1154,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public boolean rename(String newName, boolean bDialog) {
 		try {
-			if (!StringUtils.isNormalized(newName)) {
-				throw new ConvertigoException("The name \"" + newName + "\" must be normalized.\nDon't start with number and don't use non ASCII caracters.");
-			}
-
 			DatabaseObject databaseObject = getObject();
 			String oldName = databaseObject.getName();
 
 			if (newName.equals(oldName)) {
 				return true;
-			}
-
-			if (newName.equalsIgnoreCase(oldName)) {
-				throw new ConvertigoException("The rename operation is case insensitive.");
 			}
 
 			rename_(newName, bDialog);

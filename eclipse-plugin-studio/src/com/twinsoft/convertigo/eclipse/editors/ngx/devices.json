@@ -1,10 +1,10 @@
 [
     {
-		"name"  : "No canvas",
+		"name"  : "Desktop/Web",
 		"width" : -1,
 		"height": -1,
 		"zoom"  : 100,
-		"os"    : "android"
+		"os"    : "web"
 	}, {
 		"name"  : "Android Phone (common)",
 		"desc"  : "Galaxy S4-S7\nNexus 5\nLG G3, G4\nHTC One\nSony Xperia Z, S, P",

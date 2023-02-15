@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
@@ -117,8 +118,8 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 	}
 	
 	protected String getFileNodeName() {
-		String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
-		name = name.isBlank() ? "file" : StringUtils.normalize(name);
+		String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : getName();
+		name = name.isBlank() ? getName() : StringUtils.normalize(name);
 		return name;
 	}
 	
@@ -151,9 +152,6 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 					} else {
 						o = RhinoUtils.jsonParse(jsonSource);
 					}
-					
-					String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
-					name = name.isBlank() ? "file" : StringUtils.normalize(name);
 					
 					XMLUtils.jsonToXml(o, getFileNodeName(), elt, true, false, "item");
 					elt = (Element) elt.getFirstChild();
@@ -248,6 +246,18 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 		smartTypes.add(key);
 		return smartTypes;
 	}
-
-
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
+			key.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "file";
+	}
 }

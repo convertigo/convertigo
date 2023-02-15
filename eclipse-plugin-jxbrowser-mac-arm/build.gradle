@@ -1,0 +1,24 @@
+dependencies {
+	toSync "${jxBrowserGroup}:jxbrowser-mac-arm:${jxBrowserVersion}", { exclude module: 'jxbrowser'}
+	implementation fileTree(dir: 'lib', include: '*.jar')
+}
+
+task writeManifest(dependsOn: syncLib) {
+	group 'convertigo'
+	
+	doLast {
+		def manifest = file 'META-INF/MANIFEST.MF'
+		project.manifest {
+			from sharedManifest
+			attributes(
+				'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.mac.arm',
+				'Bundle-Name': 'C-EMS Browser MacOS ARM',
+				'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.mac.arm;singleton:=true',
+				'Fragment-Host': 'com.twinsoft.convertigo.studio',
+				'Eclipse-PlatformFilter': '(& (osgi.ws=cocoa) (osgi.os=macosx) (osgi.arch=aarch64))',
+				'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
+			)
+		}.writeTo(manifest)
+		manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+	}
+}

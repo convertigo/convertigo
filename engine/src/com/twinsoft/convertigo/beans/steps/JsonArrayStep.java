@@ -37,8 +37,10 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class JsonArrayStep extends StepWithExpressions implements IStepSmartTypeContainer, IComplexTypeAffectation, IElementRefAffectation {
@@ -51,7 +53,7 @@ public class JsonArrayStep extends StepWithExpressions implements IStepSmartType
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("array");
+		key.setExpression(getName());
 	}
 
 	public JsonArrayStep clone() throws CloneNotSupportedException {
@@ -163,5 +165,19 @@ public class JsonArrayStep extends StepWithExpressions implements IStepSmartType
 		}
 		smartTypes.add(key);
 		return smartTypes;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (key != null && key.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(key.getExpression()))) {
+			key.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "array";
 	}
 }

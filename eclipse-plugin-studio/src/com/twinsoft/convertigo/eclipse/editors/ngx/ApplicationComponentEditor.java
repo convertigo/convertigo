@@ -110,8 +110,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
+import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
@@ -194,8 +194,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					});
 				} else if (paletteSource != null) {
-					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+					DatabaseObject source = PaletteSourceTransfer.getInstance().getPaletteSource().getDatabaseObject();
 					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
 						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
 							if (uic instanceof UIControlEvent) {
@@ -222,7 +221,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
 							BatchOperationHelper.start();
-							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+							TreeDropAdapter.paste(source, fTarget, true);
 							if (fTarget != exHighlightMobileComponent) {
 								view.moveLastTo(treeObject, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
 							}
@@ -504,6 +503,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private void createDeviceBar(Composite parent) {
 		deviceBar = new Composite(parent, SWT.NONE);
+		deviceBar.setData("style", "background-color: #393F4C");
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
 		deviceBar.setLayoutData(gd);
 		
@@ -579,7 +579,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds(); 
+				Rectangle rect = item.getBounds();
 				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
 				mOS.setLocation(pt);
 				mOS.setVisible(true);
@@ -614,6 +614,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		
 		new Label(deviceBar, SWT.NONE).setText(" ");
+		
+		for (ToolItem ti: tb.getItems()) {
+			ti.setData("style", "background-color: unset");
+		}
 		
 		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
@@ -727,17 +731,27 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (Exception ex) {
 					toast("Device '" + deviceName.getText() + "' NOT removed ! " + ex);
 				}
-			}			
+			}
 		});
+		
+		for (ToolItem ti: tb.getItems()) {
+			ti.setData("style", "background-color: unset");
+		}
+		
+		for (Control c: deviceBar.getChildren()) {
+			c.setData("style", "background-color: unset");
+		}
 	}
 
-	private void createToolbar(Composite parent) {		
+	private void createToolbar(Composite parent) {
 		toolbar = new ToolBar(parent, SWT.VERTICAL);
+		toolbar.setData("style", "background-color: #393F4C");
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
 		gd.verticalSpan = 2;
-		gd.verticalIndent = 4;
 		toolbar.setLayoutData(gd);
-
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select device viewport. Click to toggle the custom device bar.");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png")));
@@ -747,7 +761,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			public void widgetSelected(SelectionEvent e) {
 				if (e.detail == SWT.ARROW) {
 					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds(); 
+					Rectangle rect = item.getBounds();
 					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
 					devicesMenu.setLocation(pt);
 					devicesMenu.setVisible(true);
@@ -909,7 +923,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					handleProdBuild();
 				} else {
 					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds(); 
+					Rectangle rect = item.getBounds();
 					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
 					mBuild.setLocation(pt);
 					mBuild.setVisible(true);
@@ -955,48 +969,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 		});
-		
-//		final ToolItem buildModeItem = item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		
-//		final Menu buildModeMenu = new Menu(parent.getShell());
-//		SelectionListener buildModeListener = new SelectionAdapter() {
-//
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				dialogBuild(buildModeItem, (MenuItem) e.widget);
-//			}
-//			
-//		};
-//		
-//		for (MobileBuilderBuildMode mode: MobileBuilderBuildMode.values()) {
-//			MenuItem menuItem = new MenuItem(buildModeMenu, SWT.NONE);
-//			menuItem.setText(mode.label());
-//			menuItem.setToolTipText(mode.description());
-//			menuItem.setData(mode);
-//			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
-//			menuItem.addSelectionListener(buildModeListener);
-//			if (mode.equals(buildMode)) {
-//				item.setImage(menuItem.getImage());
-//				item.setToolTipText(mode.description());
-//			}
-//		}
-//		
-//		item.addSelectionListener(new SelectionAdapter() {
-//			
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				if (e.detail == SWT.ARROW) {
-//					ToolItem item = (ToolItem) e.widget;
-//					Rectangle rect = item.getBounds(); 
-//					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
-//					buildModeMenu.setLocation(pt);
-//					buildModeMenu.setVisible(true);
-//				} else {
-//					dialogBuild(buildMode);
-//				}
-//			}
-//			
-//		});
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
@@ -1046,7 +1018,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 
 				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds(); 
+				Rectangle rect = item.getBounds();
 				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
 				mDataset.setLocation(pt);
 				mDataset.setVisible(true);
@@ -1144,6 +1116,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_showGrids(" + (showGrid ? "true":"false") +")")); 
 			}
 		});
+		
+		for (ToolItem ti: toolbar.getItems()) {
+			ti.setData("style", "background-color: unset");
+		}
 	}
 	
 	private void updateDevicesMenu() {
@@ -1192,7 +1168,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (JSONException e1) {
 					device.dispose();
 				}
-			}			
+			}
 		}
 	}
 		
@@ -1391,7 +1367,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 	}
 
-	private void build(final String path, final int buildCount, final MobileBuilder mb) {	
+	private void build(final String path, final int buildCount, final MobileBuilder mb) {
 		Object mutex = new Object();
 		mb.setBuildMutex(mutex);
 		try {
@@ -1438,7 +1414,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--port="+ portNode);
 			}
 			
-			// #183 add useless option to help terminateNode method to find the current path 
+			// #183 add useless option to help terminateNode method to find the current path
 			cmd.add("--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 			
 			pb.redirectErrorStream(true);
@@ -1927,5 +1903,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			terminated[0] = true;
 		});
 		prodJob.schedule();
+	}
+	
+	public String getCurrentUrl() {
+		return c8oBrowser != null ? c8oBrowser.getURL() : "";
 	}
 }

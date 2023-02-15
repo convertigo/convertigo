@@ -85,6 +85,16 @@
          fragment="true"/>
 
    <plugin
+         id="com.twinsoft.convertigo.studio.jxbrowser.mac.arm"
+         os="macosx"
+         ws="cocoa"
+         arch="aarch64"
+         download-size="0"
+         install-size="0"
+         version="@convertigoVersion@.qualifier"
+         fragment="true"/>
+
+   <plugin
          id="com.twinsoft.convertigo.studio.jxbrowser.linux64"
          os="linux"
          ws="gtk"
