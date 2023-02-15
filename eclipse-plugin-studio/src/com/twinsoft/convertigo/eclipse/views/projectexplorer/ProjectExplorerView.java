@@ -505,9 +505,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		toolbar.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, true));
 
 		String[][] defs = {
-				{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
+				{"Start Low Code FullStack Web/Desktop or Mobile app project", "web_color_32x32.png", "NewNgxBuilderWizard"},
 				{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
-				{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
+				{"Start Hello World sample project", "panel_color_32x32.gif", "NewSampleHelloWorldWizard"},
 				{"Start another type of project", "convertigo_logo_32x32.png", null}
 		};
 
@@ -1213,7 +1213,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	private void edit(TreeObject treeObject) {
+	private void edit(TreeObject treeObject, boolean newObject) {
 		final Tree tree = viewer.getTree();
 		final TreeEditor editor = new TreeEditor (tree);
 		final Color black = getSite().getShell().getDisplay().getSystemColor (SWT.COLOR_BLACK);
@@ -1359,198 +1359,193 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						}
 
 						if (needRefresh) {
-							boolean updateDlg = false;
-							boolean updateReferences = false;
-							int update = 0;
-							// Updates references to object if needed
-							if ((theTreeObject instanceof ProjectTreeObject) ||
-									(theTreeObject instanceof SequenceTreeObject) ||
-									(theTreeObject instanceof ConnectorTreeObject) ||
-									(theTreeObject instanceof TransactionTreeObject) ||
-									(theTreeObject instanceof VariableTreeObject2) ||
-									(theTreeObject instanceof IDesignTreeObject) ||
-									(theTreeObject instanceof MobilePageComponentTreeObject) ||
-									(theTreeObject instanceof MobileUIComponentTreeObject) ||
-									(theTreeObject instanceof NgxPageComponentTreeObject) ||
-									(theTreeObject instanceof NgxUIComponentTreeObject)) {
-								String objectType = "";
-								if (theTreeObject instanceof ProjectTreeObject) {
-									objectType = "project";
-									updateDlg = true;
-								} else if (theTreeObject instanceof SequenceTreeObject) {
-									objectType = "sequence";
-									updateDlg = true;
-								} else if (theTreeObject instanceof ConnectorTreeObject) {
-									objectType = "connector";
-									updateDlg = true;
-								} else if (theTreeObject instanceof TransactionTreeObject) {
-									objectType = "transaction";
-									updateDlg = true;
-								} else if (theTreeObject instanceof VariableTreeObject2) {
-									objectType = "variable";
-									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof RequestableVariable ? true:false;
-								} else if (theTreeObject instanceof DesignDocumentTreeObject) {
-									objectType = "document";
-									updateDlg = true;
-								} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
-									objectType = "view";
-									updateDlg = true;
-								} else if (theTreeObject instanceof DesignDocumentFilterTreeObject) {
-									objectType = "filter";
-									updateDlg = true;
-								} else if (theTreeObject instanceof DesignDocumentUpdateTreeObject) {
-									objectType = "update";
-									updateDlg = true;
-								} else if (theTreeObject instanceof DesignDocumentValidateTreeObject) {
-									objectType = "validate";
-									updateDlg = true;
-								} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
-									objectType = "page";
-									updateDlg = true;
-								} else if (theTreeObject instanceof NgxPageComponentTreeObject) {
-									objectType = "page";
-									updateDlg = true;
-								} else if (theTreeObject instanceof MobileUIComponentTreeObject) {
-									DatabaseObject dbo = (DatabaseObject)theTreeObject.getObject();
-									if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
-										objectType = "menu";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
-										objectType = "shared action";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
-										objectType = "shared component";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIStackVariable) {
-										objectType = "variable";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UICompVariable) {
-										objectType = "variable";
-										updateDlg = true;
-									}
-								} else if (theTreeObject instanceof NgxUIComponentTreeObject) {
-									DatabaseObject dbo = (DatabaseObject)theTreeObject.getObject();
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
-										objectType = "menu";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
-										objectType = "shared action";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
-										objectType = "shared component";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable) {
-										objectType = "variable";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompVariable) {
-										objectType = "variable";
-										updateDlg = true;
-									}
-									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompEvent) {
-										objectType = "event";
-										updateDlg = true;
-									}
-								}
-
-								if (updateDlg) {
-									Shell shell = Display.getDefault().getActiveShell();
-									CustomDialog customDialog = new CustomDialog(
-											shell,
-											"Update object references",
-											"Do you want to update "
-													+ objectType
-													+ " references ?\n You can replace '"
-													+ oldName
-													+ "' by '"
-													+ newName
-													+ "' in all loaded projects \n or replace '"
-													+ oldName
-													+ "' by '"
-													+ newName
-													+ "' in current project only.",
-													670, 200,
-													new ButtonSpec("Replace in all loaded projects", true),
-													new ButtonSpec("Replace in current project", false),
-													new ButtonSpec("Do not replace anywhere", false));
-									int response = customDialog.open();
-									if (response == 0) {
-										updateReferences = true;
-										update = TreeObjectEvent.UPDATE_ALL;
-									}
-									if (response == 1) {
-										updateReferences = true;
-										update = TreeObjectEvent.UPDATE_LOCAL;
-									}
-								}
-							}
-
-							TreeObjectEvent treeObjectEvent = null;
-							if (updateReferences) {
-								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName, update);
-							} else {
-								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName);
-							}
-							BatchOperationHelper.start();
-							ProjectExplorerView.this.refreshTree();
-							ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
-							ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
-							if (updateReferences && needProjectReload) {
-								((ProjectTreeObject) theTreeObject).save(false);
-							}
-
 							boolean needNgxPaletteReload = false;
-							if (mbo != null) {
-								if (theTreeObject instanceof MobilePageComponentTreeObject) {
-									try {
-										mbo.pageRenamed((com.twinsoft.convertigo.beans.mobile.components.PageComponent) theTreeObject.getObject(), oldName);
-									} catch (EngineException e1) {
-										e1.printStackTrace();
+							if (!newObject) {
+								boolean updateDlg = false;
+								boolean updateReferences = false;
+								int update = 0;
+								// Updates references to object if needed
+								if ((theTreeObject instanceof ProjectTreeObject) ||
+										(theTreeObject instanceof SequenceTreeObject) ||
+										(theTreeObject instanceof ConnectorTreeObject) ||
+										(theTreeObject instanceof TransactionTreeObject) ||
+										(theTreeObject instanceof VariableTreeObject2) ||
+										(theTreeObject instanceof IDesignTreeObject) ||
+										(theTreeObject instanceof MobilePageComponentTreeObject) ||
+										(theTreeObject instanceof MobileUIComponentTreeObject) ||
+										(theTreeObject instanceof NgxPageComponentTreeObject) ||
+										(theTreeObject instanceof NgxUIComponentTreeObject)) {
+									String objectType = "";
+									if (theTreeObject instanceof ProjectTreeObject) {
+										objectType = "project";
+										updateDlg = true;
+									} else if (theTreeObject instanceof SequenceTreeObject) {
+										objectType = "sequence";
+										updateDlg = true;
+									} else if (theTreeObject instanceof ConnectorTreeObject) {
+										objectType = "connector";
+										updateDlg = true;
+									} else if (theTreeObject instanceof TransactionTreeObject) {
+										objectType = "transaction";
+										updateDlg = true;
+									} else if (theTreeObject instanceof VariableTreeObject2) {
+										objectType = "variable";
+										updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof RequestableVariable ? true:false;
+									} else if (theTreeObject instanceof DesignDocumentTreeObject) {
+										objectType = "document";
+										updateDlg = true;
+									} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
+										objectType = "view";
+										updateDlg = true;
+									} else if (theTreeObject instanceof DesignDocumentFilterTreeObject) {
+										objectType = "filter";
+										updateDlg = true;
+									} else if (theTreeObject instanceof DesignDocumentUpdateTreeObject) {
+										objectType = "update";
+										updateDlg = true;
+									} else if (theTreeObject instanceof DesignDocumentValidateTreeObject) {
+										objectType = "validate";
+										updateDlg = true;
+									} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
+										objectType = "page";
+										updateDlg = true;
+									} else if (theTreeObject instanceof NgxPageComponentTreeObject) {
+										objectType = "page";
+										updateDlg = true;
+									} else if (theTreeObject instanceof MobileUIComponentTreeObject) {
+										DatabaseObject dbo = (DatabaseObject)theTreeObject.getObject();
+										if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+											objectType = "menu";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
+											objectType = "shared action";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
+											objectType = "shared component";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIStackVariable) {
+											objectType = "variable";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UICompVariable) {
+											objectType = "variable";
+											updateDlg = true;
+										}
+									} else if (theTreeObject instanceof NgxUIComponentTreeObject) {
+										DatabaseObject dbo = (DatabaseObject)theTreeObject.getObject();
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
+											objectType = "menu";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
+											objectType = "shared action";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
+											objectType = "shared component";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable) {
+											objectType = "variable";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompVariable) {
+											objectType = "variable";
+											updateDlg = true;
+										}
+										if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompEvent) {
+											objectType = "event";
+											updateDlg = true;
+										}
+									}
+
+									if (updateDlg) {
+										Shell shell = Display.getDefault().getActiveShell();
+										CustomDialog customDialog = new CustomDialog(
+												shell,
+												"Update object references",
+												"Do you want to update "
+														+ objectType
+														+ " references ?\n You can replace '"
+														+ oldName
+														+ "' by '"
+														+ newName
+														+ "' in all loaded projects \n or replace '"
+														+ oldName
+														+ "' by '"
+														+ newName
+														+ "' in current project only.",
+														670, 200,
+														new ButtonSpec("Replace in all loaded projects", true),
+														new ButtonSpec("Replace in current project", false),
+														new ButtonSpec("Do not replace anywhere", false));
+										int response = customDialog.open();
+										if (response == 0) {
+											updateReferences = true;
+											update = TreeObjectEvent.UPDATE_ALL;
+										}
+										if (response == 1) {
+											updateReferences = true;
+											update = TreeObjectEvent.UPDATE_LOCAL;
+										}
 									}
 								}
-								if (theTreeObject instanceof NgxPageComponentTreeObject) {
-									try {
-										//mbo.pageRenamed((com.twinsoft.convertigo.beans.ngx.components.PageComponent) theTreeObject.getObject(), oldName);
-									} catch (Exception e1) {
-										e1.printStackTrace();
-									}
+
+								TreeObjectEvent treeObjectEvent = null;
+								if (updateReferences) {
+									treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName, update);
+								} else {
+									treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName);
 								}
-								if (theTreeObject instanceof NgxUIComponentTreeObject) {
-									try {
+								BatchOperationHelper.start();
+								ProjectExplorerView.this.refreshTree();
+								ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
+								ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
+								if (updateReferences && needProjectReload) {
+									((ProjectTreeObject) theTreeObject).save(false);
+								}
+								if (mbo != null) {
+									if (theTreeObject instanceof MobilePageComponentTreeObject) {
+										try {
+											mbo.pageRenamed((com.twinsoft.convertigo.beans.mobile.components.PageComponent) theTreeObject.getObject(), oldName);
+										} catch (EngineException e1) {
+											e1.printStackTrace();
+										}
+									}
+									if (theTreeObject instanceof NgxUIComponentTreeObject) {
 										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
 											needNgxPaletteReload = true;
 										}
 										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
 											needNgxPaletteReload = true;
-											//mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);
 										}
-									} catch (Exception e1) {
-										e1.printStackTrace();
 									}
 								}
+								BatchOperationHelper.stop();
+								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
+							} else {
+								ProjectExplorerView.this.refreshTree();
+								ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
 							}
-							BatchOperationHelper.stop();
-							Engine.logStudio.info("---------------------- Rename ended   ----------------------");
-
+							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ISelectionListener listener = null;
 
+							ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 							// refresh properties view
-							listener = ConvertigoPlugin.getDefault().getPropertiesView();
-							if (listener != null)
+							listener = plugin.getPropertiesView();
+							if (listener != null) {
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
 										structuredSelection);
-
+								plugin.refreshPropertiesView();
+							}
+							plugin.getPropertiesView().setPinned(isCarbon);
 							// refresh references view
-							listener = ConvertigoPlugin.getDefault().getReferencesView();
+							listener = plugin.getReferencesView();
 							if (listener != null)
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
@@ -1558,7 +1553,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 							// Refresh ngx palette view
 							if (needNgxPaletteReload) {
-								ConvertigoPlugin.getDefault().refreshPaletteView();
+								plugin.refreshPaletteView();
 							}
 						}
 						if (needProjectReload) {
@@ -2701,6 +2696,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void renameSelectedTreeObject() {
+		renameSelectedTreeObject(false);
+	}
+	
+	public void renameSelectedTreeObject(boolean newObject) {
 		TreeObject treeObject = getFirstSelectedTreeObject();
 		if ((treeObject != null) &&
 				((treeObject instanceof DatabaseObjectTreeObject) ||
@@ -2709,7 +2708,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						(treeObject instanceof DesignDocumentFilterTreeObject) ||
 						(treeObject instanceof DesignDocumentUpdateTreeObject)))
 		{
-			edit(treeObject);
+			edit(treeObject, newObject);
 		}
 	}
 
@@ -3409,8 +3408,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			int delta = destPosition - srcPosition;
 			int count = (delta < 0) ? (insertBefore ? delta : delta + 1)
 					: (insertBefore ? delta - 1 : delta);
+			setSelectedTreeObject(children.get(srcPosition));
 			if (count != 0) {
-				setSelectedTreeObject(children.get(srcPosition));
 				if (count < 0) {
 					new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
 				} else {
