@@ -648,8 +648,6 @@ jobs:
           codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app
           productbuild --component for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app "/Applications" --sign "Developer ID Installer: Convertigo (${APPLE_TEAM_ID})" ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg
           
-          wget https://convertigo-ci.s3-eu-west-3.amazonaws.com/${C8O_VERSION}/convertigo-studio-8.2.0-beta-macosx.tar.gz
-          tar -xf convertigo-studio-8.2.0-beta-macosx.tar.gz
           sed -e "s,.studio<,.studio.x86_64<," -i.bak for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist
           rm for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist.bak
           codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app
