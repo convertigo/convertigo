@@ -127,8 +127,8 @@ public class TutoView extends ViewPart implements StudioEventListener {
 			}
 			return Response.proceed();
 		});
-		browser.setUrl("https://www.convertigo.com/convertigo-studio-tuto/tutorial-1-create-build-and-deploy");
-		System.out.println(browser.getDebugUrl());
+		browser.setUrl("https://www.convertigo.com/studio-tutorials");
+		Engine.logStudio.debug("Debug the tutorial view: " + browser.getDebugUrl() + "/json");
 	}
 	
 	private void onImgEnter(String url) {
