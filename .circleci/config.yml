@@ -9,7 +9,9 @@ defaults: &defaults
   docker:
   - image: convertigo/builder-ci:circleci-7
   
-version: 2
+version: 2.1
+orbs:
+  aws-cli: circleci/aws-cli@3.1.4
 jobs:
   build_engine_jar:
     <<: *defaults
@@ -520,6 +522,9 @@ jobs:
           dir_mac=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64
           dir_mac_arm=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/aarch64
           
+          mkdir for_mac
+          cp /tmp/build.env for_mac/
+          
           if [ -d ${dir_w64} ]; then
              (mv /tmp/c8o_jre/win ${dir_w64}/jre
               mv ${dir_w64}/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
@@ -552,18 +557,16 @@ jobs:
               dir_mac_web=$(dirname ${dir_mac}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_web}/build.txt
-              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" >> ${dir_mac_web}/build.txt
-              mv ${dir_mac} convertigo-studio-$CONVERTIGO_VERSION-macosx
-              tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx &
+              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx.pkg" >> ${dir_mac_web}/build.txt
+              mv ${dir_mac} for_mac/convertigo-studio-$CONVERTIGO_VERSION-macosx
           fi
           if [ -d ${dir_mac_arm} ]; then
               mv /tmp/c8o_jre/mac-arm ${dir_mac_arm}/ConvertigoStudio.app/Contents/jre
               dir_mac_arm_web=$(dirname ${dir_mac_arm}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_arm_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_arm_web}/build.txt
-              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.tar.gz" >> ${dir_mac_arm_web}/build.txt
-              mv ${dir_mac_arm} convertigo-studio-$CONVERTIGO_VERSION-macosx-arm
-              tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx-arm &
+              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.pkg" >> ${dir_mac_arm_web}/build.txt
+              mv ${dir_mac_arm} for_mac/convertigo-studio-$CONVERTIGO_VERSION-macosx-arm
           fi
           for job in $(jobs -p); do
               wait $job
@@ -574,6 +577,8 @@ jobs:
         command: |
           source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
+          cp installers/convertigo.gpg for_mac/
+          cp installers/entitlements.plist for_mac/ 
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
@@ -588,6 +593,7 @@ jobs:
           else
             aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_MAJOR
           fi
+          
     - run:
         name: Remove old Docker images
         command: |
@@ -605,7 +611,59 @@ jobs:
               done
             done
           fi
-        
+          
+    - persist_to_workspace:
+        root: for_mac
+        paths:
+        - .
+          
+  build_studio_mac:
+    macos:
+      xcode: 14.2.0
+    steps:
+    - aws-cli/setup
+    - attach_workspace:
+        at: for_mac
+    - run:
+        name: Sign Studio
+        command: |
+          source for_mac/build.env
+          security create-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+          security default-keychain -s ~/Library/Keychains/MyKeychain.keychain
+          security unlock-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+          security set-keychain-settings -t 7200 -l ~/Library/Keychains/MyKeychain.keychain
+          security list-keychains -d user
+          echo "${APPLE_CERT_DEV_ID_APP_BASE64}" | base64 -D -o DevIdApplication.p12
+          echo "${APPLE_CERT_DEV_ID_INS_BASE64}" | base64 -D -o DevIdInstaller.p12
+          security import ./DevIdApplication.p12 -k ~/Library/Keychains/MyKeychain.keychain -P "${APPLE_CERT_PASSWORD}" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
+          security import ./DevIdInstaller.p12 -k ~/Library/Keychains/MyKeychain.keychain -P "${APPLE_CERT_PASSWORD}" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
+          security find-identity -p codesigning
+          security set-key-partition-list -S apple-tool:,apple: -s -k '' ~/Library/Keychains/MyKeychain.keychain
+          
+          export OUTPUT_DIR=DIST/convertigo-${CONVERTIGO_BUILD_NAME}
+          mkdir -p ${OUTPUT_DIR}
+          
+          sed -e "s,.studio<,.studio.arm64<," -i.bak for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Info.plist
+          rm for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Info.plist.bak
+          codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app
+          productbuild --component for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app "/Applications" --sign "Developer ID Installer: Convertigo (${APPLE_TEAM_ID})" ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg
+          
+          wget https://convertigo-ci.s3-eu-west-3.amazonaws.com/${C8O_VERSION}/convertigo-studio-8.2.0-beta-macosx.tar.gz
+          tar -xf convertigo-studio-8.2.0-beta-macosx.tar.gz
+          sed -e "s,.studio<,.studio.x86_64<," -i.bak for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist
+          rm for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist.bak
+          codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app
+          productbuild --component for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app "/Applications" --sign "Developer ID Installer: Convertigo (${APPLE_TEAM_ID})" ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg
+          
+          xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
+          xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
+          
+          brew install gnupg
+          tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
+          find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
+          
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
+          
   release:
     docker:
     - image: cibuilds/github:latest
@@ -658,6 +716,12 @@ workflows:
     - build_studio:
         requires:
         - build_engine_jar
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - build_studio_mac:
+        requires:
+        - build_studio
         filters:
           tags:
             only: /^\d+\..*$/
