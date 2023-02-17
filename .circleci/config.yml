@@ -578,7 +578,7 @@ jobs:
           source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
           cp installers/convertigo.gpg for_mac/
-          cp installers/entitlements.plist for_mac/ 
+          cp installers/entitlements.plist for_mac/
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
@@ -657,6 +657,8 @@ jobs:
           xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
           
           brew install gnupg
+          
+          mkdir -p ~/.gnupg
           tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
           find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
           
