@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
@@ -456,6 +457,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		browserInterface = new ApplicationComponentBrowserImpl();
 		
+		String[] inject = {null};
+		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
+			inject[0] = IOUtils.toString(is, "UTF-8"); 
+		} catch (Exception e2) {
+			Engine.logStudio.info("failure", e2);
+			inject[0] = "alert('the editor is broken, please restart the studio')";
+		}
+		
 		browser.set(InjectJsCallback.class, params -> {
 			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
@@ -465,7 +474,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					frame.executeJavaScript(
 						"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
 						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-						+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
+						+ inject[0]
 					);
 					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
 					if (!dataset.equals("none")) {

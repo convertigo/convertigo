@@ -564,7 +564,8 @@ public class PaletteView extends ViewPart {
 						DatabaseObject dbo = item.newDatabaseObject();
 						dbo.priority = dbo.getNewOrderValue();
 						event.doit = true;
-						PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
+						PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(dbo));
+						dragSetData(event);
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
@@ -582,6 +583,11 @@ public class PaletteView extends ViewPart {
 						String str = lastUsed.stream().map(Item::id).collect(Collectors.joining(","));
 						ConvertigoPlugin.setProperty("palette.history", str);
 					}
+				}
+
+				@Override
+				public void dragSetData(DragSourceEvent event) {
+					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			};
 

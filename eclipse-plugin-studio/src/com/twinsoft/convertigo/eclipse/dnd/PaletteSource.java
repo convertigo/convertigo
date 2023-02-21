@@ -31,7 +31,7 @@ public class PaletteSource {
 	
 	public String getXmlData() {
 		if (xmlData == null) {
-			xmlData = "";
+			xmlData = "<xml/>";
 		}
 		return xmlData;
 	}
