@@ -1572,7 +1572,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent dragStartMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		Node node = browser.mainFrame().get().executeJavaScript("document.elementFromPoint(" + x + ", " + y + ")");
+		Node node = browser.mainFrame().get().inspect(x, y).node().get();
 		highlightPoint(node);
 	}
 	
