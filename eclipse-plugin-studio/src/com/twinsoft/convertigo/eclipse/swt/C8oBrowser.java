@@ -56,7 +56,6 @@ public class C8oBrowser extends Composite {
 	private String debugUrl;
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
-	private double dpiRatio = 1;
 
 	private void init(Engine browserContext) {
 		setLayout(new FillLayout());
@@ -111,7 +110,6 @@ public class C8oBrowser extends Composite {
 	public C8oBrowser(Composite parent, int style, Project project) {
 		super(parent, style);
 		boolean retry = false;
-		dpiRatio = parent.getDisplay().getDPI().x / 96f;
 		do {
 			File browserIdFile = null;
 			String browserId = "default";
@@ -281,9 +279,5 @@ public class C8oBrowser extends Composite {
 	
 	public void setUseExternalBrowser(boolean useExternalBrowser) {
 		this.useExternalBrowser = useExternalBrowser;
-	}
-	
-	public int fixDPI(int i) {
-		return (int) (i * dpiRatio);
 	}
 }

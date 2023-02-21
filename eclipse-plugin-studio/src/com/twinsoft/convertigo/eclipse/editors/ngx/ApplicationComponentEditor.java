@@ -151,12 +151,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			try {
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
-					int x = ((Double) o.property("x").get()).intValue();
-					int y = ((Double) o.property("y").get()).intValue();
-					int xx = zoomFactor.swt(x);
-					int yy = zoomFactor.swt(y);
-					
-					highlightPoint(xx, yy);
+					highlightPoint((Node) o.property("target").get());
 				}
 			} catch (Exception e) {
 			}
@@ -276,7 +271,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private int buildCount = 0;
 	private ToolItem buildItem;
 	
-	//private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pIsBrowserOpenable = Pattern.compile(".*?open your browser on (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
@@ -1569,9 +1563,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent dragStartMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		x = c8oBrowser.fixDPI(x);
-		y = c8oBrowser.fixDPI(y);
-		Node node = browser.mainFrame().get().inspect(x, y).node().orElse(null);
+		Node node = browser.mainFrame().get().executeJavaScript("document.elementFromPoint(" + x + ", " + y + ")");
+		highlightPoint(node);
+	}
+	
+	private void highlightPoint(Node node) {
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
 		}

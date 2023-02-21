@@ -134,11 +134,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				int x = ((Double) o.property("x").get()).intValue();
-				int y = ((Double) o.property("y").get()).intValue();
-				x = zoomFactor.swt(x);
-				y = zoomFactor.swt(y);
-				highlightPoint((int) x, (int) y);
+				highlightPoint((Node) o.property("target").get());
 			} catch (Exception e) {
 				onDrop(o);
 			}
@@ -1435,9 +1431,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		x = c8oBrowser.fixDPI(x);
-		y = c8oBrowser.fixDPI(y);
-		Node node = browser.mainFrame().get().inspect(x, y).node().orElse(null);
+		Node node = browser.mainFrame().get().executeJavaScript("document.elementFromPoint(" + x + ", " + y + ")");
+		highlightPoint(node);
+	}
+	
+	private void highlightPoint(Node node) {
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
 		}
