@@ -44,6 +44,7 @@ import com.teamdev.jxbrowser.navigation.event.LoadFinished;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 
@@ -137,7 +138,8 @@ public class C8oBrowser extends Composite {
 					debugPort = 30000;
 				}
 				debugPort = NetworkUtils.nextAvailable(debugPort);
-				browserContext = Engine.newInstance(EngineOptions.newBuilder(render_offscreen ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
+				boolean off = render_offscreen || ConvertigoPlugin.getBrowserOffscreen();
+				browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(JBL.get())
 						.addSwitch("--illegal-access=warn")

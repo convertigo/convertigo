@@ -191,6 +191,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_USE_SYSTEM_FLOWVIEWER = "useSystem.flowViewer";
 	public static final String PREFERENCE_EDITOR_OUTPUT_MODE = "editor.output.mode";
 	public static final String PREFERENCE_HIDE_LIB_PROJECTS = "hide.lib.projects";
+	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 
@@ -943,6 +944,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	static public String getLocalBuildFolder() {
 		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
 		return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER);
+	}
+
+	static public boolean getBrowserOffscreen() {
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		return preferenceStore.getBoolean(ConvertigoPlugin.PREFERENCE_BROWSER_OFFSCREEN);
 	}
 
 	static public void setLogLevel(int logLevel) {

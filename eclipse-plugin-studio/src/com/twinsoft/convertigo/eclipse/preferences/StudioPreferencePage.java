@@ -48,6 +48,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbAutoCreateProjectReference = null;
 	private BooleanFieldEditor cbAutoCreateProjectGitRepository = null;
 	private BooleanFieldEditor cbAutoUpdateReadme = null;
+	private BooleanFieldEditor cbBrowserOffscreen = null;
 //	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
@@ -93,6 +94,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbIgnoreNews.setPage(this);
 		cbIgnoreNews.setPreferenceStore(getPreferenceStore());
 		cbIgnoreNews.load();
+
+		cbBrowserOffscreen = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_BROWSER_OFFSCREEN,
+				"Offscreen render for browsers (solve blank browser in VM)", groupGeneral);
+		cbBrowserOffscreen.setPage(this);
+		cbBrowserOffscreen.setPreferenceStore(getPreferenceStore());
+		cbBrowserOffscreen.load();
 
 		cbShowEngineOnConsole = new BooleanFieldEditor(
 				ConvertigoPlugin.PREFERENCE_SHOW_ENGINE_INTO_CONSOLE,
@@ -220,6 +228,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectReference.loadDefault();
 		cbAutoCreateProjectGitRepository.loadDefault();
 		cbAutoUpdateReadme.loadDefault();
+		cbBrowserOffscreen.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
@@ -256,6 +265,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectReference.store();
 		cbAutoUpdateReadme.store();
 		cbAutoCreateProjectGitRepository.store();
+		cbBrowserOffscreen.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
 //		cbUseSystemFlowViewer.store();
