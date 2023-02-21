@@ -4045,42 +4045,10 @@
       </view>
       <view
             category="convertigo"
-            class="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
-            icon="icons/palette_16x16.png"
-            id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
-            name="Mobile Palette"
-            restorable="true">
-      </view>
-      <view
-            category="convertigo"
-            class="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
-            icon="icons/palette_16x16.png"
-            id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
-            name="Ngx Palette"
-            restorable="true">
-      </view>
-      <view
-            category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
             icon="icons/studio/debug.gif"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
             name="Mobile Debug"
-            restorable="true">
-      </view>
-      <view
-            category="convertigo"
-            class="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
-            icon="icons/picker_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
-            name="Mobile Picker"
-            restorable="true">
-      </view>
-      <view
-            category="convertigo"
-            class="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
-            icon="icons/picker_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
-            name="Ngx Picker"
             restorable="true">
       </view>
       <!--view

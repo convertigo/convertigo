@@ -26,7 +26,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -81,10 +80,7 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 
 			// Refresh ngx palette view
 			if (needNgxPaletteReload) {
-				NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
-				if (ngxPaletteView != null) {
-					ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
-				}
+				ConvertigoPlugin.getDefault().refreshPaletteView();
 			}
 		}
 		catch (Throwable e) {
