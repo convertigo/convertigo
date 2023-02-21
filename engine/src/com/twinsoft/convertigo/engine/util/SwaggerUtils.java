@@ -543,7 +543,7 @@ public class SwaggerUtils {
 			httpConnector.setPort(port <= 0 ? (isHttps ? 443:80) : port);
 			
 			String basePath = swagger.getBasePath();
-			httpConnector.setBaseDir(basePath);
+			httpConnector.setBaseDir(basePath == null ? "" : basePath);
 			
 			Map<String, SecuritySchemeDefinition> securityMap = swagger.getSecurityDefinitions();
 			if (securityMap != null && securityMap.size() > 0) {
