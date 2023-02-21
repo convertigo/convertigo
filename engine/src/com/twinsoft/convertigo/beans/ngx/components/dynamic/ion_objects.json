@@ -8440,7 +8440,7 @@
           "label": "Chart options",
           "description": "chart options (as from Chart.js documentation).",
           "category": "@Properties",
-          "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }",
+          "value": "{'plugins':{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false}}",
           "values": [
             false,
             true
