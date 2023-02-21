@@ -2026,6 +2026,7 @@
       "icon16": "icon_16x16.png",
       "icon32": "icon_32x32.png",
       "properties": {
+        "IonColor": false,
         "IconName": {
           "attr": "name",
           "label": "Icon name",
