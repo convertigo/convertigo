@@ -84,6 +84,7 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartService;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -126,7 +127,6 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -191,6 +191,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_USE_SYSTEM_FLOWVIEWER = "useSystem.flowViewer";
 	public static final String PREFERENCE_EDITOR_OUTPUT_MODE = "editor.output.mode";
 	public static final String PREFERENCE_HIDE_LIB_PROJECTS = "hide.lib.projects";
+	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 
@@ -515,16 +516,50 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		
+		Boolean[] needPalette = {null};
+		Boolean[] needPicker = {null};
+		IWorkbenchPage[] activePage = {null};
+		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (activeWindow != null) {
-			IWorkbenchPage activePage = activeWindow.getActivePage();
+			activePage[0] = activeWindow.getActivePage();
 			if (activePage != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				IEditorReference[] editorRefs = activePage[0].getEditorReferences();
 				for (int i = 0; i < editorRefs.length; i++) {
-					IEditorReference editorRef = (IEditorReference) editorRefs[i];
-					String id = editorRef.getId();
+					String id = editorRefs[i].getId();
 					if (id.startsWith("com.twinsoft.convertigo.eclipse.editors") || id.equals("org.eclipse.ui.internal.emptyEditorTab")) {
-						activePage.closeEditors(new IEditorReference[] {editorRef}, false);
+						activePage[0].closeEditors(new IEditorReference[] {editorRefs[i]}, false);
+					}
+				}
+				IViewReference[] viewRefs = activePage[0].getViewReferences();
+				for (int i = 0; i < viewRefs.length; i++) {
+					String id = viewRefs[i].getId();
+					boolean closeView = false;
+					switch (id) {
+					case "com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView":
+					case "com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView":
+						if (needPalette[0] == null) {
+							needPalette[0] = true;
+						}
+						closeView = true;
+						break;
+					case "com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView":
+					case "com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView":
+						if (needPicker[0] == null) {
+							needPicker[0] = true;
+						}
+						closeView = true;
+						break;
+					case "com.twinsoft.convertigo.eclipse.views.palette.PaletteView":
+						needPalette[0] = false;
+						break;
+					case "com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView":
+						needPicker[0] = false;
+						break;
+					}
+					
+					if (closeView) {
+						activePage[0].hideView(viewRefs[i]);
 					}
 				}
 			}
@@ -614,6 +649,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		runAtStartup(() -> {
 			Engine.theApp.eventManager.addListener(this, ProgressEventListener.class);
 			Engine.execute(() -> Engine.theApp.couchDbManager.getFullSyncClient());
+			try {
+				if (needPalette[0] == Boolean.TRUE) {
+					activePage[0].showView("com.twinsoft.convertigo.eclipse.views.palette.PaletteView");
+				}
+				
+				if (needPicker[0] == Boolean.TRUE) {
+					activePage[0].showView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+				}
+			} catch (Exception e) {
+			}
 		});
 
 		DatabaseObjectsManager.studioProjects = this;
@@ -899,6 +944,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	static public String getLocalBuildFolder() {
 		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
 		return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER);
+	}
+
+	static public boolean getBrowserOffscreen() {
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		return preferenceStore.getBoolean(ConvertigoPlugin.PREFERENCE_BROWSER_OFFSCREEN);
 	}
 
 	static public void setLogLevel(int logLevel) {
@@ -1265,17 +1315,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				referencesView = (ReferencesView)viewPart;
 		}
 		return referencesView;
-	}
-
-	public NgxPaletteView getNgxPaletteView() {
-		NgxPaletteView ngxPaletteView = null;
-		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
-			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView");
-			if (viewPart != null)
-				ngxPaletteView = (NgxPaletteView)viewPart;
-		}
-		return ngxPaletteView;
 	}
 
 	public PaletteView getPaletteView() {
@@ -1860,10 +1899,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	public void refreshPaletteView() {
-		NgxPaletteView ngxPaletteView = getNgxPaletteView();
-		if (ngxPaletteView != null) {
-			ngxPaletteView.refresh();
-		}
 		PaletteView paletteView = getPaletteView();
 		if (paletteView != null) {
 			paletteView.refresh();

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
@@ -134,11 +135,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				int x = ((Double) o.property("x").get()).intValue();
-				int y = ((Double) o.property("y").get()).intValue();
-				x = zoomFactor.swt(x);
-				y = zoomFactor.swt(y);
-				highlightPoint((int) x, (int) y);
+				highlightPoint((Node) o.property("target").get());
 			} catch (Exception e) {
 				onDrop(o);
 			}
@@ -402,6 +399,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		browserInterface = new ApplicationComponentBrowserImpl();
 		
+		String[] inject = {null};
+		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
+			inject[0] = IOUtils.toString(is, "UTF-8"); 
+		} catch (Exception e2) {
+			Engine.logStudio.info("failure", e2);
+			inject[0] = "alert('the editor is broken, please restart the studio')";
+		}
+		
 		browser.set(InjectJsCallback.class, params -> {
 			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
@@ -411,7 +416,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					frame.executeJavaScript(
 						"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
 						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-						+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
+						+ inject[0]
 					);
 					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
 					if (!dataset.equals("none")) {
@@ -1435,9 +1440,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		x = c8oBrowser.fixDPI(x);
-		y = c8oBrowser.fixDPI(y);
-		Node node = browser.mainFrame().get().inspect(x, y).node().orElse(null);
+		Node node = browser.mainFrame().get().inspect(x, y).node().get();
+		highlightPoint(node);
+	}
+	
+	private void highlightPoint(Node node) {
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
 		}

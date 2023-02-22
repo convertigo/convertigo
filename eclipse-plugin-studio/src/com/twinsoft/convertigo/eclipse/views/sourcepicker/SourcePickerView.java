@@ -128,9 +128,15 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 			getSite().getPage().removeSelectionListener(this);
 		}
 		catch (Exception e) {};
-		spc.dispose();
-		npc.dispose();
-		mpc.dispose();
+		if (spc == null) {
+			spc.dispose();
+		}
+		if (npc == null) {
+			npc.dispose();
+		}
+		if (mpc == null) {
+			mpc.dispose();
+		}
 		super.dispose();
 	}
 

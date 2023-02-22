@@ -2026,6 +2026,7 @@
       "icon16": "icon_16x16.png",
       "icon32": "icon_32x32.png",
       "properties": {
+        "IonColor": false,
         "IconName": {
           "attr": "name",
           "label": "Icon name",
@@ -4647,6 +4648,56 @@
         "ionItemReorder": {
           "attr":"(ionItemReorder)",
           "description": "Event that needs to be listened to in order to complete the reorder action. Once the event has been emitted, the `event.target.complete()` method then needs to be called in order to finalize the reorder action."
+        }
+      },
+      "hint": {
+        "ReorderGroup": {
+          "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+            "properties": {
+              "eventName": "ionItemReorder"
+            },
+            "com.twinsoft.convertigo.beans.ngx.components.UICustomAction": {
+              "properties": {
+                "name": "doComplete",
+                "actionValue": "\t\t\tconsole.log('Dragged from index', event.detail.from, 'to', event.detail.to);\n\t\t\tevent.detail.complete();\n\t\t\tresolve();\n"
+              }
+            }
+          },
+	      "ListItem": [
+	        {
+	          "Label": {
+	            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+	              "properties": {
+	                "textValue": "Item1"
+	              }
+	            }
+	          },
+	          "Reorder": {
+	          }
+	        },
+	        {
+	          "Label": {
+	            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+	              "properties": {
+	                "textValue": "Item2"
+	              }
+	            }
+	          },
+	          "Reorder": {
+	          }
+	        },
+	        {
+	          "Label": {
+	            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+	              "properties": {
+	                "textValue": "Item3"
+	              }
+	            }
+	          },
+	          "Reorder": {
+	          }
+	        }
+	      ]
         }
       }
     },
@@ -8439,7 +8490,7 @@
           "label": "Chart options",
           "description": "chart options (as from Chart.js documentation).",
           "category": "@Properties",
-          "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }",
+          "value": "{'plugins':{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false}}",
           "values": [
             false,
             true

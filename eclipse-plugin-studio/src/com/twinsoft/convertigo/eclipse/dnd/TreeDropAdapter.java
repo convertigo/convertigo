@@ -57,6 +57,7 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XPath;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
@@ -1466,6 +1467,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE) {
 						DatabaseObject dbop = ((PaletteSource) data).getDatabaseObject();
+						if (dbop instanceof FullSyncConnector) {
+							dbop.setName(parent.getProject().getName().toLowerCase() + "_fullsync");
+						}
 
 						paste(dbop, parent, true);
 						if (dbop == null) {

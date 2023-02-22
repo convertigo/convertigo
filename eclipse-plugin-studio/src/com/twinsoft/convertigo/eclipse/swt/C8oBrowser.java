@@ -44,6 +44,7 @@ import com.teamdev.jxbrowser.navigation.event.LoadFinished;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 
@@ -56,7 +57,6 @@ public class C8oBrowser extends Composite {
 	private String debugUrl;
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
-	private double dpiRatio = 1;
 
 	private void init(Engine browserContext) {
 		setLayout(new FillLayout());
@@ -111,7 +111,6 @@ public class C8oBrowser extends Composite {
 	public C8oBrowser(Composite parent, int style, Project project) {
 		super(parent, style);
 		boolean retry = false;
-		dpiRatio = parent.getDisplay().getDPI().x / 96f;
 		do {
 			File browserIdFile = null;
 			String browserId = "default";
@@ -139,7 +138,8 @@ public class C8oBrowser extends Composite {
 					debugPort = 30000;
 				}
 				debugPort = NetworkUtils.nextAvailable(debugPort);
-				browserContext = Engine.newInstance(EngineOptions.newBuilder(render_offscreen ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
+				boolean off = render_offscreen || ConvertigoPlugin.getBrowserOffscreen();
+				browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(JBL.get())
 						.addSwitch("--illegal-access=warn")
@@ -281,9 +281,5 @@ public class C8oBrowser extends Composite {
 	
 	public void setUseExternalBrowser(boolean useExternalBrowser) {
 		this.useExternalBrowser = useExternalBrowser;
-	}
-	
-	public int fixDPI(int i) {
-		return (int) (i * dpiRatio);
 	}
 }

@@ -48,6 +48,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
@@ -395,6 +396,9 @@ public class ComponentManager {
 								Class<?> pdc = pd.getPropertyEditorClass();
 								if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 									setter.invoke(dbo, new Object[] { msst });
+								} else if (pname.equals("actionValue")) {// CustomAction
+									FormatedContent fc = new FormatedContent(value);
+									setter.invoke(dbo, new Object[] { fc });
 								} else {
 									setter.invoke(dbo, new Object[] { value });
 								}

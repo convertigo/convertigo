@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -36,6 +37,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -47,6 +49,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncClient;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 
@@ -308,6 +311,15 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 			}
 			
 			if (connector instanceof CouchDbConnector) {
+				if (connector instanceof FullSyncConnector)
+				try {
+					FullSyncClient fsclient = Engine.theApp.couchDbManager.getFullSyncClient();
+					JSONObject res = fsclient.getDatabase((String) oldValue);
+					if (res.getInt("doc_count") <= 1) {
+						fsclient.deleteDatabase((String) oldValue);
+					}
+				} catch (Exception e1) {
+				}
 				CouchDbManager.syncDocument(connector);
 				try {
 					getProjectExplorerView().reloadTreeObject(this);
