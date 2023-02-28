@@ -2537,20 +2537,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public boolean isProjectLoaded(String projectName) {
 		boolean bLoaded = false;
-		TreeObject treeObject = getFirstSelectedTreeObject();
-		if (treeObject != null) {
-			TreeParent invisibleRoot = null;
-			TreeObject treeParent = treeObject;
-			while ((treeParent = treeParent.getParent()) != null)
-				invisibleRoot = (TreeParent)treeParent;
-
-			for (TreeObject child : invisibleRoot.getChildren()) {
-				if (child.getName().equals(projectName)) {
-					bLoaded = child instanceof ProjectTreeObject;
-					break;
-				}
+		TreeParent invisibleRoot = ((ViewContentProvider)viewer.getContentProvider()).getTreeRoot();
+		for (TreeObject child : invisibleRoot.getChildren()) {
+			if (child.getName().equals(projectName)) {
+				bLoaded = child instanceof ProjectTreeObject;
+				break;
 			}
-
 		}
 		return bLoaded;
 	}

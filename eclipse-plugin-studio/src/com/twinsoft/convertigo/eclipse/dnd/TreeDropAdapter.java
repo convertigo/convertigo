@@ -1301,6 +1301,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						needReload = true;
 					}
 				}
+				if (dbo instanceof Variable) {
+					Variable variable = (Variable) dbo;
+					variable.setDefaultValue(source);
+					databaseObjectTreeObject.markAsChanged(true);
+					needReload = true;
+				}
 				else if (dbo instanceof IXPathable) {
 					// Set XPath property
 					if(dbo instanceof XpathableStatement)
