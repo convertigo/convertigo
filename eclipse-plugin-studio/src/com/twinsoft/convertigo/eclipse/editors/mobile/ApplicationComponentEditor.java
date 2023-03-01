@@ -114,6 +114,8 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -169,8 +171,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							mb.prepareBatchBuild();
 						}
 						
+						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
+						TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
 						BatchOperationHelper.start();
 						TreeDropAdapter.paste(source, fTarget, true);
+						view.reloadTreeObject(treeObject);
 						BatchOperationHelper.stop();
 					} catch (Exception e) {
 						Engine.logStudio.debug("Failed to drop: " + e.getMessage());

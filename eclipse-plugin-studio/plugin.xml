@@ -4045,6 +4045,14 @@
       </view>
       <view
             category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.baserow.BaserowView"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.baserow.BaserowView"
+            name="NoCode Databases"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
             icon="icons/studio/debug.gif"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"

@@ -114,21 +114,24 @@ public class TutoView extends ViewPart implements StudioEventListener {
 		main = new Composite(parent, SWT.NONE);
 		main.setLayout(gl = new GridLayout(1, true));
 		gl.marginHeight = gl.marginWidth = 0;
-		browser = new C8oBrowser(main, SWT.NONE);
-		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.getBrowser().set(InjectJsCallback.class, params -> {
-			try {
-				Frame frame = params.frame();
-				JsObject window = frame.executeJavaScript("window");
-				window.putProperty("IDE", api);
-				frame.executeJavaScript(inject[0]);
-			} catch (Exception e) {
-				Engine.logStudio.info("failure", e);
-			}
-			return Response.proceed();
+		ConvertigoPlugin.asyncExec(() -> {
+			browser = new C8oBrowser(main, SWT.NONE);
+			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+			browser.getBrowser().set(InjectJsCallback.class, params -> {
+				try {
+					Frame frame = params.frame();
+					JsObject window = frame.executeJavaScript("window");
+					window.putProperty("IDE", api);
+					frame.executeJavaScript(inject[0]);
+				} catch (Exception e) {
+					Engine.logStudio.info("failure", e);
+				}
+				return Response.proceed();
+			});
+			browser.setUrl("https://www.convertigo.com/studio-tutorials");
+			Engine.logStudio.debug("Debug the tutorial view: " + browser.getDebugUrl() + "/json");
+			main.layout(true);
 		});
-		browser.setUrl("https://www.convertigo.com/studio-tutorials");
-		Engine.logStudio.debug("Debug the tutorial view: " + browser.getDebugUrl() + "/json");
 	}
 	
 	private void onImgEnter(String url) {

@@ -218,6 +218,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
 							BatchOperationHelper.start();
 							TreeDropAdapter.paste(source, fTarget, true);
+							view.reloadTreeObject(treeObject);
 							if (fTarget != exHighlightMobileComponent) {
 								view.moveLastTo(treeObject, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
 							}
