@@ -33,18 +33,18 @@ public class ProgressWizardDialog extends WizardDialog {
     
     @Override
     protected Control createContents(Composite parent) {
-       Control control = super.createContents(parent);
-       
-       return control;
+       return super.createContents(parent);
     }
     
     @Override
     protected void nextPressed() {
        super.nextPressed();
+       updateSize();
     }
 
     @Override
     protected void backPressed() {
        super.backPressed();
+       updateSize();
     }
 }
