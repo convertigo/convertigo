@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class ConfigureSQLConnectorComposite extends Composite {
@@ -113,7 +114,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 			
 			public void widgetSelected(SelectionEvent e) {
 				try {
-					Class.forName(getJdbcDriver()).getConstructor().newInstance();
+					Engine.getEngineClassLoader().loadClass(getJdbcDriver()).getConstructor().newInstance();
 
 					DriverManager.getConnection( getJdbcURL(), 
 							getUsername(), getPassword());
