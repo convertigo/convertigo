@@ -36,6 +36,7 @@ import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -65,6 +66,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
+	private Cursor handCursor;
 	private Composite main;
 	private C8oBrowser browser;
 	private String email;
@@ -101,6 +103,7 @@ public class BaserowView extends ViewPart {
 
 	@Override
 	public void dispose() {
+		handCursor.dispose();
 		browser.dispose();
 		main.dispose();
 		super.dispose();
@@ -108,6 +111,7 @@ public class BaserowView extends ViewPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		GridLayout gl;
 		main = new Composite(parent, SWT.NONE);
 		main.setLayout(gl = new GridLayout(1, true));
@@ -139,8 +143,8 @@ public class BaserowView extends ViewPart {
 				Pair.of("view_id", "table/\\w+/(\\w+)"))) {
 			Button drag = new Button(bar, SWT.FLAT);
 			drag.setLayoutData(new GridData());
-			drag.setToolTipText("Please drag and drop me on a " + p.getLeft() + " variable");
-			drag.setData("txt", p.getLeft());
+			drag.setCursor(handCursor);
+			drag.setData("txt", "Drag and drop me on a '" + p.getLeft() + "' variable");
 			drag.setData("matcher", Pattern.compile(p.getRight()).matcher(""));
 			drag.setVisible(false);
 			drags.add(drag);
