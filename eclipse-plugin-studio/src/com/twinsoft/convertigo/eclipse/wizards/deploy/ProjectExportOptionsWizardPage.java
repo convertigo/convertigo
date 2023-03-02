@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.wizards.deploy;
 
 import java.io.File;
 import java.util.Set;
-
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -82,26 +81,35 @@ public class ProjectExportOptionsWizardPage extends WizardPage {
 		
 		int i = 0;
 		for (ArchiveExportOption option: ArchiveExportOption.values()) {
-			Button check = new Button(group, SWT.CHECK);
-			check.setData(option);
-			archiveExportOptionsSWT[i++] = check;
+			if (show(project.getDirFile(), option)) {
+				Button check = new Button(group, SWT.CHECK);
+				check.setData(option);
+				archiveExportOptionsSWT[i++] = check;
+			}
 		}
 		fillOptions();
 		
 		setControl(composite);
 	}
 
+	private static boolean show(File projectDir, ArchiveExportOption option) {
+		File dod = new File(projectDir, "DisplayObjects/mobile");
+		return option.name().startsWith("includeMobile") && !dod.exists() ? false:true;
+	}
+	
 	private void fillOptions() {
 		File projectDir = project.getDirFile();
 		for (Button check: archiveExportOptionsSWT) {
-			ArchiveExportOption option = (ArchiveExportOption) check.getData();
-			long size = option.size(projectDir);
-			if (option == ArchiveExportOption.includeTestCase) {
-				check.setText(option.display());
-			} else {
-				check.setText(option.display() + " [" + FileUtils.byteCountToDisplaySize(size) +"]");
+			if (check != null) {
+				ArchiveExportOption option = (ArchiveExportOption) check.getData();
+				if (option == ArchiveExportOption.includeTestCase) {
+					check.setText(option.display());
+				} else {
+					long size = option.size(projectDir);
+					check.setText(option.display() + " [" + FileUtils.byteCountToDisplaySize(size) +"]");
+				}
+				check.setSelection(archiveExportOptions.contains(option));
 			}
-			check.setSelection(archiveExportOptions.contains(option));
 		}
 	}
 	
