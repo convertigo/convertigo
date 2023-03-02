@@ -656,11 +656,11 @@ jobs:
           xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
           xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
           
-          brew install gnupg
+          #brew install gnupg
           
-          mkdir -p ~/.gnupg
-          tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
-          find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
+          #mkdir -p ~/.gnupg
+          #tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
+          #find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
           
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
           
