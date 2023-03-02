@@ -466,11 +466,11 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				SqlConnector sqlConnector = (SqlConnector) newProject.getDefaultConnector();
 				monitor.setTaskName("Update JDBC URL");
 				monitor.worked(1);
-				sqlConnector.setJdbcURL(configureSQLConnectorPage.getJdbcURL());
-				monitor.setTaskName("Update JDBC driver");
-				monitor.worked(1);
 				sqlConnector.setJdbcDriverClassName(configureSQLConnectorPage.getJdbcDriver());
 				monitor.setTaskName("Update Username");
+				monitor.worked(1);
+				sqlConnector.setJdbcURL(configureSQLConnectorPage.getJdbcURL());
+				monitor.setTaskName("Update JDBC driver");
 				monitor.worked(1);
 				sqlConnector.setJdbcUserName(configureSQLConnectorPage.getUsername());
 				monitor.setTaskName("Update Password");
