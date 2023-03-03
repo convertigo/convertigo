@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,155 +62,11 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
-import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NgxBuilder extends MobileBuilder {
-	class MbWorker implements Runnable {
-		private BlockingQueue<Map<String, CharSequence>> wq;
-		List<Map<String, CharSequence>> list = new ArrayList<Map<String, CharSequence>>();
-		Map<String, CharSequence> map = new HashMap<String, CharSequence>();
-		protected boolean isRunning = true;
-		private boolean inProcess = false;
-		Thread thread;
-
-		protected MbWorker(BlockingQueue<Map<String, CharSequence>> queue) {
-			this.wq = queue;
-		}
-
-		public void start() {
-			if (thread == null) {
-				thread = new Thread(worker);
-				thread.setName("MbWorker-"+ project.getName());
-				thread.start();
-			}
-		}
-
-		public void join() throws InterruptedException {
-			if (thread != null) {
-				thread.join();
-			}
-		}
-
-		@SuppressWarnings("unused")
-		void process() {
-			if (!inProcess) {
-				// retrieve all in queue
-				list.clear();
-				wq.drainTo(list);
-
-				// process or not
-				if (list.size() == 0) {
-					try {
-						Thread.sleep(100L);
-					} catch (InterruptedException e) {}
-				} else {
-					inProcess = true;
-					map.clear();
-					for (Map<String, CharSequence> m: list) {
-						map.putAll(m);
-					}
-
-					boolean hasMovedAppOrServFiles = false;
-					boolean hasMovedPageFiles = false;
-					boolean hasMovedCompFiles = false;
-					boolean hasMovedCfgFiles = false;
-					boolean hasMovedFiles = false;
-					boolean hasDeletedFiles = false;
-
-					Engine.logEngine.debug("(MobileBuilder) Start to handle " + map.size() + " files.");
-
-					// Move all files
-					int cw = 0, cd = 0;
-					List<String> pathList = new ArrayList<String>(map.keySet());
-					List<String> toWrite = new ArrayList<String>();
-					List<String> toDelete = new ArrayList<String>();
-					Collections.sort(pathList, new AppFileComparator());
-					for (String path: pathList /*map.keySet()*/) {
-						if (isDeletedFile(path)) {
-							toDelete.add(path);
-							cd++;
-						} else {
-							toWrite.add(path);
-							cw++;
-						}
-					}
-					for (String path: toWrite) {
-						try {
-							FileUtils.write(new File(path), map.get(path), "UTF-8");
-							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
-							hasMovedFiles = true;
-							
-							if (isAppFile(path) || isServiceFile(path)) {
-								hasMovedAppOrServFiles = true;
-							}
-							if (isCompFile(path)) {
-								hasMovedCompFiles = true;
-							}
-							if (isPageFile(path)) {
-								hasMovedPageFiles = true;
-							}
-							if (path.endsWith("package.json") || path.endsWith("angular.json")) {
-								hasMovedCfgFiles = true;
-							}
-						} catch (Exception e) {
-							Engine.logEngine.warn("(MobileBuilder) Failed to write the new content of " + path, e);							
-						}
-					}
-					if (cw > 0) Engine.logEngine.debug("(MobileBuilder) End to move " + cw + " files.");
-					for (String path: toDelete) {
-						try {
-							File f = new File(path);
-							File dir = f.getParentFile();
-							//FileUtils.deleteDirectory(dir);
-							org.apache.commons.io.FileUtils.forceDelete(dir);
-							Engine.logEngine.debug("(MobileBuilder) Deleted " + dir.getPath());
-							hasDeletedFiles = true;
-						} catch (Exception e) {}
-					}
-					if (cd > 0) Engine.logEngine.debug("(MobileBuilder) End to delete " + cd + " files.");
-					
-					if (hasMovedFiles || hasDeletedFiles) {
-						NgxBuilder.this.updateEnvFile();
-					}
-
-					// Need package installation
-					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
-						hasMovedFiles = false;
-						NgxBuilder.this.firePackageUpdated();
-					}
-
-					if (hasMovedFiles || hasDeletedFiles) {
-						if (buildMutex != null) {
-							synchronized (buildMutex) {
-								try {
-									buildMutex.wait(6000);//buildMutex.wait(60000);
-								} catch (InterruptedException e) {}							
-							}
-							Engine.logEngine.debug("(MobileBuilder) build finished.");
-						}
-					}
-					inProcess = false;
-				}
-			}
-		}
-
-		@Override
-		public void run() {
-			while (isRunning) {
-				try {
-					process();
-				} catch (Throwable t) {
-					Engine.logEngine.error("(MobileBuilder) Throwable catched", t);
-				} finally {
-					inProcess = false;
-				}
-			}
-		}
-	}
-
 	Map<String,String> tpl_appCompTsImports = null;
 	Map<String,String> tpl_pageTsImports = null;
 	Map<String,String> tpl_compTsImports = null;
@@ -242,9 +97,6 @@ public class NgxBuilder extends MobileBuilder {
 	File assetsDir, envDir, themeDir;
 	File srcDir;
 
-	DirectoryWatcherService watcherService = null;
-	MbWorker worker = null;
-
 	protected static String FakeDeleted = "fake_deleted.ts";
 	
 	static class AppFileComparator implements Comparator<String> {
@@ -255,15 +107,6 @@ public class NgxBuilder extends MobileBuilder {
 	    }
 	}
 	
-	static private boolean isDeletedFile(String path) {
-		return path.endsWith(FakeDeleted);
-	}
-	 
-	static private boolean isAppFile(String path) {
-		String search = File.separator + "src" + File.separator + "app" + File.separator + "app.";
-		return path == null ? false : path.indexOf(search) != -1;
-	}
-	
 	static private boolean isPageFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "pages" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
@@ -271,11 +114,6 @@ public class NgxBuilder extends MobileBuilder {
 	
 	static private boolean isCompFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "components" + File.separator;
-		return path == null ? false : path.indexOf(search) != -1;
-	}
-	
-	static private boolean isServiceFile(String path) {
-		String search = File.separator + "src" + File.separator + "app" + File.separator + "services" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 	
@@ -301,7 +139,6 @@ public class NgxBuilder extends MobileBuilder {
 		    	try {
 					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 				} catch (EngineException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 		    	if (project != null) {
@@ -367,283 +204,73 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void addPage(PageComponent page) throws EngineException {
-		MobileApplication mobileApplication = project.getMobileApplication();
-		if (mobileApplication != null) {
-			ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-			if (application != null) {
-				writePageSourceFiles(page);
-				writeAppSourceFiles(application);
-			}
-		}
-	}
-
-	private void addComp(UISharedComponent comp) throws EngineException {
-		MobileApplication mobileApplication = project.getMobileApplication();
-		if (mobileApplication != null) {
-			ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-			if (application != null) {
-				writeCompSourceFiles(comp);
-				writeAppSourceFiles(application);
-			}
-		}
-	}
-
 	@Override
 	public void pageEnabled(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				addPage(page);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
-			}
-		}
 	}
 
 	@Override
 	public void pageDisabled(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && !page.isEnabled() && initDone) {
-			synchronized (page) {
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-					if (application != null) {
-						writePageSourceFiles(page);
-						writeAppSourceFiles(application);
-						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
-					}
-				}
-			}
-		}
 	}
 
 	@Override
 	public void pageAdded(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && page.bNew && initDone) {
-			synchronized (page) {
-				addPage(page);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
-			}
-		}
 	}
 
 	@Override
 	public void compAdded(final ISharedComponent sharedComponent) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && comp.bNew && initDone) {
-			synchronized (comp) {
-				addComp(comp);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'compAdded'");
-			}
-		}
 	}
 
 	@Override
 	public void pageRemoved(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-					if (application != null) {
-						writeAppSourceFiles(application);
-						deleteUselessPageDir(page.getName());
-						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
-					}
-				}
-			}
-		}
 	}
 
 	@Override
 	public void compRemoved(final ISharedComponent sharedComponent) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-					if (application != null) {
-						writeAppSourceFiles(application);
-						deleteUselessCompDir(comp.getName(), comp.getQName());
-						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'compRemoved'");
-
-						ComponentRefManager.get(Mode.use).removeKey(comp.getQName());
-					}
-				}
-			}
-		}
 	}
 
 	@Override
 	public void pageRenamed(final IPageComponent pageComponent, final String oldName) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-					if (application != null) {
-						writePageSourceFiles(page);
-						writeAppSourceFiles(application);
-						deleteUselessPageDir(oldName);
-						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
-					}
-				}
-			}
-		}
 	}
 
 	@Override
 	public void compRenamed(final ISharedComponent sharedComponent, final String oldName) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				String newName = comp.getName();
-				String newQName = comp.getQName();
-				String oldQName = newQName.replace("."+newName, "."+oldName);
-
-				ComponentRefManager.get(Mode.use).copyKey(oldQName, newQName);
-
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-					if (application != null) {
-						writeCompSourceFiles(comp);
-						writeAppSourceFiles(application);
-						deleteUselessCompDir(oldName, oldQName);
-						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'compRenamed'");
-					}
-				}
-			}
-		}
 	}
 
 	@Override
 	public void pageTemplateChanged(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				writePageTemplate(page);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				writeCompTemplate(comp);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'compTemplateChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void pageStyleChanged(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				writePageStyle(page);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
-			}
-		}
 	}
 
 
 	@Override
 	public void compStyleChanged(ISharedComponent sharedComponent) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				writeCompStyle(comp);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'compStyleChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appContributorsChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppSourceFiles(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void pageTsChanged(final IPageComponent pageComponent, boolean forceTemp) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				writePageTs(page);
-				moveFiles();
-
-				File pageDir = pageDir(page);
-				File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".temp.ts");
-				if (forceTemp && tempTsFile.exists()) {
-					writePageTempTs(page);
-				}
-
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void compTsChanged(ISharedComponent sharedComponent, boolean forceTemp) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				writeCompTs(comp);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'compTsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException {
-		PageComponent page = (PageComponent)pageComponent;
-		if (page != null && page.isEnabled() && initDone) {
-			synchronized (page) {
-				writePageModuleTs(page);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageModuleTsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void compModuleTsChanged(ISharedComponent sharedComponent) throws EngineException {
-		UISharedComponent comp = (UISharedComponent)sharedComponent;
-		if (comp != null && initDone) {
-			synchronized (comp) {
-				writeCompModuleTs(comp);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'compModuleTsChanged'");
-			}
-		}
 	}
 
 	public void appChanged() throws EngineException {
@@ -652,80 +279,26 @@ public class NgxBuilder extends MobileBuilder {
 	
 	@Override
 	public void appTsChanged(final IApplicationComponent appComponent, boolean forceTemp) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppComponentTs(app);
-				moveFiles();
-
-				File tempTsFile = new File(appDir, "app.component.temp.ts");
-				if (forceTemp && tempTsFile.exists()) {
-					writeAppComponentTempTs(app);
-				}
-
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appStyleChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppStyle(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appTemplateChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppTemplate(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appThemeChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppTheme(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appCompTsChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppComponentTs(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appModuleTsChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppModuleTs(app);
-				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
-			}
-		}
 	}
 
 	@Override
@@ -744,36 +317,10 @@ public class NgxBuilder extends MobileBuilder {
 
 	@Override
 	public void appRootChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppComponentTs(app);
-				moveFiles();
-
-				File appComponentTsFile = new File(appDir, "app.component.temp.ts");
-				if (appComponentTsFile.exists()) {
-					writeAppComponentTempTs(app);
-				}
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
-			}
-		}
 	}
 
 	@Override
 	public void appRouteChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			synchronized (app) {
-				writeAppComponentTs(app);
-				moveFiles();
-
-				File appComponentTsFile = new File(appDir, "app.component.temp.ts");
-				if (appComponentTsFile.exists()) {
-					writeAppComponentTempTs(app);
-				}
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
-			}
-		}
 	}
 
 	@Override
@@ -831,38 +378,15 @@ public class NgxBuilder extends MobileBuilder {
 			// Write source files (based on bean components)
 			updateSourceFiles();
 
-			// Studio mode : start worker for build process
 			if (Engine.isStudioMode() || Engine.isCliMode()) {
+				// map for deferring write of source files
 				if (pushedFiles == null) {
 					pushedFiles = new HashMap<String, CharSequence>();
 				}
 
-				/*if (queue == null) {
-					queue = new LinkedBlockingQueue<Map<String, CharSequence>>();
-				}
-
-				if (worker == null) {
-					worker = new MbWorker(queue);
-					if (Engine.isStudioMode()) {
-						worker.start();
-					} else {
-						worker.process();
-					}
-				}*/
-
-				if (watcherService == null) {
-					updateConsumer();
-					updateConsumers();
-
-					/*if (Engine.isStudioMode()) {
-						try {
-							watcherService = new DirectoryWatcherService(project, true);
-							watcherService.start();
-						} catch (Exception e) {
-							Engine.logEngine.warn(e.getMessage());
-						}
-					}*/
-				}
+				// retrieve/set necessary external component files
+				updateConsumer();
+				updateConsumers();
 			}
 
 			initDone = true;
@@ -1025,30 +549,6 @@ public class NgxBuilder extends MobileBuilder {
 			isReleasing = true;
 			
 			moveFilesForce();
-
-			if (watcherService != null) {
-				watcherService.stop();
-				watcherService = null;
-			}
-
-			/*if (worker != null) {
-				worker.isRunning = false;
-				try {
-					worker.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				worker = null;
-			}
-
-			if (queue != null) {
-				try {
-					queue.clear();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				queue = null;
-			}*/
 
 			if (pushedFiles != null) {
 				pushedFiles.clear();
@@ -3273,16 +2773,6 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void deleteUselessPageDir(String pageName) {
-		File pageDir = new File(pagesDir, pageName.toLowerCase());
-		deleteDir(pageDir);
-	}
-
-	private void deleteUselessCompDir(String compName, String compQName) {
-		File compDir = new File(componentsDir, UISharedComponent.getNsCompDirName(compQName, compName));
-		deleteDir(compDir);
-	}
-
 	private void removeUselessPages(ApplicationComponent application) {
 		if (application != null) {
 			File ionicPagesDir = pagesDir;
@@ -3418,7 +2908,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void deleteDir(File dir) {
+	protected void deleteDir(File dir) {
 		if (initDone && Engine.isStudioMode()) {
 			// delete dir
 			if (buildMutex == null) {
@@ -3431,19 +2921,6 @@ public class NgxBuilder extends MobileBuilder {
 			}
 			// defers the dir deletion
 			else {
-				// Deletion DOES NOT WORK for now
-				/*Engine.logEngine.debug("(MobileBuilder) Defers the deletion of directory " + dir.getPath());
-				dirsToDelete.add(dir);
-
-				File nDir = toTmpFile(dir);
-				if (nDir.exists()) {
-					try {
-						FileUtils.deleteDirectory(nDir);
-					} catch (IOException e) {
-						Engine.logEngine.warn("(MobileBuilder) Failed to delete temporary directory " + nDir.getPath(), e);
-					}
-				}*/
-
 				// Replace segment in old page.ts to avoid deeplinks errors
 				String oldPage = dir.getName();
 				File oldPageDir = new File(pagesDir, oldPage);
@@ -3595,8 +3072,7 @@ public class NgxBuilder extends MobileBuilder {
 		if (pushedFiles != null) {
 			
 			if (!isReleasing) {
-				// retrieve necessary external component files
-				updateConsumer();
+				updateConsumer(); // retrieve necessary external component files
 			}
 			
 			synchronized (pushedFiles) {
