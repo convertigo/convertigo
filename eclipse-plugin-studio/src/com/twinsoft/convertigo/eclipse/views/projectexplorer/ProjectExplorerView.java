@@ -1528,9 +1528,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							} else {
 								BatchOperationHelper.start();
+								
 								ProjectExplorerView.this.fireTreeObjectPropertyChanged(new TreeObjectEvent(theTreeObject, "name", oldName, newName));
 								ProjectExplorerView.this.refreshTree();
 								ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
+								
+								if (theTreeObject instanceof NgxUIComponentTreeObject) {
+									if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
+										needNgxPaletteReload = true;
+									}
+									if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+										needNgxPaletteReload = true;
+									}
+								}
+								
 								BatchOperationHelper.stop();
 								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							}
