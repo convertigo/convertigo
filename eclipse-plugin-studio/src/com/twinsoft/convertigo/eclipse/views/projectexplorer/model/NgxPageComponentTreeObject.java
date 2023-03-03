@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NgxPageSegmentValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class NgxPageComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -161,21 +160,6 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 		}
 	}
 	
-	@Override
-	public boolean rename(String newName, boolean bDialog) {
-		PageComponent page = getObject();
-		String oldName = page.getName();
-		boolean isRenamed = super.rename(newName, bDialog);
-		if (isRenamed && !oldName.equals(newName)) {
-			String oldSegment = page.getSegment();
-			if (oldSegment.equals(PageComponent.SEGMENT_PREFIX + oldName.toLowerCase())) { // path-to-<page_name>
-				page.setSegment(oldSegment.replace(oldName.toLowerCase(), newName.toLowerCase()));
-				Engine.logEngine.debug("For page renamed to \""+ newName +"\", segment has been replaced with \""+ page.getSegment() +"\"");
-			}
-		}
-		return isRenamed;
-	}
-
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);

@@ -64,6 +64,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	private static final long serialVersionUID = 188562781669238824L;
 	
 	public static final String SEGMENT_PREFIX = "path-to-";
+	public static final String TITLE_PREFIX = "Title for ";
 	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
@@ -1052,5 +1053,17 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	@Override
 	public FolderType getFolderType() {
 		return FolderType.PAGE;
-	}	
+	}
+
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if ((TITLE_PREFIX + oldName).equals(title)) {
+			title = TITLE_PREFIX + newName;
+			hasChanged = true;
+		}
+		if ((SEGMENT_PREFIX + oldName.toLowerCase()).equals(segment)) {
+			segment = SEGMENT_PREFIX + newName.toLowerCase();
+			hasChanged = true;
+		}
+	}
 }

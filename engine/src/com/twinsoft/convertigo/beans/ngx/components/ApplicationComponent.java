@@ -476,7 +476,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			setRootPage(pageComponent);
 		}
 		if (pageComponent.getTitle().isEmpty() || pageComponent.bNew) {
-			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
+			pageComponent.setTitle(PageComponent.TITLE_PREFIX + newDatabaseObjectName);
 		}
 		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
 			pageComponent.setSegment(PageComponent.SEGMENT_PREFIX + newDatabaseObjectName.toLowerCase());
