@@ -314,7 +314,6 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				else {
 					if (!isComposite) {
 						if (underForm) {
-							/* fix #707 : do not generate anymore one way binging based on default control value
 							if (name.equals("DoubleBinding")) {
 								String defval = null;
 								if (tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
@@ -323,13 +322,13 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 									defval = vm.get("Value");
 								}
 								
-								if (defval != null && !defval.equals("null")) {
-									attributes.append(" [ngModel]=\"" + defval + "\"");
+								// fix #707 : do not generate anymore one way binging based on empty default control value
+								if (defval != null && !defval.equals("null") && !defval.isBlank()) {
+									attributes.append(" [ngModel]=\"" + defval + "\""); // one way binding
 								} else {
 									attributes.append(" ngModel");
 								}
 							}
-							*/
 						}
 					}
 				}

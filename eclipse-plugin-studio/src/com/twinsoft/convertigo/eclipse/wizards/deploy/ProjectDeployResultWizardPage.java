@@ -177,7 +177,6 @@ public class ProjectDeployResultWizardPage extends WizardPage {
 				remoteAdmin.deployArchive(file, bAssembleXsl);
 				monitor.worked(1);
 				
-				updateLabelText("Deploy successfully ended.");
 				String projectName = ConvertigoPlugin.projectManager.currentProject.getName();
 				String projectURL = (isHttps ? "https" : "http") + "://" + convertigoServer + "/projects/" + projectName;
 				updateLinkText("Your project has been successfully deployed.\n\nYou can try it with this URL:\n<a href=\""+ projectURL + "\">" + projectURL + "</a>");
