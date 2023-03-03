@@ -94,40 +94,8 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		group.setLayout(new GridLayout(2, false));
 		group.setText("You can choose one of the following possible end point: ");
 		
-		LinkedHashSet<Pair<String, String>> endpoints = new LinkedHashSet<>();
-		try {
-			DeploymentConfiguration defaultDeploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.getDefault(cellEditor.databaseObjectTreeObject.getObject().getProject().getName());
-			String url = "http" + (defaultDeploymentConfiguration.isBHttps() ? "s" : "") + "://" + defaultDeploymentConfiguration.getServer();
-			endpoints.add(Pair.of(url, "default deployment"));
-		} catch (NullPointerException e) {
-			// No default configuration
-		}
 		
-		for (String deploymentConfigurationName: new TreeSet<String>(ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames())) {
-			DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
-			String url = "http" + (deploymentConfiguration.isBHttps() ? "s" : "") + "://" + deploymentConfiguration.getServer();
-			endpoints.add(Pair.of(url, "from deployment"));
-		}
-		
-		HttpGet http = new HttpGet("https://ifconfig.io");
-		HeaderName.UserAgent.addHeader(http, "curl");
-		try (InputStream is = Engine.theApp.httpClient4.execute(http).getEntity().getContent()) {
-			String ip = IOUtils.toString(is, StandardCharsets.US_ASCII).trim();
-			endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from public IP (please check your port forwarding)"));
-		} catch (Exception e) {
-		}
-		
-		try {
-			for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
-				for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
-					String ip = addr.getHostAddress();
-					if (!ip.contains(":")) {
-						endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from " + netint.getDisplayName()));
-					}
-				}
-			}
-		} catch (SocketException e) {
-		}
+		LinkedHashSet<Pair<String, String>> endpoints = getEndpoints(cellEditor.databaseObjectTreeObject.getObject().getProject().getName());
 		
 		SelectionListener sl = new SelectionListener() {
 			
@@ -159,5 +127,42 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 	public String getValue() {
 		return value;
 	}
-
+	
+	public static LinkedHashSet<Pair<String, String>> getEndpoints(String projectName) {
+		LinkedHashSet<Pair<String, String>> endpoints = new LinkedHashSet<>();
+		try {
+			DeploymentConfiguration defaultDeploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.getDefault(projectName);
+			String url = "http" + (defaultDeploymentConfiguration.isBHttps() ? "s" : "") + "://" + defaultDeploymentConfiguration.getServer();
+			endpoints.add(Pair.of(url, "default deployment"));
+		} catch (NullPointerException e) {
+			// No default configuration
+		}
+		
+		for (String deploymentConfigurationName: new TreeSet<String>(ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames())) {
+			DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
+			String url = "http" + (deploymentConfiguration.isBHttps() ? "s" : "") + "://" + deploymentConfiguration.getServer();
+			endpoints.add(Pair.of(url, "from deployment"));
+		}
+		
+		HttpGet http = new HttpGet("https://ifconfig.io");
+		HeaderName.UserAgent.addHeader(http, "curl");
+		try (InputStream is = Engine.theApp.httpClient4.execute(http).getEntity().getContent()) {
+			String ip = IOUtils.toString(is, StandardCharsets.US_ASCII).trim();
+			endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from public IP (please check your port forwarding)"));
+		} catch (Exception e) {
+		}
+		
+		try {
+			for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
+				for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
+					String ip = addr.getHostAddress();
+					if (!ip.contains(":")) {
+						endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from " + netint.getDisplayName()));
+					}
+				}
+			}
+		} catch (SocketException e) {}
+		
+		return endpoints;
+	}
 }
