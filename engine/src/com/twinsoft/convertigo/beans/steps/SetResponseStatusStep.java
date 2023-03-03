@@ -36,8 +36,10 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SetResponseStatusStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
@@ -169,6 +171,20 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 		elt.setSchemaTypeName(Constants.XSD_STRING);
 		
 		return element;
+	}
+
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (statusCode != null && statusCode.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(statusCode.getExpression()))) {
+			statusCode.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "200";
 	}
 	
 }

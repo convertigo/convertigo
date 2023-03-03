@@ -195,4 +195,12 @@ public class SessionSetObjectStep extends Step implements IStepSmartTypeContaine
 		smartTypes.add(value);
 		return smartTypes;
 	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(key)) {
+			key = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
 }

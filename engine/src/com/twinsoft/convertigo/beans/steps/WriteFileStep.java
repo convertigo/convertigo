@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -55,7 +56,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private boolean appendTimestamp = false;
-	private String dataFile = "";	
+	private String dataFile = defaultBeanName("");
 	private String encoding= "UTF-8";
 	private boolean appendResult = false;
 	private transient String filePath;
@@ -281,5 +282,13 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 
 	public void setWriteOutputFalse(boolean writeOutputFalse) {
 		this.writeOutputFalse = writeOutputFalse;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(dataFile))) {
+			dataFile = newName;
+			hasChanged = true;
+		}
 	}
 }

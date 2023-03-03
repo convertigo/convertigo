@@ -34,7 +34,9 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
 
@@ -75,7 +77,7 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, userid);			
+			evaluate(javascriptContext, scope, userid);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -123,5 +125,19 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 		}
 		smartTypes.add(userid);
 		return smartTypes;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (userid != null && userid.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(userid.getExpression()))) {
+			userid.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "authenticatedUserID";
 	}
 }

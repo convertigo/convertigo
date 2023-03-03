@@ -36,8 +36,10 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SetResponseHeaderStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
@@ -162,5 +164,18 @@ public class SetResponseHeaderStep extends Step implements IStepSmartTypeContain
 		
 		return element;
 	}
-	
+
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (headerName != null && headerName.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(headerName.getExpression()))) {
+			headerName.setExpression(newName);
+			hasChanged = true;
+		}
+	}
+
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "header-name";
+	}
 }

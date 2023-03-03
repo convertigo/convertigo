@@ -220,5 +220,9 @@ public class ReadXMLStep extends ReadFileStep {
 		}
 		return xpath;
 	}
-
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "file.xml";
+	}
 }

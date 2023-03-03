@@ -29,6 +29,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class BlockStep extends StepWithExpressions {
@@ -260,5 +261,13 @@ public abstract class BlockStep extends StepWithExpressions {
 	@Override
 	public boolean isGenerateSchema() {
 		return true;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(condition))) {
+			condition = newName;
+			hasChanged = true;
+		}
 	}
 }

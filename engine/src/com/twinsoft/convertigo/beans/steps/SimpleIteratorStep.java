@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class SimpleIteratorStep extends LoopStep {
 
@@ -304,6 +305,14 @@ public class SimpleIteratorStep extends LoopStep {
 		private void reset() {
 			list = null;
 			index = 0;
+		}
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(expression))) {
+			expression = newName;
+			hasChanged = true;
 		}
 	}
 }

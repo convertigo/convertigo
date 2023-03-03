@@ -32,6 +32,7 @@ public class ExceptionStep extends SimpleStep {
 	
 	public ExceptionStep() {
 		super();
+		setExpression(defaultBeanName(""));
 	}
 
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -69,6 +70,11 @@ public class ExceptionStep extends SimpleStep {
 
 	public void setDetails(String details) {
 		this.details = details;
-	}	
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "//exception";
+	}
 
 }

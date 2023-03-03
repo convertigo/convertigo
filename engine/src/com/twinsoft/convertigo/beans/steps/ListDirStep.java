@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FileSortByPolicy;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ListDirStep extends Step {
@@ -197,5 +198,18 @@ public class ListDirStep extends Step {
 		sContentExt.getAttributes().add(attr);
 		
 		return element;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(sourceDirectory))) {
+			sourceDirectory = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "dir";
 	}
 }

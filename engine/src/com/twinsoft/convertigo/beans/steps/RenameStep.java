@@ -29,6 +29,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class RenameStep extends Step {
 
@@ -170,5 +171,12 @@ public class RenameStep extends Step {
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
 	}
-
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(sourcePath))) {
+			sourcePath = newName;
+			hasChanged = true;
+		}
+	}
 }

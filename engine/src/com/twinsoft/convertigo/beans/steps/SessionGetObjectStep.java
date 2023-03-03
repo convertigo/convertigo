@@ -152,4 +152,12 @@ public class SessionGetObjectStep extends Step {
 		}
 		return "";
 	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(key)) {
+			key = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
 }

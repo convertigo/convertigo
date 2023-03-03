@@ -43,7 +43,7 @@ public class LogStep extends Step implements ITagsProperty {
 	private static final long serialVersionUID = -700241502764617513L;
 	private String level = Level.INFO.toString();
 	private String logger = "cems.Context"; //Engine.logContext.getName();
-	private String expression = "//todo";
+	private String expression = defaultBeanName("");
 	
 	public LogStep() {
 		super();
@@ -181,5 +181,18 @@ public class LogStep extends Step implements ITagsProperty {
 
 	public void setLogger(String logger) {
 		this.logger = logger;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(com.twinsoft.convertigo.engine.util.StringUtils.normalize(expression))) {
+			expression = newName;
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "//logs";
 	}
 }

@@ -126,4 +126,12 @@ public class SessionGetStep extends Step implements IComplexTypeAffectation {
 		}
 		return "";
 	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(key)) {
+			key = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
 }

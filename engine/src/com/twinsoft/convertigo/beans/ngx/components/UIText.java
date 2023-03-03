@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.TranslateUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UIText extends UIComponent implements ITagsProperty {
 	
@@ -42,7 +43,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 		return cloned;
 	}
 
-	private MobileSmartSourceType textValue = new MobileSmartSourceType("some text");
+	private MobileSmartSourceType textValue = new MobileSmartSourceType(defaultBeanName(""));
 	
 	public MobileSmartSourceType getTextSmartType() {
 		return textValue;
@@ -123,5 +124,19 @@ public class UIText extends UIComponent implements ITagsProperty {
 			updated = this.hasChanged = true;
 		}
 		return updated;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (textValue != null && textValue.getMode() == Mode.PLAIN
+				&& oldName.startsWith(StringUtils.normalize(textValue.getValue()))) {
+			textValue.setSmartValue(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "some text";
 	}
 }

@@ -77,4 +77,9 @@ public class JsonSourceStep extends SourceStep {
 		}
 		return false;
 	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "myVariable";
+	}
 }

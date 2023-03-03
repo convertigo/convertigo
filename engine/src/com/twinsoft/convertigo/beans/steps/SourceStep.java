@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class SourceStep extends Step implements IStepSourceContainer {
 
@@ -94,4 +95,16 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		return "";
 	}
 	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(variableName)) {
+			variableName = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "myNodeList";
+	}
 }

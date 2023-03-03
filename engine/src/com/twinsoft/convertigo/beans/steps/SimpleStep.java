@@ -25,6 +25,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 /**
  * 
@@ -88,5 +89,12 @@ import com.twinsoft.convertigo.engine.EngineException;
 	public String toJsString() {
 		return expression;
 	}
-
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(expression))) {
+			expression = newName;
+			hasChanged = true;
+		}
+	}
 }

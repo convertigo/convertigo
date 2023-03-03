@@ -58,5 +58,10 @@ public class SimpleSourceStep extends SourceStep {
 			}
 		}
 		return false;
-	}	
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "myVariable";
+	}
 }

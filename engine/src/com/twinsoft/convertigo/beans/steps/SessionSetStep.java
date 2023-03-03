@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SessionSetStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
@@ -173,5 +174,13 @@ public class SessionSetStep extends Step implements IStepSmartTypeContainer, ICo
 		}
 		smartTypes.add(expression);
 		return smartTypes;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(key)) {
+			key = StringUtils.normalize(newName);
+			hasChanged = true;
+		}
 	}
 }

@@ -258,6 +258,6 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return "file";
+		return "file.json";
 	}
 }

@@ -25,6 +25,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class RemoveContextStep extends Step {
 
@@ -103,5 +104,12 @@ public class RemoveContextStep extends Step {
 	public String toJsString() {
 		return "";
 	}
-
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(StringUtils.normalize(contextName))) {
+			contextName = newName;
+			hasChanged = true;
+		}
+	}
 }

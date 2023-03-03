@@ -39,7 +39,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		return cloned;
 	}
 
-	protected String attrName = "attr";
+	protected String attrName = defaultBeanName("");
 	
 	public String getAttrName() {
 		return attrName;
@@ -146,5 +146,18 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	@Override
 	public FolderType getFolderType() {
 		return FolderType.ATTRIBUTE;
+	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(attrName)) {
+			attrName = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
+			hasChanged = true;
+		}
+	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "attr";
 	}
 }
