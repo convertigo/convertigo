@@ -497,7 +497,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								Object value = values[i];
 								tags[i] = value.equals(false) ? "not set":value.toString();
 							}
-							//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
 							propertyDescriptor = new NgxSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
 							((NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
 						}
@@ -806,7 +805,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				}
 				else if (object instanceof UIUseShared) {
 					if ("sharedcomponent".equals(propertyName)) {
-						//return nsObject instanceof UISharedComponent;
 						if (nsObject instanceof UISharedComponent) {
 							UISharedComponent usc = (UISharedComponent)nsObject;
 							boolean isExposed = usc.isExposed();
@@ -1060,86 +1058,12 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
-
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Set<Object> done = checkDone(treeObjectEvent);
-
-		String propertyName = (String)treeObjectEvent.propertyName;
-		propertyName = ((propertyName == null) ? "" : propertyName);
-
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
-			DatabaseObject dbo = doto.getObject();
-
-			try {
-				/*if (this.equals(treeObject)) {
-					// a use has been added by dnd a library shared component from palette
-					if (dbo.bNew && dbo instanceof UIUseShared) {
-						UIUseShared use = GenericUtils.cast(dbo);
-						String compQName = use.getSharedComponentQName();
-						if (!compQName.isEmpty()) {
-							ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
-							((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
-						}
-					}
-
-					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
-					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
-					if (uisa != null && !uisa.equals(getObject())) {
-						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-					}
-					if (uisc != null && !uisc.equals(getObject())) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-					}
-				} else {
-					if (dbo instanceof UIActionStack) {
-						handleSharedActionChanged((UIActionStack) dbo, done);
-					}
-					else if (dbo instanceof UISharedComponent) {
-						handleSharedComponentChanged((UISharedComponent) dbo, done);
-					}
-				}*/
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 
 	@Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
-
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Set<Object> done = checkDone(treeObjectEvent);
-
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
-			DatabaseObject deletedObject = deletedTreeObject.getObject();
-			try {
-				/*if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
-					UIComponent parentDbo = getObject();
-
-					if (deletedObject instanceof UIUseShared) {
-						UIUseShared use = (UIUseShared)deletedObject;
-						String compQName = use.getSharedComponentQName();
-						String useQNname = parentDbo.getQName() + "." + deletedObject.getName();
-						ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQNname);
-					}
-
-					UIActionStack uisa = parentDbo.getSharedAction();
-					UISharedComponent uisc = parentDbo.getSharedComponent();
-					if (uisa != null) {
-						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-					}
-					else if (uisc != null) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-					}
-				}*/
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	@Override
@@ -1147,60 +1071,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		super.treeObjectPropertyChanged(treeObjectEvent);
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Set<Object> done = checkDone(treeObjectEvent);
 
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
 
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-
 		refactorSmartSources(treeObjectEvent);
 
 		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
-			DatabaseObject dbo = doto.getObject();
-
 			try {
-//				if (this.equals(treeObject)) {
-//					if (propertyName.equals("scriptContent")) {
-//						if (!newValue.equals(oldValue)) {
-//							markMainTsAsDirty();
-//							markMainAsDirty(getObject(), done);
-//						}
-//					} else {
-//						if (propertyName.equals("sharedcomponent")) {
-//							if (!newValue.equals(oldValue)) {
-//								if (!((String)newValue).isBlank()) {
-//									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getQName());
-//									((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
-//								}
-//							}
-//						}
-//
-//						markMainAsDirty(getObject(), done);
-//					}
-//
-//					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
-//					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
-//					if (uisa != null && !uisa.equals(getObject())) {
-//						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-//					}
-//					if (uisc != null && !uisc.equals(getObject())) {
-//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-//					}
-//				} else {
-//					if (propertyName.equals("name")) {
-//						handlesBeanNameChanged(treeObjectEvent);
-//					}
-//
-//					if (dbo instanceof UIActionStack) {
-//						handleSharedActionChanged((UIActionStack) dbo, done);
-//					}
-//					else if (dbo instanceof UISharedComponent) {
-//						handleSharedComponentChanged((UISharedComponent) dbo, done);
-//					}
-//				}
 				if (propertyName.equals("name")) {
 					handlesBeanNameChanged(treeObjectEvent);
 				}
@@ -1209,98 +1087,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-
-//	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
-//		if (sharedAction != null) {
-//			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
-//			if (getObject() instanceof UIDynamicInvoke) {
-//				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-//				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
-//					UIActionStack uisa = udi.getSharedAction();
-//					UISharedComponent uisc = udi.getSharedComponent();
-//
-//					// udi inside a shared action
-//					if (uisa != null && !uisa.equals(sharedAction)) {
-//						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-//					}
-//					// udi inside a shared component
-//					else if (uisc != null) {
-//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-//					}
-//					// udi inside a page or menu
-//					else {
-//						try {
-//							markMainAsDirty(udi, done);
-//						} catch (EngineException e) {
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
-//		if (sharedComponent != null) {
-//			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
-//			if (getObject() instanceof UIUseShared) {
-//				UIUseShared udu = (UIUseShared)getObject();
-//
-//				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
-//					UISharedComponent uisc = udu.getSharedComponent();
-//					// udu inside a shared component
-//					if (uisc != null && !uisc.equals(sharedComponent)) {
-//						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
-//					}
-//					// udu inside a page or menu
-//					else {
-//						try {
-//							markMainAsDirty(udu, done);
-//						} catch (EngineException e) {
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-
-//	protected void markMainTsAsDirty() {
-//		if (getObject() instanceof UISharedComponent) {
-//			UISharedComponent comp = (UISharedComponent)getObject();
-//			try {
-//				comp.markCompTsAsDirty();
-//			} catch (EngineException e) {
-//				ConvertigoPlugin.logException(e,
-//						"Error while writing the component.ts file for component '" + comp.getName() + "'");
-//			}
-//		}
-//	}
-
-//	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
-//		if (uic != null) {
-//			IScriptComponent main = uic.getMainScriptComponent();
-//			if (main != null) {
-//				if (!done.add(main)) {
-//					return;
-//				}
-//				//System.out.println("---markMainAsDirty for dbo@"+ uic.priority +" " + uic.toString() + ", with done : '" + done + "'");
-//				if (main instanceof UISharedComponent) {
-//					((UISharedComponent)main).markCompAsDirty();
-//				}
-//				if (main instanceof ApplicationComponent) {
-//					((ApplicationComponent)main).markApplicationAsDirty();
-//				}
-//				if (main instanceof PageComponent) {
-//					((PageComponent)main).markPageAsDirty();
-//				}
-//			}
-//		}
-//	}
-
-//	protected void markMainAsDirty(UIComponent uic) throws EngineException {
-//		markMainAsDirty(uic, new HashSet<Object>());
-//	}
 
 	protected void appUpdateSourceFiles(UIComponent uic) throws EngineException {
 		uic.getApplication().updateSourceFiles();
@@ -1435,12 +1221,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				if (sourcesUpdated) {
 					hasBeenModified(true);
 					viewer.refresh();
-
-					//markMainAsDirty(getObject());
 					appUpdateSourceFiles(getObject());
 				}
-
-
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1474,9 +1256,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				// Need TS regeneration
 				if (sourcesUpdated) {
 					hasBeenModified(true);
-
 					viewer.refresh();
-					//markMainAsDirty(getObject());
 					appUpdateSourceFiles(getObject());
 				}
 
@@ -1520,7 +1300,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												//markMainAsDirty(udi);
 												appUpdateSourceFiles(udi);
 
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
@@ -1554,7 +1333,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									
 									hasBeenModified(true);
 									viewer.refresh();
-									//markMainAsDirty(uice);
 									appUpdateSourceFiles(uice);
 
 									notifyDataseObjectPropertyChanged(uice, "name", _oldValue, _newValue, new HashSet<Object>());
@@ -1586,7 +1364,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												//markMainAsDirty(uus);
 												appUpdateSourceFiles(uus);
 
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
@@ -1607,7 +1384,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												//markMainAsDirty(uus);
 												appUpdateSourceFiles(uus);
 
 												notifyDataseObjectPropertyChanged(uice, "eventName", _oldValue, _newValue, new HashSet<Object>());
@@ -1649,7 +1425,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 												hasBeenModified(true);
 												viewer.refresh();
-												//markMainAsDirty(uus);
 												appUpdateSourceFiles(uus);
 
 												notifyDataseObjectPropertyChanged(uice, "eventName", oldValue, newValue, new HashSet<Object>());
@@ -1695,7 +1470,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 														hasBeenModified(true);
 														viewer.refresh();
-														//markMainAsDirty(uia);
 														appUpdateSourceFiles(uia);
 
 														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
@@ -1730,13 +1504,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		if (!done.add(to)) {
 			return;
 		}
-
-		/*if (to instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject tdbo = (DatabaseObjectTreeObject)to;
-    		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
-    		tdbo.hasBeenModified(true);
-    		viewer.update(tdbo, null);
-		}*/
 
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
 		TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, TreeObjectEvent.UPDATE_LOCAL, done);

@@ -79,8 +79,6 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	public void addConsumer(final String compQName, final String useQName) {
-//		if (compQName.startsWith(projectName(useQName) + "."))
-//			return;
 		synchronized (consumers) {
 			if (consumers.get(compQName) == null) {
 				consumers.put(compQName, new HashSet<String>());

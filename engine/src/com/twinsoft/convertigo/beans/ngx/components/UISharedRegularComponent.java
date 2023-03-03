@@ -44,8 +44,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 
 	private static final long serialVersionUID = -2506259541566203802L;
 
-	transient private Runnable _markCompAsDirty;
-	
 	public UISharedRegularComponent() {
 		super(true);
 	}
@@ -101,7 +99,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		cloned.pageTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
-		cloned.contributorsShot = null;
 		return cloned;
 	}
 
@@ -222,8 +219,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	private transient List<Contributor> contributors = null;
 	
-	private transient String contributorsShot = null;
-	
 	@Override
 	public synchronized List<Contributor> getContributors() {
 		if (contributors == null) {
@@ -238,8 +233,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		for (UIComponent uiComponent : getUIComponentList()) {
 			uiComponent.addContributors(done, contributors);
 		}
-			
-		//contributorsShot = contributors.toString();
 	}
 	
 	private transient JSONObject computedContents = null;
@@ -270,7 +263,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		}
 		contributors = null;
 		computedContents = null;
-		contributorsShot = null;
 	}
 	
 	public synchronized boolean isReset() {
@@ -730,8 +722,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	protected String computeStyle(UIUseShared uiUse) {
 		String c8o_CompScssPath;
 		
-		//if (!isEnabled()) return "";
-		
 		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
 		try {
 			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(this)
@@ -765,11 +755,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 
 	@Override
 	protected void addContributors(UIUseShared uiUse, Set<UIComponent> done, List<Contributor> contributors) {
-		/*if (!done.add(this)) {
-			return;
-		}*/
-		
-		//if (!isEnabled()) return;
 		if (getParent() == null) return;
 		
 		Contributor contributor = getContributor(uiUse);
@@ -791,8 +776,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	protected Contributor getContributor(UIUseShared uiUse) {
 		final String c8o_CompModuleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this) + "Module";
 		final UIUseShared use = uiUse;
-		
-		//if (!isEnabled()) return null;
 		
 		return new Contributor() {
 			
@@ -894,64 +877,4 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			}
 		};
 	}
-	
-//	public void markCompTsAsDirty() throws EngineException {
-//		getProject().getMobileBuilder().compTsChanged(this, false);
-//	}
-	
-//	@Override
-//	public void markCompAsDirty() throws EngineException {
-//		if (_markCompAsDirty == null) {
-//			_markCompAsDirty = () -> {
-//				if (isImporting) {
-//					return;
-//				}
-//				try {
-//					JSONObject oldComputedContent = computedContents == null ? 
-//							null :new JSONObject(computedContents.toString());
-//					
-//					doComputeContents();
-//					
-//					JSONObject newComputedContent = computedContents == null ? 
-//							null :new JSONObject(computedContents.toString());
-//					
-//					if (oldComputedContent != null && newComputedContent != null) {
-//						if (!(newComputedContent.getJSONObject("scripts").toString()
-//								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-//							getProject().getMobileBuilder().compTsChanged(this, true);
-//						}
-//					}
-//					if (oldComputedContent != null && newComputedContent != null) {
-//						if (!(newComputedContent.getString("style")
-//								.equals(oldComputedContent.getString("style")))) {
-//							getProject().getMobileBuilder().compStyleChanged(this);
-//						}
-//					}
-//					if (oldComputedContent != null && newComputedContent != null) {
-//						if (!(newComputedContent.getString("template")
-//								.equals(oldComputedContent.getString("template")))) {
-//							getProject().getMobileBuilder().compTemplateChanged(this);
-//						}
-//					}
-//					
-//					String oldContributors = contributorsShot == null ? null:contributorsShot;
-//					doGetContributors();
-//					String newContributors = contributorsShot == null ? null:contributorsShot;
-//					if (oldContributors != null && newContributors != null) {
-//						if (!(oldContributors.equals(newContributors))) {
-//							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
-//							getProject().getMobileBuilder().compModuleTsChanged(this);
-//						}
-//					}
-//					
-//					
-//				} catch (JSONException e) {
-//					e.printStackTrace();
-//				} catch (Exception e) {
-//					throw new RuntimeException(e);
-//				}
-//			};
-//		}
-//		checkBatchOperation(_markCompAsDirty);
-//	}	
 }

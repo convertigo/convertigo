@@ -151,12 +151,6 @@ public class CreateNgxApplicationTranslationsFileAction extends MyAbstractAction
     				
     				// regenerate app templates
     				try {
-//    					application.markApplicationAsDirty();
-//    					for (PageComponent page : application.getPageComponentList()) {
-//    						if (page.isEnabled()) {
-//    							page.markPageAsDirty();
-//    						}
-//    					}
     					application.updateSourceFiles();
     				} catch (Throwable t) {}
 

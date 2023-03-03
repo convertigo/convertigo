@@ -360,7 +360,6 @@ public class NgxBuilder extends MobileBuilder {
 
 		if (project != null) {
 			try {
-				//project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
 				appPwaChanged(project.getMobileApplication().getApplicationComponent());
 			} catch (Exception e) {
 				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
@@ -618,13 +617,6 @@ public class NgxBuilder extends MobileBuilder {
 			synchronized (comp) {
 				writeCompTs(comp);
 				moveFiles();
-
-				/*File compDir = compDir(comp);
-				File tempTsFile = new File(compDir, comp.getName().toLowerCase() + ".temp.ts");
-				if (forceTemp && tempTsFile.exists()) {
-					writeCompTempTs(comp);
-				}*/
-
 				Engine.logEngine.trace("(MobileBuilder) Handled 'compTsChanged'");
 			}
 		}
@@ -936,24 +928,6 @@ public class NgxBuilder extends MobileBuilder {
 			}
     	}
 	}
-
-	// for deleted files
-//	private void updateConsumers(String compName, String compQName) {
-//		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
-//			if (projectName(useQName).equals(project.getName()))
-//				continue;
-//			try {
-//				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
-//				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
-//				if (!src.exists() && dest.exists()) {
-//					FileUtils.deleteQuietly(dest);
-//					ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
-//				}
-//			} catch (Exception e) {
-//				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
-//			}
-//		}
-//	}
 
 	static private boolean shouldUpdate(File dirSrc, File dirDest) {
 		for (final File src : dirSrc.listFiles()) {
@@ -1361,7 +1335,7 @@ public class NgxBuilder extends MobileBuilder {
 	
 	private void writePageTemplate(PageComponent page) throws EngineException {
 		try {
-			if (page != null /*&& page.isEnabled()*/) {
+			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
@@ -1397,7 +1371,7 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageStyle(PageComponent page) throws EngineException {
 		try {
-			if (page != null /*&& page.isEnabled()*/) {
+			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
@@ -1742,7 +1716,7 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageTs(PageComponent page) throws EngineException {
 		try {
-			if (page != null /*&& page.isEnabled()*/) {
+			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = pageDir(page);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
@@ -1786,7 +1760,6 @@ public class NgxBuilder extends MobileBuilder {
 
 				String c8o_PageChildRoute = "";
 				String c8o_PageChildRoutes = "";
-				//List<Contributor> contributors = ;
 				for (Contributor contributor : page.getContributors()) {
 					for (String route: contributor.getModuleNgRoutes(page.getSegment())) {
 						if (route.indexOf("redirectTo") == -1) {
@@ -1829,7 +1802,7 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void writePageModuleTs(PageComponent page) throws EngineException {
 		try {
-			if (page != null /*&& page.isEnabled()*/) {
+			if (page != null) {
 				if (page.compareToTplVersion("7.7.0.2") >= 0) {
 					String pageName = page.getName();
 					File pageDir = pageDir(page);
@@ -2137,7 +2110,6 @@ public class NgxBuilder extends MobileBuilder {
 	private String getPageTsContent(PageComponent page, boolean checkEnable) throws IOException {
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
-		//String c8o_PageIonicName = pageName;
 		String c8o_PageHistory = page.getDefaultHistory();
 		String c8o_PagePriority = page.getPreloadPriority();
 		String c8o_PageSegment = page.getSegment();
@@ -2155,7 +2127,6 @@ public class NgxBuilder extends MobileBuilder {
 
 		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-		//tsContent = tsContent.replaceAll("/\\*\\=c8o_PageIonicName\\*/","'"+c8o_PageIonicName+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PagePriority\\*/","'"+c8o_PagePriority+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSegment\\*/","'"+c8o_PageSegment+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageHistory\\*/",c8o_PageHistory);
@@ -2180,7 +2151,6 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		//tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/",c8o_PageFunctions);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/", Matcher.quoteReplacement(c8o_PageFunctions));
 
 		return tsContent;
@@ -3135,7 +3105,6 @@ public class NgxBuilder extends MobileBuilder {
 		int i=1;
 
 		if (app.compareToTplVersion("7.9.0.2") >= 0) {
-			//c8o_PageArrayDef = "Array<{title: string, titleKey: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
 			c8o_PageArrayDef = "Array<{title: string, titleKey: string, url: string, icon: string, iconPos: string, name: string, includedInAutoMenu?: boolean}>";
 		}
 
@@ -3312,9 +3281,6 @@ public class NgxBuilder extends MobileBuilder {
 	private void deleteUselessCompDir(String compName, String compQName) {
 		File compDir = new File(componentsDir, UISharedComponent.getNsCompDirName(compQName, compName));
 		deleteDir(compDir);
-		if (initDone) {
-			//updateConsumers(compName, compQName);
-		}
 	}
 
 	private void removeUselessPages(ApplicationComponent application) {
@@ -3331,7 +3297,6 @@ public class NgxBuilder extends MobileBuilder {
 			for (File dir: FileUtils.listFilesAndDirs(ionicPagesDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
 				if (!pageDirectories.contains(dir.getAbsolutePath())) {
 					try {
-						//FileUtils.deleteDirectory(dir);
 						deleteSourceDir(dir);
 					}
 					catch(Exception e) {}
@@ -3359,7 +3324,6 @@ public class NgxBuilder extends MobileBuilder {
 					try {
 						String compDirName = dir.getName();
 						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName)) {
-							//FileUtils.deleteDirectory(dir);
 							deleteSourceDir(dir);
 						}
 					}
@@ -3613,7 +3577,6 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 		} else {
-			//FileUtils.write(file, content, encoding);
 			if (file.getPath().endsWith(FakeDeleted)) {
 				try {
 					File dir = file.getParentFile();
@@ -3629,7 +3592,7 @@ public class NgxBuilder extends MobileBuilder {
 	
 	@Override
 	protected synchronized void moveFilesForce() {
-		if (pushedFiles != null /*&& queue != null*/) {
+		if (pushedFiles != null) {
 			
 			if (!isReleasing) {
 				// retrieve necessary external component files
@@ -3655,8 +3618,7 @@ public class NgxBuilder extends MobileBuilder {
 						if (file.getPath().endsWith(FakeDeleted)) {
 							try {
 								File dir = file.getParentFile();
-								//FileUtils.deleteDirectory(dir);
-								org.apache.commons.io.FileUtils.forceDelete(dir);
+								org.apache.commons.io.FileUtils.forceDelete(dir);//FileUtils.deleteDirectory(dir);
 								Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
 								hasDeletedFiles = true;
 							} catch (Exception e) {

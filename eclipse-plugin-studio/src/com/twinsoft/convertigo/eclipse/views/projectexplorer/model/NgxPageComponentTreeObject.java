@@ -21,8 +21,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,7 +37,6 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
-import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -49,7 +46,6 @@ import com.twinsoft.convertigo.eclipse.property_editors.validators.NgxPageSegmen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class NgxPageComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -180,154 +176,10 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 		return isRenamed;
 	}
 
-//	@Override
-//	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-//		super.treeObjectPropertyChanged(treeObjectEvent);
-//		
-//		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-//		Set<Object> done = checkDone(treeObjectEvent);
-//		
-//		String propertyName = (String)treeObjectEvent.propertyName;
-//		propertyName = ((propertyName == null) ? "" : propertyName);
-//		
-//		Object oldValue = treeObjectEvent.oldValue;
-//		Object newValue = treeObjectEvent.newValue;
-//		
-//		try {
-//			if (this.equals(treeObject)) {
-//				if (propertyName.equals("scriptContent")) {
-//					if (!newValue.equals(oldValue)) {
-//						markPageTsAsDirty();
-//						markPageAsDirty(done);
-//					}
-//				} else if (propertyName.equals("isEnabled")) {
-//					if (!newValue.equals(oldValue)) {
-//						markPageEnabledAsDirty();
-//					}
-//				} else if (propertyName.equals("segment")) {
-//					if (!newValue.equals(oldValue)) {
-//						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
-//							markAppModuleTsAsDirty();
-//						} else {
-//							markPageTsAsDirty();
-//							markPageAsDirty(done);
-//							markAppContributorsAsDirty();
-//						}
-//					}
-//				} else if (propertyName.equals("preloadPriority")) {
-//					if (!newValue.equals(oldValue)) {
-//						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
-//							markAppModuleTsAsDirty();
-//						} else {
-//							markPageTsAsDirty();
-//							markPageAsDirty(done);
-//						}
-//					}
-//				} else if (propertyName.equals("defaultHistory")) {
-//					if (!newValue.equals(oldValue)) {
-//						if (getObject().compareToTplVersion("7.7.0.8") < 0) {
-//							markPageAsDirty(done);
-//						} else {
-//							markPageTsAsDirty();
-//							markPageAsDirty(done);
-//						}
-//					}
-//				} else if (propertyName.equals("changeDetection")) {
-//					if (!newValue.equals(oldValue)) {
-//						if (getObject().compareToTplVersion("7.7.0.14") < 0) {
-//							markPageAsDirty(done);
-//						} else {
-//							markPageTsAsDirty();
-//							markPageAsDirty(done);
-//						}
-//					}
-//				} else if (propertyName.equals("title") || 
-//							propertyName.equals("icon") ||
-//							propertyName.equals("iconPosition") || 
-//							propertyName.equals("inAutoMenu")) {
-//					if (!newValue.equals(oldValue)) {
-//						markAppComponentTsAsDirty();
-//					}
-//				} else {
-//					markPageAsDirty(done);
-//				}
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 	}
-	
-//	protected void markAppComponentTsAsDirty() {
-//		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
-//		try {
-//			ac.markComponentTsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
-//	}
-//	
-//	protected void markAppModuleTsAsDirty() {
-//		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
-//		try {
-//			ac.markModuleTsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
-//	}
-//
-//	protected void markAppContributorsAsDirty() {
-//		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
-//		try {
-//			ac.markContributorsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
-//	}
-//
-//	protected void markPageEnabledAsDirty() {
-//		PageComponent page = getObject();
-//		try {
-//			page.markPageEnabledAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while enabling/disabling page '" + page.getName() + "'");	}
-//	}
-//	
-//	protected void markPageAsDirty(Set<Object> done) {
-//		PageComponent page = getObject();
-//		if (!done.add(page)) {
-//			return;
-//		}
-//		//System.out.println("---markPageAsDirty, with done : '" + done + "'");
-//		try {
-//			page.markPageAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the source files for page '" + page.getName() + "'");	}
-//	}
-//
-//	protected void markPageTsAsDirty() {
-//		PageComponent page = getObject();
-//		try {
-//			page.markPageTsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
-//	}
-//
-//	protected void markPageModuleTsAsDirty() {
-//		PageComponent page = getObject();
-//		try {
-//			page.markPageModuleTsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the page.module.ts file for page '" + page.getName() + "'");	}
-//	}
 	
 	@Override
 	public NamedSourceSelector getNamedSourceSelector() {

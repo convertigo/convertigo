@@ -101,16 +101,14 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 			
 			String params = ComponentEvent.onChanges.equals(this) ? "changes: SimpleChanges":"";
 			StringBuffer sb = new StringBuffer();
-			//if (children.length() > 0) {
-				sb.append(System.lineSeparator());
-				sb.append("\t"+event).append("("+params+") {").append(System.lineSeparator());
-				sb.append("\t\ttry {").append(System.lineSeparator());
-				sb.append(children);	
-				sb.append("\t\t} catch(e) {").append(System.lineSeparator());
-				sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
-				sb.append("\t\t}").append(System.lineSeparator());
-				sb.append("\t}").append(System.lineSeparator());
-			//}
+			sb.append(System.lineSeparator());
+			sb.append("\t"+event).append("("+params+") {").append(System.lineSeparator());
+			sb.append("\t\ttry {").append(System.lineSeparator());
+			sb.append(children);	
+			sb.append("\t\t} catch(e) {").append(System.lineSeparator());
+			sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
+			sb.append("\t\t}").append(System.lineSeparator());
+			sb.append("\t}").append(System.lineSeparator());
 			return sb.toString();
 		}
 	}
@@ -183,11 +181,9 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-//    		markAsDirty();
         }
 	}
 	
@@ -279,7 +275,6 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
@@ -334,28 +329,6 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 	
 	@Override
 	public String computeEvent() {
-//		if (isEnabled()) {
-//			List<String> list = new ArrayList<String>();
-//			Iterator<UIComponent> it = getUIComponentList().iterator();
-//			while (it.hasNext()) {
-//				UIComponent component = (UIComponent)it.next();
-//				if (component instanceof IAction) {
-//					String action = component.computeTemplate();
-//					if (!action.isEmpty()) {
-//						list.add("this."+action);
-//					}
-//				}
-//			}
-//			
-//			StringBuilder sb = new StringBuilder();
-//			if (!list.isEmpty()) {
-//				for (String s: list) {
-//					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
-//				}
-//			}
-//			return sb.toString();
-//		}
-//		return "";
 		if (isEnabled()) {
 			int num = numberOfActions();
 			StringBuilder sb = new StringBuilder();

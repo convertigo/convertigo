@@ -30,9 +30,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
-import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
@@ -104,16 +101,6 @@ public class NgxComponentImportEventsAction extends MyAbstractAction {
 							}
 							
 		    				if (useShared.hasChanged) {
-//		    					IScriptComponent main = useShared.getMainScriptComponent();
-//		    					if (main != null) {
-//		    						if (main instanceof ApplicationComponent) {
-//		    							((ApplicationComponent)main).markApplicationAsDirty();
-//		    						}
-//		    						if (main instanceof PageComponent) {
-//		    							((PageComponent)main).markPageAsDirty();
-//		    						}
-//		    					}
-		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);

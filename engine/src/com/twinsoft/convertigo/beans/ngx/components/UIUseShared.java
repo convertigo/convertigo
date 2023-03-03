@@ -187,8 +187,6 @@ public class UIUseShared extends UIElement {
 						}
 					}
 					
-					//String scope = getScope();
-					
 					String compSelector = uisc.getSelector();
 					String compIdentifier = "#"+ uisc.getNsIdentifier() + " "+ "#"+ uisc.getIdentifier(); // for compatibility with 8.0.0
 					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
@@ -268,7 +266,7 @@ public class UIUseShared extends UIElement {
 		
 		if (!getSharedComponentQName().isEmpty()) {
 			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null /*&& uisc.isEnabled()*/) {
+			if (uisc != null) {
 				if (!isRecursive()) {
 					IScriptComponent main = getMainScriptComponent();
 					if (main != null && uisc.isRegular()) {
@@ -321,8 +319,6 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public String computeStyle() {
-		//if (!isEnabled()) return "";
-		
 		if (!getSharedComponentQName().isEmpty()) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null /*&& uisc.isEnabled()*/) {
@@ -377,8 +373,6 @@ public class UIUseShared extends UIElement {
 		if (!done.add(this)) {
 			return;
 		}
-		
-		//if (!isEnabled()) return;
 		
 		for (UIComponent uic : getUIComponentList()) {
 			uic.addContributors(done, contributors);

@@ -76,7 +76,6 @@ public class SetNgxRootPageAction extends MyAbstractAction {
                 }
                 
                 application.setRootPage(page);
-//              application.markRootAsDirty();
                 application.updateSourceFiles();
                 
                 if (rootPageTreeObject != null) {

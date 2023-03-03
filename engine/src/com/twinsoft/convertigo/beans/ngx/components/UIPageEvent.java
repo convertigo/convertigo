@@ -112,22 +112,20 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			}
 			
 			StringBuffer sb = new StringBuffer();
-			//if (children.length() > 0) {
-				sb.append(System.lineSeparator());
-				sb.append("\t"+event).append("() {").append(System.lineSeparator());
-				if (ViewEvent.onDidLoad.equals(this)) {
-					sb.append("\t\tthis.ref.detectChanges();").append(System.lineSeparator());
-				}
-				if (this.hasSuper(mc)) {
-					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
-				}
-				sb.append("\t\ttry {").append(System.lineSeparator());
-				sb.append(children);	
-				sb.append("\t\t} catch(e) {").append(System.lineSeparator());
-				sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
-				sb.append("\t\t}").append(System.lineSeparator());
-				sb.append("\t}").append(System.lineSeparator());
-			//}
+			sb.append(System.lineSeparator());
+			sb.append("\t"+event).append("() {").append(System.lineSeparator());
+			if (ViewEvent.onDidLoad.equals(this)) {
+				sb.append("\t\tthis.ref.detectChanges();").append(System.lineSeparator());
+			}
+			if (this.hasSuper(mc)) {
+				sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
+			}
+			sb.append("\t\ttry {").append(System.lineSeparator());
+			sb.append(children);	
+			sb.append("\t\t} catch(e) {").append(System.lineSeparator());
+			sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
+			sb.append("\t\t}").append(System.lineSeparator());
+			sb.append("\t}").append(System.lineSeparator());
 			return sb.toString();
 		}
 	}
@@ -200,11 +198,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-//    		markAsDirty();
         }
 	}
 	
@@ -296,7 +292,6 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();

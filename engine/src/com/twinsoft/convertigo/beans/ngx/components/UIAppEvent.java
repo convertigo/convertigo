@@ -201,11 +201,9 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
-//    		markAsDirty();
         }
         if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
     		this.finallyEvent = null;
-//    		markAsDirty();
         }
 	}
 	

@@ -280,8 +280,6 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
-    	
-//    	markAsDirty();
     }
     
     protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -312,8 +310,6 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
-    	
-//    	markAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -372,20 +368,12 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		
-		boolean isNew = uiComponent.bNew;
-//		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
-		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
 		
 		vUIComponents.add(uiComponent);
 		uiComponent.setParent(this);
-		
         insertOrderedComponent(uiComponent, after);
-        
-//        if (isNew || isCut) {
-//        	markAsDirty();
-//        }
 	}
 	
 	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
@@ -397,10 +385,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		
 		vUIComponents.remove(uiComponent);
 		uiComponent.setParent(null);
-		
         removeOrderedComponent(uiComponent.priority);
-        
-//    	markAsDirty();
 	}
 
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
@@ -596,27 +581,6 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	}
 	
 	protected String computeInnerGet(String pageKey, String functionName) {
-		/*String computed = "";
-		computed += "\t\tlet get = function(keyName, keyVal) {"+ System.lineSeparator();
-		computed += "\t\t\tlet val=undefined;"+ System.lineSeparator();
-		computed += "\t\t\ttry {"+ System.lineSeparator();
-		//computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval(ts.transpile('('+ keyVal + ')'));"+ System.lineSeparator();
-		computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval('('+ keyVal + ')');"+ System.lineSeparator();
-		
-		computed += "\t\t\t\tif (val == undefined) {"+ System.lineSeparator();
-		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");"+ System.lineSeparator();
-		computed += "\t\t\t\t} else {"+ System.lineSeparator();
-		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=\"+ val);"+ System.lineSeparator();
-		computed += "\t\t\t\t}"+ System.lineSeparator();
-		
-		computed += "\t\t\t} catch(e) {"+ System.lineSeparator();
-		computed += "\t\t\t\tlet sKeyVal = keyVal == null ? \"null\" : (keyVal == undefined ? \"undefined\" : keyVal);"+ System.lineSeparator();
-		computed += "\t\t\t\t"+pageKey+".c8o.log.warn(\"[MB] "+functionName+": For \"+ keyName +\":\"+ sKeyVal + \", \"+ e.message);"+ System.lineSeparator();
-		computed += "\t\t\t}"+ System.lineSeparator();
-		computed += "\t\t\treturn val;"+ System.lineSeparator();
-		computed += "\t\t}" + System.lineSeparator();
-		return computed;*/
-		
 		String computed = "";
 		computed += "		let fromScope = (keyVal: string) => {" + System.lineSeparator() +
 					"			let scopeVal = keyVal" + System.lineSeparator() +
@@ -675,51 +639,27 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	public String computeJsonModel() {
 		return "";
 	}
-	
-//	public void markAsDirty() throws EngineException {
-//    	PageComponent page = getPage();
-//    	if (page != null) {
-//    		page.markPageAsDirty();
-//    	} else {
-//	    	UIDynamicMenu menu = getMenu();
-//	    	if (menu != null) {
-//	    		menu.markMenuAsDirty();
-//	    	} else {
-//	    		UISharedComponent uisc = getSharedComponent();
-//	    		if (uisc != null && uisc.isRegular()) {
-//	    			uisc.markCompAsDirty();
-//	    		} else {
-//		    		ApplicationComponent app = getApplication();
-//		    		if (app != null) {
-//		    			app.markApplicationAsDirty();
-//		    		}
-//	    		}
-//	    	}
-//    	}
-//	}
 
 	protected Contributor getContributor() {
 		return null;
 	}
 	
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
-		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
-			if (!done.add(this)) {
-				return;
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isEnabled()) return;
+		
+		Contributor contributor = getContributor();
+		if (contributor != null) {
+			if (!contributors.contains(contributor)) {
+				contributors.add(contributor);
 			}
-			
-			if (!isEnabled()) return;
-			
-			Contributor contributor = getContributor();
-			if (contributor != null) {
-				if (!contributors.contains(contributor)) {
-					contributors.add(contributor);
-				}
-			}
-			for (UIComponent uiComponent : getUIComponentList()) {
-				uiComponent.addContributors(done, contributors);
-			}
-		//}
+		}
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addContributors(done, contributors);
+		}
 	}
 	
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {

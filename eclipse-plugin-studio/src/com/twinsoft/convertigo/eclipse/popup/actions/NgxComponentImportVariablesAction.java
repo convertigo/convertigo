@@ -32,10 +32,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
@@ -176,16 +173,6 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 							}
 							
 		    				if (dynAction.hasChanged) {
-//		    					IScriptComponent main = dynAction.getMainScriptComponent();
-//		    					if (main != null) {
-//		    						if (main instanceof ApplicationComponent) {
-//		    							((ApplicationComponent)main).markApplicationAsDirty();
-//		    						}
-//		    						if (main instanceof PageComponent) {
-//		    							((PageComponent)main).markPageAsDirty();
-//		    						}
-//		    					}
-		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
@@ -218,16 +205,6 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 							}
 							
 		    				if (useShared.hasChanged) {
-//		    					IScriptComponent main = useShared.getMainScriptComponent();
-//		    					if (main != null) {
-//		    						if (main instanceof ApplicationComponent) {
-//		    							((ApplicationComponent)main).markApplicationAsDirty();
-//		    						}
-//		    						if (main instanceof PageComponent) {
-//		    							((PageComponent)main).markPageAsDirty();
-//		    						}
-//		    					}
-		    					
 		    					explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);

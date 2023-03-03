@@ -31,7 +31,6 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UISharedComponent extends UIComponent implements IShared, IExposeAble {
@@ -331,12 +330,4 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 	public List<Contributor> getContributors() {
 		return new ArrayList<Contributor>();
 	}
-	
-//	public void markCompTsAsDirty() throws EngineException {
-//		// does nothing
-//	}
-//		
-//	public void markCompAsDirty() throws EngineException {
-//		// does nothing
-//	}
 }

@@ -148,7 +148,6 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		// TODO Auto-generated method stub
 		super.computeScripts(jsonScripts);
 	}
 

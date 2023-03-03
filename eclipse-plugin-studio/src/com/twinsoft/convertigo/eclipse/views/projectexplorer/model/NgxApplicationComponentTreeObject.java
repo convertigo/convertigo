@@ -200,10 +200,6 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		
 	}
 
-	protected void updateNgxApp() {
-		
-	}
-	
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
@@ -304,125 +300,6 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-//				ApplicationComponent ac = getObject();
-//				
-//				// for Page or Menu or Component or Action
-//				if (ac.equals(dbo.getParent())) {
-//					markApplicationAsDirty(done);
-//					
-//					if (propertyName.equals("name")) {
-//						String oldName = (String)oldValue;
-//						String newName = (String)newValue;
-//						
-//						boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
-//						if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-//							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
-//							
-//							if (dbo instanceof UISharedRegularComponent) {
-//								UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
-//								try {
-//									File oldIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(oldName));
-//									File newIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(newName));
-//									if (oldIconFile.exists() && !newIconFile.exists()) {
-//										oldIconFile.renameTo(newIconFile);
-//									}
-//								} catch (Exception e) {}
-//							}
-//						}
-//					}
-//				}
-//				// for any component inside a route
-//				else if (ac.equals(dbo.getParent().getParent())) {
-//					markApplicationAsDirty(done);
-//				}
-//				// for any UI component inside a menu or a stack
-//				else if (dbo instanceof UIComponent) {
-//					UIComponent uic = (UIComponent)dbo;
-//					
-//					UIDynamicMenu menu = uic.getMenu();
-//					if (menu != null) {
-//						if (ac.equals(menu.getParent())) {
-//							markApplicationAsDirty(done);
-//						}
-//					}
-//				}
-//				// for this application
-//				else if (this.equals(doto)) {
-//					if (propertyName.equals("isPWA")) {
-//						if (!newValue.equals(oldValue)) {
-//							markPwaAsDirty();
-//						}
-//					} else if (propertyName.equals("componentScriptContent")) {
-//						if (!newValue.equals(oldValue)) {
-//							markComponentTsAsDirty();
-//							markApplicationAsDirty(done);
-//						}
-//					} else if (propertyName.equals("useClickForTap")) {
-//						for (TreeObject to: this.getChildren()) {
-//							if (to instanceof ObjectsFolderTreeObject) {
-//								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
-//								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
-//									for (TreeObject cto: ofto.getChildren()) {
-//										if (cto instanceof NgxPageComponentTreeObject) {
-//											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
-//										}
-//									}
-//								}
-//							}
-//						}
-//						markApplicationAsDirty(done);
-//					} else if (propertyName.equals("tplProjectName")) {
-//						// close app editor and reinitialize builder
-//						Project project = ac.getProject();
-//						Engine.logStudio.info("tplProjectName property of " + project + " changed, reloading builder...");
-//						closeAllEditors(false);
-//						MobileBuilder.releaseBuilder(project);
-//						MobileBuilder.initBuilder(project);
-//						
-//						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
-//						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
-//						
-//						// force app sources regeneration
-//						for (TreeObject to: this.getChildren()) {
-//							if (to instanceof ObjectsFolderTreeObject) {
-//								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
-//								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
-//									for (TreeObject cto: ofto.getChildren()) {
-//										if (cto instanceof NgxPageComponentTreeObject) {
-//											((NgxPageComponentTreeObject)cto).markPageAsDirty(done);
-//										}
-//									}
-//								}
-//							}
-//						}
-//						markApplicationAsDirty(done);
-//						
-//						// delete node modules and alert user
-//						final File nodeModules = new File(project.getDirPath(), "/_private/ionic/node_modules");
-//						if (nodeModules.exists()) {
-//							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
-//							dialog.open();
-//							dialog.run(true, false, new IRunnableWithProgress() {
-//								@Override
-//								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//									monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
-//									String alert = "template changed!";
-//									if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
-//										alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
-//									} else {
-//										alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
-//									}
-//									monitor.done();
-//									ConvertigoPlugin.infoMessageBox(alert);
-//								}
-//							});
-//						}
-//						
-//					} else {
-//						markApplicationAsDirty(done);
-//					}
-//				}
-				
 				boolean doUpdate = false;
 				String projectName = getObject().getProject().getName();
 				if (doto.equals(this)) {
@@ -650,37 +527,6 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		super.hasBeenModified(bModified);
 	}
 	
-//	protected void markComponentTsAsDirty() {
-//		ApplicationComponent ac = getObject();
-//		try {
-//			ac.markComponentTsAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
-//	}
-//	
-//	protected void markApplicationAsDirty(Set<Object> done) {
-//		ApplicationComponent ac = getObject();
-//		if (!done.add(ac)) {
-//			return;
-//		}
-//		//System.out.println("---markApplicationAsDirty, with done : '" + done + "'");
-//		try {
-//			ac.markApplicationAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the application source files for '" + ac.getName() + "'");	}
-//	}
-//	
-//	protected void markPwaAsDirty() {
-//		ApplicationComponent ac = getObject();
-//		try {
-//			ac.markPwaAsDirty();
-//		} catch (EngineException e) {
-//			ConvertigoPlugin.logException(e,
-//					"Error while writing the application PWA state for '" + ac.getName() + "'");	}
-//	}
-
 	public void editAppComponentTsFile() {
 		final ApplicationComponent application = getObject();
 		try {

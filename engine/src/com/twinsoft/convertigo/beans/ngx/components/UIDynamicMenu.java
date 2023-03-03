@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIDynamicMenu extends UIDynamicElement {
@@ -68,13 +67,6 @@ public class UIDynamicMenu extends UIDynamicElement {
 		}
 		return "start";
 	}
-	
-//	protected void markMenuAsDirty() throws EngineException {
-//		ApplicationComponent app = (ApplicationComponent) getParent();
-//		if (app != null) {
-//			app.markApplicationAsDirty();
-//		}
-//	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
 		Set<UIComponent> done = new HashSet<>();
