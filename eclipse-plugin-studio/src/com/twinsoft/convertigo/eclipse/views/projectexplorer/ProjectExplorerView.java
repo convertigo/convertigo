@@ -140,7 +140,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -1528,11 +1527,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								BatchOperationHelper.stop();
 								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							} else {
-								if (theTreeObject.getObject() instanceof FullSyncConnector) {
-									ProjectExplorerView.this.fireTreeObjectPropertyChanged(new TreeObjectEvent(theTreeObject, "name", oldName, newName));
-								}
+								BatchOperationHelper.start();
+								ProjectExplorerView.this.fireTreeObjectPropertyChanged(new TreeObjectEvent(theTreeObject, "name", oldName, newName));
 								ProjectExplorerView.this.refreshTree();
 								ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
+								BatchOperationHelper.stop();
+								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							}
 							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
