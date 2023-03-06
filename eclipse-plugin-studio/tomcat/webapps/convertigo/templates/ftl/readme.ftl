@@ -117,10 +117,14 @@ ${title}${lineBreak}
 <#-- installation : add project installation instructions if any -->
 <#macro installation>
 <#if locale == "US">
-1. In your Convertigo Studio use `File->Import->Convertigo->Convertigo Project` and hit the `Next` button
-2. In the dialog `Project remote URL` field, paste the text below:
+1. In your Convertigo Studio click on ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/icons/studio/project_import.gif?raw=true "Import a project in treeview") to import a project in the treeview
+2. In the import wizard
+
+   ![](https://github.com/convertigo/convertigo/tree/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
+   
+   paste the text below into the `Project remote URL` field:
    <table>
-     <tr><td>Usage</td><td>Click the copy button</td></tr>
+     <tr><td>Usage</td><td>Click the copy button at the end of the line</td></tr>
      <tr><td>To contribute</td><td>${lineBreak}
      ```
      ${project.contributeUrl}
@@ -135,10 +139,14 @@ ${title}${lineBreak}
 3. Click the `Finish` button. This will automatically import the __${project.name}__ project
 </#if>
 <#if locale == "FR">
-1. Dans votre Studio Convertigo, utilisez `File->Import->Convertigo->Convertigo Project` et appuyez sur le bouton `Next`
-2. Dans le champ `Project remote URL` de la boîte de dialogue, collez le texte ci-dessous:
+1. Dans votre Studio Convertigo, cliquez sur ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/icons/studio/project_import.gif?raw=true "Import a project in treeview") pour importer un projet dans l'arborescence
+2. Dans l'assistant d'importation
+
+   ![](https://github.com/convertigo/convertigo/tree/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
+   
+   collez le texte ci-dessous dans le champ `Project remote URL`:
    <table>
-     <tr><td>Usage</td><td>Cliquez sur le bouton de copie</td></tr>
+     <tr><td>Usage</td><td>Cliquez sur le bouton de copie en fin de ligne</td></tr>
      <tr><td>Pour contribuer</td><td>${lineBreak}
      ```
      ${lineBreak}${project.contributeUrl}
