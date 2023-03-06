@@ -187,8 +187,7 @@ public class ProjectDeployResultWizardPage extends WizardPage {
 				
 	    	} catch (Throwable e) {
 				setDeployDone(false);
-				String msg = e.getMessage();
-				updateLabelText(String.format("%1$s%n%2$s%n", "Deployment unsuccessfull!", msg == null ? "" : msg));
+				updateLabelText(String.format("%1$s%n%2$s%n", "Deployment failed!", "Please have a look at the error log"));
 				updateLinkText(null);
 				ConvertigoPlugin.logException(e, "Unable to deploy project!");
 			} finally {

@@ -163,7 +163,6 @@ public class ProjectDeployOptionsComposite extends Composite {
 		checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
 		convertigoServer.setText(dc.getServer());
 		assembleXsl.setSelection(dc.isBAssembleXsl());
-		convertigoServer.setText(dc.getServer());
 		delButton.setEnabled(!(dc instanceof DeploymentConfigurationReadOnly));
 	}
 	
