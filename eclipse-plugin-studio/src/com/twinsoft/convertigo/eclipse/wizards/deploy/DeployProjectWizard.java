@@ -74,28 +74,6 @@ public class DeployProjectWizard extends Wizard {
 	}
 	
 	@Override
-	public IWizardPage getPreviousPage(IWizardPage page) {
-		IWizardPage previous = super.getPreviousPage(page);
-		IWizardPage currentPage = this.getContainer().getCurrentPage();
-		if (currentPage != null && currentPage.equals(projectExportOptionsWizardPage)) {
-			return getUnbuiltMessage() == null ? null : previous;
-		}
-		return previous;
-	}
-
-	@Override
-	public IWizardPage getNextPage(IWizardPage page) {
-		IWizardPage next = super.getNextPage(page);
-//		IWizardPage currentPage = this.getContainer().getCurrentPage();
-//		if (currentPage != null && currentPage.equals(projectDeployOptionsWizardPage)) {
-//			if (next != null && next.equals(projectDeployResultWizardPage)) {
-//				projectDeployResultWizardPage.setOptionsData(projectDeployOptionsWizardPage.getOptionsData());
-//			}
-//		}
-		return next;
-	}
-
-	@Override
 	public boolean canFinish() {
 		IWizardPage currentPage = this.getContainer().getCurrentPage();
 		return currentPage != null && currentPage.equals(projectDeployResultWizardPage) && currentPage.isPageComplete();

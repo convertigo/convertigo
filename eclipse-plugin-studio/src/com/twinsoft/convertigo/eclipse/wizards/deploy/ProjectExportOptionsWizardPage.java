@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.eclipse.wizards.deploy;
 
 import java.io.File;
 import java.util.Set;
+
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -32,6 +34,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -138,6 +141,22 @@ public class ProjectExportOptionsWizardPage extends WizardPage {
 		}
 	}
 	
+	private String getUnbuiltMessage() {
+		if (project != null) {
+			IApplicationComponent app = project.getMobileApplication() != null ? project.getMobileApplication().getApplicationComponent() : null;
+			return app != null ? app.getUnbuiltMessage() : null;
+		}
+		return null;
+	}
+	
+	@Override
+	public IWizardPage getPreviousPage() {
+		if (getUnbuiltMessage() == null) {
+			return null;
+		}
+		return super.getPreviousPage();
+	}
+
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
