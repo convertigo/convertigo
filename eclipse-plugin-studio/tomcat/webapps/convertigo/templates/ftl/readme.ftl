@@ -120,7 +120,7 @@ ${title}${lineBreak}
 1. In your Convertigo Studio click on ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/icons/studio/project_import.gif?raw=true "Import a project in treeview") to import a project in the treeview
 2. In the import wizard
 
-   ![](https://github.com/convertigo/convertigo/tree/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
+   ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
    
    paste the text below into the `Project remote URL` field:
    <table>
@@ -142,7 +142,7 @@ ${title}${lineBreak}
 1. Dans votre Studio Convertigo, cliquez sur ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/icons/studio/project_import.gif?raw=true "Import a project in treeview") pour importer un projet dans l'arborescence
 2. Dans l'assistant d'importation
 
-   ![](https://github.com/convertigo/convertigo/tree/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
+   ![](https://github.com/convertigo/convertigo/blob/develop/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ftl/project_import_wzd.png?raw=true "Import Project")
    
    collez le texte ci-dessous dans le champ `Project remote URL`:
    <table>
