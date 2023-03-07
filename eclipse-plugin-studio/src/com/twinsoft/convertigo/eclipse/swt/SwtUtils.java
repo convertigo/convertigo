@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.e4.ui.css.core.engine.CSSEngine;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
@@ -188,4 +189,9 @@ public class SwtUtils {
 		}
 		return null;
 	}
+	
+	public interface SelectionListener extends org.eclipse.swt.events.SelectionListener {
+		@Override
+		default void widgetDefaultSelected(SelectionEvent e) {}
+	};
 }

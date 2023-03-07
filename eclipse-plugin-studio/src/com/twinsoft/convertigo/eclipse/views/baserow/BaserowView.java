@@ -28,19 +28,23 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DragSourceAdapter;
-import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
@@ -51,18 +55,41 @@ import com.teamdev.jxbrowser.dom.Document;
 import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsFunction;
 import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.js.JsPromise;
 import com.teamdev.jxbrowser.navigation.event.FrameDocumentLoadFinished;
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted;
+import com.teamdev.jxbrowser.net.HttpHeader;
+import com.teamdev.jxbrowser.net.callback.BeforeStartTransactionCallback;
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.beans.steps.IfStep;
+import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
+import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
+import com.twinsoft.convertigo.beans.steps.JsonToXmlStep;
+import com.twinsoft.convertigo.beans.steps.SimpleStep;
+import com.twinsoft.convertigo.beans.steps.SmartType;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
@@ -71,25 +98,29 @@ public class BaserowView extends ViewPart {
 	private C8oBrowser browser;
 	private String email;
 	private String secret;
-	
+	private Project project;
+	private JsFunction jsCall;
+	private String authHeader;
+	private String backendApi;
+
 	public class StudioAPI {
-		
+
 		@JsAccessible
 		public String email() {
 			return email;
 		}
-		
+
 		@JsAccessible
 		public String secret() {
 			return secret;
 		}
-		
+
 		@JsAccessible
 		public String postMessage(String message) {
 			return BaserowView.this.postMessage(message);
 		}
 	}
-	
+
 	public BaserowView() {
 		Properties pscProps;
 		try {
@@ -113,64 +144,53 @@ public class BaserowView extends ViewPart {
 	public void createPartControl(Composite parent) {
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		GridLayout gl;
+		RowLayout rl;
 		main = new Composite(parent, SWT.NONE);
 		main.setLayout(gl = new GridLayout(1, true));
 		gl.marginHeight = gl.marginWidth = 0;
-		
+
 		Composite bar = new Composite(main, SWT.NONE);
 		bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
-		bar.setLayout(new GridLayout(99, false));
 		
-		DragSourceAdapter dragListener = new DragSourceAdapter() {
-			@Override
-			public void dragStart(DragSourceEvent event) {
-				try {
-					event.doit = true;
-				} catch (Exception e) {
-					ConvertigoPlugin.logException(e, "Cannot drag");
-				}
-			}
+		bar.setLayout(rl = new RowLayout());
+		rl.center = true;
+		rl.justify = true;
+		Label currentProject = new Label(bar, SWT.NONE);
+		currentProject.setVisible(false);
 
-			@Override
-			public void dragSetData(DragSourceEvent event) {
-				event.data = ((DragSource) event.widget).getControl().getData("dnd");
-			}
-		};
-		
-		List<Button> drags = new ArrayList<Button>(2);
-		for (Pair<String, String> p: Arrays.asList(
-				Pair.of("table_id", "table/(\\w+)"),
-				Pair.of("view_id", "table/\\w+/(\\w+)"))) {
-			Button drag = new Button(bar, SWT.FLAT);
-			drag.setLayoutData(new GridData());
-			drag.setCursor(handCursor);
-			drag.setData("txt", "Drag and drop me on a '" + p.getLeft() + "' variable");
-			drag.setData("matcher", Pattern.compile(p.getRight()).matcher(""));
-			drag.setVisible(false);
-			drags.add(drag);
-			
-			DragSource source = new DragSource(drag, DND.DROP_COPY | DND.DROP_MOVE);
-			source.setTransfer(new Transfer[] { TextTransfer.getInstance() });
-			source.addDragListener(dragListener);
+		List<Button> cruds = new ArrayList<Button>(2);
+		for (String type: Arrays.asList("List", "Create", "Read", "Update", "Delete")) {
+			Button btn = new Button(bar, SWT.FLAT);
+			btn.setCursor(handCursor);
+			btn.setData("type", type);
+			btn.setVisible(false);
+			btn.addSelectionListener((SelectionListener)(event) -> {
+				createStub(btn);
+			});
+			cruds.add(btn);
 		}
 		ConvertigoPlugin.asyncExec(() -> {
 			browser = new C8oBrowser(main, SWT.NONE);
 			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-			
+
 			String url = "https://c8ocloud.convertigo.net/convertigo/projects/C8oCloudBaserow/DisplayObjects/mobile/";
-			
+
 			browser.getBrowser().set(InjectJsCallback.class, params -> {
 				try {
 					if (params.frame().browser().url().contains(url)) {
-						JsObject window = params.frame().executeJavaScript("window"); 
+						JsObject window = params.frame().executeJavaScript("window");
 						window.putProperty("studio", new StudioAPI());
+					} else {
+						jsCall = params.frame().executeJavaScript("async (url, auth) => {"
+								+ "let res = await fetch(url, { headers: { Authorization: auth }});"
+								+ "return await res.text();}");
 					}
 				} catch (Exception e) {
 					Engine.logStudio.info("failure", e);
 				}
 				return Response.proceed();
 			});
-			
+
 			browser.getBrowser().navigation().on(FrameDocumentLoadFinished.class, event -> {
 				try {
 					Frame frame = event.frame();
@@ -186,32 +206,114 @@ public class BaserowView extends ViewPart {
 				try {
 					String u = event.url();
 					Engine.logStudio.warn("NavigationStarted " + u);
-					ConvertigoPlugin.asyncExec(() -> {
-						for (Button drag: drags) {
-							Matcher m = (Matcher) drag.getData("matcher");
-							m.reset(u);
-							if (m.find()) {
-								drag.setText(drag.getData("txt") + ": " + m.group(1));
-								drag.setData("dnd", m.group(1));
-								drag.setVisible(true);
-							} else {
-								drag.setVisible(false);
-							}
-						}
-						drags.get(0).getParent().layout(true);
-						main.layout(true);
-					});
+					Matcher matcher = Pattern.compile("table/(\\w+)(?:/(\\w+))?").matcher(u);
+					if (!matcher.find() ) {
+						return;
+					}
+					String table_id = matcher.group(1);
+					String view_id = matcher.group(2);
+					callObject(view_id != null ?
+							"database/views/" + view_id + "/" :
+								"database/tables/" + table_id + "/", res -> {
+									JSONObject table = view_id != null ? getObject(res, "table") : res;
+									String view_name = view_id != null ? get(res, "name") : "";
+									String table_name = get(table, "name");
+									String database_id = get(table, "database_id");
+									callObject("applications/" + database_id + "/", database -> {
+										String database_name = get(database, "name");
+										ConvertigoPlugin.asyncExec(() -> {
+											String prefix = com.twinsoft.convertigo.engine.util.StringUtils.normalize( 
+													StringUtils.capitalize(database_name) + 
+													StringUtils.capitalize(table_name));
+											for (Button btn: cruds) {
+												btn.setText(prefix + btn.getData("type"));
+												btn.setVisible(project != null);
+												btn.setData("table_id", table_id);
+												btn.setData("database_name", database_name);
+												btn.setData("table_name", table_name);
+											}
+											Button gdBtn = cruds.get(0);
+											gdBtn.setText(prefix + StringUtils.capitalize(view_name) + gdBtn.getData("type"));
+											gdBtn.setData("view_id", view_id);
+											currentProject.setVisible(project != null);
+											gdBtn.getParent().layout();
+										});
+									});
+								});
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			});
-			
+
+			browser.getBrowser().profile().network().set(BeforeStartTransactionCallback.class, (params) -> {
+				int idx;
+				if ((idx = params.urlRequest().url().indexOf("/api/")) != -1) {
+					for (HttpHeader header: params.httpHeaders()) {
+						if (header.name().equals("Authorization")) {
+							authHeader = header.value();
+							backendApi = params.urlRequest().url().substring(0, idx + 5);
+							break;
+						}
+					}
+				}
+				return com.teamdev.jxbrowser.net.callback.BeforeStartTransactionCallback.Response.proceed();
+			});
+
 			browser.setUrl(url);
 			Engine.logStudio.debug("Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
 			main.layout(true);
 		});
+
+		Runnable initPev = () -> {
+			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev == null) {
+				return;
+			}
+			ISelectionChangedListener selectionListener = new ISelectionChangedListener() {
+				@Override
+				public void selectionChanged(SelectionChangedEvent e) {
+					if (browser != null && browser.isDisposed()) {
+						pev.removeSelectionChangedListener(this);
+						return;
+					}
+					TreeSelection selection = (TreeSelection) e.getSelection();
+					if (selection.getFirstElement() instanceof TreeObject) {
+						TreeObject to = (TreeObject) selection.getFirstElement();
+						ProjectTreeObject prjtree = to.getProjectTreeObject();
+						if (prjtree != null) {
+							project = prjtree.getObject();
+							currentProject.setText("Click to import in project '" + project.getName() + "' these Sequences:");
+							Button gdBtn = cruds.get(0);
+							if (gdBtn.getData("table_id") != null) {
+								currentProject.setVisible(true);
+								for (Button btn: cruds) {
+									btn.setVisible(true);
+								}
+							}
+							bar.layout();
+						}
+					}
+				}
+			};
+			pev.addSelectionChangedListener(selectionListener);
+			selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
+		};
+
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener2() {
+			@Override
+			public void partOpened(IWorkbenchPartReference partRef) {
+				if (browser != null && browser.isDisposed()) {
+					partRef.getPage().removePartListener(this);
+					return;
+				}
+				if (partRef.getPart(false) instanceof ProjectExplorerView) {
+					ConvertigoPlugin.asyncExec(initPev);
+				}
+			}
+		});
+		ConvertigoPlugin.asyncExec(initPev);
 	}
-	
+
 	private String postMessage(String message) {
 		try {
 			JSONObject obj = new JSONObject(message);
@@ -222,15 +324,14 @@ public class BaserowView extends ViewPart {
 					String val = dbom.symbolsGetValue("lib_baserow.apikey.secret");
 					if (StringUtils.isBlank(val)) {
 						dbom.symbolsAdd("lib_baserow.apikey.secret", key);
-//						dbom.symbolsAdd("lib_baserow.port", "443");
-//						dbom.symbolsAdd("lib_baserow.server", "baserow-backend.convertigo.net");
-//						dbom.symbolsAdd("lib_baserow.https", "true");
+						//						dbom.symbolsAdd("lib_baserow.port", "443");
+						//						dbom.symbolsAdd("lib_baserow.server", "baserow-backend.convertigo.net");
+						//						dbom.symbolsAdd("lib_baserow.https", "true");
 					}
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
 							ProjectUrlParser parser = new ProjectUrlParser("lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/archive/master.zip");
 							String projectName = parser.getProjectName();
-							Engine.logStudio.warn("exist project " + projectName + " ? " + Engine.theApp.databaseObjectsManager.existsProject(projectName));
 							ProjectExplorerView pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							if (Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
 								if (!ConvertigoPlugin.getDefault().isProjectOpened(projectName)) {
@@ -257,14 +358,14 @@ public class BaserowView extends ViewPart {
 						}
 					});
 				});
-				
+
 			}
 			if (obj.has("token")) {
 				String token = obj.getString("token");
 				CookieStore cookieStore = browser.getBrowser().engine().cookieStore();
 				cookieStore.set(Cookie.newBuilder("baserow.convertigo.net")
-					.name("jwt_token").value(token)
-					.path("/").secure(true).build());
+						.name("jwt_token").value(token)
+						.path("/").secure(true).build());
 				cookieStore.persist();
 				browser.setUrl("https://baserow.convertigo.net/dashboard");
 			} else {
@@ -279,5 +380,408 @@ public class BaserowView extends ViewPart {
 	@Override
 	public void setFocus() {
 		main.setFocus();
+	}
+
+	private interface callObjectResult {
+		public void result(JSONObject obj);
+	}
+
+	private interface callArrayResult {
+		public void result(JSONArray arr);
+	}
+
+	private void callObject(String api, callObjectResult result) {
+		try {
+			C8oBrowser.run(() -> {
+				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
+				prom.then(txt -> {
+					try {
+						Engine.logStudio.warn(txt[0].toString());
+						result.result(new JSONObject(txt[0].toString()));
+					} catch (Exception e) {
+						Engine.logStudio.warn("callObject failed", e);
+					}
+					return null;
+				});
+			});
+		} catch (Exception e) {
+			Engine.logStudio.warn("callObject failed", e);
+		}
+	}
+
+	private void callArray(String api, callArrayResult result) {
+		try {
+			C8oBrowser.run(() -> {
+				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
+				prom.then(txt -> {
+					try {
+						result.result(new JSONArray(txt[0].toString()));
+					} catch (Exception e) {
+						Engine.logStudio.warn("callObject failed", e);
+					}
+					return null;
+				});
+			});
+		} catch (Exception e) {
+			Engine.logStudio.warn("callObject failed", e);
+		}
+	}
+
+	private String get(JSONObject obj, String key) {
+		try {
+			return obj.getString(key);
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private JSONObject getObject(JSONObject obj, String key) {
+		try {
+			return obj.getJSONObject(key);
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void createStub(Button btn) {
+		if (project == null) {
+			return;
+		}
+
+		ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (pev == null) {
+			return;
+		}
+
+		String table_id = (String) btn.getData("table_id");
+		String view_id = (String) btn.getData("view_id");
+		String type = (String) btn.getData("type");
+		String database_name = (String) btn.getData("database_name");
+		String table_name = (String) btn.getData("table_name");
+		String sequenceName = btn.getText();
+		boolean isList = sequenceName.endsWith("List");
+		boolean isCreate = sequenceName.endsWith("Create");
+		boolean isRead = sequenceName.endsWith("Read");
+		boolean isUpdate = sequenceName.endsWith("Update");
+		boolean isDelete = sequenceName.endsWith("Delete");
+		
+		callArray("database/fields/table/" + table_id + "/", arr -> {
+			int len = arr.length();
+			System.out.println(arr.toString());
+			try {
+				Sequence s = project.getSequenceByName(sequenceName);
+				project.removeSequence(s);
+			} catch (EngineException e) {
+			}
+
+			try {
+				GenericSequence sequence = new GenericSequence();
+				sequence.setName(sequenceName);
+				sequence.setComment(type + " row" + (isList ? "s" : "") + " of " + table_name + " from " + database_name);
+				sequence.setAccessibility(Accessibility.Hidden);
+				sequence.setAuthenticatedContextRequired(true);
+				project.add(sequence);
+
+				SimpleStep simpleStep = new SimpleStep();
+				simpleStep.setName("apiKey");
+				simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
+				simpleStep.updateSymbols();
+				sequence.add(simpleStep);
+
+				if (isCreate || isUpdate || isRead) {
+					JSONObject sample = new JSONObject();
+					sample.put("id", 0);
+					sample.put("order", "0");
+
+					JsonObjectStep jsonObjectStep = null;
+					if (isCreate || isUpdate) {
+						jsonObjectStep = new JsonObjectStep();
+						jsonObjectStep.setName("body");
+						jsonObjectStep.setOutput(false);
+						sequence.add(jsonObjectStep);
+					}
+
+					for (int i = 0; i < len; i++) {
+						String varName = get(arr.getJSONObject(i), "name");
+						String varType = get(arr.getJSONObject(i), "type");
+
+						RequestableVariable var = null;
+						if (isCreate || isUpdate) {
+							String comment = varName + " [" + varType + "]";
+							var = new RequestableVariable();
+							var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
+							var.setComment(comment);
+							sequence.add(var);
+						}
+						if (varType.equals("link_row")) {
+							if (var != null) {
+								var.setValueOrNull("[]");
+							}
+							sample.put(varName, new JSONArray());
+						} else if (varType.equals("boolean")) {
+							if (var != null) {
+								var.setValueOrNull("false");
+							}
+							sample.put(varName, false);
+						} else {
+							sample.put(varName, "");
+						}
+
+						if (jsonObjectStep != null) {
+							if (varType.equals("link_row")) {
+								JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+								jsonToXmlStep.setName(varName);
+								SmartType st = new SmartType();
+								st.setMode(Mode.JS);
+								st.setExpression("JSON.parse(" + var.getName() + ")");
+								jsonToXmlStep.setJsonObject(st);
+								jsonToXmlStep.setOutput(false);
+								jsonObjectStep.add(jsonToXmlStep);
+							} else {
+								JsonFieldStep jsonFieldStep = new JsonFieldStep();
+								jsonFieldStep.setName(varName);
+								SmartType st = new SmartType();
+								st.setMode(Mode.JS);
+								st.setExpression(var.getName());
+								jsonFieldStep.setValue(st);
+								jsonFieldStep.setOutput(false);
+								jsonObjectStep.add(jsonFieldStep);
+							}
+						}
+					}
+
+					TransactionStep transactionStep = new TransactionStep();
+					if (isCreate) {
+						transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___POST");
+					}
+					if (isUpdate) {
+						transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___PATCH");
+					}
+					if (isRead) {
+						transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___GET");
+					}
+					sequence.add(transactionStep);
+
+					StepVariable stepVariable = new StepVariable();
+					stepVariable.setName("__header_Authorization");
+					transactionStep.add(stepVariable);
+
+					stepVariable = new StepVariable();
+					stepVariable.setName("table_id");
+					stepVariable.setValueOrNull(table_id);
+					transactionStep.add(stepVariable);
+					
+					stepVariable = new StepVariable();
+					stepVariable.setName("user_field_names");
+					stepVariable.setValueOrNull("true");
+					transactionStep.add(stepVariable);
+					
+					if (isCreate || isUpdate) {
+						stepVariable = new StepVariable();
+						stepVariable.setName("__body");
+						XMLVector<String> source = new XMLVector<String>();
+						source.add(Long.toString(jsonObjectStep.priority));
+						source.add("*");
+						stepVariable.setSourceDefinition(source);
+						transactionStep.add(stepVariable);
+					}
+
+					if (isCreate) {
+						stepVariable = new StepVariable();
+						stepVariable.setName("before");
+						transactionStep.add(stepVariable);
+
+						RequestableVariable var = new RequestableVariable();
+						var.setName("before");
+						var.setComment("If provided then the newly created row will be positioned before the row with the provided id.");
+						sequence.add(var);
+					}
+
+					if (isUpdate || isRead) {
+						stepVariable = new StepVariable();
+						stepVariable.setName("row_id");
+						transactionStep.add(stepVariable);
+
+						RequestableVariable var = new RequestableVariable();
+						var.setName("row_id");
+						if (isUpdate) {
+							var.setComment("Updates the row related to the value.");
+						}
+						if (isRead) {
+							var.setComment("Returns the row related the provided value.");
+						}
+						var.setRequired(true);
+						sequence.add(var);
+					}
+
+					XMLCopyStep xmlCopyStep = new XMLCopyStep();
+					XMLVector<String> source = new XMLVector<String>();
+					source.add(Long.toString(transactionStep.priority));
+					source.add("document/object");
+					xmlCopyStep.setSourceDefinition(source);
+					sequence.add(xmlCopyStep);
+
+					IfStep ifStep = new IfStep();
+					ifStep.setCondition("false");
+					sequence.add(ifStep);
+
+					JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+					jsonToXmlStep.setName("object");
+					jsonToXmlStep.setJsonSample(sample.toString(2));
+					ifStep.add(jsonToXmlStep);
+				}
+				
+				if (isDelete) {
+					TransactionStep transactionStep = new TransactionStep();
+					transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___DELETE");
+					sequence.add(transactionStep);
+
+					StepVariable stepVariable = new StepVariable();
+					stepVariable.setName("__header_Authorization");
+					transactionStep.add(stepVariable);
+
+					stepVariable = new StepVariable();
+					stepVariable.setName("table_id");
+					stepVariable.setValueOrNull(table_id);
+					transactionStep.add(stepVariable);
+					
+					stepVariable = new StepVariable();
+					stepVariable.setName("row_id");
+					transactionStep.add(stepVariable);
+
+					RequestableVariable var = new RequestableVariable();
+					var.setName("row_id");
+					var.setComment("Deletes the row related to the value.");
+					var.setRequired(true);
+					sequence.add(var);
+					
+					JsonFieldStep jsonFieldStep = new JsonFieldStep();
+					jsonFieldStep.setName("success");
+					jsonFieldStep.setType(JsonFieldType.bool);
+					SmartType st = new SmartType();
+					st.setMode(Mode.SOURCE);
+					XMLVector<String> source = new XMLVector<String>();
+					source.add(Long.toString(transactionStep.priority));
+					source.add("document/HttpInfo/status[@code=200]");
+					st.setSourceDefinition(source);
+					jsonFieldStep.setValue(st);
+					sequence.add(jsonFieldStep);
+				}
+				
+				if (isList) {
+					JSONObject sample = new JSONObject();
+					sample.put("count", 0);
+					sample.put("next", "");
+					sample.put("previous", "");
+					JSONArray array = new JSONArray();
+					sample.put("results", array);
+					JSONObject object = new JSONObject();
+					array.put(object);
+					object.put("id", 0);
+					object.put("order", "0");
+					
+					TransactionStep transactionStep = new TransactionStep();
+					transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___GET");
+					sequence.add(transactionStep);
+					
+					StepVariable stepVariable = new StepVariable();
+					stepVariable.setName("__header_Authorization");
+					transactionStep.add(stepVariable);
+
+					stepVariable = new StepVariable();
+					stepVariable.setName("table_id");
+					stepVariable.setValueOrNull(table_id);
+					transactionStep.add(stepVariable);
+					
+					stepVariable = new StepVariable();
+					stepVariable.setName("user_field_names");
+					stepVariable.setValueOrNull("true");
+					transactionStep.add(stepVariable);
+					
+					if (view_id != null) {
+						stepVariable = new StepVariable();
+						stepVariable.setName("view_id");
+						stepVariable.setValueOrNull(view_id);
+						transactionStep.add(stepVariable);
+					}
+					
+					String[] names = new String[len];
+					for (int i = 0; i < len; i++) {
+						String varName = get(arr.getJSONObject(i), "name");
+						String varType = get(arr.getJSONObject(i), "type");
+						if (varType.equals("link_row")) {
+							object.put(varName, new JSONArray());
+						} else if (varType.equals("boolean")) {
+							object.put(varName, false);
+						} else {
+							object.put(varName, "");
+						}
+						names[i] = varName;
+					}
+
+					stepVariable = new StepVariable();
+					stepVariable.setName("include_fields");
+					transactionStep.add(stepVariable);
+					
+					RequestableVariable var = new RequestableVariable();
+					var.setName("include_fields");
+					var.setComment("All the fields are included in the response by default. You can select a subset of fields by providing the include query parameter. If you for example provide the following GET parameter `include=field_1,field_2` then only the fields withid `1` and id `2` are going to be selected and included in the response. If the `user_field_names` parameter is provided then instead include should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `include=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `include=My Field,Field with \\\"`.");
+					var.setValueOrNull(String.join(",", names));
+					sequence.add(var);
+					
+					stepVariable = new StepVariable();
+					stepVariable.setName("filter_type");
+					transactionStep.add(stepVariable);
+					
+					for (Pair<String, String> p: Arrays.asList(
+							Pair.of("filter_type", "`AND`: Indicates that the rows must match all the provided filters.\r\n"
+									+ "`OR`: Indicates that the rows only have to match one of the filters.\r\n"
+									+ "\r\n"
+									+ "This works only if two or more filters are provided."),
+							Pair.of("order_by", "Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`."),
+							Pair.of("page", "Defines which page of rows should be returned."),
+							Pair.of("search", "If provided only rows with data that matches the search query are going to be returned."),
+							Pair.of("size", "Defines how many rows should be returned per page."),
+							Pair.of("filterExpression", "")
+							)) {
+						var = new RequestableVariable();
+						var.setName(p.getLeft());
+						var.setComment(p.getRight());
+						sequence.add(var);
+						
+						stepVariable = new StepVariable();
+						stepVariable.setName(p.getLeft());
+						transactionStep.add(stepVariable);
+					}
+
+					XMLCopyStep xmlCopyStep = new XMLCopyStep();
+					XMLVector<String> source = new XMLVector<String>();
+					source.add(Long.toString(transactionStep.priority));
+					source.add("document/object");
+					xmlCopyStep.setSourceDefinition(source);
+					sequence.add(xmlCopyStep);
+
+					IfStep ifStep = new IfStep();
+					ifStep.setCondition("false");
+					sequence.add(ifStep);
+
+					JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+					jsonToXmlStep.setName("object");
+					jsonToXmlStep.setJsonSample(sample.toString(2));
+					ifStep.add(jsonToXmlStep);
+				}
+
+				ConvertigoPlugin.asyncExec(() -> {
+					try {
+						pev.reloadDatabaseObject(project);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 }
