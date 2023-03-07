@@ -30,12 +30,14 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.MessageBox;
+
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -46,14 +48,12 @@ import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ProjectBuildWizardPage extends WizardPage {
-	static final int BUILD_IGNORED	= 0;
 	static final int BUILD_DONE 	= 1;
 	static final int BUILD_CANCELED = 2;
 	static final int BUILD_FAILED 	= 3;
 	
 	Project project = null;
 	boolean buildDone = false;
-	boolean canProcess = true;
 	
 	ProjectBuildComposite composite = null;
 	
@@ -68,29 +68,14 @@ public class ProjectBuildWizardPage extends WizardPage {
 		composite.addPaintListener(new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent e) {
-				if (canProcess) {
-					canProcess = false;
-					MessageBox messageBox = new MessageBox(getShell(), SWT.YES | SWT.NO);
-					messageBox.setText("Unbuilt or up-to-date application");
-					messageBox.setMessage("Do you want to build your application in production mode now ?");
-					int response = messageBox.open();
-	    			parent.getDisplay().asyncExec(() -> {
-	    				doProcess(response == SWT.YES);
-	    			});
+				if (getUnbuiltMessage() != null) {
+					setBuildDone(false);
+					updateLabelText("");
+					process();
 				}
 			}
 		});
 		setControl(composite);
-	}
-	
-	private void doProcess(boolean doBuild) {
-		if (doBuild) {
-			process();
-		} else {
-			setBuildDone(true);
-			updateLabelText(getInfoText(BUILD_IGNORED));
-			setPageComplete(buildDone);
-		}
 	}
 	
 	private void process() {
@@ -281,7 +266,6 @@ public class ProjectBuildWizardPage extends WizardPage {
 	private String getInfoText(int status) {
 		String text = "--";
 		switch (status) {
-			case BUILD_IGNORED: text = "Build ignored!"; break;
 			case BUILD_CANCELED:text = "Build canceled!"; break;
 			case BUILD_FAILED: 	text = "Build failed ! Have a look at the log files for more information."; break;
 		}
@@ -307,12 +291,20 @@ public class ProjectBuildWizardPage extends WizardPage {
 		}
 	}
 	
-	@Override
-	public void setVisible(boolean visible) {
-		super.setVisible(visible);
-		if (visible && isControlCreated()) {
-			canProcess = true;
+	private String getUnbuiltMessage() {
+		if (project != null) {
+			IApplicationComponent app = project.getMobileApplication() != null ? project.getMobileApplication().getApplicationComponent() : null;
+			return app != null ? app.getUnbuiltMessage() : null;
 		}
+		return null;
+	}
+	
+	@Override
+	public IWizardPage getPreviousPage() {
+		if (getUnbuiltMessage() == null) {
+			return null;
+		}
+		return super.getPreviousPage();
 	}
 	
 	@Override

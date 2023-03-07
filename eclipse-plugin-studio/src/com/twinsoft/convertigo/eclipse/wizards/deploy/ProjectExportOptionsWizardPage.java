@@ -154,6 +154,10 @@ public class ProjectExportOptionsWizardPage extends WizardPage {
 		if (getUnbuiltMessage() == null) {
 			return null;
 		}
+		IWizardPage previous = super.getPreviousPage();
+		if (previous.getPreviousPage() != null) {
+			return previous.getPreviousPage();
+		}
 		return super.getPreviousPage();
 	}
 
@@ -173,10 +177,4 @@ public class ProjectExportOptionsWizardPage extends WizardPage {
 			}
 		}
 	}
-
-	@Override
-	public boolean isPageComplete() {
-		return super.isPageComplete();
-	}
-
 }

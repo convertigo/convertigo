@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 
 public class DeployProjectWizard extends Wizard {
 
+	private ProjectBuildOptionsWizardPage projectBuildOptionsWizardPage = null;
 	private ProjectBuildWizardPage projectBuildWizardPage = null;
 	private ProjectExportOptionsWizardPage projectExportOptionsWizardPage = null;
 	private ProjectDeployOptionsWizardPage projectDeployOptionsWizardPage = null;
@@ -51,6 +52,9 @@ public class DeployProjectWizard extends Wizard {
 	@Override
 	public void addPages() {
 		if (getUnbuiltMessage() != null) {
+			projectBuildOptionsWizardPage = new ProjectBuildOptionsWizardPage(project);
+			addPage(projectBuildOptionsWizardPage);
+			
 			projectBuildWizardPage = new ProjectBuildWizardPage(project);
 			addPage(projectBuildWizardPage);
 		}
