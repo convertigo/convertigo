@@ -50,6 +50,8 @@ import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
@@ -243,7 +245,7 @@ public class TutoView extends ViewPart implements StudioEventListener {
 				BeanInfo bi = CachedIntrospector.getBeanInfo(dbo.getClass());
 
 				PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
-
+				IonBean ionBean = null;
 				for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 					if (propertyDescriptor.getName().equals(name)) {
 						Object v = propertyDescriptor.getReadMethod().invoke(dbo);
@@ -251,9 +253,25 @@ public class TutoView extends ViewPart implements StudioEventListener {
 							return v.toString().matches(expression);
 						}
 						return false;
+					} else if (propertyDescriptor.getName().equals("beanData")) {
+						Object v = propertyDescriptor.getReadMethod().invoke(dbo);
+						if (v != null) {
+							try {
+								ionBean = new IonBean(v.toString());
+							} catch (Exception e) {
+							}
+						}
 					}
 				}
-				return dbo != null;
+				
+				if (ionBean != null) {
+					for (IonProperty ionProperty: ionBean.getProperties().values()) {
+						if (ionProperty.getName().equals(name)) {
+							String s = ionProperty.getMode() + ":" + ionProperty.getSmartValue();
+							return s.matches(expression);
+						}
+					}
+				}
 			} catch (Exception e) {
 			}
 		} else if ("ngxEditorOpen".equals(type)) {
