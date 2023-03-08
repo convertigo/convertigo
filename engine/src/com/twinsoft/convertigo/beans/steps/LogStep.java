@@ -193,6 +193,6 @@ public class LogStep extends Step implements ITagsProperty {
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return "//logs";
+		return "//todo";
 	}
 }

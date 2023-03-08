@@ -36,4 +36,9 @@ public class UICompEvent extends UIControlAttr {
 		String label = getAttrName();
 		return label.isBlank() ? "?":label;
 	}
+	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return displayName;
+	}
 }

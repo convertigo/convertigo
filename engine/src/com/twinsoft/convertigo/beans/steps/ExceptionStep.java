@@ -74,7 +74,7 @@ public class ExceptionStep extends SimpleStep {
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return "//exception";
+		return "//todo";
 	}
 
 }

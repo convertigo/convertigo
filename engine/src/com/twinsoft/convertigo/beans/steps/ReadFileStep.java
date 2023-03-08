@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -40,7 +39,7 @@ public abstract class ReadFileStep extends Step {
 
 	private static final Pattern removeQuote = Pattern.compile("^('|\")(.*)\\1$");
 
-	private String dataFile = defaultBeanName("");
+	private String dataFile = "";
 	protected boolean replaceStepElement = true;
 
 	public ReadFileStep() {
@@ -201,12 +200,5 @@ public abstract class ReadFileStep extends Step {
 	public void setReplaceStepElement(boolean replaceStepElement) {
 		this.replaceStepElement = replaceStepElement;
 	}
-	
-	@Override
-	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(StringUtils.normalize(dataFile))) {
-			dataFile = newName;
-			hasChanged = true;
-		}
-	}
+
 }
