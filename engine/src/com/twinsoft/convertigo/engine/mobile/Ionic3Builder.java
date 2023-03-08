@@ -109,13 +109,13 @@ public class Ionic3Builder extends MobileBuilder {
 					boolean hasMovedCfgFiles = false;
 					boolean hasMovedFiles = false;
 					
-					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
+					Engine.logEngine.debug("(Ionic3Builder) Start to move " + map.size() + " files.");
 					
 					// FIRST: move all files
 					for (String path: map.keySet()) {
 						try {
 							FileUtils.write(new File(path), map.get(path), "UTF-8");
-							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
+							Engine.logEngine.debug("(Ionic3Builder) Moved " + path);
 							hasMovedFiles = true;
 							
 							if (isAppFile(path) || isServiceFile(path)) {
@@ -128,10 +128,10 @@ public class Ionic3Builder extends MobileBuilder {
 								hasMovedCfgFiles = true;
 							}
 						} catch (IOException e) {
-							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+							Engine.logEngine.warn("(Ionic3Builder) Failed to copy the new content of " + path, e);
 						}
 					}
-					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
+					Engine.logEngine.debug("(Ionic3Builder) End to move " + map.size() + " files.");
 					
 					// Need package installation
 					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
@@ -146,7 +146,7 @@ public class Ionic3Builder extends MobileBuilder {
 									buildMutex.wait(60000);
 								} catch (InterruptedException e) {}
 							}
-							Engine.logEngine.debug("(MobileBuilder) build finished.");
+							Engine.logEngine.debug("(Ionic3Builder) build finished.");
 						}
 						
 						// THEN: move again app or service files 
@@ -156,16 +156,16 @@ public class Ionic3Builder extends MobileBuilder {
 								if (isAppFile(path) || isServiceFile(path)) {
 									try {
 										FileUtils.write(new File(path), map.get(path), "UTF-8");
-										Engine.logEngine.debug("(MobileBuilder) Moved again " + path);
+										Engine.logEngine.debug("(Ionic3Builder) Moved again " + path);
 										count++;
 									} catch (IOException e) {
-										Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+										Engine.logEngine.warn("(Ionic3Builder) Failed to copy the new content of " + path, e);
 									}
 								}
 							}
 							
 							if (count > 0) {
-								Engine.logEngine.debug("(MobileBuilder) End to move again " + count + " files.");
+								Engine.logEngine.debug("(Ionic3Builder) End to move again " + count + " files.");
 								
 								if (buildMutex != null) {
 									synchronized (buildMutex) {
@@ -173,7 +173,7 @@ public class Ionic3Builder extends MobileBuilder {
 											buildMutex.wait(60000);
 										} catch (InterruptedException e) {}							
 									}
-									Engine.logEngine.debug("(MobileBuilder) build finished.");
+									Engine.logEngine.debug("(Ionic3Builder) build finished.");
 								}
 							}
 						}
@@ -189,7 +189,7 @@ public class Ionic3Builder extends MobileBuilder {
 				try {
 					process();
 				} catch (Throwable t) {
-					Engine.logEngine.error("(MobileBuilder) Throwable catched", t);
+					Engine.logEngine.error("(Ionic3Builder) Throwable catched", t);
 				} finally {
 					inProcess = false;
 				}
@@ -240,7 +240,7 @@ public class Ionic3Builder extends MobileBuilder {
 			try {
 				project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
 			} catch (Exception e) {
-				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
+				Engine.logEngine.warn("(Ionic3Builder) enabled to change build mode");
 			}
 		}
 	}
@@ -263,7 +263,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (page) {
 				addPage(page);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageEnabled'");
 			}
 		}
 	}
@@ -280,7 +280,7 @@ public class Ionic3Builder extends MobileBuilder {
 						writePageSourceFiles(page);
 						writeAppSourceFiles(application);
 						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
+						Engine.logEngine.trace("(Ionic3Builder) Handled 'pageDisabled'");
 					}
 				}
 			}
@@ -294,7 +294,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (page) {
 				addPage(page);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageAdded'");
 			}
 		}
 	}
@@ -311,7 +311,7 @@ public class Ionic3Builder extends MobileBuilder {
 						writeAppSourceFiles(application);
 						deleteUselessDir(page.getName());
 						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
+						Engine.logEngine.trace("(Ionic3Builder) Handled 'pageRemoved'");
 					}
 				}
 			}
@@ -331,7 +331,7 @@ public class Ionic3Builder extends MobileBuilder {
 						writeAppSourceFiles(application);
 						deleteUselessDir(oldName);
 						moveFiles();
-						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
+						Engine.logEngine.trace("(Ionic3Builder) Handled 'pageRenamed'");
 					}
 				}
 				
@@ -346,7 +346,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (page) {
 				writePageTemplate(page);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageTemplateChanged'");
 			}
 		}
 	}
@@ -358,7 +358,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (page) {
 				writePageStyle(page);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageStyleChanged'");
 			}
 		}
 	}
@@ -373,7 +373,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeAppServiceTs(app);
 				writeAppModuleTs(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appContributorsChanged'");
 			}
 		}
 	}
@@ -393,7 +393,7 @@ public class Ionic3Builder extends MobileBuilder {
 					writePageTempTs(page);
 				}
 				
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageTsChanged'");
 			}
 		}
 	}
@@ -405,7 +405,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (page) {
 				writePageModuleTs(page);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'pageModuleTsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'pageModuleTsChanged'");
 			}
 		}
 	}
@@ -423,7 +423,7 @@ public class Ionic3Builder extends MobileBuilder {
 					writeAppComponentTempTs(app);
 				}
 				
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appTsChanged'");
 			}
 		}
 	}
@@ -435,7 +435,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (app) {
 				writeAppStyle(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appStyleChanged'");
 			}
 		}
 	}
@@ -447,7 +447,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (app) {
 				writeAppTemplate(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appTemplateChanged'");
 			}
 		}
 	}
@@ -459,7 +459,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (app) {
 				writeAppTheme(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appThemeChanged'");
 			}
 		}
 	}
@@ -471,7 +471,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (app) {
 				writeAppComponentTs(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appCompTsChanged'");
 			}
 		}
 	}
@@ -483,7 +483,7 @@ public class Ionic3Builder extends MobileBuilder {
 			synchronized (app) {
 				writeAppModuleTs(app);
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appModuleTsChanged'");
 			}
 		}
 	}
@@ -497,7 +497,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeAppComponentTs(app);	// for prod mode
 				writeAppModuleTs(app); 		// for worker
 				moveFiles();
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appPwaChanged'");
 			}
 		}
 	}
@@ -514,7 +514,7 @@ public class Ionic3Builder extends MobileBuilder {
 				if (appComponentTsFile.exists()) {
 					writeAppComponentTempTs(app);
 				}
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appRootChanged'");
 			}
 		}
 	}
@@ -531,7 +531,7 @@ public class Ionic3Builder extends MobileBuilder {
 				if (appComponentTsFile.exists()) {
 					writeAppComponentTempTs(app);
 				}
-				Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
+				Engine.logEngine.trace("(Ionic3Builder) Handled 'appRouteChanged'");
 			}
 		}
 	}
@@ -617,7 +617,7 @@ public class Ionic3Builder extends MobileBuilder {
 			}
 						
 			initDone = true;
-			Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(Ionic3Builder) Initialized builder for ionic project '"+ project.getName() +"'");
 		}
 	}
 	
@@ -687,7 +687,7 @@ public class Ionic3Builder extends MobileBuilder {
 			setNeedPkgUpdate(false);
 			
 			initDone = false;
-			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(Ionic3Builder) Released builder for ionic project '"+ project.getName() +"'");
 		}
 	}
 	
@@ -698,7 +698,7 @@ public class Ionic3Builder extends MobileBuilder {
 			File tAssets = new File(ionicTplDir, "src/assets");
 			File bAssets = new File(ionicWorkDir, "../../DisplayObjects/mobile/assets");
 			FileUtils.mergeDirectories(tAssets, bAssets);
-			Engine.logEngine.trace("(MobileBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(Ionic3Builder) Assets files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic assets files for ionic project '"+ project.getName() +"'",e);
@@ -719,7 +719,7 @@ public class Ionic3Builder extends MobileBuilder {
 				content = content.replaceAll("/assets/\\*\\*/\\*","/_fake_/assets/**/*");
 				writeFile(f, content, "UTF-8");
 			}
-			Engine.logEngine.trace("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(Ionic3Builder) Configuration files updated for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update configuration files for ionic project '"+ project.getName() +"'",e);
@@ -752,7 +752,7 @@ public class Ionic3Builder extends MobileBuilder {
 						writeAppSourceFiles(application);
 						removeUselessPages(application);
 						
-						Engine.logEngine.trace("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+						Engine.logEngine.trace("(Ionic3Builder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
 						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
@@ -781,7 +781,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic template file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -800,7 +800,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(pageScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic scss file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -1013,7 +1013,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic ts file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -1032,7 +1032,7 @@ public class Ionic3Builder extends MobileBuilder {
 					writeFile(pageModuleTsFile, getPageModuleTsContent(page), "UTF-8");
 					
 					if (initDone) {
-						Engine.logEngine.trace("(MobileBuilder) Ionic module file generated for page '"+pageName+"'");
+						Engine.logEngine.trace("(Ionic3Builder) Ionic module file generated for page '"+pageName+"'");
 					}
 				}
 			}
@@ -1477,7 +1477,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) App plugins config file generated");
+					Engine.logEngine.trace("(Ionic3Builder) App plugins config file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1538,7 +1538,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic package json file generated");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic package json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1595,7 +1595,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic service ts file generated for 'app'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic service ts file generated for 'app'");
 				}
 			}
 		} catch (Exception e) {
@@ -1771,7 +1771,7 @@ public class Ionic3Builder extends MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic module ts file generated for 'app'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic module ts file generated for 'app'");
 				}
 			}
 		}
@@ -1897,7 +1897,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appComponentTsFile, getAppComponentTsContent(app), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic component ts file generated for 'app'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic component ts file generated for 'app'");
 				}
 			}
 		}
@@ -1941,7 +1941,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic template file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1959,7 +1959,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(appScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1977,7 +1977,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeFile(themeScssFile, tContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(Ionic3Builder) Ionic theme scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -2027,7 +2027,7 @@ public class Ionic3Builder extends MobileBuilder {
 				writeAppStyle(application);
 				writeAppTheme(application);
 
-				Engine.logEngine.trace("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
+				Engine.logEngine.trace("(Ionic3Builder) Application source files generated for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
@@ -2049,7 +2049,7 @@ public class Ionic3Builder extends MobileBuilder {
 			writePageTemplate(page);
 			
 			if (initDone) {
-				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+				Engine.logEngine.trace("(Ionic3Builder) Ionic source files generated for page '"+pageName+"'");
 			}
 		}
 		catch (Exception e) {
@@ -2063,15 +2063,15 @@ public class Ionic3Builder extends MobileBuilder {
 			if (buildMutex == null) {
 				try {
 					FileUtils.deleteDirectory(dir);
-					Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
+					Engine.logEngine.debug("(Ionic3Builder) Deleted dir " + dir.getPath());
 				} catch (IOException e) {
-					Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
+					Engine.logEngine.warn("(Ionic3Builder) Failed to delete directory " + dir.getPath(), e);
 				}
 			}
 			// defers the dir deletion
 			else {
 				// Deletion DOES NOT WORK for now
-				/*Engine.logEngine.debug("(MobileBuilder) Defers the deletion of directory " + dir.getPath());
+				/*Engine.logEngine.debug("(Ionic3Builder) Defers the deletion of directory " + dir.getPath());
 				dirsToDelete.add(dir);
 				
 				File nDir = toTmpFile(dir);
@@ -2079,7 +2079,7 @@ public class Ionic3Builder extends MobileBuilder {
 					try {
 						FileUtils.deleteDirectory(nDir);
 					} catch (IOException e) {
-						Engine.logEngine.warn("(MobileBuilder) Failed to delete temporary directory " + nDir.getPath(), e);
+						Engine.logEngine.warn("(Ionic3Builder) Failed to delete temporary directory " + nDir.getPath(), e);
 					}
 				}*/
 				
@@ -2102,7 +2102,7 @@ public class Ionic3Builder extends MobileBuilder {
 						tsContent = tsContent.replaceFirst("segment\\s*\\:\\s*'(.+)'", "segment: '"+ oldSegment +"'");
 						writeFile(oldPageTsFile, tsContent, "UTF-8");
 					} catch (IOException e) {
-						Engine.logEngine.warn("(MobileBuilder) Failed to defer write of " + oldPageTsFile.getPath(), e);
+						Engine.logEngine.warn("(Ionic3Builder) Failed to defer write of " + oldPageTsFile.getPath(), e);
 					}
 				}
 			}
@@ -2110,7 +2110,7 @@ public class Ionic3Builder extends MobileBuilder {
 			try {
 				FileUtils.deleteDirectory(dir);
 			} catch (IOException e) {
-				Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
+				Engine.logEngine.warn("(Ionic3Builder) Failed to delete directory " + dir.getPath(), e);
 			}
 		}
 	}

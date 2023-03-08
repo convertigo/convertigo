@@ -81,8 +81,9 @@ public abstract class MobileBuilder {
 	static public void initBuilder(Project project, boolean force) {
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
-				Engine.logEngine.info("(MobileBuilder) initBuilder for " + project + " " + (force ? "with" : "without") + " force");
-				project.getMobileBuilder().init();
+				MobileBuilder mb = project.getMobileBuilder();
+				Engine.logEngine.info("("+ mb.builderType +") initBuilder for " + project + " " + (force ? "with" : "without") + " force");
+				mb.init();
 			} catch (Exception e) {
 				String message = e.getMessage();
 				message = message == null ? "unknown":message;
@@ -105,8 +106,9 @@ public abstract class MobileBuilder {
 	static public void releaseBuilder(Project project, boolean force) {
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
-				Engine.logEngine.info("(MobileBuilder) releaseBuilder for " + project + " " + (force ? "with" : "without") + " force");
-				project.getMobileBuilder().release();
+				MobileBuilder mb = project.getMobileBuilder();
+				Engine.logEngine.info("("+ mb.builderType +") releaseBuilder for " + project + " " + (force ? "with" : "without") + " force");
+				mb.release();
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to release mobile builder for project \""+project.getName()+"\"", e);
 			}
@@ -229,9 +231,11 @@ public abstract class MobileBuilder {
 		throw new EngineException("Builder for "+ app.getClass().getName() + " isn't implemented yet");
 	}
 	
+	protected String builderType = "MobileBuilder";
+	
 	protected MobileBuilder(Project project) {
 		this.project = project;
-		
+		builderType = this.getClass().getSimpleName();
 		projectDir = new File(project.getDirPath());
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
@@ -275,7 +279,7 @@ public abstract class MobileBuilder {
 	}
 	
 	public void setAutoBuild(boolean autoBuild) {
-		Engine.logEngine.debug("(MobileBuilder) AutoBuild mode set to "+ (autoBuild ? "ON":"OFF"));
+		Engine.logEngine.debug("("+ builderType +") AutoBuild mode set to "+ (autoBuild ? "ON":"OFF"));
 		this.autoBuild = autoBuild;
 		if (autoBuild) {
 			moveFilesForce();
@@ -337,13 +341,13 @@ public abstract class MobileBuilder {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-		Engine.logEngine.trace("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
+		Engine.logEngine.trace("("+ builderType +") Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
 	
 	protected void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
-			Engine.logEngine.trace("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("("+ builderType +") Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
@@ -366,7 +370,7 @@ public abstract class MobileBuilder {
 					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
 					JSONObject jsonOb = new JSONObject(tsContent);
 					tplVersion = jsonOb.getString("version");
-					Engine.logEngine.debug("(MobileBuilder) Template version: "+ tplVersion+ " for ionic project '"+ project.getName() +"'");
+					Engine.logEngine.debug("("+ builderType +") Template version: "+ tplVersion+ " for ionic project '"+ project.getName() +"'");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -428,7 +432,7 @@ public abstract class MobileBuilder {
 					}
 					
 					if (content.equals(excontent)) {
-						Engine.logEngine.trace("(MobileBuilder) No change for " + file.getPath());
+						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
 				}
@@ -436,7 +440,7 @@ public abstract class MobileBuilder {
 				// write file
 				if (buildMutex == null) {
 					FileUtils.write(file, content, encoding);
-					Engine.logEngine.debug("(MobileBuilder) Wrote file " + file.getPath());
+					Engine.logEngine.debug("("+ builderType +") Wrote file " + file.getPath());
 				}
 				// defers the write of file
 				else {
@@ -447,7 +451,7 @@ public abstract class MobileBuilder {
 					FileUtils.write(nFile, content, encoding);
 					
 					// store files modifications
-					Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+					Engine.logEngine.debug("("+ builderType +") Defers the write of " + content.length() + " chars to " + nFile.getPath());
 					if (pushedFiles != null) {
 						synchronized (pushedFiles) {
 							pushedFiles.put(file.getPath(), content);
@@ -469,7 +473,7 @@ public abstract class MobileBuilder {
 				moveFilesForce();// // written files in queue are pushed to build dir
 			} else {
 				if (buildMutex != null) {
-					Engine.logEngine.warn("(MobileBuilder) moveFilesForce not called", new Throwable("Invalid stack call"));
+					Engine.logEngine.warn("("+ builderType +") moveFilesForce not called", new Throwable("Invalid stack call"));
 				}
 			}
 		}
@@ -481,7 +485,7 @@ public abstract class MobileBuilder {
 			synchronized (pushedFiles) {
 				int size = pushedFiles.size();
 				if (size > 0) {
-					Engine.logEngine.debug("(MobileBuilder) >>> moveFilesForce : "+ size +" files");
+					Engine.logEngine.debug("("+ builderType +") >>> moveFilesForce : "+ size +" files");
 					Map<String, CharSequence> map = new HashMap<String, CharSequence>();
 					map.putAll(Collections.unmodifiableMap(pushedFiles));
 					if (queue.offer(map)) {
