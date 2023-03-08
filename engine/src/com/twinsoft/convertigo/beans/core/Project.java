@@ -41,8 +41,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
-import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
@@ -812,7 +812,9 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		else if (dbo instanceof ProjectSchemaReference) {
 			String targetProjectName = ((ProjectSchemaReference) dbo).getParser().getProjectName();
-			neededProjects.put(targetProjectName, true);
+			if (!targetProjectName.isBlank()) {
+				neededProjects.put(targetProjectName, true);
+			}
 		}
 		else if (dbo instanceof Sequence) {
 			getNeededProjects(neededProjects, ((Sequence) dbo).getSteps());

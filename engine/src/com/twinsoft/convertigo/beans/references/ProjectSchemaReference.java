@@ -28,12 +28,13 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ProjectSchemaReference extends ImportXsdSchemaReference {
 	private static final long serialVersionUID = 6345829826119228229L;
 	
 	private String projectName = "";
-	private transient ProjectUrlParser parser;
+	private transient ProjectUrlParser parser = new ProjectUrlParser("");
 
 	public String getProjectName() {
 		return projectName;
@@ -107,5 +108,16 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 		}
 	}
 	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		if (oldName.startsWith(projectName)) {
+			setProjectName(StringUtils.normalize(newName));
+			hasChanged = true;
+		}
+	}
 	
+	@Override
+	protected String defaultBeanName(String displayName) {
+		return "project";
+	}
 }
