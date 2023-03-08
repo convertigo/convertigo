@@ -40,7 +40,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
@@ -125,13 +124,14 @@ public class TutoView extends ViewPart implements StudioEventListener {
 					JsObject window = frame.executeJavaScript("window");
 					window.putProperty("IDE", api);
 					frame.executeJavaScript(inject[0]);
+					Engine.logStudio.debug("(TutoView) inject.js done");
 				} catch (Exception e) {
 					Engine.logStudio.info("failure", e);
 				}
 				return Response.proceed();
 			});
 			browser.setUrl("https://www.convertigo.com/studio-tutorials");
-			Engine.logStudio.debug("Debug the tutorial view: " + browser.getDebugUrl() + "/json");
+			Engine.logStudio.debug("(TutoView) debug url: " + browser.getDebugUrl() + "/json");
 			main.layout(true);
 		});
 	}
@@ -187,7 +187,7 @@ public class TutoView extends ViewPart implements StudioEventListener {
 		try {
 			controls = new JSONArray(json);
 		} catch (JSONException e) {
-			System.out.println("not json array: " + json);
+			Engine.logStudio.warn("(TutoView) onControl not a JSON: " + json, e);
 			return;
 		}
 		JSONArray currentControls = controls;
@@ -195,6 +195,7 @@ public class TutoView extends ViewPart implements StudioEventListener {
 			while (!main.isDisposed() && currentControls == controls) {
 				if (checkControls(currentControls)) {
 					try {
+						Engine.logStudio.debug("(TutoView) controls ok, go next!");
 						browser.executeFunctionAndReturnValue("tutoGoNext");
 						controls = null;
 					} catch (Exception e) {
@@ -233,8 +234,10 @@ public class TutoView extends ViewPart implements StudioEventListener {
 			try {
 				String qname = control.getString("qname");
 				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " dbo: " + dbo);
 				return dbo != null;
 			} catch (Exception e) {
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' exception: " + e.getMessage());
 			}
 		} else if ("property".equals(type)) {
 			try {
@@ -242,37 +245,36 @@ public class TutoView extends ViewPart implements StudioEventListener {
 				String name = control.getString("name");
 				String expression = control.getString("expression");
 				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+				if (dbo == null) {
+					Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " name: " + name + " expression: " + expression + " dbo not found");
+					return false;
+				}
 				BeanInfo bi = CachedIntrospector.getBeanInfo(dbo.getClass());
 
 				PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
-				IonBean ionBean = null;
 				for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 					if (propertyDescriptor.getName().equals(name)) {
 						Object v = propertyDescriptor.getReadMethod().invoke(dbo);
 						if (v != null) {
+							Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " name: " + name + " expression: " + expression + " value: " + v);
 							return v.toString().matches(expression);
 						}
+						Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " name: " + name + " expression: " + expression + " no value");
 						return false;
-					} else if (propertyDescriptor.getName().equals("beanData")) {
-						Object v = propertyDescriptor.getReadMethod().invoke(dbo);
-						if (v != null) {
-							try {
-								ionBean = new IonBean(v.toString());
-							} catch (Exception e) {
-							}
-						}
 					}
 				}
 				
-				if (ionBean != null) {
-					for (IonProperty ionProperty: ionBean.getProperties().values()) {
-						if (ionProperty.getName().equals(name)) {
-							String s = ionProperty.getMode() + ":" + ionProperty.getSmartValue();
-							return s.matches(expression);
-						}
-					}
+				try {
+					IonBean ionBean = (IonBean) dbo.getClass().getMethod("getIonBean").invoke(dbo);
+					IonProperty ionProperty = ionBean.getProperty(name);
+					String s = ionProperty.getMode() + ":" + ionProperty.getSmartValue();
+					Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " name: " + name + " expression: " + expression + " value: " + s);
+					return s.matches(expression);
+				} catch (Exception e) {
 				}
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' qname: " + qname + " name: " + name + " expression: " + expression + " property not found");
 			} catch (Exception e) {
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' exception: " + e.getMessage());
 			}
 		} else if ("ngxEditorOpen".equals(type)) {
 			String project = control.getString("project");
@@ -289,14 +291,43 @@ public class TutoView extends ViewPart implements StudioEventListener {
 							if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
 								if (((ApplicationComponentEditorInput) editorInput).getApplication().getProject().getName().equals(project)) {
 									ApplicationComponentEditor editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
+									Engine.logStudio.trace("(TutoView) checkControl '" + type + "' project: " + project + " url: " + url + " currentUrl: " + editorPart.getCurrentUrl());
 									ok[0] = editorPart.getCurrentUrl().matches(url);
 								}
 							}
-						} catch(PartInitException e) {
+						} catch(Exception e) {
+							Engine.logStudio.trace("(TutoView) checkControl '" + type + "' exception: " + e.getMessage());
 						}
 					}
 				}
 			});
+			Engine.logStudio.trace("(TutoView) checkControl '" + type + "' project: " + project + " url: " + url + " ok ? " + ok[0]);
+			return ok[0];
+		} else if ("ngxEditorCheck".equals(type)) {
+			String project = control.getString("project");
+			String check = control.getString("check");
+			boolean[] ok = {false};
+			ConvertigoPlugin.syncExec(() -> {
+				IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				if (activePage != null) {
+					IEditorReference[] editorRefs = activePage.getEditorReferences();
+					for (int i = 0; i < editorRefs.length; i++) {
+						IEditorReference editorRef = (IEditorReference) editorRefs[i];
+						try {
+							IEditorInput editorInput = editorRef.getEditorInput();
+							if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+								if (((ApplicationComponentEditorInput) editorInput).getApplication().getProject().getName().equals(project)) {
+									ApplicationComponentEditor editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
+									ok[0] = editorPart.check(check);
+								}
+							}
+						} catch(Exception e) {
+							Engine.logStudio.trace("(TutoView) checkControl '" + type + "' exception: " + e.getMessage());
+						}
+					}
+				}
+			});
+			Engine.logStudio.trace("(TutoView) checkControl '" + type + "' project: " + project + " check: '" + check + "' ok ? " + ok[0]);
 			return ok[0];
 		} else if ("fileExists".equals(type)) {
 			String project = control.getString("project");
@@ -304,22 +335,29 @@ public class TutoView extends ViewPart implements StudioEventListener {
 			String fileExpression = control.getString("fileExpression");
 			File dir = new File(Engine.projectDir(project), subdir);
 			if (dir.exists() && dir.isDirectory()) {
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' project: " + project + " subdir: " + subdir + " fileExpression: " + fileExpression + " nb files: " + dir.list().length);
 				for (File f: dir.listFiles()) {
 					if (f.getName().matches(fileExpression)) {
 						return true;
 					}
 				}
+			} else {
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' project: " + project + " subdir: " + subdir + " fileExpression: " + fileExpression + " no dir!");
 			}
 		} else if ("deployment".equals(type)) {
 			if (lastDeployment != null) {
 				String project = control.getString("project");
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' lastDeployment: " + lastDeployment + " project: " + project);
 				return lastDeployment.equals(project);
 			}
+			Engine.logStudio.trace("(TutoView) checkControl '" + type + "' lastDeployment: " + lastDeployment);
 		} else if ("linkOpen".equals(type)) {
 			if (lastLink != null) {
 				String expression = control.getString("expression");
+				Engine.logStudio.trace("(TutoView) checkControl '" + type + "' lastLink: " + lastLink + " expression: " + expression);
 				return lastLink.matches(expression);
 			}
+			Engine.logStudio.trace("(TutoView) checkControl '" + type + "' lastLink: " + lastLink);
 		}
 		return false;
 	}

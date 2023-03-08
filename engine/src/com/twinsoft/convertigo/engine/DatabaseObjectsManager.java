@@ -2076,7 +2076,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String[] name = qname.split("\\.");
 		String project = name[0];
 		DatabaseObject dbo = getOriginalProjectByName(project);
-		for (int i = 1; i < name.length; i++) {
+		for (int i = 1; i < name.length && dbo != null; i++) {
 			dbo = dbo.getDatabaseObjectChild(name[i]);
 		}
 		return dbo;

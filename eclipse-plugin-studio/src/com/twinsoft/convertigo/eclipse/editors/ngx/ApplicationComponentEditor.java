@@ -2003,4 +2003,23 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	public String getCurrentUrl() {
 		return c8oBrowser != null ? c8oBrowser.getURL() : "";
 	}
+	
+	public boolean check(String check) throws Exception {
+		if (c8oBrowser == null) {
+			return false;
+		}
+		boolean [] ok = {false};
+		Exception [] ex = {null};
+		C8oBrowser.run(() -> {
+			try {
+				ok[0] = c8oBrowser.executeJavaScriptAndReturnValue(check);
+			} catch (Exception e) {
+				ex[0] = e;
+			}
+		});
+		if (ex[0] != null) {
+			throw ex[0];
+		}
+		return ok[0];
+	}
 }
