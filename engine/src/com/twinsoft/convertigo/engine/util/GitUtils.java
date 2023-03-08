@@ -161,6 +161,10 @@ public class GitUtils {
 			public void beginTask(String title, int totalWork) {
 				Engine.logEngine.info("(ReferencedProjectManager) progress beginTask: " + title + " " + totalWork);
 			}
+
+			@Override
+			public void showDuration(boolean enabled) {
+			}
 		}).call()) {
 			Engine.logEngine.info("(ReferencedProjectManager) Clone done !");
 		} catch (Exception e) {
