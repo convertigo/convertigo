@@ -729,10 +729,6 @@ public class BaserowView extends ViewPart {
 					var.setValueOrNull(String.join(",", names));
 					sequence.add(var);
 					
-					stepVariable = new StepVariable();
-					stepVariable.setName("filter_type");
-					transactionStep.add(stepVariable);
-					
 					for (Pair<String, String> p: Arrays.asList(
 							Pair.of("filter_type", "`AND`: Indicates that the rows must match all the provided filters.\r\n"
 									+ "`OR`: Indicates that the rows only have to match one of the filters.\r\n"
