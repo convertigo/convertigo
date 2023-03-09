@@ -283,7 +283,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (targetObject instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)targetObject;
 				if (targetTreeObject != null) {
-					ProjectExplorerView	explorerView = targetTreeObject.getProjectExplorerView();
+					ProjectExplorerView explorerView = targetTreeObject.getProjectExplorerView();
 
 					Document document = null;
 					try {
@@ -1471,7 +1471,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 					boolean needNgxPaletteReload = false;
 					// Special objects move from palette
-					if (detail == DND.DROP_MOVE) {
+					if (detail == DND.DROP_MOVE || detail == DND.DROP_COPY) {
 						DatabaseObject dbop = ((PaletteSource) data).getDatabaseObject();
 						if (dbop instanceof FullSyncConnector) {
 							dbop.setName(parent.getProject().getName().toLowerCase() + "_fullsync");

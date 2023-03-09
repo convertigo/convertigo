@@ -87,6 +87,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
@@ -99,8 +101,11 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -229,6 +234,8 @@ public class PaletteView extends ViewPart {
 		Deque<Item> lastUsed = new LinkedList<>();
 		Set<Item> favorites = new TreeSet<>();
 		Set<String> hiddenCategories = new HashSet<>();
+		boolean[] isCtrl = {false};
+		boolean[] isType = {"type".equals(ConvertigoPlugin.getProperty("palette.link"))};
 
 		GridLayout gl;
 		GridData gd;
@@ -248,6 +255,9 @@ public class PaletteView extends ViewPart {
 			tiLink.setText("Link");
 		}
 		tiLink.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.link")));
+		if (isType[0]) {
+			ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION)));
+		}
 		
 		bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiInternal = new ToolItem(bar, SWT.CHECK);
@@ -512,7 +522,19 @@ public class PaletteView extends ViewPart {
 								@Override
 								boolean allowedIn(DatabaseObject parent) {
 									try {
-										return DatabaseObjectsManager.checkParent(parent.getClass(), b);
+										boolean force = false;
+										if (isType[0]) {
+											String cls = b.getClassName();
+											if (parent instanceof Sequence) {
+												force = cls.startsWith("com.twinsoft.convertigo.beans.steps.")
+														|| cls.startsWith("com.twinsoft.convertigo.beans.variables.Step");
+											} else if (parent instanceof ApplicationComponent) {
+												force = cls.startsWith("com.twinsoft.convertigo.beans.ngx.");
+											} else if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+												force = cls.startsWith("com.twinsoft.convertigo.beans.mobile.");
+											}
+										}
+										return force || DatabaseObjectsManager.checkParent(parent.getClass(), b);
 									} catch (Exception e) {
 										return false;
 									}
@@ -573,6 +595,7 @@ public class PaletteView extends ViewPart {
 
 				@Override
 				public void dragFinished(DragSourceEvent event) {
+					System.out.println("detail dragFinished " + event.detail + " " + isCtrl[0]);
 					Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
 					if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
 						lastUsed.removeFirstOccurrence(item);
@@ -587,6 +610,7 @@ public class PaletteView extends ViewPart {
 
 				@Override
 				public void dragSetData(DragSourceEvent event) {
+					System.out.println("detail dragSetData " + event.detail + " " + isCtrl[0]);
 					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			};
@@ -617,11 +641,14 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return ComponentManager.createBeanFromHint(comp);
+						return isCtrl[0] ? ComponentManager.createBean(comp) : ComponentManager.createBeanFromHint(comp);
 					}
 
 					@Override
 					boolean allowedIn(DatabaseObject parent) {
+						if (isType[0]) {
+							return parent instanceof ApplicationComponent;
+						}
 						return comp.isAllowedIn(parent);
 					}
 
@@ -673,6 +700,9 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					boolean allowedIn(DatabaseObject parent) {
+						if (isType[0]) {
+							return parent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+						}
 						return comp.isAllowedIn(parent);
 					}
 
@@ -783,6 +813,10 @@ public class PaletteView extends ViewPart {
 				clabel.setData("Item", item);
 				clabel.setData("style", "color: inherit; background-color: inherit");
 				clabel.addMouseListener(mouseListener);
+
+				clabel.addListener(SWT.DragDetect, event -> {
+					isCtrl[0] = (event.stateMask & SWT.CTRL) != 0;
+				});
 
 				DragSource source = new DragSource(clabel, operations);
 				source.setTransfer(types);
@@ -1010,6 +1044,20 @@ public class PaletteView extends ViewPart {
 								DatabaseObject selected = null;
 								Object parent = null;
 								Boolean clear = null;
+								
+								if (isType[0]) {
+									TreeObject ttype = to;
+									while (ttype != null) {
+										if (ttype instanceof SequenceTreeObject ||
+												ttype instanceof NgxApplicationComponentTreeObject ||
+												ttype instanceof MobileApplicationComponentTreeObject) {
+											to = ttype;
+											break;
+										}
+										ttype = ttype.getParent();
+									}
+								}
+								
 								if (to instanceof ObjectsFolderTreeObject) {
 									ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
 									Integer last = (Integer) PaletteView.this.parent.getData("FolderType");
@@ -1049,7 +1097,17 @@ public class PaletteView extends ViewPart {
 				tiLink.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						String val = tiLink.getSelection() ? "on" : "off";
+						String val;
+						if (!tiLink.getSelection() && "on".equals(ConvertigoPlugin.getProperty("palette.link"))) {
+							tiLink.setSelection(true);
+							tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+							val = "type";
+							isType[0] = true;
+						} else {
+							tiLink.setBackground(null);
+							val = tiLink.getSelection() ? "on" : "off";
+							isType[0] = false;
+						}
 						ConvertigoPlugin.setProperty("palette.link", val);
 						selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
 					}
