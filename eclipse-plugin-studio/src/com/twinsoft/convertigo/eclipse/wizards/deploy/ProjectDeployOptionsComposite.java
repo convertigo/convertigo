@@ -33,7 +33,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -43,14 +42,13 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.RegistrationBrowser;
 import com.twinsoft.convertigo.engine.Engine;;
 
@@ -155,7 +153,6 @@ public class ProjectDeployOptionsComposite extends Composite {
 		}
 	}
 
-
 	private void fillDialog(DeploymentConfiguration dc) {
 		convertigoAdmin.setText(dc.getUsername());
 		convertigoPassword.setText(dc.getUserpassword());
@@ -219,16 +216,9 @@ public class ProjectDeployOptionsComposite extends Composite {
 					gd.horizontalSpan = 2;
 					gd.horizontalAlignment = GridData.FILL;
 					gd.grabExcessHorizontalSpace = true;
-					gd.heightHint = 500;
+					gd.heightHint = 330;
+					gd.widthHint = 700;
 					browser.setLayoutData(gd);
-					Shell shell = getShell();
-					Rectangle bounds = shell.getBounds();
-					getDisplay().asyncExec(() -> {
-						getShell().setBounds(
-								bounds.x - ((800 - bounds.width)/2),
-								bounds.y - ((1000 - bounds.height)/2),
-								800, 1000);
-					});
 				}
 			} catch (PscException e1) {
 				Engine.logStudio.info("PSC parsing error, cannot do account upgrade: " + e1.getMessage());
@@ -294,6 +284,7 @@ public class ProjectDeployOptionsComposite extends Composite {
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.grabExcessVerticalSpace = true;
+		gridData.minimumHeight = 150;
 		list.setLayoutData(gridData);
 
 		delButton = new Button(composite, SWT.PUSH);

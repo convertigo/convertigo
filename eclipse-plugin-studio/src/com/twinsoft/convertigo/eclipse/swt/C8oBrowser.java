@@ -109,11 +109,14 @@ public class C8oBrowser extends Composite {
 	}
 
 	public C8oBrowser(Composite parent, int style, Project project) {
+		this(parent, style, project, "default");
+	}
+	
+	private C8oBrowser(Composite parent, int style, Project project, String browserId) {
 		super(parent, style);
 		boolean retry = false;
 		do {
 			File browserIdFile = null;
-			String browserId = "default";
 			if (project != null) {
 				browserIdFile = new File(project.getDirPath() + "/_private/browser_id");
 				browserId = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
@@ -162,9 +165,8 @@ public class C8oBrowser extends Composite {
 		} while (retry);
 	}
 
-	public C8oBrowser(Composite parent, int style, Engine browserContext) {
-		super(parent, style);
-		init(browserContext);
+	public C8oBrowser(Composite parent, int style, String browserId) {
+		this(parent, style, (Project) null, browserId);
 	}
 	
 	@Override

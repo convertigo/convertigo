@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -27,8 +26,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.ArchiveExportOptionDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.deploy.DeployProjectWizard;
@@ -41,8 +38,6 @@ public class ProjectDeployAction extends MyAbstractAction {
 	}
 
 	public void run() {
-		boolean useWizard = true;
-		
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 
@@ -58,31 +53,11 @@ public class ProjectDeployAction extends MyAbstractAction {
 				if (projectTreeObject.hasChanged() && !projectTreeObject.save(true)) {
 					return;
 				}
+				DeployProjectWizard deployWizard = new DeployProjectWizard(project);
+				deployWizard.setWindowTitle("Convertigo Deployment Wizard");
 
-				if (useWizard) {
-					DeployProjectWizard deployWizard = new DeployProjectWizard(project);
-					deployWizard.setWindowTitle("Convertigo Deployment Wizard");
-					
-					ProgressWizardDialog wzdlg = new ProgressWizardDialog(shell, deployWizard);
-					wzdlg.open();
-					
-				} else {
-					ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project, true);
-					if (dlg.open() != Window.OK) {
-						return;
-					}
-	
-					if (!dlg.getVersion().equals(project.getVersion())) {
-						project.setVersion(dlg.getVersion());
-						project.hasChanged = true;
-						projectTreeObject.save(false);
-					}
-	
-					explorerView.refreshTreeObject(projectTreeObject);
-	
-					ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, project, dlg.getArchiveExportOptions());
-					projectDeployDialog.open();
-				}
+				ProgressWizardDialog wzdlg = new ProgressWizardDialog(shell, deployWizard);
+				wzdlg.open();
 			}
 		}
 		catch (Throwable e) {

@@ -64,7 +64,8 @@ public class EmbeddedRegistrationPage extends WizardPage {
 		
 		browser = new RegistrationBrowser(root, SWT.NONE);
 		browser.setLayoutData(gd = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
-		gd.heightHint = 600;
+		gd.heightHint = 370;
+		gd.widthHint = 700;
 		browser.onPSC(psc -> {
 			try {
 				ConvertigoPlugin.decodePsc(psc);

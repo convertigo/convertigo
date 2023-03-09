@@ -66,7 +66,6 @@ import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -119,7 +118,6 @@ import com.twinsoft.convertigo.eclipse.actions.SetupAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor;
 import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor.FlowViewerInput;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
@@ -294,11 +292,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		logException(e, message, true);
 	}
 
-	public static void logDeployException(Throwable e, String errorMessage, String stackTrace) {
-		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, errorMessage, e));
-		projectDeployErrorDialog(errorMessage, stackTrace);
-	}
-
 	public static void logException(Throwable e, String message, boolean dialog) {
 		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
 		if (dialog) errorMessageBox(message + "\n" + e.getMessage());
@@ -437,18 +430,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			ConvertigoPlugin.logException(e, "Error while trying to open message box", false);
 			return -1;
 		}
-	}
-
-	public static void projectDeployErrorDialog(String message, String stackTrace) {
-		final String errorMessage = message;
-		final String causeStackTrace = stackTrace;
-
-		asyncExec(() -> {
-			ProjectDeployErrorDialog projectDeployErrorDialog = new ProjectDeployErrorDialog(getMainShell(), errorMessage, causeStackTrace);
-			projectDeployErrorDialog.open();
-			if (projectDeployErrorDialog.getReturnCode() != Window.CANCEL) {
-			}
-		});
 	}
 
 	public static void configureDeployConfiguration() {
