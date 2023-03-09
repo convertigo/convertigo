@@ -342,7 +342,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				throw new EngineException("Unable to load the project \"" + projectName + "\"", e);
 			} finally {
 				long t1 = Calendar.getInstance().getTime().getTime();
-				Engine.logDatabaseObjectManager.info("Project loaded in " + (t1 - t0) + " ms");
+				Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" loaded in " + (t1 - t0) + " ms");
 			}
 		} else if (!(projectPath = project.getDirFile()).exists()) {
 			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
@@ -491,13 +491,20 @@ public class DatabaseObjectsManager implements AbstractManager {
 				importLocks.put(projectName, lock = new Object());
 			}
 		}
+		Project project = null;
 		synchronized (lock) {
-			Project project;
 			synchronized (projects) {
 				project = projects.remove(projectName);
+				if (project != null) {
+					Engine.logDatabaseObjectManager.info("[clearCache] project removed from cache: "+ Project.formatNameWithHash(project));
+				}
 			}
+		}
+		if (project != null) {
+			Engine.logDatabaseObjectManager.info("[clearCache] start releasing for "+ Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
+			Engine.logDatabaseObjectManager.info("[clearCache] end releasing for "+ Project.formatNameWithHash(project));
 		}
 	}
 
@@ -509,17 +516,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 				importLocks.put(projectName, lock = new Object());
 			}
 		}
+		Project project = null;
 		synchronized (lock) {
-			Project project = null;
 			synchronized (projects) {
 				if (projects.containsKey(projectName) && symbolsProjectCheckUndefined(projectName)) {
 					project = projects.remove(projectName);
+					if (project != null) {
+						Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] project removed from cache: "+ Project.formatNameWithHash(project));
+					}
 				}
 			}
-			if (project != null) {
-				RestApiManager.getInstance().removeUrlMapper(projectName);
-				MobileBuilder.releaseBuilder(project);
-			}
+		}
+		if (project != null) {
+			Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] start releasing for "+ Project.formatNameWithHash(project));
+			RestApiManager.getInstance().removeUrlMapper(projectName);
+			MobileBuilder.releaseBuilder(project);
+			Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] end releasing for "+ Project.formatNameWithHash(project));
 		}
 	}
 
@@ -1143,6 +1155,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					synchronized (projects) {
 						project = projects.get(projectName);
 						if (project != null) {
+							Engine.logDatabaseObjectManager.info("[importProject] return project from cache: " + Project.formatNameWithHash(project));
 							return project;
 						}
 					}
@@ -1207,8 +1220,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				synchronized (projects) {
 					projects.put(project.getName(), project);
 				}
-				Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + project.getName());
-				Engine.logDatabaseObjectManager.info("[importProject] Leave synchronized: " + projectName);
+				Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + Project.formatNameWithHash(project));
+				Engine.logDatabaseObjectManager.info("[importProject] Leave synchronized: " + Project.formatNameWithHash(project));
 			}
 			
 			
@@ -1216,9 +1229,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				return project;
 			}
 			
+			Engine.logDatabaseObjectManager.info("[importProject] projectLoaded: " + Project.formatNameWithHash(project));
 			getStudioProjects().projectLoaded(project);
+
+			Engine.logDatabaseObjectManager.info("[importProject] start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
+			Engine.logDatabaseObjectManager.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
 
 			if (!Engine.isStudioMode()) {
 				Engine.theApp.referencedProjectManager.check(project);

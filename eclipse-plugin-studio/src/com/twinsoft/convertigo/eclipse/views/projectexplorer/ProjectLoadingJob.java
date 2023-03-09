@@ -102,8 +102,10 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 				
 				try {
 					monitor.subTask("Importing the project...");
-					Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
-					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					synchronized (Engine.theApp.databaseObjectsManager) {
+						Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
+						project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					}
 					if (project == null) {
 						unloadedProjectTreeObject.getParent().removeChild(unloadedProjectTreeObject);
 						Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " doesn't exists", null);

@@ -538,7 +538,10 @@ public class Ionic3Builder extends MobileBuilder {
 	
 	@Override
 	protected synchronized void init() throws EngineException {
+		String projectID = Project.formatNameWithHash(project);
+		
 		if (initDone) {
+			Engine.logEngine.warn("(Ionic3Builder) Builder already initialized for ionic project "+ projectID +". Skipping");
 			return;
 		}
 		
@@ -569,6 +572,8 @@ public class Ionic3Builder extends MobileBuilder {
 		}
 		
 		if (isIonicTemplateBased()) {
+			Engine.logEngine.debug("(Ionic3Builder) Start initializing builder for ionic project "+ projectID);
+			
 			if (eventHelper == null) {
 				eventHelper = new EventHelper();
 			}
@@ -617,17 +622,22 @@ public class Ionic3Builder extends MobileBuilder {
 			}
 						
 			initDone = true;
-			Engine.logEngine.debug("(Ionic3Builder) Initialized builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(Ionic3Builder) End initializing builder for ionic project "+ projectID);
 		}
 	}
 	
 	@Override
 	protected synchronized void release() throws EngineException {
+		String projectID = Project.formatNameWithHash(project);
+		
 		if (!initDone) {
+			Engine.logEngine.warn("(Ionic3Builder) Builder already released for ionic project "+ projectID +". Skipping");
 			return;
 		}
 		
 		if (isIonicTemplateBased()) {
+			Engine.logEngine.debug("(Ionic3Builder) Start releasing builder for ionic project "+ projectID);
+
 			moveFilesForce();
 			
 			if (worker != null) {
@@ -687,7 +697,7 @@ public class Ionic3Builder extends MobileBuilder {
 			setNeedPkgUpdate(false);
 			
 			initDone = false;
-			Engine.logEngine.debug("(Ionic3Builder) Released builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(Ionic3Builder) End releasing builder for ionic project "+ projectID);
 		}
 	}
 	

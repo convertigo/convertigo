@@ -81,9 +81,7 @@ public abstract class MobileBuilder {
 	static public void initBuilder(Project project, boolean force) {
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
-				MobileBuilder mb = project.getMobileBuilder();
-				Engine.logEngine.info("("+ mb.builderType +") initBuilder for " + project + " " + (force ? "with" : "without") + " force");
-				mb.init();
+				project.getMobileBuilder().init();
 			} catch (Exception e) {
 				String message = e.getMessage();
 				message = message == null ? "unknown":message;
@@ -106,9 +104,7 @@ public abstract class MobileBuilder {
 	static public void releaseBuilder(Project project, boolean force) {
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
-				MobileBuilder mb = project.getMobileBuilder();
-				Engine.logEngine.info("("+ mb.builderType +") releaseBuilder for " + project + " " + (force ? "with" : "without") + " force");
-				mb.release();
+				project.getMobileBuilder().release();
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to release mobile builder for project \""+project.getName()+"\"", e);
 			}

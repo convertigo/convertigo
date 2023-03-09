@@ -921,6 +921,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (databaseObject instanceof Project) {
 			ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
 
+			ConvertigoPlugin.logInfo("Loaded project "+ Project.formatNameWithHash((Project)databaseObject));
+			Engine.logStudio.info("[treeview] Loaded project "+ Project.formatNameWithHash((Project)databaseObject));
+
 			// Case of project copy : update references in steps if needed
 			if (treeObjectEvent.oldValue != null) {
 				String oldName = (String) treeObjectEvent.oldValue;

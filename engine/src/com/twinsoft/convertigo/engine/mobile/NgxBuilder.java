@@ -325,7 +325,10 @@ public class NgxBuilder extends MobileBuilder {
 
 	@Override
 	protected synchronized void init() throws EngineException {
+		String projectID = Project.formatNameWithHash(project);
+		
 		if (initDone) {
+			Engine.logEngine.warn("(NgxBuilder) Builder already initialized for ionic project "+ projectID +". Skipping");
 			return;
 		}
 
@@ -346,8 +349,8 @@ public class NgxBuilder extends MobileBuilder {
 		}
 
 		if (isIonicTemplateBased()) {
-			Engine.logEngine.debug("(NgxBuilder) Initializing builder for ionic project '"+ project.getName() +"' ...");
-
+			Engine.logEngine.debug("(NgxBuilder) Start initializing builder for ionic project "+ projectID);
+			
 			if (eventHelper == null) {
 				eventHelper = new EventHelper();
 			}
@@ -390,7 +393,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 
 			initDone = true;
-			Engine.logEngine.debug("(NgxBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(NgxBuilder) End initializing builder for ionic project "+ projectID);
 		}
 	}
 
@@ -540,12 +543,15 @@ public class NgxBuilder extends MobileBuilder {
 
 	@Override
 	protected synchronized void release() throws EngineException {
+		String projectID = Project.formatNameWithHash(project);
+		
 		if (!initDone) {
+			Engine.logEngine.warn("(NgxBuilder) Builder already released for ionic project "+ projectID +". Skipping");
 			return;
 		}
 
 		if (isIonicTemplateBased()) {
-			Engine.logEngine.info("(NgxBuilder) Releasing builder for ionic project '"+ project.getName() +"' ...");
+			Engine.logEngine.debug("(NgxBuilder) Start releasing builder for ionic project "+ projectID);
 			isReleasing = true;
 			
 			moveFilesForce();
@@ -591,7 +597,7 @@ public class NgxBuilder extends MobileBuilder {
 
 			isReleasing = false;
 			initDone = false;
-			Engine.logEngine.info("(NgxBuilder) Released builder for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.debug("(NgxBuilder) End releasing builder for ionic project "+ projectID);
 		}
 	}
 

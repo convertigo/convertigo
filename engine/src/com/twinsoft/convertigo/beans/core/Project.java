@@ -1011,4 +1011,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return super.testAttribute(name, value);
 	}
+	
+	static public String formatNameWithHash(Project project) {
+		return project != null ? project.getName() + " ("+ project.hashCode() +")" : "unknow";
+	}
 }
