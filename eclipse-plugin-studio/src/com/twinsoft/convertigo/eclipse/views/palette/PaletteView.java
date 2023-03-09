@@ -595,7 +595,6 @@ public class PaletteView extends ViewPart {
 
 				@Override
 				public void dragFinished(DragSourceEvent event) {
-					System.out.println("detail dragFinished " + event.detail + " " + isCtrl[0]);
 					Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
 					if (lastUsed.isEmpty() || !item.equals(lastUsed.getFirst())) {
 						lastUsed.removeFirstOccurrence(item);
