@@ -55,7 +55,6 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -429,82 +428,72 @@ public class MobilePickerComposite extends Composite {
 		ToolBar toolbar = new ToolBar(headerComposite, SWT.NONE);
 		
 		int btnStyle = SWT.CHECK;
-		Image image = null;
 		
-		tiLink = new ToolItem(toolbar, SWT.CHECK);		
+		tiLink = new ToolItem(toolbar, SWT.CHECK);
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnSequence.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnSequence.setText("SQ");
 		}
-		btnSequence.setImage(image);
 		btnSequence.setToolTipText("Show Sequence Sources");
-		btnSequence.addSelectionListener(listener);
-		btnSequence.setSelection(true);
 		
 		btnDatabase = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnDatabase.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnDatabase.setText("FS");
 		}
-		btnDatabase.setImage(image);
 		btnDatabase.setToolTipText("Show FullSync Databases Sources");
-		btnDatabase.addSelectionListener(listener);
 		
 		btnAction = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnAction.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnAction.setText("AC");
 		}
-		btnAction.setImage(image);
 		btnAction.setToolTipText("Show Action Sources");
-		btnAction.addSelectionListener(listener);
 		
 		btnShared = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uisharedcomponent_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnShared.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uisharedcomponent_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnShared.setText("SH");
 		}
-		btnShared.setImage(image);
 		btnShared.setToolTipText("Show Shared component Sources");
-		btnShared.addSelectionListener(listener);
 
 		btnIteration = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/steps/images/iterator_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnIteration.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/steps/images/iterator_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnIteration.setText("IT");
 		}
-		btnIteration.setImage(image);
 		btnIteration.setToolTipText("Show Iterators on current page Sources");
-		btnIteration.addSelectionListener(listener);
 		
 		btnForm = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uiform_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnForm.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uiform_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnForm.setText("FM");
 		}
-		btnForm.setImage(image);
 		btnForm.setToolTipText("Show Forms on current page Sources");
-		btnForm.addSelectionListener(listener);
 		
 		btnGlobal = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/dynamic/images/setglobalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			btnGlobal.setImage(ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/dynamic/images/setglobalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 			btnGlobal.setText("GS");
 		}
-		btnGlobal.setImage(image);
 		btnGlobal.setToolTipText("Show Global Shared objects");
-		btnGlobal.addSelectionListener(listener);
-
+		
+		for (ToolItem ti: toolbar.getItems()) {
+			ti.setData("style", "background: unset");
+			ti.addSelectionListener(listener);
+		}
+		btnSequence.setSelection(true);
+		
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
