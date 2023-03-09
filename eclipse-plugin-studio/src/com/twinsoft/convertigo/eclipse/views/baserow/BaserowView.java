@@ -324,9 +324,6 @@ public class BaserowView extends ViewPart {
 					String val = dbom.symbolsGetValue("lib_baserow.apikey.secret");
 					if (StringUtils.isBlank(val)) {
 						dbom.symbolsAdd("lib_baserow.apikey.secret", key);
-						//						dbom.symbolsAdd("lib_baserow.port", "443");
-						//						dbom.symbolsAdd("lib_baserow.server", "baserow-backend.convertigo.net");
-						//						dbom.symbolsAdd("lib_baserow.https", "true");
 					}
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
@@ -442,6 +439,50 @@ public class BaserowView extends ViewPart {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	private void addSample(JSONObject sample, String varName, String varType) throws JSONException {
+		if (varType.equals("link_row")) {
+			JSONObject obj = new JSONObject();
+			obj.put("id", 0);
+			obj.put("value", "");
+			JSONArray ar = new JSONArray();
+			ar.put(obj);
+			sample.put(varName, ar);
+		} else  if (varType.equals("boolean")) {
+			sample.put(varName, false);
+		} else if (varType.equals("file")) {
+			JSONObject obj = new JSONObject();
+			obj.put("url", "");
+			JSONObject thumbnails = new JSONObject();
+			JSONObject info = new JSONObject();
+			info.put("url", "");
+			info.put("width", 0);
+			info.put("height", 0);
+			thumbnails.put("tiny", info);
+			thumbnails.put("small", info);
+			thumbnails.put("card_cover", info);
+			obj.put("thumbnails", thumbnails);
+			obj.put("visible_name", "");
+			obj.put("name", "");
+			obj.put("size", 0);
+			obj.put("mime_type", "");
+			obj.put("is_image", true);
+			obj.put("image_width", 0);
+			obj.put("image_height", 0);
+			obj.put("uploaded_at", "");
+			JSONArray ar = new JSONArray();
+			ar.put(obj);
+			sample.put(varName, ar);
+		} else if (varType.equals("single_select")) {
+			JSONObject obj = new JSONObject();
+			obj.put("id", 0);
+			obj.put("value", "");
+			obj.put("color", "");
+			sample.put(varName, obj);
+		} else {
+			sample.put(varName, "");
+		}
+	}
 
 	private void createStub(Button btn) {
 		if (project == null) {
@@ -506,28 +547,25 @@ public class BaserowView extends ViewPart {
 						String varType = get(arr.getJSONObject(i), "type");
 
 						RequestableVariable var = null;
-						if (isCreate || isUpdate) {
+						if ((isCreate || isUpdate) && !"formula".equals(type)) {
 							String comment = varName + " [" + varType + "]";
 							var = new RequestableVariable();
 							var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
 							var.setComment(comment);
 							sequence.add(var);
 						}
+						addSample(sample, varName, varType);
 						if (varType.equals("link_row")) {
 							if (var != null) {
 								var.setValueOrNull("[]");
 							}
-							sample.put(varName, new JSONArray());
 						} else if (varType.equals("boolean")) {
 							if (var != null) {
 								var.setValueOrNull("false");
 							}
-							sample.put(varName, false);
-						} else {
-							sample.put(varName, "");
 						}
 
-						if (jsonObjectStep != null) {
+						if (jsonObjectStep != null && !"formula".equals(type)) {
 							if (varType.equals("link_row")) {
 								JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
 								jsonToXmlStep.setName(varName);
@@ -709,13 +747,7 @@ public class BaserowView extends ViewPart {
 					for (int i = 0; i < len; i++) {
 						String varName = get(arr.getJSONObject(i), "name");
 						String varType = get(arr.getJSONObject(i), "type");
-						if (varType.equals("link_row")) {
-							object.put(varName, new JSONArray());
-						} else if (varType.equals("boolean")) {
-							object.put(varName, false);
-						} else {
-							object.put(varName, "");
-						}
+						addSample(object, varName, varType);
 						names[i] = varName;
 					}
 
