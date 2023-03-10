@@ -904,15 +904,26 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 									Composite composite = new Composite(parent, SWT.NONE);
 									composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 									composite.setLayout(new GridLayout(1, true));
+									Label tips = new Label(composite, SWT.NONE);
+									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+									tips.setText("Show the live-view on your phone!");
+									tips = new Label(composite, SWT.NONE);
+									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+									tips.setText("Please choose the endpoint on the same network");
+									tips = new Label(composite, SWT.NONE);
+									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+									tips.setText("as your phone to generate a QRCode:\n ");
 									try {
 										for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
 											for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
 												String ip = addr.getHostAddress();
 												if (!ip.contains(":")) {
-													Button label = new Button(composite, SWT.NONE);
+													Button label = new Button(composite, SWT.FLAT | SWT.PUSH | SWT.WRAP);
 													String href = url.replace("localhost", ip);
-													label.setText(href + " [" + netint.getDisplayName() + "]");
-													label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+													label.setText("[" + netint.getDisplayName() + "]\n" + href);
+													GridData gd;
+													label.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL));
+													gd.minimumHeight = 50;
 													label.addSelectionListener(new SelectionAdapter() {
 
 														@Override
@@ -923,8 +934,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 																	img[0] = null;
 																}
 																QRCode qrcode = QRCode.getMinimumQRCode(href, 0);
-																BufferedImage bufferedImage = qrcode.createImage(10, 10);
-																ImageData imageData = SwtUtils.convertToSWT(bufferedImage).scaledTo(300, 300);
+																BufferedImage bufferedImage = qrcode.createImage(8, 8);
+																ImageData imageData = SwtUtils.convertToSWT(bufferedImage).scaledTo(250, 250);
 																img[0] = new Image(parent.getDisplay(), imageData);
 																image[0].setImage(img[0]);
 																image[0].addMouseListener(new MouseAdapter() {
@@ -945,8 +956,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 									image[0] = new Label(composite, SWT.NONE);
 									GridData gd;
 									image[0].setLayoutData(gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
-									gd.minimumHeight = 300;
-									gd.minimumWidth = 300;
+									gd.minimumHeight = 250;
+									gd.minimumWidth = 250;
 									return composite;
 								}
 							};
