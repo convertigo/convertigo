@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
@@ -109,6 +110,15 @@ public abstract class MobileBuilder {
 				Engine.logEngine.error("Failed to release mobile builder for project \""+project.getName()+"\"", e);
 			}
 		}
+	}
+	
+	static public MobileBuilder getBuilderOf(Object object) {
+		try {
+			if (object != null && object instanceof DatabaseObject) {
+				return ((DatabaseObject)object).getProject().getMobileBuilder();
+			}
+		} catch (Exception e) {}
+		return null;
 	}
 	
     static public String projectName(String qname) {

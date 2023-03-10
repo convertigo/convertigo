@@ -1252,24 +1252,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 				Listener textListener = new Listener() {
 					public void handleEvent (final Event e) {
-						MobileBuilder mba = null;
-						MobileBuilder mbo = null;
-
-						IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-						if (editorPart != null) {
-							IEditorInput input = editorPart.getEditorInput();
-							if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
-								com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-								mba = editorInput.getApplication().getProject().getMobileBuilder();
-							}
-							if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-								com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-								mba = editorInput.getApplication().getProject().getMobileBuilder();
-							}
-						}
-						if (theTreeObject instanceof DatabaseObjectTreeObject) {
-							mbo = ((DatabaseObjectTreeObject) theTreeObject).getObject().getProject().getMobileBuilder();
-						}
+						MobileBuilder mb = MobileBuilder.getBuilderOf(theTreeObject.getObject());
 
 						String newName = null;
 						String oldName = null;
@@ -1311,8 +1294,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							switch (e.detail) {
 							case SWT.TRAVERSE_RETURN:
 								Engine.logStudio.info("---------------------- Rename started ----------------------");
-								if (mba != null) {
-									mba.prepareBatchBuild();
+								if (mb != null) {
+									mb.prepareBatchBuild();
 								}
 
 								newName = text.getText();
@@ -1510,10 +1493,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								if (updateReferences && needProjectReload) {
 									((ProjectTreeObject) theTreeObject).save(false);
 								}
-								if (mbo != null) {
+								if (mb != null) {
 									if (theTreeObject instanceof MobilePageComponentTreeObject) {
 										try {
-											mbo.pageRenamed((com.twinsoft.convertigo.beans.mobile.components.PageComponent) theTreeObject.getObject(), oldName);
+											mb.pageRenamed((com.twinsoft.convertigo.beans.mobile.components.PageComponent) theTreeObject.getObject(), oldName);
 										} catch (EngineException e1) {
 											e1.printStackTrace();
 										}

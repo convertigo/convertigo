@@ -44,8 +44,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.w3c.dom.Document;
@@ -260,29 +258,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	 */
 	@Override
 	public boolean performDrop(Object data) {
-		MobileBuilder mb = null;
-
 		Engine.logStudio.info("---------------------- Drop started ----------------------");
 		try {
 			Object targetObject = getCurrentTarget();
-
-			IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-			if (editorPart != null) {
-				IEditorInput input = editorPart.getEditorInput();
-				if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
-					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-					mb = editorInput.getApplication().getProject().getMobileBuilder();
-				}
-				if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-					mb = editorInput.getApplication().getProject().getMobileBuilder();
-				}
-			}
 
 			// Handle objects copy or move with Drag and drop
 			if (targetObject instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)targetObject;
 				if (targetTreeObject != null) {
+					MobileBuilder mb = MobileBuilder.getBuilderOf(targetTreeObject.getObject());
 					ProjectExplorerView explorerView = targetTreeObject.getProjectExplorerView();
 
 					Document document = null;

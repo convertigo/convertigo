@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -43,10 +46,10 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
 	protected ISelection selection = null;
@@ -92,33 +95,35 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 	public void run(IAction action) {
 		this.action = action;
 		
-		MobileBuilder mb = null;
-		
-		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-		if (editorPart != null) {
-			IEditorInput input = editorPart.getEditorInput();
-			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
-				com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-				mb = editorInput.getApplication().getProject().getMobileBuilder();
-			}
-			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-				com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-				mb = editorInput.getApplication().getProject().getMobileBuilder();
-			}
-		}
-		
+		Set<MobileBuilder> mbSet = new HashSet<MobileBuilder>();
 		try {
+    		ProjectExplorerView explorerView = getProjectExplorerView();
+    		if (explorerView != null) {
+    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+    			for (TreeObject ob: treeObjects) {
+					MobileBuilder mb = MobileBuilder.getBuilderOf(((TreeObject)ob).getObject());
+					if (mb != null) {
+						mbSet.add(mb);
+					}
+    			}
+    		}
+			
 			Engine.logStudio.info("---------------------- Action started: "+ action.getId() + "----------------------");
-			if (mb != null) {
-				mb.prepareBatchBuild();
+			for (MobileBuilder mb: mbSet) {
+				if (mb != null) {
+					mb.prepareBatchBuild();
+				}
 			}
 			BatchOperationHelper.start();
 			
 			run();
 			
 			BatchOperationHelper.stop();
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			BatchOperationHelper.cancel();
+			mbSet.clear();
 			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
 		}
 	}

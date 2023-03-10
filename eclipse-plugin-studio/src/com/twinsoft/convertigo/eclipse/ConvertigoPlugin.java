@@ -107,6 +107,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -1371,20 +1372,29 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return jScriptEditorInput;
 	}
 
-	public IEditorPart getApplicationComponentEditor() {
+	public IEditorPart getApplicationComponentEditor(IApplicationComponent iApp) {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
+		if (activePage != null && iApp != null) {
 			IEditorReference[] editorRefs = activePage.getEditorReferences();
 			for (int i=0;i<editorRefs.length;i++) {
 				IEditorReference editorRef = (IEditorReference)editorRefs[i];
 				try {
-					IEditorInput editorInput = editorRef.getEditorInput();
-					if ((editorInput != null) &&
-							(editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput ||
-									editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput)) {
-						editorPart = editorRef.getEditor(false);
-						break;
+					IEditorInput editorRefInput = editorRef.getEditorInput();
+					if (editorRefInput != null) {
+						if (editorRefInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(editorRefInput);
+							if (editorInput.is(GenericUtils.cast(iApp))) {
+								editorPart = editorRef.getEditor(false);
+								break;
+							}
+						} else if (editorRefInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(editorRefInput);
+							if (editorInput.is(GenericUtils.cast(iApp))) {
+								editorPart = editorRef.getEditor(false);
+								break;
+							}
+						}
 					}
 				}
 				catch(PartInitException e) {

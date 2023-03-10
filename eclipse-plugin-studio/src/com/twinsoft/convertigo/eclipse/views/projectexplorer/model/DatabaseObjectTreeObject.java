@@ -59,8 +59,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionFilter;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.IPropertySource;
@@ -111,7 +109,6 @@ import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
@@ -878,21 +875,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void resetPropertyValue(Object id) {	}
 
 	public void setPropertyValue(Object id, Object value) {
-		MobileBuilder mb = null;
-
-		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-		if (editorPart != null) {
-			IEditorInput input = editorPart.getEditorInput();
-			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
-				com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-				mb = editorInput.getApplication().getProject().getMobileBuilder();
-			}
-			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-				com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-				mb = editorInput.getApplication().getProject().getMobileBuilder();
-			}
-		}
-
+		MobileBuilder mb = MobileBuilder.getBuilderOf(getObject());
 		DatabaseObject databaseObject = getObject();
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;

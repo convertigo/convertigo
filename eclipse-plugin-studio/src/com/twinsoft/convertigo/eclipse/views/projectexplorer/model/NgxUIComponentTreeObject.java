@@ -102,7 +102,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -568,16 +567,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						}
 						Object oldValue = ionBean.getPropertyValue((String)id);
 						if (!value.equals(oldValue)) {
-							MobileBuilder mb = null;
-
-							IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-							if (editorPart != null) {
-								IEditorInput input = editorPart.getEditorInput();
-								if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-									com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-									mb = editorInput.getApplication().getProject().getMobileBuilder();
-								}
-							}
+							MobileBuilder mb = MobileBuilder.getBuilderOf(getObject());
 							try {
 								ionBean.setPropertyValue((String)id, value);
 
