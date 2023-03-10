@@ -609,7 +609,6 @@ public class PaletteView extends ViewPart {
 
 				@Override
 				public void dragSetData(DragSourceEvent event) {
-					System.out.println("detail dragSetData " + event.detail + " " + isCtrl[0]);
 					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			};
