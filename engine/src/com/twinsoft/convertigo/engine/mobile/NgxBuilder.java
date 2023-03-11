@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -1154,10 +1155,12 @@ public class NgxBuilder extends MobileBuilder {
 							+ System.lineSeparator() + "}";
 				}
 
-				// Write file (do not need delay)
+				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
+					FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1209,10 +1212,12 @@ public class NgxBuilder extends MobileBuilder {
 							+ System.lineSeparator() + "}";
 				}
 
-				// Write file (do not need delay)
+				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(compDir, compFileName(comp) + ".temp.ts");
-				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
+					FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1228,6 +1233,11 @@ public class NgxBuilder extends MobileBuilder {
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 				writeFile(pageTsFile, getPageTsContent(page, true), "UTF-8");
 
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				if (tempTsFile.exists()) {
+					writePageTempTs(page);
+				}
+				
 				if (initDone) {
 					Engine.logEngine.trace("(NgxBuilder) Ionic ts file generated for page '"+pageName+"'");
 				}
@@ -1244,6 +1254,11 @@ public class NgxBuilder extends MobileBuilder {
 				File compTsFile = new File(compDir(comp), compFileName(comp) + ".ts");
 				writeFile(compTsFile, getCompTsContent(comp, true), "UTF-8");
 
+				File tempTsFile = new File(compDir(comp), compFileName(comp) + ".temp.ts");
+				if (tempTsFile.exists()) {
+					writeCompTempTs((UISharedRegularComponent)comp);
+				}
+				
 				if (initDone) {
 					Engine.logEngine.trace("(NgxBuilder) Ionic ts file generated for component '"+comp.getName()+"'");
 				}
@@ -2689,6 +2704,11 @@ public class NgxBuilder extends MobileBuilder {
 				File appComponentTsFile = new File(appDir, "app.component.ts");
 				writeFile(appComponentTsFile, getAppComponentTsContent(app), "UTF-8");
 
+				File tempTsFile = new File(appDir, "app.component.temp.ts");
+				if (tempTsFile.exists()) {
+					writeAppComponentTempTs(app);
+				}
+				
 				if (initDone) {
 					Engine.logEngine.trace("(NgxBuilder) Ionic component ts file generated for 'app'");
 				}
@@ -2714,10 +2734,13 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 
+				String tsContent = FileUtils.readFileToString(appTsFile, "UTF-8");
+				
+				// Write file if needed (do not need delay)
 				File tempTsFile = new File(appDir, "app.component.temp.ts");
-
-				// Write file (do not need delay)
-				FileUtils.copyFile(appTsFile, tempTsFile);
+				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
+					FileUtils.copyFile(appTsFile, tempTsFile);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -2832,7 +2855,9 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
-				FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
+				if (!initDone) {
+					FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
+				}
 
 				writeAppPackageJson(application);
 				writeAppBuildSettings(application);
@@ -2859,7 +2884,9 @@ public class NgxBuilder extends MobileBuilder {
 			File pageDir = pageDir(page);
 			pageDir.mkdirs();
 
-			FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
+			if (!initDone) {
+				FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
+			}
 
 			writePageTs(page);
 			writePageModuleTs(page);
@@ -2898,7 +2925,9 @@ public class NgxBuilder extends MobileBuilder {
 			File compDir = compDir(comp);
 			compDir.mkdirs();
 
-			FileUtils.deleteQuietly(new File(compDir, compFileName(comp) + ".temp.ts"));
+			if (!initDone) {
+				FileUtils.deleteQuietly(new File(compDir, compFileName(comp) + ".temp.ts"));
+			}
 
 			writeCompTs(comp);
 			writeCompModuleTs(comp);
