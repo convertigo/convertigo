@@ -834,7 +834,25 @@ public class BaserowView extends ViewPart {
 								Pair.of("page", "Defines which page of rows should be returned."),
 								Pair.of("search", "If provided only rows with data that matches the search query are going to be returned."),
 								Pair.of("size", "Defines how many rows should be returned per page."),
-								Pair.of("filterExpression", "")
+								Pair.of("filterExpression", "This is a JSON structure describing the filter for example : \n\n"
+										+"{\n"
+									    +"    \"mode\": \"AND\",  // Can be AND or OR\n"
+									    +"    \"filters\": [ \n" 
+										+"        {\n" 
+										+"	          \"field\": \"Name\",  // The name of the column to filter on \n"
+										+"	          \"op\": \"contains\", // the operation, can be any of the operations described below\n"
+										+"	          \"value\": \"Little\" // The value of the filter operation\n"
+										+"        },\n"
+										+"        {                         // An other filter...\n"
+										+"	          \"field\": \"Description\", \n"
+										+"	          \"op\": \"contains\", \n"
+										+"	          \"value\": \"1954\" \n"
+										+"        }\n"
+										+"    ]\n"
+										+"}\n"
+										+"\n"
+										+"See https://github.com/convertigo/c8oprj-lib-baserow#operations for a list of supported op codes."
+										)
 								)) {
 							var = new RequestableVariable();
 							var.setName(p.getLeft());
