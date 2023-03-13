@@ -180,11 +180,11 @@ public class BaserowView extends ViewPart {
 					Label tips = new Label(composite, SWT.NONE);
 					tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
 					gd.horizontalSpan = 2;
-					tips.setText(currentProject.getText());
+					tips.setText("This wizard will help you to import in your project CRUD (Create, Read, Update and Delete) sequences in your project.\nYou will then be able to call them from your front-end applications.");
 					tips = new Label(composite, SWT.NONE);
 					tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
 					gd.horizontalSpan = 2;
-					tips.setText("Select sequence to create or update:");
+					tips.setText("Select the sequences you want to import or update in your project :");
 
 					String prefix = com.twinsoft.convertigo.engine.util.StringUtils.normalize( 
 							StringUtils.capitalize(database_name) + 
@@ -305,7 +305,7 @@ public class BaserowView extends ViewPart {
 										database_name = get(database, "name");
 										ConvertigoPlugin.asyncExec(() -> {
 											if (project != null) {
-												currentProject.setText("Import CRUD of '" + database_name + "." + table_name + "' sequences in the project '" + project.getName() + "'");
+												currentProject.setText("Import CRUD (Create, Read, Update and Delete) sequences for '" + database_name + "." + table_name + "' in the current project '" + project.getName() + "'");
 												currentProject.setVisible(true);
 												currentProject.getParent().layout();
 											}
