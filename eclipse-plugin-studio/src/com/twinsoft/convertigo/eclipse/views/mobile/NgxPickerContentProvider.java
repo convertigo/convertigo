@@ -68,7 +68,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class NgxPickerContentProvider implements ITreeContentProvider {
 	
-	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:\\-]+");
+	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:\\-\\s]+");
 	
 	public class TVObject {
 		private String name;
