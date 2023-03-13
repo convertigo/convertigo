@@ -906,13 +906,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 									composite.setLayout(new GridLayout(1, true));
 									Label tips = new Label(composite, SWT.NONE);
 									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("Show the live-view on your phone!");
+									tips.setText("Show the live-view on your Mobile Device  !");
 									tips = new Label(composite, SWT.NONE);
 									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 									tips.setText("Please choose the endpoint on the same network");
 									tips = new Label(composite, SWT.NONE);
 									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("as your phone to generate a QRCode:\n ");
+									tips.setText("your mobile device is connnected to. This will display a QRCode");
+									tips = new Label(composite, SWT.NONE);
+									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+									tips.setText("you will be able to flash from your mobile device :\n ");
 									try {
 										for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
 											for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
