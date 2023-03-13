@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.deploy;
 
 import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -27,11 +28,11 @@ import org.eclipse.swt.widgets.Shell;
 
 public class ProgressWizardDialog extends WizardDialog {
 
-    public ProgressWizardDialog(Shell parentShell, IWizard wizard) {
+	public ProgressWizardDialog(Shell parentShell, IWizard wizard) {
        super(parentShell, wizard);
     }
     
-    @Override
+	@Override
     protected Control createContents(Composite parent) {
        return super.createContents(parent);
     }
@@ -40,6 +41,10 @@ public class ProgressWizardDialog extends WizardDialog {
     protected void nextPressed() {
        super.nextPressed();
        updateSize();
+       IWizardPage pbwp = getWizard().getPage("ProjectBuildWizardPage");
+       if (pbwp != null && getSelectedPage().equals(pbwp)) {
+    	   ((ProjectBuildWizardPage)pbwp).doProcess();
+       }
     }
 
     @Override
@@ -47,4 +52,5 @@ public class ProgressWizardDialog extends WizardDialog {
        super.backPressed();
        updateSize();
     }
+
 }

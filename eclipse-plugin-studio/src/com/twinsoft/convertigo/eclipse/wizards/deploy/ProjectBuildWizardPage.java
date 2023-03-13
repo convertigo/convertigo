@@ -33,8 +33,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
@@ -65,17 +63,15 @@ public class ProjectBuildWizardPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		composite = new ProjectBuildComposite(parent, SWT.NONE);
-		composite.addPaintListener(new PaintListener() {
-			@Override
-			public void paintControl(PaintEvent e) {
-				if (getUnbuiltMessage() != null) {
-					setBuildDone(false);
-					updateLabelText("");
-					process();
-				}
-			}
-		});
 		setControl(composite);
+	}
+	
+	protected void doProcess() {
+		if (getUnbuiltMessage() != null) {
+			setBuildDone(false);
+			updateLabelText("");
+			process();
+		}
 	}
 	
 	private void process() {
@@ -298,6 +294,7 @@ public class ProjectBuildWizardPage extends WizardPage {
 		}
 		return null;
 	}
+
 	
 	@Override
 	public IWizardPage getPreviousPage() {
