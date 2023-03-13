@@ -53,7 +53,7 @@ public class ProjectBuildOptionsWizardPage extends WizardPage {
 		composite.setLayout(gl);
 		
 		Label label = new Label(composite, SWT.NONE);
-		label.setText("Your application is unbuilt or up-to-date!");
+		label.setText("Your application is not yet built to be deployed, or has been modifed since last deploy.");
 		
 		Group group = new Group(composite, SWT.NONE);
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
