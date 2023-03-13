@@ -39,7 +39,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -149,23 +148,42 @@ public class BaserowView extends ViewPart {
 		super.dispose();
 	}
 
+	private String getButtonImportText() {
+		String text;
+		if (project != null) {
+			text = "Import into '" + project.getName() + "'";
+		} else {
+			text = "Import";
+		}
+		return text;
+	}
+	
+	private String getLabelImportText() {
+		String text;
+		if (project != null) {
+			text = "Click on the Import button to create CRUD sequences for '\"" + database_name + "\".\"" + table_name + "\"' into your project";
+		} else {
+			text = "Please select a project in tree if you'd like to import CRUD sequences into it";
+		}
+		return text;
+	}
+	
 	@Override
 	public void createPartControl(Composite parent) {
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		GridLayout gl;
-		RowLayout rl;
 		main = new Composite(parent, SWT.NONE);
 		main.setLayout(gl = new GridLayout(1, true));
 		gl.marginHeight = gl.marginWidth = 0;
 
 		Composite bar = new Composite(main, SWT.NONE);
 		bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
-
-		bar.setLayout(rl = new RowLayout());
-		rl.center = false;
-		rl.justify = false;
+		bar.setLayout(new GridLayout(2, false));
+		
 		Button currentProject = new Button(bar, SWT.NONE);
 		currentProject.setVisible(false);
+		Label importLabel = new Label(bar, SWT.NONE);
+		importLabel.setVisible(false);
 
 		currentProject.addSelectionListener((SelectionListener) e -> {
 			Dialog dialog = new Dialog(parent.getShell()) {
@@ -304,11 +322,12 @@ public class BaserowView extends ViewPart {
 									callObject("applications/" + database_id + "/", database -> {
 										database_name = get(database, "name");
 										ConvertigoPlugin.asyncExec(() -> {
-											if (project != null) {
-												currentProject.setText("Import CRUD (Create, Read, Update and Delete) sequences for '" + database_name + "." + table_name + "' in the current project '" + project.getName() + "'");
-												currentProject.setVisible(true);
-												currentProject.getParent().layout();
-											}
+											importLabel.setVisible(true);
+											importLabel.setText(getLabelImportText());
+											currentProject.setVisible(true);
+											currentProject.setEnabled(project != null);
+											currentProject.setText(getButtonImportText());
+											currentProject.getParent().layout();
 										});
 									});
 								});
@@ -352,13 +371,14 @@ public class BaserowView extends ViewPart {
 					if (selection.getFirstElement() instanceof TreeObject) {
 						TreeObject to = (TreeObject) selection.getFirstElement();
 						ProjectTreeObject prjtree = to.getProjectTreeObject();
-						if (prjtree != null) {
-							project = prjtree.getObject();
-							if (table_id != null) {
-								currentProject.setText("Import CRUD of '" + database_name + "." + table_name + "' sequences in the project '" + project.getName() + "'");
-								currentProject.setVisible(true);
-								bar.layout();
-							}
+						project = prjtree != null ? prjtree.getObject() : null;
+						if (table_id != null) {
+							importLabel.setVisible(true);
+							importLabel.setText(getLabelImportText());
+							currentProject.setVisible(true);
+							currentProject.setEnabled(project != null);
+							currentProject.setText(getButtonImportText());
+							currentProject.getParent().layout();
 						}
 					}
 				}
