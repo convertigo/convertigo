@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
 import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.JsonToXmlStep;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
@@ -607,11 +608,13 @@ public class BaserowView extends ViewPart {
 					sequence.setAuthenticatedContextRequired(true);
 					project.add(sequence);
 
-					SimpleStep simpleStep = new SimpleStep();
-					simpleStep.setName("apiKey");
-					simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
-					simpleStep.updateSymbols();
-					sequence.add(simpleStep);
+					if (!isList ) {
+						SimpleStep simpleStep = new SimpleStep();
+						simpleStep.setName("apiKey");
+						simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
+						simpleStep.updateSymbols();
+						sequence.add(simpleStep);
+					}
 
 					if (isCreate || isUpdate || isRead) {
 						JSONObject sample = new JSONObject();
@@ -802,29 +805,28 @@ public class BaserowView extends ViewPart {
 						object.put("id", 0);
 						object.put("order", "0");
 
-						TransactionStep transactionStep = new TransactionStep();
-						transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___GET");
-						sequence.add(transactionStep);
+						SequenceStep sequenceStep = new SequenceStep();
+						sequenceStep.setSourceSequence("lib_BaseRow.TableGetDataApiKey");
+						sequenceStep.setOutput(false);
+						sequence.add(sequenceStep);
 
 						StepVariable stepVariable = new StepVariable();
-						stepVariable.setName("__header_Authorization");
-						transactionStep.add(stepVariable);
 
 						stepVariable = new StepVariable();
 						stepVariable.setName("table_id");
 						stepVariable.setValueOrNull(table_id);
-						transactionStep.add(stepVariable);
+						sequenceStep.add(stepVariable);
 
 						stepVariable = new StepVariable();
 						stepVariable.setName("user_field_names");
 						stepVariable.setValueOrNull("true");
-						transactionStep.add(stepVariable);
+						sequenceStep.add(stepVariable);
 
 						if (view_id != null) {
 							stepVariable = new StepVariable();
 							stepVariable.setName("view_id");
 							stepVariable.setValueOrNull(view_id);
-							transactionStep.add(stepVariable);
+							sequenceStep.add(stepVariable);
 						}
 
 						String[] names = new String[len];
@@ -837,7 +839,7 @@ public class BaserowView extends ViewPart {
 
 						stepVariable = new StepVariable();
 						stepVariable.setName("include_fields");
-						transactionStep.add(stepVariable);
+						sequenceStep.add(stepVariable);
 
 						RequestableVariable var = new RequestableVariable();
 						var.setName("include_fields");
@@ -881,16 +883,23 @@ public class BaserowView extends ViewPart {
 
 							stepVariable = new StepVariable();
 							stepVariable.setName(p.getLeft());
-							transactionStep.add(stepVariable);
+							sequenceStep.add(stepVariable);
 						}
+
+						JsonObjectStep jsonObjectStep = new JsonObjectStep();
+						SmartType st = new SmartType();
+						st.setMode(Mode.PLAIN);
+						st.setExpression("object");
+						jsonObjectStep.setKey(st);
+						sequence.add(jsonObjectStep);
 
 						XMLCopyStep xmlCopyStep = new XMLCopyStep();
 						XMLVector<String> source = new XMLVector<String>();
-						source.add(Long.toString(transactionStep.priority));
-						source.add("document/object");
+						source.add(Long.toString(sequenceStep.priority));
+						source.add("document/*");
 						xmlCopyStep.setSourceDefinition(source);
-						sequence.add(xmlCopyStep);
-
+						jsonObjectStep.add(xmlCopyStep);
+						
 						IfStep ifStep = new IfStep();
 						ifStep.setCondition("false");
 						sequence.add(ifStep);
