@@ -25,7 +25,7 @@ public class ProductVersion {
     public static String majorProductVersion = "7";
     public static String minorProductVersion = "6";
     public static String servicePack = "6";
-    public static String tag = "patch-20221122"; // To be modified by patch-YYYYMMDD at each patch generation !!
+    public static String tag = "patch-20230320"; // To be modified by patch-YYYYMMDD at each patch generation !!
     public static String revision = null;
     
     public static String productVersion =

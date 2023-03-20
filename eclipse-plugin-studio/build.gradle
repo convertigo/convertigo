@@ -165,6 +165,7 @@ task bnppClasses(type: Copy) {
     	include 'com/twinsoft/convertigo/engine/requesters/JsonServletRequester*.class'
     	include 'com/twinsoft/convertigo/engine/requesters/WebServiceServletRequester*.class'
     	
+    	include 'com/twinsoft/convertigo/engine/servlets/BinaryServlet*.class'
     	include 'com/twinsoft/convertigo/engine/servlets/RestApiServlet*.class'
     	
         include 'com/twinsoft/convertigo/engine/plugins/BnppPlugin*.class'
