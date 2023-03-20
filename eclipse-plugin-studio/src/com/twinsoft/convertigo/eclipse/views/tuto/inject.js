@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("a:contains('ᐅ')")[0].click();
 	}).on("click", ".tutocancel", _ => {
 		$(".tutoerror").fadeOut(500);
+		$(".tutosuccess").fadeOut(500);
 	});
 	
 	IDE.message({
