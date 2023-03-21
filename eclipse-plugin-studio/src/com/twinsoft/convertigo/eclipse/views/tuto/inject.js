@@ -1,3 +1,5 @@
+var 	bSuccess = false;
+
 document.addEventListener("DOMContentLoaded", () => {
 	if (!("$" in window)) {
 		return;
@@ -7,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		"type": "imgEnter",
 		"url": e.target.getAttribute("src")
 	})).on("click", "a:contains('ᐅ')", e => {
-		if ($(".tutosuccess").is(":visible") || !e.originalEvent.isTrusted) {
+		if (bSuccess || !e.originalEvent.isTrusted) {
 			return true;
 		}
 		$(".tutoerror").fadeIn(500);
@@ -28,4 +30,5 @@ document.addEventListener("DOMContentLoaded", () => {
 window.tutoGoNext = function () {
 	$(".tutoerror").hide();
 	$(".tutosuccess").fadeIn(500);
+	bSuccess = true;
 };
