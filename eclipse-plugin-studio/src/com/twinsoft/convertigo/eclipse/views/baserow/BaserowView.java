@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,14 +67,14 @@ import com.teamdev.jxbrowser.navigation.event.NavigationStarted;
 import com.teamdev.jxbrowser.net.HttpHeader;
 import com.teamdev.jxbrowser.net.callback.BeforeStartTransactionCallback;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
 import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.JsonToXmlStep;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
@@ -89,7 +92,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -111,6 +113,8 @@ public class BaserowView extends ViewPart {
 	private String database_name;
 	private String view_id;
 	private String view_name;
+	private String filter_type;
+	private CompletableFuture<Object> wait_reload;
 
 	public class StudioAPI {
 
@@ -158,7 +162,7 @@ public class BaserowView extends ViewPart {
 		}
 		return text;
 	}
-	
+
 	private String getLabelImportText() {
 		String text;
 		if (project != null) {
@@ -168,7 +172,7 @@ public class BaserowView extends ViewPart {
 		}
 		return text;
 	}
-	
+
 	@Override
 	public void createPartControl(Composite parent) {
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
@@ -180,7 +184,7 @@ public class BaserowView extends ViewPart {
 		Composite bar = new Composite(main, SWT.NONE);
 		bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
 		bar.setLayout(new GridLayout(2, false));
-		
+
 		Button currentProject = new Button(bar, SWT.NONE);
 		currentProject.setVisible(false);
 		Label importLabel = new Label(bar, SWT.NONE);
@@ -304,37 +308,39 @@ public class BaserowView extends ViewPart {
 				}
 			});
 			browser.getBrowser().navigation().on(NavigationStarted.class, event -> {
-				try {
-					String u = event.url();
-					Engine.logStudio.warn("NavigationStarted " + u);
-					Matcher matcher = Pattern.compile("table/(\\w+)(?:/(\\w+))?").matcher(u);
-					if (!matcher.find() ) {
-						return;
+				Engine.execute(() -> {
+					try {
+						String u = event.url();
+						Engine.logStudio.warn("NavigationStarted " + u);
+						Matcher matcher = Pattern.compile("table/(\\w+)(?:/(\\w+))?").matcher(u);
+						if (!matcher.find() ) {
+							return;
+						}
+						table_id = matcher.group(1);
+						view_id = matcher.group(2);
+						JSONObject res = callObject(view_id != null ?
+								"database/views/" + view_id + "/" :
+									"database/tables/" + table_id + "/").get();
+
+						JSONObject table = view_id != null ? getObject(res, "table") : res;
+						view_name = view_id != null ? get(res, "name") : "";
+						filter_type = res.has("filter_type") ? get(res, "filter_type") : null;
+						table_name = get(table, "name");
+						database_id = get(table, "database_id");
+						JSONObject database =  callObject("applications/" + database_id + "/").get();
+						database_name = get(database, "name");
+						ConvertigoPlugin.asyncExec(() -> {
+							importLabel.setVisible(true);
+							importLabel.setText(getLabelImportText());
+							currentProject.setVisible(true);
+							currentProject.setEnabled(project != null);
+							currentProject.setText(getButtonImportText());
+							currentProject.getParent().layout();
+						});
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-					table_id = matcher.group(1);
-					view_id = matcher.group(2);
-					callObject(view_id != null ?
-							"database/views/" + view_id + "/" :
-								"database/tables/" + table_id + "/", res -> {
-									JSONObject table = view_id != null ? getObject(res, "table") : res;
-									view_name = view_id != null ? get(res, "name") : "";
-									table_name = get(table, "name");
-									database_id = get(table, "database_id");
-									callObject("applications/" + database_id + "/", database -> {
-										database_name = get(database, "name");
-										ConvertigoPlugin.asyncExec(() -> {
-											importLabel.setVisible(true);
-											importLabel.setText(getLabelImportText());
-											currentProject.setVisible(true);
-											currentProject.setEnabled(project != null);
-											currentProject.setText(getButtonImportText());
-											currentProject.getParent().layout();
-										});
-									});
-								});
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				});
 			});
 
 			browser.getBrowser().profile().network().set(BeforeStartTransactionCallback.class, (params) -> {
@@ -344,6 +350,9 @@ public class BaserowView extends ViewPart {
 						if (header.name().equals("Authorization")) {
 							authHeader = header.value();
 							backendApi = params.urlRequest().url().substring(0, idx + 5);
+							if (wait_reload != null) {
+								wait_reload.complete(null);
+							}
 							break;
 						}
 					}
@@ -468,49 +477,49 @@ public class BaserowView extends ViewPart {
 		main.setFocus();
 	}
 
-	private interface callObjectResult {
-		public void result(JSONObject obj);
-	}
-
-	private interface callArrayResult {
-		public void result(JSONArray arr);
-	}
-
-	private void callObject(String api, callObjectResult result) {
+	private Future<JSONObject> callObject(String api) {
+		CompletableFuture<JSONObject> future = new CompletableFuture<>();
 		try {
 			C8oBrowser.run(() -> {
 				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
 				prom.then(txt -> {
 					try {
 						Engine.logStudio.warn(txt[0].toString());
-						result.result(new JSONObject(txt[0].toString()));
+						future.complete(new JSONObject(txt[0].toString()));
 					} catch (Exception e) {
 						Engine.logStudio.warn("callObject failed", e);
+						future.completeExceptionally(e);
 					}
 					return null;
 				});
 			});
 		} catch (Exception e) {
 			Engine.logStudio.warn("callObject failed", e);
+			future.completeExceptionally(e);
 		}
+		return future;
 	}
 
-	private void callArray(String api, callArrayResult result) {
+	private Future<JSONArray> callArray(String api) {
+		CompletableFuture<JSONArray> future = new CompletableFuture<>();
 		try {
 			C8oBrowser.run(() -> {
 				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
 				prom.then(txt -> {
 					try {
-						result.result(new JSONArray(txt[0].toString()));
+						future.complete(new JSONArray(txt[0].toString()));
 					} catch (Exception e) {
 						Engine.logStudio.warn("callObject failed", e);
+						future.completeExceptionally(e);
 					}
 					return null;
 				});
 			});
 		} catch (Exception e) {
 			Engine.logStudio.warn("callObject failed", e);
+			future.completeExceptionally(e);
 		}
+		return future;
 	}
 
 	private String get(JSONObject obj, String key) {
@@ -583,346 +592,378 @@ public class BaserowView extends ViewPart {
 			return;
 		}
 
-		callArray("database/fields/table/" + table_id + "/", arr -> {
-			int len = arr.length();
-			for (Pair<String, String> stub: stubs) {
-				String type = stub.getKey();
-				String sequenceName = stub.getValue();
-				boolean isList = "List".equals(type);
-				boolean isCreate = "Create".equals(type);
-				boolean isRead = "Read".equals(type);
-				boolean isUpdate = "Update".equals(type);
-				boolean isDelete = "Delete".equals(type);
 
+
+		Engine.execute(() -> {
+			try {
+				JSONArray arr;
 				try {
-					Sequence s = project.getSequenceByName(sequenceName);
-					project.removeSequence(s);
-				} catch (EngineException e) {
+					arr = callArray("database/fields/table/" + table_id + "/").get();
+				} catch (Exception e) {
+					wait_reload = new CompletableFuture<Object>();
+					browser.reload();
+					try {
+						wait_reload.get(5, TimeUnit.SECONDS);
+					} catch (Exception e2) {
+					}
+					wait_reload = null;
+					arr = callArray("database/fields/table/" + table_id + "/").get();
 				}
+				int len = arr.length();
+				for (Pair<String, String> stub: stubs) {
+					String type = stub.getKey();
+					String sequenceName = stub.getValue();
+					boolean isList = "List".equals(type);
+					boolean isCreate = "Create".equals(type);
+					boolean isRead = "Read".equals(type);
+					boolean isUpdate = "Update".equals(type);
+					boolean isDelete = "Delete".equals(type);
 
-				try {
-					GenericSequence sequence = new GenericSequence();
-					sequence.setName(sequenceName);
-					sequence.setComment(type + " row" + (isList ? "s" : "") + " of " + table_name + " from " + database_name);
-					sequence.setAccessibility(Accessibility.Hidden);
-					sequence.setAuthenticatedContextRequired(true);
-					project.add(sequence);
+					try {
+						GenericSequence sequence;
+						try {
+							sequence = (GenericSequence) project.getSequenceByName(sequenceName);
+							List<Step> steps = sequence.getAllSteps();
+							List<RequestableVariable> vars = sequence.getAllVariables();
+							List<DatabaseObject> children = new ArrayList<>(steps.size() + vars.size());
+							children.addAll(steps);
+							children.addAll(vars);
+							for (DatabaseObject dbo: children) {
+								sequence.remove(dbo);
+							}
+						} catch (Exception e) {
+							sequence = new GenericSequence();
+							sequence.setName(sequenceName);
+							sequence.setComment(type + " row" + (isList ? "s" : "") + " of " + table_name + " from " + database_name);
+							sequence.setAccessibility(Accessibility.Hidden);
+							sequence.setAuthenticatedContextRequired(true);
+							project.add(sequence);
+						}
 
-					if (!isList ) {
 						SimpleStep simpleStep = new SimpleStep();
 						simpleStep.setName("apiKey");
 						simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
 						simpleStep.updateSymbols();
 						sequence.add(simpleStep);
-					}
 
-					if (isCreate || isUpdate || isRead) {
-						JSONObject sample = new JSONObject();
-						sample.put("id", 0);
-						sample.put("order", "0");
+						if (isCreate || isUpdate || isRead) {
+							JSONObject sample = new JSONObject();
+							sample.put("id", 0);
+							sample.put("order", "0");
 
-						JsonObjectStep jsonObjectStep = null;
-						if (isCreate || isUpdate) {
-							jsonObjectStep = new JsonObjectStep();
-							jsonObjectStep.setName("body");
-							jsonObjectStep.setOutput(false);
-							sequence.add(jsonObjectStep);
-						}
+							JsonObjectStep jsonObjectStep = null;
+							if (isCreate || isUpdate) {
+								jsonObjectStep = new JsonObjectStep();
+								jsonObjectStep.setName("body");
+								jsonObjectStep.setOutput(false);
+								sequence.add(jsonObjectStep);
+							}
 
-						for (int i = 0; i < len; i++) {
-							String varName = get(arr.getJSONObject(i), "name");
-							String varType = get(arr.getJSONObject(i), "type");
+							for (int i = 0; i < len; i++) {
+								String varName = get(arr.getJSONObject(i), "name");
+								String varType = get(arr.getJSONObject(i), "type");
 
-							RequestableVariable var = null;
-							if ((isCreate || isUpdate) && !"formula".equals(type)) {
-								String comment = varName + " [" + varType + "]";
-								var = new RequestableVariable();
-								var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
-								var.setComment(comment);
+								RequestableVariable var = null;
+								if ((isCreate || isUpdate) && !"formula".equals(type)) {
+									String comment = varName + " [" + varType + "]";
+									var = new RequestableVariable();
+									var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
+									var.setComment(comment);
+									sequence.add(var);
+								}
+								addSample(sample, varName, varType);
+								if (varType.equals("link_row")) {
+									if (var != null) {
+										var.setValueOrNull("[]");
+									}
+								} else if (varType.equals("boolean")) {
+									if (var != null) {
+										var.setValueOrNull("false");
+									}
+								}
+
+								if (jsonObjectStep != null && !"formula".equals(type)) {
+									if (varType.equals("link_row")) {
+										JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+										jsonToXmlStep.setName(varName);
+										SmartType st = new SmartType();
+										st.setMode(Mode.JS);
+										st.setExpression("JSON.parse(" + var.getName() + ")");
+										jsonToXmlStep.setJsonObject(st);
+										jsonToXmlStep.setOutput(false);
+										jsonObjectStep.add(jsonToXmlStep);
+									} else {
+										JsonFieldStep jsonFieldStep = new JsonFieldStep();
+										jsonFieldStep.setName(varName);
+										SmartType st = new SmartType();
+										st.setMode(Mode.JS);
+										st.setExpression(var.getName());
+										jsonFieldStep.setValue(st);
+										jsonFieldStep.setOutput(false);
+										jsonObjectStep.add(jsonFieldStep);
+									}
+								}
+							}
+
+							TransactionStep transactionStep = new TransactionStep();
+							if (isCreate) {
+								transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___POST");
+							}
+							if (isUpdate) {
+								transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___PATCH");
+							}
+							if (isRead) {
+								transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___GET");
+							}
+							sequence.add(transactionStep);
+
+							StepVariable stepVariable = new StepVariable();
+							stepVariable.setName("__header_Authorization");
+							transactionStep.add(stepVariable);
+
+							stepVariable = new StepVariable();
+							stepVariable.setName("table_id");
+							stepVariable.setValueOrNull(table_id);
+							transactionStep.add(stepVariable);
+
+							stepVariable = new StepVariable();
+							stepVariable.setName("user_field_names");
+							stepVariable.setValueOrNull("true");
+							transactionStep.add(stepVariable);
+
+							if (isCreate || isUpdate) {
+								stepVariable = new StepVariable();
+								stepVariable.setName("__body");
+								XMLVector<String> source = new XMLVector<String>();
+								source.add(Long.toString(jsonObjectStep.priority));
+								source.add("*");
+								stepVariable.setSourceDefinition(source);
+								transactionStep.add(stepVariable);
+							}
+
+							if (isCreate) {
+								stepVariable = new StepVariable();
+								stepVariable.setName("before");
+								transactionStep.add(stepVariable);
+
+								RequestableVariable var = new RequestableVariable();
+								var.setName("before");
+								var.setComment("If provided then the newly created row will be positioned before the row with the provided id.");
 								sequence.add(var);
 							}
-							addSample(sample, varName, varType);
-							if (varType.equals("link_row")) {
-								if (var != null) {
-									var.setValueOrNull("[]");
+
+							if (isUpdate || isRead) {
+								stepVariable = new StepVariable();
+								stepVariable.setName("row_id");
+								transactionStep.add(stepVariable);
+
+								RequestableVariable var = new RequestableVariable();
+								var.setName("row_id");
+								if (isUpdate) {
+									var.setComment("Updates the row related to the value.");
 								}
-							} else if (varType.equals("boolean")) {
-								if (var != null) {
-									var.setValueOrNull("false");
+								if (isRead) {
+									var.setComment("Returns the row related the provided value.");
 								}
+								var.setRequired(true);
+								sequence.add(var);
 							}
 
-							if (jsonObjectStep != null && !"formula".equals(type)) {
-								if (varType.equals("link_row")) {
-									JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
-									jsonToXmlStep.setName(varName);
-									SmartType st = new SmartType();
-									st.setMode(Mode.JS);
-									st.setExpression("JSON.parse(" + var.getName() + ")");
-									jsonToXmlStep.setJsonObject(st);
-									jsonToXmlStep.setOutput(false);
-									jsonObjectStep.add(jsonToXmlStep);
-								} else {
-									JsonFieldStep jsonFieldStep = new JsonFieldStep();
-									jsonFieldStep.setName(varName);
-									SmartType st = new SmartType();
-									st.setMode(Mode.JS);
-									st.setExpression(var.getName());
-									jsonFieldStep.setValue(st);
-									jsonFieldStep.setOutput(false);
-									jsonObjectStep.add(jsonFieldStep);
-								}
-							}
-						}
-
-						TransactionStep transactionStep = new TransactionStep();
-						if (isCreate) {
-							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___POST");
-						}
-						if (isUpdate) {
-							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___PATCH");
-						}
-						if (isRead) {
-							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___GET");
-						}
-						sequence.add(transactionStep);
-
-						StepVariable stepVariable = new StepVariable();
-						stepVariable.setName("__header_Authorization");
-						transactionStep.add(stepVariable);
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("table_id");
-						stepVariable.setValueOrNull(table_id);
-						transactionStep.add(stepVariable);
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("user_field_names");
-						stepVariable.setValueOrNull("true");
-						transactionStep.add(stepVariable);
-
-						if (isCreate || isUpdate) {
-							stepVariable = new StepVariable();
-							stepVariable.setName("__body");
+							XMLCopyStep xmlCopyStep = new XMLCopyStep();
 							XMLVector<String> source = new XMLVector<String>();
-							source.add(Long.toString(jsonObjectStep.priority));
-							source.add("*");
-							stepVariable.setSourceDefinition(source);
-							transactionStep.add(stepVariable);
+							source.add(Long.toString(transactionStep.priority));
+							source.add("document/object");
+							xmlCopyStep.setSourceDefinition(source);
+							sequence.add(xmlCopyStep);
+
+							IfStep ifStep = new IfStep();
+							ifStep.setCondition("false");
+							sequence.add(ifStep);
+
+							JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+							jsonToXmlStep.setName("object");
+							jsonToXmlStep.setJsonSample(sample.toString(2));
+							ifStep.add(jsonToXmlStep);
 						}
 
-						if (isCreate) {
+						if (isDelete) {
+							TransactionStep transactionStep = new TransactionStep();
+							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___DELETE");
+							sequence.add(transactionStep);
+
+							StepVariable stepVariable = new StepVariable();
+							stepVariable.setName("__header_Authorization");
+							transactionStep.add(stepVariable);
+
 							stepVariable = new StepVariable();
-							stepVariable.setName("before");
+							stepVariable.setName("table_id");
+							stepVariable.setValueOrNull(table_id);
 							transactionStep.add(stepVariable);
 
-							RequestableVariable var = new RequestableVariable();
-							var.setName("before");
-							var.setComment("If provided then the newly created row will be positioned before the row with the provided id.");
-							sequence.add(var);
-						}
-
-						if (isUpdate || isRead) {
 							stepVariable = new StepVariable();
 							stepVariable.setName("row_id");
 							transactionStep.add(stepVariable);
 
 							RequestableVariable var = new RequestableVariable();
 							var.setName("row_id");
-							if (isUpdate) {
-								var.setComment("Updates the row related to the value.");
-							}
-							if (isRead) {
-								var.setComment("Returns the row related the provided value.");
-							}
+							var.setComment("Deletes the row related to the value.");
 							var.setRequired(true);
 							sequence.add(var);
+
+							JsonFieldStep jsonFieldStep = new JsonFieldStep();
+							jsonFieldStep.setName("success");
+							jsonFieldStep.setType(JsonFieldType.bool);
+							SmartType st = new SmartType();
+							st.setMode(Mode.SOURCE);
+							XMLVector<String> source = new XMLVector<String>();
+							source.add(Long.toString(transactionStep.priority));
+							source.add("document/HttpInfo/status[@code=200]");
+							st.setSourceDefinition(source);
+							jsonFieldStep.setValue(st);
+							sequence.add(jsonFieldStep);
 						}
 
-						XMLCopyStep xmlCopyStep = new XMLCopyStep();
-						XMLVector<String> source = new XMLVector<String>();
-						source.add(Long.toString(transactionStep.priority));
-						source.add("document/object");
-						xmlCopyStep.setSourceDefinition(source);
-						sequence.add(xmlCopyStep);
+						if (isList) {
+							JSONObject sample = new JSONObject();
+							sample.put("count", 0);
+							sample.put("next", "");
+							sample.put("previous", "");
+							JSONArray array = new JSONArray();
+							sample.put("results", array);
+							JSONObject object = new JSONObject();
+							array.put(object);
+							object.put("id", 0);
+							object.put("order", "0");
 
-						IfStep ifStep = new IfStep();
-						ifStep.setCondition("false");
-						sequence.add(ifStep);
+							SimpleStep filterStep = null;
+							if (view_id != null && filter_type != null) {
+								filterStep = new SimpleStep();
+								filterStep.setName("filter");
+								sequence.add(filterStep);
+							}
 
-						JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
-						jsonToXmlStep.setName("object");
-						jsonToXmlStep.setJsonSample(sample.toString(2));
-						ifStep.add(jsonToXmlStep);
-					}
+							TransactionStep transactionStep = new TransactionStep();
+							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___GET");
+							transactionStep.setOutput(false);
+							sequence.add(transactionStep);
 
-					if (isDelete) {
-						TransactionStep transactionStep = new TransactionStep();
-						transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___DELETE");
-						sequence.add(transactionStep);
+							StepVariable stepVariable = new StepVariable();
+							stepVariable.setName("__header_Authorization");
+							transactionStep.add(stepVariable);
 
-						StepVariable stepVariable = new StepVariable();
-						stepVariable.setName("__header_Authorization");
-						transactionStep.add(stepVariable);
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("table_id");
-						stepVariable.setValueOrNull(table_id);
-						transactionStep.add(stepVariable);
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("row_id");
-						transactionStep.add(stepVariable);
-
-						RequestableVariable var = new RequestableVariable();
-						var.setName("row_id");
-						var.setComment("Deletes the row related to the value.");
-						var.setRequired(true);
-						sequence.add(var);
-
-						JsonFieldStep jsonFieldStep = new JsonFieldStep();
-						jsonFieldStep.setName("success");
-						jsonFieldStep.setType(JsonFieldType.bool);
-						SmartType st = new SmartType();
-						st.setMode(Mode.SOURCE);
-						XMLVector<String> source = new XMLVector<String>();
-						source.add(Long.toString(transactionStep.priority));
-						source.add("document/HttpInfo/status[@code=200]");
-						st.setSourceDefinition(source);
-						jsonFieldStep.setValue(st);
-						sequence.add(jsonFieldStep);
-					}
-
-					if (isList) {
-						JSONObject sample = new JSONObject();
-						sample.put("count", 0);
-						sample.put("next", "");
-						sample.put("previous", "");
-						JSONArray array = new JSONArray();
-						sample.put("results", array);
-						JSONObject object = new JSONObject();
-						array.put(object);
-						object.put("id", 0);
-						object.put("order", "0");
-
-						SequenceStep sequenceStep = new SequenceStep();
-						sequenceStep.setSourceSequence("lib_BaseRow.TableGetDataApiKey");
-						sequenceStep.setOutput(false);
-						sequence.add(sequenceStep);
-
-						StepVariable stepVariable = new StepVariable();
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("table_id");
-						stepVariable.setValueOrNull(table_id);
-						sequenceStep.add(stepVariable);
-
-						stepVariable = new StepVariable();
-						stepVariable.setName("user_field_names");
-						stepVariable.setValueOrNull("true");
-						sequenceStep.add(stepVariable);
-
-						if (view_id != null) {
 							stepVariable = new StepVariable();
-							stepVariable.setName("view_id");
-							stepVariable.setValueOrNull(view_id);
-							sequenceStep.add(stepVariable);
-						}
+							stepVariable.setName("table_id");
+							stepVariable.setValueOrNull(table_id);
+							transactionStep.add(stepVariable);
 
-						String[] names = new String[len];
-						for (int i = 0; i < len; i++) {
-							String varName = get(arr.getJSONObject(i), "name");
-							String varType = get(arr.getJSONObject(i), "type");
-							addSample(object, varName, varType);
-							names[i] = varName;
-						}
+							stepVariable = new StepVariable();
+							stepVariable.setName("user_field_names");
+							stepVariable.setValueOrNull("true");
+							transactionStep.add(stepVariable);
 
-						stepVariable = new StepVariable();
-						stepVariable.setName("include_fields");
-						sequenceStep.add(stepVariable);
+							if (view_id != null && filter_type != null) {
+								String ft = StringUtils.capitalize(filter_type.toLowerCase());
+								String filterExpression = "var filterExpression = '';\n";
+								JSONArray filters = callArray("database/views/" + view_id + "/filters/").get();
+								int ln = filters.length();
+								for (int j = 0; j < ln; j++) {
+									JSONObject filter = filters.getJSONObject(j);
+									int id = filter.getInt("field");
+									for (int i = 0; i < len; i++) {
+										JSONObject field = arr.getJSONObject(i);
+										if (field.getInt("id") == id) {
+											String name = field.getString("name");
+											String typ = filter.getString("type");
+											RequestableVariable var = new RequestableVariable();
+											var.setName("filter" + ft + StringUtils.capitalize(name) + StringUtils.capitalize(typ));
+											var.setComment("Filter rows with '" + name + "' " + typ + " the provided value " + filter_type + " other filter* variables.");
+											String value = filter.getString("value");
+											var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
+											sequence.add(var);
+											filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression = 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
+											break;
+										}
+									}
+								}
+								filterExpression += "filterExpression = filterExpression.replace(new RegExp('&$'), '');";
+								filterStep.setExpression(filterExpression);
+								stepVariable = new StepVariable();
+								stepVariable.setName("filterExpression");
+								transactionStep.add(stepVariable);
+								stepVariable = new StepVariable();
+								stepVariable.setName("filter_type");
+								stepVariable.setValueOrNull(filter_type);
+								transactionStep.add(stepVariable);
+							}
 
-						RequestableVariable var = new RequestableVariable();
-						var.setName("include_fields");
-						var.setComment("All the fields are included in the response by default. You can select a subset of fields by providing the include query parameter. If you for example provide the following GET parameter `include=field_1,field_2` then only the fields withid `1` and id `2` are going to be selected and included in the response. If the `user_field_names` parameter is provided then instead include should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `include=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `include=My Field,Field with \\\"`.");
-						var.setValueOrNull(String.join(",", names));
-						sequence.add(var);
+							String[] names = new String[len];
+							for (int i = 0; i < len; i++) {
+								JSONObject field = arr.getJSONObject(i);
+								String varName = get(field, "name");
+								String varType = get(field, "type");
+								addSample(object, varName, varType);
+								names[i] = varName;
+							}
 
-						for (Pair<String, String> p: Arrays.asList(
-								Pair.of("filter_type", "`AND`: Indicates that the rows must match all the provided filters.\r\n"
-										+ "`OR`: Indicates that the rows only have to match one of the filters.\r\n"
-										+ "\r\n"
-										+ "This works only if two or more filters are provided."),
-								Pair.of("order_by", "Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`."),
-								Pair.of("page", "Defines which page of rows should be returned."),
-								Pair.of("search", "If provided only rows with data that matches the search query are going to be returned."),
-								Pair.of("size", "Defines how many rows should be returned per page."),
-								Pair.of("filterExpression", "This is a JSON structure describing the filter for example : \n\n"
-										+"{\n"
-									    +"    \"mode\": \"AND\",  // Can be AND or OR\n"
-									    +"    \"filters\": [ \n" 
-										+"        {\n" 
-										+"	          \"field\": \"Name\",  // The name of the column to filter on \n"
-										+"	          \"op\": \"contains\", // the operation, can be any of the operations described below\n"
-										+"	          \"value\": \"Little\" // The value of the filter operation\n"
-										+"        },\n"
-										+"        {                         // An other filter...\n"
-										+"	          \"field\": \"Description\", \n"
-										+"	          \"op\": \"contains\", \n"
-										+"	          \"value\": \"1954\" \n"
-										+"        }\n"
-										+"    ]\n"
-										+"}\n"
-										+"\n"
-										+"See https://github.com/convertigo/c8oprj-lib-baserow#operations for a list of supported op codes."
-										)
-								)) {
-							var = new RequestableVariable();
-							var.setName(p.getLeft());
-							var.setComment(p.getRight());
+							stepVariable = new StepVariable();
+							stepVariable.setName("include_fields");
+							transactionStep.add(stepVariable);
+
+							RequestableVariable var = new RequestableVariable();
+							var.setName("include_fields");
+							var.setComment("All the fields are included in the response by default. You can select a subset of fields by providing the include query parameter. If you for example provide the following GET parameter `include=field_1,field_2` then only the fields withid `1` and id `2` are going to be selected and included in the response. If the `user_field_names` parameter is provided then instead include should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `include=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `include=My Field,Field with \\\"`.");
+							var.setValueOrNull(String.join(",", names));
 							sequence.add(var);
 
-							stepVariable = new StepVariable();
-							stepVariable.setName(p.getLeft());
-							sequenceStep.add(stepVariable);
+							for (Pair<String, String> p: Arrays.asList(
+									Pair.of("order_by", "Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`."),
+									Pair.of("page", "Defines which page of rows should be returned."),
+									Pair.of("search", "If provided only rows with data that matches the search query are going to be returned."),
+									Pair.of("size", "Defines how many rows should be returned per page.")
+									)) {
+								var = new RequestableVariable();
+								var.setName(p.getLeft());
+								var.setComment(p.getRight());
+								sequence.add(var);
+
+								stepVariable = new StepVariable();
+								stepVariable.setName(p.getLeft());
+								transactionStep.add(stepVariable);
+							}
+
+							XMLCopyStep xmlCopyStep = new XMLCopyStep();
+							XMLVector<String> source = new XMLVector<String>();
+							source.add(Long.toString(transactionStep.priority));
+							source.add("document/object");
+							xmlCopyStep.setSourceDefinition(source);
+							sequence.add(xmlCopyStep);
+
+							IfStep ifStep = new IfStep();
+							ifStep.setCondition("false");
+							sequence.add(ifStep);
+
+							JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
+							jsonToXmlStep.setName("object");
+							jsonToXmlStep.setJsonSample(sample.toString(2));
+							ifStep.add(jsonToXmlStep);
 						}
 
-						JsonObjectStep jsonObjectStep = new JsonObjectStep();
-						SmartType st = new SmartType();
-						st.setMode(Mode.PLAIN);
-						st.setExpression("object");
-						jsonObjectStep.setKey(st);
-						sequence.add(jsonObjectStep);
-
-						XMLCopyStep xmlCopyStep = new XMLCopyStep();
-						XMLVector<String> source = new XMLVector<String>();
-						source.add(Long.toString(sequenceStep.priority));
-						source.add("document/*");
-						xmlCopyStep.setSourceDefinition(source);
-						jsonObjectStep.add(xmlCopyStep);
-						
-						IfStep ifStep = new IfStep();
-						ifStep.setCondition("false");
-						sequence.add(ifStep);
-
-						JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
-						jsonToXmlStep.setName("object");
-						jsonToXmlStep.setJsonSample(sample.toString(2));
-						ifStep.add(jsonToXmlStep);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 
+				ConvertigoPlugin.asyncExec(() -> {
+					try {
+						pev.reloadDatabaseObject(project);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-
-			ConvertigoPlugin.asyncExec(() -> {
-				try {
-					pev.reloadDatabaseObject(project);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			});
 		});
 	}
 }
