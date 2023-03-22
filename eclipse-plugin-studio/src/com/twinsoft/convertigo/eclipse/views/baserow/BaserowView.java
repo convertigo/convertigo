@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -42,7 +43,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -113,7 +116,6 @@ public class BaserowView extends ViewPart {
 	private String database_name;
 	private String view_id;
 	private String view_name;
-	private String filter_type;
 	private CompletableFuture<Object> wait_reload;
 
 	public class StudioAPI {
@@ -191,87 +193,121 @@ public class BaserowView extends ViewPart {
 		importLabel.setVisible(false);
 
 		currentProject.addSelectionListener((SelectionListener) e -> {
-			Dialog dialog = new Dialog(parent.getShell()) {
-
-				@Override
-				protected Control createContents(Composite parent) {
-					GridData gd;
-					Button btn;
-					Composite composite = new Composite(parent, SWT.NONE);
-					composite.setLayoutData(gd = new GridData(GridData.FILL_BOTH));
-					composite.setLayout(new GridLayout(2, true));
-					Label tips = new Label(composite, SWT.NONE);
-					tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
-					gd.horizontalSpan = 2;
-					tips.setText("This wizard will help you to import in your project CRUD (Create, Read, Update and Delete) sequences in your project.\nYou will then be able to call them from your front-end applications.");
-					tips = new Label(composite, SWT.NONE);
-					tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
-					gd.horizontalSpan = 2;
-					tips.setText("Select the sequences you want to import or update in your project :");
-
-					String prefix = com.twinsoft.convertigo.engine.util.StringUtils.normalize( 
-							StringUtils.capitalize(database_name) + 
-							StringUtils.capitalize(table_name));
-					List<Button> cruds = new ArrayList<>(5);
-					for (String type: Arrays.asList("List", "Create", "Read", "Update", "Delete")) {
-						cruds.add(btn = new Button(composite, SWT.CHECK));
-						btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
-						gd.horizontalSpan = 2;
-						gd.minimumHeight = 50;
-						if ("List".equals(type)) {
-							btn.setText(prefix + StringUtils.capitalize(view_name) + type);
-						} else {
-							btn.setText(prefix + type);
-						}
-						btn.setData("type", type);
-					}
-
-					btn = new Button(composite, SWT.FLAT);
-
-					btn.setText("Select All");
-					btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
-					btn.addSelectionListener((SelectionListener) e -> {
-						for (Button b: cruds) {
-							b.setSelection(true);
-						}
-					});
-					btn = new Button(composite, SWT.FLAT);
-					btn.setText("Select None");
-					btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
-					btn.addSelectionListener((SelectionListener) e -> {
-						for (Button b: cruds) {
-							b.setSelection(false);
-						}
-					});
-					btn = new Button(composite, SWT.FLAT);
-					btn.setText("Apply");
-					btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
-					btn.addSelectionListener((SelectionListener) e -> {
-						List<Pair<String, String>> stubs = new ArrayList<>(cruds.size());
-						for (Button b: cruds) {
-							if (b.getSelection()) {
-								stubs.add(Pair.of((String) b.getData("type"), b.getText()));
-							}
-						}
-						if (!stubs.isEmpty()) {
-							createStub(stubs);
-							close();
-						}
-					});
-					btn = new Button(composite, SWT.FLAT);
-					btn.setText("Cancel");
-					btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
-					btn.addSelectionListener((SelectionListener) e -> close());
-
-					for (Control c: composite.getChildren()) {
-						if (c instanceof Button) {
-							((Button) c).setCursor(handCursor);
-						}
-					}
-					return composite;
+			Engine.execute(() -> {
+				try {
+					updateNames();
+				} catch (Exception ex) {
+					Engine.logStudio.warn("failed to update names", ex);
 				}
-			};
-			dialog.open();
+				ConvertigoPlugin.asyncExec(() -> {
+					Dialog dialog = new Dialog(parent.getShell()) {
+
+						@Override
+						protected Control createContents(Composite parent) {
+							GridData gd;
+							RowLayout rl;
+							Button btn;
+							Composite composite = new Composite(parent, SWT.NONE);
+							composite.setLayoutData(gd = new GridData(GridData.FILL_BOTH));
+							composite.setLayout(new GridLayout(2, true));
+							Label tips = new Label(composite, SWT.NONE);
+							tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
+							gd.horizontalSpan = 2;
+							tips.setText("This wizard will help you to import in your project CRUD (Create, Read, Update and Delete) sequences in your project.\nYou will then be able to call them from your front-end applications.");
+							tips = new Label(composite, SWT.NONE);
+							tips.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
+							gd.horizontalSpan = 2;
+							tips.setText("Select the sequences you want to import or update in your project :");
+							Composite left = new Composite(composite, SWT.NONE);
+							left.setLayout(rl = new RowLayout(SWT.VERTICAL));
+							rl.spacing = 10;
+							left.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
+							
+							String prefix = com.twinsoft.convertigo.engine.util.StringUtils.normalize( 
+									StringUtils.capitalize(database_name) + 
+									StringUtils.capitalize(table_name));
+							List<Button> cruds = new ArrayList<>(5);
+							for (String type: Arrays.asList("List", "Create", "Read", "Update", "Delete")) {
+								cruds.add(btn = new Button(left, SWT.CHECK));
+								if ("List".equals(type)) {
+									btn.setText(prefix + com.twinsoft.convertigo.engine.util.StringUtils.normalize(StringUtils.capitalize(view_name)) + type);
+								} else {
+									btn.setText(prefix + type);
+								}
+								btn.setData("type", type);
+							}
+
+							Composite right = new Composite(composite, SWT.NONE);
+							right.setLayout(rl = new RowLayout(SWT.VERTICAL));
+							rl.spacing = 10;
+							rl.center = true;
+							right.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
+							
+							Label label = new Label(right, SWT.NONE);
+							label.setText("Default security settings for created sequences (not for updated):");
+							
+							Button auth = new Button(right, SWT.CHECK);
+							auth.setText("authentication required");
+							auth.setSelection(true);
+							
+							Composite accessibility = new Composite(right, SWT.NONE);
+							accessibility.setLayout(rl = new RowLayout());
+							rl.center = true;
+							label = new Label(accessibility, SWT.NONE);
+							label.setText("Accessibility: ");
+							Combo combo = new Combo(accessibility, SWT.READ_ONLY);
+							for (Accessibility a: Accessibility.values()) {
+								combo.add(a.name());
+							}
+							combo.setText(Accessibility.Hidden.name());
+							
+							btn = new Button(composite, SWT.FLAT);
+							btn.setText("Select All");
+							btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
+							btn.addSelectionListener((SelectionListener) e -> {
+								for (Button b: cruds) {
+									b.setSelection(true);
+								}
+							});
+							btn = new Button(composite, SWT.FLAT);
+							btn.setText("Select None");
+							btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
+							btn.addSelectionListener((SelectionListener) e -> {
+								for (Button b: cruds) {
+									b.setSelection(false);
+								}
+							});
+							btn = new Button(composite, SWT.FLAT);
+							btn.setText("Apply");
+							btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
+							btn.addSelectionListener((SelectionListener) e -> {
+								List<Pair<String, String>> stubs = new ArrayList<>(cruds.size());
+								for (Button b: cruds) {
+									if (b.getSelection()) {
+										stubs.add(Pair.of((String) b.getData("type"), b.getText()));
+									}
+								}
+								if (!stubs.isEmpty()) {
+									createStub(stubs, auth.getSelection(), Accessibility.valueOf(combo.getText()));
+									close();
+								}
+							});
+							btn = new Button(composite, SWT.FLAT);
+							btn.setText("Cancel");
+							btn.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
+							btn.addSelectionListener((SelectionListener) e -> close());
+
+							for (Control c: composite.getChildren()) {
+								if (c instanceof Button) {
+									((Button) c).setCursor(handCursor);
+								}
+							}
+							return composite;
+						}
+					};
+					dialog.open();
+				});
+			});
 		});
 
 		ConvertigoPlugin.asyncExec(() -> {
@@ -318,17 +354,7 @@ public class BaserowView extends ViewPart {
 						}
 						table_id = matcher.group(1);
 						view_id = matcher.group(2);
-						JSONObject res = callObject(view_id != null ?
-								"database/views/" + view_id + "/" :
-									"database/tables/" + table_id + "/").get();
-
-						JSONObject table = view_id != null ? getObject(res, "table") : res;
-						view_name = view_id != null ? get(res, "name") : "";
-						filter_type = res.has("filter_type") ? get(res, "filter_type") : null;
-						table_name = get(table, "name");
-						database_id = get(table, "database_id");
-						JSONObject database =  callObject("applications/" + database_id + "/").get();
-						database_name = get(database, "name");
+						updateNames();
 						ConvertigoPlugin.asyncExec(() -> {
 							importLabel.setVisible(true);
 							importLabel.setText(getLabelImportText());
@@ -349,6 +375,7 @@ public class BaserowView extends ViewPart {
 					for (HttpHeader header: params.httpHeaders()) {
 						if (header.name().equals("Authorization")) {
 							authHeader = header.value();
+							Engine.logStudio.warn("Authorization " + authHeader);
 							backendApi = params.urlRequest().url().substring(0, idx + 5);
 							if (wait_reload != null) {
 								wait_reload.complete(null);
@@ -538,6 +565,19 @@ public class BaserowView extends ViewPart {
 		}
 	}
 
+	private void updateNames() throws InterruptedException, ExecutionException {
+		JSONObject res = callObject(view_id != null ?
+				"database/views/" + view_id + "/" :
+					"database/tables/" + table_id + "/").get();
+		Engine.logStudio.warn("DatabaseDefinition " + res);
+		JSONObject table = view_id != null ? getObject(res, "table") : res;
+		view_name = view_id != null ? get(res, "name") : "";
+		table_name = get(table, "name");
+		database_id = get(table, "database_id");
+		JSONObject database =  callObject("applications/" + database_id + "/").get();
+		database_name = get(database, "name");
+	}
+	
 	private void addSample(JSONObject sample, String varName, String varType) throws JSONException {
 		if (varType.equals("link_row")) {
 			JSONObject obj = new JSONObject();
@@ -582,7 +622,7 @@ public class BaserowView extends ViewPart {
 		}
 	}
 
-	private void createStub(List<Pair<String, String>> stubs) {
+	private void createStub(List<Pair<String, String>> stubs, boolean authenticatedContextRequired, Accessibility accessibility) {
 		if (project == null) {
 			return;
 		}
@@ -591,9 +631,7 @@ public class BaserowView extends ViewPart {
 		if (pev == null) {
 			return;
 		}
-
-
-
+		
 		Engine.execute(() -> {
 			try {
 				JSONArray arr;
@@ -607,6 +645,7 @@ public class BaserowView extends ViewPart {
 					} catch (Exception e2) {
 					}
 					wait_reload = null;
+					Thread.sleep(3000);
 					arr = callArray("database/fields/table/" + table_id + "/").get();
 				}
 				int len = arr.length();
@@ -635,8 +674,8 @@ public class BaserowView extends ViewPart {
 							sequence = new GenericSequence();
 							sequence.setName(sequenceName);
 							sequence.setComment(type + " row" + (isList ? "s" : "") + " of " + table_name + " from " + database_name);
-							sequence.setAccessibility(Accessibility.Hidden);
-							sequence.setAuthenticatedContextRequired(true);
+							sequence.setAccessibility(accessibility);
+							sequence.setAuthenticatedContextRequired(authenticatedContextRequired);
 							project.add(sequence);
 						}
 
@@ -788,7 +827,7 @@ public class BaserowView extends ViewPart {
 
 						if (isDelete) {
 							TransactionStep transactionStep = new TransactionStep();
-							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___DELETE");
+							transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___row_id___DELETE");
 							sequence.add(transactionStep);
 
 							StepVariable stepVariable = new StepVariable();
@@ -836,7 +875,7 @@ public class BaserowView extends ViewPart {
 							object.put("order", "0");
 
 							SimpleStep filterStep = null;
-							if (view_id != null && filter_type != null) {
+							if (view_id != null) {
 								filterStep = new SimpleStep();
 								filterStep.setName("filter");
 								sequence.add(filterStep);
@@ -861,69 +900,132 @@ public class BaserowView extends ViewPart {
 							stepVariable.setValueOrNull("true");
 							transactionStep.add(stepVariable);
 
-							if (view_id != null && filter_type != null) {
-								String ft = StringUtils.capitalize(filter_type.toLowerCase());
+							JSONObject fieldOptions = null;
+							if (view_id != null) {
 								String filterExpression = "var filterExpression = '';\n";
 								JSONArray filters = callArray("database/views/" + view_id + "/filters/").get();
 								int ln = filters.length();
-								for (int j = 0; j < ln; j++) {
-									JSONObject filter = filters.getJSONObject(j);
-									int id = filter.getInt("field");
-									for (int i = 0; i < len; i++) {
-										JSONObject field = arr.getJSONObject(i);
-										if (field.getInt("id") == id) {
-											String name = field.getString("name");
-											String typ = filter.getString("type");
-											RequestableVariable var = new RequestableVariable();
-											var.setName("filter" + ft + StringUtils.capitalize(name) + StringUtils.capitalize(typ));
-											var.setComment("Filter rows with '" + name + "' " + typ + " the provided value " + filter_type + " other filter* variables.");
-											String value = filter.getString("value");
-											var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
-											sequence.add(var);
-											filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression = 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
-											break;
+								if (ln > 0) {
+									String filter_type = null;
+									String ft = "";
+									if (ln > 1) {
+										JSONObject res = callObject("database/views/" + view_id + "/").get();
+										filter_type = res.has("filter_type") ? get(res, "filter_type") : "AND";
+										ft = StringUtils.capitalize(filter_type.toLowerCase());
+									}
+									for (int j = 0; j < ln; j++) {
+										JSONObject filter = filters.getJSONObject(j);
+										int id = filter.getInt("field");
+										for (int i = 0; i < len; i++) {
+											JSONObject field = arr.getJSONObject(i);
+											if (field.getInt("id") == id) {
+												String name = field.getString("name");
+												String typ = filter.getString("type");
+												RequestableVariable var = new RequestableVariable();
+												var.setName("filter" + ft + StringUtils.capitalize(name) + StringUtils.capitalize(typ));
+												var.setComment("Filter rows with '" + name + "' " + typ + " the provided value" + (filter_type == null ? "." : " " + filter_type + " other filter* variables."));
+												String value = filter.getString("value");
+												var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
+												sequence.add(var);
+												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression = 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
+												break;
+											}
 										}
 									}
+									filterExpression += "filterExpression = filterExpression.replace(new RegExp('&$'), '');";
+									filterStep.setExpression(filterExpression);
+									stepVariable = new StepVariable();
+									stepVariable.setName("filterExpression");
+									transactionStep.add(stepVariable);
+									stepVariable = new StepVariable();
+									stepVariable.setName("filter_type");
+									stepVariable.setValueOrNull(filter_type);
+									transactionStep.add(stepVariable);
+								} else {
+									sequence.remove(filterStep);
 								}
-								filterExpression += "filterExpression = filterExpression.replace(new RegExp('&$'), '');";
-								filterStep.setExpression(filterExpression);
-								stepVariable = new StepVariable();
-								stepVariable.setName("filterExpression");
-								transactionStep.add(stepVariable);
-								stepVariable = new StepVariable();
-								stepVariable.setName("filter_type");
-								stepVariable.setValueOrNull(filter_type);
-								transactionStep.add(stepVariable);
+								JSONArray sortings = callArray("database/views/" + view_id + "/sortings/").get();
+								ln = sortings.length();
+								if (ln > 0) {
+									String orderBy = "";
+									for (int j = 0; j < ln; j++) {
+										JSONObject sort = sortings.getJSONObject(j);
+										int id = sort.getInt("field");
+										if (!"ASC".equals(sort.getString("order"))) {
+											orderBy += "-";
+										}
+										for (int i = 0; i < len; i++) {
+											JSONObject field = arr.getJSONObject(i);
+											if (field.getInt("id") == id) {
+												String name = field.getString("name");
+												name = name.replace("\"", "\\\"");
+												if (name.contains(",")) {
+													name = '"' + name + '"';
+												}
+												orderBy += name + ",";
+												break;
+											}
+										}
+									}
+									orderBy = orderBy.replaceAll(",$", "");
+									stepVariable = new StepVariable();
+									stepVariable.setName("order_by");
+									transactionStep.add(stepVariable);
+									
+									RequestableVariable var = new RequestableVariable();
+									var.setName("order_by");
+									var.setValueOrNull(orderBy);
+									var.setComment("Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`.");
+									sequence.add(var);
+								}
+
+								fieldOptions = callObject("database/views/" + view_id + "/field-options/").get();
+								fieldOptions = fieldOptions.getJSONObject("field_options");
+								
 							}
 
-							String[] names = new String[len];
+							List<String> names = new ArrayList<>(len);
 							for (int i = 0; i < len; i++) {
 								JSONObject field = arr.getJSONObject(i);
+								if (fieldOptions != null) {
+									String id = get(field, "id");
+									try {
+										if (fieldOptions.getJSONObject(id).getBoolean("hidden")) {
+											continue;
+										}
+									} catch (Exception e) {
+									}
+								}
 								String varName = get(field, "name");
 								String varType = get(field, "type");
 								addSample(object, varName, varType);
-								names[i] = varName;
+								names.add(varName);
 							}
 
 							stepVariable = new StepVariable();
 							stepVariable.setName("include_fields");
 							transactionStep.add(stepVariable);
+							
+							if (view_id == null) {
+								RequestableVariable var = new RequestableVariable();
+								var.setName("include_fields");
+								var.setComment("All the fields are included in the response by default. You can select a subset of fields by providing the include query parameter. If you for example provide the following GET parameter `include=field_1,field_2` then only the fields withid `1` and id `2` are going to be selected and included in the response. If the `user_field_names` parameter is provided then instead include should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `include=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `include=My Field,Field with \\\"`.");
+								var.setValueOrNull(String.join(",", names.toArray(new String[names.size()])));
+								sequence.add(var);
+							} else {
+								stepVariable.setValueOrNull(String.join(",", names.toArray(new String[names.size()])));
+							}
 
-							RequestableVariable var = new RequestableVariable();
-							var.setName("include_fields");
-							var.setComment("All the fields are included in the response by default. You can select a subset of fields by providing the include query parameter. If you for example provide the following GET parameter `include=field_1,field_2` then only the fields withid `1` and id `2` are going to be selected and included in the response. If the `user_field_names` parameter is provided then instead include should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `include=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `include=My Field,Field with \\\"`.");
-							var.setValueOrNull(String.join(",", names));
-							sequence.add(var);
-
-							for (Pair<String, String> p: Arrays.asList(
-									Pair.of("order_by", "Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`."),
-									Pair.of("page", "Defines which page of rows should be returned."),
-									Pair.of("search", "If provided only rows with data that matches the search query are going to be returned."),
-									Pair.of("size", "Defines how many rows should be returned per page.")
+							for (Pair<String, Pair<String, String>> p: Arrays.asList(
+//									Pair.of("order_by", "Optionally the rows can be ordered by provided field ids separated by comma. By default a field is ordered in ascending (A-Z) order, but by prepending the field with a '-' it can be ordered descending (Z-A). If the `user_field_names` parameter is provided then instead order_by should be a comma separated list of the actual field names. For field names with commas you should surround the name with quotes like so: `order_by=My Field,\"Field With , \"`. A backslash can be used to escape field names which contain double quotes like so: `order_by=My Field,Field with \\\"`."),
+									Pair.of("page", Pair.of("1", "Defines which page of rows should be returned.")),
+									Pair.of("search", Pair.of((String) null, "If provided only rows with data that matches the search query are going to be returned.")),
+									Pair.of("size", Pair.of("100", "Defines how many rows should be returned per page."))
 									)) {
-								var = new RequestableVariable();
+								RequestableVariable var = new RequestableVariable();
 								var.setName(p.getLeft());
-								var.setComment(p.getRight());
+								var.setValueOrNull(p.getRight().getLeft());
+								var.setComment(p.getRight().getRight());
 								sequence.add(var);
 
 								stepVariable = new StepVariable();
