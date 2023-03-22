@@ -244,11 +244,7 @@ public class BaserowView extends ViewPart {
 							right.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
 							
 							Label label = new Label(right, SWT.NONE);
-							label.setText("Default security settings for created sequences (not for updated):");
-							
-							Button auth = new Button(right, SWT.CHECK);
-							auth.setText("authentication required");
-							auth.setSelection(true);
+							label.setText("Default security settings for created sequences (not for updated):\n");
 							
 							Composite accessibility = new Composite(right, SWT.NONE);
 							accessibility.setLayout(rl = new RowLayout());
@@ -260,6 +256,13 @@ public class BaserowView extends ViewPart {
 								combo.add(a.name());
 							}
 							combo.setText(Accessibility.Hidden.name());
+							
+							label = new Label(right, SWT.NONE);
+							label.setText("↓ Check this to set authenticated session MANDATORY ↓");
+							
+							Button auth = new Button(right, SWT.CHECK);
+							auth.setText(" Authentication required");
+							auth.setSelection(true);
 							
 							btn = new Button(composite, SWT.FLAT);
 							btn.setText("Select All");
@@ -927,7 +930,7 @@ public class BaserowView extends ViewPart {
 												String value = filter.getString("value");
 												var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
 												sequence.add(var);
-												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression = 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
+												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression += 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
 												break;
 											}
 										}
