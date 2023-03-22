@@ -1221,7 +1221,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (forceInstall || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
 				boolean[] running = {true};
 				try {
-					new File(ionicDir, "package-lock.json").delete();
+					File packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
+					boolean existsPackageLockTpl = packageLockTpl.exists();
+					
+					if (!existsPackageLockTpl) {
+						new File(ionicDir, "package-lock.json").delete();
+					}
 					
 					if (forceClean) {
 						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
@@ -1231,8 +1236,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
+					if (!nodeModules.exists() && existsPackageLockTpl) {
+						com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, new File(ionicDir, "package-lock.json"));
+					}
+					
 					long start = System.currentTimeMillis();
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+					ProcessBuilder pb;
+					if (existsPackageLockTpl) {
+						pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString());
+					} else {
+						pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+					}
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
