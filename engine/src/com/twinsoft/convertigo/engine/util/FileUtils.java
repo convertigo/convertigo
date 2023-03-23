@@ -78,10 +78,9 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 				if (!copiedFile.exists()) {
 					FileUtils.copyFile(file, copiedFile, preserveFileDate);
 					String message = "+ File '" + file + "' copied from " + srcDir;
+					System.out.println(message);
 					if (Engine.logEngine != null) {
 						Engine.logEngine.info(message);
-					} else {
-						System.out.println(message);
 					}
 				}
 			}

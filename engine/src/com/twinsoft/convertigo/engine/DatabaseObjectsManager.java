@@ -167,6 +167,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	 * The symbols repository for compiling text properties.
 	 */
 	protected Properties symbolsProperties;
+	private Object symbolsMutex = new Object();
 
 	// private static String XSL_NAMESPACE_URI =
 	// "http://www.w3.org/1999/XSL/Transform";
@@ -1773,44 +1774,54 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	protected void symbolsInit() {
-		symbolsProperties = new Properties();
+		synchronized (symbolsMutex) {
+			symbolsProperties = new Properties();
 
-		if (Engine.isCliMode()) {
-			return;
-		}
-
-		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,
-				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE,
-						Engine.CONFIGURATION_PATH + "/global_symbols.properties"));
-		Properties prop = new Properties();
-
-		try {
-			PropertiesUtils.load(prop, globalSymbolsFilePath);
-		} catch (FileNotFoundException e) {
-			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
-					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
-
-			// Create the global_symbols.properties file into the default workspace
-			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
-			globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
-
-			try {
-				PropertiesUtils.store(prop, globalSymbolsProperties, "global symbols");
-				Engine.logDatabaseObjectManager.info("New global symbols file created: " + globalSymbolsProperties.getAbsolutePath());
-			} catch (Exception e1) {
-				Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
+			if (Engine.isCliMode()) {
 				return;
 			}
-		} catch (IOException e) {
-			Engine.logDatabaseObjectManager.error(
-					"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
-					+ "\"; symbols won't be calculated.", e);
-			return;
+
+			globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,
+					System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE,
+							Engine.CONFIGURATION_PATH + "/global_symbols.properties"));
+			Properties prop = new Properties();
+
+			try {
+				PropertiesUtils.load(prop, globalSymbolsFilePath);
+			} catch (FileNotFoundException e) {
+				String msg = "The symbols file specified in JVM argument as \""
+						+ globalSymbolsFilePath + "\" does not exist! Creating a new one...";
+				System.out.println(msg);
+				if (Engine.logDatabaseObjectManager != null) {
+					Engine.logDatabaseObjectManager.warn(msg);
+				}
+
+				// Create the global_symbols.properties file into the default workspace
+				File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
+				globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
+
+				try {
+					PropertiesUtils.store(prop, globalSymbolsProperties, "global symbols");
+					msg = "New global symbols file created: " + globalSymbolsProperties.getAbsolutePath();
+					System.out.println(msg);
+					if (Engine.logDatabaseObjectManager != null) {
+						Engine.logDatabaseObjectManager.warn(msg);
+					}
+				} catch (Exception e1) {
+					Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
+					return;
+				}
+			} catch (IOException e) {
+				Engine.logDatabaseObjectManager.error(
+						"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
+						+ "\"; symbols won't be calculated.", e);
+				return;
+			}
+
+			symbolsLoad(prop);
+
+			Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded! [" + symbolsProperties.size() + "]");
 		}
-
-		symbolsLoad(prop);
-
-		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");
 	}
 
 	private void symbolsLoad(Properties map) {
@@ -1832,38 +1843,40 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void symbolsUpdate(Properties map, String importAction) {
-		if (importAction == null) {
-			importAction = "priority-server";
-		}
-		File f = new File(globalSymbolsFilePath);
-
-		File oldFile = null;
-		if (f.exists()) {
-			Date date = new Date();
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-			File parentFile = f.getParentFile();
-			oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + ".properties"));
-
-			int i = 1;
-			while (oldFile.exists()) {
-				oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + "_" + i + ".properties"));
-				i++;
+		synchronized (symbolsMutex) {
+			if (importAction == null) {
+				importAction = "priority-server";
 			}
-			f.renameTo(oldFile);
-		}
-		//Remove all symbols & import symbols from file
-		if (importAction.equals("clear-import")) {
-			symbolsProperties.clear();
-			symbolsLoad(map);
-		}
-		//Add symbols from imported file and merge with existing symbols from server (priority to server if same key)
-		if (importAction.equals("priority-server")) {
-			symbolsFileImport(map, true);
-		}
-		//Add symbols from imported file and merge with existing symbols from server (priority to import symbols if same key)
-		if (importAction.equals("priority-import")) {
-			symbolsFileImport(map, false);
+			File f = new File(globalSymbolsFilePath);
+
+			File oldFile = null;
+			if (f.exists()) {
+				Date date = new Date();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+				File parentFile = f.getParentFile();
+				oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + ".properties"));
+
+				int i = 1;
+				while (oldFile.exists()) {
+					oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + "_" + i + ".properties"));
+					i++;
+				}
+				f.renameTo(oldFile);
+			}
+			//Remove all symbols & import symbols from file
+			if (importAction.equals("clear-import")) {
+				symbolsProperties.clear();
+				symbolsLoad(map);
+			}
+			//Add symbols from imported file and merge with existing symbols from server (priority to server if same key)
+			if (importAction.equals("priority-server")) {
+				symbolsFileImport(map, true);
+			}
+			//Add symbols from imported file and merge with existing symbols from server (priority to import symbols if same key)
+			if (importAction.equals("priority-import")) {
+				symbolsFileImport(map, false);
+			}
 		}
 	}
 
@@ -1904,35 +1917,41 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private void symbolsUpdated() {
-		try {
-			Properties symbolsToStore = new Properties();
-			Enumeration<String> propsEnum = GenericUtils.cast(symbolsProperties.propertyNames());
-			while (propsEnum.hasMoreElements()) {
-				String name = propsEnum.nextElement();
-				symbolsToStore.put(name, symbolsGetValueStore(name));
-			}
-			System.out.println("symbolsUpdated: " + symbolsToStore + " to:" + globalSymbolsFilePath);
-			PropertiesUtils.store(symbolsToStore, globalSymbolsFilePath, "global symbols");
-		} catch (Exception e) {
-			Engine.logEngine.error("Failed to store symbols!", e);
-		}
-
-		for (Project project : projects.values()) {
-			getProjectLoadingData().undefinedGlobalSymbol = false;
+		synchronized (symbolsMutex) {
 			try {
-				new WalkHelper() {
-
-					@Override
-					protected void walk(DatabaseObject databaseObject) throws Exception {
-						databaseObject.updateSymbols();
-						super.walk(databaseObject);
-					}
-
-				}.init(project);
+				Properties symbolsToStore = new Properties();
+				Enumeration<String> propsEnum = GenericUtils.cast(symbolsProperties.propertyNames());
+				while (propsEnum.hasMoreElements()) {
+					String name = propsEnum.nextElement();
+					symbolsToStore.put(name, symbolsGetValueStore(name));
+				}
+				String msg = "symbolsUpdated: " + symbolsToStore + " [" + symbolsToStore.size() + "] to:" + globalSymbolsFilePath;
+				if (Engine.logDatabaseObjectManager != null) {
+					Engine.logDatabaseObjectManager.warn(msg);
+				}
+				System.out.println(msg);
+				PropertiesUtils.store(symbolsToStore, globalSymbolsFilePath, "global symbols");
 			} catch (Exception e) {
-				Engine.logDatabaseObjectManager.error("Failed to update symbols of '" + project.getName() + "' project.", e);
+				Engine.logEngine.error("Failed to store symbols!", e);
 			}
-			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+
+			for (Project project : projects.values()) {
+				getProjectLoadingData().undefinedGlobalSymbol = false;
+				try {
+					new WalkHelper() {
+
+						@Override
+						protected void walk(DatabaseObject databaseObject) throws Exception {
+							databaseObject.updateSymbols();
+							super.walk(databaseObject);
+						}
+
+					}.init(project);
+				} catch (Exception e) {
+					Engine.logDatabaseObjectManager.error("Failed to update symbols of '" + project.getName() + "' project.", e);
+				}
+				project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+			}
 		}
 	}
 
