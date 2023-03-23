@@ -36,6 +36,7 @@ import com.teamdev.jxbrowser.dom.event.Event;
 import com.teamdev.jxbrowser.dom.event.EventType;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
+import com.teamdev.jxbrowser.engine.ProprietaryFeature;
 import com.teamdev.jxbrowser.engine.RenderingMode;
 import com.teamdev.jxbrowser.event.Observer;
 import com.teamdev.jxbrowser.js.JsObject;
@@ -145,6 +146,8 @@ public class C8oBrowser extends Composite {
 				browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(JBL.get())
+						.enableProprietaryFeature(ProprietaryFeature.AAC)
+						.enableProprietaryFeature(ProprietaryFeature.H_264)
 						.addSwitch("--illegal-access=warn")
 						.remoteDebuggingPort(debugPort).build());
 				browserContexts.put(browserId, browserContext);
