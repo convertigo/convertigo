@@ -745,7 +745,8 @@ public class BaserowView extends ViewPart {
 										jsonFieldStep.setOutput(false);
 										switch (varType) {
 										case "boolean": jsonFieldStep.setType(JsonFieldType.bool); break;
-										case "integer": jsonFieldStep.setType(JsonFieldType.number); break;
+										case "integer":
+										case "number": jsonFieldStep.setType(JsonFieldType.number); break;
 										case "text": break;
 										default: System.out.println("varType " + varType + " varName " + varName);
 										}
