@@ -706,7 +706,7 @@ public class BaserowView extends ViewPart {
 								String varType = get(arr.getJSONObject(i), "type");
 
 								RequestableVariable var = null;
-								if ((isCreate || isUpdate) && !"formula".equals(type)) {
+								if ((isCreate || isUpdate) && !"formula".equals(varType)) {
 									String comment = varName + " [" + varType + "]";
 									var = new RequestableVariable();
 									var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
@@ -724,7 +724,8 @@ public class BaserowView extends ViewPart {
 									}
 								}
 
-								if (jsonObjectStep != null && !"formula".equals(type)) {
+								if (jsonObjectStep != null && !"formula".equals(varType)) {
+									Step step;
 									if (varType.equals("link_row")) {
 										JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
 										jsonToXmlStep.setName(varName);
@@ -733,7 +734,7 @@ public class BaserowView extends ViewPart {
 										st.setExpression("JSON.parse(" + var.getName() + ")");
 										jsonToXmlStep.setJsonObject(st);
 										jsonToXmlStep.setOutput(false);
-										jsonObjectStep.add(jsonToXmlStep);
+										step = jsonToXmlStep;
 									} else {
 										JsonFieldStep jsonFieldStep = new JsonFieldStep();
 										jsonFieldStep.setName(varName);
@@ -742,8 +743,18 @@ public class BaserowView extends ViewPart {
 										st.setExpression(var.getName());
 										jsonFieldStep.setValue(st);
 										jsonFieldStep.setOutput(false);
-										jsonObjectStep.add(jsonFieldStep);
+										switch (varType) {
+										case "boolean": jsonFieldStep.setType(JsonFieldType.bool); break;
+										case "integer": jsonFieldStep.setType(JsonFieldType.number); break;
+										case "text": break;
+										default: System.out.println("varType " + varType + " varName " + varName);
+										}
+										
+										step = jsonFieldStep;
 									}
+									IfStep ifStep = new IfStep(var.getName() + " != null");
+									jsonObjectStep.add(ifStep);
+									ifStep.add(step);
 								}
 							}
 
