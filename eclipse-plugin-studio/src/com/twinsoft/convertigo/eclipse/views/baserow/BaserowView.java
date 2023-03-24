@@ -75,9 +75,11 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.IfStep;
+import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
 import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
 import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.JsonToXmlStep;
+import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
@@ -687,6 +689,7 @@ public class BaserowView extends ViewPart {
 						simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
 						simpleStep.updateSymbols();
 						sequence.add(simpleStep);
+						long beforeBody = simpleStep.priority;
 
 						if (isCreate || isUpdate || isRead) {
 							JSONObject sample = new JSONObject();
@@ -700,7 +703,7 @@ public class BaserowView extends ViewPart {
 								jsonObjectStep.setOutput(false);
 								sequence.add(jsonObjectStep);
 							}
-
+							
 							for (int i = 0; i < len; i++) {
 								String varName = get(arr.getJSONObject(i), "name");
 								String varType = get(arr.getJSONObject(i), "type");
@@ -725,8 +728,49 @@ public class BaserowView extends ViewPart {
 								}
 
 								if (jsonObjectStep != null && !"formula".equals(varType)) {
-									Step step;
-									if (varType.equals("link_row")) {
+									IfStep ifStep = new IfStep(var.getName() + " != null");
+									jsonObjectStep.add(ifStep);
+									if (varType.equals("file")) {
+										var.setIsFileUpload(true);
+										IfStep ifStp = new IfStep(var.getName() + " != null");
+										sequence.add(ifStp, beforeBody);
+										beforeBody = ifStp.priority;
+										simpleStep = new SimpleStep();
+										simpleStep.setName("setFile");
+										simpleStep.setExpression("file = " + var.getName());
+										ifStp.add(simpleStep);
+										TransactionStep transactionStep = new TransactionStep();
+										transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_user_files_upload_file__POST");
+										StepVariable stepVariable = new StepVariable();
+										stepVariable.setName("__header_Authorization");
+										transactionStep.add(stepVariable);
+										stepVariable = new StepVariable();
+										stepVariable.setName("file");
+										transactionStep.add(stepVariable);
+										ifStp.add(transactionStep);
+										SimpleSourceStep simpleSource = new SimpleSourceStep();
+										simpleSource.setVariableName(var.getName());
+										XMLVector<String> source = new XMLVector<String>();
+										source.add(Long.toString(transactionStep.priority));
+										source.add("/document/object/name/text()");
+										simpleSource.setSourceDefinition(source);
+										ifStp.add(simpleSource);
+										JsonArrayStep jsonArrayStep = new JsonArrayStep();
+										jsonArrayStep.setName(varName);
+										jsonArrayStep.setOutput(false);
+										ifStep.add(jsonArrayStep);
+										JsonObjectStep jsonObject = new JsonObjectStep();
+										jsonObject.setOutput(false);
+										jsonArrayStep.add(jsonObject);
+										JsonFieldStep jsonFieldStep = new JsonFieldStep();
+										jsonFieldStep.setName("name");
+										SmartType st = new SmartType();
+										st.setMode(Mode.JS);
+										st.setExpression(var.getName());
+										jsonFieldStep.setValue(st);
+										jsonFieldStep.setOutput(false);
+										jsonObject.add(jsonFieldStep);
+;									} else if (varType.equals("link_row")) {
 										JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
 										jsonToXmlStep.setName(varName);
 										SmartType st = new SmartType();
@@ -734,7 +778,7 @@ public class BaserowView extends ViewPart {
 										st.setExpression("JSON.parse(" + var.getName() + ")");
 										jsonToXmlStep.setJsonObject(st);
 										jsonToXmlStep.setOutput(false);
-										step = jsonToXmlStep;
+										ifStep.add(jsonToXmlStep);
 									} else {
 										JsonFieldStep jsonFieldStep = new JsonFieldStep();
 										jsonFieldStep.setName(varName);
@@ -747,18 +791,16 @@ public class BaserowView extends ViewPart {
 										case "boolean": jsonFieldStep.setType(JsonFieldType.bool); break;
 										case "integer":
 										case "number": jsonFieldStep.setType(JsonFieldType.number); break;
+										case "file":
+										case "long_text":
 										case "text": break;
 										default: System.out.println("varType " + varType + " varName " + varName);
 										}
-										
-										step = jsonFieldStep;
+										ifStep.add(jsonFieldStep);
 									}
-									IfStep ifStep = new IfStep(var.getName() + " != null");
-									jsonObjectStep.add(ifStep);
-									ifStep.add(step);
 								}
 							}
-
+							
 							TransactionStep transactionStep = new TransactionStep();
 							if (isCreate) {
 								transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_database_rows_table__table_id___POST");
@@ -942,7 +984,7 @@ public class BaserowView extends ViewPart {
 												String value = filter.getString("value");
 												var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
 												sequence.add(var);
-												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression += 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
+												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression += 'filter__field_" + id + "__" + typ + "=' + " + var.getName() + " + '&';\n";
 												break;
 											}
 										}
