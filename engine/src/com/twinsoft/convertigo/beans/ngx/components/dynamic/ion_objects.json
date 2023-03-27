@@ -12714,6 +12714,27 @@
             "type": "string",
             "value": false
           }
+      },
+      "hint": {
+        "AlertAction" : {
+          "SwitchAction": {
+		    "properties": {
+		      "expression": "TS=parent.out.role"
+		    },
+            "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
+              "properties": {
+                "caseValue": "'backdrop'"
+              }
+            },
+            "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
+              "properties": {
+                "caseValue": "'cancel'"
+              }
+            },
+            "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent": {
+            }
+          }
+        }
       }
   },
  
