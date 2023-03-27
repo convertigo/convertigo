@@ -429,8 +429,10 @@ public class MobilePickerComposite extends Composite {
 		
 		int btnStyle = SWT.CHECK;
 		
-		tiLink = new ToolItem(toolbar, SWT.CHECK);
-		new ToolItem(toolbar, SWT.SEPARATOR);
+		if (!isParentDialog) {
+			tiLink = new ToolItem(toolbar, SWT.CHECK);
+			new ToolItem(toolbar, SWT.SEPARATOR);
+		}
 		
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
@@ -490,7 +492,9 @@ public class MobilePickerComposite extends Composite {
 		
 		for (ToolItem ti: toolbar.getItems()) {
 			ti.setData("style", "background: unset");
-			ti.addSelectionListener(listener);
+			if (ti != tiLink) {
+				ti.addSelectionListener(listener);
+			}
 		}
 		btnSequence.setSelection(true);
 		
