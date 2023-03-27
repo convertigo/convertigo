@@ -255,6 +255,19 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\tout = event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
+			
+			if (isSubmitEvent()) {
+				computed += "\t\tif (stack[\"root\"].out?.target?.tagName?.toLowerCase() == \"form\") {" + System.lineSeparator();
+				computed += "\t\t\tlet formData = new FormData(stack[\"root\"].out.target) as any;" + System.lineSeparator();
+				computed += "\t\t\tfor (let key of formData.keys()) {" + System.lineSeparator();
+				computed += "\t\t\t\tif (key in stack[\"root\"].in) {" + System.lineSeparator();
+				computed += "\t\t\t\t\tstack[\"root\"].in[key] = formData.get(key); " + System.lineSeparator();
+				computed += "\t\t\t\t}" + System.lineSeparator();
+				computed += "\t\t\t}" + System.lineSeparator();
+				computed += "\t\t}" + System.lineSeparator();
+				computed += "\t\t" + System.lineSeparator();
+			}
+			
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeEvent();
