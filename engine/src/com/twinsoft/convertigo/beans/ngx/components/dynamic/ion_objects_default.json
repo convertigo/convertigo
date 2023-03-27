@@ -1792,6 +1792,56 @@
      "value": false
     }
    }
+  },
+  "   8   2   0": {
+   "name": "Toggle",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "EnableOnOffLabels": {
+     "name": "EnableOnOffLabels",
+     "mode": "script",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "RadioButton": {
