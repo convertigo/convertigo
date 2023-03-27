@@ -1968,6 +1968,18 @@
             "top"
           ]
         }
+      },
+      "hint": {
+        "FabContainer": {
+          "properties": {
+            "Horizontal": "end",
+            "Vertical": "bottom",
+            "IonSlot": "fixed"
+          },
+          "FabButton": {
+            "Icon": {}
+          }
+        }
       }
     },
 
