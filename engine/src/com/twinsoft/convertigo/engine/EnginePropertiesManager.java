@@ -98,7 +98,24 @@ public class EnginePropertiesManager {
 			return null;
 		}
 	}
+	
+	public enum RootLogLevels implements ComboEnum {
+		FATAL,
+		ERROR,
+		WARN,
+		INFO,
+		DEBUG,
+		TRACE;
 
+		public String getDisplay() {
+			return name();
+		}
+
+		public String getValue() {
+			return name();
+		}
+	}
+	
 	public enum LogLevels implements ComboEnum {
 		INHERITED ("", "Inherited from root logger"),
 		FATAL,
@@ -402,8 +419,8 @@ public class EnginePropertiesManager {
 		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
 
 		/** LOGS */
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
+		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", LogLevels.WARN.getValue(), "Log4J admin logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
