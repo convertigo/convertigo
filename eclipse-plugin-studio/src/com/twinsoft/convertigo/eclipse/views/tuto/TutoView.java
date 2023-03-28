@@ -48,6 +48,8 @@ import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
 import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.permission.PermissionType;
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
@@ -118,6 +120,14 @@ public class TutoView extends ViewPart implements StudioEventListener {
 		ConvertigoPlugin.asyncExec(() -> {
 			browser = new C8oBrowser(main, SWT.NONE);
 			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+			browser.getBrowser().profile().permissions().set(RequestPermissionCallback.class, (event, params) -> {
+				if (event.permissionType() == PermissionType.CLIPBOARD_READ_WRITE ||
+						event.permissionType() == PermissionType.CLIPBOARD_SANITIZED_WRITE) {
+					params.grant();
+				} else {
+					params.deny();
+				}
+			});
 			browser.getBrowser().set(InjectJsCallback.class, params -> {
 				try {
 					Frame frame = params.frame();
