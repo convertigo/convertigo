@@ -6305,7 +6305,7 @@
                 "search",
                 "tel",
                 "text",
-                "url"                   
+                "url"
             ]
         },
         "Max": {
@@ -6459,6 +6459,7 @@
             false,
             "date",
             "email",
+            "file",
             "number",
             "password",
             "search",
