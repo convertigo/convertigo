@@ -1696,7 +1696,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						envValue = def.replace("\\%", "%");
 					} else {
 						// If the environment variable is not defined and there is not default value neither
-						Engine.logDatabaseObjectManager.error("The environment variable "  + name + " is undifined.");
+						Engine.logDatabaseObjectManager.error("The environment variable "  + name + " is undefined.");
 						envValue = mFindEnv.group(0);
 					}
 				}
