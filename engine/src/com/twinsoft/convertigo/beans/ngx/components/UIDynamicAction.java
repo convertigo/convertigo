@@ -414,10 +414,17 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		JSONObject jsonModel = new JSONObject();
 		//if (isEnabled()) {
 			try {
-				jsonModel.put("in", new JSONObject()
-										.put("props", new JSONObject())
-										.put("vars", new JSONObject()))
-							.put("out", new JSONObject());
+				jsonModel
+						.put("event", new JSONObject())
+						.put("in", new JSONObject()
+									.put("props", new JSONObject())
+									.put("vars", new JSONObject()))
+						.put("out", new JSONObject());
+				
+				UIComponent pEvent = getPEvent();
+				if (pEvent != null) {
+					jsonModel.put("event", new JSONObject(pEvent.computeJsonModel()));
+				}
 				
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
@@ -588,7 +595,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 				//tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
-				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
+				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
 				if ("InvokeAction".equals(ionBean.getName())) {

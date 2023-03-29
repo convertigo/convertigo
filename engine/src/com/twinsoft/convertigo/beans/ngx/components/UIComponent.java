@@ -557,6 +557,18 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 			return (UIForm) databaseObject;
 	}
 	
+	public UIComponent getPEvent() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof IEventGenerator) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null || !(databaseObject instanceof UIComponent))
+			return null;
+		else
+			return (UIComponent) databaseObject;
+	}
+	
 	@Override
 	public boolean testAttribute(String name, String value) {
 		if (name.equals("isEnabled")) {
@@ -637,7 +649,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	}
 	
 	public String computeJsonModel() {
-		return "";
+		return "{}";
 	}
 
 	protected Contributor getContributor() {

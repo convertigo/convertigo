@@ -19,9 +19,11 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -89,6 +91,25 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				bindEvent = AttrEvent.valueOf(eventName);
 			} catch (Exception e) {};
 			return bindEvent != null ? bindEvent.event():eventName;
+		}
+		
+		public static String asJson(Class<?> c, String eventName) {
+			AttrEvent bindEvent = null;
+			try {
+				bindEvent = AttrEvent.valueOf(eventName);
+			} catch (Exception e) {};
+			
+			String ename = bindEvent != null ? bindEvent.event():eventName;
+			try {
+				ename = ename.replace("(", "").replace(")", "");
+				InputStream inputstream = c.getResourceAsStream("events/"+ ename +".json");
+				if (inputstream != null) {
+					return IOUtils.toString(inputstream, "UTF-8");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			};
+			return null;
 		}
 	}
 	
@@ -402,6 +423,25 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			
 			super.computeScripts(jsonScripts);
 		}
+	}
+	
+	@Override
+	public String computeJsonModel() {
+		try {
+			String json = AttrEvent.asJson(getClass(), eventName);
+			if (json != null) {
+				JSONObject jsonModel = new JSONObject(json);
+				return jsonModel.getJSONObject("json").toString();
+			} else {
+				JSONObject jsonModel = new JSONObject();
+				jsonModel.put("detail", new JSONObject().put("value", ""));
+				jsonModel.put("type", "");
+				return jsonModel.toString();
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "{}";
 	}
 	
 	private String getEventFunctionName() {
