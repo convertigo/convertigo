@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -494,10 +496,22 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return list;
 	}
 	
+	private static Pattern exprPattern = Pattern.compile("\\{\\{\\{(.+?)\\}\\}\\}");
+	
 	public String getContextXpath(String xpath) throws EngineException {
 		String	contextXpath;
 		String 	anchor = getAnchor();
-	
+		
+		try {
+			if (sequence != null && sequence.runningThread != null && xpath.contains("{{{")) {
+				Matcher exprMatcher = exprPattern.matcher(xpath);
+				xpath = exprMatcher.replaceAll(m -> "" + RhinoUtils.evalCachedJavascript(sequence.runningThread.javascriptContext, sequence.scope, m.group(1), getName(), 0, null));
+				Engine.logBeans.trace("XPath of '" + getName() + "' evaluated to '" + xpath + "'");
+			}
+		} catch (Exception e) {
+			Engine.logBeans.trace("XPath of '" + getName() + "' evaluation failure '" + e.getMessage() + "'");
+		}
+		
 		if (anchor == null)
 			return xpath;
 		
