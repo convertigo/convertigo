@@ -6089,7 +6089,6 @@
           "label": "Enable OnOff Labels",
           "description": "Enables the on/off accessibility switch labels within the toggle.",
           "category": "@Properties",
-          "mode": "script",
           "type": "boolean",
           "value": "false",
           "values": [

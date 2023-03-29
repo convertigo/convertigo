@@ -1828,7 +1828,7 @@
     },
     "EnableOnOffLabels": {
      "name": "EnableOnOffLabels",
-     "mode": "script",
+     "mode": "plain",
      "value": "false"
     },
     "Value": {
