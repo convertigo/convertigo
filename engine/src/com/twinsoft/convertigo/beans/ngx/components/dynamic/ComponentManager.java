@@ -386,6 +386,10 @@ public class ComponentManager {
 							msst = new MobileSmartSourceType();
 							msst.setMode(Mode.SCRIPT);
 							msst.setSmartValue(value.replace("TS=", ""));
+						} else if (value.startsWith("SC=")) {
+							msst = new MobileSmartSourceType();
+							msst.setMode(Mode.SOURCE);
+							msst.setSmartValue(value.replace("SC=", ""));
 						}
 						
 						BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());

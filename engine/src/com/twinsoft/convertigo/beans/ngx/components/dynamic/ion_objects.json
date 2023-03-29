@@ -1978,6 +1978,21 @@
           },
           "FabButton": {
             "Icon": {}
+          },
+          "FabList": {
+            "properties": {
+              "Side": "start"
+            },
+            "FabButton": {
+              "properties": {
+                "IonColor": "success"
+              },
+              "Icon": {
+                "properties": {
+                  "IconName": "SC={\"filter\":\"Icon\",\"project\":\"\",\"input\":\"\",\"model\":{\"data\":[{\"icon\":\"'chevron-back'\"}],\"path\":\"\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"
+                }
+              }
+            }
           }
         }
       }
