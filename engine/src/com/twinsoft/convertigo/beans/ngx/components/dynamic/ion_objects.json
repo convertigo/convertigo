@@ -12730,6 +12730,11 @@
       },
       "hint": {
         "AlertAction" : {
+          "properties": {
+            "button1": "CANCEL",
+            "button2": "OK",
+            "cancel1": "cancel"
+          },
           "SwitchAction": {
 		    "properties": {
 		      "expression": "TS=parent.out.role"
@@ -12737,14 +12742,29 @@
             "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
               "properties": {
                 "caseValue": "'backdrop'"
+              },
+              "ToastAction" : {
+                "properties": {
+                  "message": "backdrop"
+                }
               }
             },
             "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
               "properties": {
                 "caseValue": "'cancel'"
+              },
+              "ToastAction" : {
+                "properties": {
+                  "message": "cancel"
+                }
               }
             },
             "com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent": {
+              "ToastAction" : {
+                "properties": {
+                  "message": "confirm"
+                }
+              }
             }
           }
         }
