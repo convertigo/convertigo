@@ -73,12 +73,30 @@ public class URLUtils {
 		}
 		return sUrl;
 	}
+
+	static private Pattern alreadyPattern = Pattern.compile("%[0-9a-fA-F]{2}");
+	public static String encodeComponentIfNot(String component, String urlEncoding) throws UnsupportedEncodingException {
+		Matcher alreadyMatcher = alreadyPattern.matcher(component);
+		return encodeComponentIfNot(alreadyMatcher, component, urlEncoding);
+	}
 	
+	private static String encodeComponentIfNot(Matcher alreadyMatcher, String component, String urlEncoding) throws UnsupportedEncodingException {
+		if (alreadyMatcher.find()) {
+			try {
+				URLDecoder.decode(component, urlEncoding);
+				return component;
+			} catch (Exception e) {
+			}
+		}
+		return URLEncoder.encode(component, urlEncoding);
+	}
+
+	static private Pattern fieldSeparatorsPattern = Pattern.compile("[?&=]");
 	public static String encodeField(String field, String urlEncoding) throws UnsupportedEncodingException {
 		String encodedField = field;
 		if ((field != null) && (!field.equals(""))) {
-			Pattern myPattern = Pattern.compile("[?&=]");
-			Matcher myMatcher = myPattern.matcher(field);
+			Matcher myMatcher = fieldSeparatorsPattern.matcher(field);
+			Matcher alreadyMatcher = alreadyPattern.matcher("");
 			
 			List<String> splitString = new LinkedList<String>();
 			int beginIndex = 0, startIndex, endIndex;
@@ -86,13 +104,17 @@ public class URLUtils {
 				startIndex = myMatcher.start();
 				endIndex = myMatcher.end();
 				if ((beginIndex != startIndex) && (startIndex != -1) && (beginIndex <= startIndex)) {
-					splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, startIndex), urlEncoding)));
+					String component = field.substring(beginIndex, startIndex);
+					alreadyMatcher.reset(component);
+					splitString.add(encodeComponentIfNot(alreadyMatcher, component, urlEncoding));
 				}
-				splitString.add(new String (field.substring(startIndex, endIndex)));
+				splitString.add(field.substring(startIndex, endIndex));
 				beginIndex = endIndex;
 			}
 			if (beginIndex != field.length()) {
-				splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, field.length()), urlEncoding)));
+				String component = field.substring(beginIndex, field.length());
+				alreadyMatcher.reset(component);
+				splitString.add(encodeComponentIfNot(alreadyMatcher, component, urlEncoding));
 			}
 			
 			if (splitString.size() > 0) {

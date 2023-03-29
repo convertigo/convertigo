@@ -984,7 +984,7 @@ public class BaserowView extends ViewPart {
 												String value = filter.getString("value");
 												var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
 												sequence.add(var);
-												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression += 'filter__field_" + id + "__" + typ + "=' + " + var.getName() + " + '&';\n";
+												filterExpression += "if (typeof " + var.getName() + " != 'undefined') filterExpression += 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
 												break;
 											}
 										}
