@@ -400,6 +400,15 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 	}
 	
 	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		try {
+			jsonModel.put("out", new JSONObject());
+		} catch (JSONException e) {}
+		return jsonModel.toString();
+	}
+	
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("componentEvent")) {
 			return EnumUtils.toStrings(ComponentEvent.class);

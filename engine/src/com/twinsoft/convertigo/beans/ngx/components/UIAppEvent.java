@@ -271,6 +271,15 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 		}
 	}
 
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		try {
+			jsonModel.put("out", new JSONObject());
+		} catch (JSONException e) {}
+		return jsonModel.toString();
+	}
+
 	protected String computeListenerFunction() {
 		String computed = "";
 		if (isEnabled()) {

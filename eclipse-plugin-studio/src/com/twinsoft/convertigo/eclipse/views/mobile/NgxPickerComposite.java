@@ -126,6 +126,7 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
+import com.twinsoft.convertigo.beans.ngx.components.IEventGenerator;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceData;
@@ -1598,6 +1599,9 @@ public class NgxPickerComposite extends Composite {
 						dbo = (UICustomAction)object;
 						searchPath = "";
 					}
+				} else if (object instanceof IEventGenerator && object instanceof UIComponent) {
+					dbo = (UIComponent)object;
+					searchPath = "";
 				} else if (object instanceof UISharedComponent) {
 					dbo = (UISharedComponent)object;
 					searchPath = "";
@@ -1936,6 +1940,15 @@ public class NgxPickerComposite extends Composite {
 				else if (dbo instanceof UICustomAction) {
 					jsonObject = new JSONObject(((UICustomAction)dbo).computeJsonModel());
 				}
+
+				String searchPath = dataPath;
+
+				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+
+				jsonModel = jsonOutput;
+			}
+			else if (dbo instanceof IEventGenerator && dbo instanceof UIComponent) {
+				JSONObject jsonObject = new JSONObject(((UIComponent)dbo).computeJsonModel());
 
 				String searchPath = dataPath;
 

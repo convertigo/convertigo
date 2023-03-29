@@ -414,6 +414,15 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	}
 	
 	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		try {
+			jsonModel.put("out", new JSONObject());
+		} catch (JSONException e) {}
+		return jsonModel.toString();
+	}
+
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("viewEvent")) {
 			final UISharedComponent uisc = this.getSharedComponent();

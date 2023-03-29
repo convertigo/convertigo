@@ -462,7 +462,10 @@ public class UICustomAction extends UIComponent implements IAction {
 				
 				UIComponent pEvent = getPEvent();
 				if (pEvent != null) {
-					jsonModel.put("event", new JSONObject(pEvent.computeJsonModel()));
+					JSONObject jsonEvent = new JSONObject(pEvent.computeJsonModel());
+					if (jsonEvent.has("out")) {
+						jsonModel.put("event", jsonEvent.getJSONObject("out"));
+					}
 				}
 				
 				JSONObject jsonProps = jsonModel.getJSONObject("in").getJSONObject("props");

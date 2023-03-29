@@ -198,6 +198,15 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 		}
 	}
 
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		try {
+			jsonModel.put("out", new JSONObject());
+		} catch (JSONException e) {}
+		return jsonModel.toString();
+	}
+	
 	protected boolean handleError() {
 		boolean handleError = false;
 		UIActionErrorEvent errorEvent = getErrorEvent();

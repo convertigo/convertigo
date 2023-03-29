@@ -664,12 +664,16 @@ public class MobileSmartSource {
 	
 	static public class ActionData extends SourceData {
 		private long priority = 0L;
+		private boolean rootEvent = false;
 		
 		public ActionData(JSONObject jsonObject) {
 			super(jsonObject);
 			try {
 				if (jsonObject.has("priority")) {
 					priority = jsonObject.getLong("priority");
+				}
+				if (jsonObject.has("rootEvent")) {
+					rootEvent = jsonObject.getBoolean("rootEvent");
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -698,6 +702,7 @@ public class MobileSmartSource {
 			JSONObject jsonObject = new JSONObject();
 			try {
 				jsonObject.put("priority", priority);
+				jsonObject.put("rootEvent", rootEvent);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -718,7 +723,9 @@ public class MobileSmartSource {
 		@Override
 		public String getSource() {
 			String source = null;
-			if (priority != 0L) {
+			if (rootEvent) {
+				source = "stack['root']";
+			} else if (priority != 0L) {
 				source = "stack['"+ priority + "']";
 			}
 			return source;
@@ -1539,6 +1546,15 @@ public class MobileSmartSource {
 						String p = stack.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
 						p = p.substring(1, p.length()-1); // ignore quotes
 						long priority = Long.valueOf(p, 10);
+						return findDatabaseObject(rootDboName, priority);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} else {
+					try {
+						JSONObject ob = getModel().toJson();
+						JSONArray data = ob.getJSONArray("data");
+						long priority = ((JSONObject)data.get(0)).getLong("priority");
 						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();

@@ -430,12 +430,16 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		try {
 			String json = AttrEvent.asJson(getClass(), eventName);
 			if (json != null) {
-				JSONObject jsonModel = new JSONObject(json);
-				return jsonModel.getJSONObject("json").toString();
-			} else {
 				JSONObject jsonModel = new JSONObject();
-				jsonModel.put("detail", new JSONObject().put("value", ""));
-				jsonModel.put("type", "");
+				jsonModel.put("out", new JSONObject(json).getJSONObject("json"));
+				return jsonModel.toString();
+			} else {
+				JSONObject jsonEvent = new JSONObject();
+				jsonEvent.put("detail", new JSONObject().put("value", ""));
+				jsonEvent.put("type", "");
+				
+				JSONObject jsonModel = new JSONObject();
+				jsonModel.put("out", jsonEvent);
 				return jsonModel.toString();
 			}
 		} catch (JSONException e) {

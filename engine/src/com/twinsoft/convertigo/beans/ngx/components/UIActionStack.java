@@ -433,8 +433,12 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 	public String computeJsonModel() {
 		JSONObject jsonModel = new JSONObject();
 		try {
-			jsonModel.put("in", new JSONObject()
-									.put("vars", new JSONObject()));
+			jsonModel
+					.put("event", new JSONObject())
+					.put("in", new JSONObject()
+								.put("props", new JSONObject())
+								.put("vars", new JSONObject()))
+					;
 			
 			JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
 			Iterator<UIComponent> it = getUIComponentList().iterator();

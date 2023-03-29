@@ -588,14 +588,32 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 					
 					if (showInPicker) {
 						if (uic instanceof UIAppEvent || uic instanceof UIPageEvent || uic instanceof UISharedComponentEvent || uic instanceof UIEventSubscriber) {
+							SourceData sd = null;
+							try {
+								sd = Filter.Action.toSourceData(new JSONObject()
+										.put("priority", uic.priority).put("rootEvent", true));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							
 							TVObject tve = tvEvents == null ?
-									tvi.add(new TVObject(uic.toString(), uic, null)) :
-										tvEvents.add(new TVObject(uic.toString(), uic, null));
+									tvi.add(new TVObject(uic.toString(), uic, sd)) :
+										tvEvents.add(new TVObject(uic.toString(), uic, sd));
 							addActions(tve, uic);
 						} else if (uic instanceof UIActionEvent || uic instanceof UIControlEvent) {
+							SourceData sd = null;
+							if (uic instanceof UIControlEvent) {
+								try {
+									sd = Filter.Action.toSourceData(new JSONObject()
+											.put("priority", uic.priority).put("rootEvent", true));
+								} catch (JSONException e) {
+									e.printStackTrace();
+								}
+							}
+							
 							TVObject tve = tvControls == null ?
-									tvi.add(new TVObject(uic.toString(), uic, null)) :
-										tvControls.add(new TVObject(uic.toString(), uic, null));
+									tvi.add(new TVObject(uic.toString(), uic, sd)) :
+										tvControls.add(new TVObject(uic.toString(), uic, sd));
 							addActions(tve, uic);
 						} else if (uic instanceof IAction || uic instanceof UIActionStack) {
 							SourceData sd = null;
