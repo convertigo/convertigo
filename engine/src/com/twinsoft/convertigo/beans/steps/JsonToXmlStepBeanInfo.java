@@ -38,7 +38,7 @@ public class JsonToXmlStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 
 			properties[0] = new PropertyDescriptor("key", beanClass, "getKey", "setKey");
 			properties[0].setDisplayName(getExternalizedString("property.key.display_name"));
@@ -57,6 +57,11 @@ public class JsonToXmlStepBeanInfo extends MySimpleBeanInfo {
 			properties[2].setValue(GENERIC_EDITOR_EXTENSION, "json");
 			properties[2].setValue(MULTILINE, true);
 			properties[2].setExpert(true);
+
+			properties[3] = new PropertyDescriptor("arrayChildrenTag", beanClass, "getArrayChildrenTag", "setArrayChildrenTag");
+			properties[3].setDisplayName(getExternalizedString("property.arrayChildrenTag.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.arrayChildrenTag.short_description"));
+			properties[3].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

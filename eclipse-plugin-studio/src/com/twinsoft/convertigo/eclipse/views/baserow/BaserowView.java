@@ -878,6 +878,7 @@ public class BaserowView extends ViewPart {
 
 							JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
 							jsonToXmlStep.setName("object");
+							jsonToXmlStep.setArrayChildrenTag("object");
 							jsonToXmlStep.setJsonSample(sample.toString(2));
 							ifStep.add(jsonToXmlStep);
 						}
@@ -1103,6 +1104,7 @@ public class BaserowView extends ViewPart {
 
 							JsonToXmlStep jsonToXmlStep = new JsonToXmlStep();
 							jsonToXmlStep.setName("object");
+							jsonToXmlStep.setArrayChildrenTag("object");
 							jsonToXmlStep.setJsonSample(sample.toString(2));
 							ifStep.add(jsonToXmlStep);
 						}

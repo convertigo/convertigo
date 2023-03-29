@@ -48,10 +48,11 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
 	private static final long serialVersionUID = 4426288799938289068L;
-	
+
 	private SmartType key = new SmartType();
 	private SmartType jsonObject = new SmartType();
 	private String jsonSample = "";
+	private String arrayChildrenTag = "item";
 	transient private String jsonSource;
 
 	public JsonToXmlStep() {
@@ -91,7 +92,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	public String getStepNodeName() {
 		return getName();
 	}
-	
+
 	public SmartType getKey() {
 		return key;
 	}
@@ -116,6 +117,14 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		this.jsonSample = jsonSample;
 	}
 
+	public String getArrayChildrenTag() {
+		return arrayChildrenTag;
+	}
+
+	public void setArrayChildrenTag(String arrayChildrenTag) {
+		this.arrayChildrenTag = arrayChildrenTag;
+	}
+
 	@Override
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
@@ -131,7 +140,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 				o = RhinoUtils.jsonParse(jsonSource);
 			}
 
-			XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, "item");
+			XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, arrayChildrenTag);
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -146,13 +155,13 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		if (isEnabled()) {
 			evaluate(javascriptContext, scope, key);
 			evaluate(javascriptContext, scope, jsonObject);
-			
+
 			if (jsonObject.getMode() == Mode.JS) {
 				jsonSource = RhinoUtils.jsonStringify(jsonObject.getEvaluated());
 			} else {
 				jsonSource = jsonObject.getSingleString(this).trim();
 			}
-			
+
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -173,9 +182,9 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element root = doc.createElement("root");
 			doc.appendChild(root);
-			XMLUtils.jsonToXml(json, root);
+			XMLUtils.jsonToXml(json, null, root, true, true, false, arrayChildrenTag);
 			XmlSchemaUtils.handleXsdElement(this, element, root, schema);
-			
+
 			XmlSchemaComplexType cType = (XmlSchemaComplexType) element.getSchemaType();
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 			attribute.setName("originalKeyName");
@@ -188,12 +197,12 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return element;
 	}
-	
+
 	private transient Set<SmartType> smartTypes = null;
-	
+
 	@Override
 	public Set<SmartType> getSmartTypes() {
 		if (smartTypes != null) {
@@ -214,7 +223,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	public String toJsString() {
 		return null;
 	}
-	
+
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
 		if (key != null && key.getMode() == Mode.PLAIN
@@ -223,7 +232,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			hasChanged = true;
 		}
 	}
-	
+
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "object";

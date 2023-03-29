@@ -1447,7 +1447,7 @@ public class XMLUtils {
 		jsonToXml(object, objectKey, parentElement, false, includeDataType, compactArray, arrayChildrenTag);
 	}
 	
-	private static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
+	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
 		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\"" + objectKey + "\"");
 		
 		Document doc = parentElement.getOwnerDocument();

@@ -51,9 +51,10 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContainer {
 
 	private static final long serialVersionUID = 9145615088577678134L;
-	
+
 	private SmartType key = new SmartType();
 	private String jsonSample = "";
+	private String arrayChildrenTag = "item";
 
 	public ReadJSONStep() {
 		super();
@@ -107,7 +108,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String getStepNodeName() {
 		if (replaceStepElement) {
@@ -116,13 +117,21 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 			return super.getStepNodeName();
 		}
 	}
-	
+
 	protected String getFileNodeName() {
 		String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : getName();
 		name = name.isBlank() ? getName() : StringUtils.normalize(name);
 		return name;
 	}
-	
+
+	public String getArrayChildrenTag() {
+		return arrayChildrenTag;
+	}
+
+	public void setArrayChildrenTag(String arrayChildrenTag) {
+		this.arrayChildrenTag = arrayChildrenTag;
+	}
+
 	protected Document read(String filePath, boolean schema) {
 		Document xmlDoc = null;
 
@@ -152,8 +161,8 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 					} else {
 						o = RhinoUtils.jsonParse(jsonSource);
 					}
-					
-					XMLUtils.jsonToXml(o, getFileNodeName(), elt, true, false, "item");
+
+					XMLUtils.jsonToXml(o, getFileNodeName(), elt, true, false, arrayChildrenTag);
 					elt = (Element) elt.getFirstChild();
 					elt.setAttribute("originalKeyName", key.getSingleString(this));
 					xmlDoc.appendChild(elt);
@@ -161,7 +170,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 					// TODO: handle exception
 					e.printStackTrace();
 				}
-				
+
 				if (Engine.logBeans.isDebugEnabled()) {
 					String xmlContent = XMLUtils.prettyPrintDOM(xmlDoc);
 					if (Engine.logBeans.isTraceEnabled()) {
@@ -211,9 +220,9 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element root = doc.createElement("root");
 			doc.appendChild(root);
-			XMLUtils.jsonToXml(json, root);
+			XMLUtils.jsonToXml(json, null, root, true, true, false, arrayChildrenTag);
 			XmlSchemaUtils.handleXsdElement(this, element, root, schema);
-			
+
 			XmlSchemaComplexType cType = (XmlSchemaComplexType) element.getSchemaType();
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 			attribute.setName("originalKeyName");
@@ -229,9 +238,9 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 
 		return base;
 	}
-	
+
 	private transient Set<SmartType> smartTypes = null;
-	
+
 	@Override
 	public Set<SmartType> getSmartTypes() {
 		if (smartTypes != null) {
@@ -246,7 +255,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 		smartTypes.add(key);
 		return smartTypes;
 	}
-	
+
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
 		if (key != null && key.getMode() == Mode.PLAIN
@@ -255,7 +264,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 			hasChanged = true;
 		}
 	}
-	
+
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "key";
