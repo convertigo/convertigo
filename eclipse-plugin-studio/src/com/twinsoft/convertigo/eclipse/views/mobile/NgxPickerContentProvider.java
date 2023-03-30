@@ -550,6 +550,12 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 				list = app.getUIAppEventList();
 				list.addAll(GenericUtils.cast(app.getUIEventSubscriberList()));
 				list.addAll(GenericUtils.cast(app.getSharedActionList()));
+			} else if (object instanceof UIAppEvent) {
+				if (tvi != null && "actions".equals(tvi.getName())) {
+					list = new ArrayList<>(Arrays.asList((UIAppEvent)object));
+				} else {
+					list = ((UIAppEvent)object).getUIComponentList();
+				}
 			} else if (object instanceof UIActionStack) {
 				if (tvi != null && "actions".equals(tvi.getName())) {
 					list = new ArrayList<>(Arrays.asList((UIActionStack)object));

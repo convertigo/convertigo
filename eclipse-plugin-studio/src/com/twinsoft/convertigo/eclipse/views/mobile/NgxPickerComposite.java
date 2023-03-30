@@ -116,8 +116,6 @@ import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IApplicationComponent;
-import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
@@ -162,11 +160,9 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerContentProvider.TVObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
@@ -191,7 +187,6 @@ public class NgxPickerComposite extends Composite {
 	private Label message;
 	private Filter currentFilter = Filter.Sequence;
 	private String currentSource = null;
-	//private MobileComponent currentMC = null;
 	private MobileObject currentMC = null;
 	private Object firstSelected, lastSelected;
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
@@ -2115,17 +2110,20 @@ public class NgxPickerComposite extends Composite {
 		currentMC = null;
 		setWidgetsEnabled(true);
 
-		if (selected instanceof NgxPageComponentTreeObject || selected instanceof NgxUIComponentTreeObject) {
+		if (selected instanceof NgxApplicationComponentTreeObject || selected instanceof NgxPageComponentTreeObject || selected instanceof NgxUIComponentTreeObject) {
 			UIComponent uic = null;
-			if (selected instanceof NgxPageComponentTreeObject) {
+			if (selected instanceof NgxApplicationComponentTreeObject) {
+				currentMC = ((NgxApplicationComponentTreeObject) selected).getObject();
+			} else if (selected instanceof NgxPageComponentTreeObject) {
 				currentMC = ((NgxPageComponentTreeObject) selected).getObject();
 			} else if (selected instanceof NgxUIComponentTreeObject) {
 				uic = ((NgxUIComponentTreeObject) selected).getObject();
-				//currentMC = uic.getPage() != null ? uic.getPage() : (uic.getMenu() != null ?  uic.getMenu() : uic.getApplication());
 				currentMC = currentMC == null ? uic.getPage() : currentMC;
-				currentMC = currentMC == null ? uic.getMenu() : currentMC;
 				currentMC = currentMC == null ? uic.getSharedAction() : currentMC;
 				currentMC = currentMC == null ? uic.getSharedComponent() : currentMC;
+				
+				currentMC = currentMC == null ? uic.getMenu() : currentMC;
+				currentMC = currentMC == null ? uic.getPEvent() : currentMC;
 				currentMC = currentMC == null ? uic.getApplication() : currentMC;
 			}
 
@@ -2169,21 +2167,21 @@ public class NgxPickerComposite extends Composite {
 			updateMessage();
 			return;
 		}
-		if (selected instanceof DatabaseObjectTreeObject) {
-			try {
-				ProjectTreeObject prjt = ((DatabaseObjectTreeObject) selected).getProjectTreeObject();
-				MobileApplication app = prjt.getObject().getMobileApplication();
-				IApplicationComponent iapp = app.getApplicationComponent();
-				if (iapp instanceof ApplicationComponent) {
-					TreeObject dbot = prjt.findTreeObjectByUserObject(((ApplicationComponent) iapp).getRootPage());
-					if (dbot != null) {
-						setCurrentInput(dbot, source);
-						return;
-					}
-				}
-			} catch (Exception e) {
-			}
-		}
+//		if (selected instanceof DatabaseObjectTreeObject) {
+//			try {
+//				ProjectTreeObject prjt = ((DatabaseObjectTreeObject) selected).getProjectTreeObject();
+//				MobileApplication app = prjt.getObject().getMobileApplication();
+//				IApplicationComponent iapp = app.getApplicationComponent();
+//				if (iapp instanceof ApplicationComponent) {
+//					TreeObject dbot = prjt.findTreeObjectByUserObject(((ApplicationComponent) iapp).getRootPage());
+//					if (dbot != null) {
+//						setCurrentInput(dbot, source);
+//						return;
+//					}
+//				}
+//			} catch (Exception e) {
+//			}
+//		}
 		
 		resetViewers();
 		updateMessage();
