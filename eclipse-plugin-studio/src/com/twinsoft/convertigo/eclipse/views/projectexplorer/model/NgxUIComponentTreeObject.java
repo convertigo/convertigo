@@ -1156,16 +1156,37 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										sourcesUpdated = true;
 									}
 								}
-							}
-							if (dbo instanceof UIComponent) {
+							} else if (dbo instanceof UIStackVariable || dbo instanceof UICompVariable) {
 								if (!newValue.equals(oldValue)) {
-									String oldName = (String)oldValue;
-									String newName = (String)newValue;
-									try {
-										if (getObject().updateSmartSource("\\."+oldName+"\\b", "."+newName)) {
-											sourcesUpdated = true;
+									UIComponent obj = getObject();
+									DatabaseObject d = obj;
+									while (d != null) {
+										if (dbo instanceof UIStackVariable) {
+											if (d instanceof UIActionStack) {
+												break;
+											} else if (d instanceof UIDynamicInvoke) {
+												String pqname = dbo.getParent().getQName();
+												String qname = ((UIDynamicInvoke) d).getSharedActionQName();
+												if (pqname.equals(qname)) {
+													break;
+												}
+											}
+										} else if (dbo instanceof UICompVariable) {
+											if (d instanceof UISharedComponent) {
+												break;
+											}
 										}
-									} catch (Exception e) {}
+										d = d.getParent();
+									}
+									if (d != null) {
+										String oldName = (String)oldValue;
+										String newName = (String)newValue;
+										try {
+											if (obj.updateSmartSource("((?:\"|vars)\\??\\.)"+oldName+"\\b", "$1"+newName)) {
+												sourcesUpdated = true;
+											}
+										} catch (Exception e) {}
+									}
 								}
 							}
 						} catch (Exception e) {
