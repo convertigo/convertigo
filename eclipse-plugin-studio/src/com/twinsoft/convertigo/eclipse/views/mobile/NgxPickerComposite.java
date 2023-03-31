@@ -1583,6 +1583,10 @@ public class NgxPickerComposite extends Composite {
 					dbo = (ApplicationComponent)object;
 					params.put("json", infos.toString());
 					searchPath = "";
+				} else if (object instanceof PageComponent) {
+					dbo = (PageComponent)object;
+					params.put("json", infos.toString());
+					searchPath = "";
 				} else if (object instanceof UIActionStack) {
 					dbo = (UIActionStack)object;
 					searchPath = "";
@@ -1963,6 +1967,11 @@ public class NgxPickerComposite extends Composite {
 			}
 			// case of ApplicationComponent
 			else if (dbo instanceof ApplicationComponent) {
+				String json = params.get("json");
+				jsonModel = new JSONObject(json);
+			}
+			// case of PageComponent
+			else if (dbo instanceof PageComponent) {
 				String json = params.get("json");
 				jsonModel = new JSONObject(json);
 			}

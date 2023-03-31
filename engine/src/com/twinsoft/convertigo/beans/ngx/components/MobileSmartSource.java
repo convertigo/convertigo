@@ -665,6 +665,7 @@ public class MobileSmartSource {
 	static public class ActionData extends SourceData {
 		private long priority = 0L;
 		private boolean rootEvent = false;
+		private boolean pageLocals = false;
 		
 		public ActionData(JSONObject jsonObject) {
 			super(jsonObject);
@@ -674,6 +675,9 @@ public class MobileSmartSource {
 				}
 				if (jsonObject.has("rootEvent")) {
 					rootEvent = jsonObject.getBoolean("rootEvent");
+				}
+				if (jsonObject.has("pageLocals")) {
+					pageLocals = jsonObject.getBoolean("pageLocals");
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -703,6 +707,7 @@ public class MobileSmartSource {
 			try {
 				jsonObject.put("priority", priority);
 				jsonObject.put("rootEvent", rootEvent);
+				jsonObject.put("pageLocals", pageLocals);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -723,7 +728,9 @@ public class MobileSmartSource {
 		@Override
 		public String getSource() {
 			String source = null;
-			if (rootEvent) {
+			if (pageLocals) {
+				source = "this";
+			} else if (rootEvent) {
 				source = "stack['root']";
 			} else if (priority != 0L) {
 				source = "stack['"+ priority + "']";

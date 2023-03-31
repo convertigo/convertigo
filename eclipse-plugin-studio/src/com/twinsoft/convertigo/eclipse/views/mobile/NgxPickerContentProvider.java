@@ -245,6 +245,10 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 			TVObject root = new TVObject("root", mobileComponent, null);
 			if (filter.equals(Filter.Action)) {
 				TVObject tvi = root.add(new TVObject("actions"));
+				
+				if (mobileComponent instanceof PageComponent) {
+					tvi.add(new TVObject("locals"));
+				}
 				TVObject tvEvents = tvi.add(new TVObject("events"));
 				TVObject tvControls = tvi.add(new TVObject("controls"));
 				
@@ -571,10 +575,17 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 			}
 			
 			if (list != null) {
-				TVObject tvEvents = null, tvControls = null;
+				TVObject tvLocals = null, tvEvents = null, tvControls = null;
 				if (tvi != null && "actions".equals(tvi.getName())) {
-					tvEvents = tvi.children.get(0);
-					tvControls = tvi.children.get(1);
+					for (TVObject tvo: tvi.children) {
+						if (tvo.getName().equals("locals")) {
+							tvLocals = tvo;
+						} else if (tvo.getName().equals("events")) {
+							tvEvents = tvo;							
+						} else if (tvo.getName().equals("controls")) {
+							tvControls = tvo;							
+						}
+					}
 				}
 				for (UIComponent uic : list) {
 					// do not add to prevent selection on itself or children
@@ -593,6 +604,25 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 					}
 					
 					if (showInPicker) {
+						PageComponent page = uic.getPage();
+						if (page != null && tvLocals != null && tvLocals.children.isEmpty()) {
+							try {
+								JSONObject jsonInfos = new JSONObject();
+								jsonInfos.put("navParams", new JSONObject().put("data", ""));
+
+								SourceData sd = null;
+								try {
+									sd = Filter.Action.toSourceData(new JSONObject().put("pageLocals", "true"));
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								
+								tvLocals.add(new TVObject(page.getName(), page, sd, jsonInfos));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
+						
 						if (uic instanceof UIAppEvent || uic instanceof UIPageEvent || uic instanceof UISharedComponentEvent || uic instanceof UIEventSubscriber) {
 							SourceData sd = null;
 							try {
