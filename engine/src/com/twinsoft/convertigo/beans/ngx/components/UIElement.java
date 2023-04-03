@@ -165,7 +165,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			}
 			if (component instanceof UIDynamicAttr) {
 				UIDynamicAttr uiDynAttr = (UIDynamicAttr)component;
-				attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiDynAttr.initAttrClasses());
+				if (uiDynAttr.isEnabled()) {
+					attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiDynAttr.initAttrClasses());
+				}
 			}
 		}
 		return attrclasses;
@@ -182,7 +184,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			UIComponent component = (UIComponent)it.next();
 			if (component instanceof UIDynamicAttr) {
 				UIDynamicAttr uiDynAttr = (UIDynamicAttr)component;
-				sb.append(sb.length()>0 ? " ":"").append(uiDynAttr.initAttributes());
+				if (uiDynAttr.isEnabled()) {
+					sb.append(sb.length()>0 ? " ":"").append(uiDynAttr.initAttributes());
+				}
 			}
 		}
 		return sb;
