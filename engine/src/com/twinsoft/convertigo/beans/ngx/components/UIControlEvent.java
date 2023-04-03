@@ -102,16 +102,35 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				bindEvent = AttrEvent.valueOf(eventName);
 			} catch (Exception e) {};
 			
-			String ename = bindEvent != null ? bindEvent.event():eventName;
-			ename = ename.replace("(", "").replace(")", "");
-			
 			String json = null;
 			try {
 				String tag = getTag(uic.getParent());
 				if (tag != null) {
+					String ename = eventName.replace("(", "").replace(")", "");
 					json = AttrEvent.getEventJsonString(uic, tag + "." + ename + ".json");
+					if (json == null) {
+						ename = bindEvent != null ? bindEvent.event():eventName;
+						ename = ename.replace("(", "").replace(")", "");
+						json = AttrEvent.getEventJsonString(uic, tag + "." + ename + ".json");
+					}
+					
+					if (json != null && tag.equals("ion-calendar") && eventName.equals("onChange")) {
+						try {
+							String pickMode = ((UIDynamicElement)uic.getParent())
+									.getIonBean().getProperty("pickMode").getValue().toString();
+							if (pickMode.equals("single")) {
+								json = "{json: ''}";
+							} else if (pickMode.equals("multi")) {
+								json = "{json: ['']}";
+							} else if (pickMode.equals("range")) {
+								json = "{json: {from: '', to: ''}}";
+							}
+						} catch (Exception e) {}
+					}
 				}
 				if (json == null) {
+					String ename = bindEvent != null ? bindEvent.event():eventName;
+					ename = ename.replace("(", "").replace(")", "");
 					json = AttrEvent.getEventJsonString(uic, ename + ".json");
 				}
 			} catch (Exception e) {};
@@ -458,7 +477,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			String json = AttrEvent.asJson(this, eventName);
 			if (json != null) {
 				JSONObject jsonModel = new JSONObject();
-				jsonModel.put("out", new JSONObject(json).getJSONObject("json"));
+				jsonModel.put("out", new JSONObject(json).get("json"));
 				return jsonModel.toString();
 			} else {
 				JSONObject jsonEvent = new JSONObject();

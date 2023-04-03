@@ -425,7 +425,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (pEvent != null) {
 					JSONObject jsonEvent = new JSONObject(pEvent.computeJsonModel());
 					if (jsonEvent.has("out")) {
-						jsonModel.put("event", jsonEvent.getJSONObject("out"));
+						jsonModel.put("event", jsonEvent.get("out"));
 					}
 				}
 				

@@ -1,0 +1,8 @@
+{
+  "event": "ion-calendar.onChange",
+  "eventType": "Object",
+  "json": {
+  	"from": "",
+	"to": ""
+  }
+}

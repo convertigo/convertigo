@@ -1,0 +1,24 @@
+{
+  "event": "ion-calendar.monthChange",
+  "eventType": "Object",
+  "json": {
+    "oldMonth": {
+      "time": "",
+      "unix": "",
+      "dateObj": {},
+      "string": "",
+      "years": "",
+      "months": "",
+      "date": ""
+    },
+    "newMonth": {
+      "time": "",
+      "unix": "",
+      "dateObj": {},
+      "string": "",
+      "years": "",
+      "months": "",
+      "date": ""
+    }
+  }
+}

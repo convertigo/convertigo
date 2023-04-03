@@ -1,0 +1,18 @@
+{
+  "event": "ion-calendar.onSelect",
+  "eventType": "Object",
+  "json": {
+    "time": "",
+    "isToday": "",
+    "title": "",
+    "subTitle": "",
+    "selected": "",
+    "isLastMonth": "",
+    "isNextMonth": "",
+    "marked": "",
+    "cssClass": "",
+    "disable": "",
+    "isFirst": "",
+    "isLast": ""
+  }
+}
