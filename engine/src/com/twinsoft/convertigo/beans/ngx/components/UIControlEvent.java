@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.beans.IntrospectionException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -93,22 +96,46 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			return bindEvent != null ? bindEvent.event():eventName;
 		}
 		
-		public static String asJson(Class<?> c, String eventName) {
+		public static String asJson(UIControlEvent uic, String eventName) {
 			AttrEvent bindEvent = null;
 			try {
 				bindEvent = AttrEvent.valueOf(eventName);
 			} catch (Exception e) {};
 			
 			String ename = bindEvent != null ? bindEvent.event():eventName;
+			ename = ename.replace("(", "").replace(")", "");
+			
+			String json = null;
 			try {
-				ename = ename.replace("(", "").replace(")", "");
-				InputStream inputstream = c.getResourceAsStream("events/"+ ename +".json");
-				if (inputstream != null) {
-					return IOUtils.toString(inputstream, "UTF-8");
+				String tag = getTag(uic.getParent());
+				if (tag != null) {
+					json = AttrEvent.getEventJsonString(uic, tag + "." + ename + ".json");
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			};
+				if (json == null) {
+					json = AttrEvent.getEventJsonString(uic, ename + ".json");
+				}
+			} catch (Exception e) {};
+			
+			return json;
+		}
+		
+		private static String getTag(DatabaseObject dbo) throws IntrospectionException {
+			if (dbo != null) {
+				if (dbo instanceof UIDynamicElement) {
+					IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+					if (ionBean != null) {
+						return ionBean.getTag();
+					}
+				}
+			}
+			return null;
+		}
+		
+		private static String getEventJsonString(UIControlEvent uic, String fileName) throws IOException {
+			InputStream inputstream = uic.getClass().getResourceAsStream("events/"+ fileName);
+			if (inputstream != null) {
+				return IOUtils.toString(inputstream, "UTF-8");
+			}
 			return null;
 		}
 	}
@@ -428,7 +455,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	@Override
 	public String computeJsonModel() {
 		try {
-			String json = AttrEvent.asJson(getClass(), eventName);
+			String json = AttrEvent.asJson(this, eventName);
 			if (json != null) {
 				JSONObject jsonModel = new JSONObject();
 				jsonModel.put("out", new JSONObject(json).getJSONObject("json"));

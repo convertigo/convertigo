@@ -1,0 +1,11 @@
+{
+  "event": "onMapClick",
+  "eventType": "Object",
+  "json": {
+    "coords": {
+      "lat": "",
+      "lng": ""
+    },
+    "placeId": ""
+  }
+}

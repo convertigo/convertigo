@@ -1,0 +1,10 @@
+{
+  "event": "agm-circle.onCircleClick",
+  "eventType": "Object",
+  "json": {
+    "coords": {
+      "lat": "",
+      "lng": ""
+    }
+  }
+}

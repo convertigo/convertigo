@@ -1,0 +1,14 @@
+{
+  "event": "onBoundsChange",
+  "eventType": "Object",
+  "json": {
+    "Ya": {
+      "lo": "",
+      "hi": ""
+    },
+    "Ma": {
+      "lo": "",
+      "hi": ""
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "event": "agm-circle.onCenterChange",
+  "eventType": "Object",
+  "json": {
+    "lat": "",
+    "lng": ""
+  }
+}

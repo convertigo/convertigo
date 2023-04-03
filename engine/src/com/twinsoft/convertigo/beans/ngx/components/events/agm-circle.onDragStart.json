@@ -1,0 +1,10 @@
+{
+  "event": "agm-circle.onDragStart",
+  "eventType": "Object",
+  "json": {
+    "coords": {
+      "lat": "",
+      "lng": ""
+    }
+  }
+}

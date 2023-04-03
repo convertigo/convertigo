@@ -1,0 +1,10 @@
+{
+  "event": "agm-marker.onMouseOut",
+  "eventType": "Object",
+  "json": {
+    "coords": {
+      "lat": "",
+      "lng": ""
+    }
+  }
+}

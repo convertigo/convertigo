@@ -1,0 +1,10 @@
+{
+  "event": "agm-marker.onMouseOver",
+  "eventType": "Object",
+  "json": {
+    "coords": {
+      "lat": "",
+      "lng": ""
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "event": "agm-marker.onMarkerClick",
+  "eventType": "Object",
+  "json": {
+    "_markerManager": {
+      "_mapsWrapper": {
+        "_loader": {},
+        "_zone": {},
+        "_map": {}
+      },
+      "_zone": {
+        "hasPendingMacrotasks": "",
+        "hasPendingMicrotasks": "",
+        "isStable": "",
+        "_nesting": "",
+        "_inner": {},
+        "_outer": {},
+        "shouldCoalesceEventChangeDetection": "",
+        "shouldCoalesceRunChangeDetection": "",
+        "lastRequestAnimationFrameId": "",
+        "_hasPendingMicrotasks": ""
+      },
+      "_markers": {}
+    },
+    "draggable": "",
+    "visible": "",
+    "openInfoWindow": "",
+    "opacity": "",
+    "zIndex": "",
+    "clickable": "",
+    "animationChange": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "markerClick": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "markerDblClick": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "markerRightClick": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "dragStart": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "drag": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "dragEnd": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "mouseOver": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "mouseOut": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": ""
+    },
+    "infoWindow": {
+      "_emitDistinctChangesOnly": "",
+      "dirty": "",
+      "_results": {},
+      "_changesDetected": "",
+      "_changes": {
+        "_isScalar": "",
+        "observers": [],
+        "closed": "",
+        "isStopped": "",
+        "hasError": "",
+        "thrownError": ""
+      },
+      "length": "",
+      "first": "",
+      "last": ""
+    },
+    "_markerAddedToManger": "",
+    "_observableSubscriptions": {},
+    "_fitBoundsDetails$": {
+      "_isScalar": "",
+      "observers": {},
+      "closed": "",
+      "isStopped": "",
+      "hasError": "",
+      "thrownError": "",
+      "scheduler": "",
+      "_events": {},
+      "_infiniteTimeWindow": "",
+      "_bufferSize": "",
+      "_windowTime": ""
+    },
+    "_id": "",
+    "iconUrl": "",
+    "title": "",
+    "latitude": "",
+    "longitude": ""
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "event": "onCenterChange",
+  "eventType": "Object",
+  "json": {
+    "lat": "",
+    "lng": ""
+  }
+}
