@@ -1,0 +1,94 @@
+{
+  "event": "c8o-treeview.onNodeActivate",
+  "eventType": "Object",
+  "json": {
+    "eventName": "",
+    "node": {
+      "data": {
+        "id": "",
+        "name": ""
+      },
+      "parent": {
+        "data": {},
+        "parent": {},
+        "treeModel": {},
+        "children": {},
+        "index": "",
+        "position": "",
+        "height": ""
+      },
+      "treeModel": {
+        "options": {},
+        "eventNames": [],
+        "roots": {},
+        "expandedNodeIds": {},
+        "selectedLeafNodeIds": {},
+        "activeNodeIds": {},
+        "hiddenNodeIds": {},
+        "focusedNodeId": "",
+        "virtualRoot": {},
+        "firstUpdate": "",
+        "subscriptions": [],
+        "virtualScroll": {},
+        "events": {},
+        "nodes": []
+      },
+      "children": "",
+      "index": "",
+      "position": "",
+      "height": ""
+    },
+    "treeModel": {
+      "options": {
+        "options": {},
+        "actionMapping": {}
+      },
+      "eventNames": {},
+      "roots": {},
+      "expandedNodeIds": {},
+      "selectedLeafNodeIds": {},
+      "activeNodeIds": {},
+      "hiddenNodeIds": {},
+      "focusedNodeId": "",
+      "virtualRoot": {
+        "data": {},
+        "parent": "",
+        "treeModel": {},
+        "children": {},
+        "index": "",
+        "position": "",
+        "height": ""
+      },
+      "firstUpdate": "",
+      "subscriptions": {},
+      "virtualScroll": {
+        "treeModel": {},
+        "yBlocks": "",
+        "x": "",
+        "viewportHeight": "",
+        "viewport": {},
+        "_dispose": []
+      },
+      "events": {
+        "toggleExpanded": {},
+        "activate": {},
+        "deactivate": {},
+        "nodeActivate": {},
+        "nodeDeactivate": {},
+        "select": {},
+        "deselect": {},
+        "focus": {},
+        "blur": {},
+        "initialized": {},
+        "updateData": {},
+        "moveNode": {},
+        "copyNode": {},
+        "event": {},
+        "loadNodeChildren": {},
+        "changeFilter": {},
+        "stateChange": {}
+      },
+      "nodes": {}
+    }
+  }
+}
