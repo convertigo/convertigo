@@ -519,16 +519,10 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			if (parent instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
 				if (uisc != null) {
-					if (uisc.isRegular()) {
+					if (uisc.isRegular() && !uisc.equals(sharedComponent)) {
 						//scope += !scope.isEmpty() ? ", ":"";
 						//scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
-					} else {
-						scope += !scope.isEmpty() ? ", ":"";
-						scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
 					}
-				}
-				if (isInSharedComponent) {
-					break;
 				}
 			}
 			
