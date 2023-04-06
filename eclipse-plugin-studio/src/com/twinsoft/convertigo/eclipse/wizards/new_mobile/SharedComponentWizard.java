@@ -568,6 +568,17 @@ public class SharedComponentWizard extends Wizard {
 		}
 	}
 
+	private String replace(String smart_value, String source, String replacement) {
+		String s = smart_value;
+		// replace considering world boundaries
+		s = s.replaceAll("\\b"+ source +"\\b", Matcher.quoteReplacement(replacement));
+		s = s.replaceAll("(this\\.)+", "this.");
+		
+		// treat special TS case initializing a js object passing current object variable's name and value
+		s = s.replaceAll(replacement + "\\s*\\:\\s*" + replacement, source + ": "+ replacement);
+		return s;
+	}
+	
 	private void updateMobileSmartSources(final UISharedComponent uisc) throws Exception {
 		final String priority = "" + uisc.priority;
 
@@ -590,7 +601,8 @@ public class SharedComponentWizard extends Wizard {
 								for (String target: m.keySet()) {
 									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
 									replacement = replacement.replace("_params_", "params"+priority);
-									smart_value = smart_value.replace(target, replacement);
+									//smart_value = smart_value.replace(target, replacement);
+									smart_value = replace(smart_value, target, replacement);
 								}
 							}
 						}
@@ -655,9 +667,12 @@ public class SharedComponentWizard extends Wizard {
 								for (String target: m.keySet()) {
 									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
 									replacement = replacement.replace("_params_", "params"+priority);
-									mew_model.setPrefix(model.getPrefix().replace(target, replacement));
-									mew_model.setSuffix(model.getSuffix().replace(target, replacement));
-									mew_model.setCustom(model.getCustom().replace(target, replacement));
+									//mew_model.setPrefix(model.getPrefix().replace(target, replacement));
+									//mew_model.setSuffix(model.getSuffix().replace(target, replacement));
+									//mew_model.setCustom(model.getCustom().replace(target, replacement));
+									mew_model.setPrefix(replace(model.getPrefix(), target, replacement));
+									mew_model.setSuffix(replace(model.getSuffix(),target, replacement));
+									mew_model.setCustom(replace(model.getCustom(), target, replacement));
 								}
 							}
 						}
