@@ -262,7 +262,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		    		for (String useQName: getConsumers(compQName)) {
 		    			if (useQName.startsWith(keyQName)) {
 		    				if (!set.contains(useQName)) {
-		    					set.addAll(getAllConsumers(keyQName));
+		    					set.addAll(getConsumers(keyQName));
 		    				}
 		    			}
 		    		}
