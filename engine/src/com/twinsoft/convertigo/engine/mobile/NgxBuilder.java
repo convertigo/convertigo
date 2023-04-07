@@ -769,6 +769,12 @@ public class NgxBuilder extends MobileBuilder {
 						invokeAll(executor, pList);
 						invokeAll(executor, aList);
 						
+						if (initDone && autoBuild && buildMutex != null) {
+							Engine.logEngine.trace("(NgxBuilder@"+ project.getName()+") start moveFilesForce for consumer update");
+							moveFilesForce();
+							Engine.logEngine.trace("(NgxBuilder@"+ project.getName()+") end moveFilesForce for consumer update");
+						}
+						
 						long t1 = System.currentTimeMillis();
 						Engine.logEngine.debug("(NgxBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
 					} else {
