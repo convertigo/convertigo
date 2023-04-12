@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -129,7 +131,6 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.navigator.resources.ProjectExplorer;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.services.IEvaluationService;
 import org.eclipse.ui.wizards.IWizardCategory;
 import org.eclipse.ui.wizards.IWizardDescriptor;
@@ -1585,14 +1586,34 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
-		IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-		try {
-			progressService.busyCursorWhile(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject));
-		} catch (InvocationTargetException e) {
-		} catch (InterruptedException e) {
+	private boolean checkReload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) {
+		boolean ok = parentTreeObject.getObject() == parentDatabaseObject;
+		if (ok) {
+			try {
+				List<DatabaseObject> dboChildren = parentDatabaseObject.getDatabaseObjectChildren();
+				List<DatabaseObjectTreeObject> dbotChildren = parentTreeObject.getDatabaseObjectTreeObjectChildren();
+				if (ok = dboChildren.size() == dbotChildren.size()) {
+					Iterator<DatabaseObject> idbo = dboChildren.iterator();
+					Iterator<DatabaseObjectTreeObject> idbot = dbotChildren.iterator();
+					while (ok && idbo.hasNext()) {
+						ok = checkReload(idbot.next(), idbo.next());
+					}
+				}
+			} catch (Exception e) {
+				ok = false;
+			}
 		}
-
+		return ok;
+	}
+	
+	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
+		if (!checkReload(parentTreeObject, parentDatabaseObject)) {
+			try {
+				ModalContext.run(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject), true, new NullProgressMonitor(), ConvertigoPlugin.getDisplay());
+			} catch (InvocationTargetException e) {
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 
 	private class ReloadWithProgress implements IRunnableWithProgress, DatabaseObjectListener {
@@ -1617,14 +1638,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			try {
 				int worksNumber = 10;
-
-				//				try {
-				//					String latestSavedDatabaseObjectQName = ((DatabaseObjectTreeObject)parentTreeObject).latestSavedDatabaseObjectQName;
-				//					String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf('/'));
-				//					File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
-				//					worksNumber = 2 * ConvertigoPlugin.projectManager.getNumberOfObjects(file);
-				//				}
-				//				catch (Exception e) {}
 
 				monitor.beginTask("Reloading \""+ dboName + "\" object", worksNumber);
 
@@ -1675,7 +1688,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 					if (expendedPaths != null) {
 						ConvertigoPlugin.asyncExec(() -> {
-							for (int i=0; i<expendedPaths.length; i++) {
+							for (int i = 0; i < expendedPaths.length; i++) {
 								String previousPath = expendedPaths[i];
 								TreeObject treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
 								if (treeObject != null)

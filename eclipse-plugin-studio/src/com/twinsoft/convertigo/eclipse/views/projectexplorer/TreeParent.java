@@ -20,10 +20,12 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -167,5 +169,21 @@ public abstract class TreeParent extends TreeObject {
 		synchronized (children) {
 			return children.isEmpty() ? null : children.get(children.size() - 1);
 		}
+	}
+	
+	private void getDatabaseObjectTreeObjectChildren(List<DatabaseObjectTreeObject> list, TreeParent tp) {
+		for (TreeObject to: tp.children) {
+			if (to instanceof DatabaseObjectTreeObject) {
+				list.add((DatabaseObjectTreeObject) to);
+			} else if (to instanceof TreeParent) {
+				getDatabaseObjectTreeObjectChildren(list, (TreeParent) to);
+			}
+		}
+	}
+	
+	public List<DatabaseObjectTreeObject> getDatabaseObjectTreeObjectChildren() {
+		List<DatabaseObjectTreeObject> list = new LinkedList<DatabaseObjectTreeObject>();
+		getDatabaseObjectTreeObjectChildren(list, this);
+		return list;
 	}
 }

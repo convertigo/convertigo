@@ -71,11 +71,12 @@ public abstract class TreeObject implements IAdaptable {
 	}
 
 	public String getPath() {
+		TreeObject to = check();
 		String name, parentPath = "";
 		
-		name = getName();
+		name = to.getName();
 		try {
-			parentPath = parent.getPath();
+			parentPath = to.parent.getPath();
 		}
 		catch (Exception e) {}
 		

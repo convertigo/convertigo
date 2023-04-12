@@ -36,8 +36,6 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -57,6 +55,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -77,12 +76,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private ISelection nodeTreeViewerSelection;
 	private TreePath[] nodeTreeViewerExpandedTreePaths;
 	private TwsDomTree domTree;
-	
+
 	private Label message;
 	private ToolItem autoRefresh;
 	private ToolItem autoValidate;
 	private ToolItem internalSchema;
-	
+
 	private boolean needRefresh;
 	private boolean needValidate;
 	private String projectName;
@@ -90,7 +89,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private Thread workingThread;
 	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
-		
+
 		@Override
 		public void documentGenerated(final Document document) {
 			final Element documentElement = document.getDocumentElement();
@@ -101,179 +100,133 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 					String connector = documentElement.getAttribute("connector");
 					String transaction = documentElement.getAttribute("transaction");
 					final String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
-					
+
 					if (needValidate) {
-						Display.getDefault().asyncExec(new Runnable() {
-	
-							public void run() {
-								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
-								message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
-							}
-							
+						ConvertigoPlugin.asyncExec(() -> {
+							message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
+							message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
 						});
-						
-						tasks.add(new Runnable() {
-	
-							public void run() {
-								final Exception[] exception = {null};
-								try {
-									Engine.theApp.schemaManager.validateResponse(projectName, requestableName, document);
-								} catch (SAXException e) {
-									exception[0] = e;
-								}
-								
-								Display.getDefault().asyncExec(new Runnable() {
-	
-									public void run() {
-										if (message != null && !message.isDisposed()) {
-											if (exception[0] == null) {
-												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
-												message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
-											} else {
-												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
-												message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].toString()/*exception[0].getMessage()*/);
-											}
-											content.layout(true);
-										}
-									}
-									
-								});
+
+						tasks.add(() -> {
+							final Exception[] exception = {null};
+							try {
+								Engine.theApp.schemaManager.validateResponse(projectName, requestableName, document);
+							} catch (SAXException e) {
+								exception[0] = e;
 							}
-							
+
+							ConvertigoPlugin.asyncExec(() -> {
+								if (message != null && !message.isDisposed()) {
+									if (exception[0] == null) {
+										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
+										message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
+									} else {
+										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
+										message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].toString()/*exception[0].getMessage()*/);
+									}
+									content.layout(true);
+								}
+							});
 						});
 					}
 					else {
-						Display.getDefault().asyncExec(new Runnable() {
-							
-							public void run() {
-								message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
-								message.setText("'" + projectName + "' schema generated.");
-							}
-							
+						ConvertigoPlugin.asyncExec(() -> {
+							message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
+							message.setText("'" + projectName + "' schema generated.");
 						});
 					}
 				}
 			}
 		}
-		
+
 	};
-	
+
 	public SchemaView() {
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
-		workingThread = new Thread(new Runnable() {
+		workingThread = new Thread(() -> {
+			while (workingThread != null) {
 
-			public void run() {
-				while (workingThread != null) {
-
-					try {
-						Runnable task = null;
-						synchronized (workingThread) {
-							task = tasks.poll();
-							if (task == null) {
-								workingThread.wait(5000);
-							}
+				try {
+					Runnable task = null;
+					synchronized (workingThread) {
+						task = tasks.poll();
+						if (task == null) {
+							workingThread.wait(5000);
 						}
-						if (task != null) {
-							task.run();
-						}
-					} catch (Throwable e) {
-						System.err.println("Exception in " + projectName);
-						e.printStackTrace();
 					}
+					if (task != null) {
+						task.run();
+					}
+				} catch (Throwable e) {
+					System.err.println("Exception in " + projectName);
+					e.printStackTrace();
 				}
 			}
-
 		});
 		workingThread.setName("SchemaViewThread");
 		workingThread.start();
-	
-		makeUI(content = new Composite(parent, SWT.NONE));
-		
-		getSite().getPage().addSelectionListener(this);
-		
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);		
-		
-		ConvertigoPlugin.runAtStartup(new Runnable() {
 
-			@Override
-			public void run() {
-				Engine.theApp.addEngineListener(engineListener);
-			}
-			
+		makeUI(content = new Composite(parent, SWT.NONE));
+
+		getSite().getPage().addSelectionListener(this);
+
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
+
+		ConvertigoPlugin.runAtStartup(() -> {
+			Engine.theApp.addEngineListener(engineListener);
 		});
 	}
-	
+
 	private void makeUI(Composite content) {
 		content.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
-		
+
 		// TOP TOOLBAR
 		Composite composite = new Composite(content, SWT.BORDER);
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		composite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
 		composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-		
+
 		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
-		
+
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				needRefresh = true;
-				Engine.theApp.schemaManager.clearCache(projectName);
-				updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			needRefresh = true;
+			Engine.theApp.schemaManager.clearCache(projectName);
+			updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
 		});
-		
+
 		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
 		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
 		toolItem.setSelection(true);
-		
+
 		toolItem = autoValidate = new ToolItem(toolbar, SWT.CHECK);
 		setToolItemIcon(toolItem, "icons/studio/validate.gif", "AV", "Toggle auto validate");
 		toolItem.setSelection(false);
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				needValidate = autoValidate.getSelection();
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			needValidate = autoValidate.getSelection();
 		});
-		
+
 		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
 		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				needRefresh = true;
-				updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			needRefresh = true;
+			updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
 		});
-		
+
 		message = new Label(composite, SWT.WRAP);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		message.setText("No schema to generate");
-		
+
 		// MAIN SASH FORM
 		SashForm sashForm = new SashForm(content, SWT.NONE);
 		sashForm.setOrientation(SWT.HORIZONTAL);
 		sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		// SCHEMA PANE
 		schemaTreeViewer = makeTreeViewer(sashForm);
 		schemaTreeViewer.setContentProvider(new SchemaViewContentProvider(3));
@@ -284,7 +237,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						(nodeTreeViewer.getInput() == null || ((Root) nodeTreeViewer.getInput()).get() != firstElement) &&
 						!(firstElement instanceof XmlSchema)) {
 					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
-					
+
 					if (nodeTreeViewerExpandedTreePaths != null && nodeTreeViewerExpandedTreePaths.length > 0) {
 						nodeTreeViewer.setExpandedTreePaths(nodeTreeViewerExpandedTreePaths);
 						nodeTreeViewer.setSelection(nodeTreeViewerSelection);
@@ -297,7 +250,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				}
 			}
 		});
-		
+
 		// DETAIL PANE
 		nodeTreeViewer = makeTreeViewer(sashForm);
 		nodeTreeViewer.setContentProvider(new SchemaViewContentProvider());
@@ -309,47 +262,31 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				}
 			}
 		});
-		
+
 		// DOM PANE
 		composite = new Composite(sashForm, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
-		
+
 		toolbar = new ToolBar(composite, SWT.NONE);
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				domTree.collapseAll();
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			domTree.collapseAll();
 		});
-		
+
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				domTree.expandAll();
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			domTree.expandAll();
 		});
-		
+
 		domTree = new TwsDomTree(composite, SWT.BORDER);
 		domTree.setLayoutData(new GridData(GridData.FILL_BOTH));
 	}
-	
+
 	@Override
 	public void dispose() {
 		workingThread = null;
@@ -362,7 +299,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		content.dispose();
 		super.dispose();
 	}
-	
+
 	@Override
 	public void setFocus() {
 		schemaTreeViewer.getControl().setFocus();
@@ -411,7 +348,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		needRefresh = true;
 	}
-	
+
 	private void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
 		try {
 			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon(iconPath));
@@ -420,47 +357,35 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		}
 		toolItem.setToolTipText(tooltip);
 	}
-	
+
 	private TreeViewer makeTreeViewer(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
-		
+
 		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		final TreeViewer treeViewer = new TreeViewer(composite);
-		
+
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
-		
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				treeViewer.collapseAll();
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {	
-			}
+
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			treeViewer.collapseAll();
 		});
-		
+
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
-		
-		toolItem.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				treeViewer.expandToLevel(50);
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {	
-			}
+
+		toolItem.addSelectionListener((SelectionListener) (e) -> {
+			treeViewer.expandToLevel(50);
 		});
-		
+
 		treeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
 		treeViewer.setLabelProvider(SchemaViewContentProvider.decoratingLabelProvider);
 		treeViewer.setComparer(new IElementComparer() {
-			
+
 			public int hashCode(Object element) {
 				String txt = SchemaViewContentProvider.decoratingLabelProvider.getText(element);
 				int hash = txt.hashCode();
@@ -472,7 +397,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				}
 				return hash;
 			}
-			
+
 			public boolean equals(Object a, Object b) {
 				boolean ret = false;
 				if (a != null && b!= null && a.getClass().equals(b.getClass())) {
@@ -495,54 +420,49 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		});
 		return treeViewer;
 	}
-	
-	private void updateSchema(IStructuredSelection selection) {
-		Object firstElement = selection.getFirstElement();
-		if (firstElement instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject) firstElement;
-			String currentProjectName = dboTreeObject.getProjectTreeObject().getName();
-			if (needRefresh || (projectName == null) || (!projectName.equals(currentProjectName))) {
-				needRefresh = false;
-				projectName = currentProjectName;
-				
-				schemaTreeViewerExpandedTreePaths = schemaTreeViewer.getExpandedTreePaths();
-				schemaTreeViewerSelection = schemaTreeViewer.getSelection();
-				
-				nodeTreeViewerExpandedTreePaths = nodeTreeViewer.getExpandedTreePaths();
-				nodeTreeViewerSelection = nodeTreeViewer.getSelection();
-				
-				schemaTreeViewer.setInput(null);
-				nodeTreeViewer.setInput(null);
-				domTree.fillDomTree(null);
-				message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-				message.setText("Waiting for the " + projectName + " schema generation...");
-				
-				final boolean fullSchema = internalSchema.getSelection();
 
-				synchronized (workingThread) {
-					tasks.add(new Runnable() {
-	
-						public void run() {
+	private void updateSchema(IStructuredSelection selection) {
+		try {
+			Object firstElement = selection.getFirstElement();
+			if (firstElement instanceof DatabaseObjectTreeObject) {
+				DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject) firstElement;
+				String currentProjectName = dboTreeObject.getObject().getProject().getName();
+				if (needRefresh || projectName == null || projectName.equals(currentProjectName)) {
+					needRefresh = false;
+					projectName = currentProjectName;
+
+					schemaTreeViewerExpandedTreePaths = schemaTreeViewer.getExpandedTreePaths();
+					schemaTreeViewerSelection = schemaTreeViewer.getSelection();
+
+					nodeTreeViewerExpandedTreePaths = nodeTreeViewer.getExpandedTreePaths();
+					nodeTreeViewerSelection = nodeTreeViewer.getSelection();
+
+					schemaTreeViewer.setInput(null);
+					nodeTreeViewer.setInput(null);
+					domTree.fillDomTree(null);
+					message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+					message.setText("Waiting for the " + projectName + " schema generation...");
+
+					final boolean fullSchema = internalSchema.getSelection();
+
+					synchronized (workingThread) {
+						tasks.add(() -> {
 							try {
 								final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, fullSchema ? Option.fullSchema : null);
-	
-								Display.getDefault().asyncExec(new Runnable() {
-	
-									public void run() {
-										schemaTreeViewer.setInput(xmlSchemaCollection);
-										
-										if (schemaTreeViewerExpandedTreePaths != null && schemaTreeViewerExpandedTreePaths.length > 0) {
-											schemaTreeViewer.setExpandedTreePaths(schemaTreeViewerExpandedTreePaths);
-											schemaTreeViewer.setSelection(schemaTreeViewerSelection);
-											schemaTreeViewerExpandedTreePaths = null;
-											schemaTreeViewerSelection = null;
-										} else {
-											schemaTreeViewer.expandToLevel(3);
-										}
+
+								ConvertigoPlugin.asyncExec(() -> {
+									schemaTreeViewer.setInput(xmlSchemaCollection);
+
+									if (schemaTreeViewerExpandedTreePaths != null && schemaTreeViewerExpandedTreePaths.length > 0) {
+										schemaTreeViewer.setExpandedTreePaths(schemaTreeViewerExpandedTreePaths);
+										schemaTreeViewer.setSelection(schemaTreeViewerSelection);
+										schemaTreeViewerExpandedTreePaths = null;
+										schemaTreeViewerSelection = null;
+									} else {
+										schemaTreeViewer.expandToLevel(3);
 									}
-	
 								});
-	
+
 								if (needValidate) {
 									final Exception[] exception = {null};
 									try {
@@ -550,49 +470,38 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									} catch (SAXException e) {
 										exception[0] = e;
 									}
-		
-									Display.getDefault().asyncExec(new Runnable() {
-		
-										public void run() {
-											if (exception[0] == null) {
-												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
-												message.setText("The " + projectName + " schema is valid.");
-											} else {
-												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
-												message.setText("The " + projectName + " schema is invalid : " + exception[0].toString()/*getMessage()*/);
-											}
-											content.layout(true);
+
+									ConvertigoPlugin.asyncExec(() -> {
+										if (exception[0] == null) {
+											message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
+											message.setText("The " + projectName + " schema is valid.");
+										} else {
+											message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
+											message.setText("The " + projectName + " schema is invalid : " + exception[0].toString()/*getMessage()*/);
 										}
-		
+										content.layout(true);
 									});
 								}
 								else {
-									Display.getDefault().asyncExec(new Runnable() {
-										
-										public void run() {
-											message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
-											message.setText("'" + projectName + "' schema generated.");
-											content.layout(true);
-										}
-		
+									ConvertigoPlugin.asyncExec(() -> {
+										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
+										message.setText("'" + projectName + "' schema generated.");
+										content.layout(true);
 									});
 								}
 							} catch (Exception e) {
-								Display.getDefault().asyncExec(new Runnable() {
-									
-									public void run() {
-										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
-										message.setText("An error occured : " + e.getMessage());
-										content.layout(true);
-									}
-	
+								ConvertigoPlugin.asyncExec(() -> {
+									message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
+									message.setText("An error occured : " + e.getMessage());
+									content.layout(true);
 								});
 							}
-						}
-					});
-					workingThread.notify();
+						});
+						workingThread.notify();
+					}
 				}
 			}
+		} catch (Exception e) {
 		}
 	}
 }

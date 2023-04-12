@@ -52,6 +52,7 @@ import java.util.regex.Pattern;
 import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.w3c.dom.Document;
@@ -306,15 +307,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
-
-		File projectPath = getStudioProjects().getProjects(checkOpenable).get(projectName);
-		if (projectPath == null) {
-			projectPath = Engine.projectYamlFile(projectName);
-			if (projectPath == null || !projectPath.exists()) {
-				projectPath = Engine.projectFile(projectName);
-			}
-		}
-
+		
 		if (checkOpenable && !canOpenProject(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
@@ -331,6 +324,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			long t0 = Calendar.getInstance().getTime().getTime();
 			try {
 				checkForEngineMigrationProcess(projectName);
+				File projectPath = getStudioProjects().getProjects(checkOpenable).get(projectName);
+				if (projectPath == null) {
+					projectPath = Engine.projectYamlFile(projectName);
+					if (projectPath == null || !projectPath.exists()) {
+						projectPath = Engine.projectFile(projectName);
+					}
+				}
 				project = importProject(projectPath, false);
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
@@ -345,8 +345,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				long t1 = Calendar.getInstance().getTime().getTime();
 				Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" loaded in " + (t1 - t0) + " ms");
 			}
-		} else if (!(projectPath = project.getDirFile()).exists()) {
-			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
+		} else if (!project.getDirFile().exists()) {
+			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + project.getDirFile());
 			clearCache(project);
 			project = null;
 		} else {
@@ -1030,37 +1030,51 @@ public class DatabaseObjectsManager implements AbstractManager {
 		parentElem.removeChild(includeElem);
 	}
 
+	static private Map<String ,Pair<String, Long>> projectNameCache = new HashMap<>();
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
-		if (projectFile != null && projectFile.exists()) {
-			String filename = projectFile.getName();
-			if (filename.equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
-					String line = br.readLine();
-					Matcher m = pYamlProjectName.matcher("");
-					while (line != null && projectName == null) {
-						m.reset(line);
-						if (m.matches()) {
-							projectName = m.group(1);
-							line = br.readLine();
-						} else {
-							line = null;
+		if (projectFile != null) {
+			String path = projectFile.getAbsolutePath();
+			if (projectFile.exists()) {
+				Pair<String, Long> cache;
+				long lastModified = projectFile.lastModified();
+				if ((cache = projectNameCache.get(path)) != null
+						&& cache.getRight() == lastModified) {
+					projectName = cache.getLeft();
+				} else {
+					String filename = projectFile.getName();
+					if (filename.equals("c8oProject.yaml")) {
+						try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
+							String line = br.readLine();
+							Matcher m = pYamlProjectName.matcher("");
+							while (line != null && projectName == null) {
+								m.reset(line);
+								if (m.matches()) {
+									projectName = m.group(1);
+									line = br.readLine();
+								} else {
+									line = null;
+								}
+							}
+						} catch (Exception e) {
+							throw new EngineException("Unable to parse the yaml: " + path, e);
+						}
+					} else if (filename.endsWith(".car") || filename.endsWith(".zip")) {
+						try {
+							projectName = ZipUtils.getProjectName(path);
+						} catch (IOException e) {
 						}
 					}
-				} catch (Exception e) {
-					throw new EngineException("Unable to parse the yaml: " + projectFile.getAbsolutePath(), e);
+					if (projectName == null) {
+						Matcher m = pProjectName.matcher(filename);
+						if (m.matches()) {
+							projectName = m.group(1);
+						}
+					}
+					projectNameCache.put(path, Pair.of(projectName, lastModified));
 				}
-			} else if (filename.endsWith(".car") || filename.endsWith(".zip")) {
-				try {
-					projectName = ZipUtils.getProjectName(projectFile.getAbsolutePath());
-				} catch (IOException e) {
-				}
-			}
-			if (projectName == null) {
-				Matcher m = pProjectName.matcher(filename);
-				if (m.matches()) {
-					projectName = m.group(1);
-				}
+			} else {
+				projectNameCache.remove(path);
 			}
 		}
 		return projectName;
