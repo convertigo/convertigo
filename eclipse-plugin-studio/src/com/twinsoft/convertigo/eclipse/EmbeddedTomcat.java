@@ -26,7 +26,9 @@ import java.nio.charset.StandardCharsets;
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
+import org.apache.tomcat.util.net.SSLHostConfig;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -116,12 +118,23 @@ public class EmbeddedTomcat implements Runnable {
 			connector.setPort(httpsConnectorPort);
 			connector.setSecure(true);
 			connector.setScheme("https");
-			connector.setProperty("keystorePass", "password"); 
-			connector.setProperty("keystoreFile", tomcatHome + "/conf/.keystore"); 
+			SSLHostConfig sslHostconfig = new SSLHostConfig();
+			// openssl req -x509 -days 3650 -out localhost.crt -keyout localhost.key   -newkey rsa:2048 -nodes -sha256   -subj '/CN=localhost' -extensions EXT -config <( \
+			// printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+			sslHostconfig.setCertificateFile(tomcatHome + "/conf/localhost.crt");
+			sslHostconfig.setCertificateKeyFile(tomcatHome + "/conf/localhost.key");
+			connector.addSslHostConfig(sslHostconfig);
 			connector.setProperty("clientAuth", "false");
 			connector.setProperty("sslProtocol", "TLS");
 			connector.setProperty("SSLEnabled", "true");
 			embedded.getService().addConnector(connector);
+			
+			ErrorReportValve errorReportValve = new ErrorReportValve();
+			errorReportValve.setProperty("errorCode.404", tomcatHome + "webapps/convertigo/404.html");
+			errorReportValve.setProperty("errorCode.0", tomcatHome + "webapps/convertigo/error.html");
+			errorReportValve.setProperty("showReport", "false");
+			errorReportValve.setProperty("showServerInfo", "false");
+			embedded.getHost().getPipeline().addValve(errorReportValve);
 			
 			Context context = embedded.addWebapp("", tomcatHome + "webapps/ROOT");
 			context.setParentClassLoader(this.getClass().getClassLoader());

@@ -91,7 +91,12 @@ RUN sed -i.bak \
         -e '/protocol="AJP/d' \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
-        -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>,' \
+        -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n\
+        <Valve className="org.apache.catalina.valves.ErrorReportValve" \
+ errorCode.404="webapps/convertigo/404.html"\
+ errorCode.0="webapps/convertigo/error.html"\
+ showReport="false" showServerInfo="false" />\n\
+      </Host>,' \
         -e 's,</Service>,<!--SSL<Connector port="28443" protocol="org.apache.coyote.http11.Http11AprProtocol" SSLEnabled="true" maxThreads="64000" relaxedQueryChars="{}[]|">\n\
       <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />\n\
       <SSLHostConfig>\n\
