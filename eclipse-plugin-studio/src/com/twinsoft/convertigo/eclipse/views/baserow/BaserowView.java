@@ -318,8 +318,14 @@ public class BaserowView extends ViewPart {
 		ConvertigoPlugin.asyncExec(() -> {
 			browser = new C8oBrowser(main, SWT.NONE);
 			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-			String url = "https://c8ocloud.convertigo.net/convertigo/projects/C8oCloudBaserow/DisplayObjects/mobile/";
+			
+			String server = Engine.theApp.databaseObjectsManager.symbolsGetValue("lib_baserow.server");
+			String port = Engine.theApp.databaseObjectsManager.symbolsGetValue("lib_baserow.port");
+			String https = Engine.theApp.databaseObjectsManager.symbolsGetValue("lib_baserow.https");
+			
+			String url = StringUtils.isBlank(server) || server.equals("baserow-backend.convertigo.net") ?
+				"https://c8ocloud.convertigo.net/convertigo/projects/C8oCloudBaserow/DisplayObjects/mobile/"
+				: "http" + ("false".equals(https) ? "" : "s") + "://" + server + (StringUtils.isBlank(port) ? "" : ":" + port);
 
 			browser.getBrowser().set(InjectJsCallback.class, params -> {
 				try {
