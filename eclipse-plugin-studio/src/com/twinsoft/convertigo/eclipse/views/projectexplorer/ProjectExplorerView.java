@@ -169,6 +169,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -1587,7 +1588,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private boolean checkReload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) {
-		boolean ok = parentTreeObject.getObject() == parentDatabaseObject;
+		boolean ok = parentTreeObject.getObject() == parentDatabaseObject && !(parentDatabaseObject instanceof DesignDocument);
 		if (ok) {
 			try {
 				List<DatabaseObject> dboChildren = parentDatabaseObject.getDatabaseObjectChildren();
