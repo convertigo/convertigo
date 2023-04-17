@@ -1,5 +1,72 @@
 # Changelog
 
+## 8.2.0
+
+#### New Features:
+
+- [#681](https://github.com/convertigo/convertigo/issues/681) [Studio] New Palette View for all Convertigo objects
+- [#685](https://github.com/convertigo/convertigo/issues/685) [Studio] New Pickers View changing on object selection
+- [#698](https://github.com/convertigo/convertigo/issues/698) [Studio] Set the object name on drop from palette
+- [#700](https://github.com/convertigo/convertigo/issues/700) [Studio] Synchronize some objects Name property with an other property value
+- [#704](https://github.com/convertigo/convertigo/issues/704) [Studio] Release a MacOS Apple Silicon (ARM64) build
+- [#711](https://github.com/convertigo/convertigo/issues/711) [Studio] New Interactive Tutorial View
+- [#719](https://github.com/convertigo/convertigo/issues/719) [Studio] New NoCode BaseRow Databases View
+- [#725](https://github.com/convertigo/convertigo/issues/725) [Mobile Builder] New QRCode toolbar icon to easily open the viewer with a phone with live update
+- [#741](https://github.com/convertigo/convertigo/issues/741) [Sequence] Step with source (XPath) can use JS expression inside predicate
+
+#### Improvements:
+
+- [#694](https://github.com/convertigo/convertigo/issues/694) [Studio] Use Eclipse base 2022-12
+- [#695](https://github.com/convertigo/convertigo/issues/695) [Billing] Insert 'sessionStart' and 'sessionStop' entries
+- [#697](https://github.com/convertigo/convertigo/issues/697) [Admin] Fast project edit loading
+- [#701](https://github.com/convertigo/convertigo/issues/701) [Write CSV Step] Use originalKeyName attribute to write line titles of CSV file
+- [#702](https://github.com/convertigo/convertigo/issues/702) [Studio] New project wizard explicitly propose to create Web / Desktop & Mobile projects
+- [#703](https://github.com/convertigo/convertigo/issues/703) [Docker] Allow to start the container with a non-root user
+- [#706](https://github.com/convertigo/convertigo/issues/706) [Studio] The modal "Find an Object" have a full width substring field
+- [#708](https://github.com/convertigo/convertigo/issues/708) [Studio] Dialog box to warn and ask the application building before deploying a project
+- [#714](https://github.com/convertigo/convertigo/issues/714) [NGX] Hint for the Reorder group component
+- [#715](https://github.com/convertigo/convertigo/issues/715) [NGX] Add 'color' property for the Icon component
+- [#724](https://github.com/convertigo/convertigo/issues/724) [NGX] Improve handling of enable/disable and application sources generation when whole pages are disabled
+- [#726](https://github.com/convertigo/convertigo/issues/726) Add screenshots in the 'readme.md' generated file to explain how to import the project
+- [#728](https://github.com/convertigo/convertigo/issues/728) [Studio] Review the Deployment wizard window size
+- [#729](https://github.com/convertigo/convertigo/issues/729) [Studio] NgxComponent Source Picker show which icon is selected
+- [#731](https://github.com/convertigo/convertigo/issues/731) [Studio] Add an 'event' entry in picker for Action sources
+- [#735](https://github.com/convertigo/convertigo/issues/735) [Studio] Add 'enableOnOffLabels' property to the NXG Toggle component
+- [#736](https://github.com/convertigo/convertigo/issues/736) [NGX] Hint 'IfAction' for the AlertAction
+- [#737](https://github.com/convertigo/convertigo/issues/737) [NGX] Hint for the FabContainer
+- [#738](https://github.com/convertigo/convertigo/issues/738) [NGX] Add a navParams picker
+- [#739](https://github.com/convertigo/convertigo/issues/739) [NGX] Handle ion-input type file
+- [#744](https://github.com/convertigo/convertigo/issues/744) [Server] Custom HTTP 404 page
+- [#745](https://github.com/convertigo/convertigo/issues/745) [Studio] Some project treeview optimizations
+
+#### Bug Fixes:
+
+- [#634](https://github.com/convertigo/convertigo/issues/634) [Studio] Fixed, can now D&D a Component having the same name as SharedComponent
+- [#638](https://github.com/convertigo/convertigo/issues/638) [HTTP] Fixed, POST request with followRedirect set to true on transaction now redirects using GET
+- [#667](https://github.com/convertigo/convertigo/issues/667) [NGX] Fixed, builders now don't release while project is being loaded
+- [#680](https://github.com/convertigo/convertigo/issues/680) [NGX] Fixed, Cordova plugin dependencies now correctly installed
+- [#682](https://github.com/convertigo/convertigo/issues/682) [Studio] Fixed, closing a Sequence or a Connector editor now don't close all editors of the project
+- [#683](https://github.com/convertigo/convertigo/issues/683) [Studio] Fixed, we can now source on step ReadCSV if the property "Title line" is set to true
+- [#684](https://github.com/convertigo/convertigo/issues/684) [HTTP] Fixed, JSON_HTTP_transaction's Content-Type dynamic property now overrides default HTTP headers defined in properties table
+- [#686](https://github.com/convertigo/convertigo/issues/686) [SQL Connector] Fixed, now can parse JSON of NULL integers
+- [#687](https://github.com/convertigo/convertigo/issues/687) [NGX] Fixed, shared components are now "synchronized" properly with the project
+- [#691](https://github.com/convertigo/convertigo/issues/691) [NGX] Fixed, Angular.json's assets properties are now generated for serve (HMR) configuration
+- [#692](https://github.com/convertigo/convertigo/issues/692) [Studio] Fixed, adds blue background for JS properties of some steps like the SMTP step
+- [#696](https://github.com/convertigo/convertigo/issues/696) [SQL] Fixed, now generates correct JSON types for stored procedure responses
+- [#705](https://github.com/convertigo/convertigo/issues/705) [Studio] Fixed, creating a symbol from a sequence variable using text editor works
+- [#707](https://github.com/convertigo/convertigo/issues/707) [NGX] Fixed, a textInput cannot have a property [ngModel]="''" generated when it's property binding is set to "not set"
+- [#709](https://github.com/convertigo/convertigo/issues/709) [Studio] Fixed, renaming a variable now doesn't spread to more variables than it's supposed to
+- [#712](https://github.com/convertigo/convertigo/issues/712) [NGX] Fixed, Chart Component: Title chart now in default chart options
+- [#717](https://github.com/convertigo/convertigo/issues/717) [Studio] Fixed, mobile builder highlight selection works on hi-DPI screen
+- [#718](https://github.com/convertigo/convertigo/issues/718) [Studio] Fixed, property "root Path" fixed on some REST WS import
+- [#722](https://github.com/convertigo/convertigo/issues/722) [Studio] Fixed, SQL project Wizard now correctly set Database URL property
+- [#730](https://github.com/convertigo/convertigo/issues/730) [FullSync] Fixed, source picker now handles correctly key values with space(s)
+- [#740](https://github.com/convertigo/convertigo/issues/740) [NGX] Fixed, disabling a FormatLayout component is effective
+- [#742](https://github.com/convertigo/convertigo/issues/742) [NGX] Fixed, can now access scope variables from a customAction
+- [#743](https://github.com/convertigo/convertigo/issues/743) [NGX] Fixed, repaired the "create a shared component from the selected object" action
+
+---
+
 ## 8.1.0
 
 #### New Features:
