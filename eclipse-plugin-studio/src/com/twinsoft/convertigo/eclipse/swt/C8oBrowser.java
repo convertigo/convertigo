@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.layout.FillLayout;
@@ -58,6 +59,7 @@ public class C8oBrowser extends Composite {
 	private String debugUrl;
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
+	private Function<Event, Boolean> onClick = null;
 
 	private void init(Engine browserContext) {
 		setLayout(new FillLayout());
@@ -65,6 +67,9 @@ public class C8oBrowser extends Composite {
 		threadSwt = getDisplay().getThread();
 		
 		Observer<Event> observer = ev -> {
+			if (onClick != null && true == onClick.apply(ev)) {
+				return;
+			}
 			if (!useExternalBrowser) {
 				return;
 			}
@@ -286,5 +291,9 @@ public class C8oBrowser extends Composite {
 	
 	public void setUseExternalBrowser(boolean useExternalBrowser) {
 		this.useExternalBrowser = useExternalBrowser;
+	}
+	
+	public void onClick(Function<Event, Boolean> onClick) {
+		this.onClick = onClick;
 	}
 }

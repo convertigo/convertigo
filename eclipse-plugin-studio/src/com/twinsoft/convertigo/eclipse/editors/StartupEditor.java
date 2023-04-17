@@ -42,7 +42,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.Engine;
@@ -52,7 +54,7 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 public class StartupEditor extends EditorPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
-	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-8-1/";
+	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-8-2/";
 
 	C8oBrowser browser = null;
 	
@@ -101,6 +103,24 @@ public class StartupEditor extends EditorPart {
 		browser = new C8oBrowser(parent, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);
+		browser.onClick(ev -> {
+			try {
+				Element elt = (Element) ev.target().get();
+				while (!elt.nodeName().equalsIgnoreCase("a")) {
+					elt = (Element) elt.parent().get();
+				}
+				String href = elt.attributes().get("href");
+				if (href.equals("#opentutorialview")) {
+					ConvertigoPlugin.asyncExec(() -> {
+						new OpenTutorialView().run(null);
+					});
+					ev.preventDefault();
+					return true;
+				}
+			} catch (Exception e) {
+			}
+			return false;
+		});
 		
 		ToolItem ti = new ToolItem(tb, SWT.NONE);
 		ti.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/statement.png")));
