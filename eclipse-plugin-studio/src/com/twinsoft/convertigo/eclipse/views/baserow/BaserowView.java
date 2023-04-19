@@ -72,7 +72,9 @@ import com.teamdev.jxbrowser.net.callback.BeforeStartTransactionCallback;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
@@ -102,6 +104,8 @@ import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
+	final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/archive/refs/heads/8.2.x.zip";
+	
 	private Cursor handCursor;
 	private Composite main;
 	private C8oBrowser browser;
@@ -463,7 +467,7 @@ public class BaserowView extends ViewPart {
 					}
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
-							ProjectUrlParser parser = new ProjectUrlParser("lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/archive/master.zip");
+							ProjectUrlParser parser = new ProjectUrlParser(LIB_BASEROW_URL);
 							String projectName = parser.getProjectName();
 							ProjectExplorerView pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							if (Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
@@ -1119,6 +1123,21 @@ public class BaserowView extends ViewPart {
 						e.printStackTrace();
 					}
 
+				}
+				boolean hasRef = false;
+				for (Reference ref: project.getReferenceList()) {
+					if (ref instanceof ProjectSchemaReference) {
+						ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+						if (hasRef = "lib_BaseRow".equals(prjRef.getParser().getProjectName())) {
+							break;
+						}
+					}
+				}
+				if (!hasRef) {
+					ProjectSchemaReference prjRef = new ProjectSchemaReference();
+					prjRef.setName("lib_BaseRow");
+					prjRef.setProjectName(LIB_BASEROW_URL);
+					project.add(prjRef);
 				}
 
 				ConvertigoPlugin.asyncExec(() -> {
