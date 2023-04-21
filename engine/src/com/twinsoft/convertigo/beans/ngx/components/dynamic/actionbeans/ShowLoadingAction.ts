@@ -23,7 +23,7 @@
             let loadingController = page.getInstance(LoadingController)
             const loading  = await loadingController.create({
               mode              : props.mode ? props.mode : undefined,
-              spinner           : props.spinnner,
+              spinner           : props.spinner,
               message           : props.message,
               duration          : props.duration,
               keyboardClose     : props.keyboardClose,
