@@ -64,6 +64,7 @@
 - [#740](https://github.com/convertigo/convertigo/issues/740) [NGX] Fixed, disabling a FormatLayout component is effective
 - [#742](https://github.com/convertigo/convertigo/issues/742) [NGX] Fixed, can now access scope variables from a customAction
 - [#743](https://github.com/convertigo/convertigo/issues/743) [NGX] Fixed, repaired the "create a shared component from the selected object" action
+- [#746](https://github.com/convertigo/convertigo/issues/746) [Studio] Fixed, recording XSD Schema from response handles duplicated type name
 
 ---
 

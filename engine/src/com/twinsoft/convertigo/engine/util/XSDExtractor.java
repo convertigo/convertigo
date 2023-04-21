@@ -27,7 +27,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -42,6 +44,7 @@ public class XSDExtractor {
 
 	Document xsdDom = null;
 	Map<String, XSDObject> items = new HashMap<String, XSDObject>(10);
+	Set<String> extractedPrefixes = new HashSet<String>();
 	
 	public static Document extractXSD(String prefixName, Document doc) throws Exception {
 		Document xsdDom = new XSDExtractor().parse(prefixName, doc);
@@ -308,6 +311,17 @@ public class XSDExtractor {
 			int index = name.indexOf(":");
 			String extractedName = (index == -1) ? name:name.substring(index+1);
 			String extractedPrefix = prefixName + name.replace(':', '-');
+			
+			if (extractedPrefixes.contains(extractedPrefix)) {
+				int i = 1;
+				String s;
+				do {
+					s = extractedPrefix + "_" + i++;
+				} while (extractedPrefixes.contains(s));
+				extractedPrefix = s;
+			}
+			extractedPrefixes.add(extractedPrefix);
+			
 			String extractedType = extractedPrefix + "Type";//prefixName + extractedName + "Type";
 			
 			if (type == ELEMENT_COMPLEX_TYPE) {
