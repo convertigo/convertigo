@@ -12,6 +12,8 @@
 - [#711](https://github.com/convertigo/convertigo/issues/711) [Studio] New Interactive Tutorial View
 - [#719](https://github.com/convertigo/convertigo/issues/719) [Studio] New NoCode BaseRow Databases View
 - [#725](https://github.com/convertigo/convertigo/issues/725) [Mobile Builder] New QRCode toolbar icon to easily open the viewer with a phone with live update
+- [#731](https://github.com/convertigo/convertigo/issues/731) [NGX] Add an 'event' entry in picker for Action sources
+- [#738](https://github.com/convertigo/convertigo/issues/738) [NGX] Add a navParams picker
 - [#741](https://github.com/convertigo/convertigo/issues/741) [Sequence] Step with source (XPath) can use JS expression inside predicate
 
 #### Improvements:
@@ -27,14 +29,12 @@
 - [#714](https://github.com/convertigo/convertigo/issues/714) [NGX] Hint for the Reorder group component
 - [#715](https://github.com/convertigo/convertigo/issues/715) [NGX] Add 'color' property for the Icon component
 - [#724](https://github.com/convertigo/convertigo/issues/724) [NGX] Improve handling of enable/disable and application sources generation when whole pages are disabled
-- [#726](https://github.com/convertigo/convertigo/issues/726) Add screenshots in the 'readme.md' generated file to explain how to import the project
+- [#726](https://github.com/convertigo/convertigo/issues/726) [Studio] Add screenshots in the 'readme.md' generated file to explain how to import the project
 - [#728](https://github.com/convertigo/convertigo/issues/728) [Studio] Review the Deployment wizard window size
 - [#729](https://github.com/convertigo/convertigo/issues/729) [Studio] NgxComponent Source Picker show which icon is selected
-- [#731](https://github.com/convertigo/convertigo/issues/731) [Studio] Add an 'event' entry in picker for Action sources
 - [#735](https://github.com/convertigo/convertigo/issues/735) [Studio] Add 'enableOnOffLabels' property to the NXG Toggle component
 - [#736](https://github.com/convertigo/convertigo/issues/736) [NGX] Hint 'IfAction' for the AlertAction
 - [#737](https://github.com/convertigo/convertigo/issues/737) [NGX] Hint for the FabContainer
-- [#738](https://github.com/convertigo/convertigo/issues/738) [NGX] Add a navParams picker
 - [#739](https://github.com/convertigo/convertigo/issues/739) [NGX] Handle ion-input type file
 - [#744](https://github.com/convertigo/convertigo/issues/744) [Server] Custom HTTP 404 page
 - [#745](https://github.com/convertigo/convertigo/issues/745) [Studio] Some project treeview optimizations
@@ -65,6 +65,7 @@
 - [#742](https://github.com/convertigo/convertigo/issues/742) [NGX] Fixed, can now access scope variables from a customAction
 - [#743](https://github.com/convertigo/convertigo/issues/743) [NGX] Fixed, repaired the "create a shared component from the selected object" action
 - [#746](https://github.com/convertigo/convertigo/issues/746) [Studio] Fixed, recording XSD Schema from response handles duplicated type name
+- [#747](https://github.com/convertigo/convertigo/issues/747) [NGX] Fixed, now correctly use the spinner property of Showloading
 
 ---
 
