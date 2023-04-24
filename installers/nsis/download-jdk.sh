@@ -23,9 +23,9 @@ tar -xf jdk.tar.gz
 mv jdk*/Contents/Home mac-arm
 rm -rf jdk* mac-arm/lib/src.zip mac-arm/man mac-arm/jmods
 
-JDK_URL=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jdk_x64_linux_hotspot_17.0.6_10.tar.gz
-curl -sfSL -o jdk.tar.gz ${JDK_URL}
-tar -xf jdk.tar.gz
-rm jdk.tar.gz
-mv jdk* lin
-rm -rf lin/lib/src.zip lin/man lin/jmods
+#JDK_URL=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jdk_x64_linux_hotspot_17.0.6_10.tar.gz
+#curl -sfSL -o jdk.tar.gz ${JDK_URL}
+#tar -xf jdk.tar.gz
+#rm jdk.tar.gz
+#mv jdk* lin
+#rm -rf lin/lib/src.zip lin/man lin/jmods
