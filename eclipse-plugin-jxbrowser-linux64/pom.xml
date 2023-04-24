@@ -18,7 +18,7 @@ Contributors:
 	<name>Convertigo JxBrowser Linux64</name>
 
 	<parent>
-<!-- SET-VERSION --><version>8.2.0-SNAPSHOT</version>
+<!-- SET-VERSION --><version>8.3.0-SNAPSHOT</version>
 		<groupId>com.convertigo.studio</groupId>
 		<artifactId>root</artifactId>
 	</parent>
