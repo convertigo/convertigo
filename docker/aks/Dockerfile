@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:9-jdk17-temurin-focal
+FROM tomcat:9-jdk17-temurin
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -117,7 +117,7 @@ RUN sed -i.bak \
     && chmod -w conf/* \
     && chmod 777 conf/context.xml conf/server.xml
 
-ENV CONVERTIGO_VERSION 8.2.0
+ENV CONVERTIGO_VERSION 8.2.1
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
