@@ -53,13 +53,12 @@ public class SchedulerJob implements Job {
 		ScheduledJob scheduledJob = (ScheduledJob) jd.getJobDataMap().get("scheduledJob");
 		SchedulerManager schedulerManager = (SchedulerManager) jd.getJobDataMap().get("schedulerManager");
 		AbstractJob job = scheduledJob.getJob();
-
 		if (job != null) {
 			if (schedulerManager.getRunningScheduledJobs().contains(scheduledJob)) {
-				Engine.logScheduler.warn("No start " + jd.getName() + " because another still running.");
+				Engine.logScheduler.warn("No start " + jd.getKey().getName() + " because another still running.");
 			} else {
 				jd.getJobDataMap().put("running", true);
-				executeJob(job, jd.getName());
+				executeJob(job, jd.getKey().getName());
 			}
 		}
 	}
