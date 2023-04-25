@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.projects;
 import javax.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -180,7 +181,16 @@ public class GetTestPlatform extends XmlService {
 		for (Variable variable : vars.getVariables()) {
 			Element e_variable = createDatabaseObjectElement(document, variable);
 			Object val = variable.getValueOrNull();
-			String strval = val == null ? null:variable.isMultiValued() ? new JSONArray(GenericUtils.<XMLVector<String>>cast(val)).toString():val.toString();
+			String strval;
+			try {
+				strval = val == null ?
+						null :
+						variable.isMultiValued() ?
+								new JSONArray(GenericUtils.<XMLVector<String>>cast(val)).toString() :
+									val.toString();
+			} catch (JSONException e) {
+				strval = null;
+			}
 			e_variable.setAttribute("value", strval);
 			e_variable.setAttribute("isMasked", Visibility.Platform.isMasked(variable.getVisibility()) ? "true":"false");
 			e_variable.setAttribute("isMultivalued", "" + variable.isMultiValued());
