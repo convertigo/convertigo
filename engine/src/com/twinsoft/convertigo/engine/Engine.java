@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -22,8 +22,6 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Constructor;
 import java.security.Provider;
 import java.security.Security;
@@ -77,7 +75,6 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
@@ -93,11 +90,11 @@ import com.twinsoft.util.Log;
 import com.twinsoft.util.TWSKey;
 
 public class Engine {
-	
+
 	public static final String JVM_PROPERTY_USER_WORKSPACE = "convertigo.cems.user_workspace_path";
 	public static final String JVM_PROPERTY_GLOBAL_SYMBOLS_FILE = "convertigo.cems.global_symbols_file";
 	public static final String JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY = "convertigo_global_symbols";
-	
+
 	public static String USER_WORKSPACE_PATH = System.getProperty(JVM_PROPERTY_USER_WORKSPACE, System.getProperty("user.home") + "/convertigo");
 	public static String PROJECTS_PATH = "";
 	public static String CERTIFICATES_PATH = "";
@@ -117,22 +114,22 @@ public class Engine {
 			USER_WORKSPACE_PATH = new File(USER_WORKSPACE_PATH).getCanonicalPath();
 		} catch (IOException e) {
 		}
-		
+
 		// fix log4j 1.x init with new java version without dot
 		String javaVersion = System.getProperty("java.version", null);
 		if (javaVersion != null && javaVersion.indexOf('.') == -1) {
 			System.setProperty("java.version", javaVersion + ".0");
 		}
-		
+
 		RhinoUtils.init();
 	}
 	/**
 	 * This is the application reference.
 	 */
 	public static Engine theApp;
-	
+
 	private final static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
-		
+
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread thread = new Thread(r);
@@ -141,7 +138,7 @@ public class Engine {
 			return thread;
 		}
 	});
-	
+
 	public static AuthenticatedSessionManager authenticatedSessionManager;
 
 	/**
@@ -163,11 +160,11 @@ public class Engine {
 	 * Defines if that Convertigo is a Studio.
 	 */
 	private static boolean bStudioMode = false;
-	
+
 	static boolean bCliMode = false;
 
 	private static boolean bXulRunner = false;
-	
+
 	/**
 	 * The database objects manager.
 	 */
@@ -213,7 +210,7 @@ public class Engine {
 	 * The biller token manager
 	 */
 	public BillerTokenManager billerTokenManager;
-	
+
 	/**
 	 * The billing manager
 	 */
@@ -223,13 +220,13 @@ public class Engine {
 	 * The proxy manager
 	 */
 	public ProxyManager proxyManager;
-	
-	
+
+
 	/**
 	 * The schema manager
 	 */
 	public SchemaManager schemaManager;
-	
+
 	/**
 	 * The resource compressor manager for minification
 	 */
@@ -244,14 +241,14 @@ public class Engine {
 	 * The CouchDb manager
 	 */
 	public CouchDbManager couchDbManager;
-	
+
 	/**
 	 * The REST api manager
 	 */
 	public RestApiManager restApiManager;
-	
+
 	public ReferencedProjectManager referencedProjectManager;
-	
+
 	/**
 	 * Loggers
 	 */
@@ -296,7 +293,7 @@ public class Engine {
 	 * The engine start/stop date.
 	 */
 	public static long startStopDate;
-	
+
 	private static ClassLoader engineClassLoader;
 
 	/**
@@ -310,14 +307,14 @@ public class Engine {
 	public EventManager eventManager;
 
 	public HttpClient httpClient;
-	
+
 	public HttpClientInterface httpClient4;
-	
+
 	public RsaManager rsaManager;
-	
+
 	private SimpleMap sharedServerMap = new SimpleMap();
 	private Map<String, SimpleMap> sharedProjectMap = new HashMap<>();
-	
+
 	static {
 		try {
 			Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
@@ -327,10 +324,10 @@ public class Engine {
 		}
 
 		cloud_customer_name = System.getProperty("convertigo.cloud.customer_name");
-		
+
 		AuthPolicy.registerAuthScheme(AuthPolicy.NTLM, com.jivesoftware.authHelper.customescheme.ntlm2.CustomNTLM2Scheme.class);
 	}
-	
+
 	private static boolean bInitPathsDone = false;
 	private static ServletContext servletContext = null;
 
@@ -341,18 +338,18 @@ public class Engine {
 		File userWorkspaceDirectory = new File(Engine.USER_WORKSPACE_PATH);
 		File defaultUserWorkspaceDirectory = new File(webappPath + "/WEB-INF/default_user_workspace");
 		System.out.println("Updating the user workspace from '" + defaultUserWorkspaceDirectory.toString()
-				+ "' to '" + Engine.USER_WORKSPACE_PATH + "'");
+		+ "' to '" + Engine.USER_WORKSPACE_PATH + "'");
 		try {
 			FileUtils.mergeDirectories(defaultUserWorkspaceDirectory, userWorkspaceDirectory);
 		} catch (Exception e) {
 			System.out.println("Error while updating the user workspace");
 			e.printStackTrace();
 		}
-		
+
 		if (Engine.PROJECTS_PATH.length() == 0) {
 			Engine.PROJECTS_PATH = new File(Engine.USER_WORKSPACE_PATH + "/projects").getCanonicalPath();
 		}
-		
+
 		Engine.CACHE_PATH = new File(Engine.USER_WORKSPACE_PATH + "/cache").getCanonicalPath();
 		Engine.CONFIGURATION_PATH = new File(Engine.USER_WORKSPACE_PATH + "/configuration").getCanonicalPath();
 		Engine.CERTIFICATES_PATH = new File(Engine.USER_WORKSPACE_PATH + "/certificates").getCanonicalPath();
@@ -361,10 +358,10 @@ public class Engine {
 		Engine.XSL_PATH = new File(Engine.WEBAPP_PATH + "/xsl").getCanonicalPath();
 		Engine.DTD_PATH = new File(Engine.WEBAPP_PATH + "/dtd").getCanonicalPath();
 		Engine.TEMPLATES_PATH = new File(Engine.WEBAPP_PATH + "/templates").getCanonicalPath();
-		
+
 		new File(Engine.USER_WORKSPACE_PATH + "/libs/classes").mkdirs();
 		engineClassLoader = new DirClassLoader(new File(Engine.USER_WORKSPACE_PATH + "/libs"), Engine.class.getClassLoader());
-		
+
 		bInitPathsDone = true;
 	}
 
@@ -425,7 +422,7 @@ public class Engine {
 			Engine.logSecurityFilter = Logger.getLogger("cems.SecurityFilter");
 			Engine.logStudio = Logger.getLogger("cems.Studio");
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
-			
+
 			// Managers
 			Engine.logContextManager = Logger.getLogger("cems.ContextManager");
 			Engine.logCacheManager = Logger.getLogger("cems.CacheManager");
@@ -441,9 +438,9 @@ public class Engine {
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
 			LogWrapper.initWrapper(Engine.logEmulators);
-			
+
 			LogCleaner.start();
-			
+
 			try {
 				Engine.logEngine.info("===========================================================");
 				Engine.logEngine.info("Web app home: " + Engine.WEBAPP_PATH);
@@ -465,10 +462,10 @@ public class Engine {
 				if (!isStudioMode()) {
 					StartupDiagnostics.run();
 				}
-				
+
 				// Initializing the engine
 				Engine.theApp = new Engine();
-				
+
 				CachedIntrospector.prefetchDatabaseObjectsAsync();
 
 				try {
@@ -512,7 +509,7 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the biller token manager.", e);
 				}
-				
+
 				try {
 					Engine.theApp.billingManager = new BillingManager();
 					Engine.theApp.billingManager.init();
@@ -527,35 +524,35 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the trace player.", e);
 				}
-				
+
 				try {
 					Engine.theApp.minificationManager = new MinificationManager();
 					Engine.theApp.minificationManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the minification manager.", e);
 				}
-				
+
 				try {
 					Engine.theApp.couchDbManager = new CouchDbManager();
 					Engine.theApp.couchDbManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the couchDbProxy manager.", e);
 				}
-				
+
 				try {
 					Engine.theApp.pluginsManager = new PluginsManager();
 					Engine.theApp.pluginsManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the plugins manager.", e);
 				}
-				
+
 				try {
 					Engine.theApp.restApiManager = RestApiManager.getInstance();
 					Engine.theApp.restApiManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the rest api manager.", e);
 				}
-				
+
 				Engine.logEngine.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
 
 				// Creating the Carioca Authentication objects
@@ -623,17 +620,17 @@ public class Engine {
 											.newInstance(new Object[] { file });
 									Security.addProvider(provider);
 									Engine.logEngine.info("Provider '" + provider.getName()
-											+ "' has been successfully registered.");
+									+ "' has been successfully registered.");
 								} catch (Exception e) {
 									Engine.logEngine
-											.error("Unable to register security provider from file: "
-													+ file
-													+ " . Please check that the implementation library is in the Java lib path.");
+									.error("Unable to register security provider from file: "
+											+ file
+											+ " . Please check that the implementation library is in the Java lib path.");
 								}
 							}
 						} catch (ClassNotFoundException e) {
 							Engine.logEngine
-									.error("Unable to find sun.security.pkcs11.SunPKCS11 class! PKCS#11 authentication won't be available. You must use JVM 1.5 or higher in order to use PKCS#11 authentication.");
+							.error("Unable to find sun.security.pkcs11.SunPKCS11 class! PKCS#11 authentication won't be available. You must use JVM 1.5 or higher in order to use PKCS#11 authentication.");
 						}
 					}
 
@@ -688,7 +685,7 @@ public class Engine {
 					Engine.theApp.contextManager = null;
 					Engine.logEngine.error("Unable to launch the context manager.", e);
 				}
-				
+
 				// Initialize the HttpClient
 				try {
 					Engine.logEngine.debug("HttpClient initializing...");
@@ -701,101 +698,31 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to initialize the HttpClient.", e);
 				}
-				
+
 				// Initialization of the schedule manager
 				Engine.theApp.schedulerManager = new SchedulerManager(true);
 
 				// Initialization of the RSA manager
 				Engine.theApp.rsaManager = new RsaManager();
 				Engine.theApp.rsaManager.init();
-				
+
 				// Initialization of the Schema manager
 				Engine.theApp.schemaManager = new SchemaManager();
 				Engine.theApp.schemaManager.init();
-				
+
 				Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
-				
-				// XUL initialization
-				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
-				if (xulrunner_url == null || xulrunner_url.equals("")) {
-					xulrunner_url = EnginePropertiesManager.getProperty(PropertyName.XULRUNNER_URL);
-				}
 
-				File f = new File(xulrunner_url);
-				if (f.exists()) {
-					xulrunner_url = f.getAbsolutePath();
-					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
-					System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
-					Engine.bXulRunner = true;
-				} else {
-					if (Engine.isLinux() && "i386".equals(System.getProperty("os.arch"))) {
-						Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url + " doesn't exist, fix it with xulrunner.url");
-					} else {
-						Engine.logEngine.debug("No XulRunner to init.");
-					}
-				}
-
-				if (Engine.isEngineMode() && Engine.isLinux()
-						&& "true".equals(EnginePropertiesManager.getProperty(PropertyName.LINUX_LAUNCH_XVNC))) {
-					final String display = System.getenv("DISPLAY");
-					Engine.logEngine.debug("Linux launch XVNC on display: " + display);
-					if (display != null) {
-						try {
-							String port = System.getProperty("xvnc.port");
-							if (port == null) {
-								port = "" + (Integer.parseInt(display.replaceAll(".*:(\\d*)", "$1")) + 5900);
-								System.setProperty("xvnc.port", port);
-							}
-							Engine.logEngine.debug("Xvnc should listen on " + port + " port");
-						} catch (Exception e) {}
-						try {							
-							File vncDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xvnc");
-							File Xvnc = new File(vncDir, "/Xvnc");
-							File fonts = new File(vncDir, "/fonts");
-							File wm = new File(vncDir, "/matchbox-window-manager");
-							if (vncDir.exists() && Xvnc.exists() && fonts.exists() && wm.exists()) {
-								for (File file : GenericUtils.<File> asList(Xvnc, wm)) {
-									new ProcessBuilder("/bin/chmod", "u+x", file.getAbsolutePath()).inheritIO().start().waitFor();
-								}
-								String depth = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_DEPTH);
-								String geometry = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_GEOMETRY);
-								Engine.logEngine.debug("Xvnc will use depth " + depth + " and geometry " + geometry);
-								Process pr_xvnc = new ProcessBuilder(Xvnc.getAbsolutePath(), display, "-fp",
-										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry).redirectOutput(Redirect.DISCARD)
-										.start();
-								Thread.sleep(500);
-								try {
-									int exit = pr_xvnc.exitValue();
-									InputStream err = pr_xvnc.getErrorStream();
-									byte[] buf = new byte[err.available()];
-									err.read(buf);
-									Engine.logEngine.debug("Xvnc failed to run with exit code " + exit
-											+ " and this error : <<" + new String(buf, "UTF-8") + ">>");
-								} catch (Exception e) {
-									new ProcessBuilder(wm.getAbsolutePath()).inheritIO().start();
-									Engine.logEngine.debug("Xvnc successfully started !");
-								}
-							} else {
-								Engine.logEngine.info(vncDir.getAbsolutePath() + " not found or incomplet, cannot start Xvnc");
-							}
-						} catch (Exception e) {
-							Engine.logEngine.info("failed to launch Xvnc (maybe already launched", e);
-						}
-					} else
-						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
-				}
-				
 				isStarted = true;
 
 				Engine.logEngine.info("Convertigo engine started");
-				
+
 				if (Engine.isEngineMode()) {
 					theApp.addMigrationListener(new MigrationListener() {
-						
+
 						@Override
 						public void projectMigrated(EngineEvent engineEvent) {
 						}
-						
+
 						@Override
 						public void migrationFinished(EngineEvent engineEvent) {
 							List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
@@ -808,7 +735,7 @@ public class Engine {
 								}
 							}
 							boolean newProjectLoaded = Engine.theApp.referencedProjectManager.check();
-							
+
 							if (!newProjectLoaded && Thread.currentThread().getName().equalsIgnoreCase("Migration")) {
 								Engine.logEngine.info("Convertigo will run auto start Sequences.");
 								for (String name: names) {
@@ -818,7 +745,7 @@ public class Engine {
 						}
 					});
 				}
-				
+
 				if (DelegateServlet.canDelegate()) {
 					execute(() -> {
 						try {
@@ -838,7 +765,7 @@ public class Engine {
 			Engine.logEngine.info("Convertigo engine already started");
 		}
 	}
-	
+
 	public static synchronized void stop() throws EngineException {
 		if (Engine.isStudioMode() && isStarted) {
 			throw new EngineException("Cannot stop a Convertigo Studio Engine");
@@ -849,16 +776,16 @@ public class Engine {
 
 			try {
 				Engine.logEngine.info("Stopping the engine");
-				
+
 				// Temporary reset the start/stop date in order to unlink the requestable's
 				// running thread engine ID.
 				Engine.startStopDate = 0;
-				
+
 				if (Engine.theApp.contextManager != null) {
 					Engine.logEngine.info("Removing all contexts");
 					Engine.theApp.contextManager.destroy();
 				}
-				
+
 				Engine.logEngine.info("Resetting statistics");
 				EngineStatistics.reset();
 
@@ -866,7 +793,7 @@ public class Engine {
 					Engine.logEngine.info("Removing the usage monitor");
 					Engine.theApp.usageMonitor.destroy();
 				}
-				
+
 				if (Engine.theApp.sqlConnectionManager != null) {
 					Engine.logEngine.info("Removing the SQL connections manager");
 					Engine.theApp.sqlConnectionManager.destroy();
@@ -896,7 +823,7 @@ public class Engine {
 					Engine.logEngine.info("Removing the proxy manager");
 					Engine.theApp.proxyManager.destroy();
 				}
-				
+
 				if (Engine.theApp.minificationManager != null) {
 					Engine.logEngine.info("Removing the minification manager");
 					Engine.theApp.minificationManager.destroy();
@@ -906,12 +833,12 @@ public class Engine {
 					Engine.logEngine.info("Removing the couchdb manager");
 					Engine.theApp.couchDbManager.destroy();
 				}
-				
+
 				if (Engine.theApp.rsaManager != null) {
 					Engine.logEngine.info("Removing the rsa manager");
 					Engine.theApp.rsaManager.destroy();
 				}
-				
+
 				if (Engine.theApp.schemaManager != null) {
 					Engine.logEngine.info("Removing the schema manager");
 					Engine.theApp.schemaManager.destroy();
@@ -921,12 +848,12 @@ public class Engine {
 					Engine.logEngine.info("Removing the plugins manager");
 					Engine.theApp.pluginsManager.destroy();
 				}
-				
+
 				if (Engine.theApp.restApiManager != null) {
 					Engine.logEngine.info("Removing the rest api manager");
 					Engine.theApp.restApiManager.destroy();
 				}
-				
+
 				// Closing the session manager
 				if (Engine.theApp.sessionManager != null) {
 					Engine.logEngine.info("Closing the session manager");
@@ -941,13 +868,13 @@ public class Engine {
 					Engine.logEngine.info("Removing the scheduler manager");
 					Engine.theApp.schedulerManager.destroy();
 				}
-				
+
 				if (Engine.theApp.databaseObjectsManager != null) {
 					Engine.logEngine.info("Removing the database objects manager");
 					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(ComponentRefManager.get(Mode.stop));
 					Engine.theApp.databaseObjectsManager.destroy();
 				}
-				
+
 				if (Engine.theApp.systemDatabaseObjectsManager != null) {
 					Engine.logEngine.info("Removing the system database objects manager");
 					Engine.theApp.systemDatabaseObjectsManager.destroy();
@@ -968,13 +895,13 @@ public class Engine {
 				catch (Throwable e) {
 					Engine.logEngine.error("Error while unregistering SAP destination provider", e);
 				}
-				
+
 				HttpSessionListener.removeAllSession();
-				
+
 				Engine.logEngine.info("The Convertigo Engine has been successfully stopped.");
 			} finally {
 				Engine.startStopDate = System.currentTimeMillis();
-				
+
 				if (Engine.theApp.eventManager != null) {
 					Engine.logEngine.info("Removing the event manager");
 					Engine.theApp.eventManager.destroy();
@@ -982,7 +909,7 @@ public class Engine {
 				Engine.theApp.eventManager = null;
 
 				LogCleaner.stop();
-				
+
 				isStarted = false;
 				RequestableObject.nbCurrentWorkerThreads = 0;
 
@@ -1031,12 +958,12 @@ public class Engine {
 	public boolean isMonitored() {
 		return bMonitored;
 	}
-	
+
 	private DboExplorerManager dboExplorerManager = null;
-	
+
 	public synchronized DboExplorerManager getDboExplorerManager() throws SAXException, IOException, ParserConfigurationException {
 		if (dboExplorerManager == null) {
-			dboExplorerManager = new DboExplorerManager(); 
+			dboExplorerManager = new DboExplorerManager();
 		}
 		return dboExplorerManager;
 	};
@@ -1119,12 +1046,12 @@ public class Engine {
 
 	/**
 	 * Retrieves the XML document according to the given context.
-	 * 
+	 *
 	 * @param requester
 	 *            the calling requester.
 	 * @param context
 	 *            the request context.
-	 * 
+	 *
 	 * @return the generated XML document.
 	 */
 	public Document getDocument(Requester requester, Context context) throws EngineException {
@@ -1143,7 +1070,7 @@ public class Engine {
 			// Checking whether the asynchronous mode has been requested.
 			if ((context.isAsync) && (JobManager.jobExists(context.contextID))) {
 				Engine.logContext
-						.debug("The requested object is working and is asynchronous; requesting job status...");
+				.debug("The requested object is working and is asynchronous; requesting job status...");
 
 				HttpServletRequest request = (HttpServletRequest) requester.inputData;
 				if (request.getParameter(Parameter.Abort.getName()) != null) {
@@ -1202,7 +1129,7 @@ public class Engine {
 				}
 			}
 			context.project.checkSymbols();
-			
+
 			if (context.httpServletRequest != null && !RequestAttribute.corsOrigin.has(context.httpServletRequest)) {
 				String origin = HeaderName.Origin.getHeader(context.httpServletRequest);
 				String corsOrigin = HttpUtils.filterCorsOrigin(context.project.getCorsOrigin(), origin);
@@ -1213,10 +1140,10 @@ public class Engine {
 				}
 				RequestAttribute.corsOrigin.set(context.httpServletRequest, corsOrigin == null ? "" : corsOrigin);
 			}
-			
+
 			// Loading sequence
 			if (context.sequenceName != null) {
-				
+
 				context.loadSequence();
 			} else {
 				// Loading connector
@@ -1294,7 +1221,7 @@ public class Engine {
 													.getProperty(EnginePropertiesManager.PropertyName.CARIOCA_SESSION_KEY_LIFE_TIME));
 								} catch (NumberFormatException e) {
 									Engine.logContext
-											.warn("The Carioca session key life time value is not valid (not a number)! Setting default to 60s.");
+									.warn("The Carioca session key life time value is not valid (not a number)! Setting default to 60s.");
 								}
 								Engine.logContext.debug("Carioca session key lifetime: "
 										+ cariocaSessionKeyLifeTime + " second(s)");
@@ -1318,22 +1245,22 @@ public class Engine {
 
 			// Check requestable access policy
 			requester.checkSecuredConnection();
-			
-			// Check authenticated context requirement 
-		 	requester.checkAuthenticatedContext();
-		 	
-		 	requester.checkParentContext();
-			
-		 	RequestableObject requestedObject = context.requestedObject;
-			
-		 	String contextResponseExpiryDate = (String) context.get(Parameter.ResponseExpiryDate.getName());
-		 	String oldResponseExpiryDate = null;
+
+			// Check authenticated context requirement
+			requester.checkAuthenticatedContext();
+
+			requester.checkParentContext();
+
+			RequestableObject requestedObject = context.requestedObject;
+
+			String contextResponseExpiryDate = (String) context.get(Parameter.ResponseExpiryDate.getName());
+			String oldResponseExpiryDate = null;
 			if (contextResponseExpiryDate != null) {
 				oldResponseExpiryDate = requestedObject.getResponseExpiryDate();
 				requestedObject.setResponseExpiryDate(contextResponseExpiryDate);
 				context.remove(Parameter.ResponseExpiryDate.getName());
 			}
-			
+
 			try {
 				if (context.isAsync) {
 					outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
@@ -1344,10 +1271,10 @@ public class Engine {
 				if (oldResponseExpiryDate!=null) {
 					requestedObject.setResponseExpiryDate(oldResponseExpiryDate);
 				}
-				
+
 				onDocumentRetrieved(context, outputDom);
 			}
-			
+
 			Element documentElement = outputDom.getDocumentElement();
 			documentElement.setAttribute("version", Version.fullProductVersion);
 			documentElement.setAttribute("context", context.name);
@@ -1412,8 +1339,8 @@ public class Engine {
 							biller.insertBilling(context);
 						} catch (Throwable e) {
 							Engine.logContext
-									.warn("Unable to execute the biller (the billing is thus ignored): ["
-											+ e.getClass().getName() + "] " + e.getMessage());
+							.warn("Unable to execute the biller (the billing is thus ignored): ["
+									+ e.getClass().getName() + "] " + e.getMessage());
 						}
 					}
 				}
@@ -1432,7 +1359,7 @@ public class Engine {
 
 			Engine.logContext.trace("Engine.getDocument: finished");
 		}
-		
+
 		XMLUtils.logXml(outputDom, Engine.logContext, "Generated XML");
 
 		return outputDom;
@@ -1500,14 +1427,14 @@ public class Engine {
 
 		return "Wrong Carioca session key format";
 	}
-	
+
 	public Document getErrorDocument(Throwable e, Requester requester, Context context) throws Exception {
 		// Generate the XML document for error
 		Document document = buildErrorDocument(e, requester, context);
 		context.outputDocument = document;
-		fireDocumentGenerated(new RequestableEngineEvent(context.outputDocument, context.projectName, 
-														 context.sequenceName, context.connectorName));
-		
+		fireDocumentGenerated(new RequestableEngineEvent(context.outputDocument, context.projectName,
+				context.sequenceName, context.connectorName));
+
 		return document;
 	}
 
@@ -1515,7 +1442,7 @@ public class Engine {
 		boolean bHide = EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION ).equals("true");
 		return ConvertigoError.get(e).buildErrorDocument(requester, context, bHide);
 	}
-	
+
 	public static String getExceptionSchema() {
 		String exceptionSchema = "";
 		exceptionSchema += "  <xsd:complexType name=\"ConvertigoError\">\n";
@@ -1550,7 +1477,7 @@ public class Engine {
 		arraySchema += "</xsd:complexType>\n";
 		return arraySchema;
 	}
-	
+
 	public static ServletContext getServletContext() {
 		return servletContext;
 	}
@@ -1694,11 +1621,11 @@ public class Engine {
 			}
 		}
 	}
-	
+
 	public SimpleMap getShareServerMap() {
 		return sharedServerMap;
 	}
-	
+
 	public SimpleMap getShareProjectMap(Project project) {
 		synchronized (sharedProjectMap) {
 			SimpleMap map = sharedProjectMap.get(project.getName());
@@ -1708,11 +1635,11 @@ public class Engine {
 			return map;
 		}
 	}
-	
+
 	public SystemDatabaseObjectsManager getSystemDatabaseObjectsManager() {
 		return systemDatabaseObjectsManager;
 	}
-	
+
 	public static boolean isCloudMode() {
 		return cloud_customer_name != null;
 	}
@@ -1748,7 +1675,7 @@ public class Engine {
 	public static boolean hasXulRunner() {
 		return bXulRunner;
 	}
-	
+
 	public static void execute(Runnable runnable) {
 		executor.execute(() -> {
 			Thread th = Thread.currentThread();
@@ -1768,8 +1695,8 @@ public class Engine {
 			}
 		});
 	}
-	
-	private static Map<Class<? extends Runnable>, boolean[]> executeThreshold = new HashMap<>(); 
+
+	private static Map<Class<? extends Runnable>, boolean[]> executeThreshold = new HashMap<>();
 	public static void execute(Runnable runnable, long threshold) {
 		synchronized (executeThreshold) {
 			boolean[] doit = executeThreshold.get(runnable.getClass());
@@ -1815,7 +1742,7 @@ public class Engine {
 			}
 		}
 	}
-	
+
 	public static File projectFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
@@ -1836,7 +1763,7 @@ public class Engine {
 		}
 		return file;
 	}
-	
+
 	public static File projectYamlFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
@@ -1854,7 +1781,7 @@ public class Engine {
 		}
 		return file;
 	}
-	
+
 	public static String projectDir(String projectName) {
 		File file = projectFile(projectName).getParentFile();
 		try {
@@ -1863,7 +1790,7 @@ public class Engine {
 			return file.getAbsolutePath();
 		}
 	}
-	
+
 	public static String resolveProjectPath(String path) {
 		File file = new File(path);
 		file = resolveProjectPath(file);
@@ -1874,7 +1801,7 @@ public class Engine {
 		}
 		return path;
 	}
-	
+
 	public static File resolveProjectPath(File file) {
 		String path;
 		try {
@@ -1899,7 +1826,7 @@ public class Engine {
 	public static boolean isProjectFile(String filePath) {
 		return filePath.endsWith(".xml") || new File(filePath).getName().equals("c8oProject.yaml");
 	}
-	
+
 	public static ClassLoader getEngineClassLoader() {
 		return engineClassLoader;
 	}

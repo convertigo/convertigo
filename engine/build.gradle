@@ -37,7 +37,6 @@ eclipse {
 		natures 'org.eclipse.buildship.core.gradleprojectnature'
 		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 		linkedResource name: 'convertigo', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/eclipse-plugin-studio/tomcat/webapps/convertigo'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
@@ -74,7 +73,6 @@ eclipse {
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 
 configurations {
-	swtLinux32
 	compileFlat
 	sapjco3
 }
@@ -187,7 +185,6 @@ dependencies {
 		exclude group: 'xalan', module: 'xalan'
 	}	
 	implementation 'com.convertigo.provider:convertigo-provider-sap:7.9.0-SNAPSHOT'
-	implementation 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'
 	compileFlat    'com.convertigo.twinsoft.lib:ms:2002.01.03'
@@ -257,11 +254,9 @@ dependencies {
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
-	compileOnly    'com.convertigo.lib:swt:4.4.2-linux32'
 	implementation project.property('sapjco3Version')
 	sapjco3        project.property('sapjco3Version')
 	implementation files(dependenciesJar.archivePath)
-	swtLinux32     'com.convertigo.lib:swt:4.4.2-linux32'
 	runtimeOnly    project(path: ':placeholders', configuration: 'allPlaceholders')
 }
 
@@ -285,91 +280,6 @@ task dependenciesSourceJar(type: Jar) {
 	}
 	include '**/*.java'
 	archiveBaseName = 'dependencies-sources'
-}
-
-task downloadXulrunnerLinux32(type: Copy) {
-	group 'convertigo'
-	
-	def xul = file 'xulrunner.tgz'
-	ext.dir = file '../resources/xulrunner-linux32'
-	
-	onlyIf {
-		!ext.dir.exists()
-	}
-	
-	doFirst {
-		new URL('https://m2.convertigo.com/com/convertigo/packages/xulrunner-linux32/1.9.0.17-patched3/xulrunner-linux32-1.9.0.17-patched3.tgz')
-			.withInputStream{ i -> xul.withOutputStream{ it << i }}
-		from tarTree(resources.gzip(xul))
-		exclude 'com/**'
-	}
-	
-	from 'src'
-	into ext.dir
-	
-	doLast {
-		xul.delete()
-	}
-}
-
-task downloadXvncLinux32(type: Copy) {
-	group 'convertigo'
-	
-	def vnc = file 'xvnc.tgz'
-	ext.dir = file '../resources/xvnc-linux32'
-	
-	onlyIf {
-		!ext.dir.exists()
-	}
-	
-	doFirst {
-		new URL('https://m2.convertigo.com/com/convertigo/packages/xvnc-linux32/1.3.9/xvnc-linux32-1.3.9.tgz')
-			.withInputStream{ i -> vnc.withOutputStream{ it << i }}
-		from tarTree(resources.gzip(vnc))
-		exclude 'com/**'
-	}
-	
-	from 'src'
-	into ext.dir
-	
-	doLast {
-		vnc.delete()
-	}
-}
-
-task warLinux32(type: Zip, dependsOn: [war, downloadXulrunnerLinux32, downloadXvncLinux32]) {
-	group 'convertigo'
-	
-	archiveFileName.set war.archiveFileName.get().replace(war.archiveBaseName.get(), war.archiveBaseName.get() + '-linux32')
-	destinationDirectory.set war.destinationDirectory.get()
-	
-	doFirst {
-		file('build/tmp/build.txt').text = """\
-build.version=${convertigoRevision}
-build.date=${new Date().toString()}
-build.filename=${archiveName}"""
-	}
-	
-	from zipTree(war.archivePath), {
-		exclude 'WEB-INF/build.txt'
-	}
-	
-	from 'build/tmp/build.txt', {
-		into 'WEB-INF'
-	}
-	
-	from downloadXulrunnerLinux32.ext.dir, {
-		into 'WEB-INF/xulrunner'
-	}
-	
-	from downloadXvncLinux32.ext.dir, {
-		into 'WEB-INF/xvnc'
-	}
-	
-	from configurations.swtLinux32[0], {
-		into 'WEB-INF/lib'
-		rename 'swt-(.*)', 'swt_$1'
-	}
 }
 
 task updateProductVersion {

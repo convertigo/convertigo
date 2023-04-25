@@ -75,7 +75,6 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		combo.add("Extraction rule");
 		combo.add("Sheet");
 		combo.add("Transaction");
-		combo.add("Statement");
 		combo.add("Sequence");
 		combo.add("Step");
 	}

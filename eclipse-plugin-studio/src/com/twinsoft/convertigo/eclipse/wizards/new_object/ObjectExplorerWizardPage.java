@@ -30,9 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 
@@ -41,13 +39,11 @@ public class ObjectExplorerWizardPage extends WizardPage {
 	private Object parentObject = null;
 	private Composite composite = null;
 	private DatabaseObject newBean = null;
-	private String xpath = null;
 
-	public ObjectExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass, String xpath) {
+	public ObjectExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass) {
 		super("ObjectExplorerWizardPage");
 		this.beanClass = beanClass;
 		this.parentObject = parentObject;
-		this.xpath = xpath;
 	}
 
 	public void createControl(Composite parent) {
@@ -71,16 +67,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 				if (parentObject instanceof DatabaseObject) {
 					newBean.setParent((DatabaseObject) parentObject);
 				}
-
-				if (xpath != null) {
-					if (newBean instanceof IXPathable) {
-						((IXPathable)newBean).setXpath(xpath);
-					}
-					// case we create an "javascriptable" statement
-					if (newBean instanceof XpathableStatement) {
-						((XpathableStatement)newBean).setPureXpath(xpath);
-					}
-				}
+				
 				// case we create a javelinConnector
 				if (newBean instanceof JavelinConnector) {
 					((JavelinConnector)newBean).setEmulatorTechnology(com.twinsoft.api.Session.AS400);

@@ -31,10 +31,9 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
@@ -236,9 +235,6 @@ public class ComponentObjectWizard extends Wizard {
 					bContinue = false;
 				}
 				catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
-					if (newBean instanceof HandlerStatement) {
-						throw owsne;
-					}
 					index++;
 				}
 			}

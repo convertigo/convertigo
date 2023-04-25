@@ -123,8 +123,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && mkdir /certs && chmod 777 /certs \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
-        && (chmod -f a+x WEB-INF/xvnc/* || true) \
-        && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
         && chmod 777 WEB-INF/web.xml WEB-INF/lib WEB-INF/classes \
         && rm -rf /tmp/*)
 

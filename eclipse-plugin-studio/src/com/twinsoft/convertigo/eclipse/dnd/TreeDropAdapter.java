@@ -32,7 +32,6 @@ import java.util.TreeSet;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -54,16 +53,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -73,15 +68,12 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
-import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
-import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
@@ -104,7 +96,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolder
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -407,9 +398,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				bContinue = false;
 			}
 			catch(ObjectWithSameNameException owsne) {
-				if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement))
-					throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-
 				if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step))
 					throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
 
@@ -1237,33 +1225,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				dbo = (DatabaseObject) folderTreeObject.getParent().getObject();
 				switch (folderTreeObject.folderType) {
 				case ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS:
-					if (dbo instanceof HtmlScreenClass) {
-						// Creates a XPath criteria for this screen class
-						if (!dbo.equals(((HtmlConnector)dbo.getConnector()).getDefaultScreenClass())) {
-							((HtmlScreenClass)dbo).addCriteria(createXPath(source));
-							needReload = true;
-						}
-					}
 					break;
 
 				case ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES:
-					if (dbo instanceof HtmlScreenClass) {
-						// Creates an inherited screen class with an XPath criteria for this screen class
-						HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority + 1);
-						((HtmlScreenClass)dbo).addInheritedScreenClass(newSc);
-						newSc.addCriteria(createXPath(source));
-						needReload = true;
-					}
 					break;
 
 				case ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES:
-					if (dbo instanceof HtmlScreenClass) {
-						NewObjectWizard newObjectWizard = new NewObjectWizard(dbo, "com.twinsoft.convertigo.beans.core.ExtractionRule",source,null);
-						WizardDialog wzdlg = new WizardDialog(Display.getDefault().getActiveShell(), newObjectWizard);
-						wzdlg.setPageSize(850, 650);
-						wzdlg.open();
-						needReload = true;
-					}
 					break;
 
 				default:
@@ -1276,27 +1243,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			else if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)targetTreeObject;
 				dbo = (DatabaseObject)targetTreeObject.getObject();
-				if (databaseObjectTreeObject instanceof ScreenClassTreeObject) {
-					if (dbo instanceof HtmlScreenClass) {
-						// Creates an inherited screen class with an XPath criteria for this screen class
-						HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority+1);
-						((HtmlScreenClass)dbo).addInheritedScreenClass(newSc);
-						newSc.addCriteria(createXPath(source));
-						needReload = true;
-					}
-				}
 				if (dbo instanceof Variable) {
 					Variable variable = (Variable) dbo;
 					variable.setDefaultValue(source);
 					databaseObjectTreeObject.markAsChanged(true);
-					needReload = true;
-				}
-				else if (dbo instanceof IXPathable) {
-					// Set XPath property
-					if(dbo instanceof XpathableStatement)
-						((XpathableStatement)dbo).setPureXpath(source);
-					else ((IXPathable)dbo).setXpath(source);
-					((DatabaseObject)dbo).hasChanged = true;
 					needReload = true;
 				}
 				if (needReload)
@@ -1305,13 +1255,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			else if (targetTreeObject instanceof IPropertyTreeObject) {
 				IPropertyTreeObject pto = null;
 				if (detail == DND.DROP_MOVE) {
-					// Set XPath property
-					if (targetTreeObject instanceof IXPathable) {
-						((IXPathable)targetTreeObject).setXpath("."+source);
-						needReload = true;
-					}
-					// Add new row with xpath
-					else if (targetTreeObject instanceof PropertyTableTreeObject) {
+					if (targetTreeObject instanceof PropertyTableTreeObject) {
 						//						// See Ticket #679 : Drag and drop without Control
 						//						PropertyTableTreeObject description = (PropertyTableTreeObject)targetTreeObject;
 						//						pto = description.addNewRow();
@@ -1329,18 +1273,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						PropertyTableTreeObject description = (PropertyTableTreeObject)targetTreeObject;
 						pto = description.addNewRow();
 						needReload = true;
-						if ((pto != null) && (pto instanceof IXPathable)) {
-							((IXPathable)pto).setXpath("."+source);
-						}
 					}
 					// Add new column with xpath
 					else if (targetTreeObject instanceof PropertyTableRowTreeObject) {
 						PropertyTableRowTreeObject row = (PropertyTableRowTreeObject)targetTreeObject;
 						pto = row.addNewColumn();
 						needReload = true;
-						if ((pto != null) && (pto instanceof IXPathable)) {
-							((IXPathable)pto).setXpath("."+source);
-						}
 					}
 				}
 
@@ -1598,21 +1536,4 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		propertySheet.partActivated(explorerView);
 		propertySheet.selectionChanged(explorerView, structuredSelection);
 	}
-
-	private XPath createXPath(String source) throws EngineException {
-		XPath xpCriterion = new XPath();
-		xpCriterion.setXpath(source);
-		xpCriterion.hasChanged = true;
-		xpCriterion.bNew = true;
-		return xpCriterion;
-	}
-
-	private HtmlScreenClass createHtmlScreenClass(long priority) throws EngineException {
-		HtmlScreenClass htmlSc = new HtmlScreenClass();
-		htmlSc.priority = priority;
-		htmlSc.hasChanged = true;
-		htmlSc.bNew = true;
-		return htmlSc;
-	}
-
 }

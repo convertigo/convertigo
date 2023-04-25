@@ -76,9 +76,6 @@ import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
-import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
@@ -1004,23 +1001,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
 
 				value = emulatorClassNames[((Integer) value).intValue()];
-			}
-
-			// Must rename bean when normalizedScreenClassName changed
-			if (databaseObject instanceof ScHandlerStatement) {
-				ScHandlerStatement scHandlerStatement = (ScHandlerStatement)databaseObject;
-				if (propertyName.equals("normalizedScreenClassName")) {
-					if (!this.rename("on"+ (String)value+ scHandlerStatement.getHandlerType(), Boolean.FALSE))
-						return;
-				}
-			}
-			// Must rename bean when handlerType changed
-			else if ((databaseObject instanceof HandlerStatement) && !(databaseObject instanceof ScDefaultHandlerStatement)) {
-				//HandlerStatement handlerStatement = (HandlerStatement)databaseObject;
-				if (propertyName.equals("handlerType")) {
-					if (!this.rename("on"+ (String)value, Boolean.FALSE))
-						return;
-				}
 			}
 
 			// Set property's nillable value

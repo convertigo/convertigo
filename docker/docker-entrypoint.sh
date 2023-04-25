@@ -82,16 +82,6 @@ if [ "$1" = "convertigo" ]; then
         -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true \
         -Dconvertigo.cems.user_workspace_path=/workspace"
     
-    ## the web-connector version can use an existing DISPLAY or declare one
-    ## the mbaas version need to be headless and remove the DISPLAY variable
-    
-    if [ -d $WEB_INF/xvnc ]; then
-        export DISPLAY=${DISPLAY:-:0}
-        echo "Set DISPLAY=${DISPLAY}"
-    else
-        unset DISPLAY
-    fi
-    
     if [ "$COOKIE_PATH" != "" ]; then
         $(TMPSED=`sed -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/conf/context.xml)

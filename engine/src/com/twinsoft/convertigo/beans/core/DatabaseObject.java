@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -88,27 +88,27 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface DboCategoryInfo {
-    	String getCategoryId();
-    	String getCategoryName();
-    	String getIconClassCSS();
+		String getCategoryId();
+		String getCategoryName();
+		String getIconClassCSS();
 	}
-	
+
 	public static DboCategoryInfo getDboGroupInfo(Class<?> beanClass) {
 		if (beanClass.isAssignableFrom(DatabaseObject.class)) {
 			return null;
 		}
-		
+
 		DboCategoryInfo dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
 		while (dboCategoryInfo == null && !beanClass.isAssignableFrom(DatabaseObject.class)) {
 			beanClass = beanClass.getSuperclass();
 			dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
 		}
-		
+
 		return dboCategoryInfo;
 	}
-	
+
 	public static final String PROPERTY_XMLNAME = "xmlname";
-	
+
 	private transient Map<String, Set<String>> symbolsErrors = null;
 
 	private static class SubLoader extends WalkHelper {
@@ -123,7 +123,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				this.databaseObject = null;
 			}
 		}
-		
+
 		@Override
 		protected void walk(DatabaseObject subDatabaseObject) throws Exception {
 			if (subDatabaseObject.original != null) {
@@ -134,7 +134,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 
 	}
-	
+
 	public enum ExportOption {
 		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements, bIncludeVersion, bHidePassword;
 	}
@@ -147,13 +147,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			return new SubLoader();
 		}
 	};
-	
+
 	transient protected long identity;
 
 	transient public boolean isImporting = false;
-	
+
 	transient private DatabaseObject original = null;
-	
+
 	transient public boolean isSubLoaded = false;
 
 	/**
@@ -180,9 +180,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
 			BeanDescriptor bd = bi.getBeanDescriptor();
 			setBeanName(StringUtils.normalize(defaultBeanName(bd.getDisplayName()))); // normalize
-																		// bean
-																		// name
-																		// #283
+			// bean
+			// name
+			// #283
 			identity = getNewOrderValue();
 			compilablePropertySourceValuesMap = new HashMap<String, Object>(5);
 		} catch (Exception e) {
@@ -208,12 +208,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				String message = "The property '" + property + "' of '" + getName() + "' has an undefined global symbol!";
 				if (Engine.isStudioMode()) {
 					try {
-						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin"); 
-					 	Method m = convertigoPlugin.getMethod("warningMessageBox", String.class); 
-					 	m.invoke(null, message); 
+						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+						Method m = convertigoPlugin.getMethod("warningMessageBox", String.class);
+						m.invoke(null, message);
 					} catch (Exception e) {
 						Engine.logBeans.error("Unable to invoke the warningMessageBox method.", e);
-					}  
+					}
 				}
 				throw new EngineException(message);
 			}
@@ -268,7 +268,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public transient boolean hasChanged = false;
 
 	public transient boolean bNew = false;
-	
+
 	/**
 	 * The type of the database object. This type is used for storing the object
 	 * into the database.
@@ -288,16 +288,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * Retrieves the parent Object object.
 	 */
 	public DatabaseObject getParent() {
-//		if (parent == null && !isImporting) {
-//			String msg = "(DatabaseObject) parent == null\n"
-//				+ "name: " + name + "\n"
-//				+ "priority: " + priority + "\n"
-//				+ "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
-//			Engine.logEngine.warn(msg);
-//		}
+		//		if (parent == null && !isImporting) {
+		//			String msg = "(DatabaseObject) parent == null\n"
+		//				+ "name: " + name + "\n"
+		//				+ "priority: " + priority + "\n"
+		//				+ "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
+		//			Engine.logEngine.warn(msg);
+		//		}
 		return parent;
 	}
-	
+
 	public String getParentName() {
 		DatabaseObject parent = getParent();
 		return parent != null ? parent.getName() : "[null]";
@@ -305,10 +305,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	public Project getProject() {
 		DatabaseObject databaseObject = this;
-		while (!(databaseObject instanceof Project) && databaseObject != null) { 
+		while (!(databaseObject instanceof Project) && databaseObject != null) {
 			databaseObject = databaseObject.getParent();
 		}
-		
+
 		if (databaseObject == null)
 			return null;
 		else
@@ -317,7 +317,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	public String getTokenPath(String oldName) {
 		String tokenPath = oldName == null ? getName():oldName;
-		
+
 		DatabaseObject parentDbo = parent;
 		while (parentDbo != null) {
 			tokenPath = parentDbo.getName() + "." + tokenPath;
@@ -328,7 +328,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return tokenPath;
 	}
-	
+
 	public Connector getConnector() {
 		if (this instanceof Project) {
 			return null;
@@ -357,20 +357,20 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (parent != null) {
 			parent.changed();
 		}
-		
+
 		parent = databaseObject;
-		
+
 		if (parent != null) {
 			parent.changed();
 		}
-		
+
 		//changed();
 	}
-	
+
 	/**
 	 * Returns the fully qualified name of the object, i.e. with the object
 	 * path, for writing purposes.
-	 * 
+	 *
 	 * @return the fully qualified name of the object.
 	 */
 	public String getQName(boolean full) {
@@ -384,21 +384,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public String getQName() {
 		return getQName(false);
 	}
-	
+
 	public String getFullQName() {
 		return getQName(true);
 	}
-	
+
 	public String getShortQName() {
 		String qn = getQName(true).replace(':', '-');
 		int i = qn.lastIndexOf('.');
 		if (i > 0) {
-			return StringUtils.hash(qn.substring(0, i)) + qn.substring(i); 
+			return StringUtils.hash(qn.substring(0, i)) + qn.substring(i);
 		} else {
 			return qn;
 		}
 	}
-	
+
 	/**
 	 * The priority of object.
 	 */
@@ -411,7 +411,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Retrieves the object name.
-	 * 
+	 *
 	 * @return the object name.
 	 */
 	public String getName() {
@@ -420,7 +420,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Sets the bean name and computes file name.
-	 * 
+	 *
 	 * @param name
 	 *            the bean name.
 	 */
@@ -433,7 +433,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Sets the object name.
-	 * 
+	 *
 	 * @param name
 	 *            the object name.
 	 */
@@ -444,7 +444,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (name.length() == 0) {
 			throw new EngineException("The object name cannot be empty!");
 		}
-		
+
 		String[] newName = {StringUtils.normalize(name)};
 		if (parent != null) {
 			FolderType fd = getFolderType();
@@ -453,7 +453,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				try {
 					ok = true;
 					new WalkHelper() {
-		
+
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
 							if (DatabaseObject.this.parent == databaseObject) {
@@ -462,7 +462,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 								throw new ObjectWithSameNameException("");
 							}
 						}
-						
+
 					}.init(parent);
 				} catch (ObjectWithSameNameException e) {
 					ok = false;
@@ -479,7 +479,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			onBeanNameChanged(oldName, name);
 		}
 	}
-	
+
 	public static String incrementName(String name) {
 		Matcher m = pIntSuffix.matcher(name);
 		if (m.find()) {
@@ -490,10 +490,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return name;
 	}
-	
+
 	/**
 	 * Returns an available name for a new child database object to add.
-	 * 
+	 *
 	 * @param eDatabaseObjects
 	 *            an enumeration of children database objects
 	 * @param dboName
@@ -615,15 +615,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		for (int i = 0; !found && i < len; i++) {
 			propertyDescriptor = propertyDescriptors[i];
 			String propertyDescriptorName = propertyDescriptor.getName();
-			
-			if (found = propertyDescriptorName.equals(propertyName)) {			
+
+			if (found = propertyDescriptorName.equals(propertyName)) {
 				addProperty(document, element, propertyDescriptor, propertyDescriptorName);
 			}
 		}
 
 		return element;
 	}
-	
+
 	private void addProperty(Document document, Element root, PropertyDescriptor propertyDescriptor, String propertyDescriptorName) {
 		String displayName = propertyDescriptor.getDisplayName();
 		String shortDescription = propertyDescriptor.getShortDescription();
@@ -634,7 +634,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (getter == null) {
 			return;
 		}
-		
+
 		if (checkBlackListParentClass(propertyDescriptor)) {
 			return;
 		}
@@ -662,8 +662,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 			// Encrypts value if needed
 			//if (isCipheredProperty(propertyDescriptorName) && !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
-			if (isCipheredProperty(propertyDescriptorName) && 
-					( this.exportOptions.contains(ExportOption.bHidePassword) || 
+			if (isCipheredProperty(propertyDescriptorName) &&
+					( this.exportOptions.contains(ExportOption.bHidePassword) ||
 							!this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
 				cypheredValue = encryptPropertyValue(value);
 				if (!value.equals(cypheredValue)) {
@@ -724,7 +724,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					} catch (Exception ex) {
 						sResults = new String[0];
 					}
-					
+
 					if (sResults != null) {
 						if (sResults.length > 0) {
 							Element possibleValues = document.createElement("possibleValues");
@@ -765,7 +765,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 	}
 
-	
+
 	public Element toXml(Document document, ExportOption... exportOptions) throws EngineException {
 		try {
 			this.exportOptions.addAll(Arrays.asList(exportOptions));
@@ -774,7 +774,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			this.exportOptions.clear();
 		}
 	}
-	
+
 	public Element toXml(Document document, String propertyName, ExportOption... exportOptions) throws EngineException {
 		try {
 			this.exportOptions.addAll(Arrays.asList(exportOptions));
@@ -839,9 +839,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
-		
+
 		databaseObject.isImporting = true;
-		
+
 		try {
 			// Performs custom configuration before object de-serialization
 			databaseObject.preconfigure(element);
@@ -869,15 +869,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			Class<?> propertyType;
 			NamedNodeMap childAttributes;
 			boolean maskValue = false;
-			
+
 			for (int i = 0; i < len; i++) {
 				Node childNode = childNodes.item(i);
 				if (childNode.getNodeType() != Node.ELEMENT_NODE) {
 					continue;
 				}
-				
+
 				Element childElement = (Element) childNode;
-				
+
 				childNodeName = childNode.getNodeName();
 
 				Engine.logBeans.trace("Analyzing node '" + childNodeName + "'");
@@ -913,13 +913,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					}
 
 					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue);
-					
+
 					if (Enum.class.isAssignableFrom(propertyType)) {
 						propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
 					}
-					
+
 					propertyValue = propertyObjectValue.toString();
-					
+
 					Method setter = pd.getWriteMethod();
 					Engine.logBeans.trace("  setter='" + setter.getName() + "'");
 					Engine.logBeans.trace("  param type='" + propertyObjectValue.getClass().getName() + "'");
@@ -972,7 +972,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 		return databaseObject;
 	}
-	
+
 	public Object compileProperty(String propertyName, Object propertyObjectValue) {
 		return compileProperty(String.class, propertyName, propertyObjectValue);
 	}
@@ -986,7 +986,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			addSymbolError(propertyName, e.undefinedSymbols());
 			compiled = e.incompletValue();
 		}
-		
+
 		if (compiled != propertyObjectValue) {
 			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 			propertyObjectValue = compiled;
@@ -1017,7 +1017,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return propertyObjectValue;
 	}
-	
+
 
 
 	public boolean isMaskedProperty(Visibility target, String propertyName) {
@@ -1035,7 +1035,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public static String encryptPropertyValue(String propertyValue) {
 		return Crypto2.encodeToHexString(propertyValue);
 	}
-	
+
 	public static <E> E encryptPropertyValue(E propertyValue) {
 		if (propertyValue == null) {
 			return null;
@@ -1108,7 +1108,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return propertyValue;
 	}
-	
+
 	protected static PropertyDescriptor findPropertyDescriptor(PropertyDescriptor[] pds, String pn) {
 		int len = pds.length;
 		PropertyDescriptor pd;
@@ -1135,13 +1135,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public void write(String databaseObjectQName) throws EngineException {
 		write();
 	}
-	
+
 	/** Holds value of property version. */
 	private String version = "";
 
 	/**
 	 * Setter for property version.
-	 * 
+	 *
 	 * @param version
 	 *            New value of property version.
 	 */
@@ -1151,7 +1151,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Getter for property version.
-	 * 
+	 *
 	 * @return Value of property version.
 	 */
 	public String getVersion() {
@@ -1163,7 +1163,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Getter for property comment.
-	 * 
+	 *
 	 * @return Value of property comment.
 	 */
 	public String getComment() {
@@ -1172,7 +1172,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	/**
 	 * Setter for property comment.
-	 * 
+	 *
 	 * @param comment
 	 *            New value of property comment.
 	 */
@@ -1200,11 +1200,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public long getIdentity() {
 		return identity;
 	}
-	
+
 	public DatabaseObject getOriginal() {
 		return original != null ? original : this;
 	}
-	
+
 	public boolean isOriginal() {
 		return original == null;
 	}
@@ -1253,21 +1253,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public <E extends DatabaseObject> List<E> getAllChildren() {
 		return new ArrayList<E>();
 	}
-	
+
 	public void changed() {
 		if (!isImporting) {
 			hasChanged = true;
 		}
 	}
-	public void addSymbolError(String propertyName, Set<String> undefinedSymbols) { 
+	public void addSymbolError(String propertyName, Set<String> undefinedSymbols) {
 		if (symbolsErrors == null) {
 			symbolsErrors = new HashMap<String, Set<String>>();
 		}
-		
+
 		symbolsErrors.put(propertyName, undefinedSymbols);
 		DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 	}
-	
+
 	private void removeSymbolError(String propertyName) {
 		synchronized (mutex) {
 			if (symbolsErrors != null) {
@@ -1278,30 +1278,30 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 	}
-	
+
 	public boolean isSymbolError() {
 		synchronized (mutex) {
 			return symbolsErrors != null;
 		}
 	}
-	
+
 	public boolean checkBlackListParentClass(PropertyDescriptor propertyDescriptor) {
 		return parent != null && parent.getClass().getCanonicalName()
 				.equals(propertyDescriptor.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS));
 	}
-	
+
 	public Map<String, Set<String>> getSymbolsErrors() {
 		synchronized (mutex) {
 			return new HashMap<String, Set<String>>(symbolsErrors);
 		}
 	}
-	
+
 	public Set<String> getSymbolsErrors(String parameterName) {
 		synchronized (mutex) {
 			return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
 		}
 	}
-	
+
 	public void updateSymbols() throws Exception {
 		if (!compilablePropertySourceValuesMap.isEmpty()) {
 			PropertyDescriptor[] propertyDescriptors = CachedIntrospector.getBeanInfo(getClass()).getPropertyDescriptors();
@@ -1315,44 +1315,44 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 	}
-	
-    public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
-    	return getDatabaseObjectChildren(false);
-    }
-	
-    public List < DatabaseObject > getDatabaseObjectChildren(boolean deep) throws Exception {
-        final List <DatabaseObject> children = new LinkedList<>();
-        new WalkHelper() {
 
-            @Override
-            protected void walk(DatabaseObject databaseObject) throws Exception {
-                if (databaseObject == DatabaseObject.this) {
-                    super.walk(databaseObject);
-                }
-                else {
-                    children.add(databaseObject);
-                    if (deep) {
-                        super.walk(databaseObject);
-                    }
-                }
-            }
-        }.init(this);
-        return children;
-    }
-	
-    public List<DatabaseObject> getSiblingsInFolder() {
-    	List<DatabaseObject> siblings = new ArrayList<DatabaseObject>();
-    	try {
-	    	List<DatabaseObject> children = parent.getDatabaseObjectChildren();
+	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+		return getDatabaseObjectChildren(false);
+	}
+
+	public List < DatabaseObject > getDatabaseObjectChildren(boolean deep) throws Exception {
+		final List <DatabaseObject> children = new LinkedList<>();
+		new WalkHelper() {
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject == DatabaseObject.this) {
+					super.walk(databaseObject);
+				}
+				else {
+					children.add(databaseObject);
+					if (deep) {
+						super.walk(databaseObject);
+					}
+				}
+			}
+		}.init(this);
+		return children;
+	}
+
+	public List<DatabaseObject> getSiblingsInFolder() {
+		List<DatabaseObject> siblings = new ArrayList<DatabaseObject>();
+		try {
+			List<DatabaseObject> children = parent.getDatabaseObjectChildren();
 			for (DatabaseObject child: children) {
 				if (child.getFolderType().equals(getFolderType())) {
 					siblings.add(child);
 				}
 			}
-    	} catch (Exception e) {}
-    	return siblings;
-    }
-    
+		} catch (Exception e) {}
+		return siblings;
+	}
+
 	public DatabaseObject getPreviousSiblingInFolder() {
 		try {
 			List<DatabaseObject> siblings = getSiblingsInFolder();
@@ -1370,7 +1370,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		} catch (Exception e) {}
 		return null;
 	}
-	
+
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();
 		for (DatabaseObject child: children) {
@@ -1382,21 +1382,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public boolean testAttribute(String name, String value) {
-		if (name.equals("isStatementWithExpressions")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(this instanceof StatementWithExpressions));
-		}
 		if (name.equals("isStepWithExpressions")) {
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(this instanceof StepWithExpressions));
-		}		
+		}
 		if (name.equals("isTargetForSapTransaction")) {
 			Boolean bool = Boolean.valueOf(value);
 			try {
 				return bool.equals(Boolean.valueOf(((TransactionStep) getParent()).getTargetTransaction() instanceof SapJcoTransaction));
 			} catch (Throwable e) {}
 			return false;
-		}		
+		}
 		if (name.equals("objectClassName")) {
 			String objectClassName = getClass().getName();
 			objectClassName = Pattern.quote(objectClassName);
@@ -1416,18 +1412,18 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return false;
 	}
-	
+
 	protected void checkBatchOperation(Runnable runnable) {
 		BatchOperationHelper.check(runnable);
 	}
-	
+
 	public FolderType getFolderType() {
 		return FolderType.NONE;
 	}
-	
+
 	protected void onBeanNameChanged(String oldName, String newName) {
 	}
-	
+
 	protected String defaultBeanName(String displayName) {
 		return displayName;
 	}

@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -72,14 +72,14 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	};
 	MyPropertyChangeEventListener myPropertyChangeEventListener;
-	
+
 	public static final String POOL_CONTEXT_ID_PREFIX = "/";
 	public static final String STUDIO_CONTEXT_PREFIX = "studio_";
 	public static final String CONTEXT_TYPE_UNKNOWN		= "";
 	public static final String CONTEXT_TYPE_TRANSACTION	= "C";
 	public static final String CONTEXT_TYPE_SEQUENCE 	= "S";
-	
-	
+
+
 	private Map<String, Context> contexts;
 	private int currentContextNum;
 
@@ -87,14 +87,14 @@ public class ContextManager extends AbstractRunnableManager {
 	private long manage_poll_timeout = -1;
 
 	private final Object contextCreationMutex = new Object();
-	
+
 	public void init() throws EngineException {
 		Engine.logContextManager.info("ContextManager initialization...");
 
 		try {
 			contexts = new ConcurrentHashMap<String, Context>();
 			currentContextNum = 0;
-			
+
 			devicePools = new HashMap<String, DevicePool>();
 			Engine.theApp.eventManager.addListener(myPropertyChangeEventListener = new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
 
@@ -103,21 +103,21 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.debug("End of initialization");
 		}
 	}
-	
+
 	@Override
 	public void destroy() throws EngineException {
 		Engine.logContextManager.info("Destroying ContextManager...");
 
 		super.destroy();
-		
+
 		// remove all contexts
 		removeAll();
 		contexts = null;
-		
+
 		// remove all devicePools
 		removeDevicePools();
 		devicePools = null;
-		
+
 		Engine.theApp.eventManager.removeListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
 	}
 
@@ -128,12 +128,12 @@ public class ContextManager extends AbstractRunnableManager {
 			manage_poll_timeout = manage_poll_timeout <=0 ? -1 : manage_poll_timeout * 1000;
 		} catch (Exception e) {}
 	}
-	
+
 	public void add(Context context) {
-			contexts.put(context.contextID, context);
+		contexts.put(context.contextID, context);
 		int size = contexts.size();
-			Engine.logContextManager.debug("Context " + context.contextID + " has been added");
-			Engine.logContext.debug("[" + context.contextID + "] Context created, project: " + context.projectName);
+		Engine.logContextManager.debug("Context " + context.contextID + " has been added");
+		Engine.logContext.debug("[" + context.contextID + "] Context created, project: " + context.projectName);
 		Engine.logContextManager.info("Current in-use contexts: " + size);
 		Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + size);
 	}
@@ -148,7 +148,7 @@ public class ContextManager extends AbstractRunnableManager {
 	public String computeStudioContextName(String type, String projectName, String typeName) {
 		return STUDIO_CONTEXT_PREFIX + projectName + ":"+ type +":" + typeName;
 	}
-	
+
 	public Context get(Requester requester, String contextName, String projectName) throws Exception {
 		return get(requester, contextName, null, null, projectName, null);
 	}
@@ -156,10 +156,10 @@ public class ContextManager extends AbstractRunnableManager {
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName) throws Exception {
 		return get(requester, contextName, null, null, projectName, null, null);
 	}
-	
+
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName, String sequenceName) throws Exception {
 		Context context = null;
-		
+
 		// Try to find the context in pool
 		if ((poolName != null) && (poolName.length() > 0)) {
 			context = findPoolContext(contextName, projectName, connectorName, poolName);
@@ -220,7 +220,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 		return context;
 	}
-	
+
 	private Context get(String contextID, String contextName, String projectName) throws EngineException {
 		Context context = get(contextID);
 		// Create a new context
@@ -233,7 +233,7 @@ public class ContextManager extends AbstractRunnableManager {
 			} else {
 				Engine.logContextManager.debug("Current number of contexts: " + numberOfContext + "/" + maxNumberOfContext);
 			}
-			
+
 			context = new Context(contextID);
 			context.name = contextName;
 			context.cacheEntry = null;
@@ -243,7 +243,7 @@ public class ContextManager extends AbstractRunnableManager {
 			context.creationTime = creationTime;
 			context.lastAccessTime = creationTime;
 			context.projectName = projectName;
-			
+
 			synchronized (contextCreationMutex) {
 				Context existing = contexts.get(context.contextID);
 				if (existing == null) {
@@ -330,17 +330,17 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void abort(Context context) {
-			if (context == null) {
-				// Silently ignore
-				Engine.logContextManager.warn("Requestable thread cannot be stopped because context does not exist any more!");
-				return;
-			}
-			
-			String contextID = context.contextID;
-			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
-				Engine.logContextManager.info("Stopping requestable thread for context " + contextID);
-				context.abortRequestable();
-			}
+		if (context == null) {
+			// Silently ignore
+			Engine.logContextManager.warn("Requestable thread cannot be stopped because context does not exist any more!");
+			return;
+		}
+
+		String contextID = context.contextID;
+		if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
+			Engine.logContextManager.info("Stopping requestable thread for context " + contextID);
+			context.abortRequestable();
+		}
 	}
 
 	public void remove(String contextID) {
@@ -362,19 +362,19 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		context.isDestroying = true;
 		context.requireRemoval(false);
-		
+
 		try {
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
-			
+
 			contexts.remove(contextID, context);
-			
+
 			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
 				//context.requestedObject.runningThread.bContinue = false;
 				context.abortRequestable();
 			}
-			
+
 			// Trying to execute the end transaction (only in the engine mode)
 			if (Engine.isEngineMode()) {
 				for (Connector connector: context.getOpenedConnectors()) {
@@ -397,11 +397,11 @@ public class ContextManager extends AbstractRunnableManager {
 						}
 					} catch (Throwable e) {
 						Engine.logContextManager.error("Unable to execute the end transaction; " +
-							"context: " + context.contextID + ", " +
-							"project: " + context.projectName + ", " +
-							"connector: " + context.connectorName + ", " +
-							"end transaction: " + endTransactionName,
-							e);
+								"context: " + context.contextID + ", " +
+								"project: " + context.projectName + ", " +
+								"connector: " + context.connectorName + ", " +
+								"end transaction: " + endTransactionName,
+								e);
 					} finally {
 						context.isDestroying = true;
 					}
@@ -414,7 +414,7 @@ public class ContextManager extends AbstractRunnableManager {
 						Engine.logContextManager.trace("DevicePool for '"+ connectorQName +"' exist: unlocking device for context number "+ contextNum +".");
 						devicePool.unlockDevice(contextNum);
 					}
-					
+
 					Engine.logContextManager.trace("Releasing " + connector.getName() + " connector (" + connector.getClass().getName() + ") for context id " + context.contextID);
 					Engine.execute(new Runnable() {
 						public void run() {
@@ -423,12 +423,12 @@ public class ContextManager extends AbstractRunnableManager {
 					});
 				}
 			}
-	
+
 			context.clearConnectors();
-			
+
 			// Set TwsCachedXPathAPI to null
 			context.cleanXpathApi();
-			
+
 			try {
 				Set<File> files = GenericUtils.cast(context.get("fileToDeleteAtEndOfContext"));
 				if (files != null) {
@@ -438,16 +438,16 @@ public class ContextManager extends AbstractRunnableManager {
 				}
 			} catch (Exception e) {
 			}
-			
+
 			Engine.theApp.sessionManager.removeSession(contextID);
 			String projectName = (String) context.projectName;
-			
+
 			/* Fix: #1754 - Slower transaction execution with many session */
 			// HTTP session maintain its own context list in order to
 			// improve context removal on session unbound process
 			// See also #4198 which fix a regression
 			String sessionID = context.httpSession != null ? context.httpSession.getId() :
-									context.contextID.substring(0,context.contextID.indexOf("_"));
+				context.contextID.substring(0,context.contextID.indexOf("_"));
 			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			if (httpSession != null) {
 				synchronized (httpSession) {
@@ -463,7 +463,7 @@ public class ContextManager extends AbstractRunnableManager {
 					}
 				}
 			}
-	
+
 			Engine.logContextManager.debug("Context " + contextID + " has been removed");
 			Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
 			Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
@@ -490,7 +490,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 
 			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
-			
+
 			for (Context context: contextList) {
 				remove(context);
 			}
@@ -509,7 +509,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 		}
 	}
-	
+
 	public void removeAll() {
 		Engine.logContextManager.debug("Removing all contexts...");
 		try {
@@ -531,7 +531,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// Nothing to do: the Engine object has yet been deleted
 		}
 	}
-	
+
 	public void removeDevicePool(String poolID) {
 		DevicePool devicePool = getDevicePool(poolID);
 		if (devicePool != null) {
@@ -604,8 +604,6 @@ public class ContextManager extends AbstractRunnableManager {
 			try {
 				Context context = entry.getValue();
 
-				context.checkXulRecorder();
-
 				// Ignoring removing of pool contexts only if the pooled context has not been locked.
 				// If the pooled context has been locked, it may be a zombie context and then must be
 				// removed (it will be recreated after).
@@ -644,7 +642,7 @@ public class ContextManager extends AbstractRunnableManager {
 		if (Engine.isStudioMode()) {
 			return;
 		}
-		
+
 		if (!Engine.isStarted) {
 			Engine.logContextManager.debug("Engine is stopped => do not manage pools");
 			return;
@@ -666,7 +664,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// with the auto-start transaction
 			for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 				if (!isRunning) return;
-				
+
 				Engine.logContextManager.trace("Analyzing project " + projectName);
 				Project project = null;
 				try {
@@ -679,7 +677,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 				Collection<Connector> vConnectors = project.getConnectorsList();
 				Engine.logContextManager.trace("Connectors: " + vConnectors);
-				
+
 				for (Connector connector : vConnectors) {
 					if (!isRunning) return;
 					Engine.logContextManager.trace("Connector: " + connector);
@@ -717,34 +715,34 @@ public class ContextManager extends AbstractRunnableManager {
 								}
 								managePoolContext(localProject, localConnector, localPool, i);
 							}
-							
+
 							int pooledContextsInUsePercentage = 100 * pooledContextsInUse / pooledContexts;
 							int pooledContextsLockedPercentage = 100 * pooledContextsLocked / pooledContexts;
-							
-							String poolStatistics = "Pool '" + poolNameWithPath + 
-								"' usage: pool size: " + pooledContexts + "; in use contexts: " + pooledContextsInUse +
-								" (" + pooledContextsInUsePercentage + "%); zombie contexts: " + pooledContextsZombie;;
-							
-							if (pooledContextsZombie > 0) {
-								Engine.logContextManager.warn("Pool '" + poolNameWithPath + "' had zombie contexts!");
-								Engine.logContextManager.warn(poolStatistics);
-							}
-							
-							if (pooledContextsInUsePercentage > 80) {
-								Engine.logContextManager.warn("Pool '" + poolNameWithPath  + "' is overloaded!");
-								Engine.logContextManager.warn(poolStatistics);
-							}
 
-							Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' size", pooledContexts);
-							Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' in use contexts", pooledContextsInUse + " (" + pooledContextsInUsePercentage + "%)");
-							Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' locked contexts", pooledContextsLocked + " (" + pooledContextsLockedPercentage + "%)");
-							Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' zombie contexts", pooledContextsZombie);
-							Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' to be created contexts", pooledContextsToCreate);
+							String poolStatistics = "Pool '" + poolNameWithPath +
+									"' usage: pool size: " + pooledContexts + "; in use contexts: " + pooledContextsInUse +
+									" (" + pooledContextsInUsePercentage + "%); zombie contexts: " + pooledContextsZombie;;
+
+									if (pooledContextsZombie > 0) {
+										Engine.logContextManager.warn("Pool '" + poolNameWithPath + "' had zombie contexts!");
+										Engine.logContextManager.warn(poolStatistics);
+									}
+
+									if (pooledContextsInUsePercentage > 80) {
+										Engine.logContextManager.warn("Pool '" + poolNameWithPath  + "' is overloaded!");
+										Engine.logContextManager.warn(poolStatistics);
+									}
+
+									Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' size", pooledContexts);
+									Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' in use contexts", pooledContextsInUse + " (" + pooledContextsInUsePercentage + "%)");
+									Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' locked contexts", pooledContextsLocked + " (" + pooledContextsLockedPercentage + "%)");
+									Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' zombie contexts", pooledContextsZombie);
+									Engine.theApp.usageMonitor.setUsageCounter("[Pool] '" + poolNameWithPath + "' to be created contexts", pooledContextsToCreate);
 						}
 					}
 				}
 			}
-			
+
 			for (Pair<Pool, Integer> pooledContextToCreate : pooledContextsToCreateSet) {
 				if (!isRunning) return;
 				String key = pooledContextToCreate.getKey().getNameWithPath();
@@ -769,7 +767,7 @@ public class ContextManager extends AbstractRunnableManager {
 		String poolName = pool.getName();
 		String poolContextID = getPoolContextID(projectName, connectorName, poolName, "" + contextNumber);
 		Engine.logContextManager.trace("Managing the context " + poolContextID);
-		
+
 		Context context = get(poolContextID);
 		if (context != null) { // Context already created
 			if (context.waitingRequests == 0) { // Context not currently used
@@ -779,11 +777,11 @@ public class ContextManager extends AbstractRunnableManager {
 					Engine.logContextManager.debug("Context has been locked; ignoring possible zombie state");
 					return;
 				}
-				
+
 				// Checking pool context state
 				if (verifyPoolContext(context))
 					return;
-				
+
 				Engine.logContextManager.debug("Zombie context => destroying it!");
 				remove(context);
 				pooledContextsZombie++;
@@ -793,12 +791,12 @@ public class ContextManager extends AbstractRunnableManager {
 				return;
 			}
 		}
-	
+
 		// Context not yet created or removed (detected as a zombie context)
 		pooledContextsToCreate++;
 		pooledContextsToCreateSet.add(Pair.<Pool, Integer>of(pool, contextNumber));
 	}
-	
+
 	private void createPoolContext(Pool pool, int contextNumber){
 		try {
 			if (!isRunning) return;
@@ -806,10 +804,10 @@ public class ContextManager extends AbstractRunnableManager {
 			Project project = connector.getProject();
 
 			String poolContextID = getPoolContextID(project.getName(), connector.getName(), pool.getName(), "" + contextNumber);
-			
+
 			Engine.logContextManager.info("Creating context");
 			Context context = get(poolContextID, contextNumber + "", project.getName());
-			
+
 			context.project = project;
 			context.projectName = project.getName();
 			//context.sequence = null;
@@ -823,7 +821,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 				// For compatibility with older javelin projects, set the transaction context property
 				context.transaction = (Transaction)context.requestedObject;
-				
+
 				Engine.logContextManager.debug("Launching the auto-start transaction \"" + context.transactionName + "\" for the context " + context.contextID);
 
 				context.remoteAddr = "127.0.0.1";
@@ -842,77 +840,77 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture while creating the pool context.", e);
 		}
 	}
-	
+
 	public static String getPoolContextID(String projectName, String connectorName, String poolName, String sessionName) {
 		return POOL_CONTEXT_ID_PREFIX + projectName + "/" + connectorName + "/" + poolName + "_" + sessionName;
 	}
-	
+
 	private Context findPoolContext(String contextName, String projectName, String connectorName, String poolName) throws EngineException {
-			Engine.logContextManager.debug("Trying to find a pooled context");
-			Engine.logContextManager.debug("   contextName=" + contextName);
-			Engine.logContextManager.debug("   projectName=" + projectName);
-			Engine.logContextManager.debug("   connectorName=" + connectorName);
-			Engine.logContextManager.debug("   poolName=" + poolName);
-			
-			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-			Connector connector;
-			if (connectorName == null) {
-				connector = project.getDefaultConnector();
-				connectorName = connector.getName();
-			} else connector = project.getConnectorByName(connectorName);
+		Engine.logContextManager.debug("Trying to find a pooled context");
+		Engine.logContextManager.debug("   contextName=" + contextName);
+		Engine.logContextManager.debug("   projectName=" + projectName);
+		Engine.logContextManager.debug("   connectorName=" + connectorName);
+		Engine.logContextManager.debug("   poolName=" + poolName);
 
-			// If we cannot find the pool, abort the process
-			Pool pool = connector.getPoolByName(poolName);
-			if (pool == null) {
-				Engine.logContextManager.debug("No pool named '" + poolName + "'; aborting pool management");
-				return null;
-			}
-			Engine.logContextManager.debug("Found pool=" + pool);
-			pool.checkSymbols();
+		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		Connector connector;
+		if (connectorName == null) {
+			connector = project.getDefaultConnector();
+			connectorName = connector.getName();
+		} else connector = project.getConnectorByName(connectorName);
 
-			String contextIDPrefix = ContextManager.getPoolContextID(projectName, connectorName, poolName, "");
+		// If we cannot find the pool, abort the process
+		Pool pool = connector.getPoolByName(poolName);
+		if (pool == null) {
+			Engine.logContextManager.debug("No pool named '" + poolName + "'; aborting pool management");
+			return null;
+		}
+		Engine.logContextManager.debug("Found pool=" + pool);
+		pool.checkSymbols();
 
-			if (contextName != null && !contextName.equals("default") && !contextName.equals("default*")) {
-				Engine.logContextManager.debug("Explicit pooled context '" + contextIDPrefix + contextName + "' has been required");
-				Context context = get(contextIDPrefix + contextName);
-				if (context == null) throw new EngineException("Explicit pooled context '" + contextIDPrefix + contextName + "' does not exist!");
-				Engine.logContextManager.debug("context.waitingRequests=" + context.waitingRequests);
-				Engine.logContextManager.debug("context.lockPooledContext=" + context.lockPooledContext);
-				if (!context.lockPooledContext) throw new EngineException("Explicit pooled context '" + contextIDPrefix + contextName + "' has not been locked!");
-				Engine.logContextManager.debug("The context has been previously locked and has been explicitely requested");
-				return context;
-			} else {
-				Engine.logContextManager.debug("Searching for good candidate");
-				for (Map.Entry<String, Context> entry : contexts.entrySet()) {
-					Engine.logContextManager.debug("Analyzing context " + entry.getKey());
-					if (entry.getKey().startsWith(contextIDPrefix)) {
-						Context context = entry.getValue();
-						
-						Engine.logContextManager.debug("context.waitingRequests=" + context.waitingRequests);
-						Engine.logContextManager.debug("context.lockPooledContext=" + context.lockPooledContext);
-						
-						if ((context.waitingRequests == 0) && (!context.lockPooledContext) && verifyPoolContext(context)) {
-							Engine.logContextManager.debug("Good candidate for election: " + context.contextID);				
-							return entry.getValue();
-						}
+		String contextIDPrefix = ContextManager.getPoolContextID(projectName, connectorName, poolName, "");
+
+		if (contextName != null && !contextName.equals("default") && !contextName.equals("default*")) {
+			Engine.logContextManager.debug("Explicit pooled context '" + contextIDPrefix + contextName + "' has been required");
+			Context context = get(contextIDPrefix + contextName);
+			if (context == null) throw new EngineException("Explicit pooled context '" + contextIDPrefix + contextName + "' does not exist!");
+			Engine.logContextManager.debug("context.waitingRequests=" + context.waitingRequests);
+			Engine.logContextManager.debug("context.lockPooledContext=" + context.lockPooledContext);
+			if (!context.lockPooledContext) throw new EngineException("Explicit pooled context '" + contextIDPrefix + contextName + "' has not been locked!");
+			Engine.logContextManager.debug("The context has been previously locked and has been explicitely requested");
+			return context;
+		} else {
+			Engine.logContextManager.debug("Searching for good candidate");
+			for (Map.Entry<String, Context> entry : contexts.entrySet()) {
+				Engine.logContextManager.debug("Analyzing context " + entry.getKey());
+				if (entry.getKey().startsWith(contextIDPrefix)) {
+					Context context = entry.getValue();
+
+					Engine.logContextManager.debug("context.waitingRequests=" + context.waitingRequests);
+					Engine.logContextManager.debug("context.lockPooledContext=" + context.lockPooledContext);
+
+					if ((context.waitingRequests == 0) && (!context.lockPooledContext) && verifyPoolContext(context)) {
+						Engine.logContextManager.debug("Good candidate for election: " + context.contextID);
+						return entry.getValue();
 					}
 				}
-				throw new EngineException("No more available context on the pool " + poolName + "; please try again later.");
 			}
+			throw new EngineException("No more available context on the pool " + poolName + "; please try again later.");
 		}
+	}
 
 	private boolean verifyPoolContext(Context context) {
 		JavelinConnector javelinConnector = (JavelinConnector) context.getConnector();
-		
+
 		if (javelinConnector == null) {
 			return true;
 		}
-		
+
 		// TODO: find why the javelin is null sometimes with pools
 		if (javelinConnector.javelin == null) {
 			return true;
 		}
-		
+
 		Engine.logContextManager.trace("verifyPoolContext() context=" + context.contextID);
 		Engine.logContextManager.trace("verifyPoolContext() connector=" + Integer.toHexString(javelinConnector.hashCode()));
 		Engine.logContextManager.trace("verifyPoolContext() javelin=" + Integer.toHexString(javelinConnector.javelin.hashCode()));
@@ -932,14 +930,14 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.trace("verifyPoolContext() expected screen class: " + context.pool.getInitialScreenClass());
 		Engine.logContextManager.trace("verifyPoolContext() current screen class: " + currentScreenClassName);
 		Engine.logContextManager.trace("verifyPoolContext() isInExpectedScreenClass=" + isInExpectedScreenClass);
-		
+
 		boolean b = isConnected && isInExpectedScreenClass;
 		if (!b) {
 			Engine.logContextManager.warn("Zombie context detected! context: " + context.contextID);
 		}
 		return b;
 	}
-	
+
 	private void clearOldLogs() {
 		SortedMap<Date, File> files = null;
 		try (LogManager lm = new LogManager()) {
@@ -949,25 +947,25 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			System.out.println("clearOldLogs: " + e.getMessage());
 		}
-		
+
 		if (files == null) {
 			return;
 		}
-		
+
 		int nb = EnginePropertiesManager.getPropertyAsInt(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX);
 		if ((nb = files.size() - nb) <= 0) {
 			return;
 		}
 
 		StringBuilder sb = new StringBuilder("Purging old log files:");
-		files.values().stream().limit(nb).forEachOrdered(toDelete -> 
-			sb.append("\n - " + toDelete + " is deleted: " + toDelete.delete())
-		);
+		files.values().stream().limit(nb).forEachOrdered(toDelete ->
+		sb.append("\n - " + toDelete + " is deleted: " + toDelete.delete())
+				);
 		if (!sb.isEmpty()) {
 			Engine.logEngine.info(sb);
 		}
 	}
-	
+
 	private void verifyKeyExpiration() {
 		try {
 			Iterator<?> iter = KeyManager.keys.values().iterator();
@@ -976,7 +974,7 @@ public class ContextManager extends AbstractRunnableManager {
 			SimpleDateFormat formater = new SimpleDateFormat("dd/MM/yyyy");
 			while (iter.hasNext()) {
 				Key key = (Key) iter.next();
-				
+
 				if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
 					// check (unlimited key or currentKey expiration date later than previous)
 					if ((seKey == null) || (key.expiration == 0) || (key.expiration >= seKey.expiration)) {
@@ -985,20 +983,20 @@ public class ContextManager extends AbstractRunnableManager {
 					continue; // skip overdated or overriden session key, only ONE is allowed
 				}
 			}
-			
+
 			iter = KeyManager.keys.values().iterator();
 			while (iter.hasNext()) {
 				Key key = (Key) iter.next();
-				
+
 				if (key.expiration > 0 && (key.emulatorID != com.twinsoft.api.Session.EmulIDSE || key == seKey)) {
 					long nbDays = key.expiration - now;
 					if (nbDays <= 28) {
 						String expiDate = formater.format((long) key.expiration * 3600000 * 24);
 						Engine.logEngine.error("Activation KEY [" + key.sKey + "] for '" + KeyManager.getEmulatorName(key.emulatorID) + "' will expire in " + nbDays + " days, the " + expiDate + ".\n"
-							+ "Please renew licenses by sending a mail to: sales@convertigo.com\n"
-							+ "Once keys are expired, Convertigo server failures can be expected.\n"
-							+ "Renewal of activation key is at the responsibility of the customer.\n"
-							+ "Convertigo shall not be responsible for non renewal of Keys due to late Purchase Orders.");
+								+ "Please renew licenses by sending a mail to: sales@convertigo.com\n"
+								+ "Once keys are expired, Convertigo server failures can be expected.\n"
+								+ "Renewal of activation key is at the responsibility of the customer.\n"
+								+ "Convertigo shall not be responsible for non renewal of Keys due to late Purchase Orders.");
 					}
 				}
 			}

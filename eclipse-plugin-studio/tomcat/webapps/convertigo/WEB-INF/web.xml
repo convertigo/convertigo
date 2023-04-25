@@ -187,16 +187,6 @@
         <servlet-name>JsonPServlet</servlet-name>
         <url-pattern>*.jsonp</url-pattern>
     </servlet-mapping>
-
-    <!-- Webclipping entry point -->
-	<servlet>
-		<servlet-name>WebClippingServlet</servlet-name>
-		<servlet-class>com.twinsoft.convertigo.engine.servlets.WebClippingServlet</servlet-class>
-	</servlet>
-    <servlet-mapping>
-        <servlet-name>WebClippingServlet</servlet-name>
-        <url-pattern>/webclipper/*</url-pattern>
-    </servlet-mapping>
     
     <servlet>
 		<servlet-name>RsaPublicKeyServlet</servlet-name>
@@ -318,13 +308,4 @@
         <extension>inc</extension>
         <mime-type>text/plain</mime-type>
     </mime-mapping>
-
-    <servlet>
-        <servlet-name>GetEvents</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.GetEvents</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>GetEvents</servlet-name>
-        <url-pattern>/studio/getevents/*</url-pattern>
-    </servlet-mapping>
 </web-app>

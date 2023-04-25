@@ -25,7 +25,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MigrationManager {
@@ -94,14 +93,6 @@ public class MigrationManager {
 						} catch (InterruptedException e) {
 							Engine.logEngine.error("An error occured while performing migration.", e);
 						}
-					}
-					
-					// Migration 3.0.0 specifics
-					try {
-						Migration3_0_0.done();
-					}
-					catch(Exception e) {
-						Engine.logEngine.error("Unable to end successfully the 3.0.0 migration.", e);
 					}
 				}
 				catch(Throwable t) {

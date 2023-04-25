@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
@@ -51,7 +50,6 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
@@ -72,8 +70,6 @@ import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
-import com.twinsoft.convertigo.engine.KeyExpiredException;
-import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
@@ -218,10 +214,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		Context ctx = Engine.theApp.contextManager.get(contextID);
 		if ((ctx == null) || bForce) {
 			ctx = new Context(contextID);
-			if (connector instanceof HtmlConnector) {
-				ctx.cleanXpathApi();
-				ctx.htmlParser = ((HtmlConnector) connector).getHtmlParser();
-			}
 			ctx.contextID = contextID;
 			ctx.name = contextID;
 			ctx.projectName = projectName;
@@ -307,8 +299,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		tabItemDesign = new TabItem(tabFolderOutputDesign, SWT.NONE);
 		tabItemDesign.setText("Design");
 		tabItemDesign.setControl(compositeDesign);
-		if (connector instanceof HtmlConnector)
-			selectTabDesign();
 	}
 
 	public void selectTabOutput() {
@@ -1100,40 +1090,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	 * 
 	 */
 	private void createCompositeDesign() {
-		if (Engine.hasXulRunner() && connector instanceof HtmlConnector) {
-			try {
-				compositeDesign = new HtmlConnectorDesignComposite(connector, tabFolderOutputDesign, SWT.NONE);
-			} catch (MaxCvsExceededException e) {
-				String message = "You have reached the maximum allowed number of simultaneous HTML connectors; check your license keys.\n\n"
-						+ "Notice: according to your license key, the maximum allowed number of simultaneous HTML connectors is 2. "
-						+ "As you have more than 2 HTML connectors open, you will not be able to open another one nor run any transaction on this connector.\n\n"
-						+ "Please close unnecessary connectors.";
-				ConvertigoPlugin.logError(message, true);
-				compositeDesign = new Composite(tabFolderOutputDesign, SWT.NONE);
-				labelNoDesign = new Label(compositeDesign, SWT.NONE | SWT.WRAP);
-				labelNoDesign.setBounds(new org.eclipse.swt.graphics.Rectangle(10, 10, 300, 200));
-				labelNoDesign.setFont(new Font(null, "Tahoma", 10, 0));
-				labelNoDesign.setText("\n" + message);
-				Control[] children = tabFolderOutputDesign.getChildren();
-				if ((children.length >= 2) && (children[1] instanceof HtmlConnectorDesignComposite))
-					children[1].moveBelow(null);
-
-			} catch (KeyExpiredException e) {
-				String message = "Your HTML license key has expired; check your license keys.\n\n"
-						+ "Notice: according to your license key, your trial period has expired. "
-						+ "You will not be able to open an HTML connector nor run any transaction on this connector.\n\n";
-				ConvertigoPlugin.logError(message, true);
-				compositeDesign = new Composite(tabFolderOutputDesign, SWT.NONE);
-				labelNoDesign = new Label(compositeDesign, SWT.NONE | SWT.WRAP);
-				labelNoDesign.setBounds(new org.eclipse.swt.graphics.Rectangle(10, 10, 300, 200));
-				labelNoDesign.setFont(new Font(null, "Tahoma", 10, 0));
-				labelNoDesign.setText("\n" + message);
-				Control[] children = tabFolderOutputDesign.getChildren();
-				if ((children.length >= 2) && (children[1] instanceof HtmlConnectorDesignComposite))
-					children[1].moveBelow(null);
-			}
-		}
-		else if (connector instanceof SapJcoConnector) {
+		if (connector instanceof SapJcoConnector) {
 			try {
 				compositeDesign = new SapJcoConnectorDesignComposite(connector, tabFolderOutputDesign, SWT.NONE);
 			}
@@ -1167,10 +1124,9 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		connector.markAsDebugging(false);
 
 		compositeConnector.close();
-		if (compositeDesign instanceof HtmlConnectorDesignComposite)
-			((HtmlConnectorDesignComposite) compositeDesign).close();
-		if (compositeDesign instanceof SapJcoConnectorDesignComposite)
+		if (compositeDesign instanceof SapJcoConnectorDesignComposite) {
 			((SapJcoConnectorDesignComposite) compositeDesign).close();
+		}
 
 		// Remove Studio context
 		Engine.theApp.contextManager.remove(context);

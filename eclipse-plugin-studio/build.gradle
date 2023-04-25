@@ -23,7 +23,6 @@ eclipse {
 		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
 		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'

@@ -56,8 +56,6 @@ import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
-import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
@@ -66,13 +64,8 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
-import com.twinsoft.convertigo.beans.statements.ElseStatement;
-import com.twinsoft.convertigo.beans.statements.FunctionStatement;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
-import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
@@ -551,9 +544,6 @@ public class ClipboardManager {
 					}.init(parentDatabaseObject);
 					bContinue = false;
 				} catch (ObjectWithSameNameException owsne) {
-					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
-						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-					}
 					if (bChangeName) {
 						bIncName = true;
 					}
@@ -625,12 +615,6 @@ public class ClipboardManager {
 				if (databaseObject instanceof TransactionWithVariables) {
 					((TransactionWithVariables)databaseObject).setOrderedVariables(getNewOrdered());
 				}
-				if (databaseObject instanceof StatementWithExpressions) {
-					((StatementWithExpressions)databaseObject).setOrderedStatements(getNewOrdered());
-				}
-				if (databaseObject instanceof HTTPStatement) {
-					((HTTPStatement)databaseObject).setOrderedVariables(getNewOrdered());
-				}
 				if (databaseObject instanceof ScreenClass) {
 					((ScreenClass)databaseObject).setOrderedCriterias(getNewOrdered());
 					((ScreenClass)databaseObject).setOrderedExtractionRules(getNewOrdered());
@@ -670,23 +654,6 @@ public class ClipboardManager {
 						databaseObject.priority = screenClass.priority + 1;
 						screenClass.add(databaseObject);
 					}
-				} else if (parentDatabaseObject instanceof HtmlTransaction) {
-					HtmlTransaction transaction = (HtmlTransaction) parentDatabaseObject;
-					if (databaseObject instanceof Sheet) {
-						transaction.add(databaseObject);
-					} else if (databaseObject instanceof TestCase) {
-						transaction.add(databaseObject);
-					} else if (databaseObject instanceof Variable) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						transaction.add(databaseObject);
-					} else if (databaseObject instanceof FunctionStatement) {
-						if (databaseObject instanceof StatementWithExpressions) {
-							databaseObject.priority = 0;
-						}
-						transaction.add(databaseObject);
-					} else {
-						throw new EngineException("You cannot paste to an HtmlTransaction a database object of type " + databaseObject.getClass().getName());
-					}
 				} else if (parentDatabaseObject instanceof TransactionWithVariables) {
 					TransactionWithVariables transaction = (TransactionWithVariables) parentDatabaseObject;
 					if (databaseObject instanceof Sheet) {
@@ -711,16 +678,6 @@ public class ClipboardManager {
 						sequence.add(databaseObject);
 					} else {
 						throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
-					}
-				} else if (parentDatabaseObject instanceof StatementWithExpressions) {
-					StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
-					databaseObject.priority = databaseObject.getNewOrderValue();
-					statement.add(databaseObject);
-				} else if (parentDatabaseObject instanceof HTTPStatement) {
-					HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
-					if (databaseObject instanceof Variable) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						statement.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof StepWithExpressions) {
 					StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
@@ -838,9 +795,6 @@ public class ClipboardManager {
 					parentDatabaseObject.add(databaseObject);
 				}
 			} catch(ObjectWithSameNameException owsne) {
-				if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
-					throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-				}
 				if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step)) {
 					throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
 				}
@@ -1043,13 +997,6 @@ public class ClipboardManager {
 			if (object instanceof ElseStep) {
 				throw new EngineException("You cannot cut the \"Else\" step");
 			}
-		}
-		
-		if (object instanceof Statement) {
-			if (object instanceof ThenStatement)
-				throw new EngineException("You cannot cut the \"Then\" statement");
-			if (object instanceof ElseStatement)
-				throw new EngineException("You cannot cut the \"Else\" statement");
 		}
 		
 		// Verify object is accepted for paste

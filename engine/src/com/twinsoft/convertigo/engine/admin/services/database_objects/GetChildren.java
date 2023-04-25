@@ -17,7 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;

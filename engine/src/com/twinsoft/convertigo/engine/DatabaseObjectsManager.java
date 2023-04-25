@@ -91,11 +91,6 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.enums.DeleteProjectOption;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.migration.Migration001;
-import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
-import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
-import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
-import com.twinsoft.convertigo.engine.migration.Migration7_0_0;
-import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
 import com.twinsoft.convertigo.engine.migration.Migration8_0_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -1320,43 +1315,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 				version = rootElement.getAttribute("beans");
 			}
 
-			// Migration to version 3.0.0 schema
-			if ((version.startsWith("1.")) || (version.startsWith("2."))) {
-				Engine.logDatabaseObjectManager.info("XML project's file migration to 3.0.0 schema ...");
-
-				projectNode = Migration3_0_0.migrate(document, projectNode);
-
-				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to v3.0:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
-			}
-
-			// Migration to version 4.6.0 schema for CEMS 5.0.0
-			if (VersionUtils.compare(version, "4.6.0") < 0) {
-				Engine.logDatabaseObjectManager.info("XML project's file migration to 4.6.0 schema ...");
-
-				projectNode = Migration5_0_0.migrate(document, projectNode);
-
-				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to v4.6:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
-
-				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
-			}
-
-			// Migration to version 5.0.3 schema for CEMS 5.0.4
-			if (VersionUtils.compare(version, "5.0.3") < 0) {
-				Engine.logDatabaseObjectManager.info("XML project's file migration to 5.0.3 schema ...");
-
-				projectNode = Migration5_0_4.migrate(document, projectNode);
-
-				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to v5.0.3:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
-
-				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
-			}
-
 			// Migration to version m001
 			if (VersionUtils.compareMigrationVersion(version, ".m001") < 0) {
 				Engine.logDatabaseObjectManager.info("XML project's file migration to m001 schema ...");
@@ -1365,19 +1323,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				if (Engine.logDatabaseObjectManager.isTraceEnabled())
 					Engine.logDatabaseObjectManager.trace("XML migrated to m001:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
-
-				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
-			}
-
-			// Migration to version 7.0.0 (mobile application)
-			if (VersionUtils.compare(version, "7.0.0") < 0) {
-				Engine.logDatabaseObjectManager.info("XML project's file migration to 7.0.0 schema (mobile application)...");
-
-				projectNode = Migration7_0_0.migrate(document, projectNode);
-
-				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to v7.0.0:\n"
 							+ (XMLUtils.prettyPrintDOM(document)));
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
@@ -1417,25 +1362,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 						"An error occured while performing 6.2.0 migration for project '" + projectName + "'", e);
 			}
 		}
-
-		if (VersionUtils.compare(version, "7.0.0") < 0) {
-			// !! Studio mode only !!
-			// Project must be migrated by hand through: Studio import
-			if (Engine.isStudioMode()) {
-				// Project's xsd/wsdl no more based on file (Since 7.0.0)
-				Migration7_0_0.migrate(projectName);
-			}
-		}
-
-		if (VersionUtils.compare(version, "7.4.0") < 0) {
-			// !! Studio mode only !!
-			// Project must be migrated by hand through: Studio import
-			if (Engine.isStudioMode()) {
-				// Change MobilePlatform config.xml
-				Migration7_4_0.migrate(projectName);
-			}
-		}
-
 	}
 
 	private boolean performWsMigration(String version, String projectName) {

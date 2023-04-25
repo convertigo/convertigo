@@ -172,9 +172,6 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 				case 6: // Transaction
 					bContinue = databaseObject.getDatabaseType().equals("Transaction");
 					break;
-				case 7: // Statement
-					bContinue = databaseObject.getDatabaseType().equals("Statement");
-					break;
 				case 8: // Sequence
 					bContinue = databaseObject.getDatabaseType().equals("Sequence");
 					break;

@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -19,8 +19,10 @@
 
 package com.twinsoft.convertigo.eclipse.editors.mobile;
 
+import java.beans.BeanInfo;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
@@ -131,7 +133,7 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 
 public final class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
-	
+
 	public class ApplicationComponentBrowserImpl {
 
 		@JsAccessible
@@ -170,7 +172,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						if (mb != null) {
 							mb.prepareBatchBuild();
 						}
-						
+
 						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 						TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
 						BatchOperationHelper.start();
@@ -189,9 +191,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 	};
-	
+
 	private ApplicationComponentEditorInput applicationEditorInput;
-	
+
 	private ScrolledComposite browserScroll;
 	private GridData browserGD;
 	private Menu devicesMenu;
@@ -202,7 +204,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
-	
+
 	private C8oBrowser c8oBrowser;
 	private Browser browser;
 	private String debugUrl;
@@ -212,28 +214,28 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private File datasetDir;
 	private File devicePref;
 	private String dataset = "none";
-	
+
 	private JSONArray devicesDefinition;
 	private JSONArray devicesDefinitionCustom;
-	
+
 	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
-	
+
 	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
 	private int buildCount = 0;
-	
+
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
-	
+
 	private static final Set<Integer> usedPort = new HashSet<>();
 	private int portNode;
 	private int portReload;
 	private int portLogger;
-	
+
 	public ApplicationComponentBrowserImpl browserInterface;
-	
+
 	public ApplicationComponentEditor() {
 		try {
 			devicesDefinition = new JSONArray(IOUtils.toString(getClass().getResourceAsStream("devices.json"), "UTF-8"));
@@ -242,7 +244,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			e.printStackTrace();
 			devicesDefinition = new JSONArray();
 		}
-		
+
 		try {
 			devicesDefinitionCustom = new JSONArray(FileUtils.readFileToString(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), "UTF-8"));
 		} catch (Exception e) {
@@ -261,7 +263,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			} catch (Exception e) {
 				device = new JSONObject();
 			}
-			
+
 			device.put("visible", deviceBar.isVisible());
 			device.put("name", deviceName.getText().trim());
 			device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
@@ -274,22 +276,22 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			Engine.logStudio.debug("Cannot save device bar", e);
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		if (c8oBrowser != null) {
 			c8oBrowser.dispose();
 		}
-		
+
 		for (Process p: processes) {
 			p.destroyForcibly();
 			p.destroy();
 		}
-		
+
 		terminateNode();
 		super.dispose();
 	}
-	
+
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
@@ -302,16 +304,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
-		
+
 		applicationEditorInput = (ApplicationComponentEditorInput) input;
 		ApplicationComponent application = applicationEditorInput.application;
 		Project project = application.getProject();
 
 		datasetDir = new File(project.getDirPath() + "/dataset");
 		datasetDir.mkdirs();
-		
+
 		devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
-		
+
 		setPartName(project.getName() + " [A: " + application.getName() + "]");
 		terminateNode();
 	}
@@ -330,28 +332,28 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	@Override
 	public void createPartControl(Composite parent) {
 		DeviceOS.init(parent.getDisplay());
-		
+
 		Composite editor = new Composite(parent, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
 		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
 				= gl.marginHeight = gl.marginWidth
 				= gl.horizontalSpacing = gl.verticalSpacing = 0;
-		
+
 		editor.setLayout(gl);
-				
+
 		devicesMenu = new Menu(parent.getShell());
-		
+
 		JSONObject device = null;
 		try {
 			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
 			buildMode = MobileBuilderBuildMode.get(device.getString("buildMode"));
 		} catch (Exception e) { }
-		
+
 		updateDevicesMenu();
 		createToolbar(editor);
 		createDeviceBar(editor);
 		createBrowser(editor);
-		
+
 		try {
 			dataset = device.getString("dataset");
 			deviceName.setText(device.getString("name").trim());
@@ -361,7 +363,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			setDeviceBarVisible(device.getBoolean("visible"));
 			setDeviceOS(DeviceOS.valueOf(device.getString("os")));
 			updateBrowserSize();
-			
+
 			for (MenuItem m: devicesMenu.getItems()) {
 				if (deviceName.getText().equals(m.getText().substring(2))) {
 					m.setSelection(true);
@@ -371,11 +373,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		} catch (Exception e) {
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		}
-		
+
 		if (applicationEditorInput.isAutoBuild()) {
 			launchBuilder(false);
 		}
-		
+
 		getSite().getWorkbenchWindow().getActivePage().activate(this);
 	}
 
@@ -384,34 +386,34 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		browserScroll.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 		browserScroll.setExpandHorizontal(true);
 		browserScroll.setExpandVertical(true);
-		
+
 		Composite canvas = new Composite(browserScroll, SWT.NONE);
 		browserScroll.setContent(canvas);
-		
+
 		GridLayout gl = new GridLayout(1, false);
 		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
 				= gl.marginHeight = gl.marginWidth
 				= gl.horizontalSpacing = gl.verticalSpacing = 0;
-		
+
 		canvas.setLayout(gl);
-		
+
 		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, applicationEditorInput.application.getProject());
 		browserGD = new GridData(SWT.CENTER, SWT.CENTER, true, true);
 		c8oBrowser.setLayoutData(browserGD);
 
 		browser = c8oBrowser.getBrowser();
 		debugUrl = c8oBrowser.getDebugUrl();
-		
+
 		browserInterface = new ApplicationComponentBrowserImpl();
-		
+
 		String[] inject = {null};
 		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
-			inject[0] = IOUtils.toString(is, "UTF-8"); 
+			inject[0] = IOUtils.toString(is, "UTF-8");
 		} catch (Exception e2) {
 			Engine.logStudio.info("failure", e2);
 			inject[0] = "alert('the editor is broken, please restart the studio')";
 		}
-		
+
 		browser.set(InjectJsCallback.class, params -> {
 			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
@@ -419,10 +421,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					Frame frame = params.frame();
 					JsObject sessionStorage = frame.executeJavaScript("sessionStorage");
 					frame.executeJavaScript(
-						"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
-						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-						+ inject[0]
-					);
+							"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
+									+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
+									+ inject[0]
+							);
 					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
 					if (!dataset.equals("none")) {
 						String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
@@ -436,83 +438,84 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 				}
 			}
-//			browser.setZoomLevel(zoomFactor.zoomLevel());
+			//			browser.setZoomLevel(zoomFactor.zoomLevel());
 			return Response.proceed();
 		});
-		
+
 		browser.set(ShowContextMenuCallback.class, (params, tell) -> {
 			com.teamdev.jxbrowser.ui.Point location = params.location();
 			highlightPoint(location.x(), location.y());
 			tell.close();
 		});
-		
+
 		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
 			tell.grant();
 		});
 	}
-	
+
 	private void createDeviceBar(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		deviceBar = new Composite(parent, SWT.NONE);
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
 		deviceBar.setLayoutData(gd);
-		
+
 		gd.exclude = true;
 		deviceBar.setVisible(false);
-		
+
 		RowLayout layout = new RowLayout();
 		layout.center = true;
 		layout.spacing = 10;
 		deviceBar.setLayout(layout);
-		
+
 		FocusListener focusListener = new FocusAdapter() {
-			
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				updateBrowserSize();
 			}
-			
+
 			@Override
 			public void focusGained(FocusEvent e) {
 				deviceBar.getDisplay().asyncExec(() -> ((Text) e.widget).selectAll());
 			}
-			
+
 		};
-		
+
 		KeyListener keyListener = new KeyAdapter() {
-			
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == 13) {
 					updateBrowserSize();
 				}
 			}
-			
+
 		};
-		
+
 		VerifyListener verifyListener = e -> {
 			String oldS = ((Text) e.widget).getText();
 			String newS = oldS.substring(0, e.start) + e.text + oldS.substring(e.end);
-				if (!newS.isEmpty() && !newS.equals("-")) {
-					try {
-						Integer.parseInt(newS);
-					} catch (Exception ex) {
-						e.doit = false;
-					}
+			if (!newS.isEmpty() && !newS.equals("-")) {
+				try {
+					Integer.parseInt(newS);
+				} catch (Exception ex) {
+					e.doit = false;
 				}
+			}
 		};
-		
+
 		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
 		deviceOsToolItem = new ToolItem(tb, SWT.DROP_DOWN);
 		final Menu mOS = new Menu(tb);
 		SelectionListener selectionListener = new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				setDeviceOS((DeviceOS) e.widget.getData());
 			}
-			
+
 		};
-		
+
 		for (DeviceOS device: DeviceOS.values()) {
 			MenuItem menuItem = new MenuItem(mOS, SWT.NONE);
 			menuItem.setData(device);
@@ -520,39 +523,39 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setText(device.displayName());
 			menuItem.addSelectionListener(selectionListener);
 		}
-		
+
 		deviceOsToolItem.setToolTipText("Select device OS.");
 		deviceOsToolItem.setImage(deviceOS.image());
 		deviceOsToolItem.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds(); 
+				Rectangle rect = item.getBounds();
 				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
 				mOS.setLocation(pt);
 				mOS.setVisible(true);
 			}
-			
+
 		});
-		
+
 		new Label(deviceBar, SWT.NONE).setText(" ");
-		
+
 		new Label(deviceBar, SWT.NONE).setText("Device name:");
 		deviceName = new Text(deviceBar, SWT.NONE);
 		deviceName.setFont(JFaceResources.getTextFont());
 		deviceName.setLayoutData(new RowData(200, SWT.DEFAULT));
-		
+
 		new Label(deviceBar, SWT.NONE).setText(" ");
-		
+
 		new Label(deviceBar, SWT.NONE).setText("Width:");
 		deviceWidth = new Text(deviceBar, SWT.NONE);
-		
+
 		new Label(deviceBar, SWT.NONE).setText(" ");
-		
+
 		new Label(deviceBar, SWT.NONE).setText("Height:");
 		deviceHeight = new Text(deviceBar, SWT.NONE);
-		
+
 		for (Text t: new Text[]{deviceWidth, deviceHeight}) {
 			t.setTextLimit(4);
 			t.setFont(JFaceResources.getTextFont());
@@ -561,12 +564,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			t.addVerifyListener(verifyListener);
 			t.addKeyListener(keyListener);
 		}
-		
+
 		new Label(deviceBar, SWT.NONE).setText(" ");
-		
+
 		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_out.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_out.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom out");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -576,9 +582,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				updateBrowserSize();
 			}
 		});
-		
+
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_reset.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_reset.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom reset");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -588,9 +597,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				updateBrowserSize();
 			}
 		});
-		
+
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_in.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_in.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom in");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -600,34 +612,37 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				updateBrowserSize();
 			}
 		});
-		
+
 		new ToolItem(tb, SWT.SEPARATOR);
-		
+
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/dbo_save.gif")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/dbo_save.gif"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Save");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String name = deviceName.getText().trim();
-				
+
 				if (name.isEmpty()) {
 					toast("Device name must no be empty.");
 					return;
 				}
-				
+
 				if (findDevice(devicesDefinition, name) != null) {
 					toast("Cannot override the default device '" + name + "'.");
 					return;
 				}
-				
+
 				int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 				int height = NumberUtils.toInt(deviceHeight.getText(), -1);
-				
+
 				C8oBrowser.run(() -> {
 					JSONObject device = findDevice(devicesDefinitionCustom, name);
-					
+
 					try {
 						if (device == null) {
 							device = new JSONObject();
@@ -647,23 +662,26 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				});
 			}
 		});
-		
+
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/project_delete.gif")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/project_delete.gif"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Delete");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String name = deviceName.getText().trim();
-				
+
 				if (findDevice(devicesDefinition, name) != null) {
 					toast("Cannot remove the default device '" + name + "' !");
 					return;
 				}
-				
+
 				JSONObject device = findDevice(devicesDefinitionCustom, name);
-				
+
 				try {
 					if (device != null) {
 						devicesDefinitionCustom.remove(device);
@@ -676,11 +694,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (Exception ex) {
 					toast("Device '" + deviceName.getText() + "' NOT removed ! " + ex);
 				}
-			}			
+			}
 		});
 	}
 
-	private void createToolbar(Composite parent) {		
+	private void createToolbar(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		toolbar = new ToolBar(parent, SWT.VERTICAL);
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
 		gd.verticalSpan = 2;
@@ -689,14 +708,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select device viewport. Click to toggle the custom device bar.");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png")));
+		try {
+			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
+		} catch (IOException e2) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (e.detail == SWT.ARROW) {
 					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds(); 
+					Rectangle rect = item.getBounds();
 					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
 					devicesMenu.setLocation(pt);
 					devicesMenu.setVisible(true);
@@ -704,16 +726,19 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					setDeviceBarVisible(!deviceBar.getVisible());
 				}
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Change orientation");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png")));
+		try {
+			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
+		} catch (IOException e2) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String width = deviceWidth.getText();
@@ -721,28 +746,34 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				deviceHeight.setText(width);
 				updateBrowserSize();
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Refresh");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/refresh.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/refresh.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				doReload();
 			}
-			
+
 		});
-				
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Back");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/undo.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/undo.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				C8oBrowser.run(() -> {
@@ -752,46 +783,55 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				});
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-				
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove highlight");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/write_wait_zone.d.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/write_wait_zone.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				exHighlightElement = null;
 				exHighlightMobileComponent = null;
 				C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_remove_all_overlay()"));
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-				
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show debug");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/debug.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/debug.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(true);
 				getSite().getPage().activate(view);
 				view.onActivated(ApplicationComponentEditor.this);
 			}
-			
+
 		});
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Open in default browser");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/statements/images/ContinueWithSiteClipperStatement_color_16x16.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/ContinueWithSiteClipperStatement_color_16x16.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				C8oBrowser.run(() -> {
@@ -801,49 +841,55 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				});
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Toggle auto build");
 		item.setSelection(true);
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/accumulate.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/accumulate.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				MobileBuilder mb = applicationEditorInput.application.getProject().getMobileBuilder();
 				mb.setAutoBuild(((ToolItem) e.widget).getSelection());
 			}
-			
+
 		});
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Manage modules");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/show_blocks.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/show_blocks.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				MessageDialog dialog = new MessageDialog(
-					null, "Node_module Update / Reinstall",
-					null, "This will update or reinstall all your project's node_module dependencies. Update when you just " +
-						     "added a new dependency to your ionicTpl/package.json file, or re-install if you want clean all your node_modules and do a fresh install (takes more time).",
-					MessageDialog.QUESTION,
-					new String[] {"Update", "Re-install", "Cancel"}, 0
-				);
+						null, "Node_module Update / Reinstall",
+						null, "This will update or reinstall all your project's node_module dependencies. Update when you just " +
+								"added a new dependency to your ionicTpl/package.json file, or re-install if you want clean all your node_modules and do a fresh install (takes more time).",
+								MessageDialog.QUESTION,
+								new String[] {"Update", "Re-install", "Cancel"}, 0
+						);
 				int result = dialog.open();
 				if (result < 2) {
 					launchBuilder(true, result == 1);
 				}
 			}
-			
+
 		});
 
 		final ToolItem buildModeItem = item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		
+
 		final Menu buildModeMenu = new Menu(parent.getShell());
 		SelectionListener buildModeListener = new SelectionAdapter() {
 
@@ -851,9 +897,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			public void widgetSelected(SelectionEvent e) {
 				dialogBuild(buildModeItem, (MenuItem) e.widget);
 			}
-			
+
 		};
-		
+
 		for (MobileBuilderBuildMode mode: MobileBuilderBuildMode.values()) {
 			MenuItem menuItem = new MenuItem(buildModeMenu, SWT.NONE);
 			menuItem.setText(mode.label());
@@ -866,14 +912,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				item.setToolTipText(mode.description());
 			}
 		}
-		
+
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (e.detail == SWT.ARROW) {
 					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds(); 
+					Rectangle rect = item.getBounds();
 					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
 					buildModeMenu.setLocation(pt);
 					buildModeMenu.setVisible(true);
@@ -881,86 +927,94 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					dialogBuild(buildMode);
 				}
 			}
-			
+
 		});
-		
+
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_show_history.gif")));
-		
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_show_history.gif"));
+		} catch (Exception e) {
+		}
+
 		SelectionListener selectionListener = new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				setDataset(((MenuItem) e.widget).getText());
 			}
-			
+
 		};
-		
-		Image iDataset = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkin.gif"));
-		Image iDatasetSelected = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkout.gif"));
-		final Menu mDataset = new Menu(toolbar);
-				
-		item.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				for (MenuItem item: mDataset.getItems()) {
-					item.dispose();
-				}
-				
-				MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
-				menuItem.setText("none");
-				
-				for (String fDataset: datasetDir.list()) {
-					Matcher m = pDatasetFile.matcher(fDataset);
-					if (m.matches()) {
-						menuItem = new MenuItem(mDataset, SWT.NONE);
-						menuItem.setText(m.group(1));
+		try {
+			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.gif");
+			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.gif");
+			final Menu mDataset = new Menu(toolbar);
+
+			item.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					for (MenuItem item: mDataset.getItems()) {
+						item.dispose();
 					}
-				}
-				
-				for (MenuItem item: mDataset.getItems()) {
-					if (item.getText().equals(dataset)) {
-						item.setImage(iDatasetSelected);
-					} else {
-						item.setImage(iDataset);
+
+					MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
+					menuItem.setText("none");
+
+					for (String fDataset: datasetDir.list()) {
+						Matcher m = pDatasetFile.matcher(fDataset);
+						if (m.matches()) {
+							menuItem = new MenuItem(mDataset, SWT.NONE);
+							menuItem.setText(m.group(1));
+						}
 					}
-					item.addSelectionListener(selectionListener);
+
+					for (MenuItem item: mDataset.getItems()) {
+						if (item.getText().equals(dataset)) {
+							item.setImage(iDatasetSelected);
+						} else {
+							item.setImage(iDataset);
+						}
+						item.addSelectionListener(selectionListener);
+					}
+
+					ToolItem item = (ToolItem) e.widget;
+					Rectangle rect = item.getBounds();
+					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+					mDataset.setLocation(pt);
+					mDataset.setVisible(true);
 				}
 
-				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds(); 
-				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-				mDataset.setLocation(pt);
-				mDataset.setVisible(true);
-			}
-			
-		});
-		
+			});
+
+		} catch (Exception e) {
+		}
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Save dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_add.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_add.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String[] name = {dataset.equals("none") ? "" : dataset};
 				String extra = "";
 				int response;
-				
+
 				do {
 					MessageDialog dialog = new MessageDialog(null, "Dataset name", null, "What is the name of the dataset ?" + extra, MessageDialog.QUESTION, 0, new String[]{"Save", "Cancel"}) {
-						
+
 						@Override
 						protected Control createCustomArea(Composite parent) {
 							Text t = new Text(parent, SWT.NONE);
 							t.setLayoutData(new GridData(GridData.FILL_BOTH));
 							t.setText(name[0]);
 							t.addModifyListener(new ModifyListener() {
-								
+
 								@Override
 								public void modifyText(ModifyEvent e) {
 									name[0] = t.getText();
@@ -968,11 +1022,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							});
 							return t;
 						}
-						
+
 					};
 					response = dialog.open();
 					extra = "";
-					
+
 					if (response == 0) {
 						if (StringUtils.isBlank(name[0])) {
 							extra = " (cannot be empty)";
@@ -981,7 +1035,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 				} while (!extra.isEmpty());
-				
+
 				if (response == 0) {
 					C8oBrowser.run(() -> {
 						String value = c8oBrowser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
@@ -995,14 +1049,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					});
 				}
 			}
-			
+
 		});
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_delete.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_delete.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (!dataset.equals("none")) {
@@ -1016,15 +1073,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					toast("No dataset selected !");
 				}
 			}
-			
+
 		});
 	}
-	
+
 	private void updateDevicesMenu() {
 		for (MenuItem m: devicesMenu.getItems()) {
 			m.dispose();
 		}
-		
+
 		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 
 			@Override
@@ -1034,24 +1091,24 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				deviceHeight.setText("" + e.widget.getData("height"));
 				zoomFactor = (ZoomFactor) e.widget.getData("zoom");
 				setDeviceOS((DeviceOS) e.widget.getData("os"));
-				
+
 				updateBrowserSize();
 			}
-			
+
 		};
-		
+
 		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
 			int len = devices.length();
 			for (int i = 0; i < len; i++) {
 				MenuItem device = new MenuItem(devicesMenu, SWT.RADIO);
 				try {
 					JSONObject json = devices.getJSONObject(i);
-					
+
 					DeviceOS os = DeviceOS.android;
 					try {
 						os = DeviceOS.valueOf(json.getString("os"));
 					} catch (Exception e) {	}
-					
+
 					device.addSelectionListener(selectionAdapter);
 					device.setText((devices == devicesDefinition ? "🔒 " : "👤 ") + json.getString("name"));
 					device.setImage(os.image());
@@ -1059,17 +1116,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					device.setData("height", json.getInt("height"));
 					device.setData("zoom", ZoomFactor.get(json.has("zoom") ? json.getInt("zoom") : 100));
 					device.setData("os", os);
-					
+
 					if (json.has("desc")) {
 						device.setToolTipText(json.getString("desc"));
 					}
 				} catch (JSONException e1) {
 					device.dispose();
 				}
-			}			
+			}
 		}
 	}
-	
+
 	private void dialogBuild(ToolItem buildModeItem, MenuItem menuItem) {
 		MobileBuilderBuildMode newBuildMode = (MobileBuilderBuildMode) menuItem.getData();
 		if (dialogBuild(newBuildMode)) {
@@ -1081,17 +1138,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				FileUtils.write(devicePref, device.toString(4), "UTF-8");
 			} catch (Exception ex) {
 				Engine.logStudio.debug("Cannot save build mode", ex);
-			}	
+			}
 		}
 	}
-	
+
 	private boolean dialogBuild(MobileBuilderBuildMode buildMode) {
 		MessageDialog dialog = new MessageDialog(
-			null, "Build '" + buildMode.label() + "'",
-			null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
-			MessageDialog.QUESTION,
-			new String[] {"Build", "Cancel"}, 0
-		);
+				null, "Build '" + buildMode.label() + "'",
+				null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
+				MessageDialog.QUESTION,
+				new String[] {"Build", "Cancel"}, 0
+				);
 		int result = dialog.open();
 		if (result == 0) {
 			this.buildMode = buildMode;
@@ -1100,11 +1157,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		return false;
 	}
-	
+
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
-		
+
 		width = zoomFactor.swt(width);
 		height = zoomFactor.swt(height);
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
@@ -1112,18 +1169,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
 		browserScroll.setMinHeight(browserGD.heightHint = browserGD.minimumHeight = height);
 		c8oBrowser.getParent().layout();
-		
+
 		C8oBrowser.run(() -> {
 			c8oBrowser.executeJavaScriptAndReturnValue("try {_c8o_remove_all_overlay()} catch(e){}");
 			c8oBrowser.setZoomLevel(zoomFactor.zoomLevel());
 		});
 	}
-	
+
 	@Override
 	public void setFocus() {
 		c8oBrowser.setFocus();
 	}
-	
+
 	private void appendOutput(String... msg) {
 		C8oBrowser.run(() -> {
 			if (c8oBrowser.getURL().equals("about:blank")) {
@@ -1137,18 +1194,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		});
 	}
-	
+
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
 			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast");
 		});
 	}
-	
+
 	public void launchBuilder(boolean forceInstall) {
 		launchBuilder(forceInstall, false);
 	}
-	
+
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
@@ -1156,31 +1213,31 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		// Close editors (*.temp.ts) to avoid npm error at build launch
 		ConvertigoPlugin.getDisplay().syncExec(
-			new Runnable() {
-				public void run() {
-					try {
-						ApplicationComponent mc = applicationEditorInput.application;
-						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-						if (activePage != null) {
-							IEditorReference[] editorRefs = activePage.getEditorReferences();
-							for (int i = 0; i < editorRefs.length; i++) {
-								IEditorReference editorRef = (IEditorReference) editorRefs[i];
-								try {
-									IEditorInput editorInput = editorRef.getEditorInput();
-									if (editorInput != null && editorInput instanceof ComponentFileEditorInput) {
-										if (((ComponentFileEditorInput)editorInput).is(mc) ||
-											((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
+				new Runnable() {
+					public void run() {
+						try {
+							ApplicationComponent mc = applicationEditorInput.application;
+							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+							if (activePage != null) {
+								IEditorReference[] editorRefs = activePage.getEditorReferences();
+								for (int i = 0; i < editorRefs.length; i++) {
+									IEditorReference editorRef = (IEditorReference) editorRefs[i];
+									try {
+										IEditorInput editorInput = editorRef.getEditorInput();
+										if (editorInput != null && editorInput instanceof ComponentFileEditorInput) {
+											if (((ComponentFileEditorInput)editorInput).is(mc) ||
+													((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
 												activePage.closeEditor(editorRef.getEditor(false), false);
+											}
 										}
-									}
-								} catch(Exception e) {}
+									} catch(Exception e) {}
+								}
 							}
-						}
-					} catch (Throwable t) {}
+						} catch (Throwable t) {}
+					}
 				}
-			}
-		);
-		
+				);
+
 		// Launch build
 		Engine.execute(() -> {
 			try {
@@ -1192,11 +1249,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			} catch (Exception e1) {
 				throw new RuntimeException(e1);
 			}
-			
+
 			Project project = applicationEditorInput.application.getProject();
 			File ionicDir = new File(project.getDirPath(), "_private/ionic");
 			File nodeModules = new File(ionicDir, "node_modules");
-			
+
 			String nodeVersion = ProcessUtils.getNodeVersion(project);
 			File nodeDir = ProcessUtils.getDefaultNodeDir();
 			try {
@@ -1205,29 +1262,29 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				});
 			} catch (Exception e1) {
 			}
-			
+
 			{
 				String versions = "Will use nodejs " + ProcessUtils.getNodeVersion(nodeDir) + " and npm " + ProcessUtils.getNpmVersion(nodeDir);
 				appendOutput(versions);
 				Engine.logStudio.info(versions);
 			}
-			
+
 			String path = nodeDir.getAbsolutePath();
-			
+
 			terminateNode();
-			
+
 			MobileBuilder mb = project.getMobileBuilder();
-			
+
 			if (forceInstall || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
 				boolean[] running = {true};
 				try {
 					File packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
 					boolean existsPackageLockTpl = packageLockTpl.exists();
-					
+
 					if (!existsPackageLockTpl) {
 						new File(ionicDir, "package-lock.json").delete();
 					}
-					
+
 					if (forceClean) {
 						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
 						Engine.logStudio.info("Removing existing node_modules... This can take several seconds...");
@@ -1235,11 +1292,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
-					
+
 					if (!nodeModules.exists() && existsPackageLockTpl) {
 						com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, new File(ionicDir, "package-lock.json"));
 					}
-					
+
 					long start = System.currentTimeMillis();
 					ProcessBuilder pb;
 					if (existsPackageLockTpl) {
@@ -1261,7 +1318,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
 								Thread.sleep(1000);
-							} 
+							}
 						} catch (Exception e) {
 							appendOutput("Something wrong during the install: " + e);
 						}
@@ -1283,21 +1340,21 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 				running[0] = false;
 			}
-			
+
 			mb.setNeedPkgUpdate(false);
-			
+
 			Object mutex = new Object();
 			mb.setBuildMutex(mutex);
 			mb.setAppBuildMode(buildMode);
 			try {
 				ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch (CoreException ce) {}
-			
+
 			try {
 				mb.startBuild();
 				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 				displayObjectsMobile.mkdirs();
-				
+
 				appendOutput("removing previous build directory");
 				for (File f: displayObjectsMobile.listFiles()) {
 					if (!f.getName().equals("assets")) {
@@ -1306,7 +1363,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 				appendOutput("previous build directory removed");
 				this.applicationEditorInput.application.checkFolder();
-				
+
 				try {
 					File watchJS = new File(project.getDirPath(), "_private/ionic/node_modules/@ionic/app-scripts/dist/watch.js");
 					if (watchJS.exists()) {
@@ -1320,7 +1377,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (Exception e) {
 					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
 				}
-				
+
 				File assets = new File(displayObjectsMobile, "assets");
 				if (assets.exists() && assets.isDirectory()) {
 					appendOutput("Handle application assets");
@@ -1329,7 +1386,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					FileUtils.deleteDirectory(privAssets);
 					FileUtils.copyDirectory(assets, privAssets);
 				}
-				
+
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
 					List<String> cmd = pb.command();
@@ -1348,7 +1405,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
-				
+
 				while ((line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					if (StringUtils.isNotBlank(line)) {
@@ -1374,16 +1431,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 				}
-				
+
 				if (buildCount == this.buildCount) {
 					if (MobileBuilderBuildMode.production.equals(buildMode)) {
 						String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 						baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
 						doLoad();
-						
+
 						toast("Application in production mode");
 					}
-					
+
 					appendOutput("\\o/");
 				} else {
 					appendOutput("previous build canceled !");
@@ -1400,11 +1457,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 				} catch (CoreException ce) {}
 			}
-			
+
 		});
 	}
 
-	
+
 	private JSONObject findDevice(JSONArray devices, String name) {
 		int len = devices.length();
 		for (int i = 0; i < len; i++) {
@@ -1418,14 +1475,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		return null;
 	}
-	
+
 	private void setDeviceBarVisible(boolean visible) {
 		deviceBar.setVisible(visible);
 		GridData gd = (GridData) deviceBar.getLayoutData();
 		gd.exclude = !visible;
 		deviceBar.getParent().layout();
 	}
-	
+
 	private void doLoad() {
 		if (baseUrl != null) {
 			C8oBrowser.run(() -> {
@@ -1445,24 +1502,24 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			});
 		}
 	}
-	
+
 	public String getDebugUrl() {
 		return debugUrl;
 	}
-	
+
 	public void selectPage(String pagePath) {
 		this.pagePath = pagePath;
 		doLoad();
 	}
-	
+
 	private Element exHighlightElement = null;
 	private MobileComponent exHighlightMobileComponent = null;
-	
+
 	private void highlightPoint(int x, int y) {
 		Node node = browser.mainFrame().get().inspect(x, y).node().get();
 		highlightPoint(node);
 	}
-	
+
 	private void highlightPoint(Node node) {
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
@@ -1498,19 +1555,19 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 									}
 								}
 							}
-							
+
 							if (databaseObject.priority == priority) {
 								throw new DatabaseObjectFoundException(databaseObject);
 							}
 							super.walk(databaseObject);
 						}
-						
+
 					}.init(applicationEditorInput.application);
 				} catch (DatabaseObjectFoundException e) {
 					DatabaseObject databaseObject = e.getDatabaseObject();
 
 					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
-					
+
 					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
 						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 					}
@@ -1534,7 +1591,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					selectPage(pageComponent.getSegment());
 				}
 			}
-			
+
 			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
 			if (mc instanceof UIUseShared) {
@@ -1556,7 +1613,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			c8oBrowser.executeJavaScriptAndReturnValue("_c8o_highlight_class('class" + mc.priority + "');");
 		});
 	}
-	
+
 	private void doReload() {
 		C8oBrowser.run(() -> {
 			if (!c8oBrowser.getURL().equals("about:blank")) {
@@ -1564,7 +1621,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		});
 	}
-	
+
 	private void setDeviceOS(DeviceOS deviceOS) {
 		if (!this.deviceOS.equals(deviceOS) && deviceOS != null) {
 			this.deviceOS = deviceOS;
@@ -1579,7 +1636,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			doReload();
 		}
 	}
-	
+
 	private void terminateNode() {
 		String projectName = new File(applicationEditorInput.application.getProject().getDirPath()).getName();
 		int retry = 10;
@@ -1587,15 +1644,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			while (retry-- > 0) {
 				if (Engine.isWindows()) {
 					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'",
-						"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
+							"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'",
+							"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
 					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
 					int id = output.indexOf('\n');
 					if (id == -1 || output.indexOf('\n', id) == -1) {
 						retry = 0;
 					}
-					
+
 					process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
 							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'").replace("\\", "\\\\"),
 							"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
@@ -1608,7 +1665,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} else {
 					Process process = new ProcessBuilder("/bin/bash", "-c",
 							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\" | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
-					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
+							).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
 					int code = process.waitFor();
 					if (code == 0) {
 						retry = 0;

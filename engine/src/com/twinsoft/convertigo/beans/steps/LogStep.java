@@ -57,7 +57,7 @@ public class LogStep extends Step implements ITagsProperty {
 	}
 	
 	protected String getEvalString(Context javascriptContext, Scriptable scope) throws EngineException {
-		evaluate(javascriptContext, scope, expression, "LogStatement", true);
+		evaluate(javascriptContext, scope, expression, "LogStep", true);
 		return evaluated!=null?evaluated.toString():"";
 	}
 

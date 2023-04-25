@@ -54,12 +54,9 @@ import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.statements.ElseStatement;
-import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
@@ -354,12 +351,6 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		else if (databaseObject instanceof ScreenClass) {
 			if ((databaseObject.getParent()) instanceof Project) {
 				throw new EngineException("Cannot delete the root screen class!");
-			}
-		}
-		else if (databaseObject instanceof Statement) {
-			if ((databaseObject instanceof ThenStatement) ||
-					(databaseObject instanceof ElseStatement)) {
-				throw new EngineException("Cannot delete this statement!");
 			}
 		}
 		else if (databaseObject instanceof Step) {

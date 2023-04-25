@@ -135,7 +135,7 @@ function loadProject(projectName) {
 	project_Name = projectName;
 	startWait(30);
 	$("#projectEditDivJQTree").tree("destroy");
-	callService("studio.database_objects.GetChildren", function(xml) {
+	callService("database_objects.GetChildren", function(xml) {
 		// set the title of the widget
 		$("#project_Edit h3").first().text("Project " + projectName);
 		
@@ -155,7 +155,7 @@ function loadProject(projectName) {
 		}).on("tree.open", function(e) {
 			e.node.children.forEach(function(c) {
 				if ('qname' in c) {
-					callService("studio.database_objects.GetChildren", function(xml) {
+					callService("database_objects.GetChildren", function(xml) {
 						var subdata = dboXmlToJson($(xml).find("dbo:first"));
 						$("#projectEditDivJQTree").tree("loadData", subdata, c);
 					}, {qname: c.qname});

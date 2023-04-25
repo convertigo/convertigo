@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.editors.ngx;
 
 import java.awt.image.BufferedImage;
+import java.beans.BeanInfo;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -517,6 +518,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createDeviceBar(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		deviceBar = new Composite(parent, SWT.NONE);
 		deviceBar.setData("style", "background-color: #4c525d");
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
@@ -636,7 +638,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_out.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_out.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom out");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -648,7 +653,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_reset.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_reset.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom reset");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -660,7 +668,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_in.png")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/zoom_in.png"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Zoom in");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -674,7 +685,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/dbo_save.gif")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/dbo_save.gif"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Save");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -719,7 +733,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/project_delete.gif")));
+		try {
+			button.setImage(plugin.getStudioIcon("icons/studio/project_delete.gif"));
+		} catch (Exception e) {
+		}
 		button.setToolTipText("Delete");
 		button.addSelectionListener(new SelectionAdapter() {
 
@@ -759,6 +776,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createToolbar(Composite parent) {
+		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		toolbar = new ToolBar(parent, SWT.VERTICAL);
 		toolbar.setData("style", "background-color: #4c525d");
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
@@ -769,7 +787,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select device viewport. Click to toggle the custom device bar.");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png")));
+		try {
+			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -791,7 +812,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Change orientation");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png")));
+		try {
+			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -808,7 +832,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Refresh");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/refresh.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/refresh.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -820,7 +847,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Back");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/undo.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/undo.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -839,7 +869,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove highlight");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/write_wait_zone.d.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/write_wait_zone.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -855,7 +888,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show debug");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/debug.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/debug.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -869,7 +905,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Open in default browser");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/statements/images/ContinueWithSiteClipperStatement_color_16x16.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/ContinueWithSiteClipperStatement_color_16x16.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -886,7 +925,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show QR Code");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/qrcode_16x16.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/qrcode_16x16.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -977,7 +1019,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Headless build");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/statements/images/invokebrowserjs_16x16.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/invokebrowserjs_16x16.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -1019,7 +1064,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		buildItem = item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Build locally");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod_b.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/build_prod_b.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -1043,7 +1091,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Toggle auto build");
 		item.setSelection(true);
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/accumulate.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/accumulate.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1056,7 +1107,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Manage modules");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/show_blocks.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/show_blocks.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1080,7 +1134,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_show_history.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_show_history.gif"));
+		} catch (Exception e) {
+		}
 
 		SelectionListener selectionListener = new SelectionAdapter() {
 
@@ -1091,50 +1148,56 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		};
 
-		Image iDataset = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkin.gif"));
-		Image iDatasetSelected = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkout.gif"));
-		final Menu mDataset = new Menu(toolbar);
+		try {
+			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.gif");
+			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.gif");
+			final Menu mDataset = new Menu(toolbar);
 
-		item.addSelectionListener(new SelectionAdapter() {
+			item.addSelectionListener(new SelectionAdapter() {
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				for (MenuItem item: mDataset.getItems()) {
-					item.dispose();
-				}
-
-				MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
-				menuItem.setText("none");
-
-				for (String fDataset: datasetDir.list()) {
-					Matcher m = pDatasetFile.matcher(fDataset);
-					if (m.matches()) {
-						menuItem = new MenuItem(mDataset, SWT.NONE);
-						menuItem.setText(m.group(1));
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					for (MenuItem item: mDataset.getItems()) {
+						item.dispose();
 					}
-				}
 
-				for (MenuItem item: mDataset.getItems()) {
-					if (item.getText().equals(dataset)) {
-						item.setImage(iDatasetSelected);
-					} else {
-						item.setImage(iDataset);
+					MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
+					menuItem.setText("none");
+
+					for (String fDataset: datasetDir.list()) {
+						Matcher m = pDatasetFile.matcher(fDataset);
+						if (m.matches()) {
+							menuItem = new MenuItem(mDataset, SWT.NONE);
+							menuItem.setText(m.group(1));
+						}
 					}
-					item.addSelectionListener(selectionListener);
+
+					for (MenuItem item: mDataset.getItems()) {
+						if (item.getText().equals(dataset)) {
+							item.setImage(iDatasetSelected);
+						} else {
+							item.setImage(iDataset);
+						}
+						item.addSelectionListener(selectionListener);
+					}
+
+					ToolItem item = (ToolItem) e.widget;
+					Rectangle rect = item.getBounds();
+					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+					mDataset.setLocation(pt);
+					mDataset.setVisible(true);
 				}
 
-				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds();
-				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-				mDataset.setLocation(pt);
-				mDataset.setVisible(true);
-			}
+			});
 
-		});
-
+		} catch (Exception e) {
+		}
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Save dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_add.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_add.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1192,7 +1255,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove dataset");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_delete.gif")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_delete.gif"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1214,7 +1280,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Show all grids or current selected");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/grid_color_16x16.png")));
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/grid_color_16x16.png"));
+		} catch (Exception e) {
+		}
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -2017,7 +2086,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	public String getCurrentUrl() {
 		return c8oBrowser != null ? c8oBrowser.getURL() : "";
 	}
-	
+
 	public boolean check(String check) throws Exception {
 		if (c8oBrowser == null) {
 			return false;

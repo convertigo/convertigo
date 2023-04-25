@@ -26,11 +26,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
@@ -220,9 +220,6 @@ public class ComponentObjectWizard extends Wizard {
 					bContinue = false;
 				}
 				catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
-					if (newBean instanceof HandlerStatement) {
-						throw owsne;
-					}
 					index++;
 				}
 			}

@@ -177,7 +177,7 @@ jobs:
         name: Make WARs
         command: |
           source /tmp/build.env
-          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:war
           mv engine/build/libs/*.war $CONVERTIGO_DIST/
           
     - save_cache:
@@ -681,7 +681,6 @@ jobs:
           for f in "convertigo-studio-$CONVERTIGO_VERSION-win64.exe" \
                    "convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" \
                    "convertigo-server-$CONVERTIGO_VERSION-win64.zip" \
-                   "convertigo-linux32-$CONVERTIGO_VERSION.war" \
                    "convertigo-$CONVERTIGO_VERSION.war"  ; do
             curl -sf $CONVERTIGO_URL/$f --output dist/$f || echo "$f not found"
             curl -sf $CONVERTIGO_URL/$f.asc --output dist/$f.asc || echo "$f.asc not found"

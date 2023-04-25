@@ -140,7 +140,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -148,7 +147,6 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
-import com.twinsoft.convertigo.beans.core.ITablesProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
@@ -157,8 +155,6 @@ import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
-import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -171,8 +167,6 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
-import com.twinsoft.convertigo.beans.statements.FunctionStatement;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -247,7 +241,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SheetTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TemplateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TestCaseTreeObject;
@@ -263,8 +256,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingRes
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.XMLRecordDescriptionTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.XMLTableDescriptionTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
 import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
@@ -301,8 +292,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_CRITERIA = 0x108;				// 0000 0001 0000 1000
 	public static final int TREE_OBJECT_TYPE_DBO_EXTRACTION_RULE = 0x109;		// 0000 0001 0000 1001
 	public static final int TREE_OBJECT_TYPE_DBO_CONNECTOR = 0x10A;				// 0000 0001 0000 1010
-	public static final int TREE_OBJECT_TYPE_DBO_STATEMENT = 0x10B;
-	public static final int TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS = 0x10C;
 	public static final int TREE_OBJECT_TYPE_DBO_STEP = 0x10D;
 	public static final int TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS = 0x10E;
 	public static final int TREE_OBJECT_TYPE_DBO_SEQUENCE = 0x10F;
@@ -1235,9 +1224,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					return;
 				}
 			}
-			if (treeObject.getObject() instanceof HandlerStatement) {
-				return;
-			}
 			if ((item != null) && lastItem.length > 0 && (item == lastItem[0])) {
 				boolean isCarbon = SWT.getPlatform().equals("carbon");
 				final Composite composite = new Composite (tree, SWT.NONE);
@@ -1516,11 +1502,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							} else {
 								BatchOperationHelper.start();
-								
+
 								ProjectExplorerView.this.fireTreeObjectPropertyChanged(new TreeObjectEvent(theTreeObject, "name", oldName, newName));
 								ProjectExplorerView.this.refreshTree();
 								ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
-								
+
 								if (theTreeObject instanceof NgxUIComponentTreeObject) {
 									if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
 										needNgxPaletteReload = true;
@@ -1529,11 +1515,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										needNgxPaletteReload = true;
 									}
 								}
-								
+
 								BatchOperationHelper.stop();
 								Engine.logStudio.info("---------------------- Rename ended   ----------------------");
 							}
-							
+
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ISelectionListener listener = null;
 
@@ -1606,7 +1592,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		return ok;
 	}
-	
+
 	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
 		if (!checkReload(parentTreeObject, parentDatabaseObject)) {
 			try {
@@ -2031,12 +2017,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							databaseObjectTreeObject = new StepTreeObject(viewer, (Step) databaseObject, false);
 
-						} else if (databaseObject instanceof Statement) {
-							if (databaseObject.getParent() instanceof Transaction) {
-								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS;
-							}
-							databaseObjectTreeObject = new StatementTreeObject(viewer, (Statement) databaseObject, false);
-
 						} else if (databaseObject instanceof Criteria) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS;
 							databaseObjectTreeObject = new CriteriaTreeObject(viewer, (Criteria) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
@@ -2243,24 +2223,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 					} else if (databaseObject instanceof Sheet) {
 						addTemplates((Sheet) databaseObject, databaseObjectTreeObject);
-
-					} else if (databaseObject instanceof ITablesProperty) {
-						ITablesProperty iTablesProperty = (ITablesProperty) databaseObject;
-						String[] tablePropertyNames = iTablesProperty.getTablePropertyNames();
-
-						for (int i = 0; i < tablePropertyNames.length; i++) {
-							String tablePropertyName = tablePropertyNames[i];
-							String tableRenderer = iTablesProperty.getTableRenderer(tablePropertyName);
-							XMLVector<XMLVector<Object>> xmlv = iTablesProperty.getTableData(tablePropertyName);
-							if (tableRenderer.equals("XMLTableDescriptionTreeObject")) {
-								XMLTableDescriptionTreeObject propertyXMLTableTreeObject = new XMLTableDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
-								databaseObjectTreeObject.addChild(propertyXMLTableTreeObject);
-							} else if (tableRenderer.equals("XMLRecordDescriptionTreeObject")) {
-								XMLRecordDescriptionTreeObject propertyXMLRecordTreeObject = new XMLRecordDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
-								databaseObjectTreeObject.addChild(propertyXMLRecordTreeObject);
-							}
-						}
-
 					}
 
 					monitor.worked(1);
@@ -2713,7 +2675,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void renameSelectedTreeObject() {
 		renameSelectedTreeObject(false);
 	}
-	
+
 	public void renameSelectedTreeObject(boolean newObject) {
 		TreeObject treeObject = getFirstSelectedTreeObject();
 		if ((treeObject != null) &&
@@ -3041,15 +3003,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		else if (databaseObject instanceof Sheet) {
 			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SHEET;
-		}
-		else if (databaseObject instanceof StatementWithExpressions) {
-			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS;
-			if (databaseObject instanceof FunctionStatement) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;
-			}
-		}
-		else if (databaseObject instanceof Statement) {
-			result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT;
 		}
 		else if (databaseObject instanceof FunctionStep) {
 			result = ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION;

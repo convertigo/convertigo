@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.util.Calendar;
 
-import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MigrationJob extends Thread {
@@ -56,9 +55,6 @@ public class MigrationJob extends Thread {
 			} else {
 				Engine.theApp.databaseObjectsManager.updateProject(new File(Engine.PROJECTS_PATH, projectName + ".car"));
 			}
-			
-			// Migration 3.0.0 specifics
-			Migration3_0_0.projectRenameFilesWithDollarSign(projectDir);
 		}
 		catch(Throwable t) {
 			Engine.logEngine.error("An error occured while migrating project \"" + projectName + "\".", t);

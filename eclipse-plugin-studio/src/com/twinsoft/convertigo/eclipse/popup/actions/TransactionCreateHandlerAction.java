@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -31,9 +31,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.CreateHandlerDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -72,71 +70,54 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-		Statement lastStatement = null;
 
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-				if (treeObject != null) {					
+				if (treeObject != null) {
 					Transaction transaction = null;
 					if (treeObject instanceof TransactionTreeObject) {
 						transaction = (Transaction) treeObject.getObject();
 					} else if (treeObject instanceof ObjectsFolderTreeObject) {
 						transaction = (Transaction) treeObject.getParent().getObject();
 					}
-					
+
 					if (transaction != null) {
 						CreateHandlerDialog createHandlerDialog = new CreateHandlerDialog(shell, transaction);
 						createHandlerDialog.open();
-			    		if (createHandlerDialog.getReturnCode() != Window.CANCEL) {
-			    			List<?> result = createHandlerDialog.result;
-			    			if (result != null) {
-			    				int len = result.size();
-			    				if (len > 0) {
-				    				if (transaction instanceof HtmlTransaction) {
-				    					HtmlTransaction htmlTransaction = (HtmlTransaction)transaction;
-				    					Statement statement = null;
-				    					for (int i=0; i<len; i++) {
-				    						statement = (Statement)result.get(i);
-			    							htmlTransaction.addStatement(statement);
-				    					}
-				    					lastStatement = statement;
-				    				} else {
-				    					String handler = null;
-				    					for (int i = 0; i < len; i++) {
-				    						handler = (String) result.get(i);
-					    					transaction.handlers += handler;
-					    					transaction.hasChanged = true;
-				    					}
-				    					
-										// Update the opened handlers editor if any
-										JScriptEditorInput jsinput = ConvertigoPlugin.getDefault().getJScriptEditorInput(transaction);
-										if (jsinput != null) {
-											jsinput.reload();
-										}
-				    				}
-				    				
-				    				// Reload transaction in tree and select last created Statement.
-	            					try {
-	            						ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-	            						projectExplorerView.reloadDatabaseObject(transaction);
-	            						
-	            						if (transaction instanceof HtmlTransaction) {
-		            						if (lastStatement != null) {
-		            							projectExplorerView.objectSelected(new CompositeEvent(lastStatement));
-		            						}
-	            						} else {
-	            							projectExplorerView.objectSelected(new CompositeEvent(transaction));
-	            						}
+						if (createHandlerDialog.getReturnCode() != Window.CANCEL) {
+							List<?> result = createHandlerDialog.result;
+							if (result != null) {
+								int len = result.size();
+								if (len > 0) {
+
+									String handler = null;
+									for (int i = 0; i < len; i++) {
+										handler = (String) result.get(i);
+										transaction.handlers += handler;
+										transaction.hasChanged = true;
+									}
+
+									// Update the opened handlers editor if any
+									JScriptEditorInput jsinput = ConvertigoPlugin.getDefault().getJScriptEditorInput(transaction);
+									if (jsinput != null) {
+										jsinput.reload();
+									}
+
+									// Reload transaction in tree and select last created Statement.
+									try {
+										ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										projectExplorerView.reloadDatabaseObject(transaction);
+
+										projectExplorerView.objectSelected(new CompositeEvent(transaction));
 									} catch (IOException e) {}
-			    				}
-			    			}
-			    		}
+								}
+							}
+						}
 					}
 				}
-    		}
+			}
 		} catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to create new handler for transaction!");
 		} finally {
@@ -144,5 +125,5 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 			waitCursor.dispose();
 		}
 	}
-	
+
 }

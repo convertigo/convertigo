@@ -35,9 +35,7 @@ import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Text;
-import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -53,7 +51,6 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
-import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -71,19 +68,12 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
-import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
-import com.twinsoft.convertigo.beans.statements.ElseStatement;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
-import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -110,8 +100,6 @@ public class NewObjectWizard extends Wizard {
 
 	private String className = "java.lang.Object";
 	private DatabaseObject parentObject = null; 
-	private String xpath = null;
-	private Document dom = null;
 
 	private ObjectExplorerWizardPage objectExplorerPage = null;
 	private ObjectInfoWizardPage objectInfoPage = null;
@@ -120,12 +108,6 @@ public class NewObjectWizard extends Wizard {
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	public DatabaseObject newBean = null;
-
-	public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, String xpath, Document dom) {
-		this(selectedDatabaseObject, newClassName);
-		this.xpath = xpath;
-		this.dom = dom;
-	}
 
 	public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
 		super();
@@ -180,10 +162,6 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(Sheet.class)) {
 				objectExplorerPageTitle = "New Sheet";
 				objectExplorerPageMessage = "Please select a sheet template.";
-			}
-			else if (beanClass.equals(Statement.class)) {
-				objectExplorerPageTitle = "New Statement";
-				objectExplorerPageMessage = "Please select a statement template.";
 			}
 			else if (beanClass.equals(Step.class)) {
 				objectExplorerPageTitle = "New Step";
@@ -274,19 +252,14 @@ public class NewObjectWizard extends Wizard {
 	}
 
 	private void addBeanPages(String objectExplorerPageTitle, String objectExplorerPageMessage, Class<DatabaseObject> beanClass) {
-		objectExplorerPage = new ObjectExplorerWizardPage(parentObject, beanClass, xpath);
+		objectExplorerPage = new ObjectExplorerWizardPage(parentObject, beanClass);
 		objectExplorerPage.setTitle(objectExplorerPageTitle);
 		objectExplorerPage.setMessage(objectExplorerPageMessage);
 		this.addPage(objectExplorerPage);
 
 		objectInfoPage = new ObjectInfoWizardPage(parentObject);
 		this.addPage(objectInfoPage);
-
-		if ((xpath != null) && (dom != null)) {
-			if (beanClass.equals(ExtractionRule.class)) {
-				this.addPage(new XMLTableWizardPage(xpath, dom));
-			}
-		}
+		
 		if (parentObject instanceof SqlConnector) {
 			sqlQueriesWizardPage = new SQLQueriesWizardPage();
 			this.addPage(sqlQueriesWizardPage);
@@ -412,10 +385,6 @@ public class NewObjectWizard extends Wizard {
 						}.init(parentObject);
 						bContinue = false;
 					} catch (ObjectWithSameNameException owsne) {
-						if ((parentObject instanceof HtmlTransaction) && (newBean instanceof Statement)) {
-							throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
-						}
-
 						// Silently ignore
 						index++;
 					} catch (EngineException ee) {
@@ -428,9 +397,6 @@ public class NewObjectWizard extends Wizard {
 				// Now add bean to target
 				try {
 					boolean hasChanged = parentObject.hasChanged;
-					if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
-						newBean.priority = 0;
-					}
 
 					if (newBean instanceof ScreenClass)
 						newBean.priority = parentObject.priority + 1;
@@ -464,9 +430,6 @@ public class NewObjectWizard extends Wizard {
 					bContinue = false;
 				}
 				catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
-					if (newBean instanceof HandlerStatement) {
-						throw owsne;
-					}
 				}
 			}
 			else {
@@ -483,28 +446,6 @@ public class NewObjectWizard extends Wizard {
 	}
 
 	public static void afterBeanAdded(DatabaseObject newBean, DatabaseObject parentObject, boolean hasChanged) throws Exception {
-		if (newBean instanceof HTTPStatement) {
-			HTTPStatement httpStatement = (HTTPStatement)newBean;
-			HtmlConnector connector = (HtmlConnector)httpStatement.getParentTransaction().getParent();
-			httpStatement.setMethod("GET");
-			httpStatement.setHost(connector.getServer());
-			httpStatement.setPort(connector.getPort());
-			httpStatement.setHttps(connector.isHttps());
-		}
-
-		if (newBean instanceof ContinueWithSiteClipperStatement) {
-			Project project = newBean.getProject();
-			if (project != null) {
-
-				String[] connectorWithSiteClipperConnector = ContinueWithSiteClipperStatement
-						.getSiteClippersConnectorNames(project);
-				if (connectorWithSiteClipperConnector.length > 0) {
-					((ContinueWithSiteClipperStatement) newBean)
-					.setSiteClipperConnectorName(connectorWithSiteClipperConnector[0]);
-				}
-			}
-		}
-
 		if (newBean instanceof Connector) {
 			Project project = (Project)parentObject;
 			if (project.getDefaultConnector() == null)
@@ -543,14 +484,6 @@ public class NewObjectWizard extends Wizard {
 
 			ElseStep elseStep = new ElseStep();
 			((IThenElseContainer)newBean).addStep(elseStep);
-		}
-
-		if (newBean instanceof IThenElseStatementContainer) {
-			ThenStatement thenStatement = new ThenStatement();
-			((IThenElseStatementContainer)newBean).addStatement(thenStatement);
-
-			ElseStatement elseStatement = new ElseStatement();
-			((IThenElseStatementContainer)newBean).addStatement(elseStatement);
 		}
 
 		if (newBean instanceof Sheet) {

@@ -121,7 +121,7 @@ public class RequestableHttpVariable extends RequestableVariable {
         if (VersionUtils.compare(version, "7.4.7") < 0) {
         	doFileUploadContentType = "application/octet-stream";
 			hasChanged = true;
-			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 7.4.7");
+			Engine.logBeans.warn("[HttpVariable] The object \"" + getName()+ "\" has been updated to version 7.4.7");
         }
     }
 	

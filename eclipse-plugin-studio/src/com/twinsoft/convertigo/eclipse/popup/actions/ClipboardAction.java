@@ -35,8 +35,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.statements.ElseStatement;
-import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -180,29 +178,6 @@ public class ClipboardAction extends MyAbstractAction {
 							targetObject = ((DatabaseObject)targetObject).getParent();
 						else if (response == 2)
 							return;
-					}
-					else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
-						if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
-							targetObject = ((DatabaseObject)targetObject).getParent();
-						}
-						else {
-							CustomDialog customDialog = new CustomDialog(
-									shell,
-									"Paste a statement",
-									"Do you want to paste the statement as a sibling or a child statement?",
-									500, 150,
-									new ButtonSpec("As a sibling", true),
-									new ButtonSpec("As a child", false),
-									new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
-									);
-							int response = customDialog.open();
-							if (response == 0) {
-								targetObject = ((DatabaseObject)targetObject).getParent();
-							}
-							else if (response == 2) {
-								return;
-							}
-						}
 					}
 					else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT) {
 						if (!clipboardManager.isCut) {
@@ -386,12 +361,6 @@ public class ClipboardAction extends MyAbstractAction {
 					return null;
 				// cannot paste a ElseStep
 				if (ob instanceof ElseStep)
-					return null;
-				// cannot paste a ThenStatement
-				if (ob instanceof ThenStatement)
-					return null;
-				// cannot paste a ElseStatement
-				if (ob instanceof ElseStatement)
 					return null;
 				// Special case of XMLElementStep, ElementStep
 				if ((targetObject instanceof XMLElementStep) || (targetObject instanceof ElementStep)) {

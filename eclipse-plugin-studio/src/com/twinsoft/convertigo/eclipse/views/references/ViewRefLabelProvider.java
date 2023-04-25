@@ -84,10 +84,10 @@ public class ViewRefLabelProvider implements ILabelProvider {
 			 */
 			if (databaseObject == null) {
 				if (node.getName().contains("entry"))
-					iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.png";
+					iconName = "/com/twinsoft/convertigo/beans/core/images/handler_entry_16x16.png";
 				else 
 				if (node.getName().contains("exit"))
-					iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.png";
+					iconName = "/com/twinsoft/convertigo/beans/core/images/handler_exit_16x16.png";
 				else
 					iconName = null;
 			}

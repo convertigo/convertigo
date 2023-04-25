@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -102,7 +102,6 @@ import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.helpers.DomainsFilterHelper;
 import com.twinsoft.convertigo.engine.helpers.ScreenClassHelper;
-import com.twinsoft.convertigo.engine.parsers.XulRecorder;
 import com.twinsoft.convertigo.engine.siteclipper.clientinstruction.IClientInstruction;
 import com.twinsoft.convertigo.engine.util.CaseInsensitiveLinkedMap;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
@@ -118,56 +117,56 @@ import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
 
 public class SiteClipperConnector extends Connector implements IScreenClassContainer<SiteClipperScreenClass>, IDomainsFilterContainer {
 	private static final long serialVersionUID = -1802468058387036775L;
-	
+
 	// Shuttle works on one request
 	public static class Shuttle {
-		
+
 		// ENUM only used by Shuttle
 		private enum QueryKey {
 			connector,
 			context;
-			
+
 			String value(Map<String, String> parameters) {
 				return parameters.get(name());
 			}
 		}
-		
+
 		public enum DynamicVariable {
 			convertigo_path,
 			project_path,
 			siteclipper_path,
 			host_path,
 			tail_path;
-			
+
 			public String value(Shuttle shuttle) {
 				return shuttle.getRequest(this);
 			}
 		}
-		
+
 		public enum ContentEncoding {
 			none,
 			gzip,
 			deflate;
 		}
-		
+
 		// PATTERN only used by Shuttle
 		private final static Pattern variables_pattern = Pattern.compile("\\$(" + StringUtils.join(DynamicVariable.values(), '|') + ")\\$");
 		private final static Pattern and_pattern = Pattern.compile(",");
 		private final static Pattern equal_pattern = Pattern.compile("=");
-		
+
 		private final Map<String, String> requestCustomHeaders = new CaseInsensitiveLinkedMap<String>();
 		private final Map<String, String> responseCustomHeaders = new CaseInsensitiveLinkedMap<String>();
 
 		private HttpServletRequest request;
 		private HttpServletResponse response;
-		
+
 		private Matcher url_matcher;
 		private Map<String, String> parameters;
-		
+
 		private HttpMethod httpMethod;
-		
+
 		private ProcessState processState = ProcessState.request;
-		
+
 		private String defaultResponseCharset = null;
 		private String responseCharset = null;
 		private String responseMimeType = "";
@@ -181,54 +180,54 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		private Scriptable clonedScope = null;
 		private List<IClientInstruction> postInstructions = null;
 		private HttpPool httpPool = HttpPool.context;
-		
+
 		private Shuttle(HttpServletRequest request, HttpServletResponse response, Matcher url_matcher) {
 			this.request = request;
 			this.response = response;
 			this.url_matcher = url_matcher;
 		}
-		
+
 		private Context context = null;
-		
+
 		public Context getContext() {
 			return context;
 		}
-		
+
 		public HttpSession getSession() {
 			return request.getSession();
 		}
-		
+
 		private void process() throws ServletException {
 			try {
 				LogParameters logParameters = new LogParameters();
 				Log4jHelper.mdcSet(logParameters);
-				
+
 				long uniqueRequestID = System.currentTimeMillis() + (long) (Math.random() * 1261440000000L);
 				logParameters.put("UID", Long.toHexString(uniqueRequestID));
 				logParameters.put("ClientIP", request.getRemoteAddr());
-				
+
 				String sessionID = request.getSession().getId();
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find sessionID : " + sessionID);
-				
+
 				String projectName = getRequest(QueryPart.projectName);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find projectName : " + projectName);
-				
+
 				String siteclipperQuery = getRequest(QueryPart.siteclipperQuery);
 				Engine.logSiteClipper.trace("(SiteClipperConnector) find siteclipperQuery : " + siteclipperQuery);
-				
+
 				parameters = Collections.unmodifiableMap(GenericUtils.uniqueMap(URLUtils.queryToMap(siteclipperQuery, and_pattern, equal_pattern)));
-				
+
 				String connectorName = getRequest(QueryKey.connector);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find connectorName : " + connectorName);
-				
+
 				String contextName = getRequest(QueryKey.context);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find contextName : " + contextName);
-				
+
 				try {
 					context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
 					Engine.logSiteClipper.trace("(SiteClipperConnector) context id retrieved : " + context.contextID);
 					contextName = context.name;
-					
+
 					if (context.project == null) {
 						Engine.theApp.contextManager.remove(context);
 						throw new ServletException("(SiteClipperConnector) the context " + context.name + " isn't initialized (no project loaded or expired)");
@@ -236,7 +235,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					context.lastAccessTime = System.currentTimeMillis();
 					logParameters.put("ContextID", context.contextID);
 					logParameters.put("Project", context.projectName);
-					
+
 					// if no connector provided, search other SiteClipperConnector of the project
 					// and choose the default if exists
 					if (connectorName == null) {
@@ -255,13 +254,13 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 							}
 						}
 					}
-					
+
 					Connector connector = context.loadConnector(connectorName);
 					logParameters.put("Connector", connectorName);
-					
+
 					if (connector instanceof SiteClipperConnector) {
 						SiteClipperConnector siteClipperConnector = (SiteClipperConnector) connector;
-						
+
 						siteClipperConnector.siteClipperRequestObjectsPerThread.put(Thread.currentThread(), this);
 						try {
 							defaultResponseCharset = siteClipperConnector.getDefaultResponseCharset();
@@ -273,7 +272,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					} else {
 						throw new ServletException("(SiteClipperConnector) this isn't a SiteClipperConnector : " + connectorName);
 					}
-					
+
 				} catch (Exception e) {
 					Engine.logSiteClipper.info("(SiteClipperConnector) failed to process the request because of\n[" + e.getClass().getSimpleName() + "] " + e.getMessage());
 					throw new ServletException("(SiteClipperConnector) failed to process the request", e);
@@ -284,7 +283,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				response = null;
 			}
 		}
-		
+
 		public String getRequest(QueryPart queryPart) {
 			String part = queryPart.value(url_matcher);
 			if (part == null) {
@@ -294,23 +293,23 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return part;
 		}
-		
+
 		public String getRequest(QueryKey queryKey) {
 			return queryKey.value(parameters);
 		}
-		
+
 		public String getRequestParameter(String parameterName) {
 			return request.getParameter(parameterName);
 		}
-		
+
 		public HttpMethodType getRequestHttpMethodType() {
 			return HttpMethodType.valueOf(request.getMethod());
 		}
-		
+
 		public Scheme getRequestScheme() {
 			return Scheme.valueOf(getRequest(QueryPart.scheme));
 		}
-		
+
 		public String getRequest(DynamicVariable dynamiqueVariable) {
 			switch(dynamiqueVariable) {
 			case convertigo_path : return getRequest(QueryPart.full_convertigo_path);
@@ -327,7 +326,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return null;
 		}
-		
+
 		public int getRequestPort() {
 			String s = getRequest(QueryPart.port_num);
 			if (s.length() == 0) {
@@ -340,15 +339,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				return Integer.parseInt(s);
 			}
 		}
-		
+
 		public ProcessState getProcessState() {
 			return processState;
 		}
-		
+
 		public String getCustomHeader(HeaderName name) {
 			return getCustomHeader(name.value());
 		}
-		
+
 		public String getCustomHeader(String name) {
 			switch(processState) {
 			case request : return getRequestCustomHeader(name);
@@ -356,11 +355,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return null;
 		}
-		
+
 		public void setCustomHeader(HeaderName name, String value) {
 			setCustomHeader(name.value(), value);
 		}
-		
+
 		public void setCustomHeader(String name, String value) {
 			switch(processState) {
 			case request :
@@ -371,7 +370,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				break;
 			}
 		}
-		
+
 		public String getRequestHeader(String name) {
 			return request.getHeader(name);
 		}
@@ -379,7 +378,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		public String getRequestCustomHeader(String name) {
 			return requestCustomHeaders.get(name);
 		}
-		
+
 		public void setRequestCustomHeader(String name, String value) {
 			if (value == null) {
 				requestCustomHeaders.remove(name);
@@ -387,11 +386,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				requestCustomHeaders.put(name, value);
 			}
 		}
-		
+
 		public String getRequestUrl() {
-			return getRequest(QueryPart.scheme) + "://" + getRequest(QueryPart.host) + getRequest(QueryPart.port) + getRequest(QueryPart.uri); 
+			return getRequest(QueryPart.scheme) + "://" + getRequest(QueryPart.host) + getRequest(QueryPart.port) + getRequest(QueryPart.uri);
 		}
-		
+
 		public String getRequestUrlAndQuery() {
 			String query = request.getQueryString();
 			if (query != null) {
@@ -400,16 +399,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				return getRequestUrl();
 			}
 		}
-		
+
 		public String getResponseHeader(String name) {
 			Header header = httpMethod.getResponseHeader(name);
 			return header != null ? header.getValue() : null;
 		}
-		
+
 		public String getResponseCustomHeader(String name) {
 			return responseCustomHeaders.get(name);
 		}
-		
+
 		public void setResponseCustomHeader(String name, String value) {
 			if (value == null) {
 				responseCustomHeaders.remove(name);
@@ -417,16 +416,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				responseCustomHeaders.put(name, value);
 			}
 		}
-		
+
 		public int getResponseStatusCode() {
 			return httpMethod.getStatusCode();
 		}
-		
+
 		public String getResponseContentType() {
 			Header contentType = httpMethod.getResponseHeader(HeaderName.ContentType.value());
 			return contentType != null ? contentType.getValue() : "";
 		}
-		
+
 		public ContentEncoding getResponseContentEncoding() {
 			if (responseContentEncoding == null) {
 				Header contentEncoding = httpMethod.getResponseHeader(HeaderName.ContentEncoding.value());
@@ -434,23 +433,23 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return responseContentEncoding;
 		}
-		
+
 		public String getResponseCharset() {
 			if (responseCharset == null) {
 				ContentTypeDecoder contentType = new ContentTypeDecoder(getResponseContentType());
 				responseMimeType = contentType.getMimeType();
-				responseCharset = contentType.getCharset(defaultResponseCharset);				
+				responseCharset = contentType.getCharset(defaultResponseCharset);
 			}
 			return responseCharset;
 		}
-		
+
 		public String getResponseMimeType() {
 			if (responseCharset == null) {
 				getResponseCharset();
 			}
 			return responseMimeType;
 		}
-		
+
 		private byte[] getResponseAsBytes() throws IOException {
 			if (responseAsByte == null) {
 				InputStream responseBodyInputStream = httpMethod.getResponseBodyAsStream();
@@ -462,7 +461,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return responseAsByte;
 		}
-		
+
 		public String getResponseAsString() throws UnsupportedEncodingException, IOException {
 			if (responseAsString == null) {
 				InputStream stream = new ByteArrayInputStream(getResponseAsBytes());
@@ -484,15 +483,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return responseAsString;
 		}
-		
+
 		public void setResponseAsString(String content) {
 			responseAsString = content;
 		}
-		
+
 		public String makeAbsoluteURL(String url) {
 			return makeAbsoluteURL(url, false);
 		}
-		
+
 		public String makeAbsoluteURL(String url, boolean withHost) {
 			if (url != null && url.length() != 0) {
 				UrlFields urlFields = UrlParser.parse(url);
@@ -509,7 +508,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			} else {
 				url = getRequest(DynamicVariable.host_path);
 			}
-			
+
 			if (withHost) {
 				String schemeAndHost = URLUtils.getSchemeAndHost(HttpUtils.originalRequestURL(request));
 				if (schemeAndHost != null) {
@@ -518,7 +517,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return url;
 		}
-		
+
 		public String resolveVariables(String string_with_variables) {
 			Matcher m = variables_pattern.matcher(string_with_variables);
 			StringBuffer sb = new StringBuffer();
@@ -528,11 +527,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			m.appendTail(sb);
 			return sb.toString();
 		}
-		
+
 		public Object evalJavascript(String expression) {
 			return evalJavascript(expression, new HashMap<String, Object>());
 		}
-		
+
 		public Object evalJavascript(String expression, Map<String, Object> objectsToAddInScope) {
 			if (sharedScope != null) {
 				try {
@@ -540,11 +539,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					if (clonedScope == null) {
 						clonedScope = RhinoUtils.copyScope(ctx, sharedScope);
 					}
-					
+
 					for (String objectName : objectsToAddInScope.keySet()) {
 						clonedScope.put(objectName, clonedScope, objectsToAddInScope.get(objectName));
 					}
-					
+
 					Object res = RhinoUtils.evalCachedJavascript(ctx, clonedScope, expression, "SCexpression", 1, null);
 					return res;
 				} finally {
@@ -553,7 +552,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			return null;
 		}
-		
+
 		public void addPostInstruction(IClientInstruction postInstruction) {
 			if (postInstructions == null) {
 				postInstructions = new LinkedList<IClientInstruction>();
@@ -569,15 +568,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			this.httpPool = httpPool;
 		}
 	}
-	
+
 	// END OF Shuttle START OF SiteClipperConnector
-	
+
 	/**
 	 * /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host,18080/remote_path/remote_resource
 	 * 1 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host,18080
 	 * 2 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper | 3 : /convertigo/projects/my_project | 4 : /convertigo
 	 * 5 : my_project   | 6 : connector=my_connector&context=my_context   | 7 : http   | 8 : remote_host   | 9 : ,18080   | 10 : 18080   | 11 : /remote_path/remote_resource
-	*/
+	 */
 	public enum QueryPart {
 		full_host_path(1),
 		full_siteclipper_path(2),
@@ -590,13 +589,13 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		port(9),
 		port_num(10),
 		uri(11);
-		
+
 		int order;
-		
+
 		QueryPart(int order) {
 			this.order = order;
 		}
-		
+
 		String value(Matcher url_matcher) {
 			return url_matcher.group(order);
 		}
@@ -611,66 +610,66 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		request,
 		response;
 	}
-	
+
 	private final static Pattern url_pattern = Pattern.compile("((((.*?)/projects/(.*?))/(.*?)\\.siteclipper)/(.*?)/(.*?)(,([\\d]*))?)($|/.*)");
 	private final static Pattern url_tail = Pattern.compile("(.*)/.*?$");
 
 	// Use of HashSet to speedup Collection.contains because hash checking seams speeder than list walking
 	private final static Collection<HeaderName> requestHeadersToIgnore = Collections.unmodifiableCollection(new HashSet<HeaderName>(Arrays.asList(
-		HeaderName.Cookie, HeaderName.ContentLength, HeaderName.XConvertigoHttpsState, HeaderName.XConvertigoRequestHost, HeaderName.XConvertigoRequestURI
-	)));
+			HeaderName.Cookie, HeaderName.ContentLength, HeaderName.XConvertigoHttpsState, HeaderName.XConvertigoRequestHost, HeaderName.XConvertigoRequestURI
+			)));
 	private final static Collection<HeaderName> responseHeadersToIgnore = Collections.unmodifiableCollection(new HashSet<HeaderName>(Arrays.asList(
-		HeaderName.SetCookie, HeaderName.ContentLength, HeaderName.TransferEncoding
-	)));
-	
+			HeaderName.SetCookie, HeaderName.ContentLength, HeaderName.TransferEncoding
+			)));
+
 	private String defaultResponseCharset = "UTF-8";
 	private XMLVector<XMLVector<String>> domainsListing = new XMLVector<XMLVector<String>>();
 	private boolean trustAllServerCertificates;
-	
+
 	transient private Map<Thread, Shuttle> siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
 	transient public CertificateManager certificateManager = new CertificateManager();
 
 	transient private ScreenClassHelper<SiteClipperScreenClass> screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(this);
 	transient private DomainsFilterHelper domainsFilter = new DomainsFilterHelper(this);
 	transient private HostConfiguration hostConfiguration = null;
-	
+
 	public static boolean handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException {
 		String requestURI = HttpUtils.originalRequestURI(request);
 		Engine.logSiteClipper.trace("(SiteClipperConnector) requestURI : " + requestURI);
-		
+
 		Matcher url_matcher = url_pattern.matcher(requestURI);
 		if (!url_matcher.matches()) {
 			Engine.logSiteClipper.trace("(SiteClipperConnector) doesn't match, release the request handler");
 			return false;
 		}
-		
+
 		new Shuttle(request, response, url_matcher).process();
-		
+
 		return true;
 	}
-	
-	public static String constructSiteLocation(Context context, Connector connector, String targetURL) {	
+
+	public static String constructSiteLocation(Context context, Connector connector, String targetURL) {
 		Map<String, String[]> query = new HashMap<String, String[]>();
-		
+
 		query.put("context", new String[]{ context.name });
 		Engine.logSiteClipper.trace("(SiteClipperConnector) Retrieve context name : " + context.name);
-		
+
 		query.put("connector", new String[]{ connector.getName() });
 		Engine.logSiteClipper.trace("(SiteClipperConnector) Retrieve connector name : " + connector.getName());
-		
+
 		String requestURL = HttpUtils.originalRequestURL(context.httpServletRequest);
 		Engine.logSiteClipper.debug("(SiteClipperConnector) Retrieve requestURL to modify : " + requestURL);
-		
+
 		targetURL = convertUrl(targetURL);
-		
+
 		String tail_url = URLUtils.mapToQuery(query, ",", "=") + ".siteclipper/" + targetURL;
 		Matcher matcher_tail = url_tail.matcher(requestURL);
 		if (matcher_tail.matches()) {
 			requestURL = matcher_tail.group(1);
 		}
 		String location = requestURL + '/' + tail_url;
-		
-		Engine.logSiteClipper.debug("(SiteClipperConnector) Computed location for SiteClipper : " + location);		
+
+		Engine.logSiteClipper.debug("(SiteClipperConnector) Computed location for SiteClipper : " + location);
 		return location;
 	}
 
@@ -683,7 +682,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			doProcessRequest(shuttle);
 		}
 	}
-	
+
 	private void doProcessRequest(Shuttle shuttle) throws IOException, ServletException, EngineException {
 		shuttle.statisticsTaskID = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 		try {
@@ -703,130 +702,122 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					+ shuttle.getRequestUrl());
 
 			HttpMethod httpMethod = null;
-			XulRecorder xulRecorder = context.getXulRecorder();
-			if (xulRecorder != null) {
-				httpMethod = shuttle.httpMethod = xulRecorder.getRecord(shuttle.getRequestUrlAndQuery());
+			try {
+				switch (shuttle.getRequestHttpMethodType()) {
+				case GET:
+					httpMethod = new GetMethod(uri);
+					break;
+				case POST:
+					httpMethod = new PostMethod(uri);
+					((PostMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
+					break;
+				case PUT:
+					httpMethod = new PutMethod(uri);
+					((PutMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
+					break;
+				case DELETE:
+					httpMethod = new DeleteMethod(uri);
+					break;
+				case HEAD:
+					httpMethod = new HeadMethod(uri);
+					break;
+				case OPTIONS:
+					httpMethod = new OptionsMethod(uri);
+					break;
+				case TRACE:
+					httpMethod = new TraceMethod(uri);
+					break;
+				default:
+					throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
+				}
+				httpMethod.setFollowRedirects(false);
+			} catch (Exception e) {
+				throw new ServletException("(SiteClipperConnector) unexpected exception will building the http method : " + e.getMessage());
 			}
-			if (httpMethod == null) {
+			shuttle.httpMethod = httpMethod;
+
+			SiteClipperScreenClass screenClass = getCurrentScreenClass();
+			Engine.logSiteClipper.info("Request screen class: " + screenClass.getName());
+
+			for (String name : Collections.list(GenericUtils.<Enumeration<String>>cast(shuttle.request.getHeaderNames()))) {
+				if (requestHeadersToIgnore.contains(HeaderName.parse(name))) {
+					Engine.logSiteClipper.trace("(SiteClipperConnector) Ignoring request header " + name);
+				} else {
+					String value = shuttle.request.getHeader(name);
+					Engine.logSiteClipper.trace("(SiteClipperConnector) Copying request header " + name + "=" + value);
+					shuttle.setRequestCustomHeader(name, value);
+				}
+			}
+
+			Engine.logSiteClipper.debug("(SiteClipperConnector) applying request rules for the screenclass " + screenClass.getName());
+			for (IRequestRule rule : screenClass.getRequestRules()) {
+				if (rule.isEnabled()) {
+					Engine.logSiteClipper.trace("(SiteClipperConnector) applying request rule " + rule.getName());
+					rule.fireEvents();
+					boolean done = rule.applyOnRequest(shuttle);
+					Engine.logSiteClipper.debug("(SiteClipperConnector) the request rule " + rule.getName() + " is " + (done ? "well" : "not") + " applied");
+				} else {
+					Engine.logSiteClipper.trace("(SiteClipperConnector) skip the disabled request rule " + rule.getName());
+				}
+			}
+
+			for (Entry<String, String> header : shuttle.requestCustomHeaders.entrySet()) {
+				Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + header.getValue());
+				httpMethod.addRequestHeader(header.getKey(), header.getValue());
+			}
+
+			String queryString = shuttle.request.getQueryString();
+
+			if (queryString != null) {
 				try {
-					switch (shuttle.getRequestHttpMethodType()) {
-					case GET:
-						httpMethod = new GetMethod(uri);
-						break;
-					case POST:
-						httpMethod = new PostMethod(uri);
-						((PostMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
-						break;
-					case PUT:
-						httpMethod = new PutMethod(uri);
-						((PutMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
-						break;
-					case DELETE:
-						httpMethod = new DeleteMethod(uri);
-						break;
-					case HEAD:
-						httpMethod = new HeadMethod(uri);
-						break;
-					case OPTIONS:
-						httpMethod = new OptionsMethod(uri);
-						break;
-					case TRACE:
-						httpMethod = new TraceMethod(uri);
-						break;
-					default:
-						throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
-					}
-					httpMethod.setFollowRedirects(false);
-				} catch (Exception e) {
-					throw new ServletException("(SiteClipperConnector) unexpected exception will building the http method : " + e.getMessage());
-				}
-				shuttle.httpMethod = httpMethod;
-
-				SiteClipperScreenClass screenClass = getCurrentScreenClass();
-				Engine.logSiteClipper.info("Request screen class: " + screenClass.getName());
-
-				for (String name : Collections.list(GenericUtils.<Enumeration<String>>cast(shuttle.request.getHeaderNames()))) {
-					if (requestHeadersToIgnore.contains(HeaderName.parse(name))) {
-						Engine.logSiteClipper.trace("(SiteClipperConnector) Ignoring request header " + name);
-					} else {
-						String value = shuttle.request.getHeader(name);
-						Engine.logSiteClipper.trace("(SiteClipperConnector) Copying request header " + name + "=" + value);
-						shuttle.setRequestCustomHeader(name, value);
-					}
-				}
-
-				Engine.logSiteClipper.debug("(SiteClipperConnector) applying request rules for the screenclass " + screenClass.getName());
-				for (IRequestRule rule : screenClass.getRequestRules()) {
-					if (rule.isEnabled()) {
-						Engine.logSiteClipper.trace("(SiteClipperConnector) applying request rule " + rule.getName());
-						rule.fireEvents();
-						boolean done = rule.applyOnRequest(shuttle);
-						Engine.logSiteClipper.debug("(SiteClipperConnector) the request rule " + rule.getName() + " is " + (done ? "well" : "not") + " applied");
-					} else {
-						Engine.logSiteClipper.trace("(SiteClipperConnector) skip the disabled request rule " + rule.getName());
-					}
-				}
-
-				for (Entry<String, String> header : shuttle.requestCustomHeaders.entrySet()) {
-					Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + header.getValue());
-					httpMethod.addRequestHeader(header.getKey(), header.getValue());
-				}
-
-				String queryString = shuttle.request.getQueryString();
-
-				if (queryString != null) {
-					try {
-						// Fake test in order to check query string validity
-						new URI("http://localhost/index?" + queryString, true, httpMethod.getParams().getUriCharset());
-					} catch (URIException e) {
-						// Bugfix #2103
-						StringBuffer newQuery = new StringBuffer();
-						for (String part : RegexpUtils.pattern_and.split(queryString)) {
-							String[] pair = RegexpUtils.pattern_equals.split(part, 2);
-							try {
-								newQuery.append('&').append(URLEncoder.encode(URLDecoder.decode(pair[0], "UTF-8"), "UTF-8"));
-								if (pair.length > 1) {
-									newQuery.append('=').append(URLEncoder.encode(URLDecoder.decode(pair[1], "UTF-8"), "UTF-8"));
-								}
-							} catch (UnsupportedEncodingException ee) {
-								Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encode query part : " + part);
+					// Fake test in order to check query string validity
+					new URI("http://localhost/index?" + queryString, true, httpMethod.getParams().getUriCharset());
+				} catch (URIException e) {
+					// Bugfix #2103
+					StringBuffer newQuery = new StringBuffer();
+					for (String part : RegexpUtils.pattern_and.split(queryString)) {
+						String[] pair = RegexpUtils.pattern_equals.split(part, 2);
+						try {
+							newQuery.append('&').append(URLEncoder.encode(URLDecoder.decode(pair[0], "UTF-8"), "UTF-8"));
+							if (pair.length > 1) {
+								newQuery.append('=').append(URLEncoder.encode(URLDecoder.decode(pair[1], "UTF-8"), "UTF-8"));
 							}
+						} catch (UnsupportedEncodingException ee) {
+							Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encode query part : " + part);
 						}
-
-						queryString = newQuery.length() > 0 ? newQuery.substring(1) : newQuery.toString();
-						Engine.logSiteClipper.trace("(SiteClipperConnector) re-encode query : " + queryString);
 					}
+
+					queryString = newQuery.length() > 0 ? newQuery.substring(1) : newQuery.toString();
+					Engine.logSiteClipper.trace("(SiteClipperConnector) re-encode query : " + queryString);
 				}
-
-				Engine.logSiteClipper.debug("(SiteClipperConnector) Copying the query string : " + queryString);
-				httpMethod.setQueryString(queryString);
-				
-//				if (context.httpState == null) {
-//					Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
-//					context.httpState = new HttpState();
-//				} else {
-//					Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
-//				}
-
-				getHttpState(shuttle);
-				
-				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
-
-				HttpMethodParams httpMethodParams = httpMethod.getParams();
-				httpMethodParams.setBooleanParameter("http.connection.stalecheck", true);
-				httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER,
-						new DefaultHttpMethodRetryHandler(3, true));
-
-				Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
-						+ hostConfiguration.getHostURL()
-						+ httpMethod.getURI().toString());
-				
-				HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
-				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
-				httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
-			} else {
-				Engine.logSiteClipper.info("Retrieve recorded response from Context");
 			}
+
+			Engine.logSiteClipper.debug("(SiteClipperConnector) Copying the query string : " + queryString);
+			httpMethod.setQueryString(queryString);
+
+			//				if (context.httpState == null) {
+			//					Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
+			//					context.httpState = new HttpState();
+			//				} else {
+			//					Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
+			//				}
+
+			getHttpState(shuttle);
+
+			HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
+
+			HttpMethodParams httpMethodParams = httpMethod.getParams();
+			httpMethodParams.setBooleanParameter("http.connection.stalecheck", true);
+			httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER,
+					new DefaultHttpMethodRetryHandler(3, true));
+
+			Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
+					+ hostConfiguration.getHostURL()
+					+ httpMethod.getURI().toString());
+
+			HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
+			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
+			httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 
 			int status = httpMethod.getStatusCode();
 
@@ -839,7 +830,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				fireDataChanged(new ConnectorEvent(this, shuttle.getResponseAsString()));
 			}
 
-			SiteClipperScreenClass screenClass = getCurrentScreenClass();
+			screenClass = getCurrentScreenClass();
 			Engine.logSiteClipper.info("Response screen class: " + screenClass.getName());
 
 			if (Engine.isStudioMode()) {
@@ -856,7 +847,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					shuttle.responseCustomHeaders.put(name, value);
 				}
 			}
-			
+
 			String contentLength = HeaderName.ContentLength.getResponseHeader(httpMethod);
 
 			Engine.logSiteClipper.debug("(SiteClipperConnector) applying response rules for the screenclass " + screenClass.getName());
@@ -886,8 +877,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					}
 				}
 				String codeToInject = "<script>C8O_postInstructions = " + instructions.toString() + "</script>\n"
-				+ "<script src=\"" + shuttle.getRequest(QueryPart.full_convertigo_path) + "/scripts/jquery.min.js\"></script>\n"
-				+ "<script src=\"" + shuttle.getRequest(QueryPart.full_convertigo_path) + "/scripts/siteclipper.js\"></script>\n";
+						+ "<script src=\"" + shuttle.getRequest(QueryPart.full_convertigo_path) + "/scripts/jquery.min.js\"></script>\n"
+						+ "<script src=\"" + shuttle.getRequest(QueryPart.full_convertigo_path) + "/scripts/siteclipper.js\"></script>\n";
 
 				String content = shuttle.getResponseAsString();
 				Matcher matcher = HtmlLocation.head_top.matcher(content);
@@ -906,7 +897,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 			long nbBytes = 0L;
 			String responseContentLength = HeaderName.ContentLength.getHeader(shuttle.response);
-			
+
 			if (shuttle.responseAsString != null && shuttle.responseAsString.hashCode() != shuttle.responseAsStringOriginal.hashCode()) {
 				OutputStream os = shuttle.response.getOutputStream();
 				shuttle.responseAsByte = shuttle.responseAsString.getBytes(shuttle.getResponseCharset());
@@ -939,14 +930,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					}
 					is = new ByteArrayInputStream(shuttle.responseAsByte);
 				}
-				
+
 				if (is != null) {
 					nbBytes = StreamUtils.copyAutoFlush(is, shuttle.response.getOutputStream());
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Response body copyied (" + nbBytes + " bytes)");
 				}
 			}
 			shuttle.response.getOutputStream().close();
-			
+
 			shuttle.score = getScore(nbBytes);
 			Engine.logSiteClipper.debug("(SiteClipperConnector) Request terminated with a score of " + shuttle.score);
 		} finally {
@@ -961,44 +952,44 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 		}
 	}
-	
+
 	private static long getScore(long nb) {
 		long score = nb / 10000; // score is incremented by one per 10K of read bytes
 		return score;
 	}
-	
+
 	private static String convertUrl(UrlFields urlFields) {
 		String port = urlFields.getPort();
 		port = port == null ? "" : ("," + port);
-		
+
 		return urlFields.getScheme() + "/" + urlFields.getHost() + port + urlFields.getPath();
 	}
-	
+
 	private static String convertUrl(String url) {
 		return convertUrl(UrlParser.parse(url));
 	}
-	
+
 	private boolean isCompatibleConfiguration(boolean testEquals){
 		if (!testEquals) {
 			Engine.logSiteClipper.debug("(SiteClipperConnector) Incompatible HostConfiguration, remove existing one");
-			hostConfiguration = null;			
+			hostConfiguration = null;
 		}
 		return testEquals;
 	}
-	
+
 	private synchronized void getHttpState(Shuttle shuttle) {
 		if (authenticationPropertiesHasChanged) {
 			context.httpState = null;
-			authenticationPropertiesHasChanged = false;			
+			authenticationPropertiesHasChanged = false;
 		}
-		
+
 		if (context.httpState == null) {
 			Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
 			context.httpState = new HttpState();
 		} else {
 			Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
 		}
-		
+
 		if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
 			int indexSlash = (givenAuthUser == null) ? -1 : givenAuthUser.indexOf("\\");
 			String domain = (indexSlash == -1) ? NTLMAuthenticationDomain : givenAuthUser.substring(0, indexSlash);
@@ -1006,11 +997,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			String password = (givenAuthPassword == null) ? authPassword : givenAuthPassword;
 			String type = (givenAuthMode == null ? authenticationType.name() : givenAuthMode);
 			String host = hostConfiguration != null ? hostConfiguration.getHost() : shuttle.getRequest(QueryPart.host);
-			
+
 			AuthenticationMode.get(type).setCredentials(context.httpState, user, password, host, domain);
 		}
 	}
-	
+
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
 		if (hostConfiguration != null) {
 			String host = hostConfiguration.getHost();
@@ -1029,41 +1020,41 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 								if (isCompatibleConfiguration(hostConfiguration.getProxyPort() == Engine.theApp.proxyManager.getProxyPort())) {
 									isCompatibleConfiguration(hostConfiguration.getParams().getParameter("hostConfId").equals(Engine.theApp.proxyManager.getHostConfId()));
 								}
-							}	
+							}
 						}
 					}
 				}
-			}		
+			}
 		}
-		
+
 		if (hostConfiguration == null) {
 			Engine.logSiteClipper.debug("(SiteClipperConnector) create a new HostConfiguration");
 			hostConfiguration = new HostConfiguration();
 			String host = shuttle.getRequest(QueryPart.host);
 			if (shuttle.getRequestScheme() == Scheme.https) {
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Setting up SSL properties");
-				
+
 				certificateManager.collectStoreInformation(context);
-				
+
 				Engine.logSiteClipper.debug("(SiteClipperConnector) CertificateManager has changed: " + certificateManager.hasChanged);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Using MySSLSocketFactory for creating the SSL socket");
 				Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
-					certificateManager.keyStore, certificateManager.keyStorePassword,
-					certificateManager.trustStore, certificateManager.trustStorePassword,
-					trustAllServerCertificates), shuttle.getRequestPort());
+						certificateManager.keyStore, certificateManager.keyStorePassword,
+						certificateManager.trustStore, certificateManager.trustStorePassword,
+						trustAllServerCertificates), shuttle.getRequestPort());
 
 				hostConfiguration.setHost(host, shuttle.getRequestPort(), myhttps);
 			} else {
 				hostConfiguration.setHost(host, shuttle.getRequestPort());
 			}
-			
+
 			URL requestUrl = new URL(shuttle.getRequestUrl());
-			
+
 			Engine.theApp.proxyManager.setProxy(hostConfiguration, context.httpState, requestUrl);
 		}
 		return hostConfiguration;
 	}
-	
+
 	@Override
 	public SiteClipperConnector clone() throws CloneNotSupportedException {
 		SiteClipperConnector siteClipperConnector = (SiteClipperConnector) super.clone();
@@ -1076,15 +1067,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		siteClipperConnector.siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
 		return siteClipperConnector;
 	}
-	
+
 	public Shuttle getShuttle() {
 		return siteClipperRequestObjectsPerThread.get(Thread.currentThread());
 	}
-	
+
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {
 	}
-	
+
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
 		if (!screenClassHelper.add(databaseObject)) {
@@ -1119,14 +1110,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	public String getDefaultResponseCharset() {
 		return defaultResponseCharset;
 	}
-		
+
 	@Override
 	public List<DatabaseObject> getAllChildren() {
 		List<DatabaseObject> childrens = super.getAllChildren();
 		childrens.add(0, getDefaultScreenClass());
 		return childrens;
 	}
-	
+
 	public XMLVector<XMLVector<String>> getDomainsListing() {
 		return domainsListing;
 	}
@@ -1135,7 +1126,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		this.domainsListing = domainsListing;
 		domainsFilter.reset();
 	}
-	
+
 	public boolean shouldRewrite(String url) {
 		return domainsFilter.shouldRewrite(url);
 	}
@@ -1147,18 +1138,18 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	public void setTrustAllServerCertificates(boolean trustAllServerCertificates) {
 		this.trustAllServerCertificates = trustAllServerCertificates;
 	}
-	
+
 	@Override
 	public SiteClipperTransaction newTransaction() {
 		return new SiteClipperTransaction();
 	}
-	
+
 	public SiteClipperScreenClass newScreenClass() {
 		return new SiteClipperScreenClass();
 	}
-	
+
 	transient private boolean authenticationPropertiesHasChanged = false;
-	
+
 	/** Holds value of property authUser. */
 	private String authUser = "";
 
@@ -1186,39 +1177,39 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			authenticationPropertiesHasChanged = true;
 		}
 	}
-	
+
 	/**
 	 * Holds value of property authenticationType.
 	 */
 	private AuthenticationMode authenticationType = AuthenticationMode.None;
-	
+
 	public AuthenticationMode getAuthenticationType() {
 		return authenticationType;
 	}
-	
+
 	public void setAuthenticationType(AuthenticationMode authenticationType) {
 		if (!this.authenticationType.equals(authenticationType)) {
 			this.authenticationType = authenticationType;
 			authenticationPropertiesHasChanged = true;
 		}
 	}
-	
+
 	/**
 	 * Holds value of property NTLMAuthenticationDomain.
 	 */
 	private String NTLMAuthenticationDomain = "";
-	
+
 	public String getNTLMAuthenticationDomain() {
 		return NTLMAuthenticationDomain;
 	}
-	
+
 	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
 		if (!this.NTLMAuthenticationDomain.equals(NTLMAuthenticationDomain)) {
 			this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
 			authenticationPropertiesHasChanged = true;
 		}
 	}
-	
+
 	/** Holds value of givenAuthUser. */
 	transient private String givenAuthUser = null;
 
@@ -1256,6 +1247,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	public SiteClipperTransaction getDefaultTransaction() throws EngineException {
 		return (SiteClipperTransaction) super.getDefaultTransaction();
 	}
-	
-	
+
+
 }

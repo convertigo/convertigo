@@ -41,17 +41,9 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
-import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
-import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.eclipse.dialogs.CouchVariablesComposite;
@@ -115,11 +107,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 				public void handleEvent(final Event event) {
 					TreeItem item = (TreeItem) event.item;
 					treeItemName = item.getText();
-					String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ?
-							ScHandlerStatement.EVENT_ENTRY_HANDLER:
-								getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
-										ScHandlerStatement.EVENT_EXIT_HANDLER : "";
-					setBeanName("on"+ treeItemName + suffix);
+					setBeanName("on"+ treeItemName);
 					dialogChanged(true);
 				}
 			});
@@ -139,49 +127,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 		treeItemName = null;
 		tree.removeAll();
 		if (parentObject instanceof Transaction) {
-			Connector connector = (Connector) ((Transaction)parentObject).getParent();
-			boolean isScreenClassAware = connector instanceof IScreenClassContainer<?>;
-			if (beanClass.equals(ScEntryHandlerStatement.class) || beanClass.equals(ScExitHandlerStatement.class)) {
-				if (isScreenClassAware) {
-					if (connector instanceof HtmlConnector) {
-						HtmlConnector htmlConnector = (HtmlConnector) connector;
-						ScreenClass defaultScreenClass = htmlConnector.getDefaultScreenClass();
-						TreeItem branch = new TreeItem(tree, SWT.NONE);
-						branch.setText(defaultScreenClass.getName());
-
-						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
-
-						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);
-						}
-					} else if (connector instanceof JavelinConnector) {
-						JavelinConnector javelinConnector = (JavelinConnector) connector;
-						ScreenClass defaultScreenClass = javelinConnector.getDefaultScreenClass();
-						TreeItem branch = new TreeItem(tree, SWT.NONE);
-						branch.setText(defaultScreenClass.getName());
-
-						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
-
-						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);
-						}
-					}
-					tree.setVisible(true);
-				}
-			}
-			else if (beanClass.equals(HandlerStatement.class)) {
-				TreeItem branch;
-
-				branch = new TreeItem(tree, SWT.NONE);
-				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);
-
-				branch = new TreeItem(tree, SWT.NONE);
-				branch.setText(HandlerStatement.EVENT_XML_GENERATED);
-
-				tree.setVisible(true);
-			}
-			else
-				tree.setVisible(false);
+			tree.setVisible(false);
 		}
 	}
 

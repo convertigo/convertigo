@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2023 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -35,10 +34,8 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.TransactionXSDTypesDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -72,7 +69,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 
 	public void run() {
 		final Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
@@ -107,80 +104,40 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 						if (connector.getDefaultTransaction() == null) {
 							throw new Exception("Connector must have a default transaction");
 						}
-
-						if (requestable instanceof HtmlTransaction) {
-							if (extract) {
-								ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-								if (connectorEditor == null) {
-									ConvertigoPlugin.infoMessageBox("Please open connector first.");
-									return;
-								}
-
-								document = connectorEditor.getLastGeneratedDocument();
-								if (document == null) {
-									ConvertigoPlugin.infoMessageBox("You should first generate the document data before trying to extract the XSD types.");
-									return;
-								}
-
-								result = requestable.generateXsdTypes(document, extract);
+						if (extract) {
+							ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
+							if (connectorEditor == null) {
+								ConvertigoPlugin.infoMessageBox("Please open connector first.");
+								return;
 							}
-							else {
-								HtmlTransaction defaultTransaction = (HtmlTransaction)connector.getDefaultTransaction();
-								String defaultTransactionName = StringUtils.normalize(defaultTransaction.getName(), true);
 
-								if (!(defaultTransactionName.equals(defaultTransaction.getName()))) {
-									throw new Exception("Default transaction name should be normalized");
+							document = connectorEditor.getLastGeneratedDocument();
+							if (document == null) {
+								ConvertigoPlugin.infoMessageBox("You should first generate the document data before trying to extract the XSD types.");
+								return;
+							}
+
+							String prefix = requestable.getXsdTypePrefix();
+							document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
+						}
+
+						if (requestable instanceof XmlHttpTransaction) {
+							XmlHttpTransaction xmlHttpTransaction = (XmlHttpTransaction)requestable;
+							XmlQName xmlQName = xmlHttpTransaction.getXmlElementRefAffectation();
+							String reqn = xmlHttpTransaction.getResponseElementQName();
+							if (extract && ((!xmlQName.isEmpty()) || (!reqn.equals("")))) {
+								if (!xmlQName.isEmpty()) {
+									ConvertigoPlugin.infoMessageBox("You should first unset 'Assigned element QName' property.");
+									return;
 								}
-
-								String defaultXsdTypes = defaultTransaction.generateXsdTypes(null, false);
-
-								if (requestable.equals(defaultTransaction))
-									result = defaultXsdTypes;
-								else {
-									TransactionXSDTypesDialog dlg = new TransactionXSDTypesDialog(shell, requestable);
-									if (dlg.open() == Window.OK) {
-										result = dlg.result;
-										result += defaultXsdTypes;
-									}
+								if (!reqn.equals("")) {
+									ConvertigoPlugin.infoMessageBox("You should first unset 'Schema of XML response root element' property.");
+									return;
 								}
 							}
 						}
-						else {
-							if (extract) {
-								ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-								if (connectorEditor == null) {
-									ConvertigoPlugin.infoMessageBox("Please open connector first.");
-									return;
-								}
 
-								document = connectorEditor.getLastGeneratedDocument();
-								if (document == null) {
-									ConvertigoPlugin.infoMessageBox("You should first generate the document data before trying to extract the XSD types.");
-									return;
-								}
-
-								String prefix = requestable.getXsdTypePrefix();
-								document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
-							}
-
-							if (requestable instanceof XmlHttpTransaction) {
-								XmlHttpTransaction xmlHttpTransaction = (XmlHttpTransaction)requestable;
-								XmlQName xmlQName = xmlHttpTransaction.getXmlElementRefAffectation();
-								String reqn = xmlHttpTransaction.getResponseElementQName();
-								if (extract && ((!xmlQName.isEmpty()) || (!reqn.equals("")))) {
-									if (!xmlQName.isEmpty()) {
-										ConvertigoPlugin.infoMessageBox("You should first unset 'Assigned element QName' property.");
-										return;
-									}
-									if (!reqn.equals("")) {
-										ConvertigoPlugin.infoMessageBox("You should first unset 'Schema of XML response root element' property.");
-										return;
-									}
-								}
-							}
-
-							result = requestable.generateXsdTypes(document, extract);
-						}
+						result = requestable.generateXsdTypes(document, extract);
 					}
 
 					if ((result != null) && (!result.equals(""))) {

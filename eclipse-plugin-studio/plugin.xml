@@ -1516,7 +1516,6 @@
                <or>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
-                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject"/>
@@ -1994,50 +1993,6 @@
                label="Edit"
                menubarPath="sheet"/>
       </objectContribution>
-      <objectContribution
-            id="convertigo.transactionStatementContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
-         <visibility>
-            <objectState
-                  name="objectClassName"
-                  value="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
-         </visibility>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
-               enablesFor="1"
-               icon="icons/studio/menu/statement_color_16x16.png"
-               id="convertigo.action.newStatement"
-               label="Statement"
-               menubarPath="convertigo.menu.new/content"/>
-      </objectContribution>
-		<objectContribution
-		      id="convertigo.statementContribution"
-		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-		   <action
-		         class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStatementAction"
-		         enablesFor="+"
-		         id="convertigo.action.enableStatement"
-		         label="Enable"
-		         menubarPath="enable">
-		      <enablement>
-		         <objectState
-		               name="isEnable"
-		               value="false"/>
-		      </enablement>
-		   </action>
-		   <action
-		         class="com.twinsoft.convertigo.eclipse.popup.actions.DisableStatementAction"
-		         enablesFor="+"
-		         id="convertigo.action.disableStatement"
-		         label="Disable"
-		         menubarPath="enable">
-		      <enablement>
-		         <objectState
-		               name="isEnable"
-		               value="true"/>
-		      </enablement>
-		   </action>
-		</objectContribution>
 		<objectContribution
 		      id="convertigo.listenerContribution"
 		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ListenerTreeObject">
@@ -2066,151 +2021,6 @@
 		      </enablement>
 		   </action>
 		</objectContribution>
-		<objectContribution
-                  id="convertigo.statementChangeToContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-               <visibility>
-                  <objectState
-                        name="canChangeTo"
-                        value="true">
-                  </objectState>
-               </visibility>
-               <menu
-                     id="convertigo.menu.statement.changeTo"
-                     label="Change to"
-                     path="changeTo">
-               </menu>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStatementAction"
-                     enablesFor="1"
-                     id="convertigo.action.changeToIf"
-                     icon="icons/studio/beans/statements/if_16x16.png"
-                     label="If"
-                     menubarPath="convertigo.menu.statement.changeTo/content">
-                  <enablement>
-                     <objectState
-                           name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
-                     </objectState>
-                  </enablement>
-               </action>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfThenElseStatementAction"
-                     enablesFor="1"
-                     id="convertigo.action.changeToIfThenElse"
-                     icon="icons/studio/beans/statements/if_16x16.png"
-                     label="IfThenElse"
-                     menubarPath="convertigo.menu.statement.changeTo/content">
-                  <enablement>
-                     <objectState
-                           name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.statements.IfStatement">
-                     </objectState>
-                  </enablement>
-               </action>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsStatementAction"
-                     enablesFor="1"
-                     id="convertigo.action.changeToIfXpathExists"
-                     icon="icons/studio/beans/statements/ifxpathexists_16x16.png"
-                     label="IfXpathExists"
-                     menubarPath="convertigo.menu.statement.changeTo/content">
-                  <enablement>
-                     <objectState
-                           name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement">
-                     </objectState>
-                  </enablement>
-               </action>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsThenElseStatementAction"
-                     enablesFor="1"
-                     id="convertigo.action.changeToIfXpathExistsThenElse"
-                     icon="icons/studio/beans/statements/ifxpathexists_16x16.png"
-                     label="IfXpathExistsThenElse"
-                     menubarPath="convertigo.menu.statement.changeTo/content">
-                  <enablement>
-                     <objectState
-                           name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
-                     </objectState>
-                  </enablement>
-               </action>
-    		</objectContribution>
-      <objectContribution
-            id="convertigo.statementWEContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-         <visibility>
-            <objectState
-               name="isStatementWithExpressions"
-               value="true"/>
-         </visibility> 
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
-               enablesFor="1"
-               icon="icons/studio/menu/statement_color_16x16.png"
-               id="convertigo.action.newStatement"
-               label="Statement"
-               menubarPath="convertigo.menu.new/content">
-		   	   <enablement>
-		         <objectState
-		               name="isThenElseStatement"
-		               value="false"/>
-		  	   </enablement>
-		  </action>
-      </objectContribution>
-      <objectContribution
-            id="convertigo.scHandlerEntryChangeToContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-         <visibility>
-	         <or>
-	            <objectState
-	               name="objectClassName"
-	               value="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement"/>
-	            <objectState
-	               name="objectClassName"
-	               value="com.twinsoft.convertigo.beans.statements.ScEntryDefaultHandlerStatement"/>
-	         </or>
-         </visibility>
-    	 <menu
-               id="convertigo.menu.changeTo"
-               label="Change to"
-               path="changeTo" />   
-      	 <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScExitHandlerStatementAction"
-               enablesFor="1"
-               icon="icons/studio/beans/statements/handler_exit_16x16.png"
-               id="convertigo.action.changeToExitHandler"
-               label="Exit handler"
-               menubarPath="convertigo.menu.changeTo/content">
-          </action>
-      </objectContribution>
-      <objectContribution
-            id="convertigo.scHandlerExitChangeToContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-         <visibility>
-	         <or>
-	            <objectState
-	               name="objectClassName"
-	               value="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement"/>
-	            <objectState
-	               name="objectClassName"
-	               value="com.twinsoft.convertigo.beans.statements.ScExitDefaultHandlerStatement"/>
-	         </or>
-         </visibility>
-    	 <menu
-               id="convertigo.menu.changeTo"
-               label="Change to"
-               path="changeTo" />   
-      	 <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScEntryHandlerStatementAction"
-               enablesFor="1"
-               icon="icons/studio/beans/statements/handler_entry_16x16.png"
-               id="convertigo.action.changeToEntryHandler"
-               label="Entry handler"
-               menubarPath="convertigo.menu.changeTo/content">
-          </action>
-      </objectContribution>
       <objectContribution
             id="convertigo.folderContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject">
@@ -2755,28 +2565,6 @@
                      </and>
                   </enablement>
                </action>
-            </objectContribution>
-            <objectContribution
-                  id="convertigo.httpStatementContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
-               <visibility>
-                  <objectState
-                        name="isHttpStatement"
-                        value="true"/>
-               </visibility>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
-                     enablesFor="1"
-                     icon="icons/studio/menu/variable_color_16x16.png"
-                     id="convertigo.action.newHttpStatementVariable"
-                     label="Variable"
-                     menubarPath="convertigo.menu.new/content"/>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.StatementAddVariableToTransactionAction"
-                     enablesFor="1"
-                     id="convertigo.action.addHTTPVariable"
-                     label="Add HTTP variables to transaction"
-                     menubarPath="add"/>
             </objectContribution>
             <objectContribution
                   id="convertigo.traceContribution"
@@ -4193,7 +3981,6 @@
                tooltip="Increase selected object(s) priority">
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
@@ -4221,7 +4008,6 @@
                tooltip="Decrease selected object(s) priority">
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
