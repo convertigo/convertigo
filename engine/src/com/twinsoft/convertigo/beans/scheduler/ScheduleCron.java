@@ -21,8 +21,8 @@ package com.twinsoft.convertigo.beans.scheduler;
 
 import java.util.List;
 
-import org.quartz.CronTrigger;
-import org.quartz.Scheduler;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.TriggerBuilder;
 
 public class ScheduleCron extends AbstractSchedule {
 	public static final String prob_cronSyntax = "the cron value must respect the CRON syntax";
@@ -41,7 +41,7 @@ public class ScheduleCron extends AbstractSchedule {
 	public void checkProblems(List<String> problems) {
 		super.checkProblems(problems);
 		try {
-			new CronTrigger("0", Scheduler.DEFAULT_GROUP, cron);
+			TriggerBuilder.newTrigger().withIdentity("0").withSchedule(CronScheduleBuilder.cronSchedule(cron)).build();
 		} catch (Exception e) {
 			problems.add(prob_cronSyntax);
 			problems.add("###[" + e.getMessage() + "]");

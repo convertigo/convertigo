@@ -24,19 +24,22 @@ import java.beans.XMLEncoder;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.text.ParseException;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.quartz.CronTrigger;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
-import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.matchers.GroupMatcher;
 
 import com.twinsoft.convertigo.beans.scheduler.AbstractSchedule;
 import com.twinsoft.convertigo.beans.scheduler.ScheduleCron;
@@ -153,13 +156,13 @@ public class SchedulerManager {
 		if (schedulerOn) {
 			try {
 				Engine.logEngine.debug("(Scheduler Manager) refresh jobs start");
-				String[] jobs = sched.getJobNames(Scheduler.DEFAULT_GROUP);
-				for (int i = 0; i < jobs.length; i++) {
-					Engine.logEngine.trace("(Scheduler Manager) Delete " + jobs[i] + " ...");
-					boolean ok = sched.deleteJob(jobs[i], Scheduler.DEFAULT_GROUP);
-					Engine.logEngine.trace("(Scheduler Manager) ... " + jobs[i] + " deleted ? " + ok);
+				Set<JobKey> jobs = sched.getJobKeys(GroupMatcher.jobGroupEquals(Scheduler.DEFAULT_GROUP));
+				for (JobKey job: jobs) {
+					Engine.logEngine.trace("(Scheduler Manager) Delete " + job.getName() + " ...");
+					boolean ok = sched.deleteJob(job);
+					Engine.logEngine.trace("(Scheduler Manager) ... " + job.getName() + " deleted ? " + ok);
 					if (!ok) {
-						Engine.logEngine.debug("(Scheduler Manager) Job " + jobs[i] + " not deleted for refresh !");
+						Engine.logEngine.debug("(Scheduler Manager) Job " + job.getName() + " not deleted for refresh !");
 					}
 				}
 				
@@ -169,7 +172,7 @@ public class SchedulerManager {
 					if (scheduledJob.isAllEnabled()) {
 						String currentName = nextCounterName() + "[" + scheduledJob.getName() + "]";
 						
-						JobDetail jd = new JobDetail(currentName, Scheduler.DEFAULT_GROUP, SchedulerJob.class);
+						JobDetail jd = JobBuilder.newJob().withIdentity(currentName).ofType(SchedulerJob.class).build();
 						jd.getJobDataMap().put("scheduledJob", scheduledJob);
 						jd.getJobDataMap().put("schedulerManager", this);
 						
@@ -181,10 +184,12 @@ public class SchedulerManager {
 							if (abstractSchedule instanceof ScheduleCron) {
 								ScheduleCron scheduleCron = (ScheduleCron) abstractSchedule;
 								try {
-									tg = new CronTrigger(currentName, Scheduler.DEFAULT_GROUP, scheduleCron.getCron());
-								} catch (ParseException e) { }
+									tg = TriggerBuilder.newTrigger().withIdentity(currentName).withSchedule(CronScheduleBuilder.cronSchedule(scheduleCron.getCron())).build();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							} else if (abstractSchedule instanceof ScheduleRunNow) {
-								tg = new SimpleTrigger(currentName, Scheduler.DEFAULT_GROUP);
+								tg = TriggerBuilder.newTrigger().withIdentity(currentName).startNow().build();
 								scheduledJob.setEnable(false);
 								shouldSave = true;
 							}
@@ -215,7 +220,6 @@ public class SchedulerManager {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public SortedSet<ScheduledJob> getRunningScheduledJobs() {
 		SortedSet<ScheduledJob> ss = new TreeSet<ScheduledJob>();
 		try {
