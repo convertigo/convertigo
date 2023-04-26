@@ -83,32 +83,32 @@ if [ "$1" = "convertigo" ]; then
         -Dconvertigo.cems.user_workspace_path=/workspace"
     
     if [ "$COOKIE_PATH" != "" ]; then
-        $(TMPSED=`sed -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml` && \
+        (TMPSED=`sed -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/conf/context.xml)
         echo "Configure sessionCookiePath to $COOKIE_PATH"
         unset COOKIE_PATH
     fi
     
     if [ "$COOKIE_SECURE" = "true" ]; then
-        $(TMPSED=`sed -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+        (TMPSED=`sed -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
         echo "Configure Cookie secure to 'true'"
     else
-    	$(TMPSED=`sed -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+    	(TMPSED=`sed -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
     	echo "Configure Cookie secure to 'false'"
     fi
     unset COOKIE_SECURE
     
     if [ "$COOKIE_SAMESITE" != "" ]; then
-        $(TMPSED=`sed -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml` && \
+        (TMPSED=`sed -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/conf/context.xml)
         echo "Configure sameSiteCookies to $COOKIE_SAMESITE"
         unset COOKIE_SAMESITE
     fi
     
     if [ "$SESSION_TIMEOUT" != "" ]; then
-        $(TMPSED=`sed -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
+        (TMPSED=`sed -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml)
         echo "Configure session-timeout to $SESSION_TIMEOUT"
     fi
@@ -166,11 +166,11 @@ if [ "$1" = "convertigo" ]; then
     if [ -f "/certs/key.pem" ] && [ -f "/certs/cert.pem" ] && [ -f "/certs/chain.pem" ]; then
         echo "Enable SSL configuration for Tomcat"
         chmod a+r /certs/*
-        $(TMPSED=`sed -e 's,--SSL<,--SSL--><,' -e 's,>SSL--,><!--SSL--,' $CATALINA_HOME/conf/server.xml` && \
+        (TMPSED=`sed -e 's,--SSL<,--SSL--><,' -e 's,>SSL--,><!--SSL--,' $CATALINA_HOME/conf/server.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
     else
         echo "Disable SSL configuration for Tomcat"
-        $(TMPSED=`sed -e 's,--SSL--><,--SSL<,' -e 's,><!--SSL--,>SSL--,' $CATALINA_HOME/conf/server.xml` && \
+        (TMPSED=`sed -e 's,--SSL--><,--SSL<,' -e 's,><!--SSL--,>SSL--,' $CATALINA_HOME/conf/server.xml` && \
             echo "$TMPSED" > $CATALINA_HOME/conf/server.xml)
     fi
     

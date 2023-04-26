@@ -31,7 +31,9 @@ RUN apt-get update -y \
     curl \
     dirmngr \
     gnupg \
+    gosu \
     sudo \
+    tini \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
@@ -49,30 +51,6 @@ RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_
   && chmod a+x /usr/local/bin/chisel \
   && touch /var/log/chisel \
   && chmod 777 /var/log/chisel
-
-## grab gosu for easy step-down from root and tini for signal handling
-
-ENV GOSU_VERSION 1.14
-ENV GOSU_GPG_KEYS B42F6819007F00F88E364FD4036A9C25BF357DD4
-ENV TINI_VERSION 0.19.0
-ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
-
-RUN export GNUPGHOME="$(mktemp -d)" \
-  && ( gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
-  && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
-  && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-  && rm /usr/local/bin/gosu.asc \
-  && chmod +x /usr/local/bin/gosu \
-  && ( gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
-  && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
-  && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
-  && rm /usr/local/bin/tini.asc \
-  && chmod +x /usr/local/bin/tini \
-  && rm -rf /tmp/*
 
 
 ## create a 'convertigo' user and fix some rights
@@ -137,8 +115,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && mkdir /certs && chmod 777 /certs \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
-        && (chmod -f a+x WEB-INF/xvnc/* || true) \
-        && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
         && chmod 777 WEB-INF/web.xml WEB-INF/lib WEB-INF/classes \
         && rm -rf /tmp/*)
 
