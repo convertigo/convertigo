@@ -22,19 +22,15 @@ package com.twinsoft.convertigo.engine;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
-import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class StartupDiagnostics {
 
@@ -93,11 +89,7 @@ public class StartupDiagnostics {
 				}
 				else {
 					Engine.logEngine.info("WAR file name: " + buildFileName);
-					if (buildFileName.contains("linux32") && !(isLinux && architecture == Architecture.x32bits)) {
-						testsSummary += TEST_FAILED;
-					} else {
-						testsSummary += TEST_SUCCESS;
-					}
+					testsSummary += TEST_SUCCESS;
 				}
 			} catch (FileNotFoundException e) {
 				Engine.logEngine.warn("The build info file (" + buildInfoFile.getPath() + ") does not exist!");
@@ -291,117 +283,9 @@ public class StartupDiagnostics {
 				Engine.logEngine.error("The system tmp directory is not writeable!");
 				testsSummary += TEST_FAILED;
 				return;
-			}
-
-			// Check the XulRunner libraries dependencies
-			File xulrunnerLibDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xulrunner/");
-
-			boolean hasXulrunner = false;
-			if (isLinux && xulrunnerLibDir.exists()) {
-				testsSummary += " - XulRunner libraries dependencies ........... ";
-				Engine.logEngine.info("XulRunner libraries directory: " + xulrunnerLibDir.getPath());
-				LddLibrariesResult lddLibrariesResult = lddLibraries(xulrunnerLibDir,
-						xulrunnerLibDir.toString(), null);
-				Engine.logEngine.info("Checking XulRunner libraries dependencies:\n"
-						+ lddLibrariesResult.response);
-				if (lddLibrariesResult.linkErrorFound) {
-					Engine.logEngine.error("Missing some XulRunner libraries dependencies");
-					testsSummary += TEST_FAILED;
-				} else if (lddLibrariesResult.lddError) {
-					testsSummary += TEST_FAILED;
-				} else {
-					hasXulrunner = true;
-					testsSummary += TEST_SUCCESS;
-				}
-			}
-
-			if (hasXulrunner) {
-				try {
-					// Checking DISPLAY
-					if (isLinux) {
-						testsSummary += " - DISPLAY environment variable ............... ";
-						String display = System.getenv("DISPLAY");
-						Engine.logEngine.info("DISPLAY=" + display);
-
-						if (display == null) {
-							Engine.logEngine.error("The DISPLAY environment variable is not set!");
-							testsSummary += TEST_FAILED;
-						} else {
-							testsSummary += TEST_SUCCESS;
-						}
-					}
-					
-					// SWT libraries dependencies
-					testsSummary += " - SWT libraries dependencies ................. ";
-
-					File convertigoLib = new File(Engine.WEBAPP_PATH + "/WEB-INF/lib/");
-
-					String[] swtFoundJars = convertigoLib.list(new FilenameFilter() {
-						public boolean accept(File dir, String name) {
-							return name.startsWith("swt_") && name.endsWith(".jar");
-						}
-					});
-
-					if (swtFoundJars == null || swtFoundJars.length == 0) {
-						Engine.logEngine.error("Unable to find the SWT jar in " + convertigoLib.getPath());
-						testsSummary += TEST_FAILED;
-					} else {
-						String swtJar = swtFoundJars[0];
-
-						Engine.logEngine.info("Found SWT jar: " + swtJar);
-
-						File swtJarFile = new File(convertigoLib, swtJar);
-						try {
-							FileUtils.copyFileToDirectory(swtJarFile, testTmpDir);
-						} catch (IOException e) {
-							Engine.logEngine.error("Unable to copy the SWT jar: " + e.getMessage());
-							testsSummary += TEST_FAILED;
-						}
-
-						try {
-							// Unzip the SWT jar
-							ZipUtils.expandZip(new File(testTmpDir, swtJar).toString(), testTmpDir.toString());
-						} catch (Exception e) {
-							Engine.logEngine.error("Unable to unzip the SWT jar: " + e.getMessage());
-							testsSummary += TEST_FAILED;
-						}
-
-						// Check the SWT libraries dependencies
-						if (isLinux) {
-							String osArchitecture = ((architecture == Architecture.x32bits ? "i386" :
-								architecture == Architecture.x64bits ? "amd64" : ""));
-
-							String libraryPath = xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":" + javaHome + "/lib/" + osArchitecture;
-
-							File javaLib = new File(javaHome + "/lib/" + osArchitecture);
-							libraryPath += ":" + javaLib;
-							for (File javaSubLib : javaLib.listFiles()) {
-								if (javaSubLib.isDirectory()) {
-									libraryPath += ":" + javaSubLib.getAbsolutePath();
-								}
-							}
-
-							LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
-									libraryPath,
-									".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)|(pi3-gtk)).*");
-							Engine.logEngine.info("Checking SWT libraries dependencies:\n"
-									+ lddLibrariesResult.response);
-							if (lddLibrariesResult.linkErrorFound) {
-								Engine.logEngine.error("Missing some SWT libraries dependencies");
-								testsSummary += TEST_FAILED;
-							} else if (lddLibrariesResult.lddError) {
-								testsSummary += TEST_FAILED;
-							} else {
-								testsSummary += TEST_SUCCESS;
-							}
-						} else {
-							testsSummary += "IGNORED\n";
-						}
-					}
-				} finally {
-					if (!FileUtils.deleteQuietly(testTmpDir)) {
-						Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
-					}
+			} finally {
+				if (!FileUtils.deleteQuietly(testTmpDir)) {
+					Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
 				}
 			}
 
@@ -415,64 +299,6 @@ public class StartupDiagnostics {
 			// Restore engine logger level
 			Engine.logEngine.setLevel(currentLevel);
 		}
-	}
-
-	private static class LddLibrariesResult {
-		public String response = "";
-		public boolean linkErrorFound = false;
-		public boolean lddError = false;
-	}
-
-	private static LddLibrariesResult lddLibraries(File libDir, String lddLibraryPath, String excludePattern) {
-		Engine.logEngine.info("Launching ldd in " + libDir.toString());
-		Engine.logEngine.info("LD_LIBRARY_PATH=" + lddLibraryPath);
-
-		Collection<File> libs = FileUtils.listFiles(libDir, new String[] { "so" }, false);
-
-		LddLibrariesResult lddLibrariesResult = new LddLibrariesResult();
-
-		for (File lib : libs) {
-			String libName = lib.getName();
-			lddLibrariesResult.response += "   " + libName;
-
-			if (excludePattern != null && Pattern.matches(excludePattern, libName)) {
-				lddLibrariesResult.response += "      *** ignored (library not needed) ***\n";
-			} else {
-				lddLibrariesResult.response += "\n";
-				try {
-					Process process = Runtime.getRuntime().exec("ldd " + lib,
-							new String[] { "LD_LIBRARY_PATH=" + lddLibraryPath });
-
-					InputStreamReader isrStdout = new InputStreamReader(process.getInputStream());
-					BufferedReader stdout = new BufferedReader(isrStdout);
-					String line;
-					while ((line = stdout.readLine()) != null) {
-						if (line.indexOf("not found") != -1) {
-							lddLibrariesResult.response += line + "\n";
-							lddLibrariesResult.linkErrorFound = true;
-						}
-					}
-
-					process.waitFor();
-
-					int lddExitValue = process.exitValue();
-					Engine.logEngine.debug("ldd returned with exit value: " + lddExitValue);
-
-					if (lddExitValue != 0) {
-						Engine.logEngine.warn("ldd returned non zero value (" + lddExitValue + ")");
-						lddLibrariesResult.lddError = true;
-					}
-				} catch (IOException e) {
-					Engine.logEngine.warn("Unable to execute ldd for the native library: " + e.getMessage());
-					lddLibrariesResult.lddError = true;
-				} catch (InterruptedException e) {
-					Engine.logEngine.warn("InterruptedException in ldd");
-					lddLibrariesResult.lddError = true;
-				}
-			}
-		}
-
-		return lddLibrariesResult;
 	}
 
 	private static File testWriteAccess(File dir, boolean deleteTmpDirOnExit) throws IOException {

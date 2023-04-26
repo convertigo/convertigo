@@ -248,8 +248,6 @@ public class EnginePropertiesManager {
 		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
 		Context ("Real-time activity monitoring"),
 		XmlGeneration ("XML generation"),
-		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-		XulRunner ("HTML parser"),
 		HttpClient ("HTTP client"),
 		Network ("Network"),
 		Proxy ("Proxy"),
@@ -352,14 +350,6 @@ public class EnginePropertiesManager {
 		CONVERTIGO_PRODUCT_VERSION_CHECK ("convertigo.product_version_check", "true", "Product version check", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
-		LINUX_LAUNCH_XVNC ("linux.xvnc.launch", "true", "(Linux only) Launch Xvnc server using DISPLAY environment variable at startup", PropertyCategory.Main),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		LINUX_XVNC_DEPTH ("linux.xvnc.depth", "16", "(Linux only) Depth parameter for the Xvnc, default is 16", PropertyCategory.Main),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		LINUX_XVNC_GEOMETRY ("linux.xvnc.geometry", "320x240", "(Linux only) Geometry parameter for Xvnc, default is 320x240", PropertyCategory.Main),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
-		MIGRATION_3_0_0 ("migration.3.0.0", "false", "Migration 3.0.0", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		POOL_MANAGER_TIMEOUT ("pool.manager.timeout", "-1", "Time allowed for pool management task in seconds (-1 for disable)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
@@ -549,28 +539,6 @@ public class EnginePropertiesManager {
 		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
-
-		/** XULRUNNER */
-		XULRUNNER_MAX_CONNECTIONS ("xulrunner.max-connections", "65535", "Max connections (from 1 to 65535)", PropertyCategory.XulRunner),
-		XULRUNNER_MAX_CONNECTIONS_PER_SERVER ("xulrunner.max-connections-per-server", "255", "Max connections per server (from 1 to 255)", PropertyCategory.XulRunner),
-		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server (from 1 to 10)", PropertyCategory.XulRunner),
-		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override User-Agent", PropertyCategory.XulRunner),
-
-		/** XULRUNNER ADVANCE */
-		@PropertyOptions(advance = true)
-		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "Override Accept-Language header", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		XULRUNNER_ALLOW_IMAGE ("xulrunner.allow.image", "true", "Allow image", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		XULRUNNER_ALLOW_PLUGIN ("xulrunner.allow.plugin", "false", "Allow plugin", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		XULRUNNER_CHECK_CACHE ("xulrunner.check-cache", "true", "Check cache validity (false could increase latency)", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		XULRUNNER_INTERRUPT_PARSING ("xulrunner.interrupt-parsing", "false", "Enable screen rendering during parse (should be disabled)", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		XULRUNNER_URL ("xulrunner.url", "${convertigo.webapp_path}/WEB-INF/xulrunner", "XulRunner path", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		XULRUNNER_WORK ("xulrunner.work", "${user.workspace}/xulrunner-work", "XulRunner work directory", PropertyCategory.XulRunner),
 
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

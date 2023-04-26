@@ -40,7 +40,6 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.auth.BasicScheme;
 import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -64,10 +63,7 @@ public class ProxyManager {
 	public ProxyMode proxyMode;
 	public String proxyUser;
 	public String proxyPassword;
-
-	public String promptUser;
-	public String promptPassword;
-	public String basicValue;
+	
 	public String bypassDomains;
 	private PacManager pacUtils;
 	private MyPropertyChangeEventListener myPropertyChangeEventListener = null;
@@ -256,7 +252,7 @@ public class ProxyManager {
 					new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM),
 					new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
 
-			Engine.logProxyManager.debug("(ProxyManager) Using credentials: " + promptUser
+			Engine.logProxyManager.debug("(ProxyManager) Using credentials: " + proxyUser
 					+ ", <password not logged, set engine logger log level to TRACE to see it>");
 			Engine.logProxyManager.trace("(ProxyManager) Using password: " + proxyPassword);
 		}
@@ -285,21 +281,6 @@ public class ProxyManager {
 					});
 
 			Engine.logProxyManager.debug("(ProxyManager) Proxy credentials: anonym");
-		}
-	}
-
-	public void setCredentials() {
-		//Setting credentials for XUL
-		if (this.promptUser == null) {
-			this.promptUser = this.proxyUser;
-		}
-		if (this.promptPassword == null) {
-			this.promptPassword = this.proxyPassword;
-		}
-		if (this.promptUser != null && this.promptPassword.length() > 0 && proxyMethod.equals(ProxyMethod.basic.name())) {
-			this.basicValue = BasicScheme.authenticate(new UsernamePasswordCredentials(this.promptUser, this.promptPassword), "UTF-8");
-		} else {
-			this.basicValue = null;
 		}
 	}
 

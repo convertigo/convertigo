@@ -159,8 +159,6 @@ public class Engine {
 
 	static boolean bCliMode = false;
 
-	private static boolean bXulRunner = false;
-
 	/**
 	 * The database objects manager.
 	 */
@@ -1666,10 +1664,6 @@ public class Engine {
 
 	public static boolean isWindows() {
 		return System.getProperty("os.name").toLowerCase().indexOf("win") != -1;
-	}
-
-	public static boolean hasXulRunner() {
-		return bXulRunner;
 	}
 
 	public static void execute(Runnable runnable) {

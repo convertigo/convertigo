@@ -58,7 +58,6 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -99,7 +98,6 @@ import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.eclipse.ui.views.properties.PropertySheetPage;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import com.twinsoft.convertigo.beans.core.BlockFactory;
@@ -658,26 +656,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 					Path path = new Path("tomcat");
 					URL tomcatHomeUrl = FileLocator.find(context.getBundle(), path, null);
-
-					String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
-					if (xulrunner_url == null || xulrunner_url.equals("")) {
-						Bundle[] bundles = Platform.getFragments(context.getBundle());
-						if (bundles != null) {
-							studioLog.message("Fragments bundles: " + bundles.length);
-							for (Bundle bundle : bundles) {
-								String symbolicName = bundle.getSymbolicName();
-								studioLog.message("Fragment bundle symbolic name: " + symbolicName);
-								if (symbolicName.startsWith("com.twinsoft.convertigo.studio.xulrunner")) {
-									URL url = FileLocator.find(bundle, new Path("xulrunner"), null);
-									studioLog.message("Xulrunner url: " + url);
-									xulrunner_url = FileLocator.toFileURL(url).getPath();
-									studioLog.message("Xulrunner xulrunner_url: " + xulrunner_url);
-									System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
-									break;
-								}
-							}
-						}
-					}
 
 					String tomcatHome = FileLocator.toFileURL(tomcatHomeUrl).getPath();
 

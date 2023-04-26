@@ -70,9 +70,6 @@ function configuration_List_init () {
 				case "XmlGeneration":
 					urlHelp += "#xml-generation";
 					break;
-				case "XulRunner":
-					urlHelp += "#html-parser";
-					break;
 				case "HttpClient":
 					urlHelp += "#http-client";
 					break;

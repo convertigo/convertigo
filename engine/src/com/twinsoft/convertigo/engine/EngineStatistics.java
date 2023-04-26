@@ -36,14 +36,14 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.engine.util.*;
+import com.twinsoft.convertigo.engine.util.Statistics;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  
 public class EngineStatistics extends Statistics {
     public static final String GET_CURRENT_SCREEN_CLASS = "GetCurrentScreenClass";
     public static final String GET_JAVELIN_OBJECT = "GetJavelinObject";
     public static final String APPLY_USER_REQUEST = "ApplyUserRequest";
     public static final String HTTP_CONNECT = "HttpConnect";
-    public static final String GET_XUL_DOCUMENT = "GetXulDocument";
     public static final String APPLY_BLOCK_FACTORY = "ApplyBlockFactory";
     public static final String APPLY_EXTRACTION_RULES = "ApplyExtractionRules";
     public static final String APPLY_SCREENCLASS_HANDLERS = "ApplyScreenClassHandlers";
@@ -60,7 +60,7 @@ public class EngineStatistics extends Statistics {
     public static final String CONVERTIGO = "Convertigo";
     
 	//Statistics variable
-	private long dgcsc,adgcsc,dgjo,adgjo,daur,adaur,dhc,adhc,dgxd,adgxd,dabf,adabf,daer,adaer,dasch,adasch,dwht,adwht,dwts,adwts,dess,adess,desc,adesc,dgdom,
+	private long dgcsc,adgcsc,dgjo,adgjo,daur,adaur,dhc,adhc,dabf,adabf,daer,adaer,dasch,adasch,dwht,adwht,dwts,adwts,dess,adess,desc,adesc,dgdom,
 		adgdom,dgd,adgd,dxslt,adxslt,dt,adt,dothers,adothers,dh,adh,dc,adc;
 	
 	//Percentage variable
@@ -85,9 +85,6 @@ public class EngineStatistics extends Statistics {
 		if (dhc != -1)
 			formatter.format("| %-24s | %7d ms | %7d ms |\n", HTTP_CONNECT,
 					dhc, adhc);
-		if (dgxd != -1)
-			formatter.format("| %-24s | %7d ms | %7d ms |\n", GET_XUL_DOCUMENT,
-					dgxd, adgxd);
 		if (dwht != -1)
 			formatter.format("| %-24s | %7d ms | %7d ms |\n",
 					WAIT_HTML_TRIGGER, dwht, adwht);
@@ -186,13 +183,6 @@ public class EngineStatistics extends Statistics {
 						httpc.setAttribute("average", adhc + "");
 						httpc.setAttribute("current", dhc + "");
 						task.appendChild(httpc);
-					}
-					Element gxd = document
-							.createElement(GET_XUL_DOCUMENT.toLowerCase());
-					if (dgxd != -1) {
-						gxd.setAttribute("average", adgxd + "");
-						gxd.setAttribute("current", dgxd + "");
-						task.appendChild(gxd);
 					}
 					Element wht = document.createElement(WAIT_HTML_TRIGGER.toLowerCase());
 					if (dwht != -1) {
@@ -309,8 +299,6 @@ public class EngineStatistics extends Statistics {
 		adaur = getAverage(APPLY_USER_REQUEST);
 		dhc = getLatestDuration(HTTP_CONNECT);
 		adhc = getAverage(HTTP_CONNECT);
-		dgxd = getLatestDuration(GET_XUL_DOCUMENT);
-		adgxd = getAverage(GET_XUL_DOCUMENT);
 		dabf = getLatestDuration(APPLY_BLOCK_FACTORY);
 		adabf = getAverage(APPLY_BLOCK_FACTORY);
 		daer = getLatestDuration(APPLY_EXTRACTION_RULES);
@@ -352,8 +340,6 @@ public class EngineStatistics extends Statistics {
 			dothers -= daur;
 		if (dhc != -1)
 			dothers -= dhc;
-		if (dgxd != -1)
-			dothers -= dgxd;
 		if (dabf != -1)
 			dothers -= dabf;
 		if (daer != -1)
@@ -446,11 +432,6 @@ public class EngineStatistics extends Statistics {
 						SOAPElement httpc = task.addChildElement(HTTP_CONNECT.toLowerCase());
 						httpc.setAttribute("average", adhc + "");
 						httpc.setAttribute("current", dhc + "");
-					}
-					if (dgxd != -1) {
-						SOAPElement gxd = task.addChildElement(GET_XUL_DOCUMENT.toLowerCase());
-						gxd.setAttribute("average", adgxd + "");
-						gxd.setAttribute("current", dgxd + "");
 					}
 					if (dwht != -1) {
 						SOAPElement wht = task.addChildElement(WAIT_HTML_TRIGGER.toLowerCase());
@@ -560,7 +541,6 @@ public class EngineStatistics extends Statistics {
 		XmlSchemaSequence taskSequence = new XmlSchemaSequence();
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, WORKER_THREAD_START.toLowerCase(), 0));
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, HTTP_CONNECT.toLowerCase(), 0));
-		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_XUL_DOCUMENT.toLowerCase(), 0));
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, WAIT_HTML_TRIGGER.toLowerCase(), 0));
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_JAVELIN_OBJECT.toLowerCase(), 0));
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_CURRENT_SCREEN_CLASS.toLowerCase(), 0));
