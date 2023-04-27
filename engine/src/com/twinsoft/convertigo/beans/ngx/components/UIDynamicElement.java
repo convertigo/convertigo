@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EcmaError;
@@ -265,7 +265,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				}
 			}
 			
-			StrSubstitutor sub = new StrSubstitutor(vm,"$[","]");
+			StringSubstitutor sub = new StringSubstitutor(vm,"$[","]");
 			sub.setEnableSubstitutionInVariables(true);
 			
 			for (IonProperty property : ionBean.getProperties().values()) {
