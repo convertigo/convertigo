@@ -14,7 +14,7 @@ publishing {
 			version version.replace('beta', 'SNAPSHOT')
 			artifactId 'dependencies'
 			afterEvaluate {
-				artifact tasks['dependenciesJar'].archivePath
+				artifact tasks['dependenciesJar'].archiveFile
 			}
 		}
 	}
@@ -255,7 +255,7 @@ dependencies {
 	compileFlat    'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	implementation project.property('sapjco3Version')
 	sapjco3        project.property('sapjco3Version')
-	implementation files(dependenciesJar.archivePath)
+	implementation files(dependenciesJar.archiveFile)
 	runtimeOnly    project(path: ':placeholders', configuration: 'allPlaceholders')
 }
 
@@ -390,7 +390,7 @@ task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClass
 	outputs.file 'src/com/twinsoft/convertigo/beans/ngx/components/dynamic/ion_objects_default.json'
 	
 	classpath sourceSets.main.output
-	classpath engineDependenciesClasspathJar.archivePath
+	classpath engineDependenciesClasspathJar.archiveFile
 	
 	mainClass = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
 	
@@ -411,7 +411,7 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 		outputs.dir docPath
 		
 		classpath sourceSets.main.output
-		classpath engineDependenciesClasspathJar.archivePath
+		classpath engineDependenciesClasspathJar.archiveFile
 		
 		main = 'com.twinsoft.convertigo.beans.BeansDoc'
 		
