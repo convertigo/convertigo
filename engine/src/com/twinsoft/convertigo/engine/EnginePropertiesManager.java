@@ -35,7 +35,9 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.SortedSet;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -423,8 +425,8 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", LogLevels.WARN.getValue(), "Log4J admin logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue(), "Log4J audit context logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
+		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", RootLogLevels.INFO.getValue(), "Log4J audit context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", LogLevels.INHERITED.getValue(), "Log4J beans logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1110,6 +1112,16 @@ public class EnginePropertiesManager {
 		log4jProperties.put("log.directory", Engine.LOG_PATH);
 
 		LogManager.resetConfiguration();
+		System.out.println("log4jProperties:\n" + log4jProperties.replace(", ", "\n"));
+		SortedSet<String> sortedKey = new TreeSet<String>(GenericUtils.<Collection<String>>cast(log4jProperties.keySet()));
+		for (String key: sortedKey) {
+			if (key.startsWith("log4j.logger.cems.") && "".equals(log4jProperties.get(key))) {
+				String v = log4jProperties.getProperty(key.replaceAll("\\.[^.]*$", ""), "INFO");
+				v = v.replaceAll(",.*", "");
+				log4jProperties.put(key, v);
+			}
+		}
+		System.out.println("log4jPropert!es:\n" + log4jProperties.replace(", ", "\n"));
 		PropertyConfigurator.configure(log4jProperties);
 
 		Logger cems = Logger.getLogger("cems");
