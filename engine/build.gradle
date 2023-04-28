@@ -132,7 +132,7 @@ war {
 		file('build/tmp/build.txt').text = """\
 build.version=${convertigoRevision}
 build.date=${new Date().toString()}
-build.filename=${war.archiveName}"""
+build.filename=${war.archiveFileName}"""
 	}
 	
 	from 'build/tmp/build.txt', {
