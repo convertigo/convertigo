@@ -61,11 +61,14 @@ eclipse {
 	}
 	
 	classpath.file.withXml {
-		def node = it.asNode()
-		
-		def depJar
-		if ((depJar = node.classpathentry.find { it.@path.contains('libs/dependencies') }) != null) {
-			depJar.@sourcepath = depJar.@sourcepath = depJar.@path.replace('libs/dependencies', 'libs/dependencies-sources')
+		def elt = it.asElement()
+		def nl = elt.getElementsByTagName('classpathentry')
+		for (def i = 0; i < nl.length; i++) {
+			def entry = nl.item(i)
+			if (entry.getAttribute('path').contains('libs/dependencies')) {
+				entry.setAttribute('sourcepath', entry.getAttribute('path').replace('libs/dependencies', 'libs/dependencies-sources'))
+				return
+			}
 		}
 	}
 }
@@ -397,7 +400,7 @@ task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClass
 	args 'src', sourceSets.main.output.resourcesDir
 }
 
-task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClasspathJar) {
+task generateDocumentationMd(type: JavaExec, dependsOn: [engineDependenciesClasspathJar, updateBeansDefaultValues]) {
 	group 'convertigo'
 	
 	onlyIf {

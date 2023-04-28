@@ -104,14 +104,23 @@ allprojects {
 			}
 			
 			classpath.file.withXml {
-				def node = it.asNode()
-				if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
-					node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
-				}
+				def elt = it.asElement()
 				def projectPath = projectDir.path.replace('\\', '/') + '/'
-				node.classpathentry.findAll { it.@kind == 'lib' }.each {
-					println 'classpath : ' + it.@path.replace(projectPath, '')
-					it.@path = it.@path.replace(projectPath, '')
+				
+				def nl = elt.getElementsByTagName('classpathentry')
+				def hasRequired = false
+				for (def i = 0; i < nl.length; i++) {
+					def entry = nl.item(i)
+					if (entry.getAttribute('kind') == 'lib') {
+						entry.setAttribute('path', entry.getAttribute('path').replace(projectPath, ''))
+					}
+					hasRequired |= entry.getAttribute('path') == 'org.eclipse.pde.core.requiredPlugins'
+				}
+				if (!hasRequired) {
+					def entry = elt.getOwnerDocument().createElement('classpathentry')
+					entry.setAttribute('kind', 'con')
+					entry.setAttribute('path', 'org.eclipse.pde.core.requiredPlugins')
+					elt.appendChild(entry)
 				}
 			}
 		}
