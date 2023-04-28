@@ -37,6 +37,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1635,5 +1636,16 @@ public class XMLUtils {
 				}
 			}
 		}
+	}
+	
+	private static Pattern removeQuotes = Pattern.compile("([\\\"']).*?\\1");
+	private static Pattern removeBrackets = Pattern.compile("\\[.*?\\]");
+	public static String xpathRemovePredicates(String xpath) {
+		xpath = xpath.replace("\\\\", "");
+		xpath = xpath.replace("\\\"", "");
+		xpath = xpath.replace("\\'", "");
+		xpath = removeQuotes.matcher(xpath).replaceAll("");
+		xpath = removeBrackets.matcher(xpath).replaceAll("");
+		return xpath;
 	}
 }

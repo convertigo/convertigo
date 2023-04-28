@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLCopyStep extends Step implements IStepSourceContainer {
@@ -156,7 +157,12 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 				if (object != null) {
 					SchemaMeta.setSchema(object, schema);
 					String xpath = source.getXpath();
+					
+					
 					String anchor = source.getAnchor() + getTargetXPath();
+					
+					anchor = XMLUtils.xpathRemovePredicates(anchor);
+					
 					if (!".".equals(xpath)) {
 						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
 						Document doc = XmlSchemaUtils.getDomInstance(object, references);
@@ -165,6 +171,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 						if (anchor.startsWith("//"+contextNode.getNodeName()+"/")) {
 							anchor = anchor.replaceFirst("//"+contextNode.getNodeName()+"/", "./");
 						}
+						
 						NodeList list = getXPathAPI().selectNodeList(contextNode, anchor);
 						if (list != null) {
 							boolean isList = false;
