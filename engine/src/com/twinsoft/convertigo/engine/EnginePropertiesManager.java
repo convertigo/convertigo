@@ -1112,7 +1112,6 @@ public class EnginePropertiesManager {
 		log4jProperties.put("log.directory", Engine.LOG_PATH);
 
 		LogManager.resetConfiguration();
-		System.out.println("log4jProperties:\n" + log4jProperties.replace(", ", "\n"));
 		SortedSet<String> sortedKey = new TreeSet<String>(GenericUtils.<Collection<String>>cast(log4jProperties.keySet()));
 		for (String key: sortedKey) {
 			if (key.startsWith("log4j.logger.cems.") && "".equals(log4jProperties.get(key))) {
@@ -1121,7 +1120,6 @@ public class EnginePropertiesManager {
 				log4jProperties.put(key, v);
 			}
 		}
-		System.out.println("log4jPropert!es:\n" + log4jProperties.replace(", ", "\n"));
 		PropertyConfigurator.configure(log4jProperties);
 
 		Logger cems = Logger.getLogger("cems");
