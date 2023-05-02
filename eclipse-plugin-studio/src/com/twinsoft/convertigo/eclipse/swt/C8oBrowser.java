@@ -35,6 +35,7 @@ import com.teamdev.jxbrowser.browser.Browser;
 import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.dom.event.Event;
 import com.teamdev.jxbrowser.dom.event.EventType;
+import com.teamdev.jxbrowser.engine.ChromiumBinariesExtractionException;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
 import com.teamdev.jxbrowser.engine.ProprietaryFeature;
@@ -148,13 +149,38 @@ public class C8oBrowser extends Composite {
 				}
 				debugPort = NetworkUtils.nextAvailable(debugPort);
 				boolean off = render_offscreen || ConvertigoPlugin.getBrowserOffscreen();
-				browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
-						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
-						.licenseKey(JBL.get())
-						.enableProprietaryFeature(ProprietaryFeature.AAC)
-						.enableProprietaryFeature(ProprietaryFeature.H_264)
-						.addSwitch("--illegal-access=warn")
-						.remoteDebuggingPort(debugPort).build());
+				
+				int rt = 2;
+				while (rt > 0) {
+					try {
+						browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
+								.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
+								.licenseKey(JBL.get())
+								.enableProprietaryFeature(ProprietaryFeature.AAC)
+								.enableProprietaryFeature(ProprietaryFeature.H_264)
+								.addSwitch("--illegal-access=warn")
+								.remoteDebuggingPort(debugPort).build());
+						rt = 0;
+					} catch (ChromiumBinariesExtractionException e) {
+						rt--;
+						if (rt == 0) {
+							throw e;
+						}
+						String msg = e.getMessage();
+						String path = msg.replaceFirst(".*?into ", "");
+						try {
+							FileUtils.deleteDirectory(new File(path));
+							msg = "Browser extraction failed. Folder '" + path + "' deleted.";
+							if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+								com.twinsoft.convertigo.engine.Engine.logStudio.info(msg);
+							} else {
+								System.out.println(msg);
+							}
+						} catch (IOException e1) {
+							throw e;
+						}
+					}
+				}
 				browserContexts.put(browserId, browserContext);
 			}
 			debugUrl = "http://localhost:" + browserContext.options().remoteDebuggingPort().get();
