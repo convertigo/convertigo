@@ -20,6 +20,7 @@ task writeManifest(dependsOn: syncLib) {
 									'org.eclipse.ui',
 									'org.eclipse.ui.intro.universal',
 									'org.eclipse.ui.intro',
+									'org.eclipse.ui.themes',
 									'org.eclipse.swt'].join(',')
 			)
 		}.writeTo(manifest)
