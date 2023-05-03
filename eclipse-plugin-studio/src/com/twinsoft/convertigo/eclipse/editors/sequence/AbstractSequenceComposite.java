@@ -33,21 +33,18 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.SequenceEvent;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 abstract class AbstractSequenceComposite extends Composite implements ISelectionChangedListener {
 
-	private SequenceEditorPart sequenceEditorPart;
 	protected Sequence sequence;
 
 	private ProjectExplorerView projectExplorerView = null;
 
 	public AbstractSequenceComposite(SequenceEditorPart SequenceEditorPart, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
-		this.sequenceEditorPart = SequenceEditorPart;
 		this.sequence = sequence;
 
 		// add ProjectExplorerView to the listeners of the composite sequence

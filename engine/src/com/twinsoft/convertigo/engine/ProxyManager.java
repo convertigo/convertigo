@@ -52,8 +52,6 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class ProxyManager {
 
-	private CertificateManager certificateManager = null;
-
 	private UUID hostConfId;
 
 	public String proxyServer;
@@ -90,7 +88,7 @@ public class ProxyManager {
 			Engine.theApp.eventManager.addListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
 		}
 		getEngineProperties();
-		certificateManager = new CertificateManager();
+		new CertificateManager();
 		ProxySelector.setDefault(new ProxySelector() {
 
 			@Override
