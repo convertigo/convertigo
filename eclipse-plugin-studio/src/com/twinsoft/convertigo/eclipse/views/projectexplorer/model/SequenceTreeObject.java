@@ -33,10 +33,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 
 public class SequenceTreeObject extends DatabaseObjectTreeObject implements IClosableTreeObject {
-
-	public SequenceTreeObject(Viewer viewer, Sequence object) {
-		this(viewer, object, false);
-	}
 	
 	public SequenceTreeObject(Viewer viewer, Sequence object, boolean inherited) {
 		super(viewer, object, inherited);

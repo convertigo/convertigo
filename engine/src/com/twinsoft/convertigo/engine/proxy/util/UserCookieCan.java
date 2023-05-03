@@ -31,13 +31,13 @@ public class UserCookieCan {
 		return lastVisitTime;
 	}
 
-	public UserCookieCan(String userId, String userInfo) {
+	UserCookieCan(String userId, String userInfo) {
 		this.userId = userId;
 		this.userInfo = userInfo;
 		lastVisitTime = System.currentTimeMillis();
 	}
 
-	public void addCookie(ClientCookie cookie) {
+	void addCookie(ClientCookie cookie) {
 		lastVisitTime = System.currentTimeMillis();
 
 		HostCookieCan hostCan = null;
@@ -55,7 +55,7 @@ public class UserCookieCan {
 		hostCan.addCookie(cookie);
 	}
 
-	public String getServerCookieString(String host, String path) {
+	String getServerCookieString(String host, String path) {
 		lastVisitTime = System.currentTimeMillis();
 
 		HostCookieCan hostCan = hostCans.get(ClientCookie.calcDomainRoot(host));
@@ -69,7 +69,7 @@ public class UserCookieCan {
 		return toString("");
 	}
 
-	public String toString(String marginSpaces) {
+	String toString(String marginSpaces) {
 		StringBuffer sb = new StringBuffer(512 * hostCans.size());
 
 		sb

@@ -96,10 +96,6 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 
-	public MobileUIComponentTreeObject(Viewer viewer, UIComponent object) {
-		super(viewer, object);
-	}
-
 	public MobileUIComponentTreeObject(Viewer viewer, UIComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
@@ -990,7 +986,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
+	private void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
 		if (sharedAction != null) {
 			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
 			if (getObject() instanceof UIDynamicInvoke) {
@@ -1020,7 +1016,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
+	private void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
 		if (sharedComponent != null) {
 			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
 			if (getObject() instanceof UIUseShared) {
@@ -1045,7 +1041,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
+	private void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
 			if (main != null) {
@@ -1063,11 +1059,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void markMainAsDirty(UIComponent uic) throws EngineException {
+	private void markMainAsDirty(UIComponent uic) throws EngineException {
 		markMainAsDirty(uic, new HashSet<Object>());
 	}
 
-	protected static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
+	private static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
 		if (uic1 != null && uic2 != null) {
 			try {
 				return uic1.getMainScriptComponent().equals(uic2.getMainScriptComponent());
@@ -1076,7 +1072,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		return false;
 	}
 
-	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
+	private void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 
 		String propertyName = (String)treeObjectEvent.propertyName;
@@ -1246,7 +1242,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;
@@ -1386,14 +1382,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
+	private void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
 		if (to != null) {
 			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue, done);
 		}
 	}
 
-	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
+	synchronized private void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		if (done == null) {
 			done = new HashSet<Object>();
 		}

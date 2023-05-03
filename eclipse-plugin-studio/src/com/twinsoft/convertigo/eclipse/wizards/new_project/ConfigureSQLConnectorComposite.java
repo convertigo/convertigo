@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Text;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
-public class ConfigureSQLConnectorComposite extends Composite {
+class ConfigureSQLConnectorComposite extends Composite {
 
 	private Text jdbcURL = null;
 	private ModifyListener modifyListener;
@@ -53,7 +53,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 
 	private Map<String, String> jdbcDrivers;
 
-	public ConfigureSQLConnectorComposite(Composite parent, int style, ModifyListener modifyListener) {
+	ConfigureSQLConnectorComposite(Composite parent, int style, ModifyListener modifyListener) {
 		super(parent, style);
 		this.modifyListener = modifyListener;
 		initialize();

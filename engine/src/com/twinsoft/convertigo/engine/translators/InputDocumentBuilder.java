@@ -60,7 +60,7 @@ class InputDocumentBuilder {
 		addVariable(parameterName, parameterValue, false);
 	}
 	
-	void addVariable(String parameterName, String parameterValue, boolean isHandleComplex) {
+	private void addVariable(String parameterName, String parameterValue, boolean isHandleComplex) {
 		if (parameterName == null || parameterValue == null) {
 			return;
 		}

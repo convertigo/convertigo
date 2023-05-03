@@ -37,11 +37,11 @@ public abstract class AbstractDialogCellEditor extends DialogCellEditor {
     public PropertyDescriptor propertyDescriptor;
     public DatabaseObjectTreeObject databaseObjectTreeObject;
 
-    public AbstractDialogCellEditor(Composite parent) {
+    AbstractDialogCellEditor(Composite parent) {
     	this(parent, SWT.NONE);
     }
         
-    public AbstractDialogCellEditor(Composite parent, int style) {
+    AbstractDialogCellEditor(Composite parent, int style) {
     	super(parent, style);
     }
     

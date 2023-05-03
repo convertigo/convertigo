@@ -73,18 +73,9 @@ public class HibernateHelper {
 		});
 	}
 	
-	public int update(final String query) {
-		final int[] updated = {0};
-		
-		retry(() -> {
-			try (StatelessSession session = getSession()) {
-				updated[0] = session.createQuery(query).executeUpdate();
-			}
-		});
-		return updated[0];
-	}
 	
-	public void retry(Runnable run) {
+	
+	private void retry(Runnable run) {
 		for (long retry = this.retry; retry > 0; retry--) {
 			try {
 				run.run();

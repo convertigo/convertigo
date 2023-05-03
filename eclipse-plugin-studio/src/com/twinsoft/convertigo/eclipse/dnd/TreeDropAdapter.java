@@ -407,7 +407,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 	}
 
-	public DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
+	private DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject)object;
@@ -1193,7 +1193,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		return false;
 	}
 
-	public void getNextSiblings(List<TreeObject> siblings, TreeParent parent, Object object) {
+	private void getNextSiblings(List<TreeObject> siblings, TreeParent parent, Object object) {
 		if ((parent != null) && (object != null)) {
 			if (parent.hasChildren()) {
 				for (TreeObject treeObject: parent.getChildren()) {

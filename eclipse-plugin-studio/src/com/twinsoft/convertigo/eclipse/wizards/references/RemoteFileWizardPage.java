@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceComposite {
+abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceComposite {
 	private String[] filterExtension = new String[]{"*"};
 	private String[] filterNames = new String[]{"All files"};
 	private Object parentObject = null;
@@ -66,7 +66,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 	private String filePath = "";
 	private String urlPath = "";
 	
-	public RemoteFileWizardPage(Object parentObject, String pageName) {
+	RemoteFileWizardPage(Object parentObject, String pageName) {
 		super(pageName);
 		this.parentObject = parentObject;
 		setTitle("Schema File");
@@ -289,7 +289,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		setTextStatus(message);
 	}
 
-	protected String getLocalFilePath(String path) {
+	private String getLocalFilePath(String path) {
 		if (path != null && !path.isEmpty()) {
 			try {
 				String canonicalPath = new File(path).getCanonicalPath();
@@ -309,7 +309,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		return "";
 	}
 	
-	protected DatabaseObject getDbo() {
+	private DatabaseObject getDbo() {
 		return ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
 	}
 	

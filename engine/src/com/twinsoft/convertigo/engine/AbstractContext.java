@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
-public abstract class AbstractContext {
+abstract class AbstractContext {
 
 	/**
 	 * The context unique identifier.

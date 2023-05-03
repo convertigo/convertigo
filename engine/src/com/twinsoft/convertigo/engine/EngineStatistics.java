@@ -43,21 +43,21 @@ public class EngineStatistics extends Statistics {
     public static final String GET_CURRENT_SCREEN_CLASS = "GetCurrentScreenClass";
     public static final String GET_JAVELIN_OBJECT = "GetJavelinObject";
     public static final String APPLY_USER_REQUEST = "ApplyUserRequest";
-    public static final String HTTP_CONNECT = "HttpConnect";
+    private static final String HTTP_CONNECT = "HttpConnect";
     public static final String APPLY_BLOCK_FACTORY = "ApplyBlockFactory";
     public static final String APPLY_EXTRACTION_RULES = "ApplyExtractionRules";
     public static final String APPLY_SCREENCLASS_HANDLERS = "ApplyScreenClassHandlers";
     public static final String WORKER_THREAD_START = "WorkerThreadStart";
-    public static final String WAIT_HTML_TRIGGER = "WaitHtmlTrigger";
+    private static final String WAIT_HTML_TRIGGER = "WaitHtmlTrigger";
     public static final String EXECUTE_SEQUENCE_STEPS = "ExecuteSequenceSteps";
     public static final String EXECUTE_SEQUENCE_CALLS = "ExecuteSequenceCalls";
     public static final String GENERATE_DOM = "GenerateDOM";
-    public static final String OTHERS = "(others)";
+    private static final String OTHERS = "(others)";
     public static final String GET_DOCUMENT = "GetDocument";
     public static final String XSLT = "XSLT";
     public static final String REQUEST = "Request";
-    public static final String HOST = "Host";
-    public static final String CONVERTIGO = "Convertigo";
+    private static final String HOST = "Host";
+    private static final String CONVERTIGO = "Convertigo";
     
 	//Statistics variable
 	private long dgcsc,adgcsc,dgjo,adgjo,daur,adaur,dhc,adhc,dabf,adabf,daer,adaer,dasch,adasch,dwht,adwht,dwts,adwts,dess,adess,desc,adesc,dgdom,
@@ -153,19 +153,8 @@ public class EngineStatistics extends Statistics {
 		return stats.toString();
 	}
 
-	public String addWhiteSpaces(String msg, boolean bRight, int maxLength) {
-		int len = msg.length();
-		for (int i = len; i < maxLength; i++) {
-			if (bRight) {
-				msg += " ";
-			} else {
-				msg = " " + msg;
-			}
-		}
-		return msg;
-	}
-
-	public void printStatisticsXML(Document document) {
+	
+	private void printStatisticsXML(Document document) {
 		getStatsData();
 		
 		try {
@@ -516,6 +505,7 @@ public class EngineStatistics extends Statistics {
 		}
 	}
 	
+	
 	private static XmlSchemaElement addXmlSchemaStatItem(XmlSchema schema, String name, int minOccurs) {
 		XmlSchemaComplexType itemType = new XmlSchemaComplexType(schema);
 		itemType.setName("ConvertigoStatsItemType");
@@ -537,7 +527,7 @@ public class EngineStatistics extends Statistics {
 		return hostElement;
 	}
 	
-	public static void addXmlSchemaObjects(XmlSchema schema) {
+	static void addXmlSchemaObjects(XmlSchema schema) {
 		XmlSchemaSequence taskSequence = new XmlSchemaSequence();
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, WORKER_THREAD_START.toLowerCase(), 0));
 		taskSequence.getItems().add(addXmlSchemaStatItem(schema, HTTP_CONNECT.toLowerCase(), 0));

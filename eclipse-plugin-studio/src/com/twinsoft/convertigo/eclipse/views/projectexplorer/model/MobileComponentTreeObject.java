@@ -46,11 +46,11 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 	
 	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
 	
-	public MobileComponentTreeObject(Viewer viewer, MobileComponent object) {
+	MobileComponentTreeObject(Viewer viewer, MobileComponent object) {
 		super(viewer, object);
 	}
 
-	public MobileComponentTreeObject(Viewer viewer, MobileComponent object, boolean inherited) {
+	MobileComponentTreeObject(Viewer viewer, MobileComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
 

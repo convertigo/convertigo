@@ -50,7 +50,7 @@ public class TracePlayerManager implements AbstractManager {
 		private String _file;
 		private boolean _enable;
 		
-		TraceConfig(int port, String file, boolean enable){
+		private TraceConfig(int port, String file, boolean enable){
 			_port = port;
 			_file = file;
 			_enable = enable;
@@ -125,7 +125,7 @@ public class TracePlayerManager implements AbstractManager {
 		}
 	}
 	
-	public void syncTracePlayers(){
+	private void syncTracePlayers(){
 		for(TraceConfig trace : _traces.values()){
 			stopTraceConfig(trace);
 			startTraceConfig(trace);
@@ -154,7 +154,7 @@ public class TracePlayerManager implements AbstractManager {
 		return false;
 	}
 	
-	public boolean addTrace(int port, String file, boolean enabled){
+	private boolean addTrace(int port, String file, boolean enabled){
 		if(!_traces.containsKey(port)){
 			_traces.put(port, new TraceConfig(port, file, enabled));
 			saveAndSync();
@@ -181,7 +181,7 @@ public class TracePlayerManager implements AbstractManager {
 		return false;
 	}
 	
-	public void saveAndSync(){
+	private void saveAndSync(){
 		saveTraces();
 		syncTracePlayers();
 	}
@@ -236,7 +236,7 @@ public class TracePlayerManager implements AbstractManager {
 		return false;
 	}
 	
-	public boolean modifyTrace(int oldPort, int newPort, String newConfigPath, boolean enabled){
+	private boolean modifyTrace(int oldPort, int newPort, String newConfigPath, boolean enabled){
 		TraceConfig trace = _traces.get(oldPort);
 		if(trace!=null && (oldPort==newPort || !_traces.containsKey(newPort))){
 			delTrace(trace);
@@ -252,10 +252,6 @@ public class TracePlayerManager implements AbstractManager {
 	
 	public boolean exists(int port){
 		return _traces.containsKey(port);
-	}
-	
-	public TraceConfig getTrace(int port){
-		return _traces.get(port);
 	}
 
 	public void destroy() throws EngineException {

@@ -38,11 +38,6 @@ public class StepSourceEvent extends EventObject {
 		super(source.getStep());
 		this.xpath = source.getXpath();
 	}
-	
-	public StepSourceEvent(Object step, String xpath) {
-		super(step);
-		this.xpath = xpath;
-	}
 
 	public String getXPath() {
 		return xpath;

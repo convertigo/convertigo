@@ -41,7 +41,7 @@ public enum DeploymentKey {
 		this.key = key;
 	}
 	
-	public String key(int i) {
+	String key(int i) {
 		return "deploy." + i + "." + key; 
 	}
 	
@@ -49,17 +49,17 @@ public enum DeploymentKey {
 		return properties.getProperty(key(i));
 	}
 	
-	public boolean hasDefault() {
+	boolean hasDefault() {
 		return defaultValue != null;
 	}
 	
-	public void setValue(Properties properties, int i) {
+	void setValue(Properties properties, int i) {
 		if (hasDefault()) {
 			setValue(properties, i, defaultValue);
 		}
 	}
 	
-	public void setValue(Properties properties, int i, String value) {
+	void setValue(Properties properties, int i, String value) {
 		properties.setProperty(key(i), value);
 	}
 }

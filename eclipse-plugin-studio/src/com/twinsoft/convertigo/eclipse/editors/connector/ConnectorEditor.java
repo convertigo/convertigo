@@ -40,22 +40,26 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveablePart2  {
 	private boolean dirty = false;
 	
+	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
 
+	@Override
 	public void doSaveAs() {
 	}
 
 	public void close() {
 		connectorEditorPart.close();
 	}
-	
+
+	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		if (!(input instanceof ConnectorEditorInput))
 			throw new PartInitException("Invalid input: must be ConnectorEditorInput");
 		super.init(site, input);
 	}
 
+	@Override
 	public boolean isDirty() {
 		return dirty;
 	}
@@ -65,20 +69,18 @@ public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveab
 		firePropertyChange(EditorPart.PROP_DIRTY);
 	}
 
+	@Override
 	public boolean isSaveAsAllowed() {
 		return true;
 	}
 
 	ConnectorEditorPart connectorEditorPart;
 	
-	public void dispose() {
-		super.dispose();
-	}
-	
-	public void createEditorControl(Composite parent) {
+	void createEditorControl(Composite parent) {
 		super.createPartControl(parent);
 	}
-	
+
+	@Override
 	public void createPartControl(Composite parent) {
 		try {
 			parent.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
@@ -105,6 +107,7 @@ public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveab
 		}
 	}
 
+	@Override
 	public void setFocus() {
 		connectorEditorPart.setFocus();
 	}

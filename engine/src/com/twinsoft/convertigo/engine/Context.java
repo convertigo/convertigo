@@ -141,8 +141,6 @@ public class Context extends AbstractContext implements Cloneable {
 
 	public boolean tasSessionKeyVerified = false;
 
-	public IdToXpathManager idToXpathManager = null;
-
 	public SimpleMap server = Engine.theApp.getShareServerMap();
 
 	private Map<String, Connector> used_connectors = new HashMap<String, Connector>();
@@ -421,13 +419,6 @@ public class Context extends AbstractContext implements Cloneable {
 
 	public boolean waitAtScreenClass(Javelin javelin, int timeout, int hardDelay) throws EngineException {
 		return waitAtScreenClass(timeout, hardDelay);
-	}
-
-	public IdToXpathManager getIdToXpathManager(){
-		if (idToXpathManager == null) {
-			idToXpathManager = new IdToXpathManager();
-		}
-		return idToXpathManager;
 	}
 
 	public TwsCachedXPathAPI getXpathApi(){

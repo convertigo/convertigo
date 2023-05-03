@@ -23,8 +23,8 @@ import java.util.*;
 
 public abstract class CacheEntry implements java.io.Serializable {
 	private static final long serialVersionUID = 8146896324932035741L;
-	public String resourceUrl = null;
-	public long expiryDate = 0;
+	String resourceUrl = null;
+	long expiryDate = 0;
 	public String contentType;
 	public int contentLength = 0;
 	

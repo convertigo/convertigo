@@ -67,7 +67,7 @@ public class FileFieldEditor extends StringButtonFieldEditor {
      *  must be absolute, and <code>false</code> otherwise
      * @param parent the parent of the field editor's control
      */
-    public FileFieldEditor(String name, String labelText,
+    private FileFieldEditor(String name, String labelText,
             boolean enforceAbsolute, Composite parent) {
         init(name, labelText);
         this.enforceAbsolute = enforceAbsolute;

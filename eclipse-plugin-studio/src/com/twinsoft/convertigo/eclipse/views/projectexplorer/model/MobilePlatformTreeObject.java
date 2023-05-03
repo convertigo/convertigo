@@ -29,10 +29,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobilePlatformTreeObject extends DatabaseObjectTreeObject {
 
-	public MobilePlatformTreeObject(Viewer viewer, MobilePlatform object) {
-		super(viewer, object);
-	}
-
 	public MobilePlatformTreeObject(Viewer viewer, MobilePlatform object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

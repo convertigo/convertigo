@@ -22,10 +22,10 @@ package com.twinsoft.convertigo.engine.util;
 public class Base64 {
     
     /** Specify encoding (value is <tt>true</tt>). */
-    public final static boolean ENCODE = true;
+    private final static boolean ENCODE = true;
     
     /** Specify decoding (value is <tt>false</tt>). */
-    public final static boolean DECODE = false;
+    private final static boolean DECODE = false;
     
     /** Maximum line length (76) of Base64 output. */
     private final static int MAX_LINE_LENGTH = 76;

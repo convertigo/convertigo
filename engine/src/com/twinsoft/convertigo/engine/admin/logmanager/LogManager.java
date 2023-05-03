@@ -50,10 +50,10 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 
 public class LogManager implements Closeable {
-	public static final Date date_first = new Date(0);
+	private static final Date date_first = new Date(0);
 	public static final Date date_last = new Date(Long.MAX_VALUE);
 	public static final DateFormat date_format = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss,SSS ");
-	public static final int date_format_offset = 31;
+	private static final int date_format_offset = 31;
 	
 	private final Matcher delim = Pattern.compile("[! ]([^\\|]*[^|\\s])\\|?").matcher("");
 	private final Matcher delim_extra = Pattern.compile("([^=]*)=(.*)").matcher("");

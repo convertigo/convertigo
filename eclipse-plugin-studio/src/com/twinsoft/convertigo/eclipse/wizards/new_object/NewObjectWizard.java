@@ -33,8 +33,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -104,9 +102,7 @@ public class NewObjectWizard extends Wizard {
 	private ObjectExplorerWizardPage objectExplorerPage = null;
 	private ObjectInfoWizardPage objectInfoPage = null;
 	private SQLQueriesWizardPage sqlQueriesWizardPage = null;
-
-	public Button useAuthentication = null;
-	public Text loginText = null, passwordText = null;
+	
 	public DatabaseObject newBean = null;
 
 	public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {

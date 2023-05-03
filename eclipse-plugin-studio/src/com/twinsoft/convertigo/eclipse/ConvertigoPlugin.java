@@ -110,15 +110,12 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
-import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor;
-import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor.FlowViewerInput;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
@@ -159,9 +156,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 
-	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
+	static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
 	
-	public static final String GRADLE_NATURE_ID = "org.eclipse.buildship.core.gradleprojectnature";
+	
 
 	public static ProjectManager projectManager = null;
 
@@ -170,11 +167,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
 
-	public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
+	
 
 	public static final String PREFERENCE_LOG_LEVEL = "log.level";
 	public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
-	public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
+	static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
 	public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
 	public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
 	public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
@@ -246,7 +243,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static class PscException extends Exception {
 		private static final long serialVersionUID = -3828463232797723301L;
 
-		public PscException(String cause) {
+		private PscException(String cause) {
 			super(cause);
 		}
 	}
@@ -307,10 +304,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	public static void logWarning(String message) {
 		logWarning(null, message, true);
-	}
-
-	public static void logWarning(String message, boolean dialog) {
-		logWarning(null, message, dialog);
 	}
 
 	public static void logWarning(Throwable e, String message) {
@@ -779,7 +772,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private ConvertigoPartListener partListener = null;
 	private ConvertigoPerspectiveListener perspectiveListener = null;
 
-	public void addListeners() {
+	private void addListeners() {
 		try {
 			IWorkbench workbench = PlatformUI.getWorkbench();
 
@@ -916,9 +909,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		studioLog.logLevel = logLevel;
 	}
 
-	static public int getLogLevel() {
-		return studioLog.logLevel;
-	}
+	
 
 	private static boolean 	highlightDetectedObject;
 
@@ -930,15 +921,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return highlightDetectedObject;
 	}
 
-	private static boolean showEnginIntoConsole;
-
 	public static void setShowEngineIntoConsole(boolean show) {
-		showEnginIntoConsole = show;
 	}
 
-	public static boolean getShowEngineIntoConsole() {
-		return showEnginIntoConsole;
-	}
+	
 
 	private static boolean autoOpenDefaultConnector = false;
 
@@ -1019,18 +1005,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return plugin;
 	}
 
-	/**
-	 * Returns the string from the plugin's resource bundle,
-	 * or 'key' if not found.
-	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle = ConvertigoPlugin.getDefault().getResourceBundle();
-		try {
-			return (bundle != null) ? bundle.getString(key) : key;
-		} catch (MissingResourceException e) {
-			return key;
-		}
-	}
+	
 
 	private Map<String, Image> icons = new HashMap<String, Image>();
 
@@ -1164,14 +1139,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return resourceBundle;
 	}
 
-	public ConsolePipes consolePipes = null;
+	private ConsolePipes consolePipes = null;
 
-	public MessageConsole engineConsole;
-	public MessageConsole stdoutConsole;
+	MessageConsole engineConsole;
+	MessageConsole stdoutConsole;
 
-	public MessageConsoleStream engineConsoleStream;
-	public MessageConsoleStream stdoutConsoleStream;
-	public MessageConsoleStream stderrConsoleStream;
+	MessageConsoleStream engineConsoleStream;
+	MessageConsoleStream stdoutConsoleStream;
+	MessageConsoleStream stderrConsoleStream;
 	public MessageConsoleStream debugConsoleStream;
 
 	private Color stderrConsoleStreamColor = new Color(null, 200, 0, 0);
@@ -1422,7 +1397,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 * @param databaseObjectBeanInfo : BeanInfo of the selected databaseObject in the TreeExplorerView
 	 * @return PropertyDescriptor
 	 */
-	protected ShowInContext showInContext;
+	private ShowInContext showInContext;
 	public PropertyDescriptor getSelectedPropertyDescriptor(BeanInfo databaseObjectBeanInfo) {
 		PropertyDescriptor propertyDescriptor = null;
 
@@ -1565,19 +1540,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return resourceProject;
 	}
 
-	public void moveProjectPluginResource(String projectName, String newName) throws CoreException {
-		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		if (resourceProject.exists()) {
-			File dir = new File(resourceProject.getLocation().toOSString());
-			dir = new File(dir.getParentFile(), newName);
-			IPath newProjectPath = new Path(dir.getAbsolutePath()).makeAbsolute();
-			IProjectDescription description = myWorkspace.newProjectDescription(newName);
-			description.setLocation(newProjectPath);
-			resourceProject.move(description, false, null);
-		}
-	}
+	
 
 	public void closeProjectPluginResource(String projectName) throws CoreException {
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
@@ -1587,7 +1550,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (resourceProject.exists()) {
 			resourceProject.close(null);
 		}
-		closeEditorsForProject(projectName);
 	}
 
 	public void deleteProjectPluginResource(String projectName) throws CoreException {
@@ -1602,7 +1564,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (resourceProject.exists()) {
 			resourceProject.delete(deleteContent, false, null);
 		}
-		closeEditorsForProject(projectName);
 	}
 
 	public void setShuttingDown(boolean b) {
@@ -1651,7 +1612,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
 
-	static public Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
+	static private Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
 		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
 		if (pscFile.exists()) {
 			try {
@@ -1910,34 +1871,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			getActivePage().openEditor(StartupEditor.makeInput(username, site, autoClose), StartupEditor.ID);
 		} catch (PartInitException e) {
 			e.printStackTrace();
-		}
-	}
-	
-	public void openFlowViewerEditor(Sequence sequence) {
-		try {
-			getActivePage().openEditor(FlowViewerEditor.makeInput(sequence), FlowViewerEditor.ID);
-		} catch (PartInitException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void closeEditorsForProject(String projectName) {
-		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		if (activeWindow != null) {
-			IWorkbenchPage activePage = activeWindow.getActivePage();
-			if (activePage != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i = 0; i < editorRefs.length; i++) {
-					IEditorReference editorRef = (IEditorReference) editorRefs[i];
-					try {
-						IEditorInput input = editorRef.getEditorInput();
-						if (input instanceof FlowViewerInput && ((FlowViewerInput) input).isForProject(projectName)) {
-							activePage.closeEditors(new IEditorReference[] {editorRef}, false);
-						}
-					} catch (PartInitException e) {
-					}
-				}
-			}
 		}
 	}
 

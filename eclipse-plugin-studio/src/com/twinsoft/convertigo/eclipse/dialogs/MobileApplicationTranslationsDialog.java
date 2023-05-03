@@ -35,7 +35,7 @@ public class MobileApplicationTranslationsDialog extends MyAbstractDialog {
 		this(parentShell, MobileApplicationTranslationsDialogComposite.class, "Mobile Application translations");
 	}
 	
-	public MobileApplicationTranslationsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
+	private MobileApplicationTranslationsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell, dialogAreaClass, dialogTitle);
 	}
 

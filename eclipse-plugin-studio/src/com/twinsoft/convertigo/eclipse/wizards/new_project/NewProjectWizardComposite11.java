@@ -30,20 +30,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class NewProjectWizardComposite11 extends Composite {
+class NewProjectWizardComposite11 extends Composite {
 	private ModifyListener modifyListener;
 	private SelectionListener selectionListener;
-	public Text targetUrl = null;
-	public Button trustCertificates = null;
+	Text targetUrl = null;
+	Button trustCertificates = null;
 	
-	public NewProjectWizardComposite11(Composite parent, int style, ModifyListener ml, SelectionListener sl, IWizard wizard) {
+	NewProjectWizardComposite11(Composite parent, int style, ModifyListener ml, SelectionListener sl, IWizard wizard) {
 		super(parent, style);
 		modifyListener = ml;
 		selectionListener = sl;
 		initialize();
 	}
 
-	protected void initialize() {
+	private void initialize() {
 		Label urlDescription = new Label(this, SWT.NONE);
 		urlDescription.setText("Please enter a valid target host url :");
 		GridData data0 = new GridData ();

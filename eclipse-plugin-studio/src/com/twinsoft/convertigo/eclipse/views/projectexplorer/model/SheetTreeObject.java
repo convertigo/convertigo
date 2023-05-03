@@ -34,10 +34,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 
-	public SheetTreeObject(Viewer viewer, Sheet object) {
-		this(viewer, object, false);
-	}
-
 	public SheetTreeObject(Viewer viewer, Sheet object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
@@ -62,7 +58,7 @@ public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditab
 		}
 	}
 	
-	public void openXslEditor(IProject project) {
+	private void openXslEditor(IProject project) {
 		Sheet sheet = getObject();
 		String parentStyleSheet = sheet.getUrl();
 		Path filePath = new Path(sheet.getUrl());

@@ -60,19 +60,19 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class Ionic3Builder extends MobileBuilder {
-	class MbWorker implements Runnable {
+	private class MbWorker implements Runnable {
 		private BlockingQueue<Map<String, CharSequence>> wq;
-		List<Map<String, CharSequence>> list = new ArrayList<Map<String, CharSequence>>();
-		Map<String, CharSequence> map = new HashMap<String, CharSequence>();
-		protected boolean isRunning = true;
+		private List<Map<String, CharSequence>> list = new ArrayList<Map<String, CharSequence>>();
+		private Map<String, CharSequence> map = new HashMap<String, CharSequence>();
+		private boolean isRunning = true;
 		private boolean inProcess = false;
-		Thread thread;
+		private Thread thread;
 		
-		protected MbWorker(BlockingQueue<Map<String, CharSequence>> queue) {
+		private MbWorker(BlockingQueue<Map<String, CharSequence>> queue) {
 			this.wq = queue;
 		}
 		
-		public void start() {
+		private void start() {
 			if (thread == null) {
 				thread = new Thread(worker);
 				thread.setName("MbWorker-"+ project.getName());
@@ -80,13 +80,13 @@ public class Ionic3Builder extends MobileBuilder {
 			}
 		}
 		
-		public void join() throws InterruptedException {
+		private void join() throws InterruptedException {
 			if (thread != null) {
 				thread.join();
 			}
 		}
 		
-		void process() {
+		private void process() {
 			if (!inProcess) {
 				// retrieve all in queue
 				list.clear();
@@ -197,21 +197,21 @@ public class Ionic3Builder extends MobileBuilder {
 		}
 	}
 	
-	Map<String,String> tpl_appCompTsImports = null;
-	Map<String,String> tpl_pageTsImports = null;
-	Map<String,String> tpl_appModuleTsImports = null;
-	Map<String,String> tpl_pageModuleTsImports = null;
-	Map<String,String> tpl_serviceActionTsImports = null;
-	String tpl_appModuleNgImports = null;
-	String tpl_appModuleNgProviders = null;
-	String tpl_appModuleNgDeclarations = null;
-	String tpl_appModuleNgComponents = null;
-	String tpl_pageModuleNgImports = null;
-	String tpl_pageModuleNgProviders = null;
-	String tpl_pageModuleNgDeclarations = null;
-	String tpl_pageModuleNgComponents = null;
+	private Map<String,String> tpl_appCompTsImports = null;
+	private Map<String,String> tpl_pageTsImports = null;
+	private Map<String,String> tpl_appModuleTsImports = null;
+	private Map<String,String> tpl_pageModuleTsImports = null;
+	private Map<String,String> tpl_serviceActionTsImports = null;
+	private String tpl_appModuleNgImports = null;
+	private String tpl_appModuleNgProviders = null;
+	private String tpl_appModuleNgDeclarations = null;
+	private String tpl_appModuleNgComponents = null;
+	private String tpl_pageModuleNgImports = null;
+	private String tpl_pageModuleNgProviders = null;
+	private String tpl_pageModuleNgDeclarations = null;
+	private String tpl_pageModuleNgComponents = null;
 	
-	MbWorker worker = null;
+	private MbWorker worker = null;
 	
 	static private boolean isAppFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator;

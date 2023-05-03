@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class ConfigureSAPConnectorComposite extends Composite {
+class ConfigureSAPConnectorComposite extends Composite {
 	
 	private Text asHost = null;
 	private Text systemNumber = null;
@@ -38,7 +38,7 @@ public class ConfigureSAPConnectorComposite extends Composite {
 
 	private ModifyListener modifyListener = null;
 	
-	public ConfigureSAPConnectorComposite(Composite parent, int style, ModifyListener modifyListener) {
+	ConfigureSAPConnectorComposite(Composite parent, int style, ModifyListener modifyListener) {
 		super(parent, style);
 		this.modifyListener = modifyListener;
 		initialize();

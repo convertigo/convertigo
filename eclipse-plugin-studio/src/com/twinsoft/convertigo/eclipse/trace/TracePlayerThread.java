@@ -30,9 +30,9 @@ import com.twinsoft.convertigo.engine.trace.ibm.TracePlayer;
  */
 public class TracePlayerThread implements Runnable {
 
-	String traceFile;
+	private String traceFile;
 	public String connectorName;
-	TracePlayer mtp = new TracePlayer();
+	private TracePlayer mtp = new TracePlayer();
 	
 	public TracePlayerThread(String threadName, String connectorName, String traceFile) {
         this.connectorName = connectorName;

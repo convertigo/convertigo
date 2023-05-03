@@ -43,7 +43,7 @@ import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
+class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 
 	private Button jCheckBoxTransactionStarted = null;
 	private Button jCheckBoxXmlGenerated = null;
@@ -62,7 +62,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	private boolean isScreenClassAware = false;
 	private boolean isDefaultHandlerAware = false;
 
-	public CreateHandlerDialogComposite(Composite parent, int style, Object parentObject) {
+	CreateHandlerDialogComposite(Composite parent, int style, Object parentObject) {
 		super(parent, style);
 		this.transaction = (Transaction)parentObject;
 		this.handlers = this.transaction.handlers;
@@ -161,7 +161,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 	}
 
-	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
+	private void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
 		TreeItem leaf = new TreeItem(branch, SWT.NONE);
 		leaf.setText(screenClass.getName());
 		List<ScreenClass> screenClasses = screenClass.getInheritedScreenClasses();
@@ -170,13 +170,13 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 	}
 
-	public List<Object> generateHandler() throws EngineException {
+	List<Object> generateHandler() throws EngineException {
 		result = null;
 		generateStringHandler();
 		return result;
 	}
 
-	public void generateStringHandler() {
+	private void generateStringHandler() {
 		String handler, functionName = "";
 		if (jCheckBoxTransactionStarted.getSelection()) {
 			functionName = "function on" + Transaction.EVENT_TRANSACTION_STARTED + "()";

@@ -602,13 +602,13 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	}
 
-	class InternalSession implements HttpSession {
+	private class InternalSession implements HttpSession {
 		private Map<String, Object> values;
 		private Map<String, Object> attributes;
-		long creationTime = System.currentTimeMillis();
-		long lastAccessTime = -1;
-		int maxInactiveTime = 60000;
-		String id = Long.toString(sessionID++, Character.MAX_RADIX).toUpperCase();
+		private long creationTime = System.currentTimeMillis();
+		private long lastAccessTime = -1;
+		private int maxInactiveTime = 60000;
+		private String id = Long.toString(sessionID++, Character.MAX_RADIX).toUpperCase();
 		
 		private Map<String, Object> getAttributes() {
 			if (attributes == null) {

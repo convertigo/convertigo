@@ -42,12 +42,12 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MigrationManager;
 
 public class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
-	protected static final Object[] NO_CHILDREN = new Object[0];
+	private static final Object[] NO_CHILDREN = new Object[0];
 	
 	private ProjectExplorerView projectExplorerView;
 	private TreeParent invisibleRoot;
 	
-	public ViewContentProvider(ProjectExplorerView projectExplorerView) {
+	ViewContentProvider(ProjectExplorerView projectExplorerView) {
 		this.projectExplorerView = projectExplorerView;
 	}
 
@@ -101,11 +101,11 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		return false;
 	}
 
-	public void loadProjects() {
+	void loadProjects() {
 		getUnloadedProjects();
 	}
 	
-	public void loadProject(String projectName) {
+	void loadProject(String projectName) {
 		getUnloadedProject(projectName);
 	}
 	
@@ -133,7 +133,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		}
 	}
 	
-	public void refreshProjects() {
+	void refreshProjects() {
 		getUnloadedProjects(true);
 	}
 	
@@ -189,11 +189,11 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		return invisibleRoot;
 	}
 	
-	public void reloadProject(TreeObject projectTreeObject) {
+	void reloadProject(TreeObject projectTreeObject) {
 		reloadProject(projectTreeObject, false, null);
 	}
 	
-	public void reloadProject(TreeObject projectTreeObject, boolean isCopy, String originalName) {
+	private void reloadProject(TreeObject projectTreeObject, boolean isCopy, String originalName) {
 		if (!Engine.isStarted)
 			return;
 		
@@ -228,7 +228,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		}
 	}
 
-	public Project getProject(String projectName) throws EngineException {
+	Project getProject(String projectName) throws EngineException {
 		for(TreeObject treeObject : invisibleRoot.getChildren())
 			if(treeObject instanceof ProjectTreeObject) {
 				Project project = ((ProjectTreeObject) treeObject).getObject();

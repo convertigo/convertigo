@@ -25,12 +25,12 @@ public class DeploymentConfiguration implements Serializable {
 
 	private static final long serialVersionUID = -9001695822957177261L;
 	
-	protected String server = "?";
-    protected String username = "?";
-    protected String userpassword = "?";
-    protected boolean bHttps = false;
-    protected boolean bTrustAllCertificates;
-	protected boolean bAssembleXsl = false;
+	private String server = "?";
+    private String username = "?";
+    private String userpassword = "?";
+    private boolean bHttps = false;
+    private boolean bTrustAllCertificates;
+	private boolean bAssembleXsl = false;
     
     public DeploymentConfiguration(String server, String username, String userpassword, boolean bHttps, boolean bTrustAllCertificates ,boolean bAssembleXsl) {
         this.server = server;

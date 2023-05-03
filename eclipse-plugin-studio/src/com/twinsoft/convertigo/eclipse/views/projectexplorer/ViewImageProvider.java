@@ -56,7 +56,7 @@ public class ViewImageProvider {
 	 * @param object
 	 * @return
 	 */
-	public static String getImageName(Object object) {
+	private static String getImageName(Object object) {
 		String imageName = null;
 		if (object instanceof DatabaseObjectTreeObject) {
 			imageName = ((DatabaseObjectTreeObject)object).getImageName();
@@ -118,7 +118,7 @@ public class ViewImageProvider {
 		return image;
 	}
 	
-	public static Image getImageFromCache(String imageName, Image base, Object object) {	
+	static Image getImageFromCache(String imageName, Image base, Object object) {	
 		Image image = imagesCache.get(imageName);
 		
 		if (image == null) {
@@ -131,31 +131,6 @@ public class ViewImageProvider {
 		}
 		return image;
 	}
-	
-	public static Image getDecoratedImageFromCache(String imageName, Object object) {
-		return imagesCache.get(imageName);
-	}
-	
-	public static void setDecoratedImageFromCache(String imageName, Image decoratedImage) {
-		imagesCache.put(imageName, decoratedImage);
-	}
-	
-	/**
-	 * Dispose all loaded images
-	 */
-	/*public static void dispose() {
-		String imageName = null;
-		Image image = null;
-		for (Enumeration e = imagesCache.keys(); e.hasMoreElements(); ) {
-			imageName = (String) e.nextElement();
-			if (imageName != null) {
-				image = (Image) imagesCache.get(imageName);
-				imagesCache.put(imageName, null);
-			}
-			if (image != null)
-				image.dispose();
-		}
-	}*/
 	
 	private static ImageData getImageData(Image image, Object object) {
 		ImageData imageData = image.getImageData();

@@ -178,7 +178,7 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 	 * OverlayImageIcon class
 	 *
 	 */
-	class OverlayImageIcon extends CompositeImageDescriptor {
+	private class OverlayImageIcon extends CompositeImageDescriptor {
 		
 		private static final int TOP_LEFT = 0;
 		private static final int TOP_RIGHT = 1;
@@ -189,11 +189,7 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 		private Image mOverlay;
 		private int mCorner;
 		
-		public OverlayImageIcon(Image baseImage, ImageDescriptor overlay) {
-			this(baseImage, overlay, BOTTOM_RIGHT);
-		}
-	
-		public OverlayImageIcon(Image baseImage, ImageDescriptor overlay, int corner) {
+		private OverlayImageIcon(Image baseImage, ImageDescriptor overlay, int corner) {
 			mCorner = corner;
 			mBase = baseImage;
 			if (overlay != null)

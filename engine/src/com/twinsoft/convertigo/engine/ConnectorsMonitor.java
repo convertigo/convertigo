@@ -23,7 +23,7 @@ import java.awt.*;
 
 import com.twinsoft.api.ISessionManagerMonitor;
 
-public class ConnectorsMonitor extends ISessionManagerMonitor {
+class ConnectorsMonitor extends ISessionManagerMonitor {
 	
 	private static final long serialVersionUID = 9018017104263266158L;
 

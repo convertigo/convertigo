@@ -23,19 +23,18 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.DatabaseObjectFindDialog;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ProjectExplorerFindAction extends MyAbstractAction implements IViewActionDelegate {
+public class ProjectExplorerFindAction extends MyAbstractAction {
 	
 	public ProjectExplorerFindAction() {
 		super();
 	}
 
+	@Override
 	public void run() {
 		if (!Engine.isStarted) {
 			return;
@@ -57,8 +56,5 @@ public class ProjectExplorerFindAction extends MyAbstractAction implements IView
 			shell.setCursor(null);
 			waitCursor.dispose();
 		}
-	}
-
-	public void init(IViewPart view) {
 	}
 }

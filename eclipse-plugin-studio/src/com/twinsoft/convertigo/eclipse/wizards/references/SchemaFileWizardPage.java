@@ -19,15 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
-public abstract class SchemaFileWizardPage extends RemoteFileWizardPage {
-	public SchemaFileWizardPage(Object parentObject) {
-		super(parentObject, "SchemaFileWizardPage");
-		setTitle("Schema file");
-		setFilterExtension(new String[]{"*.xsd"});
-		setFilterNames(new String[]{"XSD files"});
-	}
+abstract class SchemaFileWizardPage extends RemoteFileWizardPage {
 	
-	public SchemaFileWizardPage(Object parentObject, String pageName) {
+	SchemaFileWizardPage(Object parentObject, String pageName) {
 		super(parentObject, pageName);
 		setFilterExtension(new String[]{"*.xsd"});
 		setFilterNames(new String[]{"XSD files"});

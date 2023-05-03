@@ -57,10 +57,6 @@ import com.twinsoft.util.StringEx;
 
 public class TransactionTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 
-	public TransactionTreeObject(Viewer viewer, Transaction object) {
-		this(viewer, object, false);
-	}
-
 	public TransactionTreeObject(Viewer viewer, Transaction object, boolean inherited) {
 		super(viewer, object, inherited);
 		isDefault = ((Transaction)object).isDefault;
@@ -254,7 +250,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		}
 	}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;

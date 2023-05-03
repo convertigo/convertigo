@@ -35,7 +35,7 @@ import org.eclipse.swt.widgets.Composite;
  * OR with the extension that matches the expected one (mpe).
  */
 
-public class NewProjectWizardPage6 extends WizardPage {
+class NewProjectWizardPage6 extends WizardPage {
 	private String  httpServer;
 	private String  httpPort;
 	private boolean bSSL;
@@ -45,7 +45,7 @@ public class NewProjectWizardPage6 extends WizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public NewProjectWizardPage6(ISelection selection) {
+	NewProjectWizardPage6(ISelection selection) {
 		super("wizardPage");
 		setTitle("Define HTTP Connector parameters");
 		setDescription("This step configures the HTTP connector parameters");

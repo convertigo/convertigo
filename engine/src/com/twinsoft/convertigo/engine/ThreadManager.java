@@ -23,7 +23,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 
-public class ThreadManager extends AbstractRunnableManager {
+class ThreadManager extends AbstractRunnableManager {
 
 	public void init() throws EngineException {
 		Engine.logUsageMonitor.info("[ThreadManager] Initialization...");
@@ -78,7 +78,7 @@ public class ThreadManager extends AbstractRunnableManager {
 	/**
 	 * Gets the thread dump information.
 	 */
-	public String threadDump() {
+	private String threadDump() {
 		String message = "";
 		
 		long[] tids = threadMXBean.getAllThreadIds();
@@ -140,7 +140,7 @@ public class ThreadManager extends AbstractRunnableManager {
 	 * Checks if any threads are deadlocked. If any, print the thread dump
 	 * information.
 	 */
-	public boolean findDeadlock() {
+	private boolean findDeadlock() {
 		long[] tids = threadMXBean.findMonitorDeadlockedThreads();
 		if (tids == null) {
 			return false;

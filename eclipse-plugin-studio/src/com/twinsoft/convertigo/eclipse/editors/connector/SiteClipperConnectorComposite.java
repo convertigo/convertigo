@@ -25,14 +25,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolItem;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 
-public class SiteClipperConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
+class SiteClipperConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Text httpData;
 	
@@ -48,14 +47,6 @@ public class SiteClipperConnectorComposite extends AbstractConnectorComposite im
 	public void close() {
 		this.connector.removeConnectorListener(this);
 		super.close();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Widget#dispose()
-	 */
-	@Override
-	public void dispose() {
-		super.dispose();
 	}
 	
 	@Override
@@ -102,9 +93,6 @@ public class SiteClipperConnectorComposite extends AbstractConnectorComposite im
 	}
 	
 	public void renew() {
-	}
-	
-	public void monitor(ToolItem ti) {
 	}
 
 	protected void clearContent() {

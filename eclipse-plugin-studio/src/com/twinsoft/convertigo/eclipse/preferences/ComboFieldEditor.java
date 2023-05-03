@@ -38,7 +38,7 @@ import org.eclipse.jface.preference.FieldEditor;
  * 
  * @since 2.1
  */
-public class ComboFieldEditor extends FieldEditor {
+class ComboFieldEditor extends FieldEditor {
 
 	/**
 	 * The <code>Combo</code> widget.
@@ -56,7 +56,7 @@ public class ComboFieldEditor extends FieldEditor {
 	 */
 	private String[][] fEntryNamesAndValues;
 
-	public ComboFieldEditor(String name, String labelText, String[][] entryNamesAndValues, Composite parent) {
+	ComboFieldEditor(String name, String labelText, String[][] entryNamesAndValues, Composite parent) {
 		init(name, labelText);
 		Assert.isTrue(checkArray(entryNamesAndValues));
 		fEntryNamesAndValues= entryNamesAndValues;
@@ -143,7 +143,7 @@ public class ComboFieldEditor extends FieldEditor {
 	/**
 	 * Lazily create and return the Combo control.
 	 */
-	public Combo getComboBoxControl(Composite parent) {
+	private Combo getComboBoxControl(Composite parent) {
 		if (fCombo == null) {
 			fCombo= new Combo(parent, SWT.READ_ONLY);
 			for (int i= 0; i < fEntryNamesAndValues.length; i++) {
@@ -170,7 +170,7 @@ public class ComboFieldEditor extends FieldEditor {
 	/**
 	 * Given the name (label) of an entry, return the corresponding value.
 	 */
-	protected String getValueForName(String name) {
+	private String getValueForName(String name) {
 		for (int i= 0; i < fEntryNamesAndValues.length; i++) {
 			String[] entry= fEntryNamesAndValues[i];
 			if (name.equals(entry[0])) {
@@ -183,7 +183,7 @@ public class ComboFieldEditor extends FieldEditor {
 	/**
 	 * Set the name in the combo widget to match the specified value.
 	 */
-	protected void updateComboForValue(String value) {
+	private void updateComboForValue(String value) {
 		fValue= value;
 		for (int i= 0; i < fEntryNamesAndValues.length; i++) {
 			if (value.equals(fEntryNamesAndValues[i][1])) {

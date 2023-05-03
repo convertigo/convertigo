@@ -52,7 +52,7 @@ public class ServiceCodeWizardPage extends WizardPage {
 		setDescription(descriptionMessage);
 	}
 
-	public ServiceCodeWizardPage(ISelection selection) {
+	ServiceCodeWizardPage(ISelection selection) {
 		super("ServiceCodeWizardPage");
 		setTitle("Connection address");
 		setDescription(descriptionMessage);
@@ -249,7 +249,7 @@ public class ServiceCodeWizardPage extends WizardPage {
 		this.serviceCode = serviceCode;
 	}
 
-	public void update() {
+	void update() {
 		initialize();
 	}
 }

@@ -46,6 +46,7 @@ import org.xml.sax.SAXException;
 public class SchemaUtils {
 	
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
+		@Override
 		protected DocumentBuilderFactory initialValue() {
 			try {
 				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -62,6 +63,7 @@ public class SchemaUtils {
 	};
     
 	private static ThreadLocal<DocumentBuilder> defaultDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
+		@Override
 		protected DocumentBuilder initialValue() {
 			try {
 				return defaultDocumentBuilderFactory.get().newDocumentBuilder();

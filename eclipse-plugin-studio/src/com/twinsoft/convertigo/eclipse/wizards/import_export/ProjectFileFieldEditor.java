@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.FileDialog;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ProjectFileFieldEditor extends StringButtonFieldEditor {
+class ProjectFileFieldEditor extends StringButtonFieldEditor {
 
 	private String[] filterExtensions = new String[]{"*.car;*.zip;*.xml;c8oProject.yaml"};
 	private String[] filterNames = new String[]{"Convertigo projects"};
@@ -53,7 +53,7 @@ public class ProjectFileFieldEditor extends StringButtonFieldEditor {
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public ProjectFileFieldEditor(String name, String labelText, Composite parent) {
+    ProjectFileFieldEditor(String name, String labelText, Composite parent) {
         this(name, labelText, false, parent);
     }
 
@@ -66,7 +66,7 @@ public class ProjectFileFieldEditor extends StringButtonFieldEditor {
      *  must be absolute, and <code>false</code> otherwise
      * @param parent the parent of the field editor's control
      */
-    public ProjectFileFieldEditor(String name, String labelText,
+    private ProjectFileFieldEditor(String name, String labelText,
             boolean enforceAbsolute, Composite parent) {
         init(name, labelText);
         this.enforceAbsolute = enforceAbsolute;

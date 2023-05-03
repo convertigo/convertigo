@@ -27,19 +27,17 @@ import org.eclipse.ui.views.properties.IPropertySource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyData;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class PropertyTableColumnTreeObject extends TreeParent implements IPropertyTreeObject, IOrderableTreeObject, IPropertySource, IActionFilter {
 
-	protected IPropertyDescriptor[] propertyDescriptors = null;
+	private IPropertyDescriptor[] propertyDescriptors = null;
 	
 	protected PropertyTableColumnTreeObject(Viewer viewer, XMLVector<Object> col) {
 		super(viewer, col);
@@ -51,11 +49,11 @@ public class PropertyTableColumnTreeObject extends TreeParent implements IProper
 		return GenericUtils.<XMLVector<Object>>cast(super.getObject());
 	}
 	
-	protected IPropertyDescriptor[] loadDescriptors() {
+	private IPropertyDescriptor[] loadDescriptors() {
 		return new IPropertyDescriptor[]{};
 	}
 	
-	protected PropertyTableRowTreeObject getParentRow() {
+	private PropertyTableRowTreeObject getParentRow() {
 		if (parent != null) {
 			return (PropertyTableRowTreeObject)getParent();
 		}
@@ -69,7 +67,7 @@ public class PropertyTableColumnTreeObject extends TreeParent implements IProper
 		return null;
 	}
 	
-	protected void hasBeenModified() {
+	private void hasBeenModified() {
 		PropertyTableTreeObject table = getParentTable();
 		if (table != null)
 			table.hasBeenModified();
@@ -199,48 +197,8 @@ public class PropertyTableColumnTreeObject extends TreeParent implements IProper
 		return element;
 	}
 
-	protected boolean isBoolean(String propertyName) {
+	private boolean isBoolean(String propertyName) {
 		return false;
-	}
-	
-	public static Object read(Node node) throws EngineException {
-		String classname = null;
-		XMLVector<Object> xmlv = null;
-		try {
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element)node;
-				classname = element.getAttribute("classname");
-				xmlv = new XMLVector<Object>();
-				
-				NodeList childNodes = node.getChildNodes();
-				int len = childNodes.getLength();
-				
-				for (int i = 0 ; i < len ; i++) {
-					Node childNode = childNodes.item(i);
-					if (childNode.getNodeType() != Node.ELEMENT_NODE) continue;
-					String childNodeName = childNode.getNodeName();
-					if ((childNodeName.equalsIgnoreCase("property"))) {
-						NodeList childValues = childNode.getChildNodes();
-						for (int j=0; j<childValues.getLength(); j++) {
-							Node childValue = childValues.item(j);
-							if (childValue.getNodeType() != Node.ELEMENT_NODE) continue;
-							Object value = XMLUtils.readObjectFromXml((Element)childValue);
-							xmlv.add(value);
-							break;
-						}
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-            String message = "Unable to set the object properties from the serialized XML data.\n" +
-			"Object class: '" + classname;
-	        EngineException ee = new EngineException(message, e);
-	        throw ee;
-		}
-		if (xmlv != null)
-			return new PropertyData(PropertyTableColumnTreeObject.class, xmlv);
-		return null;
 	}
 	
 	/* (non-Javadoc)

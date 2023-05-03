@@ -34,10 +34,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject, INamedSourceSelectorTreeObject {
-	
-	public MobileRouteEventComponentTreeObject(Viewer viewer, RouteEventComponent object) {
-		super(viewer, object);
-	}
 
 	public MobileRouteEventComponentTreeObject(Viewer viewer, RouteEventComponent object, boolean inherited) {
 		super(viewer, object, inherited);

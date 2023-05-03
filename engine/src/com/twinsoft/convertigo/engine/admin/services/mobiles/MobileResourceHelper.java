@@ -88,16 +88,16 @@ public class MobileResourceHelper {
 		
 	};
 	
-	final Project project;
+	private final Project project;
 	final MobileApplication mobileApplication;
 	final MobilePlatform mobilePlatform;
-	final File projectDir;
-	final List<File> mobileDir;
+	private final File projectDir;
+	private final List<File> mobileDir;
 	final File destDir;
 	private File currentMobileDir;
 	private String endpoint;
 	
-	public MobileResourceHelper(HttpServletRequest request, String buildFolder) throws EngineException, ServiceException {		
+	MobileResourceHelper(HttpServletRequest request, String buildFolder) throws EngineException, ServiceException {		
 		this(request, buildFolder, Keys.project.value(request), Keys.platform.value(request));
 	}
 	
@@ -119,11 +119,11 @@ public class MobileResourceHelper {
 		mobileDir = Arrays.asList(mobileApplication.getResourceFolder(), mobilePlatform.getResourceFolder());
 	}
 	
-	public void prepareFiles() throws ServiceException {
+	private void prepareFiles() throws ServiceException {
 		prepareFiles(defaultFilter);
 	}
 	
-	public void prepareFiles(FileFilter fileFilterForCopy) throws ServiceException {
+	private void prepareFiles(FileFilter fileFilterForCopy) throws ServiceException {
 		try {
 			String endPoint = this.endpoint + "/projects/" + project.getName();
 			String applicationID = mobileApplication.getComputedApplicationId();
@@ -441,7 +441,7 @@ public class MobileResourceHelper {
 		return destDir;
 	}
 	
-	public File makeZipPackage() throws Exception {
+	File makeZipPackage() throws Exception {
 		preparePackage();
 
 		// Build the ZIP file for the mobile device
@@ -451,7 +451,7 @@ public class MobileResourceHelper {
 		return mobileArchiveFile;
 	}
 
-	public void prepareFilesForFlashupdate() throws ServiceException {
+	void prepareFilesForFlashupdate() throws ServiceException {
 		boolean changed = false;
 		final File lastEndpoint = new File(destDir, ".endpoint");
 		fixMobileBuilderTimes();

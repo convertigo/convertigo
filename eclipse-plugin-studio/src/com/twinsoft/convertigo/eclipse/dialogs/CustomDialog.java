@@ -39,7 +39,7 @@ public class CustomDialog extends MyAbstractDialog {
 		this.buttonSpecs = Arrays.asList(buttonSpecs);
 	}
 
-	public CustomDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle,
+	private CustomDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle,
 			int width, int height) {
 		super(parentShell, dialogAreaClass, dialogTitle, width, height);
 	}

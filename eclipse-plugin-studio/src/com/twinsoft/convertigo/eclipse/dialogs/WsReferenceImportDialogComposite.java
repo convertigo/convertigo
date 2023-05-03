@@ -47,10 +47,9 @@ import org.eclipse.swt.widgets.Text;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite implements IWsReferenceComposite {
+class WsReferenceImportDialogComposite extends MyAbstractDialogComposite implements IWsReferenceComposite {
 
 	private FileFieldEditor editor = null;
 	private Combo combo = null;
@@ -60,10 +59,10 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	protected String[] filterExtension = new String[]{"*.*"};
 	protected String[] filterNames =  new String[]{"All files"};
 	
-	public Button useAuthentication = null;
-	public Text loginText = null, passwordText = null;
-	public ProgressBar progressBar = null;
-	public Label labelInformation = null;
+	private Button useAuthentication = null;
+	private Text loginText = null, passwordText = null;
+	ProgressBar progressBar = null;
+	private Label labelInformation = null;
 	
 	/**
 	 * @param parent
@@ -173,15 +172,11 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		return null;
 	}
 	
-	protected DatabaseObject getDbo() {
+	private DatabaseObject getDbo() {
 		return ((WsReferenceImportDialog)parentDialog).getReference();
 	}
 	
-	protected String getProjectName() {
-		return ((WsReferenceImportDialog)parentDialog).getProject().getName();
-	}
-	
-	protected boolean isUpdateMode() {
+	private boolean isUpdateMode() {
 		return false;
 	}
 	
@@ -270,26 +265,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 				reference.setAuthPassword(passwordText.getText());
 			}
 		}
-	}
-	
-	protected String getLocalFilePath(String path) {
-		if (path != null && !path.isEmpty()) {
-			try {
-				String canonicalPath = new File(path).getCanonicalPath();
-				String projectPath = Engine.projectDir(getProjectName());
-				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
-				boolean isLocal = canonicalPath.startsWith(projectPath) || canonicalPath.startsWith(workspacePath);
-				if (isLocal) {
-					if (canonicalPath.startsWith(projectPath)) {
-						canonicalPath = "./" + canonicalPath.substring(projectPath.length());
-					} else if (canonicalPath.startsWith(workspacePath)) {
-						canonicalPath = "." + canonicalPath.substring(workspacePath.length());
-					}
-					return canonicalPath.replaceAll("\\\\", "/");
-				}
-			} catch (Exception e) {}
-		}
-		return "";
 	}
 	
 	@Override

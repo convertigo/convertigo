@@ -60,7 +60,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		return cm;
 	}
 	
-	static public FileFilter copyFileFilter = new FileFilter() {
+	static FileFilter copyFileFilter = new FileFilter() {
 		public boolean accept(File file) {
 			return !file.getName().endsWith(".temp.ts");
 		}
@@ -106,15 +106,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void removeKey(final String compQName) {
-		synchronized (consumers) {
-			if (consumers.get(compQName) != null) {
-				consumers.remove(compQName);
-			}
-		}
-	}
-	
-	static public boolean isEnabled(String qname) {
+	static boolean isEnabled(String qname) {
 		if (qname != null && !qname.isEmpty()) {
 			DatabaseObject dbo = getDatabaseObjectByQName(qname);
 			if (dbo != null && dbo.getParent() != null) {
@@ -187,7 +179,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	}
 	}
     
-    static public String projectName(String qname) {
+    static String projectName(String qname) {
     	if (qname != null && !qname.isBlank()) {
     		try {
     			return qname.split("\\.")[0];
@@ -217,7 +209,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(set);
     }
 
-    static public Set<String> getProjectsForUpdate(String projectName) {
+    static Set<String> getProjectsForUpdate(String projectName) {
     	Set<String> set = new HashSet<String>();
 		for (String compQName: getCompKeys()) {
 			for (String useQName: getAllCompConsumers(compQName)) {
@@ -229,11 +221,11 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(set);
     }
 
-    static public Set<String> getCompKeys() {
+    static private Set<String> getCompKeys() {
     	return ComponentRefManager.get(Mode.use).getKeys();
     }
     
-    static public Set<String> getCompConsumersForUpdate(String compQName, Project project, Project to) {
+    static Set<String> getCompConsumersForUpdate(String compQName, Project project, Project to) {
     	Set<String> set = new HashSet<String>();
 		for (String useQName: getAllCompConsumers(compQName)) {
 			if (projectName(useQName).equals(project.getName()))
@@ -245,7 +237,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(set);
     }
     
-    static public Set<String> getAllCompConsumers(String compQName) {
+    static private Set<String> getAllCompConsumers(String compQName) {
     	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getAllConsumers(compQName));
     }
     
@@ -297,11 +289,6 @@ public class ComponentRefManager implements DatabaseObjectListener {
 			set.addAll(Collections.unmodifiableSet(consumers.keySet()));
 			return set;
 		}
-	}
-	
-	@Override
-	public void databaseObjectLoaded(DatabaseObjectLoadedEvent event) {
-		
 	}
 
 	@Override

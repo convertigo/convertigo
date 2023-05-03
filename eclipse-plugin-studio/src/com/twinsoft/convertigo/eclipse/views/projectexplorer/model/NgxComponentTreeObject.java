@@ -46,11 +46,11 @@ public class NgxComponentTreeObject extends DatabaseObjectTreeObject implements 
 	
 	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
 	
-	public NgxComponentTreeObject(Viewer viewer, MobileComponent object) {
+	NgxComponentTreeObject(Viewer viewer, MobileComponent object) {
 		super(viewer, object);
 	}
 
-	public NgxComponentTreeObject(Viewer viewer, MobileComponent object, boolean inherited) {
+	NgxComponentTreeObject(Viewer viewer, MobileComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
 

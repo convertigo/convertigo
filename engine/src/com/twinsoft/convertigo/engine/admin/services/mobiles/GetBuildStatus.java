@@ -101,7 +101,7 @@ public class GetBuildStatus extends XmlService {
 		document.getDocumentElement().appendChild(statusElement);
 	}
 
-	static public MobileApplication getMobileApplication(String projectName) throws EngineException {
+	static MobileApplication getMobileApplication(String projectName) throws EngineException {
 		return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).getMobileApplication();
 	}
 	

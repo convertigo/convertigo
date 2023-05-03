@@ -36,7 +36,7 @@ public class JobManager {
 
     private static Map<String, Job> jobs = new HashMap<String, Job>(256);
     
-    public static Document addJob(CacheManager cacheManager, DatabaseObject requestedObject, Requester requester, Context context) throws EngineException {
+    static Document addJob(CacheManager cacheManager, DatabaseObject requestedObject, Requester requester, Context context) throws EngineException {
         Engine.logJobManager.debug("Adding job #" + context.contextID);
         Job job = new Job(cacheManager, requestedObject, requester, context);
         jobs.put(context.contextID, job);
@@ -49,7 +49,7 @@ public class JobManager {
         return (job != null);
     }
     
-    public static Document abortJob(String jobID) throws EngineException {
+    static Document abortJob(String jobID) throws EngineException {
         Engine.logJobManager.debug("Requesting job #" + jobID + " abortion");
         Job job = (Job) jobs.get(jobID);
     	
@@ -97,7 +97,7 @@ public class JobManager {
         return job.document;
     }
     
-    public static Document getJobStatus(String jobID) throws EngineException {
+    static Document getJobStatus(String jobID) throws EngineException {
         Engine.logJobManager.debug("Requesting job #" + jobID + " status");
         Job job = (Job) jobs.get(jobID);
         

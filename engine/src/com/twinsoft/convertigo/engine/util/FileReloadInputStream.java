@@ -32,10 +32,10 @@ import java.nio.file.WatchService;
 
 public class FileReloadInputStream extends InputStream {
 
-	Path path;
-	InputStream is;
-	WatchService ws;
-	boolean close = false;
+	private Path path;
+	private InputStream is;
+	private WatchService ws;
+	private boolean close = false;
 
 	public FileReloadInputStream(File file) throws IOException {
 		path = file.toPath();

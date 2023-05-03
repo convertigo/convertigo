@@ -157,7 +157,7 @@ public class TranslateUtils {
 		return text;
 	}
 	
-	public static String getComputedKey(Project project, String text) {
+	static String getComputedKey(Project project, String text) {
 		if (existTranslationFiles(project)) {
 			String key = computeKey(text);
 			if (key != null  && !key.isEmpty()) {
@@ -257,7 +257,7 @@ public class TranslateUtils {
 		saveTranslations(jsonObject, file);
 	}
 	
-	public static void saveTranslations(JSONObject jsonObject, File file) throws EngineException {
+	private static void saveTranslations(JSONObject jsonObject, File file) throws EngineException {
 		try {
 			String content = jsonObject.toString(1);
 			FileUtils.writeStringToFile(file, content, "UTF-8");
@@ -266,7 +266,7 @@ public class TranslateUtils {
 		}
 	}
 	
-	public static JSONObject loadTranslations(File file) throws EngineException {
+	private static JSONObject loadTranslations(File file) throws EngineException {
 		try {
 			String content = FileUtils.readFileToString(file, "UTF-8");
 			return new JSONObject(content);

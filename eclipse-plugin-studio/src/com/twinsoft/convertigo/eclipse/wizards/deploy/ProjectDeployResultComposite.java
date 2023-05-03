@@ -32,11 +32,11 @@ import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
 
 
-public class ProjectDeployResultComposite extends Composite {
-	Label label = null;
-	Link link = null;
+class ProjectDeployResultComposite extends Composite {
+	private Label label = null;
+	private Link link = null;
 	
-	public ProjectDeployResultComposite(Composite parent, int style) {
+	ProjectDeployResultComposite(Composite parent, int style) {
 		super(parent, style);
 		initialize();
 	}

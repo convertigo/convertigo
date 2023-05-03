@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 
 public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeObject {
 
-	public DesignDocumentFilterTreeObject(Viewer viewer, Object object) {
+	DesignDocumentFilterTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
 	}
 

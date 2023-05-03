@@ -32,7 +32,6 @@ import java.util.List;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.learnproxy.http.gui.HttpProxyEvent;
 import com.twinsoft.convertigo.eclipse.learnproxy.http.gui.HttpProxyEventListener;
-import com.twinsoft.convertigo.eclipse.learnproxy.util.ConfigManager;
 
 /**
  * The actual proxy server listening for incoming
@@ -52,25 +51,11 @@ public class HttpProxy implements Runnable {
    private int timeout = 0;
    private boolean isStopped = false;
    private List<HttpProxyEventListener> listeners = Collections.synchronizedList(new ArrayList<HttpProxyEventListener>(2));
-   private ConfigManager configManager = null;
    
-   /*static {
-       Properties props = System.getProperties();
-       Enumeration enumeration = props.keys();
-       while (enumeration.hasMoreElements()) {
-           String key = (String)enumeration.nextElement();
-           //logger.debug(key + " -> " + props.getProperty(key));
-       }
-   }*/
    public HttpProxy() {
    }
    
-   public HttpProxy(String propsFileName) {
-	   configManager = new ConfigManager(propsFileName);
-	   if (configManager.hasLoaded)
-		   proxyPort = configManager.getIntProperty("proxyPort");
-   }
-   
+   @Override
    public void run() {
 		ServerSocket serverSocket = null;
 		try {
@@ -108,15 +93,6 @@ public class HttpProxy implements Runnable {
                responseCode, duration, starttime, method, response.length);
          for (int i = 0; i < listeners.size(); i++) {
             listeners.get(i).modelChanged(event);
-         }
-      }
-   }
-   
-   void setCurrentAction(String text) {
-      // now notifiy gui...
-      if (listeners != null && listeners.size() > 0) {
-         for (int i = 0; i < listeners.size(); i++) {
-            listeners.get(i).operationChanged(text);
          }
       }
    }

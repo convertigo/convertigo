@@ -36,7 +36,7 @@ import org.eclipse.jface.viewers.*;
  * with the extension that matches the expected one (mpe).
  */
 
-public class SampleNewWizardPage extends WizardPage {
+class SampleNewWizardPage extends WizardPage {
 	private Text containerText;
 	private Text fileText;
 	private ISelection selection;
@@ -45,7 +45,7 @@ public class SampleNewWizardPage extends WizardPage {
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public SampleNewWizardPage(ISelection selection) {
+	SampleNewWizardPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Multi-page Editor File");
 		setDescription("This wizard creates a new file with *.mpe extension that can be opened by a multi-page editor.");

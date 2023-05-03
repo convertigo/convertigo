@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicatio
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
+class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 
 	protected boolean forceInstall = false;
 	protected boolean forceClean = false;
@@ -41,6 +41,7 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

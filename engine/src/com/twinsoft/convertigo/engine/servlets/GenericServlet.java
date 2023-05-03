@@ -68,7 +68,7 @@ public abstract class GenericServlet extends HttpServlet {
 	public GenericServlet() {
 	}
 
-	protected void handleStaticData(HttpServletRequest request, HttpServletResponse response) {
+	private void handleStaticData(HttpServletRequest request, HttpServletResponse response) {
 		String resourceUri = request.getServletPath();
 		Engine.logContext.debug("Serving static ressource: " + resourceUri);
 		HttpUtils.applyCorsHeaders(request, response);
@@ -101,7 +101,7 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 	}
 
-	protected static String getServletBaseUrl(HttpServletRequest request) {
+	private static String getServletBaseUrl(HttpServletRequest request) {
 		String base = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 		String requestURI = request.getRequestURI();
 		int i = requestURI.lastIndexOf('/');
@@ -396,7 +396,7 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 	}
 	
-	protected void removeContext(HttpServletRequest request) {
+	private void removeContext(HttpServletRequest request) {
 		if (Engine.isEngineMode()) {
 			Context context = (Context) request.getAttribute("convertigo.context");
 			if (context != null) {

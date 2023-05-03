@@ -31,10 +31,6 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 
-	public ReferenceTreeObject(Viewer viewer, Reference object) {
-		super(viewer, object);
-	}
-
 	public ReferenceTreeObject(Viewer viewer, Reference object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
@@ -56,7 +52,7 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 		return super.testAttribute(target, name, value);
 	}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;

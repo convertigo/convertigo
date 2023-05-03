@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a connector with screen classes.
  */
-public interface IScreenClassAware {
+interface IScreenClassAware {
 	
 	/**
 	 * Highlight the current screen class in tree view

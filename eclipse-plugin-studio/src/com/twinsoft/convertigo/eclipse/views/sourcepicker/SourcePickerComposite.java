@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class SourcePickerComposite extends Composite {
+class SourcePickerComposite extends Composite {
 
 	private SourcePickerHelper sourcePicker = null;
 	private DatabaseObject selectedDbo = null;
@@ -56,7 +56,7 @@ public class SourcePickerComposite extends Composite {
 	private final String show_variable_source 	= "Show variable's source";
 	private final String remove_source 			= "Remove source";
 	
-	public SourcePickerComposite(Composite parent, int style) {
+	SourcePickerComposite(Composite parent, int style) {
 		super(parent, style);
 		sourcePicker = new SourcePickerHelper();
 		setLayout(new GridLayout(1, true));
@@ -141,7 +141,7 @@ public class SourcePickerComposite extends Composite {
 		}
 	}
 	
-	public void sourceSelected(StepSourceEvent stepSourceEvent) {
+	void sourceSelected(StepSourceEvent stepSourceEvent) {
 		sourcePicker.getTwsDomTree().removeAll();
 		sourcePicker.getXpathEvaluator().removeAnchor();
 		sourcePicker.getXpathEvaluator().getXpath().setText("");
@@ -235,7 +235,7 @@ public class SourcePickerComposite extends Composite {
 		}
 	}
 	
-	public void close() {
+	void close() {
 		selectedDbo = null;
 		sourcePicker.setStepSourceDefinition(null);
 		fillHelpContent();

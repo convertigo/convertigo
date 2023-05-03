@@ -61,11 +61,11 @@ class CustomDirectoryFilter implements FileFilter {
 
 public class NgxConverter {
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
-	static TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
+	private static TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 	
-	File outputDir;
-	String tplScss;
-	String indent = "";
+	private File outputDir;
+	private String tplScss;
+	private String indent = "";
 
 	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;

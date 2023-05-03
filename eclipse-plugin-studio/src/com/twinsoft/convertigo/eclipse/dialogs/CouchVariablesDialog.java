@@ -59,11 +59,6 @@ public class CouchVariablesDialog extends Dialog {
 		this.props = props;
 	}
 	
-	public CouchVariablesDialog(Shell parentShell, AbstractCouchDbTransaction couchDbTransaction) {
-		super(parentShell);		
-		this.couchDbTransaction = couchDbTransaction;
-	}
-	
 	@Override
 	public void configureShell(Shell newShell) {
 		super.configureShell(newShell);

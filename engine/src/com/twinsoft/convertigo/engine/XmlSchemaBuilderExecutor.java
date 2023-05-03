@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.SchemaManager.Option;
 public class XmlSchemaBuilderExecutor {
 	
 	private Set<XmlSchemaBuilder> builders = new HashSet<XmlSchemaBuilder>();
-	XmlSchemaBuilder mainBuilder = null;
+	private XmlSchemaBuilder mainBuilder = null;
 	
 	protected XmlSchemaBuilderExecutor() {
 		
@@ -135,7 +135,7 @@ public class XmlSchemaBuilderExecutor {
 		}
 	}
 	
-	protected XmlSchemaBuilder createBuilder(String projectName, boolean forFull) {
+	private XmlSchemaBuilder createBuilder(String projectName, boolean forFull) {
 		return forFull ? new XmlSchemaBuilder("").new XmlSchemaFullBuilder(projectName) : new XmlSchemaBuilder(projectName);
 	}
 	

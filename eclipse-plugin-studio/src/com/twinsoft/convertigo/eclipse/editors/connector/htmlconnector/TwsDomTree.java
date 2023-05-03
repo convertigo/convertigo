@@ -62,7 +62,7 @@ public class TwsDomTree extends TreeWrapper {
 		void makeMenu(TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu);
 	}
 
-	public interface KeyAccelerator {
+	interface KeyAccelerator {
 		boolean doAction(TwsDomTree tree, KeyEvent e);
 	}
 
@@ -175,7 +175,7 @@ public class TwsDomTree extends TreeWrapper {
 	 * @param parent 	the parent (Can be the tree or a parent TreeItem)
 	 * @param node		the node to be added
 	 */
-	public boolean addNodeInTree(Object parent, Node node, IProgressMonitor monitor) {
+	private boolean addNodeInTree(Object parent, Node node, IProgressMonitor monitor) {
 		TreeItem tItem = (TreeItem) parent;
 		String[] values = new String[2];
 		tItem.setData(node);
@@ -253,7 +253,7 @@ public class TwsDomTree extends TreeWrapper {
 		return findTreeItem(elt, this);
 	}
 
-	public TreeItem findTreeItem(Node elt, Object parent) {
+	private TreeItem findTreeItem(Node elt, Object parent) {
 		Tree tree = getTree();
 		TreeItem treeItem;
 		TreeItem[] items;
@@ -288,59 +288,6 @@ public class TwsDomTree extends TreeWrapper {
 		}
 	}
 
-	public void selectTreeItem(TreeItem ti) {
-		if (selectedTreeItem != null) {
-			selectedTreeItem.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-		}
-		selectedTreeItem = ti;
-		selectedTreeItem.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
-		//deselectAll();
-	}
-
-	public Node selectElementInTree(Node elt) {
-		return selectElementInTree(elt, this);
-	}
-
-	public Node selectElementInTree(Node elt, Object parent) {
-		Tree tree = getTree();
-		TreeItem treeItem;
-		TreeItem[] items;
-
-		try {
-			// according to the class of the parent, get the fisrt items
-			if (parent instanceof TwsDomTree) {
-				items = tree.getItems();
-			} else {
-				treeItem = (TreeItem) parent;
-				items = treeItem.getItems();
-			}
-
-			// scan all items to match the one that have as data our searched node
-			for (int i = 0; i < items.length; i++) {
-				Node data = getTreeItemData(items[i]);
-				if (data != null) {
-					if (data.equals(elt)) {
-						// node was found, return it
-						//tree.setSelection(items[i]);
-						tree.showItem(items[i]);
-						Event event = new Event();
-						event.item = items[i];
-						tree.notifyListeners(SWT.Selection, event);
-						return data;
-					}
-				}
-
-				// Node was not found in this level, try in childs
-				Node selectedNode = selectElementInTree(elt, items[i]);
-				if (selectedNode != null ) {
-					return selectedNode;
-				}
-			}
-			return null;
-		} catch (Exception e) {	}
-		return null;
-	}
-
 	private void buildContextMenu(MouseEvent e) {
 		Point point = new Point(e.x, e.y);
 		TreeItem  treeItem = getTree().getItem(point);
@@ -367,7 +314,7 @@ public class TwsDomTree extends TreeWrapper {
 		}
 	}
 
-	public void addKeyAccelerator(KeyAccelerator keyAccelerator) {
+	void addKeyAccelerator(KeyAccelerator keyAccelerator) {
 		keyAccelerators.add(keyAccelerator);
 	}
 
@@ -404,7 +351,7 @@ public class TwsDomTree extends TreeWrapper {
 		getTopItem().setExpanded(false);
 	}
 
-	public void expandAll(TreeItem treeItem) {
+	private void expandAll(TreeItem treeItem) {
 		TreeItem[] treeItems = treeItem.getItems();
 		treeItem.setExpanded(true);
 		for (TreeItem sub : treeItems) {

@@ -51,7 +51,7 @@ public class TraceReader {
 
 	private static String hexaChars = "0123456789ABCDEF";
 
-	public TraceReader(String s) throws IOException {
+	TraceReader(String s) throws IOException {
 		FileReader fr = null;
 		BufferedReader br = null;
 		try {
@@ -196,7 +196,7 @@ public class TraceReader {
 		return s;
 	}
 
-	public boolean lookForString(String s, String s1) {
+	boolean lookForString(String s, String s1) {
 		return s.indexOf(s1) != -1;
 	}
 

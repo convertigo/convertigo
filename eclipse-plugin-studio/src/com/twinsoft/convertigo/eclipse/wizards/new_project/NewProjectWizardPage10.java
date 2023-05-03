@@ -24,9 +24,9 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class NewProjectWizardPage10 extends WizardPage {
+class NewProjectWizardPage10 extends WizardPage {
 	
-	public NewProjectWizardPage10(ISelection selection) {
+	NewProjectWizardPage10(ISelection selection) {
 		super("wizardPage");
 		setTitle("Import web service definition");
 		setDescription("This step creates a new HTTP connector with its transactions to invoke the remote web service");		

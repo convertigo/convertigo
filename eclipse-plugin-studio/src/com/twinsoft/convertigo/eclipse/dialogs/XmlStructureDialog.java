@@ -42,12 +42,8 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 	private String dialogTitle;
 	private Object parentObject = null;
 	public Object result = null;
-	
-	public XmlStructureDialog(Shell parentShell, Object parentObject) {
-		this(parentShell, ObjectsExplorerComposite.class, "Xml structure", parentObject);
-	}
-	
-	public XmlStructureDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
+		
+	private XmlStructureDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
 		super(parentShell);
 		this.dialogTitle = dialogTitle;
 		this.parentObject = parentObject;
@@ -94,10 +90,6 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 		getButton(IDialogConstants.OK_ID).setText("Import");
 		getButton(IDialogConstants.OK_ID).setEnabled(true);
 		return buttonBar;
-	}
-	
-	public void enableOK(boolean enabled) {
-		getButton(IDialogConstants.OK_ID).setEnabled(enabled);
 	}
 	
 	@Override

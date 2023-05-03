@@ -29,16 +29,11 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class SqlRequester {
 	
-	public static final String PROPERTIES_JDBC_DRIVER_CLASSNAME = "jdbc.driver.class_name";
+	private static final String PROPERTIES_JDBC_DRIVER_CLASSNAME = "jdbc.driver.class_name";
 	public static final String PROPERTIES_JDBC_URL = "jdbc.url";
-	public static final String PROPERTIES_JDBC_USER_NAME = "jdbc.user.name";
-	public static final String PROPERTIES_JDBC_USER_PASSWORD = "jdbc.user.password";
+	private static final String PROPERTIES_JDBC_USER_NAME = "jdbc.user.name";
+	private static final String PROPERTIES_JDBC_USER_PASSWORD = "jdbc.user.password";
 
-	/**
-	 * The properties file name for the database connection.
-	 */
-	protected String propertiesFileName;
-    
 	/**
 	 * The properties object.
 	 */
@@ -58,7 +53,6 @@ public class SqlRequester {
 	 * @exception SQLException if unable to create the connection to the database.
 	 */
 	public SqlRequester(String propertiesFileName) throws IOException {
-		this.propertiesFileName = propertiesFileName;
 		properties = PropertiesUtils.load(Engine.CONFIGURATION_PATH + propertiesFileName);
 	}
 

@@ -27,7 +27,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolItem;
 
 import com.ibm.ctg.client.GatewayRequest;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -38,7 +37,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.COBOLUtils;
 import com.twinsoft.convertigo.engine.util.HexUtils;
 
-public class CicsConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
+class CicsConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Text cicsData;
 	
@@ -62,6 +61,7 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.editors.connector.AbstractConnectorComposite#close()
 	 */
+	@Override
 	public void close() {
 		this.connector.removeConnectorListener(this);
 		super.close();
@@ -70,6 +70,7 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 	/* (non-Javadoc)
 	 * @see org.eclipse.swt.widgets.Widget#dispose()
 	 */
+	@Override
 	public void dispose() {
 		super.dispose();
 	}
@@ -145,8 +146,5 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 	}
 
 	public void renew() {
-	}
-
-	public void monitor(ToolItem ti) {
 	}
 }

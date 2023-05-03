@@ -34,7 +34,7 @@ public class UsageMonitor implements Runnable, AbstractManager {
 	
 	private Map<String, Object> usageCounters;
 	
-	public void setUsageCounter(String counter, Object value) {
+	void setUsageCounter(String counter, Object value) {
 		usageCounters.put(counter, value);
 	}
 	

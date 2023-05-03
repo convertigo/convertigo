@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
-public class NewProjectWizard extends Wizard implements INewWizard, IExecutableExtension {
+class NewProjectWizard extends Wizard implements INewWizard, IExecutableExtension {
 	// Wizard Pages
 	private boolean doPage1;
 	private boolean doPage2;
@@ -80,28 +80,27 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	private boolean doConfigureSQLConnectorPage;
 	private boolean doConfigureSAPConnectorPage;
 	
-	public NewProjectWizardPage1 page1;
-	public NewProjectWizardPage2 page2;
-	public NewProjectWizardPage4 page4;
-	public NewProjectWizardPage5 page5;
-	public NewProjectWizardPage6 page6;
-	public ServiceCodeWizardPage page7;
-	public NewProjectWizardPage8 page8;
-	public NewProjectWizardPage9 page9;
-	public NewProjectWizardPage10 page10;
-	public NewProjectWizardPage11 page11;
-	public NewProjectWizardPageSummarySampleProject pageSummarySampleProject;
-	public ConfigureSQLConnectorPage configureSQLConnectorPage;
-	public ConfigureSAPConnectorPage configureSAPConnectorPage;
+	NewProjectWizardPage1 page1;
+	NewProjectWizardPage2 page2;
+	private NewProjectWizardPage4 page4;
+	NewProjectWizardPage5 page5;
+	NewProjectWizardPage6 page6;
+	ServiceCodeWizardPage page7;
+	private NewProjectWizardPage8 page8;
+	private NewProjectWizardPage9 page9;
+	private NewProjectWizardPage10 page10;
+	private NewProjectWizardPage11 page11;
+	private NewProjectWizardPageSummarySampleProject pageSummarySampleProject;
+	private ConfigureSQLConnectorPage configureSQLConnectorPage;
+	private ConfigureSAPConnectorPage configureSAPConnectorPage;
 
 	// Holds the current selection when the wizard was called
 	private ISelection selection;
 
 	// The wizard pages will be used to configure this data
-	public String wizardId;
-	public ProjectUrlParser projectUrlParser;
-	public String projectName;
-	public String connectorName;
+	String wizardId;
+	private ProjectUrlParser projectUrlParser;
+	private String projectName;
 
 	/**
 	 * Constructor for SampleNewWizard.

@@ -21,24 +21,20 @@ package com.twinsoft.convertigo.engine.util;
 
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RemoteAdminException extends EngineException {
+class RemoteAdminException extends EngineException {
 
 	private static final long serialVersionUID = 1L;
-	public String stackTrace = null;
-	public String exceptionName = null;
 
-	public RemoteAdminException(String errorMessage) {
+	RemoteAdminException(String errorMessage) {
 		super(errorMessage);
 	}
 
-	public RemoteAdminException(String errorMessage, Throwable exception) {
+	RemoteAdminException(String errorMessage, Throwable exception) {
 		super(errorMessage, exception);
 	}
 
-	public RemoteAdminException(String errorMessage, String exceptionName, String stackTrace) {
+	RemoteAdminException(String errorMessage, String exceptionName, String stackTrace) {
 		super(errorMessage);
-		this.stackTrace  = stackTrace;
-		this.exceptionName = exceptionName;
 	}
 
 }

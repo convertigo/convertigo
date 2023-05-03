@@ -53,9 +53,9 @@ public class InternalRequester extends GenericRequester {
 	
 	private HttpServletRequest httpServletRequest;
 	
-	boolean bStrictMode = false;
+	private boolean bStrictMode = false;
 
-    protected String subPath = null;
+    
 	
     public InternalRequester(Map<String, Object> request) throws EngineException {
     	this(request, null);
@@ -84,7 +84,7 @@ public class InternalRequester extends GenericRequester {
     	}
     }
     
-    void processRequestEnd(Map<String, Object> request) {
+    private void processRequestEnd(Map<String, Object> request) {
 		request.put("convertigo.cookies", context.getCookieStrings());
 		
 		String trSessionId = context.getSequenceTransactionSessionId();
@@ -125,7 +125,7 @@ public class InternalRequester extends GenericRequester {
     	
     }
     
-	void onFinally(Map<String, Object> request) {
+	private void onFinally(Map<String, Object> request) {
 		// Removes context when finished
 		// Note: case of context.requireEndOfContext has been set in scope
 		if (getParameterValue(request.get("convertigo.requireEndOfContext")) != null) {
@@ -149,7 +149,7 @@ public class InternalRequester extends GenericRequester {
 		}
 	}
 
-	protected void removeContext() {
+	private void removeContext() {
 		if (Engine.isEngineMode()) {
 			if (context != null) {
 				Engine.logContext.debug("(InternalRequester) End of context " + context.contextID + " required => removing context");

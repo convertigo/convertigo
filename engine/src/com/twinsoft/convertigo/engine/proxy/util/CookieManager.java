@@ -30,10 +30,10 @@ public class CookieManager {
 		return defMgr;
 	}
 
-	static public final long HARD_TIMEOUT_MILLIS = 14400000; // 4 hours
-	static public final long SOFT_TIMEOUT_MILLIS = 3600000; // 1 hour
-	static public final long SOFT_GAP_MILLIS = 10000; // 10 seconds
-	static public final long USER_TIMEOUT_MILLIS = 3600000; // 1 hour
+	static private final long HARD_TIMEOUT_MILLIS = 14400000; // 4 hours
+	static private final long SOFT_TIMEOUT_MILLIS = 3600000; // 1 hour
+	static private final long SOFT_GAP_MILLIS = 10000; // 10 seconds
+	static private final long USER_TIMEOUT_MILLIS = 3600000; // 1 hour
 
 	private long lastCleanupTime;
 	private long lastVisitTime;
@@ -42,7 +42,7 @@ public class CookieManager {
 		return lastVisitTime;
 	}
 
-	public void cleanup() {
+	private void cleanup() {
 		long nowMillis = System.currentTimeMillis();
 		long gapMillis = nowMillis - lastCleanupTime;
 
@@ -113,7 +113,7 @@ public class CookieManager {
 		return toString("");
 	}
 
-	synchronized public String toString(String marginSpaces) {
+	synchronized private String toString(String marginSpaces) {
 		StringBuffer sb = new StringBuffer(1024 * userCans.size());
 
 		sb.append(marginSpaces).append("CookieManager: ").append('\n');

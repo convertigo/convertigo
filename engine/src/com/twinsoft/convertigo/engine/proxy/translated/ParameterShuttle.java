@@ -29,26 +29,26 @@ import com.twinsoft.convertigo.engine.Context;
 
 public class ParameterShuttle {
 	// parameters from user/browser
-	public String sessionID;
-	public String userID;
-	public String userIP;
+	String sessionID;
+	String userID;
+	String userIP;
 	
-	public Context context;
+	Context context;
 
-	public boolean postFromUser;
+	boolean postFromUser;
 	public String userPostData;
-	public String userContentType;
-	public int userContentLength;
+	String userContentType;
+	int userContentLength;
 
-	public List<String> userHeaderNames = new ArrayList<String>();
-	public List<String> userHeaderValues = new ArrayList<String>();
+	List<String> userHeaderNames = new ArrayList<String>();
+	List<String> userHeaderValues = new ArrayList<String>();
 
-	public String userGoto;
-	public String userThen;
-	public boolean postToSite;
+	String userGoto;
+	String userThen;
+	boolean postToSite;
 
-	public URL prevSiteURL;
-	public URL siteURL;
+	URL prevSiteURL;
+	URL siteURL;
 
 	// parameters from remote site
 	public int httpCode;
@@ -58,9 +58,9 @@ public class ParameterShuttle {
 
 	public String siteContentType;
 	public int siteContentSize;
-	public boolean siteContentHTML;
+	boolean siteContentHTML;
 
-	public InputStream siteInputStream;
+	InputStream siteInputStream;
 	public OutputStream siteOutputStream;
 
 	/*public void closeSiteInputStream() {
@@ -103,7 +103,7 @@ public class ParameterShuttle {
 
 	static private String bridgeURLStr;
 
-	static public String getSelfURL(
+	static String getSelfURL(
 		String scheme,
 		String name,
 		int port,
@@ -122,7 +122,7 @@ public class ParameterShuttle {
 		return bridgeURLStr;
 	};
 
-	static public String getSelfURL() {
+	static String getSelfURL() {
 		return bridgeURLStr;
 	}
 }

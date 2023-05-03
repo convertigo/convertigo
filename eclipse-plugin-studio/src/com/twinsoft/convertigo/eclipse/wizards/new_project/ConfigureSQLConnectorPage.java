@@ -27,7 +27,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 
-public class ConfigureSQLConnectorPage extends WizardPage {
+class ConfigureSQLConnectorPage extends WizardPage {
 
 	private String jdbcURL;
 	private String jdbcDriver;
@@ -39,7 +39,7 @@ public class ConfigureSQLConnectorPage extends WizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public ConfigureSQLConnectorPage(ISelection selection) {
+	ConfigureSQLConnectorPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Define SQL connector parameters");
 		setDescription("This step configures the SQL connector parameters");

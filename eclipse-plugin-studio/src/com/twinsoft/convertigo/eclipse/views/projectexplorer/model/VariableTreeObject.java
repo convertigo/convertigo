@@ -28,7 +28,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 
 public class VariableTreeObject extends TreeObject implements IActionFilter {
-	public boolean isChildOfJavelinTransaction = false;
+	private boolean isChildOfJavelinTransaction = false;
 	
     public VariableTreeObject(Viewer viewer, RequestableObject requestable, Vector<String> variable) {
     	super(viewer, null);

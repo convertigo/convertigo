@@ -25,16 +25,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
+
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ProjectExplorerImportAction extends MyAbstractAction implements IViewActionDelegate {
-
-	public void init(IViewPart view) {
-	}
+public class ProjectExplorerImportAction extends MyAbstractAction {
 
 	@Override
 	public void run(IAction action) {

@@ -31,10 +31,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class UrlAuthenticationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 
-	public UrlAuthenticationTreeObject(Viewer viewer, DatabaseObject object) {
-		super(viewer, object);
-	}
-
 	public UrlAuthenticationTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

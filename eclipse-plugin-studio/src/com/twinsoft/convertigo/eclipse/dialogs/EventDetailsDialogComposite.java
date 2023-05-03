@@ -30,19 +30,18 @@ import org.eclipse.swt.widgets.Text;
 
 public class EventDetailsDialogComposite extends MyAbstractDialogComposite {
 
-	public Label labelTime = null;
-	public Label labelLevel = null;
-	public Label labelCategory = null;
-	public Label labelThread = null;
+	private Label labelTime = null;
+	private Label labelLevel = null;
+	private Label labelCategory = null;
+	private Label labelThread = null;
 	
-	public Label logTime = null;
-	public Label logLevel = null;
-	public Label logCategory = null;
-	public Label logThread = null;
+	Label logTime = null;
+	Label logLevel = null;
+	Label logCategory = null;
+	Label logThread = null;
 	
-	public Text textMessage = null;
-	//public Text textExtra = null;
-	public Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName = null, textUUID;
+	Text textMessage = null;
+	Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName = null, textUUID;
 	
 	public EventDetailsDialogComposite(Composite parent, int style) {
 		super(parent, style);

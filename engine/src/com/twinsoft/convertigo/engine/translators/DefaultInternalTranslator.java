@@ -40,7 +40,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DefaultInternalTranslator implements Translator {
 
-	boolean bStrictMode = false;
+	private boolean bStrictMode = false;
 	
 	public void setStrictMode(boolean strictMode) {
 		this.bStrictMode = strictMode;

@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 
-public class CouchDbConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
+class CouchDbConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Text httpData;
 	
@@ -44,18 +44,13 @@ public class CouchDbConnectorComposite extends AbstractConnectorComposite implem
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.editors.connector.AbstractConnectorComposite#close()
 	 */
+	@Override
 	public void close() {
 		connector.removeConnectorListener(this);
 		super.close();
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Widget#dispose()
-	 */
-	public void dispose() {
-		super.dispose();
-	}
-	
+
+	@Override
 	protected void initialize() {
 		GridData gridData = new org.eclipse.swt.layout.GridData();
 		gridData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
@@ -68,11 +63,13 @@ public class CouchDbConnectorComposite extends AbstractConnectorComposite implem
 		this.setLayout(new GridLayout());
 		setSize(new Point(300, 200));
 	}
-	
+
+	@Override
 	protected void clearContent() {
 		httpData.setText("");
 	}
 
+	@Override
 	public void dataChanged(ConnectorEvent connectorEvent) {
 		if (!checkEventSource(connectorEvent))
 			return;
@@ -95,16 +92,12 @@ public class CouchDbConnectorComposite extends AbstractConnectorComposite implem
 			};
 		});
 	}
-	
+
+	@Override
 	public void initConnector(Transaction transaction) {
 	}
 
+	@Override
 	public void renew() {
-	}
-
-	public void refresh() {
-	}
-
-	public void monitor(ToolItem ti) {
 	}
 }

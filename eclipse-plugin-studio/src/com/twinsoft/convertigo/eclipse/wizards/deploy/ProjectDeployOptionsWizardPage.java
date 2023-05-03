@@ -20,21 +20,19 @@
 package com.twinsoft.convertigo.eclipse.wizards.deploy;
 
 import java.util.HashMap;
+
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import com.twinsoft.convertigo.beans.core.Project;
 
-public class ProjectDeployOptionsWizardPage extends WizardPage {
-	Project project = null;
-	HashMap<String, Object> data = null;
+class ProjectDeployOptionsWizardPage extends WizardPage {
+	private HashMap<String, Object> data = null;
 	
-	ProjectDeployOptionsComposite composite = null;
+	private ProjectDeployOptionsComposite composite = null;
 	
-	public ProjectDeployOptionsWizardPage(Project project) {
+	ProjectDeployOptionsWizardPage() {
 		super("ProjectDeployOptionsWizardPage", "Deployment options", null);
-		this.project = project;
 		this.data = new HashMap<String, Object>();
 		this.setPageComplete(false);
 	}
@@ -46,7 +44,7 @@ public class ProjectDeployOptionsWizardPage extends WizardPage {
 		setControl(composite);
 	}
 
-	protected HashMap<String, Object> getData() {
+	private HashMap<String, Object> getData() {
 		if (composite != null) {
 			String convertigoServer = composite.convertigoServer.getText();
 			//if ((convertigoServer == null) || (convertigoServer.equals(""))) return;

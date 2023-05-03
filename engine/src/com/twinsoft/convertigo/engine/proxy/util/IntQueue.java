@@ -35,7 +35,7 @@ public class IntQueue {
 		this(16, 16);
 	}
 
-	public void ensureCapacity(int minCapacity) {
+	private void ensureCapacity(int minCapacity) {
 		if (minCapacity > data.length)
 			setCapacity(Math.max(data.length + incCapacity, minCapacity));
 	}
@@ -338,7 +338,7 @@ public class IntQueue {
 		return getString(0, len);
 	}
 
-	public String getString(int pos, int len) {
+	private String getString(int pos, int len) {
 		if (len > size() - pos)
 			len = size() - pos;
 

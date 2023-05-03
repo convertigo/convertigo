@@ -52,10 +52,6 @@ public class ComponentObjectWizard extends Wizard {
 
 	public DatabaseObject newBean = null;
 
-	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
-		this(selectedDatabaseObject, newClassName, -1);
-	}
-
 	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, int folderType) {
 		super();
 		this.parentObject = selectedDatabaseObject;
@@ -65,6 +61,7 @@ public class ComponentObjectWizard extends Wizard {
 		setNeedsProgressMonitor(true);
 	}
 
+	@Override
 	public void addPages() {
 		try {
 			String objectExplorerPageTitle = "?", objectExplorerPageMessage = "?";
@@ -122,6 +119,7 @@ public class ComponentObjectWizard extends Wizard {
 		return dbo;
 	}
 
+	@Override
 	public boolean canFinish() {
 		return getContainer().getCurrentPage().getNextPage() == null;
 	}

@@ -36,17 +36,17 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.util.Log;
 
-public class EmbeddedTomcat implements Runnable {
+class EmbeddedTomcat implements Runnable {
 
 	private Tomcat embedded;
-	public String tomcatHome;
+	private String tomcatHome;
 	private int httpPort = 18080;
 	
 	/**
 	 * Default Constructor
 	 * @throws IOException 
 	 */
-	public EmbeddedTomcat(String tomcatHome) throws IOException {
+	EmbeddedTomcat(String tomcatHome) throws IOException {
 		this.tomcatHome = tomcatHome;
 		System.out.println("Tomcat Home: " + tomcatHome);
 		
@@ -57,7 +57,7 @@ public class EmbeddedTomcat implements Runnable {
 	/**
 	 * Starts the Tomcat server.
 	 */
-	public void start() {
+	private void start() {
 		try {
 			System.out.println("(EmbeddedTomcat) Creating the embedded Tomcat servlet container");
 
@@ -171,7 +171,7 @@ public class EmbeddedTomcat implements Runnable {
 	/**
 	 * Stops the Tomcat server.
 	 */
-	public void stop() {
+	void stop() {
 		try {
 			// Stop the embedded server
 			if (embedded != null) {

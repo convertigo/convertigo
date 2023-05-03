@@ -72,36 +72,35 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ObjectsExplorerComposite extends Composite {
 
-	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
-	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
+	private Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+	private Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
 	private String technology = null;
 	private Class<? extends DatabaseObject> databaseObjectClass = null;
-	protected CLabel currentSelectedObject = null;
+	private CLabel currentSelectedObject = null;
 
 	private DatabaseObject parentObject = null;
-	protected Cursor handCursor = null;
-	protected Map<CLabel, Object> objectsMap = null;
+	private Cursor handCursor = null;
+	private Map<CLabel, Object> objectsMap = null;
 
-	protected WizardPage wizardPage = null;
-	private Composite compositeObjects;
+	private WizardPage wizardPage = null;
 	private C8oBrowser helpBrowser = null;
-	public ScrolledComposite scrolledComposite;
-	protected Composite composite = null;
-	protected Composite [] composites = null;
-	protected ExpandItem [] items = null;
-	protected ExpandBar bar;
+	private ScrolledComposite scrolledComposite;
+	private Composite composite = null;
+	private Composite [] composites = null;
+	private ExpandItem [] items = null;
+	private ExpandBar bar;
 
-	protected List<String> defaultDboList = new ArrayList<String>();
-	protected List<String> documentedDboList = new ArrayList<String>();
+	private List<String> defaultDboList = new ArrayList<String>();
+	private List<String> documentedDboList = new ArrayList<String>();
 
-	public ObjectsExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
+	ObjectsExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass) {
 		this(parent, style, parentObject, beanClass);
 		this.wizardPage = wizardPage;
 	}
 
-	public ObjectsExplorerComposite(Composite parent, int style, Object parentObject,
+	ObjectsExplorerComposite(Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass) {
 		super(parent, style);
 		this.parentObject = (DatabaseObject) parentObject;
@@ -110,7 +109,7 @@ public class ObjectsExplorerComposite extends Composite {
 		initialize();
 	}
 
-	protected void findDatabaseObjects() {
+	private void findDatabaseObjects() {
 		if (objectsMap.isEmpty()) {
 			try {
 				Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
@@ -324,7 +323,7 @@ public class ObjectsExplorerComposite extends Composite {
 	 * This method initializes this
 	 * 
 	 */
-	protected void initialize() {
+	private void initialize() {
 
 		layout(true); 
 		layout(true, true); 
@@ -444,73 +443,9 @@ public class ObjectsExplorerComposite extends Composite {
 				+ beanLongDescription + "</p></html>");
 	}
 
-	protected void addLabelEx(Image beanImage, String beanName, String beanShortDescription, boolean selected,
-			Object object) {
-		CLabel label = new CLabel(compositeObjects, SWT.NONE);
-		label.setImage(beanImage);
-		label.setText(beanName);
-		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(beanShortDescription);
-		label.setCursor(handCursor);
+	
 
-		RowData rowData = new RowData();
-		label.setLayoutData(rowData);
-		objectsMap.put(label, object);
-
-		// We select by default the first item
-		if (currentSelectedObject == null) {
-			currentSelectedObject = label;
-
-			currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
-			currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
-			BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
-			if (currentSelectedObjectBeanInfo != null) {
-				updateHelpText(currentSelectedObjectBeanInfo);
-			}
-		}
-
-		label.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseDown(MouseEvent e) {
-				CLabel label = (CLabel) e.getSource();
-				if (currentSelectedObject == label) {
-					return;
-				}
-
-				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
-					currentSelectedObject.setForeground(label.getForeground());
-					currentSelectedObject.setBackground(label.getBackground());
-				}
-
-				currentSelectedObject = label;
-
-				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
-
-				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
-				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
-				BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
-				if (currentSelectedObjectBeanInfo != null) {
-					updateHelpText(currentSelectedObjectBeanInfo);
-				}
-			}
-
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				currentSelectedObject = (CLabel) e.getSource();
-
-				if (wizardPage != null) {
-					wizardPage.setPageComplete(true);
-					((ObjectExplorerWizardPage) wizardPage).showNextPage();
-				}
-			}
-		});
-
-		ConvertigoPlugin.logDebug("Loaded '" + beanName + "'.");
-	}
-
-	protected void addLabelEx(Image beanImage, Class<DatabaseObject> beanClass, String beanName,
+	private void addLabelEx(Image beanImage, Class<DatabaseObject> beanClass, String beanName,
 			String beanShortDescription, boolean selected, Object object, DboBeans beansCategory) {
 
 		if("".equals(beansCategory.getName())) {

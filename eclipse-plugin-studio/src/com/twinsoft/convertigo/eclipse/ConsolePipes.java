@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,17 +29,12 @@ import org.eclipse.core.runtime.Status;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ConsolePipes {
+class ConsolePipes {
 
-	public static final int MAX_CONSOLE_START_SIZE = 16000;
-	public static final int REFRESH_DELAY = 250;
+	private static final int MAX_CONSOLE_START_SIZE = 16000;
+	private static final int REFRESH_DELAY = 250;
 
 	private Thread writerThreadEngine;
-
-	public ByteArrayOutputStream outputStreamConnector;
-
-	public ByteArrayOutputStream outputStreamTrace;
-
 	private boolean bContinue = true;
 
 	private ConvertigoPlugin convertigoPlugin;
@@ -49,7 +43,7 @@ public class ConsolePipes {
 		convertigoPlugin = ConvertigoPlugin.getDefault();
 	}
 
-	public void stopConsoleThreads() {
+	void stopConsoleThreads() {
 		bContinue = false;
 		int nbRetry = 10;
 		while ((nbRetry > 0) && writerThreadEngine.isAlive()) {
@@ -66,37 +60,15 @@ public class ConsolePipes {
 		}
 	}
 
-	public void initConsoleStreams() {
-		try {
-			outputStreamConnector = new ByteArrayOutputStream(4096);
-		} catch (Exception e) {
-			String message = java.text.MessageFormat.format(
-					java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel")
-							.getString("unable_to_initiate_console"), new Object[] { "Connector" });
-			convertigoPlugin.getLog().log(
-					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-			return;
-		}
+	
 
-		try {
-			outputStreamTrace = new ByteArrayOutputStream(1024);
-		} catch (Exception e) {
-			String message = java.text.MessageFormat.format(
-					java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel")
-							.getString("unable_to_initiate_console"), new Object[] { "Trace" });
-			convertigoPlugin.getLog().log(
-					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-			return;
-		}
-	}
-
-	public void startConsoleThreads() {
+	void startConsoleThreads() {
 		startEngineConsoleThread();
 		startStudioConsoleThread();
 		startTraceConsoleThread();
 	}
 
-	public void startEngineConsoleThread() {
+	private void startEngineConsoleThread() {
 		writerThreadEngine = new Thread() {
 			@Override
 			public void run() {
@@ -191,7 +163,7 @@ public class ConsolePipes {
 		writerThreadEngine.start();
 	}
 
-	public void startStudioConsoleThread() {
+	private void startStudioConsoleThread() {
 		// writerThreadStudio = new Thread() {
 		// public void run() {
 		// try {
@@ -275,7 +247,7 @@ public class ConsolePipes {
 		// writerThreadStudio.start();
 	}
 
-	public void startTraceConsoleThread() {
+	private void startTraceConsoleThread() {
 		// writerThreadTrace = new Thread() {
 		// public void run() {
 		// try {

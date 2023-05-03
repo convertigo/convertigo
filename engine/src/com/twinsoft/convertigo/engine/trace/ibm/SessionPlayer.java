@@ -30,7 +30,7 @@ public class SessionPlayer extends Thread {
     private TnClientHandler tnClientHandler;
     private Socket mySocket;
 
-    public SessionPlayer(Socket socket, String s)
+    SessionPlayer(Socket socket, String s)
         throws Exception
     {
         try

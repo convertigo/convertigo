@@ -100,7 +100,7 @@ public class TraceTreeObject extends TreeObject {
 		}
 	}
 	
-	public void openTextEditor(IProject project) {
+	private void openTextEditor(IProject project) {
 		
 		ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)this.parent.parent;
 		
@@ -159,7 +159,7 @@ public class TraceTreeObject extends TreeObject {
 		}
 	}
 	
-	public IEditorPart getConnectorEditor(Connector connector) {
+	private IEditorPart getConnectorEditor(Connector connector) {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = getActivePage();
 

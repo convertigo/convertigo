@@ -32,7 +32,7 @@ public class Replacement {
 		this(strSource, strTarget, null);
 	}
 	
-	public Replacement(String strSource, String strTarget, String startsWith) {
+	Replacement(String strSource, String strTarget, String startsWith) {
 		this.setSource(strSource);
 		this.setTarget(strTarget);
 		this.setStartsWith(startsWith);

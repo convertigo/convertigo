@@ -31,8 +31,9 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class HttpConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
+class HttpConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Text httpData;
 	
@@ -44,18 +45,13 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.editors.connector.AbstractConnectorComposite#close()
 	 */
+	@Override
 	public void close() {
 		connector.removeConnectorListener(this);
 		super.close();
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Widget#dispose()
-	 */
-	public void dispose() {
-		super.dispose();
-	}
-	
+
+	@Override
 	protected void initialize() {
 		GridData gridData = new org.eclipse.swt.layout.GridData();
 		gridData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
@@ -68,11 +64,13 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 		this.setLayout(new GridLayout());
 		setSize(new Point(300, 200));
 	}
-	
+
+	@Override
 	protected void clearContent() {
 		httpData.setText("");
 	}
 
+	@Override
 	public void dataChanged(ConnectorEvent connectorEvent) {
 		if (!checkEventSource(connectorEvent))
 			return;
@@ -87,24 +85,18 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 		}
 		final String fData = data;
 		
-		httpData.getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				try {
-					httpData.setText(fData);
-				} catch (Exception e) {;}
-			};
+		ConvertigoPlugin.asyncExec(() -> {
+			try {
+				httpData.setText(fData);
+			} catch (Exception e) {}
 		});
 	}
-	
+
+	@Override
 	public void initConnector(Transaction transaction) {
 	}
 
+	@Override
 	public void renew() {
-	}
-
-	public void refresh() {
-	}
-
-	public void monitor(ToolItem ti) {
 	}
 }

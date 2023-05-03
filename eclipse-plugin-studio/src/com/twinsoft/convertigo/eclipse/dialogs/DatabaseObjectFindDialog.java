@@ -57,7 +57,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 		this(parentShell, DatabaseObjectFindDialogComposite.class, "Find an Object");
 	}
 
-	public DatabaseObjectFindDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
+	private DatabaseObjectFindDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell, dialogAreaClass, dialogTitle);
 		setShellStyle(getShellStyle());
 		setBlockOnOpen(false);
@@ -129,7 +129,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 		}
 	}
 
-	protected void findDatabaseObject() {
+	private void findDatabaseObject() {
 		Pattern pattern = null;
 		String substring = "";
 

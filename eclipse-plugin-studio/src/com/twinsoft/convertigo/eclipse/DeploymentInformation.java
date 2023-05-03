@@ -19,19 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class DeploymentInformation implements Serializable {
+class DeploymentInformation implements Serializable {
     
 	private static final long serialVersionUID = -2912597171548834186L;
 	
-	public List<File> undeployedFiles = new ArrayList<File>();
-    public Map<String, DeploymentConfiguration> deploymentConfigurations = new HashMap<String, DeploymentConfiguration>();
+	
+    Map<String, DeploymentConfiguration> deploymentConfigurations = new HashMap<String, DeploymentConfiguration>();
 
     /** Creates a new instance of DeploymentInformation */
     public DeploymentInformation() {

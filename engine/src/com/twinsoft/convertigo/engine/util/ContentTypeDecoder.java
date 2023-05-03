@@ -28,9 +28,9 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 public class ContentTypeDecoder {
 	private final static Pattern pattern = Pattern.compile("(?:.*, ?)?(.*?)(?: ?; ?(charset=(.*)|.*)|$)", Pattern.CASE_INSENSITIVE);
 	
-	String mimeType;
-	String charset = null;
-	String option = null;
+	private String mimeType;
+	private String charset = null;
+	private String option = null;
 	
 	public ContentTypeDecoder(String contentType) {
 		Matcher matcher = pattern.matcher(contentType == null ? "" : contentType);
@@ -65,19 +65,13 @@ public class ContentTypeDecoder {
 		return charset;
 	}
 	
-	public Charset charset() {
-		try {
-			return Charset.forName(charset);
-		} catch (Exception e) {
-			return null;
-		}
-	}
+	
 	
 	public String getCharset(String defaultCharset) {
 		return charset != null ? charset : defaultCharset;
 	}
 	
-	public Charset charset(String defaultCharset) {
+	Charset charset(String defaultCharset) {
 		try {
 			return Charset.forName(getCharset(defaultCharset));
 		} catch (Exception e) {

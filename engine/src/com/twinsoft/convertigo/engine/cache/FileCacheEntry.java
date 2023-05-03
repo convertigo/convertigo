@@ -19,11 +19,11 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
-public class FileCacheEntry extends CacheEntry {
+class FileCacheEntry extends CacheEntry {
 	
 	private static final long serialVersionUID = -5698716704120453518L;
 
-	public String fileName = "";
+	String fileName = "";
 	
 	public FileCacheEntry() {
 		super();

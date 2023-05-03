@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.ProxyManager;
 
-public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckConnectedCallback  {
+class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckConnectedCallback  {
 	private Combo proxyMode;
 	private Text proxyPort;
 	private Text proxyHost;
@@ -59,7 +59,7 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 	private Composite container;
 	private ProxyManager proxyManager;
 	
-	public ConfigureProxyPage(ProxyManager proxyManager) {
+	ConfigureProxyPage(ProxyManager proxyManager) {
 		super("Configuration proxy");
 		setTitle("Proxy settings");
 		setDescription(
@@ -267,7 +267,7 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 		setControl(container);
 	}
 	
-	public void enableComponents(ProxyMode proxyMode) {
+	private void enableComponents(ProxyMode proxyMode) {
 		if (ProxyMode.manual == proxyMode) {
 			proxyHost.setEnabled(true);
 			proxyPort.setEnabled(true);
@@ -294,7 +294,7 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 		}
 	}
 	
-	public void enableComponents(ProxyMethod proxyMethod) {
+	private void enableComponents(ProxyMethod proxyMethod) {
 		if (ProxyMethod.anonymous  == proxyMethod) {
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);

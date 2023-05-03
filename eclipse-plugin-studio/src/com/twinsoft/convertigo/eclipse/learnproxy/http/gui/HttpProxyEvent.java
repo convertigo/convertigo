@@ -53,14 +53,14 @@ public class HttpProxyEvent {
 		this(request, response, path, status, elapsedTime, requestStarted, method, size, false);
 	}
 
-	public HttpProxyEvent(String request, String response, String path,
+	private HttpProxyEvent(String request, String response, String path,
 			String status, long elapsedTime, long requestStarted,
 			String method, long size, boolean https) {
 		this(null, request, response, path, status, elapsedTime, requestStarted, method, size, false);
 		
 	}
 	
-	public HttpProxyEvent(String contextID, String request, String response, String path,
+	private HttpProxyEvent(String contextID, String request, String response, String path,
 						String status, long elapsedTime, long requestStarted,
 						String method, long size, boolean https) {
 		this.contextID = contextID;

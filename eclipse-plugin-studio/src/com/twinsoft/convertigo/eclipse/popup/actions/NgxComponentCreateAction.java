@@ -36,18 +36,19 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolder
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_ngx.ComponentObjectWizard;
 
-public class NgxComponentCreateAction extends MyAbstractAction {
-	protected String databaseObjectClassName = null;
+class NgxComponentCreateAction extends MyAbstractAction {
+	private String databaseObjectClassName = null;
 	
 	public NgxComponentCreateAction() {
 		super();
 	}
 	
-	public NgxComponentCreateAction(String databaseObjectClassName) {
+	NgxComponentCreateAction(String databaseObjectClassName) {
 		super();
 		this.databaseObjectClassName = databaseObjectClassName;
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
@@ -92,7 +93,7 @@ public class NgxComponentCreateAction extends MyAbstractAction {
         }
 	}
 
-	public void postCreate(TreeObject parentTreeObject, DatabaseObject createdDatabaseObject) throws Exception {
+	private void postCreate(TreeObject parentTreeObject, DatabaseObject createdDatabaseObject) throws Exception {
 		ProjectExplorerView explorerView = getProjectExplorerView();
 		explorerView.reloadTreeObject(parentTreeObject);
 		explorerView.objectSelected(new CompositeEvent(createdDatabaseObject));
@@ -101,11 +102,6 @@ public class NgxComponentCreateAction extends MyAbstractAction {
 		if (createdDatabaseObject instanceof UIActionStack || createdDatabaseObject instanceof UISharedRegularComponent) {
 			ConvertigoPlugin.getDefault().refreshPaletteView();
 		}
-		
-		/* No more needed since #20 correction : see DatabaseObjectTreeObject:setParent(TreeParent parent)
-		TreeObject selectedTreeObject = explorerView.getFirstSelectedTreeObject();
-		if ((selectedTreeObject != null) && (selectedTreeObject.getObject().equals(createdDatabaseObject)))
-			explorerView.fireTreeObjectAdded(new TreeObjectEvent(selectedTreeObject));*/
 	}
 	
 }

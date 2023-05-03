@@ -43,12 +43,12 @@ public class TreePath {
 	}
 	
     //Constructs a path from an array of Objects, uniquely identifying the path from the root of the tree to a specific node, as returned by the tree's data model. 
-	public TreePath(Object[] paths) {
+	TreePath(Object[] paths) {
 		this(paths, paths.length);
 	}
 	
     ///Constructs a new TreePath with the identified path components of length length. 
-	protected TreePath(Object[] paths, int length) {
+	private TreePath(Object[] paths, int length) {
 		if (paths != null) {
 			int len = paths.length;
 			components = new Object[length];
@@ -56,13 +56,6 @@ public class TreePath {
 			count = len;
 		}
 	}
-	
-	//Constructs a new TreePath, which is the path identified by parent ending in lastElement.
-	protected  TreePath(TreePath parent, Object lastElement) {
-		this(parent.getPath(), parent.getPathCount()+1);
-		components[count++] = lastElement;
-	}
-	
 	
 	//Tests two TreePaths for equality by checking each element of the paths for equality.
 	public boolean equals(Object o) {
@@ -106,7 +99,7 @@ public class TreePath {
 	}
     
 	//Returns the path component at the specified index.
-	public Object getPathComponent(int element) {
+	private Object getPathComponent(int element) {
 		Object object = null;
 		if ((element>=0) && (element<count))
 			object = components[element];
@@ -119,22 +112,14 @@ public class TreePath {
 	}
     
 	//Returns the hashCode for the object.
+	@Override
 	public int hashCode() {
 		int hashcode = 0;
 		//TODO: implements
 		return hashcode;
 	}
-    
-	//Returns true if aTreePath is a descendant of this TreePath.
-	public boolean isDescendant(TreePath aTreePath) {
-		return (fullPath.indexOf(aTreePath.toString()) > 0);
-	}
-    
-	//Returns a new path containing all the elements of this object plus child.
-	public TreePath pathByAddingChild(Object child) {
-		return new TreePath(this, child);
-	}
-    
+	
+	@Override
 	public String toString() {
 		return fullPath;
 	}

@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 
 import com.twinsoft.convertigo.engine.EngineEvent;
 
-public interface IBlockizable {
+interface IBlockizable {
 	public void blocksChanged(EngineEvent e, boolean bShow);
 	public void showBlocks(boolean bLatestBlockFactory);
 }

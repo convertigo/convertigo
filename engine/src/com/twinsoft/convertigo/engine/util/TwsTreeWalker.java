@@ -36,13 +36,13 @@ public class TwsTreeWalker  implements TreeWalker {
     /** When TRUE, the children of entites references are returned in the iterator. */
     private boolean fEntityReferenceExpansion = false;
     /** The whatToShow mask. */
-    int fWhatToShow = NodeFilter.SHOW_ALL;
+    private int fWhatToShow = NodeFilter.SHOW_ALL;
     /** The NodeFilter reference. */
-    NodeFilter fNodeFilter;
+    private NodeFilter fNodeFilter;
     /** The current Node. */
-    Node fCurrentNode;
+    private Node fCurrentNode;
     /** The root Node. */
-    Node fRoot;
+    private Node fRoot;
     /** Use Node.isSameNode() to check if one node is the same as another. */
     private boolean fUseIsSameNode;
     
@@ -271,7 +271,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  after applying filter, whatToshow.
      *  The current node is not consulted or set.
      */
-    Node getParentNode(Node node) {
+    private Node getParentNode(Node node) {
         
         if (node == null || isSameNode(node, fRoot)) return null;
         
@@ -296,7 +296,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  after applying filter, whatToshow.
      *  The current node is not consulted or set.
      */
-    Node getNextSibling(Node node) {
+    private Node getNextSibling(Node node) {
 		return getNextSibling(node, fRoot);
 	}
 
@@ -306,7 +306,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  NEVER TRAVERSES ABOVE THE SPECIFIED ROOT NODE. 
      *  The current node is not consulted or set.
      */
-    Node getNextSibling(Node node, Node root) {
+    private Node getNextSibling(Node node, Node root) {
         for (;;) {
 	        if (node == null || isSameNode(node, root)) return null;
 	        
@@ -357,7 +357,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  after applying filter, whatToshow.
      *  The current node is not consulted or set.
      */
-    Node getPreviousSibling(Node node) {
+    private Node getPreviousSibling(Node node) {
 		return getPreviousSibling(node, fRoot);
 	}
 
@@ -367,7 +367,7 @@ public class TwsTreeWalker  implements TreeWalker {
 	 *  NEVER TRAVERSES ABOVE THE SPECIFIED ROOT NODE. 
      *  The current node is not consulted or set.
      */
-    Node getPreviousSibling(Node node, Node root) {
+    private Node getPreviousSibling(Node node, Node root) {
         
         if (node == null || isSameNode(node, root)) return null;
         
@@ -411,7 +411,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  after applying filter, whatToshow.
      *  The current node is not consulted or set.
      */
-    Node getFirstChild(Node node) {
+    private Node getFirstChild(Node node) {
         if (node == null) return null;
         
         if ( !fEntityReferenceExpansion
@@ -448,7 +448,7 @@ public class TwsTreeWalker  implements TreeWalker {
      *  after applying filter, whatToshow.
      *  The current node is not consulted or set.
      */
-    Node getLastChild(Node node) {
+    private Node getLastChild(Node node) {
         
         if (node == null) return null;
         
@@ -484,7 +484,7 @@ public class TwsTreeWalker  implements TreeWalker {
     
     /** Internal function. 
      *  The node whatToShow and the filter are combined into one result. */
-    short acceptNode(Node node) {
+    private short acceptNode(Node node) {
         /***
          7.1.2.4. Filters and whatToShow flags 
 

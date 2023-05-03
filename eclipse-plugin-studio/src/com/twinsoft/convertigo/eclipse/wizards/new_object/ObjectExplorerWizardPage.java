@@ -40,7 +40,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 	private Composite composite = null;
 	private DatabaseObject newBean = null;
 
-	public ObjectExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass) {
+	ObjectExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass) {
 		super("ObjectExplorerWizardPage");
 		this.beanClass = beanClass;
 		this.parentObject = parentObject;
@@ -134,7 +134,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		return super.getNextPage();
 	}
 
-	public void showNextPage() {
+	void showNextPage() {
 		if (isPageComplete()) {
 			createBean();
 			setInfoBeanName();
@@ -146,7 +146,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		}
 	}
 
-	public void doCancel() {
+	void doCancel() {
 		if (newBean != null) {
 			DatabaseObject dbo = newBean.getParent();
 			if (dbo != null) {

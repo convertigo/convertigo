@@ -48,42 +48,12 @@ public class CachedIntrospector {
 	private final static Map<Class<? extends DatabaseObject>, BeanInfo> cacheBeanInfo = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, BeanInfo>());
 	private final static Map<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>> cacheProperties = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>>());
 	private final static Set<String> cacheClassNames = Collections.synchronizedSet(new HashSet<String>());
-
-	public static <T> Set<T> getPropertyValues(DatabaseObject databaseObject, Property property) {
-		Set<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(databaseObject, property);
-		Set<T> values = new HashSet<T>(propertyDescriptors.size());
-		for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
-			try {
-				values.add(GenericUtils.<T>cast(propertyDescriptor.getReadMethod().invoke(databaseObject)));
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to getPropertyValue for " + databaseObject, e);
-			}
-		}
-		return values;
-	}
-	
-	public static <T> T getPropertyValue(DatabaseObject databaseObject, Property property) {
-		PropertyDescriptor propertyDescriptor = getPropertyDescriptor(databaseObject, property);
-		if (propertyDescriptor != null) {
-			try {
-				return GenericUtils.cast(propertyDescriptor.getReadMethod().invoke(databaseObject));
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to getPropertyValue for " + databaseObject, e);
-			}
-		}
-		return null;
-	}
-	
-	public static PropertyDescriptor getPropertyDescriptor(DatabaseObject databaseObject, Property property) {
-		Set<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(databaseObject.getClass(), property);
-		return propertyDescriptors.isEmpty() ? null : propertyDescriptors.iterator().next();
-	}
 	
 	public static Set<PropertyDescriptor> getPropertyDescriptors(DatabaseObject databaseObject, Property property) {
 		return getPropertyDescriptors(databaseObject.getClass(), property);
 	}
 	
-	public static Set<PropertyDescriptor> getPropertyDescriptors(Class<? extends DatabaseObject> beanClass, Property property) {
+	private static Set<PropertyDescriptor> getPropertyDescriptors(Class<? extends DatabaseObject> beanClass, Property property) {
 		try {
 			Map<Property, Set<PropertyDescriptor>> beanProperties = cacheProperties.get(beanClass);
 			if (beanProperties == null) {
@@ -136,11 +106,9 @@ public class CachedIntrospector {
 		return beanInfo;
 	}
 	
-	public static Set<String> getClassNames() {
-		return cacheClassNames;
-	}
 	
-	public static void prefetchDatabaseObjects() {
+	
+	private static void prefetchDatabaseObjects() {
 		long time = System.currentTimeMillis();
 		final long[] count = {0};
 		Engine.logEngine.debug("(CachedIntrospector) Start to prefetch beans");

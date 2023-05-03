@@ -62,19 +62,11 @@ public class DeployProjectWizard extends Wizard {
 		projectExportOptionsWizardPage = new ProjectExportOptionsWizardPage(project);
 		addPage(projectExportOptionsWizardPage);
 		
-		projectDeployOptionsWizardPage = new ProjectDeployOptionsWizardPage(project);
+		projectDeployOptionsWizardPage = new ProjectDeployOptionsWizardPage();
 		addPage(projectDeployOptionsWizardPage);
 		
 		projectDeployResultWizardPage = new ProjectDeployResultWizardPage(project);
 		addPage(projectDeployResultWizardPage);
-	}
-
-	protected ProjectExportOptionsWizardPage getProjectExportOptionsWizardPage() {
-		return projectExportOptionsWizardPage;
-	}
-	
-	protected ProjectDeployOptionsWizardPage getProjectDeployOptionsWizardPage() {
-		return projectDeployOptionsWizardPage;
 	}
 	
 	@Override

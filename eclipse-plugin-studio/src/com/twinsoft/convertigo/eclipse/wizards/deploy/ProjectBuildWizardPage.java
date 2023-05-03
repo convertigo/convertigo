@@ -45,17 +45,17 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
-public class ProjectBuildWizardPage extends WizardPage {
-	static final int BUILD_DONE 	= 1;
-	static final int BUILD_CANCELED = 2;
-	static final int BUILD_FAILED 	= 3;
+class ProjectBuildWizardPage extends WizardPage {
+	private static final int BUILD_DONE 	= 1;
+	private static final int BUILD_CANCELED = 2;
+	private static final int BUILD_FAILED 	= 3;
 	
-	Project project = null;
-	boolean buildDone = false;
+	private Project project = null;
+	private boolean buildDone = false;
 	
-	ProjectBuildComposite composite = null;
+	private ProjectBuildComposite composite = null;
 	
-	public ProjectBuildWizardPage(Project project) {
+	ProjectBuildWizardPage(Project project) {
 		super("ProjectBuildWizardPage", "Application build", null);
 		this.project = project;
 	}
@@ -85,7 +85,7 @@ public class ProjectBuildWizardPage extends WizardPage {
 		}
 	}
 	
-	IRunnableWithProgress runnable = new IRunnableWithProgress() {
+	private IRunnableWithProgress runnable = new IRunnableWithProgress() {
 		@Override
 		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 			String infoText = "--";

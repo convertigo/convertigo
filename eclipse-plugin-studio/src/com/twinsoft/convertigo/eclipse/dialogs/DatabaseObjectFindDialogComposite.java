@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite {
+class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite {
 	
 	private Combo combo = null;
 	private Text text = null;
@@ -87,7 +87,7 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		return text.getText();
 	}
 	
-	public boolean matchCase() {
+	private boolean matchCase() {
 		return checkBox1.getSelection();
 	}
 

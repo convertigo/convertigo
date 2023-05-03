@@ -28,11 +28,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
-public class CommentEditingSupport extends EditingSupport {
+class CommentEditingSupport extends EditingSupport {
 
-	CellEditor cellEditor;
+	private CellEditor cellEditor;
 	
-	public CommentEditingSupport(TreeViewer viewer) {
+	CommentEditingSupport(TreeViewer viewer) {
 		super(viewer);
 		cellEditor = new TextCellEditor(viewer.getTree());
 	}

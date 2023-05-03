@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.eclipse.DeploymentKey;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
-public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryGenerator {
+class PscKeyPage extends WizardPage implements RegisterCallback, SummaryGenerator {
 	
 	private Composite container;
 	
@@ -201,11 +201,11 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 		return pscKey.getText().trim();
 	}
 	
-	public void clearCertificateKey() {
+	void clearCertificateKey() {
 		pscKey.setText("");
 	}
 	
-	public void setAnonymousCertificateKey() {
+	void setAnonymousCertificateKey() {
 		try {
 			pscKey.setText(ConvertigoPlugin.makeAnonymousPsc());
 		} catch (IOException e) {

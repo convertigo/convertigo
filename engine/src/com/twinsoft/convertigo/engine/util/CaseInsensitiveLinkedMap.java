@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class CaseInsensitiveLinkedMap<V> extends AbstractMap<String, V> {
-	Set<Entry<String, V>> list = new LinkedHashSet<Entry<String, V>>();
+	private Set<Entry<String, V>> list = new LinkedHashSet<Entry<String, V>>();
 
 	@Override
 	public boolean containsKey(Object key) {

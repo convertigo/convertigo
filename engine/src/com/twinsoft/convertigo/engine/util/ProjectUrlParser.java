@@ -134,7 +134,7 @@ public class ProjectUrlParser {
 		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
-	static public String makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
+	static private String makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
 		StringBuilder url = new StringBuilder(projectName);
 		if (StringUtils.isNotBlank(gitUrl)) {
 			url.append('=').append(gitUrl);

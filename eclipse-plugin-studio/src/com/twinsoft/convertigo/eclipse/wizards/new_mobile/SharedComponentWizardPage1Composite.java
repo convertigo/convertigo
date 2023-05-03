@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class SharedComponentWizardPage1Composite extends Composite {
+class SharedComponentWizardPage1Composite extends Composite {
 
 	private Text text_name;
 	private Button rbtnKeep;
@@ -41,7 +41,7 @@ public class SharedComponentWizardPage1Composite extends Composite {
 	private String sharedComponentName = null;
 	private boolean canCustomizeVariables = false;
 	
-	public SharedComponentWizardPage1Composite(Composite parent, int style, SharedComponentWizardPage1 page) {
+	SharedComponentWizardPage1Composite(Composite parent, int style, SharedComponentWizardPage1 page) {
 		super(parent, style);
 		this.page = page;
 		this.sharedComponentName = page.getSharedComponentName();

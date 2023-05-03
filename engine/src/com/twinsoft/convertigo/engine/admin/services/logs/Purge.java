@@ -43,7 +43,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		returnValue = ""
 	)
 public class Purge extends XmlService {
-	enum Action {
+	private enum Action {
 		list_files,
 		delete_files;
 		

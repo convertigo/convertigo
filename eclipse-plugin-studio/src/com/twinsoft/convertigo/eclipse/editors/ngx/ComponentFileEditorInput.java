@@ -28,10 +28,6 @@ public class ComponentFileEditorInput extends FileEditorInput {
 
 	private MobileObject component = null;
 	
-	public ComponentFileEditorInput(IFile file) {
-		super(file);
-	}
-	
 	public ComponentFileEditorInput(IFile file, MobileObject component) {
 		super(file);
 		this.component = component;

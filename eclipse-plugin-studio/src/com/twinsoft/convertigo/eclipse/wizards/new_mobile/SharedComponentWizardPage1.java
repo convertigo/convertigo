@@ -26,8 +26,8 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class SharedComponentWizardPage1 extends WizardPage {
-	protected SharedComponentWizard wizard;
+class SharedComponentWizardPage1 extends WizardPage {
+	private SharedComponentWizard wizard;
 	
 	private String sharedComponentName;
 	private boolean keepComponent = true;
@@ -49,7 +49,7 @@ public class SharedComponentWizardPage1 extends WizardPage {
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public SharedComponentWizardPage1(SharedComponentWizard wizard) {
+	SharedComponentWizardPage1(SharedComponentWizard wizard) {
 		super("wizardPage");
 		this.wizard = wizard;
 		setTitle("New shared component");

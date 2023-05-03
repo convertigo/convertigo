@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class FileCacheManager extends CacheManager {
 	
-	protected long getNextIndex() {
+	private long getNextIndex() {
 		long index = 0;
 		
 		try {
@@ -54,7 +54,7 @@ public class FileCacheManager extends CacheManager {
 		return index;
 	}
 
-	protected void makeDirectory() {
+	private void makeDirectory() {
 		File dir = new File(Engine.CACHE_PATH + "/proxy/");
 		if (!dir.exists()) {
 			dir.mkdirs();

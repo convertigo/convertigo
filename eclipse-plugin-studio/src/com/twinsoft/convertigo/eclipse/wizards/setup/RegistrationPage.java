@@ -52,9 +52,9 @@ import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.CheckConnectedC
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class RegistrationPage extends WizardPage implements CheckConnectedCallback {
+class RegistrationPage extends WizardPage implements CheckConnectedCallback {
 	private static final Pattern pCheckEmail = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}\\@[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+");
-	public static final String registrationLink = "<a href=\"https://www.convertigo.com/register\">www.convertigo.com/register</a>";
+	static final String registrationLink = "<a href=\"https://www.convertigo.com/register\">www.convertigo.com/register</a>";
 	private Text firstname;
 	private Text lastname;
 	private Text email;
@@ -435,7 +435,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		return wizard;
 	}
 	
-	public static boolean isEmailAdress(String email) {
+	private static boolean isEmailAdress(String email) {
 		Matcher m = pCheckEmail.matcher(email.toUpperCase());
 		return m.matches();
 	}
@@ -497,7 +497,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		});
 	}
 	
-	public boolean register(RegisterCallback callback) {
+	boolean register(RegisterCallback callback) {
 		if (isConnected && changed) {
 			changed = false;
 			((SetupWizard) super.getWizard()).register(

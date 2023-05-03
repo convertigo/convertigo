@@ -23,10 +23,10 @@ import java.io.File;
 import java.util.Properties;
 
 public class FileAndProperties{
-	File f;
-	Properties p;
+	private File f;
+	private Properties p;
 	
-	public FileAndProperties(File f, Properties p) {
+	FileAndProperties(File f, Properties p) {
 		super();
 		this.f = f;
 		this.p = p;

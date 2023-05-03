@@ -41,13 +41,13 @@ public class RegistrationBrowser extends Composite {
 		void onReady(boolean ok);
 	}
 	
-	C8oBrowser browser;
-	String username;
-	String secret;
-	OnPSC onPSC;
-	OnReady onReady;
+	private C8oBrowser browser;
+	private String username;
+	private String secret;
+	private OnPSC onPSC;
+	private OnReady onReady;
 
-	public class StudioAPI {
+	private class StudioAPI {
 		
 		@JsAccessible
 		public String getUsername() {

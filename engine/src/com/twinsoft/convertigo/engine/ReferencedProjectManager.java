@@ -54,7 +54,7 @@ public class ReferencedProjectManager {
 		return loaded;
 	}
 	
-	public boolean check(Project project) {
+	boolean check(Project project) {
 		Map<String, ProjectUrlParser> refs = new HashMap<>();
 		check(project, refs);
 		return check(refs);

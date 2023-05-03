@@ -40,11 +40,11 @@ public class PacManager {
 	private final String scriptUrl;
 	private Scriptable scope;
 
-	public PacManager(String url) {
+	PacManager(String url) {
 		this.scriptUrl = url;
 	}
 
-	public void start() {
+	void start() {
 		try {
 			Context ctx = Context.enter();
 			scope = ctx.initStandardObjects();
@@ -103,7 +103,7 @@ public class PacManager {
 		return IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
 	}
 
-	public String evaluate(String url, String host) {
+	private String evaluate(String url, String host) {
 		Object result = "";
 		try {
 			Context ctx = Context.enter();
@@ -122,7 +122,7 @@ public class PacManager {
 		return result.toString();
 	}
 	
-	public PacInfos getPacInfos(String url, String host) {
+	PacInfos getPacInfos(String url, String host) {
 		PacInfos pacInfos = null;
 		String result = evaluate(url, host);
 		if (result.startsWith("PROXY")) {
@@ -135,8 +135,8 @@ public class PacManager {
 	}
 	
 	public class PacInfos {
-		protected String pacServer;
-		protected int pacPort;
+		private String pacServer;
+		private int pacPort;
 		
 		protected PacInfos() {
 		}

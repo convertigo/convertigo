@@ -57,16 +57,16 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class EnginePropertiesManager {
-	enum Visibility { VISIBLE, HIDDEN, HIDDEN_CLOUD, HIDDEN_SERVER };
+	private enum Visibility { VISIBLE, HIDDEN, HIDDEN_CLOUD, HIDDEN_SERVER };
 
-	@Retention(RetentionPolicy.RUNTIME)
+	private @Retention(RetentionPolicy.RUNTIME)
 	@interface CategoryOptions {
 		Visibility visibility() default Visibility.VISIBLE;
 		Role[] viewRoles() default {};
 		Role[] configRoles() default {};
 	}
 
-	@Retention(RetentionPolicy.RUNTIME)
+	private @Retention(RetentionPolicy.RUNTIME)
 	@interface PropertyOptions {
 		Visibility visibility() default Visibility.VISIBLE;
 		boolean advance() default false;
@@ -78,9 +78,9 @@ public class EnginePropertiesManager {
 	/**
 	 * The propertEnginePropertiesManagerr the Convertigo engine.
 	 */
-	public static final String PROPERTIES_FILE_NAME = "/engine.properties";
+	static final String PROPERTIES_FILE_NAME = "/engine.properties";
 
-	public static final String SYSTEM_PROP_PREFIX = "convertigo.engine.";
+	private static final String SYSTEM_PROP_PREFIX = "convertigo.engine.";
 
 	private static String STUDIO_APPLICATION_SERVER_CONVERTIGO_URL = null;
 
@@ -89,7 +89,7 @@ public class EnginePropertiesManager {
 		String getValue();
 	}
 
-	public enum EmptyCombo implements ComboEnum {
+	private enum EmptyCombo implements ComboEnum {
 		;
 
 		public String getDisplay() {
@@ -101,7 +101,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	public enum RootLogLevels implements ComboEnum {
+	private enum RootLogLevels implements ComboEnum {
 		FATAL,
 		ERROR,
 		WARN,
@@ -118,7 +118,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	public enum LogLevels implements ComboEnum {
+	private enum LogLevels implements ComboEnum {
 		INHERITED ("", "Inherited from root logger"),
 		FATAL,
 		ERROR,
@@ -149,7 +149,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	public enum XsltEngine implements ComboEnum {
+	private enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
 
@@ -159,11 +159,6 @@ public class EnginePropertiesManager {
 		XsltEngine(String value, String display) {
 			this.display = display;
 			this.value = value;
-		}
-
-		XsltEngine(String display) {
-			this.display = display;
-			this.value = name();
 		}
 
 		public String getDisplay() {
@@ -206,27 +201,6 @@ public class EnginePropertiesManager {
 		final String value;
 
 		ProxyMethod(String display) {
-			this.display = display;
-			this.value = name();
-		}
-
-		public String getDisplay() {
-			return display;
-		}
-
-		public String getValue() {
-			return value;
-		}
-	}
-
-	public enum SecurityTokenMode implements ComboEnum {
-		memory ("memory"),
-		database ("database");
-
-		final String display;
-		final String value;
-
-		SecurityTokenMode(String display) {
 			this.display = display;
 			this.value = name();
 		}
@@ -708,12 +682,7 @@ public class EnginePropertiesManager {
 	};
 
 	private static Properties properties;
-	public static Properties system_properties = null;
-
-	/**
-	 * Store the servlet path, all paths starting with '.' are relative to this path.
-	 */
-	public static String servletPath;
+	private static Properties system_properties = null;
 
 	public static String getProperty(PropertyName property) {
 		return getProperty(property, true);
@@ -737,7 +706,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	public static int getPropertyAsInt(PropertyName property) {
+	static int getPropertyAsInt(PropertyName property) {
 		try {
 			return Integer.parseInt(getProperty(property, true));
 		} catch (Exception e) {
@@ -753,7 +722,7 @@ public class EnginePropertiesManager {
 		return getProperty(property, false);
 	}
 
-	public static String getProperty(PropertyName property, boolean bSubstitute) {
+	private static String getProperty(PropertyName property, boolean bSubstitute) {
 		if (property == null) {
 			throw new IllegalArgumentException("Null property key");
 		}
@@ -794,11 +763,11 @@ public class EnginePropertiesManager {
 		return getPropertyAsStringArray(property, false);
 	}
 
-	public static String[] getPropertyAsStringArray(PropertyName property) {
+	static String[] getPropertyAsStringArray(PropertyName property) {
 		return getPropertyAsStringArray(property, true);
 	}
 
-	public static String[] getPropertyAsStringArray(PropertyName property, boolean bSubstitute) {
+	private static String[] getPropertyAsStringArray(PropertyName property, boolean bSubstitute) {
 		if (property.getType() != PropertyType.Array) {
 			throw new IllegalArgumentException("The requested property is not of type Array: " + property);
 		}
@@ -857,7 +826,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	public static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {
+	static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {
 		if (property.getType() != PropertyType.Combo) {
 			throw new IllegalArgumentException("The requested property is not of type Combo: " + property);
 		}
@@ -870,7 +839,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	public static void copySystemProperties(){
+	private static void copySystemProperties(){
 		if (system_properties == null) {
 			Properties sys_prop = System.getProperties();
 			system_properties = new Properties();
@@ -1008,7 +977,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	public static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {
+	private static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {
 		Properties modifiedProperties = new Properties();
 		for (PropertyName property : PropertyName.values()) {
 			String propertyValue = getOriginalProperty(property);
@@ -1024,7 +993,7 @@ public class EnginePropertiesManager {
 		PropertiesUtils.store(modifiedProperties, outputStream, comments);
 	}
 
-	public static String getPropertiesAsString(String title, Properties propertiesToGet) {
+	static String getPropertiesAsString(String title, Properties propertiesToGet) {
 		if (propertiesToGet == null) {
 			if (properties == null) {
 				throw new IllegalStateException("Not initialized EnginePropertiesManager");
@@ -1056,7 +1025,7 @@ public class EnginePropertiesManager {
 		}
 	};
 
-	public static void configureLog4J() {
+	private static void configureLog4J() {
 		Properties log4jProperties = new Properties();
 		for (PropertyName propertyName : PropertyName.values()) {
 			String sPropertyName = propertyName.toString();
@@ -1113,7 +1082,7 @@ public class EnginePropertiesManager {
 		properties = null;
 	}
 
-	public static void load(String sProperties) throws IOException {
+	static void load(String sProperties) throws IOException {
 		if (properties == null) {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}

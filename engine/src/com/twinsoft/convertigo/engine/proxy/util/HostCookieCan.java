@@ -25,11 +25,11 @@ public class HostCookieCan {
 	private String domainRoot;
 	private List<ClientCookie> cookies = new ArrayList<ClientCookie>();
 
-	public HostCookieCan(String domainRoot) {
+	HostCookieCan(String domainRoot) {
 		this.domainRoot = domainRoot;
 	}
 
-	synchronized public void addCookie(ClientCookie cookie) {
+	synchronized void addCookie(ClientCookie cookie) {
 		int pos = cookies.indexOf(cookie);
 		if (pos < 0) {
 			if (!cookie.isTerminated())
@@ -42,7 +42,7 @@ public class HostCookieCan {
 		}
 	}
 
-	synchronized public String getServerCookieString(
+	synchronized String getServerCookieString(
 		String host,
 		String path) {
 		StringBuffer sbuf = new StringBuffer(64 * cookies.size());
@@ -73,7 +73,7 @@ public class HostCookieCan {
 		return toString("");
 	}
 
-	synchronized public String toString(String marginSpaces) {
+	synchronized String toString(String marginSpaces) {
 		StringBuffer sb = new StringBuffer(128 * cookies.size() + 64);
 
 		sb.append(marginSpaces).append("HostCookieCan: ").append(

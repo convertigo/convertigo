@@ -24,13 +24,16 @@ import org.codehaus.jettison.json.JSONObject;
 public class JsonData {
 	private JSONObject jsonObject = null;
 	private Class<? extends TreeParent> ownerClass = null;
+	
 	public JsonData(Class<? extends TreeParent> ownerClass, JSONObject jsonObject) {
 		this.ownerClass = ownerClass;
 		this.jsonObject = jsonObject;
 	}
+	
 	public JSONObject getData() {
 		return jsonObject;
 	}
+	
 	public Class<? extends TreeParent> getOwnerClass() {
 		return ownerClass;
 	}	

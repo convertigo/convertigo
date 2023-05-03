@@ -21,33 +21,17 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.ConvertigoException;
 
 public class ScreenClassTreeObject extends DatabaseObjectTreeObject {
-
-	public ScreenClassTreeObject(Viewer viewer, ScreenClass object) {
-		this(viewer, object, false);
-	}
 
 	public ScreenClassTreeObject(Viewer viewer, ScreenClass object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
 	
+	@Override
 	public ScreenClass getObject(){
 		return (ScreenClass) super.getObject();
-	}
-	
-	public boolean rename(String newName, Boolean bDialog) {
-		ScreenClass sc = getObject();
-		IScreenClassContainer<?> scc = (IScreenClassContainer<?>)sc.getConnector();
-		if(!sc.getName().equalsIgnoreCase(newName) && scc.getScreenClassByName(newName)!=null){
-			ConvertigoPlugin.logException(new ConvertigoException("The name \"" + newName + "\" is already used by another screen class."), "Unable to change the object name.", bDialog);
-            return false;
-		}
-		return super.rename(newName, bDialog);
 	}
 
 	/* (non-Javadoc)

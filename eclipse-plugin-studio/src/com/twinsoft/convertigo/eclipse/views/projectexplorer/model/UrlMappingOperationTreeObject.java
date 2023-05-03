@@ -31,10 +31,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 
-	public UrlMappingOperationTreeObject(Viewer viewer, DatabaseObject object) {
-		this(viewer, object, false);
-	}
-
 	public UrlMappingOperationTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

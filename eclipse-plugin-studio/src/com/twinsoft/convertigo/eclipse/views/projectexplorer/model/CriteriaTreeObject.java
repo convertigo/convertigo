@@ -25,10 +25,6 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 
 public class CriteriaTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject{
 
-	public CriteriaTreeObject(Viewer viewer, Criteria object) {
-		this(viewer, object, false);
-	}
-
 	public CriteriaTreeObject(Viewer viewer, Criteria object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

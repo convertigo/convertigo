@@ -75,7 +75,7 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 		return image;
 	}
 	
-	public static String getKey(Object element) {
+	static String getKey(Object element) {
 		String key = element.getClass().getSimpleName();
 		if (element instanceof NamedList) {
 			key = ((NamedList) element).getName().toLowerCase() + "_folder";

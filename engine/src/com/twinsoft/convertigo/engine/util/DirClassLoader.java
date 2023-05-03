@@ -30,11 +30,11 @@ import java.util.Enumeration;
 import java.util.List;
 
 public class DirClassLoader extends URLClassLoader {
-	ClassLoader parent;
-	ClassLoader loader;
-	List<File> dirs;
-	long nextCheck = 0;
-	String lastContent;
+	private ClassLoader parent;
+	
+	private List<File> dirs;
+	private long nextCheck = 0;
+	private String lastContent;
 	
 	public DirClassLoader(File dir, ClassLoader parent) {
 		super(makeURLs(Arrays.asList(dir), null), null);

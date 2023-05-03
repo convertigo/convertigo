@@ -78,7 +78,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class JsonSchemaUtils {
+class JsonSchemaUtils {
 
 	//https://github.com/OAI/OpenAPI-Specification/issues/1532
 	//https://github.com/swagger-api/swagger-ui/issues/3803

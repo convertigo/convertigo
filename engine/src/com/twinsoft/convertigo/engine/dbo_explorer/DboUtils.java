@@ -82,7 +82,7 @@ public class DboUtils {
 		return technology;
 	}
 
-	public static String getClassName(Class<?> c) {
+	private static String getClassName(Class<?> c) {
 		String FQClassName = c.getName();
 		int firstChar;
 		firstChar = FQClassName.lastIndexOf('.') + 1;

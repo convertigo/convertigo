@@ -42,7 +42,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
@@ -52,7 +51,7 @@ import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class ComponentInfoWizardPage extends WizardPage {
+class ComponentInfoWizardPage extends WizardPage {
 	private Object parentObject = null;
 
 	private Text beanName;
@@ -62,7 +61,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 	private CouchVariablesComposite couchVariablesComposite = null;
 	private Composite container = null;
 
-	public ComponentInfoWizardPage(Object parentObject) {
+	ComponentInfoWizardPage(Object parentObject) {
 		super("ComponentInfoWizardPage");
 		this.parentObject = parentObject;
 		setTitle("Informations");
@@ -123,23 +122,14 @@ public class ComponentInfoWizardPage extends WizardPage {
 		beanName.setText("");
 	}
 
-	public void fillTree(Class<? extends DatabaseObject> beanClass) {
+	void fillTree(Class<? extends DatabaseObject> beanClass) {
 		treeItemName = null;
 		tree.removeAll();
 		if (parentObject instanceof Transaction) {
 			tree.setVisible(false);
 		}
 	}
-
-	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
-		TreeItem leaf = new TreeItem(branch, SWT.NONE);
-		leaf.setText(screenClass.getName());
-		List<ScreenClass> screenClasses = screenClass.getInheritedScreenClasses();
-		for (ScreenClass sC : screenClasses) {
-			getInHeritedScreenClass(sC, leaf);
-		}
-	}
-
+	
 	private void dialogChanged(boolean increment) {
 		DatabaseObject dbo = ((ComponentExplorerWizardPage)getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
 		if (dbo != null) {

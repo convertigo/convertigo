@@ -46,8 +46,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SchedulerJob implements Job {
-	static Pattern encodingPattern = Pattern.compile(".*encoding=\"([^\"]*)\".*");;
-
+	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDetail jd = context.getJobDetail();
 		ScheduledJob scheduledJob = (ScheduledJob) jd.getJobDataMap().get("scheduledJob");
@@ -63,7 +62,7 @@ public class SchedulerJob implements Job {
 		}
 	}
 
-	public void executeJob(AbstractJob job, String jdName) {
+	private void executeJob(AbstractJob job, String jdName) {
 		if (job.isEnable()) {
 			long start = System.currentTimeMillis();
 			if (job instanceof AbstractConvertigoJob) {

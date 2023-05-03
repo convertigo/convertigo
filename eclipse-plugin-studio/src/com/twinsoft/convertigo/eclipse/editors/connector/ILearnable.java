@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
-public interface ILearnable {
+interface ILearnable {
 
 	public void startLearn();
 	

@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a resetable connector.
  */
-public interface IResetable {
+interface IResetable {
 
 	public void reset();
 	

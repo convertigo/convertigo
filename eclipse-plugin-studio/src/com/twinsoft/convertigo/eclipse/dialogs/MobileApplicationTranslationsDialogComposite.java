@@ -35,7 +35,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
-public class MobileApplicationTranslationsDialogComposite extends MyAbstractDialogComposite {
+class MobileApplicationTranslationsDialogComposite extends MyAbstractDialogComposite {
 
 	private List<String> languages = null;
 	
@@ -48,6 +48,7 @@ public class MobileApplicationTranslationsDialogComposite extends MyAbstractDial
 		super(parent, style);
 	}
 	
+	@Override
 	protected void initialize() {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;

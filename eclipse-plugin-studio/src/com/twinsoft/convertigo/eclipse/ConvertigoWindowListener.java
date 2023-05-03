@@ -26,7 +26,7 @@ import org.eclipse.ui.IWorkbenchWindow;
  * @author nathalieh
  *
  */
-public class ConvertigoWindowListener implements IWindowListener {
+class ConvertigoWindowListener implements IWindowListener {
 
 	/**
 	 * The Convertigo listener for window events.

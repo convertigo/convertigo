@@ -106,10 +106,6 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 
-	public NgxUIComponentTreeObject(Viewer viewer, UIComponent object) {
-		super(viewer, object);
-	}
-
 	public NgxUIComponentTreeObject(Viewer viewer, UIComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
@@ -1078,11 +1074,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 
-	protected void appUpdateSourceFiles(UIComponent uic) throws EngineException {
+	private void appUpdateSourceFiles(UIComponent uic) throws EngineException {
 		uic.getApplication().updateSourceFiles();
 	}
 	
-	protected static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
+	private static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
 		if (uic1 != null && uic2 != null) {
 			try {
 				return uic1.getMainScriptComponent().equals(uic2.getMainScriptComponent());
@@ -1091,7 +1087,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		return false;
 	}
 
-	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
+	private void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 
 		String propertyName = (String)treeObjectEvent.propertyName;
@@ -1277,7 +1273,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;
@@ -1501,14 +1497,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 
-	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
+	private void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
 		if (to != null) {
 			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue, done);
 		}
 	}
 
-	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
+	synchronized private void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		if (done == null) {
 			done = new HashSet<Object>();
 		}

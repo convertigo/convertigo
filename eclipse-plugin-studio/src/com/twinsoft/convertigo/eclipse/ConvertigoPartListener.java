@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 
 @SuppressWarnings("restriction")
-public class ConvertigoPartListener implements IPartListener {
+class ConvertigoPartListener implements IPartListener {
 
 	/**
 	 * The Convertigo listener for Parts events.

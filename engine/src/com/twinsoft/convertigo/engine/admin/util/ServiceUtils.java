@@ -112,7 +112,7 @@ public class ServiceUtils {
 		return new FileAndProperties(file, storesProperties);
 	}
 	
-	public static void handleError(Document document, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
+	private static void handleError(Document document, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
 			HttpUtils.applyCorsHeaders(request, response);
 			response.setStatus(500);

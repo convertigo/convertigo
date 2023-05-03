@@ -23,8 +23,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -34,12 +32,13 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplica
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class ProjectExplorerRunApplicationLowCodeEditor extends MyAbstractAction implements IViewActionDelegate {
+public class ProjectExplorerRunApplicationLowCodeEditor extends MyAbstractAction {
 
 	public ProjectExplorerRunApplicationLowCodeEditor() {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
@@ -74,8 +73,4 @@ public class ProjectExplorerRunApplicationLowCodeEditor extends MyAbstractAction
 			waitCursor.dispose();
 		}
 	}
-
-	public void init(IViewPart view) {
-	}
-
 }

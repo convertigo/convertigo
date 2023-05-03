@@ -25,9 +25,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-public class CustomDialogComposite extends MyAbstractDialogComposite {
+class CustomDialogComposite extends MyAbstractDialogComposite {
 
-	protected int response;
+	private int response;
 	private String question = "";
 	private Label labelQuestion;
 
@@ -58,4 +58,4 @@ public class CustomDialogComposite extends MyAbstractDialogComposite {
 		this.question = question;
 		labelQuestion.setText(question);
 	}
-} // @jve:decl-index=0:visual-constraint="10,10"
+}

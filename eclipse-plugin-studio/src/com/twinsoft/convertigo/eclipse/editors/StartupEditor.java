@@ -56,7 +56,7 @@ public class StartupEditor extends EditorPart {
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
 	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-8-2/";
 
-	C8oBrowser browser = null;
+	private C8oBrowser browser = null;
 	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -209,11 +209,12 @@ public class StartupEditor extends EditorPart {
 		return new StartupInput(user, site, autoClose);
 	}
 	
-	static class StartupInput implements IEditorInput {
-		String user;
-		String site;
-		boolean autoClose;
-		StartupInput(String user, String site, boolean autoClose) {
+	private static class StartupInput implements IEditorInput {
+		private String user;
+		private String site;
+		private boolean autoClose;
+		
+		private StartupInput(String user, String site, boolean autoClose) {
 			this.user = user;
 			this.site = site;
 			this.autoClose = autoClose;

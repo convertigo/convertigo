@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
 
-public class FileWalker {
+class FileWalker {
 
 	public FileWalker() {
 	}

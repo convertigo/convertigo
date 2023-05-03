@@ -28,11 +28,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 
-public class DecoratingColumnLabelProvider extends ColumnLabelProvider {
+class DecoratingColumnLabelProvider extends ColumnLabelProvider {
 	
-	DecoratingLabelProvider provider;
+	private DecoratingLabelProvider provider;
 	
-	public DecoratingColumnLabelProvider(ILabelProvider provider, ILabelDecorator decorator) {
+	DecoratingColumnLabelProvider(ILabelProvider provider, ILabelDecorator decorator) {
 		this.provider = new DecoratingLabelProvider(provider, decorator);		
 	}
 

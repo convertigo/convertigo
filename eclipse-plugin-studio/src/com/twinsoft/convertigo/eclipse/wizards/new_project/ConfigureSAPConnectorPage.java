@@ -27,7 +27,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 
-public class ConfigureSAPConnectorPage extends WizardPage {
+class ConfigureSAPConnectorPage extends WizardPage {
 
 	private String asHost;
 	private String systemNumber = "00";
@@ -40,7 +40,7 @@ public class ConfigureSAPConnectorPage extends WizardPage {
 	 * Constructor for ConfigureSAPConnectorPage
 	 * @param selection
 	 */
-	public ConfigureSAPConnectorPage(ISelection selection) {
+	ConfigureSAPConnectorPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Define SAP connector parameters");
 		setDescription("This step configures the SAP connector parameters");

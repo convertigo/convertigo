@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MashupActionConfiguration implements Serializable {
+class MashupActionConfiguration implements Serializable {
 
 	private static final long serialVersionUID = -6288005285115715932L;
 
@@ -33,15 +33,9 @@ public class MashupActionConfiguration implements Serializable {
 		
 	}
 
-	public void addDataView(String name) {
-		if (!dataviews.contains(name))
-			dataviews.add(name);
-	}
 	
-	public void removeDataView(String name) {
-		if (dataviews.contains(name))
-			dataviews.remove(name);
-	}
+	
+	
 
 	public List<String> getDataViews() {
 		return dataviews;

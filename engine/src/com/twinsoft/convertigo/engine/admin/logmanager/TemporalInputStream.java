@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class TemporalInputStream extends InputStream {
+class TemporalInputStream extends InputStream {
 	private final static Pattern split_dot = Pattern.compile("\\.");
 	private ParsePosition date_position = new ParsePosition(0);
 	private long position_start = -1;
@@ -52,7 +52,7 @@ public class TemporalInputStream extends InputStream {
 	private final byte [] b = new byte[BUF_SIZE];
 	private String encoding;
 
-	public TemporalInputStream(File directory, String base_file, DateFormat date_format, int date_offset, Date date_start, Date date_end, String encoding) throws IOException {
+	TemporalInputStream(File directory, String base_file, DateFormat date_format, int date_offset, Date date_start, Date date_end, String encoding) throws IOException {
 		if (date_start.compareTo(date_end) >= 0) {
 			throw new IllegalArgumentException("date_start must be less than date_end");
 		}

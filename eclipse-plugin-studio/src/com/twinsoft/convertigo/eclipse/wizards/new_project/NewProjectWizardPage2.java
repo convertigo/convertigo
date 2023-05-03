@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Composite;
  * OR with the extension that matches the expected one (mpe).
  */
 
-public class NewProjectWizardPage2 extends WizardPage {
+class NewProjectWizardPage2 extends WizardPage {
 	private String connectorName;
 
 	/**
@@ -41,7 +41,7 @@ public class NewProjectWizardPage2 extends WizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public NewProjectWizardPage2(ISelection selection) {
+	NewProjectWizardPage2(ISelection selection) {
 		super("wizardPage");
 		setTitle("Set Connector name");
 		setDescription("This step creates a new Convertigo connector for the project");

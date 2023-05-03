@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizardCompo
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
-public class ImportWizardPage1 extends WizardPage {
+class ImportWizardPage1 extends WizardPage {
 	private String projectName;
 	
 	public String getProjectName() {

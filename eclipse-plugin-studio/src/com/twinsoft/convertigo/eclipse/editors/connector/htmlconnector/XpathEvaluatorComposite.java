@@ -73,7 +73,7 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 abstract public class XpathEvaluatorComposite extends Composite {
-	static final int allowKeyInAnchor[] = {
+	private static final int allowKeyInAnchor[] = {
 			SWT.ARROW_DOWN , SWT.ARROW_UP, SWT.ARROW_RIGHT, SWT.ARROW_LEFT, SWT.END, SWT.HOME, SWT.PAGE_UP, SWT.PAGE_DOWN
 	};
 	
@@ -83,11 +83,11 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	
 	private StyledText xpath = null;
 	private Label lab = null;
-	protected String lastEval = null;
+	private String lastEval = null;
 	protected String currentAnchor = null;
 	private Map<String, ToolItem> buttonsMap = null;
 	private Text nodeData = null;
-	protected TwsDomTree nodesResult = null;
+	private TwsDomTree nodesResult = null;
 	private Color highlightColor = new Color(Display.getDefault(),255,255,121);
 	private List<String> xpathHistory = null;
 	private int currentHistory = 0;
@@ -126,10 +126,9 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		}
 		
 		refreshButtonsEnable();
-//		setBackground(getDisplay().getSystemColor(SWT.COLOR_BLUE));
 	}
 	
-	protected void refreshButtonsEnable() {
+	private void refreshButtonsEnable() {
 		for (ToolItem button : buttonsMap.values()) {
 			if (button != null && !button.isDisposed()) {
 				boolean enable = true;
@@ -161,7 +160,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	
 	abstract protected boolean isButtonEnabled(String name);
 	
-	protected void enableButton(ToolItem button, boolean enable) {
+	private void enableButton(ToolItem button, boolean enable) {
 		Boolean b = Boolean.valueOf(enable);
 		if (button.getData("enable") == null || !button.getData("enable").equals(b)) {
 			String imageURL = "" + button.getData("image_url");
@@ -179,17 +178,13 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		}
 	}
 	
-	protected void enableButton(String name, boolean enable) {
-		enableButton(buttonsMap.get(name), enable);
-	}
-	
 	abstract protected void buttonSelected(String name);
 	
-	protected String[][][] getButtonsDefinition() {
+	private String[][][] getButtonsDefinition() {
 		return new String[][][]{};
 	}
 	
-	protected void initialize() {
+	private void initialize() {
 		GridLayoutFactory gdf = GridLayoutFactory.swtDefaults();
 		gdf.margins(1, 1).spacing(1, 1).equalWidth(false);
 		
@@ -388,7 +383,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		return xpath.getText();
 	}
 
-	public String generateSelectionXpath(TreeItem[] selection)
+	private String generateSelectionXpath(TreeItem[] selection)
 	{
 		TreeItem treeItem, parentTreeItem, lastParentTreeItem = null;
 		String 	xpath, filter, lastRootXPath = "", lastFirstChildrenXPath = null, selectionXpath = "",parentNodeName,nodeName;
@@ -648,18 +643,18 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		}
 	}
 
-	protected String makeAbsoluteXPath(Node node) {
+	private String makeAbsoluteXPath(Node node) {
 		class Nodes {
-			Object obj;
-			Nodes(Object obj) {
+			private Object obj;
+			private Nodes(Object obj) {
 				this.obj = obj;
 			}
-			int getLength() {
+			private int getLength() {
 				return obj instanceof NodeList ?
 					((NodeList) obj).getLength()
 					: ((NamedNodeMap) obj).getLength();
 			}
-			Node item(int index) {
+			private Node item(int index) {
 				return obj instanceof NodeList ?
 					((NodeList) obj).item(index)
 					: ((NamedNodeMap)obj).item(index);
@@ -718,7 +713,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 
-	protected void generateSelectionXpath(boolean overwrite, TwsDomTree tree) {
+	private void generateSelectionXpath(boolean overwrite, TwsDomTree tree) {
 		String newXpath = generateSelectionXpath(tree.getSelection());
 		if (!overwrite && lastEval != null) {
 			newXpath = lastEval + newXpath;
@@ -754,7 +749,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		return bSelectionMenu;
 	}
 	
-	public MenuMaker makeXPathMenuMaker(final boolean overwrite) {
+	private MenuMaker makeXPathMenuMaker(final boolean overwrite) {
 		return new MenuMaker() {
 			public void makeMenu(final TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu) {
 				if ((e.button == 3) && (treeItem != null)) {
@@ -793,7 +788,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 	
-	public KeyAccelerator makeXPathKeyAccelerator(final boolean overwrite) {
+	private KeyAccelerator makeXPathKeyAccelerator(final boolean overwrite) {
 		return new KeyAccelerator() {
 			public boolean doAction(TwsDomTree tree, KeyEvent e) {
 				boolean doNext = true;
@@ -816,7 +811,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 	
-	protected void moveHistory(boolean backward) {
+	private void moveHistory(boolean backward) {
 		int newHistory = backward ?
 				Math.min(xpathHistory.size(), currentHistory + 1)
 				: Math.max(0, currentHistory - 1);

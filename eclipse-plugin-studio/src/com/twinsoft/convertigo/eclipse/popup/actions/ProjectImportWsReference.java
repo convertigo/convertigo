@@ -41,10 +41,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ProjectImportWsReference extends MyAbstractAction {
+class ProjectImportWsReference extends MyAbstractAction {
 
-	public static final int TYPE_SOAP = 1;
-	public static final int TYPE_REST = 2;
+	static final int TYPE_SOAP = 1;
+	static final int TYPE_REST = 2;
 	
 	protected boolean updateMode = false;
 	protected int wsType = 2;
@@ -53,6 +53,7 @@ public class ProjectImportWsReference extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

@@ -61,7 +61,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class CreateScheduledElements extends XmlService {
 	static private Pattern prefixPattern = Pattern.compile("requestable_parameter_(.*)");
 	
-	enum Type {
+	private enum Type {
 		schedulerNewScheduledJob (ScheduledJob.class),
 		schedulerNewTransactionConvertigoJob (TransactionConvertigoJob.class),
 		schedulerNewSequenceConvertigoJob (SequenceConvertigoJob.class),

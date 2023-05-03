@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a linkable connector.
  */
-public interface ILinkable {
+interface ILinkable {
 
 	/**
 	 * Links the property to the selected screen zone

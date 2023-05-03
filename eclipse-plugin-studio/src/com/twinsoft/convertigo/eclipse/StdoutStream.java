@@ -24,7 +24,7 @@ import java.io.PrintStream;
 
 import org.eclipse.ui.console.MessageConsoleStream;
 
-public class StdoutStream extends PrintStream {
+class StdoutStream extends PrintStream {
 
 	protected ConvertigoPlugin convertigoPlugin;
 	protected MessageConsoleStream consoleStream;
@@ -125,10 +125,6 @@ public class StdoutStream extends PrintStream {
 	
 	public void write(byte[] buf, int off, int len) {
     	print(new String(buf, off, len));
-	}
-
-	public void write(byte b) {
-    	write(new byte[] { b }, 0, 1);
 	}
 
 }

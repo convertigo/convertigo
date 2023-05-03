@@ -190,7 +190,7 @@ public class ClientCookie {
 		return expireMillis == 0;
 	}
 
-	static public String calcDomainRoot(String fullDomain) {
+	static String calcDomainRoot(String fullDomain) {
 		if (fullDomain == null || fullDomain.trim().length() == 0)
 			return null;
 
@@ -224,11 +224,11 @@ public class ClientCookie {
 		return fullDomain.substring(rootDotPos + 1);
 	}
 
-	public String toServerCookieString() {
+	String toServerCookieString() {
 		return serverCookieStr;
 	}
 
-	public boolean matchedBy(String fullDomain) {
+	boolean matchedBy(String fullDomain) {
 		return fullDomain.equals(domain) || fullDomain.endsWith(domain);
 	}
 
@@ -245,7 +245,7 @@ public class ClientCookie {
 		return toString("");
 	}
 
-	public String toString(String marginSpaces) {
+	String toString(String marginSpaces) {
 		return marginSpaces + "ClientCookie: " + serverCookieStr + "; domain=" + domain +
 			"; path=" + path + "; expires=" + (expireMillis > 0 ? dateFormat1.format(new Date(expireMillis)) : String.valueOf(expireMillis));
 	}

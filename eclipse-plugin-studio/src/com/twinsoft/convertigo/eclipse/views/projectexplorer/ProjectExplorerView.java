@@ -40,7 +40,6 @@ import java.util.WeakHashMap;
 
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -116,14 +115,12 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.commands.ICommandService;
@@ -183,7 +180,6 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
-import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -192,7 +188,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.RedoAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ShowStepInPickerAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TestCaseExecuteSelectedAction;
@@ -200,7 +195,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TracePlayAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.UndoAction;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
@@ -256,9 +250,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingRes
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
-import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
-import com.twinsoft.convertigo.engine.DatabaseObjectListener;
-import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
@@ -278,89 +269,83 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
 
-	public static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
-
-	public static final int TREE_OBJECT_TYPE_DBO = 0x100;						// 0000 0001 0000 0000
+	static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROJECT = 0x101;				// 0000 0001 0000 0001
-	public static final int TREE_OBJECT_TYPE_DBO_POOL = 0x102;					// 0000 0001 0000 0010
-	public static final int TREE_OBJECT_TYPE_DBO_TRANSACTION = 0x103;			// 0000 0001 0000 0011
-	public static final int TREE_OBJECT_TYPE_DBO_SHEET = 0x104;					// 0000 0001 0000 0100
-	public static final int TREE_OBJECT_TYPE_DBO_ROOT_SCREEN_CLASS = 0x105;		// 0000 0001 0000 0101
+	private static final int TREE_OBJECT_TYPE_DBO_POOL = 0x102;					// 0000 0001 0000 0010
+	private static final int TREE_OBJECT_TYPE_DBO_TRANSACTION = 0x103;			// 0000 0001 0000 0011
+	private static final int TREE_OBJECT_TYPE_DBO_SHEET = 0x104;					// 0000 0001 0000 0100
+	private static final int TREE_OBJECT_TYPE_DBO_ROOT_SCREEN_CLASS = 0x105;		// 0000 0001 0000 0101
 	public static final int TREE_OBJECT_TYPE_DBO_SCREEN_CLASS = 0x106;			// 0000 0001 0000 0110
-	public static final int TREE_OBJECT_TYPE_DBO_BLOCK_FACTORY = 0x107;			// 0000 0001 0000 0111
-	public static final int TREE_OBJECT_TYPE_DBO_CRITERIA = 0x108;				// 0000 0001 0000 1000
-	public static final int TREE_OBJECT_TYPE_DBO_EXTRACTION_RULE = 0x109;		// 0000 0001 0000 1001
-	public static final int TREE_OBJECT_TYPE_DBO_CONNECTOR = 0x10A;				// 0000 0001 0000 1010
+	private static final int TREE_OBJECT_TYPE_DBO_BLOCK_FACTORY = 0x107;			// 0000 0001 0000 0111
+	private static final int TREE_OBJECT_TYPE_DBO_CRITERIA = 0x108;				// 0000 0001 0000 1000
+	private static final int TREE_OBJECT_TYPE_DBO_EXTRACTION_RULE = 0x109;		// 0000 0001 0000 1001
+	static final int TREE_OBJECT_TYPE_DBO_CONNECTOR = 0x10A;				// 0000 0001 0000 1010
 	public static final int TREE_OBJECT_TYPE_DBO_STEP = 0x10D;
 	public static final int TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS = 0x10E;
 	public static final int TREE_OBJECT_TYPE_DBO_SEQUENCE = 0x10F;
-	public static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
+	private static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
 	public static final int TREE_OBJECT_TYPE_DBO_DOCUMENT = 0x113;
-	public static final int TREE_OBJECT_TYPE_DBO_LISTENER = 0x114;
-	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPER = 0x115;
-	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPING = 0x116;
-	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION = 0x117;
-	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER = 0x118;
-	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE = 0x119;
+	private static final int TREE_OBJECT_TYPE_DBO_LISTENER = 0x114;
+	private static final int TREE_OBJECT_TYPE_DBO_URLMAPPER = 0x115;
+	private static final int TREE_OBJECT_TYPE_DBO_URLMAPPING = 0x116;
+	private static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION = 0x117;
+	private static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER = 0x118;
+	private static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE = 0x119;
 
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT = 0x11A;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT = 0x11B;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT = 0x11A;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT = 0x11B;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT = 0x11C;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x11D;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT = 0x11E;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT = 0x11F;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x11D;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT = 0x11E;
+	private static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT = 0x11F;
 
-	public static final int TREE_OBJECT_TYPE_DBO_REFERENCE = 0x120;
-	public static final int TREE_OBJECT_TYPE_DBO_VARIABLE = 0x121;
-	public static final int TREE_OBJECT_TYPE_DBO_INDEX = 0x122;
-	public static final int TREE_OBJECT_TYPE_DBO_MB_MENU = 0x123;
-	public static final int TREE_OBJECT_TYPE_DBO_MB_STYLE = 0x124;
+	private static final int TREE_OBJECT_TYPE_DBO_REFERENCE = 0x120;
+	private static final int TREE_OBJECT_TYPE_DBO_VARIABLE = 0x121;
+	private static final int TREE_OBJECT_TYPE_DBO_INDEX = 0x122;
+	private static final int TREE_OBJECT_TYPE_DBO_MB_MENU = 0x123;
+	private static final int TREE_OBJECT_TYPE_DBO_MB_STYLE = 0x124;
 
-	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
-	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
-	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_COLUMN = 0x302;
+	private static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
+	private static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
+	private static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_COLUMN = 0x302;
 
-	public static final int TREE_OBJECT_TYPE_DBO_INHERITED = 0x400;				// 0000 0100 0000 0000
+	private static final int TREE_OBJECT_TYPE_DBO_INHERITED = 0x400;				// 0000 0100 0000 0000
 
-	public static final int TREE_OBJECT_TYPE_FOLDER = 0x200;					// 0000 0010 0000 0000
+	private static final int TREE_OBJECT_TYPE_FOLDER_POOLS = 0x201;				// 0000 0010 0000 0001
+	private static final int TREE_OBJECT_TYPE_FOLDER_TRANSACTIONS = 0x202;		// 0000 0010 0000 0010
+	private static final int TREE_OBJECT_TYPE_FOLDER_SHEETS = 0x203;				// 0000 0010 0000 0011
+	private static final int TREE_OBJECT_TYPE_FOLDER_SCREEN_CLASSES = 0x204; 	// 0000 0010 0000 0100
+	private static final int TREE_OBJECT_TYPE_FOLDER_CRITERIAS = 0x205;			// 0000 0010 0000 0101
+	private static final int TREE_OBJECT_TYPE_FOLDER_EXTRACTION_RULES = 0x206;	// 0000 0010 0000 0110
+	private static final int TREE_OBJECT_TYPE_FOLDER_CONNECTORS = 0x207;
+	private static final int TREE_OBJECT_TYPE_FOLDER_SEQUENCES = 0x208;
+	private static final int TREE_OBJECT_TYPE_FOLDER_STEPS = 0x209;
+	private static final int TREE_OBJECT_TYPE_FOLDER_VARIABLES = 0x20A;
+	private static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
+	private static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
+	private static final int TREE_OBJECT_TYPE_FOLDER_DOCUMENTS = 0x20D;
+	private static final int TREE_OBJECT_TYPE_FOLDER_LISTENERS = 0x20E;
+	private static final int TREE_OBJECT_TYPE_FOLDER_MAPPINGS = 0x20F;
+	private static final int TREE_OBJECT_TYPE_FOLDER_OPERATIONS = 0x210;
+	private static final int TREE_OBJECT_TYPE_FOLDER_PARAMETERS = 0x211;
+	private static final int TREE_OBJECT_TYPE_FOLDER_EVENTS = 0x212;
+	private static final int TREE_OBJECT_TYPE_FOLDER_ROUTES = 0x213;
+	private static final int TREE_OBJECT_TYPE_FOLDER_ACTIONS = 0x214;
+	private static final int TREE_OBJECT_TYPE_FOLDER_CONTROLS = 0x215;
+	private static final int TREE_OBJECT_TYPE_FOLDER_SOURCES = 0x216;
+	private static final int TREE_OBJECT_TYPE_FOLDER_STYLES = 0x217;
+	private static final int TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES = 0x218;
+	private static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
+	private static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
+	private static final int TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS = 0x21B;
+	private static final int TREE_OBJECT_TYPE_FOLDER_INDEXES = 0x21C;
 
-	public static final int TREE_OBJECT_TYPE_FOLDER_POOLS = 0x201;				// 0000 0010 0000 0001
-	public static final int TREE_OBJECT_TYPE_FOLDER_TRANSACTIONS = 0x202;		// 0000 0010 0000 0010
-	public static final int TREE_OBJECT_TYPE_FOLDER_SHEETS = 0x203;				// 0000 0010 0000 0011
-	public static final int TREE_OBJECT_TYPE_FOLDER_SCREEN_CLASSES = 0x204; 	// 0000 0010 0000 0100
-	public static final int TREE_OBJECT_TYPE_FOLDER_CRITERIAS = 0x205;			// 0000 0010 0000 0101
-	public static final int TREE_OBJECT_TYPE_FOLDER_EXTRACTION_RULES = 0x206;	// 0000 0010 0000 0110
-	public static final int TREE_OBJECT_TYPE_FOLDER_CONNECTORS = 0x207;
-	public static final int TREE_OBJECT_TYPE_FOLDER_SEQUENCES = 0x208;
-	public static final int TREE_OBJECT_TYPE_FOLDER_STEPS = 0x209;
-	public static final int TREE_OBJECT_TYPE_FOLDER_VARIABLES = 0x20A;
-	public static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
-	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
-	public static final int TREE_OBJECT_TYPE_FOLDER_DOCUMENTS = 0x20D;
-	public static final int TREE_OBJECT_TYPE_FOLDER_LISTENERS = 0x20E;
-	public static final int TREE_OBJECT_TYPE_FOLDER_MAPPINGS = 0x20F;
-	public static final int TREE_OBJECT_TYPE_FOLDER_OPERATIONS = 0x210;
-	public static final int TREE_OBJECT_TYPE_FOLDER_PARAMETERS = 0x211;
-	public static final int TREE_OBJECT_TYPE_FOLDER_EVENTS = 0x212;
-	public static final int TREE_OBJECT_TYPE_FOLDER_ROUTES = 0x213;
-	public static final int TREE_OBJECT_TYPE_FOLDER_ACTIONS = 0x214;
-	public static final int TREE_OBJECT_TYPE_FOLDER_CONTROLS = 0x215;
-	public static final int TREE_OBJECT_TYPE_FOLDER_SOURCES = 0x216;
-	public static final int TREE_OBJECT_TYPE_FOLDER_STYLES = 0x217;
-	public static final int TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES = 0x218;
-	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
-	public static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
-	public static final int TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS = 0x21B;
-	public static final int TREE_OBJECT_TYPE_FOLDER_INDEXES = 0x21C;
-
-	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
-
-	public static final int TREE_OBJECT_TYPE_HANDLERS_DECLARATION = 0x8001;		// 1000 0000 0000 0001
-	public static final int TREE_OBJECT_TYPE_VARIABLE = 0x8002;					// 1000 0000 0000 0010
-	public static final int TREE_OBJECT_TYPE_FUNCTION = 0x8003;
+	private static final int TREE_OBJECT_TYPE_HANDLERS_DECLARATION = 0x8001;		// 1000 0000 0000 0001
+	private static final int TREE_OBJECT_TYPE_VARIABLE = 0x8002;					// 1000 0000 0000 0010
+	private static final int TREE_OBJECT_TYPE_FUNCTION = 0x8003;
 
 
 	public TreeViewer viewer;
@@ -370,8 +355,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private UndoManager undoManager;
 
 	private Action doubleClickAction;
-	private Action redoAction;
-	private Action undoAction;
 	private Action copyAction;
 	private Action cutAction;
 	private Action pasteAction;
@@ -840,9 +823,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 		};
-
-		undoAction = new UndoAction();
-		redoAction = new RedoAction();
+		
 		copyAction = new ClipboardCopyAction();
 		cutAction = new ClipboardCutAction();
 		pasteAction = new ClipboardPasteAction();
@@ -889,7 +870,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
 
-	public void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
+	void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = treeObjectListeners.getListenerList();
 		// Process the listeners last to first, notifying
@@ -985,37 +966,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	public IEditorPart getConnectorEditor(Connector connector) {
-		IEditorPart editorPart = null;
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-
-		if (activePage != null) {
-			if (connector != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i = 0; i < editorRefs.length; i++) {
-					IEditorReference editorRef = (IEditorReference) editorRefs[i];
-					try {
-						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput) editorInput).is(connector)) {
-								editorPart = editorRef.getEditor(false);
-								break;
-							}
-						}
-					} catch(PartInitException e) {
-						//ConvertigoPlugin.logException(e, "Error while retrieving the connector editor '" + editorRef.getName() + "'");
-					}
-				}
-			}
-		}
-		return editorPart;
-	}
+	
 
 	//private TreeObject oldSelection = null;
-	TreeItem lastItem[] = new TreeItem[0];
+	private TreeItem lastItem[] = new TreeItem[0];
 
 	private void hookDoubleClickAction() {
 		viewer.addDoubleClickListener(new IDoubleClickListener() {
@@ -1152,7 +1106,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		loadProject(unloadedProjectTreeObject, false, null);
 	}
 
-	protected synchronized void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
+	private synchronized void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
 		String projectName = unloadedProjectTreeObject.toString();
 		if (!MigrationManager.isProjectMigrated(projectName)) {
 			String message = "Could not load the project \"" + projectName + "\" while it is still migrating.";
@@ -1603,13 +1557,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	private class ReloadWithProgress implements IRunnableWithProgress, DatabaseObjectListener {
+	private class ReloadWithProgress implements IRunnableWithProgress {
 		private TreeParent parentTreeObject;
 		private DatabaseObject parentDatabaseObject;
 		private TreeViewer viewer;
 		private Object[] objects = null;
 		private String[] expendedPaths = null;
-		private IProgressMonitor monitor;
 
 		public ReloadWithProgress(TreeViewer viewer, TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) {
 			super();
@@ -1620,8 +1573,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 			String dboName = (parentDatabaseObject instanceof Step) ? ((Step)parentDatabaseObject).getStepNodeName():parentDatabaseObject.getName();
-
-			this.monitor = monitor;
 
 			try {
 				int worksNumber = 10;
@@ -1641,19 +1592,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 				});
 
-				try {
-					// First remove all children of object
-					monitor.subTask("Removing objects...");
-					parentTreeObject.removeAllChildren();
+				// First remove all children of object
+				monitor.subTask("Removing objects...");
+				parentTreeObject.removeAllChildren();
 
-					// Then load object again
-					monitor.subTask("Loading objects...");
-					Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
-					loadDatabaseObject(parentTreeObject, parentDatabaseObject, monitor);
-				}
-				finally {
-					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);
-				}
+				// Then load object again
+				monitor.subTask("Loading objects...");
+				loadDatabaseObject(parentTreeObject, parentDatabaseObject, monitor);
+
 			}
 			catch (Exception e) {
 				ConvertigoPlugin.logException(
@@ -1688,26 +1634,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 		}
-
-		/* (non-Javadoc)
-		 * @see com.twinsoft.convertigo.engine.DatabaseObjectListener#databaseObjectLoaded(com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent)
-		 */
-		public void databaseObjectLoaded(DatabaseObjectLoadedEvent event) {
-			DatabaseObject dbo = (DatabaseObject) event.getSource();
-			String dboName = dbo instanceof Step ? ((Step)dbo).getStepNodeName():dbo.getName();
-			monitor.subTask("Object \"" + dboName + "\" loaded");
-			monitor.worked(1);
-		}
-
-		/* (non-Javadoc)
-		 * @see com.twinsoft.convertigo.engine.DatabaseObjectListener#databaseObjectImported(com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent)
-		 */
-		public void databaseObjectImported(DatabaseObjectImportedEvent event) {
-
-		}
 	}
 
-	protected void createDirsAndFiles(String projectName) {
+	private void createDirsAndFiles(String projectName) {
 		createDir(projectName);
 		createFiles(projectName);
 	}
@@ -1748,7 +1677,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		loadDatabaseObject(parentTreeObject, parentDatabaseObject, null, monitor);
 	}
 
-	public void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob) throws EngineException, IOException {
+	void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob) throws EngineException, IOException {
 		loadDatabaseObject(parentTreeObject, parentDatabaseObject, projectLoadingJob, projectLoadingJob.getMonitor());
 	}
 
@@ -2183,24 +2112,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						// Functions
 						List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
 						String line, lineReaded;
-						int lineNumber = 0;
 						BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
 
 						line = br.readLine();
 						while (line != null) {
 							lineReaded = line.trim();
-							lineNumber++;
 							if (lineReaded.startsWith("function ")) {
 								try {
 									String functionName = lineReaded.substring(9, lineReaded.indexOf(')') + 1);
 									HandlersDeclarationTreeObject handlersDeclarationTreeObject = null;
 
 									if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
-										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName);
 									} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
-										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_EXIT, lineNumber);
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName);
 									} else {
-										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName);
 									}
 									if (handlersDeclarationTreeObject != null) {
 										treeObjects.add(handlersDeclarationTreeObject);
@@ -2372,7 +2299,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer.removeSelectionChangedListener(listener);
 	}
 
-	public synchronized void clearSelectionChangedListeners() {
+	private synchronized void clearSelectionChangedListeners() {
 		Object[] listeners = selectionChangedListeners.getListeners();
 		for (int i=0; i<listeners.length; i++) {
 			removeSelectionChangedListener((ISelectionChangedListener)listeners[i]);
@@ -2408,7 +2335,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	public void closeAllProjects() {
+	private void closeAllProjects() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
 			Object[] objects = provider.getChildren(provider.getTreeRoot());
@@ -2522,10 +2449,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		reloadTreeObject(treeObject);
 	}
 
-	public void reloadFirstSelectedTreeObject() throws EngineException, IOException {
-		TreeObject object = getFirstSelectedTreeObject();
-		reloadTreeObject(object);
-	}
+	
 
 	public void reloadTreeObject(TreeObject object) throws EngineException, IOException {
 		if (object != null) {
@@ -2558,7 +2482,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		refreshFirstSelectedTreeObject(false);
 	}
 
-	public void refreshFirstSelectedTreeObject(boolean bRecurse) {
+	private void refreshFirstSelectedTreeObject(boolean bRecurse) {
 		TreeObject object = getFirstSelectedTreeObject();
 		refreshTreeObject(object, bRecurse);
 	}
@@ -2596,17 +2520,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		updateTreeObject(treeObject);
 	}
 
-	public TreeParent getDatabaseObjectTreeParent(TreeObject treeObject) {
-		TreeParent treeParent = null;
-		if (treeObject != null) {
-			treeParent = treeObject.getParent();
-			while (!(treeParent instanceof DatabaseObjectTreeObject) && (treeParent != null))
-				treeParent = treeParent.getParent();
-			if (treeParent == null)
-				treeParent = (TreeParent)treeObject;
-		}
-		return treeParent;
-	}
+	
 
 	public TreeObject getFirstSelectedTreeObject() {
 		ISelection selection = viewer.getSelection();
@@ -2775,7 +2689,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return getTreeObjectType(treeNode);
 	}
 
-	public static int getTreeObjectType(TreeObject treeNode) {
+	private static int getTreeObjectType(TreeObject treeNode) {
 		if (treeNode instanceof ObjectsFolderTreeObject) {
 			int folderType = ((ObjectsFolderTreeObject)treeNode).folderType;
 
@@ -3069,16 +2983,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public UndoManager getUndoManager() {
 		return undoManager;
-	}
-
-	public void updateUndoRedo() {
-		((UndoAction)undoAction).update();
-		((RedoAction)redoAction).update();
-	}
-
-	public void addUndoableEdit(UndoableEdit edit) {
-		undoManager.addEdit(edit);
-		updateUndoRedo();
 	}
 
 	public Project getProject(String projectName) throws EngineException {

@@ -23,19 +23,17 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
-public abstract class MyAbstractDialogComposite extends Composite {
+abstract class MyAbstractDialogComposite extends Composite {
 	
 	protected Dialog parentDialog;
-	public String dialogTitle = "";
 	
-	public MyAbstractDialogComposite(Composite parent, int style) {
+	MyAbstractDialogComposite(Composite parent, int style) {
 		super(parent, style);
 	}
 	
 	protected void initialize() {
 		GridLayout gridLayout = new GridLayout();
 		this.setLayout(gridLayout);
-//		setSize(new org.eclipse.swt.graphics.Point(402,289));
 	}
 	
 	public abstract Object getValue(String name);

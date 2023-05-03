@@ -27,7 +27,7 @@ public class DboBeans {
 	private final String groupName;
 	private final List<DboBean> beans;
 	
-	public DboBeans(String name, List<DboBean> beans) {
+	DboBeans(String name, List<DboBean> beans) {
 		this.groupName = name;
 		this.beans = Collections.unmodifiableList(beans);
 	}

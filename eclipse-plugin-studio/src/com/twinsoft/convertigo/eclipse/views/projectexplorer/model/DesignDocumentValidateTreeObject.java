@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 
 public class DesignDocumentValidateTreeObject extends DesignDocumentFunctionTreeObject {
 
-	public DesignDocumentValidateTreeObject(Viewer viewer, Object object) {
+	DesignDocumentValidateTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
 	}
 

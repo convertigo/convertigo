@@ -111,17 +111,17 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectListener, IPropertySource, IActionFilter {
 
-	public static final String P_TYPE = "#type";
-	public static final String P_JAVA_CLASS = "#java_class";
-	public static final String P_DEPTH = "#depth";
-	public static final String P_PRIORITY = "#priority";
-	public static final String P_QNAME = "#qname";
-	public static final String P_NAME = "#name";
-	public static final String P_EXPORTED = "#exported";
-	public static final String P_MIN_VERSION = "#minversion";
+	static final String P_TYPE = "#type";
+	private static final String P_JAVA_CLASS = "#java_class";
+	private static final String P_DEPTH = "#depth";
+	private static final String P_PRIORITY = "#priority";
+	private static final String P_QNAME = "#qname";
+	private static final String P_NAME = "#name";
+	private static final String P_EXPORTED = "#exported";
+	private static final String P_MIN_VERSION = "#minversion";
 
-	public String objectClassName = null;
-	public boolean canPaste = false;
+	
+	private boolean canPaste = false;
 
 	/**
 	 * Indicates the inheritance status of the object.
@@ -132,16 +132,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	 * Indicates the detection status of the object.
 	 */
 	public boolean isDetectedObject = false;
-
-	/**
-	 * Indicates if the object is under version control.
-	 */
-	public boolean isUnderCvs = false;
-
-	/**
-	 * Indicates if the object is currently checked out.
-	 */
-	public boolean isCheckedOut = false;
 
 	/**
 	 * Indicates if the object is currently enabled.
@@ -157,7 +147,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public boolean isEditingComment = false;
 
-	public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
+	DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
 		this(viewer,object,false);
 	}
 
@@ -404,7 +394,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		};
 	}
 
-	protected boolean isSymbolValue(Object value) {
+	private boolean isSymbolValue(Object value) {
 		if (value != null) {
 			String val = null;
 			if (value instanceof String) {

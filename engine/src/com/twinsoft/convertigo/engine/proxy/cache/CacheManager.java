@@ -69,7 +69,7 @@ public abstract class CacheManager {
 		cacheIndex.remove(cacheEntry);
 	}
 
-	public boolean cacheEntryHasExpired(CacheEntry cacheEntry) {	
+	private boolean cacheEntryHasExpired(CacheEntry cacheEntry) {	
 		if (cacheEntry.expiryDate == -1) return false;
 		
 		long t1 = cacheEntry.expiryDate;

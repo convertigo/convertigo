@@ -31,16 +31,14 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
-import com.teamdev.jxbrowser.browser.Browser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
-	C8oBrowser c8oBrowser;
-	Browser browser;
-	String currentUrl = null;
+	private C8oBrowser c8oBrowser;
+	private String currentUrl = null;
 	
 	public MobileDebugView() {
 		

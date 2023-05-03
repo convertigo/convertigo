@@ -36,10 +36,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 
-	public UrlMappingTreeObject(Viewer viewer, DatabaseObject object) {
-		this(viewer, object, false);
-	}
-
 	public UrlMappingTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

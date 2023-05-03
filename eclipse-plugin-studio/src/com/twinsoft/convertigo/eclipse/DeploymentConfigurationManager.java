@@ -75,7 +75,7 @@ public class DeploymentConfigurationManager {
 		}
 	}
 
-	public void doMigration() throws EngineException, IOException, ClassNotFoundException {
+	void doMigration() throws EngineException, IOException, ClassNotFoundException {
 		List<String> projectsNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
 		ObjectInputStream objectInputStream = null;
 		DeploymentInformation deploymentInformation = null;
@@ -151,7 +151,7 @@ public class DeploymentConfigurationManager {
 		return deploymentConfiguration != null ? deploymentConfiguration : deploymentConfigurationsReadOnly.get(name);
 	}
 
-	public void add(DeploymentConfigurationReadOnly deploymentConfigurationReadOnly) {
+	void add(DeploymentConfigurationReadOnly deploymentConfigurationReadOnly) {
 		deploymentConfigurationsReadOnly.put(deploymentConfigurationReadOnly.getServer(), deploymentConfigurationReadOnly);
 	}
 
@@ -194,7 +194,7 @@ public class DeploymentConfigurationManager {
 		}
 	}
 
-	public void load() throws IOException, ClassNotFoundException {
+	 void load() throws IOException, ClassNotFoundException {
 		ObjectInputStream objectInputStream = null;
 		CipherInputStream decode = null;
 		try {

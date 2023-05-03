@@ -28,7 +28,7 @@ public class DboCategory {
 	private final List<DboBeans> beans;
 	
 	
-	public DboCategory(String name, List<DboBeans> beans) {
+	DboCategory(String name, List<DboBeans> beans) {
 		this.name = name;
 		this.beans = Collections.unmodifiableList(beans);
 	}

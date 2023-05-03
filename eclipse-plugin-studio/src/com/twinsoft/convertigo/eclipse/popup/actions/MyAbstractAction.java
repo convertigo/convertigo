@@ -41,19 +41,16 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
-public abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
-	protected ISelection selection = null;
-	protected IWorkbenchPart targetPart = null;
+abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
+	private IWorkbenchPart targetPart = null;
 	protected IAction action = null;
 	
 	public MyAbstractAction() {
@@ -66,7 +63,6 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-		this.selection = selection;
 	}
 
 	@Override
@@ -175,7 +171,7 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		return projectExplorerView;
 	}
 	
-	public IEditorPart getConnectorEditor(Connector connector) {
+	IEditorPart getConnectorEditor(Connector connector) {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = getActivePage();
 		if (activePage != null) {
@@ -201,28 +197,5 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		return editorPart;
 	}
 
-	public IEditorPart getJscriptTransactionEditor(Transaction transaction) {
-		IEditorPart editorPart = null;
-		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
-			if (transaction != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i = 0; i < editorRefs.length; i++) {
-					IEditorReference editorRef = (IEditorReference)editorRefs[i];
-					try {
-						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
-							if (transaction.equals(((JScriptEditorInput) editorInput).getDatabaseObject())) {
-								editorPart = editorRef.getEditor(false);
-								break;
-							}
-						}
-					} catch(PartInitException e) {
-						//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
-					}
-				}
-			}
-		}
-		return editorPart;
-	}
+	
 }

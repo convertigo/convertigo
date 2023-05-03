@@ -52,7 +52,7 @@ public class UrlBuilder {
 
 	// return null means no need to change the URI in the htmlQueue
 	// this method does not update htmlQueue
-	public StringBuffer composeURLString(ParameterShuttle infoShuttle, IntQueue htmlQueue, int pos, int len, boolean addPost) {
+	StringBuffer composeURLString(ParameterShuttle infoShuttle, IntQueue htmlQueue, int pos, int len, boolean addPost) {
 		// trim spaces
 		while (htmlQueue.getChar(pos) == ' ' && len > 0) {
 			pos++;

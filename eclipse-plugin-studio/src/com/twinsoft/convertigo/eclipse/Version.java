@@ -21,9 +21,9 @@ package com.twinsoft.convertigo.eclipse;
 
 import com.twinsoft.convertigo.engine.ProductVersion;
 
-public class Version extends com.twinsoft.convertigo.engine.ProductVersion {
+class Version extends com.twinsoft.convertigo.engine.ProductVersion {
 
-    public static String version = ProductVersion.productVersion;
+    private static String version = ProductVersion.productVersion;
     
     public static void main(String[] args) {
         System.out.println("eclipse-plugin-" + version);

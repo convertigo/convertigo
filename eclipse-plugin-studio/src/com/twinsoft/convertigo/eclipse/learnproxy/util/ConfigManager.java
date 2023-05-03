@@ -42,7 +42,7 @@ public class ConfigManager {
     	hasLoaded = init();
     }
     
-    public boolean init() {
+    private boolean init() {
     	props = new Properties();
     	
     	if (fileName == null)
@@ -64,7 +64,7 @@ public class ConfigManager {
         }
     }
     
-    public String getNamedProperty(String key) {
+    private String getNamedProperty(String key) {
         try {
             return props.getProperty(key);
         }

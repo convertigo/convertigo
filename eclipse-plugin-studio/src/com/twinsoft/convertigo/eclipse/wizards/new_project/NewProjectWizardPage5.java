@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Composite;
  * OR with the extension that matches the expected one (mpe).
  */
 
-public class NewProjectWizardPage5 extends WizardPage {
+class NewProjectWizardPage5 extends WizardPage {
 	private String ctgName;
 
 	private String ctgServer;
@@ -44,7 +44,7 @@ public class NewProjectWizardPage5 extends WizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public NewProjectWizardPage5(ISelection selection) {
+	NewProjectWizardPage5(ISelection selection) {
 		super("wizardPage");
 		setTitle("Define CICS connector parameters");
 		setDescription("This step configures the CICS Transaction gateway (CTG) connection parameters");

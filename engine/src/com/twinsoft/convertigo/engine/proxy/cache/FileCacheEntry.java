@@ -23,7 +23,7 @@ public class FileCacheEntry extends CacheEntry {
 
 	private static final long serialVersionUID = 7554859124001033062L;
 
-	public String fileName = "";
+	String fileName = "";
 	
 	public FileCacheEntry() {
 	}

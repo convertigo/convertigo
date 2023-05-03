@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
-public class SqlConnectorDesignComposite extends Composite {
+class SqlConnectorDesignComposite extends Composite {
 
 	private Text text;
 	private Table table;
@@ -139,41 +139,13 @@ public class SqlConnectorDesignComposite extends Composite {
 		});
 	}
 
-	public void close() {
-		// Remove ProjectExplorerView from listeners of current composite view
-		if (projectExplorerView != null) {
-			removeCompositeListener(projectExplorerView);
-		}
-	}
-	
-	@Override
-	public void dispose() {
-		super.dispose();
-	}
-
 	private EventListenerList compositeListeners = new EventListenerList();
 
-	public void addCompositeListener(CompositeListener compositeListener) {
+	private void addCompositeListener(CompositeListener compositeListener) {
 		compositeListeners.add(CompositeListener.class, compositeListener);
 	}
 
-	public void removeCompositeListener(CompositeListener compositeListener) {
-		compositeListeners.remove(CompositeListener.class, compositeListener);
-	}
-
-	public void fireObjectSelected(CompositeEvent compositeEvent) {
-		// Guaranteed to return a non-null array
-		Object[] listeners = compositeListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i -= 2) {
-			if (listeners[i] == CompositeListener.class) {
-				((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
-			}
-		}
-	}
-
-	public void fireObjectChanged(CompositeEvent compositeEvent) {
+	private void fireObjectChanged(CompositeEvent compositeEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = compositeListeners.getListenerList();
 		// Process the listeners last to first, notifying
@@ -232,7 +204,7 @@ public class SqlConnectorDesignComposite extends Composite {
 		}
 	}
 	
-	protected void createSqlTransactions(final TableItem[] items) {
+	private void createSqlTransactions(final TableItem[] items) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
 		Shell shell = display.getActiveShell();

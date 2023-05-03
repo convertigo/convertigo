@@ -976,7 +976,7 @@ public abstract class GenericRequester extends Requester {
         }
     }
 
-	public static String computeTransletName(String originalName) {
+	private static String computeTransletName(String originalName) {
 		int len = originalName.length() - 1;
 		long computedNumber = (originalName.charAt(0) * originalName.charAt(len)) << 16;
 		for (int i = 1 ; i < len ; i++) {

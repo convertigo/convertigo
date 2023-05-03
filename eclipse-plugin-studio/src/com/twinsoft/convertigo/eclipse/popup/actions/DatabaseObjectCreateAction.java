@@ -34,18 +34,19 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolder
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 
-public class DatabaseObjectCreateAction extends MyAbstractAction {
-	protected String databaseObjectClassName = null;
+class DatabaseObjectCreateAction extends MyAbstractAction {
+	private String databaseObjectClassName = null;
 	
 	public DatabaseObjectCreateAction() {
 		super();
 	}
 	
-	public DatabaseObjectCreateAction(String databaseObjectClassName) {
+	DatabaseObjectCreateAction(String databaseObjectClassName) {
 		super();
 		this.databaseObjectClassName = databaseObjectClassName;
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SetupWizard extends Wizard {
-	public static final String registrationServiceUrl = "https://c8o.convertigo.net/cems/projects/studioRegistration/.xml";
+	private static final String registrationServiceUrl = "https://c8o.convertigo.net/cems/projects/studioRegistration/.xml";
 
 	private static final Pattern scheme_host_pattern = Pattern
 			.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
@@ -72,18 +72,18 @@ public class SetupWizard extends Wizard {
 		public void onRegister(boolean success, String message);
 	}
 
-	protected LicensePage licensePage;
-	protected WorkspaceMigrationPage workspaceMigrationPage;
-	protected WorkspaceCreationPage workspaceCreationPage;
-	protected ConfigureProxyPage configureProxyPage;
+	private LicensePage licensePage;
+	private WorkspaceMigrationPage workspaceMigrationPage;
+	private WorkspaceCreationPage workspaceCreationPage;
+	private ConfigureProxyPage configureProxyPage;
 //	protected AlreadyPscKeyPage alreadyPscKeyPage;
-	protected EmbeddedRegistrationPage embeddedRegistrationPage;
-	protected PscKeyValidationPage pscKeyValidationPage;
+	private EmbeddedRegistrationPage embeddedRegistrationPage;
+	private PscKeyValidationPage pscKeyValidationPage;
 //	protected RegistrationPage registrationPage;
 //	protected PscKeyPage pscKeyPage;
-	protected SummaryPage summaryPage;
+	private SummaryPage summaryPage;
 
-	protected ProxyManager proxyManager;
+	private ProxyManager proxyManager;
 
 	private String previousPageName = "";
 	
@@ -311,7 +311,7 @@ public class SetupWizard extends Wizard {
 		return client;
 	}
 
-	public void checkConnected(final CheckConnectedCallback callback) {
+	void checkConnected(final CheckConnectedCallback callback) {
 		Thread th = new Thread(new Runnable() {
 
 			public void run() {
@@ -352,7 +352,7 @@ public class SetupWizard extends Wizard {
 		th.start();
 	}
 
-	public void register(final String username, final String password,
+	void register(final String username, final String password,
 			final String firstname, final String lastname, final String email,
 			final String country, final String company,
 			final String companyHeadcount, final RegisterCallback callback) {
@@ -439,7 +439,7 @@ public class SetupWizard extends Wizard {
 		th.start();
 	}
 
-	public void postRegisterState(final String page) {
+	void postRegisterState(final String page) {
 		if (!page.equals(previousPageName)) {
 			previousPageName = page;
 			Thread th = new Thread(new Runnable() {
@@ -485,7 +485,7 @@ public class SetupWizard extends Wizard {
 		}
 	}
 
-	public static String getUniqueID() {
+	private static String getUniqueID() {
 		return uniqueID;
 	}
 }

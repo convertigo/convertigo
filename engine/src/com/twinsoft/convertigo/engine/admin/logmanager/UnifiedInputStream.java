@@ -31,7 +31,7 @@ import java.util.List;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileReloadInputStream;
 
-public class UnifiedInputStream extends InputStream {
+class UnifiedInputStream extends InputStream {
 	private File basefile;
 	private List<File> files;
 	private InputStream current_file;
@@ -39,7 +39,7 @@ public class UnifiedInputStream extends InputStream {
 	private long current_position;
 	private Iterator<File> chain;
 
-	public UnifiedInputStream(List<File> files, File basefile) throws IOException {
+	UnifiedInputStream(List<File> files, File basefile) throws IOException {
 		this.files = new ArrayList<File>(files);
 		this.basefile = basefile;
 		if (this.files.size() == 0) {

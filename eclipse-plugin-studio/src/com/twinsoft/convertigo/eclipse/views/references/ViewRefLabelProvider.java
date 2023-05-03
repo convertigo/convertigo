@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
 
-public class ViewRefLabelProvider implements ILabelProvider {
+class ViewRefLabelProvider implements ILabelProvider {
 
 	public void addListener(ILabelProviderListener listener) {
 	}

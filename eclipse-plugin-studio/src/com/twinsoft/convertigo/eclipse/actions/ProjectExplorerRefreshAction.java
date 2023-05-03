@@ -24,18 +24,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class ProjectExplorerRefreshAction extends MyAbstractAction implements IViewActionDelegate {
-	
-	public ProjectExplorerRefreshAction() {
-		super();
-	}
+public class ProjectExplorerRefreshAction extends MyAbstractAction {
 
 	@Override
 	public void run() {

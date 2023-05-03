@@ -44,7 +44,7 @@ public class DOMUtils {
 		return element;
 	}
 	
-	public static Document handleError(Throwable t) throws ParserConfigurationException {
+	static Document handleError(Throwable t) throws ParserConfigurationException {
 		Exception e = t instanceof Exception ? (Exception) t : new Exception("Unexpected exception", t);
 		return handleError(e);
 	}
@@ -70,7 +70,7 @@ public class DOMUtils {
 		return document;
 	}
 
-	public static Document handleError(String sMessage) throws ParserConfigurationException {
+	static Document handleError(String sMessage) throws ParserConfigurationException {
 		Document document = DOMUtils.createDocument();
 
         Element error = document.createElement("error");

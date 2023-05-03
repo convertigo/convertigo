@@ -54,7 +54,7 @@ public class TreeObjectEvent extends EventObject {
 		this(source, propertyName, oldValue, newValue, update, done, null);
 	}
 	
-	public TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update, Set<Object> done, Set<Object> reset) {
+	private TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update, Set<Object> done, Set<Object> reset) {
 		super(source);
 		this.propertyName = propertyName;
 		this.oldValue = oldValue;

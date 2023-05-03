@@ -35,20 +35,11 @@ public class ProjectManager {
 	public Project currentProject = null;
 
 	public String currentProjectName = null;
-	public String previousProjectName = null;
-
-	/**
-	 * Indicates if the current project has been modified.
-	 */
-	protected boolean bModified = false;
 
 	public void setCurrentProject(ProjectTreeObject projectTreeObject) {
 		DatabaseObject databaseObject = (DatabaseObject)projectTreeObject.getObject();
 		if ((databaseObject != null) && (databaseObject instanceof Project)) {
-			if (currentProject != null)
-				previousProjectName = currentProjectName;
-
-			currentProject = (Project)databaseObject;
+			currentProject = (Project) databaseObject;
 			currentProjectName = currentProject.getName();
 			currentProjectTreeObject = projectTreeObject;
 		}
@@ -73,7 +64,7 @@ public class ProjectManager {
 		return projectExplorerView;
 	}
 	
-	public boolean hasProjectExplorerView() {
+	boolean hasProjectExplorerView() {
 		return projectExplorerView != null;
 	}
 
@@ -81,7 +72,7 @@ public class ProjectManager {
 		this.projectExplorerView = projectExplorerView;
 	}
 
-	public int getNumberOfObjects(String projectName) {
+	int getNumberOfObjects(String projectName) {
 		return 100;
 	}
 }

@@ -27,7 +27,7 @@ public class DboGroup {
 	private final String name;
 	private final List<DboCategory> categories;
 	
-	public DboGroup(String name, List<DboCategory> categories) {
+	DboGroup(String name, List<DboCategory> categories) {
 		this.name = name;
 		this.categories = Collections.unmodifiableList(categories);
 	}

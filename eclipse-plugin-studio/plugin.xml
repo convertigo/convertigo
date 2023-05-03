@@ -38,15 +38,6 @@
             id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
             name="Convertigo Startup">
       </editor>
-      <!--
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor"
-            default="false"
-            icon="icons/convertigo_doc_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor"
-            name="Convertigo Flow Viewer">
-      </editor>
-      -->
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
@@ -3105,14 +3096,6 @@
                      label="Create stub from current response data"
                      menubarPath="stub">
                </action>
-               <!--
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.OpenFlowViewerAction"
-                     id="convertigo.action.seq.openFlowViewer"
-                     label="Show in the Flow Viewer"
-                     menubarPath="viewer">
-               </action>
-               -->
             </objectContribution>
             <objectContribution
                   id="convertigo.transactionStepContribution"

@@ -1202,7 +1202,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 	}
 
-	public void launchBuilder(boolean forceInstall) {
+	private void launchBuilder(boolean forceInstall) {
 		launchBuilder(forceInstall, false);
 	}
 

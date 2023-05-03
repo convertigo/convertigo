@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.wizards.deploy;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -43,7 +42,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
@@ -53,40 +51,37 @@ import com.twinsoft.convertigo.eclipse.swt.RegistrationBrowser;
 import com.twinsoft.convertigo.engine.Engine;;
 
 public class ProjectDeployOptionsComposite extends Composite {
-	Tree tree = null;
+	
 	Label label = null;
-	Button delButton = null;
+	private Button delButton = null;
 	Button checkBox = null;
 	Button assembleXsl = null;
 	Button checkTrustAllCertificates = null;
-	Group webGroup = null;
-	Group convertigoGroup = null;
-	Group SSLGroup = null;
-	Label webAdminLabel = null;
-	Text webAdmin = null;
-	Label webAdminPassword = null;
-	Text webPassword = null;
-	Label convertigoAdminLabel = null;
+	
+	private Group convertigoGroup = null;
+	private Group SSLGroup = null;
+	
+	private Label convertigoAdminLabel = null;
 	Text convertigoAdmin = null;
-	Label convertigoAdminPassword = null;
+	private Label convertigoAdminPassword = null;
 	Text convertigoPassword = null;
 	Text convertigoServer = null;
-	MessageBox messageBox = null;
-	List list = null;
-	ObjectOutputStream objectOutputStream = null;
-	Button okButton = null;
-
-	WizardPage page = null;
+	private MessageBox messageBox = null;
+	private List list = null;
 	
-	static String messageList = "-- No deployment configuration saved --";
+	private Button okButton = null;
 
-	public ProjectDeployOptionsComposite(WizardPage page, Composite parent, int style) {
+	private WizardPage page = null;
+	
+	private static String messageList = "-- No deployment configuration saved --";
+
+	ProjectDeployOptionsComposite(WizardPage page, Composite parent, int style) {
 		super(parent, style);
 		this.page = page;
 		initialize();
 	}
 
-	void fillList() {
+	private void fillList() {
 		if (list.isDisposed()) {
 			return;
 		}
@@ -163,7 +158,7 @@ public class ProjectDeployOptionsComposite extends Composite {
 		delButton.setEnabled(!(dc instanceof DeploymentConfigurationReadOnly));
 	}
 	
-	public void initialize() {
+	private void initialize() {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
 		setLayout(gridLayout);

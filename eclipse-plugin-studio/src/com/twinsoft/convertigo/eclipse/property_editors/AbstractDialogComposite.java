@@ -21,12 +21,12 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.eclipse.swt.widgets.Composite;
 
-public abstract class AbstractDialogComposite extends Composite {
+abstract class AbstractDialogComposite extends Composite {
 
 	protected AbstractDialogCellEditor cellEditor;
 	protected EditorFrameworkDialog parentDialog;
 
-	public AbstractDialogComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
+	AbstractDialogComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style);
 		this.cellEditor = cellEditor;
 	}

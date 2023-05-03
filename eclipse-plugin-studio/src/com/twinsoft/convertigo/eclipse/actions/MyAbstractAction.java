@@ -27,6 +27,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
@@ -34,8 +36,7 @@ import org.eclipse.ui.PlatformUI;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
-public abstract class MyAbstractAction extends Action {
-	protected ISelection selection = null;
+abstract class MyAbstractAction extends Action implements IViewActionDelegate {
 	protected IWorkbenchPart targetPart = null;
 	protected IAction action = null;
 	
@@ -48,10 +49,11 @@ public abstract class MyAbstractAction extends Action {
 		this.targetPart = targetPart;
 	}
 
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		this.selection = selection;
 	}
-
+	
+	@Override
 	public void run(IAction action) {
 		this.action = action;
 		run();
@@ -107,5 +109,9 @@ public abstract class MyAbstractAction extends Action {
 			projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		}
 		return projectExplorerView;
+	}
+
+	@Override
+	public void init(IViewPart view) {
 	}
 }

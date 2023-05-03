@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 
-public class PartInputStream extends InputStream {
+class PartInputStream extends InputStream {
 	private InputStream inputStream;
 	private byte[] boundary;
 	
@@ -36,7 +36,7 @@ public class PartInputStream extends InputStream {
 	
 	private int lastRead = 0;
 	
-	public PartInputStream(InputStream inputStream, byte[] boundary) {
+	PartInputStream(InputStream inputStream, byte[] boundary) {
 		this.inputStream = inputStream;
 		this.boundary = boundary;
 		
@@ -52,7 +52,7 @@ public class PartInputStream extends InputStream {
 		return iSearch == search.length;
 	}
 	
-	public boolean nextPart() {
+	boolean nextPart() {
 		if (iSearch == search.length) {
 			iSearch = 0;
 			return true;

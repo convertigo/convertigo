@@ -68,37 +68,37 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NgxBuilder extends MobileBuilder {
-	Map<String,String> tpl_appCompTsImports = null;
-	Map<String,String> tpl_pageTsImports = null;
-	Map<String,String> tpl_compTsImports = null;
+	private Map<String,String> tpl_appCompTsImports = null;
+	private Map<String,String> tpl_pageTsImports = null;
+	private Map<String,String> tpl_compTsImports = null;
 
-	Map<String,String> tpl_appModuleTsImports = null;
-	Map<String,String> tpl_pageModuleTsImports = null;
-	Map<String,String> tpl_compModuleTsImports = null;
+	private Map<String,String> tpl_appModuleTsImports = null;
+	private Map<String,String> tpl_pageModuleTsImports = null;
+	private Map<String,String> tpl_compModuleTsImports = null;
 
-	Map<String,String> tpl_serviceActionTsImports = null;
+	private Map<String,String> tpl_serviceActionTsImports = null;
 
-	String tpl_appModuleNgImports = null;
-	String tpl_appModuleNgProviders = null;
-	String tpl_appModuleNgDeclarations = null;
-	String tpl_appModuleNgComponents = null;
+	private String tpl_appModuleNgImports = null;
+	private String tpl_appModuleNgProviders = null;
+	private String tpl_appModuleNgDeclarations = null;
+	private String tpl_appModuleNgComponents = null;
 
-	String tpl_pageModuleNgImports = null;
-	String tpl_pageModuleNgProviders = null;
-	String tpl_pageModuleNgDeclarations = null;
-	String tpl_pageModuleNgComponents = null;
+	private String tpl_pageModuleNgImports = null;
+	private String tpl_pageModuleNgProviders = null;
+	private String tpl_pageModuleNgDeclarations = null;
+	private String tpl_pageModuleNgComponents = null;
 	String tpl_pageModuleNgRoutes = null;
 
-	String tpl_compModuleNgImports = null;
-	String tpl_compModuleNgProviders = null;
-	String tpl_compModuleNgDeclarations = null;
-	String tpl_compModuleNgComponents = null;
+	private String tpl_compModuleNgImports = null;
+	private String tpl_compModuleNgProviders = null;
+	private String tpl_compModuleNgDeclarations = null;
+	private String tpl_compModuleNgComponents = null;
 
-	File appDir, pagesDir, interfacesDir, servicesDir, providersDir, componentsDir;
-	File assetsDir, envDir, themeDir;
-	File srcDir;
+	private File appDir, pagesDir, servicesDir, componentsDir;
+	private File themeDir;
+	private File srcDir;
 
-	protected static String FakeDeleted = "fake_deleted.ts";
+	private static String FakeDeleted = "fake_deleted.ts";
 	
 	static class AppFileComparator implements Comparator<String> {
 		public int compare(String path1, String path2) {
@@ -118,11 +118,11 @@ public class NgxBuilder extends MobileBuilder {
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 	
-	static boolean existTargetComp(String compDirName) {
+	private static boolean existTargetComp(String compDirName) {
 	   return compQName(compDirName) != null;
 	}
 	    
-    static protected String compQName(String compDirName) {
+    static private String compQName(String compDirName) {
     	if (compDirName != null && !compDirName.isEmpty()) {
 	    	String pname = compDirName.substring(0, compDirName.indexOf('.'));
 	    	
@@ -163,15 +163,10 @@ public class NgxBuilder extends MobileBuilder {
 
 	private void initDirs(String src) {
 		srcDir = new File(ionicWorkDir, src);
-
-		assetsDir = new File(srcDir, "assets");
-		envDir = new File(srcDir, "environments");
 		themeDir = new File(srcDir, "theme");
 		appDir = new File(srcDir, "app");
 
 		componentsDir = new File(appDir, "components");
-		interfacesDir = new File(appDir, "interfaces");
-		providersDir = new File(appDir, "providers");
 		servicesDir = new File(appDir, "services");
 		pagesDir = new File(appDir, "pages");
 	}
@@ -398,7 +393,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	public void updateConsumer() {
+	private void updateConsumer() {
 		for (String pname: ComponentRefManager.getProjectsForUpdate(project.getName())) {
 			try {
 				Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
@@ -2949,50 +2944,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	protected void deleteDir(File dir) {
-		if (initDone && Engine.isStudioMode()) {
-			// delete dir
-			if (buildMutex == null) {
-				try {
-					FileUtils.deleteDirectory(dir);
-					Engine.logEngine.debug("(NgxBuilder) Deleted dir " + dir.getPath());
-				} catch (IOException e) {
-					Engine.logEngine.warn("(NgxBuilder) Failed to delete directory " + dir.getPath(), e);
-				}
-			}
-			// defers the dir deletion
-			else {
-				// Replace segment in old page.ts to avoid deeplinks errors
-				String oldPage = dir.getName();
-				File oldPageDir = new File(pagesDir, oldPage);
-				File oldPageTsFile = new File(oldPageDir, oldPage.toLowerCase() + ".ts");
-				if (oldPageTsFile.exists()) {
-					synchronized (writtenFiles) {
-						if (writtenFiles.contains(oldPageTsFile)) {
-							File oldPageTsFileTmp = toTmpFile(oldPageTsFile);
-							if (oldPageTsFileTmp.exists()) {
-								oldPageTsFile = oldPageTsFileTmp;
-							}
-						}
-					}
-					try {
-						String tsContent = FileUtils.readFileToString(oldPageTsFile, "UTF-8");
-						String oldSegment = PageComponent.SEGMENT_PREFIX + oldPage.toLowerCase();
-						tsContent = tsContent.replaceFirst("segment\\s*\\:\\s*'(.+)'", "segment: '"+ oldSegment +"'");
-						writeFile(oldPageTsFile, tsContent, "UTF-8");
-					} catch (IOException e) {
-						Engine.logEngine.warn("(NgxBuilder) Failed to defer write of " + oldPageTsFile.getPath(), e);
-					}
-				}
-			}
-		} else {
-			try {
-				FileUtils.deleteDirectory(dir);
-			} catch (IOException e) {
-				Engine.logEngine.warn("(NgxBuilder) Failed to delete directory " + dir.getPath(), e);
-			}
-		}
-	}
+	
 
 	public boolean isBuildProdMode() {
 		return MobileBuilderBuildMode.production.equals(this.buildMode);

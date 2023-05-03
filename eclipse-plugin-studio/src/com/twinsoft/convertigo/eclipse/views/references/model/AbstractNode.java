@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 
 public abstract class AbstractNode {
 	
-	protected AbstractParentNode parent;
+	private AbstractParentNode parent;
 	protected String name;
 	
 	public String getName() {

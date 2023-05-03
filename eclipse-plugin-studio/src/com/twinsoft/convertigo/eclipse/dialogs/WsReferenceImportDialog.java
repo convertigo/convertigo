@@ -40,7 +40,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	private RemoteFileReference wsReference;
 	private HttpConnector httpConnector = null;
 	private Project project = null;;
-	
+
 	/**
 	 * @param parentShell
 	 * @param dialogAreaClass
@@ -50,24 +50,14 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		super(parentShell, dialogAreaClass, dialogTitle);
 	}
 
-	/**
-	 * @param parentShell
-	 * @param dialogAreaClass
-	 * @param dialogTitle
-	 * @param width
-	 * @param height
-	 */
-	public WsReferenceImportDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, int width, int height) {
-		super(parentShell, dialogAreaClass, dialogTitle, width, height);
-	}
-	
+	@Override
 	protected void okPressed() {		
 		try {
 			progressBar = ( (WsReferenceImportDialogComposite)dialogComposite ).progressBar;
-			
+
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
 			getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
-	
+
 			Thread thread = new Thread(this);
 			thread.start();
 		}
@@ -77,9 +67,10 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	}
 
 	public void run() {		
-		
+
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {
+			@Override
 			public void run() {
 				int i = 0;
 				while (true) {
@@ -87,16 +78,14 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 						i += 5;
 						if (i >= 100) i = 0;
 						final int j = i;
-						display.asyncExec(new Runnable() {
-							public void run() {
-								if (progressBar != null) {
-									if (!progressBar.isDisposed()) {
-										progressBar.setSelection(j);
-									}
+						display.asyncExec(() -> {
+							if (progressBar != null) {
+								if (!progressBar.isDisposed()) {
+									progressBar.setSelection(j);
 								}
 							}
 						});
-						
+
 						sleep(500);
 					}
 					catch(InterruptedException e) {
@@ -109,61 +98,61 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		Throwable ex = null;
 		try {		
 			progressBarThread.start();
-			
+
 			ImportWsReference wsr = null;
 			if (wsReference instanceof WebServiceReference)
 				wsr = new ImportWsReference((WebServiceReference)wsReference);
 			if (wsReference instanceof RestServiceReference)
 				wsr = new ImportWsReference((RestServiceReference)wsReference);
-			
+
 			httpConnector = wsr.importInto(project);
 		}
 		catch (Throwable e) {
 			ex = e;
 		}
 		finally {
-			
+
 			try {
 				progressBarThread.interrupt();
-				
+
 				display.asyncExec(new Runnable() {
 					public void run() {
 						setReturnCode(OK);
 						close();
 					}
 				});
-				
+
 			}
 			catch (Throwable e) {}
-			
+
 			if (ex != null) {
 				ConvertigoPlugin.logException(ex, "Unable to import from WSDL");
 			}
 		}
 	}
-	
+
 	public void setReference(RemoteFileReference webServiceReference) {
 		this.wsReference = webServiceReference;
 	}
-	
+
 	protected RemoteFileReference getReference() {
 		return this.wsReference;
 	}
-	
+
 	public void setProject(Project project) {
 		this.project = project;
 	}
-	
+
 	protected Project getProject() {
 		return this.project;
 	}
-	
+
 	public HttpConnector getHttpConnector() {
 		return httpConnector;
 	}
-	
+
 	protected Button getButtonOK(){
 		return getButton(OK);
 	}
-	
+
 }

@@ -109,7 +109,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		renewManager(true);
 	}
 
-	public void insertBilling(Context context) throws EngineException {
+	void insertBilling(Context context) throws EngineException {
 		insertBilling(context, null, null);
 	}
 	

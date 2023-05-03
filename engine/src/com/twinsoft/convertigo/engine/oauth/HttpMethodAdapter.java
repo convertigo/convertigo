@@ -35,7 +35,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
+class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
 
     private HttpMethod request;
     private RequestEntity entity;
@@ -49,6 +49,7 @@ public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
         hc = hostConfiguration;
     }
 
+    @Override
     public String getHeader(String name) {
         Header header = request.getRequestHeader(name);
         if (header == null) {
@@ -58,11 +59,13 @@ public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
         return value;
     }
 
+    @Override
     public String getMethod() {
     	String name = request.getName();
         return name;
     }
 
+    @Override
     public String getRequestUrl() {
         try {
         	String uri = request.getURI().toString();
@@ -80,6 +83,7 @@ public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
         request.setRequestHeader(name, value);
     }
 
+    @Override
     public String getContentType() {
         if (entity == null) {
             return null;
@@ -88,6 +92,7 @@ public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
         return (contentType);
     }
 
+    @Override
     public InputStream getMessagePayload() throws IOException {
         if (entity == null) {
             return null;
@@ -101,11 +106,13 @@ public class HttpMethodAdapter implements oauth.signpost.http.HttpRequest {
         	return null;
     }
 
+    @Override
 	public Map<String, String> getAllHeaders() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+    @Override
 	public void setRequestUrl(String arg0) {
 		// TODO Auto-generated method stub
 		

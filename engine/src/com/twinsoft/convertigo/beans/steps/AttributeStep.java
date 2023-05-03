@@ -62,11 +62,6 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 		this.xml = true;
 	}
 
-	public AttributeStep(String expression) {
-		super();
-		this.expression = expression;
-	}
-
 	@Override
     public AttributeStep clone() throws CloneNotSupportedException {
     	AttributeStep clonedObject = (AttributeStep) super.clone();

@@ -27,20 +27,18 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyData;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class PropertyTableTreeObject extends TreeParent implements IPropertyTreeObject, IActionFilter {
 
-	protected DatabaseObjectTreeObject databaseObjectTreeObject = null;
-	protected XMLVector<XMLVector<Object>> data = null;
+	private DatabaseObjectTreeObject databaseObjectTreeObject = null;
+	private XMLVector<XMLVector<Object>> data = null;
 	
 	/**
 	 * @param viewer
@@ -180,7 +178,7 @@ public class PropertyTableTreeObject extends TreeParent implements IPropertyTree
 		loadRows();
 	}
 	
-	protected Class<? extends PropertyTableRowTreeObject> getRowClass() {
+	private Class<? extends PropertyTableRowTreeObject> getRowClass() {
 		return PropertyTableRowTreeObject.class;
 	}
 	
@@ -193,11 +191,11 @@ public class PropertyTableTreeObject extends TreeParent implements IPropertyTree
 		return tableRow;
 	}
 	
-	protected boolean canAddRows() {
+	private boolean canAddRows() {
 		return true;
 	}
 	
-	protected XMLVector<Object> createRow(String name) {
+	private XMLVector<Object> createRow(String name) {
 		XMLVector<Object> row = new XMLVector<Object>();
 		row.add(name);
 		row.add(new XMLVector<Object>());
@@ -218,7 +216,7 @@ public class PropertyTableTreeObject extends TreeParent implements IPropertyTree
 		return null;
 	}
 	
-	protected PropertyTableRowTreeObject newRow(XMLVector<Object> row) {
+	private PropertyTableRowTreeObject newRow(XMLVector<Object> row) {
 		return new PropertyTableRowTreeObject(viewer,row);
 	}
 	
@@ -258,27 +256,6 @@ public class PropertyTableTreeObject extends TreeParent implements IPropertyTree
 		for(PropertyTableRowTreeObject rowTreeObject : getChildren())
 			element.appendChild(rowTreeObject.toXml(document));
 		return element;
-	}
-
-	public static Object read(Node node) throws EngineException {
-		String classname = null;
-		XMLVector<Object> xmlv = null;
-		try {
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element)node;
-				classname = element.getAttribute("classname");
-				xmlv = new XMLVector<Object>();
-			}
-		}
-		catch (Exception e) {
-            String message = "Unable to set the object properties from the serialized XML data.\n" +
-			"Object class: '" + classname;
-	        EngineException ee = new EngineException(message, e);
-	        throw ee;
-		}
-		if (xmlv != null)
-			return new PropertyData(PropertyTableTreeObject.class, xmlv);
-		return null;
 	}
 
 	/* (non-Javadoc)

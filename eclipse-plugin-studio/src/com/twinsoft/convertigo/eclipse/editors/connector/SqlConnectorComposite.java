@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.ToolItem;
 
 import com.twinsoft.convertigo.beans.connectors.SqlData;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -37,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 
-public class SqlConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
+class SqlConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Table table;
 	
@@ -53,14 +52,6 @@ public class SqlConnectorComposite extends AbstractConnectorComposite implements
 	public void close() {
 		this.connector.removeConnectorListener(this);
 		super.close();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Widget#dispose()
-	 */
-	@Override
-	public void dispose() {
-		super.dispose();
 	}
 	
 	@Override
@@ -140,9 +131,6 @@ public class SqlConnectorComposite extends AbstractConnectorComposite implements
 	}
 
 	public void renew() {
-	}
-	
-	public void monitor(ToolItem ti) {
 	}
 
 	protected void clearContent() {

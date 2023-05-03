@@ -31,7 +31,7 @@ public class HtmlInputStream extends InputStream {
 	private InputStream in = null;
 	private HttpBridge bridge = new HttpBridge();
 
-	public InputStream open(ParameterShuttle infoShuttle, InputStream inStream, URL docURL) {
+	InputStream open(ParameterShuttle infoShuttle, InputStream inStream, URL docURL) {
 		//in = inStream;
 		in = getConvertedInputStream(inStream);
 

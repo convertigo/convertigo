@@ -26,10 +26,6 @@ import com.twinsoft.convertigo.beans.core.Listener;
 
 public class ListenerTreeObject extends DatabaseObjectTreeObject {
 
-	public ListenerTreeObject(Viewer viewer, DatabaseObject object) {
-		super(viewer, object);
-	}
-
 	public ListenerTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 		setEnabled(getObject().isEnabled());

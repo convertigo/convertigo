@@ -32,18 +32,12 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 
 public class HandlersDeclarationTreeObject extends TreeObject implements IEditableTreeObject {
-	public static final int TYPE_ROOT = 0;
 	public static final int TYPE_FUNCTION_SCREEN_CLASS_ENTRY = 10;
 	public static final int TYPE_FUNCTION_SCREEN_CLASS_EXIT  = 11;
 	public static final int TYPE_OTHER = 100;
 	
-	public int type;
-	public int lineNumber;
-	
-    public HandlersDeclarationTreeObject(Viewer viewer, Object object, int type, int lineNumber) {
+	public HandlersDeclarationTreeObject(Viewer viewer, Object object) {
         super(viewer, object);
-        this.type = type;
-        this.lineNumber = lineNumber;
     }
 
 	public void launchEditor(String editorType) {
@@ -60,7 +54,7 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 		}
 	}
 	
-	public void moveTo(String handlerName) {
+	private void moveTo(String handlerName) {
 		IEditorPart editor =  PlatformUI
 									.getWorkbench()
 									.getActiveWorkbenchWindow()

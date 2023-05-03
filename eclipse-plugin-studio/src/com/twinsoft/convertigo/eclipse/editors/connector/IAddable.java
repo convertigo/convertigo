@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a connector on which an add action can be made.
  */
-public interface IAddable {
+interface IAddable {
 
 	public void add();
 	

@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class MyAbstractDialog extends Dialog {
+class MyAbstractDialog extends Dialog {
 
 	private Class<? extends Composite> dialogAreaClass;
 	private String dialogTitle;
@@ -133,12 +133,6 @@ public class MyAbstractDialog extends Dialog {
 	@Override
 	protected int getShellStyle() {
 		return SWT.TITLE | SWT.BORDER | SWT.RESIZE | SWT.APPLICATION_MODAL;
-	}
-
-	protected void enableOK(boolean enabled) {
-		Button OkButton = getButton(IDialogConstants.OK_ID);
-		if (OkButton != null)
-			OkButton.setEnabled(enabled);
 	}
 	
 	@Override

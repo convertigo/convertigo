@@ -65,12 +65,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
-	public static final String P_TPL_VERSION = "#tplVersion";
+	private static final String P_TPL_VERSION = "#tplVersion";
 	
-	public MobileApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object) {
-		super(viewer, object);
-	}
-
 	public MobileApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
@@ -253,7 +249,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		super.hasBeenModified(bModified);
 	}
 	
-	protected void markComponentTsAsDirty() {
+	private void markComponentTsAsDirty() {
 		ApplicationComponent ac = getObject();
 		try {
 			ac.markComponentTsAsDirty();
@@ -262,7 +258,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
 	}
 	
-	protected void markApplicationAsDirty(Set<Object> done) {
+	private void markApplicationAsDirty(Set<Object> done) {
 		ApplicationComponent ac = getObject();
 		if (!done.add(ac)) {
 			return;
@@ -275,7 +271,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the application source files for '" + ac.getName() + "'");	}
 	}
 	
-	protected void markPwaAsDirty() {
+	private void markPwaAsDirty() {
 		ApplicationComponent ac = getObject();
 		try {
 			ac.markPwaAsDirty();
@@ -379,7 +375,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 	}
 
-	public ApplicationComponentEditor activeEditor() {
+	ApplicationComponentEditor activeEditor() {
 		return activeEditor(true);
 	}
 	

@@ -24,11 +24,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class ProjectBuildComposite extends Composite {
-	Label label = null;
+
+class ProjectBuildComposite extends Composite {
+	private Label label = null;
 	
-	public ProjectBuildComposite(Composite parent, int style) {
+	ProjectBuildComposite(Composite parent, int style) {
 		super(parent, style);
 		initialize();
 	}
@@ -40,21 +42,17 @@ public class ProjectBuildComposite extends Composite {
 		
 		label = new Label(this, SWT.NONE);
 		label.setText("");
-
 	}
 
 	protected void updateLabelText(String text) {
-		getDisplay().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (!label.isDisposed()) {
-						if (text != null) label.setText(text);
-						ProjectBuildComposite.this.requestLayout();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+		ConvertigoPlugin.asyncExec(() -> {
+			try {
+				if (!label.isDisposed()) {
+					if (text != null) label.setText(text);
+					ProjectBuildComposite.this.requestLayout();
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 	}

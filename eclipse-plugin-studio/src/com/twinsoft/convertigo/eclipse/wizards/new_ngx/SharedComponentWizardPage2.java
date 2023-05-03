@@ -26,12 +26,12 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class SharedComponentWizardPage2 extends WizardPage {
-	protected SharedComponentWizard wizard;
+class SharedComponentWizardPage2 extends WizardPage {
+	private SharedComponentWizard wizard;
 
 	private Map<String, String> variableMap = null;
 	
-	public SharedComponentWizardPage2(SharedComponentWizard wizard) {
+	SharedComponentWizardPage2(SharedComponentWizard wizard) {
 		super("wizardPage");
 		this.wizard = wizard;
 		setTitle("Variables");

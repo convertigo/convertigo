@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
-public interface IRecordable {
+interface IRecordable {
 
 	public void record(boolean start);
 }

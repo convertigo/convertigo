@@ -133,7 +133,6 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class MobilePickerComposite extends Composite {
 
-	Composite content, headerComposite;
 	private ToolItem tiLink, btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
@@ -421,7 +420,7 @@ public class MobilePickerComposite extends Composite {
 			}
 		};
 		
-		headerComposite = new Composite(parent, SWT.NONE);
+		Composite headerComposite = new Composite(parent, SWT.NONE);
 		headerComposite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
 		headerComposite.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 1, 1));
 		

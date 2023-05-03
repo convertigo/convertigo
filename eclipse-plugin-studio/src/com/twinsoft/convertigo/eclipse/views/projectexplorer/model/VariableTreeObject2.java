@@ -81,7 +81,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 		}
 	}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;

@@ -19,11 +19,11 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
-public class DatabaseCacheEntry extends CacheEntry {
+class DatabaseCacheEntry extends CacheEntry {
 	
 	private static final long serialVersionUID = 3578948543622264794L;
 	
-	public long id = 0;
+	long id = 0;
 
 	public DatabaseCacheEntry() {
 		super();

@@ -28,21 +28,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 public class ScriptCellEditor extends TextCellEditor {
-
-	public ScriptCellEditor() {
-	}
-
+	
 	public ScriptCellEditor(Composite parent) {
 		super(parent);
-	}
-
-	public ScriptCellEditor(Composite parent, int style) {
-		super(parent, style);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.TextCellEditor#createControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@Override
 	protected Control createControl(Composite parent) {
 		super.createControl(parent);
 		parent.getDisplay().asyncExec(() -> {
@@ -86,6 +80,7 @@ public class ScriptCellEditor extends TextCellEditor {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.CellEditor#dispose()
 	 */
+	@Override
 	public void dispose() {
 		if (background != null) {
 			background.dispose();

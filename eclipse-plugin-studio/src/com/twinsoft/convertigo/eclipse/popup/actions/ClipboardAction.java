@@ -71,17 +71,6 @@ public class ClipboardAction extends MyAbstractAction {
 		this.clipboardManager = clipboardManager;
 	}
 
-	public String copy(DatabaseObject dbo) throws EngineException, ParserConfigurationException {
-		String sXml = null;
-		if (dbo != null) {
-			clipboardManager.reset();
-			//clipboardManager.objectsType = type;
-			clipboardManager.isCopy = true;
-			sXml = clipboardManager.copy(dbo);
-		}
-		return sXml;
-	}
-
 	public String copy(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
@@ -92,7 +81,7 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 
-	public String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
+	private String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
 			clipboardManager.reset();
@@ -109,7 +98,7 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 
-	public String cut(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
+	String cut(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = copy(explorerView);
 		if (sXml != null) {
 			clipboardManager.isCopy = false;
@@ -118,7 +107,7 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 
-	public String cut(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
+	String cut(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = copy(explorerView, selectedPaths, type);
 		if (sXml != null) {
 			clipboardManager.isCopy = false;
@@ -127,7 +116,7 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 
-	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
+	void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		paste(source, shell, explorerView, selectedTreeObject, false);
 	}
 

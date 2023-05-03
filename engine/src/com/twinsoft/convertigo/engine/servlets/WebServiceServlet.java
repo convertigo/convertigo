@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -195,7 +194,7 @@ public class WebServiceServlet extends GenericServlet {
         return "TWinSoft Convertigo web service provider";
     }
 	
-    protected String generateWsdl(HttpServletRequest request) throws EngineException {
+    private String generateWsdl(HttpServletRequest request) throws EngineException {
         Engine.logEngine.debug("(WebServiceServlet) WSDL required");
         
 		String servletPath = request.getServletPath();
@@ -221,12 +220,7 @@ public class WebServiceServlet extends GenericServlet {
 		}
     }
     
-    protected static String encode(String source, String encoding) throws UnsupportedEncodingException {
-    	String encoded = new String(source.getBytes(encoding));
-    	return encoded;
-    }
-    
-    public static String generateWsdlForDocLiteral(String servletURI, String projectName) throws EngineException {
+    private static String generateWsdlForDocLiteral(String servletURI, String projectName) throws EngineException {
     	Engine.logEngine.debug("(WebServiceServlet) Generating WSDL...");
     	long timeStart = System.currentTimeMillis();
     	

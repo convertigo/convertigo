@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 
-public enum ZoomFactor {
+enum ZoomFactor {
 	z150(ZoomLevel.P_150, 1.5),
 	z125(ZoomLevel.P_125, 1.25),
 	z110(ZoomLevel.P_110, 1.1),

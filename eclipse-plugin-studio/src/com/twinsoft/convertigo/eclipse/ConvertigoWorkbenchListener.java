@@ -26,7 +26,7 @@ import org.eclipse.ui.IWorkbenchListener;
  * The Convertigo workbench listener.
  *
  */
-public class ConvertigoWorkbenchListener implements IWorkbenchListener {
+class ConvertigoWorkbenchListener implements IWorkbenchListener {
 
 	public ConvertigoWorkbenchListener() {
 	}

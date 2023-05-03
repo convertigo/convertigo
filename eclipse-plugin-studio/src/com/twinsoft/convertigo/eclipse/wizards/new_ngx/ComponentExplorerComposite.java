@@ -74,58 +74,47 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
-public class ComponentExplorerComposite extends Composite {
+class ComponentExplorerComposite extends Composite {
 
-	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
-	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
+	private Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+	private Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
-	//private String technology = null;
-	protected Class<? extends DatabaseObject> databaseObjectClass = null;
-	protected CLabel currentSelectedObject = null;
+	private CLabel currentSelectedObject = null;
 
 	private int folderType = -1;
 	private DatabaseObject parentObject = null;
-	protected Cursor handCursor = null;
-	protected Map<CLabel, Object> objectsMap = null;
+	private Cursor handCursor = null;
+	private Map<CLabel, Object> objectsMap = null;
 
-	protected WizardPage wizardPage = null;
+	private WizardPage wizardPage = null;
 	private C8oBrowser helpBrowser = null;
-	public ScrolledComposite scrolledComposite;
-	protected Composite composite = null;
-	protected Composite [] composites = null;
-	protected ExpandItem [] items = null;
-	protected ExpandBar bar;
-	protected Text searchText;
-	protected Button bBtn;
-	protected Button aBtn;
+	private ScrolledComposite scrolledComposite;
+	private Composite composite = null;
+	private Composite [] composites = null;
+	private ExpandItem [] items = null;
+	private ExpandBar bar;
+	private Text searchText;
+	private Button bBtn;
+	private Button aBtn;
 	
-	protected List<String> documentedDboList = new ArrayList<String>();
+	
 
-	public ComponentExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
+	ComponentExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass, int folderType) {
 		this(parent, style, parentObject, beanClass, folderType);
 		this.wizardPage = wizardPage;
 	}
 
-	public ComponentExplorerComposite(Composite parent, int style, Object parentObject,
+	private ComponentExplorerComposite(Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass, int folderType) {
 		super(parent, style);
 		this.folderType = folderType;
 		this.parentObject = (DatabaseObject) parentObject;
-		this.databaseObjectClass = beanClass;
-
 		objectsMap = new HashMap<CLabel, Object>(32);
 		initialize();
 	}
 
-	public ComponentExplorerComposite(Composite parent, int style) {
-		super(parent, style);
-
-		objectsMap = new HashMap<CLabel, Object>(32);
-		initialize();
-	}
-
-	protected boolean isAllowed(Component c) {
+	private boolean isAllowed(Component c) {
 		boolean isAllowed = parentObject != null ? c.isAllowedIn(parentObject):true;
 		if (isAllowed && folderType != -1) {
 			DatabaseObject dbo = ComponentManager.createBean(c);
@@ -136,7 +125,7 @@ public class ComponentExplorerComposite extends Composite {
 		return isAllowed;
 	}
 	
-	protected void findDatabaseObjects(String searchText) {
+	private void findDatabaseObjects(String searchText) {
 		if (objectsMap.isEmpty()) {
 			try {
 				List<String> categories = new ArrayList<String>();
@@ -353,7 +342,7 @@ public class ComponentExplorerComposite extends Composite {
 	 * This method initializes this
 	 * 
 	 */
-	protected void initialize() {
+	private void initialize() {
 		setLayout(new GridLayout(3, true));
 
 		GridData gridData;
@@ -468,7 +457,7 @@ public class ComponentExplorerComposite extends Composite {
 		reloadComponents();
 	}
 
-	public void reloadComponents() {
+	private void reloadComponents() {
 		ComponentManager.reloadComponents();
 
 		getDisplay().asyncExec(() -> {

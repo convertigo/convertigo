@@ -24,7 +24,7 @@ import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 
-public class ConvertigoPerspectiveListener implements IPerspectiveListener {
+class ConvertigoPerspectiveListener implements IPerspectiveListener {
 
 	public void perspectiveActivated(IWorkbenchPage page, IPerspectiveDescriptor perspective) {
 

@@ -24,12 +24,12 @@ import java.util.Calendar;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public class MigrationJob extends Thread {
+class MigrationJob extends Thread {
 	protected boolean isFinished;
 
 	private String projectName;
 	
-	public MigrationJob(String projectName) {
+	MigrationJob(String projectName) {
 		this.projectName = projectName;
 		setName("MigrationJob #" + projectName);
 	}

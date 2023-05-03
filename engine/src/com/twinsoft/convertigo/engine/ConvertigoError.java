@@ -161,7 +161,7 @@ public class ConvertigoError {
 		}
 	}
 	
-	public static void addXmlSchemaObjects(XmlSchema schema) {
+	static void addXmlSchemaObjects(XmlSchema schema) {
 		XmlSchemaComplexType cConvertigoErrorContextVariableType = new XmlSchemaComplexType(schema);
 		cConvertigoErrorContextVariableType.setName("ConvertigoErrorContextVariable");
 		XmlSchemaObjectCollection attributes = cConvertigoErrorContextVariableType.getAttributes();
@@ -249,7 +249,7 @@ public class ConvertigoError {
 		XmlSchemaUtils.add(schema, cConvertigoErrorType);
 	}
 
-	public static void removeXmlSchemaObjects(XmlSchema schema) {
+	private static void removeXmlSchemaObjects(XmlSchema schema) {
 		XmlSchemaType type = null;
 		if ((type = schema.getTypeByName("ConvertigoErrorContextVariable")) != null)
 			XmlSchemaUtils.remove(schema, type);
@@ -264,7 +264,7 @@ public class ConvertigoError {
 		addXmlSchemaObjects(schema);
 	}
 	
-	public static ConvertigoError initError(Exception convertigoException) {
+	static ConvertigoError initError(Exception convertigoException) {
 		return initError(ErrorType.Convertigo, convertigoException);
 	}
 

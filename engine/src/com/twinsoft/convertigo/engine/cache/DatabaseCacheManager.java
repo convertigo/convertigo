@@ -46,12 +46,12 @@ import com.twinsoft.util.StringEx;
 
 public class DatabaseCacheManager extends CacheManager {
 
-	public static final String PROPERTIES_SQL_REQUEST_STORE_RESPONSE		 		= "sql.request.store_response";
-	public static final String PROPERTIES_SQL_REQUEST_GET_ID 						= "sql.request.get_id";
-	public static final String PROPERTIES_SQL_REQUEST_GET_STORED_RESPONSE			= "sql.request.get_stored_response";
-	public static final String PROPERTIES_SQL_REQUEST_REMOVE_RESPONSE		 		= "sql.request.remove_response";
-	public static final String PROPERTIES_SQL_REQUEST_UPDATE_CACHE_ENTRY			= "sql.request.update_cache_entry";
-	public static final String PROPERTIES_SQL_REQUEST_REMOVE_EXPIRED_CACHE_ENTRY	= "sql.request.remove_expired_cache_entry";
+	private static final String PROPERTIES_SQL_REQUEST_STORE_RESPONSE		 		= "sql.request.store_response";
+	private static final String PROPERTIES_SQL_REQUEST_GET_ID 						= "sql.request.get_id";
+	private static final String PROPERTIES_SQL_REQUEST_GET_STORED_RESPONSE			= "sql.request.get_stored_response";
+	private static final String PROPERTIES_SQL_REQUEST_REMOVE_RESPONSE		 		= "sql.request.remove_response";
+	private static final String PROPERTIES_SQL_REQUEST_UPDATE_CACHE_ENTRY			= "sql.request.update_cache_entry";
+	private static final String PROPERTIES_SQL_REQUEST_REMOVE_EXPIRED_CACHE_ENTRY	= "sql.request.remove_expired_cache_entry";
 	public static final String PROPERTIES_SQL_REQUEST_GET_CACHE_ENTRY				= "sql.request.get_cache_entry";
 	
 	public static final String PROPERTIES_SQL_CACHE_TABLE_NAME						= "sql.table.name";

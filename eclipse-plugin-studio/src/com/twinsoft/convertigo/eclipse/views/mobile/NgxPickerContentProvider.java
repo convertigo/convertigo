@@ -66,11 +66,11 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class NgxPickerContentProvider implements ITreeContentProvider {
+class NgxPickerContentProvider implements ITreeContentProvider {
 	
 	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:\\-\\s]+");
 	
-	public class TVObject {
+	class TVObject {
 		private String name;
 		private Object object;
 		private TVObject parent;
@@ -81,10 +81,6 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 		private TVObject(String name) {
 			this(name, null, null);
 		}
-		
-//		private TVObject (String name, Object object) {
-//			this(name, object, null);
-//		}
 		
 		private TVObject (String name, Object object, SourceData sd) {
 			this(name, object, sd, null);

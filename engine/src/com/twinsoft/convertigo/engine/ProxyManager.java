@@ -52,12 +52,12 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class ProxyManager {
 
-	public CertificateManager certificateManager = null;
+	private CertificateManager certificateManager = null;
 
-	public UUID hostConfId;
+	private UUID hostConfId;
 
 	public String proxyServer;
-	public int proxyPort;
+	private int proxyPort;
 	public String proxyUrl;
 	public ProxyMethod proxyMethod;
 	public ProxyMode proxyMode;
@@ -75,7 +75,7 @@ public class ProxyManager {
 		}
 	}
 
-	public class MyPropertyChangeEventListener implements PropertyChangeEventListener {
+	private class MyPropertyChangeEventListener implements PropertyChangeEventListener {
 
 		public void onEvent(final PropertyChangeEvent event) {
 			if (event.getKey().toString().startsWith("htmlProxy.")) {
@@ -124,7 +124,7 @@ public class ProxyManager {
 		});
 	}
 
-	public void destroy() {
+	void destroy() {
 		myPropertyChangeEventListener = null;
 	}
 

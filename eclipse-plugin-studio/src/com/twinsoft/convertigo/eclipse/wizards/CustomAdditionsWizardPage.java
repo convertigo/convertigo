@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -47,27 +46,22 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class CustomAdditionsWizardPage extends WizardPage {
+class CustomAdditionsWizardPage extends WizardPage {
 
-    protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
-    protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-    protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
-    protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);    
+    private Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
+    private Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+    private Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+    private Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);    
 
-    protected Cursor handCursor;
-    protected CLabel currentSelectedItem = null;
+    private Cursor handCursor;
+    private CLabel currentSelectedItem = null;
     
     private Map<String, Image> icons = new HashMap<String, Image>(256);
     
-    public CustomAdditionsWizardPage(String pageName) {
+    CustomAdditionsWizardPage(String pageName) {
 		super(pageName);
 	}
-
-	public CustomAdditionsWizardPage(String pageName, String title, ImageDescriptor titleImage) {
-		super(pageName, title, titleImage);
-	}
-
-	
+    
 	@Override
 	public void dispose() {
 		super.dispose();

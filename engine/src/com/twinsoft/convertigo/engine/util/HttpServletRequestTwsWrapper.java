@@ -37,9 +37,9 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
-	protected Map<String, String[]> parameters = new HashMap<String, String[]>();
-	protected String query = null;
-	protected HttpSession session = null;
+	private Map<String, String[]> parameters = new HashMap<String, String[]>();
+	private String query = null;
+	private HttpSession session = null;
 	
 	public HttpServletRequestTwsWrapper(HttpServletRequest request) {
 		super(request);

@@ -36,13 +36,13 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ExportWizardPage extends WizardPage {
+class ExportWizardPage extends WizardPage {
 	
 	private IStructuredSelection selection = null;
-	protected ProjectFileFieldEditor editor = null;
-	protected String filePath = "";
+	private ProjectFileFieldEditor editor = null;
+	private String filePath = "";
 	
-	public ExportWizardPage(IStructuredSelection selection) {
+	ExportWizardPage(IStructuredSelection selection) {
 		super("Export","Export a Convertigo project",null);
 		this.selection = selection;
 	}

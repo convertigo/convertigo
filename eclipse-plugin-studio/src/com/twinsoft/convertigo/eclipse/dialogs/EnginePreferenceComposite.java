@@ -61,13 +61,13 @@ public class EnginePreferenceComposite extends Composite {
 		createContents();
 	}
 
-	public EnginePreferenceComposite(Composite parent, int style, List<String> filterList) {
+	EnginePreferenceComposite(Composite parent, int style, List<String> filterList) {
 		super(parent, style);
 		this.filterList = filterList;
 		createContents();
 	}
 
-	protected void createContents() {
+	private void createContents() {
 		setLayout(new FillLayout());
 		modifiedProperties = new HashMap<PropertyName, String>();
 		bar = new ExpandBar(this, SWT.VERTICAL);

@@ -29,11 +29,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 
 
-public class NewProjectWizardPage11 extends WizardPage {
+class NewProjectWizardPage11 extends WizardPage {
 	private String targetURL;
 	private boolean bTrustAllCertificates;
 	
-	public NewProjectWizardPage11(ISelection selection) {
+	NewProjectWizardPage11(ISelection selection) {
 		super("wizardPage");
 		setTitle("Clipper target host");
 		setDescription("This step allows you to define the target host url");

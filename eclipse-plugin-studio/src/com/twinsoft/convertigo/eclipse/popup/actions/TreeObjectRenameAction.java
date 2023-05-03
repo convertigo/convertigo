@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
-public class TreeObjectRenameAction extends MyAbstractAction {
+class TreeObjectRenameAction extends MyAbstractAction {
 
 	protected String type = "object";
 	
@@ -35,6 +35,7 @@ public class TreeObjectRenameAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

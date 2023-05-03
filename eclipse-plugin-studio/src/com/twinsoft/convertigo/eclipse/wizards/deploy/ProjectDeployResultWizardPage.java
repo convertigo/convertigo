@@ -42,22 +42,22 @@ import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
 
-public class ProjectDeployResultWizardPage extends WizardPage {
-	Project project = null;
-	boolean deployDone = false;
+class ProjectDeployResultWizardPage extends WizardPage {
+	private Project project = null;
+	private boolean deployDone = false;
 
-	ProjectDeployResultComposite composite = null;
-	boolean canProcess = false;
+	private ProjectDeployResultComposite composite = null;
+	private boolean canProcess = false;
 	
-	Set<ArchiveExportOption> archiveExportOptions;
-	String convertigoServer;
-	boolean isHttps;
-	boolean trustAllCertificates;
-	String convertigoUserName;
-	String convertigoUserPassword;
-	boolean bAssembleXsl;
+	private Set<ArchiveExportOption> archiveExportOptions;
+	private String convertigoServer;
+	private boolean isHttps;
+	private boolean trustAllCertificates;
+	private String convertigoUserName;
+	private String convertigoUserPassword;
+	private boolean bAssembleXsl;
 	
-	public ProjectDeployResultWizardPage(Project project) {
+	ProjectDeployResultWizardPage(Project project) {
 		super("ProjectDeployResultWizardPage", "Deployment result", null);
 		this.project = project;
 	}
@@ -93,7 +93,7 @@ public class ProjectDeployResultWizardPage extends WizardPage {
 		}
 	}
 	
-	IRunnableWithProgress runnable = new IRunnableWithProgress() {
+	private IRunnableWithProgress runnable = new IRunnableWithProgress() {
 	    public void run(IProgressMonitor monitor) throws InterruptedException {
 	    	try {
 				boolean doubleFound = false;

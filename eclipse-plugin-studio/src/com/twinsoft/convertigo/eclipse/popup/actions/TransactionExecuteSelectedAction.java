@@ -76,7 +76,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
         }
 	}
 
-	protected boolean isStubRequested() {
+	private boolean isStubRequested() {
 		return false;
 	}
 }

@@ -48,11 +48,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class NgxPageComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
-	
-	public NgxPageComponentTreeObject(Viewer viewer, PageComponent object) {
-		super(viewer, object);
-		isDefault = getObject().isRoot;
-	}
 
 	public NgxPageComponentTreeObject(Viewer viewer, PageComponent object, boolean inherited) {
 		super(viewer, object, inherited);

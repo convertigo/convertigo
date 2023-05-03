@@ -23,7 +23,7 @@ public class DatabaseObjectImportedEvent extends java.util.EventObject {
 
 	private static final long serialVersionUID = 1709052874273284280L;
 
-	public DatabaseObjectImportedEvent(Object source) {
+	DatabaseObjectImportedEvent(Object source) {
         super(source);
     }
 }

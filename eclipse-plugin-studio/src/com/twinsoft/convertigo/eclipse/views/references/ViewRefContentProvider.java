@@ -25,11 +25,13 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractParentNode;
 
-public class ViewRefContentProvider implements ITreeContentProvider {
+class ViewRefContentProvider implements ITreeContentProvider {
 
+	@Override
 	public void dispose() {
 	}
 
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 	}
 

@@ -44,26 +44,26 @@ import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public class NewProjectWizardComposite10 extends Composite implements IWsReferenceComposite {
-	public Combo combo = null;	
+class NewProjectWizardComposite10 extends Composite implements IWsReferenceComposite {
+	Combo combo = null;	
 	private FileFieldEditor editor = null;	
 	private String filePath = "";
 	private String urlPath = "";
 	private WizardPage parentWizard = null;
 	
 	private WsReferenceComposite wsRefAuthenticated = null;
-	public Button useAuthentication = null;
-	public Text loginText = null, passwordText = null;
+	Button useAuthentication = null;
+	Text loginText = null, passwordText = null;
 	private String wizardId;
 	
-	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
+	NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
 		super(parent, style);
 		this.parentWizard = page;
 		this.wizardId = ((NewProjectWizard)page.getWizard()).wizardId;
 		initialize();
 	}
 
-	protected void initialize() {
+	private void initialize() {
 		final Composite container = this;
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
@@ -126,7 +126,7 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	}
 
 	
-	protected String[] getFilterExtension() {
+	private String[] getFilterExtension() {
 		String[] filterExtension = new String[]{"*"};
 		switch (wizardId) {
 			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
@@ -142,7 +142,7 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		return filterExtension;
 	}
 
-	protected String[] getFilterNames() {
+	private String[] getFilterNames() {
 		String[] filterNames = new String[]{"All files"};
 		switch (wizardId) {
 			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":

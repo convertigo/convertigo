@@ -26,10 +26,6 @@ import com.twinsoft.convertigo.beans.core.Document;
 
 public class DocumentTreeObject extends DatabaseObjectTreeObject {
 
-	public DocumentTreeObject(Viewer viewer, DatabaseObject object) {
-		super(viewer, object);
-	}
-
 	public DocumentTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

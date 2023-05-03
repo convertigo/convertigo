@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.eclipse.learnproxy.http;
  * Encapsulates HTTP response data.
  * 
  */
-public class HttpResponse {
+class HttpResponse {
    
    private byte[] response;
    private int statusCode;

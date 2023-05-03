@@ -55,7 +55,7 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 		this.xmlSchema = xmlSchema;
 	}
 	
-	public SchemaObjectsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
+	private SchemaObjectsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
 		super(parentShell);
 		this.dialogTitle = dialogTitle;
 		this.parentObject = parentObject;
@@ -102,7 +102,7 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 		return buttonBar;
 	}
 	
-	public void enableOK(boolean enabled) {
+	private void enableOK(boolean enabled) {
 		getButton(IDialogConstants.OK_ID).setEnabled(enabled);
 	}
 	

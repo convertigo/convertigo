@@ -19,31 +19,19 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-public class NewProjectWizardCompositeSummarySampleProject extends Composite  {
+class NewProjectWizardCompositeSummarySampleProject extends Composite  {
 
-	private NewProjectWizard wz;
 	private Label label1 = null;
 
-	public NewProjectWizardCompositeSummarySampleProject(Composite parent, int style, IWizard wizard) {
+	NewProjectWizardCompositeSummarySampleProject(Composite parent, int style) {
 		super(parent, style);
-		wz = (NewProjectWizard)wizard;
 		initialize();
-	}
-
-
-	protected void setNewProjectWizard(NewProjectWizard wz) {
-		this.wz = wz;
-	}
-
-	protected NewProjectWizard getNewProjectWizard() {
-		return wz;
 	}
 
 	/**

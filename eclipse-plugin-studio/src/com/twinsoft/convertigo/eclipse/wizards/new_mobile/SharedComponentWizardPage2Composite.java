@@ -46,7 +46,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class SharedComponentWizardPage2Composite extends Composite {
+class SharedComponentWizardPage2Composite extends Composite {
 
 	private Table table;
 	private TableEditor tableEditor;
@@ -54,7 +54,7 @@ public class SharedComponentWizardPage2Composite extends Composite {
 	
 	private Map<String, String> tableMap = null;
 	
-	public SharedComponentWizardPage2Composite(Composite parent, int style, SharedComponentWizardPage2 page) {
+	SharedComponentWizardPage2Composite(Composite parent, int style, SharedComponentWizardPage2 page) {
 		super(parent, style);
 		this.page = page;
 		this.tableMap = page.initTableMap();

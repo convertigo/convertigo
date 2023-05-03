@@ -97,11 +97,11 @@ public class CompressionFilter implements Filter {
 		private GZipServletOutputStream gzipOutputStream = null;
 		private PrintWriter             printWriter      = null;
 
-		public GZipServletResponseWrapper(HttpServletResponse response) throws IOException {
+		private GZipServletResponseWrapper(HttpServletResponse response) throws IOException {
 			super(response);
 		}
 
-		public void close() throws IOException {
+		private void close() throws IOException {
 			//PrintWriter.close does not throw exceptions.
 			//Hence no try-catch block.
 			if (printWriter != null) {
@@ -218,7 +218,7 @@ public class CompressionFilter implements Filter {
 	class GZipServletOutputStream extends ServletOutputStream {
 		private GZIPOutputStream gzipOutputStream = null;
 
-		public GZipServletOutputStream(OutputStream output) throws IOException {
+		private GZipServletOutputStream(OutputStream output) throws IOException {
 			super();
 			gzipOutputStream = new GZIPOutputStream(output);
 		}

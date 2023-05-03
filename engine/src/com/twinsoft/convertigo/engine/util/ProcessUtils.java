@@ -146,7 +146,7 @@ public class ProcessUtils {
 		}
 	}
 	
-	public static String searchFullPath(String paths, String command) throws IOException {
+	private static String searchFullPath(String paths, String command) throws IOException {
 		String shellFullpath = null;
 		// Checks if the command is already full path 
 		if (!(new File(command).exists())) {
@@ -167,7 +167,7 @@ public class ProcessUtils {
 		return shellFullpath;
 	}
 	
-	public static String getAllPaths(String paths) {
+	private static String getAllPaths(String paths) {
 		paths = (StringUtils.isNotBlank(paths) ? paths + File.pathSeparator : "") + System.getenv("PATH");
 		
 		String defaultPaths = null;
@@ -209,7 +209,7 @@ public class ProcessUtils {
 		return pb; 
 	}
 	
-	public static ProcessBuilder getProcessBuilder(String paths, String... command) throws IOException {
+	private static ProcessBuilder getProcessBuilder(String paths, String... command) throws IOException {
 		return getProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
 	
@@ -272,11 +272,11 @@ public class ProcessUtils {
 		return getNpmProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
 	
-	public static String getNodeOs() {
+	private static String getNodeOs() {
 		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? "linux-x64" : "aarch64".equals(System.getProperty("os.arch")) ? "darwin-arm64" : "darwin-x64";
 	}
 	
-	public static File getLocalNodeDir(String version) {
+	private static File getLocalNodeDir(String version) {
 		if (version.equals(defaultNodeVersion) && defaultNodeDir != null) {
 			return defaultNodeDir;
 		}

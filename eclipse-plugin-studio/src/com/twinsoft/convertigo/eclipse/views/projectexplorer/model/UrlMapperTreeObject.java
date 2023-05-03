@@ -26,10 +26,6 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 
 public class UrlMapperTreeObject extends DatabaseObjectTreeObject {
 
-	public UrlMapperTreeObject(Viewer viewer, DatabaseObject object) {
-		this(viewer, object, false);
-	}
-
 	public UrlMapperTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

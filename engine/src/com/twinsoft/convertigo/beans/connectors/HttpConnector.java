@@ -47,7 +47,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
-import javax.swing.event.EventListenerList;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -106,8 +105,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.HttpStateEvent;
-import com.twinsoft.convertigo.engine.HttpStateListener;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
@@ -230,7 +227,6 @@ public class HttpConnector extends Connector {
 	@Override
 	public HttpConnector clone() throws CloneNotSupportedException {
 		HttpConnector clonedObject = (HttpConnector) super.clone();
-		clonedObject.httpStateListeners = new EventListenerList();
 		clonedObject.sUrl = "";
 		clonedObject.handleCookie = true;
 		clonedObject.httpParameters = new XMLVector<XMLVector<String>>();
@@ -804,8 +800,7 @@ public class HttpConnector extends Connector {
 		}
 		Engine.logBeans.debug("(HttpConnector) Connector successfully prepared for transaction");
 	}
-
-	protected static final int BUFFER_SIZE = 8192;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -830,16 +825,13 @@ public class HttpConnector extends Connector {
 			authenticationPropertiesHasChanged = false;			
 		}
 		
-		boolean stateChanged = false;
 		if (context.httpState == null) {
 			Engine.logBeans.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
 			context.httpState = new HttpState();
-			stateChanged = true;
 		} else {
 			Engine.logBeans.debug("(HttpConnector) Using HttpState of context id " + context.contextID);
 		}
 		
-		String realm = null;
 		if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
 			String user = ((givenAuthUser == null) ? authUser : givenAuthUser);
 			String password = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
@@ -847,15 +839,10 @@ public class HttpConnector extends Connector {
 			String domain = NTLMAuthenticationDomain;
 			
 			if (authenticationType.setCredentials(context.httpState, user, password, host, domain)) {
-				stateChanged = true;
 			}
 		}
 
 		httpState = context.httpState;
-		
-		if (stateChanged) {
-			fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
-		}
 	}
 
 	public void resetHttpState(Context context) {
@@ -866,11 +853,11 @@ public class HttpConnector extends Connector {
 	public byte[] getData(Context context) throws IOException, EngineException {
 		return getData(context, sUrl);
 	}
-	public byte[] getData(Context context, String sUrl) throws IOException, EngineException {
+	private byte[] getData(Context context, String sUrl) throws IOException, EngineException {
 		return getData(context, sUrl, false);
 	}
 	
-	public byte[] getData(Context context, String sUrl, boolean forceGET) throws IOException, EngineException {
+	private byte[] getData(Context context, String sUrl, boolean forceGET) throws IOException, EngineException {
 		HttpMethod method = null;
 
 		// Fire event for plugins
@@ -1208,36 +1195,10 @@ public class HttpConnector extends Connector {
 		}
 	}
 	
-	protected String getUserAgent(Context context) throws ConnectionException {
+	private String getUserAgent(Context context) throws ConnectionException {
 		return "Mozilla/5.0 ConvertigoEMS/" + Version.fullProductVersion;
 	}
-
-	transient private EventListenerList httpStateListeners = new EventListenerList();
-
-	public void addHttpStateListener(HttpStateListener httpStateListener) {
-		httpStateListeners.add(HttpStateListener.class, httpStateListener);
-	}
-
-	public void removeHttpStateListener(HttpStateListener httpStateListener) {
-		httpStateListeners.remove(HttpStateListener.class, httpStateListener);
-	}
-
-	public void fireStateChanged(HttpStateEvent httpStateEvent) {
-		// Guaranteed to return a non-null array
-		Object[] listeners = httpStateListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == HttpStateListener.class) {
-				try {
-					((HttpStateListener) listeners[i + 1]).stateChanged(httpStateEvent);
-				} catch (Exception e) {
-					;
-				}
-			}
-		}
-	}
-
+	
 	private byte[] executeMethod(HttpMethod method, final Context context) throws IOException, URIException,
 			MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
@@ -1463,7 +1424,7 @@ public class HttpConnector extends Connector {
 		return result;
 	}
 
-	protected int doExecuteMethod(final HttpMethod method, Context context) throws ConnectionException, URIException, MalformedURLException {
+	private int doExecuteMethod(final HttpMethod method, Context context) throws ConnectionException, URIException, MalformedURLException {
 		int statuscode = -1;
 
 		// Tells the method to automatically handle authentication.
@@ -1553,7 +1514,7 @@ public class HttpConnector extends Connector {
 		return statuscode;
 	}
 
-	public void forwardHeader(HeaderForwarder hf) {
+	private void forwardHeader(HeaderForwarder hf) {
 		if (!getHttpHeaderForwardMap().isEmpty() && !context.getRequestHeaders().isEmpty()) {
 			Map<String, List<String>> requestHeaders = context.getRequestHeaders();
 			for (Map.Entry<String, String> entry : getHttpHeaderForwardMap().entrySet())
@@ -1663,7 +1624,7 @@ public class HttpConnector extends Connector {
 		return absoluteUrl;
 	}
 	
-	public String getStringValue(RequestableHttpVariable variable, Object value) {
+	private String getStringValue(RequestableHttpVariable variable, Object value) {
 		String stringValue = ParameterUtils.toString(value);
 		
 		DoFileUploadMode doFileUploadmode = variable.getDoFileUploadMode();

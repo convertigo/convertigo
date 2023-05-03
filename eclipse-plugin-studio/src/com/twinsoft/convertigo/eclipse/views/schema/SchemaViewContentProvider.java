@@ -46,29 +46,29 @@ import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class SchemaViewContentProvider implements ITreeContentProvider {
-	static public final DecoratingLabelProvider decoratingLabelProvider = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
+	static final DecoratingLabelProvider decoratingLabelProvider = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
 	
-	static public class Root {
+	static class Root {
 		private Object root;
 		
 		private Root(Object root) {
 			this.root = root;
 		}
 		
-		public Object get() {
+		Object get() {
 			return root;
 		}
 	}
 	
-	static public Root newRoot(Object root) {
+	static Root newRoot(Object root) {
 		return new Root(root);
 	}
 	
 	static public class NamedList {
-		List<?> list;
-		String name;
+		private List<?> list;
+		private String name;
 		
-		public NamedList(String name, List<?> list) {
+		private NamedList(String name, List<?> list) {
 			this.name = name;
 			this.list = list;
 		}
@@ -90,7 +90,7 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 	public SchemaViewContentProvider() {
 	}
 	
-	public SchemaViewContentProvider(int maxDepth) {
+	SchemaViewContentProvider(int maxDepth) {
 		if (maxDepth > 0) {
 			this.maxDepth = maxDepth;
 			depths = new HashMap<Object, Integer>();

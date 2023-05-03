@@ -22,6 +22,6 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a refreshable connector.
  */
-public interface IRefreshable {
+interface IRefreshable {
 	public void refresh();
 }

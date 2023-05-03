@@ -172,10 +172,6 @@ public class C8oBrowser extends Composite {
 			}
 		} while (retry);
 	}
-
-	public C8oBrowser(Composite parent, int style, String browserId) {
-		this(parent, style, (Project) null, browserId);
-	}
 	
 	@Override
 	public void dispose() {

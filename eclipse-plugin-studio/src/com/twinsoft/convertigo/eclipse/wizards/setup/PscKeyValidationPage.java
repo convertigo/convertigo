@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.eclipse.jface.resource.JFaceResources;
@@ -48,16 +47,16 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.DeploymentKey;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
-public class PscKeyValidationPage extends WizardPage implements RegisterCallback, SummaryGenerator {
+class PscKeyValidationPage extends WizardPage implements RegisterCallback, SummaryGenerator {
 	
 	private Composite container;
 	
-	Text pscKey;
+	private Text pscKey;
 	private Link infoLink;
 	private Properties decodedPSC;
 	
@@ -233,18 +232,6 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 
 	public String getCertificateKey() {
 		return pscKey.getText().trim();
-	}
-	
-	public void clearCertificateKey() {
-		pscKey.setText("");
-	}
-	
-	public void setAnonymousCertificateKey() {
-		try {
-			pscKey.setText(ConvertigoPlugin.makeAnonymousPsc());
-		} catch (IOException e) {
-			ConvertigoPlugin.logWarning(e, "Unable to make an anonymous PSC");
-		}
 	}
 	
 	public void onRegister(final boolean success, final String message) {

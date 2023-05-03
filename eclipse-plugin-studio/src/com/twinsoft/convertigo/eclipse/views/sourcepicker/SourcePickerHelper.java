@@ -237,7 +237,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		return step;
 	}
 
-	public void displayXhtml(Document dom){
+	private void displayXhtml(Document dom){
 		try {
 			currentDom = dom;
 			twsDomTree.fillDomTree(dom);

@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-public enum DeviceOS {
+enum DeviceOS {
 	android("Android"),
 	ios("iOS", "iPhone"),
 	windows("Windows Phone"),
@@ -41,19 +41,19 @@ public enum DeviceOS {
 		this.agent = agent;
 	}
 	
-	public Image image() {
+	Image image() {
 		return image;
 	}
 	
-	public String displayName() {
+	String displayName() {
 		return displayName;
 	}
 	
-	public String agent() {
+	String agent() {
 		return agent;
 	}
 	
-	public static void init(Display display) {
+	static void init(Display display) {
 		for (DeviceOS device: values()) {
 			if (device.image == null) {
 				device.image = new Image(display, device.getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/mobileplatforms/images/" + device.name() + "_color_16x16.png"));

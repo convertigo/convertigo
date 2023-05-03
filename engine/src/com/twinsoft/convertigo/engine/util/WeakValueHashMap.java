@@ -27,7 +27,7 @@ import java.util.Set;
 
 public class WeakValueHashMap<K, V> implements Map<K, V> {
 	
-	Map<K, WeakReference<V>> map;
+	private Map<K, WeakReference<V>> map;
 	
 	public WeakValueHashMap() {
 		map = new HashMap<>();

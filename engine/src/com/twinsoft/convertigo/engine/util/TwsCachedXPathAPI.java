@@ -49,7 +49,7 @@ public class TwsCachedXPathAPI implements EventListener {
 	
 	protected DocumentImpl lastDocument = null;
 	protected CachedXPathAPI xpathApi = null;
-	protected XPathEngine xpathEngine = XPathEngine.JXPath;
+	private XPathEngine xpathEngine = XPathEngine.JXPath;
 	
 	public static TwsCachedXPathAPI getInstance() {
 		synchronized (TwsCachedXPathAPI.class) {
@@ -63,11 +63,7 @@ public class TwsCachedXPathAPI implements EventListener {
 	public TwsCachedXPathAPI() {
 	}
 	
-	public TwsCachedXPathAPI(XPathEngine xpathEngine) {
-		if (xpathEngine != null) {
-			this.xpathEngine = xpathEngine;
-		}
-	}
+	
 	
 	public TwsCachedXPathAPI(Project project) {
 		if (project != null) {
@@ -214,7 +210,7 @@ public class TwsCachedXPathAPI implements EventListener {
 		}
 	}
 
-	protected void checkContextNode(Node contextNode) {
+	private void checkContextNode(Node contextNode) {
 		if (shouldReset(contextNode)) {
 			// reset the cache
 			xpathApi = new CachedXPathAPI();
@@ -266,10 +262,10 @@ public class TwsCachedXPathAPI implements EventListener {
 		resetCache();
 	}
 	
-	protected class JXPathNodeList implements NodeList {
-		List<Node> nodes;
+	private class JXPathNodeList implements NodeList {
+		private List<Node> nodes;
 		
-		public JXPathNodeList(List<Node> nodes) {
+		private JXPathNodeList(List<Node> nodes) {
 			this.nodes = nodes;
 		}
 
@@ -285,11 +281,11 @@ public class TwsCachedXPathAPI implements EventListener {
 		
 	}
 	
-	protected class JXPathNodeIterator implements NodeIterator {
-		List<Node> nodes;
-		int i = 0;
+	private class JXPathNodeIterator implements NodeIterator {
+		private List<Node> nodes;
+		private int i = 0;
 		
-		public JXPathNodeIterator(List<Node> nodes) {
+		private JXPathNodeIterator(List<Node> nodes) {
 			this.nodes = nodes;
 		}
 		

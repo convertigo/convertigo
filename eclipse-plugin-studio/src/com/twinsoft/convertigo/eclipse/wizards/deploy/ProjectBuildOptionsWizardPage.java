@@ -34,12 +34,12 @@ import org.eclipse.swt.widgets.Label;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 
-public class ProjectBuildOptionsWizardPage extends WizardPage {
+class ProjectBuildOptionsWizardPage extends WizardPage {
 
-	boolean doBuild = true;
-	Project project;
+	private boolean doBuild = true;
+	private Project project;
 	
-	public ProjectBuildOptionsWizardPage(Project project) {
+	ProjectBuildOptionsWizardPage(Project project) {
 		super("ProjectBuildOptionsWizardPage", "Build options", null);
 		this.project = project;
 	}

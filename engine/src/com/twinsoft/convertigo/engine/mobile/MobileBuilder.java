@@ -59,7 +59,7 @@ public abstract class MobileBuilder {
 	// page.ts files for (deleted/disabled) pages containing pseudo-actions
 	protected boolean forceEnable = true;
 	
-	protected boolean needPkgUpdate = false;
+	private boolean needPkgUpdate = false;
 	protected boolean initDone = false;
 	protected boolean isReleasing = false;
 	protected boolean autoBuild = true;
@@ -121,7 +121,7 @@ public abstract class MobileBuilder {
 		return null;
 	}
 	
-    static public String projectName(String qname) {
+    static String projectName(String qname) {
     	return ComponentRefManager.projectName(qname);
     }
     
@@ -237,7 +237,7 @@ public abstract class MobileBuilder {
 		throw new EngineException("Builder for "+ app.getClass().getName() + " isn't implemented yet");
 	}
 	
-	protected String builderType = "MobileBuilder";
+	private String builderType = "MobileBuilder";
 	
 	protected MobileBuilder(Project project) {
 		this.project = project;
@@ -260,7 +260,7 @@ public abstract class MobileBuilder {
 		}
 	}
 
-	public synchronized void firePackageUpdated() {
+	synchronized void firePackageUpdated() {
 		if (eventHelper != null) {
 			for (MobileEventListener mobileEventListener: eventHelper.getListeners(MobileEventListener.class)) {
 				mobileEventListener.onPackageUpdated();
@@ -336,11 +336,6 @@ public abstract class MobileBuilder {
 	
 	public boolean getNeedPkgUpdate() {
 		return this.needPkgUpdate;
-	}
-	
-	public boolean hasNodeModules() {
-		File nodeModulesDir = new File(ionicWorkDir,"node_modules");
-		return nodeModulesDir.exists();
 	}
 		
 	protected void cleanDirectories() {

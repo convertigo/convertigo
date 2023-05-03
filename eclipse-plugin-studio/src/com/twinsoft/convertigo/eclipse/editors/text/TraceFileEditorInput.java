@@ -32,11 +32,7 @@ public class TraceFileEditorInput extends FileEditorInput {
 		super(file);
 		this.connector = connector;
 	}
-
-	public TraceFileEditorInput(IFile file) {
-		super(file);
-	}
-
+	
 	/**
 	 * @return the connector
 	 */

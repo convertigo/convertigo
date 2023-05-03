@@ -103,7 +103,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		this(viewer, object, false);
 	}
 
-	public ProjectTreeObject(Viewer viewer, Project object, boolean inherited) {
+	private ProjectTreeObject(Viewer viewer, Project object, boolean inherited) {
 		super(viewer, object, inherited);
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 	}
@@ -547,38 +547,16 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		Engine.theApp.schemaManager.clearCache(getName());
 	}
 	
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-		//Object oldValue = treeObjectEvent.oldValue;
-		//Object newValue = treeObjectEvent.newValue;
-		//int update = treeObjectEvent.update;
+	private void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		
 		if (!databaseObject.getProject().equals(getObject())) {
 			Engine.theApp.schemaManager.clearCache(getName());
 		}
-		
 	}
 	
 	public void launchEditor(String editorType) {
-		if (editorType == null)
-			return;
-		
-		// Retrieve the project name
-		String projectName = getName();
-		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-
-			// Open editor
-			if (editorType.equals("xsd"))
-				openXsdEditor(project);
-			else if (editorType.equals("wsdl"))
-				openWsdlEditor(project);
-
-		} catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
 	}
 	
 	public List<String> getMissingTargetProjectList() {
@@ -620,33 +598,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								missingList.add(targetProjectName);
 						}
 					}
-				}
-			}
-		}
-	}
-	
-	public void openXsdEditor(IProject project)
-	{
-	}
-	
-	public void openWsdlEditor(IProject project)
-	{
-	}
-
-	public void openConnectorEditors() {
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			List<Connector> vConnectors = getObject().getConnectorsList();
-			for (Connector connector : vConnectors) {
-				try {
-					activePage.openEditor(new ConnectorEditorInput(connector),
-							"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-				}
-				catch(PartInitException e) {
-					ConvertigoPlugin.logException(e, "Error while loading the connector editor '" + connector.getName() + "'");
 				}
 			}
 		}
@@ -805,28 +756,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		return true;
 	}
 	
-	public void closeConnectorEditors() {
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			IEditorReference[] editorRefs = activePage.getEditorReferences();
-			for (int i=0;i<editorRefs.length;i++) {
-				IEditorReference editorRef = (IEditorReference)editorRefs[i];
-				try {
-					IEditorInput editorInput = editorRef.getEditorInput();
-					if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-						if (((ConnectorEditorInput)editorInput).is(getObject()))
-							activePage.closeEditor(editorRef.getEditor(false),true);
-					}
-				}
-				catch(PartInitException e) {
-					ConvertigoPlugin.logException(e, "Error while retrieving the connector editor '" + editorRef.getName() + "'");
-				}
-			}
-		}
-	}
+	
 	
 	public void closeConnectorEditors(Connector connector) {
 		IWorkbenchPage activePage = PlatformUI
@@ -912,7 +842,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		checkMissingProjects(true);
 	}
 	
-	public void checkMissingProjects(final boolean doReload) {
+	private void checkMissingProjects(final boolean doReload) {
 		synchronized (this) {
 			if (isCheckMissingProjects) {
 				return;

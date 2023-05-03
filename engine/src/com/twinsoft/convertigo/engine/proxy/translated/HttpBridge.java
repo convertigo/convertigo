@@ -319,7 +319,7 @@ public class HttpBridge {
 		return k >= kSize ? -1 : k;
 	}
 
-	static public void convertIncomingRequest(ParameterShuttle infoShuttle) {
+	static void convertIncomingRequest(ParameterShuttle infoShuttle) {
 		HttpConnector connector = (HttpConnector) infoShuttle.context.getConnector();
 		connector.setBaseUrl(); 
 		
@@ -456,7 +456,7 @@ public class HttpBridge {
 		}
 	}
 
-	static public void convertOutgoingHeaders(ParameterShuttle infoShuttle, boolean keepEncoding) {
+	static void convertOutgoingHeaders(ParameterShuttle infoShuttle, boolean keepEncoding) {
 		int index = 0;
 		while (index < infoShuttle.siteHeaderNames.size()) {
 			String name = (String) infoShuttle.siteHeaderNames.get(index);
@@ -512,7 +512,7 @@ public class HttpBridge {
 	static private final int AFTER_PAIR = TAG_HEAD + 8;
 	static private final int TAG_TAIL = TAG_HEAD + 9;
 
-	static public final int OUTPUT = 10;
+	static final int OUTPUT = 10;
 	static private final int DISCARD = OUTPUT + 1;
 	static private final int DIRECT_URI = OUTPUT + 2;
 	static private final int META_URI = OUTPUT + 3;
@@ -534,7 +534,7 @@ public class HttpBridge {
 
 	// HTML conversion service for HtmlInputStream
 	// init() -- get connected to a HtmlInputStream
-	public void init(ParameterShuttle infoShuttle, URL baseURL, IntQueue htmlQueue, IntQueue typeQueue, IntQueue sizeQueue) {
+	void init(ParameterShuttle infoShuttle, URL baseURL, IntQueue htmlQueue, IntQueue typeQueue, IntQueue sizeQueue) {
 		baseUrlBuilder.setBaseURL(baseURL);
 		
 		this.infoShuttle = infoShuttle;
@@ -543,7 +543,7 @@ public class HttpBridge {
 		this.sizeQueue = sizeQueue;
 	}
 
-	public void convertHtmlTag() {
+	void convertHtmlTag() {
 		switch (typeQueue.get()) {
 			case FORM_GET_URI :
 			case DIRECT_URI :
@@ -607,7 +607,7 @@ public class HttpBridge {
 		sizeQueue.set(sizeQueue.get() + content.length());
 	}
 
-	public void markHtmlTag() {
+	private void markHtmlTag() {
 		// form URI
 		if (FORM_URI_TAG_LEN == sizeQueue.get(1) && htmlQueue.compareString(FORM_URI_TAG, sizeQueue.get(0), sizeQueue.get(1)) == 0) {
 			markFormURITag();
@@ -1071,7 +1071,7 @@ public class HttpBridge {
 
 	static private final int TAG_START_CHAR = (int) '<';
 
-	public int fillBuffer(InputStream in) throws IOException {
+	int fillBuffer(InputStream in) throws IOException {
 		int rt = in.read();
 		if (rt != TAG_START_CHAR)
 			return rt;

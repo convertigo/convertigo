@@ -91,20 +91,20 @@ public class SchemaManager implements AbstractManager {
 		}
 	}
 	
-	protected class XmlResponseWalker extends XmlSchemaWalker {
-		List<XmlSchemaObject> elist = null;
-		List<XmlSchemaObject> alist = null;
-		Map<QName, XmlSchemaObject> mso = new HashMap<QName, XmlSchemaObject>();
-		Map<QName, XmlSchemaObject> mto = new HashMap<QName, XmlSchemaObject>();
+	private class XmlResponseWalker extends XmlSchemaWalker {
+		private List<XmlSchemaObject> elist = null;
+		private List<XmlSchemaObject> alist = null;
+		private Map<QName, XmlSchemaObject> mso = new HashMap<QName, XmlSchemaObject>();
+		private Map<QName, XmlSchemaObject> mto = new HashMap<QName, XmlSchemaObject>();
 		Map<XmlSchemaObject, List<List<XmlSchemaObject>>> map = new LinkedHashMap<XmlSchemaObject, List<List<XmlSchemaObject>>>();
-		boolean debug = false;
+		private boolean debug = false;
 		
-		public XmlResponseWalker(boolean deep, boolean deepExternal, boolean debug) {
+		private XmlResponseWalker(boolean deep, boolean deepExternal, boolean debug) {
 			super(deep, deepExternal);
 			this.debug = debug;
 		}
 		
-		public void init(XmlSchema xmlSchema, QName qname, Element element) {
+		void init(XmlSchema xmlSchema, QName qname, Element element) {
 			XmlSchemaElement rxe = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
 			if (rxe != null) {
 				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
@@ -171,7 +171,7 @@ public class SchemaManager implements AbstractManager {
 			}
 		}
 		
-		protected void renameNode(Node node) {
+		private void renameNode(Node node) {
 			Document doc = node.getOwnerDocument();
 			String tns = node.getPrefix();
 			if ((tns != null) && !tns.equals("")) {
@@ -179,7 +179,7 @@ public class SchemaManager implements AbstractManager {
 			}
 		}
 		
-		protected void clean(Node node) {
+		private void clean(Node node) {
 			if (node.getNodeType() == Node.DOCUMENT_NODE) {
 				clean(((Document)node).getDocumentElement());
 			} else if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -482,7 +482,7 @@ public class SchemaManager implements AbstractManager {
 		long lastBuildTime;
 	}
 	
-	Map<String, XmlSchemaCacheEntry> schemaCache = Collections.synchronizedMap(new HashMap<String, XmlSchemaCacheEntry>());
+	private Map<String, XmlSchemaCacheEntry> schemaCache = Collections.synchronizedMap(new HashMap<String, XmlSchemaCacheEntry>());
 	
 	public void init() throws EngineException {
 		schemaCache.clear();
@@ -1575,7 +1575,8 @@ public class SchemaManager implements AbstractManager {
 	public Document makeXmlRestCompliant(Document document) {
 		return makeXmlRestCompliant(document, false);
 	}
-	public synchronized Document makeXmlRestCompliant(Document document, boolean debug) {
+	
+	private synchronized Document makeXmlRestCompliant(Document document, boolean debug) {
 		try {
 			Element documentElement = document.getDocumentElement();
 			if (documentElement != null) {

@@ -22,9 +22,9 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.util.Properties;
 
-public class SystemDatabaseObjectsManager extends DatabaseObjectsManager {
+class SystemDatabaseObjectsManager extends DatabaseObjectsManager {
 	
-	StudioProjects systemProjects = new StudioProjects() {
+	private StudioProjects systemProjects = new StudioProjects() {
 		
 		@Override
 		public File getProject(String projectName) {

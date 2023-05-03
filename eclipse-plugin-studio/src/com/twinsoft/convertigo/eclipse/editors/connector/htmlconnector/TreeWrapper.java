@@ -20,33 +20,19 @@
 package com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector;
 
 import org.eclipse.swt.accessibility.Accessible;
-import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DragDetectListener;
 import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.HelpListener;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MenuDetectListener;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseTrackListener;
-import org.eclipse.swt.events.MouseWheelListener;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.events.TreeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -57,10 +43,10 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
-public class TreeWrapper{
+class TreeWrapper{
 	private Tree tree;
 	
-	public TreeWrapper(Composite parent, int style) {
+	TreeWrapper(Composite parent, int style) {
 		tree = new Tree(parent, style);
 	}
 
@@ -68,32 +54,12 @@ public class TreeWrapper{
 		return tree;
 	}
 	
-	public void addSelectionListener(SelectionListener listener) {
+	void addSelectionListener(SelectionListener listener) {
 		
 		tree.addSelectionListener(listener);
 	}
-
-	public void addTreeListener(TreeListener listener) {
-		
-		tree.addTreeListener(listener);
-	}
-
-	public void clear(int index, boolean all) {
-		
-		tree.clear(index, all);
-	}
-
-	public void clearAll(boolean all) {
-		
-		tree.clearAll(all);
-	}
-
-	public Point computeSize(int hint, int hint2, boolean changed) {
-		
-		return tree.computeSize(hint, hint2, changed);
-	}
-
-	public void deselectAll() {
+	
+	void deselectAll() {
 		
 		tree.deselectAll();
 	}
@@ -108,7 +74,7 @@ public class TreeWrapper{
 		return tree.getColumnCount();
 	}
 
-	public int[] getColumnOrder() {
+	int[] getColumnOrder() {
 		
 		return tree.getColumnOrder();
 	}
@@ -133,14 +99,9 @@ public class TreeWrapper{
 		return tree.getHeaderVisible();
 	}
 
-	public TreeItem getItem(int index) {
+	TreeItem getItem(int index) {
 		
 		return tree.getItem(index);
-	}
-
-	public TreeItem getItem(Point point) {
-		
-		return tree.getItem(point);
 	}
 
 	public int getItemCount() {
@@ -193,34 +154,9 @@ public class TreeWrapper{
 		return tree.getTopItem();
 	}
 
-	public int indexOf(TreeColumn column) {
-		
-		return tree.indexOf(column);
-	}
-
-	public int indexOf(TreeItem item) {
-		
-		return tree.indexOf(item);
-	}
-
 	public void removeAll() {
 		
 		tree.removeAll();
-	}
-
-	public void removeSelectionListener(SelectionListener listener) {
-		
-		tree.removeSelectionListener(listener);
-	}
-
-	public void removeTreeListener(TreeListener listener) {
-		
-		tree.removeTreeListener(listener);
-	}
-
-	public void selectAll() {
-		
-		tree.selectAll();
 	}
 
 	public void setColumnOrder(int[] order) {
@@ -237,12 +173,7 @@ public class TreeWrapper{
 		
 		tree.setHeaderVisible(show);
 	}
-
-	public void setInsertMark(TreeItem item, boolean before) {
-		
-		tree.setInsertMark(item, before);
-	}
-
+	
 	public void setItemCount(int count) {
 		
 		tree.setItemCount(count);
@@ -283,27 +214,6 @@ public class TreeWrapper{
 		tree.setTopItem(item);
 	}
 
-	public void showColumn(TreeColumn column) {
-		
-		tree.showColumn(column);
-	}
-
-	public void showItem(TreeItem item) {
-		
-		tree.showItem(item);
-	}
-
-	public void showSelection() {
-		
-		tree.showSelection();
-	}
-
-	@SuppressWarnings("deprecation")
-	public void changed(Control[] changed) {
-		
-		tree.changed(changed);
-	}
-
 	public int getBackgroundMode() {
 		
 		return tree.getBackgroundMode();
@@ -334,34 +244,9 @@ public class TreeWrapper{
 		return tree.isLayoutDeferred();
 	}
 
-	public void layout() {
-		
-		tree.layout();
-	}
-
-	public void layout(boolean changed, boolean all) {
-		
-		tree.layout(changed, all);
-	}
-
-	public void layout(boolean changed) {
-		
-		tree.layout(changed);
-	}
-
-	public void layout(Control[] changed) {
-		
-		tree.layout(changed);
-	}
-
 	public void setBackgroundMode(int mode) {
 		
 		tree.setBackgroundMode(mode);
-	}
-
-	public boolean setFocus() {
-		
-		return tree.setFocus();
 	}
 
 	public void setLayout(Layout layout) {
@@ -379,11 +264,6 @@ public class TreeWrapper{
 		tree.setTabList(tabList);
 	}
 
-	public Rectangle computeTrim(int x, int y, int width, int height) {
-		
-		return tree.computeTrim(x, y, width, height);
-	}
-
 	public Rectangle getClientArea() {
 		
 		return tree.getClientArea();
@@ -399,84 +279,14 @@ public class TreeWrapper{
 		return tree.getVerticalBar();
 	}
 
-	public void addControlListener(ControlListener listener) {
-		
-		tree.addControlListener(listener);
-	}
-
-	public void addDragDetectListener(DragDetectListener listener) {
-		
-		tree.addDragDetectListener(listener);
-	}
-
-	public void addFocusListener(FocusListener listener) {
-		
-		tree.addFocusListener(listener);
-	}
-
-	public void addHelpListener(HelpListener listener) {
-		
-		tree.addHelpListener(listener);
-	}
-
 	public void addKeyListener(KeyListener listener) {
 		
 		tree.addKeyListener(listener);
 	}
 
-	public void addMenuDetectListener(MenuDetectListener listener) {
-		
-		tree.addMenuDetectListener(listener);
-	}
-
 	public void addMouseListener(MouseListener listener) {
 		
 		tree.addMouseListener(listener);
-	}
-
-	public void addMouseMoveListener(MouseMoveListener listener) {
-		
-		tree.addMouseMoveListener(listener);
-	}
-
-	public void addMouseTrackListener(MouseTrackListener listener) {
-		
-		tree.addMouseTrackListener(listener);
-	}
-
-	public void addMouseWheelListener(MouseWheelListener listener) {
-		
-		tree.addMouseWheelListener(listener);
-	}
-
-	public void addPaintListener(PaintListener listener) {
-		
-		tree.addPaintListener(listener);
-	}
-
-	public void addTraverseListener(TraverseListener listener) {
-		
-		tree.addTraverseListener(listener);
-	}
-
-	public Point computeSize(int hint, int hint2) {
-		
-		return tree.computeSize(hint, hint2);
-	}
-
-	public boolean dragDetect(Event event) {
-		
-		return tree.dragDetect(event);
-	}
-
-	public boolean dragDetect(MouseEvent event) {
-		
-		return tree.dragDetect(event);
-	}
-
-	public boolean forceFocus() {
-		
-		return tree.forceFocus();
 	}
 
 	public Accessible getAccessible() {
@@ -573,17 +383,7 @@ public class TreeWrapper{
 		
 		return tree.getVisible();
 	}
-
-	public void internal_dispose_GC(int hdc, GCData data) {
-		
-		tree.internal_dispose_GC(hdc, data);
-	}
-/*
-	public int internal_new_GC(GCData data) {
-		
-		return tree.internal_new_GC(data);
-	}
-*/
+	
 	public boolean isEnabled() {
 		
 		return tree.isEnabled();
@@ -603,97 +403,15 @@ public class TreeWrapper{
 		
 		return tree.isVisible();
 	}
-
-	public void moveAbove(Control control) {
-		
-		tree.moveAbove(control);
+	
+	public void addFocusListener(FocusListener focusListener) {
+		tree.addFocusListener(focusListener);
 	}
 
-	public void moveBelow(Control control) {
-		
-		tree.moveBelow(control);
+	public void addListener(int eventType, Listener listener) {
+		tree.addListener(eventType, listener);
 	}
-
-	public void pack() {
-		
-		tree.pack();
-	}
-
-	public void pack(boolean changed) {
-		
-		tree.pack(changed);
-	}
-
-	public void redraw() {
-		
-		tree.redraw();
-	}
-
-	public void redraw(int x, int y, int width, int height, boolean all) {
-		
-		tree.redraw(x, y, width, height, all);
-	}
-
-	public void removeControlListener(ControlListener listener) {
-		
-		tree.removeControlListener(listener);
-	}
-
-	public void removeDragDetectListener(DragDetectListener listener) {
-		
-		tree.removeDragDetectListener(listener);
-	}
-
-	public void removeFocusListener(FocusListener listener) {
-		
-		tree.removeFocusListener(listener);
-	}
-
-	public void removeHelpListener(HelpListener listener) {
-		
-		tree.removeHelpListener(listener);
-	}
-
-	public void removeKeyListener(KeyListener listener) {
-		
-		tree.removeKeyListener(listener);
-	}
-
-	public void removeMenuDetectListener(MenuDetectListener listener) {
-		
-		tree.removeMenuDetectListener(listener);
-	}
-
-	public void removeMouseListener(MouseListener listener) {
-		
-		tree.removeMouseListener(listener);
-	}
-
-	public void removeMouseMoveListener(MouseMoveListener listener) {
-		
-		tree.removeMouseMoveListener(listener);
-	}
-
-	public void removeMouseTrackListener(MouseTrackListener listener) {
-		
-		tree.removeMouseTrackListener(listener);
-	}
-
-	public void removeMouseWheelListener(MouseWheelListener listener) {
-		
-		tree.removeMouseWheelListener(listener);
-	}
-
-	public void removePaintListener(PaintListener listener) {
-		
-		tree.removePaintListener(listener);
-	}
-
-	public void removeTraverseListener(TraverseListener listener) {
-		
-		tree.removeTraverseListener(listener);
-	}
-
+	
 	public void setBackground(Color color) {
 		
 		tree.setBackground(color);
@@ -702,11 +420,6 @@ public class TreeWrapper{
 	public void setBackgroundImage(Image image) {
 		
 		tree.setBackgroundImage(image);
-	}
-
-	public void setBounds(int x, int y, int width, int height) {
-		
-		tree.setBounds(x, y, width, height);
 	}
 
 	public void setBounds(Rectangle rect) {
@@ -744,11 +457,6 @@ public class TreeWrapper{
 		tree.setLayoutData(layoutData);
 	}
 
-	public void setLocation(int x, int y) {
-		
-		tree.setLocation(x, y);
-	}
-
 	public void setLocation(Point location) {
 		
 		tree.setLocation(location);
@@ -757,16 +465,6 @@ public class TreeWrapper{
 	public void setMenu(Menu menu) {
 		
 		tree.setMenu(menu);
-	}
-
-	public boolean setParent(Composite parent) {
-		
-		return tree.setParent(parent);
-	}
-
-	public void setSize(int width, int height) {
-		
-		tree.setSize(width, height);
 	}
 
 	public void setSize(Point size) {
@@ -784,59 +482,9 @@ public class TreeWrapper{
 		tree.setVisible(visible);
 	}
 
-	public Point toControl(int x, int y) {
-		
-		return tree.toControl(x, y);
-	}
-
-	public Point toControl(Point point) {
-		
-		return tree.toControl(point);
-	}
-
-	public Point toDisplay(int x, int y) {
-		
-		return tree.toDisplay(x, y);
-	}
-
-	public Point toDisplay(Point point) {
-		
-		return tree.toDisplay(point);
-	}
-
-	public boolean traverse(int traversal) {
-		
-		return tree.traverse(traversal);
-	}
-
-	public void update() {
-		
-		tree.update();
-	}
-
-	public void addDisposeListener(DisposeListener listener) {
-		
-		tree.addDisposeListener(listener);
-	}
-
-	public void addListener(int eventType, Listener listener) {
-		
-		tree.addListener(eventType, listener);
-	}
-
-	public void dispose() {
-		
-		tree.dispose();
-	}
-
 	public Object getData() {
 		
 		return tree.getData();
-	}
-
-	public Object getData(String key) {
-		
-		return tree.getData(key);
 	}
 
 	public Display getDisplay() {
@@ -853,47 +501,25 @@ public class TreeWrapper{
 		
 		return tree.isDisposed();
 	}
-
-	public boolean isListening(int eventType) {
-		
-		return tree.isListening(eventType);
-	}
-
-	public void notifyListeners(int eventType, Event event) {
-		
-		tree.notifyListeners(eventType, event);
-	}
-
-	public void removeDisposeListener(DisposeListener listener) {
-		
-		tree.removeDisposeListener(listener);
-	}
-
-	public void removeListener(int eventType, Listener listener) {
-		
-		tree.removeListener(eventType, listener);
-	}
-
+	
 	public void setData(Object data) {
 		
 		tree.setData(data);
 	}
 
-	public void setData(String key, Object value) {
-		
-		tree.setData(key, value);
-	}
-
+	@Override
 	public String toString() {
 		
 		return tree.toString();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		
 		return tree.equals(obj);
 	}
 
+	@Override
 	public int hashCode() {
 		
 		return tree.hashCode();

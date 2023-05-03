@@ -243,28 +243,28 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 	}
 	
-	public void removeFilter(DesignDocumentFilterTreeObject filter) {
+	private void removeFilter(DesignDocumentFilterTreeObject filter) {
 		if (filter != null) {
 			fFilters.removeChild(filter);
 			hasBeenModified();
 		}
 	}
 
-	public void removeUpdate(DesignDocumentUpdateTreeObject update) {
+	private void removeUpdate(DesignDocumentUpdateTreeObject update) {
 		if (update != null) {
 			fUpdates.removeChild(update);
 			hasBeenModified();
 		}
 	}
 
-	public void removeValidate(DesignDocumentValidateTreeObject validate) {
+	private void removeValidate(DesignDocumentValidateTreeObject validate) {
 		if (validate != null) {
 			fValidate.removeChild(validate);
 			hasBeenModified();
 		}
 	}
 
-	protected DesignDocumentViewTreeObject addView(DesignDocumentViewTreeObject view) {
+	private DesignDocumentViewTreeObject addView(DesignDocumentViewTreeObject view) {
 		DesignDocumentViewTreeObject ddvto = (view == null) ? newView() : view;
 		if (ddvto != null) {
 			fViews.addChild(ddvto);
@@ -273,7 +273,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return ddvto;
 	}
 	
-	protected DesignDocumentFilterTreeObject addFilter(DesignDocumentFilterTreeObject filter) {
+	private DesignDocumentFilterTreeObject addFilter(DesignDocumentFilterTreeObject filter) {
 		DesignDocumentFilterTreeObject ddfto = (filter == null) ? newFilter() : filter;
 		if (ddfto != null) {
 			fFilters.addChild(ddfto);
@@ -282,7 +282,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return ddfto;
 	}
 
-	protected DesignDocumentUpdateTreeObject addUpdate(DesignDocumentUpdateTreeObject update) {
+	private DesignDocumentUpdateTreeObject addUpdate(DesignDocumentUpdateTreeObject update) {
 		DesignDocumentUpdateTreeObject dduto = (update == null) ? newUpdate() : update;
 		if (dduto != null) {
 			fUpdates.addChild(dduto);
@@ -291,7 +291,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return dduto;
 	}
 
-	protected DesignDocumentValidateTreeObject addValidate(DesignDocumentValidateTreeObject validate) {
+	private DesignDocumentValidateTreeObject addValidate(DesignDocumentValidateTreeObject validate) {
 		DesignDocumentValidateTreeObject ddvto = (validate == null) ? newValidate() : validate;
 		if (ddvto != null) {
 			fValidate.addChild(ddvto);
@@ -327,39 +327,39 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return false;
 	}
 
-	protected DesignDocumentViewTreeObject newView() {
+	private DesignDocumentViewTreeObject newView() {
 		return newView(createViewObject());
 	}
 	
-	protected DesignDocumentFilterTreeObject newFilter() {
+	private DesignDocumentFilterTreeObject newFilter() {
 		return newFilter(createFilterObject());
 	}
 
-	protected DesignDocumentUpdateTreeObject newUpdate() {
+	private DesignDocumentUpdateTreeObject newUpdate() {
 		return newUpdate(createUpdateObject());
 	}
 
-	protected DesignDocumentValidateTreeObject newValidate() {
+	private DesignDocumentValidateTreeObject newValidate() {
 		return newValidate(createValidateObject());
 	}
 
-	protected DesignDocumentViewTreeObject newView(ViewObject view) {
+	private DesignDocumentViewTreeObject newView(ViewObject view) {
 		return new DesignDocumentViewTreeObject(viewer, view);
 	}
 	
-	protected DesignDocumentFilterTreeObject newFilter(FilterObject filter) {
+	private DesignDocumentFilterTreeObject newFilter(FilterObject filter) {
 		return new DesignDocumentFilterTreeObject(viewer, filter);
 	}
 
-	protected DesignDocumentUpdateTreeObject newUpdate(UpdateObject update) {
+	private DesignDocumentUpdateTreeObject newUpdate(UpdateObject update) {
 		return new DesignDocumentUpdateTreeObject(viewer, update);
 	}
 
-	protected DesignDocumentValidateTreeObject newValidate(ValidateObject validate) {
+	private DesignDocumentValidateTreeObject newValidate(ValidateObject validate) {
 		return new DesignDocumentValidateTreeObject(viewer, validate);
 	}
 
-	protected ViewObject createViewObject() {
+	private ViewObject createViewObject() {
 		int index = 1;
 		String viewName = getDefaultViewName();
 		
@@ -372,7 +372,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return view;
 	}
 	
-	protected FilterObject createFilterObject() {
+	private FilterObject createFilterObject() {
 		int index = 1;
 		String filterName = getDefaultFilterName();
 		
@@ -384,7 +384,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return filter;
 	}
 	
-	protected UpdateObject createUpdateObject() {
+	private UpdateObject createUpdateObject() {
 		int index = 1;
 		String updateName = getDefaultUpdateName();
 		
@@ -396,7 +396,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return update;
 	}
 	
-	protected ValidateObject createValidateObject() {		
+	private ValidateObject createValidateObject() {		
 		ValidateObject validate = new ValidateObject("function(newDoc, oldDoc, userCtx, secObj) {\r\n" + 
 				"\t// check if newDoc respect the DB rules\r\n" + 
 				"\t// if not, throw an exception like that:\r\n" + 
@@ -618,7 +618,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return super.testAttribute(target, name, value);
 	}
 	
-	public class ViewObject {		
+	class ViewObject {		
 		private String name = null;
 		private JSONObject jsonObject = null;
 		
@@ -627,11 +627,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			this.jsonObject = jsonObject;
 		}
 
-		public boolean hasMap() {
+		boolean hasMap() {
 			return CouchKey.map.has(jsonObject);
 		}
 		
-		public boolean hasReduce() {
+		boolean hasReduce() {
 			return CouchKey.reduce.has(jsonObject);
 		}
 		
@@ -643,12 +643,12 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			this.name = name;
 		}
 		
-		protected JSONObject getJSONObject() {
-			return jsonObject;
-		}
-		
 		protected void setJSONObject(JSONObject jsonObject) {
 			this.jsonObject = jsonObject;
+		}
+		
+		protected JSONObject getJSONObject() {
+			return jsonObject;
 		}
 
 		protected FunctionObject getMap() {
@@ -658,7 +658,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			return null;
 		}
 		
-		protected FunctionObject createMap() {
+		private FunctionObject createMap() {
 			if (!hasMap()) {
 				CouchKey.map.put(jsonObject, "function (doc) {\r\n\ttry {\r\n\t\temit(doc._id, doc._rev);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 				return getMap();
@@ -695,11 +695,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 	}
 
-	public class FunctionObject {
+	class FunctionObject {
 		protected String name = null;
-		protected String function = null;
+		String function = null;
 		
-		FunctionObject(String name, String function) {
+		private FunctionObject(String name, String function) {
 			this.name = name;
 			this.function = function;
 		}
@@ -727,22 +727,22 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 
 	}
 
-	public class FilterObject extends FunctionObject {
-		FilterObject(String name, String function) {
+	class FilterObject extends FunctionObject {
+		private FilterObject(String name, String function) {
 			super(name, function);
 		}
 		
 	}
 
-	public class UpdateObject extends FunctionObject {
-		UpdateObject(String name, String function) {
+	class UpdateObject extends FunctionObject {
+		private UpdateObject(String name, String function) {
 			super(name, function);
 		}
 		
 	}
 
-	public class ValidateObject extends FunctionObject {
-		ValidateObject(String function) {
+	class ValidateObject extends FunctionObject {
+		private ValidateObject(String function) {
 			super("validate", function);
 		}
 		

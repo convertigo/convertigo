@@ -24,7 +24,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -38,7 +37,6 @@ import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
@@ -64,7 +62,6 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 	private Path config;
 	private List<Rule> rules = Collections.emptyList();
 	private WatchService ws;
-	private WatchKey wk;
 	private boolean enabled = false;
 	
     public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
@@ -159,7 +156,6 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 						Thread.currentThread().setName("SecurityFilter_watch_config");
 			    		Path parent = config.getParent();
 			    		ws = parent.getFileSystem().newWatchService();
-			    		wk = parent.register(ws, StandardWatchEventKinds.ENTRY_MODIFY);
 			    		
 			    		while (true) {
 			    			WatchKey wk = ws.take();
@@ -252,28 +248,6 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 			}
 		}
     }
-    
-    public void destroy() {
-    	try {
-    		ws.close();
-    	} catch (Exception e) {
-    	}
-    	try {
-    		wk.cancel();
-    	} catch (Exception e) {
-    	}
-    	try {
-        	Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
-    	} catch (Exception e) {
-		}
-    	rules = Collections.emptyList();
-    	init = false;
-    }
-
-	public void init(FilterConfig filterConfig) throws ServletException {
-		contextLength = filterConfig.getServletContext().getContextPath().length();
-		System.out.println("Request data filter has been initialized");
-	}
 	
 	private class Rule {
 		

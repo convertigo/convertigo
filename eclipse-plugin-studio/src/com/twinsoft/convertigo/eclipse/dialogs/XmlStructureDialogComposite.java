@@ -28,25 +28,26 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
-public class XmlStructureDialogComposite extends MyAbstractDialogComposite {
+class XmlStructureDialogComposite extends MyAbstractDialogComposite {
 
-	public ProgressBar progressBar = null;
-	public Label labelProgression = null;
-	public Text xml = null;
+	ProgressBar progressBar = null;
+	Label labelProgression = null;
+	private Text xml = null;
 	
-	public XmlStructureDialogComposite(Composite parent, int style, Object parentObject) {
+	XmlStructureDialogComposite(Composite parent, int style, Object parentObject) {
 		super(parent, style);
 		
 		initialize();
 	}
 	
-	public XmlStructureDialogComposite(Composite parent, int style, Object parentObject, String xmlContent) {
+	XmlStructureDialogComposite(Composite parent, int style, Object parentObject, String xmlContent) {
 		super(parent, style);
 		
 		initialize();
 		xml.setText(xmlContent);
 	}
 
+	@Override
 	protected void initialize() {
 		Label label0 = new Label (this, SWT.NONE);
 		label0.setText ("Please enter the XML structure to import into a sequence's step:");
@@ -73,7 +74,6 @@ public class XmlStructureDialogComposite extends MyAbstractDialogComposite {
 		gridData4.verticalAlignment = GridData.CENTER;
 		gridData4.horizontalAlignment = GridData.FILL;
         progressBar = new ProgressBar(this, SWT.NONE);
-        //progressBar.setBounds(new Rectangle(16, 349, 571, 17));
         progressBar.setLayoutData(gridData4);
         
 		GridLayout gridLayout = new GridLayout();
@@ -81,6 +81,7 @@ public class XmlStructureDialogComposite extends MyAbstractDialogComposite {
 		setSize(new Point(408, 251));
 	}
 	
+	@Override
 	public Object getValue(String name) {
 		return xml.getText();
 	}

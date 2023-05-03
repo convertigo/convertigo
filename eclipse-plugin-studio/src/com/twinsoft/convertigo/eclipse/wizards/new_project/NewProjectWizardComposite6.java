@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class NewProjectWizardComposite6 extends Composite {
+class NewProjectWizardComposite6 extends Composite {
 
 	private Text  httpServer = null;
 	private Label label1 = null;
@@ -43,7 +43,7 @@ public class NewProjectWizardComposite6 extends Composite {
 	private Label label2 = null;
 	private Label label3 = null;
 	
-	public NewProjectWizardComposite6(Composite parent, int style, ModifyListener ml, SelectionListener sl, NewProjectWizard wizard) {
+	NewProjectWizardComposite6(Composite parent, int style, ModifyListener ml, SelectionListener sl, NewProjectWizard wizard) {
 		super(parent, style);
 		modifyListener = ml;
 		selectionListener = sl;

@@ -24,7 +24,7 @@ public class DboParent {
 	private final String className;
 	private final Boolean bAllowInheritance;
 		
-	public DboParent(String className, Boolean bAllowInheritance) {
+	DboParent(String className, Boolean bAllowInheritance) {
 		this.className = className;
 		this.bAllowInheritance = bAllowInheritance;
 	}

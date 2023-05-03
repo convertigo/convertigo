@@ -34,7 +34,7 @@ public class LogLine {
 	private String fullMessage;
 	private HashMap<String, String> allExtras;
 
-	public LogLine(String category, String date, String time, String deltaTime, String level, String thread,
+	LogLine(String category, String date, String time, String deltaTime, String level, String thread,
 			String message, boolean isSubLine, int counter, String fullMessage,
 			HashMap<String, String> allExtras) {
 		super();

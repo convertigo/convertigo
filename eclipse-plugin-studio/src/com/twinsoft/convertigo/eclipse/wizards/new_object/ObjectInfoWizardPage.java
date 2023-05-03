@@ -44,7 +44,6 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
@@ -63,7 +62,7 @@ import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class ObjectInfoWizardPage extends WizardPage {
+class ObjectInfoWizardPage extends WizardPage {
 	private Object parentObject = null;
 
 	private Text beanName;
@@ -74,7 +73,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 	private HttpTransactionVariablesComposite httpTransactionVariablesComposite = null;
 	private Composite container = null;
 
-	public ObjectInfoWizardPage(Object parentObject) {
+	ObjectInfoWizardPage(Object parentObject) {
 		super("ObjectInfoWizardPage");
 		this.parentObject = parentObject;
 		setTitle("Informations");
@@ -146,7 +145,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 		beanName.setText("");
 	}
 
-	public void fillTree(Class<? extends DatabaseObject> beanClass) {
+	void fillTree(Class<? extends DatabaseObject> beanClass) {
 		treeItemName = null;
 		tree.removeAll();
 		if (parentObject instanceof Transaction) {
@@ -154,14 +153,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 		}
 	}
 
-	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
-		TreeItem leaf = new TreeItem(branch, SWT.NONE);
-		leaf.setText(screenClass.getName());
-		List<ScreenClass> screenClasses = screenClass.getInheritedScreenClasses();
-		for (ScreenClass sC : screenClasses) {
-			getInHeritedScreenClass(sC, leaf);
-		}
-	}
+	
 
 	private void dialogChanged(boolean increment) {
 		DatabaseObject dbo = ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
@@ -289,7 +281,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 		return couchVariablesComposite.getSelectedParameters();
 	}
 
-	public void doApply() {
+	void doApply() {
 		ObjectExplorerWizardPage objectExplorerWizardPage = (ObjectExplorerWizardPage) this.getPreviousPage();
 		objectExplorerWizardPage.getControl().getDisplay().syncExec(() -> {
 			Object o = objectExplorerWizardPage.getCreatedBean();

@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class ViewExecuteSelectedAction extends MyAbstractAction {
+class ViewExecuteSelectedAction extends MyAbstractAction {
 
 	public ViewExecuteSelectedAction() {
 		super();
@@ -103,7 +103,7 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
 		}
 	}
 	
-	protected boolean isStubRequested() {
+	private boolean isStubRequested() {
 		return false;
 	}
 	

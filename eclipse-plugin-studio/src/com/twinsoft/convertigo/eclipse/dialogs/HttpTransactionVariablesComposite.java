@@ -60,7 +60,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 		super(parent, style);
 	}
 	
-	public HttpTransactionVariablesComposite(Composite parent, int style, AbstractHttpTransaction httpTransaction) {
+	HttpTransactionVariablesComposite(Composite parent, int style, AbstractHttpTransaction httpTransaction) {
 		super(parent, style);
 		build(httpTransaction);
 	}

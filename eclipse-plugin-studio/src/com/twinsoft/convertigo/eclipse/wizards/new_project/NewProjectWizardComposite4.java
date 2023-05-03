@@ -28,7 +28,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-public class NewProjectWizardComposite4 extends Composite  {
+class NewProjectWizardComposite4 extends Composite  {
 
 	private NewProjectWizard wz;
 	private Label label = null;
@@ -40,7 +40,7 @@ public class NewProjectWizardComposite4 extends Composite  {
 	private Label projectName = null;
 	private Label serviceCode = null; 
 
-	public NewProjectWizardComposite4(Composite parent, int style, IWizard wizard) {
+	NewProjectWizardComposite4(Composite parent, int style, IWizard wizard) {
 		super(parent, style);
 		wz = (NewProjectWizard)wizard;
 		initialize();

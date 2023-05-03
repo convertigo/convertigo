@@ -44,12 +44,12 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public abstract class AbstractConnectorComposite extends Composite implements ISelectionChangedListener, ILearnable {
 
-	protected ConnectorEditorPart connectorEditorPart;
+	private ConnectorEditorPart connectorEditorPart;
 	protected Connector connector;
 
 	protected ProjectExplorerView projectExplorerView = null;
 
-	public AbstractConnectorComposite(ConnectorEditorPart connectorEditorPart, Connector connector, Composite parent, int style) {
+	AbstractConnectorComposite(ConnectorEditorPart connectorEditorPart, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.connectorEditorPart = connectorEditorPart;
 		this.connector = connector;
@@ -68,14 +68,10 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 		connectorEditorPart.toolBarSetEnable(toolItemId, enable);
 	}
 
-	protected void toolBarSetSelection(String toolItemId, boolean select) {
+	private void toolBarSetSelection(String toolItemId, boolean select) {
 		connectorEditorPart.toolBarSetSelection(toolItemId, select);
 	}
-
-	protected Object getLastDetectedScreenClass() {
-		return connectorEditorPart.getLastDetectedScreenClass();
-	}
-
+	
 	protected boolean checkEventSource(EventObject event) {
 		boolean isSourceFromConnector = false;
 		Object source = event.getSource();
@@ -199,15 +195,15 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 
 	private EventListenerList compositeListeners = new EventListenerList();
 
-	public void addCompositeListener(CompositeListener compositeListener) {
+	private void addCompositeListener(CompositeListener compositeListener) {
 		compositeListeners.add(CompositeListener.class, compositeListener);
 	}
 
-	public void removeCompositeListener(CompositeListener compositeListener) {
+	private void removeCompositeListener(CompositeListener compositeListener) {
 		compositeListeners.remove(CompositeListener.class, compositeListener);
 	}
 
-	public void fireObjectSelected(CompositeEvent compositeEvent) {
+	void fireObjectSelected(CompositeEvent compositeEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = compositeListeners.getListenerList();
 		// Process the listeners last to first, notifying
@@ -219,7 +215,7 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 		}
 	}
 
-	public void fireObjectChanged(CompositeEvent compositeEvent) {
+	void fireObjectChanged(CompositeEvent compositeEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = compositeListeners.getListenerList();
 		// Process the listeners last to first, notifying
@@ -229,9 +225,5 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 				((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
 			}
 		}
-	}
-	
-	public boolean hasConnect() {
-		return false;
 	}
 }

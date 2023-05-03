@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTr
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class AbstractStubAction extends MyAbstractAction {
+abstract class AbstractStubAction extends MyAbstractAction {
 
 	public AbstractStubAction() {
 		super();
@@ -88,7 +88,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 		}
 	}
 
-	public void writeStub(Document dom, File stubFile) throws IOException {
+	private void writeStub(Document dom, File stubFile) throws IOException {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(stubFile);

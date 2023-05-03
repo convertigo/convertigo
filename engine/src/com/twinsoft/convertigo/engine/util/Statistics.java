@@ -220,7 +220,7 @@ public class Statistics {
     /**
      * Resets the statistics object.
      */
-    public static synchronized long getNextId() {
+    private static synchronized long getNextId() {
     	return id++;
     }
 }

@@ -24,19 +24,19 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class NewProjectWizardPageSummarySampleProject extends WizardPage {
+class NewProjectWizardPageSummarySampleProject extends WizardPage {
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public NewProjectWizardPageSummarySampleProject(ISelection selection) {
+	NewProjectWizardPageSummarySampleProject(ISelection selection) {
 		super("wizardPage");
 		setTitle("New project summary");
 		setDescription("This step summarizes all the configuration options");
 	}
 
 	public void createControl(Composite parent) {
-		Composite container = new NewProjectWizardCompositeSummarySampleProject(parent, SWT.NULL, this.getWizard());
+		Composite container = new NewProjectWizardCompositeSummarySampleProject(parent, SWT.NULL);
 		initialize();
 		setControl(container);
 		setPageComplete(true);

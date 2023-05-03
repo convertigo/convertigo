@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UrlParser {
-	final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*|$)");
+	private final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*|$)");
 	
 	static public class UrlFields {
 		private String scheme;

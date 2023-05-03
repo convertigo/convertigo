@@ -82,7 +82,7 @@ public abstract class ServletRequester extends GenericRequester {
 		}
 	}
 
-	protected String subPath = null;
+	private String subPath = null;
 
 	protected void initInternalVariables() throws EngineException {
 		HttpServletRequest request = (HttpServletRequest) inputData;

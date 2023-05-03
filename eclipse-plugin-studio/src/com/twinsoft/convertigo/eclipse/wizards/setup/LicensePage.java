@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
-public class LicensePage extends WizardPage implements SummaryGenerator {
+class LicensePage extends WizardPage implements SummaryGenerator {
 	
 	private Composite container;
 	

@@ -27,12 +27,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 
-public class NoEngineWizardPage extends WizardPage {
+class NoEngineWizardPage extends WizardPage {
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public NoEngineWizardPage(ISelection selection) {
+	NoEngineWizardPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Please register to use Convertigo");
 		setDescription("Press 'Finish' to launch Convertigo registration");

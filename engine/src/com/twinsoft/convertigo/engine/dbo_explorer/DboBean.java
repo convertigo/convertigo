@@ -36,7 +36,7 @@ public class DboBean {
 	private final Collection<DboParent> parents;
 	private final Collection<String> emulatorTechnologies;
 
-	public DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault,
+	DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault,
 			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
 		this.className = className;
 		this.bEnable = bEnable;

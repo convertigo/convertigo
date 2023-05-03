@@ -53,11 +53,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
-	
-	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
-		super(viewer, object);
-		isDefault = getObject().isRoot;
-	}
 
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object, boolean inherited) {
 		super(viewer, object, inherited);
@@ -261,7 +256,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		super.hasBeenModified(bModified);
 	}
 	
-	protected void markAppComponentTsAsDirty() {
+	private void markAppComponentTsAsDirty() {
 		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
 		try {
 			ac.markComponentTsAsDirty();
@@ -270,7 +265,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
 	}
 	
-	protected void markAppModuleTsAsDirty() {
+	private void markAppModuleTsAsDirty() {
 		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
 		try {
 			ac.markModuleTsAsDirty();
@@ -279,7 +274,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
 	}
 	
-	protected void markPageEnabledAsDirty() {
+	private void markPageEnabledAsDirty() {
 		PageComponent page = getObject();
 		try {
 			page.markPageEnabledAsDirty();
@@ -301,22 +296,13 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while writing the source files for page '" + page.getName() + "'");	}
 	}
 
-	protected void markPageTsAsDirty() {
+	private void markPageTsAsDirty() {
 		PageComponent page = getObject();
 		try {
 			page.markPageTsAsDirty();
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
 					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
-	}
-
-	protected void markPageModuleTsAsDirty() {
-		PageComponent page = getObject();
-		try {
-			page.markPageModuleTsAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the page.module.ts file for page '" + page.getName() + "'");	}
 	}
 	
 	@Override

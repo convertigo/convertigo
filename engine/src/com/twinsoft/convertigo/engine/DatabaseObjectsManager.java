@@ -192,19 +192,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		databaseObjectListeners.remove(DatabaseObjectListener.class, databaseObjectListener);
 	}
 
-	public void fireDatabaseObjectLoaded(DatabaseObjectLoadedEvent event) {
-		// Guaranteed to return a non-null array
-		Object[] listeners = databaseObjectListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == DatabaseObjectListener.class) {
-				((DatabaseObjectListener) listeners[i + 1]).databaseObjectLoaded(event);
-			}
-		}
-	}
-
-	public void fireDatabaseObjectImported(DatabaseObjectImportedEvent event) {
+	private void fireDatabaseObjectImported(DatabaseObjectImportedEvent event) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = databaseObjectListeners.getListenerList();
 		// Process the listeners last to first, notifying
@@ -269,7 +257,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return new ArrayList<String>(projectNames);
 	}
 
-	protected void checkForEngineMigrationProcess(String projectName) throws ProjectInMigrationProcessException {
+	private void checkForEngineMigrationProcess(String projectName) throws ProjectInMigrationProcessException {
 		if (!(Thread.currentThread() instanceof MigrationJob)) {
 			if (!MigrationManager.isProjectMigrated(projectName)) {
 				throw new ProjectInMigrationProcessException();
@@ -281,7 +269,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public static class ProjectLoadingData {
 		public ProjectLoadingData() {}
 
-		public String projectName;
+		private String projectName;
 		public boolean undefinedGlobalSymbol = false;
 	}
 
@@ -414,57 +402,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, Class<? extends DatabaseObject> objectClass, Class<? extends DatabaseObject> folderBeanClass) {
-		try {
-			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
-			DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
-			List<DboGroup> groups = manager.getGroups();
-			for (DboGroup group : groups) {
-				List<DboCategory> categories = group.getCategories();
-				for (DboCategory category : categories) {
-					List<DboBeans> beansCategories  = category.getBeans();
-					for (DboBeans beansCategory : beansCategories) {
-						List<DboBean> beans = beansCategory.getBeans();
-						for (DboBean bean : beans) {
-							String className = bean.getClassName();
-							Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
-
-							if (beanClass.equals(objectClass)) {
-								// The bean should derived from DatabaseObject...
-								boolean isDatabaseObject = (DatabaseObject.class.isAssignableFrom(beanClass));
-
-								if (isDatabaseObject) {
-									// ... and should derived from the specified class
-									boolean isFromSpecifiedClass = ((folderBeanClass == null) ||
-											((folderBeanClass != null) && (folderBeanClass.isAssignableFrom(beanClass))));
-									if (isFromSpecifiedClass) {
-										// Check parent
-										boolean bFound = checkParent(parentObjectClass, bean);
-										if (bFound) {
-											// Check technology if needed
-											String technology = DboUtils.getTechnology(parentObject, objectClass);
-											if (technology != null) {
-												Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
-												if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
-													continue;
-												}
-											}
-											return true;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			return false;
-		} catch (Exception e) {
-			Engine.logDatabaseObjectManager.error("Unable to load database objects properties.", e);
-			return false;
-		}
-	}
-
 	public Project getProjectByName(String projectName) throws EngineException {
 		try {
 			Project project = getOriginalProjectByName(projectName);
@@ -531,7 +468,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public Project getCachedProject(String projectName) {
+	private Project getCachedProject(String projectName) {
 		synchronized (projects) {
 			return projects.get(projectName);
 		}
@@ -672,7 +609,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public void makeProjectBackup(String projectName, File projectDir) throws EngineException {
+	private void makeProjectBackup(String projectName, File projectDir) throws EngineException {
 		try {
 
 			if (projectDir.exists()) {
@@ -708,11 +645,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public Project updateProject(File projectFile) throws EngineException {
+	Project updateProject(File projectFile) throws EngineException {
 		return updateProject(projectFile.getAbsolutePath());
 	}
 
-	public Project updateProject(String projectFileName) throws EngineException {
+	private Project updateProject(String projectFileName) throws EngineException {
 		try {
 			boolean isArchive = false, needsMigration = false;
 			Project project = null;
@@ -774,7 +711,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
 	}
 
-	public Project deployProject(String projectArchiveFilename, boolean bForce) throws EngineException {
+	Project deployProject(String projectArchiveFilename, boolean bForce) throws EngineException {
 		return deployProject(projectArchiveFilename, null, bForce);
 	}
 
@@ -783,7 +720,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return deployProject(projectArchiveFilename, targetProjectName, bForce, false);
 	}
 
-	public Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences) throws Exception {
+	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences) throws Exception {
 		HttpGet get = new HttpGet(projectUrl.toURI());
 		File archive = File.createTempFile("convertigoImportFromHttp", ".car");
 		archive.deleteOnExit();
@@ -2046,7 +1983,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public boolean canOpenProject(String projectName) {
+	private boolean canOpenProject(String projectName) {
 		return getStudioProjects().canOpen(projectName);
 	}
 

@@ -73,7 +73,7 @@ import freemarker.template.TemplateModelException;
 
 public class ReadmeBuilder {
 	
-	class FtlDboWrapper extends DefaultObjectWrapper {
+	private class FtlDboWrapper extends DefaultObjectWrapper {
 
 	    public FtlDboWrapper(freemarker.template.Version incompatibleImprovements) {
 	        super(incompatibleImprovements);
@@ -93,8 +93,8 @@ public class ReadmeBuilder {
 	    }
 	}
 	
-	class FtlWalker extends WalkHelper {
-		Map<String, Object> dboMap = new HashMap<String, Object>();
+	private class FtlWalker extends WalkHelper {
+		private Map<String, Object> dboMap = new HashMap<String, Object>();
 		
 		private Map<String, Object> getDboMap() {
 			return dboMap;
@@ -289,8 +289,8 @@ public class ReadmeBuilder {
 		}
 	}
 	
-	class MdWalker extends WalkHelper {
-		String content = "";
+	private class MdWalker extends WalkHelper {
+		private String content = "";
 		
 		private String getContent() {
 			return content;

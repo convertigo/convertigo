@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class HttpEventLogger implements  HttpProxyEventListener {
+class HttpEventLogger implements  HttpProxyEventListener {
 
 	public void modelChanged(HttpProxyEvent event) {
 			Map<String, Object> htResponse = parseHttpHeaders(event.getResponse(), false);
@@ -126,7 +126,7 @@ public class HttpEventLogger implements  HttpProxyEventListener {
 		return ht;
 	}
 	
-	void dumpHeaders(Map<String, Object> ht)
+	private void dumpHeaders(Map<String, Object> ht)
 	{
 		Enumeration<String> keys = Collections.enumeration(ht.keySet());
 		Engine.logEngine.debug("Headers");

@@ -38,15 +38,15 @@ import org.eclipse.swt.widgets.ProgressBar;
 
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class SchemaObjectsDialogComposite extends MyAbstractDialogComposite {
+class SchemaObjectsDialogComposite extends MyAbstractDialogComposite {
 
 	private XmlSchema xmlSchema = null;
 	private java.util.List<QName> qnames = null;
 	protected List list = null;
-	public ProgressBar progressBar = null;
-	public Label labelProgression = null;
+	ProgressBar progressBar = null;
+	Label labelProgression = null;
 	
-	public SchemaObjectsDialogComposite(Composite parent, int style, Object parentObject, XmlSchema xmlSchema) {
+	SchemaObjectsDialogComposite(Composite parent, int style, Object parentObject, XmlSchema xmlSchema) {
 		super(parent, style);
 		this.xmlSchema = xmlSchema;
 		
@@ -55,6 +55,7 @@ public class SchemaObjectsDialogComposite extends MyAbstractDialogComposite {
 		fillList();
 	}
 
+	@Override
 	protected void initialize() {
 		Label label0 = new Label (this, SWT.NONE);
 		label0.setText ("Please choose an element to import into a sequence's step:");

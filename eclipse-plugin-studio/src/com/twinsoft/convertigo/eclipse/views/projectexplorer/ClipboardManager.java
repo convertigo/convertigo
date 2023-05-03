@@ -87,10 +87,10 @@ public class ClipboardManager {
 	public Object[] objects;
 	public TreeObject[] parentTreeNodeOfCutObjects;
 
-	protected List<TreeObject> treeObjectsList;
-	protected List<TreeObject> treeParentsList;
-	protected Document clipboardDocument;
-	protected Element clipboardRootElement;
+	private List<TreeObject> treeObjectsList;
+	private List<TreeObject> treeParentsList;
+	private Document clipboardDocument;
+	private Element clipboardRootElement;
 
 	public boolean isCut = false;
 	public boolean isCopy = false;
@@ -165,7 +165,7 @@ public class ClipboardManager {
 		return strObject;
 	}
 
-	DatabaseObject currentScreenClassOrTransaction;
+	private DatabaseObject currentScreenClassOrTransaction;
 
 	private void copyDatabaseObject(DatabaseObject databaseObject) throws EngineException {
 		currentScreenClassOrTransaction = null;
@@ -282,8 +282,8 @@ public class ClipboardManager {
 	}
 
 	public Object[] pastedObjects = null;
-	public Map<String, Step> pastedSteps = new HashMap<String, Step>();
-	public Map<String, MobileObject> pastedComponents = new HashMap<String, MobileObject>();
+	private Map<String, Step> pastedSteps = new HashMap<String, Step>();
+	private Map<String, MobileObject> pastedComponents = new HashMap<String, MobileObject>();
 
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
@@ -386,7 +386,7 @@ public class ClipboardManager {
 		return object;
 	}
 
-	public Object paste(Node node, IPropertyTreeObject parentPropertyTreeObject, boolean bChangeName) throws EngineException {
+	private Object paste(Node node, IPropertyTreeObject parentPropertyTreeObject, boolean bChangeName) throws EngineException {
 		Object object = read(node);
 		if (object instanceof PropertyData) {
 			PropertyData propertyData = (PropertyData)object;
@@ -431,7 +431,7 @@ public class ClipboardManager {
 		return ordered;
 	}
 	
-	public Object paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
+	private Object paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject) object;
@@ -975,7 +975,7 @@ public class ClipboardManager {
 		}
 	}
 
-	public void cutAndPaste(final DatabaseObject object, DatabaseObject parentDatabaseObject) throws ConvertigoException {
+	private void cutAndPaste(final DatabaseObject object, DatabaseObject parentDatabaseObject) throws ConvertigoException {
 		// Verifying if a sheet with the same browser does not already exist
 		if (object instanceof Sheet) {
 			String browser = ((Sheet) object).getBrowser();
@@ -1108,7 +1108,7 @@ public class ClipboardManager {
 	/**
 	 * Moves the object to a target destination.
 	 */
-	public synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
+	private synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
 		if (object.getParent() != target) {
 			// First, delete the object from its parent
 			object.delete();

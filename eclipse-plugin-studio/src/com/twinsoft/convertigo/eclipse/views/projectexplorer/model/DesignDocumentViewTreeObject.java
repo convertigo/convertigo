@@ -27,7 +27,6 @@ import org.eclipse.ui.IActionFilter;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -36,13 +35,11 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FunctionObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.ViewObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DesignDocumentViewTreeObject extends TreeParent implements IClosableTreeObject, IDesignTreeObject, IActionFilter {
 
-	public DesignDocumentViewTreeObject(Viewer viewer, Object object) {
+	DesignDocumentViewTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
 		loadFunctions();
 	}
@@ -60,10 +57,6 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 	@Override
 	public DesignDocumentTreeObject getParentDesignTreeObject() {
 		return (DesignDocumentTreeObject) getParent().getParent();
-	}
-	
-	public boolean hasMap() {
-		return getObject().hasMap();
 	}
 	
 	public boolean hasReduce() {
@@ -85,7 +78,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 		return ddfto;
 	}
 	
-	public void removeFunction(DesignDocumentFunctionTreeObject ddfto) {
+	private void removeFunction(DesignDocumentFunctionTreeObject ddfto) {
 		if (ddfto != null) {
 			if (CouchKey.reduce.name().equals(ddfto.getName())) {
 				removeChild(ddfto);
@@ -192,31 +185,6 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 			hasBeenModified();
 		}
 		return function;
-	}
-
-	public static Object read(Node node) throws EngineException {
-		String classname = null;
-        JSONObject jsondata = null;
-		try {
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element)node;
-				classname = element.getAttribute("classname");
-                Node cdata = XMLUtils.findChildNode(element, Node.CDATA_SECTION_NODE);
-                if (cdata != null) {
-                	jsondata = new JSONObject(cdata.getNodeValue());
-                }
-			}
-		}
-		catch (Exception e) {
-            String message = "Unable to set the object properties from the serialized XML data.\n" +
-			"Object class: '" + classname;
-	        EngineException ee = new EngineException(message, e);
-	        throw ee;
-		}
-		if (jsondata != null) {
-			return new JsonData(DesignDocumentViewTreeObject.class, jsondata);
-		}
-		return null;
 	}
 	
 	@Override

@@ -24,7 +24,7 @@ public class DeploymentConfigurationReadOnly extends DeploymentConfiguration {
 
 	private static final long serialVersionUID = -9001695822957177262L;
     
-    public DeploymentConfigurationReadOnly(String server, String username, String userpassword, boolean bHttps, boolean bTrustAllCertificates ,boolean bAssembleXsl) {
+    DeploymentConfigurationReadOnly(String server, String username, String userpassword, boolean bHttps, boolean bTrustAllCertificates ,boolean bAssembleXsl) {
         super(server, username, userpassword, bHttps, bTrustAllCertificates ,bAssembleXsl);
     }
     

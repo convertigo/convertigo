@@ -26,10 +26,6 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 
 public class UrlMappingResponseTreeObject extends DatabaseObjectTreeObject {
 
-	public UrlMappingResponseTreeObject(Viewer viewer, DatabaseObject object) {
-		this(viewer, object, false);
-	}
-
 	public UrlMappingResponseTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 	}

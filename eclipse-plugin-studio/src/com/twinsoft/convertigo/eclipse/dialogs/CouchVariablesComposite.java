@@ -60,7 +60,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 	private List<RequestableVariable> allVariables = null;
 	private List<CouchVariable> selectedVariable = null;
 		
-	public CouchVariablesComposite(Composite parent, int style, List<RequestableVariable> allVariables) {
+	CouchVariablesComposite(Composite parent, int style, List<RequestableVariable> allVariables) {
 		this(parent, style);
 		this.allVariables = allVariables;
 	}

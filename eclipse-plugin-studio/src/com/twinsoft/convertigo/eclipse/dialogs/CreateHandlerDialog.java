@@ -41,7 +41,7 @@ public class CreateHandlerDialog extends Dialog {
 		this(parentShell, ObjectsExplorerComposite.class, "New transaction handler", parentObject);
 	}
 	
-	public CreateHandlerDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
+	private CreateHandlerDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
 		super(parentShell);
 		this.dialogTitle = dialogTitle;
 		this.parentObject = parentObject;

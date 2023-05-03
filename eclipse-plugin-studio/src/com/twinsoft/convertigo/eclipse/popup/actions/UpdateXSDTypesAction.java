@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.studio.ActionModel;
 import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class UpdateXSDTypesAction extends MyAbstractAction {
+class UpdateXSDTypesAction extends MyAbstractAction {
 
 	protected boolean extract = false;
 
@@ -54,6 +54,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
 			super.selectionChanged(action, selection);
@@ -67,6 +68,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 		catch (Exception e) {}
 	}
 
+	@Override
 	public void run() {
 		final Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);

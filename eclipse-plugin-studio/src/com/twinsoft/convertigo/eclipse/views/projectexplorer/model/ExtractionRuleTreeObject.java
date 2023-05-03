@@ -24,11 +24,6 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 
 public class ExtractionRuleTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject{
-
-	public ExtractionRuleTreeObject(Viewer viewer, ExtractionRule object) {
-		this(viewer, object, false);
-	}
-
 	
 	public ExtractionRuleTreeObject(Viewer viewer, ExtractionRule object, boolean inherited) {
 		super(viewer, object, inherited);

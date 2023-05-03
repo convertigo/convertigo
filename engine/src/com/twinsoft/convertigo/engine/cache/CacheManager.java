@@ -337,11 +337,11 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 	 * 
 	 * @return true if the cache entry has expired, false otherwise.
 	 */
-	public boolean cacheEntryHasExpired(CacheEntry cacheEntry) {
+	private boolean cacheEntryHasExpired(CacheEntry cacheEntry) {
 		return cacheEntryHasExpired(cacheEntry, System.currentTimeMillis());
 	}
 	
-	public boolean cacheEntryHasExpired(CacheEntry cacheEntry, long time) {
+	boolean cacheEntryHasExpired(CacheEntry cacheEntry, long time) {
 		long t1 = cacheEntry.expiryDate;
 		
 		// Cache entries with negative expiry date never expire
@@ -393,7 +393,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 	 */
 	protected abstract void removeExpiredCacheEntries(long time) throws EngineException;
 	
-	protected void removeExpiredCacheEntries() throws EngineException {
+	private void removeExpiredCacheEntries() throws EngineException {
 		removeExpiredCacheEntries(System.currentTimeMillis());
 	}
 	

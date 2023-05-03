@@ -30,7 +30,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
-public abstract class MemoryCacheManager extends CacheManager {
+abstract class MemoryCacheManager extends CacheManager {
 	
 	protected Map<String, CacheEntry> cacheIndex = null;
 	

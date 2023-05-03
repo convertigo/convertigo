@@ -28,13 +28,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
-public class NewProjectWizardPage1 extends WizardPage {
+class NewProjectWizardPage1 extends WizardPage {
 	private String projectName;
 	
 	public String getProjectName() {
@@ -45,18 +44,13 @@ public class NewProjectWizardPage1 extends WizardPage {
 		this.projectName = projectName;
 	}
 
-	protected void setProjectTextValue(String projectName) {
-		Control control = getControl();
-		if (control != null) {
-			((NewProjectWizardComposite1)control).getProjectName().setText(projectName);
-		}
-	}
+	
 	
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public NewProjectWizardPage1(ISelection selection) {
+	NewProjectWizardPage1(ISelection selection) {
 		super("wizardPage");
 		setTitle("New Convertigo project");
 		setDescription("This wizard creates a new Convertigo project");

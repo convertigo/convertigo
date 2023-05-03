@@ -32,7 +32,7 @@ public class TnClientHandler {
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
 	
-    public TnClientHandler(Socket socket)
+    TnClientHandler(Socket socket)
         throws IOException
     {
         mySocket = socket;
@@ -49,7 +49,7 @@ public class TnClientHandler {
         Engine.logEngine.info("Starting session with " + mySocket.getInetAddress().getHostAddress());
     }
 
-    public void close()
+    void close()
     {
         try
         {
@@ -65,7 +65,7 @@ public class TnClientHandler {
         }
     }
 
-    public byte[] receiveTelnetData(int i)
+    byte[] receiveTelnetData(int i)
     {
         byte abyte0[] = new byte[i];
         try
@@ -87,7 +87,7 @@ public class TnClientHandler {
         return null;
     }
 
-    public byte[] receiveTNSE()
+    byte[] receiveTNSE()
     {
         int i = 0;
         byte abyte0[] = new byte[1024];
@@ -127,7 +127,7 @@ public class TnClientHandler {
         return abyte1;
     }
 
-    public byte[] receiveBinaryDataEOR()
+    byte[] receiveBinaryDataEOR()
     {
         int i = 0;
         byte abyte0[] = new byte[8048];
@@ -167,7 +167,7 @@ public class TnClientHandler {
         return abyte1;
     }
 
-    public byte[] preReceiveNVTData()
+    byte[] preReceiveNVTData()
     {
         try
         {
@@ -191,7 +191,7 @@ public class TnClientHandler {
         return null;
     }
 
-    public boolean postReceiveNVTData()
+    boolean postReceiveNVTData()
     {
         try
         {
@@ -257,7 +257,7 @@ public class TnClientHandler {
         return i > 31 && i < 128;
     }
 
-    public void sendTraceRecord(byte abyte0[])
+    void sendTraceRecord(byte abyte0[])
     {
         try
         {

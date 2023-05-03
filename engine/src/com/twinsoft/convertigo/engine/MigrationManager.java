@@ -118,7 +118,7 @@ public class MigrationManager {
 		return jobsAdded || Engine.isCliMode();
 	}
 	
-	public static boolean isMigrationFinished() {
+	static boolean isMigrationFinished() {
 		for (MigrationJob job: jobs.values()) {
 			if (!job.isFinished) return false;
 		}

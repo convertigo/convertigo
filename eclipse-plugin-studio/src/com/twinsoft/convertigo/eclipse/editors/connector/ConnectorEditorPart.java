@@ -79,10 +79,10 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ConnectorEditorPart extends Composite implements EngineListener {
 
-	protected ConnectorEditor editor = null;
+	private ConnectorEditor editor = null;
 	private SashForm sashForm = null;
 	private Composite compositeOutput = null;
-	protected AbstractConnectorComposite compositeConnector = null;
+	private AbstractConnectorComposite compositeConnector = null;
 	private TabFolder tabFolderOutputDesign = null;
 	private Connector connector;
 	private Composite compositeDesign = null;
@@ -173,11 +173,11 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private String fullResultJSON;
 	private Map<String, String[]> lastParameters = null;
 	
-	ConnectorEditorInput inputXML = null;
-	ConnectorEditorInput inputJSON = null;
-	ConnectorEditorInput inputTXT = null;
+	private ConnectorEditorInput inputXML = null;
+	private ConnectorEditorInput inputJSON = null;
+	private ConnectorEditorInput inputTXT = null;
 
-	public ConnectorEditorPart(ConnectorEditor editor, Connector connector, Composite parent, int style) {
+	ConnectorEditorPart(ConnectorEditor editor, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
 		this.connector = connector;
@@ -300,15 +300,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		tabItemDesign.setText("Design");
 		tabItemDesign.setControl(compositeDesign);
 	}
-
-	public void selectTabOutput() {
-		tabFolderOutputDesign.setSelection(tabItemOutput);
-	}
-
-	public void selectTabDesign() {
-		tabFolderOutputDesign.setSelection(tabItemDesign);
-	}
-
+	
 	private void createCompositeOutput() {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.horizontalSpacing = 0;
@@ -328,35 +320,35 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		createComposite();
 	}
 
-	ToolItem toolItemRenewConnector = null;
-	ToolItem toolItemConnect = null;
-	ToolItem toolItemDisconnect = null;
-	ToolItem toolItemRefresh = null;
-	ToolItem toolItemReset = null;
-	ToolItem toolItemGenerate = null;
-	ToolItem toolItemRenderXml = null;
-	ToolItem toolItemRenderJson = null;
-	ToolItem toolItemStopTransaction = null;
-	ToolItem toolItemDebug = null;
-	ToolItem toolItemRun = null;
-	ToolItem toolItemPause = null;
-	ToolItem toolItemStep = null;
-	ToolItem toolItemShowBlocks = null;
-	ToolItem tooItemNewScreenClassFromSelectionZone = null;
-	ToolItem tooItemNewTagNameFromSelectionZone = null;
-	ToolItem tooItemNewWaitAtFromSelectionZone = null;
-	ToolItem toolItemLink = null;
-	ToolItem toolItemAdd = null;
-	ToolItem toolItemRecord = null;
-	ToolItem toolLearn = null;
-	ToolItem toolAccumulate = null;
-	ToolItem toolTestConnection = null;
-	ToolItem toolItemFullResult = null;
+	private ToolItem toolItemRenewConnector = null;
+	private ToolItem toolItemConnect = null;
+	private ToolItem toolItemDisconnect = null;
+	private ToolItem toolItemRefresh = null;
+	private ToolItem toolItemReset = null;
+	private ToolItem toolItemGenerate = null;
+	private ToolItem toolItemRenderXml = null;
+	private ToolItem toolItemRenderJson = null;
+	private ToolItem toolItemStopTransaction = null;
+	private ToolItem toolItemDebug = null;
+	private ToolItem toolItemRun = null;
+	private ToolItem toolItemPause = null;
+	private ToolItem toolItemStep = null;
+	private ToolItem toolItemShowBlocks = null;
+	private ToolItem tooItemNewScreenClassFromSelectionZone = null;
+	private ToolItem tooItemNewTagNameFromSelectionZone = null;
+	private ToolItem tooItemNewWaitAtFromSelectionZone = null;
+	private ToolItem toolItemLink = null;
+	private ToolItem toolItemAdd = null;
+	private ToolItem toolItemRecord = null;
+	private ToolItem toolLearn = null;
+	private ToolItem toolAccumulate = null;
+	private ToolItem toolTestConnection = null;
+	private ToolItem toolItemFullResult = null;
 
-	protected boolean bDebug = false;
-	protected boolean bShowBlocks = false;
-	protected boolean bDebugStepByStep = false;
-	protected DatabaseObject debugDatabaseObject = new Project();
+	private boolean bDebug = false;
+	private boolean bShowBlocks = false;
+	private boolean bDebugStepByStep = false;
+	private DatabaseObject debugDatabaseObject = new Project();
 
 	/**
 	 * This method initializes toolBar
@@ -953,7 +945,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		incr ++;
 	}
 
-	public void toolBarSetEnable(String toolItemId, boolean enable) {
+	void toolBarSetEnable(String toolItemId, boolean enable) {
 		try {
 			final int i = toolItemsIds.get(toolItemId).intValue();
 			final boolean enabled = enable;
@@ -970,7 +962,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		;
 	}
 
-	public void toolBarSetSelection(String toolItemId, boolean select) {
+	void toolBarSetSelection(String toolItemId, boolean select) {
 		try {
 			final int i = toolItemsIds.get(toolItemId).intValue();
 			final boolean selected = select;
@@ -1115,7 +1107,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		}
 	}
 
-	public void close() {
+	void close() {
 		// Must stop the GIF animation before closing the connector editor
 		getDisplay().syncExec(() -> {
 			animatedWait.stop();
@@ -1137,6 +1129,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 
 	}
 
+	@Override
 	public void dispose() {
 		imageRenew.dispose();
 		imageConnect.dispose();
@@ -1178,15 +1171,15 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		super.dispose();
 	}
 
-	protected void getDocument() {
+	private void getDocument() {
 		getDocument(null, null, false);
 	}
 
-	protected Context context;
+	private Context context;
 	private String contextID = null;
 	private String projectName = null;
 
-	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
+	void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 		
 		editor.setDirty(true);

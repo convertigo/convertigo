@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.RegistrationBrowser;
 
-public class EmbeddedRegistrationPage extends WizardPage {
+class EmbeddedRegistrationPage extends WizardPage {
 	
 	private RegistrationBrowser browser;
 	

@@ -58,16 +58,6 @@ public class SwtUtils {
 		return gridLayout;
 	}
 
-	static public GridLayout newGridLayout(int numColumns, boolean makeColumnsEqualWidth, int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight, int marginRight,
-			int marginTop, int marginBottom, int marginLeft) {
-		GridLayout gridLayout = newGridLayout(numColumns, makeColumnsEqualWidth, horizontalSpacing, verticalSpacing, marginWidth, marginHeight);
-		gridLayout.marginBottom = marginBottom;
-		gridLayout.marginLeft = marginLeft;
-		gridLayout.marginRight = marginRight;
-		gridLayout.marginTop = marginTop;
-		return gridLayout;
-	}
-
 	private static boolean lastDark = false;
 	public static boolean isDark() {
 		try {
@@ -77,7 +67,7 @@ public class SwtUtils {
 		}
 	}
 
-	public static void mkDirs(IResource res) throws CoreException {
+	private static void mkDirs(IResource res) throws CoreException {
 		if (res instanceof IFile) {
 			mkDirs(res.getParent());
 		} else if (res instanceof IFolder) {

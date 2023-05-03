@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Label;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class WorkspaceCreationPage extends WizardPage implements SummaryGenerator {
+class WorkspaceCreationPage extends WizardPage implements SummaryGenerator {
 
 	private Composite container;
 

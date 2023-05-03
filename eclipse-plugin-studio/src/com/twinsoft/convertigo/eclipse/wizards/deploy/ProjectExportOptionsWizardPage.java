@@ -43,16 +43,16 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public class ProjectExportOptionsWizardPage extends WizardPage {
+class ProjectExportOptionsWizardPage extends WizardPage {
 
-	Project project;
-	String version;
-	Set<ArchiveExportOption> archiveExportOptions;
+	private Project project;
+	private String version;
+	private Set<ArchiveExportOption> archiveExportOptions;
 	
 	private Text versionSWT;
 	private Button[] archiveExportOptionsSWT;
 	
-	public ProjectExportOptionsWizardPage(Project project) {
+	ProjectExportOptionsWizardPage(Project project) {
 		super("ProjectExportOptionsWizardPage", "Archive options", null);
 		this.project = project;
 		this.version = project.getVersion();
@@ -116,7 +116,7 @@ public class ProjectExportOptionsWizardPage extends WizardPage {
 		}
 	}
 	
-	protected void doUpdate() {
+	private void doUpdate() {
 		version = versionSWT.getText();
 		archiveExportOptions.clear();
 		archiveExportOptions.addAll(ArchiveExportOption.all);

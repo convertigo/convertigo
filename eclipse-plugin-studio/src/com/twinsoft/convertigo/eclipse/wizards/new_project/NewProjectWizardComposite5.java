@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class NewProjectWizardComposite5 extends Composite {
+class NewProjectWizardComposite5 extends Composite {
 
 	private Label label = null;
 	private Text ctgName = null;
@@ -37,7 +37,7 @@ public class NewProjectWizardComposite5 extends Composite {
 	private Label label5 = null;
 	private Label label2 = null;
 	private Text ctgPort = null;
-	public NewProjectWizardComposite5(Composite parent, int style, ModifyListener ml, NewProjectWizard wizard) {
+	NewProjectWizardComposite5(Composite parent, int style, ModifyListener ml, NewProjectWizard wizard) {
 		super(parent, style);
 		modifyListener = ml;
 		initialize();

@@ -20,7 +20,7 @@
 package com.twinsoft.convertigo.eclipse;
 
 
-public class StderrStream extends StdoutStream {
+class StderrStream extends StdoutStream {
 
 	public StderrStream() {
 		super();

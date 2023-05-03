@@ -20,8 +20,5 @@
 package com.twinsoft.convertigo.engine;
 
 public interface DatabaseObjectListener extends java.util.EventListener {
-    public void databaseObjectLoaded(DatabaseObjectLoadedEvent event);
     public void databaseObjectImported(DatabaseObjectImportedEvent event);
 }
-
-

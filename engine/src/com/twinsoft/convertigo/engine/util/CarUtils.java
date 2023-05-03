@@ -72,7 +72,7 @@ public class CarUtils {
 		return makeArchive(new File(dir, project.getName() + ".car"), project, ArchiveExportOption.all);
 	}
 
-	public static File makeArchive(String dir, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+	private static File makeArchive(String dir, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
 		return makeArchive(new File(dir, project.getName() + ".car"), project, archiveExportOptions);
 	}
 
@@ -168,7 +168,7 @@ public class CarUtils {
 		exportProject(project, fileName, true);
 	}
 	
-	public static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
 		Document document = exportProject(project, includeTestCases);
 		try {
 			exportYAMLProject(project, fileName, document);
@@ -306,7 +306,7 @@ public class CarUtils {
 	 * in the directory denoted by this abstract pathname
 	 * that satisfy the specified suffix
 	 */
-	public static ArrayList<File> deepListFiles(String sDir, String suffix) {
+	static ArrayList<File> deepListFiles(String sDir, String suffix) {
 		final String _suffix = suffix;
 		File[] all, files;
 		File f, dir;

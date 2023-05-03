@@ -112,30 +112,6 @@ public class SchedulerManager {
 		return schedulerOn;
 	}
 
-	public void pause() {
-		if (schedulerOn && !paused) {
-			try {
-				sched.pauseAll();
-				paused = true;
-			} catch (SchedulerException e) {
-				schedulerOn = false;
-				Engine.logEngine.error("Unexpected exception", e);
-			}
-		}
-	}
-
-	public void resume() {
-		if (schedulerOn && paused) {
-			try {
-				sched.resumeAll();
-				paused = false;
-			} catch (SchedulerException e) {
-				schedulerOn = false;
-				Engine.logEngine.error("Unexpected exception", e);
-			}
-		}
-	}
-
 	public boolean isPaused() {
 		return paused;
 	}

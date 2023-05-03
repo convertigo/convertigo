@@ -20,9 +20,8 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 public class ButtonSpec {
-	public String label;
-	public int value;
-	public boolean defaultButton;
+	String label;
+	boolean defaultButton;
 	
 	public ButtonSpec(String _label, boolean _defaultButton){
 		label = _label;

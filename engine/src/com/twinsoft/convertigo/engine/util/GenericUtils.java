@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,17 +69,7 @@ public class GenericUtils {
 		return false;
 	}
 	
-	public static void removeWeak(Collection<? extends WeakReference<? extends Object>> collection) {
-		Collection<WeakReference<? extends Object>> toRemove = new LinkedList<WeakReference<? extends Object>>();
-		for (WeakReference<? extends Object> wo : collection) {
-			if (wo.get() == null) {
-				toRemove.add(wo);
-			}
-		}
-		for (WeakReference<? extends Object> wo : toRemove) {
-			collection.remove(wo);
-		}
-	}
+	
 	
 	 public static void setListSize(List<?> list, int size){
 		int ls = list.size();
@@ -95,16 +84,11 @@ public class GenericUtils {
 		}
 	}
 	
-	public static <E> List<E> asList(Object... o) {
-		return cast(Arrays.asList(o));
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <E> E[] asArray(Collection<E> v) {
-		return (E[]) v.toArray();
-	}
 	
-	public static <E> E[] copyOf(E[] original, int newLength) {
+
+	
+	
+	static <E> E[] copyOf(E[] original, int newLength) {
 		if (original.length != newLength) {
 			E[] res = cast(Array.newInstance(original.getClass().getComponentType(), newLength));
 			for (int i=0; i < newLength && i < original.length; i++) {
@@ -213,7 +197,7 @@ public class GenericUtils {
 		};
 	}
 	
-	public static <E> boolean contains(Collection<WeakReference<E>> collection, E object) {
+	static <E> boolean contains(Collection<WeakReference<E>> collection, E object) {
 		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
 			E item = i.next().get();
 			if (item == null) {
@@ -225,7 +209,7 @@ public class GenericUtils {
 		return false;
 	}
 	
-	public static <E> void remove(Collection<WeakReference<E>> collection, E object, boolean removeAll) {
+	static <E> void remove(Collection<WeakReference<E>> collection, E object, boolean removeAll) {
 		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
 			E item = i.next().get();
 			if (item == null) {
@@ -239,7 +223,7 @@ public class GenericUtils {
 		}
 	}
 	
-	public static <E> Collection<E> unWeak(Collection<WeakReference<E>> collection) {
+	static <E> Collection<E> unWeak(Collection<WeakReference<E>> collection) {
 		Collection<E> result = new ArrayList<E>(collection.size());
 		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
 			E item = i.next().get();

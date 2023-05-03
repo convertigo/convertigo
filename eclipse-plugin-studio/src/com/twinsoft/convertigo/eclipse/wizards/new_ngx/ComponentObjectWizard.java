@@ -49,10 +49,6 @@ public class ComponentObjectWizard extends Wizard {
 
 	public DatabaseObject newBean = null;
 
-	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
-		this(selectedDatabaseObject, newClassName, -1);
-	}
-
 	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, int folderType) {
 		super();
 		this.parentObject = selectedDatabaseObject;

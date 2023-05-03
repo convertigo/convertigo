@@ -40,10 +40,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 
-public class ImportWizardPage extends WizardPage {
-	protected ProjectFileFieldEditor editor = null;
-	protected String filePath = "";
-	protected ProjectReferenceComposite projectReferenceComposite;
+class ImportWizardPage extends WizardPage {
+	private ProjectFileFieldEditor editor = null;
+	private String filePath = "";
+	private ProjectReferenceComposite projectReferenceComposite;
 	
 	public ImportWizardPage() {
 		super("Import","Import a Convertigo project",null);

@@ -65,13 +65,13 @@ import com.twinsoft.twinj.iJavelin;
 import com.twinsoft.util.DevicePool;
 
 public class ContextManager extends AbstractRunnableManager {
-	public class MyPropertyChangeEventListener implements PropertyChangeEventListener{
+	private class MyPropertyChangeEventListener implements PropertyChangeEventListener{
 		public void onEvent(PropertyChangeEvent event) {
 			if (event.getKey() == PropertyName.POOL_MANAGER_TIMEOUT)
 				loadParameters();
 		}
 	};
-	MyPropertyChangeEventListener myPropertyChangeEventListener;
+	private MyPropertyChangeEventListener myPropertyChangeEventListener;
 
 	public static final String POOL_CONTEXT_ID_PREFIX = "/";
 	public static final String STUDIO_CONTEXT_PREFIX = "studio_";
@@ -148,15 +148,7 @@ public class ContextManager extends AbstractRunnableManager {
 	public String computeStudioContextName(String type, String projectName, String typeName) {
 		return STUDIO_CONTEXT_PREFIX + projectName + ":"+ type +":" + typeName;
 	}
-
-	public Context get(Requester requester, String contextName, String projectName) throws Exception {
-		return get(requester, contextName, null, null, projectName, null);
-	}
-
-	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName) throws Exception {
-		return get(requester, contextName, null, null, projectName, null, null);
-	}
-
+	
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName, String sequenceName) throws Exception {
 		Context context = null;
 
@@ -323,24 +315,6 @@ public class ContextManager extends AbstractRunnableManager {
 
 	public int getNumberOfContexts() {
 		return contexts.size();
-	}
-
-	public void abort(String contextID) {
-		abort(get(contextID));
-	}
-
-	public void abort(Context context) {
-		if (context == null) {
-			// Silently ignore
-			Engine.logContextManager.warn("Requestable thread cannot be stopped because context does not exist any more!");
-			return;
-		}
-
-		String contextID = context.contextID;
-		if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
-			Engine.logContextManager.info("Stopping requestable thread for context " + contextID);
-			context.abortRequestable();
-		}
 	}
 
 	public void remove(String contextID) {
@@ -521,7 +495,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
-	public void removeDevicePools() {
+	private void removeDevicePools() {
 		Engine.logContextManager.debug("Removing all devicePools...");
 		try {
 			for (String poolID : GenericUtils.clone(devicePools).keySet()) {
@@ -532,7 +506,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
-	public void removeDevicePool(String poolID) {
+	void removeDevicePool(String poolID) {
 		DevicePool devicePool = getDevicePool(poolID);
 		if (devicePool != null) {
 			synchronized(devicePool) {

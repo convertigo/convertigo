@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.eclipse.ColorEnum;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class EngineLogViewLabelProvider extends CellLabelProvider implements
+class EngineLogViewLabelProvider extends CellLabelProvider implements
 		ITableLabelProvider, ITableFontProvider, ITableColorProvider {
 
 	private Color error;
@@ -56,7 +56,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	private Color trace;
 	private Color trace_bis;
 	
-	boolean isDark = false;
+	private boolean isDark = false;
 	
 	public Color getForeground(Object element, int columnIndex) {
 		return isDark ? getColor(element) : Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
@@ -94,7 +94,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		return isDark ? ColorEnum.BACKGROUND_DARK.get() : getColor(element);
 	}
 	
-	public Color getColor(Object element) {
+	private Color getColor(Object element) {
 		LogLine line = (LogLine) element;
 		String level = line.getLevel();
 		boolean odd = line.getCounter() % 2 == 0;

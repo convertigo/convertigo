@@ -29,9 +29,9 @@ import javax.servlet.http.HttpSessionContext;
 import com.twinsoft.convertigo.engine.Engine;
 
 @SuppressWarnings("deprecation")
-public class HttpSessionTwsWrapper implements HttpSession {
-	HttpSession session;
-	String id = "sessionTerminated";
+class HttpSessionTwsWrapper implements HttpSession {
+	private HttpSession session;
+	private String id = "sessionTerminated";
 
 	private HttpSessionTwsWrapper(HttpSession session) {
 		this.session = session;
@@ -198,7 +198,7 @@ public class HttpSessionTwsWrapper implements HttpSession {
 		}
 	}
 
-	protected void onException(Exception e) {
+	private void onException(Exception e) {
 		try {
 			if (Engine.logEngine.isTraceEnabled()) {
 				Engine.logEngine.trace("(HttpSessionTwsWrapper) onException [" + id + "]", e);
@@ -210,7 +210,7 @@ public class HttpSessionTwsWrapper implements HttpSession {
 		}
 	}
 	
-	public static HttpSession wrap(HttpSession session) {
+	static HttpSession wrap(HttpSession session) {
 		if (session == null || session instanceof HttpSessionTwsWrapper) {
 			return session;
 		}

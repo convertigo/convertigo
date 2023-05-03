@@ -40,7 +40,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
-import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
@@ -64,12 +63,7 @@ public abstract class BuildLocally {
 	/** Mobile platform */
 	protected final MobilePlatform mobilePlatform;
 
-	// For minimal version of cordova required 3.4.x
-	private final int versionMinimalRequiredDecimalPart = 3;
-	private final int versionMinimalRequiredFractionalPart = 4;
-	
 	private String cmdOutput;
-	private String cordovaVersion = null;
 	private String errorLines = null;
 	
 	private boolean processCanceled = false;
@@ -383,58 +377,6 @@ public abstract class BuildLocally {
 	    
 	    return newElement;
 		
-	}
-	
-	/**
-	 * Check is the current os can build the specified platform.
-	 * @param platform
-	 * @return
-	 * @throws Throwable 
-	 */
-	public boolean checkPlatformCompatibility() throws Throwable {	    
-		// Implement Compatibility matrix
-		// Step 1: Check cordova version, compatibility over 3.4.x
-		String version = getCordovaVersion();
-		
-		Pattern pattern = Pattern.compile("^(\\d)+\\.(\\d)+\\.");
-		Matcher matcher = pattern.matcher(version);
-		
-		if (matcher.find()){
-			// We check first just the decimal part
-			if (Integer.parseInt(matcher.group(1)) < versionMinimalRequiredDecimalPart) {
-				return false;
-			// Next we check the fractional part
-			} else if (Integer.parseInt(matcher.group(1)) == versionMinimalRequiredDecimalPart && 
-					Integer.parseInt(matcher.group(2)) < versionMinimalRequiredFractionalPart) {
-				return false;
-			}
-			
-		} else {
-			return false;
-		}
-
-		// Step 2: Check build local platform with mobile platform
-		if (mobilePlatform instanceof Android) {
-			return true;
-		} else if (mobilePlatform instanceof IOs) {
-			return is(OS.mac);
-		} else if (mobilePlatform.getType().startsWith("Windows")) {
-			return is(OS.win32);
-		}
-		
-		return false;
-	}
-	
-	/***
-	 * Return the cordova version
-	 * @return String
-	 * @throws Throwable
-	 */
-	private String getCordovaVersion() throws Throwable {
-		if (cordovaVersion == null) {
-			cordovaVersion = runCordovaCommand(getPrivateDir(), "-v");
-		}
-		return cordovaVersion;
 	}
 	
 	/***
@@ -845,44 +787,7 @@ public abstract class BuildLocally {
 	public boolean isProcessCanceled() {
 		return this.processCanceled;
 	}
-
-	public Status createCordovaEnvironment(File mobilePlatformDir) {
-		
-		MobileApplication mobileApplication = mobilePlatform.getParent();
-		
-		try {
-			runCordovaCommand(mobilePlatformDir, "create", 
-					cordovaDir, 
-					mobileApplication.getComputedApplicationId(),
-//					mobileApplication.getComputedEscapededApplicationName(mobilePlatform) );
-					"cordova");
-		} catch (Throwable e) {
-			Engine.logEngine.error("Error when creating the cordova environment.", e);
-			return Status.CANCEL;
-		}
-		return Status.OK;
-	}
 	
-	/** 
-     * Removes the CordovaPlatform...  
-     * Used to clean a broken cordova environment. 
-     */ 
-    public Status runRemoveCordovaPlatform (String platformName) { 
-    	try {
-			runCordovaCommand(getCordovaDir(), "platform", "rm", platformName);
-			return Status.OK;
-
-		} catch (Throwable thr) {
-			Engine.logEngine.error("Error when removing the required mobile platform!", thr);
-			return Status.CANCEL;
-		}
-    }
-    
-    
-    public void cancelRemoveCordovaPlatform(){
-    	process.destroy();
-    }
-    
     abstract protected String getLocalBuildAdditionalPath();
     abstract protected void logException(Throwable e, String message);
     /***

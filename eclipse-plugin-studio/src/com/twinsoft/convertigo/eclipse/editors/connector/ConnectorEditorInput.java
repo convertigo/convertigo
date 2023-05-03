@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.part.FileInPlaceEditorInput;
@@ -32,7 +31,7 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 
 public class ConnectorEditorInput extends FileInPlaceEditorInput {
 
-	public Connector connector;
+	Connector connector;
 	private String qname;
 	
 	private static IFile getTmpFile(Connector connector, String filename) {
@@ -43,7 +42,7 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 		return null;
 	}
 	
-	public ConnectorEditorInput(Connector connector, String filename) {
+	ConnectorEditorInput(Connector connector, String filename) {
 		super(getTmpFile(connector, filename));
 		this.connector = connector;
 		qname = connector.getQName();
@@ -103,18 +102,11 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 		return connector;
 	}
 	
-	public void fileDelete() {
-		try {
-			getFile().delete(true, null);
-		} catch (CoreException e) {
-		}
-	}
-	
-	public boolean fileExists() {
+	boolean fileExists() {
 		return getFile().exists();
 	}
 	
-	public void fileWrite(String str) {
+	void fileWrite(String str) {
 		SwtUtils.fillFile(getFile(), str);
 	}
 	

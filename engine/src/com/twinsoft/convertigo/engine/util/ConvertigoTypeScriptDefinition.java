@@ -36,8 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ConvertigoTypeScriptDefinition {
-	SortedSet<Class<?>> classes = new TreeSet<>((c1, c2) -> c1.getName().compareTo(c2.getName()));
-	StringBuilder append = new StringBuilder();
+	private SortedSet<Class<?>> classes = new TreeSet<>((c1, c2) -> c1.getName().compareTo(c2.getName()));
+	private StringBuilder append = new StringBuilder();
 
 	private void handleCls(Class<?> cls) {
 		if (cls == null) {
@@ -221,7 +221,7 @@ public class ConvertigoTypeScriptDefinition {
 		return file[0];
 	}
 
-	static public String getPackageName(Class<?> c) {
+	static private String getPackageName(Class<?> c) {
 		String pn;
 		while (c.isArray()) {
 			c = c.getComponentType();

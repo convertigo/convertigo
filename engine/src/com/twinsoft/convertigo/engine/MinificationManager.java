@@ -49,9 +49,9 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class MinificationManager implements AbstractManager {
-	static final File minificationCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/minification");
-	static final Pattern requestPattern = Pattern.compile("(.*?/projects/|^)(((.*?)/.*?([^/]*?\\.(?:(js)|(css))))(?:\\?(.*)|$))");
-	static final Pattern tailCssUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
+	private static final File minificationCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/minification");
+	private static final Pattern requestPattern = Pattern.compile("(.*?/projects/|^)(((.*?)/.*?([^/]*?\\.(?:(js)|(css))))(?:\\?(.*)|$))");
+	private static final Pattern tailCssUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
 	
 	// Sample of use:
 	// <script src="js/all.js?{'minification':'strong', 'resources':['/jquery.min','/jquery.mobilelib','/ctf.core','custom','/jquery.mobile.min']}"></script>
@@ -78,7 +78,7 @@ public class MinificationManager implements AbstractManager {
 		minification, file, encoding
 	}
 	
-	public enum MinificationOptions implements ComboEnum {
+	private enum MinificationOptions implements ComboEnum {
 		common(null),
 		none("none (no minification)"),
 		lines("lines (no minification + lines in comment)"),
@@ -102,7 +102,7 @@ public class MinificationManager implements AbstractManager {
 		}
 	}
 	
-	public enum ResourceType {
+	private enum ResourceType {
 		js, css;
 		
 		static ResourceType get(Matcher requestMatcher) {
@@ -267,7 +267,7 @@ public class MinificationManager implements AbstractManager {
 			return virtualFile;
 		}
 
-		public File getCommonFolder(String version) {
+		private File getCommonFolder(String version) {
 			File commonFolder = MinificationManager.getCommonFolder(resourceType);
 			File versionFolder;
 			if (version.length() > 0 && (versionFolder = new File(commonFolder, version)).exists()) {

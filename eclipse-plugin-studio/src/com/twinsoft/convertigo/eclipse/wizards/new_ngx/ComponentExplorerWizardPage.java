@@ -30,14 +30,14 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ComponentExplorerWizardPage extends WizardPage {
+class ComponentExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
 	private Object parentObject = null;
 	private Composite composite = null;
 	private DatabaseObject newBean = null;
 	private int folderType = -1;
 
-	public ComponentExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass, int folderType) {
+	ComponentExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass, int folderType) {
 		super("ComponentExplorerWizardPage");
 		this.beanClass = beanClass;
 		this.parentObject = parentObject;
@@ -102,7 +102,7 @@ public class ComponentExplorerWizardPage extends WizardPage {
 		return super.getNextPage();
 	}
 
-	public void showNextPage() {
+	void showNextPage() {
 		if (isPageComplete()) {
 			createBean();
 			setInfoBeanName();
@@ -114,7 +114,7 @@ public class ComponentExplorerWizardPage extends WizardPage {
 		}
 	}
 
-	public void doCancel() {
+	void doCancel() {
 		if (newBean != null) {
 			DatabaseObject dbo = newBean.getParent();
 			if (dbo != null) {

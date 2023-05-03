@@ -53,7 +53,7 @@ public class HttpClient {
 	private HttpMethod method = null;
 	private HtmlInputStream htmlInputStream = new HtmlInputStream();
 		
-	public void connect(ParameterShuttle infoShuttle) throws Exception {
+	void connect(ParameterShuttle infoShuttle) throws Exception {
 		
 		boolean noEncoding = false;
 		boolean zipEncoding = false;
@@ -152,7 +152,7 @@ public class HttpClient {
 		}
 	}
 
-	public void disconnect() {
+	void disconnect() {
 		if (method != null) {
 			method.releaseConnection();
 			method = null;

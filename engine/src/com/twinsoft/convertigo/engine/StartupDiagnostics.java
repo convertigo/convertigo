@@ -32,7 +32,7 @@ import org.apache.log4j.Level;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
-public class StartupDiagnostics {
+class StartupDiagnostics {
 
 	private static final String TEST_SUCCESS = "OK\n";
 	private static final String TEST_WARN = "WARN\n";

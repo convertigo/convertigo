@@ -49,7 +49,7 @@ import org.eclipse.swt.SWT;
  * <p>
  */
 
-public class PropertySheetView extends ViewPart {
+class PropertySheetView extends ViewPart {
 	private TableViewer viewer;
 	private Action action1;
 	private Action action2;
@@ -65,7 +65,7 @@ public class PropertySheetView extends ViewPart {
 	 * (like Task List, for example).
 	 */
 	 
-	class ViewContentProvider implements IStructuredContentProvider {
+	private class ViewContentProvider implements IStructuredContentProvider {
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		}
 		public void dispose() {
@@ -74,7 +74,7 @@ public class PropertySheetView extends ViewPart {
 			return new String[] { "One", "Two", "Three" };
 		}
 	}
-	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
+	private class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 		public String getColumnText(Object obj, int index) {
 			return getText(obj);
 		}
@@ -87,7 +87,7 @@ public class PropertySheetView extends ViewPart {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
+	private @SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
 

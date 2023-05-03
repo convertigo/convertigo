@@ -27,8 +27,8 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 class Job extends Thread {
-	protected CacheManager cacheManager;
-	protected DatabaseObject requestedObject;
+	private CacheManager cacheManager;
+	private DatabaseObject requestedObject;
     protected Requester requester;
     protected Context context;
     protected Document document;

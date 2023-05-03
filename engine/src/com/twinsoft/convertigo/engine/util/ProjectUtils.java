@@ -34,14 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -235,7 +227,7 @@ public class ProjectUtils {
 		return newFile;
 	}
 
-	public static boolean isPreviousXmlFileFormat(File file) throws Exception {
+	private static boolean isPreviousXmlFileFormat(File file) throws Exception {
 		boolean isPreviousFormat = false;
 		String line= null;
 		BufferedReader br = new BufferedReader(new FileReader(file));
@@ -249,75 +241,15 @@ public class ProjectUtils {
 		return isPreviousFormat;
 	}
 
-	public static void renameXsdFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
-		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xsd";
-		File oldFile = new File(oldPath);
-		if (oldFile.exists()) {
-			String newPath = projectsDir + "/" + targetProjectName + "/" + targetProjectName + ".xsd";
-			File newFile = new File(newPath);
-			if (!newFile.exists()) {
-				if (oldFile.renameTo(newFile)) {
-					List<Replacement> replacements = new ArrayList<Replacement>();
-					replacements.add(new Replacement("/"+sourceProjectName, "/"+targetProjectName));
-					replacements.add(new Replacement(sourceProjectName+"_ns", targetProjectName+"_ns"));
-					makeReplacementsInFile(replacements, newPath);
-				}
-				else {
-					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
-				}
-			}
-			else {
-				throw new Exception("File \""+newPath+"\" already exists");
-			}
-		}
-	}
-
-	public static void renameWsdlFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
-		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".wsdl";
-		File oldFile = new File(oldPath);
-		if (oldFile.exists()) {
-			String newPath = projectsDir + "/" + targetProjectName + "/" + targetProjectName + ".wsdl";
-			File newFile = new File(newPath);
-			if (!newFile.exists()) {
-				if (oldFile.renameTo(newFile)) {
-					List<Replacement> replacements = new ArrayList<Replacement>();
-					replacements.add(new Replacement("/"+sourceProjectName, "/"+targetProjectName));
-					replacements.add(new Replacement(sourceProjectName+"_ns", targetProjectName+"_ns"));
-					replacements.add(new Replacement(sourceProjectName+".xsd", targetProjectName+".xsd"));
-					replacements.add(new Replacement(sourceProjectName+"Port", targetProjectName+"Port"));
-					replacements.add(new Replacement(sourceProjectName+"SOAP", targetProjectName+"SOAP"));
-					replacements.add(new Replacement("soapAction=\""+sourceProjectName+"\\?", "soapAction=\""+targetProjectName+"\\?"));
-					replacements.add(new Replacement("definitions name=\""+sourceProjectName+"\"", "definitions name=\""+targetProjectName+"\""));
-					replacements.add(new Replacement("service name=\""+sourceProjectName+"\"", "service name=\""+targetProjectName+"\""));
-					makeReplacementsInFile(replacements, newPath);
-				}
-				else {
-					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
-				}
-			}
-			else {
-				throw new Exception("File \""+newPath+"\" already exists");
-			}
-		}
-	}
-
-	public static void renameConnector(String filePath, String oldName, String newName) throws Exception {
-		if (filePath.endsWith(".wsdl") || filePath.endsWith(".xsd")) {
-			List<Replacement> replacements = new ArrayList<Replacement>();
-			replacements.add(new Replacement(oldName+"__", newName+"__"));
-			makeReplacementsInFile(replacements, filePath);
-		}
-	}
-
 	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
 		makeReplacementsInFile(replacements, new File(filePath));
 	}
 
-	public static void makeReplacementsInFile(List<Replacement> replacements, File file) throws Exception {
+	private static void makeReplacementsInFile(List<Replacement> replacements, File file) throws Exception {
 		makeReplacementsInFile(replacements, file, Charset.defaultCharset().name());
 	}
 
-	public static void makeReplacementsInFile(List<Replacement> replacements, File file, String encoding) throws Exception {
+	private static void makeReplacementsInFile(List<Replacement> replacements, File file, String encoding) throws Exception {
 		if (file.exists()) {
 			String line;
 			StringBuffer sb = new StringBuffer();
@@ -356,28 +288,6 @@ public class ProjectUtils {
 			replacements.add(new Replacement(oldName+"__", newName+"__"));
 			makeReplacementsInFile(replacements, filePath);
 		}
-	}
-
-	public static void getFullProjectDOM(Document document,String projectName, StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
-		Element root = document.getDocumentElement();
-		getFullProjectDOM(document,projectName);
-
-		// transformation du dom
-		Transformer xslt = TransformerFactory.newInstance().newTransformer(xslFilter);
-		Element xsl = document.createElement("xsl");
-		xslt.transform(new DOMSource(document), new DOMResult(xsl));
-		root.replaceChild(xsl.getFirstChild(), root.getFirstChild());
-	}
-
-	public static void getFullProjectDOM(Document document, String projectName, ExportOption... exportOptions) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
-		Element root = document.getDocumentElement();
-
-		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-		Element projectTag = project.toXml(document, exportOptions);
-		projectTag.setAttribute("qname", project.getQName());
-		root.appendChild(projectTag);
-
-		constructDom(document, projectTag, project);
 	}
 
 	private static void constructDom(Document document, Element root, DatabaseObject father, ExportOption... exportOptions) throws EngineException {

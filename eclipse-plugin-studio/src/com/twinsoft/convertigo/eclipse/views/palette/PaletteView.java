@@ -118,8 +118,8 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class PaletteView extends ViewPart {
-	protected static final int MAX_USED_HISTORY = 50;
-	protected static final int MAX_USED_VISIBLE = 8;
+	private static final int MAX_USED_HISTORY = 50;
+	private static final int MAX_USED_VISIBLE = 8;
 
 	private Composite parent;
 	private Cursor handCursor;
@@ -127,11 +127,11 @@ public class PaletteView extends ViewPart {
 	private Map<String, Image> imageCache = new HashMap<>();
 	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
 
-	abstract class Item implements Comparable<Item> {
-		String shortDescription;
-		String longDescription;
-		String searchText;
-		DatabaseObject dbo;
+	private abstract class Item implements Comparable<Item> {
+		private String shortDescription;
+		private String longDescription;
+		private String searchText;
+		private DatabaseObject dbo;
 
 		Item() {
 			String[] beanDescriptions = description().split("\\|");
@@ -140,15 +140,15 @@ public class PaletteView extends ViewPart {
 			searchText = name().toLowerCase() + " " + shortDescription.toLowerCase();
 		}
 
-		String shortDescription() {
+		private String shortDescription() {
 			return shortDescription;
 		}
 
-		String longDescription() {
+		private String longDescription() {
 			return longDescription;
 		}
 
-		String searchText() {
+		private String searchText() {
 			return searchText;
 		}
 
@@ -157,15 +157,15 @@ public class PaletteView extends ViewPart {
 			return name().compareTo(o.name());
 		}
 		
-		boolean allowedIn(int folderType) {
+		private boolean allowedIn(int folderType) {
 			return folderType == ProjectExplorerView.getDatabaseObjectType(databaseObject());
 		}
 		
-		boolean builtIn() {
+		protected boolean builtIn() {
 			return true;
 		}
 		
-		DatabaseObject databaseObject() {
+		private DatabaseObject databaseObject() {
 			return dbo == null ? dbo = newDatabaseObject() : dbo; 
 		}
 		
@@ -204,7 +204,7 @@ public class PaletteView extends ViewPart {
 		super.dispose();
 	}
 
-	public Image getImage(String imagePath) {
+	private Image getImage(String imagePath) {
 		Image image = null;
 		if (imagePath == null) {
 		} else if (imagePath.startsWith("/com/twinsoft/convertigo/")) {
@@ -229,7 +229,7 @@ public class PaletteView extends ViewPart {
 		ConvertigoPlugin.runAtStartup(() -> refresh(1));
 	}
 
-	public void init() {
+	private void init() {
 		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		Deque<Item> lastUsed = new LinkedList<>();
 		Set<Item> favorites = new TreeSet<>();
@@ -661,7 +661,7 @@ public class PaletteView extends ViewPart {
 					}
 
 					@Override
-					boolean builtIn() {
+					protected boolean builtIn() {
 						return comp.isBuiltIn();
 					}
 				});
@@ -1196,7 +1196,7 @@ public class PaletteView extends ViewPart {
 		refresh(500);
 	}
 	
-	public void refresh(long threshold) {
+	private void refresh(long threshold) {
 		Engine.execute(() -> {
 			ComponentManager.reloadComponents();
 			parent.getDisplay().asyncExec(() -> {

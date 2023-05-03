@@ -721,7 +721,7 @@ public class FullSyncServlet extends HttpServlet {
 		private String docId;
 		private boolean attachment = false;
 		
-		RequestParser(HttpServletRequest request, String prefix) throws UnsupportedEncodingException {
+		private RequestParser(HttpServletRequest request, String prefix) throws UnsupportedEncodingException {
 			String requestURI = request.getRequestURI();
 			String contextPath = request.getContextPath();
 			requestURI = requestURI.substring(contextPath.length());
@@ -763,7 +763,7 @@ public class FullSyncServlet extends HttpServlet {
 			return docId;
 		}
 		
-		public boolean hasAttachment() {
+		private boolean hasAttachment() {
 			return attachment;
 		}
 	}

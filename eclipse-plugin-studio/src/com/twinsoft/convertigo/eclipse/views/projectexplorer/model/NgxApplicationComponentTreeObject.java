@@ -76,11 +76,7 @@ import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject {
-	public static final String P_TPL_VERSION = "#tplVersion";
-	
-	public NgxApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object) {
-		super(viewer, object);
-	}
+	private static final String P_TPL_VERSION = "#tplVersion";
 
 	public NgxApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object, boolean inherited) {
 		super(viewer, object, inherited);
@@ -622,7 +618,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		}
 	}
 
-	public ApplicationComponentEditor activeEditor() {
+	ApplicationComponentEditor activeEditor() {
 		return activeEditor(true);
 	}
 	

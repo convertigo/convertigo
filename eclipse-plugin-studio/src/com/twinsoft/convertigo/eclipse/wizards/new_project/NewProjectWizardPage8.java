@@ -24,12 +24,12 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class NewProjectWizardPage8 extends WizardPage {
+class NewProjectWizardPage8 extends WizardPage {
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * @param pageName
 	 */
-	public NewProjectWizardPage8(ISelection selection) {
+	NewProjectWizardPage8(ISelection selection) {
 		super("wizardPage");
 		setTitle("New project summary");
 		setDescription("This step summarizes all the configuration options");

@@ -25,10 +25,8 @@ import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -45,8 +43,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceFolderTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
@@ -57,7 +53,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProjectInMigrationProcessException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
-public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
+class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 
 	private String projectName;
 	private DatabaseObjectTreeObject projectTreeObject;
@@ -69,11 +65,11 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 	private boolean isCopy;
 	private String originalName;
 	
-	public ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject) {
+	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject) {
 		this(viewer, unloadedProjectTreeObject, false, null);
 	}
 
-	public ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
+	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
 		super("Opening project " + unloadedProjectTreeObject.toString());
 		this.unloadedProjectTreeObject = unloadedProjectTreeObject;
 		this.originalName = originalName;
@@ -236,34 +232,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 		}
 	}
 	
-	protected void loadResource(TreeParent parentTreeObject, Object folderObject, IResource[] members) throws CoreException {
-		ResourceFolderTreeObject resourceFolderTreeObject;
-		if (folderObject instanceof String) resourceFolderTreeObject = new ResourceFolderTreeObject(viewer, (String) folderObject);
-		else resourceFolderTreeObject = new ResourceFolderTreeObject(viewer, (IFolder) folderObject);
-		parentTreeObject.addChild(resourceFolderTreeObject);
-
-		ResourceTreeObject resourceTreeObject;
-		for (int i = 0; i < members.length; i++) {
-			IResource resource = members[i];
-			String name = resource.getName();
-			if (resource instanceof IFolder) {
-				if (name.equals("_data")) continue;
-				if (name.equals("_lib")) continue;
-				if (name.equals("_private")) continue;
-				if (name.equals("_c8oProject")) continue;
-				loadResource(resourceFolderTreeObject, ((IFolder) resource), ((IFolder) resource).members());
-			}
-			else {
-				if (name.equals("c8oProject.yaml")) continue;
-				if (name.equals(".project")) continue;
-				if (name.endsWith(".etr")) continue;
-				resourceTreeObject = new ResourceTreeObject(viewer, (IFile) resource);
-				resourceFolderTreeObject.addChild(resourceTreeObject);
-			}
-		}
-	}
-
-	public void loadTrace(TreeParent parentTreeObject, File dir) {
+	void loadTrace(TreeParent parentTreeObject, File dir) {
 		FolderTreeObject folderTreeObject = new FolderTreeObject(viewer, "Traces");
 		parentTreeObject.addChild(folderTreeObject);
 		

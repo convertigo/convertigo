@@ -25,9 +25,9 @@ public abstract class CacheEntry implements java.io.Serializable {
 
 	private static final long serialVersionUID = 5332805151868391430L;
 
-	public String requestString = null;
+	String requestString = null;
 	
-	public long expiryDate = 0;
+	long expiryDate = 0;
 	
 	public String sheetUrl = null;
 	public String absoluteSheetUrl = null;

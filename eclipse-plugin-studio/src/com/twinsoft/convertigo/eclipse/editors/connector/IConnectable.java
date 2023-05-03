@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 /**
  * Defines a connectable connector.
  */
-public interface IConnectable {
+interface IConnectable {
 
 	public void connect();
 	public void disconnect();

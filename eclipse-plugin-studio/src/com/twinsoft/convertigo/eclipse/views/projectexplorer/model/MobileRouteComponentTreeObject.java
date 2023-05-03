@@ -25,10 +25,6 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileRouteComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject{
-	
-	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object) {
-		super(viewer, object);
-	}
 
 	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object, boolean inherited) {
 		super(viewer, object, inherited);

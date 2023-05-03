@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class OutputStepAction extends MyAbstractAction {
+class OutputStepAction extends MyAbstractAction {
 
 	protected boolean recurse = false;
 	private boolean output = false;
@@ -47,6 +47,7 @@ public class OutputStepAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
@@ -65,6 +66,7 @@ public class OutputStepAction extends MyAbstractAction {
 		}
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
