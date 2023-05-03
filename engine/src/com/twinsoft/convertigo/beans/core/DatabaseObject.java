@@ -58,7 +58,6 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
-import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -1188,8 +1187,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					subLoader.get().init(this);
 				} catch (EngineException e) {
 					Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!", e);
-				} catch (DatabaseObjectNotFoundException e) {
-					Engine.logBeans.error("Database object not found: " + e.getMessage());
 				} catch (Exception e) {
 					Engine.logBeans.error("Another Exception: " + e.getMessage(), e);
 				}

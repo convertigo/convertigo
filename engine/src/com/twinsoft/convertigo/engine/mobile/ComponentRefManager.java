@@ -39,7 +39,6 @@ import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
-import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 

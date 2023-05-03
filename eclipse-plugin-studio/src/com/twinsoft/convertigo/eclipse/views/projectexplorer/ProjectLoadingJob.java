@@ -47,7 +47,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObje
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
-import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProjectInMigrationProcessException;
@@ -274,11 +273,6 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 
 	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
 		ConvertigoPlugin.projectManager.getProjectExplorerView().loadDatabaseObject(parentTreeObject, parentDatabaseObject, this);
-	}
-
-	public void databaseObjectLoaded(DatabaseObjectLoadedEvent event) {
-		monitor.subTask("Object \"" + ((DatabaseObject) event.getSource()).getName() + "\" loaded");
-		monitor.worked(1);
 	}
 	
 	public void databaseObjectImported(DatabaseObjectImportedEvent event) {
