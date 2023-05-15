@@ -300,7 +300,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			
 			if (method.equals(HttpMethodType.POST) && "_bulk_docs".equals(special)) {
-				int n = fsClient.getN();
+				int n = fsClient.getN(requestParser.getDbName());
 				if (n > 1) {
 					for (NameValuePair kv: builder.getQueryParams()) {
 						if ("w".equals(kv.getName())) {
