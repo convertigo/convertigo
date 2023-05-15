@@ -36,7 +36,7 @@ mvn clean install
 	<modules>
 		<module>eclipse-base</module>
 		<module>eclipse-feature</module>
-		<!-- <module>eclipse-plugin-jxbrowser-linux64</module> -->
+		<module>eclipse-plugin-jxbrowser-linux64</module>
 		<module>eclipse-plugin-jxbrowser-mac</module>
 		<module>eclipse-plugin-jxbrowser-mac-arm</module>
 		<module>eclipse-plugin-jxbrowser-win64</module>
@@ -65,11 +65,11 @@ mvn clean install
 							<ws>win32</ws>
 							<arch>x86_64</arch>
 						</environment>
-						<!-- <environment>
+						<environment>
 							<os>linux</os>
 							<ws>gtk</ws>
 							<arch>x86_64</arch>
-						</environment> -->
+						</environment>
 						<environment>
 							<os>macosx</os>
 							<ws>cocoa</ws>
