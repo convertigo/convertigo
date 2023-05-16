@@ -37,77 +37,59 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 abstract class MyAbstractAction extends Action implements IViewActionDelegate {
-	protected IWorkbenchPart targetPart = null;
-	protected IAction action = null;
-	
+	private IAction action = null;
+
 	public MyAbstractAction() {
 		super();
 		this.action = this;
 	}
 
-	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-		this.targetPart = targetPart;
-	}
-
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 	}
-	
+
 	@Override
 	public void run(IAction action) {
 		this.action = action;
 		run();
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
+
 		MessageDialog.openInformation(
-			shell,
-			"Convertigo Plug-in",
-			"The choosen operation is not yet implemented : '"+ action.getId() + "'.");
-		
+				shell,
+				"Convertigo Plug-in",
+				"The choosen operation is not yet implemented : '"+ action.getId() + "'.");
+
 		shell.setCursor(null);
 		waitCursor.dispose();
 	}
-	
+
 	public Shell getParentShell() {
-		if (targetPart == null) {
-			Shell shell = Display.getDefault().getActiveShell();
-			shell = ((shell == null) ? new Shell():shell);
-			return shell;
-		}
-		else
-			return targetPart.getSite().getShell();
+		Shell shell = Display.getDefault().getActiveShell();
+		shell = ((shell == null) ? new Shell():shell);
+		return shell;
 	}
-	
+
 	public IWorkbenchPage getActivePage() {
 		return PlatformUI
 				.getWorkbench()
 				.getActiveWorkbenchWindow()
 				.getActivePage();
 	}
-	
+
 	public IWorkbenchPart getActivePart() {
-		if (targetPart == null)
-			return getActivePage().getActivePart();
-		else
-			return targetPart;
+		return getActivePage().getActivePart();
 	}
-	
+
 	public ProjectExplorerView getProjectExplorerView() {
 		ProjectExplorerView projectExplorerView = null;
-		
-		if ((targetPart != null) && (targetPart instanceof ProjectExplorerView)) {
-			projectExplorerView = (ProjectExplorerView)targetPart;
-		}
-		else {
-			projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		}
+		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		return projectExplorerView;
 	}
 
