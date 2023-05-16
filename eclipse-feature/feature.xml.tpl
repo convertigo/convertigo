@@ -93,7 +93,7 @@
          install-size="0"
          version="@convertigoVersion@.qualifier"
          fragment="true"/>
-<!--
+
    <plugin
          id="com.twinsoft.convertigo.studio.jxbrowser.linux64"
          os="linux"
@@ -103,5 +103,4 @@
          install-size="0"
          version="@convertigoVersion@.qualifier"
          fragment="true"/>
--->
 </feature>
