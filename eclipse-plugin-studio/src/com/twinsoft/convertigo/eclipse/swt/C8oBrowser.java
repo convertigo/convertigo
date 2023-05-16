@@ -38,6 +38,7 @@ import com.teamdev.jxbrowser.dom.event.EventType;
 import com.teamdev.jxbrowser.engine.ChromiumBinariesExtractionException;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
+import com.teamdev.jxbrowser.engine.PasswordStore;
 import com.teamdev.jxbrowser.engine.ProprietaryFeature;
 import com.teamdev.jxbrowser.engine.RenderingMode;
 import com.teamdev.jxbrowser.event.Observer;
@@ -156,6 +157,7 @@ public class C8oBrowser extends Composite {
 						browserContext = Engine.newInstance(EngineOptions.newBuilder(off ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 								.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 								.licenseKey(JBL.get())
+								.passwordStore(PasswordStore.BASIC)
 								.enableProprietaryFeature(ProprietaryFeature.AAC)
 								.enableProprietaryFeature(ProprietaryFeature.H_264)
 								.addSwitch("--illegal-access=warn")
