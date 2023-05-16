@@ -93,4 +93,14 @@
          install-size="0"
          version="@convertigoVersion@.qualifier"
          fragment="true"/>
+
+   <plugin
+         id="com.twinsoft.convertigo.studio.jxbrowser.linux64"
+         os="linux"
+         ws="gtk"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="@convertigoVersion@.qualifier"
+         fragment="true"/>
 </feature>

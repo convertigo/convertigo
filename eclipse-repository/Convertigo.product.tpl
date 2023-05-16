@@ -12,8 +12,7 @@
    </configIni>
 
    <launcherArgs>
-      <programArgsLin>--launcher.GTK_version
-2
+      <programArgsLin>
       </programArgsLin>
       <programArgsMac>-vm
 ./../jre/bin/java
