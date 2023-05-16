@@ -680,6 +680,7 @@ jobs:
           mkdir dist
           for f in "convertigo-studio-$CONVERTIGO_VERSION-win64.exe" \
                    "convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz" \
                    "convertigo-server-$CONVERTIGO_VERSION-win64.zip" \
                    "convertigo-$CONVERTIGO_VERSION.war"  ; do
             curl -sf $CONVERTIGO_URL/$f --output dist/$f || echo "$f not found"

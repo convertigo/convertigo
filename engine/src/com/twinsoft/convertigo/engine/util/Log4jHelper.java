@@ -56,6 +56,7 @@ public class Log4jHelper {
 		}
 
 		logParameters.put(key.toString().toLowerCase(), value);
+		MDC.put("ContextualParameters", logParameters);
 	}
 
 }
