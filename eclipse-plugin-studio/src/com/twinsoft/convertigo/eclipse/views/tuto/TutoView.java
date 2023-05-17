@@ -36,6 +36,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
@@ -98,52 +99,66 @@ public class TutoView extends ViewPart implements StudioEventListener {
 		} catch (Exception e) {
 		}
 		controls = null;
-		browser.dispose();
+		if (browser != null) {
+			browser.dispose();
+		}
 		main.dispose();
 		super.dispose();
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
-		String[] inject = {null};
-		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
-			inject[0] = IOUtils.toString(is, "UTF-8"); 
-		} catch (Exception e2) {
-			Engine.logStudio.info("failure", e2);
-			inject[0] = "alert('the tutorial is broken, please restart the studio')";
-		}
-		
 		GridLayout gl;
 		main = new Composite(parent, SWT.NONE);
 		main.setLayout(gl = new GridLayout(1, true));
 		gl.marginHeight = gl.marginWidth = 0;
-		ConvertigoPlugin.asyncExec(() -> {
-			browser = new C8oBrowser(main, SWT.NONE);
-			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-			browser.getBrowser().profile().permissions().set(RequestPermissionCallback.class, (event, params) -> {
-				if (event.permissionType() == PermissionType.CLIPBOARD_READ_WRITE ||
-						event.permissionType() == PermissionType.CLIPBOARD_SANITIZED_WRITE) {
-					params.grant();
-				} else {
-					params.deny();
-				}
+		Label noEngine = new Label(main, SWT.CENTER);
+		noEngine.setLayoutData(new GridData(GridData.FILL_BOTH));
+		if (!Engine.isStarted) {
+		noEngine.setText("\n"
+				+ "Convertigo Studio isn't completely installed,\n"
+				+ "you have to complete the registration before\n"
+				+ "starting building your projects.");
+		}
+		ConvertigoPlugin.runAtStartup(() -> ConvertigoPlugin.asyncExec(() -> {
+			noEngine.dispose();
+			String[] inject = {null};
+			try (InputStream is = getClass().getResourceAsStream("inject.js")) {
+				inject[0] = IOUtils.toString(is, "UTF-8"); 
+			} catch (Exception e2) {
+				Engine.logStudio.info("failure", e2);
+				inject[0] = "alert('the tutorial is broken, please restart the studio')";
+			}
+			
+			ConvertigoPlugin.asyncExec(() -> {
+				browser = new C8oBrowser(main, SWT.NONE);
+				browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+				browser.getBrowser().profile().permissions().set(RequestPermissionCallback.class, (event, params) -> {
+					if (event.permissionType() == PermissionType.CLIPBOARD_READ_WRITE ||
+							event.permissionType() == PermissionType.CLIPBOARD_SANITIZED_WRITE) {
+						params.grant();
+					} else {
+						params.deny();
+					}
+				});
+				browser.getBrowser().set(InjectJsCallback.class, params -> {
+					try {
+						Frame frame = params.frame();
+						JsObject window = frame.executeJavaScript("window");
+						window.putProperty("IDE", api);
+						frame.executeJavaScript(inject[0]);
+						Engine.logStudio.debug("(TutoView) inject.js done");
+					} catch (Exception e) {
+						Engine.logStudio.info("failure", e);
+					}
+					return Response.proceed();
+				});
+				browser.setUrl("https://www.convertigo.com/studio-tutorials");
+				Engine.logStudio.debug("(TutoView) debug url: " + browser.getDebugUrl() + "/json");
+				main.layout(true);
+				main.getParent().layout(true);
 			});
-			browser.getBrowser().set(InjectJsCallback.class, params -> {
-				try {
-					Frame frame = params.frame();
-					JsObject window = frame.executeJavaScript("window");
-					window.putProperty("IDE", api);
-					frame.executeJavaScript(inject[0]);
-					Engine.logStudio.debug("(TutoView) inject.js done");
-				} catch (Exception e) {
-					Engine.logStudio.info("failure", e);
-				}
-				return Response.proceed();
-			});
-			browser.setUrl("https://www.convertigo.com/studio-tutorials");
-			Engine.logStudio.debug("(TutoView) debug url: " + browser.getDebugUrl() + "/json");
-			main.layout(true);
-		});
+		}));
 	}
 	
 	private void onImgEnter(String url) {
