@@ -119,7 +119,7 @@ public class Engine {
 		}
 		
 		System.setProperty("log4j1.compatibility", "true");
-		System.setProperty("log4j2.isThreadContextMapInheritable", "true");		
+		System.setProperty("log4j2.isThreadContextMapInheritable", "true");
 		
 		RhinoUtils.init();
 	}
