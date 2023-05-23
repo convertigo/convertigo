@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
-class NewProjectWizard extends Wizard implements INewWizard, IExecutableExtension {
+public class NewProjectWizard extends Wizard implements INewWizard, IExecutableExtension {
 	// Wizard Pages
 	private boolean doPage1;
 	private boolean doPage2;

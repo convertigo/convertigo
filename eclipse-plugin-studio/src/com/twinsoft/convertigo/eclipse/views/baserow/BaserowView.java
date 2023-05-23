@@ -103,7 +103,7 @@ import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
-class BaserowView extends ViewPart {
+public class BaserowView extends ViewPart {
 	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/archive/refs/heads/8.2.x.zip";
 	
 	private Cursor handCursor;

@@ -49,7 +49,7 @@ import org.eclipse.swt.SWT;
  * <p>
  */
 
-class PropertySheetView extends ViewPart {
+public class PropertySheetView extends ViewPart {
 	private TableViewer viewer;
 	private Action action1;
 	private Action action2;
