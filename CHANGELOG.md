@@ -1,5 +1,20 @@
 # Changelog
 
+## 8.2.1
+
+#### Improvements:
+
+- [#751](https://github.com/convertigo/convertigo/issues/751) [Server] Upgrade dependencies to reduces CVE
+
+#### Bug Fixes:
+
+- [#752](https://github.com/convertigo/convertigo/issues/752) [Studio] Fixed, Source picker is now correct when using dynamic XPath syntax
+- [#753](https://github.com/convertigo/convertigo/issues/753) [Studio] Fixed, prevents Browser initialization failure on MacOS
+- [#754](https://github.com/convertigo/convertigo/issues/754) [FullSync] Fixed, cluster mode now detected for CouchDB 3.2
+- [#755](https://github.com/convertigo/convertigo/issues/755) [Studio] Fixed, prevents errors in the console view at first Studio launch
+
+---
+
 ## 8.2.0
 
 #### New Features:
