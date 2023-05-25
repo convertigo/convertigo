@@ -25,8 +25,8 @@ ENV CATALINA_HOME /usr/local/tomcat
 RUN mkdir -p "$CATALINA_HOME"
 WORKDIR $CATALINA_HOME
 
-RUN apt update -y \
-  && apt install -y --no-install-recommends \
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     dirmngr \
@@ -35,8 +35,8 @@ RUN apt update -y \
     sudo \
     tini \
     unzip \
-  && apt remove -y --purge wget libfreetype6 \
-  && apt autoremove -y \
+  && apt-get remove -y --purge wget libfreetype6 \
+  && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 
 
