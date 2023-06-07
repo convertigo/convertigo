@@ -17,7 +17,7 @@
 		</location>
 		<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 			<unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
-			<repository location="https://download.eclipse.org/eclipse/updates/4.28/"/>
+			<repository location="https://download.eclipse.org/eclipse/updates/4.28-I-builds/"/>
 		</location>
 	</locations>
 </target>
