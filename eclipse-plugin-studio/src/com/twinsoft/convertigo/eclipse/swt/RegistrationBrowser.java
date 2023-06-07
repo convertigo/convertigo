@@ -47,7 +47,7 @@ public class RegistrationBrowser extends Composite {
 	private OnPSC onPSC;
 	private OnReady onReady;
 
-	private class StudioAPI {
+	public class StudioAPI {
 		
 		@JsAccessible
 		public String getUsername() {
