@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.studio.ActionModel;
 import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-class UpdateXSDTypesAction extends MyAbstractAction {
+public class UpdateXSDTypesAction extends MyAbstractAction {
 
 	protected boolean extract = false;
 

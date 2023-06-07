@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-class ViewExecuteSelectedAction extends MyAbstractAction {
+public class ViewExecuteSelectedAction extends MyAbstractAction {
 
 	public ViewExecuteSelectedAction() {
 		super();
@@ -51,49 +51,49 @@ class ViewExecuteSelectedAction extends MyAbstractAction {
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if ((treeObject != null) && (treeObject instanceof DesignDocumentViewTreeObject)) {
-    				DesignDocumentViewTreeObject viewTreeObject = (DesignDocumentViewTreeObject)treeObject;
-    				DesignDocumentTreeObject ddto = (DesignDocumentTreeObject) viewTreeObject.getTreeObjectOwner();
-    				ConnectorTreeObject cto = (ConnectorTreeObject) ddto.getOwnerDatabaseObjectTreeObject();
-    				ProjectTreeObject projectTreeObject = cto.getProjectTreeObject();
-    				CouchDbConnector connector = (CouchDbConnector) cto.getObject();
-    				cto.openConnectorEditor();
-    				
-    				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-    				if (connectorEditor != null) {
-    					// activate connector's editor
-    					getActivePage().activate(connectorEditor);
-    					
-    					// set transaction's parameters
-    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-    					((GetViewTransaction)transaction).setViewname(viewTreeObject.getDocViewName());
-    					
-    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-   						view_reduce.setValueOrNull(viewTreeObject.hasReduce() ? isReduceRequested():false);
-    					
-    					// execute view transaction
-    					connectorEditor.getDocument(CouchDbConnector.internalView, isStubRequested());
-    				}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to execute the selected view!");
-        }
-        finally {
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				if ((treeObject != null) && (treeObject instanceof DesignDocumentViewTreeObject)) {
+					DesignDocumentViewTreeObject viewTreeObject = (DesignDocumentViewTreeObject)treeObject;
+					DesignDocumentTreeObject ddto = (DesignDocumentTreeObject) viewTreeObject.getTreeObjectOwner();
+					ConnectorTreeObject cto = (ConnectorTreeObject) ddto.getOwnerDatabaseObjectTreeObject();
+					ProjectTreeObject projectTreeObject = cto.getProjectTreeObject();
+					CouchDbConnector connector = (CouchDbConnector) cto.getObject();
+					cto.openConnectorEditor();
+
+					ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
+					if (connectorEditor != null) {
+						// activate connector's editor
+						getActivePage().activate(connectorEditor);
+
+						// set transaction's parameters
+						Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+						((GetViewTransaction)transaction).setViewname(viewTreeObject.getDocViewName());
+
+						Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+						view_reduce.setValueOrNull(viewTreeObject.hasReduce() ? isReduceRequested():false);
+
+						// execute view transaction
+						connectorEditor.getDocument(CouchDbConnector.internalView, isStubRequested());
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to execute the selected view!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
-	
+
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
@@ -102,11 +102,11 @@ class ViewExecuteSelectedAction extends MyAbstractAction {
 			action.setEnabled(((DesignDocumentViewTreeObject)treeObject).hasReduce());
 		}
 	}
-	
+
 	private boolean isStubRequested() {
 		return false;
 	}
-	
+
 	protected boolean isReduceRequested() {
 		return true;
 	}

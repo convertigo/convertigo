@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicatio
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-class ExecuteMobileBuilderClassAction extends MyAbstractAction {
+public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 
 	protected boolean forceInstall = false;
 	protected boolean forceClean = false;
@@ -44,36 +44,36 @@ class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if (treeObject instanceof MobileComponentTreeObject) {
-    				if (treeObject instanceof MobileApplicationComponentTreeObject) {
-    					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
-    				}
-    			} else if (treeObject instanceof NgxComponentTreeObject) {
-    				if (treeObject instanceof NgxApplicationComponentTreeObject) {
-    					NgxApplicationComponentTreeObject mpcto = (NgxApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
-    				}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to open the mobile builder!");
-        }
-        finally {
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				if (treeObject instanceof MobileComponentTreeObject) {
+					if (treeObject instanceof MobileApplicationComponentTreeObject) {
+						MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
+						com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editor = mpcto.activeEditor(false);
+						editor.launchBuilder(forceInstall, forceClean);
+					}
+				} else if (treeObject instanceof NgxComponentTreeObject) {
+					if (treeObject instanceof NgxApplicationComponentTreeObject) {
+						NgxApplicationComponentTreeObject mpcto = (NgxApplicationComponentTreeObject) treeObject;
+						com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editor = mpcto.activeEditor(false);
+						editor.launchBuilder(forceInstall, forceClean);
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to open the mobile builder!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 }

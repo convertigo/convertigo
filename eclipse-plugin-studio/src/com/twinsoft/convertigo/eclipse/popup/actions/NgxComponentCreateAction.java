@@ -36,13 +36,13 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolder
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_ngx.ComponentObjectWizard;
 
-class NgxComponentCreateAction extends MyAbstractAction {
+public class NgxComponentCreateAction extends MyAbstractAction {
 	private String databaseObjectClassName = null;
-	
+
 	public NgxComponentCreateAction() {
 		super();
 	}
-	
+
 	NgxComponentCreateAction(String databaseObjectClassName) {
 		super();
 		this.databaseObjectClassName = databaseObjectClassName;
@@ -52,56 +52,56 @@ class NgxComponentCreateAction extends MyAbstractAction {
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-        	int folderType = -1;
-    		TreeObject parentTreeObject = null;
-    		DatabaseObject databaseObject = null;
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			parentTreeObject = explorerView.getFirstSelectedTreeObject();
-    			
-    			if (parentTreeObject instanceof ObjectsFolderTreeObject) {
-    				ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)parentTreeObject;
-    				folderType = folderTreeObject.folderType;
-    				parentTreeObject = folderTreeObject.getParent();
-    				databaseObject  = (DatabaseObject) parentTreeObject.getObject();
-    			}
-    			else {
-    				databaseObject = (DatabaseObject) parentTreeObject.getObject();
-    			}
-    			
-    			ComponentObjectWizard newObjectWizard = new ComponentObjectWizard(databaseObject, databaseObjectClassName, folderType);
-        		WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
-        		wzdlg.setPageSize(850, 650);
-        		wzdlg.open();
-        		int result = wzdlg.getReturnCode();
-        		if ((result != Window.CANCEL) && (newObjectWizard.newBean != null)) {
-        			postCreate(parentTreeObject, newObjectWizard.newBean);
-        		}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to create a new database object '"+ databaseObjectClassName +"'!");
-        }
-        finally {
+
+		try {
+			int folderType = -1;
+			TreeObject parentTreeObject = null;
+			DatabaseObject databaseObject = null;
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				parentTreeObject = explorerView.getFirstSelectedTreeObject();
+
+				if (parentTreeObject instanceof ObjectsFolderTreeObject) {
+					ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)parentTreeObject;
+					folderType = folderTreeObject.folderType;
+					parentTreeObject = folderTreeObject.getParent();
+					databaseObject  = (DatabaseObject) parentTreeObject.getObject();
+				}
+				else {
+					databaseObject = (DatabaseObject) parentTreeObject.getObject();
+				}
+
+				ComponentObjectWizard newObjectWizard = new ComponentObjectWizard(databaseObject, databaseObjectClassName, folderType);
+				WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
+				wzdlg.setPageSize(850, 650);
+				wzdlg.open();
+				int result = wzdlg.getReturnCode();
+				if ((result != Window.CANCEL) && (newObjectWizard.newBean != null)) {
+					postCreate(parentTreeObject, newObjectWizard.newBean);
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to create a new database object '"+ databaseObjectClassName +"'!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 	private void postCreate(TreeObject parentTreeObject, DatabaseObject createdDatabaseObject) throws Exception {
 		ProjectExplorerView explorerView = getProjectExplorerView();
 		explorerView.reloadTreeObject(parentTreeObject);
 		explorerView.objectSelected(new CompositeEvent(createdDatabaseObject));
-		
+
 		// Refresh ngx palette view
 		if (createdDatabaseObject instanceof UIActionStack || createdDatabaseObject instanceof UISharedRegularComponent) {
 			ConvertigoPlugin.getDefault().refreshPaletteView();
 		}
 	}
-	
+
 }

@@ -41,14 +41,14 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 
-class ProjectImportWsReference extends MyAbstractAction {
+public class ProjectImportWsReference extends MyAbstractAction {
 
 	static final int TYPE_SOAP = 1;
 	static final int TYPE_REST = 2;
-	
+
 	protected boolean updateMode = false;
 	protected int wsType = 2;
-	
+
 	protected ProjectImportWsReference() {
 		super();
 	}
@@ -56,11 +56,11 @@ class ProjectImportWsReference extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-        
+
 		try {
 			ProjectExplorerView explorerView = getProjectExplorerView();
 			if (explorerView != null) {
@@ -69,7 +69,7 @@ class ProjectImportWsReference extends MyAbstractAction {
 					ProjectTreeObject projectTreeObject = null;
 					RemoteFileReference reference = null;
 					HttpConnector httpConnector = null;
-					
+
 					// Create a new  WS reference
 					if (treeObject instanceof ProjectTreeObject) {
 						projectTreeObject = (ProjectTreeObject)treeObject;
@@ -89,7 +89,7 @@ class ProjectImportWsReference extends MyAbstractAction {
 						webServiceReference = (WebServiceReference) referenceTreeObject.getObject();
 						projectTreeObject = referenceTreeObject.getProjectTreeObject();*/
 					}
-					
+
 					if (reference != null) {
 						WsReferenceImportDialog wsReferenceImportDialog = null;
 						if (wsType == TYPE_SOAP) {
@@ -101,34 +101,34 @@ class ProjectImportWsReference extends MyAbstractAction {
 						wsReferenceImportDialog.setProject(projectTreeObject.getObject());
 						wsReferenceImportDialog.setReference(reference);
 						wsReferenceImportDialog.open();
-			    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
-			    			httpConnector = wsReferenceImportDialog.getHttpConnector();
-			    		}
-						
+						if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
+							httpConnector = wsReferenceImportDialog.getHttpConnector();
+						}
+
 						Project project = projectTreeObject.getObject();
 						Engine.theApp.schemaManager.clearCache(project.getName());
-						
-	    				// Reload project in tree 
+
+						// Reload project in tree
 						explorerView.reloadTreeObject(projectTreeObject);
-						
-		    			if (httpConnector != null && httpConnector.getParent() != null) {
+
+						if (httpConnector != null && httpConnector.getParent() != null) {
 							explorerView.objectSelected(new CompositeEvent(httpConnector));
-		    			}
-		    			else if (reference != null && reference.getParent() != null) {
-		    				if (reference.hasChanged) projectTreeObject.hasBeenModified(true);
-		    				explorerView.objectSelected(new CompositeEvent(reference));
-		    			}
+						}
+						else if (reference != null && reference.getParent() != null) {
+							if (reference.hasChanged) projectTreeObject.hasBeenModified(true);
+							explorerView.objectSelected(new CompositeEvent(reference));
+						}
 					}
 				}
 			}
-			
+
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to "+ (updateMode ? "update":"import")+ " from remote WS definition!");
 		}
-        finally {
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 }
