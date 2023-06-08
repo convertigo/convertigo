@@ -1333,6 +1333,38 @@
          </action>
       </objectContribution>
       <objectContribution
+            id="convertigo.I18nUIComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject">
+         <visibility>
+               <or>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject"/>
+               </or>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.I18nUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/views.gif"
+               id="convertigo.action.EnableI18nNgxUIComponentAction"
+               label="Enable I18n recursively"
+               menubarPath="i18n">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.I18nUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/views.gif"
+               id="convertigo.action.DisableI18nNgxUIComponentAction"
+               label="Disable I18n recursively"
+               menubarPath="i18n">
+         </action>
+      </objectContribution>
+      <objectContribution
             id="convertigo.ngxUIComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject">
          <action
