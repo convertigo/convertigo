@@ -1050,7 +1050,9 @@ public class EnginePropertiesManager {
 				}
 				modifiedProperties.put(property.getKey(), propertyValue);
 			} else {
-				outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue()).getBytes("UTF-8"));
+				if (!property.isCiphered() && !property.getKey().contains(".pass")) {
+					outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue() + "\r\n").getBytes("UTF-8"));
+				}
 			}
 		}
 		PropertiesUtils.store(modifiedProperties, outputStream, comments);
