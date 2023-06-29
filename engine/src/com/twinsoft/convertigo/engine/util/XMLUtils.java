@@ -987,7 +987,7 @@ public class XMLUtils {
 	}
 
 	public static String getCDataXml(String s) {
-		return StringEscapeUtils.escapeXml(getCDataText(s));
+		return getCDataText(s);//StringEscapeUtils.escapeXml(getCDataText(s));
 	}
 
 	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;

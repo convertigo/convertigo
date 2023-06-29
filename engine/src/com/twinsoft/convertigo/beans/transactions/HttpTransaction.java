@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.engine.AttachmentManager.Policy;
 import com.twinsoft.convertigo.engine.AttachmentManager.Status;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
@@ -93,13 +94,18 @@ public class HttpTransaction extends AbstractHttpTransaction {
 				if (contentDisposition != null && context.contentType != null) {
 					int i = contentDisposition.indexOf("filename=");
 					if (i != -1) {
+						contentDisposition += ";";
 						int j = contentDisposition.indexOf(';', i + "filename=".length());
 						if (j != -1) {
 							String referer = ((HttpConnector) parent).getReferer();
 							String downloadDir = getParameterStringValue("downloadDir");
+							String downloadPolicy = getParameterStringValue("downloadPolicy");
+							String downloadStatus = getParameterStringValue("downloadStatus");
+							Policy policy = downloadPolicy != null ? Policy.valueOf(downloadPolicy) : null;
+							Status status = downloadStatus != null ? Status.valueOf(downloadStatus) : Status.direct;
 							String filename = contentDisposition.substring(i + "filename=".length(), j);
 							String filepath = downloadDir != null ? downloadDir + (downloadDir.endsWith("/") ? "":"/") + filename : filename;
-							getAttachmentManager().addAttachment(httpData, filename, context.contentType, referer, null, null, filepath, Status.direct);
+							getAttachmentManager().addAttachment(httpData, filename, context.contentType, referer, null, policy, filepath, status);
 							httpData = new byte[] {};
 						}
 					}

@@ -92,7 +92,8 @@ public class ModelObjectEditorComposite extends AbstractDialogComposite {
 				try {
 					String projectName = project.getName();
 					//File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + SwaggerUtils.jsonSchemaDirectory);
-					File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + OpenApiUtils.jsonSchemaDirectory);
+					//File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + OpenApiUtils.jsonSchemaDirectory);
+					File targetDir = new File(Engine.projectDir(projectName) + "/" + OpenApiUtils.jsonSchemaDirectory);
 					RestApiServlet.buildSwaggerDefinition(projectName, false);
 					
 					Collection<File> jsonschemas = FileUtils.listFiles(targetDir, new String[] { "jsonschema" }, false);
