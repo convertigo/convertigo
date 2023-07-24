@@ -889,7 +889,11 @@ public class SqlConnector extends Connector {
 						child = (Element) item.appendChild(doc.createElement("TYPE"));
 						child.appendChild(doc.createTextNode(index == -1 ? "PROCEDURE":"FUNCTION"));
 					}
-					rs.close();
+					
+					// close resultset
+					try {
+						rs.close();
+					} catch (Exception e) {}
 					rs = null;
 				}
 				
@@ -914,7 +918,11 @@ public class SqlConnector extends Connector {
 						child = (Element) item.appendChild(doc.createElement("TYPE"));
 						child.appendChild(doc.createTextNode("FUNCTION"));
 					}
-					rs.close();
+					
+					// close resultset
+					try {
+						rs.close();
+					} catch (Exception e) {}
 					rs = null;
 				}
 			}
@@ -922,8 +930,11 @@ public class SqlConnector extends Connector {
 				t.printStackTrace();
 			}
 			finally {
+				// close resultset
 				if (rs != null) {
-					rs.close();
+					try {
+						rs.close();
+					} catch (Exception e) {}
 				}
 				rs = null;
 			}
@@ -955,48 +966,60 @@ public class SqlConnector extends Connector {
 	public static List<Map<String, Object>> getProcedureParameters(Connection connection, String procedure) {
 		List<Map<String, Object>> parameterList = new ArrayList<Map<String, Object>>();
 		if (connection != null && procedure != null && !procedure.isEmpty()) {
+			ResultSet rs = null;
 			try {
 				int i=1;
 				DatabaseMetaData dmd = connection.getMetaData();
-				ResultSet rs = dmd.getProcedureColumns(connection.getCatalog(), null, procedure,"%");
-				while (rs.next()) {
-					Map<String, Object> parameterMap = new HashMap<String, Object>();
-					try {
-						parameterMap.put("SPECIFIC_NAME", rs.getString("SPECIFIC_NAME"));
-					} catch (SQLException e) {
-						Engine.logBeans.trace("Unable to retrieve specific name for procedure '"+procedure+"'", e);
-						parameterMap.put("SPECIFIC_NAME", procedure);
+				rs = dmd.getProcedureColumns(connection.getCatalog(), null, procedure,"%");
+				if (rs != null) {
+					while (rs.next()) {
+						Map<String, Object> parameterMap = new HashMap<String, Object>();
+						try {
+							parameterMap.put("SPECIFIC_NAME", rs.getString("SPECIFIC_NAME"));
+						} catch (SQLException e) {
+							Engine.logBeans.trace("Unable to retrieve specific name for procedure '"+procedure+"'", e);
+							parameterMap.put("SPECIFIC_NAME", procedure);
+						}
+						try {
+							parameterMap.put("PROCEDURE_NAME", rs.getString("PROCEDURE_NAME"));
+						} catch (SQLException e) {
+							Engine.logBeans.warn("Unable to retrieve specific name for procedure '"+procedure+"'", e);
+							parameterMap.put("PROCEDURE_NAME", procedure);
+						}
+						try {
+							parameterMap.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
+						} catch (SQLException e) {
+							Engine.logBeans.warn("Unable to retrieve parameter name for procedure '"+procedure+"'", e);
+							parameterMap.put("COLUMN_NAME", "column"+i);
+						}
+						try {
+							parameterMap.put("COLUMN_TYPE", rs.getInt("COLUMN_TYPE"));
+						} catch (SQLException e) {
+							Engine.logBeans.warn("Unable to retrieve parameter type for procedure '"+procedure+"'", e);
+							parameterMap.put("COLUMN_TYPE", 0);
+						}
+						try {
+							parameterMap.put("DATA_TYPE", rs.getInt("DATA_TYPE"));
+						} catch (SQLException e) {
+							Engine.logBeans.warn("Unable to retrieve parameter data type for procedure '"+procedure+"'", e);
+							parameterMap.put("DATA_TYPE", 0);
+						}
+						parameterList.add(parameterMap);
+						i++;
 					}
-					try {
-						parameterMap.put("PROCEDURE_NAME", rs.getString("PROCEDURE_NAME"));
-					} catch (SQLException e) {
-						Engine.logBeans.warn("Unable to retrieve specific name for procedure '"+procedure+"'", e);
-						parameterMap.put("PROCEDURE_NAME", procedure);
-					}
-					try {
-						parameterMap.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
-					} catch (SQLException e) {
-						Engine.logBeans.warn("Unable to retrieve parameter name for procedure '"+procedure+"'", e);
-						parameterMap.put("COLUMN_NAME", "column"+i);
-					}
-					try {
-						parameterMap.put("COLUMN_TYPE", rs.getInt("COLUMN_TYPE"));
-					} catch (SQLException e) {
-						Engine.logBeans.warn("Unable to retrieve parameter type for procedure '"+procedure+"'", e);
-						parameterMap.put("COLUMN_TYPE", 0);
-					}
-					try {
-						parameterMap.put("DATA_TYPE", rs.getInt("DATA_TYPE"));
-					} catch (SQLException e) {
-						Engine.logBeans.warn("Unable to retrieve parameter data type for procedure '"+procedure+"'", e);
-						parameterMap.put("DATA_TYPE", 0);
-					}
-					parameterList.add(parameterMap);
-					i++;
 				}
 			}
 			catch (SQLException e) {
 				Engine.logBeans.error("Unable to retrieve parameters for procedure '"+procedure+"'", e);
+			}
+			finally {
+				// close resultset
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (Exception e) {}
+				}
+				rs = null;
 			}
 		}
 		return parameterList;
