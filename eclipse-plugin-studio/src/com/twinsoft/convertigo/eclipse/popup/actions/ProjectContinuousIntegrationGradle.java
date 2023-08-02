@@ -52,9 +52,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ProjectContinuousIntegrationGradle extends MyAbstractAction {	
-	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/8.1.0/";
-	
+public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
+	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/8.2.0/";
+
 	private Set<String> backupFiles = new TreeSet<String>();
 	private File dest;
 	private String suffix;
@@ -62,7 +62,7 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 	public ProjectContinuousIntegrationGradle() {
 		super();
 	}
-	
+
 	private void downloadFiles(String url) throws Exception {
 		JSONObject json = getJSON(url);
 		if (json.has("imports")) {
@@ -82,7 +82,7 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 			}
 		}
 	}
-	
+
 	private JSONObject getJSON(String url) throws Exception {
 		HttpGet get = new HttpGet(url);
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
@@ -94,7 +94,7 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 			return new JSONObject(sContent);
 		}
 	}
-	
+
 	private void download(String url, String file, boolean backup) throws IOException {
 		HttpGet get = new HttpGet(url);
 		File target = File.createTempFile("convertigoGradle", ".tmp");
@@ -135,7 +135,7 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 			target.delete();
 		}
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
@@ -162,7 +162,7 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 						return;
 					}
 					String type = matcher.group(1);
-					
+
 					IProject iproject = projectTreeObject.getIProject();
 					Job.create("Update CI resources of " + projectTreeObject.getName(), (monitor) -> {
 						try {
