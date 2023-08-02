@@ -270,7 +270,7 @@ jobs:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - setup_remote_docker:
-        version: 20.10.14
+        version: 20.10.23
     
     - run:
         name: Docker build and push for default
@@ -282,15 +282,12 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
+          docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --platform linux/amd64,linux/arm/v7,linux/arm64/v8 .
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
+            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --platform linux/amd64,linux/arm/v7,linux/arm64/v8 .
           fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
+            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION --platform linux/amd64,linux/arm/v7,linux/arm64/v8 .
           fi
           
   build_docker_aks:
@@ -310,7 +307,7 @@ jobs:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - setup_remote_docker:
-        version: 20.10.14
+        version: 20.10.23
     
     - run:
         name: Docker build and push for aks
@@ -342,7 +339,7 @@ jobs:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - setup_remote_docker:
-        version: 20.10.14
+        version: 20.10.23
     
     - run:
         name: Checkout the qualif-jmx-1 project
@@ -385,7 +382,7 @@ jobs:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
     - setup_remote_docker:
-        version: 20.10.14
+        version: 20.10.23
     
     - run:
         name: Checkout the qualif-jmx-2 project
@@ -428,7 +425,7 @@ jobs:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
     - setup_remote_docker:
-        version: 20.10.14
+        version: 20.10.23
     
     - run:
         name: Checkout the qualif-jmx-3 project
