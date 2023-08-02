@@ -1,5 +1,20 @@
 # Changelog
 
+## 8.2.2
+
+#### Improvements:
+
+- [#758](https://github.com/convertigo/convertigo/issues/758) [Studio] Add a Menu to set the UIText i18n property recursively
+- [#761](https://github.com/convertigo/convertigo/issues/761) [Docker] Add arm/v7 and arm64/v8 images to Docker Hub
+
+#### Bug Fixes:
+
+- [#757](https://github.com/convertigo/convertigo/issues/757) [Engine] Fixed, format of engine.properties with default properties
+- [#759](https://github.com/convertigo/convertigo/issues/759) [Mobile Builder] Fixed, select container popover options now displays in latest chrome version
+- [#760](https://github.com/convertigo/convertigo/issues/760) [Studio] Fixed, updated files for 'CI > Update Gradle'
+
+---
+
 ## 8.2.1
 
 #### Improvements:
