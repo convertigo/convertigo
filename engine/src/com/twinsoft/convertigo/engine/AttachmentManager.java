@@ -36,7 +36,7 @@ public class AttachmentManager {
 		String getContentType();
 	}
 	
-    private enum Policy {
+    public enum Policy {
     	localfile_increment,
     	localfile_override,
     	base64

@@ -54,7 +54,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -989,7 +988,7 @@ public class XMLUtils {
 	}
 
 	public static String getCDataXml(String s) {
-		return StringEscapeUtils.escapeXml(getCDataText(s));
+		return getCDataText(s);//return StringEscapeUtils.escapeXml(getCDataText(s));
 	}
 
 	public static String readXmlText(Node node) {
