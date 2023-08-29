@@ -1120,7 +1120,13 @@ public class SqlTransaction extends TransactionWithVariables {
 									if (!preparedStatement.getMoreResults()) {
 										bContinue = preparedStatement.getUpdateCount() != -1;
 									}
-									rs = null; nb = -1;
+									if (rs != null) {
+										try {
+											rs.close();
+										} catch(Exception e) {}
+										rs = null;
+									}
+									nb = -1;
 								}
 								else {
 									bContinue = false;
