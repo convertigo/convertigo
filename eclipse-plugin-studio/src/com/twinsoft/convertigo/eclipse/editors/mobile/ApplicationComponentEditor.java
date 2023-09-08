@@ -1243,9 +1243,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					long start = System.currentTimeMillis();
 					ProcessBuilder pb;
 					if (existsPackageLockTpl) {
-						pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString());
+						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString());
 					} else {
-						pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 					}
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
