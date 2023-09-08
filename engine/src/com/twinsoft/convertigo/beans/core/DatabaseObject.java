@@ -1317,7 +1317,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return getDatabaseObjectChildren(false);
 	}
 
-	public List < DatabaseObject > getDatabaseObjectChildren(boolean deep) throws Exception {
+	public List <DatabaseObject> getDatabaseObjectChildren(boolean deep) throws Exception {
 		final List <DatabaseObject> children = new LinkedList<>();
 		new WalkHelper() {
 
@@ -1335,6 +1335,23 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}.init(this);
 		return children;
+	}
+	
+	public boolean hasDatabaseObjectChildren() throws Exception {
+		boolean has[] = { false };
+		new WalkHelper() {
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject == DatabaseObject.this) {
+					super.walk(databaseObject);
+				}
+				else {
+					has[0] = true;
+				}
+			}
+		}.init(this);
+		return has[0];
 	}
 
 	public List<DatabaseObject> getSiblingsInFolder() {

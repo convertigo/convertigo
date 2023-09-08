@@ -82,4 +82,15 @@ public enum FolderType {
 				dbo.getName() :
 				(shortName + ":" + dbo.getName());
 	}
+	
+	public static FolderType parse(String str) {
+		if (str != null) {
+			for (var v: values()) {
+				if (str.equals(v.shortName)) {
+					return v;
+				}
+			}
+		}
+		return null;
+	}
 }
