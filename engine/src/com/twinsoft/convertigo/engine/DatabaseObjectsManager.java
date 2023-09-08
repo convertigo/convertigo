@@ -1739,7 +1739,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 					oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + "_" + i + ".properties"));
 					i++;
 				}
-				f.renameTo(oldFile);
+				try {
+					FileUtils.copyFile(f, oldFile);
+				} catch (IOException e) {
+					Engine.logEngine.error("failed to backup symbols to " + oldFile, e);
+				}
 			}
 			//Remove all symbols & import symbols from file
 			if (importAction.equals("clear-import")) {

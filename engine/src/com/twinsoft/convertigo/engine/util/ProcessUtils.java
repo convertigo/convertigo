@@ -60,18 +60,18 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 public class ProcessUtils {
 	private static String defaultNodeVersion = "v16.18.0";
 	private static File defaultNodeDir;
-	
+
 	public static String getDefaultNodeVersion() {
 		return defaultNodeVersion;
 	}
-	
+
 	public static File getDefaultNodeDir() {
 		if (defaultNodeDir == null) {
 			defaultNodeDir = getLocalNodeDir(defaultNodeVersion);
 		}
 		return defaultNodeDir;
 	}
-	
+
 	public static String getNodeVersion(Project project) {
 		File ionicDir = new File(project.getDirPath(), "_private/ionic");
 		File versionFile = new File(ionicDir, "version.json");
@@ -98,7 +98,7 @@ public class ProcessUtils {
 		}
 		return defaultNodeVersion;
 	}
-	
+
 	public static String getNodeVersion(File nodeDir) {
 		File nodeFile = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
 		String version = defaultNodeVersion; 
@@ -137,7 +137,7 @@ public class ProcessUtils {
 		}
 		return version;
 	}
-	
+
 	public static void setDefaultNodeDir(File nodeDir) {
 		String version = getNodeVersion(nodeDir);
 		if (version != null && (!version.equals(defaultNodeVersion) || defaultNodeDir == null)) {
@@ -145,7 +145,7 @@ public class ProcessUtils {
 			defaultNodeDir = nodeDir;
 		}
 	}
-	
+
 	private static String searchFullPath(String paths, String command) throws IOException {
 		String shellFullpath = null;
 		// Checks if the command is already full path 
@@ -159,17 +159,17 @@ public class ProcessUtils {
 				}
 			}
 		}
-		
+
 		// If the "exec" is not found then it search it elsewhere
 		if (shellFullpath == null) {
 			shellFullpath = command;
 		}
 		return shellFullpath;
 	}
-	
+
 	private static String getAllPaths(String paths) {
 		paths = (StringUtils.isNotBlank(paths) ? paths + File.pathSeparator : "") + System.getenv("PATH");
-		
+
 		String defaultPaths = null;
 		if (Engine.isLinux() || Engine.isMac()) {
 			defaultPaths = "/usr/local/bin";
@@ -178,46 +178,46 @@ public class ProcessUtils {
 			if (programFiles != null && programFiles.length() > 0) {
 				defaultPaths = programFiles + File.separator + "nodejs";
 			}
-			
+
 			programFiles = System.getenv("ProgramFiles");
 			if (programFiles != null && programFiles.length() > 0) {
 				defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
 			}
-			
+
 			String appData = System.getenv("APPDATA");
 			if (appData != null && appData.length() > 0) {
 				defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
 			}
 		}
 		paths += File.pathSeparator + defaultPaths;
-		
+
 		return paths;
 	}
-	
+
 	public static ProcessBuilder getProcessBuilder(String paths, List<String> command) throws IOException {
 		if (command == null || command.size() == 0) {
 			throw new IOException("No command paramater");
 		}
-		
+
 		paths = getAllPaths(paths);
 		command.set(0, searchFullPath(paths, command.get(0)));
 		ProcessBuilder pb = new ProcessBuilder(command);
 		Map<String, String> pbEnv = pb.environment();
-//		// must set "Path" for Windows 8.1 64
+		//		// must set "Path" for Windows 8.1 64
 		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
 		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
 		return pb; 
 	}
-	
+
 	private static ProcessBuilder getProcessBuilder(String paths, String... command) throws IOException {
 		return getProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
-	
+
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
 		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn") && !command.get(0).equals("pnpm") && !command.get(0).equals("npx"))) {
 			throw new IOException("not a npm or yarn or pnpm command");
 		}
-		
+
 		if (Engine.isWindows()) {
 			if (command.get(0).equals("npm")) {
 				command.set(0, "npm.cmd");
@@ -229,9 +229,9 @@ public class ProcessUtils {
 				command.set(0, "npx.cmd");
 			}
 		}
-		
+
 		ProcessBuilder pb = getProcessBuilder(paths, command);
-		
+
 		if (Engine.isCliMode()) {
 			return pb;
 		}
@@ -243,49 +243,49 @@ public class ProcessUtils {
 				Map<String, String> pbEnv = pb.environment();
 				String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
 				String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
-				
+
 				String npmProxy = proxyHost + ":" + proxyPort;
-				
+
 				if (proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
 					String proxyUser = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER);
 					String proxyPassword = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD);
-					
+
 					npmProxy = proxyUser + ":" + proxyPassword + "@" + npmProxy;
 				}
-				
+
 				String noProxy = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
-				
+
 				pbEnv.put("http-proxy", "http://" + npmProxy);
 				pbEnv.put("https-proxy", "http://" + npmProxy);
 				pbEnv.put("no-proxy", noProxy);
-				
+
 				pbEnv.put("HTTP_PROXY", "http://" + npmProxy);
 				pbEnv.put("HTTPS_PROXY", "http://" + npmProxy);
 				pbEnv.put("NO_PROXY", noProxy);
 			}
 		}
-		
+
 		return pb;
 	}
-	
+
 	public static ProcessBuilder getNpmProcessBuilder(String paths, String... command) throws IOException {
 		return getNpmProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
-	
+
 	private static String getNodeOs() {
 		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? "linux-x64" : "aarch64".equals(System.getProperty("os.arch")) ? "darwin-arm64" : "darwin-x64";
 	}
-	
+
 	private static File getLocalNodeDir(String version) {
 		if (version.equals(defaultNodeVersion) && defaultNodeDir != null) {
 			return defaultNodeDir;
 		}
 		return new File(Engine.USER_WORKSPACE_PATH, "nodes/node-" + version + "-" + getNodeOs());
 	}
-	
+
 	public static SortedSet<String> getNodeVersions() {
 		Pattern pv = Pattern.compile("(?:node-)?(v?(\\d+)\\.\\d+\\.\\d+)(?:-(.*))?");
-		
+
 		SortedSet<String> versions = new TreeSet<>(new Comparator<String>() {
 
 			@Override
@@ -293,7 +293,7 @@ public class ProcessUtils {
 				return VersionUtils.compare(v1, v2) * -1;
 			}
 		});
-		
+
 		File npms = new File(Engine.USER_WORKSPACE_PATH, "nodes");
 		if (npms.exists()) {
 			String os = getNodeOs();
@@ -304,7 +304,7 @@ public class ProcessUtils {
 				}
 			}
 		}
-		
+
 		HttpGet get = new HttpGet("https://nodejs.org/dist/");
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			String html = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
@@ -318,11 +318,11 @@ public class ProcessUtils {
 		}
 		return versions;
 	}
-	
+
 	public static File getNodeDir(String version) throws Exception {
 		return getNodeDir(version, null);
 	}
-	
+
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
 		synchronized (defaultNodeVersion) {
 			File dir = getLocalNodeDir(version);
@@ -335,56 +335,72 @@ public class ProcessUtils {
 			}
 			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
 			HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
+			boolean retry;
+			do {
+				retry = false;
+				Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
 
-			Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
-
-			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-				FileUtils.deleteQuietly(archive);
-				archive.getParentFile().mkdirs();
-				if (progress != null) {
-					long length = response.getEntity().getContentLength();
-					try (FileOutputStream fos = new FileOutputStream(archive)) {
-						InputStream is = response.getEntity().getContent();
-						byte[] buf = new byte[1024 * 1024];
-						int n;
-						long t = 0, now, ts = 0;
-						while ((n = is.read(buf)) > -1) {
-							fos.write(buf, 0, n);
-							t += n;
-							now = System.currentTimeMillis();
-							if (now > ts) {
-								progress.update(t, length, 1);
-								ts = now + 2000;
+				try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+					FileUtils.deleteQuietly(archive);
+					archive.getParentFile().mkdirs();
+					if (progress != null) {
+						long length = response.getEntity().getContentLength();
+						try (FileOutputStream fos = new FileOutputStream(archive)) {
+							InputStream is = response.getEntity().getContent();
+							byte[] buf = new byte[1024 * 1024];
+							int n;
+							long t = 0, now, ts = 0;
+							while ((n = is.read(buf)) > -1) {
+								fos.write(buf, 0, n);
+								t += n;
+								now = System.currentTimeMillis();
+								if (now > ts) {
+									progress.update(t, length, 1);
+									ts = now + 2000;
+								}
 							}
+							progress.update(t, length, 1);
 						}
-						progress.update(t, length, 1);
+					} else {
+						FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+					}
+				}
+				if (Engine.isWindows()) {
+					Level l = Engine.logEngine.getLevel();
+					try {
+						Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+						Engine.logEngine.setLevel(Level.OFF);
+						ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
+						Engine.logEngine.setLevel(l);
+						Engine.logEngine.info("unzip terminated!");
+					} finally {
+						Engine.logEngine.setLevel(l);
 					}
 				} else {
-					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+					Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
+					int status = ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile())
+							.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
+					if (archive.getName().contains("darwin-arm64")) {
+						if (status != 0) {
+							retry = true;
+							get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName().replace("arm64", "x64"));
+						} else if (!dir.exists()) {
+							File dir64 = new File(dir.getParentFile(), dir.getName().replace("arm64", "x64"));
+							if (dir64.exists()) {
+								dir64.renameTo(dir);
+							}
+						}
+					}
+					if (!retry) {
+						dir = new File(dir, "bin");
+					}
 				}
-			}
-			if (Engine.isWindows()) {
-				Level l = Engine.logEngine.getLevel();
-				try {
-					Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
-					Engine.logEngine.setLevel(Level.OFF);
-					ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
-					Engine.logEngine.setLevel(l);
-					Engine.logEngine.info("unzip terminated!");
-				} finally {
-					Engine.logEngine.setLevel(l);
-				}
-			} else {
-				Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
-				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile())
-				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
-				dir = new File(dir, "bin");
-			}
-			FileUtils.deleteQuietly(archive);
+				FileUtils.deleteQuietly(archive);
+			} while(retry);
 			return dir;
 		}
 	}
-	
+
 	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
 		File dir;
 		String env = System.getenv("JAVA_HOME_8_X64");
@@ -450,7 +466,7 @@ public class ProcessUtils {
 				}
 			}
 		}
-		
+
 		if (Engine.isWindows()) {
 			Level l = Engine.logEngine.getLevel();
 			try {
@@ -466,17 +482,17 @@ public class ProcessUtils {
 			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
 			dir.mkdirs();
 			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir)
-				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
+			.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 		}
 		archive.delete();
 		Engine.logEngine.info("jdk dir: " + dir);
 		return dir;
 	}
-	
+
 	public static File getAndroidSDK(ProgressListener progress) throws Exception {
 		return getAndroidSDK(null, progress);
 	}
-	
+
 	public static File getAndroidSDK(String preferedAndroidBuildTools, ProgressListener progress) throws Exception {
 		File dir;
 		String env = System.getenv("ANDROID_HOME");
@@ -487,10 +503,10 @@ public class ProcessUtils {
 				return dir;
 			}
 		}
-		
+
 		dir = new File(Engine.USER_WORKSPACE_PATH, "android-sdk");
 		File tools = new File(dir, "tools");
-		
+
 		if (!tools.exists()) {
 			HttpGet get = new HttpGet("https://developer.android.com/studio");
 			String content;
@@ -504,9 +520,9 @@ public class ProcessUtils {
 			}
 			Engine.logEngine.info("Will download Android SDK Manager from: " + m.group(1));
 			File archive = new File(dir.getAbsoluteFile() + m.group(2));
-			
+
 			archive.delete();
-			
+
 			get = new HttpGet(m.group(1));
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 				FileUtils.deleteQuietly(archive);
@@ -545,7 +561,7 @@ public class ProcessUtils {
 			}
 			archive.delete();
 		}
-		
+
 		File binDir = null;
 		for (File f: dir.listFiles()) {
 			binDir = new File(f, "bin");
@@ -587,7 +603,7 @@ public class ProcessUtils {
 		}
 		int code = p.waitFor();
 		Engine.logEngine.info("Android licenses: " + code + "\n" + output);
-		
+
 		String buildTools = "";
 		if (StringUtils.isNotBlank(preferedAndroidBuildTools)) {
 			buildTools = preferedAndroidBuildTools;
@@ -600,7 +616,7 @@ public class ProcessUtils {
 			output = IOUtils.toString(p.getInputStream(), "UTF-8");
 			code = p.waitFor();
 			Engine.logEngine.info("Android package list: " + code + "\n" + output);
-			
+
 			Matcher m = Pattern.compile(".*(build-tools;[0-9.]+?) .*").matcher(output);
 			while (m.find()) {
 				buildTools = m.group(1);
@@ -611,19 +627,19 @@ public class ProcessUtils {
 		output = IOUtils.toString(p.getInputStream(), "UTF-8");
 		code = p.waitFor();
 		Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
-		
+
 		return dir;
 	}
-	
+
 	public static File getGradle(ProgressListener progress) throws Exception {
 		File dir = new File(Engine.USER_WORKSPACE_PATH, "gradle");
 		File gradle = new File(dir, "bin/gradle");
-		
+
 		if (!gradle.exists()) {
 			gradle = new File(searchFullPath(getAllPaths(null), "gradle"));
 			Engine.logEngine.info("Found system Gradle: " + gradle.getAbsolutePath());
 		}
-		
+
 		if (!gradle.exists()) {
 			File dists = new File(System.getProperty("user.home"), ".gradle/wrapper/dists");
 			Engine.logEngine.info("Check gradle at: " + dists + " " + dists.exists());
@@ -645,7 +661,7 @@ public class ProcessUtils {
 				}
 			}
 		}
-		
+
 		if (!gradle.exists()) {
 			HttpGet get = new HttpGet("https://gradle.org/install");
 			String content;
@@ -658,9 +674,9 @@ public class ProcessUtils {
 			}
 			Engine.logEngine.info("Will download Gradle from: https://downloads.gradle-dn.com/distributions/" + m.group());
 			File archive = new File(Engine.USER_WORKSPACE_PATH, m.group());
-			
+
 			archive.delete();
-			
+
 			get = new HttpGet("https://downloads.gradle-dn.com/distributions/" + m.group());
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 				FileUtils.deleteQuietly(archive);
@@ -700,7 +716,7 @@ public class ProcessUtils {
 			archive.delete();
 		}
 		gradle.setExecutable(true);
-		
+
 		return dir;
 	}
 }
