@@ -3,6 +3,8 @@
 
 [![CircleCI][ci-image]][ci-url]
 
+<p align="center"><img src="https://uploads-ssl.webflow.com/62d55bc018a5be3f0b91fcf3/62d55bc018a5be9efe91fd62_Animation2.gif" alt="Convertigo Low Code Studio" width="1000px" /></p>
+
 Convertigo Community edition is an open source fullstack Low Code & No Code platform. The platform is used to build and run complex Cross-platform Enterprise Mobile and web apps in a few days. Convertigo platform is composed of several components:
 
 1.	**Convertigo Server**: The back-end server MBaaS part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile and PWA Web apps. Convertigo server can be downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest) as a tomcat WAR file or run directly as containers from [DockerHub](https://hub.docker.com/_/convertigo) 
