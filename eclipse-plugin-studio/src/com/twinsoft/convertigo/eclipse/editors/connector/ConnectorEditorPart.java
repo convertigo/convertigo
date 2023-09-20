@@ -38,7 +38,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -63,7 +62,6 @@ import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateScreenClassFromSelectionZoneAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateTagNameFromSelectionZoneAction;
@@ -168,9 +166,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png"));
 	private Image imageDisabledFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png"));
 	private Image imageFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png"));
-
-	private Canvas canvas = null;
-	private AnimatedGif animatedWait;
+	
 	private String shortResultXML;
 	private String shortResultJSON;
 	private String fullResultXML;
@@ -198,10 +194,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 
 		// Registering as Engine listener
 		Engine.theApp.addEngineListener(this);
-
-		animatedWait = new AnimatedGif(getDisplay(), canvas,
-				"/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif");
-		canvas.setSize(100, 32);
 	}
 
 	private Context getStudioContext() {
@@ -1159,11 +1151,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	}
 
 	public void close() {
-		// Must stop the GIF animation before closing the connector editor
-		getDisplay().syncExec(() -> {
-			animatedWait.stop();
-		});
-
 		connector.markAsDebugging(false);
 
 		compositeConnector.close();
@@ -1218,7 +1205,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		imageDisabledFullResult.dispose();
 		imageFullResult.dispose();
 		
-		canvas.dispose();
 		super.dispose();
 	}
 
@@ -1268,8 +1254,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			toolItemGenerate.setEnabled(false);
 			toolItemRenderJson.setEnabled(false);
 			toolItemRenderXml.setEnabled(false);
-
-			animatedWait.start();
 		});
 	}
 
@@ -1282,7 +1266,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		}
 		
 		getDisplay().asyncExec(() -> {
-			animatedWait.stop();
 			toolItemRenderJson.setEnabled(true);
 			toolItemRenderXml.setEnabled(true);
 			
@@ -1545,16 +1528,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		compositeOutputHeader.setLayout(gridLayout3);
 
 		createToolBar();
-
-		GridData gridData6 = new org.eclipse.swt.layout.GridData();
-		gridData6.horizontalAlignment = org.eclipse.swt.layout.GridData.END;
-		gridData6.heightHint = 16;
-		gridData6.widthHint = 104;
-		gridData6.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-
-		canvas = new Canvas(compositeOutputHeader, SWT.NONE);
-		canvas.setLayoutData(gridData6);
-		canvas.setVisible(true);
 	}
 
 	/**
