@@ -174,9 +174,11 @@ sourceSets {
 }
 
 dependencies {
+	implementation 'org.apache.logging.log4j:log4j-1.2-api:2.20.0'
 	compileFlat    project(path: ':patches')
-	compileFlat    'org.apache.logging.log4j:log4j-core:2.20.0'
-	compileFlat    'org.apache.logging.log4j:log4j-1.2-api:2.20.0'
+	compileFlat    ('org.apache.logging.log4j:log4j-core:2.20.0') {
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
+	}
 	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
 	compileFlat    'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
