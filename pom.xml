@@ -27,7 +27,7 @@ mvn clean install
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-<!-- SET-VERSION --><version>8.2.2-SNAPSHOT</version>
+<!-- SET-VERSION --><version>8.2.3-SNAPSHOT</version>
 	<groupId>com.convertigo.studio</groupId>
 	<artifactId>root</artifactId>
 	<packaging>pom</packaging>
@@ -56,7 +56,7 @@ mvn clean install
 						<artifact>
 							<groupId>com.convertigo.studio</groupId>
 							<artifactId>base</artifactId>
-<!-- SET-VERSION -->		<version>8.2.2-SNAPSHOT</version>
+<!-- SET-VERSION -->		<version>8.2.3-SNAPSHOT</version>
 						</artifact>
 					</target>
 					<environments>

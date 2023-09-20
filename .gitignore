@@ -38,6 +38,7 @@ META-INF
 /eclipse-plugin-studio/tomcat/webapps/convertigo/templates/project/*
 /eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist
 /eclipse-plugin-studio/tomcat/webapps/convertigo/system/
+/eclipse-plugin-studio/tomcat/webapps/convertigo/web/
 /eclipse-plugin-studio/tomcat/work
 /eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product
