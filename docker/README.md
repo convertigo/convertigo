@@ -164,13 +164,7 @@ Log file still exists until you add the `LOG_FILE=false` environment variable :
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo
 
-## `LOG_STDOUT` Environment variable
-
-Convertigo generates many logs in a engine.log file that can be consulted via the Convertigo Administration Console. In some environments, it's easiest to read logs from the container standard output. Set this property `true` to enable console output. Default value is `false`.
-Log file still exists until you add the `LOG_FILE=false` environment variable :
-
-    docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo
-### `JXMX` Environment variable
+## `JXMX` Environment variable
 
 Convertigo tries to allocate this amount of memory in the container and will automatically reduce it until the value is compatible for the Docker memory constraints. Once the best value found, it is used as `-Xmx=${JXMX}m` parameter for the JVM.
 
