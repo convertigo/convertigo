@@ -29,9 +29,9 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.30.3'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.75'
-ext.eclipseVersion = '2023-06'
-ext.eclipseBase = '4.28'
+ext.tomcatVersion = '9.0.80'
+ext.eclipseVersion = '2023-09'
+ext.eclipseBase = '4.29'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
