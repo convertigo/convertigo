@@ -913,13 +913,16 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	private void clearOldLogs() {
+		if (!EnginePropertiesManager.getPropertyAsBoolean(PropertyName.LOG_FILE_ENABLE)) {
+			return;
+		}
 		SortedMap<Date, File> files = null;
 		try (LogManager lm = new LogManager()) {
 			lm.setDateStart(new Date(0));
 			lm.setDateEnd(new Date());
 			files = lm.getTimedFiles();
 		} catch (Exception e) {
-			System.out.println("clearOldLogs: " + e.getMessage());
+			System.out.println("clearOldLogs: [" + e.getClass() + "] " + e.getMessage());
 		}
 
 		if (files == null) {

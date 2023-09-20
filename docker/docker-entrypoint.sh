@@ -32,6 +32,17 @@ if [ "$1" = "convertigo" ]; then
         unset CONVERTIGO_TESTPLATFORM_PASSWORD
     fi
     
+    ## enable log to stdout or file
+    
+    if [ "$LOG_STDOUT" = "true" ]; then
+    	export JAVA_OPTS="-Dconvertigo.engine.log.stdout.enable=true $JAVA_OPTS"
+        unset LOG_STDOUT
+    fi
+    
+    if [ "$LOG_FILE" = "false" ]; then
+    	export JAVA_OPTS="-Dconvertigo.engine.log.file.enable=false $JAVA_OPTS"
+        unset LOG_FILE
+    fi
     
     ## add the linked couchdb container as the fullsync couchdb
     

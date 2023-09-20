@@ -33,7 +33,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
@@ -43,7 +42,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
@@ -84,8 +82,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 //	protected AbstractSequenceComposite compositeSequence = null;
 
 	public org.w3c.dom.Document lastGeneratedDocument;
-
-	private AnimatedGif animatedWait;
+	
 	private String shortResultXML;
 	private String shortResultJSON;
 	private String fullResultXML;
@@ -114,16 +111,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 		// Registering as Engine listener
 		Engine.theApp.addEngineListener(this);
-
-		animatedWait = new AnimatedGif(getDisplay(), canvas, "/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif");
 	}
 
 	public void close() {
-		// Must stop the GIF animation before closing the sequence editor
-		getDisplay().syncExec(() -> {
-			animatedWait.stop();
-		});
-
 		// Remove Studio context
 		Engine.theApp.contextManager.remove(context);
 
@@ -149,8 +139,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		imageDisableStop.dispose();
 		imageDisabledFullResult.dispose();
 		imageFullResult.dispose();
-
-		canvas.dispose();
+		
 		super.dispose();
 	}
 
@@ -232,7 +221,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private Map<String, Integer> toolItemsIds = null;
 	private Composite compositeXml = null;
 	private Composite compositeOutputHeader = null;
-	private Canvas canvas = null;
 
 	private void createCompositeOutputHeader(Composite parent) {
 		final Color background = getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -250,16 +238,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		compositeOutputHeader.setLayout(gridLayout3);
 
 		createToolBar();
-
-		GridData gridData6 = new org.eclipse.swt.layout.GridData();
-		gridData6.horizontalAlignment = org.eclipse.swt.layout.GridData.END;
-		gridData6.heightHint = 16;
-		gridData6.widthHint = 104;
-		gridData6.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-
-		canvas = new Canvas(compositeOutputHeader, SWT.NONE);
-		canvas.setLayoutData(gridData6);
-		canvas.setVisible(false);
 	}
 
 	protected boolean bDebug = false;
@@ -683,8 +661,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			toolItemGenerate.setEnabled(false);
 			toolItemRenderJson.setEnabled(false);
 			toolItemRenderXml.setEnabled(false);
-
-			animatedWait.start();
 		});
 	}
 
@@ -695,7 +671,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		lastParameters = new HashMap<>(context.httpServletRequest.getParameterMap());
 		
 		getDisplay().syncExec(() -> {
-			animatedWait.stop();
 			toolItemRenderJson.setEnabled(true);
 			toolItemRenderXml.setEnabled(true);
 			if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {

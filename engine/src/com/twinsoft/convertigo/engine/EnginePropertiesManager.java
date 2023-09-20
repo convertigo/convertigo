@@ -42,7 +42,6 @@ import java.util.TreeSet;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Appender;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
@@ -385,6 +384,10 @@ public class EnginePropertiesManager {
 		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
 
 		/** LOGS */
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		LOG_FILE_ENABLE("log.file.enable", "true", "Log into files", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1050,7 +1053,6 @@ public class EnginePropertiesManager {
 
 		log4jProperties.put("log.directory", Engine.LOG_PATH);
 
-		LogManager.resetConfiguration();
 		SortedSet<String> sortedKey = new TreeSet<String>(GenericUtils.<Collection<String>>cast(log4jProperties.keySet()));
 		for (String key: sortedKey) {
 			if (key.startsWith("log4j.logger.cems.") && "".equals(log4jProperties.get(key))) {
@@ -1059,6 +1061,19 @@ public class EnginePropertiesManager {
 				log4jProperties.put(key, v);
 			}
 		}
+		
+		if (!getPropertyAsBoolean(PropertyName.LOG_FILE_ENABLE)) {
+			log4jProperties.put(PropertyName.LOG4J_LOGGER_CEMS.getKey(), getProperty(PropertyName.LOG4J_LOGGER_CEMS));
+		}
+		
+		if (getPropertyAsBoolean(PropertyName.LOG_STDOUT_ENABLE)) {
+			log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
+			log4jProperties.put("log4j.appender.stdout.target", "System.out");
+			log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
+			log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN));
+			log4jProperties.put(PropertyName.LOG4J_LOGGER_CEMS.getKey(), log4jProperties.get(PropertyName.LOG4J_LOGGER_CEMS.getKey()) + ", stdout");
+		}
+		
 		PropertyConfigurator.configure(log4jProperties);
 
 		Logger cems = Logger.getLogger("cems");

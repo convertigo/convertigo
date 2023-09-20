@@ -175,9 +175,11 @@ sourceSets {
 }
 
 dependencies {
+	implementation 'org.apache.logging.log4j:log4j-1.2-api:2.20.0'
 	compileFlat    project(path: ':patches')
-	compileFlat    'org.apache.logging.log4j:log4j-core:2.20.0'
-	compileFlat    'org.apache.logging.log4j:log4j-1.2-api:2.20.0'
+	compileFlat    ('org.apache.logging.log4j:log4j-core:2.20.0') {
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
+	}
 	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
 	compileFlat    'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
@@ -235,8 +237,8 @@ dependencies {
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.5.0.202303070854-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.7.0.202309050840-r'
 	compileFlat    'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 	compileFlat    'org.hibernate:hibernate-core:5.2.10.Final'
 	compileFlat    'org.mozilla:rhino:1.7.14'
