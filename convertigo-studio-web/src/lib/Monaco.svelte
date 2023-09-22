@@ -7,12 +7,22 @@
 	import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
 	let subscriptions = [];
-	export let content;
+	export let content = '/* Loading... */';
+	export let language = 'java';
+	export let theme = 'vs-dark';
+	export let readOnly = true;
 
 	let divEl;
 	let editor;
 	let Monaco;
 
+	$: if (editor) {
+		editor.updateOptions({
+			language,
+			theme,
+			readOnly
+		});
+	}
 	onMount(async () => {
 		self.MonacoEnvironment = {
 			getWorker: function (_moduleId, label) {
@@ -33,11 +43,12 @@
 		};
 
 		Monaco = await import('monaco-editor');
+		let initialContent = content;
 		editor = Monaco.editor.create(divEl, {
-			value: '/* Loading... */',
-			language: 'java',
-			theme: 'vs-dark',
-			readOnly: true
+			value: initialContent,
+			language: language,
+			theme: theme,
+			readOnly: readOnly
 		});
 		editor.onDidChangeModelContent(() => {
 			const text = editor.getValue();
@@ -54,16 +65,15 @@
 				editor.setValue(val);
 			}
 		};
-		console.log(editor);
-
 		return () => {
 			editor.dispose();
 		};
 	});
 </script>
 
-<div bind:this={divEl} class="h-full w-600px" />
-<!-- <svelte:window
+<div bind:this={divEl} style:width="100%" />
+
+<svelte:window
 	on:resize={() => {
 		editor.layout({ width: 0, height: 0 });
 		window.requestAnimationFrame(() => {
@@ -71,4 +81,4 @@
 			editor.layout({ width: rect.width, height: rect.height });
 		});
 	}}
-/> -->
+/>

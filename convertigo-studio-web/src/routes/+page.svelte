@@ -12,6 +12,7 @@
 	import { onMount } from 'svelte';
 	import { linear } from 'svelte/easing';
 	import { callService } from '$lib/convertigo';
+	import { modeCurrent } from '@skeletonlabs/skeleton';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -34,9 +35,8 @@
 	let editorTab = 0;
 	let treeSelected = true;
 	let propertiesSelected = true;
-	let editorSelected = false;
+	let editorSelected = true;
 	let authenticated = false;
-
 	/**
 	 * @type {HTMLImageElement}
 	 */
@@ -296,16 +296,20 @@
 		{#if editorSelected}
 			<div
 				class="grow card m-1 variant-soft-success h-full"
+				style="height: calc(100% - 8px);"
 				transition:withTransition={{ duration: 250 }}
 			>
-				<TabGroup class="h-full">
+				<TabGroup class="w-full h-full flex flex-col" regionPanel="grow">
 					<Tab bind:group={editorTab} name="file1" value={0}>file1.txt</Tab>
 					<Tab bind:group={editorTab} name="file2" value={1}>file2.txt</Tab>
 					<svelte:fragment slot="panel">
-						<div class="scroll-smooth overflow-scroll" style="max-width: 300px; max-height: 300px">
-							<div style="height: 1200px; width: 600px;">
-								<Monaco content="hello" />
-							</div>
+						<div class="w-full h-full grow flex">
+							<Monaco
+								content="console.log('hello');"
+								readOnly={false}
+								language="typescript"
+								theme={$modeCurrent ? 'vs' : 'vs-dark'}
+							/>
 						</div>
 					</svelte:fragment>
 				</TabGroup>
