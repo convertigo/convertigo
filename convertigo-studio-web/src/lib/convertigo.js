@@ -9,11 +9,17 @@ export async function callService(service, data = {}) {
 	let res = await fetch(url, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded'
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		},
 		body: new URLSearchParams(data),
 		credentials: 'include'
 	});
+	var xsrf = res.headers.get('x-xsrf-token');
+	if (xsrf != null) {
+		localStorage.setItem('x-xsrf-token', xsrf);
+	}
+
 	const contentType = res.headers.get('content-type');
 	if (contentType?.includes('xml')) {
 		return new XMLParser({ ignoreAttributes: false }).parse(await res.text());

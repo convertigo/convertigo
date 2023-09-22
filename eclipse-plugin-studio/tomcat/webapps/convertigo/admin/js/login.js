@@ -65,6 +65,18 @@ jQuery().ready(function() {
 	});
 });
 
+function checkFromStudioWeb(page) {
+	var studioWebDev = sessionStorage.getItem("studioWebDev");
+	sessionStorage.removeItem("studioWebDev");
+	if (studioWebDev == 'true') {
+		document.location.href = "/";
+	} else if (studioWebDev == 'false') {
+		document.location.href = document.location.href.replace(/\/admin\/.*/, '/studio/');
+	} else {
+		document.location.href = page;
+	}
+}
+
 function checkAuthentication() {
 	$.ajax( {
 		url : "services/engine.CheckAuthentication",
@@ -73,7 +85,7 @@ function checkAuthentication() {
 			var $xml = $(xml);
 			var $authenticated = $xml.find("authenticated");
 			if ($authenticated.text() == "true") {
-				document.location.href = "main.html";
+				checkFromStudioWeb("main.html");
 			}
 		}
 	});
@@ -88,7 +100,7 @@ function authenticate(data) {
 		success : function(xml) {
 			var $xml = $(xml);
 			if ($xml.find("success").length > 0) {
-				location = $("form").attr("action");
+				checkFromStudioWeb($("form").attr("action"));
 			} else {
 				$("#dlgAuthFailed_message").text($xml.find("error").text());
 				$("#dlgAuthFailed").dialog('open');

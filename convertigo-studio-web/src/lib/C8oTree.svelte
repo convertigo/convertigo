@@ -1,4 +1,5 @@
-<svelte:options accessors/>
+<svelte:options accessors />
+
 <script>
 	import { onMount } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
@@ -55,7 +56,7 @@
 		}
 		if (ids.length > 0) {
 			callService('tree.Get', { ids: JSON.stringify(ids) }).then((res) => {
-				ids.forEach(i => links[i].children = res[i]);
+				ids.forEach((i) => (links[i].children = res[i]));
 			});
 		}
 	}
@@ -81,7 +82,7 @@
 	>
 		<svelte:fragment slot="lead">
 			{#if icon.includes('?')}
-				<img src={getServiceUrl() + icon} alt="ico" />
+				<img src={getServiceUrl() + icon + '&__xsrfToken=' + encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')} alt="ico" />
 			{:else if icon == 'file'}
 				<IconFile />
 			{:else}
@@ -117,5 +118,5 @@
 		{/each}
 	</TreeView>
 {:else}
-Not loaded
+	Not loaded
 {/if}

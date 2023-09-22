@@ -49,12 +49,17 @@
 		// @ts-ignore
 		propertiesWidth = 1 * (localStorage.getItem('propertiesWidth') ?? '100');
 
-		callService('engine.Authenticate', {
-			authType: 'login',
-			authUserName: 'admin',
-			authPassword: 'admin'
-		}).then(() => {
-			authenticated = true;
+		callService('engine.CheckAuthentication').then((res) => {
+			authenticated = res.admin.authenticated;
+			if (!authenticated) {
+				if (!location.href.includes('/studio')) {
+					sessionStorage.setItem('studioWebDev', 'true');
+					location.href = '/convertigo/admin/login.html'
+				} else {
+					sessionStorage.setItem('studioWebDev', 'false');
+					location.href = location.href.replace(/\/studio\/.*/, '/admin/login.html');
+				}
+			}
 		});
 	});
 
@@ -125,47 +130,47 @@
 	}
 
 	const themes = [
-					{
-						name: 'skeleton',
-						enhancements: true
-					},
-					{
-						name: 'wintry',
-						enhancements: true
-					},
-					{
-						name: 'modern',
-						enhancements: true
-					},
-					{
-						name: 'hamlindigo',
-						enhancements: true
-					},
-					{
-						name: 'rocket',
-						enhancements: true
-					},
-					{
-						name: 'sahara',
-						enhancements: true
-					},
-					{
-						name: 'gold-nouveau',
-						enhancements: true
-					},
-					{
-						name: 'vintage',
-						enhancements: true
-					},
-					{
-						name: 'seafoam',
-						enhancements: true
-					},
-					{
-						name: 'crimson',
-						enhancements: true
-					}
-				];
+		{
+			name: 'skeleton',
+			enhancements: true
+		},
+		{
+			name: 'wintry',
+			enhancements: true
+		},
+		{
+			name: 'modern',
+			enhancements: true
+		},
+		{
+			name: 'hamlindigo',
+			enhancements: true
+		},
+		{
+			name: 'rocket',
+			enhancements: true
+		},
+		{
+			name: 'sahara',
+			enhancements: true
+		},
+		{
+			name: 'gold-nouveau',
+			enhancements: true
+		},
+		{
+			name: 'vintage',
+			enhancements: true
+		},
+		{
+			name: 'seafoam',
+			enhancements: true
+		},
+		{
+			name: 'crimson',
+			enhancements: true
+		}
+	];
 </script>
 
 <AppShell>
@@ -180,7 +185,7 @@
 			<svelte:fragment slot="trail"
 				><select on:change={changeTheme} class="select">
 					{#each themes as theme}
-					<option>{theme.name}</option>
+						<option>{theme.name}</option>
 					{/each}
 				</select>
 				<LightSwitch /></svelte:fragment
@@ -205,12 +210,11 @@
 					selected={propertiesSelected}
 					on:click={async () => {
 						console.log(await callService('projects.List'));
-					}}
-					><IconProperties /></AppRailAnchor
+					}}><IconProperties /></AppRailAnchor
 				>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<AppRailAnchor href="/" target="_blank" title="Account"><IconLogout /></AppRailAnchor>
+				<AppRailAnchor href='/convertigo/admin' title="Admin"><IconLogout /></AppRailAnchor>
 			</svelte:fragment>
 		</AppRail></svelte:fragment
 	>
