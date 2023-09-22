@@ -54,7 +54,7 @@
 			if (!authenticated) {
 				if (!location.href.includes('/studio')) {
 					sessionStorage.setItem('studioWebDev', 'true');
-					location.href = '/convertigo/admin/login.html'
+					location.href = '/convertigo/admin/login.html';
 				} else {
 					sessionStorage.setItem('studioWebDev', 'false');
 					location.href = location.href.replace(/\/studio\/.*/, '/admin/login.html');
@@ -214,7 +214,9 @@
 				>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<AppRailAnchor href='/convertigo/admin' title="Admin"><IconLogout /></AppRailAnchor>
+				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
+					><IconLogout /></AppRailAnchor
+				>
 			</svelte:fragment>
 		</AppRail></svelte:fragment
 	>

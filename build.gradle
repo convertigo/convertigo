@@ -395,6 +395,7 @@ task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall'
 
 task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	group 'convertigo'
+	mustRunAfter ':buildStudioWebNpmInstall'
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'

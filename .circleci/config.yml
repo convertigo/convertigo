@@ -82,13 +82,6 @@ jobs:
           
           echo "/tmp/build.env: "
           cat /tmp/build.env
-        
-    - run:
-        name: Install NVM for NodeJS
-        command: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           
     - save_cache:
         paths:
@@ -118,6 +111,9 @@ jobs:
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           if [ "$CIRCLE_BRANCH" == "" ] ; then
             sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
           else

@@ -82,7 +82,13 @@
 	>
 		<svelte:fragment slot="lead">
 			{#if icon.includes('?')}
-				<img src={getServiceUrl() + icon + '&__xsrfToken=' + encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')} alt="ico" />
+				<img
+					src={getServiceUrl() +
+						icon +
+						'&__xsrfToken=' +
+						encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
+					alt="ico"
+				/>
 			{:else if icon == 'file'}
 				<IconFile />
 			{:else}
@@ -96,6 +102,7 @@
 				{/each}
 			{/if}
 		</svelte:fragment>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<span
 			draggable="true"
 			on:drag={(e) => {
