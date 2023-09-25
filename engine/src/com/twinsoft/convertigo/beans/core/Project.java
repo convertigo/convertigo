@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -62,32 +64,29 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private static final long serialVersionUID = -7523308164370975102L;
 
 	public static final int MAX_OBJECT_NAME_LENGTH = 64;
-	
+
 	public enum WsdlStyle {
-		all("ALL"),
-		docLiteral("DOC/LITERAL"),
-		rpc("RPC");
-		
+		all("ALL"), docLiteral("DOC/LITERAL"), rpc("RPC");
+
 		private final String label;
-		
+
 		private WsdlStyle(String label) {
 			this.label = label;
 		}
-		
+
 		public String toString() {
 			return label;
 		}
 	}
-	
+
 	public enum XsdForm {
-		qualified,
-		unqualified
+		qualified, unqualified
 	}
-	
+
 	public static final String XSD_FOLDER_NAME = "xsd";
 	public static final String XSD_INTERNAL_FOLDER_NAME = "internal";
 	public static final String WSDL_FOLDER_NAME = "wsdl";
-	
+
 	public static final String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 
 	private final Object mutexClassLoader = new Object();
@@ -114,35 +113,37 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * WSDL with inline schema or not
 	 */
 	private boolean schemaInline = true;
-	
+
 	/**
 	 * Holds value if we have an undefined global symbol
 	 */
 	public boolean undefinedGlobalSymbols = false;
-	
-	/** 
+
+	public Set<Pair<String, String>> defaultSymbols;
+
+	/**
 	 * The namespace URI
 	 */
 	private String namespaceUri = "";
-	
+
 	/**
 	 * .json and .jsonp requester should use "type" attribute to make output
 	 */
 	private JsonOutput jsonOutput = JsonOutput.useType;
-	
+
 	private JsonRoot jsonRoot = JsonRoot.docChildNodes;
-	
+
 	/**
 	 * The schema element form
 	 */
 	private XsdForm schemaElementForm = XsdForm.unqualified;
-	
+
 	private boolean bStrictMode = true;
-	
+
 	private String corsOrigin = "=Global";
-	
+
 	private XPathEngine xpathEngine = XPathEngine.JXPath;
-	
+
 	/**
 	 * The default connector for this project.
 	 */
@@ -152,25 +153,25 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * The list of available connectors for this project.
 	 */
 	transient private List<Connector> vConnectors = new LinkedList<Connector>();
-    
+
 	/**
 	 * The list of available sequences for this project.
 	 */
 	transient private List<Sequence> vSequences = new LinkedList<Sequence>();
-	
+
 	/**
 	 * The list of available references for this project.
 	 */
 	transient private List<Reference> vReferences = new LinkedList<Reference>();
-	
+
 	transient private String oldName;
 
 	transient private long lastChange = 0L;
-	
+
 	transient private DirClassLoader loader;
-	
+
 	transient private String minVersion;
-	
+
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
 			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
@@ -181,23 +182,25 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
 	}
-	
+
 	public static void executeAutoStartSequences(final String projectName) {
 		try {
 			final Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 			if (p != null) {
-				for (final Sequence sequence: p.getSequencesList()) {
+				for (final Sequence sequence : p.getSequencesList()) {
 					if (sequence.isAutoStart()) {
 						Engine.execute(() -> {
 							try {
 								Map<String, String[]> parameters = new HashMap<String, String[]>();
-								parameters.put(Parameter.Project.getName(), new String[] {projectName});
-								parameters.put(Parameter.Sequence.getName(), new String[]{sequence.getName()});
+								parameters.put(Parameter.Project.getName(), new String[] { projectName });
+								parameters.put(Parameter.Sequence.getName(), new String[] { sequence.getName() });
 								InternalHttpServletRequest request = new InternalHttpServletRequest();
-								InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+								InternalRequester requester = new InternalRequester(
+										GenericUtils.<Map<String, Object>>cast(parameters), request);
 								requester.processRequest();
 							} catch (Exception e) {
-								Engine.logEngine.error("Failed to execute the auto start sequence \"" + sequence.getQName() + "\"", e);
+								Engine.logEngine.error(
+										"Failed to execute the auto start sequence \"" + sequence.getQName() + "\"", e);
 							}
 						});
 					}
@@ -233,17 +236,22 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void setName(String name) throws EngineException {
 		name = name.trim();
 		Project.checkName(name);
-		oldName = ((oldName == null) ? name:this.getName());
+		oldName = ((oldName == null) ? name : this.getName());
 		super.setName(name);
 	}
-    
+
 	public static void checkName(String name) throws EngineException {
-		if (name.length() > MAX_OBJECT_NAME_LENGTH) throw new EngineException("The project name is too long (length > " + MAX_OBJECT_NAME_LENGTH + ")!");
-		else if (name.indexOf(' ') == 0) throw new EngineException("The project name cannot begin with the space character!");
-		else if (name.length() == name.lastIndexOf(' ') + 1) throw new EngineException("The project name cannot end with the space character!");
-		else if ((name.indexOf('\\') != -1) || (name.indexOf('/') != -1) || (name.indexOf(':') != -1) || (name.indexOf('*') != -1) ||
-		(name.indexOf('?') != -1) || (name.indexOf('"') != -1) || (name.indexOf('<') != -1) || (name.indexOf('>') != -1) || (name.indexOf('|') != -1))
-			throw new EngineException("The project name (\"" + name + "\") cannot contain one of the following character(s):\n\\/:*?\"<>|");
+		if (name.length() > MAX_OBJECT_NAME_LENGTH)
+			throw new EngineException("The project name is too long (length > " + MAX_OBJECT_NAME_LENGTH + ")!");
+		else if (name.indexOf(' ') == 0)
+			throw new EngineException("The project name cannot begin with the space character!");
+		else if (name.length() == name.lastIndexOf(' ') + 1)
+			throw new EngineException("The project name cannot end with the space character!");
+		else if ((name.indexOf('\\') != -1) || (name.indexOf('/') != -1) || (name.indexOf(':') != -1)
+				|| (name.indexOf('*') != -1) || (name.indexOf('?') != -1) || (name.indexOf('"') != -1)
+				|| (name.indexOf('<') != -1) || (name.indexOf('>') != -1) || (name.indexOf('|') != -1))
+			throw new EngineException("The project name (\"" + name
+					+ "\") cannot contain one of the following character(s):\n\\/:*?\"<>|");
 	}
 
 	public String getQName() {
@@ -266,14 +274,18 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		this.httpSessionTimeout = httpSessionTimeout;
 	}
 
-	/** Getter for property browserDefinitions.
+	/**
+	 * Getter for property browserDefinitions.
+	 * 
 	 * @return Value of property browserDefinitions.
 	 */
 	public XMLVector<XMLVector<String>> getBrowserDefinitions() {
 		return this.browserDefinitions;
 	}
 
-	/** Setter for property browserDefinitions.
+	/**
+	 * Setter for property browserDefinitions.
+	 * 
 	 * @param browserTypes New value of property browserDefinitions.
 	 */
 	public void setBrowserDefinitions(XMLVector<XMLVector<String>> browserDefinitions) {
@@ -316,7 +328,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			targetNamespace = CONVERTIGO_PROJECTS_NAMESPACEURI + getName();
 		return targetNamespace;
 	}
-	
+
 	/**
 	 * @return the schemaElementForm
 	 */
@@ -330,11 +342,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void setSchemaElementForm(XsdForm schemaElementForm) {
 		this.schemaElementForm = XsdForm.unqualified; // schemaElementForm
 	}
-	
+
 	public boolean isStrictMode() {
 		return bStrictMode;
 	}
-	
+
 	public void setStrictMode(boolean strictMode) {
 		bStrictMode = strictMode;
 	}
@@ -346,8 +358,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void setJsonOutput(JsonOutput jsonOutput) {
 		this.jsonOutput = jsonOutput;
 	}
-	
-	
+
 	public JsonRoot getJsonRoot() {
 		return jsonRoot;
 	}
@@ -369,7 +380,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		} else if (databaseObject instanceof Reference) {
 			addReference((Reference) databaseObject);
 		} else {
-			throw new EngineException("You cannot add to a project a database object of type " + databaseObject.getClass().getName());
+			throw new EngineException(
+					"You cannot add to a project a database object of type " + databaseObject.getClass().getName());
 		}
 	}
 
@@ -386,7 +398,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		} else if (databaseObject instanceof Reference) {
 			removeReference((Reference) databaseObject);
 		} else {
-			throw new EngineException("You cannot remove from a project a database object of type " + databaseObject.getClass().getName());
+			throw new EngineException("You cannot remove from a project a database object of type "
+					+ databaseObject.getClass().getName());
 		}
 		super.remove(databaseObject);
 	}
@@ -399,7 +412,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		String newDatabaseObjectName = getChildBeanName(vConnectors, connector.getName(), connector.bNew);
 		connector.setName(newDatabaseObjectName);
 		vConnectors.add(connector);
-		if (connector.isDefault) setDefaultConnector(connector);
+		if (connector.isDefault)
+			setDefaultConnector(connector);
 		super.add(connector);
 	}
 
@@ -407,7 +421,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		checkSubLoaded();
 		vConnectors.remove(connector);
 	}
-	
+
 	public List<Connector> getConnectorsList() {
 		checkSubLoaded();
 		return sort(vConnectors);
@@ -416,7 +430,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public Connector getConnectorByName(String connectorName) throws EngineException {
 		checkSubLoaded();
 		for (Connector connector : vConnectors)
-			if (connector.getName().equalsIgnoreCase(connectorName)) return connector;
+			if (connector.getName().equalsIgnoreCase(connectorName))
+				return connector;
 		throw new EngineException("There is no connector named \"" + connectorName + "\" found into this project.");
 	}
 
@@ -435,7 +450,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		checkSubLoaded();
 		vSequences.remove(sequence);
 	}
-	
+
 	public List<Sequence> getSequencesList() {
 		checkSubLoaded();
 		return sort(vSequences);
@@ -444,8 +459,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public Sequence getSequenceByName(String sequenceName) throws EngineException {
 		checkSubLoaded();
 		for (Sequence sequence : vSequences)
-			if (sequence.getName().equalsIgnoreCase(sequenceName)) return sequence;
-		throw new EngineException("There is no sequence named \"" + sequenceName + "\" found into the project \"" + getName() + "\".");
+			if (sequence.getName().equalsIgnoreCase(sequenceName))
+				return sequence;
+		throw new EngineException(
+				"There is no sequence named \"" + sequenceName + "\" found into the project \"" + getName() + "\".");
 	}
 
 	/**
@@ -470,7 +487,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		checkSubLoaded();
 		return sort(vReferences);
 	}
-	
+
 	/**
 	 * Retrieves the default connector.
 	 */
@@ -489,12 +506,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			// Fire exception in Engine mode only!
 			if (Engine.isEngineMode()) {
 				throw new EngineException("There is no default connector defined for project \"" + getName() + "\".");
-			}
-			else {
-				//In Studio mode we must be able to set a default connector!
+			} else {
+				// In Studio mode we must be able to set a default connector!
 			}
 		}
-		
+
 		return defaultConnector;
 	}
 
@@ -507,14 +523,18 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				throw new IllegalArgumentException("The value of argument 'transaction' is null");
 			checkSubLoaded();
 			if (vConnectors.contains(connector)) {
-				if (defaultConnector == null) getDefaultConnector();
-				if (defaultConnector != null) defaultConnector.isDefault = false;
+				if (defaultConnector == null)
+					getDefaultConnector();
+				if (defaultConnector != null)
+					defaultConnector.isDefault = false;
 				connector.isDefault = true;
 				defaultConnector = connector;
-			} else throw new IllegalArgumentException("The value of argument 'connector' is invalid: the connector does not belong to the project");
+			} else
+				throw new IllegalArgumentException(
+						"The value of argument 'connector' is invalid: the connector does not belong to the project");
 		}
 	}
-	
+
 	@Override
 	public Project clone() throws CloneNotSupportedException {
 		Project clonedObject = (Project) super.clone();
@@ -527,51 +547,54 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		clonedObject.mobileBuilder = null;
 		return clonedObject;
 	}
-	
+
 	@Override
 	public void preconfigure(Element element) throws Exception {
 		super.preconfigure(element);
-		
+
 		String version = element.getAttribute("version");
 		minVersion = version;
-		
+
 		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
-			
+
 			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-			String objectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(propName, Node.ELEMENT_NODE));
-			
+			String objectName = (String) XMLUtils
+					.readObjectFromXml((Element) XMLUtils.findChildNode(propName, Node.ELEMENT_NODE));
+
 			Element propVarDef1 = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "contextTimeout");
 			Element propVarDef2 = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "httpSessionTimeout");
 			if (propVarDef1 == null && propVarDef2 != null) {
 				propVarDef2.setAttribute("name", "contextTimeout");
 				hasChanged = true;
-				Engine.logBeans.warn("[Project] The object \""+objectName+"\" has been updated to version 7.5.0 (property \"httpSessionTimeout\" changed to \"contextTimeout\")");
+				Engine.logBeans.warn("[Project] The object \"" + objectName
+						+ "\" has been updated to version 7.5.0 (property \"httpSessionTimeout\" changed to \"contextTimeout\")");
 			}
 		}
 	}
-	
+
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 
 		String version = element.getAttribute("version");
 
-		if (version!= null) {
+		if (version != null) {
 			if (VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
 				Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
 				String projectRoot = Engine.projectDir(getName());
-				File indexPage = new File(projectRoot+"/index.html");
-				if(indexPage.exists()){
+				File indexPage = new File(projectRoot + "/index.html");
+				if (indexPage.exists()) {
 					Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
-					indexPage.renameTo(new File(projectRoot+"/index_old.html"));
+					indexPage.renameTo(new File(projectRoot + "/index_old.html"));
 				}
 				ProjectUtils.copyIndexFile(getName());
 				Engine.logDatabaseObjectManager.info("Basic index.html copied");
 			}
 
 			if (VersionUtils.compareMigrationVersion(version, ".m006") < 0) {
-				Engine.logDatabaseObjectManager.info("Project's file migration to m006: set 'jsonOutput' value to 'verbose' (old behavior)");
+				Engine.logDatabaseObjectManager
+						.info("Project's file migration to m006: set 'jsonOutput' value to 'verbose' (old behavior)");
 				jsonOutput = JsonOutput.verbose;
 				hasChanged = true;
 			}
@@ -583,15 +606,17 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				if (propVarDom == null) {
 					bStrictMode = false;
 					hasChanged = true;
-					Engine.logBeans.warn("[Project] Successfully set 'bStrictMode' property for project \""+ getName() +"\" (v 7.3.0)");
+					Engine.logBeans.warn("[Project] Successfully set 'bStrictMode' property for project \"" + getName()
+							+ "\" (v 7.3.0)");
 				}
 			}
-			
+
 			if (VersionUtils.compare(version, "7.4.0") < 0) {
 				NodeList properties = element.getElementsByTagName("property");
 				Element propVarDom = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "jsonRoot");
 				if (propVarDom == null) {
-					Engine.logDatabaseObjectManager.info("Project's file migration to 7.4.0: set 'jsonRoot' value to 'docNode' (old behavior)");
+					Engine.logDatabaseObjectManager.info(
+							"Project's file migration to 7.4.0: set 'jsonRoot' value to 'docNode' (old behavior)");
 					jsonRoot = JsonRoot.docNode;
 					hasChanged = true;
 				}
@@ -620,7 +645,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return false;
 	}
-	
+
 	private transient MobileApplication mobileApplication = null;
 
 	public MobileApplication getMobileApplication() {
@@ -629,7 +654,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	public void addMobileApplication(MobileApplication mobileApplication) throws EngineException {
 		if (this.mobileApplication != null) {
-			throw new EngineException("The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
+			throw new EngineException(
+					"The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
 		}
 		this.mobileApplication = mobileApplication;
 		super.add(mobileApplication);
@@ -650,9 +676,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
 		if (!isOriginal()) {
 			return;
-		};
+		}
+		;
 		if (this.urlMapper != null) {
-			throw new EngineException("The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
+			throw new EngineException(
+					"The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
 		}
 		this.urlMapper = urlMapper;
 		super.add(urlMapper);
@@ -662,37 +690,39 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void removeUrlMapper(UrlMapper urlMapper) {
 		if (!isOriginal()) {
 			return;
-		};
+		}
+		;
 		if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
 			this.urlMapper = null;
 			RestApiManager.getInstance().removeUrlMapper(getName());
 		}
 	}
 
-
 	@Override
-	public List<DatabaseObject> getAllChildren() {	
+	public List<DatabaseObject> getAllChildren() {
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getConnectorsList());
 		rep.addAll(getSequencesList());
 		rep.addAll(getReferenceList());
-		if (mobileApplication != null) rep.add(mobileApplication);
-		if (urlMapper != null) rep.add(urlMapper);
+		if (mobileApplication != null)
+			rep.add(mobileApplication);
+		if (urlMapper != null)
+			rep.add(urlMapper);
 		return rep;
 	}
 
 	public String getOldName() {
 		return oldName;
 	}
-	
+
 	public String getDirPath() {
 		return Engine.projectDir(getName());
 	}
-	
+
 	public File getDirFile() {
 		return Engine.projectFile(getName()).getParentFile();
 	}
-	
+
 	public String getXsdDirPath() {
 		return getDirPath() + "/" + XSD_FOLDER_NAME;
 	}
@@ -700,21 +730,21 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public String getXsdInternalDirPath() {
 		return getXsdDirPath() + "/" + XSD_INTERNAL_FOLDER_NAME;
 	}
-	
+
 	public String getWsdlDirPath() {
 		return getDirPath() + "/" + getName() + "/" + WSDL_FOLDER_NAME;
 	}
-	
+
 	@Override
 	public void changed() {
 		lastChange = System.currentTimeMillis();
 		super.changed();
 	}
-	
+
 	public long getLastChange() {
 		return lastChange;
 	}
-	
+
 	/*
 	 * The user custom project's version
 	 */
@@ -727,7 +757,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public String getVersion() {
 		return version;
 	}
-	
+
 	/*
 	 * The time of last project export
 	 */
@@ -735,7 +765,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		try {
 			File f = Engine.projectFile(getName());
 			return f.lastModified();
-		} catch (Throwable t) {}
+		} catch (Throwable t) {
+		}
 		return 0L;
 	}
 
@@ -743,61 +774,62 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		if ("exported".equals(propertyName)) {
 			try {
 				return df.format(new Date(getExportTime()));
+			} catch (Exception e) {
 			}
-			catch (Exception e) {}
 		}
 		return "";
 	}
-	
+
 	public String getInfoForProperty(String propertyName, Locale locale) {
 		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, locale);
 		return getInfoForProperty(propertyName, df, locale);
 	}
-	
+
 	public String getInfoForProperty(String propertyName) {
 		return getInfoForProperty(propertyName, Locale.getDefault());
 	}
-	
+
 	public Map<String, Boolean> getNeededProjects() {
 		Map<String, Boolean> neededProjects = new HashMap<>();
-		
+
 		// needed projects by mapping operations
 		getNeededProjects(neededProjects, getUrlMapper());
-		
-		//needed projects by references
+
+		// needed projects by references
 		for (Reference reference : getReferenceList()) {
 			getNeededProjects(neededProjects, reference);
 		}
-		
-		//needed projects by sequences
+
+		// needed projects by sequences
 		for (Sequence sequence : getSequencesList()) {
 			getNeededProjects(neededProjects, sequence);
 		}
-		
-		//needed projects for the mobile application
+
+		// needed projects for the mobile application
 		try {
 			IApplicationComponent app = mobileApplication.getApplicationComponent();
-			
+
 			String tplProject = app.getTplProjectName();
 			if (!neededProjects.containsKey(tplProject)) {
 				neededProjects.put(tplProject, false);
 			}
-			
-			for (DatabaseObject child: app.getAllChildren()) {
+
+			for (DatabaseObject child : app.getAllChildren()) {
 				getNeededProjects(neededProjects, child);
 			}
-			
-		} catch (Exception e) {}
-		
+
+		} catch (Exception e) {
+		}
+
 		return neededProjects;
 	}
-	
+
 	private void getNeededProjects(Map<String, Boolean> neededProjects, DatabaseObject dbo) {
 		if (dbo instanceof UrlMapper) {
-			UrlMapper urlMapper = (UrlMapper)dbo;
+			UrlMapper urlMapper = (UrlMapper) dbo;
 			if (urlMapper != null) {
-				for (UrlMapping mapping: urlMapper.getMappingList()) {
-					for (UrlMappingOperation operation: mapping.getOperationList()) {
+				for (UrlMapping mapping : urlMapper.getMappingList()) {
+					for (UrlMappingOperation operation : mapping.getOperationList()) {
 						String targetRequestableQName = operation.getTargetRequestable();
 						if (!targetRequestableQName.isEmpty()) {
 							int index = targetRequestableQName.indexOf(".");
@@ -809,23 +841,20 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					}
 				}
 			}
-		}
-		else if (dbo instanceof ProjectSchemaReference) {
+		} else if (dbo instanceof ProjectSchemaReference) {
 			String targetProjectName = ((ProjectSchemaReference) dbo).getParser().getProjectName();
 			if (!targetProjectName.isBlank()) {
 				neededProjects.put(targetProjectName, true);
 			}
-		}
-		else if (dbo instanceof Sequence) {
+		} else if (dbo instanceof Sequence) {
 			getNeededProjects(neededProjects, ((Sequence) dbo).getSteps());
-		}
-		else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent ||
-					dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+		} else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent
+				|| dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 			try {
-				for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors()) {
+				for (java.beans.PropertyDescriptor pd : CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors()) {
 					if (pd.getPropertyEditorClass() != null) {
 						if (pd.getPropertyEditorClass().getSimpleName().equals("NamedSourceSelectorEditor")) {
-							Object args[] = { };
+							Object args[] = {};
 							Method getter = pd.getReadMethod();
 							String qname = (String) getter.invoke(dbo, args);
 							if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
@@ -839,10 +868,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					}
 				}
 				if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) {
-					com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = 
-							((com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement)dbo).getIonBean();
+					com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = ((com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) dbo)
+							.getIonBean();
 					if (ionBean != null) {
-						for (com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+						for (com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty property : ionBean
+								.getProperties().values()) {
 							String editor = property.getEditor();
 							if (editor.equals("NamedSourceSelectorEditor")) {
 								String qname = (String) property.getValue();
@@ -858,10 +888,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					}
 				}
 				if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = 
-							((com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement)dbo).getIonBean();
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = ((com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) dbo)
+							.getIonBean();
 					if (ionBean != null) {
-						for (com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+						for (com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty property : ionBean
+								.getProperties().values()) {
 							String editor = property.getEditor();
 							if (editor.equals("NamedSourceSelectorEditor")) {
 								String qname = (String) property.getValue();
@@ -876,16 +907,16 @@ public class Project extends DatabaseObject implements IInfoProperty {
 						}
 					}
 				}
-			} catch (Exception e)	{
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-			for (DatabaseObject child: dbo.getAllChildren()) {
+			for (DatabaseObject child : dbo.getAllChildren()) {
 				getNeededProjects(neededProjects, child);
 			}
 		}
 	}
-	
+
 	private void getNeededProjects(Map<String, Boolean> projectList, List<Step> steps) {
 		for (Step step : steps) {
 			if (step instanceof StepWithExpressions) {
@@ -899,29 +930,30 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			}
 		}
 	}
-	
+
 	public Map<String, Boolean> getMissingProjectReferences() {
 		Map<String, Boolean> missingProjects = getNeededProjects();
-		for (String project: new HashSet<>(missingProjects.keySet())) {
+		for (String project : new HashSet<>(missingProjects.keySet())) {
 			if (ProjectUtils.existProjectSchemaReference(this, project)) {
 				missingProjects.remove(project);
 			}
 		}
-		
+
 		try {
 			missingProjects.remove(getName());
 			missingProjects.remove(mobileApplication.getApplicationComponent().getTplProjectName());
 		} catch (Exception e) {
 		}
-		
+
 		return missingProjects;
 	}
-	
+
 	public Map<String, Boolean> getMissingProjects() {
 		Map<String, Boolean> missingProjects = getNeededProjects();
-		for (Entry<String, Boolean> project: new HashMap<>(missingProjects).entrySet()) {
+		for (Entry<String, Boolean> project : new HashMap<>(missingProjects).entrySet()) {
 			try {
-				if (Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(), project.getValue()) != null) {
+				if (Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(),
+						project.getValue()) != null) {
 					missingProjects.remove(project.getKey());
 				}
 			} catch (Exception e) {
@@ -946,15 +978,16 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void setXpathEngine(XPathEngine xpathEngine) {
 		this.xpathEngine = xpathEngine;
 	}
-	
+
 	private List<File> addClassPathDirs(List<File> dirs) {
 		File dir = new File(getDirPath(), "libs");
 		if (!dirs.contains(dir)) {
 			dirs.add(dir);
 			Map<String, Boolean> missingProjects = getNeededProjects();
-			for (Entry<String, Boolean> project: new HashMap<>(missingProjects).entrySet()) {
+			for (Entry<String, Boolean> project : new HashMap<>(missingProjects).entrySet()) {
 				try {
-					Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(), project.getValue());
+					Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(),
+							project.getValue());
 					if (prj != null) {
 						prj.addClassPathDirs(dirs);
 					}
@@ -964,7 +997,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return dirs;
 	}
-	
+
 	public ClassLoader getProjectClassLoader() {
 		Object original = getOriginal();
 		if (original != this) {
@@ -982,11 +1015,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return loader;
 	}
-	
+
 	public void set(String key, Object value) {
 		Engine.theApp.getShareProjectMap(this).set(key, value);
 	}
-	
+
 	public Object get(String key) {
 		return Engine.theApp.getShareProjectMap(this).get(key);
 	}
@@ -1011,8 +1044,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return super.testAttribute(name, value);
 	}
-	
+
 	static public String formatNameWithHash(Project project) {
-		return project != null ? project.getName() + " ("+ project.hashCode() +")" : "unknow";
+		return project != null ? project.getName() + " (" + project.hashCode() + ")" : "unknow";
 	}
 }

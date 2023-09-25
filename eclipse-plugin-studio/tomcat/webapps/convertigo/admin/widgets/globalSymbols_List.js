@@ -145,16 +145,56 @@ function globalSymbols_List_init() {
 			}, {
 				name : 'btnEdit',
 				index : 'btnEdit',
-				width : 10,
+				width : 25,
 				sortable : false,
 				align : "center"
 			}, {
 				name : 'btnDelete',
 				index : 'btnDelete',
-				width : 20,
+				width : 25,
 				sortable : false,
 				align : "center"
 			} ],
+			ignoreCase : true,
+			autowidth : true,
+			cellEdit : false,
+			viewrecords : true,
+			height : 'auto',
+			sortable : true,
+			pgbuttons : true,
+			pginput : true,
+			toppager : false,
+			altRows : false,	
+			rowNum: '1000000'
+		});
+		$("#defaultSymbolsList").jqGrid( {
+			datatype : "local",
+			colNames : ['Project', 'Name', 'Value', 'Add'],
+			colModel : [ {
+				name : 'project',
+				index : 'project',
+				width : 80,
+				align : "left",
+				formatter : htmlEncode
+			}, {
+				name : 'name',
+				index : 'name',
+				width : 80,
+				align : "left",
+				formatter : htmlEncode
+			}, {
+				name : 'value',
+				index : 'value',
+				width : 120,
+				align : "left",
+				formatter : globalSymbolsCheckSecret
+			}, {
+				name : 'btnAdd',
+				index : 'btnAdd',
+				width : 25,
+				sortable : false,
+				align : "center"
+			}],
 			ignoreCase : true,
 			autowidth : true,
 			cellEdit : false,
@@ -191,6 +231,25 @@ function globalSymbols_List_init() {
 		deleteSymbol($(this).parents("tr:first").find(">td:eq(1)").text());
 		return false;
 	});
+	
+	$(document).on("click", ".defaultSymbolAdd", function () {
+		var $row = $(this).parents("tr:first");
+		callService("global_symbols.Add", function(xml) {
+			var $response = $(xml).find("response:first");
+			if ($response.attr("state") == "success") {
+				globalSymbols_List_update();
+			}
+			showInfo($(xml).find("response").attr("message"));
+		}, {
+			symbolName: $row.find(">td:eq(1)").text(),
+			symbolValue: $row.find(">td:eq(2)>span").data("val") || $row.find(">td:eq(2)").text()
+		});
+		return false;
+	});
+}
+
+function globalSymbolsCheckSecret(val, col, row) {
+	return row.name.endsWith(".secret") ? "**********" + $("<span/>").attr("data-val", val).prop("outerHTML") : htmlEncode(val);
 }
 
 function hideExportSymbolsPanel() {
@@ -218,6 +277,7 @@ function globalSymbols_List_update() {
 function updateGlobalSymbolsList(xml) {
 	if ($(xml).find("symbol")) {
 		$("#symbolsList").jqGrid('clearGridData');
+		$("#defaultSymbolsList").jqGrid('clearGridData');
 	}
 	
 	var symbolName = "";
@@ -240,6 +300,26 @@ function updateGlobalSymbolsList(xml) {
 		}
 	} else {
 		$("#symbolsListButtonDeleteAll").button("disable");
+	}
+	var $defaultSymbolsDiv = $("#defaultSymbolsList").parents(".ui-jqgrid:first")
+
+	if ($(xml).find("defaultSymbol").length) {
+		$(xml).find("defaultSymbol").each(function(index) {
+			$("#defaultSymbolsList").jqGrid(
+				"addRowData",
+				"defaultSymbolsRow" + index,
+				{
+					project: $(this).attr("project"),
+					name : $(this).attr("name"),
+					value : $(this).attr("value"),
+					btnAdd : "<a class=\"defaultSymbolAdd\" href=\"#defaultadd\"><img border=\"0\" title=\"Add\" src=\"images/convertigo-administration-picto-add.png\"></a>"
+				});
+		});
+		$defaultSymbolsDiv.show();
+		$defaultSymbolsDiv.prev().show();
+	} else {
+		$defaultSymbolsDiv.hide();
+		$defaultSymbolsDiv.prev().hide();
 	}
 }
 
