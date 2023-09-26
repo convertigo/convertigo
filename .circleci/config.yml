@@ -618,7 +618,6 @@ jobs:
   build_studio_mac:
     macos:
       xcode: 15.0.0
-    resource_class: macos.x86.medium.gen2
     steps:
     - aws-cli/setup
     - attach_workspace:
