@@ -267,10 +267,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	// Thread reference to currently loaded project for log needs
 	public static class ProjectLoadingData {
-		public ProjectLoadingData() {}
+		public ProjectLoadingData() {
+		}
 
 		private String projectName;
 		public boolean undefinedGlobalSymbol = false;
+		public Set<Pair<String, String>> defaultSymbols = null;
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {
@@ -290,7 +292,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
-		
+
 		if (checkOpenable && !canOpenProject(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
@@ -318,8 +320,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
-				throw new EngineException("Unable to load the project \"" + projectName
-						+ "\": the project is in migration process.", e);
+				throw new EngineException(
+						"Unable to load the project \"" + projectName + "\": the project is in migration process.", e);
 			} catch (VersionException e) {
 				throw e;
 			} catch (Exception e) {
@@ -329,7 +331,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" loaded in " + (t1 - t0) + " ms");
 			}
 		} else if (!project.getDirFile().exists()) {
-			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + project.getDirFile());
+			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName
+					+ "\" but removing it because its folder missing: " + project.getDirFile());
 			clearCache(project);
 			project = null;
 		} else {
@@ -339,19 +342,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return project;
 	}
 
-	public static boolean checkParent(Class<? extends DatabaseObject> parentObjectClass, DboBean bean) throws ClassNotFoundException {
+	public static boolean checkParent(Class<? extends DatabaseObject> parentObjectClass, DboBean bean)
+			throws ClassNotFoundException {
 		Collection<DboParent> parents = bean.getParents();
 		for (DboParent possibleParent : parents) {
 			// Check if parent allow inheritance
-			if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass) ||
-					possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
+			if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)
+					|| possibleParent.allowInheritance()
+							&& Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, DatabaseObject object ) {
+	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, DatabaseObject object) {
 		try {
 			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 			Class<? extends DatabaseObject> objectClass = object.getClass();
@@ -361,7 +366,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			for (DboGroup group : groups) {
 				List<DboCategory> categories = group.getCategories();
 				for (DboCategory category : categories) {
-					List<DboBeans> beansCategories	= category.getBeans();
+					List<DboBeans> beansCategories = category.getBeans();
 					for (DboBeans beansCategory : beansCategories) {
 						List<DboBean> beans = beansCategory.getBeans();
 						for (DboBean bean : beans) {
@@ -373,8 +378,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 							if (isDatabaseObject) {
 								// ... and should derived from the specified class
-								boolean isFromSpecifiedClass = ((objectClass == null) ||
-										((objectClass != null) && (objectClass.isAssignableFrom(beanClass))));
+								boolean isFromSpecifiedClass = ((objectClass == null)
+										|| ((objectClass != null) && (objectClass.isAssignableFrom(beanClass))));
 								if (isFromSpecifiedClass) {
 									// Check parent
 									boolean bFound = checkParent(parentObjectClass, bean);
@@ -383,7 +388,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 										String technology = DboUtils.getTechnology(parentObject, objectClass);
 										if (technology != null) {
 											Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
-											if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
+											if (!acceptedTechnologies.isEmpty()
+													&& !acceptedTechnologies.contains(technology)) {
 												continue;
 											}
 										}
@@ -429,15 +435,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (projects) {
 				project = projects.remove(projectName);
 				if (project != null) {
-					Engine.logDatabaseObjectManager.info("[clearCache] project removed from cache: "+ Project.formatNameWithHash(project));
+					Engine.logDatabaseObjectManager
+							.info("[clearCache] project removed from cache: " + Project.formatNameWithHash(project));
 				}
 			}
 		}
 		if (project != null) {
-			Engine.logDatabaseObjectManager.info("[clearCache] start releasing for "+ Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
-			Engine.logDatabaseObjectManager.info("[clearCache] end releasing for "+ Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[clearCache] end releasing for " + Project.formatNameWithHash(project));
 		}
 	}
 
@@ -455,16 +464,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (projects.containsKey(projectName) && symbolsProjectCheckUndefined(projectName)) {
 					project = projects.remove(projectName);
 					if (project != null) {
-						Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] project removed from cache: "+ Project.formatNameWithHash(project));
+						Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] project removed from cache: "
+								+ Project.formatNameWithHash(project));
 					}
 				}
 			}
 		}
 		if (project != null) {
-			Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] start releasing for "+ Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
-			Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] end releasing for "+ Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[clearCacheIfSymbolError] end releasing for " + Project.formatNameWithHash(project));
 		}
 	}
 
@@ -482,11 +494,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return file.exists();
 	}
 
-	public void deleteProject(String projectName, boolean bCreateBackup, boolean bDataOnly)
-			throws EngineException {
-		deleteProject(projectName,
-				bCreateBackup ? DeleteProjectOption.createBackup : null,
-						bDataOnly ? DeleteProjectOption.dataOnly : null);
+	public void deleteProject(String projectName, boolean bCreateBackup, boolean bDataOnly) throws EngineException {
+		deleteProject(projectName, bCreateBackup ? DeleteProjectOption.createBackup : null,
+				bDataOnly ? DeleteProjectOption.dataOnly : null);
 	}
 
 	public void deleteProject(String projectName, DeleteProjectOption... options) throws EngineException {
@@ -529,7 +539,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 
-			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT) && !Engine.isCliMode()) {
+			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)
+					&& !Engine.isCliMode()) {
 				Engine.logDatabaseObjectManager.info("Making backup of project \"" + projectName + "\"");
 				makeProjectBackup(projectName, removeDir);
 			}
@@ -551,7 +562,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						f.delete();
 					}
 				} else {
-					for (File f: removeDir.listFiles((dir, name) -> {
+					for (File f : removeDir.listFiles((dir, name) -> {
 						if (bPreserveEclipe && (name.equals(".project") || name.equals(".settings"))) {
 							return false;
 						}
@@ -561,14 +572,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 						return true;
 					})) {
 						deleteDir(f);
-					};
+					}
+					;
 				}
 			}
 
 			clearCache(projectName);
 		} catch (Exception e) {
-			throw new EngineException("Unable to delete" + (bDataOnly ? " datas for" : "") + " project \""
-					+ projectName + "\".", e);
+			throw new EngineException(
+					"Unable to delete" + (bDataOnly ? " datas for" : "") + " project \"" + projectName + "\".", e);
 		}
 	}
 
@@ -589,7 +601,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (dir.isDirectory()) {
 				boolean deleted = FileUtils.deleteQuietly(dir);
 				if (deleted) {
-					Engine.logDatabaseObjectManager.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
+					Engine.logDatabaseObjectManager
+							.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
 					return;
 				}
 
@@ -624,24 +637,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 				File file = new File(projectArchiveFilename);
 				int i = 1;
 				while (file.exists()) {
-					projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + "_" + i
-							+ ".zip";
+					projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + "_" + i + ".zip";
 					file = new File(projectArchiveFilename);
 					i++;
 				}
 
 				// Creating backup
-				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, new HashSet<File>(Arrays.asList(
-						new File(projectDir, "_private"),
-						new File(projectDir, ".git"),
-						new File(projectDir, ".svn"))
-						));
+				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName,
+						new HashSet<File>(Arrays.asList(new File(projectDir, "_private"), new File(projectDir, ".git"),
+								new File(projectDir, ".svn"))));
 			} else {
-				Engine.logDatabaseObjectManager.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
+				Engine.logDatabaseObjectManager
+						.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
 			}
 		} catch (Exception e) {
-			throw new EngineException(
-					"Unable to make backup archive for the project \"" + projectName + "\".", e);
+			throw new EngineException("Unable to make backup archive for the project \"" + projectName + "\".", e);
 		}
 	}
 
@@ -654,9 +664,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 			boolean isArchive = false, needsMigration = false;
 			Project project = null;
 
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  " + projectFileName);
+			Engine.logDatabaseObjectManager
+					.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  " + projectFileName);
 			File projectFile = new File(projectFileName);
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  " + projectFile.exists());
+			Engine.logDatabaseObjectManager
+					.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  " + projectFile.exists());
 
 			if (projectFile.exists()) {
 				String projectName = getProjectName(projectFile);
@@ -674,24 +686,25 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 			} else {
-				//Added by julienda - 10/09/2012
-				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName :  " + projectFileName);
-				//Get the correct archive file (path)
-				String archiveFileProject =  ZipUtils.getArchiveName(projectFileName);
+				// Added by julienda - 10/09/2012
+				Engine.logDatabaseObjectManager
+						.trace("DatabaseObjectsManager.updateProject() - projectFileName :  " + projectFileName);
+				// Get the correct archive file (path)
+				String archiveFileProject = ZipUtils.getArchiveName(projectFileName);
 
 				if (archiveFileProject == null) {
 					throw new EngineException("File \"" + projectFileName + "\" is missing");
 				} else {
-					//Call method with the correct archive (path)
-					updateProject(new File(new File (projectFileName).getParent(), archiveFileProject).getPath());
+					// Call method with the correct archive (path)
+					updateProject(new File(new File(projectFileName).getParent(), archiveFileProject).getPath());
 				}
 
-				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - archiveFileProject  :  " + archiveFileProject);
+				Engine.logDatabaseObjectManager
+						.trace("DatabaseObjectsManager.updateProject() - archiveFileProject  :  " + archiveFileProject);
 			}
 			return project;
 		} catch (Exception e) {
-			throw new EngineException("Unable to update the project from the file \"" + projectFileName
-					+ "\".", e);
+			throw new EngineException("Unable to update the project from the file \"" + projectFileName + "\".", e);
 		}
 	}
 
@@ -704,7 +717,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		CarUtils.exportProject(project, exportedProjectFileName);
 		if (exportedProjectFileName.endsWith(".xml")) {
 			File yaml = new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml");
-			Engine.logDatabaseObjectManager.info("Declaring project project \"" + projectName + "\" to: " + yaml.getAbsolutePath());
+			Engine.logDatabaseObjectManager
+					.info("Declaring project project \"" + projectName + "\" to: " + yaml.getAbsolutePath());
 			getStudioProjects().declareProject(projectName, yaml);
 		}
 		RestApiManager.getInstance().putUrlMapper(project);
@@ -720,7 +734,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return deployProject(projectArchiveFilename, targetProjectName, bForce, false);
 	}
 
-	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences) throws Exception {
+	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences)
+			throws Exception {
 		HttpGet get = new HttpGet(projectUrl.toURI());
 		File archive = File.createTempFile("convertigoImportFromHttp", ".car");
 		archive.deleteOnExit();
@@ -743,7 +758,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 					t += n;
 					now = System.currentTimeMillis();
 					if (now > ts) {
-						Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
+						Engine.logEngine
+								.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
 						ts = now + 2000;
 					}
 				}
@@ -756,17 +772,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce, boolean keepOldReferences)
-			throws EngineException {
+	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce,
+			boolean keepOldReferences) throws EngineException {
 		if (projectArchiveFilename.matches("https?://.+")) {
 			try {
 				return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
 			} catch (Exception e) {
-				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename + "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename
+						+ "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());
 				try {
 					return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
 				} catch (Exception e2) {
-					throw new EngineException("Failed to load project from '" + projectArchiveFilename + "' because of [" + e2.getClass().getSimpleName() + "] " + e2.getMessage(), e2);
+					throw new EngineException("Failed to load project from '" + projectArchiveFilename
+							+ "' because of [" + e2.getClass().getSimpleName() + "] " + e2.getMessage(), e2);
 				}
 			}
 		}
@@ -798,17 +816,17 @@ public class DatabaseObjectsManager implements AbstractManager {
 			File existingProject = Engine.projectFile(targetProjectName);
 			projectDirPath = existingProject.getParent();
 
-			Engine.logDatabaseObjectManager.info("Deploying the project \"" + archiveProjectName + "\" to \"" + projectDirPath + "\"");
+			Engine.logDatabaseObjectManager
+					.info("Deploying the project \"" + archiveProjectName + "\" to \"" + projectDirPath + "\"");
 			try {
 				if (existingProject.exists()) {
 					if (bForce) {
 						// Deleting existing project if any
-						deleteProject(targetProjectName,
-								DeleteProjectOption.createBackup,
-								DeleteProjectOption.preserveEclipse,
-								DeleteProjectOption.preserveVCS);
+						deleteProject(targetProjectName, DeleteProjectOption.createBackup,
+								DeleteProjectOption.preserveEclipse, DeleteProjectOption.preserveVCS);
 					} else {
-						Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" has already been deployed.");
+						Engine.logDatabaseObjectManager
+								.info("Project \"" + targetProjectName + "\" has already been deployed.");
 						return null;
 					}
 				}
@@ -823,7 +841,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.debug("Analyzing the archive entries: " + projectArchiveFilename);
 			ZipUtils.expandZip(projectArchiveFilename, projectDirPath, archiveProjectName);
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".", e);
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
+					e);
 		}
 
 		try {
@@ -866,8 +885,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename
-					+ "\".", e);
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
+					e);
 		}
 	}
 
@@ -894,18 +913,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 					// retrieve sheet url
 					properties = ((Element) sheets.item(i)).getElementsByTagName("property");
 					prop = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "url");
-					sheetUrl = projectDir
-							+ "/"
-							+ ((Element) prop.getElementsByTagName("java.lang.String").item(0))
-							.getAttribute("value");
+					sheetUrl = projectDir + "/"
+							+ ((Element) prop.getElementsByTagName("java.lang.String").item(0)).getAttribute("value");
 					// read file
 					xslDom = XMLUtils.loadXml(sheetUrl);
 					if (Engine.logDatabaseObjectManager.isTraceEnabled())
-						Engine.logDatabaseObjectManager.trace("XSL file read: " + sheetUrl + "\n"
-								+ XMLUtils.prettyPrintDOM(xslDom));
+						Engine.logDatabaseObjectManager
+								.trace("XSL file read: " + sheetUrl + "\n" + XMLUtils.prettyPrintDOM(xslDom));
 					includes = xslDom.getDocumentElement().getElementsByTagName("xsl:include");
-					Engine.logDatabaseObjectManager.trace(includes.getLength()
-							+ " \"xsl:include\" tags in the XSL file");
+					Engine.logDatabaseObjectManager
+							.trace(includes.getLength() + " \"xsl:include\" tags in the XSL file");
 					// for each include element, include the xsl elemnts
 					for (int j = 0; j < includes.getLength(); j++) {
 						includeXsl(projectDir, (Element) includes.item(j));
@@ -917,30 +934,28 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 					// save the xsl dom in the xsl file
 					if (Engine.logDatabaseObjectManager.isTraceEnabled())
-						Engine.logDatabaseObjectManager
-						.trace("XSL file saved after including include files: \n"
-								+ XMLUtils.prettyPrintDOM(xslDom));
+						Engine.logDatabaseObjectManager.trace(
+								"XSL file saved after including include files: \n" + XMLUtils.prettyPrintDOM(xslDom));
 					XMLUtils.saveXml(xslDom, sheetUrl);
 				}
 
 			} catch (Exception e) {
 				deleteProject(projectName);
-				throw new EngineException("Unable to assemble the XSL files from project \"" + projectName
-						+ "\".", e);
+				throw new EngineException("Unable to assemble the XSL files from project \"" + projectName + "\".", e);
 			}
 		}
 
 		return project;
 	}
 
-	private void includeXsl(String projectDir, Element includeElem) throws ParserConfigurationException,
-	SAXException, IOException {
+	private void includeXsl(String projectDir, Element includeElem)
+			throws ParserConfigurationException, SAXException, IOException {
 		Element parentElem = (Element) includeElem.getParentNode();
 		Document doc = includeElem.getOwnerDocument();
 
 		String href = includeElem.getAttribute("href");
-		String xslFile = href.startsWith("../../xsl/") ? Engine.XSL_PATH
-				+ href.substring(href.lastIndexOf("/")) : projectDir + "/" + href;
+		String xslFile = href.startsWith("../../xsl/") ? Engine.XSL_PATH + href.substring(href.lastIndexOf("/"))
+				: projectDir + "/" + href;
 		Document document = XMLUtils.loadXml(xslFile);
 		NodeList xslElements = document.getDocumentElement().getChildNodes();
 		Node xslElem, importedXslElem;
@@ -962,7 +977,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		parentElem.removeChild(includeElem);
 	}
 
-	static private Map<String ,Pair<String, Long>> projectNameCache = new HashMap<>();
+	static private Map<String, Pair<String, Long>> projectNameCache = new HashMap<>();
+
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
 		if (projectFile != null) {
@@ -970,13 +986,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (projectFile.exists()) {
 				Pair<String, Long> cache;
 				long lastModified = projectFile.lastModified();
-				if ((cache = projectNameCache.get(path)) != null
-						&& cache.getRight() == lastModified) {
+				if ((cache = projectNameCache.get(path)) != null && cache.getRight() == lastModified) {
 					projectName = cache.getLeft();
 				} else {
 					String filename = projectFile.getName();
 					if (filename.equals("c8oProject.yaml")) {
-						try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
+						try (BufferedReader br = new BufferedReader(
+								new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 							String line = br.readLine();
 							Matcher m = pYamlProjectName.matcher("");
 							while (line != null && projectName == null) {
@@ -1016,7 +1032,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		final String[] version = { null };
 		if (projectFile.exists()) {
 			if (projectFile.getName().equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
+				try (BufferedReader br = new BufferedReader(
+						new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectVersion.matcher("");
 					while (line != null && version[0] == null) {
@@ -1039,7 +1056,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 					XMLUtils.saxParse(projectFile, new DefaultHandler() {
 
 						@Override
-						public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+						public void startElement(String uri, String localName, String qName, Attributes attributes)
+								throws SAXException {
 							if ("convertigo".equals(qName)) {
 								// since 6.0.6 (fix #2804)
 								version[0] = attributes.getValue("beans");
@@ -1075,7 +1093,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (filename.endsWith(".xml") && !importFile.exists()) {
 			String oldName = filename;
 			importFile = new File(importFile.getParentFile(), "c8oProject.yaml");
-			Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + importFile);
+			Engine.logDatabaseObjectManager
+					.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + importFile);
 		}
 		String projectName = getProjectName(importFile);
 		if (projectName == null) {
@@ -1102,7 +1121,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 					synchronized (projects) {
 						project = projects.get(projectName);
 						if (project != null) {
-							Engine.logDatabaseObjectManager.info("[importProject] return project from cache: " + Project.formatNameWithHash(project));
+							Engine.logDatabaseObjectManager.info("[importProject] return project from cache: "
+									+ Project.formatNameWithHash(project));
 							return project;
 						}
 					}
@@ -1130,7 +1150,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// Retrieve project name
 				NodeList properties = projectElement.getElementsByTagName("property");
 				Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-				String xName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
+				String xName = (String) XMLUtils
+						.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
 				if (!projectName.equals(xName)) {
 					throw new EngineException("Project name mismatch: " + projectName + " != " + xName);
 				}
@@ -1158,7 +1179,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 					throw e;
 				} catch (Exception e) {
 					if (document != null) {
-						Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
+						Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n"
+								+ XMLUtils.prettyPrintDOM(document));
 					}
 					throw e;
 				}
@@ -1167,22 +1189,26 @@ public class DatabaseObjectsManager implements AbstractManager {
 				synchronized (projects) {
 					projects.put(project.getName(), project);
 				}
-				Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + Project.formatNameWithHash(project));
-				Engine.logDatabaseObjectManager.info("[importProject] Leave synchronized: " + Project.formatNameWithHash(project));
+				Engine.logDatabaseObjectManager
+						.info("[importProject] Put in projects cache: " + Project.formatNameWithHash(project));
+				Engine.logDatabaseObjectManager
+						.info("[importProject] Leave synchronized: " + Project.formatNameWithHash(project));
 			}
-
 
 			if (this instanceof SystemDatabaseObjectsManager) {
 				return project;
 			}
 
-			Engine.logDatabaseObjectManager.info("[importProject] projectLoaded: " + Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[importProject] projectLoaded: " + Project.formatNameWithHash(project));
 			getStudioProjects().projectLoaded(project);
 
-			Engine.logDatabaseObjectManager.info("[importProject] start initializing: " + Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[importProject] start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
-			Engine.logDatabaseObjectManager.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
+			Engine.logDatabaseObjectManager
+					.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
 
 			if (!Engine.isStudioMode()) {
 				Engine.theApp.referencedProjectManager.check(project);
@@ -1204,15 +1230,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (VersionUtils.compare(version, "4.0.1") >= 0) {
 					exportProject(project);
 				} else {
-					Engine.logDatabaseObjectManager
-					.error("Project \""
-							+ projectName
+					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
 				}
 			}
 
 			if (project.undefinedGlobalSymbols) {
-				Engine.logDatabaseObjectManager.error("Project \"" + projectName + "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
+				Engine.logDatabaseObjectManager.error("Project \"" + projectName
+						+ "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
 			}
 
 			if (Engine.isEngineMode() && !Engine.isCliMode()) {
@@ -1227,7 +1252,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			if (!Engine.isCliMode()) {
 				Project p = project;
-				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
+				Engine.logDatabaseObjectManager
+						.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
 				Engine.execute(() -> {
 					CouchDbManager.syncDocument(p);
 				});
@@ -1259,21 +1285,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 				projectNode = Migration001.migrate(document, projectNode);
 
 				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to m001:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
+					Engine.logDatabaseObjectManager
+							.trace("XML migrated to m001:\n" + (XMLUtils.prettyPrintDOM(document)));
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
 			}
 
 			// Migration to version 8.0.0 (ngx shared component's events)
 			if (VersionUtils.compareProductVersion(version, "8.0.0") <= 0) {
-				Engine.logDatabaseObjectManager.info("XML project's file migration to 8.0.0 schema (ngx shared component's events)...");
+				Engine.logDatabaseObjectManager
+						.info("XML project's file migration to 8.0.0 schema (ngx shared component's events)...");
 
 				projectNode = Migration8_0_0.migrate(document, projectNode);
 
 				if (Engine.logDatabaseObjectManager.isTraceEnabled())
-					Engine.logDatabaseObjectManager.trace("XML migrated to v8.0.0:\n"
-							+ (XMLUtils.prettyPrintDOM(document)));
+					Engine.logDatabaseObjectManager
+							.trace("XML migrated to v8.0.0:\n" + (XMLUtils.prettyPrintDOM(document)));
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
 			}
@@ -1287,7 +1314,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void performPostMigration(String version, String projectName) {
 		if (VersionUtils.compare(version, "6.2.0") < 0) {
 			try {
-				//Project project = getProjectByName(projectName); //recursivity issue since #4780
+				// Project project = getProjectByName(projectName); //recursivity issue since
+				// #4780
 				Project project = getOriginalProjectByName(projectName, false);
 				for (Sequence sequence : project.getSequencesList()) {
 					// Modify source's xpath for steps which have a source on a ReadFileStep
@@ -1316,12 +1344,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 							String xsdTypes = transaction.migrateToXsdTypes();
 							transaction.writeSchemaToFile(xsdTypes);
 							Engine.logDatabaseObjectManager
-							.info("Internal schema stored for \""
-									+ transaction.getName() + "\" transaction");
+									.info("Internal schema stored for \"" + transaction.getName() + "\" transaction");
 						} catch (Exception e) {
-							Engine.logDatabaseObjectManager.error(
-									"An error occured while writing schema to file for \""
-											+ transaction.getName() + "\" transaction");
+							Engine.logDatabaseObjectManager.error("An error occured while writing schema to file for \""
+									+ transaction.getName() + "\" transaction");
 						}
 					}
 				}
@@ -1338,19 +1364,17 @@ public class DatabaseObjectsManager implements AbstractManager {
 						replaceSourceXpath(version, sequence, steps);
 
 						Engine.logDatabaseObjectManager
-						.info("Step sources updated for sequence \""
-								+ sequence.getName() + "\"");
+								.info("Step sources updated for sequence \"" + sequence.getName() + "\"");
 					} catch (Exception e) {
-						Engine.logDatabaseObjectManager.error(
-								"An error occured while updating step sources for sequence \""
+						Engine.logDatabaseObjectManager
+								.error("An error occured while updating step sources for sequence \""
 										+ sequence.getName() + "\"");
 					}
 				}
 
-
 			} catch (Exception e) {
-				Engine.logDatabaseObjectManager.error(
-						"An error occured while updating project '" + projectName + "' for XSD", e);
+				Engine.logDatabaseObjectManager
+						.error("An error occured while updating project '" + projectName + "' for XSD", e);
 				return false;
 			}
 		}
@@ -1398,10 +1422,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 							xpath = xpath.replaceFirst("./", "./" + replace + "/document/");
 							definition.set(1, xpath);
 						}
-					}
-					else if (VersionUtils.compare(version, "6.2.0") < 0) {
+					} else if (VersionUtils.compare(version, "6.2.0") < 0) {
 						if (sourceStep instanceof ReadFileStep) {
-							xpath = ((ReadFileStep)sourceStep).migrateSourceXpathFor620(xpath);
+							xpath = ((ReadFileStep) sourceStep).migrateSourceXpathFor620(xpath);
 							definition.set(1, xpath);
 						}
 					}
@@ -1410,8 +1433,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	private DatabaseObject importDatabaseObject(Node node, DatabaseObject parentDatabaseObject)
-			throws EngineException {
+	private DatabaseObject importDatabaseObject(Node node, DatabaseObject parentDatabaseObject) throws EngineException {
 		try {
 			DatabaseObject databaseObject = DatabaseObject.read(node);
 
@@ -1433,10 +1455,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				childNodeName = childNode.getNodeName();
 
-				if ((!childNodeName.equalsIgnoreCase("property"))
-						&& (!childNodeName.equalsIgnoreCase("handlers"))
-						&& (!childNodeName.equalsIgnoreCase("wsdltype"))
-						&& (!childNodeName.equalsIgnoreCase("docdata"))
+				if ((!childNodeName.equalsIgnoreCase("property")) && (!childNodeName.equalsIgnoreCase("handlers"))
+						&& (!childNodeName.equalsIgnoreCase("wsdltype")) && (!childNodeName.equalsIgnoreCase("docdata"))
 						&& (!childNodeName.equalsIgnoreCase("beandata"))) {
 					importDatabaseObject(childNode, databaseObject);
 				}
@@ -1450,13 +1470,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
-			if (e instanceof EngineException
-					&& ((EngineException) e).getCause() instanceof ClassNotFoundException) {
+			if (e instanceof EngineException && ((EngineException) e).getCause() instanceof ClassNotFoundException) {
 				Engine.logBeans.error("Maybe a database object doesn't exist anymore, drop it", e);
 				return null;
 			} else
-				throw new EngineException("Unable to import the object from the XML node \""
-						+ node.getNodeName() + "\".", e);
+				throw new EngineException(
+						"Unable to import the object from the XML node \"" + node.getNodeName() + "\".", e);
 		}
 	}
 
@@ -1479,16 +1498,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		File dir = file.getParentFile();
 		File newDir = new File(dir.getParentFile(), newName);
 		if (!dir.renameTo(newDir)) {
-			throw new EngineException(
-					"Unable to rename the object path \""
-							+ dir.getAbsolutePath()
-							+ "\" to \""
-							+ newDir.getAbsolutePath()
-							+ "\".\n This directory already exists or is probably locked by another application.");
+			throw new EngineException("Unable to rename the object path \"" + dir.getAbsolutePath() + "\" to \""
+					+ newDir.getAbsolutePath()
+					+ "\".\n This directory already exists or is probably locked by another application.");
 		}
 
 		try {
-			Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' " + (keepOldReferences ? "with" : "without") + " keepOldReferences");
+			Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' "
+					+ (keepOldReferences ? "with" : "without") + " keepOldReferences");
 			clearCache(project);
 			project.setName(newName);
 			project.hasChanged = true;
@@ -1518,6 +1535,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (symbolValue == null) {
 					if (def != null) {
 						symbolValue = def.replace("\\}", "}");
+						ProjectLoadingData data = getProjectLoadingData();
+						if (data.defaultSymbols != null) {
+							data.defaultSymbols.add(Pair.of(name, symbolValue));
+						}
 					} else {
 						if (undefinedSymbols == null) {
 							undefinedSymbols = new HashSet<String>();
@@ -1572,8 +1593,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 					if (def != null) {
 						envValue = def.replace("\\%", "%");
 					} else {
-						// If the environment variable is not defined and there is not default value neither
-						Engine.logDatabaseObjectManager.error("The environment variable "  + name + " is undefined.");
+						// If the environment variable is not defined and there is not default value
+						// neither
+						Engine.logDatabaseObjectManager.error("The environment variable " + name + " is undefined.");
 						envValue = mFindEnv.group(0);
 					}
 				}
@@ -1601,7 +1623,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Set<String> undefinedSymbols = null;
 			if (propertyObjectValue instanceof XMLVector<?>) {
 
-				XMLVector<Object> xmlv = GenericUtils.<XMLVector<Object>> cast(propertyObjectValue);
+				XMLVector<Object> xmlv = GenericUtils.<XMLVector<Object>>cast(propertyObjectValue);
 
 				for (int i = 0; i < xmlv.size(); i++) {
 					Object ob = xmlv.get(i);
@@ -1666,8 +1688,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				PropertiesUtils.load(prop, globalSymbolsFilePath);
 			} catch (FileNotFoundException e) {
-				String msg = "The symbols file specified in JVM argument as \""
-						+ globalSymbolsFilePath + "\" does not exist! Creating a new one...";
+				String msg = "The symbols file specified in JVM argument as \"" + globalSymbolsFilePath
+						+ "\" does not exist! Creating a new one...";
 				System.out.println(msg);
 				if (Engine.logDatabaseObjectManager != null) {
 					Engine.logDatabaseObjectManager.warn(msg);
@@ -1685,19 +1707,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 						Engine.logDatabaseObjectManager.warn(msg);
 					}
 				} catch (Exception e1) {
-					Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
+					Engine.logDatabaseObjectManager.error(
+							"Error while creating the global_symbols.properties file; symbols won't be calculated.",
+							e1);
 					return;
 				}
 			} catch (IOException e) {
-				Engine.logDatabaseObjectManager.error(
-						"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
-						+ "\"; symbols won't be calculated.", e);
+				Engine.logDatabaseObjectManager.error("Error while reading symbols file specified in JVM argument as \""
+						+ globalSymbolsFilePath + "\"; symbols won't be calculated.", e);
 				return;
 			}
 
 			symbolsLoad(prop);
 
-			Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded! [" + symbolsProperties.size() + "]");
+			Engine.logEngine
+					.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded! [" + symbolsProperties.size() + "]");
 		}
 	}
 
@@ -1732,11 +1756,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 				File parentFile = f.getParentFile();
-				oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + ".properties"));
+				oldFile = new File(parentFile,
+						f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + ".properties"));
 
 				int i = 1;
 				while (oldFile.exists()) {
-					oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + "_" + i + ".properties"));
+					oldFile = new File(parentFile, f.getName().replaceAll(".properties",
+							"_" + dateFormat.format(date) + "_" + i + ".properties"));
 					i++;
 				}
 				try {
@@ -1745,16 +1771,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 					Engine.logEngine.error("failed to backup symbols to " + oldFile, e);
 				}
 			}
-			//Remove all symbols & import symbols from file
+			// Remove all symbols & import symbols from file
 			if (importAction.equals("clear-import")) {
 				symbolsProperties.clear();
 				symbolsLoad(map);
 			}
-			//Add symbols from imported file and merge with existing symbols from server (priority to server if same key)
+			// Add symbols from imported file and merge with existing symbols from server
+			// (priority to server if same key)
 			if (importAction.equals("priority-server")) {
 				symbolsFileImport(map, true);
 			}
-			//Add symbols from imported file and merge with existing symbols from server (priority to import symbols if same key)
+			// Add symbols from imported file and merge with existing symbols from server
+			// (priority to import symbols if same key)
 			if (importAction.equals("priority-import")) {
 				symbolsFileImport(map, false);
 			}
@@ -1776,7 +1804,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		while (propsEnum.hasMoreElements()) {
 			String propertyName = propsEnum.nextElement();
 			try {
-				if (keepServerSymbols){
+				if (keepServerSymbols) {
 					if (!symbolsProperties.containsKey(propertyName)) {
 						symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 						needUpdate = true;
@@ -1806,7 +1834,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 					String name = propsEnum.nextElement();
 					symbolsToStore.put(name, symbolsGetValueStore(name));
 				}
-				String msg = "symbolsUpdated: " + symbolsToStore + " [" + symbolsToStore.size() + "] to:" + globalSymbolsFilePath;
+				String msg = "symbolsUpdated: " + symbolsToStore + " [" + symbolsToStore.size() + "] to:"
+						+ globalSymbolsFilePath;
 				if (Engine.logDatabaseObjectManager != null) {
 					Engine.logDatabaseObjectManager.warn(msg);
 				}
@@ -1815,24 +1844,32 @@ public class DatabaseObjectsManager implements AbstractManager {
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to store symbols!", e);
 			}
+			symbolsCheck();
+		}
+	}
 
-			for (Project project : projects.values()) {
-				getProjectLoadingData().undefinedGlobalSymbol = false;
-				try {
-					new WalkHelper() {
+	public void symbolsCheck() {
+		for (Project project : projects.values()) {
+			ProjectLoadingData data = getProjectLoadingData();
+			data.projectName = project.getName();
+			data.undefinedGlobalSymbol = false;
+			data.defaultSymbols = new TreeSet<>();
+			try {
+				new WalkHelper() {
 
-						@Override
-						protected void walk(DatabaseObject databaseObject) throws Exception {
-							databaseObject.updateSymbols();
-							super.walk(databaseObject);
-						}
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						databaseObject.updateSymbols();
+						super.walk(databaseObject);
+					}
 
-					}.init(project);
-				} catch (Exception e) {
-					Engine.logDatabaseObjectManager.error("Failed to update symbols of '" + project.getName() + "' project.", e);
-				}
-				project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+				}.init(project);
+			} catch (Exception e) {
+				Engine.logDatabaseObjectManager
+						.error("Failed to update symbols of '" + project.getName() + "' project.", e);
 			}
+			project.undefinedGlobalSymbols = data.undefinedGlobalSymbol;
+			project.defaultSymbols = data.defaultSymbols;
 		}
 	}
 
@@ -1873,7 +1910,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (symbolName == null || symbolName.isEmpty()) {
 			throw new IllegalArgumentException("The symbol name must not be empty");
 		} else if (pValidSymbolName.matcher(symbolName).find()) {
-			throw new IllegalArgumentException("The symbol name must not contain the following caracters '{', '=', or '}'");
+			throw new IllegalArgumentException(
+					"The symbol name must not contain the following caracters '{', '=', or '}'");
 		}
 	}
 
@@ -1967,7 +2005,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void symbolsCreateUndefined(String projectName) throws Exception {
 		Set<String> undefinedSymbols = symbolsGetUndefined(projectName);
 		symbolsCreateUndefined(undefinedSymbols);
-		Engine.logDatabaseObjectManager.info("The undefined global symbols for the project \"" + projectName + "\" are declared: " + undefinedSymbols);
+		Engine.logDatabaseObjectManager.info("The undefined global symbols for the project \"" + projectName
+				+ "\" are declared: " + undefinedSymbols);
 	}
 
 	public Set<String> symbolsSetCheckUndefined(Set<String> value) {

@@ -1,5 +1,21 @@
 # Changelog
 
+## 8.2.3
+
+#### Improvements:
+
+- [#764](https://github.com/convertigo/convertigo/issues/764) [Engine] Allow Docker image to output Convertigo logs into stdout
+- [#767](https://github.com/convertigo/convertigo/issues/767) [MobileBuilder] Apple Silicon downloads x64 NodeJS if arm64 doesn't exist
+- [#769](https://github.com/convertigo/convertigo/issues/769) [Engine] Update to the latest jGit
+- [#770](https://github.com/convertigo/convertigo/issues/770) [Admin] See symbols with default value in the symbols' page
+
+#### Bug Fixes:
+
+- [#765](https://github.com/convertigo/convertigo/issues/765) [Admin] Fixed, import symbols with no change in priority server will not delete the global_symbols.properties file
+- [#768](https://github.com/convertigo/convertigo/issues/768) [Studio] Fixed, removed the old animated gif during execution that can cause JVM crash on MacOS
+
+---
+
 ## 8.2.2
 
 #### Improvements:
