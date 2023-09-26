@@ -1,14 +1,16 @@
 <svelte:options accessors />
 
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	import { callService, getServiceUrl } from './convertigo';
-	import { properties } from '$lib/propertiesStore';
+
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
 	// @ts-ignore
 	import IconFile from '~icons/mdi/file';
+
+	const dispatch = createEventDispatcher();
 
 	/** @type string | null */
 	export let id = null;
@@ -65,9 +67,9 @@
 		if (e.target.tagName == 'SPAN') {
 			e.preventDefault();
 		}
-		var data = await callService('tree.PropertyGet', { id });
-		properties.set(data.properties);
+		dispatch('treeClick', {id: id});
 	}
+
 </script>
 
 {#if id != null}
@@ -98,7 +100,7 @@
 		<svelte:fragment slot="children">
 			{#if Array.isArray(children) && children.length > 0}
 				{#each children as child}
-					<svelte:self {...child} {root} bind:this={links[child.id]} />
+					<svelte:self {...child} {root} bind:this={links[child.id]} on:treeClick />
 				{/each}
 			{/if}
 		</svelte:fragment>
@@ -121,7 +123,7 @@
 {:else if Array.isArray(children)}
 	<TreeView padding="py-1 px-1" bind:this={root}>
 		{#each children as child}
-			<svelte:self {...child} {root} bind:this={links[child.id]} />
+			<svelte:self {...child} {root} bind:this={links[child.id]} on:treeClick />
 		{/each}
 	</TreeView>
 {:else}

@@ -23,20 +23,28 @@
 	// @ts-ignore
 	import IconProperties from '~icons/mdi/list-box';
 	// @ts-ignore
+	import IconPalette from '~icons/mdi/palette-outline';
+	// @ts-ignore
 	import IconLogout from '~icons/mdi/logout';
+	
 	import Monaco from '$lib/Monaco.svelte';
 	import C8oTree from '$lib/C8oTree.svelte';
 	import { properties } from '$lib/propertiesStore';
+	import { categories } from '$lib/paletteStore';
+	import Palette from '$lib/Palette.svelte';
 
 	let currentTile = 0;
 
 	let treeWidth = 0;
 	let propertiesWidth = 0;
+	let paletteWidth = 0;
 	let editorTab = 0;
 	let treeSelected = true;
 	let propertiesSelected = true;
+	let paletteSelected = false;
 	let editorSelected = true;
 	let authenticated = false;
+	
 	/**
 	 * @type {HTMLImageElement}
 	 */
@@ -48,6 +56,8 @@
 		treeWidth = 1 * (localStorage.getItem('treeWidth') ?? '100');
 		// @ts-ignore
 		propertiesWidth = 1 * (localStorage.getItem('propertiesWidth') ?? '100');
+		// @ts-ignore
+		paletteWidth = 1 * (localStorage.getItem('paletteWidth') ?? '100');
 
 		callService('engine.CheckAuthentication').then((res) => {
 			authenticated = res.admin.authenticated;
@@ -80,6 +90,16 @@
 		if (e.layerX > 0) {
 			propertiesWidth = e.x - e.target.parentElement.offsetLeft;
 			localStorage.setItem('propertiesWidth', `${propertiesWidth}`);
+		}
+	}
+
+	/**
+	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
+	 */
+	 function paletteWidthDrag(e) {
+		if (e.layerX > 0) {
+			paletteWidth = e.x - e.target.parentElement.offsetLeft;
+			localStorage.setItem('paletteWidth', `${paletteWidth}`);
 		}
 	}
 
@@ -127,6 +147,18 @@
 				children: p.children
 			};
 		});
+	}
+
+	async function handleTreeClicked(e) {
+		let id =  e.detail.id;
+		
+		// update properties store
+		let treeData = await callService('tree.PropertyGet', { id });
+		properties.set(treeData.properties);
+		
+		// update palette store
+		let paletteData = await callService('tree.GetPalette', { id });
+		categories.set(paletteData.categories);
 	}
 
 	const themes = [
@@ -203,15 +235,20 @@
 					on:click={() => (propertiesSelected = !propertiesSelected)}
 					><IconProperties /></AppRailAnchor
 				>
+				<AppRailAnchor
+					selected={paletteSelected}
+					on:click={() => (paletteSelected = !paletteSelected)}
+					><IconPalette /></AppRailAnchor
+				>
 				<AppRailAnchor selected={editorSelected} on:click={() => (editorSelected = !editorSelected)}
 					><IconEditor /></AppRailAnchor
 				>
-				<AppRailAnchor
+				<!--<AppRailAnchor
 					selected={propertiesSelected}
 					on:click={async () => {
 						console.log(await callService('projects.List'));
 					}}><IconProperties /></AppRailAnchor
-				>
+				>-->
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
@@ -239,7 +276,7 @@
 						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
 					>
 						{#if authenticated}
-							<C8oTree />
+							<C8oTree on:treeClick={handleTreeClicked}/>
 						{:else}
 							<ProgressRadial
 								...
@@ -290,6 +327,35 @@
 								{/each}
 							</tbody>
 						</table>
+					</div>
+					<span class="draggable divider-vertical h-full border-2" draggable="true" />
+				</div>
+			</div>
+		{/if}
+		{#if paletteSelected}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
+				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
+				style:width="{paletteWidth}px"
+				style:min-width="100px"
+				on:drag={paletteWidthDrag}
+				on:dragstart={noDragImage}
+				transition:withTransition={{ duration: 250 }}
+			>
+				<div class="flex flex-row items-stretch h-full">
+					<div
+						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
+					>
+						{#if authenticated}
+							<Palette />
+						{:else}
+							<ProgressRadial
+								...
+								stroke={100}
+								meter="stroke-primary-500"
+								track="stroke-primary-500/30"
+							/>
+						{/if}
 					</div>
 					<span class="draggable divider-vertical h-full border-2" draggable="true" />
 				</div>
