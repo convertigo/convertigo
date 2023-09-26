@@ -103,6 +103,8 @@ public class GetPalette extends JSonService {
 						jsonItem.put("classname", cn);
 						jsonItem.put("description", description);
 						jsonItem.put("icon", MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32));
+						jsonItem.put("builtin", true);
+						jsonItem.put("additional", false);
 						jsonCategory.getJSONArray("items").put(jsonItem);
 					}
 					if (jsonCategory.getJSONArray("items").length() == 0) {
@@ -124,7 +126,6 @@ public class GetPalette extends JSonService {
 			
 			for (com.twinsoft.convertigo.beans.ngx.components.dynamic.Component component : components) {
 				var isAllowedIn = parentDbo != null ? component.isAllowedIn(parentDbo) : false;
-				//var isBuiltIn = component.isBuiltIn();
 				
 				if (!isAllowedIn) continue;
 				
@@ -141,6 +142,8 @@ public class GetPalette extends JSonService {
 					jsonItem.put("classname", cn);
 					jsonItem.put("description", component.getDescription());
 					jsonItem.put("icon", component.getImagePath());
+					jsonItem.put("builtin", component.isBuiltIn());
+					jsonItem.put("additional", component.isAdditional());
 					jsonCategory.getJSONArray("items").put(jsonItem);
 				}
 			}

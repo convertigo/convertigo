@@ -731,7 +731,11 @@ public class ComponentManager {
 				public boolean isBuiltIn() {
 					return true;
 				}
-
+				
+				@Override
+				public boolean isAdditional() {
+					return false;
+				}
 			});
 		}
 		
@@ -835,6 +839,11 @@ public class ComponentManager {
 											return false;
 										}
 	
+										@Override
+										public boolean isAdditional() {
+											return true;
+										}
+										
 										@Override
 										protected DatabaseObject createBean() {
 											DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
@@ -961,6 +970,11 @@ public class ComponentManager {
 										@Override
 										public boolean isBuiltIn() {
 											return false;
+										}
+										
+										@Override
+										public boolean isAdditional() {
+											return true;
 										}
 									});
 								}
@@ -1294,6 +1308,10 @@ public class ComponentManager {
 				return true;
 			}
 			
+			@Override
+			public boolean isAdditional() {
+				return false;
+			}
 		};
 	}
 

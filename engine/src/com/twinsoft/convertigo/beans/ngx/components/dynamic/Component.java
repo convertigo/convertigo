@@ -33,6 +33,8 @@ public abstract class Component {
 	public abstract String getPropertiesDescription();
 	public abstract boolean isAllowedIn(DatabaseObject parent);
 	public abstract boolean isBuiltIn();
+	public abstract boolean isAdditional();
+	
 	protected abstract DatabaseObject createBean();
 	
 	protected JSONObject getHint() {
