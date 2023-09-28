@@ -334,6 +334,10 @@ jobs:
             docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           
+          if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
+          	curl 'https://beta.convertigo.net/convertigo/projects/BetaBackend/.pxml?__sequence=Restart&key=$6$LC5589hmhWihgK4C$b57CBGVhFhXIy3.b3TmszMYFwIUQvIpTyW/s2y/vN4.bXf4K9SijGTtIsAMReI0t8HtYtalX3FPGj4oAazKVK1'
+          fi
+          
   qualif_jmx_1:
     <<: *defaults
     steps:
