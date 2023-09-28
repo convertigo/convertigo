@@ -14,6 +14,7 @@
 	import { callService } from '$lib/convertigo';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import { loading } from '$lib/loadingStore';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -152,7 +153,11 @@
 			slotDefault="place-self-center"
 			slotTrail="place-content-end"
 		>
-			<svelte:fragment slot="lead"><IconCloud style="margin-left:10px" /></svelte:fragment>
+			<svelte:fragment slot="lead"
+				><div class={$loading ? 'rotate' : ''} style="margin-left:10px">
+					<IconCloud />
+				</div></svelte:fragment
+			>
 			Low Code Studio
 			<svelte:fragment slot="trail"
 				><select on:change={changeTheme} class="select" value={$theme}>
@@ -327,12 +332,27 @@
 	.draggable {
 		cursor: grab;
 	}
+
 	.card:active {
 		cursor: grabbing;
 	}
+
 	.widthTransition {
 		transition-property: min-width;
 		transition-duration: 250ms;
+	}
+
+	@keyframes rotate {
+		from {
+			transform: rotateY(0deg); /* Angle de départ */
+		}
+		to {
+			transform: rotateY(360deg); /* Angle de fin */
+		}
+	}
+
+	.rotate {
+		animation: rotate 0.5s infinite linear;
 	}
 
 	:global(#page-content) {

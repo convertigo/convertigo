@@ -1,4 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
+import { loading } from '$lib/loadingStore';
 
 /**
  * @param {string} service
@@ -6,6 +7,7 @@ import { XMLParser } from 'fast-xml-parser';
  */
 export async function callService(service, data = {}) {
 	let url = getServiceUrl() + service;
+	loading.set(true);
 	let res = await fetch(url, {
 		method: 'POST',
 		headers: {
@@ -15,6 +17,7 @@ export async function callService(service, data = {}) {
 		body: new URLSearchParams(data),
 		credentials: 'include'
 	});
+	loading.set(false);
 	var xsrf = res.headers.get('x-xsrf-token');
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf-token', xsrf);
