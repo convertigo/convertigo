@@ -4,6 +4,7 @@
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	import { callService, getServiceUrl } from './convertigo';
+	import { treeData } from './treeStore';
 
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
@@ -12,95 +13,96 @@
 
 	const dispatch = createEventDispatcher();
 
-	/** @type string | null */
-	export let id = null;
+	export let nodeData = $treeData;
 
-	/** @type string */
-	export let label = '';
-
-	/** @type boolean | [] */
-	export let children = true;
-
-	export let icon = 'folder';
-
+	/** @type {any} */
 	export let links = {};
 
-	export let root;
+	/** @type {TreeView | null} */
+	export let root = null;
 
+	/** @type {TreeViewItem} */
 	let item;
 
 	let live = false;
+	
 	let self;
 	onMount(() => {
 		live = true;
+		// @ts-ignore
 		self = this;
-		expanded |= id == null;
 		checkChildren();
 	});
 
-	export let expanded = false;
-
 	export function checkChildren(force = false) {
-		if (!force && !expanded) {
+		if (!force && !nodeData.expanded) {
 			return;
 		}
-		if (children == true) {
-			callService('tree.Get', id == null ? {} : { id }).then((res) => {
-				children = res.children;
+		if (nodeData.children == true) {
+			callService('tree.Get', nodeData.id == null ? {} : { id: nodeData.id }).then((res) => {
+				nodeData.children = res.children;
 			});
 		}
+		/** @type string[] */
 		let ids = [];
 		for (let child of Object.values(links)) {
-			if (child.children == true) {
-				ids.push(child.id);
+			if (child.nodeData.children == true) {
+				ids.push(child.nodeData.id);
 			}
-			//child.checkChildren(true);
 		}
 		if (ids.length > 0) {
 			callService('tree.Get', { ids: JSON.stringify(ids) }).then((res) => {
-				ids.forEach((i) => (links[i].children = res[i]));
+				for (let i of ids) {
+					links[i].nodeData.children = res[i];
+				};
+				nodeData = nodeData;
 			});
 		}
 	}
 
+	/**
+	 * @param {MouseEvent} e
+	 */
 	async function nodeClicked(e) {
-		if (e.target.tagName == 'SPAN') {
+		// @ts-ignore
+		if (e.target?.tagName == 'SPAN') {
 			e.preventDefault();
 		}
-		dispatch('treeClick', {id: id});
+		dispatch('treeClick', {id: nodeData.id});
 	}
 
 </script>
 
-{#if id != null}
+{#if nodeData.id != null}
 	<TreeViewItem
 		bind:this={item}
 		on:toggle={(e) => {
-			expanded = e.detail.open;
+			nodeData.expanded = e.detail.open;
 			checkChildren();
 		}}
 		on:click={nodeClicked}
-		hideChildren={!Array.isArray(children) || children.length == 0}
+		hideChildren={!Array.isArray(nodeData.children) || nodeData.children.length == 0}
+		open={nodeData.expanded ?? false}
 	>
 		<svelte:fragment slot="lead">
-			{#if icon.includes('?')}
+			{#if nodeData.icon.includes('?')}
 				<img
 					src={getServiceUrl() +
-						icon +
+						nodeData.icon +
 						'&__xsrfToken=' +
 						encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
 					alt="ico"
 				/>
-			{:else if icon == 'file'}
+			{:else if nodeData.icon == 'file'}
 				<IconFile />
 			{:else}
 				<IconFolder />
 			{/if}
 		</svelte:fragment>
 		<svelte:fragment slot="children">
-			{#if Array.isArray(children) && children.length > 0}
-				{#each children as child}
-					<svelte:self {...child} {root} bind:this={links[child.id]} on:treeClick />
+			{#if Array.isArray(nodeData.children) && nodeData.children.length > 0}
+				{#each nodeData.children as child}
+					<svelte:self nodeData={child} {root} bind:this={links[child.id]} on:treeClick />
 				{/each}
 			{/if}
 		</svelte:fragment>
@@ -113,17 +115,17 @@
 			on:dragstart={(e) => e.stopPropagation()}
 			on:dragenter={(e) => {
 				console.log(e);
-				if (!expanded) {
+				if (!nodeData.expanded) {
 					item.open = true;
 				}
 			}}
-			>{label}
+			>{nodeData.label}
 		</span>
 	</TreeViewItem>
-{:else if Array.isArray(children)}
-	<TreeView padding="py-1 px-1" bind:this={root}>
-		{#each children as child}
-			<svelte:self {...child} {root} bind:this={links[child.id]} on:treeClick />
+{:else if Array.isArray(nodeData.children)}
+	<TreeView padding="py-1 px-1" bind:this={root} open={nodeData.expanded ?? false}>
+		{#each nodeData.children as child}
+			<svelte:self nodeData={child} {root} bind:this={links[child.id]} on:treeClick />
 		{/each}
 	</TreeView>
 {:else}

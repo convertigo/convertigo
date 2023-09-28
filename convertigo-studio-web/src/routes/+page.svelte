@@ -13,6 +13,7 @@
 	import { linear } from 'svelte/easing';
 	import { callService } from '$lib/convertigo';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
+	import { localStorageStore } from '@skeletonlabs/skeleton';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -35,14 +36,14 @@
 
 	let currentTile = 0;
 
-	let treeWidth = 0;
-	let propertiesWidth = 0;
-	let paletteWidth = 0;
+	let treeWidth = localStorageStore('studio.treeWidth', 100);
+	let propertiesWidth = localStorageStore('studio.propertiesWidth', 100);
+	let paletteWidth = localStorageStore('studio.paletteWidth', 100);
 	let editorTab = 0;
-	let treeSelected = true;
-	let propertiesSelected = true;
-	let paletteSelected = false;
-	let editorSelected = true;
+	let treeSelected = localStorageStore('studio.treeSelected', false);
+	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
+	let paletteSelected = localStorageStore('studio.paletteSelected', false);
+	let editorSelected = localStorageStore('studio.editorSelected', false);
 	let authenticated = false;
 	
 	/**
@@ -52,12 +53,6 @@
 	onMount(() => {
 		img = document.createElement('img');
 		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-		// @ts-ignore
-		treeWidth = 1 * (localStorage.getItem('treeWidth') ?? '100');
-		// @ts-ignore
-		propertiesWidth = 1 * (localStorage.getItem('propertiesWidth') ?? '100');
-		// @ts-ignore
-		paletteWidth = 1 * (localStorage.getItem('paletteWidth') ?? '100');
 
 		callService('engine.CheckAuthentication').then((res) => {
 			authenticated = res.admin.authenticated;
@@ -78,8 +73,7 @@
 	 */
 	function treeWidthDrag(e) {
 		if (e.layerX > 0) {
-			treeWidth = e.x - e.target.parentElement.offsetLeft;
-			localStorage.setItem('treeWidth', `${treeWidth}`);
+			$treeWidth = e.x - e.target.parentElement.offsetLeft;
 		}
 	}
 
@@ -88,8 +82,7 @@
 	 */
 	function propertiesWidthDrag(e) {
 		if (e.layerX > 0) {
-			propertiesWidth = e.x - e.target.parentElement.offsetLeft;
-			localStorage.setItem('propertiesWidth', `${propertiesWidth}`);
+			$propertiesWidth = e.x - e.target.parentElement.offsetLeft;
 		}
 	}
 
@@ -99,12 +92,15 @@
 	 function paletteWidthDrag(e) {
 		if (!isPaletteDragItem(e)) {
 			if (e.layerX > 0) {
-				paletteWidth = e.x - e.target.parentElement.offsetLeft;
-				localStorage.setItem('paletteWidth', `${paletteWidth}`);
+				$paletteWidth = e.x - e.target.parentElement.offsetLeft;
 			}
 		}
 	}
 
+	/**
+	 * @param {HTMLDivElement} node
+	 * @param {any} duration
+	 */
 	function withTransition(node, { duration }) {
 		return {
 			duration,
@@ -235,20 +231,20 @@
 	<svelte:fragment slot="sidebarLeft"
 		><AppRail>
 			<svelte:fragment slot="lead">
-				<AppRailAnchor selected={treeSelected} on:click={() => (treeSelected = !treeSelected)}
+				<AppRailAnchor selected={$treeSelected} on:click={() => ($treeSelected = !$treeSelected)}
 					><IconFileTree /></AppRailAnchor
 				>
 				<AppRailAnchor
-					selected={propertiesSelected}
-					on:click={() => (propertiesSelected = !propertiesSelected)}
+					selected={$propertiesSelected}
+					on:click={() => ($propertiesSelected = !$propertiesSelected)}
 					><IconProperties /></AppRailAnchor
 				>
 				<AppRailAnchor
-					selected={paletteSelected}
-					on:click={() => (paletteSelected = !paletteSelected)}
+					selected={$paletteSelected}
+					on:click={() => ($paletteSelected = !$paletteSelected)}
 					><IconPalette /></AppRailAnchor
 				>
-				<AppRailAnchor selected={editorSelected} on:click={() => (editorSelected = !editorSelected)}
+				<AppRailAnchor selected={$editorSelected} on:click={() => ($editorSelected = !$editorSelected)}
 					><IconEditor /></AppRailAnchor
 				>
 				<!--<AppRailAnchor
@@ -269,11 +265,11 @@
 	<!-- (pageHeader) -->
 	<!-- Router Slot -->
 	<div class="flex flex-row items-stretch h-full">
-		{#if treeSelected}
+		{#if $treeSelected}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
 				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{treeWidth}px"
+				style:width="{$treeWidth}px"
 				style:min-width="100px"
 				on:drag={treeWidthDrag}
 				on:dragstart={noDragImage}
@@ -298,11 +294,11 @@
 				</div>
 			</div>
 		{/if}
-		{#if propertiesSelected}
+		{#if $propertiesSelected}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
 				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{propertiesWidth}px"
+				style:width="{$propertiesWidth}px"
 				style:min-width="100px"
 				on:drag={propertiesWidthDrag}
 				on:dragstart={noDragImage}
@@ -340,11 +336,11 @@
 				</div>
 			</div>
 		{/if}
-		{#if paletteSelected}
+		{#if $paletteSelected}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
 				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{paletteWidth}px"
+				style:width="{$paletteWidth}px"
 				style:min-width="100px"
 				on:drag={paletteWidthDrag}
 				on:dragstart={noDragImage}
@@ -369,7 +365,7 @@
 				</div>
 			</div>
 		{/if}
-		{#if editorSelected}
+		{#if $editorSelected}
 			<div
 				class="grow card m-1 variant-soft-success h-full"
 				style="height: calc(100% - 8px);"
