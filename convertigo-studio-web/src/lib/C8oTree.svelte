@@ -15,7 +15,6 @@
 
 	export let nodeData = $treeData;
 
-	/** @type {any} */
 	export let links = {};
 
 	/** @type {TreeView | null} */
@@ -25,7 +24,7 @@
 	let item;
 
 	let live = false;
-	
+
 	let self;
 	onMount(() => {
 		live = true;
@@ -54,7 +53,7 @@
 			callService('tree.Get', { ids: JSON.stringify(ids) }).then((res) => {
 				for (let i of ids) {
 					links[i].nodeData.children = res[i];
-				};
+				}
 				nodeData = nodeData;
 			});
 		}
@@ -68,9 +67,8 @@
 		if (e.target?.tagName == 'SPAN') {
 			e.preventDefault();
 		}
-		dispatch('treeClick', {id: nodeData.id});
+		dispatch('treeClick', { id: nodeData.id });
 	}
-
 </script>
 
 {#if nodeData.id != null}

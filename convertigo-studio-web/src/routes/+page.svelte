@@ -27,30 +27,33 @@
 	import IconPalette from '~icons/mdi/palette-outline';
 	// @ts-ignore
 	import IconLogout from '~icons/mdi/logout';
-	
+
 	import Monaco from '$lib/Monaco.svelte';
 	import C8oTree from '$lib/C8oTree.svelte';
 	import { properties } from '$lib/propertiesStore';
 	import { categories } from '$lib/paletteStore';
 	import Palette from '$lib/Palette.svelte';
+	import themes from '$lib/themes.json';
 
 	let currentTile = 0;
 
-	let treeWidth = localStorageStore('studio.treeWidth', 100);
-	let propertiesWidth = localStorageStore('studio.propertiesWidth', 100);
-	let paletteWidth = localStorageStore('studio.paletteWidth', 100);
+	let theme = localStorageStore('studio.theme', 'skeleton');
+	let treeWidth = localStorageStore('studio.treeWidth', 300);
+	let propertiesWidth = localStorageStore('studio.propertiesWidth', 300);
+	let paletteWidth = localStorageStore('studio.paletteWidth', 300);
 	let editorTab = 0;
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
 	let paletteSelected = localStorageStore('studio.paletteSelected', false);
 	let editorSelected = localStorageStore('studio.editorSelected', false);
 	let authenticated = false;
-	
+
 	/**
 	 * @type {HTMLImageElement}
 	 */
 	let img;
 	onMount(() => {
+		changeTheme($theme);
 		img = document.createElement('img');
 		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -68,38 +71,28 @@
 		});
 	});
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
 	function treeWidthDrag(e) {
 		if (e.layerX > 0) {
 			$treeWidth = e.x - e.target.parentElement.offsetLeft;
 		}
 	}
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
 	function propertiesWidthDrag(e) {
 		if (e.layerX > 0) {
-			$propertiesWidth = e.x - e.target.parentElement.offsetLeft;
+			$propertiesWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
 		}
 	}
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
-	 function paletteWidthDrag(e) {
+	function paletteWidthDrag(e) {
 		if (!isPaletteDragItem(e)) {
 			if (e.layerX > 0) {
-				$paletteWidth = e.x - e.target.parentElement.offsetLeft;
+				$paletteWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
 			}
 		}
 	}
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {any} duration
 	 */
 	function withTransition(node, { duration }) {
 		return {
@@ -115,20 +108,22 @@
 		};
 	}
 
-	// @ts-ignore
 	function noDragImage(e) {
 		if (!isPaletteDragItem(e)) {
 			e.target.parentElement.parentElement.classList.remove('widthTransition');
 			e.dataTransfer.setDragImage(img, 0, 0);
 		}
 	}
-
+	/**
+	 * @param {{target: HTMLElement}} e
+	 */
 	function isPaletteDragItem(e) {
 		return e.target.classList.contains('palette-item');
 	}
 
 	function changeTheme(e) {
-		document.body.setAttribute('data-theme', e.target.value);
+		$theme = typeof e == 'string' ? e : e.target?.value;
+		document.body.setAttribute('data-theme', $theme);
 	}
 
 	let treeNodes = [
@@ -137,76 +132,17 @@
 		}
 	];
 
-	async function update() {
-		let json = await callService('engine.Authenticate', {
-			authType: 'login',
-			authUserName: 'admin',
-			authPassword: 'admin'
-		});
-		json = await callService('tree.Get');
-		console.log('json: ' + JSON.stringify(json));
-		treeNodes = json.children.map((p) => {
-			return {
-				content: p.label,
-				children: p.children
-			};
-		});
-	}
-
 	async function handleTreeClicked(e) {
-		let id =  e.detail.id;
-		
+		let id = e.detail.id;
+
 		// update properties store
 		let treeData = await callService('tree.PropertyGet', { id });
 		properties.set(treeData.properties);
-		
+
 		// update palette store
 		let paletteData = await callService('tree.GetPalette', { id });
 		categories.set(paletteData.categories);
 	}
-
-	const themes = [
-		{
-			name: 'skeleton',
-			enhancements: true
-		},
-		{
-			name: 'wintry',
-			enhancements: true
-		},
-		{
-			name: 'modern',
-			enhancements: true
-		},
-		{
-			name: 'hamlindigo',
-			enhancements: true
-		},
-		{
-			name: 'rocket',
-			enhancements: true
-		},
-		{
-			name: 'sahara',
-			enhancements: true
-		},
-		{
-			name: 'gold-nouveau',
-			enhancements: true
-		},
-		{
-			name: 'vintage',
-			enhancements: true
-		},
-		{
-			name: 'seafoam',
-			enhancements: true
-		},
-		{
-			name: 'crimson',
-			enhancements: true
-		}
-	];
 </script>
 
 <AppShell>
@@ -219,9 +155,9 @@
 			<svelte:fragment slot="lead"><IconCloud style="margin-left:10px" /></svelte:fragment>
 			Low Code Studio
 			<svelte:fragment slot="trail"
-				><select on:change={changeTheme} class="select">
+				><select on:change={changeTheme} class="select" value={$theme}>
 					{#each themes as theme}
-						<option>{theme.name}</option>
+						<option>{theme}</option>
 					{/each}
 				</select>
 				<LightSwitch /></svelte:fragment
@@ -241,18 +177,12 @@
 				>
 				<AppRailAnchor
 					selected={$paletteSelected}
-					on:click={() => ($paletteSelected = !$paletteSelected)}
-					><IconPalette /></AppRailAnchor
+					on:click={() => ($paletteSelected = !$paletteSelected)}><IconPalette /></AppRailAnchor
 				>
-				<AppRailAnchor selected={$editorSelected} on:click={() => ($editorSelected = !$editorSelected)}
-					><IconEditor /></AppRailAnchor
+				<AppRailAnchor
+					selected={$editorSelected}
+					on:click={() => ($editorSelected = !$editorSelected)}><IconEditor /></AppRailAnchor
 				>
-				<!--<AppRailAnchor
-					selected={propertiesSelected}
-					on:click={async () => {
-						console.log(await callService('projects.List'));
-					}}><IconProperties /></AppRailAnchor
-				>-->
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
@@ -280,7 +210,7 @@
 						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
 					>
 						{#if authenticated}
-							<C8oTree on:treeClick={handleTreeClicked}/>
+							<C8oTree on:treeClick={handleTreeClicked} />
 						{:else}
 							<ProgressRadial
 								...
