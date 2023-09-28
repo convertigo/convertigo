@@ -335,7 +335,7 @@ jobs:
           fi
           
           if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-          	curl 'https://beta.convertigo.net/convertigo/projects/BetaBackend/.pxml?__sequence=Restart&key=$6$LC5589hmhWihgK4C$b57CBGVhFhXIy3.b3TmszMYFwIUQvIpTyW/s2y/vN4.bXf4K9SijGTtIsAMReI0t8HtYtalX3FPGj4oAazKVK1'
+          	docker run --rm alpine/curl "$BETA_KILL_URL"
           fi
           
   qualif_jmx_1:
