@@ -97,9 +97,11 @@
 	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
 	 */
 	 function paletteWidthDrag(e) {
-		if (e.layerX > 0) {
-			paletteWidth = e.x - e.target.parentElement.offsetLeft;
-			localStorage.setItem('paletteWidth', `${paletteWidth}`);
+		if (!isPaletteDragItem(e)) {
+			if (e.layerX > 0) {
+				paletteWidth = e.x - e.target.parentElement.offsetLeft;
+				localStorage.setItem('paletteWidth', `${paletteWidth}`);
+			}
 		}
 	}
 
@@ -119,8 +121,14 @@
 
 	// @ts-ignore
 	function noDragImage(e) {
-		e.target.parentElement.parentElement.classList.remove('widthTransition');
-		e.dataTransfer.setDragImage(img, 0, 0);
+		if (!isPaletteDragItem(e)) {
+			e.target.parentElement.parentElement.classList.remove('widthTransition');
+			e.dataTransfer.setDragImage(img, 0, 0);
+		}
+	}
+
+	function isPaletteDragItem(e) {
+		return e.target.classList.contains('palette-item');
 	}
 
 	function changeTheme(e) {

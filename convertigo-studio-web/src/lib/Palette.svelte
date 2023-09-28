@@ -50,7 +50,8 @@
         // filter based on button state
         let filtered = localCategories.map( ({type, name, items})  => {
             return ({type, name, "items": items.filter((item) => {
-                let found = search !== "" ? item.name.toLowerCase().indexOf(search.toLowerCase()) != -1 : true;
+                let key = item.name.toLowerCase() + " " + item.description.toLowerCase().split('|')[0]
+                let found = search.trim() !== "" ? key.indexOf(search.toLowerCase()) != -1 : true;
                 return found && ((builtinOn && item.builtin === builtinOn) || (additionalOn && item.additional === additionalOn))
             })})
         });
@@ -75,6 +76,12 @@
     function doSearch() {
         update();
     }
+
+	function dragStart(event, item) {
+        const jsonString = JSON.stringify(item);
+   	    event.dataTransfer.setData("text", jsonString);
+        //console.log("Palette dragStart", event.dataTransfer.getData("text"))
+	}
 
 </script>
 <div class="palette">
@@ -116,7 +123,12 @@
                         <svelte:fragment slot="content">
                             <div class="flex-container">
                                 {#each category.items as item}
-                                    <div class="flex-child">
+                                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                                    <div
+                                        class="palette-item card card-hover" 
+                                        draggable="true"
+                                        on:dragstart={event => dragStart(event, item)}
+                                    >
                                         {#if item.icon.includes('/')}
                                             <img
                                                 src={getServiceUrl() +
@@ -126,7 +138,7 @@
                                                 alt="ico"
                                             />
                                         {/if}
-                                        <span>
+                                        <span title={item.description}>
                                             {item.name}
                                         </span>
                                     </div>
@@ -161,7 +173,7 @@
         flex-flow: row wrap;
      }
 
-    .flex-container > .flex-child {
+    .flex-container > .palette-item {
         border-radius: 5px;
         border: 1px solid #f1f1f1;
         width: 100px;
@@ -169,5 +181,7 @@
         text-align: center;
         vertical-align: text-top;
         font-size: 10px;
+        cursor: move;
     }
+
 </style>
