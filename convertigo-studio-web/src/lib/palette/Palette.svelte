@@ -1,11 +1,9 @@
 <script>
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
-	import { popup } from '@skeletonlabs/skeleton';
-	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem, popup, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount, onDestroy } from 'svelte';
-	import { getUrl } from '$lib/utils/service';
 	import { categories } from '$lib/palette/paletteStore';
 	import { reusables } from '$lib/palette/paletteStore';
+	import PaletteItem from './PaletteItem.svelte';
 
 	// @ts-ignore
 	import IconLinkOn from '~icons/mdi/arrow-left-right-bold';
@@ -127,12 +125,6 @@
 		update();
 	}
 
-	function dragStart(event, item) {
-		const jsonString = JSON.stringify(item);
-		event.dataTransfer.setData('text', jsonString);
-		//console.log("Palette dragStart", event.dataTransfer.getData("text"))
-	}
-
 	function tooltip(id) {
 		return {
 			event: 'hover',
@@ -141,8 +133,8 @@
 		};
 	}
 
-	function itemClicked(item) {
-		selectedItem = item;
+	function itemClicked(event) {
+		selectedItem = event.detail.item;
 	}
 
 	function onInputDrop(event) {
@@ -226,19 +218,19 @@
 		</div>
 		<div>
 			<input
+				id="inputSearch"
 				class="input"
 				type="search"
 				placeholder="Search..."
 				bind:value={search}
 				on:input={doSearch}
-				on:dragStart={(e) => e.preventdefault()}
 			/>
 			<input
+				id="inputDrop"
 				class="input"
 				type="text"
 				placeholder="drop inside..."
 				bind:this={textInput}
-				on:dragStart={(e) => e.preventdefault()}
 				on:drop={onInputDrop}
 			/>
 		</div>
@@ -250,32 +242,9 @@
 				<AccordionItem open>
 					<svelte:fragment slot="summary">Favorites</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="flex-container">
+						<div class="items-container">
 							{#each favoritesItems as item}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
-								<div
-									class="palette-item card card-hover {item === selectedItem
-										? 'variant-filled'
-										: ''}"
-									draggable="true"
-									on:dragstart={(event) => dragStart(event, item)}
-									on:click={(event) => itemClicked(item)}
-								>
-									{#if item.icon.includes('/')}
-										<img
-											src={getUrl() +
-												'studio.dbo.GetIcon?iconPath=' +
-												item.icon +
-												'&__xsrfToken=' +
-												encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-											alt="ico"
-										/>
-									{/if}
-									<span>
-										{item.name}
-									</span>
-								</div>
+								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
 						</div>
 					</svelte:fragment>
@@ -283,32 +252,9 @@
 				<AccordionItem open>
 					<svelte:fragment slot="summary">Last used</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="flex-container">
+						<div class="items-container">
 							{#each usedItems as item}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
-								<div
-									class="palette-item card card-hover {item === selectedItem
-										? 'variant-filled'
-										: ''}"
-									draggable="true"
-									on:dragstart={(event) => dragStart(event, item)}
-									on:click={(event) => itemClicked(item)}
-								>
-									{#if item.icon.includes('/')}
-										<img
-											src={getUrl() +
-												'studio.dbo.GetIcon?iconPath=' +
-												item.icon +
-												'&__xsrfToken=' +
-												encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-											alt="ico"
-										/>
-									{/if}
-									<span>
-										{item.name}
-									</span>
-								</div>
+								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
 						</div>
 					</svelte:fragment>
@@ -319,32 +265,9 @@
 					<AccordionItem open>
 						<svelte:fragment slot="summary">{category.name}</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div class="flex-container">
+							<div class="items-container">
 								{#each category.items as item}
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-static-element-interactions -->
-									<div
-										class="palette-item card card-hover {item === selectedItem
-											? 'variant-filled'
-											: ''}"
-										draggable="true"
-										on:dragstart={(event) => dragStart(event, item)}
-										on:click={(event) => itemClicked(item)}
-									>
-										{#if item.icon.includes('/')}
-											<img
-												src={getUrl() +
-													'studio.dbo.GetIcon?iconPath=' +
-													item.icon +
-													'&__xsrfToken=' +
-													encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-												alt="ico"
-											/>
-										{/if}
-										<span>
-											{item.name}
-										</span>
-									</div>
+									<PaletteItem {item} on:itemClicked={itemClicked} />
 								{/each}
 							</div>
 						</svelte:fragment>
@@ -371,18 +294,8 @@
 		margin-top: 5px;
 	}
 
-	.flex-container {
+	.items-container {
 		display: flex;
 		flex-flow: row wrap;
-	}
-
-	.flex-container > .palette-item {
-		border-radius: 5px;
-		border: 1px solid #f1f1f1;
-		width: 100px;
-		margin: 5px;
-		text-align: center;
-		vertical-align: text-top;
-		font-size: 10px;
 	}
 </style>
