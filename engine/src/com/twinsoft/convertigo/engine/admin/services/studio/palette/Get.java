@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.twinsoft.convertigo.engine.admin.services.tree;
+package com.twinsoft.convertigo.engine.admin.services.studio.palette;
 
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
@@ -12,13 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -31,7 +32,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		parameters = {},
 		returnValue = ""
 		)
-public class GetPalette extends JSonService {
+public class Get extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
@@ -41,7 +42,7 @@ public class GetPalette extends JSonService {
 	}
 
 	private JSONArray getPalette(String id) throws Exception {
-		var reg = Get.parseQName.matcher(id);
+		var reg = Utils.parseQName.matcher(id);
 		reg.matches();
 		var ft = FolderType.parse(reg.group(2));
 		var qname = ft == null ? id : reg.group(1);

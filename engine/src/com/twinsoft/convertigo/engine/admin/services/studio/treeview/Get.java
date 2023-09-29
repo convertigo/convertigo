@@ -1,10 +1,9 @@
-package com.twinsoft.convertigo.engine.admin.services.tree;
+package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,6 +16,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @ServiceDefinition(
@@ -26,7 +26,6 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		returnValue = ""
 		)
 public class Get extends JSonService {
-	static Pattern parseQName = Pattern.compile("(.*?)(?::(\\w+?))?");
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var ids = request.getParameter("ids");
@@ -55,7 +54,7 @@ public class Get extends JSonService {
 		} else if (id.contains("/")) {
 			children = getFileChildren(id);
 		} else {
-			var reg = parseQName.matcher(id);
+			var reg = Utils.parseQName.matcher(id);
 			reg.matches();
 			var ft = FolderType.parse(reg.group(2));
 			var qname = ft == null ? id : reg.group(1);

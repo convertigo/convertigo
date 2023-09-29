@@ -3,7 +3,7 @@ import { join } from 'path';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
-import {developperTheme} from './src/themes/developper';
+import { developperTheme } from './src/themes/developper';
 /** @type {import('tailwindcss').Config} */
 export default {
 	darkMode: 'class',
@@ -19,9 +19,7 @@ export default {
 		typography,
 		skeleton({
 			themes: {
-				custom: [
-					developperTheme
-				],
+				custom: [developperTheme],
 				preset: [
 					{
 						name: 'skeleton',

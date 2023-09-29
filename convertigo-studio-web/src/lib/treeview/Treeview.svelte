@@ -3,7 +3,7 @@
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
-	import { callService, getServiceUrl } from './convertigo';
+	import { call, getUrl } from '../utils/service';
 	import { treeData } from './treeStore';
 
 	// @ts-ignore
@@ -38,7 +38,7 @@
 			return;
 		}
 		if (nodeData.children == true) {
-			callService('tree.Get', nodeData.id == null ? {} : { id: nodeData.id }).then((res) => {
+			call('studio.treeview.Get', nodeData.id == null ? {} : { id: nodeData.id }).then((res) => {
 				nodeData.children = res.children;
 			});
 		}
@@ -50,7 +50,7 @@
 			}
 		}
 		if (ids.length > 0) {
-			callService('tree.Get', { ids: JSON.stringify(ids) }).then((res) => {
+			call('studio.treeview.Get', { ids: JSON.stringify(ids) }).then((res) => {
 				for (let i of ids) {
 					links[i].nodeData.children = res[i];
 				}
@@ -85,7 +85,7 @@
 		<svelte:fragment slot="lead">
 			{#if nodeData.icon.includes('?')}
 				<img
-					src={getServiceUrl() +
+					src={getUrl() +
 						nodeData.icon +
 						'&__xsrfToken=' +
 						encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}

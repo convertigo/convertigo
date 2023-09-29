@@ -11,10 +11,10 @@
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { linear } from 'svelte/easing';
-	import { callService } from '$lib/convertigo';
+	import { call } from '$lib/utils/service';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import { loading } from '$lib/loadingStore';
+	import { loading } from '$lib/utils/loadingStore';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -29,12 +29,12 @@
 	// @ts-ignore
 	import IconLogout from '~icons/mdi/logout';
 
-	import Monaco from '$lib/Monaco.svelte';
-	import C8oTree from '$lib/C8oTree.svelte';
-	import { properties } from '$lib/propertiesStore';
-	import { categories } from '$lib/paletteStore';
-	import Palette from '$lib/Palette.svelte';
-	import themes from '$lib/themes.json';
+	import Monaco from '$lib/editor/Editor.svelte';
+	import C8oTree from '$lib/treeview/Treeview.svelte';
+	import { properties } from '$lib/properties/propertiesStore';
+	import { categories } from '$lib/palette/paletteStore';
+	import Palette from '$lib/palette/Palette.svelte';
+	import themes from '$lib/resources/themes.json';
 
 	let currentTile = 0;
 
@@ -58,7 +58,7 @@
 		img = document.createElement('img');
 		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-		callService('engine.CheckAuthentication').then((res) => {
+		call('engine.CheckAuthentication').then((res) => {
 			authenticated = res.admin.authenticated;
 			if (!authenticated) {
 				if (!location.href.includes('/studio')) {
@@ -73,6 +73,7 @@
 	});
 
 	function treeWidthDrag(e) {
+		call;
 		if (e.layerX > 0) {
 			$treeWidth = e.x - e.target.parentElement.offsetLeft;
 		}
@@ -127,21 +128,15 @@
 		document.body.setAttribute('data-theme', $theme);
 	}
 
-	let treeNodes = [
-		{
-			content: 'Please update'
-		}
-	];
-
 	async function handleTreeClicked(e) {
 		let id = e.detail.id;
 
 		// update properties store
-		let treeData = await callService('tree.PropertyGet', { id });
+		let treeData = await call('studio.properties.Get', { id });
 		properties.set(treeData.properties);
 
 		// update palette store
-		let paletteData = await callService('tree.GetPalette', { id });
+		let paletteData = await call('studio.palette.Get', { id });
 		categories.set(paletteData.categories);
 	}
 </script>
@@ -154,7 +149,7 @@
 			slotTrail="place-content-end"
 		>
 			<svelte:fragment slot="lead"
-				><div class={$loading ? 'rotate' : ''} style="margin-left:10px">
+				><div class={$loading > 0 ? 'rotate' : ''} style="margin-left:10px">
 					<IconCloud />
 				</div></svelte:fragment
 			>

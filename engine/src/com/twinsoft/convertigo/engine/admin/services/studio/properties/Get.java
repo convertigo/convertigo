@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.tree;
+package com.twinsoft.convertigo.engine.admin.services.studio.properties;
 
 import java.io.File;
 
@@ -14,6 +14,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -23,7 +24,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		parameters = {},
 		returnValue = ""
 		)
-public class PropertyGet extends JSonService {
+public class Get extends JSonService {
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var id = request.getParameter("id");
@@ -41,7 +42,7 @@ public class PropertyGet extends JSonService {
 			props.put("Path", split[1]);
 			props.put("Size", file.length());
 		} else {
-			var reg = Get.parseQName.matcher(id);
+			var reg = Utils.parseQName.matcher(id);
 			reg.matches();
 			var ft = FolderType.parse(reg.group(2));
 			if (ft != null) {

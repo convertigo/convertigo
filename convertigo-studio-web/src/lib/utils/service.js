@@ -1,13 +1,15 @@
 import { XMLParser } from 'fast-xml-parser';
-import { loading } from '$lib/loadingStore';
+import { loading } from '$lib/utils/loadingStore';
 
+let cpt = 0;
+loading.subscribe((n) => (cpt = n));
 /**
  * @param {string} service
  * @param {string | Record<string, string> | string[][] | URLSearchParams | undefined} data
  */
-export async function callService(service, data = {}) {
-	let url = getServiceUrl() + service;
-	loading.set(true);
+export async function call(service, data = {}) {
+	let url = getUrl() + service;
+	loading.set(cpt + 1);
 	let res = await fetch(url, {
 		method: 'POST',
 		headers: {
@@ -17,7 +19,7 @@ export async function callService(service, data = {}) {
 		body: new URLSearchParams(data),
 		credentials: 'include'
 	});
-	loading.set(false);
+	loading.set(cpt - 1);
 	var xsrf = res.headers.get('x-xsrf-token');
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf-token', xsrf);
@@ -31,7 +33,7 @@ export async function callService(service, data = {}) {
 	}
 }
 
-export function getServiceUrl() {
+export function getUrl() {
 	return window.location.href.includes('/convertigo')
 		? `../admin/services/`
 		: `/convertigo/admin/services/`;

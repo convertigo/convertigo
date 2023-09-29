@@ -3,9 +3,9 @@
 	import { popup } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount, onDestroy } from 'svelte';
-	import { getServiceUrl } from '$lib/convertigo';
-	import { categories } from '$lib/paletteStore';
-	import { reusables } from '$lib/paletteStore';
+	import { getUrl } from '$lib/utils/service';
+	import { categories } from '$lib/palette/paletteStore';
+	import { reusables } from '$lib/palette/paletteStore';
 
 	// @ts-ignore
 	import IconLinkOn from '~icons/mdi/arrow-left-right-bold';
@@ -264,8 +264,8 @@
 								>
 									{#if item.icon.includes('/')}
 										<img
-											src={getServiceUrl() +
-												'database_objects.GetIconFromPath?iconPath=' +
+											src={getUrl() +
+												'studio.dbo.GetIcon?iconPath=' +
 												item.icon +
 												'&__xsrfToken=' +
 												encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
@@ -297,8 +297,8 @@
 								>
 									{#if item.icon.includes('/')}
 										<img
-											src={getServiceUrl() +
-												'database_objects.GetIconFromPath?iconPath=' +
+											src={getUrl() +
+												'studio.dbo.GetIcon?iconPath=' +
 												item.icon +
 												'&__xsrfToken=' +
 												encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
@@ -333,8 +333,8 @@
 									>
 										{#if item.icon.includes('/')}
 											<img
-												src={getServiceUrl() +
-													'database_objects.GetIconFromPath?iconPath=' +
+												src={getUrl() +
+													'studio.dbo.GetIcon?iconPath=' +
 													item.icon +
 													'&__xsrfToken=' +
 													encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}

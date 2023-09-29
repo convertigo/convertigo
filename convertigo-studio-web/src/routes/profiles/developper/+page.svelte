@@ -13,7 +13,7 @@
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { linear } from 'svelte/easing';
-	import { callService } from '$lib/convertigo';
+	import { call } from '$lib/utils/service';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 
@@ -32,11 +32,11 @@
 	// @ts-ignore
 	import IconMenu from '~icons/mdi/menu';
 
-	import Monaco from '$lib/Monaco.svelte';
-	import C8oTree from '$lib/C8oTree.svelte';
-	import { properties } from '$lib/propertiesStore';
-	import { categories } from '$lib/paletteStore';
-	import Palette from '$lib/Palette.svelte';
+	import Monaco from '$lib/editor/Editor.svelte';
+	import C8oTree from '$lib/treeview/Treeview.svelte';
+	import { properties } from '$lib/properties/propertiesStore';
+	import { categories } from '$lib/palette/paletteStore';
+	import Palette from '$lib/palette/Palette.svelte';
 
 	let currentTile = 0;
 
@@ -56,7 +56,7 @@
 	let img;
 	onMount(() => {
 		document.body.setAttribute('data-theme', 'developper-theme');
-		callService('engine.CheckAuthentication').then((res) => {
+		call('engine.CheckAuthentication').then((res) => {
 			authenticated = res.admin.authenticated;
 			if (!authenticated) {
 				if (!location.href.includes('/studio')) {
@@ -70,27 +70,18 @@
 		});
 	});
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
 	function treeWidthDrag(e) {
 		if (e.layerX > 0) {
 			$treeWidth = e.x - e.target.parentElement.offsetLeft;
 		}
 	}
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
 	function propertiesWidthDrag(e) {
 		if (e.layerX > 0) {
 			$propertiesWidth = e.x - e.target.parentElement.offsetLeft;
 		}
 	}
 
-	/**
-	 * @param {{ layerX: number; x: number; target: { parentElement: { offsetLeft: number; }; }; }} e
-	 */
 	function paletteWidthDrag(e) {
 		if (!isPaletteDragItem(e)) {
 			if (e.layerX > 0) {
@@ -136,12 +127,12 @@
 	];
 
 	async function update() {
-		let json = await callService('engine.Authenticate', {
+		let json = await call('engine.Authenticate', {
 			authType: 'login',
 			authUserName: 'admin',
 			authPassword: 'admin'
 		});
-		json = await callService('tree.Get');
+		json = await call('studio.treeview.Get');
 		console.log('json: ' + JSON.stringify(json));
 		treeNodes = json.children.map((p) => {
 			return {
@@ -155,11 +146,11 @@
 		let id = e.detail.id;
 
 		// update properties store
-		let treeData = await callService('tree.PropertyGet', { id });
+		let treeData = await call('studio.properties.Get', { id });
 		properties.set(treeData.properties);
 
 		// update palette store
-		let paletteData = await callService('tree.GetPalette', { id });
+		let paletteData = await call('studio.palette.Get', { id });
 		categories.set(paletteData.categories);
 	}
 </script>
@@ -174,9 +165,7 @@
 			<svelte:fragment slot="lead">
 				<IconMenu style="margin-left:8.805px" />
 			</svelte:fragment>
-			<h1 style="font-weight: 800">
-				Convertigo Low Code Studio
-			</h1>
+			<h1 style="font-weight: 800">Convertigo Low Code Studio</h1>
 			<svelte:fragment slot="trail">
 				<LightSwitch /></svelte:fragment
 			>
@@ -366,7 +355,7 @@
 	:global(.input) {
 		padding: 0px 10px;
 	}
-	.apprailColor{
+	.apprailColor {
 		/*background-color: #3A3D41;*/
 		background-color: red;
 	}
