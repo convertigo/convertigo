@@ -2,12 +2,12 @@
 	import { selectedId } from '$lib/treeview/treeStore';
 	import { getUrl } from '$lib/utils/service';
 
-	let url = 'about:blank';
+	let src = 'about:blank';
 
-	$: url = `${getUrl()}../../projects/${$selectedId.replace(
-		/.*?\..*/,
+	$: src = `${getUrl()}../../projects/${$selectedId.replace(
+		/(.*?)[\.:].*/,
 		'$1'
 	)}/DisplayObjects/mobile/`;
 </script>
 
-<iframe src={url} class="w-full h-full" />
+<iframe {src} class="w-full h-full" />
