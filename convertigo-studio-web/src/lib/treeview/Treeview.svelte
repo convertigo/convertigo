@@ -4,7 +4,7 @@
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	import { call, getUrl } from '../utils/service';
-	import { treeData } from './treeStore';
+	import { treeData, selectedId } from './treeStore';
 
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
@@ -68,6 +68,7 @@
 			e.preventDefault();
 		}
 		dispatch('treeClick', { id: nodeData.id });
+		$selectedId = nodeData.id ?? '';
 	}
 </script>
 

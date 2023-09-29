@@ -7,3 +7,5 @@ export const treeData = writable({
 	icon: 'folder',
 	expanded: true
 });
+
+export const selectedId = writable('');

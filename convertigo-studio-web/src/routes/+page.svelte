@@ -28,6 +28,8 @@
 	import IconPalette from '~icons/mdi/palette-outline';
 	// @ts-ignore
 	import IconLogout from '~icons/mdi/logout';
+	// @ts-ignore
+	import IconEye from '~icons/mdi/eye';
 
 	import Monaco from '$lib/editor/Editor.svelte';
 	import C8oTree from '$lib/treeview/Treeview.svelte';
@@ -35,6 +37,7 @@
 	import { categories } from '$lib/palette/paletteStore';
 	import Palette from '$lib/palette/Palette.svelte';
 	import themes from '$lib/resources/themes.json';
+	import Viewer from '$lib/viewer/Viewer.svelte';
 
 	let currentTile = 0;
 
@@ -42,11 +45,13 @@
 	let treeWidth = localStorageStore('studio.treeWidth', 300);
 	let propertiesWidth = localStorageStore('studio.propertiesWidth', 300);
 	let paletteWidth = localStorageStore('studio.paletteWidth', 300);
+	let viewerWidth = localStorageStore('studio.viewerWidth', 300);
 	let editorTab = 0;
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
 	let paletteSelected = localStorageStore('studio.paletteSelected', false);
 	let editorSelected = localStorageStore('studio.editorSelected', false);
+	let viewerSelected = localStorageStore('studio.viewerSelected', false);
 	let authenticated = false;
 
 	/**
@@ -90,6 +95,12 @@
 			if (e.layerX > 0) {
 				$paletteWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
 			}
+		}
+	}
+
+	function viewerWidthDrag(e) {
+		if (e.layerX > 0) {
+			$viewerWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
 		}
 	}
 
@@ -178,6 +189,10 @@
 				<AppRailAnchor
 					selected={$paletteSelected}
 					on:click={() => ($paletteSelected = !$paletteSelected)}><IconPalette /></AppRailAnchor
+				>
+				<AppRailAnchor
+					selected={$viewerSelected}
+					on:click={() => ($viewerSelected = !$viewerSelected)}><IconEye /></AppRailAnchor
 				>
 				<AppRailAnchor
 					selected={$editorSelected}
@@ -282,6 +297,35 @@
 					>
 						{#if authenticated}
 							<Palette />
+						{:else}
+							<ProgressRadial
+								...
+								stroke={100}
+								meter="stroke-primary-500"
+								track="stroke-primary-500/30"
+							/>
+						{/if}
+					</div>
+					<span class="draggable divider-vertical h-full border-2" draggable="true" />
+				</div>
+			</div>
+		{/if}
+		{#if $viewerSelected}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
+				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
+				style:width="{$viewerWidth}px"
+				style:min-width="100px"
+				on:drag={viewerWidthDrag}
+				on:dragstart={noDragImage}
+				transition:withTransition={{ duration: 250 }}
+			>
+				<div class="flex flex-row items-stretch h-full">
+					<div
+						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
+					>
+						{#if authenticated}
+							<Viewer />
 						{:else}
 							<ProgressRadial
 								...
