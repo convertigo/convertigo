@@ -2,7 +2,6 @@
 	import {
 		AppRail,
 		AppRailAnchor,
-		ProgressRadial,
 		LightSwitch,
 		AppBar,
 		AppShell,
@@ -14,7 +13,7 @@
 	import { call } from '$lib/utils/service';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import { loading } from '$lib/utils/loadingStore';
+	import { loading, authenticated } from '$lib/utils/loadingStore';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -31,41 +30,29 @@
 	// @ts-ignore
 	import IconEye from '~icons/mdi/eye';
 
+	import SizableCard from '$lib/shell/SizableCard.svelte';
 	import Monaco from '$lib/editor/Editor.svelte';
 	import C8oTree from '$lib/treeview/Treeview.svelte';
-	import { properties } from '$lib/properties/propertiesStore';
 	import { categories } from '$lib/palette/paletteStore';
 	import Palette from '$lib/palette/Palette.svelte';
 	import themes from '$lib/resources/themes.json';
 	import Viewer from '$lib/viewer/Viewer.svelte';
-
-	let currentTile = 0;
+	import Properties from '$lib/properties/Properties.svelte';
 
 	let theme = localStorageStore('studio.theme', 'skeleton');
-	let treeWidth = localStorageStore('studio.treeWidth', 300);
-	let propertiesWidth = localStorageStore('studio.propertiesWidth', 300);
-	let paletteWidth = localStorageStore('studio.paletteWidth', 300);
-	let viewerWidth = localStorageStore('studio.viewerWidth', 300);
 	let editorTab = 0;
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
 	let paletteSelected = localStorageStore('studio.paletteSelected', false);
 	let editorSelected = localStorageStore('studio.editorSelected', false);
 	let viewerSelected = localStorageStore('studio.viewerSelected', false);
-	let authenticated = false;
 
-	/**
-	 * @type {HTMLImageElement}
-	 */
-	let img;
 	onMount(() => {
 		changeTheme($theme);
-		img = document.createElement('img');
-		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 		call('engine.CheckAuthentication').then((res) => {
-			authenticated = res.admin.authenticated;
-			if (!authenticated) {
+			$authenticated = res.admin.authenticated;
+			if (!$authenticated) {
 				if (!location.href.includes('/studio')) {
 					sessionStorage.setItem('studioWebDev', 'true');
 					location.href = '/convertigo/admin/login.html';
@@ -77,31 +64,23 @@
 		});
 	});
 
-	function treeWidthDrag(e) {
-		call;
-		if (e.layerX > 0) {
-			$treeWidth = e.x - e.target.parentElement.offsetLeft;
-		}
+	/**
+	 * @param {any} e
+	 */
+	function changeTheme(e) {
+		$theme = typeof e == 'string' ? e : e.target?.value;
+		document.body.setAttribute('data-theme', $theme);
 	}
 
-	function propertiesWidthDrag(e) {
-		if (e.layerX > 0) {
-			$propertiesWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
-		}
-	}
+	/**
+	 * @param {{ detail: { id: any; }; }} e
+	 */
+	async function handleTreeClicked(e) {
+		let id = e.detail.id;
 
-	function paletteWidthDrag(e) {
-		if (!isPaletteDragItem(e)) {
-			if (e.layerX > 0) {
-				$paletteWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
-			}
-		}
-	}
-
-	function viewerWidthDrag(e) {
-		if (e.layerX > 0) {
-			$viewerWidth = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
-		}
+		// update palette store
+		let paletteData = await call('studio.palette.Get', { id });
+		categories.set(paletteData.categories);
 	}
 
 	/**
@@ -110,45 +89,15 @@
 	function withTransition(node, { duration }) {
 		return {
 			duration,
-			css: (t) => {
+			css: (/** @type {any} */ t) => {
 				let l = Math.round(linear(t) * node.clientWidth);
 				return `
-					width: ${l}px;
-					min-width: ${l}px;
-					opacity: ${t};
-				`;
+				width: ${l}px;
+				min-width: ${l}px;
+				opacity: ${t};
+			`;
 			}
 		};
-	}
-
-	function noDragImage(e) {
-		if (!isPaletteDragItem(e)) {
-			e.target.parentElement.parentElement.classList.remove('widthTransition');
-			e.dataTransfer.setDragImage(img, 0, 0);
-		}
-	}
-	/**
-	 * @param {{target: HTMLElement}} e
-	 */
-	function isPaletteDragItem(e) {
-		return e.target.classList.contains('palette-item');
-	}
-
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
-	}
-
-	async function handleTreeClicked(e) {
-		let id = e.detail.id;
-
-		// update properties store
-		let treeData = await call('studio.properties.Get', { id });
-		properties.set(treeData.properties);
-
-		// update palette store
-		let paletteData = await call('studio.palette.Get', { id });
-		categories.set(paletteData.categories);
 	}
 </script>
 
@@ -211,133 +160,24 @@
 	<!-- Router Slot -->
 	<div class="flex flex-row items-stretch h-full">
 		{#if $treeSelected}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{$treeWidth}px"
-				style:min-width="100px"
-				on:drag={treeWidthDrag}
-				on:dragstart={noDragImage}
-				transition:withTransition={{ duration: 250 }}
-			>
-				<div class="flex flex-row items-stretch h-full">
-					<div
-						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
-					>
-						{#if authenticated}
-							<C8oTree on:treeClick={handleTreeClicked} />
-						{:else}
-							<ProgressRadial
-								...
-								stroke={100}
-								meter="stroke-primary-500"
-								track="stroke-primary-500/30"
-							/>
-						{/if}
-					</div>
-					<span class="draggable divider-vertical h-full border-2" draggable="true" />
-				</div>
-			</div>
+			<SizableCard name="tree">
+				<C8oTree on:treeClick={handleTreeClicked} />
+			</SizableCard>
 		{/if}
 		{#if $propertiesSelected}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{$propertiesWidth}px"
-				style:min-width="100px"
-				on:drag={propertiesWidthDrag}
-				on:dragstart={noDragImage}
-				transition:withTransition={{ duration: 250 }}
-			>
-				<div class="flex flex-row items-stretch h-full">
-					<!-- Responsive Container (recommended) -->
-					<div class="table-container">
-						<!-- Native Table Element -->
-						<table class="table table-hover table-compact">
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Value</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each Object.entries($properties) as entry}
-									<tr>
-										<td>{entry[0]}</td>
-										<td
-											><input
-												class="input"
-												type="text"
-												placeholder={entry[0]}
-												value={entry[1]}
-											/></td
-										>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-					<span class="draggable divider-vertical h-full border-2" draggable="true" />
-				</div>
-			</div>
+			<SizableCard name="properties">
+				<Properties />
+			</SizableCard>
 		{/if}
 		{#if $paletteSelected}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{$paletteWidth}px"
-				style:min-width="100px"
-				on:drag={paletteWidthDrag}
-				on:dragstart={noDragImage}
-				transition:withTransition={{ duration: 250 }}
-			>
-				<div class="flex flex-row items-stretch h-full">
-					<div
-						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
-					>
-						{#if authenticated}
-							<Palette />
-						{:else}
-							<ProgressRadial
-								...
-								stroke={100}
-								meter="stroke-primary-500"
-								track="stroke-primary-500/30"
-							/>
-						{/if}
-					</div>
-					<span class="draggable divider-vertical h-full border-2" draggable="true" />
-				</div>
-			</div>
+			<SizableCard name="palette">
+				<Palette />
+			</SizableCard>
 		{/if}
 		{#if $viewerSelected}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class="card m-1 variant-soft-primary overflow-hidden widthTransition"
-				style:width="{$viewerWidth}px"
-				style:min-width="100px"
-				on:drag={viewerWidthDrag}
-				on:dragstart={noDragImage}
-				transition:withTransition={{ duration: 250 }}
-			>
-				<div class="flex flex-row items-stretch h-full">
-					<div
-						class="flex-col flex items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
-					>
-						{#if authenticated}
-							<Viewer />
-						{:else}
-							<ProgressRadial
-								...
-								stroke={100}
-								meter="stroke-primary-500"
-								track="stroke-primary-500/30"
-							/>
-						{/if}
-					</div>
-					<span class="draggable divider-vertical h-full border-2" draggable="true" />
-				</div>
-			</div>
+			<SizableCard name="viewer">
+				<Viewer />
+			</SizableCard>
 		{/if}
 		{#if $editorSelected}
 			<div
@@ -368,25 +208,12 @@
 </AppShell>
 
 <style>
-	.draggable {
-		cursor: grab;
-	}
-
-	.card:active {
-		cursor: grabbing;
-	}
-
-	.widthTransition {
-		transition-property: min-width;
-		transition-duration: 250ms;
-	}
-
 	@keyframes rotate {
 		from {
-			transform: rotateY(0deg); /* Angle de départ */
+			transform: rotateY(0deg);
 		}
 		to {
-			transform: rotateY(360deg); /* Angle de fin */
+			transform: rotateY(360deg);
 		}
 	}
 
