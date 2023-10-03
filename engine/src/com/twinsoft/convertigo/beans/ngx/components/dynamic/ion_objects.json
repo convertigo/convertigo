@@ -4015,6 +4015,7 @@
 			"icon32": "searchbar_32x32.png",
 			"properties": {
 				"Disabled": false,
+				"DoubleBinding": false,
 				"IonColor": false,
 				"IonMode": false,
 				"animated": {
