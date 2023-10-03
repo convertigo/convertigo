@@ -24,9 +24,8 @@
 	onDestroy(() => clearInterval(interval));
 
 	function dragStart(event, item) {
-		const jsonString = JSON.stringify(item);
-		event.dataTransfer.setData('text', jsonString);
-		//console.log("Palette dragStart", event.dataTransfer.getData("text"))
+		const paletteData = { type: 'paletteData', data: item, options: {} };
+		event.dataTransfer.setData('text', JSON.stringify(paletteData));
 	}
 
 	function onClick() {

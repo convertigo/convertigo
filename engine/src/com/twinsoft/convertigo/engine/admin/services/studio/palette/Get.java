@@ -24,14 +24,8 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
-import com.twinsoft.convertigo.engine.enums.FolderType;
 
-@ServiceDefinition(
-		name = "Get",
-		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW },
-		parameters = {},
-		returnValue = ""
-		)
+@ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Get extends JSonService {
 
 	@Override
@@ -42,29 +36,25 @@ public class Get extends JSonService {
 	}
 
 	private JSONArray getPalette(String id) throws Exception {
-		var reg = Utils.parseQName.matcher(id);
-		reg.matches();
-		var ft = FolderType.parse(reg.group(2));
-		var qname = ft == null ? id : reg.group(1);
-		var parentDbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-		
+		var parentDbo = Utils.getDbo(id);
+
 		JSONArray categories = new JSONArray();
 
-		for (DboGroup g: Engine.theApp.getDboExplorerManager().getGroups()) {
+		for (DboGroup g : Engine.theApp.getDboExplorerManager().getGroups()) {
 			String groupName = g.getName();
-			for (DboCategory c: g.getCategories()) {
+			for (DboCategory c : g.getCategories()) {
 				String categoryName = c.getName().isEmpty() ? groupName : c.getName();
 
-				for (DboBeans bs: c.getBeans()) {
+				for (DboBeans bs : c.getBeans()) {
 					String category = bs.getName().isEmpty() ? categoryName : bs.getName();
-					
+
 					JSONObject jsonCategory = new JSONObject();
 					jsonCategory.put("type", "Category");
 					jsonCategory.put("name", category);
 					jsonCategory.put("items", new JSONArray());
 					categories.put(jsonCategory);
-					
-					for (DboBean b: bs.getBeans()) {
+
+					for (DboBean b : bs.getBeans()) {
 						String cn = b.getClassName();
 						if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
 								|| cn.startsWith("com.twinsoft.convertigo.beans.mobile.components."))
@@ -75,7 +65,7 @@ public class Get extends JSonService {
 						var isAllowedIn = false;
 						try {
 							boolean force = false;
-							if (parentDbo != null /*isType[0]*/) {
+							if (parentDbo != null /* isType[0] */) {
 								String cls = b.getClassName();
 								if (parentDbo instanceof Sequence) {
 									force = cls.startsWith("com.twinsoft.convertigo.beans.steps.")
@@ -87,16 +77,18 @@ public class Get extends JSonService {
 								}
 							}
 							isAllowedIn = force || DatabaseObjectsManager.checkParent(parentDbo.getClass(), b);
-						} catch (Exception e) {}
-						
-						if (!isAllowedIn) continue;
-						
+						} catch (Exception e) {
+						}
+
+						if (!isAllowedIn)
+							continue;
+
 						String beanInfoClassName = b.getClassName() + "BeanInfo";
 						Class<?> beanInfoClass = Class.forName(beanInfoClassName);
 						BeanInfo bi = (BeanInfo) beanInfoClass.getConstructor().newInstance();
 						BeanDescriptor bd = bi.getBeanDescriptor();
 						String description = b.isDocumented() ? bd.getShortDescription() : "Not yet documented |";
-						
+
 						JSONObject jsonItem = new JSONObject();
 						jsonItem.put("type", "Dbo");
 						jsonItem.put("id", cn);
@@ -116,28 +108,32 @@ public class Get extends JSonService {
 		}
 
 		List<String> groups = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getGroups();
-		List<com.twinsoft.convertigo.beans.ngx.components.dynamic.Component> components = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponents();
-		
+		List<com.twinsoft.convertigo.beans.ngx.components.dynamic.Component> components = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+				.getComponents();
+
 		for (String group : groups) {
 			JSONObject jsonCategory = new JSONObject();
 			jsonCategory.put("type", "Category");
 			jsonCategory.put("name", group);
 			jsonCategory.put("items", new JSONArray());
 			categories.put(jsonCategory);
-			
+
 			for (com.twinsoft.convertigo.beans.ngx.components.dynamic.Component component : components) {
 				var isAllowedIn = parentDbo != null ? component.isAllowedIn(parentDbo) : false;
-				
-				if (!isAllowedIn) continue;
-				
+
+				if (!isAllowedIn)
+					continue;
+
 				if (component.getGroup().equals(group)) {
-					String cn= "";
+					String cn = "";
 					try {
-						cn = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(component).getClass().getCanonicalName();
-					} catch (Exception e) {}
-					
+						cn = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(component)
+								.getClass().getCanonicalName();
+					} catch (Exception e) {
+					}
+
 					JSONObject jsonItem = new JSONObject();
-					jsonItem.put("type", "Dbo");
+					jsonItem.put("type", "Ion");
 					jsonItem.put("id", "ngx " + component.getName());
 					jsonItem.put("name", component.getLabel());
 					jsonItem.put("classname", cn);
@@ -152,8 +148,8 @@ public class Get extends JSonService {
 				categories.remove(jsonCategory);
 			}
 		}
-		
+
 		return categories;
 	}
-	
+
 }

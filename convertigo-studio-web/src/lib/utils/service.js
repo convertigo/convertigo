@@ -38,3 +38,22 @@ export function getUrl() {
 		? `../admin/services/`
 		: `/convertigo/admin/services/`;
 }
+
+/* studio.dbo service methods */
+
+/**
+ * @param {string} target - the id of the parent dbo in tree
+ * @param {any} data - the json data object
+ */
+export async function addDbo(target = '', data = {kind: '', data: {id:''}, options: {}}) {
+	let result = await call('studio.dbo.Add', { target, data: JSON.stringify(data) });
+	return result;
+}
+
+/**
+ * @param {string} id - the id of the dbo in tree
+ */
+export async function removeDbo(id = '') {
+	let result = await call('studio.dbo.Remove', { id });
+	return result;
+}

@@ -38,12 +38,19 @@
 
 	onMount(() => {});
 
-	const unsubscribe = categories.subscribe((value) => {
+	const unsubscribeCategories = categories.subscribe((value) => {
 		storeCategories = value;
 		update();
 	});
 
-	onDestroy(unsubscribe);
+	const unsubscribeReusables = reusables.subscribe((value) => {
+		update();
+	});
+
+	onDestroy(() => {
+		unsubscribeCategories;
+		unsubscribeReusables;
+	});
 
 	function update() {
 		selectedItem = undefined;
@@ -136,16 +143,6 @@
 	function itemClicked(event) {
 		selectedItem = event.detail.item;
 	}
-
-	function onInputDrop(event) {
-		event.preventDefault();
-		let json = JSON.parse(event.dataTransfer.getData('text'));
-		//console.log('Palette onInputDrop', json);
-		$reusables[json.id] = json;
-		$reusables = $reusables;
-		textInput.value = '';
-		update();
-	}
 </script>
 
 <div class="palette">
@@ -224,14 +221,6 @@
 				placeholder="Search..."
 				bind:value={search}
 				on:input={doSearch}
-			/>
-			<input
-				id="inputDrop"
-				class="input"
-				type="text"
-				placeholder="drop inside..."
-				bind:this={textInput}
-				on:drop={onInputDrop}
 			/>
 		</div>
 	</div>

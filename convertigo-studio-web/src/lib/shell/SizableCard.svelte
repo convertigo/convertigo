@@ -19,8 +19,10 @@
 	}
 
 	function widthDrag(e) {
-		if (e.layerX > 0) {
-			$width = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
+		if (!e.target.classList.contains('palette-item')) {
+			if (e.layerX > 0) {
+				$width = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
+			}
 		}
 	}
 
