@@ -40,7 +40,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[17];
+			properties = new PropertyDescriptor[20];
 
 			properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
 			properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -122,6 +122,19 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			properties[16].setShortDescription(getExternalizedString("property.fsDesignDocument.short_description"));
 			properties[16].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			properties[16].setHidden(true);
+			
+			properties[17] = new PropertyDescriptor("applicationIcons", beanClass, "getApplicationIcons", "setApplicationIcons");
+			properties[17].setDisplayName(getExternalizedString("property.applicationIcons.display_name"));
+			properties[17].setShortDescription(getExternalizedString("property.applicationIcons.short_description"));
+			properties[17].setPropertyEditorClass(getEditorClass("ApplicationIconsEditor"));
+			
+			properties[18] = new PropertyDescriptor("applicationBgColor", beanClass, "getApplicationBgColor", "setApplicationBgColor");
+			properties[18].setDisplayName(getExternalizedString("property.applicationBgColor.display_name"));
+			properties[18].setShortDescription(getExternalizedString("property.applicationBgColor.short_description"));
+			
+			properties[19] = new PropertyDescriptor("applicationThemeColor", beanClass, "getApplicationThemeColor", "setApplicationThemeColor");
+			properties[19].setDisplayName(getExternalizedString("property.applicationThemeColor.display_name"));
+			properties[19].setShortDescription(getExternalizedString("property.applicationThemeColor.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

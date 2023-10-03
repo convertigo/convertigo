@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -51,6 +52,14 @@ public class MobileApplication extends DatabaseObject {
 	private static final long serialVersionUID = 5414379401296015511L;
 	
 	private static final Pattern p_version = Pattern.compile("(\\d+)(\\.\\d+)?(\\.\\d+)?");
+	
+	private static XMLVector<XMLVector<String>> initialIcons() {
+		XMLVector<XMLVector<String>> xmlv = new XMLVector<XMLVector<String>>();
+		XMLVector<String> v = new XMLVector<String>();
+		v.add("{\"src\": \"assets\\/icon_512x512.png\",\"sizes\": \"512x512\",\"type\": \"image\\/png\"}");
+		xmlv.add(v);
+		return xmlv;
+	}
 	
 	public enum FlashUpdateBuildMode {
 		full,
@@ -95,6 +104,10 @@ public class MobileApplication extends DatabaseObject {
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
 	private String applicationAuthorSite = "https://www.convertigo.com";
+	private String applicationBgColor = "#4e8ef7";
+	private String applicationThemeColor = "#4e8ef7";
+	private XMLVector<XMLVector<String>> applicationIcons = initialIcons();
+	
 	private Accessibility accessibility = Accessibility.Public;
 	
 	private String endpoint = "";
@@ -450,5 +463,29 @@ public class MobileApplication extends DatabaseObject {
 			return getApplicationComponent() != null;
 		}
 		return super.testAttribute(name, value);
+	}
+
+	public XMLVector<XMLVector<String>> getApplicationIcons() {
+		return applicationIcons;
+	}
+
+	public void setApplicationIcons(XMLVector<XMLVector<String>> applicationIcons) {
+		this.applicationIcons = applicationIcons;
+	}
+
+	public String getApplicationBgColor() {
+		return applicationBgColor;
+	}
+
+	public void setApplicationBgColor(String applicationBgColor) {
+		this.applicationBgColor = applicationBgColor;
+	}
+
+	public String getApplicationThemeColor() {
+		return applicationThemeColor;
+	}
+
+	public void setApplicationThemeColor(String applicationThemeColor) {
+		this.applicationThemeColor = applicationThemeColor;
 	}
 }

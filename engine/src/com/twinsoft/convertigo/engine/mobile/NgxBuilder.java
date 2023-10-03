@@ -42,6 +42,7 @@ import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
@@ -2964,20 +2965,45 @@ public class NgxBuilder extends MobileBuilder {
 			String tpl_index_content = FileUtils.readFileToString(tpl_index, "UTF-8");
 			String index_content = tpl_index_content;
 
-			String pwaAppName = app.getParent().getComputedApplicationName();
+			MobileApplication ma = app.getParent();
+			String pwaAppName = ma.getComputedApplicationName();
 			pwaAppName = pwaAppName.isEmpty() ? app.getName() : pwaAppName;
 			index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
 
 			File index = new File(ionicWorkDir, "src/index.html");
 			writeFile(index, index_content, "UTF-8");
 
-			// Set application name (manifest.webmanifest)
+			// Set application infos (manifest.webmanifest)
 			File manifestFile = new File(ionicWorkDir, "src/manifest.webmanifest");
 			if (manifestFile.exists()) {
 				String jsonContent = FileUtils.readFileToString(manifestFile, "UTF-8");
 				JSONObject jsonOb = new JSONObject(jsonContent);
+				
+				// Set application name 
 				jsonOb.put("name", pwaAppName);
 				jsonOb.put("short_name", pwaAppName);
+				
+				// Set application theme color
+				String themeColor = ma.getApplicationThemeColor();
+				if (!themeColor.isEmpty()) jsonOb.put("theme_color", themeColor);
+				
+				// Set application bg color
+				String bgColor = ma.getApplicationBgColor();
+				if (!bgColor.isEmpty()) jsonOb.put("background_color", bgColor);
+				
+				// Set application icons
+				JSONArray icons = new JSONArray();
+				XMLVector<XMLVector<String>> xmlv = ma.getApplicationIcons();
+				for (XMLVector<String> v: xmlv) {
+					try {
+						JSONObject jso = new JSONObject(v.get(0));
+						icons.put(jso);
+					} catch (Exception e) {}
+				}
+				if (icons.length() > 0) {
+					jsonOb.put("icons", icons);
+				}
+				
 				writeFile(manifestFile, jsonOb.toString(4), "UTF-8");
 			}
 		} catch (Exception e) {
