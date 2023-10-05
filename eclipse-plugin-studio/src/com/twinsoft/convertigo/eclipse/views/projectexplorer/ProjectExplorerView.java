@@ -1085,6 +1085,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						while (res.isEmpty()) {
 							if (current instanceof ProjectTreeObject) {
 								res.add(0, prj);
+							} else if (current instanceof SequenceTreeObject || current instanceof TransactionTreeObject) {
+								if (prj.findMember("stubs") != null) {
+									res.add(0, prj.findMember("stubs"));
+								}
 							} else if (current instanceof MobileApplicationTreeObject) {
 								res.add(0, prj.findMember("DisplayObjects"));
 							} else if (current instanceof MobilePlatformTreeObject) {

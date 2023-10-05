@@ -65,13 +65,13 @@ public class CreateStubFromXMLAction extends AbstractStubAction {
 		if (requestable instanceof Transaction) {
 			Transaction transaction = (Transaction) requestable;
 			ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor((Connector) transaction.getParent());
-			dom = connectorEditor.getLastGeneratedDocument();
+			dom = connectorEditor != null ? connectorEditor.getLastGeneratedDocument() : null;
 		} else if (requestable instanceof Sequence) {
 			SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor((Sequence) requestable);
-			dom = sequenceEditor.getLastGeneratedDocument();
+			dom = sequenceEditor != null ? sequenceEditor.getLastGeneratedDocument() : null;
 		}
 		if (dom == null) {
-			throw new NoSuchElementException();
+			throw new NoSuchElementException("Editor is closed or has none XML generated");
 		}
 		return dom;
 	}

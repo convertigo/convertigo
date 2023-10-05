@@ -35,8 +35,15 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class TransactionExecuteSelectedFromStubAction extends MyAbstractAction {
 
+	private String stubFileName = null;
+	
 	public TransactionExecuteSelectedFromStubAction() {
 		super();
+	}
+
+	public TransactionExecuteSelectedFromStubAction(String stubFileName) {
+		super();
+		this.stubFileName = stubFileName;
 	}
 
 	public void run() {
@@ -61,7 +68,7 @@ public class TransactionExecuteSelectedFromStubAction extends MyAbstractAction {
     				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);
-    					connectorEditor.getDocument(transaction.getName(), true);
+    					connectorEditor.getDocument(transaction.getName(), null, stubFileName, true);
     				}
     			}
     		}

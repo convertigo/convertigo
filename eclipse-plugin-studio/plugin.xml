@@ -1580,7 +1580,7 @@
 				class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
 				icon="icons/studio/transaction_execute_selected.gif"
 				id="convertigo.action.executeSelectedTransactionFromStub"
-				label="Execute from stub"
+				label="Execute from default stub"
 				menubarPath="execute" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
@@ -1618,13 +1618,13 @@
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
 				enablesFor="1"
 				id="convertigo.action.createEmptyStub"
-				label="Create empty stub"
+				label="Create empty default stub"
 				menubarPath="stub" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
 				enablesFor="1"
 				id="convertigo.action.createStubFromXML"
-				label="Create stub from current response data"
+				label="Create default stub from current response data"
 				menubarPath="stub" />
 		</objectContribution>
 		<objectContribution
@@ -3163,7 +3163,7 @@
 				class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
 				icon="icons/studio/transaction_execute_selected.gif"
 				id="convertigo.action.executeSelectedSequenceFromStub"
-				label="Execute from stub"
+				label="Execute from default stub"
 				menubarPath="execute"></action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
@@ -3187,12 +3187,12 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
 				id="convertigo.action.seq.createEmptyStub"
-				label="Create empty stub"
+				label="Create empty default stub"
 				menubarPath="stub"></action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
 				id="convertigo.action.seq.createStubFromXML"
-				label="Create stub from current response data"
+				label="Create default stub from current response data"
 				menubarPath="stub"></action>
 			<!--
                <action
@@ -4220,6 +4220,13 @@
 				style="push">
 				<visibleWhen checkEnabled="true" />
 			</command>
+		</menuContribution>
+		<menuContribution
+			locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+			<dynamic
+				class="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu"
+				id="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu">
+			</dynamic>
 		</menuContribution>
 	</extension>
 	<extension

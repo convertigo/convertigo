@@ -581,6 +581,12 @@ public abstract class GenericRequester extends Requester {
 				context.isStubRequested = true;
 			}
 		}
+		// This is the overidden of stub file
+		else if (parameterName.equals(Parameter.StubFilename.getName())) {
+			if (parameterValue != null) {
+				context.set(Parameter.StubFilename.getName(), parameterValue);
+			}
+		}
 		// This is the user reference
 		else if (parameterName.equals(Parameter.UserReference.getName())) {
 			if (parameterValue != null) {

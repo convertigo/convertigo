@@ -29,7 +29,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.ProcessingInstruction;
 
-import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.AbstractRunnableManager;
 import com.twinsoft.convertigo.engine.Context;
@@ -123,22 +122,15 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 		String	supervision = null;
 
 		if (context.isStubRequested) {
-			String stubFileName = null;
-			if (context.requestedObject instanceof Transaction) {
-				stubFileName = context.requestedObject.getProject().getDirPath()
-						+ "/stubs/"
-						+ context.requestedObject.getParentName() + "."
-						+ context.requestedObject.getName() + ".xml";
-
-			} else if (context.requestedObject instanceof Sequence) {
-				stubFileName = context.requestedObject.getProject().getDirPath()
-						+ "/stubs/" + context.requestedObject.getName() + ".xml";
-			}
+			String stubFileName = (String) context.get(Parameter.StubFilename.getName());
+			
+			String stubFilePath = context.requestedObject.getProject().getDirPath() + "/stubs/" 
+								+ (stubFileName == null ? context.requestedObject.getDefaultStubFileName() : stubFileName);
 			try {
-				response = XMLUtils.parseDOM(stubFileName);
+				response = XMLUtils.parseDOM(stubFilePath);
 				response.getDocumentElement().setAttribute("fromStub", "true");
 			} catch (Exception e) {
-				Engine.logCacheManager.error("Error while parsing " + stubFileName + " file");
+				Engine.logCacheManager.error("Error while parsing " + stubFilePath + " file");
 				throw new EngineException("Unable to load response from Stub", e);
 			}
 		} else {

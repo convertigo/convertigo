@@ -19,19 +19,22 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
@@ -55,33 +58,61 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 		
  		try {
 			ProjectExplorerView explorerView = getProjectExplorerView();
-
 			if (explorerView != null) {
-				TreeObject treeObject = explorerView
-						.getFirstSelectedTreeObject();
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				
+				DatabaseObject dbo = null;
 				if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
-					SequenceTreeObject sequenceTreeObject = (SequenceTreeObject) treeObject;
-					Sequence sequence = sequenceTreeObject.getObject();
-					File stubDir = new File(sequence.getProject().getDirPath() + "/stubs");
-					stubDir.mkdirs();
-					File stubFile = new File(stubDir, sequence.getName() + ".xml");
-					Document dom = getXML(treeObject);
-					writeStub(dom, stubFile);
+					dbo = ((SequenceTreeObject) treeObject).getObject();
 				} else if ((treeObject != null) && (treeObject instanceof TransactionTreeObject)) {
-					TransactionTreeObject transactionTreeObject = (TransactionTreeObject) treeObject;
-					Transaction transaction = transactionTreeObject.getObject();
-					File stubDir = new File(transaction.getProject().getDirPath() + "/stubs");
-					stubDir.mkdirs();
-					File stubFile = new File(stubDir, transaction.getParentName() + "." + transaction.getName() + ".xml");
-					Document dom = getXML(treeObject);
-					writeStub(dom, stubFile);
+					dbo = ((TransactionTreeObject) treeObject).getObject();
+				}
+				
+				if (dbo != null) {
+					File stubDir = new File(dbo.getProject().getDirPath() + "/stubs");
+					String defaultStubFileName = ((RequestableObject)dbo).getDefaultStubFileName();
+					File defaultStubFile = new File(stubDir, defaultStubFileName);
+					
+					FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
+					fileDialog.setText("Save Stub");
+					fileDialog.setFilterExtensions(new String[]{"*.xml"});
+					fileDialog.setFilterNames(new String[]{"Convertigo stubs"});
+					fileDialog.setFilterPath(stubDir.getCanonicalPath());
+					fileDialog.setFileName(defaultStubFile.getName());
+	
+					String filePath = fileDialog.open();
+					if (filePath != null) {
+						File stubFile = new File(filePath);
+						if (stubFile.exists()) {
+							if (ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?") == SWT.YES) {
+								if (!stubFile.delete()) {
+									ConvertigoPlugin.warningMessageBox("Error when deleting the file " + stubFile.getName() + "! Please verify access rights!");
+									return;
+								}
+							} else {
+								return;
+							}
+						}
+	
+						if (Pattern.matches(".+(\\.xml)", stubFile.getName())) {
+							Document dom = getXML(treeObject);
+							stubDir.mkdirs();
+							writeStub(dom, stubFile);
+							if (!defaultStubFile.exists() && !defaultStubFile.equals(stubFile)) {
+								writeStub(dom, defaultStubFile);
+							}
+						}
+						else {
+							Toolkit.getDefaultToolkit().beep();
+							ConvertigoPlugin.logWarning("Wrong file extension!");
+						}
+					}
 				}
 			}
 		} catch (NoSuchElementException e) {
-			ConvertigoPlugin.logException(e, "No previous XML file found");
+			ConvertigoPlugin.logException(e, "No previous XML found");
 		} catch (Throwable e) {
-			ConvertigoPlugin.logException(e,
-					"Unable to execute the selected sequence!");
+			ConvertigoPlugin.logException(e, "Unable to save stub!");
 		} finally {
 			shell.setCursor(null);
 			waitCursor.dispose();

@@ -381,7 +381,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				if (lastParameters != null) {
 					ConvertigoPlugin.getDefault().runRequestable(projectName, lastParameters);
 				} else {
-					getDocument(null, null, false);
+					getDocument(null, null, null, false);
 				}
 			}
 
@@ -513,7 +513,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		editor.createEditorControl(compositeXml);
 	}
 
-	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
+	public void getDocument(String sequenceName, String testcaseName, String stubFileName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 
 		editor.setDirty(true);
@@ -531,6 +531,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			parameters.put(Parameter.Testcase.getName(), new String[]{testcaseName});
 		}
 
+		if (stubFileName != null) {
+			parameters.put(Parameter.StubFilename.getName(), new String[]{stubFileName});
+		}
+		
 		if (isStubRequested) {
 			parameters.put(Parameter.Stub.getName(), new String[]{"true"});
 		}

@@ -220,6 +220,7 @@ public class Context extends AbstractContext implements Cloneable {
 		
 		// Reset last responseExpiryDate set (#4201)
 		remove(Parameter.ResponseExpiryDate.getName());
+		remove(Parameter.StubFilename.getName());
 		
 		Engine.logContext.debug("Context reset");
 	}

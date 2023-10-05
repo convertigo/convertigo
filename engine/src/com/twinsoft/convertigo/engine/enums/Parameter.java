@@ -51,6 +51,7 @@ public enum Parameter {
 	SequenceInheritedTransactionContext("__inheritedContext"),
 	SessionId("__jSessionID"),
 	Stub("__stub"),
+	StubFilename("__stub_filename"),
 	Supervision("__supervision"),
 	Testcase("__testcase"),
 	Transaction("__transaction"),
