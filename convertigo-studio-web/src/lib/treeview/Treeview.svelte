@@ -3,10 +3,10 @@
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
+	import DndBlock from './DndBlock.svelte';
 	import { call, getUrl } from '../utils/service';
 	import { treeData, selectedId } from './treeStore';
-	import { reusables } from '$lib/palette/paletteStore';
-	import { addDbo, removeDbo } from '$lib/utils/service';
+	import { removeDbo } from '$lib/utils/service';
 
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
@@ -78,34 +78,7 @@
 		if (e.target?.tagName == 'SPAN') {
 			e.preventDefault();
 		}
-		dispatch('treeClick', { id: nodeData.id });
 		$selectedId = nodeData.id ?? '';
-	}
-
-	function handleDragOver(e) {
-		e.preventDefault();
-		return false;
-	}
-
-	async function handleDrop(e) {
-		e.preventDefault();
-		let jsonData = undefined;
-		let target = nodeData.id;
-		try {
-			jsonData = JSON.parse(e.dataTransfer.getData('text'));
-		} catch (e) {}
-		if (target != null && jsonData != undefined) {
-			let result = await addDbo(target, jsonData);
-			if (result.done) {
-				// update palette reusables
-				if (jsonData.type === 'paletteData') {
-					$reusables[jsonData.data.id] = jsonData.data;
-					$reusables = $reusables;
-				}
-				// update tree item
-				update();
-			}
-		}
 	}
 
 	/**
@@ -114,6 +87,7 @@
 	async function handleKeyDown(e) {
 		if (e.key === 'Delete') {
 			e.preventDefault();
+			// dispatch for parent
 			dispatch('treeDelete', { id: nodeData.id });
 		}
 	}
@@ -148,17 +122,25 @@
 	>
 		<svelte:fragment slot="lead">
 			{#if nodeData.icon.includes('?')}
-				<img
-					src={getUrl() +
-						nodeData.icon +
-						'&__xsrfToken=' +
-						encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-					alt="ico"
-				/>
+				<DndBlock {nodeData} {item} on:update={update}>
+					<span slot="content">
+						<img
+							src={getUrl() +
+								nodeData.icon +
+								'&__xsrfToken=' +
+								encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
+							alt="ico"
+						/>
+					</span>
+				</DndBlock>
 			{:else if nodeData.icon == 'file'}
-				<IconFile />
+				<DndBlock {nodeData} {item} on:update={update}>
+					<span slot="content"><IconFile /></span>
+				</DndBlock>
 			{:else}
-				<IconFolder />
+				<DndBlock {nodeData} {item} on:update={update}>
+					<span slot="content"><IconFolder /></span>
+				</DndBlock>
 			{/if}
 		</svelte:fragment>
 		<svelte:fragment slot="children">
@@ -174,23 +156,9 @@
 				{/each}
 			{/if}
 		</svelte:fragment>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<span
-			draggable="true"
-			on:drag={(e) => {
-				e.stopPropagation();
-			}}
-			on:dragstart={(e) => e.stopPropagation()}
-			on:dragenter={(e) => {
-				//console.log(e);
-				if (!nodeData.expanded) {
-					item.open = true;
-				}
-			}}
-			on:dragover={handleDragOver}
-			on:drop={handleDrop}
-			>{nodeData.label}
-		</span>
+		<DndBlock {nodeData} {item} on:update={update}>
+			<span slot="content">{nodeData.label}</span>
+		</DndBlock>
 	</TreeViewItem>
 {:else if Array.isArray(nodeData.children)}
 	<TreeView padding="py-1 px-1" bind:this={root} open={nodeData.expanded ?? false}>

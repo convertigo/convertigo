@@ -73,17 +73,6 @@
 	}
 
 	/**
-	 * @param {{ detail: { id: any; }; }} e
-	 */
-	async function handleTreeClicked(e) {
-		let id = e.detail.id;
-
-		// update palette store
-		let paletteData = await call('studio.palette.Get', { id });
-		categories.set(paletteData.categories);
-	}
-
-	/**
 	 * @param {HTMLDivElement} node
 	 */
 	function withTransition(node, { duration }) {
@@ -161,7 +150,7 @@
 	<div class="flex flex-row items-stretch h-full">
 		{#if $treeSelected}
 			<SizableCard name="tree">
-				<C8oTree on:treeClick={handleTreeClicked} />
+				<C8oTree />
 			</SizableCard>
 		{/if}
 		{#if $propertiesSelected}
