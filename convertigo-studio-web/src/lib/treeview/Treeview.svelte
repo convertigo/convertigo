@@ -8,6 +8,7 @@
 	import { call, getUrl } from '../utils/service';
 	import { treeData, selectedId } from './treeStore';
 	import { removeDbo } from '$lib/utils/service';
+	import { tick } from 'svelte';
 
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
@@ -45,30 +46,33 @@
 		if (!force && !nodeData.expanded) {
 			return;
 		}
-		if (nodeData.children == true) {
-			call('studio.treeview.Get', nodeData.id == null ? {} : { id: nodeData.id }).then((res) => {
-				nodeData.children = res.children;
-			});
-		}
-		/** @type string[] */
-		let ids = [];
-		for (let child of Object.values(links)) {
-			try {
-				if (child.nodeData.children == true) {
-					ids.push(child.nodeData.id);
-				}
-			} catch (e) {}
-		}
-		if (ids.length > 0) {
-			call('studio.treeview.Get', { ids: JSON.stringify(ids) }).then((res) => {
-				for (let i of ids) {
-					try {
-						links[i].nodeData.children = res[i];
-					} catch (e) {}
-				}
-				nodeData = nodeData;
-			});
-		}
+		(async () => {
+			if (nodeData.children == true) {
+				nodeData.children = (
+					await call('studio.treeview.Get', nodeData.id == null ? {} : { id: nodeData.id })
+				).children;
+			}
+			await tick();
+			/** @type string[] */
+			let ids = [];
+			for (let child of Object.values(links)) {
+				try {
+					if (child.nodeData.children == true) {
+						ids.push(child.nodeData.id);
+					}
+				} catch (e) {}
+			}
+			if (ids.length > 0) {
+				call('studio.treeview.Get', { ids: JSON.stringify(ids) }).then((res) => {
+					for (let i of ids) {
+						try {
+							links[i].nodeData.children = res[i];
+						} catch (e) {}
+					}
+					nodeData = nodeData;
+				});
+			}
+		})();
 	}
 
 	/**
@@ -160,7 +164,13 @@
 		</DndBlock>
 	</TreeViewItem>
 {:else if Array.isArray(nodeData.children)}
-	<TreeView padding="py-1 px-1" bind:this={root} open={nodeData.expanded ?? false}>
+	<TreeView
+		padding="py-1 px-1"
+		bind:this={root}
+		open={nodeData.expanded ?? false}
+		caretClosed="-rotate-90"
+		caretOpen="rotate-0"
+	>
 		{#each nodeData.children as child}
 			<svelte:self
 				nodeData={child}

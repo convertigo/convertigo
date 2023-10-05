@@ -45,7 +45,7 @@ export function getUrl() {
  * @param {string} target - the id of the parent dbo in tree
  * @param {any} data - the json data object
  */
-export async function addDbo(target = '', data = {kind: '', data: {id:''}, options: {}}) {
+export async function addDbo(target = '', data = { kind: '', data: { id: '' }, options: {} }) {
 	let result = await call('studio.dbo.Add', { target, data: JSON.stringify(data) });
 	return result;
 }
