@@ -1158,14 +1158,14 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	}
 
 	private void getDocument() {
-		getDocument(null, null, false);
+		getDocument(null, null, null, false);
 	}
 
 	private Context context;
 	private String contextID = null;
 	private String projectName = null;
 
-	void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
+	void getDocument(String transactionName, String testcaseName, String stubFileName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 		
 		editor.setDirty(true);
@@ -1184,6 +1184,10 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			parameters.put(Parameter.Testcase.getName(), new String[]{testcaseName});
 		}
 
+		if (stubFileName != null) {
+			parameters.put(Parameter.StubFilename.getName(), new String[]{stubFileName});
+		}
+		
 		if (isStubRequested) {
 			parameters.put(Parameter.Stub.getName(), new String[]{"true"});
 		}

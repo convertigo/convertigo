@@ -121,9 +121,13 @@ public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveab
 	}
 	
 	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
-		connectorEditorPart.getDocument(transactionName, testcaseName, isStubRequested);
+		connectorEditorPart.getDocument(transactionName, testcaseName, null, isStubRequested);
 	}
-	
+
+	public void getDocument(String transactionName, String testcaseName, String stubFileName, boolean isStubRequested) {
+		connectorEditorPart.getDocument(transactionName, testcaseName, stubFileName, isStubRequested);
+	}
+
 	public Document getLastGeneratedDocument() {
 		return connectorEditorPart.lastGeneratedDocument;
 	}

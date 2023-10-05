@@ -1063,4 +1063,24 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	public void onCachedResponse() {
 		
 	}
+	
+	public String getDefaultStubFileName() {
+		boolean isSequence = getParent().getName().equals(getProject().getName());
+		String defaultName = (isSequence ? "" : getParentName() + ".") + getName();
+		String defaultStubFileName = defaultName + "_default.xml";
+		File stubsDir = new File(getProject().getDirPath() + "/stubs");
+		// handle compatibility with older versions
+		if (stubsDir.exists()) {
+			File newDefaultStubFile = new File(stubsDir, defaultStubFileName);
+			File oldDefaultStubFile = new File(stubsDir, defaultName + ".xml");
+			if (oldDefaultStubFile.exists() && !newDefaultStubFile.exists()) {
+				try {
+					FileUtils.copyFile(oldDefaultStubFile, newDefaultStubFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return defaultStubFileName;
+	}
 }

@@ -47,10 +47,17 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class SequenceExecuteSelectedAction extends MyAbstractAction {
 
+	private String stubFileName = null;
+	
 	public SequenceExecuteSelectedAction() {
 		super();
 	}
 
+	public SequenceExecuteSelectedAction(String stubFileName) {
+		super();
+		this.stubFileName = stubFileName;
+	}
+	
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
@@ -73,7 +80,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 					if (sequenceEditor != null) {
 						getActivePage().activate(sequenceEditor);
 						boolean fromStub = action.getId().contains("FromStub");
-						sequenceEditor.getSequenceEditorPart().getDocument(sequence.getName(), null, fromStub);
+						sequenceEditor.getSequenceEditorPart().getDocument(sequence.getName(), null, stubFileName, fromStub);
 					}
 				}
 			}

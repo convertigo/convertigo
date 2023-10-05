@@ -109,7 +109,11 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 	}
 	
 	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
-		sequenceEditorPart.getDocument(sequenceName, testcaseName, isStubRequested);
+		getDocument(sequenceName, testcaseName, null, isStubRequested);
+	}
+	
+	public void getDocument(String sequenceName, String testcaseName, String stubFileName, boolean isStubRequested) {
+		sequenceEditorPart.getDocument(sequenceName, testcaseName, stubFileName, isStubRequested);
 	}
 	
 	public Document getLastGeneratedDocument() {

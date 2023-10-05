@@ -1262,6 +1262,7 @@ public class Engine {
 					outputDom = cacheManager.getDocument(requester, context);
 				}
 			} finally {
+				context.remove(Parameter.StubFilename.getName());
 				if (oldResponseExpiryDate!=null) {
 					requestedObject.setResponseExpiryDate(oldResponseExpiryDate);
 				}
