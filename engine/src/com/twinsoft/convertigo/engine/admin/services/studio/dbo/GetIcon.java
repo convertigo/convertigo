@@ -19,8 +19,9 @@
 
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
-import java.beans.BeanInfo;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,20 +29,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG,
 		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class GetIcon extends DownloadService {
+	static final Pattern pIsImage = Pattern.compile("(?:(.*)_32x32\\.png|\\.(ico|gif|jpe?g|svg))$");
 
 	@Override
 	public boolean isNoCache() {
@@ -52,7 +50,7 @@ public class GetIcon extends DownloadService {
 	public boolean isXsrfCheck() {
 		return false;
 	}
-	
+
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServiceException {
@@ -61,35 +59,39 @@ public class GetIcon extends DownloadService {
 			return;
 		}
 		String iconPath = request.getParameter("iconPath");
-		HeaderName.CacheControl.setHeader(response, "public, max-age=300");
-		HeaderName.ETag.setHeader(response, Version.fullProductVersionID);
-		if (iconPath != null) {
 
-			try {
-				IOUtils.copy(GetIcon.class.getResourceAsStream(iconPath), response.getOutputStream());
-			} catch (Exception e) {
-				throw new ServiceException("Icon unreachable", e);
-			}
-		} else {
-			String className = request.getParameter("className");
-			String large = request.getParameter("large");
-
-			if (className == null || !className.startsWith("com.twinsoft.convertigo.beans"))
-				throw new ServiceException("Must provide className parameter", null);
-
-			try {
-				BeanInfo bi = CachedIntrospector
-						.getBeanInfo(GenericUtils.<Class<? extends DatabaseObject>>cast(Class.forName(className)));
-				int iconType = large != null && large.equals("true") ? BeanInfo.ICON_COLOR_32x32
-						: BeanInfo.ICON_COLOR_16x16;
-				IOUtils.copy(bi.getBeanDescriptor().getBeanClass()
-						.getResourceAsStream(MySimpleBeanInfo.getIconName(bi, iconType)), response.getOutputStream());
-			} catch (Exception e) {
-				throw new ServiceException("Icon unreachable", e);
-			}
+		if (iconPath == null) {
+			throw new ServiceException("Missing iconPath");
 		}
 
-		Engine.logAdmin.info("The image has been exported");
-	}
+		HeaderName.CacheControl.setHeader(response, "public, max-age=300");
+		HeaderName.ETag.setHeader(response, Version.fullProductVersionID);
 
+		Matcher isImage = pIsImage.matcher(iconPath);
+		if (!isImage.find()) {
+			throw new ServiceException("No image requested");
+		}
+		if (isImage.group(1) != null) {
+			try {
+				HeaderName.ContentType.setHeader(response, "image/svg+xml");
+				String svgPath = isImage.group(1) + ".svg";
+				IOUtils.copy(GetIcon.class.getResourceAsStream(svgPath), response.getOutputStream());
+				Engine.logAdmin.info("The image has been exported. From class " + svgPath);
+				return;
+			} catch (Exception e) {
+			}
+		}
+		try {
+			String type = isImage.group(1) != null ? "png" : isImage.group(2);
+			if ("svg".equals(type)) {
+				type = "svg+xml";
+			}
+			HeaderName.ContentType.setHeader(response, "image/" + type);
+			IOUtils.copy(GetIcon.class.getResourceAsStream(iconPath), response.getOutputStream());
+			Engine.logAdmin.info("The image has been exported. From iconPath " + iconPath);
+			return;
+		} catch (Exception e) {
+		}
+		throw new ServiceException("Icon unreachable: " + iconPath);
+	}
 }

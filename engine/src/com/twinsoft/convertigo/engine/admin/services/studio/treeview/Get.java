@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
+import java.beans.BeanInfo;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,6 +12,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -68,7 +70,7 @@ public class Get extends JSonService {
 		var qname = dbo.getFullQName();
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
-		obj.put("icon", "studio.dbo.GetIcon?large=true&className=" + dbo.getClass().getCanonicalName());
+		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32));
 		obj.put("id", qname);
 		if (!full) {
 			obj.put("children", dbo.hasDatabaseObjectChildren());

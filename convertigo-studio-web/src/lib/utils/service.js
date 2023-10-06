@@ -46,7 +46,11 @@ export function getUrl() {
  * @param {string} position - the position relative to target inside|first|after
  * @param {any} data - the json data object
  */
-export async function addDbo(target = '', position = 'inside', data = { kind: '', data: { id: '' } }) {
+export async function addDbo(
+	target = '',
+	position = 'inside',
+	data = { kind: '', data: { id: '' } }
+) {
 	let result = await call('studio.dbo.Add', { target, position, data: JSON.stringify(data) });
 	return result;
 }
