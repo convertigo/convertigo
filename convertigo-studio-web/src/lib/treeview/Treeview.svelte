@@ -128,18 +128,17 @@
 		<svelte:fragment slot="children">
 			{#if Array.isArray(nodeData.children) && nodeData.children.length > 0}
 				{#each nodeData.children as child}
-					{#if child.icon.includes('?')}
-						<DropDivider nodeData={child} on:update={update} kind="before" />
+					{#if child.icon.includes('?') && child.id === nodeData.children[0].id}
+						<DropDivider nodeData={child} on:update={update} position="first" />
 					{/if}
 					<svelte:self
 						nodeData={child}
 						{root}
 						bind:this={links[child.id]}
-						on:treeClick
 						on:treeDelete={treeDelete}
 					/>
-					{#if child.icon.includes('?') && child.id === nodeData.children.slice(-1)[0].id}
-						<DropDivider nodeData={child} on:update={update} kind="after" />
+					{#if child.icon.includes('?')}
+						<DropDivider nodeData={child} on:update={update} position="after" />
 					{/if}
 				{/each}
 			{/if}
@@ -147,10 +146,7 @@
 		<DndBlock {nodeData} {item} on:update={update}>
 			<span slot="icon">
 				{#if nodeData.icon.includes('?')}
-					<img
-						src={`${getUrl()}${nodeData.icon}`}
-						alt="ico"
-					/>
+					<img src={`${getUrl()}${nodeData.icon}`} alt="ico" />
 				{:else if nodeData.icon == 'file'}
 					<IconFile />
 				{:else}

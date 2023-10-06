@@ -842,13 +842,13 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	@Override
 	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
 		if (databaseObject instanceof PageComponent) {
-			addPageComponent((PageComponent) databaseObject);
+			addPageComponent((PageComponent) databaseObject, after);
 		} else if (databaseObject instanceof UIDynamicMenu) {
-			addMenuComponent((UIDynamicMenu) databaseObject);
+			addMenuComponent((UIDynamicMenu) databaseObject, after);
 		} else if (databaseObject instanceof UIActionStack) {
-			addSharedAction((UIActionStack) databaseObject);
+			addSharedAction((UIActionStack) databaseObject, after);
 		} else if (databaseObject instanceof UISharedComponent) {
-			addSharedComponent((UISharedComponent) databaseObject);
+			addSharedComponent((UISharedComponent) databaseObject, after);
 		} else if (databaseObject instanceof UIComponent) {
 			addUIComponent((UIComponent) databaseObject, after);
 		} else {

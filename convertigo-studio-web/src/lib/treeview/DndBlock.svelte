@@ -21,7 +21,7 @@
 			jsonData = JSON.parse(e.dataTransfer.getData('text'));
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
-			let result = await addDbo(target, jsonData);
+			let result = await addDbo(target, 'inside', jsonData);
 			if (result.done) {
 				// update palette reusables
 				if (jsonData.type === 'paletteData') {
