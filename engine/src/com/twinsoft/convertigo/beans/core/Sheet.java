@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
@@ -31,6 +32,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Sheet",
 		getIconClassCSS = "convertigo-action-newSheet"
 	)
+@DboFolderType(type = FolderType.SHEET)
 public class Sheet extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 2474285022734204501L;
@@ -95,10 +97,5 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
 	        return browsers;
 		}
 		return new String[0];
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.SHEET;
 	}
 }

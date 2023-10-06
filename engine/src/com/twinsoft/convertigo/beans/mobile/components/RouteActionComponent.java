@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -30,6 +31,7 @@ import com.twinsoft.convertigo.engine.util.EnumUtils;
 		getCategoryName = "Action",
 		getIconClassCSS = "convertigo-action-newRouteActionComponent"
 	)
+@DboFolderType(type = FolderType.ACTION)
 public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty, IEnableAble {
 	
 	private static final long serialVersionUID = 2529010701434894046L;
@@ -169,10 +171,5 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 			return bool.equals(Boolean.valueOf(isEnabled()));
 		}
 		return super.testAttribute(name, value);
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.ACTION;
 	}
 }

@@ -27,6 +27,7 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -37,6 +38,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Navigation Route",
 		getIconClassCSS = "convertigo-action-newRouteComponent"
 	)
+@DboFolderType(type = FolderType.ROUTE)
 public class RouteComponent extends MobileComponent implements IRouteGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -8928033403518219727L;
@@ -412,10 +414,5 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 			return bool.equals(Boolean.valueOf(isEnabled()));
 		}
 		return super.testAttribute(name, value);
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.ROUTE;
 	}
 }

@@ -22,8 +22,10 @@ package com.twinsoft.convertigo.beans.ngx.components;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.VARIABLE)
 public class UICompVariable extends UIComponent {
 
 	private static final long serialVersionUID = -4337991111463413731L;
@@ -74,10 +76,5 @@ public class UICompVariable extends UIComponent {
 	public String toString() {
 		String val = getVariableValue();
 		return getVariableName() + (val.isEmpty() ? "" : "="+val.toString());
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.VARIABLE;
 	}
 }

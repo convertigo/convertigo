@@ -26,11 +26,13 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+@DboFolderType(type = FolderType.STYLE)
 public class UIStyle extends UIComponent {
 
 	private static final long serialVersionUID = -2762443938903661515L;
@@ -102,10 +104,5 @@ public class UIStyle extends UIComponent {
 				return computedStyle;
 		}
 		return "";
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.STYLE;
 	}
 }

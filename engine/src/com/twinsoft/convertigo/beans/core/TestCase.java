@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -42,6 +43,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 		getCategoryName = "Test case",
 		getIconClassCSS = "convertigo-action-newTransactionTestCase"
 		)
+@DboFolderType(type = FolderType.TESTCASE)
 public class TestCase extends DatabaseObject implements IVariableContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 8119436229667565326L;
@@ -320,11 +322,6 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		}
 
 		return rep;
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.TESTCASE;
 	}
 
 	public static TestCase getTestCase(Map<String, Object> request, String projectName) throws EngineException {

@@ -33,9 +33,11 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.SHARED_ACTION)
 public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 
 	private static final long serialVersionUID = -5668525501858865747L;
@@ -455,11 +457,6 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 			e.printStackTrace();
 		}
 		return jsonModel.toString();
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.SHARED_ACTION;
 	}
 
 	private boolean exposed = true;

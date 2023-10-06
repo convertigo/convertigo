@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
@@ -57,6 +58,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
+@DboFolderType(type = FolderType.PAGE)
 public class PageComponent extends MobileComponent implements IPageComponent, ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
@@ -1099,10 +1101,5 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 		}
 		return tplVersion;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.PAGE;
 	}
 }

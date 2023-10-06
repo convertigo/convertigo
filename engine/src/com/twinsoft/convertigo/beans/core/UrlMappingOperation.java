@@ -22,11 +22,13 @@ package com.twinsoft.convertigo.beans.core;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -36,6 +38,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Operation",
 		getIconClassCSS = "convertigo-action-newUrlMappingOperation"
 	)
+@DboFolderType(type = FolderType.OPERATION)
 public abstract class UrlMappingOperation extends DatabaseObject implements IContainerOrdered {
 
 	private static final long serialVersionUID = -160544540810026807L;
@@ -317,9 +320,4 @@ public abstract class UrlMappingOperation extends DatabaseObject implements ICon
         }
         else return super.getOrder(object);
     }
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.OPERATION;
-	}
 }

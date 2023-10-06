@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -27,6 +28,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Response",
 		getIconClassCSS = "convertigo-action-newUrlMappingResponse"
 	)
+@DboFolderType(type = FolderType.RESPONSE)
 public abstract class UrlMappingResponse extends DatabaseObject {
 
 	private static final long serialVersionUID = -8538886126930614080L;
@@ -49,9 +51,4 @@ public abstract class UrlMappingResponse extends DatabaseObject {
 	public String toString() {
 		return getStatusCode()+"-Response";
 	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.RESPONSE;
-	}	
 }

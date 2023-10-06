@@ -25,6 +25,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -34,6 +35,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Document",
 		getIconClassCSS = "convertigo-action-newDocument"
 	)
+@DboFolderType(type = FolderType.DOCUMENT)
 public abstract class Document extends DatabaseObject {
 
 	private static final long serialVersionUID = 1291777029005995625L;
@@ -100,9 +102,4 @@ public abstract class Document extends DatabaseObject {
         
         return element;
     }
-	
-    @Override
-	public FolderType getFolderType() {
-		return FolderType.DOCUMENT;
-	}    
 }

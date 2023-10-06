@@ -60,6 +60,7 @@ import org.w3c.dom.traversal.TreeWalker;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
@@ -91,6 +92,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 		getCategoryName = "Sequence",
 		getIconClassCSS = "convertigo-action-newSequence"
 	)
+@DboFolderType(type = FolderType.SEQUENCE)
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218719500689068156L;
@@ -2010,9 +2012,4 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public boolean isGenerateElement() {
 		return true;
 	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.SEQUENCE;
-	}	
 }

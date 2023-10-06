@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -40,6 +41,7 @@ import com.twinsoft.convertigo.engine.util.EnumUtils;
 		getCategoryName = "Parameter",
 		getIconClassCSS = "convertigo-action-newUrlMappingParameter"
 	)
+@DboFolderType(type = FolderType.MAPPING)
 public abstract class UrlMappingParameter extends DatabaseObject implements ITagsProperty, INillableProperty{
 
 	private static final long serialVersionUID = -2280875929012349646L;
@@ -303,10 +305,5 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 			label = getLabel();
 		} catch (EngineException e) {}
 		return super.toString() + label;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.MAPPING;
 	}
 }

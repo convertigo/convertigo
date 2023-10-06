@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
@@ -67,6 +68,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Connector",
 		getIconClassCSS = "convertigo-action-newConnector"
 		)
+@DboFolderType(type = FolderType.CONNECTOR)
 public abstract class Connector extends DatabaseObject implements ITagsProperty {
 	private static final long serialVersionUID = 5573688971345318823L;
 
@@ -695,10 +697,5 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 			couchDbConnector.add(transaction);
 			couchDbConnector.setDefaultTransaction(transaction);
 		}
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.CONNECTOR;
 	}
 }

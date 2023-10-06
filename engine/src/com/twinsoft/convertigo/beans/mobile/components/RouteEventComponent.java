@@ -20,14 +20,16 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
-import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "RouteEventComponent",
 		getCategoryName = "Event",
 		getIconClassCSS = "convertigo-action-newRouteEventComponent"
 	)
+@DboFolderType(type = FolderType.EVENT)
 public class RouteEventComponent extends MobileComponent implements IRouteGenerator, IEnableAble {
 
 	private static final long serialVersionUID = -5879576200562937068L;
@@ -141,10 +143,5 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 			return bool.equals(Boolean.valueOf(isEnabled()));
 		}
 		return super.testAttribute(name, value);
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EVENT;
 	}
 }

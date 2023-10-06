@@ -19,9 +19,11 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.ATTRIBUTE)
 public class UIDynamicAttr extends UIDynamicElement {
 
 	private static final long serialVersionUID = -4701183821950621927L;
@@ -50,10 +52,5 @@ public class UIDynamicAttr extends UIDynamicElement {
 	@Override
 	public String computeTemplate() {
 		return "";
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.VARIABLE;
 	}
 }

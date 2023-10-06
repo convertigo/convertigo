@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
@@ -78,6 +79,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 		getCategoryName = "Transaction",
 		getIconClassCSS = "convertigo-action-newTransaction"
 		)
+@DboFolderType(type = FolderType.TRANSACTION)
 public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator, IJScriptContainer {
 
 	private static final long serialVersionUID = 8629312962446057509L;
@@ -928,10 +930,5 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			handlers = expression;
 			changed();
 		}
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.TRANSACTION;
 	}
 }

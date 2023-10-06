@@ -25,6 +25,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -37,6 +38,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Mobile platform",
 		getIconClassCSS = "convertigo-action-newMobilePlatform"
 	)
+@DboFolderType(type = FolderType.PLATFORM)
 public abstract class MobilePlatform extends DatabaseObject {
 
 	private static final long serialVersionUID = 8006681009945420375L;
@@ -138,10 +140,5 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	public void setCordovaPlatform(String cordovaPlatform) {
 		this.cordovaPlatform = cordovaPlatform;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.PLATFORM;
 	}
 }

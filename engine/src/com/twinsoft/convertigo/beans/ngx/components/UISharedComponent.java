@@ -31,8 +31,10 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.SHARED_COMPONENT)
 public class UISharedComponent extends UIComponent implements IShared, IExposeAble {
 
 	private static final long serialVersionUID = -2430482045373902567L;
@@ -276,11 +278,6 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 
 	public void addEventSubscriber(UIUseShared uiUse, Set<UIComponent> done, List<UIEventSubscriber> eventList) {
 		// does nothing
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.SHARED_COMPONENT;
 	}
 	
 	public String getComputedTemplate() {

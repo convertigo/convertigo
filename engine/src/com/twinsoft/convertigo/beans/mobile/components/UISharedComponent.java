@@ -29,9 +29,11 @@ import java.util.Set;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.SHARED_COMPONENT)
 public class UISharedComponent extends UIComponent implements IShared {
 
 	private static final long serialVersionUID = -2430482045373902567L;
@@ -215,10 +217,5 @@ public class UISharedComponent extends UIComponent implements IShared {
 				}
 			}
 		}
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.SHARED_COMPONENT;
 	}
 }

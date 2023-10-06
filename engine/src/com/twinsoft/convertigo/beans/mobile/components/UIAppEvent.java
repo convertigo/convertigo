@@ -30,11 +30,13 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
+@DboFolderType(type = FolderType.EVENT)
 public class UIAppEvent extends UIComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 2861783522824694904L;
@@ -315,10 +317,5 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	public String toString() {
 		String label = appEvent.name();
 		return label.isEmpty() ? "?":label;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EVENT;
 	}
 }

@@ -21,10 +21,12 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.regex.Pattern;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.VARIABLE)
 public class UIControlVariable extends UIComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 413397469582687729L;
@@ -100,10 +102,5 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 			updated = this.hasChanged = true;
 		}
 		return updated;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.VARIABLE;
 	}
 }

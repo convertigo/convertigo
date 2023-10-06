@@ -21,9 +21,11 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Iterator;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.CONTROL)
 public abstract class UIControlAttr extends UIAttribute implements ITagsProperty {
 	
 	private static final long serialVersionUID = -1131663200389122563L;
@@ -71,9 +73,4 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 		}
 		return "";
 	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.CONTROL;
-	}	
 }

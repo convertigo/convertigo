@@ -28,11 +28,13 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
+@DboFolderType(type = FolderType.EVENT)
 public class UISharedComponentEvent extends UIComponent implements IEventGenerator, ITagsProperty {
 
 	private static final long serialVersionUID = 4054671808848891791L;
@@ -420,10 +422,5 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 	public String toString() {
 		String label = componentEvent.label;
 		return label.isEmpty() ? "?":label;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EVENT;
 	}
 }

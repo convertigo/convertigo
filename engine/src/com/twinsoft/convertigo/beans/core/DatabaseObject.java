@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -26,6 +29,7 @@ import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -55,6 +59,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
@@ -80,11 +85,18 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * This is the base class for all Convertigo objects which should be serialized
  * in the Convertigo database.
  */
+@DboFolderType
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
 	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
 	protected final Object mutex = new Object();
 
+	@Retention(RUNTIME)
+	@Target(TYPE)
+	public @interface DboFolderType {
+		FolderType type() default FolderType.NONE;
+	}
+	
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface DboCategoryInfo {
 		String getCategoryId();
@@ -1432,7 +1444,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public FolderType getFolderType() {
-		return FolderType.NONE;
+		return getFolderType(getClass());
+	}
+	
+	static public FolderType getFolderType(Class<?> cls) {
+		var anno = cls.getAnnotation(DboFolderType.class);
+		while (anno == null) {
+			cls = cls.getSuperclass();
+			anno = cls.getAnnotation(DboFolderType.class);
+		}
+		return anno.type();
 	}
 
 	protected void onBeanNameChanged(String oldName, String newName) {

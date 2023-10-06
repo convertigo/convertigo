@@ -74,6 +74,9 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.steps.ReadFileStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -360,6 +363,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 			Class<? extends DatabaseObject> objectClass = object.getClass();
+			
+			if (parentObject instanceof MobileComponent &&
+					object instanceof MobileComponent &&
+					UIComponent.class.isAssignableFrom(objectClass)) {				
+				return ComponentManager.acceptDatabaseObjects(parentObject, object);
+			}
+			
+			if (parentObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent &&
+					object instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent &&
+					com.twinsoft.convertigo.beans.mobile.components.UIComponent.class.isAssignableFrom(objectClass)) {				
+				return com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.acceptDatabaseObjects(parentObject, object);
+			}
 
 			DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
 			List<DboGroup> groups = manager.getGroups();

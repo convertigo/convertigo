@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
@@ -33,6 +34,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Extraction rule",
 		getIconClassCSS = "convertigo-action-newExtractionRule"
 	)
+@DboFolderType(type = FolderType.EXTRACTION_RULE)
 public abstract class ExtractionRule extends DatabaseObject implements IEnableAble {
 	private static final long serialVersionUID = -7322067869844724239L;
     
@@ -99,10 +101,5 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
 			return bool.equals(Boolean.valueOf(isEnabled()));
 		}
 		return super.testAttribute(name, value);
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EXTRACTION_RULE;
 	}
 }

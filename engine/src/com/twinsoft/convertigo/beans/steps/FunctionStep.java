@@ -19,10 +19,12 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.FUNCTION)
 public class FunctionStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = -3731110617950647801L;
@@ -71,10 +73,5 @@ public class FunctionStep extends StepWithExpressions {
 	 */
 	public void setReturnedValue(Object returnedValue) {
 		this.returnedValue = returnedValue;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.FUNCTION;
 	}
 }

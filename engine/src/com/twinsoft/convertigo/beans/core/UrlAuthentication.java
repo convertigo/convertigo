@@ -22,9 +22,11 @@ package com.twinsoft.convertigo.beans.core;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.AUTHENTICATION)
 public abstract class UrlAuthentication extends DatabaseObject {
 
 
@@ -62,10 +64,5 @@ public abstract class UrlAuthentication extends DatabaseObject {
 	@Override
 	public String toString() {
 		return getType().name();
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.AUTHENTICATION;
 	}	
 }

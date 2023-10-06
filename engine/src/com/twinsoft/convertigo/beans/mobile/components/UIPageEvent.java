@@ -23,12 +23,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
+@DboFolderType(type = FolderType.EVENT)
 public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsProperty {
 
 	private static final long serialVersionUID = -5699915260997234123L;
@@ -262,10 +265,5 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	public String toString() {
 		String label = viewEvent.name();
 		return label.isEmpty() ? "?":label;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EVENT;
 	}
 }

@@ -29,9 +29,11 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.EVENT)
 public class UIEventSubscriber extends UIComponent implements IEventGenerator, IEventListener {
 
 	private static final long serialVersionUID = -7552967959256066078L;
@@ -410,9 +412,4 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 		}
 		return map;
 	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.EVENT;
-	}	
 }

@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
@@ -38,6 +39,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Mapping",
 		getIconClassCSS = "convertigo-action-newUrlMapping"
 	)
+@DboFolderType(type = FolderType.MAPPING)
 public abstract class UrlMapping extends DatabaseObject {
 
 	private static final long serialVersionUID = -1685983179181274444L;
@@ -181,10 +183,5 @@ public abstract class UrlMapping extends DatabaseObject {
 		Pattern url_pattern = Pattern.compile(url_regex);
 		Matcher url_matcher = url_pattern.matcher(requestPath);
 		return url_matcher.matches();
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.MAPPING;
 	}
 }

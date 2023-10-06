@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -32,6 +33,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 		getCategoryName = "Pool",
 		getIconClassCSS = "convertigo-action-newPool"
 	)
+@DboFolderType(type = FolderType.POOL)
 public class Pool extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 6241651041599239082L;
@@ -152,10 +154,5 @@ public class Pool extends DatabaseObject implements ITagsProperty{
 	
 	public String getNameWithPath(){
 		return getProject().getName() + "/" + getConnector().getName() + "/" + getName();
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.NONE;
 	}
 }

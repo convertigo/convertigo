@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.enums.FolderType;
  
 /**
@@ -30,6 +31,7 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		getCategoryName = "Criteria",
 		getIconClassCSS = "convertigo-action-newCriteria"
 	)
+@DboFolderType(type = FolderType.CRITERIA)
 public abstract class Criteria extends DatabaseObject {
 	private static final long serialVersionUID = 4417148740041540014L;
     
@@ -94,10 +96,5 @@ public abstract class Criteria extends DatabaseObject {
 	protected String processToString(String toString){
 		if(reverseResult) return "Not "+toString;
 		return toString;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.CRITERIA;
 	}
 }

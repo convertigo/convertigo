@@ -24,9 +24,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
+@DboFolderType(type = FolderType.MENU)
 public class UIDynamicMenu extends UIDynamicElement {
 
 	private static final long serialVersionUID = 7671346079616209922L;
@@ -75,10 +77,5 @@ public class UIDynamicMenu extends UIDynamicElement {
 			uiComponent.addInfos(done, map);
 		}
 		return map;
-	}
-	
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.MENU;
 	}
 }

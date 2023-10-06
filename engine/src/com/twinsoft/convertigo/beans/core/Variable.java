@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -34,6 +35,7 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 		getCategoryName = "Variable",
 		getIconClassCSS = "convertigo-action-newVariable"
 	)
+@DboFolderType(type = FolderType.VARIABLE)
 public abstract class Variable extends DatabaseObject implements IMultiValued, INillableProperty {
 
 	private static final long serialVersionUID = -8671967475887212428L;
@@ -255,10 +257,5 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 			return bool.equals(Boolean.valueOf(isMultiValued()));
 		}
 		return super.testAttribute(name, value);
-	}
-
-	@Override
-	public FolderType getFolderType() {
-		return FolderType.VARIABLE;
 	}
 }

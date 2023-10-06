@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -37,6 +38,7 @@ public class Get extends JSonService {
 
 	private JSONArray getPalette(String id) throws Exception {
 		var parentDbo = Utils.getDbo(id);
+		var folderType = Utils.getFolderType(id);
 
 		JSONArray categories = new JSONArray();
 
@@ -77,11 +79,15 @@ public class Get extends JSonService {
 								}
 							}
 							isAllowedIn = force || DatabaseObjectsManager.checkParent(parentDbo.getClass(), b);
+							if (folderType != null && isAllowedIn) {
+								isAllowedIn = DatabaseObject.getFolderType(Class.forName(b.getClassName())) == folderType;
+							}
 						} catch (Exception e) {
 						}
 
-						if (!isAllowedIn)
+						if (!isAllowedIn) {
 							continue;
+						}
 
 						String beanInfoClassName = b.getClassName() + "BeanInfo";
 						Class<?> beanInfoClass = Class.forName(beanInfoClassName);

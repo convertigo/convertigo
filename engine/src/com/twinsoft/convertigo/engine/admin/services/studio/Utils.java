@@ -16,5 +16,10 @@ public class Utils {
 		var qname = ft == null ? id : reg.group(1);
 		return Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 	}
-
+	
+	public static FolderType getFolderType(String id) throws Exception {
+		var reg = parseQName.matcher(id);
+		reg.matches();
+		return FolderType.parse(reg.group(2));
+	}
 }
