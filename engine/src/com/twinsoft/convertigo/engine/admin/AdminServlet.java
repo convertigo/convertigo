@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
@@ -90,11 +91,8 @@ public class AdminServlet extends HttpServlet {
 			String serviceName = "";
 			String isAdmin = "";
 			try {
-				response.addHeader("Expires", "-1");
-				response.addHeader("Pragma", "no-cache");
-
 				request.setCharacterEncoding("UTF-8");
-
+				
 				String requestURL = request.getRequestURL().toString();
 				int i = requestURL.lastIndexOf('/');
 				isAdmin = requestURL.substring(0, i).endsWith("/admin/services") ? "admin " : "";
@@ -137,15 +135,22 @@ public class AdminServlet extends HttpServlet {
 
 				Service service = (Service) serviceClass.getConstructor().newInstance();
 
-				try {
-					boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
-					if (xsrfAdmin) {
-						if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
-							HttpUtils.checkXSRF(request, response);
+				if (service.isNoCache()) {
+					HeaderName.Expires.setHeader(response, "-1");
+					HeaderName.Pragma.setHeader(response, "no-cache");
+				}
+				
+				if (service.isXsrfCheck()) {
+					try {
+						boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
+						if (xsrfAdmin) {
+							if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+								HttpUtils.checkXSRF(request, response);
+							}
 						}
+					} catch (IllegalStateException e) {
+						Engine.logAdmin.warn("Cannot retrieve properties for XSRF, Engine probably stopped.");
 					}
-				} catch (IllegalStateException e) {
-					Engine.logAdmin.warn("Cannot retrieve properties for XSRF, Engine probably stopped.");
 				}
 				service.run(serviceName, request, response);
 			}

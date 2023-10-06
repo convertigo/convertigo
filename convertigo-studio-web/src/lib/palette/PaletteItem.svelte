@@ -46,14 +46,7 @@
 	on:click={(event) => onClick()}
 >
 	{#if item.icon.includes('/')}
-		<img
-			src={getUrl() +
-				'studio.dbo.GetIcon?iconPath=' +
-				item.icon +
-				'&__xsrfToken=' +
-				encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-			alt="ico"
-		/>
+		<img src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`} alt="ico" />
 	{/if}
 	<span>
 		{item.name}

@@ -148,10 +148,7 @@
 			<span slot="icon">
 				{#if nodeData.icon.includes('?')}
 					<img
-						src={getUrl() +
-							nodeData.icon +
-							'&__xsrfToken=' +
-							encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
+						src={`${getUrl()}${nodeData.icon}`}
 						alt="ico"
 					/>
 				{:else if nodeData.icon == 'file'}

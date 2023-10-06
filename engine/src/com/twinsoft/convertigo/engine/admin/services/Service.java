@@ -26,4 +26,12 @@ public interface Service {
 
 	public void run(String serviceName, HttpServletRequest request, HttpServletResponse response) throws ServiceException;
 	
+	public default boolean isNoCache() {
+		return true;
+	}
+	
+	public default boolean isXsrfCheck() {
+		return true;
+	}
+	
 }

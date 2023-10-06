@@ -31,9 +31,11 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -42,11 +44,25 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class GetIcon extends DownloadService {
 
 	@Override
+	public boolean isNoCache() {
+		return false;
+	}
+
+	@Override
+	public boolean isXsrfCheck() {
+		return false;
+	}
+	
+	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServiceException {
-
+		if (Version.fullProductVersionID.equals(HeaderName.IfNoneMatch.getHeader(request))) {
+			response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+			return;
+		}
 		String iconPath = request.getParameter("iconPath");
-
+		HeaderName.CacheControl.setHeader(response, "public, max-age=300");
+		HeaderName.ETag.setHeader(response, Version.fullProductVersionID);
 		if (iconPath != null) {
 
 			try {

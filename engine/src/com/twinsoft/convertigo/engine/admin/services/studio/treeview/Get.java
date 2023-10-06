@@ -68,7 +68,7 @@ public class Get extends JSonService {
 		var qname = dbo.getFullQName();
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
-		obj.put("icon", "database_objects.GetIcon?large=true&className=" + dbo.getClass().getCanonicalName());
+		obj.put("icon", "studio.dbo.GetIcon?large=true&className=" + dbo.getClass().getCanonicalName());
 		obj.put("id", qname);
 		if (!full) {
 			obj.put("children", dbo.hasDatabaseObjectChildren());
