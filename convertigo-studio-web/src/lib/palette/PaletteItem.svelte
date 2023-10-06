@@ -39,28 +39,21 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-	class="palette-item card card-hover {item === selected ? 'variant-filled' : ''}"
+<span
+	class="chip text-left m-1 w-36 justify-start hover:shadow-lg hover:variant-filled-primary {item ===
+	selected
+		? 'variant-filled-primary'
+		: 'variant-soft-primary'}"
 	draggable="true"
 	on:dragstart={(event) => dragStart(event, item)}
 	on:click={(event) => onClick()}
 >
 	{#if item.icon.includes('/')}
-		<img src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`} alt="ico" />
+		<span>
+			<img src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`} alt="ico" />
+		</span>
 	{/if}
-	<span>
+	<span class="whitespace-normal">
 		{item.name}
 	</span>
-</div>
-
-<style>
-	.palette-item {
-		border-radius: 5px;
-		border: 1px solid #f1f1f1;
-		width: 100px;
-		margin: 5px;
-		text-align: center;
-		vertical-align: text-top;
-		font-size: 10px;
-	}
-</style>
+</span>

@@ -4,11 +4,12 @@
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	export let name;
+	let dragDiv;
 	let width = localStorageStore(`studio.${name}Width`, 300);
 
 	let img;
 	function noDragImage(e) {
-		if (!e.target.classList.contains('palette-item')) {
+		if (e.target == dragDiv) {
 			e.target.parentElement.parentElement.classList.remove('widthTransition');
 			if (!img) {
 				img = document.createElement('img');
@@ -19,10 +20,8 @@
 	}
 
 	function widthDrag(e) {
-		if (!e.target.classList.contains('palette-item')) {
-			if (e.layerX > 0) {
-				$width = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
-			}
+		if (e.target == dragDiv && e.layerX > 0) {
+			$width = e.x - (e.target?.parentElement?.offsetLeft ?? 0);
 		}
 	}
 
@@ -63,7 +62,7 @@
 				<ProgressRadial ... stroke={100} meter="stroke-primary-500" track="stroke-primary-500/30" />
 			{/if}
 		</div>
-		<span class="draggable divider-vertical h-full border-2" draggable="true" />
+		<span bind:this={dragDiv} class="draggable divider-vertical h-full border-2" draggable="true" />
 	</div>
 </div>
 
