@@ -35,14 +35,14 @@ jobs:
         
     - restore_cache:
         keys:
-        - v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v2-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v2-dependencies-
+        - v3-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v3-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v3-dependencies-
         
     - restore_cache:
         keys:
-        - v2-build-cache-{{ .Revision }}
-        - v2-build-cache-
+        - v3-build-cache-{{ .Revision }}
+        - v3-build-cache-
         
     - run:
         name: Prepare build.env
@@ -139,12 +139,12 @@ jobs:
         paths:
           - ~/.gradle
           - .gradle
-        key: v2-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v3-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
         - ~/.gradle/caches/build-cache-1
-        key: v2-build-cache-{{ .Revision }}
+        key: v3-build-cache-{{ .Revision }}
     
     - run:
         name: Clean workspace before saving
@@ -497,7 +497,7 @@ jobs:
         paths:
           - ~/.gradle
           - .gradle
-        key: v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v3-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - restore_cache:
         keys:
