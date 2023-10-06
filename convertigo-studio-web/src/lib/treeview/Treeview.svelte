@@ -4,6 +4,7 @@
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	import DndBlock from './DndBlock.svelte';
+	import DropDivider from './DropDivider.svelte';
 	import { call, getUrl } from '../utils/service';
 	import { treeData, selectedId } from './treeStore';
 	import { removeDbo } from '$lib/utils/service';
@@ -120,32 +121,12 @@
 		on:keydown={handleKeyDown}
 		on:treeDelete={treeDelete}
 	>
-		<svelte:fragment slot="lead">
-			{#if nodeData.icon.includes('?')}
-				<DndBlock {nodeData} {item} on:update={update}>
-					<span slot="content">
-						<img
-							src={getUrl() +
-								nodeData.icon +
-								'&__xsrfToken=' +
-								encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
-							alt="ico"
-						/>
-					</span>
-				</DndBlock>
-			{:else if nodeData.icon == 'file'}
-				<DndBlock {nodeData} {item} on:update={update}>
-					<span slot="content"><IconFile /></span>
-				</DndBlock>
-			{:else}
-				<DndBlock {nodeData} {item} on:update={update}>
-					<span slot="content"><IconFolder /></span>
-				</DndBlock>
-			{/if}
-		</svelte:fragment>
 		<svelte:fragment slot="children">
 			{#if Array.isArray(nodeData.children) && nodeData.children.length > 0}
 				{#each nodeData.children as child}
+					{#if child.icon.includes('?')}
+						<DropDivider nodeData={child} on:update={update} kind="before" />
+					{/if}
 					<svelte:self
 						nodeData={child}
 						{root}
@@ -153,11 +134,29 @@
 						on:treeClick
 						on:treeDelete={treeDelete}
 					/>
+					{#if child.icon.includes('?') && child.id === nodeData.children.slice(-1)[0].id}
+						<DropDivider nodeData={child} on:update={update} kind="after" />
+					{/if}
 				{/each}
 			{/if}
 		</svelte:fragment>
 		<DndBlock {nodeData} {item} on:update={update}>
-			<span slot="content">{nodeData.label}</span>
+			<span slot="icon">
+				{#if nodeData.icon.includes('?')}
+					<img
+						src={getUrl() +
+							nodeData.icon +
+							'&__xsrfToken=' +
+							encodeURIComponent(localStorage.getItem('x-xsrf-token') ?? '')}
+						alt="ico"
+					/>
+				{:else if nodeData.icon == 'file'}
+					<IconFile />
+				{:else}
+					<IconFolder />
+				{/if}
+			</span>
+			<span slot="label">{nodeData.label}</span>
 		</DndBlock>
 	</TreeViewItem>
 {:else if Array.isArray(nodeData.children)}

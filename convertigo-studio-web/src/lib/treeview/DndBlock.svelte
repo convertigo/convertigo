@@ -36,14 +36,12 @@
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<span
-	draggable="true"
-	on:drag={(e) => {
-		e.stopPropagation();
-	}}
+<div
+	class="dndblock"
+	draggable="false"
+	on:drag={(e) => e.stopPropagation()}
 	on:dragstart={(e) => e.stopPropagation()}
 	on:dragenter={(e) => {
-		//console.log(e);
 		if (!nodeData.expanded) {
 			item.open = true;
 		}
@@ -51,5 +49,19 @@
 	on:dragover={handleDragOver}
 	on:drop={handleDrop}
 >
-	<slot name="content" />
-</span>
+	<div><slot name="icon" /></div>
+	<div class="label"><slot name="label" /></div>
+	<div><slot /></div>
+</div>
+
+<style>
+	.dndblock {
+		display: flex;
+		flex-direction: row;
+		/*border: solid red 1px;*/
+	}
+
+	.label {
+		margin-left: 10px;
+	}
+</style>
