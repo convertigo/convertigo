@@ -165,13 +165,7 @@
 		caretOpen="rotate-0"
 	>
 		{#each nodeData.children as child}
-			<svelte:self
-				nodeData={child}
-				{root}
-				bind:this={links[child.id]}
-				on:treeClick
-				on:treeDelete={treeDelete}
-			/>
+			<svelte:self nodeData={child} {root} bind:this={links[child.id]} on:treeDelete={treeDelete} />
 		{/each}
 	</TreeView>
 {:else}

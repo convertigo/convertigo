@@ -1,5 +1,6 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
+	import { reusables } from '$lib/palette/paletteStore';
 	import { addDbo } from '$lib/utils/service';
 
 	export let position;
@@ -33,6 +34,11 @@
 		if (target != null && jsonData != undefined) {
 			let result = await addDbo(target, position, jsonData);
 			if (result.done) {
+				// update palette reusables
+				if (jsonData.type === 'paletteData') {
+					$reusables[jsonData.data.id] = jsonData.data;
+					$reusables = $reusables;
+				}
 				// update tree item
 				dispatch('update', {});
 			}
