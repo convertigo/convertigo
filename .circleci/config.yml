@@ -479,8 +479,8 @@ jobs:
         
     - restore_cache:
         keys:
-        - v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v3-m2-
+        - v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v4-m2-
         
     - run:
         name: Build Studio
@@ -491,7 +491,7 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:

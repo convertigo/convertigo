@@ -253,14 +253,31 @@
         <property name="applicationAuthorSite">
             <java.lang.String value="https://www.convertigo.com"/>
         </property>
+        <property name="applicationBgColor">
+            <java.lang.String value="#4e8ef7"/>
+        </property>
         <property name="applicationDescription">
             <java.lang.String value=""/>
+        </property>
+        <property name="applicationIcons">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="{&quot;src&quot;: &quot;assets\/icon_512x512.png&quot;,&quot;sizes&quot;: &quot;512x512&quot;,&quot;type&quot;: &quot;image\/png&quot;}"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
         </property>
         <property name="applicationId">
             <java.lang.String value=""/>
         </property>
         <property name="applicationName">
             <java.lang.String value=""/>
+        </property>
+        <property name="applicationThemeColor">
+            <java.lang.String value="#4e8ef7"/>
         </property>
         <property name="applicationVersion">
             <java.lang.String value=""/>
