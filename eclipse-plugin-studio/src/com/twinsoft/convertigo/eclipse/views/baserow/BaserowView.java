@@ -124,7 +124,7 @@ public class BaserowView extends ViewPart {
 	private String view_name;
 	private CompletableFuture<Object> wait_reload;
 
-	private class StudioAPI {
+	public class StudioAPI {
 
 		@JsAccessible
 		public String email() {
