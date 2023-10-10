@@ -1598,12 +1598,6 @@
 				label="Edit handlers"
 				menubarPath="edit" />
 			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
-				icon="icons/studio/transaction_execute_selected.gif"
-				id="convertigo.action.executeSelectedTransactionFromStub"
-				label="Execute from default stub"
-				menubarPath="execute" />
-			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
 				enablesFor="1"
 				icon="icons/studio/transaction_execute_selected.gif"
@@ -1639,13 +1633,13 @@
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
 				enablesFor="1"
 				id="convertigo.action.createEmptyStub"
-				label="Create empty default stub"
+				label="Create empty stub"
 				menubarPath="stub" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
 				enablesFor="1"
 				id="convertigo.action.createStubFromXML"
-				label="Create default stub from current response data"
+				label="Create stub from current response data"
 				menubarPath="stub" />
 		</objectContribution>
 		<objectContribution
@@ -3049,13 +3043,6 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
-				icon="icons/studio/transaction_execute_selected.gif"
-				id="convertigo.action.executeSelectedSequenceFromStub"
-				label="Execute from default stub"
-				menubarPath="execute">
-			</action>
-			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
 				enablesFor="1"
 				icon="icons/studio/transaction_execute_selected.gif"
 				id="convertigo.action.executeSelectedSequence"
@@ -3079,13 +3066,13 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
 				id="convertigo.action.seq.createEmptyStub"
-				label="Create empty default stub"
+				label="Create empty stub"
 				menubarPath="stub">
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
 				id="convertigo.action.seq.createStubFromXML"
-				label="Create default stub from current response data"
+				label="Create stub from current response data"
 				menubarPath="stub">
 			</action>
 		</objectContribution>
@@ -4170,6 +4157,13 @@
 		</menuContribution>
 		<menuContribution
 			locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+			<dynamic
+				class="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu"
+				id="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu">
+			</dynamic>
+		</menuContribution>
+		<menuContribution
+			locationURI="popup:com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView?after=additions">
 			<dynamic
 				class="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu"
 				id="com.twinsoft.convertigo.eclipse.menus.StubDynamicMenu">

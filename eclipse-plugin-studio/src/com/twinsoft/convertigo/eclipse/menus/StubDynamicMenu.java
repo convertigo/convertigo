@@ -1,8 +1,17 @@
 package com.twinsoft.convertigo.eclipse.menus;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.ContributionItem;
@@ -19,12 +28,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -43,10 +55,69 @@ public class StubDynamicMenu extends ContributionItem {
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object element = structuredSelection.getFirstElement();
-			if (element instanceof IFile) {
+			if (element instanceof DatabaseObjectTreeObject) {
+				DatabaseObjectTreeObject dboto = (DatabaseObjectTreeObject) element;
+				DatabaseObject dbo = dboto.getObject();
+				if (dbo instanceof Sequence || dbo instanceof Transaction) {
+					String dir = Engine.projectDir(dbo.getProject().getName());
+					try {
+						Set<String> set = listStubFiles(dir + "/stubs", dbo);
+						if (!set.isEmpty()) {
+
+							// get menu item image
+							Image image = null;
+							try {
+								image = ConvertigoPlugin.getDefault()
+										.getStudioIcon("icons/studio/transaction_execute_selected.gif");
+							} catch (Exception e) {
+							}
+
+							// create the menu item and sub dropdown menu
+							MenuItem menuItem = new MenuItem(menu, SWT.CASCADE, index);
+							menuItem.setText("Execute from stub");
+							menuItem.setImage(image);
+
+							Menu submenu = new Menu(menu.getParent(), SWT.DROP_DOWN);
+							menuItem.setMenu(submenu);
+
+							// add action for each stub file
+							for (final String stubfileName : set) {
+								File file = new File(dir + "/stubs/" + stubfileName);
+								if (file.exists()) {
+									if (isStubOf(file, dbo)) {
+										MenuItem fileItem = new MenuItem(submenu, SWT.PUSH);
+										fileItem.setText(stubfileName);
+										fileItem.addSelectionListener(new SelectionAdapter() {
+											public void widgetSelected(SelectionEvent e) {
+												try {
+													// for a sequence stub
+													if (dbo instanceof Sequence) {
+														SequenceExecuteSelectedAction action = new SequenceExecuteSelectedAction(stubfileName);
+														action.setId(action.getId() + "FromStub"); // important !
+														action.run();
+													}
+													// for a transaction stub
+													else if (dbo instanceof Transaction) {
+														TransactionExecuteSelectedFromStubAction action = new TransactionExecuteSelectedFromStubAction(stubfileName);
+														action.run();
+													}
+												} catch (Throwable t) {
+													t.printStackTrace();
+												}
+											}
+										});
+									}
+								}
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			} else if (element instanceof IFile) {
 				final File file = ((IFile) element).getRawLocation().makeAbsolute().toFile();
 				if (isStub(file)) {
-					final Map<String, String> attributes = getDocAttributes(file);
+					Map<String, String> attributes = getDocAttributes(file);
 					final String projectName = attributes.get("project");
 					final String sequenceName = attributes.get("sequence");
 					final String connectorName = attributes.get("connector");
@@ -74,8 +145,7 @@ public class StubDynamicMenu extends ContributionItem {
 									if (!sequenceName.isBlank()) {
 										// select sequence in tree
 										Sequence sequence = Engine.theApp.databaseObjectsManager
-												.getOriginalProjectByName(projectName)
-												.getSequenceByName(sequenceName);
+												.getOriginalProjectByName(projectName).getSequenceByName(sequenceName);
 										pev.setSelectedTreeObject(pev.findTreeObjectByUserObject(sequence));
 
 										// run action
@@ -105,6 +175,24 @@ public class StubDynamicMenu extends ContributionItem {
 					}
 				}
 			}
+		}
+	}
+
+	static boolean isStubOf(File file, DatabaseObject dbo) {
+		Map<String, String> attributes = getDocAttributes(file);
+		return dbo instanceof Sequence ? dbo.getName().equals(attributes.get("sequence"))
+				: dbo instanceof Transaction
+						? dbo.getName().equals(attributes.get("transaction"))
+								&& dbo.getParent().getName().equals(attributes.get("connector"))
+						: false;
+	}
+
+	static public Set<String> listStubFiles(String dir, DatabaseObject dbo) throws IOException {
+		try (Stream<Path> stream = Files.list(Paths.get(dir))) {
+			return stream.filter((path) -> {
+				File file = new File(path.toString());
+				return !Files.isDirectory(path) && isStubOf(file, dbo);
+			}).map(Path::getFileName).map(Path::toString).collect(Collectors.toCollection(TreeSet<String>::new));
 		}
 	}
 
