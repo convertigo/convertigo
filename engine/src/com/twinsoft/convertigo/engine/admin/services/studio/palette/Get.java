@@ -125,11 +125,6 @@ public class Get extends JSonService {
 			categories.put(jsonCategory);
 
 			for (com.twinsoft.convertigo.beans.ngx.components.dynamic.Component component : components) {
-				var isAllowedIn = parentDbo != null ? component.isAllowedIn(parentDbo) : false;
-
-				if (!isAllowedIn)
-					continue;
-
 				if (component.getGroup().equals(group)) {
 					String cn = "";
 					try {
@@ -138,6 +133,15 @@ public class Get extends JSonService {
 					} catch (Exception e) {
 					}
 
+					var isAllowedIn = parentDbo != null ? component.isAllowedIn(parentDbo) : false;
+					if (folderType != null && isAllowedIn) {
+						isAllowedIn = DatabaseObject.getFolderType(Class.forName(cn)) == folderType;
+					}
+					
+					if (!isAllowedIn) {
+						continue;
+					}
+					
 					JSONObject jsonItem = new JSONObject();
 					jsonItem.put("type", "Ion");
 					jsonItem.put("id", "ngx " + component.getName());
