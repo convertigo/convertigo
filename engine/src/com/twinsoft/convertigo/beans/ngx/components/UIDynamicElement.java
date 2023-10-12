@@ -130,6 +130,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	public String getDynamicIconName(int iconType) {
+		IonBean ionBean = getIonBean();
     	if (ionBean != null) {
 			if (iconType == BeanInfo.ICON_COLOR_16x16) {
 				return ionBean.getIconColor16Path();

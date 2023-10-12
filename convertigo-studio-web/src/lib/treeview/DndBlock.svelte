@@ -1,20 +1,52 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { reusables } from '$lib/palette/paletteStore';
-	import { addDbo } from '$lib/utils/service';
+	import { reusables, draggedItem } from '$lib/palette/paletteStore';
+	import { addDbo, acceptDbo } from '$lib/utils/service';
 
 	export let nodeData;
 	export let item;
 
+	let canDrop = false;
+
 	const dispatch = createEventDispatcher();
 
-	function handleDragOver(e) {
-		e.preventDefault();
+	async function allowDrop() {
+		if ($draggedItem == undefined) {
+			return false;
+		}
+		try {
+			let result = await acceptDbo(nodeData.id, 'inside', $draggedItem);
+			//console.log('acceptDbo for ' + nodeData.id, result);
+			return result.accept;
+		} catch (e) {
+			console.log(e);
+		}
 		return false;
+	}
+
+	async function handleDragEnter(e) {
+		if (!nodeData.expanded) {
+			item.open = true;
+		}
+		canDrop = await allowDrop();
+	}
+
+	function handleDragLeave(e) {
+		canDrop = false;
+	}
+
+	function handleDragOver(e) {
+		if (canDrop) {
+			e.preventDefault();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	async function handleDrop(e) {
 		e.preventDefault();
+		canDrop = false;
 		let jsonData = undefined;
 		let target = nodeData.id;
 		try {
@@ -41,11 +73,8 @@
 	draggable="false"
 	on:drag={(e) => e.stopPropagation()}
 	on:dragstart={(e) => e.stopPropagation()}
-	on:dragenter={(e) => {
-		if (!nodeData.expanded) {
-			item.open = true;
-		}
-	}}
+	on:dragenter={handleDragEnter}
+	on:dragleave={handleDragLeave}
 	on:dragover={handleDragOver}
 	on:drop={handleDrop}
 >

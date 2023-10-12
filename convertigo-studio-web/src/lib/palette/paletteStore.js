@@ -4,6 +4,7 @@ import { call } from '$lib/utils/service';
 
 export const categories = writable([]);
 export const reusables = writable([]);
+export const draggedItem = writable();
 
 selectedId.subscribe(async (id) => {
 	if (id == '') {

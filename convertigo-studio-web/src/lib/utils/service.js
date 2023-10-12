@@ -56,6 +56,20 @@ export async function addDbo(
 }
 
 /**
+ * @param {string} target - the id of the parent dbo in tree
+ * @param {string} position - the position relative to target inside|first|after
+ * @param {any} data - the json data object
+ */
+export async function acceptDbo(
+	target = '',
+	position = 'inside',
+	data = { kind: '', data: { id: '' } }
+) {
+	let result = await call('studio.dbo.Accept', { target, position, data: JSON.stringify(data) });
+	return result;
+}
+
+/**
  * @param {string} id - the id of the dbo in tree
  */
 export async function removeDbo(id = '') {

@@ -1,7 +1,7 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
-	import { reusables } from '$lib/palette/paletteStore';
-	import { addDbo } from '$lib/utils/service';
+	import { createEventDispatcher, tick } from 'svelte';
+	import { reusables, draggedItem } from '$lib/palette/paletteStore';
+	import { addDbo, acceptDbo } from '$lib/utils/service';
 
 	export let position;
 	export let nodeData;
@@ -9,23 +9,45 @@
 	const dispatch = createEventDispatcher();
 
 	let visible = false;
+	let canDrop = false;
 
-	function handleDragOver(e) {
-		e.preventDefault();
-		return true;
+	async function allowDrop() {
+		if ($draggedItem == undefined) {
+			return false;
+		}
+		try {
+			let result = await acceptDbo(nodeData.id, position, $draggedItem);
+			//console.log('acceptDbo for ' + nodeData.id, result);
+			return result.accept;
+		} catch (e) {
+			console.log(e);
+		}
+		return false;
 	}
 
-	function handleDragEnter(e) {
-		visible = true;
+	function handleDragOver(e) {
+		if (canDrop) {
+			e.preventDefault();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	async function handleDragEnter(e) {
+		canDrop = await allowDrop();
+		visible = canDrop ? true : false; //true;
 	}
 
 	function handleDragLeave(e) {
+		canDrop = false;
 		visible = false;
 	}
 
 	async function handleDrop(e) {
 		e.preventDefault();
 		visible = false;
+		canDrop = false;
 		let target = nodeData.id;
 		let jsonData = undefined;
 		try {
