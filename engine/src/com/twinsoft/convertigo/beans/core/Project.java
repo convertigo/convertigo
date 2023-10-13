@@ -627,7 +627,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private transient MobileBuilder mobileBuilder = null;
 
 	public MobileBuilder getMobileBuilder() {
-		if ((Engine.isStudioMode() || Engine.isCliMode()) && mobileBuilder == null) {
+		if (mobileBuilder == null) {
 			try {
 				synchronized (this) {
 					mobileBuilder = MobileBuilder.getInstance(this);
@@ -640,7 +640,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	public boolean isMobileBuilderInitialized() {
-		if ((Engine.isStudioMode() || Engine.isCliMode()) && mobileBuilder != null) {
+		if (mobileBuilder != null) {
 			return mobileBuilder.isInitialized();
 		}
 		return false;
