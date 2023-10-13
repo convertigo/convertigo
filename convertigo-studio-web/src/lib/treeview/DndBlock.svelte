@@ -7,6 +7,7 @@
 	export let item;
 
 	let canDrop = false;
+	let action = 'none';
 
 	const dispatch = createEventDispatcher();
 
@@ -16,7 +17,6 @@
 		}
 		try {
 			let result = await acceptDbo(nodeData.id, 'inside', $draggedItem);
-			//console.log('acceptDbo for ' + nodeData.id, result);
 			return result.accept;
 		} catch (e) {
 			console.log(e);
@@ -25,9 +25,6 @@
 	}
 
 	async function handleDragEnter(e) {
-		if (!nodeData.expanded) {
-			item.open = true;
-		}
 		canDrop = await allowDrop();
 	}
 
@@ -38,8 +35,15 @@
 	function handleDragOver(e) {
 		if (canDrop) {
 			e.preventDefault();
+			if (e.dataTransfer.effectAllowed === 'copy') {
+				e.dataTransfer.dropEffect = 'copy';
+			} else {
+				e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
+			}
+			action = e.dataTransfer.dropEffect;
 			return true;
 		} else {
+			action = 'none';
 			return false;
 		}
 	}
@@ -50,10 +54,21 @@
 		let jsonData = undefined;
 		let target = nodeData.id;
 		try {
-			jsonData = JSON.parse(e.dataTransfer.getData('text'));
+			jsonData = JSON.parse(e.dataTransfer.getData('text/plain'));
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
-			let result = await addDbo(target, 'inside', jsonData);
+			let result = { done: false };
+			switch (action) {
+				case 'copy':
+					result = await addDbo(target, 'inside', jsonData);
+					break;
+				case 'move':
+					//result = await moveDbo(target, position, jsonData);
+					console.log("handleDrop: moveDbo not yet implemented")
+					break;
+				default:
+					break;
+			}
 			if (result.done) {
 				// update palette reusables
 				if (jsonData.type === 'paletteData') {
@@ -65,20 +80,34 @@
 			}
 		}
 	}
+
+	function handleDragStart(event) {
+		const treeData = { type: 'treeData', data: { id: nodeData.id }, options: {} };
+		event.dataTransfer.setData('text/plain', JSON.stringify(treeData));
+		$draggedItem = treeData;
+	}
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="dndblock"
-	draggable="false"
-	on:drag={(e) => e.stopPropagation()}
-	on:dragstart={(e) => e.stopPropagation()}
+	draggable="true"
+	on:dragstart={handleDragStart}
+	on:dragend={(event) => ($draggedItem = undefined)}
 	on:dragenter={handleDragEnter}
 	on:dragleave={handleDragLeave}
 	on:dragover={handleDragOver}
 	on:drop={handleDrop}
 >
-	<div><slot name="icon" /></div>
+	<div
+		on:dragenter={(e) => {
+			if (!nodeData.expanded) {
+				item.open = true;
+			}
+		}}
+	>
+		<slot name="icon" />
+	</div>
 	<div class="label"><slot name="label" /></div>
 	<div><slot /></div>
 </div>

@@ -40,21 +40,37 @@ public class Accept extends JSonService {
 			throw new ServiceException("missing data parameter");
 		}
 
+		DatabaseObject dbo = null, targetDbo = null;
+		
 		JSONObject jsonData = new JSONObject(data);
-		DatabaseObject dbo = DboUtils.createDbo(jsonData);
-		DatabaseObject targetDbo = Utils.getDbo(target);
-		FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
-		DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
-		if (parentDbo != null && dbo != null) {
-			boolean accept = accept(parentDbo, dbo);
-			if (folderType != null && accept) {
-				accept = DatabaseObject.getFolderType(dbo.getClass()) == folderType;
+		var type = jsonData.has("type") ? jsonData.getString("type") : "";
+		if (type.equals("paletteData")) {
+			dbo = DboUtils.createDbo(jsonData);
+			targetDbo = Utils.getDbo(target);
+		} else if (type.equals("treeData")) {
+			JSONObject jsonItem = jsonData.getJSONObject("data");
+			dbo = Utils.getDbo(jsonItem.getString("id"));
+			targetDbo = Utils.getDbo(target);
+			if (targetDbo != null && dbo != null) {
+				if (targetDbo.getQName().startsWith(dbo.getQName())) {
+					targetDbo = null;
+				}
 			}
-			response.put("accept", accept);
-		} else {
-			response.put("accept", false);
 		}
-	}
+
+		boolean accept = false;
+		if (targetDbo != null && dbo != null) {
+			FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
+			DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
+			if (parentDbo != null) {
+				accept = accept(parentDbo, dbo);
+				if (folderType != null && accept) {
+					accept = DatabaseObject.getFolderType(dbo.getClass()) == folderType;
+				}
+			}
+		}
+		response.put("accept", accept);
+}
 	
 	protected boolean accept(DatabaseObject targetDatabaseObject, DatabaseObject databaseObject) {
 		if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {

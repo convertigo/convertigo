@@ -24,9 +24,10 @@
 	//destroy the timer
 	onDestroy(() => clearInterval(interval));
 
-	function dragStart(event, item) {
+	function handleDragStart(event) {
 		const paletteData = { type: 'paletteData', data: item, options: {} };
-		event.dataTransfer.setData('text', JSON.stringify(paletteData));
+		event.dataTransfer.setData('text/plain', JSON.stringify(paletteData));
+		event.dataTransfer.effectAllowed = "copy";
 		$draggedItem = paletteData;
 	}
 
@@ -47,9 +48,9 @@
 		? 'variant-filled-primary'
 		: 'variant-soft-primary'}"
 	draggable="true"
-	on:dragstart={(event) => dragStart(event, item)}
+	on:dragstart={handleDragStart}
 	on:dragend={(event) => $draggedItem = undefined}
-	on:click={(event) => onClick()}
+	on:click={onClick}
 >
 	{#if item.icon.includes('/')}
 		<span>

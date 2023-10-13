@@ -11,6 +11,7 @@
 	let visible = false;
 	let canDrop = false;
 	let dragOver = false;
+	let action = 'none';
 
 	async function allowDrop() {
 		if ($draggedItem == undefined) {
@@ -18,7 +19,6 @@
 		}
 		try {
 			let result = await acceptDbo(nodeData.id, position, $draggedItem);
-			//console.log('acceptDbo for ' + nodeData.id, result);
 			return result.accept;
 		} catch (e) {
 			console.log(e);
@@ -29,8 +29,15 @@
 	function handleDragOver(e) {
 		if (canDrop) {
 			e.preventDefault();
+			if (e.dataTransfer.effectAllowed === 'copy') {
+				e.dataTransfer.dropEffect = 'copy';
+			} else {
+				e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
+			}
+			action = e.dataTransfer.dropEffect;
 			return true;
 		} else {
+			action = 'none';
 			return false;
 		}
 	}
@@ -54,10 +61,21 @@
 		let target = nodeData.id;
 		let jsonData = undefined;
 		try {
-			jsonData = JSON.parse(e.dataTransfer.getData('text'));
+			jsonData = JSON.parse(e.dataTransfer.getData('text/plain'));
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
-			let result = await addDbo(target, position, jsonData);
+			let result = { done: false };
+			switch (action) {
+				case 'copy':
+					result = await addDbo(target, position, jsonData);
+					break;
+				case 'move':
+					//result = await moveDbo(target, position, jsonData);
+					console.log("handleDrop: moveDbo not yet implemented")
+					break;
+				default:
+					break;
+			}
 			if (result.done) {
 				// update palette reusables
 				if (jsonData.type === 'paletteData') {
