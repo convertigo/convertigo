@@ -10,6 +10,7 @@
 
 	let visible = false;
 	let canDrop = false;
+	let dragOver = false;
 
 	async function allowDrop() {
 		if ($draggedItem == undefined) {
@@ -35,11 +36,13 @@
 	}
 
 	async function handleDragEnter(e) {
+		dragOver = true;
 		canDrop = await allowDrop();
-		visible = canDrop ? true : false; //true;
+		visible = dragOver && canDrop ? true : false;
 	}
 
 	function handleDragLeave(e) {
+		dragOver = false;
 		canDrop = false;
 		visible = false;
 	}
