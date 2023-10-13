@@ -43,7 +43,7 @@ public class Accept extends JSonService {
 		JSONObject jsonData = new JSONObject(data);
 		DatabaseObject dbo = DboUtils.createDbo(jsonData);
 		DatabaseObject targetDbo = Utils.getDbo(target);
-		FolderType folderType = Utils.getFolderType(target);
+		FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
 		DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
 		if (parentDbo != null && dbo != null) {
 			boolean accept = accept(parentDbo, dbo);
