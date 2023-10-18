@@ -18,444 +18,474 @@ if not, see <http://www.gnu.org/licenses/>.
 -->
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-		<title>Convertigo - Project</title>
-		<link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
-		<link rel="stylesheet" type="text/css" href="css/common.css" />
-		<link rel="stylesheet" type="text/css" href="css/new_style.css" />
-		<link rel="stylesheet" type="text/css" href="css/mobile.css" />
-		<link rel="stylesheet" type="text/css" href="admin/styles/jquery/ui.jqgrid.css" />
-		<link rel="stylesheet" type="text/css" href="admin/styles/jquery/redmond/jquery-ui.css" />
-		<link rel="stylesheet" type="text/css" href="admin/styles/jquery/customRedmond/custom_jquery-ui.css" />
-		<link rel="stylesheet" type="text/css" href="admin/styles/jquery/jqtree.css" />
-		<link rel="stylesheet" type="text/css" href="admin/styles/jquery/jquery.contextMenu.css" />
-		<!-- jquery resources -->
-		<script src="admin/js/jquery/jquery.min.js" type="text/javascript"></script>
-		<script src="admin/js/jquery/jqgrid/i18n/grid.locale-en.js" type="text/javascript"></script>
-		<script src="admin/js/jquery/jquery-ui.min.js" type="text/javascript"></script>
-		<script src="admin/js/jquery/jqgrid/jquery.jqGrid.min.js" type="text/javascript"></script>
-		<script src="admin/js/jquery/jquery.contextMenu.js" type="text/javascript"></script>
-		<script src="admin/js/jquery/jquery.mousewheel.min.js" type="text/javascript"></script>
-		<script src="scripts/common.js" type="text/javascript"></script>
-		<script src="scripts/project.js" type="text/javascript"></script>
-		<!-- template resources -->
-		<script src='admin/js/jquery/jquery.flot.js' type="text/javascript"></script>
-		<script src='admin/js/jquery/excanvas.min.js' type="text/javascript"></script>
-	</head>
-	<body>
-		<div id="wait_div_build">
-			<div class="bgOpacity"></div>
-			<div id="wait_div_build_info">
-				<img />
-				<p></p>
-			</div>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Convertigo - Project</title>
+	<link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+	<link rel="stylesheet" type="text/css" href="css/common.css" />
+	<link rel="stylesheet" type="text/css" href="css/new_style.css" />
+	<link rel="stylesheet" type="text/css" href="css/mobile.css" />
+	<link rel="stylesheet" type="text/css" href="admin/styles/jquery/ui.jqgrid.css" />
+	<link rel="stylesheet" type="text/css" href="admin/styles/jquery/redmond/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="admin/styles/jquery/customRedmond/custom_jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="admin/styles/jquery/jqtree.css" />
+	<link rel="stylesheet" type="text/css" href="admin/styles/jquery/jquery.contextMenu.css" />
+	<link rel=stylesheet
+		href=https://cdn.jsdelivr.net/npm/pretty-print-json@2.0/dist/css/pretty-print-json.dark-mode.css>
+	<link rel="stylesheet" type="text/css" href="css/copyCode.css" />
+	<!-- jquery resources -->
+	<script src="admin/js/jquery/jquery.min.js" type="text/javascript"></script>
+	<script src="admin/js/jquery/jqgrid/i18n/grid.locale-en.js" type="text/javascript"></script>
+	<script src="admin/js/jquery/jquery-ui.min.js" type="text/javascript"></script>
+	<script src="admin/js/jquery/jqgrid/jquery.jqGrid.min.js" type="text/javascript"></script>
+	<script src="admin/js/jquery/jquery.contextMenu.js" type="text/javascript"></script>
+	<script src="admin/js/jquery/jquery.mousewheel.min.js" type="text/javascript"></script>
+	<script src="scripts/common.js" type="text/javascript"></script>
+	<script src="scripts/project.js" type="text/javascript"></script>
+	<!-- template resources -->
+	<script src='admin/js/jquery/jquery.flot.js' type="text/javascript"></script>
+	<script src='admin/js/jquery/excanvas.min.js' type="text/javascript"></script>
+
+</head>
+
+<body>
+	<div id="wait_div_build">
+		<div class="bgOpacity"></div>
+		<div id="wait_div_build_info">
+			<img />
+			<p></p>
 		</div>
-			<div id="main">
-			<div class="logo">
-				<a href="https://www.convertigo.com"><img src="images/new/logo-convertigo.png" /></a>
-			</div>
-			<div class="adminTitle">
-				<span><a href="https://github.com/convertigo/convertigo" target="_blank">Star us on GitHub <img src="admin/images/github-32.png"></a></span>
-				<span><a href="https://twitter.com/convertigo" target="_blank"><img src="admin/images/twitter-32.png"></a></span>
-				<span><a href="https://www.linkedin.com/company/convertigo/" target="_blank"><img src="admin/images/linkedin-32.png"></a></span>
-			</div>
-			<form action="" id="loginForm" class="hidden" autocomplete="off">
-				<input class="rounded" type="text" name="username" id="loginUsername"/>
-				<input class="rounded" type="password" name="password" id="loginPassword"/>
-				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" class="fixLogin"/>
-			</form>
-			<div class="fixAgain">
+	</div>
+	<div id="main">
+		<div class="logo">
+			<a href="https://www.convertigo.com"><img src="images/new/logo-convertigo.png" /></a>
+		</div>
+		<div class="adminTitle">
+			<span><a href="https://github.com/convertigo/convertigo" target="_blank">Star us on GitHub <img
+						src="admin/images/github-32.png"></a></span>
+			<span><a href="https://twitter.com/convertigo" target="_blank"><img
+						src="admin/images/twitter-32.png"></a></span>
+			<span><a href="https://www.linkedin.com/company/convertigo/" target="_blank"><img
+						src="admin/images/linkedin-32.png"></a></span>
+		</div>
+		<form action="" id="loginForm" class="hidden" autocomplete="off">
+			<input class="rounded" type="text" name="username" id="loginUsername" />
+			<input class="rounded" type="password" name="password" id="loginPassword" />
+			<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" class="fixLogin" />
+		</form>
+		<div class="fixAgain">
 			<div class="user">Welcome <span class="fixUser" id="user"></span></div>
+		</div>
+		<a href="#logout" id="logout" class="hidden">
+			<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
+		</a>
+		<div style="display: flex; flex-direction: column; width:100%">
+			<div class="tpHeader">
+				<div style="margin: auto; max-width: 700px;">
+					<div style="font-size: 1.6rem;">WELCOME ON CONVERTIGO<span style="font-weight: bold;"> LOW
+							CODE PLATFORM</span></div>
+					<div style="font-size: 0.9rem;">Test Platform</div>
+				</div>
 			</div>
-			<a href="#logout" id="logout" class="hidden">
-				<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
-			</a>
-				<table cellpadding="0" cellspacing="0" id="global">
-					<tr>
-						<td class="global_bg_center">
-							<!-- Header -->
-							<div class="tpHeader">
-								<div style="margin: auto; max-width: 700px;">
-									<div style="font-size: 1.6rem;">WELCOME ON CONVERTIGO<span style="font-weight: bold;"> LOW CODE PLATFORM</span></div>
-									<div style="font-size: 0.9rem;">Test Platform</div>
+			<div style="display: flex; flex-direction: row; gap:20px; text-align: center; max-width: 100%;">
+				<div>
+					<div style="position: sticky; top: 50px">
+						<ul style="padding-left:0px">
+							<li>
+								<a href="admin/index.html">
+									<img src="images/new/picto_admin.png" alt="Convertigo administration"
+										title="Convertigo administration" /><br />
+								</a>
+							</li>
+							<li>
+								<a href="index.html">
+									<img src="images/new/picto_project_menu.png" alt="Projects"
+										title="Projects" /><br />
+								</a>
+							</li>
+							<li>
+								<a id="swaggerLink" href="./swagger/dist/index.html" target="_blank">
+									<img title="Swagger Console" alt="Swagger Console"
+										src="admin/images/navigationImages/100x100_picto_swagger.png">
+								</a>
+							</li>
+							<li>
+								<a href="https://www.convertigo.com/en/docs/access-documentation.html">
+									<img src="images/new/picto_doc.png" alt="Docs" title="Docs" /><br />
+								</a>
+							</li>
+							<li>
+								<a href="https://www.convertigo.com">
+									<img src="images/new/picto_site.png" alt="Convertigo website"
+										title="Convertigo website" /><br />
+								</a>
+							</li>
+							<li>
+								<a href="https://www.convertigo.com/developers/">
+									<img src="images/new/picto_itcenter.png" alt="Developer network"
+										title="Developer network" /><br />
+								</a>
+							</li>
+						</ul>
+					</div>
+
+				</div>
+				<div style="flex-grow: 1;">
+					<div style="background-color: white;position: sticky; top:0px; padding-top:15px;margin-bottom: 0; padding-bottom: 10px; z-index: 1000">
+						<h5 style="margin-top:0 !important;"><span class="project_name">…</span>
+							project <span class="project_version"></span></h5>
+					</div>
+					<div class="hr"></div>
+
+					<h4 class="project_comment">…</h4>
+					<!-- Content column left -->
+					<!-- Menu colapse/deploy accordion -->
+					<div class="accordion_options">
+						<span class="accordion_deploy"><img class="accordion"
+								src="images/new/picto_deploy_accordeon.png" />Deploy all</span>
+						<span>|</span>
+						<span class="accordion_colapse"><img class="accordion"
+								src="images/new/picto_colapse_accordeon.png" />Collapse
+							all</span>
+					</div>
+					<ul class="acc connectors" id="acc">
+						<li class="mobiles hidden">
+							<!-- Accordion green first level -->
+							<h6 class="sub_connectors">Mobile application</h6>
+							<div class="acc-section">
+								<div class="acc-content">
+									<table cellspacing="0" cellpadding="5" class="table contentTable">
+										<tr>
+											<td class="property_name table_row_even">Application
+												name</td>
+											<td class="table_row_even"><span id="build_application_name" /></td>
+										</tr>
+										<tr>
+											<td class="property_name table_row_even">Convertigo
+												server endpoint</td>
+											<td class="table_row_even"><span id="build_endpoint" /></td>
+										</tr>
+										<tr>
+											<td class="property_name table_row_even">Application
+												ID</td>
+											<td class="table_row_even"><span id="build_application_id" /></td>
+										</tr>
+										<tr>
+											<td class="property_name table_row_even">Current
+												Application version</td>
+											<td class="table_row_even"><span id="build_application_version" /></td>
+										</tr>
+									</table>
+									<!-- Added BUILD panel here, before mobile platforms -->
+									<ul class="acc requestables">
+										<li style="margin:0px;" class="requestable">
+											<h6 class="build">PWA / Web App</h6>
+											<!--
+																			Built application endpoint: <input type="text" id="build_endpoint" size="60"/><br/>
+																			Application ID: <input type="text" id="build_application_id" size="60"/>
+																			<a class="btn_build"></a>-->
+											<div class="acc-section">
+												<div class="acc-content">
+													<div class="mobile_platform">
+														<div class="qrcode_row">
+															<div class="qrcode_platform table_row_even">
+																Web Application</div>
+															<div class="qrcode_install table_row_even">
+																URL</div>
+															<div class="mobile_unbuilt" style="text-align: center;"></div>
+															<div class="webapp qrcode_content">
+																<input type="hidden" value="" class="build_url" />
+																<a target="_blank"></a>
+															</div>
+														</div>
+														<div class="btn_container">
+															<a href="#" class="platform_link btn_exe_link">Execute
+																here</a>
+														</div>
+													</div>
+												</div>
+											</div>
+										</li>
+									</ul>
+									<!-- End of added BUILD panel -->
+									<ul class="acc requestables" id="nested_m"></ul>
 								</div>
 							</div>
-							<!-- End Header -->
-							<!-- Container -->
-							<table id="container">
+						</li>
+						<li class="sequences hidden">
+							<!-- Accordion green first level -->
+							<h6 class="sub_connectors">Sequence (s)</h6>
+							<div class="acc-section">
+								<div class="acc-content">
+									<ul class="acc requestables" id="nested_s"></ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+					<!-- End content column left -->
+				</div>
+				<div
+					style="flex-basis:calc(59.5% - 20px); position: sticky; top:15px; height: 100%; overflow: auto; display: flex; flex-direction: column;">
+					<div
+						style="padding-left: 15px; padding-right: 15px;height: 32px; width:calc(100% - 30px); border-top-left-radius: 15px; border-top-right-radius: 15px; background-color: #00C0F2;display: flex; justify-content: space-between; align-items: center;">
+						<div class="title_exe">Execution mode</div>
+						<div class="window_exe_picto2">
+							<div id="window_exe_pin" class="window_exe_btn" title="pin">
+							</div>
+						</div>
+					</div>
+					<div style="margin-top: 15px;">
+						<div class="radio_mode">
+							<!-- <input type="radio" id="radio_html" name="form_execution_mode" value="html" /><label
+								for="radio_html">C8O lib</label> -->
+							<input type="radio" id="radio_xml" name="form_execution_mode" value="xml" /><label
+								for="radio_xml">XML</label>
+							<input type="radio" id="radio_json" name="form_execution_mode" value="json"
+								checked="checked" /><label for="radio_json">JSON
+							</label>
+							<input type="radio" id="radio_bin" name="form_execution_mode" value="bin" /><label
+								for="radio_bin">Binary</label>
+						</div>
+						<div class="check_mode" style="text-align: right;padding-right: 50px;">
+							<input id="check_mode_fullscreen" type="checkbox" name="form_fullscreen_mode"
+								value="fullscreen" /><label for="check_mode_fullscreen">Fullscreen</label>
+							<!-- <input id="check_mode_c8o_call" type="checkbox" name="form_c8o_call_mode" value="c8o_call"
+								disabled="disabled" /><label for="check_mode_c8o_call"
+								title="Force the reload of the execution result frame">Reload
+								execution result frame</label> -->
+						</div>
+					</div>
+					<div
+						style="margin-top: 15px; padding-left: 15px; padding-right: 15px;height: 32px; width:calc(100% - 30px); border-top-left-radius: 15px; border-top-right-radius: 15px; background-color: #00C0F2;display: flex; justify-content: space-between; align-items: center;">
+						<div class="title_exe">Execution result</div>
+						<div class="window_exe_picto2">
+							<div id="window_exe_close" class="window_exe_btn" title="clear">
+							</div>
+						</div>
+					</div>
+					<div style="width: calc(100% - 10px);">
+						<div class="window_exe_generated_url" id="window_exe_generated_url">
+							<b>Generated URL :</b><br />
+							<a class="gen_url"></a>
+						</div>
+					</div>
+					<div>
+						<div style="display: flex; flex-direction: column; position: relative;">
+							<div class="radio_mode" id="jsonchooser"
+								style="display: none; padding-bottom: 5px; text-align: left;">
+								<input type="radio" id="radio_json_formatted" name="form_json_display_mode"
+									value="radio_json_formatted" checked="checked" />
+								<label for="radio_json_formatted">FORMATTED JSON</label>
+								<input type="radio" id="radio_json_raw" name="form_json_display_mode"
+									value="radio_json_raw" />
+								<label for="radio_json_raw">RAW JSON</label>
+							</div>
+							<div>
+								<div id="headerJson" class="MyHeader"
+									style="display: none; flex-direction: row; justify-content: space-between; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem;">
+									<span id="spanType">JSON</span>
+									<button id="copyContent" class="Mybutton"
+										style="display: none; align-items: center;"><svg stroke="currentColor"
+											fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+											stroke-linejoin="round" class="icon-sm" height="1em" width="1em"
+											xmlns="http://www.w3.org/2000/svg">
+											<path
+												d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2">
+											</path>
+											<rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+										</svg>Copy JSON</button>
+									<button id="copyContentDone" class="Mybutton"
+										style="display: none;align-items: center;"><svg stroke="currentColor"
+											fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+											stroke-linejoin="round" class="icon-sm" height="1em" width="1em"
+											xmlns="http://www.w3.org/2000/svg">
+											<polyline points="20 6 9 17 4 12">
+											</polyline>
+										</svg>Copied !</button>
+								</div>
+								<div id="window_exe_content"
+									style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; max-width: 100% !important">
+								</div>
+							</div>
+						</div>
+
+						<div id="window_exe_device">
+							<div class="device">
+								<div class="button"></div>
+								<div class="lock"></div>
+								<div class="camera"></div>
+								<div class="inner"></div>
+								<div class="screen" id="window_exe_content_mobile">
+								</div>
+								<div class="home"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	<!-- End Container -->
+	</td>
+	</tr>
+	</table>
+	<!-- Footer -->
+	<div class="footer">
+		<div class="hr"></div>Copyright &copy; 2001-2023 Convertigo SA. All rights reserved.
+		<br />
+		<a href="licenses/index.html">EULA and third party components</a>
+	</div>
+	<!-- End Footer -->
+	<!-- End Global content -->
+	</div>
+	<!-- End main -->
+
+	<div id="templates">
+		<ul>
+			<li class="connector">
+				<h6 class="sub_connectors"><span class="connector_name">…</span> connector</h6>
+				<div class="acc-section">
+					<div class="acc-content">
+						<ul class="acc requestables"></ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+		<ul>
+			<li style="margin:0px;" class="platform">
+				<h6>
+					<span class="platform_status"></span>
+					<span class="platform_name" style="position:relative;top:0px;left:10px;">…</span>
+					<span class="warning_icon"></span>
+				</h6>
+				<div class="acc-section">
+					<div class="acc-content">
+						<div class="mobile_platform">
+							<div class="qrcode_row">
+								<div class="table_row_even">Platform <span class="qrcode_platform"></span> Package <span
+										class="qrcode_install"></span></div>
+								<div class="table_row_even row_built_endpoint">Built endpoint <span
+										class="built_endpoint"></span></div>
+								<div class="table_row_even">Local revision <span class="platform_revision"></span></div>
+								<div class="table_row_even">Built revision <span class="built_revision"></span></div>
+								<div class="table_row_even">Built Application version <span
+										class="qrcode_version"></span></div>
+								<div class="table_row_even">Phonegap version <span
+										class="qrcode_phonegap_version"></span></div>
+								<div class="mobile_unbuilt" style="text-align: center;"></div>
+								<div class="install qrcode_content">
+									<p class="qrcode_message">Download the package<br />(click or scan)</p>
+									<input type="hidden" value="none" class="build_status" />
+									<input type="hidden" value="" class="build_url" />
+									<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o" />
+									<a></a>
+								</div>
+								<div class="qrcode_ota">
+									<hr />
+									<p class="qrcode_message">Install the application<br />(click or scan on iOS)</p>
+									<input type="hidden" value="" class="bn" />
+									<input type="hidden" value="" class="bp_url" />
+									<input type="hidden" value="" class="build_url" />
+									<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o" />
+									<a></a>
+								</div>
+							</div>
+							<div class="btn_container">
+								<a href="#" class="btn_get_source">Get source package</a>
+								<a href="#" class="btn_build">Build mobile platform</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</li>
+		</ul>
+		<ul>
+			<li style="margin:0px;" class="requestable">
+				<h6 class="requestable_name">…</h6>
+				<div class="acc-section">
+					<div class="acc-content">
+						<form>
+							<table class="table requestable_variables">
+								<tr class="requestable_variables_footer">
+									<td colspan="3" height="10"></td>
+								</tr>
 								<tr>
-									<td class="menu">
-										<!-- Menu -->
-										<ul>
-											<li>
-												<a href="admin/index.html">
-													<img src="images/new/picto_admin.png" alt="Convertigo administration" title="Convertigo administration"/><br/>
-												</a>
-											</li>
-											<li>
-												<a href="index.html">
-													<img src="images/new/picto_project_menu.png" alt="Projects" title="Projects"/><br/>
-												</a>
-											</li>
-											<li>
-												<a id="swaggerLink" href="./swagger/dist/index.html" target="_blank">
-													<img title="Swagger Console" alt="Swagger Console" src="admin/images/navigationImages/100x100_picto_swagger.png">
-												</a>
-											</li>
-											<li>
-												<a href="https://www.convertigo.com/en/docs/access-documentation.html">
-													<img src="images/new/picto_doc.png" alt="Docs" title="Docs"/><br/>
-												</a>
-											</li>
-											<li>
-												<a href="https://www.convertigo.com">
-													<img src="images/new/picto_site.png" alt="Convertigo website" title="Convertigo website"/><br/>
-												</a>
-											</li>
-											<li>
-												<a href="https://www.convertigo.com/developers/">
-													<img src="images/new/picto_itcenter.png" alt="Developer network" title="Developer network"/><br/>
-												</a>
-											</li>
-										</ul>
-										<!-- End Menu -->
-									</td>
-									<td valign="top" >
-										<!-- Content -->
-										<div class="content">
-											<!-- Content Top -->
-											<div class="content_top2">
-												<table cellspacing="0" cellpadding="0">
-													<tr>
-														<td class="content_top_left"><img src="images/new/convertigo-ems-bg-blanc-left.png" /></td>
-														<td class="content_top_center" >
-															<!-- Left column -->
-															<div id="column_left">
-																<h5><span class="project_name">…</span> project <span class="project_version"></span></h5>
-																<div class="hr"></div>
-																<h4 class="project_comment">…</h4>
-																<!-- Content column left -->
-																<!-- Menu colapse/deploy accordion -->
-																<div class="accordion_options">
-																	<span class="accordion_deploy"><img class="accordion" src="images/new/picto_deploy_accordeon.png" />Deploy all</span>
-																	<span>|</span>
-																	<span class="accordion_colapse"><img class="accordion" src="images/new/picto_colapse_accordeon.png" />Collapse all</span>
-																</div>
-																<ul class="acc connectors" id="acc">
-																	<li class="mobiles hidden">
-																		<!-- Accordion green first level -->
-																		<h6 class="sub_connectors">Mobile application</h6>
-																		<div class="acc-section">
-																			<div class="acc-content">
-																				<table cellspacing="0" cellpadding="5" class="table contentTable">
-																					<tr>
-																						<td class="property_name table_row_even">Application name</td>
-																						<td class="table_row_even"><span id="build_application_name" /></td>
-																					</tr>
-																					<tr>
-																						<td class="property_name table_row_even">Convertigo server endpoint</td>
-																						<td class="table_row_even"><span id="build_endpoint" /></td>
-																					</tr>
-																					<tr>
-																						<td class="property_name table_row_even">Application ID</td>
-																						<td class="table_row_even"><span id="build_application_id" /></td>
-																					</tr>
-																					<tr>
-																						<td class="property_name table_row_even">Current Application version</td>
-																						<td class="table_row_even"><span id="build_application_version" /></td>
-																					</tr>
-																				</table>
-																		<!-- Added BUILD panel here, before mobile platforms -->
-																				<ul class="acc requestables">
-																					<li style="margin:0px;" class="requestable">
-																						<h6 class="build">PWA / Web App</h6>
-																						<!--
-																						Built application endpoint: <input type="text" id="build_endpoint" size="60"/><br/>
-																						Application ID: <input type="text" id="build_application_id" size="60"/>
-																						<a class="btn_build"></a>-->
-																						<div class="acc-section">
-																							<div class="acc-content">
-																								<div class="mobile_platform">
-																									<div class="qrcode_row">
-																										<div class="qrcode_platform table_row_even">Web Application</div>
-																										<div class="qrcode_install table_row_even">URL</div>
-																										<div class="mobile_unbuilt"></div>
-																										<div class="webapp qrcode_content"><input type="hidden" value="" class="build_url" /> <a target="_blank"></a></div>
-																									</div>
-																									<div class="btn_container">
-																										<a href="#" class="platform_link btn_exe_link">Execute here</a>
-																									</div>
-																								</div>
-																							</div>
-																						</div>
-																					</li>
-																				</ul>
-																				<!-- End of added BUILD panel -->
-																				<ul class="acc requestables" id="nested_m"></ul>
-																			</div>
-																		</div>
-																	</li>
-																	<li class="sequences hidden">
-																		<!-- Accordion green first level -->
-																		<h6 class="sub_connectors">Sequence (s)</h6>
-																		<div class="acc-section">
-																			<div class="acc-content">
-																				<ul class="acc requestables" id="nested_s"></ul>
-																			</div>
-																		</div>
-																	</li>
-																</ul>
-																<!-- End content column left -->
-															</div>
-															<!-- End left column -->
-															<!-- Right column -->
-															<div id="column_right">
-																<div id="pusher"></div>
-																<table class="window_exe" cellspacing="0" cellpadding="0">
-																	<tr>
-																		<td class="window_exe_topL"></td>
-																		<td class="window_exe_bg">
-																			<div class="title_exe">Execution mode</div>
-																			<div class="window_exe_picto2">
-<!--																			 	<div id="window_exe_increase" class="window_exe_btn hidden" title="scale+"></div> -->
-<!--																			 	<div id="window_exe_decrease" class="window_exe_btn hidden" title="scale-"></div> -->
-																				<div id="window_exe_pin" class="window_exe_btn" title="pin"></div>
-																					<!--<img src="images/new/btn_large_window.png" />-->
-																					<!--<img src="images/new/btn_reduce_window.png" />-->
-																			</div>
-																		</td>
-																		<td class="window_exe_topR"></td>
-																	</tr>
-																	<tr>
-																		<td colspan="3">
-																			<div>
-																				<br/>
-																				<div class="radio_mode">
-																					<input type="radio" id="radio_html" name="form_execution_mode" value="html"/><label for="radio_html">C8O lib</label>
-																					<input type="radio" id="radio_xml" name="form_execution_mode" value="xml" checked="checked" /><label for="radio_xml">XML</label>
-																					<input type="radio" id="radio_json" name="form_execution_mode" value="json"/><label for="radio_json">Json</label>
-																					<input type="radio" id="radio_bin" name="form_execution_mode" value="bin"/><label for="radio_bin">Binary</label>
-																				</div>
-																				<div class="check_mode">
-																					<input id="check_mode_fullscreen" type="checkbox" name="form_fullscreen_mode" value="fullscreen"/><label for="check_mode_fullscreen">Fullscreen</label>
-																					<input id="check_mode_c8o_call" type="checkbox" name="form_c8o_call_mode" value="c8o_call" disabled="disabled"/><label for="check_mode_c8o_call" title="Force the reload of the execution result frame">Reload execution result frame</label>
-																				</div>
-																				<br/>
-																			</div>
-																		</td>
-																	</tr>
-																	<tr>
-																		<td class="window_exe_topL"></td>
-																		<td class="window_exe_bg">
-																			<!--
-																			<div class="title_exe">Execution result
-																				<div id="pin" class="window_exe_picto"><img src="images/new/btn_close_window.png" /></div>
-																				<div class="window_exe_picto"><img src="images/new/btn_large_window.png" /></div>
-																				<a href=""><div class="window_exe_picto"><img src="images/new/btn_reduce_window.png" /></div></a>
-																			</div>
-																			-->
-																			<div class="title_exe">Execution result</div>
-																			<div class="window_exe_picto2">
-<!--																		 		<div id="window_exe_fullsize" class="window_exe_btn hidden" title="1:1">1:1</div> -->
-<!--																			 	<div id="window_exe_increase" class="window_exe_btn hidden" title="scale+"></div> -->
-<!--																			 	<div id="window_exe_decrease" class="window_exe_btn hidden" title="scale-"></div> -->
-																				<div id="window_exe_close" class="window_exe_btn" title="clear"></div>
-																			</div>
-																		</td>
-																		<td class="window_exe_topR"></td>
-																	</tr>
-																	<tr>
-																		<td colspan="3">
-																			<div class="window_exe_generated_url" id="window_exe_generated_url">
-																				<b>Generated URL :</b><br/>
-																				<a class="gen_url"></a>
-																			</div>
-																		</td>
-																	</tr>
-																	<tr>
-																		<td colspan="3">
-																			<div id="window_exe_content"></div>
-																			<div id="window_exe_device">
-																				<div class="device">
-																					<div class="button"></div>
-																					<div class="lock"></div>
-																					<div class="camera"></div>
-																					<div class="inner"></div>
-																					<div class="screen" id="window_exe_content_mobile"></div>
-																					<div class="home"></div>
-																				</div>
-																			</div>
-																		</td>
-																	</tr>
-																</table>
-															</div>
-															<!-- End right column -->
-														</td>
-													</tr>
-												</table>
-											</div>
-											<!-- End Content Top -->
-										</div>
-										<!-- End content -->
+									<td colspan="4">
+										<a href="#" class="requestable_link btn_exe_link">Execute</a>
 									</td>
 								</tr>
 							</table>
-							<!-- End Container -->
-						</td>
-					</tr>
-				</table>
-				<!-- Footer -->
-				<div class="footer">
-					<div class="hr"></div>Copyright &copy; 2001-2023 Convertigo SA. All rights reserved.
-					<br/>
-					<a href="licenses/index.html">EULA and third party components</a>
+						</form>
+						<!-- Test cases -->
+						<div class="requestable_testcase_div">
+							<div class="title_testcase">Test cases</div>
+							<!-- Accordion lightgrey third level -->
+							<div class="accordian">
+								<ul class="requestable_testcase"></ul>
+							</div>
+						</div>
+						<!-- End Test cases -->
+					</div>
 				</div>
-				<!-- End Footer -->
-			<!-- End Global content -->
+			</li>
+		</ul>
+		<table>
+			<tr class="variable">
+				<td class="libelle variable_name">Libellé 1</td>
+				<td class="variable_type"></td>
+				<td><input title="Send value" type="checkbox" class="variable_enable" checked="checked" /></td>
+				<td class="libelle_c8o">Send value</td>
+			</tr>
+		</table>
+		<div class="hidden_sequence">
+			<input type="hidden" name="__sequence" alt="" class="sequence_value champ variable_value" value="…" />
 		</div>
-		<!-- End main -->
+		<div class="hidden_transaction">
+			<input type="hidden" name="__transaction" alt="" class="transaction_value champ variable_value" value="…" />
+			<input type="hidden" name="__connector" alt="" class="connector_value champ variable_value" value="…" />
+		</div>
+		<div class="single_valued value_text">
+			<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
+		</div>
+		<div class="single_valued value_password">
+			<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
+		</div>
+		<div class="single_valued value_file">
+			<input type="file" alt="" class="champ variable_value" value="…" />
+		</div>
+		<div class="multi_valued">
+			<a title="add value" class="link_value_add">+ add a new value</a>
+		</div>
+		<div class="new_multi_valued value_text">
+			<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
+			<a title="remove value" class="link_value_remove">×</a>
+		</div>
+		<div class="new_multi_valued value_password">
+			<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
+			<a title="remove value" class="link_value_remove">×</a>
+		</div>
+		<div class="new_multi_valued value_file">
+			<input type="file" alt="" class="champ variable_value" value="…" />
+			<a title="remove value" class="link_value_remove">×</a>
+		</div>
+		<ul class="testcase">
+			<li class="name_testcase testcase_name">…</li>
+			<li>
+				<table class="table tablegrey testcase_variables"></table>
+				<br />
+				<a href="#" class="requestable_testcase_link btn_exe_link">Execute</a>
+				<a href="#" class="btn_edit_testcase">Edit</a>
+				<br /><br />
+			</li>
+		</ul>
+		<table>
+			<tr class="testcase_variable">
+				<td class="tablegrey_libelle testcase_variable_name">…</td>
+				<td class="tablegrey_info testcase_variable_value">…</td>
+			</tr>
+		</table>
+	</div>
+</body>
 
-		<div id="templates">
-			<ul>
-				<li class="connector">
-					<h6 class="sub_connectors"><span class="connector_name">…</span> connector</h6>
-					<div class="acc-section">
-						<div class="acc-content">
-							<ul class="acc requestables"></ul>
-						</div>
-					</div>
-				</li>
-			</ul>
-			<ul>
-				<li style="margin:0px;" class="platform">
-					<h6>
-						<span class="platform_status"></span>
-						<span class="platform_name" style="position:relative;top:0px;left:10px;">…</span>
-						<span class="warning_icon"></span>
-					</h6>
-					<div class="acc-section">
-						<div class="acc-content">
-							<div class="mobile_platform" >
-								<div class="qrcode_row">
-									<div class="table_row_even">Platform <span class="qrcode_platform"></span> Package <span class="qrcode_install"></span></div>
-									<div class="table_row_even row_built_endpoint">Built endpoint <span class="built_endpoint"></span></div>
-									<div class="table_row_even">Local revision <span class="platform_revision"></span></div>
-									<div class="table_row_even">Built revision <span class="built_revision"></span></div>
-									<div class="table_row_even">Built Application version <span class="qrcode_version"></span></div>
-									<div class="table_row_even">Phonegap version <span class="qrcode_phonegap_version"></span></div>
-									<div class="mobile_unbuilt"></div>
-									<div class="install qrcode_content">
-										<p class="qrcode_message">Download the package<br/>(click or scan)</p>
-										<input type="hidden" value="none" class="build_status" />
-										<input type="hidden" value="" class="build_url" />
-										<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o"/>
-										<a></a>
-									</div>
-									<div class="qrcode_ota">
-										<hr/>
-										<p class="qrcode_message">Install the application<br/>(click or scan on iOS)</p>
-										<input type="hidden" value="" class="bn" />
-										<input type="hidden" value="" class="bp_url" />
-										<input type="hidden" value="" class="build_url" />
-										<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o"/>
-										<a></a>
-									</div>
-								</div>
-								<div class="btn_container">
-									<a href="#" class="btn_get_source">Get source package</a>
-									<a href="#" class="btn_build">Build mobile platform</a>
-								</div>
-							</div>
-						</div>
-					</div>
-				</li>
-			</ul>
-			<ul>
-				<li style="margin:0px;" class="requestable">
-					<h6 class="requestable_name">…</h6>
-					<div class="acc-section">
-						<div class="acc-content">
-							<form>
-								<table class="table requestable_variables">
-									<tr class="requestable_variables_footer">
-										<td colspan="3" height="10"></td>
-									</tr>
-									<tr>
-										<td colspan="4">
-											<a href="#" class="requestable_link btn_exe_link">Execute</a>
-										</td>
-									</tr>
-								</table>
-							</form>
-							<!-- Test cases -->
-							<div class="requestable_testcase_div">
-								<div class="title_testcase">Test cases</div>
-								<!-- Accordion lightgrey third level -->
-								<div class="accordian">
-									<ul class="requestable_testcase"></ul>
-								</div>
-							</div>
-							<!-- End Test cases -->
-						</div>
-					</div>
-				</li>
-			</ul>
-			<table>
-				<tr class="variable">
-					<td class="libelle variable_name">Libellé 1</td>
-					<td class="variable_type"></td>
-					<td><input title="Send value" type="checkbox" class="variable_enable" checked="checked"/></td>
-					<td class="libelle_c8o">Send value</td>
-				</tr>
-			</table>
-			<div class="hidden_sequence">
-				<input type="hidden" name="__sequence" alt="" class="sequence_value champ variable_value" value="…"/>
-			</div>
-			<div class="hidden_transaction">
-				<input type="hidden" name="__transaction" alt="" class="transaction_value champ variable_value" value="…"/>
-				<input type="hidden" name="__connector" alt="" class="connector_value champ variable_value" value="…"/>
-			</div>
-			<div class="single_valued value_text">
-				<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
-			</div>
-			<div class="single_valued value_password">
-				<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
-			</div>
-			<div class="single_valued value_file">
-				<input type="file" alt="" class="champ variable_value" value="…"/>
-			</div>
-			<div class="multi_valued">
-				<a title="add value" class="link_value_add">+ add a new value</a>
-			</div>
-			<div class="new_multi_valued value_text">
-				<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
-				<a title="remove value" class="link_value_remove">×</a>
-			</div>
-			<div class="new_multi_valued value_password">
-				<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
-				<a title="remove value" class="link_value_remove">×</a>
-			</div>
-			<div class="new_multi_valued value_file">
-				<input type="file" alt="" class="champ variable_value" value="…"/>
-				<a title="remove value" class="link_value_remove">×</a>
-			</div>
-			<ul class="testcase">
-				<li class="name_testcase testcase_name">…</li>
-				<li>
-					<table class="table tablegrey testcase_variables"></table>
-					<br/>
-					<a href="#" class="requestable_testcase_link btn_exe_link">Execute</a>
-					<a href="#" class="btn_edit_testcase">Edit</a>
-					<br/><br/>
-				</li>
-			</ul>
-			<table>
-				<tr class="testcase_variable">
-					<td class="tablegrey_libelle testcase_variable_name">…</td>
-					<td class="tablegrey_info testcase_variable_value">…</td>
-				</tr>
-			</table>
-		</div>
-	</body>
 </html>
