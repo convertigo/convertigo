@@ -1,7 +1,8 @@
 <script>
-	import { createEventDispatcher, tick } from 'svelte';
-	import { reusables, draggedItem } from '$lib/palette/paletteStore';
-	import { addDbo, acceptDbo } from '$lib/utils/service';
+	import { createEventDispatcher } from 'svelte';
+	import { reusables } from '$lib/palette/paletteStore';
+	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
+	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
 
 	export let position;
 	export let nodeData;
@@ -11,14 +12,14 @@
 	let visible = false;
 	let canDrop = false;
 	let dragOver = false;
-	let action = 'none';
+	let dropAction = 'none';
 
-	async function allowDrop() {
-		if ($draggedItem == undefined) {
+	async function allowDrop(dragAction) {
+		if ($draggedData == undefined) {
 			return false;
 		}
 		try {
-			let result = await acceptDbo(nodeData.id, position, $draggedItem);
+			let result = await acceptDbo(dragAction, nodeData.id, position, $draggedData);
 			return result.accept;
 		} catch (e) {
 			console.log(e);
@@ -26,32 +27,48 @@
 		return false;
 	}
 
-	function handleDragOver(e) {
-		if (canDrop) {
-			e.preventDefault();
-			if (e.dataTransfer.effectAllowed === 'copy') {
-				e.dataTransfer.dropEffect = 'copy';
-			} else {
-				e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
-			}
-			action = e.dataTransfer.dropEffect;
-			return true;
+	function setDropEffect(e) {
+		if (e.dataTransfer.effectAllowed === 'copy') {
+			e.dataTransfer.dropEffect = 'copy';
 		} else {
-			action = 'none';
-			return false;
+			e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
 		}
+		return e.dataTransfer.dropEffect;
 	}
 
 	async function handleDragEnter(e) {
+		e.preventDefault();
 		dragOver = true;
-		canDrop = await allowDrop();
+		dropAction = setDropEffect(e);
+		canDrop = await allowDrop(e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction);
 		visible = dragOver && canDrop ? true : false;
 	}
 
 	function handleDragLeave(e) {
+		e.preventDefault();
 		dragOver = false;
 		canDrop = false;
 		visible = false;
+	}
+
+	async function handleDragOver(e) {
+		if (canDrop) {
+			e.preventDefault();
+			dropAction = setDropEffect(e);
+			setTimeout(() => {
+				(async () => {
+					let allow = await allowDrop(
+						e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction
+					);
+					if (dragOver) {
+						canDrop = allow;
+					}
+				})();
+			}, 0);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	async function handleDrop(e) {
@@ -65,13 +82,13 @@
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
 			let result = { done: false };
-			switch (action) {
+			console.log('handleDrop divider', dropAction);
+			switch (dropAction) {
 				case 'copy':
 					result = await addDbo(target, position, jsonData);
 					break;
 				case 'move':
-					//result = await moveDbo(target, position, jsonData);
-					console.log("handleDrop: moveDbo not yet implemented")
+					result = await moveDbo(target, position, jsonData);
 					break;
 				default:
 					break;
@@ -81,6 +98,13 @@
 				if (jsonData.type === 'paletteData') {
 					$reusables[jsonData.data.id] = jsonData.data;
 					$reusables = $reusables;
+				}
+				if (jsonData.type === 'treeData' && dropAction === 'move') {
+					// update source tree item
+					if ($draggedBlock) {
+						$draggedBlock.dispatchRemove();
+						$draggedBlock = undefined;
+					}
 				}
 				// update tree item
 				dispatch('update', {});

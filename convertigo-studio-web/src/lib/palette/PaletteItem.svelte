@@ -7,7 +7,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { draggedItem } from './paletteStore';
+	import { draggedData } from '$lib/utils/dndStore';
 
 	const dispatch = createEventDispatcher();
 
@@ -27,8 +27,9 @@
 	function handleDragStart(event) {
 		const paletteData = { type: 'paletteData', data: item, options: {} };
 		event.dataTransfer.setData('text/plain', JSON.stringify(paletteData));
+		event.dataTransfer.setData('palettedata', JSON.stringify(paletteData));
 		event.dataTransfer.effectAllowed = "copy";
-		$draggedItem = paletteData;
+		$draggedData = paletteData;
 	}
 
 	function onClick() {
@@ -49,7 +50,7 @@
 		: 'variant-soft-primary'}"
 	draggable="true"
 	on:dragstart={handleDragStart}
-	on:dragend={(event) => $draggedItem = undefined}
+	on:dragend={(event) => ($draggedData = undefined)}
 	on:click={onClick}
 >
 	{#if item.icon.includes('/')}

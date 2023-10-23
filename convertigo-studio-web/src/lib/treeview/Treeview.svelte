@@ -7,7 +7,7 @@
 	import DropDivider from './DropDivider.svelte';
 	import { call, getUrl } from '../utils/service';
 	import { treeData, selectedId } from './treeStore';
-	import { removeDbo } from '$lib/utils/service';
+	import { removeDbo, copyDbo, pasteDbo } from '$lib/utils/service';
 	import { tick } from 'svelte';
 
 	// @ts-ignore
@@ -27,6 +27,9 @@
 	/** @type {TreeViewItem} */
 	let item;
 
+	/** @type {DndBlock} */
+	let block;
+
 	let live = false;
 
 	let self;
@@ -38,6 +41,7 @@
 	});
 
 	function update() {
+		console.log('update', nodeData.id);
 		nodeData.children = true;
 		checkChildren(true);
 	}
@@ -90,7 +94,27 @@
 	 * @param {KeyboardEvent} e
 	 */
 	async function handleKeyDown(e) {
-		if (e.key === 'Delete') {
+		//console.log("e", e)
+		// case copy dbo
+		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC') {
+			let ids = [];
+			ids.push(nodeData.id);
+			let result = await copyDbo(JSON.stringify(ids));
+			if (result.done) {
+				let xml = result.xml;
+				navigator.clipboard.writeText(xml);
+			}
+		}
+		// case paste dbo
+		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV') {
+			let xml = await navigator.clipboard.readText();
+			let result = await pasteDbo('' + nodeData.id, xml);
+			if (result.done) {
+				update();
+			}
+		}
+		// case delete dbo
+		else if (e.key === 'Delete') {
 			e.preventDefault();
 			// dispatch for parent
 			dispatch('treeDelete', { id: nodeData.id });
@@ -110,6 +134,21 @@
 			}
 		}
 	}
+
+	function handleRemove(e) {
+		dispatch('treeRemove', { id: nodeData.id });
+	}
+
+	function treeRemove(e) {
+		let id = e.detail.id;
+		let link = links[id];
+		if (link != undefined) {
+			// destroy child component
+			link.$destroy();
+			// update tree item
+			update();
+		}
+	}
 </script>
 
 {#if nodeData.id != null}
@@ -124,6 +163,7 @@
 		open={nodeData.expanded ?? false}
 		on:keydown={handleKeyDown}
 		on:treeDelete={treeDelete}
+		on:treeRemove={treeRemove}
 	>
 		<svelte:fragment slot="children">
 			{#if Array.isArray(nodeData.children) && nodeData.children.length > 0}
@@ -136,6 +176,7 @@
 						{root}
 						bind:this={links[child.id]}
 						on:treeDelete={treeDelete}
+						on:treeRemove={treeRemove}
 					/>
 					{#if child.icon.includes('?')}
 						<DropDivider nodeData={child} on:update={update} position="after" />
@@ -143,7 +184,14 @@
 				{/each}
 			{/if}
 		</svelte:fragment>
-		<DndBlock {nodeData} {item} on:update={update}>
+		<DndBlock
+			bind:this={block}
+			{block}
+			{nodeData}
+			{item}
+			on:update={update}
+			on:remove={handleRemove}
+		>
 			<span slot="icon">
 				{#if nodeData.icon.includes('?')}
 					<img src={`${getUrl()}${nodeData.icon}`} alt="ico" />
@@ -165,7 +213,13 @@
 		caretOpen="rotate-0"
 	>
 		{#each nodeData.children as child}
-			<svelte:self nodeData={child} {root} bind:this={links[child.id]} on:treeDelete={treeDelete} />
+			<svelte:self
+				nodeData={child}
+				{root}
+				bind:this={links[child.id]}
+				on:treeDelete={treeDelete}
+				on:treeRemove={treeRemove}
+			/>
 		{/each}
 	</TreeView>
 {:else}

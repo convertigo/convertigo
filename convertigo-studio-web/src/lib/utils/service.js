@@ -60,12 +60,28 @@ export async function addDbo(
  * @param {string} position - the position relative to target inside|first|after
  * @param {any} data - the json data object
  */
-export async function acceptDbo(
+export async function moveDbo(
 	target = '',
 	position = 'inside',
 	data = { kind: '', data: { id: '' } }
 ) {
-	let result = await call('studio.dbo.Accept', { target, position, data: JSON.stringify(data) });
+	let result = await call('studio.dbo.Move', { target, position, data: JSON.stringify(data) });
+	return result;
+}
+
+/**
+ * @param {string} action - the drag action (move|copy)
+ * @param {string} target - the id of the parent dbo in tree
+ * @param {string} position - the position relative to target inside|first|after
+ * @param {any} data - the json data object
+ */
+export async function acceptDbo(
+	action = 'move',
+	target = '',
+	position = 'inside',
+	data = { kind: '', data: { id: '' } }
+) {
+	let result = await call('studio.dbo.Accept', { action, target, position, data: JSON.stringify(data) });
 	return result;
 }
 
@@ -74,5 +90,25 @@ export async function acceptDbo(
  */
 export async function removeDbo(id = '') {
 	let result = await call('studio.dbo.Remove', { id });
+	return result;
+}
+
+/**
+ * @param {any} ids - the array of tree dbo ids
+ */
+export async function copyDbo(ids = []) {
+	let result = await call('studio.dbo.Copy', { ids });
+	return result;
+}
+
+/**
+ * @param {string} target - the id of the target dbo in tree
+ * @param {string} xml - the xml string
+ */
+export async function pasteDbo(
+	target = '',
+	xml = '',
+) {
+	let result = await call('studio.dbo.Paste', { target, xml });
 	return result;
 }

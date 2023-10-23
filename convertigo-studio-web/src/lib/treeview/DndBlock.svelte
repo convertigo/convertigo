@@ -1,22 +1,31 @@
+<svelte:options accessors />
+
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { reusables, draggedItem } from '$lib/palette/paletteStore';
-	import { addDbo, acceptDbo } from '$lib/utils/service';
-
-	export let nodeData;
-	export let item;
-
-	let canDrop = false;
-	let action = 'none';
+	import { reusables } from '$lib/palette/paletteStore';
+	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
+	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
 
 	const dispatch = createEventDispatcher();
 
-	async function allowDrop() {
-		if ($draggedItem == undefined) {
+	export let nodeData;
+	export let item;
+	export let block;
+	
+	export function dispatchRemove() {
+		dispatch('remove', {});
+	}
+	
+	let canDrop = false;
+	let dragOver = false;
+	let dropAction = 'none';
+
+	async function allowDrop(dragAction) {
+		if ($draggedData == undefined || nodeData.id === $draggedData.data.id) {
 			return false;
 		}
 		try {
-			let result = await acceptDbo(nodeData.id, 'inside', $draggedItem);
+			let result = await acceptDbo(dragAction, nodeData.id, 'inside', $draggedData);
 			return result.accept;
 		} catch (e) {
 			console.log(e);
@@ -24,26 +33,52 @@
 		return false;
 	}
 
+	function setDropEffect(e) {
+		if (e.dataTransfer.effectAllowed === 'copy') {
+			e.dataTransfer.dropEffect = 'copy';
+		} else {
+			e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
+		}
+		return e.dataTransfer.dropEffect;
+	}
+
+	function handleDragStart(event) {
+		const treeData = { type: 'treeData', data: { id: nodeData.id }, options: {} };
+		event.dataTransfer.setData('text/plain', JSON.stringify(treeData));
+		event.dataTransfer.setData('treedata', JSON.stringify(treeData));
+		$draggedData = treeData;
+		$draggedBlock = block;
+	}
+
 	async function handleDragEnter(e) {
-		canDrop = await allowDrop();
+		e.preventDefault();
+		dragOver = true;
+		dropAction = setDropEffect(e);
+		canDrop = await allowDrop(e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction);
 	}
 
 	function handleDragLeave(e) {
+		e.preventDefault();
+		dragOver = false;
 		canDrop = false;
 	}
 
-	function handleDragOver(e) {
+	async function handleDragOver(e) {
 		if (canDrop) {
 			e.preventDefault();
-			if (e.dataTransfer.effectAllowed === 'copy') {
-				e.dataTransfer.dropEffect = 'copy';
-			} else {
-				e.dataTransfer.dropEffect = true === e.ctrlKey ? 'copy' : 'move';
-			}
-			action = e.dataTransfer.dropEffect;
+			dropAction = setDropEffect(e);
+			setTimeout(() => {
+				(async () => {
+					let allow = await allowDrop(
+						e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction
+					);
+					if (dragOver) {
+						canDrop = allow;
+					}
+				})();
+			}, 0);
 			return true;
 		} else {
-			action = 'none';
 			return false;
 		}
 	}
@@ -58,13 +93,13 @@
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
 			let result = { done: false };
-			switch (action) {
+			console.log('handleDrop dndblock', dropAction);
+			switch (dropAction) {
 				case 'copy':
 					result = await addDbo(target, 'inside', jsonData);
 					break;
 				case 'move':
-					//result = await moveDbo(target, position, jsonData);
-					console.log("handleDrop: moveDbo not yet implemented")
+					result = await moveDbo(target, 'inside', jsonData);
 					break;
 				default:
 					break;
@@ -75,16 +110,21 @@
 					$reusables[jsonData.data.id] = jsonData.data;
 					$reusables = $reusables;
 				}
-				// update tree item
+				if (jsonData.type === 'treeData' && dropAction === 'move') {
+					// update source tree item
+					if ($draggedBlock) {
+						$draggedBlock.dispatchRemove();
+						$draggedBlock = undefined;
+					}
+				}
+				// update target tree item
 				dispatch('update', {});
 			}
 		}
 	}
 
-	function handleDragStart(event) {
-		const treeData = { type: 'treeData', data: { id: nodeData.id }, options: {} };
-		event.dataTransfer.setData('text/plain', JSON.stringify(treeData));
-		$draggedItem = treeData;
+	function handleDragEnd(e) {
+		$draggedData = undefined;
 	}
 </script>
 
@@ -93,7 +133,7 @@
 	class="dndblock"
 	draggable="true"
 	on:dragstart={handleDragStart}
-	on:dragend={(event) => ($draggedItem = undefined)}
+	on:dragend={handleDragEnd}
 	on:dragenter={handleDragEnter}
 	on:dragleave={handleDragLeave}
 	on:dragover={handleDragOver}
