@@ -3,8 +3,11 @@
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
+	import { localStorageStore, getModalStore } from '@skeletonlabs/skeleton';
 	import DndBlock from './DndBlock.svelte';
 	import DropDivider from './DropDivider.svelte';
+	import Toolbar from '../toolbar/Toolbar.svelte';
+	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
 	import { call, getUrl } from '../utils/service';
 	import { treeData, selectedId } from './treeStore';
 	import { removeDbo, copyDbo, pasteDbo } from '$lib/utils/service';
@@ -14,6 +17,15 @@
 	import IconFolder from '~icons/mdi/folder';
 	// @ts-ignore
 	import IconFile from '~icons/mdi/file';
+
+	// @ts-ignore
+	import IconProperties from '~icons/mdi/playlist-edit';
+	// @ts-ignore
+	import IconHelp from '~icons/mdi/help-box';
+	// @ts-ignore
+	import IconDelete from '~icons/mdi/delete';
+
+	const modalStore = getModalStore();
 
 	const dispatch = createEventDispatcher();
 
@@ -31,6 +43,8 @@
 	let block;
 
 	let live = false;
+
+	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
 
 	let self;
 	onMount(() => {
@@ -184,25 +198,61 @@
 				{/each}
 			{/if}
 		</svelte:fragment>
-		<DndBlock
-			bind:this={block}
-			{block}
-			{nodeData}
-			{item}
-			on:update={update}
-			on:remove={handleRemove}
-		>
-			<span slot="icon">
+		<div class="flex group">
+			<div class="grow">
+				<DndBlock
+					bind:this={block}
+					{block}
+					{nodeData}
+					{item}
+					on:update={update}
+					on:remove={handleRemove}
+				>
+					<span slot="icon">
+						{#if nodeData.icon.includes('?')}
+							<img src={`${getUrl()}${nodeData.icon}`} alt="ico" />
+						{:else if nodeData.icon == 'file'}
+							<IconFile />
+						{:else}
+							<IconFolder />
+						{/if}
+					</span>
+					<span slot="label">{nodeData.label}</span>
+				</DndBlock>
+			</div>
+			<div class="invisible group-hover:visible">
 				{#if nodeData.icon.includes('?')}
-					<img src={`${getUrl()}${nodeData.icon}`} alt="ico" />
-				{:else if nodeData.icon == 'file'}
-					<IconFile />
-				{:else}
-					<IconFolder />
+					<Toolbar>
+						<ToolbarItem
+							on:click={(e) => {
+								e.preventDefault();
+								$propertiesSelected = !$propertiesSelected;
+							}}><IconProperties width="16" /></ToolbarItem
+						>
+						<ToolbarItem
+							on:click={(e) => {
+								e.preventDefault();
+							}}><IconHelp width="16" /></ToolbarItem
+						>
+						<ToolbarItem
+							on:click={(e) => {
+								e.preventDefault();
+								modalStore.trigger({
+									type: 'confirm',
+									title: 'Please Confirm',
+									body: 'Are you sure you wish to delete this object ?',
+									response: (b) => {
+										if (b) {
+											dispatch('treeDelete', { id: nodeData.id });
+										}
+									}
+								});
+							}}><IconDelete width="16" /></ToolbarItem
+						>
+					</Toolbar>
 				{/if}
-			</span>
-			<span slot="label">{nodeData.label}</span>
-		</DndBlock>
+			</div>
+		</div>
 	</TreeViewItem>
 {:else if Array.isArray(nodeData.children)}
 	<TreeView

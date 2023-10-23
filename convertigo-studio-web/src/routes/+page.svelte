@@ -14,6 +14,7 @@
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { loading, authenticated } from '$lib/utils/loadingStore';
+	import { Toast, Modal, initializeStores } from '@skeletonlabs/skeleton';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -38,6 +39,8 @@
 	import themes from '$lib/resources/themes.json';
 	import Viewer from '$lib/viewer/Viewer.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
+
+	initializeStores();
 
 	let theme = localStorageStore('studio.theme', 'skeleton');
 	let editorTab = 0;
@@ -89,6 +92,9 @@
 		};
 	}
 </script>
+
+<Toast />
+<Modal />
 
 <AppShell>
 	<svelte:fragment slot="header"

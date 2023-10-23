@@ -1,7 +1,7 @@
 <svelte:options accessors />
 
 <script>
-	import { createEventDispatcher } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import { reusables } from '$lib/palette/paletteStore';
 	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
 	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
@@ -11,14 +11,22 @@
 	export let nodeData;
 	export let item;
 	export let block;
-	
+
 	export function dispatchRemove() {
 		dispatch('remove', {});
 	}
-	
+
+	let main;
 	let canDrop = false;
 	let dragOver = false;
 	let dropAction = 'none';
+
+	onMount(() => {
+		let div = main.closest('.tree-item-content');
+		if (div) {
+			div.classList.add('w-full');
+		}
+	});
 
 	async function allowDrop(dragAction) {
 		if ($draggedData == undefined || nodeData.id === $draggedData.data.id) {
@@ -130,7 +138,8 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-	class="dndblock"
+	bind:this={main}
+	class="flex"
 	draggable="true"
 	on:dragstart={handleDragStart}
 	on:dragend={handleDragEnd}
@@ -148,18 +157,6 @@
 	>
 		<slot name="icon" />
 	</div>
-	<div class="label"><slot name="label" /></div>
-	<div><slot /></div>
+	<div class="ml-2"><slot name="label" /></div>
+	<div class="ml-2 grow"><slot name="content" /></div>
 </div>
-
-<style>
-	.dndblock {
-		display: flex;
-		flex-direction: row;
-		/*border: solid red 1px;*/
-	}
-
-	.label {
-		margin-left: 10px;
-	}
-</style>
