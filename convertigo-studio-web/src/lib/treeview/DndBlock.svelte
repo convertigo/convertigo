@@ -16,6 +16,10 @@
 		dispatch('remove', {});
 	}
 
+	export function dispatchDelete() {
+		dispatch('delete', {});
+	}
+
 	let main;
 	let canDrop = false;
 	let dragOver = false;

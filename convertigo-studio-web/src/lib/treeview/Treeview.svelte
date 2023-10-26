@@ -1,17 +1,16 @@
 <svelte:options accessors />
 
 <script>
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount, tick, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	import { localStorageStore, getModalStore } from '@skeletonlabs/skeleton';
+
+	import { call, getUrl, removeDbo, copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
+	import { treeData, selectedId, cutBlocks } from './treeStore';
 	import DndBlock from './DndBlock.svelte';
 	import DropDivider from './DropDivider.svelte';
 	import Toolbar from '../toolbar/Toolbar.svelte';
 	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
-	import { call, getUrl } from '../utils/service';
-	import { treeData, selectedId, cutBlocks } from './treeStore';
-	import { removeDbo, copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
-	import { tick } from 'svelte';
 
 	// @ts-ignore
 	import IconFolder from '~icons/mdi/folder';
@@ -107,7 +106,6 @@
 	 * @param {KeyboardEvent} e
 	 */
 	async function handleKeyDown(e) {
-		//console.log("e", e)
 		// case copy dbo
 		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC') {
 			let ids = [];
@@ -153,31 +151,27 @@
 		// case delete dbo
 		else if (e.key === 'Delete') {
 			e.preventDefault();
-			// dispatch for parent
-			dispatch('treeDelete', { id: nodeData.id });
+			let id = nodeData.id;
+			let result = await removeDbo(id != null ? id : undefined);
+			if (result.done) {
+				block.dispatchRemove();
+			}
 		}
 	}
 
 	async function treeDelete(e) {
 		let id = e.detail.id;
-		let link = links[id];
-		if (link != undefined) {
-			let result = await removeDbo(id != null ? id : undefined);
-			if (result.done) {
-				// destroy child component
-				link.$destroy();
-				// update tree item
-				update();
-			}
+		let result = await removeDbo(id != null ? id : undefined);
+		if (result.done) {
+			destroyChild(id);
 		}
 	}
 
-	function handleRemove(e) {
-		dispatch('treeRemove', { id: nodeData.id });
+	function treeRemove(e) {
+		destroyChild(e.detail.id);
 	}
 
-	function treeRemove(e) {
-		let id = e.detail.id;
+	function destroyChild(id) {
 		let link = links[id];
 		if (link != undefined) {
 			// destroy child component
@@ -229,7 +223,8 @@
 					{nodeData}
 					{item}
 					on:update={update}
-					on:remove={handleRemove}
+					on:remove={(e) => dispatch('treeRemove', { id: nodeData.id })}
+					on:delete={(e) => dispatch('treeDelete', { id: nodeData.id })}
 				>
 					<span slot="icon">
 						{#if nodeData.icon.includes('?')}
@@ -266,7 +261,7 @@
 									body: 'Are you sure you wish to delete this object ?',
 									response: (b) => {
 										if (b) {
-											dispatch('treeDelete', { id: nodeData.id });
+											block.dispatchDelete();
 										}
 									}
 								});
