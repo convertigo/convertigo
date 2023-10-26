@@ -38,6 +38,8 @@
 
 	onMount(() => {});
 
+	const unsubscribeFavorites = favorites.subscribe(() => update());
+
 	const unsubscribeCategories = categories.subscribe((value) => {
 		storeCategories = value;
 		update();
@@ -48,6 +50,7 @@
 	});
 
 	onDestroy(() => {
+		unsubscribeFavorites;
 		unsubscribeCategories;
 		unsubscribeReusables;
 	});
