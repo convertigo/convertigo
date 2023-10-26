@@ -7,6 +7,7 @@ import java.io.StringReader;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,6 +41,7 @@ public class Paste extends JSonService {
 			throw new ServiceException("missing xml parameter");
 		}
 
+		JSONArray ids = new JSONArray();
 		DatabaseObject targetDbo = DboUtils.findDbo(target);
 		if (targetDbo != null) {
 			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
@@ -55,23 +57,38 @@ public class Paste extends JSonService {
 					// case copied tree items
 					if ("copy".equals(kind)) {
 						object = DboUtils.xmlPaste(node, targetDbo);
-						if (object != null) {
+						if (object != null && object instanceof DatabaseObject) {
 							if (object instanceof Project) {
 								//TODO
-							} else {
-								
 							}
+							ids.put(((DatabaseObject)object).getQName(true));
 						}
 					}
 					// case cut tree items
 					else if ("cut".equals(kind)) {
-						
+						if (node.getNodeType() == Node.ELEMENT_NODE) {
+							Element el = (Element)node;
+							String id = el.getAttribute("id");
+							DatabaseObject dbo = DboUtils.findDbo(id);
+							if (dbo != null && !dbo.equals(targetDbo)) {
+								DatabaseObject previousParent = dbo.getParent();
+								try {
+									dbo.delete();
+									targetDbo.add(dbo);
+									ids.put(id);
+								} catch (Exception e) {
+									if (dbo.getParent() == null && previousParent != null) {
+										previousParent.add(dbo);
+									}
+								}
+							}
+						}
 					}
 				}
 			}
-			response.put("done", true);
-		} else {
-			response.put("done", false);
 		}
+		boolean done = ids.length() > 0;
+		response.put("done", done);
+		response.put("ids", ids);
 	}
 }

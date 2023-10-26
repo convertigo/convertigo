@@ -9,3 +9,4 @@ export const treeData = writable({
 });
 
 export const selectedId = writable('');
+export const cutBlocks = writable([]);

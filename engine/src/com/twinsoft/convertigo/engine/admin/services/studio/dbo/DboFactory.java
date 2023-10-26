@@ -7,7 +7,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
@@ -18,8 +21,10 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
+import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -348,7 +353,23 @@ public class DboFactory {
 	}
 	
 	static protected boolean isCuttable(DatabaseObject dbo) {
-		//TODO
+		if (dbo.getParent() == null) {
+			return false;
+		}
+		
+		if (dbo instanceof Project) {
+			return false;
+		} else if (dbo instanceof Connector) {
+			return !((Connector)dbo).isDefault;
+		} else if (dbo instanceof ThenStep || dbo instanceof ElseStep) {
+			return false;
+		} else if (dbo instanceof IApplicationComponent) {
+			return false;
+		} else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+			return false;
+		} else if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+			return !((com.twinsoft.convertigo.beans.ngx.components.PageComponent)dbo).isRoot;
+		}
 		return true;
 	}
 }

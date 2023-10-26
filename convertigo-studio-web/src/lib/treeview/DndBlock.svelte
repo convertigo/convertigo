@@ -101,7 +101,6 @@
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
 			let result = { done: false };
-			console.log('handleDrop dndblock', dropAction);
 			switch (dropAction) {
 				case 'copy':
 					result = await addDbo(target, 'inside', jsonData);
@@ -122,12 +121,12 @@
 					// update source tree item
 					if ($draggedBlock) {
 						$draggedBlock.dispatchRemove();
-						$draggedBlock = undefined;
 					}
 				}
 				// update target tree item
 				dispatch('update', {});
 			}
+			$draggedBlock = undefined;
 		}
 	}
 

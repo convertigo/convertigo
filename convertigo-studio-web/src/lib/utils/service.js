@@ -96,6 +96,14 @@ export async function removeDbo(id = '') {
 /**
  * @param {any} ids - the array of tree dbo ids
  */
+export async function cutDbo(ids = []) {
+	let result = await call('studio.dbo.Cut', { ids });
+	return result;
+}
+
+/**
+ * @param {any} ids - the array of tree dbo ids
+ */
 export async function copyDbo(ids = []) {
 	let result = await call('studio.dbo.Copy', { ids });
 	return result;

@@ -9,8 +9,8 @@
 	import Toolbar from '../toolbar/Toolbar.svelte';
 	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
 	import { call, getUrl } from '../utils/service';
-	import { treeData, selectedId } from './treeStore';
-	import { removeDbo, copyDbo, pasteDbo } from '$lib/utils/service';
+	import { treeData, selectedId, cutBlocks } from './treeStore';
+	import { removeDbo, copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
 	import { tick } from 'svelte';
 
 	// @ts-ignore
@@ -55,7 +55,6 @@
 	});
 
 	function update() {
-		console.log('update', nodeData.id);
 		nodeData.children = true;
 		checkChildren(true);
 	}
@@ -119,13 +118,37 @@
 				navigator.clipboard.writeText(xml);
 			}
 		}
+		// case cut dbo
+		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyX') {
+			let ids = [];
+			ids.push(nodeData.id);
+			let result = await cutDbo(JSON.stringify(ids));
+			if (result.done) {
+				let xml = result.xml;
+				navigator.clipboard.writeText(xml);
+
+				// store cut block
+				$cutBlocks.push(block);
+				$cutBlocks = $cutBlocks;
+			}
+		}
 		// case paste dbo
 		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV') {
 			let xml = await navigator.clipboard.readText();
 			let result = await pasteDbo('' + nodeData.id, xml);
 			if (result.done) {
+				// update target parent in tree
 				update();
+
+				// update source parent in tree
+				let ids = result.ids;
+				$cutBlocks.forEach((cutBlock) => {
+					if (ids.includes(cutBlock.nodeData.id)) {
+						cutBlock.dispatchRemove();
+					}
+				});
 			}
+			$cutBlocks = [];
 		}
 		// case delete dbo
 		else if (e.key === 'Delete') {

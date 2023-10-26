@@ -82,7 +82,6 @@
 		} catch (e) {}
 		if (target != null && jsonData != undefined) {
 			let result = { done: false };
-			console.log('handleDrop divider', dropAction);
 			switch (dropAction) {
 				case 'copy':
 					result = await addDbo(target, position, jsonData);

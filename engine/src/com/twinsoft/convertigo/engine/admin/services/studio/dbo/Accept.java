@@ -67,13 +67,16 @@ public class Accept extends JSonService {
 			FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
 			DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
 			if (parentDbo != null) {
-				accept = DboUtils.acceptDbo(parentDbo, dbo, action.equals("copy"));
-				if (accept && action.equals("move")) {
-					if (folderType != null) {
-						accept = DatabaseObject.getFolderType(dbo.getClass()) == folderType;
-					}
-					if (accept && position.equals("inside")) {
-						accept = dbo.getParent() == null || !parentDbo.equals(dbo.getParent());
+				accept = dbo.getParent() != null && action.equals("move") ? DboUtils.canCut(dbo) : true;
+				if (accept) {
+					accept = DboUtils.acceptDbo(parentDbo, dbo, action.equals("copy"));
+					if (accept && action.equals("move")) {
+						if (folderType != null) {
+							accept = DatabaseObject.getFolderType(dbo.getClass()) == folderType;
+						}
+						if (accept && position.equals("inside")) {
+							accept = dbo.getParent() == null || !parentDbo.equals(dbo.getParent());
+						}
 					}
 				}
 			}

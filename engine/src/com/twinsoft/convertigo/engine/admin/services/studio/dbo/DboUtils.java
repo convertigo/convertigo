@@ -105,6 +105,12 @@ public class DboUtils {
 		return object;
 	}
 
+	static protected void xmlCut(Document document, String id) throws Exception {
+		Element element = document.createElement("dbo");
+		element.setAttribute("id", id);
+		document.getDocumentElement().appendChild(element);
+	}
+	
 	static protected void xmlCopy(Document document, DatabaseObject dbo) throws Exception {
 		final Element rootElement = document.getDocumentElement();
 
