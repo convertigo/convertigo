@@ -241,6 +241,7 @@ dependencies {
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.7.0.202309050840-r'
 	compileFlat    'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 	compileFlat    'org.hibernate:hibernate-core:5.2.10.Final'
+	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
 	compileFlat    'org.mozilla:rhino:1.7.14'
 	compileFlat    'org.quartz-scheduler:quartz:2.3.2'
 	compileFlat    'regexp:regexp:1.3'
@@ -256,8 +257,10 @@ dependencies {
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:2.6.0'
 	compileFlat    'org.postgresql:postgresql:42.6.0'
 	// end runtime dependencies
-	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
-	compileFlat    'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	compileFlat 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	compileFlat 'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
+	compileFlat 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	//compileFlat    'org.apache.tomcat:tomcat-websocket:' + tomcatVersion
 	implementation project.property('sapjco3Version')
 	sapjco3        project.property('sapjco3Version')
 	implementation files(dependenciesJar.archiveFile)

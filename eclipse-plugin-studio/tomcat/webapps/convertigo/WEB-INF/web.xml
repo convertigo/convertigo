@@ -246,6 +246,15 @@
         <url-pattern>/openapi/*</url-pattern>
     </servlet-mapping>
 	
+    <servlet>
+		<servlet-name>GatewayServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.GatewayServlet</servlet-class>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>GatewayServlet</servlet-name>
+        <url-pattern>/gw/*</url-pattern>
+    </servlet-mapping>
+	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version
 	<servlet>

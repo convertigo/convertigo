@@ -242,7 +242,8 @@ public class Engine {
 	public RestApiManager restApiManager;
 
 	public ReferencedProjectManager referencedProjectManager;
-
+	
+	public ReverseProxyManager reverseProxyManager;
 	/**
 	 * Loggers
 	 */
@@ -705,6 +706,8 @@ public class Engine {
 				Engine.theApp.schemaManager.init();
 
 				Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
+
+				Engine.theApp.reverseProxyManager = new ReverseProxyManager();
 
 				isStarted = true;
 

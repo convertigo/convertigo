@@ -1,6 +1,13 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/kit/vite';
 
+let base = '';
+try {
+	base = process.argv.filter(s => s.startsWith('--base=')).map(s => s.substring(7)).join();
+} catch (e) {
+	console.error('dynamic base failed', e);
+}
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	extensions: ['.svelte'],
@@ -17,7 +24,10 @@ const config = {
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter({
 			pages: '../eclipse-plugin-studio/tomcat/webapps/convertigo/studio'
-		})
+		}),
+		paths: {
+			base
+		}
 	}
 };
 export default config;

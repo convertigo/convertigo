@@ -53,8 +53,6 @@ dependencies {
 	toSync "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
 	toSync "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
 	toSync 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
-	//runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
-	toSync 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	toSync project.property('sapjco3Version')
 	toSync 'com.convertigo.lib:jxbrowser-license:2023.04.04'
