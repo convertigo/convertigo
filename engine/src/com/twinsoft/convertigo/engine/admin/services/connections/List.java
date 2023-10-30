@@ -137,53 +137,61 @@ public class List extends XmlService{
         }
         
         for (Context context : contexts) {
-        	String authenticatedUser = null;
         	try {
-        		authenticatedUser = context.getAuthenticatedUser();
+	        	String authenticatedUser = null;
+	        	try {
+	        		authenticatedUser = context.getAuthenticatedUser();
+	        	} catch (Exception e) {
+					Engine.logAdmin.trace("connection.List failed to get the authenticated user: " + e);
+				}
+	        	
+	        	com.twinsoft.api.Session apiSession = Engine.theApp.sessionManager.getSession(context.contextID);
+	    		boolean bConnected = ((apiSession != null) && apiSession.isConnected());
+	            Element connectionElement = document.createElement("connection");
+	            connectionElement.setAttribute("connected", Boolean.toString(bConnected));
+				connectionElement.setAttribute("contextName", context.contextID);
+	            connectionElement.setAttribute("project", context.projectName);
+	            connectionElement.setAttribute("connector", context.connectorName);
+	            connectionElement.setAttribute("requested", (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
+	            connectionElement.setAttribute("status", (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
+	            connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
+	            connectionElement.setAttribute("contextCreationDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
+	            connectionElement.setAttribute("lastContextAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
+	            try {
+					connectionElement.setAttribute("contextInactivityTime", formatTime((now - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName).getContextTimeout()));
+				} catch (Exception e) {
+					// TODO: document = DOMUtils.handleError(e); << USELESS 
+				}
+				connectionElement.setAttribute("clientComputer", context.remoteHost + " (" + context.remoteAddr + "), " + context.userAgent);
+	            connectionsListElement.appendChild(connectionElement);
         	} catch (Exception e) {
-				Engine.logAdmin.trace("connection.List failed to get the authenticated user: " + e);
+				Engine.logAdmin.warn("[connections.List] context list failure: " + e);
 			}
-        	
-        	com.twinsoft.api.Session apiSession = Engine.theApp.sessionManager.getSession(context.contextID);
-    		boolean bConnected = ((apiSession != null) && apiSession.isConnected());
-            Element connectionElement = document.createElement("connection");
-            connectionElement.setAttribute("connected", Boolean.toString(bConnected));
-			connectionElement.setAttribute("contextName", context.contextID);
-            connectionElement.setAttribute("project", context.projectName);
-            connectionElement.setAttribute("connector", context.connectorName);
-            connectionElement.setAttribute("requested", (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
-            connectionElement.setAttribute("status", (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
-            connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
-            connectionElement.setAttribute("contextCreationDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
-            connectionElement.setAttribute("lastContextAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
-            try {
-				connectionElement.setAttribute("contextInactivityTime", formatTime((now - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName).getContextTimeout()));
-			} catch (Exception e) {
-				// TODO: document = DOMUtils.handleError(e); << USELESS 
-			}
-			connectionElement.setAttribute("clientComputer", context.remoteHost + " (" + context.remoteAddr + "), " + context.userAgent);
-            connectionsListElement.appendChild(connectionElement);            
         }
         
         if (!"false".equals(request.getParameter("sessions"))) {
 	        for (HttpSession session: HttpSessionListener.getSessions()) {
-	        	Element sessionElement = document.createElement("session");
-	        	java.util.List<Context> ctxs = Engine.theApp.contextManager.getContexts(session);
-	        	sessionElement.setAttribute("sessionID", session.getId());
-	        	sessionElement.setAttribute("authenticatedUser", SessionAttribute.authenticatedUser.string(session));
-	        	sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
-	        	sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
-	        	sessionElement.setAttribute("deviceUUID", SessionAttribute.deviceUUID.string(session));
-	        	sessionElement.setAttribute("lastSessionAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
-	        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
-	        	Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
-	        	sessionElement.setAttribute("adminRoles", Integer.toString(r == null ? 0 : r.length));
-	        	if (session == currentSession) {
-	        		sessionElement.setAttribute("isCurrentSession", "true");
-	        	}
-	        	Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(session);
-	        	sessionElement.setAttribute("isFullSyncActive", Boolean.toString(set != null && !set.isEmpty()));
-	        	sessionsListElement.appendChild(sessionElement);
+	        	try {
+		        	Element sessionElement = document.createElement("session");
+		        	java.util.List<Context> ctxs = Engine.theApp.contextManager.getContexts(session);
+		        	sessionElement.setAttribute("sessionID", session.getId());
+		        	sessionElement.setAttribute("authenticatedUser", SessionAttribute.authenticatedUser.string(session));
+		        	sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
+		        	sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
+		        	sessionElement.setAttribute("deviceUUID", SessionAttribute.deviceUUID.string(session));
+		        	sessionElement.setAttribute("lastSessionAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
+		        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
+		        	Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
+		        	sessionElement.setAttribute("adminRoles", Integer.toString(r == null ? 0 : r.length));
+		        	if (session == currentSession) {
+		        		sessionElement.setAttribute("isCurrentSession", "true");
+		        	}
+		        	Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(session);
+		        	sessionElement.setAttribute("isFullSyncActive", Boolean.toString(set != null && !set.isEmpty()));
+		        	sessionsListElement.appendChild(sessionElement);
+	        	} catch (Exception e) {
+					Engine.logAdmin.warn("[connections.List] session list failure: " + e);
+				}
 	        }
         }
 	}
