@@ -161,6 +161,11 @@ public class ProjectsDataFilter implements Filter {
 				}
 			}
 		}
+		
+		if (GatewayServlet.getDevPort(requestURI) > 0) {
+			request.getRequestDispatcher("/gw").forward(request, response);
+			return;
+		}
 
 		ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
 

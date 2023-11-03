@@ -34,10 +34,10 @@
 	import SizableCard from '$lib/shell/SizableCard.svelte';
 	import Monaco from '$lib/editor/Editor.svelte';
 	import C8oTree from '$lib/treeview/Treeview.svelte';
-	import { categories } from '$lib/palette/paletteStore';
 	import Palette from '$lib/palette/Palette.svelte';
 	import themes from '$lib/resources/themes.json';
 	import Viewer from '$lib/viewer/Viewer.svelte';
+	import NgxBuilder from '$lib/viewer/NgxBuilder.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
 
 	initializeStores();
@@ -49,6 +49,7 @@
 	let paletteSelected = localStorageStore('studio.paletteSelected', false);
 	let editorSelected = localStorageStore('studio.editorSelected', false);
 	let viewerSelected = localStorageStore('studio.viewerSelected', false);
+	let ngxbuilderSelected = localStorageStore('studio.ngxbuilderSelected', false);
 
 	onMount(() => {
 		changeTheme($theme);
@@ -139,6 +140,10 @@
 					on:click={() => ($viewerSelected = !$viewerSelected)}><IconEye /></AppRailAnchor
 				>
 				<AppRailAnchor
+					selected={$ngxbuilderSelected}
+					on:click={() => ($ngxbuilderSelected = !$ngxbuilderSelected)}><IconEye /></AppRailAnchor
+				>
+				<AppRailAnchor
 					selected={$editorSelected}
 					on:click={() => ($editorSelected = !$editorSelected)}><IconEditor /></AppRailAnchor
 				>
@@ -172,6 +177,11 @@
 		{#if $viewerSelected}
 			<SizableCard name="viewer">
 				<Viewer />
+			</SizableCard>
+		{/if}
+		{#if $ngxbuilderSelected}
+			<SizableCard name="ngxbuilder">
+				<NgxBuilder />
 			</SizableCard>
 		{/if}
 		{#if $editorSelected}

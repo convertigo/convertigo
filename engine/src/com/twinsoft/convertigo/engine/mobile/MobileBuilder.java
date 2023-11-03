@@ -76,7 +76,7 @@ public abstract class MobileBuilder {
 	protected MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
 	
 	static public void initBuilder(Project project) {
-		initBuilder(project, false);
+		initBuilder(project, true);
 	}
 	
 	static public void initBuilder(Project project, boolean force) {
@@ -99,7 +99,7 @@ public abstract class MobileBuilder {
 	}
 	
 	static public void releaseBuilder(Project project) {
-		releaseBuilder(project, false);
+		releaseBuilder(project, true);
 	}
 
 	static public void releaseBuilder(Project project, boolean force) {

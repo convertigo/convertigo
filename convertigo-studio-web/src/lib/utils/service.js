@@ -34,9 +34,8 @@ export async function call(service, data = {}) {
 }
 
 export function getUrl() {
-	return window.location.href.includes('/convertigo')
-		? `../admin/services/`
-		: `/convertigo/admin/services/`;
+	const m = window.location.pathname.match('^(.*?)/studio/');
+	return `${window.location.origin}${m ? m[1] : '/convertigo'}/admin/services/`;
 }
 
 /* studio.dbo service methods */

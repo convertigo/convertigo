@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.apache.http.HttpHost;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -31,6 +33,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 
 	private static final long serialVersionUID = -5125409699734422218L;
 	private static final Pattern pKey = Pattern.compile("^/(.*?)(?:/|$)");
+	private static final Pattern pDevPort = Pattern.compile(".*/DisplayObjects/dev(\\d+)/");
 	private static final String SUBPROTOCOLS = "subprotocols";
 	private static final String WSTARGET = "wstarget";
 
@@ -48,18 +51,34 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	protected void initTarget() throws ServletException {
 	}
 
+	// npm run ionic:serve --disableHostCheck=true -- --port=5173 --allowed-hosts all
+	// http://localhost:28080/convertigo/projects/sampleMobileRetailStore/DisplayObjects/dev5173/Store
+	// cssrule = [...document.styleSheets].map(x => [...x.cssRules].find(y => y.selectorText?.startsWith(".class1513949910723"))).filter(x => x)
+	
 	@Override
 	protected void service(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws ServletException, IOException {
-		var mKey = pKey.matcher(servletRequest.getPathInfo());
-		if (!mKey.find()) {
-			return;
+		var uri = (String) servletRequest.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+		var targetUri = uri;
+		HttpHost targetHost = null;
+		
+		if (uri == null && servletRequest.getPathInfo() != null) {
+			// enter by the /gw servlet
+			var mKey = pKey.matcher(servletRequest.getPathInfo());
+			if (!mKey.find()) {
+				return;
+			}
+			targetHost = Engine.theApp.reverseProxyManager.getHttpHost(mKey.group(1));
+			if (targetHost == null) {
+				return;
+			}
+			uri = servletRequest.getRequestURI();
+			targetUri = servletRequest.getContextPath() + servletRequest.getServletPath();
+		} else {
+			// enter by the ProjectsDataFilter /DisplayObjects/dev
+			targetHost = new HttpHost("localhost", getDevPort(targetUri), "http");
 		}
-		var targetHost = Engine.theApp.reverseProxyManager.getHttpHost(mKey.group(1));
-		if (targetHost == null) {
-			return;
-		}
-		String uri = servletRequest.getRequestURI();
+		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
 			try {
 				var wsContainer = (WsServerContainer) getServletContext()
@@ -73,17 +92,26 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 					map.put(SUBPROTOCOLS, subprotocols);
 				}
 				wsContainer.upgradeHttpToWebSocket(servletRequest, servletResponse, config.build(), map);
-				System.out.println("[GatewayServlet] Upgraded uri " + uri);
+				Engine.logEngine.debug("[GatewayServlet] Upgraded uri " + uri);
 			} catch (Exception e) {
-				System.err.println(e);
+				Engine.logEngine.error("[GatewayServlet] Failed to upgrade uri " + uri, e);
 			}
 		} else {
-			servletRequest.setAttribute(ATTR_TARGET_URI,
-					servletRequest.getContextPath() + servletRequest.getServletPath());
+			servletRequest.setAttribute(ATTR_TARGET_URI, targetUri);
 			servletRequest.setAttribute(ATTR_TARGET_HOST, targetHost);
 			super.service(servletRequest, servletResponse);
-//			System.out.println(uri + " : " + servletResponse.getStatus());
 		}
+	}
+	
+	public static int getDevPort(String uri) {
+		try {
+			var m = pDevPort.matcher(uri);
+			if (m.find()) {
+				return Integer.parseInt(m.group(1));
+			}
+		} catch (Exception e) {
+		}
+		return -1;
 	}
 
 	static public class WsProxy {
@@ -93,11 +121,11 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 		@OnOpen
 		public void onOpen(Session session) {
 			server = session;
-			System.out.println(
+			Engine.logEngine.trace(
 					"[GatewayServlet] Server session open " + session.getId() + " on " + session.getRequestURI());
 			var conf = ClientEndpointConfig.Builder.create();
 			var map = session.getRequestParameterMap();
-			if (map.containsKey("subprotocols")) {
+			if (map.containsKey(SUBPROTOCOLS)) {
 				conf.preferredSubprotocols(Arrays.asList(map.get(SUBPROTOCOLS).get(0).split(", *")));
 			}
 			try {
@@ -105,17 +133,16 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 
 					@Override
 					public void onOpen(Session session, EndpointConfig config) {
-						System.out.println("[GatewayServlet] Client session open " + session.getId());
+						Engine.logEngine.trace("[GatewayServlet] Client session open " + session.getId());
 						session.addMessageHandler(new MessageHandler.Whole<String>() {
 
 							@Override
 							public void onMessage(String message) {
-								System.out.println("[GatewayServlet] Client onMessage: " + message);
+								Engine.logEngine.trace("[GatewayServlet] Client onMessage: " + message);
 								try {
 									WsProxy.this.server.getBasicRemote().sendText(message);
 								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+									Engine.logEngine.trace("[GatewayServlet] Failed to sendText on server: " + e);
 								}
 							}
 
@@ -124,55 +151,51 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 
 					@Override
 					public void onClose(Session session, CloseReason closeReason) {
-						System.out.println("[GatewayServlet] Client session close " + session.getId() + " "
+						Engine.logEngine.trace("[GatewayServlet] Client session close " + session.getId() + " "
 								+ closeReason.getReasonPhrase());
 						try {
 							server.close(closeReason);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							Engine.logEngine.trace("[GatewayServlet] Failed to close the server: " + e);
 						}
 						super.onClose(session, closeReason);
 					}
 
 					@Override
 					public void onError(Session session, Throwable throwable) {
-						System.out
-								.println("[GatewayServlet] Client session error " + session.getId() + " " + throwable);
+						Engine.logEngine.debug("[GatewayServlet] Client session error " + session.getId() + " " + throwable);
 						super.onError(session, throwable);
 					}
 
 				}, conf.build(), URI.create(map.get(WSTARGET).get(0)));
 			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
+				Engine.logEngine.debug("[GatewayServlet] Failed to connectToServer: " + e);
 			}
 		}
 
 		@OnMessage
 		public void onMessage(String message, Session session) {
-			System.out.println("[GatewayServlet] Server onMessage: " + message);
+			Engine.logEngine.trace("[GatewayServlet] Server onMessage: " + message);
 			try {
 				client.getBasicRemote().sendText(message);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Engine.logEngine.trace("[GatewayServlet] Failed to sendText on client: " + e);
 			}
 		}
 
 		@OnClose
 		public void onClose(Session session) {
-			System.out.println("[GatewayServlet] Server close " + session.getId());
+			Engine.logEngine.trace("[GatewayServlet] Server close " + session.getId());
 			try {
 				client.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				Engine.logEngine.trace("[GatewayServlet] Failed to close the client: " + e);
 			}
 		}
 
 		@OnError
 		public void onError(Throwable throwable, Session session) {
-			System.out.println("[GatewayServlet] Server error " + session.getId());
-			throwable.printStackTrace();
+			Engine.logEngine.debug("[GatewayServlet] Server error " + session.getId() + ": " + throwable);
 		}
 	}
 }

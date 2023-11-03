@@ -11,11 +11,11 @@ public class ReverseProxyManager {
 	private Map<String, HttpHost> reverseProxyHttp = new HashMap<>();
 	
 	public ReverseProxyManager() {
-		try {
-			addReverseProxyHttp("hello", "http://localhost:5173");
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			addReverseProxyHttp("hello", "http://localhost:5173");
+//		} catch (URISyntaxException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	public void addReverseProxyHttp(String prefix, String target) throws URISyntaxException {

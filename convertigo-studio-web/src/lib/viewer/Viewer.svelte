@@ -10,4 +10,4 @@
 	)}/DisplayObjects/mobile/`;
 </script>
 
-<iframe {src} class="w-full h-full" />
+<iframe title="viewer" {src} class="w-full h-full" />
