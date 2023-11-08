@@ -1688,11 +1688,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (node == null) {
 			return;
 		}
-
-		Object shadowHost = c8oBrowser.executeFunctionAndReturnValue("_c8o_getShadowHost", node);
-		if (shadowHost != null && shadowHost instanceof Element) {
-			node = (Element) shadowHost;
+		
+		try {
+			Object shadowHost = c8oBrowser.executeFunctionAndReturnValue("_c8o_getShadowHost", node);
+			if (shadowHost != null && shadowHost instanceof Element) {
+				node = (Element) shadowHost;
+			}
+		} catch (Exception e) {
+			return;
 		}
+		
 		while (node != null) {
 			Element element = (Element) node;
 			if (element.equals(exHighlightElement)) {
