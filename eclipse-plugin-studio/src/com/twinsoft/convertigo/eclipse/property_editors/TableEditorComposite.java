@@ -29,17 +29,16 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class TableEditorComposite extends AbstractDialogComposite {
@@ -81,8 +80,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 		toolBar = new ToolBar(this, SWT.FLAT);
 		toolBar.setLayoutData(gridData);
 		ToolItem newLine = new ToolItem(toolBar, SWT.PUSH);
-		newLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.png")));
-		newLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.png")));
+		newLine.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.png"));
+		newLine.setDisabledImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.png"));
 		newLine.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -94,8 +93,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem deleteLine = new ToolItem(toolBar, SWT.PUSH);
-		deleteLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.png")));
-		deleteLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.d.png")));
+		deleteLine.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.png"));
+		deleteLine.setDisabledImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.d.png"));
 		deleteLine.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -119,8 +118,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem moveUp = new ToolItem(toolBar, SWT.PUSH);
-		moveUp.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.png")));
-		moveUp.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.d.png")));
+		moveUp.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.png"));
+		moveUp.setDisabledImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.d.png"));
 		moveUp.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -141,8 +140,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem moveDown = new ToolItem(toolBar, SWT.PUSH);
-		moveDown.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.png")));
-		moveDown.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.d.png")));
+		moveDown.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.png"));
+		moveDown.setDisabledImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.d.png"));
 		moveDown.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {

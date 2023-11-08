@@ -748,8 +748,8 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	public void setInternalRequester(InternalRequester internalRequester) {
 		if (this.internalRequester == null) {
 			this.internalRequester = internalRequester;
-			Map<String, String[]> request = GenericUtils.cast(internalRequester.inputData);
-			String projectName = request.get(Parameter.Project.getName())[0];
+			Map<String, Object[]> request = GenericUtils.cast(internalRequester.inputData);
+			String projectName = InternalRequester.getString(request, Parameter.Project.getName());
 			String uri = "/projects/" + projectName + "/.pxml";
 			requestURI += uri;
 			requestURL.append(uri);

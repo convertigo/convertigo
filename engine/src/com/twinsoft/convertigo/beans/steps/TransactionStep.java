@@ -157,7 +157,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		if (Engine.isEngineMode()) {
 			if (parent instanceof ParallelStep) {
 				if (sequence.useSameJSessionForSteps()) {
-					String contextName = InternalRequester.getParameterValue(request.get(Parameter.Context.getName()));
+					String contextName = InternalRequester.getString(request, Parameter.Context.getName());
 					if (contextName.startsWith("Container-")) { // Only remove context automatically named
 						String contextID = sequence.getSessionId() + "_" + contextName;
 						Engine.logBeans.debug("Executing deletion of transaction's context of TransactionStep \"" + getName() + "\"");

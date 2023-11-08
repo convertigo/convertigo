@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -81,6 +82,10 @@ public class ViewImageProvider {
 		}
 		return imageName;
 	}
+
+	public static Image getImageFromCache(String iconName) {
+		return getImageFromCache(iconName, null);
+	}
 	
 	/**
 	 * Retrieve an image from cache for given object.
@@ -91,8 +96,8 @@ public class ViewImageProvider {
 	 * @return
 	 */
 	public static Image getImageFromCache(String iconName, Object object) {
-		String imageName = getImageName(object);
-		
+		String imageName = object == null ? iconName : getImageName(object);
+
 		Image image = imagesCache.get(imageName);
 		if (image == null) {
 			String defIconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
@@ -102,18 +107,27 @@ public class ViewImageProvider {
 					iconName = defIconName;
 				}
 			}
-			
+			InputStream inputStream = null;
 			Device device = Display.getCurrent();
-			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-			if (inputStream == null) {
-				inputStream = ConvertigoPlugin.class.getResourceAsStream(defIconName);
+			try {
+				inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
+				if (inputStream == null) {
+					inputStream = ConvertigoPlugin.class.getResourceAsStream(defIconName);
+				}
+				image = new Image(device, inputStream);
+
+				ImageData imageData = getImageData(image, object);
+				image = new Image(device, imageData);
+
+				imagesCache.put(imageName, image);
+			} catch (Throwable e) {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (IOException e1) {
+					}
+				}
 			}
-			image = new Image(device, inputStream);
-			
-			ImageData imageData = getImageData(image, object);
-			image = new Image(device, imageData);
-			
-			imagesCache.put(imageName, image);
 		}
 		return image;
 	}

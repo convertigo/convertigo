@@ -908,8 +908,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			if (context.httpSession == null) {
 				try {
 					InternalRequester requester = (InternalRequester) context.requestedObject.requester;
-					Map<String, String[]> request = GenericUtils.cast(requester.inputData);
-					sessionId = request.get(Parameter.SessionId.getName())[0];
+					Map<String, Object[]> request = GenericUtils.cast(requester.inputData);
+					sessionId = InternalRequester.getString(request, Parameter.SessionId.getName());
 					Engine.logBeans.debug("Sequence session ID (internal requester case): " + sessionId);
 				} catch (Exception e) {
 					// Exception case
