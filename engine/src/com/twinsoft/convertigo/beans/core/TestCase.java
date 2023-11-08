@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 @DboCategoryInfo(
@@ -330,15 +331,15 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 	public static TestCase getTestCase(Map<String, Object> request, String projectName) throws EngineException {
 		TestCase tc = null;
 		if (request.containsKey("__testcase")) {
-			projectName = ((String[]) request.getOrDefault("__project", new String[] {projectName}))[0];
+			projectName = InternalRequester.getString(request, "__project", projectName);
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, true);
 			if (request.containsKey("__sequence")) {
-				tc = project.getSequenceByName(((String[]) request.get("__sequence"))[0]).getTestCaseByName(((String[]) request.get("__testcase"))[0]);
+				tc = project.getSequenceByName(InternalRequester.getString(request, "__sequence")).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
 			} else {
-				Connector connector = request.containsKey("__connector") ? project.getConnectorByName(((String[]) request.get("__connector"))[0]) : project.getDefaultConnector();
-				Transaction transaction = request.containsKey("__transaction") ? connector.getTransactionByName(((String[]) request.get("__transaction"))[0]) : connector.getDefaultTransaction();
+				Connector connector = request.containsKey("__connector") ? project.getConnectorByName(InternalRequester.getString(request, "__connector")) : project.getDefaultConnector();
+				Transaction transaction = request.containsKey("__transaction") ? connector.getTransactionByName(InternalRequester.getString(request, "__transaction")) : connector.getDefaultTransaction();
 				if (transaction instanceof TransactionWithVariables) {
-					tc = ((TransactionWithVariables) transaction).getTestCaseByName(((String[]) request.get("__testcase"))[0]);
+					tc = ((TransactionWithVariables) transaction).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
 				}
 			}
 		}

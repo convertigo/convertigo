@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,11 +32,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -50,48 +50,50 @@ import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class InternalRequester extends GenericRequester {
-	
+
 	private HttpServletRequest httpServletRequest;
-	
+
 	boolean bStrictMode = false;
 
-    protected String subPath = null;
-	
-    public InternalRequester(Map<String, Object> request) throws EngineException {
-    	this(request, null);
-    }
-    
-    public InternalRequester(Map<String, Object> request, HttpServletRequest httpServletRequest) throws EngineException {
-    	String projectName = ((String[]) request.get(Parameter.Project.getName()))[0];
-    	DatabaseObjectsManager dbom = "true".equals(RequestAttribute.system.string(httpServletRequest)) ?
-    		Engine.theApp.getSystemDatabaseObjectsManager() : Engine.theApp.databaseObjectsManager;
-    	bStrictMode = dbom.getOriginalProjectByName(projectName).isStrictMode();
-    	inputData = request;
-    	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
-    	
-    	if (this.httpServletRequest instanceof InternalHttpServletRequest) {
-    		((InternalHttpServletRequest) this.httpServletRequest).setInternalRequester(this);
-    	}
-    }
-    
-    public Object processRequest() throws Exception {
-    	try {
-    		return processRequest(inputData);
-    	} finally {
-    		Map<String, Object> request = GenericUtils.cast(inputData);
-            processRequestEnd(request);
+	protected String subPath = null;
+
+	public InternalRequester(Map<String, Object> request) throws EngineException {
+		this(request, null);
+	}
+
+	public InternalRequester(Map<String, Object> request, HttpServletRequest httpServletRequest)
+			throws EngineException {
+		String projectName = getString(request, Parameter.Project.getName());
+		DatabaseObjectsManager dbom = "true".equals(RequestAttribute.system.string(httpServletRequest))
+				? Engine.theApp.getSystemDatabaseObjectsManager()
+				: Engine.theApp.databaseObjectsManager;
+		bStrictMode = dbom.getOriginalProjectByName(projectName).isStrictMode();
+		inputData = request;
+		this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
+
+		if (this.httpServletRequest instanceof InternalHttpServletRequest) {
+			((InternalHttpServletRequest) this.httpServletRequest).setInternalRequester(this);
+		}
+	}
+
+	public Object processRequest() throws Exception {
+		try {
+			return processRequest(inputData);
+		} finally {
+			Map<String, Object> request = GenericUtils.cast(inputData);
+			processRequestEnd(request);
 			onFinally(request);
-    	}
-    }
-    
-    void processRequestEnd(Map<String, Object> request) {
+		}
+	}
+
+	void processRequestEnd(Map<String, Object> request) {
 		request.put("convertigo.cookies", context.getCookieStrings());
-		
+
 		String trSessionId = context.getSequenceTransactionSessionId();
 		if (trSessionId != null) {
 			request.put("sequence.transaction.sessionid", trSessionId);
 		}
-		
+
 		boolean isNew = true;
 		HttpSession session = httpServletRequest.getSession();
 		if (session != null) {
@@ -101,7 +103,7 @@ public class InternalRequester extends GenericRequester {
 				SessionAttribute.isNew.set(session, true);
 			}
 		}
-		
+
 		if (context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
 			request.put("convertigo.requireEndOfContext", Boolean.TRUE);
 		}
@@ -114,7 +116,7 @@ public class InternalRequester extends GenericRequester {
 			// (#320)
 			request.put("convertigo.contentType", context.contentType);
 		}
-		
+
 		request.put("convertigo.cacheControl", context.cacheControl);
 		request.put("convertigo.context", context);
 		request.put("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
@@ -122,21 +124,22 @@ public class InternalRequester extends GenericRequester {
 		if (request.get("convertigo.charset") == null) {
 			request.put("convertigo.charset", "UTF-8");
 		}
-    	
-    }
-    
+
+	}
+
 	void onFinally(Map<String, Object> request) {
 		// Removes context when finished
 		// Note: case of context.requireEndOfContext has been set in scope
-		if (getParameterValue(request.get("convertigo.requireEndOfContext")) != null) {
+		if (getString(request.get("convertigo.requireEndOfContext")) != null) {
 			removeContext();
 		}
 
 		// Removes context when finished
-		String removeContextParam = getParameterValue(request.get(Parameter.RemoveContext.getName()));
+		String removeContextParam = getString(request, Parameter.RemoveContext.getName());
 		if (removeContextParam == null) {
 			// case of a mother sequence (context is removed by default)
-			Boolean removeContextAttr = Boolean.valueOf(getParameterValue(request.get("convertigo.context.removalRequired")));
+			Boolean removeContextAttr = Boolean
+					.valueOf(getString(request.get("convertigo.context.removalRequired")));
 			if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
 				removeContext();
 			}
@@ -152,67 +155,69 @@ public class InternalRequester extends GenericRequester {
 	protected void removeContext() {
 		if (Engine.isEngineMode()) {
 			if (context != null) {
-				Engine.logContext.debug("(InternalRequester) End of context " + context.contextID + " required => removing context");
+				Engine.logContext.debug(
+						"(InternalRequester) End of context " + context.contextID + " required => removing context");
 				Engine.theApp.contextManager.remove(context);
 			}
 		}
 	}
-	
-    public String getName() {
-        return "InternalRequester";
-    }
-    
-    public boolean isInternal() {
-    	return true;
-    }
-    
-    protected void initInternalVariables() throws EngineException {
+
+	public String getName() {
+		return "InternalRequester";
+	}
+
+	public boolean isInternal() {
+		return true;
+	}
+
+	protected void initInternalVariables() throws EngineException {
 		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// Find the project name
-		projectName = getParameterValue(request.get(Parameter.Project.getName()));
+		projectName = getString(request, Parameter.Project.getName());
 		if (projectName != null) {
 			Engine.logContext.debug("(InternalRequester) project name: " + projectName);
 		}
 
 		// Find the pool name
-		poolName = getParameterValue(request.get(Parameter.Pool.getName()));
+		poolName = getString(request, Parameter.Pool.getName());
 		if (poolName != null) {
 			Engine.logContext.debug("(InternalRequester) pool name: " + poolName);
 		}
 
 		// Find the sequence name
-		sequenceName = getParameterValue(request.get(Parameter.Sequence.getName()));
+		sequenceName = getString(request, Parameter.Sequence.getName());
 		if (sequenceName != null) {
 			Engine.logContext.debug("(InternalRequester) sequence name: " + sequenceName);
 		}
 
 		// Find the connector name
-		connectorName = getParameterValue(request.get(Parameter.Connector.getName()));
+		connectorName = getString(request, Parameter.Connector.getName());
 		if (connectorName != null) {
 			Engine.logContext.debug("(InternalRequester) connector name: " + connectorName);
 		}
 	}
-	
+
 	public Context getContext() throws Exception {
 		if ("true".equals(RequestAttribute.system.string(httpServletRequest))) {
 			initInternalVariables();
 			return new Context("system");
 		}
-		
+
 		Map<String, String[]> request = GenericUtils.cast(inputData);
-		
+
 		String contextName = getContextName();
 
 		initInternalVariables();
-		
-		String sessionID = getParameterValue(request.get(Parameter.SessionId.getName()));
+
+		String sessionID = getString(request, Parameter.SessionId.getName());
 		if (sessionID == null) {
 			sessionID = httpServletRequest.getSession().getId();
 		}
 		Engine.logContext.debug("(ServletRequester) Requested execution sessionID: " + sessionID);
-		
-		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
+
+		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName,
+				sequenceName);
 
 		if (context.remoteAddr == null) {
 			context.remoteAddr = httpServletRequest.getRemoteAddr();
@@ -221,30 +226,30 @@ public class InternalRequester extends GenericRequester {
 	}
 
 	public String getContextName() throws Exception {
-		Map<String, String[]> request = GenericUtils.cast(inputData);
+		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// Find the context name
-		String contextName = getParameterValue(request.get(Parameter.Context.getName()));
-		
-		if (StringUtils.isBlank(contextName)) { 
+		String contextName = getString(request, Parameter.Context.getName());
+
+		if (StringUtils.isBlank(contextName)) {
 			contextName = "default";
 		} else if (contextName.equals("*")) {
 			contextName = "default*";
 		}
-		
+
 		Engine.logContext.debug("(InternalRequester) Context name: " + contextName);
 		return contextName;
 	}
-	
+
 	@Override
-    public void initContext(Context context) throws Exception {
-    	if (httpServletRequest != null) {
-    		context.setRequest(httpServletRequest);
-    	}
-    	
-    	super.initContext(context);
-    	
-    	Map<String, Object> request = GenericUtils.cast(inputData);
+	public void initContext(Context context) throws Exception {
+		if (httpServletRequest != null) {
+			context.setRequest(httpServletRequest);
+		}
+
+		super.initContext(context);
+
+		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// We transform the HTTP post data into XML data.
 		Set<String> parameterNames = request.keySet();
@@ -255,30 +260,29 @@ public class InternalRequester extends GenericRequester {
 
 			// Handle only convertigo parameters
 			if (parameterName.startsWith("__")) {
-				Object parameterObjectValue = request.get(parameterName);
-				parameterValue = getParameterValue(parameterObjectValue);
-				
+				parameterValue = getString(request, parameterName);
+
 				handleParameter(context, parameterName, parameterValue);
-				
+
 				if (parameterName.equals(Parameter.Connector.getName())) {
 					bConnectorGivenByUser = true;
 				}
 			}
 		}
-		
+
 		TestCase tc = TestCase.getTestCase(request, context.projectName);
 		if (tc != null) {
-			for (TestCaseVariable var: tc.getVariables()) {
+			for (TestCaseVariable var : tc.getVariables()) {
 				String parameterName = var.getName();
 				String parameterValue;
 				// Handle only convertigo parameters
 				if (!request.containsKey(parameterName) && parameterName.startsWith("__")) {
 					Object parameterObjectValue = var.getValueOrNull();
-					parameterValue = getParameterValue(parameterObjectValue);
-					
+					parameterValue = getString(parameterObjectValue);
+
 					if (parameterValue != null) {
 						handleParameter(context, parameterName, parameterValue);
-						
+
 						if (parameterName.equals(Parameter.Connector.getName())) {
 							bConnectorGivenByUser = true;
 						}
@@ -295,47 +299,12 @@ public class InternalRequester extends GenericRequester {
 				}
 			}
 		}
-		
+
 		Engine.logContext.debug("Context initialized!");
 	}
 
 	public static String getParameterValue(Object parameterObjectValue) {
-		if (parameterObjectValue == null) {
-			return null;
-		}
-		
-		if (parameterObjectValue instanceof NativeJavaObject) {
-			parameterObjectValue = ((NativeJavaObject) parameterObjectValue).unwrap();
-		}
-		
-		if (parameterObjectValue.getClass().isArray()) {
-			String[] parameterValues = (String[]) parameterObjectValue;
-			if (parameterValues.length > 0) {
-				return parameterValues[0];
-			} else {
-				return null;
-			}
-		} else if (parameterObjectValue instanceof Node) {
-			Node node = (Node) parameterObjectValue;
-			return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
-		} else if (parameterObjectValue instanceof NodeList) {
-			NodeList nl = (NodeList) parameterObjectValue;
-			if (nl.getLength() > 0) {
-				Node node = nl.item(0);
-				return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
-			} else {
-				return null;
-			}
-		} else if (parameterObjectValue instanceof XMLVector) {
-			XMLVector<Object> parameterValues = GenericUtils.cast(parameterObjectValue);
-			if (parameterValues.size() > 0) {
-				return getParameterValue(parameterValues.get(0));
-			} else {
-				return null;
-			}
-		} else {
-			return parameterObjectValue.toString();
-		}
+		return getString(parameterObjectValue);
 	}
 
 	public Translator getTranslator() {
@@ -363,32 +332,74 @@ public class InternalRequester extends GenericRequester {
 	public void setStyleSheet(Document document) {
 		// Do nothing
 	}
-	
-	protected Object addStatisticsAsData(Object result) { 
-		return EngineStatistics.addStatisticsAsXML(context, result); 
-	} 
-	
-	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{ 
-		if (result != null) { 
-                if (stats == null) stats = context.statistics.printStatistics(); 
-                if (result instanceof Document) { 
-                        Document document = (Document) result; 
-                        Comment comment = document.createComment("\n" + stats); 
-                        document.appendChild(comment); 
-                } 
-                else if (result instanceof byte[]) { 
-                        String encodingCharSet = "UTF-8"; 
-                        if (context.requestedObject != null) 
-                                encodingCharSet = context.requestedObject.getEncodingCharSet(); 
-                        String sResult = new String((byte[]) result, encodingCharSet); 
-                        sResult += "<!--\n" + stats + "\n-->"; 
-                        result = sResult.getBytes(encodingCharSet); 
-                } 
-        } 
-        return result;
+
+	protected Object addStatisticsAsData(Object result) {
+		return EngineStatistics.addStatisticsAsXML(context, result);
+	}
+
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException {
+		if (result != null) {
+			if (stats == null)
+				stats = context.statistics.printStatistics();
+			if (result instanceof Document) {
+				Document document = (Document) result;
+				Comment comment = document.createComment("\n" + stats);
+				document.appendChild(comment);
+			} else if (result instanceof byte[]) {
+				String encodingCharSet = "UTF-8";
+				if (context.requestedObject != null)
+					encodingCharSet = context.requestedObject.getEncodingCharSet();
+				String sResult = new String((byte[]) result, encodingCharSet);
+				sResult += "<!--\n" + stats + "\n-->";
+				result = sResult.getBytes(encodingCharSet);
+			}
+		}
+		return result;
 	}
 
 	public HttpServletRequest getHttpServletRequest() {
 		return httpServletRequest;
-	} 
+	}
+
+	public static String getString(Object o) {
+		return getString(o, null);
+	}
+
+	public static String getString(Object o, String def) {
+		String s = def;
+		if (o == null) {
+		} else if (o instanceof String) {
+			s = (String) o;
+		} else if (o.getClass().isArray()) {
+			if (Array.getLength(o) > 0) {
+				s = getString(Array.get(o, 0), def);
+			}
+		} else if (o instanceof NativeJavaObject) {
+			s = getString(((NativeJavaObject) o).unwrap(), def);
+		} else if (o instanceof Node) {
+			s = ((Node) o).getTextContent();
+		} else if (o instanceof NodeList) {
+			NodeList v = (NodeList) o;
+			if (v.getLength() > 0) {
+				s = getString(v.item(0));
+			}
+		} else if (o instanceof Collection) {
+			Collection<?> v = (Collection<?>) o;
+			if (!v.isEmpty()) {
+				s = getString(v.iterator().next());
+			}
+		} else if (def == null) {
+			s = o.toString();
+		}
+		return s;
+	}
+
+	public static String getString(Map<String, Object> request, String key) {
+		return getString(request, key, null);
+	}
+
+	public static String getString(Map<String, Object> request, String key, String def) {
+		Object o = request.get(key);
+		return getString(o, def);
+	}
 }
