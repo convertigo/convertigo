@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
+
 public enum DeviceOS {
 	android("Android"),
 	ios("iOS", "iPhone"),
@@ -56,7 +58,7 @@ public enum DeviceOS {
 	public static void init(Display display) {
 		for (DeviceOS device: values()) {
 			if (device.image == null) {
-				device.image = new Image(display, device.getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/mobileplatforms/images/" + device.name() + "_color_16x16.png"));
+				device.image = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/beans/mobileplatforms/images/" + device.name() + "_color_16x16.png");
 			}
 		}
 	}

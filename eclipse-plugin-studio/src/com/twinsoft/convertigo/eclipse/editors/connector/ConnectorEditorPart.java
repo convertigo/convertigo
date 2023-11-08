@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateScreenClassFromSelectionZoneAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateTagNameFromSelectionZoneAction;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -164,8 +165,8 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.png"));
 	private Image imageDisableNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png"));
-	private Image imageDisabledFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png"));
-	private Image imageFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png"));
+	private Image imageDisabledFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png");
+	private Image imageFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png");
 	
 	private String shortResultXML;
 	private String shortResultJSON;

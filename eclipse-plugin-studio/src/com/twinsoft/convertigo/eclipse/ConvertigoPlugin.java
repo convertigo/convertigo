@@ -71,6 +71,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -554,6 +555,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		} else if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.engine.Version.productVersion)) {
 			throw new Exception("The product version numbers of Eclipse Plugin and Engine libraries are differents.");
 		}
+		
+		Resource.setNonDisposeHandler(null);
 
 		Engine.setStudioMode();
 

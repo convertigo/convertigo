@@ -34,7 +34,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
@@ -43,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -57,21 +57,21 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SequenceEditorPart extends Composite implements EngineListener{
 
-	private Image imageDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/debug.png"));
-	private Image imageDisableDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/debug.d.png"));
-	private Image imageRun = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/run.png"));
-	private Image imageDisableRun = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/run.d.png"));
-	private Image imagePause = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/pause.png"));
-	private Image imageDisablePause = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/pause.d.png"));
-	private Image imageStep = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png"));
-	private Image imageDisableStep = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png"));
-	private Image imageGenerate = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.png"));
-	private Image imageRenderXml = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/xml.png"));
-	private Image imageRenderJson = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/json.png"));
-	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
-	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
-	private Image imageDisabledFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png"));
-	private Image imageFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png"));
+	private Image imageDebug = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/debug.png");
+	private Image imageDisableDebug = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/debug.d.png");
+	private Image imageRun = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/run.png");
+	private Image imageDisableRun = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/run.d.png");
+	private Image imagePause = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/pause.png");
+	private Image imageDisablePause = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/pause.d.png");
+	private Image imageStep = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png");
+	private Image imageDisableStep = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png");
+	private Image imageGenerate = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.png");
+	private Image imageRenderXml = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/xml.png");
+	private Image imageRenderJson = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/json.png");
+	private Image imageStop = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png");
+	private Image imageDisableStop = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/stop.png");
+	private Image imageDisabledFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png");
+	private Image imageFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png");
 
 	protected SequenceEditor editor = null;
 	private Sequence sequence;

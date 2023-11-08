@@ -26,12 +26,10 @@ import org.eclipse.swt.browser.ProgressAdapter;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -47,6 +45,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.URLUtils;
@@ -123,7 +122,7 @@ public class StartupEditor extends EditorPart {
 		});
 		
 		ToolItem ti = new ToolItem(tb, SWT.NONE);
-		ti.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/statement.png")));
+		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
 		ti.setText("View with your external browser");
 		ti.addSelectionListener(new SelectionAdapter() {
 
@@ -137,7 +136,7 @@ public class StartupEditor extends EditorPart {
 		ToolItem[] tic = {null};
 		if (si.autoClose) {
 			tic[0] = new ToolItem(tb, SWT.CHECK);
-			tic[0].setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png")));
+			tic[0].setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
 			tic[0].setText("Auto close");
 			tic[0].addSelectionListener(new SelectionAdapter() {
 
