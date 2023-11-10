@@ -4,24 +4,16 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let prop;
+	export let name;
+	export let value;
+	export let values = [];
+	export let editable = false;
 
 	let input, select;
-	let name = prop.name;
-	let value = prop.value;
 	let groupValue = value;
 
-	let values = prop.values
-		? prop.values.filter((val) => {
-				return typeof val != 'boolean';
-		  })
-		: [];
-
-	let isEditable = prop.values
-		.filter((val) => {
-			return typeof val == 'boolean';
-		})
-		.includes(true);
+	if ($$restProps) {
+	}
 
 	function combo(id) {
 		return {
@@ -38,7 +30,7 @@
 	}
 
 	function onChange() {
-		let node = isEditable ? input : select;
+		let node = editable ? input : select;
 		let val = node.value;
 		groupValue = val;
 
@@ -50,10 +42,12 @@
 </script>
 
 <div class="flex">
-	{#if isEditable}
+	{#if editable}
 		<input
 			bind:this={input}
 			type="text"
+			autocomplete="off"
+			aria-autocomplete="none"
 			class="rounded select form-select w-full"
 			id={name + '-input'}
 			{value}

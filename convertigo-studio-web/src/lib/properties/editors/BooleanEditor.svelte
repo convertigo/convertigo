@@ -3,11 +3,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let prop;
+	export let name;
+	export let value;
 
 	let select;
-	let name = prop.name;
-	let value = prop.value;
+
+	if ($$restProps) {
+	}
 
 	function onChange() {
 		dispatch('valueChanged', {
