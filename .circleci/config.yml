@@ -776,3 +776,5 @@ workflows:
             ignore: /.*/
           tags:
             only: /^\d+\..*$/
+triggers:
+  pull_requests: off
