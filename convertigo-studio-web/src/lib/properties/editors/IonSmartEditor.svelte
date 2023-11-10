@@ -1,0 +1,158 @@
+<script>
+	import { onMount, onDestroy } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
+	import StringEditor from './StringEditor.svelte';
+	import BooleanEditor from './BooleanEditor.svelte';
+	import ListEditor from './ListEditor.svelte';
+
+	export let prop;
+
+	const dispatch = createEventDispatcher();
+
+	let node;
+	let clone = getClone();
+
+	let btn;
+	initMode();
+
+	let editor = {};
+	function restart() {
+		editor = {};
+	}
+
+	/**
+	 * @param {dboProp | ionProp} property
+	 */
+	function getEditor(property) {
+		//console.log("getEditor", property)
+		if (property) {
+			if (property.mode === 'script' || property.mode === 'source') {
+				return StringEditor;
+			}
+
+			let propValues = property.values
+				? prop.values.filter((value) => {
+						return typeof value != 'boolean' && value != 'false' && value != 'true';
+				  })
+				: [];
+
+			if (propValues.length > 0 && property.mode === 'plain') {
+				if (!property.values.includes('not set')) {
+					property.values.unshift('not set');
+				}
+				return ListEditor;
+			}
+
+			let propType = property.type;
+			switch (propType) {
+				case 'boolean':
+				case 'java.lang.Boolean':
+					return BooleanEditor;
+				default:
+					return StringEditor;
+			}
+		}
+	}
+
+	function getPlainValue() {
+		switch (prop.mode) {
+			case 'source':
+				return 'not set';
+			case 'script':
+				return 'not set';
+			case 'plain':
+				return prop.value === false ? 'not set' : prop.value;
+		}
+	}
+	function getScriptValue() {
+		switch (prop.mode) {
+			case 'source':
+				return {};
+			case 'script':
+				return prop.value;
+			case 'plain':
+				return '';
+		}
+	}
+	function getSourceValue() {
+		switch (prop.mode) {
+			case 'source':
+				return prop.value;
+			case 'script':
+				return '';
+			case 'plain':
+				return {};
+		}
+	}
+
+	function getClone() {
+		return { ...prop };
+	}
+
+	function initMode() {
+		setMode(getMode(prop), false);
+	}
+
+	function getMode(property) {
+		switch (property.mode) {
+			case 'source':
+				return 'SC';
+			case 'script':
+				return 'TS';
+			case 'plain':
+				return 'TX';
+		}
+	}
+
+	function setMode(button, force) {
+		btn = button;
+		switch (btn) {
+			case 'SC':
+				clone.mode = 'source';
+				clone.value = getSourceValue();
+				break;
+			case 'TS':
+				clone.mode = 'script';
+				clone.value = getScriptValue();
+				break;
+			case 'TX':
+			default:
+				clone.mode = 'plain';
+				clone.value = getPlainValue();
+				break;
+		}
+		if (force) {
+			restart();
+		}
+	}
+
+	function valueChanged(e) {
+		dispatch('valueChanged', {
+			mode: clone.mode,
+			name: e.detail.name,
+			value: e.detail.value
+		});
+	}
+</script>
+
+<div class="flex" bind:this={node}>
+	<div class="grow">
+		{#key editor}
+			<svelte:component this={getEditor(clone)} prop={clone} on:valueChanged={valueChanged} />
+		{/key}
+	</div>
+	<div>
+		{#each ['TX', 'TS', 'SC'] as c}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
+				class="chip {btn === c ? 'variant-filled' : 'variant-soft'}"
+				on:click={() => {
+					setMode(c, true);
+				}}
+				on:keypress
+			>
+				<span>{c}</span>
+			</div>
+		{/each}
+	</div>
+</div>

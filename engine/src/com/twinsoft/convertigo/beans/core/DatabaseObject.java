@@ -710,6 +710,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				propertyElement.setAttribute("isMasked",
 						isMaskedProperty(Visibility.Platform, propertyDescriptorName) ? "true" : "false");
 				propertyElement.setAttribute("isExpert", Boolean.toString(propertyDescriptor.isExpert()));
+				
+				boolean isDisabled = Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.DISABLE));
+				propertyElement.setAttribute("isDisabled", Boolean.toString(isDisabled));
+				String category = (String) propertyDescriptor.getValue(MySimpleBeanInfo.CATEGORY);
+				propertyElement.setAttribute("category", category);
 			}
 			if (exportOptions.contains(ExportOption.bIncludeShortDescription)) {
 				propertyElement.setAttribute("shortDescription", shortDescription);
