@@ -80,7 +80,12 @@ export async function acceptDbo(
 	position = 'inside',
 	data = { kind: '', data: { id: '' } }
 ) {
-	let result = await call('studio.dbo.Accept', { action, target, position, data: JSON.stringify(data) });
+	let result = await call('studio.dbo.Accept', {
+		action,
+		target,
+		position,
+		data: JSON.stringify(data)
+	});
 	return result;
 }
 
@@ -112,10 +117,7 @@ export async function copyDbo(ids = []) {
  * @param {string} target - the id of the target dbo in tree
  * @param {string} xml - the xml string
  */
-export async function pasteDbo(
-	target = '',
-	xml = '',
-) {
+export async function pasteDbo(target = '', xml = '') {
 	let result = await call('studio.dbo.Paste', { target, xml });
 	return result;
 }

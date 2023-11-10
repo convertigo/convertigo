@@ -3,7 +3,10 @@ import { vitePreprocess } from '@sveltejs/kit/vite';
 
 let base = '';
 try {
-	base = process.argv.filter(s => s.startsWith('--base=')).map(s => s.substring(7)).join();
+	base = process.argv
+		.filter((s) => s.startsWith('--base='))
+		.map((s) => s.substring(7))
+		.join();
 } catch (e) {
 	console.error('dynamic base failed', e);
 }
