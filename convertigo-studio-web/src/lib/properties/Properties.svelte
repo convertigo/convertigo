@@ -13,6 +13,7 @@
 	function getEditor(prop) {
 		if (prop) {
 			let propType = prop.kind === 'ion' ? prop.type : prop.class;
+
 			let propValues = prop.values
 				? prop.values.filter((value) => {
 						return typeof value != 'boolean' && value != 'false' && value != 'true';
@@ -58,7 +59,6 @@
 			//console.log('@Properties before', b);
 
 			let result = await setDboProp($selectedId, JSON.stringify(newProp));
-			//console.log('@Properties result', result);
 			if (result.done) {
 				let key = newProp.kind === 'dbo' ? newProp.displayName : newProp.label;
 				properties.update((m) => Object.assign({}, m, { [key]: newProp }));
@@ -85,7 +85,13 @@
 			{#each Object.entries($properties) as [name, prop] (JSON.stringify(prop))}
 				<tr>
 					<td>{name}</td>
-					<td><svelte:component this={getEditor(prop)} {prop} on:valueChanged={valueChanged} /></td>
+					<td
+						><svelte:component
+							this={getEditor(prop)}
+							{...prop}
+							on:valueChanged={valueChanged}
+						/></td
+					>
 				</tr>
 			{/each}
 		</tbody>

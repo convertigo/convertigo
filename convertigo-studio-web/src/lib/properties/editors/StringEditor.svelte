@@ -3,11 +3,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let prop;
+	export let name;
+	export let value;
 
 	let input;
-	let name = prop.name;
-	let value = prop.value;
+
+	if ($$restProps) {
+	}
 
 	function onChange() {
 		dispatch('valueChanged', {
@@ -21,6 +23,8 @@
 	bind:this={input}
 	class="input"
 	type="text"
+	autocomplete="off"
+	aria-autocomplete="none"
 	id={name + '-input'}
 	{value}
 	on:change={onChange}

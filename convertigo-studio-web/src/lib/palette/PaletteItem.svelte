@@ -28,7 +28,7 @@
 		const paletteData = { type: 'paletteData', data: item, options: {} };
 		event.dataTransfer.setData('text/plain', JSON.stringify(paletteData));
 		event.dataTransfer.setData('palettedata', JSON.stringify(paletteData));
-		event.dataTransfer.effectAllowed = "copy";
+		event.dataTransfer.effectAllowed = 'copy';
 		$draggedData = paletteData;
 	}
 

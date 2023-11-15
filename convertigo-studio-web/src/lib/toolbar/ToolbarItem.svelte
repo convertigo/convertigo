@@ -1,11 +1,10 @@
 <script>
 	export let disabled = false;
-	
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="{disabled ? 'disabledItem':''}" on:click>
+<div class={disabled ? 'disabledItem' : ''} on:click>
 	<slot />
 </div>
 

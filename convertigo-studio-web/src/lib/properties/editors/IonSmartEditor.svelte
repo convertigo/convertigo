@@ -1,15 +1,16 @@
 <script>
-	import { onMount, onDestroy } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
 	import StringEditor from './StringEditor.svelte';
 	import BooleanEditor from './BooleanEditor.svelte';
 	import ListEditor from './ListEditor.svelte';
 
-	export let prop;
-
 	const dispatch = createEventDispatcher();
 
-	let node;
+	let prop = $$props;
+
+	if ($$restProps) {
+	}
+
 	let clone = getClone();
 
 	let btn;
@@ -37,9 +38,14 @@
 				: [];
 
 			if (propValues.length > 0 && property.mode === 'plain') {
+				property.editable = isEditable();
+
+				property.values = propValues;
+
 				if (!property.values.includes('not set')) {
 					property.values.unshift('not set');
 				}
+
 				return ListEditor;
 			}
 
@@ -52,6 +58,18 @@
 					return StringEditor;
 			}
 		}
+	}
+
+	function isEditable() {
+		let editable =
+			prop.values.length > 0
+				? prop.values
+						.filter((val) => {
+							return typeof val == 'boolean';
+						})
+						.includes(true)
+				: false;
+		return editable;
 	}
 
 	function getPlainValue() {
@@ -135,10 +153,10 @@
 	}
 </script>
 
-<div class="flex" bind:this={node}>
+<div class="flex">
 	<div class="grow">
 		{#key editor}
-			<svelte:component this={getEditor(clone)} prop={clone} on:valueChanged={valueChanged} />
+			<svelte:component this={getEditor(clone)} {...clone} on:valueChanged={valueChanged} />
 		{/key}
 	</div>
 	<div>
