@@ -1019,6 +1019,33 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			actionStack.addContributors(done, contributors);
 		}
 	}
+	
+	public List<Contributor> doGetOthersContributors() {
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
+		for (UIFont uiFont : getUIFontList()) {
+			uiFont.addContributors(done, contributors);
+		}
+		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
+			suscriber.addContributors(done, contributors);
+		}
+		for (UIAppEvent appEvent : getUIAppEventList()) {
+			appEvent.addContributors(done, contributors);
+		}
+		for (UIActionStack actionStack: getSharedActionList()) {
+			actionStack.addContributors(done, contributors);
+		}
+		return contributors;
+	}
+
+	public List<Contributor> doGetuiMenuContributors() {
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
+		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
+			uiMenu.addContributors(done, contributors);
+		}
+		return contributors;
+	}
     
 	private transient JSONObject computedContents = null;
 	

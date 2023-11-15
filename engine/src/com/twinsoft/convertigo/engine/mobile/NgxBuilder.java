@@ -2093,7 +2093,14 @@ public class NgxBuilder extends MobileBuilder {
 									continue;
 								}
 								try {
-									jsonArray.put(script);
+									try {
+										JSONObject jObj = new JSONObject(script);
+										jsonArray.put(jObj);
+									}
+									catch(Exception e) {
+										jsonArray.put(script);
+									}
+									//jsonArray.put(script);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
@@ -2447,7 +2454,29 @@ public class NgxBuilder extends MobileBuilder {
 				Set<String> module_ng_components =  new HashSet<String>();
 
 				//App contributors
-				for (Contributor contributor : app.getContributors()) {
+//				for (Contributor contributor : app.getContributors()) {
+//					contributor.forContainer(app, () -> {
+//						comp_beans_dirs.putAll(contributor.getCompBeanDir());
+//						module_ts_imports.putAll(contributor.getModuleTsImports());
+//						module_ng_imports.addAll(contributor.getModuleNgImports());
+//						module_ng_providers.addAll(contributor.getModuleNgProviders());
+//						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+//						module_ng_components.addAll(contributor.getModuleNgComponents());
+//					});
+//				}
+				//App contributors
+				for (Contributor contributor : app.doGetOthersContributors()) {
+					contributor.forContainer(app, () -> {
+						comp_beans_dirs.putAll(contributor.getCompBeanDir());
+						module_ts_imports.putAll(contributor.getModuleTsImports());
+						//module_ng_imports.addAll(contributor.getModuleNgImports());
+						module_ng_providers.addAll(contributor.getModuleNgProviders());
+						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+						module_ng_components.addAll(contributor.getModuleNgComponents());
+					});
+				}
+				//App uiMenucontributors
+				for (Contributor contributor : app.doGetuiMenuContributors()) {
 					contributor.forContainer(app, () -> {
 						comp_beans_dirs.putAll(contributor.getCompBeanDir());
 						module_ts_imports.putAll(contributor.getModuleTsImports());
@@ -2489,7 +2518,7 @@ public class NgxBuilder extends MobileBuilder {
 									if (contributor.isNgModuleForApp()) {
 										comp_beans_dirs.putAll(contributor.getCompBeanDir());
 										module_ts_imports.putAll(contributor.getModuleTsImports());
-										module_ng_imports.addAll(contributor.getModuleNgImports());
+										//module_ng_imports.addAll(contributor.getModuleNgImports());
 										module_ng_providers.addAll(contributor.getModuleNgProviders());
 										module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 										module_ng_components.addAll(contributor.getModuleNgComponents());
