@@ -120,9 +120,7 @@ public class StubDynamicMenu extends ContributionItem {
 														TransactionExecuteSelectedFromStubAction action = new TransactionExecuteSelectedFromStubAction(stubfileName);
 														action.run();
 													}
-												} catch (Throwable t) {
-													t.printStackTrace();
-												}
+												} catch (Throwable t) {}
 											}
 										});
 									}
