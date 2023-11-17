@@ -108,9 +108,7 @@ public class StubDynamicMenu extends ContributionItem {
 								}
 							}
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					} catch (Exception e) {}
 				}
 			} else if (element instanceof IFile) {
 				final File file = ((IFile) element).getRawLocation().makeAbsolute().toFile();
@@ -165,9 +163,7 @@ public class StubDynamicMenu extends ContributionItem {
 										TransactionExecuteSelectedFromStubAction action = new TransactionExecuteSelectedFromStubAction(stubfileName);
 										action.run();
 									}
-								} catch (Throwable t) {
-									t.printStackTrace();
-								}
+								} catch (Throwable t) {}
 							}
 						});
 					}
@@ -213,9 +209,7 @@ public class StubDynamicMenu extends ContributionItem {
 				Node node = nnm.item(i);
 				map.put(node.getNodeName(), node.getNodeValue());
 			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		} catch (Throwable t) {}
 		return map;
 	}
 }
