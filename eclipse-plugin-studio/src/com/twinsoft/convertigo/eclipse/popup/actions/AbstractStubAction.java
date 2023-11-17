@@ -26,23 +26,25 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.StubSaveDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class AbstractStubAction extends MyAbstractAction {
+abstract class AbstractStubAction extends MyAbstractAction {
 
 	public AbstractStubAction() {
 		super();
@@ -69,20 +71,11 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 				}
 				
 				if (dbo != null) {
-					File stubDir = new File(dbo.getProject().getDirPath() + "/stubs");
-					String defaultStubFileName = ((RequestableObject)dbo).getDefaultStubFileName();
-					File defaultStubFile = new File(stubDir, defaultStubFileName);
-					
-					FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
-					fileDialog.setText("Save Stub");
-					fileDialog.setFilterExtensions(new String[]{"*.xml"});
-					fileDialog.setFilterNames(new String[]{"Convertigo stubs"});
-					fileDialog.setFilterPath(stubDir.getCanonicalPath());
-					fileDialog.setFileName(defaultStubFile.getName());
-	
-					String filePath = fileDialog.open();
-					if (filePath != null) {
-						File stubFile = new File(filePath);
+					StubSaveDialog dlg = new StubSaveDialog(shell, "Save Stub", dbo);
+					int returnCode = dlg.open();
+					if (returnCode != Window.CANCEL) {
+						File stubDir = new File(dbo.getProject().getDirPath() + "/stubs");
+						File stubFile = new File(stubDir, dlg.getStubFileName());
 						if (stubFile.exists()) {
 							if (ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?") == SWT.YES) {
 								if (!stubFile.delete()) {
@@ -98,8 +91,11 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 							Document dom = getXML(treeObject);
 							stubDir.mkdirs();
 							writeStub(dom, stubFile);
-							if (!defaultStubFile.exists() && !defaultStubFile.equals(stubFile)) {
-								writeStub(dom, defaultStubFile);
+							
+							String defaultStubFileName = ((RequestableObject)dbo).getDefaultStubFileName();
+							File defaultStubFile = new File(stubDir, defaultStubFileName);
+							if (stubFile.exists() && !defaultStubFile.exists()) {
+								FileUtils.copyFile(stubFile, defaultStubFile);
 							}
 						}
 						else {
@@ -119,7 +115,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 		}
 	}
 
-	public void writeStub(Document dom, File stubFile) throws IOException {
+	static private void writeStub(Document dom, File stubFile) throws IOException {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(stubFile);
