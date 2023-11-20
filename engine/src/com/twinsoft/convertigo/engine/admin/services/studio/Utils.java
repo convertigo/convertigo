@@ -24,8 +24,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
+import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
@@ -57,11 +59,30 @@ public class Utils {
 
 	public static void dboUpdated(DatabaseObject dbo, Set<Object> reset) {
 		try {
-			if (dbo != null && dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			if (dbo != null && dbo instanceof MobileComponent) {
+				MobileComponent mc = ((MobileComponent) dbo);
 				resetMainScriptComponents(dbo, reset);
-				((com.twinsoft.convertigo.beans.ngx.components.MobileComponent) dbo).getApplication()
-						.updateSourceFiles();
-			}
+				mc.getApplication().updateSourceFiles();
+
+				if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					UIActionStack uias = uic.getSharedAction();
+					UISharedComponent  uisc = uic.getSharedComponent();
+					String qname = uias != null ? uias.getQName() : (uisc != null ? uisc.getQName() : null);
+					if (qname != null) {
+						for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
+							Project p = (Project) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
+							if (!dbo.getProject().equals(p)) {
+								if (ComponentRefManager.isCompUsedBy(qname, projectName)) {
+									ApplicationComponent app = (ApplicationComponent)p.getMobileApplication().getApplicationComponent();
+									resetMainScriptComponents(app, reset);
+									app.updateSourceFiles();
+								}
+							}
+						}
+					}
+				}
+}
 		} catch (Exception e) {
 			Engine.logEngine.error("Unabled to update application sources", e);
 		}
