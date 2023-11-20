@@ -20,7 +20,7 @@
 				  })
 				: [];
 
-			if (prop.kind === 'ion') {
+			if (prop.kind === 'ion' || prop.editorClass === 'NgxSmartSourcePropertyDescriptor') {
 				return IonSmartEditor;
 			}
 

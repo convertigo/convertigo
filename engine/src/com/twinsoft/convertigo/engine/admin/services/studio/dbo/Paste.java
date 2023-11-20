@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(name = "Paste", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -106,5 +107,10 @@ public class Paste extends JSonService {
 		boolean done = ids.length() > 0;
 		response.put("done", done);
 		response.put("ids", ids);
+		
+		if (done) {
+			// notify for app generation
+			Utils.dboUpdated(targetDbo);			
+		}
 	}
 }

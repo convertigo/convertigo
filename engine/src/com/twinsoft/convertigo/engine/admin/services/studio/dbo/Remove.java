@@ -49,8 +49,12 @@ public class Remove extends JSonService {
 			// TODO
 			response.put("done", false);
 		} else {
-			dbo.getParent().remove(dbo);
+			DatabaseObject targetDbo = dbo.getParent();
+			targetDbo.remove(dbo);
 			response.put("done", true);
+			
+			// notify for app generation
+			Utils.dboUpdated(targetDbo);			
 		}
 	}
 }

@@ -138,6 +138,13 @@ public class Get extends JSonService {
 				}
 				property.put("values", values);
 			}
+		} else if ("xmlizable".equals(nodeName) && fc instanceof Element c && c.hasAttribute("classname")) {
+			var classname = c.getAttribute("classname");
+			if ("com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType".equals(classname)) {
+				String smv = c.getFirstChild().getTextContent();
+				property.put("mode", smv.split(":")[0]);
+				property.put("value", smv.split(":")[1]);
+			}
 		} else {
 			property.put("value", "n/a");
 		}

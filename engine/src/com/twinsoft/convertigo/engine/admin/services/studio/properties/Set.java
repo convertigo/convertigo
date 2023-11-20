@@ -123,6 +123,9 @@ public class Set extends JSonService {
 
 			done = true;
 			dbo.hasChanged = true;
+
+			// notify for app generation
+			Utils.dboUpdated(dbo);
 		}
 
 		if (done) {
