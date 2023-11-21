@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
-	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(:?mobile|pwas/.*?)/)[^.]+");
+	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(:?mobile|pwas/.*?)/).+");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -89,11 +89,13 @@ public class ServletUtils {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
 			if (m.matches()) {
 				File index = new File(m.group(1), "index.html");
-				handleFileFilter(index, request, response, filterConfig, chain);
-			} else {
-				Engine.logContext.debug("Convertigo request => follow the normal filter chain");
-				chain.doFilter(request, response);
+				if (!index.equals(file)) {
+					handleFileFilter(index, request, response, filterConfig, chain);
+					return;
+				}
 			}
+			Engine.logContext.debug("Convertigo request => follow the normal filter chain");
+			chain.doFilter(request, response);
 		}
 	}
 
