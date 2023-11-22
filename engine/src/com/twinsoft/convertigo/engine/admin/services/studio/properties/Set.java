@@ -25,6 +25,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
@@ -123,18 +124,20 @@ public class Set extends JSonService {
 
 			if (dbo instanceof UIDynamicElement) {
 				IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && ionBean.getProperty(pname) != null) {
 					oldValue = ionBean.getPropertyValue(pname);
 					ionBean.setPropertyValue(pname, msst);
 					newValue = ionBean.getPropertyValue(pname);
 				}
 			}
 
-			done = true;
-			dbo.hasChanged = true;
-
-			// notify for app generation
-			BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
+			if (oldValue != null && newValue != null) {
+				done = true;
+				dbo.hasChanged = true;
+	
+				// notify for app generation
+				BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
+			}
 		}
 
 		if (done) {
@@ -148,13 +151,15 @@ public class Set extends JSonService {
 	public static Object createObject(Class<?> propertyClass, String value) throws ServiceException {
 		Object oPropertyValue = null;
 
-		if (Number.class.isAssignableFrom(propertyClass) || Boolean.class.isAssignableFrom(propertyClass)
-				|| String.class.isAssignableFrom(propertyClass)) {
+		propertyClass = ClassUtils.primitiveToWrapper(propertyClass);
+		if (Number.class.isAssignableFrom(propertyClass) || String.class.isAssignableFrom(propertyClass)) {
 			try {
 				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);
 			} catch (Exception e) {
 				throw new ServiceException("Error when create the object:\n" + e.getMessage());
 			}
+		} else if (Boolean.class.isAssignableFrom(propertyClass)) {
+			oPropertyValue = Boolean.parseBoolean(value);
 		} else if (Enum.class.isAssignableFrom(propertyClass)) {
 			oPropertyValue = EnumUtils.valueOf(propertyClass, value);
 		} else if (Object.class.equals(propertyClass)) {
