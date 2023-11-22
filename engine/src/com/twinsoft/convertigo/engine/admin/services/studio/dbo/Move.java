@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 @ServiceDefinition(name = "Move", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Move extends JSonService {
@@ -89,6 +90,13 @@ public class Move extends JSonService {
 									parentDbo.add(dbo);
 								}
 								done = true;
+								
+								// notify for app generation
+								if (isOrdering) {
+									BuilderUtils.dboUpdated(parentDbo);
+								} else {
+									BuilderUtils.dboMoved(previousParent, parentDbo, dbo);
+								}
 							} catch (Exception e) {
 								if (dbo.getParent() == null && previousParent != null) {
 									after = previousSibling == null ? 0L : previousSibling.priority;

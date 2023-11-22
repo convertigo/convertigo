@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 @ServiceDefinition(name = "Remove", roles = { Role.WEB_ADMIN,
 		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -44,17 +44,21 @@ public class Remove extends JSonService {
 			throw new ServiceException("missing id parameter");
 		}
 
-		DatabaseObject dbo = Utils.getDbo(id);
-		if (dbo instanceof Project) {
-			// TODO
-			response.put("done", false);
-		} else {
-			DatabaseObject targetDbo = dbo.getParent();
-			targetDbo.remove(dbo);
-			response.put("done", true);
-			
-			// notify for app generation
-			Utils.dboUpdated(targetDbo);			
+		boolean done = false;
+		DatabaseObject dbo = DboUtils.findDbo(id);
+		if (dbo != null) {
+			if (dbo instanceof Project) {
+				// TODO
+			} else {
+				DatabaseObject targetDbo = dbo.getParent();
+				targetDbo.remove(dbo);
+				done = true;
+				
+				// notify for app generation
+				BuilderUtils.dboRemoved(targetDbo, dbo);
+			}
 		}
+		
+		response.put("done", done);
 	}
 }

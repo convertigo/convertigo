@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(name = "Paste", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -75,10 +75,15 @@ public class Paste extends JSonService {
 					if ("copy".equals(kind)) {
 						object = DboUtils.xmlPaste(node, targetDbo);
 						if (object != null && object instanceof DatabaseObject) {
-							if (object instanceof Project) {
+							DatabaseObject dbo = (DatabaseObject)object;
+							if (dbo instanceof Project) {
 								//TODO
+							} else {
+								ids.put(dbo.getQName(true));
+								
+								// notify for app generation
+								BuilderUtils.dboAdded(dbo);
 							}
-							ids.put(((DatabaseObject)object).getQName(true));
 						}
 					}
 					// case cut tree items
@@ -88,14 +93,22 @@ public class Paste extends JSonService {
 							String id = el.getAttribute("id");
 							DatabaseObject dbo = DboUtils.findDbo(id);
 							if (dbo != null && !dbo.equals(targetDbo)) {
-								DatabaseObject previousParent = dbo.getParent();
-								try {
-									dbo.delete();
-									targetDbo.add(dbo);
-									ids.put(id);
-								} catch (Exception e) {
-									if (dbo.getParent() == null && previousParent != null) {
-										previousParent.add(dbo);
+								if (dbo instanceof Project) {
+									
+								} else {
+									DatabaseObject previousParent = dbo.getParent();
+									try {
+										dbo.delete();
+										targetDbo.add(dbo);
+										
+										ids.put(id);
+										
+										// notify for app generation
+										BuilderUtils.dboMoved(previousParent, targetDbo, dbo);
+									} catch (Exception e) {
+										if (dbo.getParent() == null && previousParent != null) {
+											previousParent.add(dbo);
+										}
 									}
 								}
 							}
@@ -107,10 +120,5 @@ public class Paste extends JSonService {
 		boolean done = ids.length() > 0;
 		response.put("done", done);
 		response.put("ids", ids);
-		
-		if (done) {
-			// notify for app generation
-			Utils.dboUpdated(targetDbo);			
-		}
 	}
 }

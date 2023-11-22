@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 @ServiceDefinition(name = "Add", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Add extends JSonService {
@@ -76,14 +76,13 @@ public class Add extends JSonService {
 				} else {
 					parentDbo.add(dbo);
 				}
+				
+				// notify for app generation
+				BuilderUtils.dboAdded(dbo);
 			}
 			
 			response.put("done", true);
 			response.put("id", dbo.getFullQName());
-			
-			// notify for app generation
-			Utils.dboUpdated(dbo);
-	
 		} else {
 			response.put("done", false);
 		}

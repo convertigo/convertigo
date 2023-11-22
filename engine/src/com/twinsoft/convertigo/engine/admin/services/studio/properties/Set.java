@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -60,6 +61,7 @@ public class Set extends JSonService {
 		boolean done = false;
 		DatabaseObject dbo = Utils.getDbo(id);
 		if (dbo != null) {
+			Object oldValue = null, newValue = null;
 			JSONObject jsonObject = new JSONObject(prop);
 			var pname = jsonObject.getString("name");
 			var pvalue = jsonObject.getString("value");
@@ -81,9 +83,12 @@ public class Set extends JSonService {
 			for (PropertyDescriptor pd : propertyDescriptors) {
 				if (pd.getName().equals(pname)) {
 					Method setter = pd.getWriteMethod();
+					Method getter = pd.getReadMethod();
 					Class<?> pdc = pd.getPropertyEditorClass();
 					Class<?> ptc = pd.getPropertyType();
 
+					oldValue = getter.invoke(dbo);
+					
 					if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 						setter.invoke(dbo, new Object[] { msst });
 					} else if (pname.equals("actionValue")) {// CustomAction
@@ -94,7 +99,6 @@ public class Set extends JSonService {
 						Object oPropertyValue = createObject(ptc, propertyValue);
 
 						if (dbo.isCipheredProperty(pname)) {
-							Method getter = pd.getReadMethod();
 							String initialValue = (String) getter.invoke(dbo, (Object[]) null);
 
 							if (oPropertyValue.equals(initialValue)
@@ -110,6 +114,9 @@ public class Set extends JSonService {
 							setter.invoke(dbo, args);
 						}
 					}
+					
+					newValue = getter.invoke(dbo);
+					
 					break;
 				}
 			}
@@ -117,7 +124,9 @@ public class Set extends JSonService {
 			if (dbo instanceof UIDynamicElement) {
 				IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
 				if (ionBean != null) {
+					oldValue = ionBean.getPropertyValue(pname);
 					ionBean.setPropertyValue(pname, msst);
+					newValue = ionBean.getPropertyValue(pname);
 				}
 			}
 
@@ -125,7 +134,7 @@ public class Set extends JSonService {
 			dbo.hasChanged = true;
 
 			// notify for app generation
-			Utils.dboUpdated(dbo);
+			BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
 		}
 
 		if (done) {

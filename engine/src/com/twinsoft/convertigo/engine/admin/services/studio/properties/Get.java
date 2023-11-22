@@ -69,7 +69,7 @@ public class Get extends JSonService {
 //				System.out.println(XMLUtils.prettyPrintDOM(document));
 				var node = elt.getFirstChild();
 				while (node != null) {
-					if (node instanceof Element e) {
+					if (node instanceof Element e && e.getNodeName().equals("property")) {
 						addDboProperties(props, e);
 					}
 					node = node.getNextSibling();
@@ -132,7 +132,7 @@ public class Get extends JSonService {
 			if (next != null && next instanceof Element n && n.getTagName().equals("possibleValues")) {
 				JSONArray values = new JSONArray();
 				Node v = n.getFirstChild();
-				while (v != null) {
+				while (v != null && v.getFirstChild() != null) {
 					values.put(v.getFirstChild().getNodeValue());
 					v = v.getNextSibling();
 				}
@@ -144,6 +144,8 @@ public class Get extends JSonService {
 				String smv = c.getFirstChild().getTextContent();
 				property.put("mode", smv.split(":")[0]);
 				property.put("value", smv.split(":")[1]);
+			} else {
+				property.put("value", "n/a");
 			}
 		} else {
 			property.put("value", "n/a");
