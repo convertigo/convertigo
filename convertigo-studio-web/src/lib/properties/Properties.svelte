@@ -3,6 +3,7 @@
 	import StringEditor from './editors/StringEditor.svelte';
 	import BooleanEditor from './editors/BooleanEditor.svelte';
 	import ListEditor from './editors/ListEditor.svelte';
+	import StaticEditor from './editors/StaticEditor.svelte';
 	import IonSmartEditor from './editors/IonSmartEditor.svelte';
 	import { selectedId } from '$lib/treeview/treeStore';
 	import { setDboProp } from './propertiesStore';
@@ -20,6 +21,8 @@
 				  })
 				: [];
 
+			let propDisabled = prop.isDisabled ?? false;
+
 			if (prop.kind === 'ion' || prop.editorClass === 'NgxSmartSourcePropertyDescriptor') {
 				return IonSmartEditor;
 			}
@@ -33,7 +36,7 @@
 				case 'java.lang.Boolean':
 					return BooleanEditor;
 				default:
-					return StringEditor;
+					return propDisabled ? StaticEditor : StringEditor;
 			}
 		}
 	}

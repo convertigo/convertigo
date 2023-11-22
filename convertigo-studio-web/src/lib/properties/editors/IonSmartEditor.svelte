@@ -3,6 +3,7 @@
 	import StringEditor from './StringEditor.svelte';
 	import BooleanEditor from './BooleanEditor.svelte';
 	import ListEditor from './ListEditor.svelte';
+	import StaticEditor from './StaticEditor.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -49,13 +50,15 @@
 				return ListEditor;
 			}
 
+			let propDisabled = prop.isDisabled ?? false;
+
 			let propType = property.type;
 			switch (propType) {
 				case 'boolean':
 				case 'java.lang.Boolean':
 					return BooleanEditor;
 				default:
-					return StringEditor;
+					return propDisabled ? StaticEditor : StringEditor;
 			}
 		}
 	}
