@@ -14,6 +14,8 @@
 	let dragOver = false;
 	let dropAction = 'none';
 
+	let dragData = undefined;
+
 	async function allowDrop(dragAction) {
 		if ($draggedData == undefined) {
 			return false;
@@ -40,7 +42,11 @@
 		e.preventDefault();
 		dragOver = true;
 		dropAction = setDropEffect(e);
-		canDrop = await allowDrop(e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction);
+		let dragAction = e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction;
+		canDrop = await allowDrop(dragAction);
+		if (canDrop && dragData == undefined) {
+			dragData = { action: dragAction, id: $draggedData.data.id };
+		}
 		visible = dragOver && canDrop ? true : false;
 	}
 
@@ -48,6 +54,7 @@
 		e.preventDefault();
 		dragOver = false;
 		canDrop = false;
+		dragData = undefined;
 		visible = false;
 	}
 
@@ -55,11 +62,18 @@
 		if (canDrop) {
 			e.preventDefault();
 			dropAction = setDropEffect(e);
+			let dragAction = e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction;
+			if (dragData != undefined) {
+				if (dragData.action == dragAction && dragData.id == $draggedData.data.id) {
+					return true;
+				} else {
+					dragData = { action: dragAction, id: $draggedData.data.id };
+				}
+			}
+
 			setTimeout(() => {
 				(async () => {
-					let allow = await allowDrop(
-						e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction
-					);
+					let allow = await allowDrop(dragAction);
 					if (dragOver) {
 						canDrop = allow;
 					}
@@ -75,6 +89,7 @@
 		e.preventDefault();
 		visible = false;
 		canDrop = false;
+		dragData = undefined;
 		let target = nodeData.id;
 		let jsonData = undefined;
 		try {

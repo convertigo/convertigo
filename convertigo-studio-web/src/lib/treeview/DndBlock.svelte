@@ -25,6 +25,8 @@
 	let dragOver = false;
 	let dropAction = 'none';
 
+	let dragData = undefined;
+
 	onMount(() => {
 		let div = main.closest('.tree-item-content');
 		if (div) {
@@ -66,24 +68,36 @@
 		e.preventDefault();
 		dragOver = true;
 		dropAction = setDropEffect(e);
-		canDrop = await allowDrop(e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction);
+		let dragAction = e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction;
+		canDrop = await allowDrop(dragAction);
+		if (canDrop && dragData == undefined) {
+			dragData = { action: dragAction, id: $draggedData.data.id };
+		}
 	}
 
 	function handleDragLeave(e) {
 		e.preventDefault();
 		dragOver = false;
 		canDrop = false;
+		dragData = undefined;
 	}
 
 	async function handleDragOver(e) {
 		if (canDrop) {
 			e.preventDefault();
 			dropAction = setDropEffect(e);
+			let dragAction = e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction;
+			if (dragData != undefined) {
+				if (dragData.action == dragAction && dragData.id == $draggedData.data.id) {
+					return true;
+				} else {
+					dragData = { action: dragAction, id: $draggedData.data.id };
+				}
+			}
+
 			setTimeout(() => {
 				(async () => {
-					let allow = await allowDrop(
-						e.dataTransfer.types.includes('palettedata') ? 'move' : dropAction
-					);
+					let allow = await allowDrop(dragAction);
 					if (dragOver) {
 						canDrop = allow;
 					}
@@ -98,6 +112,7 @@
 	async function handleDrop(e) {
 		e.preventDefault();
 		canDrop = false;
+		dragData = undefined;
 		let jsonData = undefined;
 		let target = nodeData.id;
 		try {
