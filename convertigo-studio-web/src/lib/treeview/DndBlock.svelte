@@ -157,7 +157,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	bind:this={main}
-	class="flex"
+	class="flex items-center"
 	draggable="true"
 	on:dragstart={handleDragStart}
 	on:dragend={handleDragEnd}
@@ -166,7 +166,7 @@
 	on:dragover={handleDragOver}
 	on:drop={handleDrop}
 >
-	<div
+	<div class="flex-none"
 		on:dragenter={(e) => {
 			if (!nodeData.expanded) {
 				item.open = true;

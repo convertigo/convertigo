@@ -195,6 +195,7 @@
 		on:keydown={handleKeyDown}
 		on:treeDelete={treeDelete}
 		on:treeRemove={treeRemove}
+		regionSymbol="flex-none"
 	>
 		<svelte:fragment slot="children">
 			{#if Array.isArray(nodeData.children) && nodeData.children.length > 0}
@@ -228,11 +229,11 @@
 				>
 					<span slot="icon">
 						{#if nodeData.icon.includes('?')}
-							<img src={`${getUrl()}${nodeData.icon}`} alt="ico" />
+							<img style="height:1.2rem; width:1.2rem;" src={`${getUrl()}${nodeData.icon}`} alt="ico" />
 						{:else if nodeData.icon == 'file'}
-							<IconFile />
+							<IconFile height="0.8rem" width="0.8rem"/>
 						{:else}
-							<IconFolder />
+							<IconFolder height="0.8rem" width="0.8rem"/>
 						{/if}
 					</span>
 					<span slot="label">{nodeData.label}</span>
