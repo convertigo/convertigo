@@ -104,9 +104,14 @@ public class ProjectsDataFilter implements Filter {
 
 		Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
 		if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
-			if (hide_error == false) 
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
+			if (m_forbidden.group(1) != null) {
+				requestedObject = Engine.WEBAPP_PATH + "/noproject.html";
+			} else {
+				if (hide_error == false) {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				}
+				return;
+			}
 		}
 
 		if (Pattern.matches(".*?[/\\\\]index\\.jsp", requestedObject)) {
