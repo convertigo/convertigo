@@ -26,7 +26,9 @@
 			categories[cat] = [];
 		});
 		Object.entries($properties).forEach((entry) => {
-			categories[entry[1].category].push(entry);
+			let category = entry[1].category;
+			categories[category].push(entry);
+			categories[category].sort();
 		});
 	});
 
