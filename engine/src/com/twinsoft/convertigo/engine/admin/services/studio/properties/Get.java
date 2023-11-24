@@ -29,8 +29,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -38,6 +43,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -74,15 +80,69 @@ public class Get extends JSonService {
 					}
 					node = node.getNextSibling();
 				}
+				addInfosProperties(props, dbo);
 			}
-
 		}
 		response.put("properties", props);
 		response.put("id", id);
 	}
 
+	protected void addInfosProperties(JSONObject props, DatabaseObject dbo) {
+		try {
+			JSONObject info = new JSONObject().put("category", "Information").put("isDisabled", true);
+
+			String depth = Integer.toString(dbo instanceof ScreenClass ? ((ScreenClass) dbo).getDepth()
+					: org.apache.commons.lang3.StringUtils.countMatches(dbo.getQName(), '.'));
+			props.put("Depth", new JSONObject(info.toString()).put("name", "P_Depth").put("value", depth));
+
+			String exported = dbo.getProject().getInfoForProperty("exported");
+			props.put("Exported", new JSONObject(info.toString()).put("name", "P_Exported").put("value", exported));
+
+			String javaClass = dbo.getClass().getName();
+			props.put("Java class", new JSONObject(info.toString()).put("name", "P_JavaClass").put("value", javaClass));
+
+			String minVersion = (String) dbo.getProject().getMinVersion();
+			props.put("Min version",
+					new JSONObject(info.toString()).put("name", "P_MinVersion").put("value", minVersion));
+
+			String name = dbo.getName();
+			props.put("Name", new JSONObject(info.toString()).put("name", "P_Name").put("value", name));
+
+			String priority = Long.toString(dbo.priority);
+			props.put("Priority", new JSONObject(info.toString()).put("name", "P_Priority").put("value", priority));
+
+			String qname = dbo.getQName();
+			props.put("QName", new JSONObject(info.toString()).put("name", "P_QName").put("value", qname));
+
+			if (dbo instanceof ApplicationComponent) {
+				String tplVersion = ((ApplicationComponent) dbo).getTplProjectVersion();
+				props.put("Template version",
+						new JSONObject(info.toString()).put("name", "P_TemplateVersion").put("value", tplVersion));
+			}
+
+			String type = null;
+			if (dbo instanceof UIDynamicElement) {
+				IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
+				if (ionBean != null) {
+					type = ionBean.getName();
+				}
+			}
+			try {
+				type = type == null
+						? CachedIntrospector.getBeanInfo(dbo.getClass()).getBeanDescriptor().getDisplayName()
+						: type;
+			} catch (Exception e) {
+				type = "n/a";
+			}
+			props.put("Type", new JSONObject(info.toString()).put("name", "P_Type").put("value", type));
+
+		} catch (Exception e) {
+		}
+	}
+
 	protected void addFolderTypeProperties(JSONObject props, String name) throws Exception {
-		props.put("Name", new JSONObject().put("name", "Name").put("value", name));
+		props.put("Name", new JSONObject().put("name", "Name").put("value", name).put("category", "Information")
+				.put("isDisabled", true));
 	}
 
 	protected void addFileProperties(JSONObject props, String id) throws Exception {
@@ -96,9 +156,12 @@ public class Get extends JSonService {
 		var name = file.getName().equals(project.getName()) && path.isBlank() ? "Files" : file.getName();
 		var length = file.length();
 
-		props.put("Name", new JSONObject().put("name", "Name").put("value", name));
-		props.put("Path", new JSONObject().put("name", "Path").put("value", path));
-		props.put("Size", new JSONObject().put("name", "Size").put("value", length));
+		props.put("Name", new JSONObject().put("name", "Name").put("value", name).put("category", "Information")
+				.put("isDisabled", true));
+		props.put("Path", new JSONObject().put("name", "Path").put("value", path).put("category", "Information")
+				.put("isDisabled", true));
+		props.put("Size", new JSONObject().put("name", "Size").put("value", length).put("category", "Information")
+				.put("isDisabled", true));
 	}
 
 	protected void addDboProperties(JSONObject props, Element elt) throws Exception {

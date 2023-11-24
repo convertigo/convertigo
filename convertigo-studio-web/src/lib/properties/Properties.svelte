@@ -1,12 +1,38 @@
 <script>
-	import { properties, dboProp, ionProp } from './propertiesStore';
+	import { properties, dboProp, ionProp, setDboProp } from './propertiesStore';
+	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
+	import { selectedId } from '$lib/treeview/treeStore';
+	import { onDestroy } from 'svelte';
+
 	import StringEditor from './editors/StringEditor.svelte';
 	import BooleanEditor from './editors/BooleanEditor.svelte';
 	import ListEditor from './editors/ListEditor.svelte';
 	import StaticEditor from './editors/StaticEditor.svelte';
 	import IonSmartEditor from './editors/IonSmartEditor.svelte';
-	import { selectedId } from '$lib/treeview/treeStore';
-	import { setDboProp } from './propertiesStore';
+
+	let categories = {};
+
+	const unsubscribeProperties = properties.subscribe((value) => {
+		let cats = [
+			...new Set(
+				Object.values(value)
+					.map((item) => item['category'])
+					.sort()
+			)
+		];
+
+		categories = {};
+		cats.forEach((cat) => {
+			categories[cat] = [];
+		});
+		Object.entries($properties).forEach((entry) => {
+			categories[entry[1].category].push(entry);
+		});
+	});
+
+	onDestroy(() => {
+		unsubscribeProperties;
+	});
 
 	/**
 	 * @param {dboProp | ionProp} prop
@@ -75,8 +101,7 @@
 	}
 </script>
 
-<div class="table-container">
-	<!-- Native Table Element -->
+<!--<div class="table-container">
 	<table class="table table-hover table-compact">
 		<thead>
 			<tr>
@@ -99,4 +124,30 @@
 			{/each}
 		</tbody>
 	</table>
+</div>-->
+
+<div class="flex">
+	<Accordion regionControl="variant-soft-primary">
+		<div>
+			{#each Object.entries(categories) as [category, items] (category)}
+				<AccordionItem open>
+					<svelte:fragment slot="summary"><b>{category}</b></svelte:fragment>
+					<svelte:fragment slot="content">
+						{#each items as item (JSON.stringify(item[1]))}
+							<div class="flex flex-row flex-nowrap">
+								<div class="basis-1/3 ml-2.5">{item[0]}</div>
+								<div class="basis-2/3">
+									<svelte:component
+										this={getEditor(item[1])}
+										{...item[1]}
+										on:valueChanged={valueChanged}
+									/>
+								</div>
+							</div>
+						{/each}
+					</svelte:fragment>
+				</AccordionItem>
+			{/each}
+		</div>
+	</Accordion>
 </div>

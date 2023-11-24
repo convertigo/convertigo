@@ -6,4 +6,10 @@
 	}
 </script>
 
-<div id={name + '-static'}>{value}</div>
+<input id={name + '-static'} class="input" type="text" disabled {value} />
+
+<style>
+	input[type='text'][disabled] {
+		cursor: auto !important;
+	}
+</style>

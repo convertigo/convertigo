@@ -156,13 +156,13 @@
 	}
 </script>
 
-<div class="flex">
+<div class="flex flex-row flex-nowrap">
 	<div class="grow">
 		{#key editor}
 			<svelte:component this={getEditor(clone)} {...clone} on:valueChanged={valueChanged} />
 		{/key}
 	</div>
-	<div>
+	<div class="flex flex-nowrap">
 		{#each ['TX', 'TS', 'SC'] as c}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div

@@ -16,7 +16,7 @@ export const ionProp = {
 };
 
 export const dboProp = {
-	category: '',
+	category: 'Base properties',
 	displayName: 'DatabaseObject',
 	editorClass: '',
 	isDisabled: false,
@@ -43,7 +43,7 @@ selectedId.subscribe(async (id) => {
 	try {
 		let treeData = await call('studio.properties.Get', { id });
 		properties.set(treeData.properties);
-	} catch (e) {}
+	} catch (e) { }
 });
 
 /**

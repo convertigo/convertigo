@@ -96,11 +96,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public @interface DboFolderType {
 		FolderType type() default FolderType.NONE;
 	}
-	
+
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface DboCategoryInfo {
 		String getCategoryId();
+
 		String getCategoryName();
+
 		String getIconClassCSS();
 	}
 
@@ -109,10 +111,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			return null;
 		}
 
-		DboCategoryInfo dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
+		DboCategoryInfo dboCategoryInfo = beanClass
+				.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
 		while (dboCategoryInfo == null && !beanClass.isAssignableFrom(DatabaseObject.class)) {
 			beanClass = beanClass.getSuperclass();
-			dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
+			dboCategoryInfo = beanClass
+					.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
 		}
 
 		return dboCategoryInfo;
@@ -147,7 +151,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public enum ExportOption {
-		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements, bIncludeVersion, bHidePassword;
+		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass,
+		bIncludeBlackListedElements, bIncludeVersion, bHidePassword;
 	}
 
 	transient protected static long lastTime = 0;
@@ -198,8 +203,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			compilablePropertySourceValuesMap = new HashMap<String, Object>(5);
 		} catch (Exception e) {
 			name = getClass().getName();
-			Engine.logBeans.error("Unable to set the default name; using the class name instead (\"" + name
-					+ "\").", e);
+			Engine.logBeans.error("Unable to set the default name; using the class name instead (\"" + name + "\").",
+					e);
 		}
 	}
 
@@ -216,7 +221,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public void checkSymbols() throws EngineException {
 		if (isSymbolError()) {
 			for (String property : symbolsErrors.keySet()) {
-				String message = "The property '" + property + "' of '" + getName() + "' has an undefined global symbol!";
+				String message = "The property '" + property + "' of '" + getName()
+						+ "' has an undefined global symbol!";
 				if (Engine.isStudioMode()) {
 					try {
 						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
@@ -240,8 +246,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				clone.parent = null;
 				clone.bNew = false;
 				clone.isImporting = false;
-				clone.isSubLoaded = false; //Engine.isEngineMode() ? isSubLoaded : false;
-				clone.hasChanged = false; //Engine.isEngineMode() ? false : hasChanged;// Studio
+				clone.isSubLoaded = false; // Engine.isEngineMode() ? isSubLoaded : false;
+				clone.hasChanged = false; // Engine.isEngineMode() ? false : hasChanged;// Studio
 				// case
 				// of
 				// refresh
@@ -299,13 +305,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * Retrieves the parent Object object.
 	 */
 	public DatabaseObject getParent() {
-		//		if (parent == null && !isImporting) {
-		//			String msg = "(DatabaseObject) parent == null\n"
-		//				+ "name: " + name + "\n"
-		//				+ "priority: " + priority + "\n"
-		//				+ "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
-		//			Engine.logEngine.warn(msg);
-		//		}
+		// if (parent == null && !isImporting) {
+		// String msg = "(DatabaseObject) parent == null\n"
+		// + "name: " + name + "\n"
+		// + "priority: " + priority + "\n"
+		// + "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
+		// Engine.logEngine.warn(msg);
+		// }
 		return parent;
 	}
 
@@ -327,7 +333,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public String getTokenPath(String oldName) {
-		String tokenPath = oldName == null ? getName():oldName;
+		String tokenPath = oldName == null ? getName() : oldName;
 
 		DatabaseObject parentDbo = parent;
 		while (parentDbo != null) {
@@ -375,12 +381,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			parent.changed();
 		}
 
-		//changed();
+		// changed();
 	}
 
 	/**
-	 * Returns the fully qualified name of the object, i.e. with the object
-	 * path, for writing purposes.
+	 * Returns the fully qualified name of the object, i.e. with the object path,
+	 * for writing purposes.
 	 *
 	 * @return the fully qualified name of the object.
 	 */
@@ -432,8 +438,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	/**
 	 * Sets the bean name and computes file name.
 	 *
-	 * @param name
-	 *            the bean name.
+	 * @param name the bean name.
 	 */
 	private void setBeanName(String name) throws EngineException {
 		if (name.length() == 0) {
@@ -445,8 +450,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	/**
 	 * Sets the object name.
 	 *
-	 * @param name
-	 *            the object name.
+	 * @param name the object name.
 	 */
 	public void setName(String name) throws EngineException {
 		if (name == null) {
@@ -456,7 +460,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			throw new EngineException("The object name cannot be empty!");
 		}
 
-		String[] newName = {StringUtils.normalize(name)};
+		String[] newName = { StringUtils.normalize(name) };
 		if (parent != null) {
 			FolderType fd = getFolderType();
 			boolean ok = false;
@@ -469,7 +473,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 						protected void walk(DatabaseObject databaseObject) throws Exception {
 							if (DatabaseObject.this.parent == databaseObject) {
 								super.walk(databaseObject);
-							} else if (DatabaseObject.this != databaseObject && fd.equals(databaseObject.getFolderType()) && newName[0].equals(databaseObject.getName())) {
+							} else if (DatabaseObject.this != databaseObject
+									&& fd.equals(databaseObject.getFolderType())
+									&& newName[0].equals(databaseObject.getName())) {
 								throw new ObjectWithSameNameException("");
 							}
 						}
@@ -505,10 +511,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	/**
 	 * Returns an available name for a new child database object to add.
 	 *
-	 * @param eDatabaseObjects
-	 *            an enumeration of children database objects
-	 * @param dboName
-	 *            the name of a new child database object
+	 * @param eDatabaseObjects an enumeration of children database objects
+	 * @param dboName          the name of a new child database object
 	 * @return
 	 */
 	public String getChildBeanName(Collection<? extends DatabaseObject> v, String dboName, boolean isNew) {
@@ -518,8 +522,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			try {
 				for (DatabaseObject databaseObject : v) {
 					if (newDatabaseObjectName.equals(databaseObject.getName())) {
-						throw new ObjectWithSameNameException("Unable to add the object \""
-								+ newDatabaseObjectName
+						throw new ObjectWithSameNameException("Unable to add the object \"" + newDatabaseObjectName
 								+ "\" because an object with the same name already exists.");
 					}
 				}
@@ -635,7 +638,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return element;
 	}
 
-	private void addProperty(Document document, Element root, PropertyDescriptor propertyDescriptor, String propertyDescriptorName) {
+	private void addProperty(Document document, Element root, PropertyDescriptor propertyDescriptor,
+			String propertyDescriptorName) {
 		String displayName = propertyDescriptor.getDisplayName();
 		String shortDescription = propertyDescriptor.getShortDescription();
 
@@ -664,7 +668,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 			// Only write non-null values
 			if (value == null) {
-				Engine.logBeans.warn("Attempting to store null property (\"" + propertyDescriptorName + "\"); skipping...");
+				Engine.logBeans
+						.warn("Attempting to store null property (\"" + propertyDescriptorName + "\"); skipping...");
 				return;
 			}
 
@@ -672,10 +677,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			propertyElement.setAttribute("name", propertyDescriptorName);
 
 			// Encrypts value if needed
-			//if (isCipheredProperty(propertyDescriptorName) && !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
-			if (isCipheredProperty(propertyDescriptorName) &&
-					( this.exportOptions.contains(ExportOption.bHidePassword) ||
-							!this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
+			// if (isCipheredProperty(propertyDescriptorName) &&
+			// !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+			if (isCipheredProperty(propertyDescriptorName) && (this.exportOptions.contains(ExportOption.bHidePassword)
+					|| !this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
 				cypheredValue = encryptPropertyValue(value);
 				if (!value.equals(cypheredValue)) {
 					value = cypheredValue;
@@ -698,8 +703,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 
 			if (exportOptions.contains(ExportOption.bIncludeBlackListedElements)) {
-				Object propertyDescriptorBlackListValue = propertyDescriptor
-						.getValue(MySimpleBeanInfo.BLACK_LIST_NAME);
+				Object propertyDescriptorBlackListValue = propertyDescriptor.getValue(MySimpleBeanInfo.BLACK_LIST_NAME);
 				if (propertyDescriptorBlackListValue != null && (Boolean) propertyDescriptorBlackListValue) {
 					propertyElement.setAttribute("blackListed", "blackListed");
 				}
@@ -709,11 +713,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				propertyElement.setAttribute("isHidden", Boolean.toString(propertyDescriptor.isHidden()));
 				propertyElement.setAttribute("isMasked",
 						isMaskedProperty(Visibility.Platform, propertyDescriptorName) ? "true" : "false");
-				propertyElement.setAttribute("isExpert", Boolean.toString(propertyDescriptor.isExpert()));
-				
+
+				boolean isExpert = propertyDescriptor.isExpert();
+				propertyElement.setAttribute("isExpert", Boolean.toString(isExpert));
+
 				boolean isDisabled = Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.DISABLE));
 				propertyElement.setAttribute("isDisabled", Boolean.toString(isDisabled));
+
 				String category = (String) propertyDescriptor.getValue(MySimpleBeanInfo.CATEGORY);
+				category = category == null || category.isBlank() ? (isExpert ? "Expert" : "Base properties")
+						: category;
 				propertyElement.setAttribute("category", category);
 			}
 			if (exportOptions.contains(ExportOption.bIncludeShortDescription)) {
@@ -724,8 +733,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				Class<?> pec = propertyDescriptor.getPropertyEditorClass();
 				String message = "";
 				if (pec != null) {
-					message = propertyDescriptor.getPropertyEditorClass().toString()
-							.replaceFirst("(.)*\\.", "");
+					message = propertyDescriptor.getPropertyEditorClass().toString().replaceFirst("(.)*\\.", "");
 				} else {
 					message = "null";
 				}
@@ -767,8 +775,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 			if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 				try {
-					Method method = this.getClass().getMethod("isNullProperty",
-							new Class[] { String.class });
+					Method method = this.getClass().getMethod("isNullProperty", new Class[] { String.class });
 					Object isNull = method.invoke(this, new Object[] { propertyDescriptorName });
 					propertyElement.setAttribute("isNull", isNull.toString());
 				} catch (Exception ex) {
@@ -780,7 +787,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			Engine.logBeans.error("[Serialization] Skipping property \"" + propertyDescriptorName + "\".", e);
 		}
 	}
-
 
 	public Element toXml(Document document, ExportOption... exportOptions) throws EngineException {
 		try {
@@ -801,8 +807,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	/**
-	 * Performs custom configuration on the XML document for this database
-	 * object BEFORE its de-serialization.
+	 * Performs custom configuration on the XML document for this database object
+	 * BEFORE its de-serialization.
 	 */
 	public void preconfigure(Element element) throws Exception {
 		// Do nothing by default
@@ -839,7 +845,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 		// Verifying product version
-		if ("com.twinsoft.convertigo.beans.core.Project".equals(objectClassName) && VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
+		if ("com.twinsoft.convertigo.beans.core.Project".equals(objectClassName)
+				&& VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
 			VersionException ee = new VersionException(version);
 			throw ee;
 		}
@@ -850,8 +857,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		} catch (Exception e) {
 			String s = node.getNodeName();// XMLUtils.prettyPrintDOM(node);
 			String message = "Unable to create a new instance of the object from the serialized XML data.\n"
-					+ "Object class: '" + objectClassName + "'\n" + "Object version: " + version + "\n"
-					+ "XML data:\n" + s;
+					+ "Object class: '" + objectClassName + "'\n" + "Object version: " + version + "\n" + "XML data:\n"
+					+ s;
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
@@ -904,21 +911,20 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					Engine.logBeans.trace("  name = '" + propertyName + "'");
 					pd = findPropertyDescriptor(pds, propertyName);
 					if (pd == null) {
-						Engine.logBeans.info("Unable to find the definition of property \"" + propertyName
-								+ "\"; skipping.");
+						Engine.logBeans
+								.info("Unable to find the definition of property \"" + propertyName + "\"; skipping.");
 						continue;
 					}
 					propertyType = pd.getPropertyType();
-					propertyObjectValue = XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(
-							childNode, Node.ELEMENT_NODE));
+					propertyObjectValue = XMLUtils
+							.readObjectFromXml((Element) XMLUtils.findChildNode(childNode, Node.ELEMENT_NODE));
 
 					// Hides value in log trace if needed
 					if ("false".equals(childElement.getAttribute("traceable"))) {
 						maskValue = true;
 					}
 					Engine.logBeans.trace("  value='"
-							+ (maskValue ? Visibility.maskValue(propertyObjectValue) : propertyObjectValue)
-							+ "'");
+							+ (maskValue ? Visibility.maskValue(propertyObjectValue) : propertyObjectValue) + "'");
 
 					// Decrypts value if needed
 					try {
@@ -928,7 +934,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					} catch (Exception e) {
 					}
 
-					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue);
+					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName,
+							propertyObjectValue);
 
 					if (Enum.class.isAssignableFrom(propertyType)) {
 						propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
@@ -944,10 +951,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 						setter.invoke(databaseObject, new Object[] { propertyObjectValue });
 					} catch (InvocationTargetException e) {
 						Throwable targetException = e.getTargetException();
-						Engine.logBeans.warn("Unable to set the property '" + propertyName
-								+ "' for the object '" + databaseObject.getName() + "' (" + objectClassName
-								+ "): [" + targetException.getClass().getName() + "] "
-								+ targetException.getMessage());
+						Engine.logBeans.warn("Unable to set the property '" + propertyName + "' for the object '"
+								+ databaseObject.getName() + "' (" + objectClassName + "): ["
+								+ targetException.getClass().getName() + "] " + targetException.getMessage());
 					}
 
 					if (Boolean.TRUE.equals(pd.getValue(MySimpleBeanInfo.NILLABLE))) {
@@ -957,23 +963,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 						try {
 							Method method = databaseObject.getClass().getMethod("setNullProperty",
 									new Class[] { String.class, Boolean.class });
-							method.invoke(databaseObject,
-									new Object[] { propertyName, Boolean.valueOf(valNull) });
+							method.invoke(databaseObject, new Object[] { propertyName, Boolean.valueOf(valNull) });
 						} catch (Exception ex) {
-							Engine.logBeans.warn("Unable to set the 'isNull' attribute for property '"
-									+ propertyName + "' of '" + databaseObject.getName() + "' object");
+							Engine.logBeans.warn("Unable to set the 'isNull' attribute for property '" + propertyName
+									+ "' of '" + databaseObject.getName() + "' object");
 						}
 					}
 				}
 			}
 		} catch (Exception e) {
-			String message = "Unable to set the object properties from the serialized XML data.\n"
-					+ "Object class: '" + objectClassName + "'\n" + "XML analyzed node: " + childNodeName
-					+ "\n" + "Property name: " + propertyName + "\n" + "Property value: " + propertyValue;
+			String message = "Unable to set the object properties from the serialized XML data.\n" + "Object class: '"
+					+ objectClassName + "'\n" + "XML analyzed node: " + childNodeName + "\n" + "Property name: "
+					+ propertyName + "\n" + "Property value: " + propertyValue;
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
-
 
 		try {
 			// Performs custom configuration
@@ -1014,13 +1018,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (Number.class.isAssignableFrom(propertyType)) {
 			try {
 				try {
-					propertyObjectValue = propertyType.getConstructor(String.class).newInstance(propertyObjectValue.toString());
+					propertyObjectValue = propertyType.getConstructor(String.class)
+							.newInstance(propertyObjectValue.toString());
 				} catch (Exception e) {
-					Engine.logBeans.warn("(DatabaseObject) For property '"+ propertyName +"', failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName() + ". Set 0 instead.");
+					Engine.logBeans.warn("(DatabaseObject) For property '" + propertyName + "', failed to parse '"
+							+ propertyObjectValue + "' as " + propertyType.getSimpleName() + ". Set 0 instead.");
 					propertyObjectValue = propertyType.getConstructor(String.class).newInstance("0");
 				}
 			} catch (Exception e) {
-				Engine.logBeans.error("(DatabaseObject) For property '"+ propertyName +"', failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName());
+				Engine.logBeans.error("(DatabaseObject) For property '" + propertyName + "', failed to parse '"
+						+ propertyObjectValue + "' as " + propertyType.getSimpleName());
 			}
 		} else if (Boolean.class.isAssignableFrom(propertyType)) {
 			if (propertyObjectValue instanceof Integer) {
@@ -1033,8 +1040,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return propertyObjectValue;
 	}
-
-
 
 	public boolean isMaskedProperty(Visibility target, String propertyName) {
 		return false;
@@ -1062,8 +1067,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			encryptedValue = GenericUtils.cast(Crypto2.encodeToHexString((String) propertyValue));
 		} else if (propertyValue instanceof XMLVector<?>) {
 			try {
-				XMLVector<Object> xmlv = new XMLVector<Object>(
-						GenericUtils.<XMLVector<Object>>cast(propertyValue));
+				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>>cast(propertyValue));
 				for (int i = 0; i < xmlv.size(); i++) {
 					Object ob = xmlv.get(i);
 					xmlv.set(i, encryptPropertyValue(ob));
@@ -1101,8 +1105,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		} else if (encryptedValue instanceof XMLVector<?>) {
 			try {
-				XMLVector<Object> xmlv = new XMLVector<Object>(
-						GenericUtils.<XMLVector<Object>> cast(encryptedValue));
+				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>>cast(encryptedValue));
 				for (int i = 0; i < xmlv.size(); i++) {
 					Object ob = xmlv.get(i);
 					xmlv.set(i, decryptPropertyValue(ob));
@@ -1158,8 +1161,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	/**
 	 * Setter for property version.
 	 *
-	 * @param version
-	 *            New value of property version.
+	 * @param version New value of property version.
 	 */
 	public void setVersion(String version) {
 		this.version = version;
@@ -1189,8 +1191,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	/**
 	 * Setter for property comment.
 	 *
-	 * @param comment
-	 *            New value of property comment.
+	 * @param comment New value of property comment.
 	 */
 	public void setComment(String comment) {
 		this.comment = comment;
@@ -1273,6 +1274,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			hasChanged = true;
 		}
 	}
+
 	public void addSymbolError(String propertyName, Set<String> undefinedSymbols) {
 		if (symbolsErrors == null) {
 			symbolsErrors = new HashMap<String, Set<String>>();
@@ -1318,7 +1320,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	public void updateSymbols() throws Exception {
 		if (!compilablePropertySourceValuesMap.isEmpty()) {
-			PropertyDescriptor[] propertyDescriptors = CachedIntrospector.getBeanInfo(getClass()).getPropertyDescriptors();
+			PropertyDescriptor[] propertyDescriptors = CachedIntrospector.getBeanInfo(getClass())
+					.getPropertyDescriptors();
 			for (Entry<String, Object> propertySource : compilablePropertySourceValuesMap.entrySet()) {
 				String propertyName = propertySource.getKey();
 				Object propertyValue = propertySource.getValue();
@@ -1334,16 +1337,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return getDatabaseObjectChildren(false);
 	}
 
-	public List <DatabaseObject> getDatabaseObjectChildren(boolean deep) throws Exception {
-		final List <DatabaseObject> children = new LinkedList<>();
+	public List<DatabaseObject> getDatabaseObjectChildren(boolean deep) throws Exception {
+		final List<DatabaseObject> children = new LinkedList<>();
 		new WalkHelper() {
 
 			@Override
 			protected void walk(DatabaseObject databaseObject) throws Exception {
 				if (databaseObject == DatabaseObject.this) {
 					super.walk(databaseObject);
-				}
-				else {
+				} else {
 					children.add(databaseObject);
 					if (deep) {
 						super.walk(databaseObject);
@@ -1353,7 +1355,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}.init(this);
 		return children;
 	}
-	
+
 	public boolean hasDatabaseObjectChildren() throws Exception {
 		boolean has[] = { false };
 		new WalkHelper() {
@@ -1362,8 +1364,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			protected void walk(DatabaseObject databaseObject) throws Exception {
 				if (databaseObject == DatabaseObject.this) {
 					super.walk(databaseObject);
-				}
-				else {
+				} else {
 					has[0] = true;
 				}
 			}
@@ -1375,12 +1376,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		List<DatabaseObject> siblings = new ArrayList<DatabaseObject>();
 		try {
 			List<DatabaseObject> children = parent.getDatabaseObjectChildren();
-			for (DatabaseObject child: children) {
+			for (DatabaseObject child : children) {
 				if (child.getFolderType().equals(getFolderType())) {
 					siblings.add(child);
 				}
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		return siblings;
 	}
 
@@ -1389,7 +1391,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			List<DatabaseObject> siblings = getSiblingsInFolder();
 			int index = siblings.indexOf(this);
 			return siblings.get(index - 1);
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
@@ -1398,13 +1401,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			List<DatabaseObject> siblings = getSiblingsInFolder();
 			int index = siblings.indexOf(this);
 			return siblings.get(index + 1);
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();
-		for (DatabaseObject child: children) {
+		for (DatabaseObject child : children) {
 			if (child.getFolderType().qnamePart(child).equals(name) || child.getName().equals(name)) {
 				return child;
 			}
@@ -1420,8 +1424,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		if (name.equals("isTargetForSapTransaction")) {
 			Boolean bool = Boolean.valueOf(value);
 			try {
-				return bool.equals(Boolean.valueOf(((TransactionStep) getParent()).getTargetTransaction() instanceof SapJcoTransaction));
-			} catch (Throwable e) {}
+				return bool.equals(Boolean
+						.valueOf(((TransactionStep) getParent()).getTargetTransaction() instanceof SapJcoTransaction));
+			} catch (Throwable e) {
+			}
 			return false;
 		}
 		if (name.equals("objectClassName")) {
@@ -1451,7 +1457,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public FolderType getFolderType() {
 		return getFolderType(getClass());
 	}
-	
+
 	static public FolderType getFolderType(Class<?> cls) {
 		var anno = cls.getAnnotation(DboFolderType.class);
 		while (anno == null) {
