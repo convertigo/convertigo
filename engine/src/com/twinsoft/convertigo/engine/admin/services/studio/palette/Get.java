@@ -53,6 +53,10 @@ public class Get extends JSonService {
 	}
 
 	private JSONArray getPalette(String id) throws Exception {
+		if (id.contains("/")) {
+			return new JSONArray();
+		}
+
 		var parentDbo = Utils.getDbo(id);
 		var folderType = Utils.getFolderType(id);
 
@@ -96,7 +100,8 @@ public class Get extends JSonService {
 							}
 							isAllowedIn = force || DatabaseObjectsManager.checkParent(parentDbo.getClass(), b);
 							if (folderType != null && isAllowedIn) {
-								isAllowedIn = DatabaseObject.getFolderType(Class.forName(b.getClassName())) == folderType;
+								isAllowedIn = DatabaseObject
+										.getFolderType(Class.forName(b.getClassName())) == folderType;
 							}
 						} catch (Exception e) {
 						}
@@ -153,11 +158,11 @@ public class Get extends JSonService {
 					if (folderType != null && isAllowedIn) {
 						isAllowedIn = DatabaseObject.getFolderType(Class.forName(cn)) == folderType;
 					}
-					
+
 					if (!isAllowedIn) {
 						continue;
 					}
-					
+
 					JSONObject jsonItem = new JSONObject();
 					jsonItem.put("type", "Ion");
 					jsonItem.put("id", "ngx " + component.getName());

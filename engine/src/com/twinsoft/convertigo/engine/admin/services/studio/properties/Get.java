@@ -204,9 +204,21 @@ public class Get extends JSonService {
 		} else if ("xmlizable".equals(nodeName) && fc instanceof Element c && c.hasAttribute("classname")) {
 			var classname = c.getAttribute("classname");
 			if ("com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType".equals(classname)) {
-				String smv = c.getFirstChild().getTextContent();
-				property.put("mode", smv.split(":")[0]);
-				property.put("value", smv.split(":")[1]);
+				String mss = c.getFirstChild().getTextContent();
+				int index = mss.indexOf(":");
+				String mode = "plain";
+				Object value = "";
+				if (index != -1) {
+					mode = mss.substring(0, index);
+					try {
+						value = mode.equals("source") ? new JSONObject(mss.substring(index + 1))
+								: mss.substring(index + 1);
+					} catch (Exception e) {
+						value = mode.equals("source") ? new JSONObject() : "";
+					}
+				}
+				property.put("mode", mode);
+				property.put("value", value);
 			} else {
 				property.put("value", "n/a");
 			}

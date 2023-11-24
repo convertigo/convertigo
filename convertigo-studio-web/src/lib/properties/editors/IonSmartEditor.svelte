@@ -28,8 +28,11 @@
 	function getEditor(property) {
 		//console.log("getEditor", property)
 		if (property) {
-			if (property.mode === 'script' || property.mode === 'source') {
+			if (property.mode === 'script') {
 				return StringEditor;
+			}
+			if (property.mode === 'source') {
+				return StaticEditor;
 			}
 
 			let propValues = property.values
@@ -88,7 +91,7 @@
 	function getScriptValue() {
 		switch (prop.mode) {
 			case 'source':
-				return {};
+				return '';
 			case 'script':
 				return prop.value;
 			case 'plain':
@@ -100,7 +103,7 @@
 			case 'source':
 				return prop.value;
 			case 'script':
-				return '';
+				return {};
 			case 'plain':
 				return {};
 		}
