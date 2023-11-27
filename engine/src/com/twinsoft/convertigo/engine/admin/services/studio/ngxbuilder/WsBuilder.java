@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import javax.websocket.Session;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -59,6 +60,7 @@ public class WsBuilder extends WebSocketService {
 		private static Pattern pIsBrowserOpenable = Pattern.compile(".*?open your browser on (http\\S*).*");
 
 		String projectName;
+		String projectEndpoint;
 		Project project;
 		String url;
 		Thread thread;
@@ -68,8 +70,9 @@ public class WsBuilder extends WebSocketService {
 
 		Set<WsBuilder> clients = new HashSet<>();
 
-		Build(String projectName) {
+		Build(String projectName, String endpoint) {
 			this.projectName = projectName;
+			projectEndpoint = endpoint + "/projects/" + projectName + "/";
 		}
 
 		public void start() {
@@ -132,6 +135,7 @@ public class WsBuilder extends WebSocketService {
 					portNode = NetworkUtils.nextAvailable(port, usedPort);
 					cmd.add("--port=" + portNode);
 					cmd.add("--host=0.0.0.0");
+					cmd.add("--disable-host-check=true");
 				}
 
 				// #183 add useless option to help terminateNode method to find the current path
@@ -139,6 +143,10 @@ public class WsBuilder extends WebSocketService {
 
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
+				String angular_json = FileUtils.readFileToString(new File(ionicDir, "angular.json"), "UTF-8");
+				angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*",
+						"$1 \"baseHref\":\"" + projectEndpoint + "DisplayObjects/dev" + portNode + "/\",");
+				FileUtils.write(new File(ionicDir, "angular.json"), angular_json, "UTF-8");
 				Process p = pb.start();
 				processes.add(p);
 
@@ -147,10 +155,11 @@ public class WsBuilder extends WebSocketService {
 				String line;
 
 				StringBuilder sb = null;
-
+				String lastLine = null;
 				while ((line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
-					if (StringUtils.isNotBlank(line)) {
+					if (StringUtils.isNotBlank(line) && !line.equals(lastLine)) {
+						lastLine = line;
 						Engine.logStudio.info(line);
 						if (line.startsWith("Error: ")) {
 							sb = new StringBuilder();
@@ -184,7 +193,8 @@ public class WsBuilder extends WebSocketService {
 						Matcher m = pIsBrowserOpenable.matcher(line);
 						if (m.matches()) {
 							String sGroup = m.group(1);
-							baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
+							baseUrl = sGroup.replaceFirst(".*?://.*?/", "/").replaceFirst("([^/])$", "$1/"); // sGroup.substring(0,
+																												// sGroup.lastIndexOf("/"));
 							doLoad();
 						}
 					}
@@ -328,12 +338,13 @@ public class WsBuilder extends WebSocketService {
 			var json = new JSONObject(message);
 			project = json.getString("project");
 			var action = json.getString("action");
+			var params = json.getJSONObject("params");
 			switch (action) {
 			case "attach":
 				onAttach();
 				break;
 			case "build_dev":
-				onBuildDev();
+				onBuildDev(params);
 				break;
 			case "kill":
 				onKill();
@@ -384,13 +395,13 @@ public class WsBuilder extends WebSocketService {
 		}
 	}
 
-	private void onBuildDev() throws Exception {
+	private void onBuildDev(JSONObject params) throws Exception {
 		if (build != null) {
 			send("log", "prevents starting a new build of " + project);
 //			return;
 		}
 		synchronized (builds) {
-			build = new Build(project);
+			build = new Build(project, params.getString("endpoint"));
 			builds.put(project, build);
 		}
 		build.add(this);

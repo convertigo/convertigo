@@ -1595,6 +1595,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
+			
+			String angular_json = FileUtils.readFileToString(new File(ionicDir, "angular.json"), "UTF-8");
+			angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*", "$1");
+			FileUtils.write(new File(ionicDir, "angular.json"), angular_json, "UTF-8");
+			
 			Process p = pb.start();
 			processes.add(p);
 

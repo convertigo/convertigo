@@ -41,6 +41,7 @@
 				switch (type) {
 					case 'output':
 						output = value;
+						break;
 					case 'log':
 						message = message + `${value}\n`;
 						break;
@@ -88,14 +89,15 @@
 		}
 	});
 
-	function runAction(action) {
+	function runAction(action, params = {}) {
 		progress = 0;
 		iframeUrl = null;
 		output = 'Not running';
 		ws?.send(
 			JSON.stringify({
 				action,
-				project
+				project,
+				params
 			})
 		);
 	}
@@ -114,7 +116,9 @@
 		</svelte:fragment>
 		<svelte:fragment slot="sidebarLeft">
 			<AppRail>
-				<AppRailAnchor on:click={() => runAction('build_dev')}>Run</AppRailAnchor>
+				<AppRailAnchor on:click={() => runAction('build_dev', {
+					endpoint: getUrl().replace(/https?:\/\/.*.(\/.*)\/admin\/.*/, '$1')
+				})}>Run</AppRailAnchor>
 				<AppRailAnchor on:click={() => runAction('kill')}>Kill</AppRailAnchor>
 			</AppRail>
 		</svelte:fragment>
