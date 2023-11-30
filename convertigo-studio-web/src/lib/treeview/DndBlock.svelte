@@ -1,7 +1,8 @@
 <svelte:options accessors />
 
 <script>
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';
+	import { mountedBlocks } from './treeStore';
 	import { reusables } from '$lib/palette/paletteStore';
 	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
 	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
@@ -32,7 +33,26 @@
 		if (div) {
 			div.classList.add('w-full');
 		}
+		init();
 	});
+
+	onDestroy(() => {
+		let index = $mountedBlocks.indexOf(block);
+		if (index > -1) {
+			//console.log('destroyed block', block.nodeData.id);
+			$mountedBlocks.splice(index, 1);
+			$mountedBlocks = $mountedBlocks;
+		}
+	});
+
+	async function init() {
+		await tick();
+		if (block != undefined) {
+			//console.log('mounted block', block.nodeData.id);
+			$mountedBlocks.push(block);
+			$mountedBlocks = $mountedBlocks;
+		}
+	}
 
 	async function allowDrop(dragAction) {
 		if ($draggedData == undefined || nodeData.id === $draggedData.data.id) {
@@ -166,7 +186,8 @@
 	on:dragover={handleDragOver}
 	on:drop={handleDrop}
 >
-	<div class="flex-none"
+	<div
+		class="flex-none"
 		on:dragenter={(e) => {
 			if (!nodeData.expanded) {
 				item.open = true;

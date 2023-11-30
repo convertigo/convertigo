@@ -20,7 +20,10 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -30,7 +33,15 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
@@ -46,7 +57,8 @@ public class DboUtils {
 		return DboFactory.isCuttable(dbo);
 	}
 
-	static protected boolean acceptDbo(DatabaseObject targetDatabaseObject, DatabaseObject databaseObject, boolean includeSpecials) {
+	static protected boolean acceptDbo(DatabaseObject targetDatabaseObject, DatabaseObject databaseObject,
+			boolean includeSpecials) {
 		if (targetDatabaseObject.getQName().startsWith(databaseObject.getQName())) {
 			return false;
 		}
@@ -129,7 +141,7 @@ public class DboUtils {
 		element.setAttribute("id", id);
 		document.getDocumentElement().appendChild(element);
 	}
-	
+
 	static protected void xmlCopy(Document document, DatabaseObject dbo) throws Exception {
 		final Element rootElement = document.getDocumentElement();
 
@@ -250,4 +262,102 @@ public class DboUtils {
 		return null;
 	}
 
+	static protected boolean changeBeanName(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue, String update) {
+		if (dbo == null || newValue == null || newValue.toString().isBlank()) {
+			return false;
+		}
+
+		// first rename dbo
+		try {
+			String oldQName = dbo.getFullQName();
+			dbo.setName((String) newValue);
+			dbo.hasChanged = true;
+			ids.put(oldQName);
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to rename " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+			return false;
+		}
+
+		// if nothing else to rename return
+		if (update.equals("UPDATE_NONE") || update.isBlank()) {
+			return true;
+		}
+
+		// then propagate rename to other beans
+		List<String> projectNames = null;
+		if (update.equals("UPDATE_LOCAL")) {
+			projectNames = new ArrayList<String>();
+			projectNames.add(dbo.getProject().getName());
+		} else if (update.equals("UPDATE_ALL")) {
+			projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true);
+		}
+
+		if (projectNames != null) {
+			WalkHelper walker = getRenameHelper(ids, dbo, oldValue, newValue, update);
+			for (String projectName : projectNames) {
+				Project project;
+				try {
+					project = (Project) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
+					walker.init(project);
+				} catch (Exception e) {
+					Engine.logEngine.error("Failed to propagate rename of " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+				}
+			}
+		}
+		
+		return true;
+	}
+
+	static private WalkHelper getRenameHelper(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue, String update) {
+		return new WalkHelper() {
+			private void setDboName(JSONArray ids, DatabaseObject dbo, Object newValue) {
+				try {
+					String oldQName = dbo.getFullQName();
+					dbo.setName((String) newValue);
+					dbo.hasChanged = true;
+					ids.put(oldQName);
+				} catch (EngineException e) {
+					Engine.logEngine.warn("Failed to rename " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+				}
+			}
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				boolean isLocalProject = dbo.getProject().equals(databaseObject.getProject());
+				boolean isSameValue = databaseObject.getName().equals(oldValue);
+				boolean shouldUpdate = update.equals("UPDATE_ALL") || (update.equals("UPDATE_LOCAL") && isLocalProject);
+
+				if (shouldUpdate) {
+					if (isSameValue) {
+						// A RequestableVariable changed its name
+						if (dbo instanceof RequestableVariable) {
+							RequestableVariable requestableVariable = (RequestableVariable) dbo;
+							String rqname = requestableVariable.getParent().getQName();
+
+							if (databaseObject instanceof TestCaseVariable) {
+								TestCaseVariable testCaseVariable = (TestCaseVariable) databaseObject;
+								TestCase testCase = (TestCase) testCaseVariable.getParent();
+								String tqname = testCase.getParent().getQName();
+								if (rqname.equals(tqname)) {
+									setDboName(ids, testCaseVariable, newValue);
+								}
+							} else if (databaseObject instanceof StepVariable) {
+								StepVariable stepVariable = (StepVariable) databaseObject;
+								RequestableStep requestableStep = (RequestableStep) stepVariable.getParent();
+								boolean isTransactionStep = requestableStep instanceof TransactionStep;
+								String sqname = isTransactionStep
+										? ((TransactionStep) requestableStep).getSourceTransaction()
+										: ((SequenceStep) requestableStep).getSourceSequence();
+								if (rqname.equals(sqname)) {
+									setDboName(ids, stepVariable, newValue);
+								}
+							}
+						}
+					} else {
+						super.walk(databaseObject);
+					}
+				}
+			}
+		};
+	}
 }

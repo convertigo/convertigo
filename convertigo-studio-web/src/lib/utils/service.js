@@ -121,3 +121,13 @@ export async function pasteDbo(target = '', xml = '') {
 	let result = await call('studio.dbo.Paste', { target, xml });
 	return result;
 }
+
+/**
+ * @param {string} id - the id of the target dbo in tree
+ * @param {string} name - the dbo new name
+ * @param {string} update - UPDATE_ALL | UPDATE_LOCAL | UPDATE_NONE
+ */
+export async function renameDbo(id = '', name = '', update = 'UPDATE_NONE') {
+	let result = await call('studio.dbo.Rename', { id, name, update });
+	return result;
+}

@@ -3,12 +3,21 @@
 <script>
 	import { onMount, tick, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
-	import { localStorageStore, getModalStore } from '@skeletonlabs/skeleton';
+	import { localStorageStore, getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 
-	import { call, getUrl, removeDbo, copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
-	import { treeData, selectedId, cutBlocks } from './treeStore';
+	import {
+		call,
+		getUrl,
+		removeDbo,
+		copyDbo,
+		cutDbo,
+		pasteDbo,
+		renameDbo
+	} from '$lib/utils/service';
+	import { treeData, selectedId, cutBlocks, mountedBlocks } from './treeStore';
 	import DndBlock from './DndBlock.svelte';
 	import DropDivider from './DropDivider.svelte';
+	import ItemInput from './ItemInput.svelte';
 	import Toolbar from '../toolbar/Toolbar.svelte';
 	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
 
@@ -25,6 +34,7 @@
 	import IconDelete from '~icons/mdi/delete';
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	const dispatch = createEventDispatcher();
 
@@ -40,6 +50,7 @@
 
 	/** @type {DndBlock} */
 	let block;
+	let inline;
 
 	let live = false;
 
@@ -106,6 +117,7 @@
 	 * @param {KeyboardEvent} e
 	 */
 	async function handleKeyDown(e) {
+		//console.log("handleKeyDown", e)
 		// case copy dbo
 		if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC') {
 			let ids = [];
@@ -149,13 +161,18 @@
 			$cutBlocks = [];
 		}
 		// case delete dbo
-		else if (e.key === 'Delete') {
+		if (e.key === 'Delete') {
 			e.preventDefault();
 			let id = nodeData.id;
 			let result = await removeDbo(id != null ? id : undefined);
 			if (result.done) {
 				block.dispatchRemove();
 			}
+		}
+		// case rename dbo
+		if (e.key === 'F2') {
+			e.preventDefault();
+			inline.edit();
 		}
 	}
 
@@ -164,6 +181,26 @@
 		let result = await removeDbo(id != null ? id : undefined);
 		if (result.done) {
 			destroyChild(id);
+		}
+	}
+
+	async function treeRename(e) {
+		let result = await renameDbo(e.detail.id, e.detail.name, e.detail.update);
+		if (result.done) {
+			let ids = result.ids;
+			$mountedBlocks.forEach((mountedBlock) => {
+				if (mountedBlock) {
+					if (ids.includes(mountedBlock.nodeData.id)) {
+						//console.log("dispatchRemove sent for block", mountedBlock.nodeData.id)
+						mountedBlock.dispatchRemove();
+					}
+				}
+			});
+		} else {
+			toastStore.trigger({
+				message: 'Rename has failed !',
+				background: 'variant-filled-error'
+			});
 		}
 	}
 
@@ -195,6 +232,7 @@
 		on:keydown={handleKeyDown}
 		on:treeDelete={treeDelete}
 		on:treeRemove={treeRemove}
+		on:treeRename={treeRename}
 		regionSymbol="flex-none"
 	>
 		<svelte:fragment slot="children">
@@ -209,6 +247,7 @@
 						bind:this={links[child.id]}
 						on:treeDelete={treeDelete}
 						on:treeRemove={treeRemove}
+						on:treeRename={treeRename}
 					/>
 					{#if child.icon.includes('?')}
 						<DropDivider nodeData={child} on:update={update} position="after" />
@@ -229,14 +268,28 @@
 				>
 					<span slot="icon">
 						{#if nodeData.icon.includes('?')}
-							<img style="height:1.2rem; width:1.2rem;" src={`${getUrl()}${nodeData.icon}`} alt="ico" />
+							<img
+								style="height:1.2rem; width:1.2rem;"
+								src={`${getUrl()}${nodeData.icon}`}
+								alt="ico"
+							/>
 						{:else if nodeData.icon == 'file'}
-							<IconFile height="0.8rem" width="0.8rem"/>
+							<IconFile height="0.8rem" width="0.8rem" />
 						{:else}
-							<IconFolder height="0.8rem" width="0.8rem"/>
+							<IconFolder height="0.8rem" width="0.8rem" />
 						{/if}
 					</span>
-					<span slot="label">{nodeData.label}</span>
+					<span slot="label">
+						{#if nodeData.icon.includes('?')}
+							<ItemInput
+								bind:this={inline}
+								{nodeData}
+								on:rename={(e) => dispatch('treeRename', e.detail)}
+							/>
+						{:else}
+							{nodeData.label}
+						{/if}
+					</span>
 				</DndBlock>
 			</div>
 			<div class="invisible group-hover:visible">
@@ -288,6 +341,7 @@
 				bind:this={links[child.id]}
 				on:treeDelete={treeDelete}
 				on:treeRemove={treeRemove}
+				on:treeRename={treeRename}
 			/>
 		{/each}
 	</TreeView>
