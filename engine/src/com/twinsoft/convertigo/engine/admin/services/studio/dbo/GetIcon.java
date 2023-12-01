@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,13 +73,15 @@ public class GetIcon extends DownloadService {
 			throw new ServiceException("No image requested");
 		}
 		if (isImage.group(1) != null) {
-			try {
-				HeaderName.ContentType.setHeader(response, "image/svg+xml");
-				String svgPath = isImage.group(1) + ".svg";
-				IOUtils.copy(GetIcon.class.getResourceAsStream(svgPath), response.getOutputStream());
-				Engine.logAdmin.info("The image has been exported. From class " + svgPath);
-				return;
-			} catch (Exception e) {
+			HeaderName.ContentType.setHeader(response, "image/svg+xml");
+			for (var end : Arrays.asList("_web.svg", ".svg")) {
+				try {
+					String svgPath = isImage.group(1) + end;
+					IOUtils.copy(GetIcon.class.getResourceAsStream(svgPath), response.getOutputStream());
+					Engine.logAdmin.info("The image has been exported. From class " + svgPath);
+					return;
+				} catch (Exception e) {
+				}
 			}
 		}
 		try {

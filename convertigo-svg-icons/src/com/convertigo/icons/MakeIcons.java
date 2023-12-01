@@ -36,7 +36,7 @@ public class MakeIcons {
 	void run() throws Exception {
 		Files.walk(rootPath)
 		.filter(Files::isRegularFile)
-		.filter(p -> p.toString().endsWith(".svg"))
+		.filter(p -> p.toString().endsWith(".svg") && !p.toString().endsWith("_web.svg"))
 		.parallel()
 		.forEach(this::convert);
 		
