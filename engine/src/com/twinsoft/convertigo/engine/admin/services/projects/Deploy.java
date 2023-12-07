@@ -62,7 +62,7 @@ public class Deploy extends UploadService {
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "The deployment of the project "
 					+ item.getName() + " has failed. The archive file is not valid (.car required).", "error", false);
 		}
-		long start = System.currentTimeMillis();
+
 		super.doUpload(request, document, item);
 
 		// Depending on client browsers, according to the documentation,
@@ -81,81 +81,61 @@ public class Deploy extends UploadService {
 			projectArchive = projectArchive.substring(i + 1);
 		}
 
-		String[] prjName = { projectArchive };
-		Exception[] ex = { null };
-		boolean[] done = { false };
-		synchronized (done) {
-			Engine.execute(() -> {
-				try {
-					Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + prjName[0],
-							true, bAssembleXsl);
+		Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
+				bAssembleXsl);
 
-					String projectName = prjName[0] = project.getName();
-					Engine.theApp.schemaManager.clearCache(projectName);
-					Project.executeAutoStartSequences(projectName);
+		String projectName = project.getName();
+		Engine.theApp.schemaManager.clearCache(projectName);
+		Project.executeAutoStartSequences(projectName);
 
-					if (Boolean.parseBoolean(EnginePropertiesManager
-							.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {
+		if (Boolean.parseBoolean(
+				EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {
 
-						final String fUser = (String) request.getSession()
-								.getAttribute(SessionKey.ADMIN_USER.toString());
-						final String fProjectName = projectName;
+			final String fUser = (String) request.getSession().getAttribute(SessionKey.ADMIN_USER.toString());
+			final String fProjectName = projectName;
 
-						Engine.execute(() -> {
-							try {
-								Properties props = new Properties();
-								String smtpServer = EnginePropertiesManager
-										.getProperty(PropertyName.NOTIFICATIONS_SMTP_HOST);
-								String smtpPort = EnginePropertiesManager
-										.getProperty(PropertyName.NOTIFICATIONS_SMTP_PORT);
-								String smtpUsername = EnginePropertiesManager
-										.getProperty(PropertyName.NOTIFICATIONS_SMTP_USER);
-								String smtpPassword = EnginePropertiesManager
-										.getProperty(PropertyName.NOTIFICATIONS_SMTP_PASSWORD);
-								props.put("mail.transport.protocol", "smtps");
-								props.put("mail.smtps.host", smtpServer);
-								props.put("mail.smtps.port", smtpPort);
-								props.put("mail.smtps.auth", "true");
-								props.put("mail.smtps.ssl.protocols", "TLSv1.2");
+			Engine.execute(new Runnable() {
+				public void run() {
+					try {
+						Properties props = new Properties();
+						String smtpServer = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_HOST);
+						String smtpPort = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_PORT);
+						String smtpUsername = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_USER);
+						String smtpPassword = EnginePropertiesManager
+								.getProperty(PropertyName.NOTIFICATIONS_SMTP_PASSWORD);
+						props.put("mail.transport.protocol", "smtps");
+						props.put("mail.smtps.host", smtpServer);
+						props.put("mail.smtps.port", smtpPort);
+						props.put("mail.smtps.auth", "true");
+						props.put("mail.smtps.ssl.protocols", "TLSv1.2");
 
-								// Initializing
-								Session mailSession = Session.getInstance(props, new Authenticator() {
+						// Initializing
+						Session mailSession = Session.getInstance(props, new Authenticator() {
 
-									@Override
-									protected PasswordAuthentication getPasswordAuthentication() {
-										return new PasswordAuthentication(smtpUsername, smtpPassword);
-									}
-								});
-								MimeMessage message = new MimeMessage(mailSession);
-								message.setFrom(new InternetAddress("noreply@convertigo.com"));
-								message.setSender(new InternetAddress("noreply@convertigo.com"));
-								message.addRecipient(Message.RecipientType.TO, new InternetAddress(
-										EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
-								message.setSubject("[trial] deployment of " + fProjectName + " by " + fUser);
-								message.setText(message.getSubject() + "\n"
-										+ "https://trial.convertigo.net/convertigo/projects/" + fProjectName);
-								Transport transport = mailSession.getTransport("smtps");
-								transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
-								transport.sendMessage(message, message.getAllRecipients());
-								transport.close();
-							} catch (MessagingException e1) {
+							@Override
+							protected PasswordAuthentication getPasswordAuthentication() {
+								return new PasswordAuthentication(smtpUsername, smtpPassword);
 							}
 						});
+						MimeMessage message = new MimeMessage(mailSession);
+						message.setFrom(new InternetAddress("noreply@convertigo.com"));
+						message.setSender(new InternetAddress("noreply@convertigo.com"));
+						message.addRecipient(Message.RecipientType.TO, new InternetAddress(
+								EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
+						message.setSubject("[trial] deployment of " + fProjectName + " by " + fUser);
+						message.setText(message.getSubject() + "\n"
+								+ "https://trial.convertigo.net/convertigo/projects/" + fProjectName);
+						Transport transport = mailSession.getTransport("smtps");
+						transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
+						transport.sendMessage(message, message.getAllRecipients());
+						transport.close();
+					} catch (MessagingException e1) {
 					}
-				} catch (Exception e) {
-					ex[0] = e;
-				}
-				synchronized (done) {
-					done[0] = true;
-					done.notify();
 				}
 			});
-			done.wait(Math.max(0, 40000 - (System.currentTimeMillis() - start)));
-			if (ex[0] != null) {
-				throw ex[0];
-			}
 		}
-		String message = "The project '" + prjName[0] + (done[0] ? "' has been successfully deployed." : "' deployement still in progress");
+
+		String message = "The project '" + projectName + "' has been successfully deployed.";
 		Engine.logAdmin.info(message);
 		ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
 	}
