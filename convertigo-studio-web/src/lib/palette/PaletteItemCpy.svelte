@@ -63,7 +63,7 @@
 		</span>
 	{/if}
 	<span class="whitespace-normal mt-3 text-center">
-		<span class="font-extralight text-center">
+		<span class="font-extralight text-center text-[11.5px] text-gray-100">
 			{item.name}
 		</span>
 	</span>
