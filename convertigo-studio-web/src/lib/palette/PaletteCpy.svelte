@@ -158,7 +158,7 @@
 	let value = 0;
 </script>
 
-<div class="palette bg-surface-500">
+<div class="palette bg-surface-800">
 	<div class="header">
 		<div class="flex flex-row gap-5">
 			<button

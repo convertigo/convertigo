@@ -72,14 +72,14 @@
 	<svelte:fragment slot="sidebarLeft"
 		><AppRail
 			width="w-[35px]"
-			background="bg-surface-500"
-			class="border-1 border-r border-surface-400"
+			background="bg-surface-900"
+			class="border-1 border-r border-surface-500"
 			gap="gap-10"
 			spacing="mb-"
 		>
 			<AppRailAnchor
 				selected={$treeSelected}
-				active="bg-surface-900"
+				active="bg-surface-700"
 				on:click={() => ($treeSelected = !$treeSelected)}
 				><Icon
 					icon="material-symbols-light:account-tree-outline"
@@ -95,14 +95,14 @@
 				/></AppRailAnchor
 			>
 			<AppRailAnchor
-				active="bg-surface-900"
+				active="bg-surface-700"
 				selected={$paletteSelected}
 				on:click={() => ($paletteSelected = !$paletteSelected)}
 			>
 				<Icon icon="material-symbols-light:add" class="h-8 w-8 pl-1" /></AppRailAnchor
 			>
 			<AppRailAnchor
-				active="bg-surface-900"
+				active="bg-surface-700"
 				selected={$viewerSelected}
 				on:click={() => ($viewerSelected = !$viewerSelected)}
 				><Icon
@@ -111,7 +111,7 @@
 				/></AppRailAnchor
 			>
 			<AppRailAnchor
-				active="bg-surface-900"
+				active="bg-surface-700"
 				selected={$ngxbuilderSelected}
 				on:click={() => ($ngxbuilderSelected = !$ngxbuilderSelected)}
 				><Icon
@@ -120,7 +120,7 @@
 				/></AppRailAnchor
 			>
 			<AppRailAnchor
-				active="bg-surface-900"
+				active="bg-surface-700"
 				selected={$editorSelected}
 				on:click={() => ($editorSelected = !$editorSelected)}
 				><Icon icon="material-symbols-light:brush-outline" class="h-8 w-8 pl-1" /></AppRailAnchor
@@ -133,3 +133,4 @@
 		</AppRail></svelte:fragment
 	>
 </AppShell>
+

@@ -1,5 +1,5 @@
 export const darkTheme = {
-	name: 'darkTheme',
+	name: 'dark-theme',
 	properties: {
 		// =~= Theme Properties =~=
 		'--theme-font-family-base': `system-ui`,

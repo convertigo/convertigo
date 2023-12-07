@@ -13,8 +13,8 @@
 			slotDefault="place-self-center"
 			slotTrail="place-content-end"
 			padding="p-1"
-			background="bg-surface-500"
-			class="border-1 border-b border-surface-400"
+			background="bg-surface-900"
+			class="border-1 border-b border-surface-500"
 		>
 			<svelte:fragment slot="lead"
 				><div class={$loading > 0 ? 'rotate' : ''} style="margin-left:-4px">

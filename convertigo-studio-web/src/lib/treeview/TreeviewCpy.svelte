@@ -183,7 +183,7 @@
 	}
 </script>
 
-<div class="h-full bg-surface-500">
+<div class="h-full bg-surface-800">
 	{#if nodeData.id != null}
 		<TreeViewItem
 			bind:this={item}
@@ -237,7 +237,7 @@
 								<Icon icon="material-symbols-light:folder-outline" class="w-6 h-6" />
 							{/if}
 						</span>
-						<span slot="label" class="text-[12px] font-light">{nodeData.label}</span>
+						<span slot="label" class="text-[11.5px] font-light text-gray-100">{nodeData.label}</span>
 					</DndBlock>
 				</div>
 				<div class="invisible group-hover:visible">

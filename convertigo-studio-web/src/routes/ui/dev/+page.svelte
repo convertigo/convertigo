@@ -1,36 +1,27 @@
 <script>
 	import {
-		AppRail,
-		AppRailAnchor,
-		LightSwitch,
-		AppBar,
-		AppShell,
 		TabGroup,
 		Tab,
-		RadioGroup,
-		RadioItem
+
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { linear } from 'svelte/easing';
 	import { call } from '$lib/utils/service';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import { loading, authenticated } from '$lib/utils/loadingStore';
-	import { Toast, Modal, initializeStores } from '@skeletonlabs/skeleton';
-	import Icon from '@iconify/svelte';
+	import {  authenticated } from '$lib/utils/loadingStore';
+	import { initializeStores } from '@skeletonlabs/skeleton';
+
 
 	import SizableCard from '$lib/shell/SizableCardCpy.svelte';
 	import Monaco from '$lib/editor/Editor.svelte';
 	import C8oTree from '$lib/treeview/TreeviewCpy.svelte';
-	import Palette from '$lib/palette/Palette.svelte';
-	import themes from '$lib/resources/themes.json';
+
 	import Viewer from '$lib/viewer/Viewer.svelte';
 	import NgxBuilder from '$lib/viewer/NgxBuilder.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
 	import PaletteCpy from '$lib/palette/PaletteCpy.svelte';
-	import SizableCardCpy from '$lib/shell/SizableCardCpy.svelte';
-	import Topbar from '$lib/appbar/Topbar.svelte';
-	import SidebarLeft from '$lib/sidebars/SidebarLeft.svelte';
+
 
 	initializeStores();
 
@@ -88,7 +79,7 @@
 	let value = 0;
 </script>
 
-<div class="flex flex-row items-stretch h-full bg-surface-500">
+<div class="flex flex-row items-stretch h-full bg-surface-900">
 	{#if $treeSelected}
 		<SizableCard name="tree">
 			<C8oTree />
