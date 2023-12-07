@@ -204,7 +204,7 @@ public class InternalRequester extends GenericRequester {
 			return new Context("system");
 		}
 
-		Map<String, String[]> request = GenericUtils.cast(inputData);
+		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		String contextName = getContextName();
 
