@@ -24,7 +24,7 @@ export async function call(service, data = {}) {
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf-token', xsrf);
 	}
-	
+
 	const contentType = res.headers.get('content-type');
 	if (contentType?.includes('xml')) {
 		return new XMLParser({ ignoreAttributes: false }).parse(await res.text());

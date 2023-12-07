@@ -116,9 +116,12 @@
 		</svelte:fragment>
 		<svelte:fragment slot="sidebarLeft">
 			<AppRail>
-				<AppRailAnchor on:click={() => runAction('build_dev', {
-					endpoint: getUrl().replace(/https?:\/\/.*.(\/.*)\/admin\/.*/, '$1')
-				})}>Run</AppRailAnchor>
+				<AppRailAnchor
+					on:click={() =>
+						runAction('build_dev', {
+							endpoint: getUrl().replace(/https?:\/\/.*.(\/.*)\/admin\/.*/, '$1')
+						})}>Run</AppRailAnchor
+				>
 				<AppRailAnchor on:click={() => runAction('kill')}>Kill</AppRailAnchor>
 			</AppRail>
 		</svelte:fragment>

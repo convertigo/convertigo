@@ -1,0 +1,11 @@
+designdocument:
+designdocument:
+fullsynclistener:
+fullsynclistener:
+function:
+function:
+jsonindex:
+jsonindex:
+listcouchdb.txt:
+view:
+view:

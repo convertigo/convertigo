@@ -55,10 +55,25 @@
 >
 	{#if item.icon.includes('/')}
 		<span>
-			<img src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`} alt="ico" />
+			<img
+				class="white-svg"
+				src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`}
+				alt="ico"
+			/>
 		</span>
 	{/if}
 	<span class="whitespace-normal">
 		{item.name}
 	</span>
 </span>
+
+<style>
+	img {
+		height: 24px;
+		width: 24px;
+	}
+
+	.white-svg {
+		filter: invert(100%);
+	}
+</style>

@@ -17,6 +17,7 @@
 	"devDependencies": {
 		"@fontsource-variable/inter": "^5.0.15",
 		"@iconify-json/mdi": "^1.1.55",
+		"@iconify/svelte": "^3.1.4",
 		"@playwright/test": "^1.39.0",
 		"@skeletonlabs/skeleton": "^2.5.0",
 		"@skeletonlabs/tw-plugin": "0.2.4",
@@ -43,6 +44,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@flaticon/flaticon-uicons": "^3.0.0",
 		"@floating-ui/dom": "1.5.3",
 		"fast-xml-parser": "^4.3.2",
 		"monaco-editor": "^0.44.0"

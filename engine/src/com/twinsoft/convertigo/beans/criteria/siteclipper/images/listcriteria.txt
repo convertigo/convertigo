@@ -1,0 +1,13 @@
+listcriteria.txt
+match_headerRequest:
+match_headerRequest:
+match_headerResponse:
+match_headerResponse:
+match_mimetype:
+match_mimetype:
+match_regexp:
+match_regexp:
+match_statusCode:
+match_statusCode:
+match_url:
+match_url:
