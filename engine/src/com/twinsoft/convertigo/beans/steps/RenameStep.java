@@ -86,8 +86,9 @@ public class RenameStep extends Step {
 					try {
 						File destinationFile = new File(sourceFile.getParentFile().getCanonicalPath() + "/"
 								+ newFileName);
-
-						if (sourceFile.isDirectory()) {
+						if (sourceFile.equals(destinationFile)) {
+							Engine.logBeans.info("The source and the destination are the same: \"" + sourceFilePath + "\".");
+						} else if (sourceFile.isDirectory()) {
 							if (destinationFile.exists() && !overwrite) {
 								throw new EngineException(
 										"The destination directory "

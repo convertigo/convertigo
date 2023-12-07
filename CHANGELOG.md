@@ -1,5 +1,24 @@
 # Changelog
 
+## 8.2.4
+
+#### Improvements:
+
+- [#721](https://github.com/convertigo/convertigo/issues/721) [Studio] Ability to have multiple stubs for a single sequence
+- [#775](https://github.com/convertigo/convertigo/issues/775) [TestPlatform] Introduction of new JSON and XML formatters, along with color-coded results
+- [#785](https://github.com/convertigo/convertigo/issues/785) [Docker] The JDWP debug port is now optional
+
+#### Bug Fixes:
+
+- [#776](https://github.com/convertigo/convertigo/issues/776) [Admin] Fixed, no more random NullPointerExceptions on the connection page under heavy session load
+- [#778](https://github.com/convertigo/convertigo/issues/778) [Step] Fixed , the __testcase variable can now be used in CallTransaction or CallSequence
+- [#779](https://github.com/convertigo/convertigo/issues/779) [Studio] Fixed, right-clicking in the mobile viewer loader no longer disrupts the highlight component feature
+- [#781](https://github.com/convertigo/convertigo/issues/781) [Server] Fixed, the Angular router can now handle paths with dots
+- [#783](https://github.com/convertigo/convertigo/issues/783) [Step] Fixed, file-based steps' path properties will no longer accept a blank expression, avoiding runtime errors. Undefined values are now used instead
+- [#784](https://github.com/convertigo/convertigo/issues/784) [Step] Fixed, the Rename File Step no longer deletes the file when the source and target are the same
+
+---
+
 ## 8.2.3
 
 #### Improvements:

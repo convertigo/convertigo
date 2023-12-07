@@ -44,6 +44,12 @@ if [ "$1" = "convertigo" ]; then
         unset LOG_FILE
     fi
     
+    ## enable JVM debug with JDWP
+    if [ "$ENABLE_JDWP_DEBUG" = "true" ]; then
+    	export JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n $JAVA_OPTS"
+    	unset ENABLE_JDWP_DEBUG
+    fi
+    
     ## add the linked couchdb container as the fullsync couchdb
     
     if [ "$(getent hosts couchdb)" != "" ]; then
@@ -87,8 +93,6 @@ if [ "$1" = "convertigo" ]; then
         --add-opens java.desktop/sun.awt.image=ALL-UNNAMED \
         -XX:+UseG1GC \
         -XX:+UseStringDeduplication \
-        -Xdebug \
-        -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n \
         -Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true \
         -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true \
         -Dconvertigo.cems.user_workspace_path=/workspace"
