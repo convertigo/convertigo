@@ -128,15 +128,15 @@
 	</table>
 </div>-->
 
-<div class="flex">
+<div class="flex bg-surface-800">
 	<Accordion regionControl="variant-soft-primary">
 		<div>
 			{#each Object.entries(categories) as [category, items] (category)}
-				<AccordionItem open>
-					<svelte:fragment slot="summary"><b>{category}</b></svelte:fragment>
+				<AccordionItem open rounded="none">
+					<svelte:fragment slot="summary"><b class="text-[11.5px] font-light">{category}</b></svelte:fragment>
 					<svelte:fragment slot="content">
 						{#each items as item (JSON.stringify(item[1]))}
-							<div class="flex flex-row flex-nowrap">
+							<div class="flex flex-row flex-nowrap text-[11.5px]">
 								<div class="basis-1/3 ml-2.5">{item[0]}</div>
 								<div class="basis-2/3">
 									<svelte:component

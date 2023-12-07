@@ -48,7 +48,7 @@
 			type="text"
 			autocomplete="off"
 			aria-autocomplete="none"
-			class="rounded select form-select w-full"
+			class="rounded select form-select w-full "
 			id={name + '-input'}
 			{value}
 			on:change={onChange}
@@ -66,7 +66,7 @@
 	{:else}
 		<select
 			bind:this={select}
-			class="select w-full"
+			class="select w-full text-[11.5px]"
 			id={name + '-select'}
 			{value}
 			on:change={onChange}

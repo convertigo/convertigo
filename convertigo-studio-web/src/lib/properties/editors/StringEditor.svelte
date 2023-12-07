@@ -19,13 +19,15 @@
 	}
 </script>
 
-<input
-	bind:this={input}
-	class="input"
-	type="text"
-	autocomplete="off"
-	aria-autocomplete="none"
-	id={name + '-input'}
-	{value}
-	on:change={onChange}
-/>
+<div class="text-[11.5px]">
+	<input
+		bind:this={input}
+		class="input text-[11.5px]"
+		type="text"
+		autocomplete="off"
+		aria-autocomplete="none"
+		id={name + '-input'}
+		{value}
+		on:change={onChange}
+	/>
+</div>
