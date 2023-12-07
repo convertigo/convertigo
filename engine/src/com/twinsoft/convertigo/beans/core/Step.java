@@ -761,7 +761,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected String evaluateToString(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
 		String value = null;
 		evaluate(javascriptContext, scope, source, sourceName, true);
-		value = String.valueOf(evaluated);
+		if (!Undefined.isUndefined(evaluated)) {
+			value = String.valueOf(evaluated);
+		}
 		if (value == null) {
 			EngineException ee = new EngineException(
 					"Invalid \""+sourceName+"\" value.\n" +
