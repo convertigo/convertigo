@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
-	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/8.2.0/";
+	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/8.3.0/";
 
 	private Set<String> backupFiles = new TreeSet<String>();
 	private File dest;
