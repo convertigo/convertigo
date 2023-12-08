@@ -19,10 +19,10 @@
 	}
 </script>
 
-<div class="text-[11.5px]">
+<div class="text-[11.5px] ">
 	<input
 		bind:this={input}
-		class="input text-[11.5px]"
+		class="input text-[11.5px] border-[0.5px] rounded-[4px] bginput text-surface-300 "
 		type="text"
 		autocomplete="off"
 		aria-autocomplete="none"
@@ -31,3 +31,9 @@
 		on:change={onChange}
 	/>
 </div>
+
+<style>
+		.bginput{
+		@apply bg-surface-900;
+	}
+</style>

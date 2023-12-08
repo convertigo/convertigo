@@ -19,7 +19,14 @@
 	}
 </script>
 
-<select bind:this={select} class="select" id={name + '-select'} {value} on:change={onChange}>
+<select bind:this={select} class="select bginput text-[11.5px] rounded-[4px] border-[0.5px] py-0 " id={name + '-select'} {value} on:change={onChange}>
 	<option value="true">true</option>
 	<option value="false">false</option>
 </select>
+
+
+<style>
+	.bginput{
+		@apply bg-surface-900;
+	}
+</style>

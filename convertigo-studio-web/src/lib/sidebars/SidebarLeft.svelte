@@ -88,6 +88,7 @@
 			>
 			<AppRailAnchor
 				selected={$propertiesSelected}
+                active="bg-surface-700"
 				on:click={() => ($propertiesSelected = !$propertiesSelected)}
 				><Icon
 					icon="material-symbols-light:event-list-outline-sharp"

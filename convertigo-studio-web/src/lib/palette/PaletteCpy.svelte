@@ -159,16 +159,17 @@
 </script>
 
 <div class="palette bg-surface-800">
+
 	<div class="header">
-		<div class="flex flex-row gap-5">
+		<div class="flex flex-row bg-surface-900 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center">
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
 				on:click={handleLink}
 				use:popup={tooltip('tooltip-link')}
 			>
-				<div class="card p-4" data-popup="tooltip-link">
-					<p>Link with the project's tree selection 2</p>
+				<div class="card p-1" data-popup="tooltip-link">
+					<p class="text-[11.5px] px-2">Link with the project's tree selection 2</p>
 					<div class="arrow" />
 				</div>
 				{#if linkOn}
@@ -185,7 +186,7 @@
 				use:popup={tooltip('tooltip-builtin')}
 			>
 				<div class="card p-4" data-popup="tooltip-builtin">
-					<p>Built-in objects visibility</p>
+					<p class="text-[11.5px] px-2">Built-in objects visibility</p>
 					<div class="arrow" />
 				</div>
 				{#if builtinOn}
@@ -201,8 +202,8 @@
 				on:click={handleAdditional}
 				use:popup={tooltip('tooltip-additional')}
 			>
-				<div class="card p-4" data-popup="tooltip-additional">
-					<p>Shared objects visibility</p>
+				<div class="card p-1" data-popup="tooltip-additional">
+					<p class="text-[11.5px] px-2 ">Shared objects visibility</p>
 					<div class="arrow" />
 				</div>
 				{#if additionalOn}
@@ -232,7 +233,7 @@
 			</button>
 		</div>
 
-		<div class="mt-10 w-[70%]">
+		<div class="mt-2 w-[100%] border-[0.5px] border-surface-500 rounded-[4px]">
 			<input
 				id="inputSearch"
 				class="input searchbar"
@@ -240,8 +241,13 @@
 				placeholder="Search..."
 				bind:value={search}
 				on:input={doSearch}
+
 			/>
 		</div>
+	</div>
+
+	<div class="border-[1px] border-surface-600 mt-2">
+
 	</div>
 
 	<div class="content">
@@ -252,7 +258,7 @@
 						<span class="font-extralight">Favorites</span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-800">
+						<div class="items-container bg-surface-900">
 							{#each favoritesItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -264,7 +270,7 @@
 						<span class="font-extralight"> Last used </span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-800">
+						<div class="items-container bg-surface-900">
 							{#each usedItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -281,7 +287,7 @@
 							</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div class="items-container bg-surface-800 p-4">
+							<div class="items-container bg-surface-900 p-4">
 								{#each category.items as item}
 									<PaletteItem {item} on:itemClicked={itemClicked} />
 								{/each}
@@ -317,5 +323,14 @@
 
 	.searchbar {
 		padding: 4px;
+		@apply bg-surface-900;
+		border-radius: 4px;
+		font-size: 11.5px;
 	}
+
+
+	
 </style>
+
+
+

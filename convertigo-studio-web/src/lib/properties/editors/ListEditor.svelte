@@ -55,7 +55,7 @@
 			use:popup={combo(name + '-popup')}
 		/>
 		<div class="card w-48 shadow-xl py-2" data-popup={name + '-popup'}>
-			<ListBox rounded="rounded-none">
+			<ListBox rounded="rounded-none bg-surface-800">
 				{#each values as v}
 					<ListBoxItem bind:group={groupValue} name="medium" on:change={groupChange} value={v}
 						>{v}</ListBoxItem
@@ -66,7 +66,7 @@
 	{:else}
 		<select
 			bind:this={select}
-			class="select w-full text-[11.5px]"
+			class="select w-full text-[11.5px] py-0 border-[0.5px] bginput  rounded-[4px]"
 			id={name + '-select'}
 			{value}
 			on:change={onChange}
@@ -77,3 +77,9 @@
 		</select>
 	{/if}
 </div>
+
+<style>
+	.bginput{
+		@apply bg-surface-900;
+	}
+</style>
