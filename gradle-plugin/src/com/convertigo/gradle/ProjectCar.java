@@ -57,6 +57,10 @@ public class ProjectCar extends ConvertigoTask {
 	public File getDestinationFile() {
 		return destinationFile;
 	}
+
+	public void setDestinationFile(File destinationFile) {
+		this.destinationFile = destinationFile;
+	}
 	
 	@Input @Optional
 	public Boolean isIncludeTestCases() {
@@ -110,10 +114,6 @@ public class ProjectCar extends ConvertigoTask {
 
 	public void setIncludeMobilePlatformsAssets(Boolean includeMobilePlatformsAssets) {
 		this.includeMobilePlatformsAssets = includeMobilePlatformsAssets;
-	}
-
-	public void setDestinationFile(File destinationFile) {
-		this.destinationFile = destinationFile;
 	}
 
 	public ProjectCar() {

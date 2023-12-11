@@ -904,7 +904,7 @@ public abstract class BuildLocally {
 	}
 	
 	public void configureSignIOS(File provisioningProfile, String signId) throws Exception {
-		if (mobilePlatform instanceof IOs || !Engine.isMac()) {
+		if (!(mobilePlatform instanceof IOs && Engine.isMac())) {
 			return;
 		}
 		String line;
