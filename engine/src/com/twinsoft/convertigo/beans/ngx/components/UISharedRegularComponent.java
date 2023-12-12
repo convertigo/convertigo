@@ -720,18 +720,19 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		String c8o_CompScssPath;
-		
-		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
-		try {
-			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(this)
-									+ "/" +UISharedComponent.getNsCompFileName(this) + ".scss").getCanonicalPath());
-			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
-		} catch (Exception e) {
-			c8o_CompScssPath = "../components/"+ UISharedComponent.getNsCompDirName(this) + "/" +UISharedComponent.getNsCompFileName(this) + ".scss";
-		}
-		
-		return "@use \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
+//		String c8o_CompScssPath;
+//		
+//		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
+//		try {
+//			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(this)
+//									+ "/" +UISharedComponent.getNsCompFileName(this) + ".scss").getCanonicalPath());
+//			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
+//		} catch (Exception e) {
+//			c8o_CompScssPath = "../components/"+ UISharedComponent.getNsCompDirName(this) + "/" +UISharedComponent.getNsCompFileName(this) + ".scss";
+//		}
+//		
+//		return "@use \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
+		return "";
 	}
 
 	@Override
