@@ -70,6 +70,10 @@ public class ShowProperties extends XmlService {
 				databaseType = "mysql";
 			} else if (driver.equals("oracle.jdbc.driver.OracleDriver")) {
 				databaseType = "oracle";
+			} else if (driver.equals("org.mariadb.jdbc.Driver")) {
+				databaseType = "mariadb";
+			} else if (driver.equals("org.postgresql.Driver")) {
+				databaseType = "postgresql";
 			}
 			
 			String s, serverName, port, databaseName;
