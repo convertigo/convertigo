@@ -159,7 +159,8 @@ Add any **Java JVM** options such as -D[something] :
 
 ## `LOG_STDOUT` and `LOG_FILE` Environment variables
 
-Convertigo generates many logs in a engine.log file that can be consulted via the Convertigo Administration Console. In some environments, it's easiest to read logs from the container's standard output. Set this property `true` to enable console output. The default value is `false`.
+Convertigo generates many logs in a **engine.log** file that can be consulted via the Convertigo Administration Console. In some environments, it's easiest to read logs from the container's standard output. Set this property `true` to enable console output. The default value is `false`.
+
 Log file still exists until you add the `LOG_FILE=false` environment variable :
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo

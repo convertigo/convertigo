@@ -97,6 +97,8 @@ public class Configure extends XmlService {
 	String sqlServerDriver = "net.sourceforge.jtds.jdbc.Driver";
 	String mySQLDriver = "com.mysql.jdbc.Driver";
 	String oracleDriver = "oracle.jdbc.driver.OracleDriver";
+	String mariadbDriver = "org.mariadb.jdbc.Driver";
+	String postgresqlDriver = "org.postgresql.Driver";
 	
 	String cacheManagerDatabaseType = "com.twinsoft.convertigo.engine.cache.DatabaseCacheManager";
 	String cacheManagerFileType = "com.twinsoft.convertigo.engine.cache.FileCacheManager";
@@ -136,13 +138,16 @@ public class Configure extends XmlService {
 			if (sqlServerDriver.equals(databaseDriver)) {
 				sqlCreateTableFileName += "sqlserver.sql";
 				sqlTest = "select top 1 * FROM CacheTable";
-			} else if (mySQLDriver.equals(databaseDriver)) {
+			} else if (mySQLDriver.equals(databaseDriver) || mariadbDriver.equals(databaseDriver)) {
 				sqlCreateTableFileName += "mysql.sql";
 				sqlTest = "select * from CacheTable limit 1";
 			} else if (oracleDriver.equals(databaseDriver)) {
 				sqlCreateTableFileName += "oracle.sql";
 				sqlTest = "select * from CacheTable where rownum <= 1";
 				dbCreationSupport = false;
+			} else if (postgresqlDriver.equals(databaseDriver)) {
+				sqlCreateTableFileName += "postgresql.sql";
+				sqlTest = "select * from CacheTable limit 1";
 			}
 			
 			if (dbCreationSupport) {
@@ -233,7 +238,7 @@ public class Configure extends XmlService {
 			EnginePropertiesManager.saveProperties();
 		}
 		
-		if ( cacheManagerDatabaseType.equals(cacheType)) {
+		if (cacheManagerDatabaseType.equals(cacheType)) {
 			String cacheTableName = request.getParameter("cacheTableName");
 			if (cacheTableName == null || cacheTableName.isEmpty()) {
 				cacheTableName = "CacheTable";
@@ -248,6 +253,10 @@ public class Configure extends XmlService {
 				databaseDriver=sqlServerDriver;
 			} else if(databaseDriver.equals("oracle")) {
 				databaseDriver=oracleDriver;
+			} else if(databaseDriver.equals("mariadb")) {
+				databaseDriver=mariadbDriver;
+			} else if(databaseDriver.equals("postgresql")) {
+				databaseDriver=postgresqlDriver;
 			}
 			
 			dbCacheProp.setProperty("jdbc.driver.class_name", databaseDriver);
@@ -255,11 +264,13 @@ public class Configure extends XmlService {
 			String databaseUrl = "jdbc:";
 			if (sqlServerDriver.equals(databaseDriver))
 				databaseUrl += "jtds:sqlserver://";
-			else if (mySQLDriver.equals(databaseDriver))
+			else if (mySQLDriver.equals(databaseDriver) || mariadbDriver.equals(databaseDriver))
 				databaseUrl += "mysql://";
 			else if (oracleDriver.equals(databaseDriver))
 				databaseUrl += "oracle:thin:@//";
-
+			else if (postgresqlDriver.equals(databaseDriver))
+				databaseUrl += "postgresql://";
+			
 			String databaseServerName = request.getParameter("databaseServerName");
 			if (!databaseServerName.equals(""))
 				databaseUrl += databaseServerName;

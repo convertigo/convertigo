@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS CacheTable;
+CREATE TABLE CacheTable (Id SERIAL PRIMARY KEY, RequestString VARCHAR(255), ExpiryDate BIGINT NOT NULL, SheetUrl VARCHAR(255), AbsoluteSheetUrl VARCHAR(255), ContentType VARCHAR(255), Xml TEXT NOT NULL, Project VARCHAR(128), Transaction VARCHAR(128));

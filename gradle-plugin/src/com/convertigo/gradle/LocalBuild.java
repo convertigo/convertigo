@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -68,7 +70,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.mode = mode;
 	}
 
-	@Input @Optional
+	@OutputDirectory @Optional
 	public File getPackageDestinationDir() {
 		return packageDestinationDir;
 	}
@@ -76,7 +78,8 @@ public class LocalBuild extends ConvertigoTask {
 	public void setPackageDestinationDir(File packageDestinationDir) {
 		this.packageDestinationDir = packageDestinationDir;
 	}
-	
+
+	@InputFiles @Optional
 	public File getIosProvisioningProfile() {
 		return iosProvisioningProfile;
 	}
@@ -85,6 +88,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.iosProvisioningProfile = iosProvisioningProfile;
 	}
 
+	@Input @Optional
 	public String getIosSignIdentity() {
 		return iosSignIdentity;
 	}
@@ -93,6 +97,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.iosSignIdentity = iosSignIdentity;
 	}
 
+	@InputFiles @Optional
 	public File getAndroidKeystore() {
 		return androidKeystore;
 	}
@@ -101,6 +106,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.androidKeystore = androidKeystore;
 	}
 
+	@Input @Optional
 	public String getAndroidKeystorePassword() {
 		return androidKeystorePassword;
 	}
@@ -109,6 +115,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.androidKeystorePassword = androidKeystorePassword;
 	}
 
+	@Input @Optional
 	public String getAndroidPassword() {
 		return androidPassword;
 	}
@@ -117,6 +124,7 @@ public class LocalBuild extends ConvertigoTask {
 		this.androidPassword = androidPassword;
 	}
 
+	@Input @Optional
 	public String getAndroidAlias() {
 		return androidAlias;
 	}
