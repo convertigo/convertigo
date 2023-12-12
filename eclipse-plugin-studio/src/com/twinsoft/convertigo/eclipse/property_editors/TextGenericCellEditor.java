@@ -135,7 +135,6 @@ public class TextGenericCellEditor extends TextCellEditor {
 			if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.SCRIPTABLE))) {
 				text.setForeground(ColorEnum.BLACK.get());
 				text.setBackground(ColorEnum.JAVASCRIPTABLE.get());
-				text.setFont(new Font(parent.getDisplay(), "courier new", 8, SWT.BOLD));
 			}
 		});
 
