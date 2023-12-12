@@ -29,9 +29,9 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.30.3'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.80'
-ext.eclipseVersion = '2023-09'
-ext.eclipseBase = '4.29'
+ext.tomcatVersion = '9.0.83'
+ext.eclipseVersion = '2023-12'
+ext.eclipseBase = '4.30'
 ext.studioWebNodeVersion = '18'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
@@ -142,8 +142,10 @@ allprojects {
 	
 	plugins.withId('java') {
 		compileJava.options.encoding = 'UTF-8'
-		sourceCompatibility = '17'
-		targetCompatibility = '17'
+		java {
+			sourceCompatibility = JavaVersion.VERSION_17
+			targetCompatibility = JavaVersion.VERSION_17
+		}
 		
 		task cleanBin(type: Delete) {
 			group 'convertigo'
@@ -263,7 +265,7 @@ publishing {
 }
 
 afterEvaluate {
-	ext.sharedManifest = project(':engine').manifest {
+	ext.sharedManifest = project(':engine').java.manifest {
 		attributes(
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
@@ -462,4 +464,10 @@ task checkLicenseDate {
 	doFirst {
 		licenseTextFile.text = licenseTextFile.text.replaceAll('-20\\d\\d-', "-${currentYear}-")
 	}
+}
+
+task updateWrapper(type: Wrapper) {
+    group 'convertigo'
+    
+    gradleVersion '8.5'
 }

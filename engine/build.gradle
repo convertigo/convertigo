@@ -30,7 +30,6 @@ publishing {
 	}
 }
 
-webAppDirName = 'convertigo'
 
 eclipse {
 	project {
@@ -123,6 +122,7 @@ tasks['publish'].dependsOn dependenciesJar
 compileJava.dependsOn dependenciesJar
 
 war {
+	webAppDirectory = file('convertigo')
 	archiveBaseName = 'convertigo'
 	
 	classpath = files(configurations.runtimeClasspath, jar)
