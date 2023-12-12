@@ -128,7 +128,7 @@ war {
 	classpath = files(configurations.runtimeClasspath, jar)
 	
 	doFirst {
-		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
+		project.war.webAppDirectory = file('../eclipse-plugin-studio/tomcat/webapps/convertigo')
 		file('build/tmp/build.txt').text = """\
 build.version=${convertigoRevision}
 build.date=${new Date().toString()}
