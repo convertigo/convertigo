@@ -8,6 +8,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { getUrl } from '$lib/utils/service';
 	import { draggedData } from '$lib/utils/dndStore';
+	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -54,11 +55,11 @@
 	on:click={onClick}
 >
 	{#if item.icon.includes('/')}
-		<span>
-			<img
-				class="white-svg"
+		<span class="white-svg">
+			<AutoSvg
 				src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`}
-				alt="ico"
+				height="35px"
+				width="35px"
 			/>
 		</span>
 	{/if}
@@ -70,12 +71,8 @@
 </span>
 
 <style>
-	img {
-		height: 35px;
-		width: 35px;
-	}
-
 	.white-svg {
-		filter: invert(100%);
+		/*filter: invert(100%);*/
+		color: white;
 	}
 </style>
