@@ -55,16 +55,17 @@
 	on:click={onClick}
 >
 	{#if item.icon.includes('/')}
-		<span class="white-svg">
+		<span class="">
 			<AutoSvg
 				src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`}
 				height="35px"
 				width="35px"
+				fill="currentColor"
 			/>
 		</span>
 	{/if}
 	<span class="whitespace-normal mt-3 text-center">
-		<span class="font-extralight text-center text-[11.5px] text-gray-100">
+		<span class="font-extralight text-center text-[11.5px] dark:text-gray-100 text-surface-900">
 			{item.name}
 		</span>
 	</span>

@@ -1,17 +1,12 @@
 <script>
-	import {
-		TabGroup,
-		Tab,
-
-	} from '@skeletonlabs/skeleton';
+	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { linear } from 'svelte/easing';
 	import { call } from '$lib/utils/service';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import {  authenticated } from '$lib/utils/loadingStore';
+	import { authenticated } from '$lib/utils/loadingStore';
 	import { initializeStores } from '@skeletonlabs/skeleton';
-
 
 	import SizableCard from '$lib/shell/SizableCardCpy.svelte';
 	import Monaco from '$lib/editor/Editor.svelte';
@@ -21,7 +16,6 @@
 	import NgxBuilder from '$lib/viewer/NgxBuilder.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
 	import PaletteCpy from '$lib/palette/PaletteCpy.svelte';
-
 
 	initializeStores();
 
@@ -79,22 +73,19 @@
 	let value = 0;
 </script>
 
-<div class="flex flex-row items-stretch h-full bg-surface-900">
+<div class="flex flex-row items-stretch h-full dark:bg-surface-900 bg-surface-50">
 	{#if $treeSelected}
 		<SizableCard name="tree">
 			<C8oTree />
 		</SizableCard>
 	{/if}
+
 	{#if $propertiesSelected}
 		<SizableCard name="properties">
 			<Properties />
 		</SizableCard>
 	{/if}
-	{#if $paletteSelected}
-		<SizableCard name="palette">
-			<PaletteCpy />
-		</SizableCard>
-	{/if}
+
 	{#if $viewerSelected}
 		<SizableCard name="viewer">
 			<Viewer />
@@ -126,6 +117,12 @@
 				</svelte:fragment>
 			</TabGroup>
 		</div>
+	{/if}
+
+	{#if $paletteSelected}
+		<SizableCard name="palette">
+			<PaletteCpy />
+		</SizableCard>
 	{/if}
 </div>
 

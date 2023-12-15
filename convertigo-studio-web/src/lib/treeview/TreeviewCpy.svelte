@@ -183,7 +183,7 @@
 	}
 </script>
 
-<div class="h-full bg-surface-800">
+<div class="h-full dark:bg-surface-800 bg-surface-50">
 	{#if nodeData.id != null}
 		<TreeViewItem
 			bind:this={item}
@@ -230,14 +230,14 @@
 					>
 						<span slot="icon">
 							{#if nodeData.icon.includes('?')}
-								<img class="w-6 h-6 white-svg" src={`${getUrl()}${nodeData.icon}`} alt="ico" />
+								<img class="w-6 h-6 color" src={`${getUrl()}${nodeData.icon}`} alt="ico" />
 							{:else if nodeData.icon == 'file'}
 								<IconFile class="w-6 h-6" />
 							{:else}
 								<Icon icon="material-symbols-light:folder-outline" class="w-6 h-6" />
 							{/if}
 						</span>
-						<span slot="label" class="text-[11.5px] font-light text-gray-100">{nodeData.label}</span>
+						<span slot="label" class="text-[11.5px] dark:font-light dark:text-gray-100 text-surface-900">{nodeData.label}</span>
 					</DndBlock>
 				</div>
 				<div class="invisible group-hover:visible">
@@ -306,7 +306,11 @@
 </div>
 
 <style>
-	.white-svg {
-		filter: invert(100%);
+	:global(html.dark) .color{
+		filter: invert(100);
 	}
+	.color{
+		filter: invert(0);
+	}
+	
 </style>

@@ -74,6 +74,6 @@
 	}
 
 	.white-svg {
-		filter: invert(100%);
+		filter: invert(0%);
 	}
 </style>

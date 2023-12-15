@@ -111,7 +111,7 @@
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<AppShell>
 		<svelte:fragment slot="header">
-			<AppBar padding="p-1 pl-4" background="bg-surface-500">
+			<AppBar padding="p-1 pl-4" background="dark:bg-surface-500 bg-surface-50">
 				<svelte:fragment slot="lead">
 					<p>NGX Builder for {project}</p>
 				</svelte:fragment>

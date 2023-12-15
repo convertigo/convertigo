@@ -45,14 +45,14 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-	class="variant-soft-primary overflow-hidden widthTransition border-[0.5] border-r border-surface-800"
+	class="variant-soft-primary overflow-hidden widthTransition border-[0.5] border-r dark:border-surface-800 border-surface-300"
 	style:width="{$width}px"
 	style:min-width="100px"
 	on:drag={widthDrag}
 	on:dragstart={noDragImage}
 	transition:withTransition={{ duration: 50 }}
 >
-	<div class="flex flex-row items-stretch h-full bg-surface-800">
+	<div class="flex flex-row items-stretch h-full dark:bg-surface-800 bg-surface-500">
 		<div
 			class="flex-col flex bg-surface-500 items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
 		>

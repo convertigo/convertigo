@@ -66,7 +66,7 @@
 	{:else}
 		<select
 			bind:this={select}
-			class="select w-full text-[11.5px] py-0 border-[0.5px] bginput  rounded-[4px]"
+			class="select w-full text-[11.5px] py-0 border-[0.5px] dark:bginput  rounded-[4px]"
 			id={name + '-select'}
 			{value}
 			on:change={onChange}

@@ -165,7 +165,7 @@
 			<svelte:component this={getEditor(clone)} {...clone} on:valueChanged={valueChanged} />
 		{/key}
 	</div>
-	<div class="flex flex-nowrap ">
+	<div class="flex flex-nowrap text-[11.5px]">
 		{#each ['TX', 'TS', 'SC'] as c}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div

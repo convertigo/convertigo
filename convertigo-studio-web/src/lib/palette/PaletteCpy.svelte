@@ -158,10 +158,10 @@
 	let value = 0;
 </script>
 
-<div class="palette bg-surface-800">
+<div class="palette dark:bg-surface-800 bg-surface-50">
 
 	<div class="header">
-		<div class="flex flex-row bg-surface-900 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center">
+		<div class="flex flex-row dark:bg-surface-900 bg-surface-50 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center">
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
@@ -236,7 +236,7 @@
 		<div class="mt-2 w-[100%] border-[0.5px] border-surface-500 rounded-[4px]">
 			<input
 				id="inputSearch"
-				class="input searchbar"
+				class="input dark:searchbar"
 				type="search"
 				placeholder="Search..."
 				bind:value={search}
@@ -258,7 +258,7 @@
 						<span class="font-extralight">Favorites</span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-900">
+						<div class="items-container dark:bg-surface-900 bg-surface-50">
 							{#each favoritesItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -270,7 +270,7 @@
 						<span class="font-extralight"> Last used </span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-900">
+						<div class="items-container dark:bg-surface-900 bg-surface-50">
 							{#each usedItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -287,7 +287,7 @@
 							</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div class="items-container bg-surface-900 p-4">
+							<div class="items-container dark:bg-surface-900 bg-surface-50 p-4">
 								{#each category.items as item}
 									<PaletteItem {item} on:itemClicked={itemClicked} />
 								{/each}
