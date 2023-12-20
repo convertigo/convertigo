@@ -68,8 +68,14 @@
 
 <style>
 	.draggable {
+		width: 4px; 
 		cursor: grab;
+		background-color: #a0a0a0;
 	}
+
+	.draggable:hover {
+    background-color: #2396ff; /* Changez en la couleur bleue souhaitée */
+}
 
 	.card:active {
 		cursor: grabbing;

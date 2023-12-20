@@ -128,7 +128,7 @@
 			>
 			<svelte:fragment slot="trail">
 				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
-					><IconLogout /></AppRailAnchor
+					><IconLogout class="h-8 w-8" /></AppRailAnchor
 				>
 			</svelte:fragment>
 		</AppRail></svelte:fragment

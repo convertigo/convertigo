@@ -165,11 +165,11 @@
 			<svelte:component this={getEditor(clone)} {...clone} on:valueChanged={valueChanged} />
 		{/key}
 	</div>
-	<div class="flex flex-nowrap text-[11.5px]">
+	<div class="flex flex-nowrap">
 		{#each ['TX', 'TS', 'SC'] as c}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
-				class="chip {btn === c ? 'variant-filled' : 'variant-soft'}"
+				class="chip  text-[11.5px] ml-2 py-0 {btn === c ? 'dark:bg-surface-500 bg-surface-300' : 'variant-soft'}"
 				on:click={() => {
 					setMode(c, true);
 				}}

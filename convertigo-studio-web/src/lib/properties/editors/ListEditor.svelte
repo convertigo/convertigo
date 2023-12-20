@@ -48,16 +48,16 @@
 			type="text"
 			autocomplete="off"
 			aria-autocomplete="none"
-			class="rounded select form-select w-full "
+			class="rounded select form-select w-full text-[11.5px] py-0 border-[0.5px]"
 			id={name + '-input'}
 			{value}
 			on:change={onChange}
 			use:popup={combo(name + '-popup')}
 		/>
-		<div class="card w-48 shadow-xl py-2" data-popup={name + '-popup'}>
-			<ListBox rounded="rounded-none bg-surface-800">
+		<div class="card w-48 shadow-xl py-2 dark:bg-surface-700 bg-surface-200" data-popup={name + '-popup'}>
+			<ListBox rounded="rounded-none dark:bg-surface-700 bg-surface-200 text-[11.5px] dark:text-secondary-100 relative z-50">
 				{#each values as v}
-					<ListBoxItem bind:group={groupValue} name="medium" on:change={groupChange} value={v}
+					<ListBoxItem bind:group={groupValue} name="medium" on:change={groupChange} value={v} class="border-b dark:border-surface-800 border-surface-300" active="dark:text-secondary-300"
 						>{v}</ListBoxItem
 					>
 				{/each}

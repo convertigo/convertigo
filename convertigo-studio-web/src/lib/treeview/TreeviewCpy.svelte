@@ -24,6 +24,7 @@
 	// @ts-ignore
 	import IconDelete from '~icons/mdi/delete';
 	import Icon from '@iconify/svelte';
+	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 
 	const modalStore = getModalStore();
 
@@ -230,7 +231,10 @@
 					>
 						<span slot="icon">
 							{#if nodeData.icon.includes('?')}
-								<img class="w-6 h-6 color" src={`${getUrl()}${nodeData.icon}`} alt="ico" />
+								<AutoSvg class="w-6 h-6" fill="currentColor" src={`${getUrl()}${nodeData.icon}`} alt="ico" 
+								height="35px"
+								width="35px"
+								/>
 							{:else if nodeData.icon == 'file'}
 								<IconFile class="w-6 h-6" />
 							{:else}
@@ -311,6 +315,11 @@
 	}
 	.color{
 		filter: invert(0);
+	}
+
+	.white-svg {
+		/*filter: invert(100%);*/
+		fill: white;
 	}
 	
 </style>
