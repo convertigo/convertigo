@@ -46,7 +46,9 @@
 	"dependencies": {
 		"@flaticon/flaticon-uicons": "^3.0.0",
 		"@floating-ui/dom": "1.5.3",
+		"chart.js": "^4.4.1",
 		"fast-xml-parser": "^4.3.2",
-		"monaco-editor": "^0.44.0"
+		"monaco-editor": "^0.44.0",
+		"svelte-chartjs": "^3.1.2"
 	}
 }

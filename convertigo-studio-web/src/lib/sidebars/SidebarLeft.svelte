@@ -127,7 +127,7 @@
 				><Icon icon="material-symbols-light:brush-outline" class="h-8 w-8 pl-1" /></AppRailAnchor
 			>
 			<svelte:fragment slot="trail">
-				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
+				<AppRailAnchor rel="external" href="/auth/" title="Admin"
 					><IconLogout class="h-8 w-8" /></AppRailAnchor
 				>
 			</svelte:fragment>

@@ -33,6 +33,38 @@ export async function call(service, data = {}) {
 	}
 }
 
+
+export async function callXml(service, xmlPayload) {
+    let url = getUrl() + service;
+    loading.set(cpt + 1);
+
+    let headers = {
+        'Content-Type': 'application/xml',
+        'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+    };
+
+    let res = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: xmlPayload,
+        credentials: 'include'
+    });
+
+    loading.set(cpt - 1);
+    var xsrf = res.headers.get('x-xsrf-token');
+    if (xsrf != null) {
+        localStorage.setItem('x-xsrf-token', xsrf);
+    }
+
+    const contentType = res.headers.get('content-type');
+    if (contentType?.includes('xml')) {
+        return new XMLParser({ ignoreAttributes: false }).parse(await res.text());
+    } else {
+        return await res.json();
+    }
+}
+
+
 export function getUrl() {
 	const m = window.location.pathname.match('^(.*?)/studio/');
 	return `${window.location.origin}${m ? m[1] : '/convertigo'}/admin/services/`;
