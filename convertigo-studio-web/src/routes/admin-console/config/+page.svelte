@@ -13,6 +13,8 @@
 	import { writable } from 'svelte/store';
 	import Mainparameters from '../../../adminconsol-lib/config-comp/Mainparameters.svelte';
 	import Accountsecurity from '../../../adminconsol-lib/config-comp/Accountsecurity.svelte';
+	import Analytics from '../../../adminconsol-lib/config-comp/Analytics.svelte';
+	import Cache from '../../../adminconsol-lib/config-comp/Cache.svelte';
 
 	initializeStores();
 
@@ -23,6 +25,8 @@
 	onMount(() => {
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
+
+		activeComponent = Mainparameters;
 	});
 
 	function changeTheme(e) {
@@ -35,17 +39,17 @@
 
 <div class="flex flex-col h-full p-10 w-full">
 	<div class="flex flex-col grid grid-cols-6 gap-10">
-		<div class="flex flex-col h-auto col-span-1 gap-2 p-4">
+		<div class="flex flex-col h-auto col-span-1 gap-2 p-4 bg-surface-600">
 			<button class="flex navbutton" on:click={() => (activeComponent = Mainparameters)}
 				>Main parameters <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
 			<button class="flex navbutton" on:click={() => (activeComponent = Accountsecurity)}
 				>Accounts and security <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
-			<button class="flex navbutton"
+			<button class="flex navbutton" on:click={() => (activeComponent = Analytics)}
 				>Analytics <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
-			<button class="flex navbutton"
+			<button class="flex navbutton" on:click={() => (activeComponent = Cache)}
 				>Cache <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
 			<button class="flex navbutton"
@@ -87,13 +91,15 @@
 			>
 		</div>
 
-		<div class="flex flex-col h-auto col-span-5 p-5 border-l-2 border-surface-100 bg-surface-800">
-            
+		<div class="flex flex-col h-auto col-span-5 p-5 bg-surface-600">
 			{#if activeComponent === Mainparameters}
 				<Mainparameters />
 			{:else if activeComponent === Accountsecurity}
 				<Accountsecurity />
-            
+			{:else if activeComponent === Analytics}
+				<Analytics />
+			{:else if activeComponent === Cache}
+				<Cache />
 			{/if}
 		</div>
 	</div>

@@ -38,7 +38,7 @@
     </div>
 
     <div class="flex grid grid-cols-2 ">
-        <AppRailTile bind:group={currentTile} name="tile-2" value={3} title="tile-2" class="border border-surface-900">
+        <AppRailTile bind:group={currentTile} name="connections" on:click={() => navigate('/admin-console/connections')} value={3} title="tile-2" class="border border-surface-900">
 			<svelte:fragment slot="lead">
 				<div class="flex justify-center flex-col items-center">
 					<Icon icon="ph:plugs-connected-thin" class="w-[30px] h-[30px]" />
@@ -47,7 +47,7 @@
 			<span class="nav-title">Connections</span>
 		</AppRailTile>
 
-        <AppRailTile bind:group={currentTile} name="tile-2" value={4} title="tile-2" class="border border-surface-900">
+        <AppRailTile bind:group={currentTile} name="projects" on:click={() => navigate('/admin-console/projects')} value={4} title="tile-2" class="border border-surface-900">
 			<svelte:fragment slot="lead">
 				<div class="flex justify-center flex-col items-center">
 					<Icon icon="ph:folder-thin" class="w-[30px] h-[30px]" />
