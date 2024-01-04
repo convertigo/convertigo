@@ -1,18 +1,12 @@
 <script>
 	import Icon from '@iconify/svelte';
 	import {
-		AppRail,
-		AppRailAnchor,
-		AppRailTile,
-		TabAnchor,
-		TabGroup,
 		initializeStores,
 		localStorageStore
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
-	import Mainparameters from '../../../adminconsol-lib/config-comp/Mainparameters.svelte';
-	import Accountsecurity from '../../../adminconsol-lib/config-comp/Accountsecurity.svelte';
+	import MainParameters from '../../../adminconsol-lib/config-comp/MainParameters.svelte';
+	import AccountSecurity from '../../../adminconsol-lib/config-comp/AccountSecurity.svelte';
 	import Analytics from '../../../adminconsol-lib/config-comp/Analytics.svelte';
 	import Cache from '../../../adminconsol-lib/config-comp/Cache.svelte';
 
@@ -26,7 +20,7 @@
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
 
-		activeComponent = Mainparameters;
+		activeComponent = MainParameters;
 	});
 
 	function changeTheme(e) {
@@ -40,10 +34,10 @@
 <div class="flex flex-col h-full p-10 w-full">
 	<div class="flex flex-col grid grid-cols-6 gap-10">
 		<div class="flex flex-col h-auto col-span-1 gap-2 p-4 bg-surface-600">
-			<button class="flex navbutton" on:click={() => (activeComponent = Mainparameters)}
+			<button class="flex navbutton" on:click={() => (activeComponent = MainParameters)}
 				>Main parameters <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
-			<button class="flex navbutton" on:click={() => (activeComponent = Accountsecurity)}
+			<button class="flex navbutton" on:click={() => (activeComponent = AccountSecurity)}
 				>Accounts and security <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
 			>
 			<button class="flex navbutton" on:click={() => (activeComponent = Analytics)}
@@ -92,10 +86,10 @@
 		</div>
 
 		<div class="flex flex-col h-auto col-span-5 p-5 bg-surface-600">
-			{#if activeComponent === Mainparameters}
-				<Mainparameters />
-			{:else if activeComponent === Accountsecurity}
-				<Accountsecurity />
+			{#if activeComponent === MainParameters}
+				<MainParameters />
+			{:else if activeComponent === AccountSecurity}
+				<AccountSecurity />
 			{:else if activeComponent === Analytics}
 				<Analytics />
 			{:else if activeComponent === Cache}

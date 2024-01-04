@@ -1,14 +1,12 @@
 <script lang="ts">
-	import { call } from '$lib/utils/service';
 	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
-	import Monitorchart from '../../adminconsol-lib/charts/Monitorchart.svelte';
-	import Threadschart from '../../adminconsol-lib/charts/Threadschart.svelte';
-	import Contextchart from '../../adminconsol-lib/charts/Contextchart.svelte';
-	import RequestDurationchart from '../../adminconsol-lib/charts/RequestDurationchart.svelte';
-	import Statustable from '../../adminconsol-lib/tables/Statustable.svelte';
-	import Systeminformationtable from '../../adminconsol-lib/tables/Systeminformationtable.svelte';
+	import MonitorChart from '../../adminconsol-lib/charts/MonitorChart.svelte';
+	import ThreadsChart from '../../adminconsol-lib/charts/ThreadsChart.svelte';
+	import ContextChart from '../../adminconsol-lib/charts/ContextChart.svelte';
+	import RequestDurationChart from '../../adminconsol-lib/charts/RequestDurationChart.svelte';
+	import StatusTable from '../../adminconsol-lib/tables/StatusTable.svelte';
+	import SystemInformationTable from '../../adminconsol-lib/tables/SystemInformationTable.svelte';
 	import { fetchEngineMonitorData } from '../../adminconsol-lib/stores/Store';
 
 	initializeStores();
@@ -42,14 +40,14 @@
 					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
 						<h1 class="font-light">Status</h1>
 					</cardBar>
-					<Statustable />
+					<StatusTable />
 				</cardStatus>
 
 				<cardSystem class="col-span-1 h-auto mt-5 bg-surface-600">
 					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
 						<h1 class="font-light">System Information</h1>
 					</cardBar>
-					<Systeminformationtable />
+					<SystemInformationTable />
 				</cardSystem>
 			</verticalCards>
 		</div>
@@ -62,22 +60,22 @@
 			<content class="mb-10">
 				<cardMemory class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Memory</h1>
-					<Monitorchart />
+					<MonitorChart />
 				</cardMemory>
 
 				<cardThreads class="flex flex-col bg-surface-500 h-60 p-5 font-extralight text-[13.5px]">
 					<h1>Threads</h1>
-					<Threadschart />
+					<ThreadsChart />
 				</cardThreads>
 
 				<cardContexts class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Contexts</h1>
-					<Contextchart />
+					<ContextChart />
 				</cardContexts>
 
 				<cardRequestDuration class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Request duration</h1>
-					<RequestDurationchart />
+					<RequestDurationChart />
 				</cardRequestDuration>
 			</content>
 		</cardMonitor>
