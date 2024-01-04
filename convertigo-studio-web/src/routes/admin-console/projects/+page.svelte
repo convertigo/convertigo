@@ -1,7 +1,7 @@
 <script>
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { fetchProjectsList } from '../../../adminconsol-lib/stores/Store';
+	import { fetchProjectsList } from '$lib/admin-console/stores/Store';
 
 	let theme = localStorageStore('studio.theme', 'skeleton');
 

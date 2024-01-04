@@ -1,15 +1,14 @@
 <script>
 	import { AppShell } from '@skeletonlabs/skeleton';
-	import Sidebarleft from '../../adminconsol-lib/sidebars/Sidebarleft.svelte';
-	import Topbar from '../../adminconsol-lib/sidebars/Topbar.svelte';
-	import Sidebarright from '../../adminconsol-lib/sidebars/Sidebarright.svelte';
+	import SidebarLeft from '$lib/admin-console/sidebars/SidebarLeft.svelte';
+	import Topbar from '$lib/admin-console/sidebars/Topbar.svelte';
 </script>
 
 <AppShell>
 	<svelte:fragment slot="header">
 		<Topbar />
 	</svelte:fragment>
-	<svelte:fragment slot="sidebarLeft"><Sidebarleft /></svelte:fragment>
+	<svelte:fragment slot="sidebarLeft"><SidebarLeft /></svelte:fragment>
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
 	<!-- (sidebarRight) -->
 	<!-- (pageHeader) -->

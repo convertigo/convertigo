@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import MonitorChart from '../../adminconsol-lib/charts/MonitorChart.svelte';
-	import ThreadsChart from '../../adminconsol-lib/charts/ThreadsChart.svelte';
-	import ContextChart from '../../adminconsol-lib/charts/ContextChart.svelte';
-	import RequestDurationChart from '../../adminconsol-lib/charts/RequestDurationChart.svelte';
-	import StatusTable from '../../adminconsol-lib/tables/StatusTable.svelte';
-	import SystemInformationTable from '../../adminconsol-lib/tables/SystemInformationTable.svelte';
-	import { fetchEngineMonitorData } from '../../adminconsol-lib/stores/Store';
+	import MonitorChart from '$lib/admin-console/charts/MonitorChart.svelte';
+	import ThreadsChart from '$lib/admin-console/charts/ThreadsChart.svelte';
+	import ContextChart from '$lib/admin-console/charts/ContextChart.svelte';
+	import RequestDurationChart from '$lib/admin-console/charts/RequestDurationChart.svelte';
+	import StatusTable from '$lib/admin-console/tables/StatusTable.svelte';
+	import SystemInformationTable from '$lib/admin-console/tables/SystemInformationTable.svelte';
+	import { fetchEngineMonitorData } from '$lib/admin-console/stores/Store';
 
 	initializeStores();
 

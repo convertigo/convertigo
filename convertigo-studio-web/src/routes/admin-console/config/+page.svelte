@@ -1,14 +1,11 @@
 <script>
 	import Icon from '@iconify/svelte';
-	import {
-		initializeStores,
-		localStorageStore
-	} from '@skeletonlabs/skeleton';
+	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import MainParameters from '../../../adminconsol-lib/config-comp/MainParameters.svelte';
-	import AccountSecurity from '../../../adminconsol-lib/config-comp/AccountSecurity.svelte';
-	import Analytics from '../../../adminconsol-lib/config-comp/Analytics.svelte';
-	import Cache from '../../../adminconsol-lib/config-comp/Cache.svelte';
+	import MainParameters from '$lib/admin-console/config-comp/MainParameters.svelte';
+	import AccountSecurity from '$lib/admin-console/config-comp/AccountSecurity.svelte';
+	import Analytics from '$lib/admin-console/config-comp/Analytics.svelte';
+	import Cache from '$lib/admin-console/config-comp/Cache.svelte';
 
 	initializeStores();
 

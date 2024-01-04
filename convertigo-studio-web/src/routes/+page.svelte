@@ -58,7 +58,7 @@
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated) {
-				goto('/auth');
+				goto('auth');
 				// if (!location.href.includes('/studio')) {
 				// 	sessionStorage.setItem('studioWebDev', 'true');
 				// 	location.href = '/convertigo/admin/login.html';

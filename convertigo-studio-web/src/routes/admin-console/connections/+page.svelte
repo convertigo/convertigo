@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { fetchConnectionsList } from '../../../adminconsol-lib/stores/Store';
+	import { fetchConnectionsList } from '$lib/admin-console/stores/Store';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 
 	let connections = {}; // Initialize as an object
