@@ -392,7 +392,7 @@ task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall'
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci"
+	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci --force"
 }
 
 task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {

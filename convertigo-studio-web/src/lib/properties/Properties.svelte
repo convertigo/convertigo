@@ -46,7 +46,7 @@
 			let propValues = prop.values
 				? prop.values.filter((value) => {
 						return typeof value != 'boolean' && value != 'false' && value != 'true';
-				  })
+					})
 				: [];
 
 			let propDisabled = prop.isDisabled ?? false;
