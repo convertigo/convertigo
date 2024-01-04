@@ -56,7 +56,7 @@
 				<th>Total memory</th>
 				<td>{(systemInfo.memory['@_total'] / 1048576).toFixed(2)} MB</td>
 			</tr>
-            <tr>
+			<tr>
 				<th>Your browser</th>
 				<td>{systemInfo.browser}</td>
 			</tr>

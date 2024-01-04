@@ -160,7 +160,7 @@
 </script>
 
 <div class="flex flex-row flex-nowrap">
-	<div class="grow ">
+	<div class="grow">
 		{#key editor}
 			<svelte:component this={getEditor(clone)} {...clone} on:valueChanged={valueChanged} />
 		{/key}
@@ -169,7 +169,9 @@
 		{#each ['TX', 'TS', 'SC'] as c}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
-				class="chip  text-[11.5px] ml-2 py-0 {btn === c ? 'dark:bg-surface-500 bg-surface-300' : 'variant-soft'}"
+				class="chip text-[11.5px] ml-2 py-0 {btn === c
+					? 'dark:bg-surface-500 bg-surface-300'
+					: 'variant-soft'}"
 				on:click={() => {
 					setMode(c, true);
 				}}

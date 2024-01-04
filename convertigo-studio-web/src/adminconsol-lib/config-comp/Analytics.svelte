@@ -112,7 +112,7 @@
 	</label>
 
 	<Accordion width="w-[100%] mt-10 bg-surface-700">
-		<AccordionItem open >
+		<AccordionItem open>
 			<svelte:fragment slot="summary">Advanced Properties</svelte:fragment>
 			<svelte:fragment slot="content">
 				<div class="flex flex-col grid grid-cols-2 gap-20 pb-5">
@@ -148,28 +148,26 @@
 						/>
 					</div>
 
-                    <div>
-                        <h2 class="mt-5 text-[14px]">Test Platform Password</h2>
-                        <input
-                            type="text"
-                            class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
-                            placeholder="Test Platform Platform"
-                        />
-                        <h2 class="mt-5 text-[14px]">Test Platform Password</h2>
-                        <input
-                            type="text"
-                            class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
-                            placeholder="Test Platform Platform"
-                        />
-                        <h2 class="mt-5 text-[14px]">Test Platform Password</h2>
-                        <input
-                            type="text"
-                            class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
-                            placeholder="Test Platform Platform"
-                        />
-                    </div>
-
-					
+					<div>
+						<h2 class="mt-5 text-[14px]">Test Platform Password</h2>
+						<input
+							type="text"
+							class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
+							placeholder="Test Platform Platform"
+						/>
+						<h2 class="mt-5 text-[14px]">Test Platform Password</h2>
+						<input
+							type="text"
+							class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
+							placeholder="Test Platform Platform"
+						/>
+						<h2 class="mt-5 text-[14px]">Test Platform Password</h2>
+						<input
+							type="text"
+							class="text-black w-[100%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
+							placeholder="Test Platform Platform"
+						/>
+					</div>
 				</div>
 			</svelte:fragment>
 		</AccordionItem>

@@ -132,11 +132,16 @@
 	<Accordion regionControl="variant-soft-primary">
 		<div>
 			{#each Object.entries(categories) as [category, items] (category)}
-				<AccordionItem open rounded="none" >
-					<svelte:fragment slot="summary"><b class="text-[11.5px] dark:text-surface-200 font-light mt-5">{category}</b></svelte:fragment>
+				<AccordionItem open rounded="none">
+					<svelte:fragment slot="summary"
+						><b class="text-[11.5px] dark:text-surface-200 font-light mt-5">{category}</b
+						></svelte:fragment
+					>
 					<svelte:fragment slot="content">
 						{#each items as item (JSON.stringify(item[1]))}
-							<div class="flex flex-row flex-nowrap text-[11.5px] dark:font-light dark:text-surface-200 text-surface-900">
+							<div
+								class="flex flex-row flex-nowrap text-[11.5px] dark:font-light dark:text-surface-200 text-surface-900"
+							>
 								<div class="basis-1/3 ml-2.5">{item[0]}</div>
 								<div class="basis-2/3 pl-1">
 									<svelte:component

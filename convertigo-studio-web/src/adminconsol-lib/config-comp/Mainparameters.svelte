@@ -118,10 +118,10 @@
 			console.log(`${settingKey} updated successfully.`);
 			if (settingKey === 'XSRF_ADMIN') {
 				xsrfAdminEnabled = settingValue;
-                console.log("success xsrf admin")
+				console.log('success xsrf admin');
 			} else if (settingKey === 'XSRF_API') {
 				xsrfApiEnabled = settingValue;
-                console.log("success xsrf api")
+				console.log('success xsrf api');
 			}
 		} else {
 			console.log(`Failed to update ${settingKey}.`);

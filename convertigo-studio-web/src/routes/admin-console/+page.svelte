@@ -35,7 +35,6 @@
 </script>
 
 <div class="h-full flex flex-col p-10">
-
 	<div class="flex flex-col grid grid-cols-2 gap-10">
 		<div class="h-auto">
 			<verticalCards class="grid grid-cols-1 flex flex-col gap-5">
@@ -43,14 +42,14 @@
 					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
 						<h1 class="font-light">Status</h1>
 					</cardBar>
-					<Statustable/>
+					<Statustable />
 				</cardStatus>
 
 				<cardSystem class="col-span-1 h-auto mt-5 bg-surface-600">
 					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
 						<h1 class="font-light">System Information</h1>
 					</cardBar>
-					<Systeminformationtable/>
+					<Systeminformationtable />
 				</cardSystem>
 			</verticalCards>
 		</div>
@@ -63,22 +62,22 @@
 			<content class="mb-10">
 				<cardMemory class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Memory</h1>
-					<Monitorchart/>
+					<Monitorchart />
 				</cardMemory>
 
 				<cardThreads class="flex flex-col bg-surface-500 h-60 p-5 font-extralight text-[13.5px]">
-					<h1 >Threads</h1>
-					<Threadschart/>
+					<h1>Threads</h1>
+					<Threadschart />
 				</cardThreads>
 
 				<cardContexts class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Contexts</h1>
-					<Contextchart/>
+					<Contextchart />
 				</cardContexts>
 
 				<cardRequestDuration class="flex flex-col h-60 bg-surface-500 p-5">
 					<h1 class="font-extralight text-[13.5px]">Request duration</h1>
-					<RequestDurationchart/>
+					<RequestDurationchart />
 				</cardRequestDuration>
 			</content>
 		</cardMonitor>

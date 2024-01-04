@@ -231,9 +231,13 @@
 					>
 						<span slot="icon">
 							{#if nodeData.icon.includes('?')}
-								<AutoSvg class="w-6 h-6" fill="currentColor" src={`${getUrl()}${nodeData.icon}`} alt="ico" 
-								height="35px"
-								width="35px"
+								<AutoSvg
+									class="w-6 h-6"
+									fill="currentColor"
+									src={`${getUrl()}${nodeData.icon}`}
+									alt="ico"
+									height="35px"
+									width="35px"
 								/>
 							{:else if nodeData.icon == 'file'}
 								<IconFile class="w-6 h-6" />
@@ -241,7 +245,11 @@
 								<Icon icon="material-symbols-light:folder-outline" class="w-6 h-6" />
 							{/if}
 						</span>
-						<span slot="label" class="text-[11.5px] dark:font-light dark:text-gray-100 text-surface-900">{nodeData.label}</span>
+						<span
+							slot="label"
+							class="text-[11.5px] dark:font-light dark:text-gray-100 text-surface-900"
+							>{nodeData.label}</span
+						>
 					</DndBlock>
 				</div>
 				<div class="invisible group-hover:visible">
@@ -310,10 +318,10 @@
 </div>
 
 <style>
-	:global(html.dark) .color{
+	:global(html.dark) .color {
 		filter: invert(100);
 	}
-	.color{
+	.color {
 		filter: invert(0);
 	}
 
@@ -321,5 +329,4 @@
 		/*filter: invert(100%);*/
 		fill: white;
 	}
-	
 </style>

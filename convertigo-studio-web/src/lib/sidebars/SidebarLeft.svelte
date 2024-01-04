@@ -88,7 +88,7 @@
 			>
 			<AppRailAnchor
 				selected={$propertiesSelected}
-                active="dark:bg-surface-700 bg-surface-300"
+				active="dark:bg-surface-700 bg-surface-300"
 				on:click={() => ($propertiesSelected = !$propertiesSelected)}
 				><Icon
 					icon="material-symbols-light:event-list-outline-sharp"
@@ -134,4 +134,3 @@
 		</AppRail></svelte:fragment
 	>
 </AppShell>
-

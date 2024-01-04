@@ -49,21 +49,21 @@
 				</tr>
 			</thead>
 			<tbody>
-                {#each projectsData.project as project}
-                  <tr>
-                    <td class="border px-4 py-2">{project['@_name']}</td>
-                    <td class="border px-4 py-2">{project['@_comment']}</td>
-                    <td class="border px-4 py-2">{project['@_version']}</td>
-                    <td class="border px-4 py-2">{project['@_exported']}</td>
-                    <td class="border px-4 py-2">{project['@_deployDate']}</td>
-                    <td class="border px-4 py-2">Delete Action</td>
-                    <td class="border px-4 py-2">Reload Action</td>
-                    <td class="border px-4 py-2">Export Action</td>
-                    <td class="border px-4 py-2">Test Action</td>
-                    <!-- Add more <td> elements as needed -->
-                  </tr>
-                {/each}
-              </tbody>
+				{#each projectsData.project as project}
+					<tr>
+						<td class="border px-4 py-2">{project['@_name']}</td>
+						<td class="border px-4 py-2">{project['@_comment']}</td>
+						<td class="border px-4 py-2">{project['@_version']}</td>
+						<td class="border px-4 py-2">{project['@_exported']}</td>
+						<td class="border px-4 py-2">{project['@_deployDate']}</td>
+						<td class="border px-4 py-2">Delete Action</td>
+						<td class="border px-4 py-2">Reload Action</td>
+						<td class="border px-4 py-2">Export Action</td>
+						<td class="border px-4 py-2">Test Action</td>
+						<!-- Add more <td> elements as needed -->
+					</tr>
+				{/each}
+			</tbody>
 		</table>
 	{:else}
 		<div>No connection data available</div>

@@ -39,6 +39,7 @@
 	import Viewer from '$lib/viewer/Viewer.svelte';
 	import NgxBuilder from '$lib/viewer/NgxBuilder.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
+	import { goto } from '$app/navigation';
 
 	initializeStores();
 
@@ -57,13 +58,14 @@
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated) {
-				if (!location.href.includes('/studio')) {
-					sessionStorage.setItem('studioWebDev', 'true');
-					location.href = '/convertigo/admin/login.html';
-				} else {
-					sessionStorage.setItem('studioWebDev', 'false');
-					location.href = location.href.replace(/\/studio\/.*/, '/admin/login.html');
-				}
+				goto('/auth');
+				// if (!location.href.includes('/studio')) {
+				// 	sessionStorage.setItem('studioWebDev', 'true');
+				// 	location.href = '/convertigo/admin/login.html';
+				// } else {
+				// 	sessionStorage.setItem('studioWebDev', 'false');
+				// 	location.href = location.href.replace(/\/studio\/.*/, '/admin/login.html');
+				// }
 			}
 		});
 	});
@@ -149,9 +151,7 @@
 				>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<AppRailAnchor rel="external" href="/convertigo/admin/" title="Admin"
-					><IconLogout /></AppRailAnchor
-				>
+				<AppRailAnchor href="/auth" title="Admin"><IconLogout /></AppRailAnchor>
 			</svelte:fragment>
 		</AppRail></svelte:fragment
 	>

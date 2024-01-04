@@ -1,4 +1,4 @@
-import { call, callXml } from "$lib/utils/service";
+import { call, callXml } from '$lib/utils/service';
 import { XMLParser } from 'fast-xml-parser';
 
 /**
@@ -19,7 +19,7 @@ export async function fetchEngineMonitorData() {
 export async function fetchEngineStatus() {
 	try {
 		const response = await call('engine.GetStatus');
-		console.log("Response from Engine.GetStatus:", response);
+		console.log('Response from Engine.GetStatus:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching engine status:', error);
@@ -38,7 +38,6 @@ export async function fetchSystemInformation() {
 	}
 }
 
-
 /**
  * Fetch the main parameters data from the configuration.Update service.
  * @returns {Promise<any>} - Returns the parsed XML data as a JavaScript object.
@@ -46,7 +45,7 @@ export async function fetchSystemInformation() {
 export async function fetchMainParameters() {
 	try {
 		const response = await call('configuration.List', {});
-		console.log("Response from configuration.List:", response);
+		console.log('Response from configuration.List:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching main parameters:', error);
@@ -54,22 +53,18 @@ export async function fetchMainParameters() {
 	}
 }
 
-
-
 export async function updateServerSetting(settingKey, settingValue) {
 	try {
 		const xmlPayload = `<configuration><property key="${settingKey}" value="${settingValue}"/></configuration>`;
 		const response = await callXml('configuration.Update', xmlPayload);
 
-		
-		console.log("Réponse complète:", response);
+		console.log('Réponse complète:', response);
 
-		
 		if (response.admin?.update['@_status'] === 'ok') {
 			console.log('Mise à jour réussie');
 			return true;
 		} else {
-			console.error("Échec de la mise à jour, statut:", response.admin?.update?.status);
+			console.error('Échec de la mise à jour, statut:', response.admin?.update?.status);
 			return false;
 		}
 	} catch (error) {
@@ -78,11 +73,10 @@ export async function updateServerSetting(settingKey, settingValue) {
 	}
 }
 
-
 export async function fetchConnectionsList() {
 	try {
 		const response = await call('connections.List');
-		console.log("Response from connections.List:", response);
+		console.log('Response from connections.List:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching data connections list:', error);
@@ -93,7 +87,7 @@ export async function fetchConnectionsList() {
 export async function fetchProjectsList() {
 	try {
 		const response = await call('projects.List');
-		console.log("Response from projects.List:", response);
+		console.log('Response from projects.List:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching data projects list:', error);

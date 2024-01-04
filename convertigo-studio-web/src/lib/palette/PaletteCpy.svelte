@@ -159,9 +159,10 @@
 </script>
 
 <div class="palette dark:bg-surface-800 bg-surface-50">
-
 	<div class="header">
-		<div class="flex flex-row dark:bg-surface-900 bg-surface-50 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center">
+		<div
+			class="flex flex-row dark:bg-surface-900 bg-surface-50 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center"
+		>
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
@@ -203,7 +204,7 @@
 				use:popup={tooltip('tooltip-additional')}
 			>
 				<div class="card p-1" data-popup="tooltip-additional">
-					<p class="text-[11.5px] px-2 ">Shared objects visibility</p>
+					<p class="text-[11.5px] px-2">Shared objects visibility</p>
 					<div class="arrow" />
 				</div>
 				{#if additionalOn}
@@ -241,14 +242,11 @@
 				placeholder="Search..."
 				bind:value={search}
 				on:input={doSearch}
-
 			/>
 		</div>
 	</div>
 
-	<div class="border-[1px] border-surface-600 mt-2">
-
-	</div>
+	<div class="border-[1px] border-surface-600 mt-2"></div>
 
 	<div class="content">
 		<Accordion>
@@ -327,10 +325,4 @@
 		border-radius: 4px;
 		font-size: 11.5px;
 	}
-
-
-	
 </style>
-
-
-
