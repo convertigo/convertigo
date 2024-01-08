@@ -7,7 +7,6 @@
 	import RequestDurationChart from '$lib/admin-console/charts/RequestDurationChart.svelte';
 	import StatusTable from '$lib/admin-console/tables/StatusTable.svelte';
 	import SystemInformationTable from '$lib/admin-console/tables/SystemInformationTable.svelte';
-	import { fetchEngineMonitorData } from '$lib/admin-console/stores/Store';
 
 	initializeStores();
 
@@ -16,14 +15,6 @@
 	onMount(() => {
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
-
-		fetchEngineMonitorData();
-
-		const interval = setInterval(fetchEngineMonitorData, 2000);
-
-		return () => {
-			clearInterval(interval);
-		};
 	});
 
 	function changeTheme(e) {

@@ -3,30 +3,26 @@
 	import { Chart, registerables } from 'chart.js';
 	Chart.register(...registerables);
 
-	import { fetchEngineMonitorData } from '../stores/Store';
+	import { check, contexts, labels } from '../stores/monitorStore';
+	import { get } from 'svelte/store';
 
 	let chart = null;
 	let chartCanvas;
 	let updateCount = 0;
 
-	async function loadMonitorData() {
-		const data = await fetchEngineMonitorData();
-		if (data && data.admin && data.admin.contexts !== undefined) {
-			updateChartData(data.admin.contexts);
+	contexts.subscribe((data) => {
+		if (!data.length) {
+			return;
 		}
-	}
-
-	function updateChartData(contextsCount) {
-		updateCount++;
 		if (!chart) {
 			chart = new Chart(chartCanvas, {
 				type: 'line',
 				data: {
-					labels: [updateCount.toString()],
+					labels: get(labels),
 					datasets: [
 						{
 							label: 'Contexts',
-							data: [contextsCount],
+							data,
 							fill: false,
 							borderColor: 'rgb(255, 159, 64)',
 							tension: 0.1
@@ -37,31 +33,16 @@
 					scales: {
 						y: {
 							beginAtZero: true
-						},
-						x: {
-							ticks: {
-								callback: function (value, index, values) {
-									return '';
-								}
-							}
 						}
 					}
 				}
 			});
 		} else {
-			chart.data.labels.push(updateCount.toString());
-			chart.data.datasets[0].data.push(contextsCount);
 			chart.update();
 		}
-	}
-
+	});
 	onMount(() => {
-		loadMonitorData();
-		const interval = setInterval(loadMonitorData, 4000);
-
-		return () => {
-			clearInterval(interval);
-		};
+		check();
 	});
 </script>
 

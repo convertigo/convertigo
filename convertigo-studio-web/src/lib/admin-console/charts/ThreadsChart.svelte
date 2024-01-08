@@ -1,32 +1,26 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
+	import { check, threads, labels } from '../stores/monitorStore';
+	import { get } from 'svelte/store';
 	Chart.register(...registerables);
-
-	import { fetchEngineMonitorData } from '../stores/Store';
 
 	let chart = null;
 	let chartCanvas;
-	let updateCount = 0;
 
-	async function loadMonitorData() {
-		const data = await fetchEngineMonitorData();
-		if (data && data.admin && data.admin.threads !== undefined) {
-			updateChartData(data.admin.threads);
+	threads.subscribe((data) => {
+		if (!data.length) {
+			return;
 		}
-	}
-
-	function updateChartData(threadsCount) {
-		updateCount++;
 		if (!chart) {
 			chart = new Chart(chartCanvas, {
 				type: 'line',
 				data: {
-					labels: [updateCount.toString()],
+					labels: get(labels),
 					datasets: [
 						{
 							label: 'Threads',
-							data: [threadsCount],
+							data,
 							fill: false,
 							borderColor: 'rgb(75, 192, 192)',
 							tension: 0.1
@@ -49,19 +43,12 @@
 				}
 			});
 		} else {
-			chart.data.labels.push(updateCount.toString());
-			chart.data.datasets[0].data.push(threadsCount);
 			chart.update();
 		}
-	}
+	});
 
 	onMount(() => {
-		loadMonitorData();
-		const interval = setInterval(loadMonitorData, 4000);
-
-		return () => {
-			clearInterval(interval);
-		};
+		check();
 	});
 </script>
 

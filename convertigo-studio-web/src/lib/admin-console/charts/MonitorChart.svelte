@@ -1,46 +1,38 @@
 <script>
-	import { fetchEngineMonitorData } from '../stores/Store';
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
+	import { check, memoryUsed, memoryMaximal, memoryTotal, labels } from '../stores/monitorStore';
+	import { get } from 'svelte/store';
 	Chart.register(...registerables);
 
 	let chart = null;
 	let chartCanvas;
 
-	async function loadMonitorData() {
-		const data = await fetchEngineMonitorData();
-		if (data && data.admin) {
-			updateChartData(data.admin);
+	memoryUsed.subscribe((data) => {
+		if (!data.length || !chartCanvas) {
+			return;
 		}
-	}
-
-	function updateChartData(data) {
-		if (chart) {
-			chart.data.datasets[0].data.push(data.memoryMaximal);
-			chart.data.datasets[1].data.push(data.memoryTotal);
-			chart.data.datasets[2].data.push(data.memoryUsed);
-			chart.update();
-		} else {
+		if (!chart) {
 			chart = new Chart(chartCanvas, {
 				type: 'line',
 				data: {
-					labels: ['Memory Maximal', 'Memory Total', 'Memory Used'],
+					labels: get(labels),
 					datasets: [
 						{
 							label: 'Memory Maximal',
-							data: [data.memoryMaximal],
+							data: get(memoryMaximal),
 							borderColor: 'rgb(255, 99, 132)',
 							backgroundColor: 'rgba(255, 99, 132, 0.5)'
 						},
 						{
 							label: 'Memory Total',
-							data: [data.memoryTotal],
+							data: get(memoryTotal),
 							borderColor: 'rgb(54, 162, 235)',
 							backgroundColor: 'rgba(54, 162, 235, 0.5)'
 						},
 						{
 							label: 'Memory Used',
-							data: [data.memoryUsed],
+							data,
 							borderColor: 'rgb(75, 192, 192)',
 							backgroundColor: 'rgba(75, 192, 192, 0.5)'
 						}
@@ -54,16 +46,13 @@
 					}
 				}
 			});
+		} else {
+			chart.update();
 		}
-	}
+	});
 
 	onMount(() => {
-		loadMonitorData();
-		const interval = setInterval(loadMonitorData, 4000);
-
-		return () => {
-			clearInterval(interval);
-		};
+		check();
 	});
 </script>
 

@@ -1,25 +1,9 @@
 import { call, callXml } from '$lib/utils/service';
-import { XMLParser } from 'fast-xml-parser';
-
-/**
- * Fetch the monitoring data from engine.Monitor
- * @returns {Promise<any>} - Returns the parsed XML data as a JavaScript object
- */
-export async function fetchEngineMonitorData() {
-	try {
-		const response = await call('engine.Monitor');
-		/*console.log("Response from engine.Monitor:", response);*/
-		return response;
-	} catch (error) {
-		console.error('Error fetching engine.Monitor data:', error);
-		throw error;
-	}
-}
 
 export async function fetchEngineStatus() {
 	try {
 		const response = await call('engine.GetStatus');
-		console.log('Response from Engine.GetStatus:', response);
+		//console.log('Response from Engine.GetStatus:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching engine status:', error);
@@ -45,7 +29,7 @@ export async function fetchSystemInformation() {
 export async function fetchMainParameters() {
 	try {
 		const response = await call('configuration.List', {});
-		console.log('Response from configuration.List:', response);
+		//console.log('Response from configuration.List:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching main parameters:', error);
