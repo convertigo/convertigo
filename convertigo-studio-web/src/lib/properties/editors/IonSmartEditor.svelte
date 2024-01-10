@@ -38,7 +38,7 @@
 			let propValues = property.values
 				? prop.values.filter((value) => {
 						return typeof value != 'boolean' && value != 'false' && value != 'true';
-					})
+				  })
 				: [];
 
 			if (propValues.length > 0 && property.mode === 'plain') {

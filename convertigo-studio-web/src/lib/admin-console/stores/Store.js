@@ -29,7 +29,7 @@ export async function fetchSystemInformation() {
 export async function fetchMainParameters() {
 	try {
 		const response = await call('configuration.List', {});
-		//console.log('Response from configuration.List:', response);
+		console.log('Response from configuration.List:', response);
 		return response;
 	} catch (error) {
 		console.error('Error fetching main parameters:', error);

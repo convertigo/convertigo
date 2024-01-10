@@ -20,7 +20,7 @@
 </script>
 
 {#if systemInfo}
-	<div class="system-information-table p-1">
+	<div class="system-information-table p-2">
 		<table>
 			<tr>
 				<th>Host Name</th>
@@ -78,13 +78,15 @@
 	}
 	th,
 	td {
-		border: 1px solid #616161;
 		padding: 4px;
 		text-align: left;
 		font-weight: 300;
 		font-size: 13px;
 	}
 	th {
-		@apply bg-surface-800;
+		@apply bg-surface-800 border-r-2 border-surface-900;
+	}
+	tr {
+		@apply border-b-2 border-surface-900;
 	}
 </style>

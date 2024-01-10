@@ -23,52 +23,71 @@
 	}
 </script>
 
-<div class="h-full flex flex-col p-10">
-	<div class="flex flex-col grid grid-cols-2 gap-10">
-		<div class="h-auto">
-			<verticalCards class="grid grid-cols-1 flex flex-col gap-5">
-				<cardStatus class="col-span-1 h-auto bg-surface-600">
-					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
-						<h1 class="font-light">Status</h1>
-					</cardBar>
-					<StatusTable />
-				</cardStatus>
-
-				<cardSystem class="col-span-1 h-auto mt-5 bg-surface-600">
-					<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
-						<h1 class="font-light">System Information</h1>
-					</cardBar>
-					<SystemInformationTable />
-				</cardSystem>
-			</verticalCards>
+<div class="page-container">
+	<div class="charts-grid">
+		<div class="chart-card">
+			<div class="card-header">Status</div>
+			<StatusTable />
 		</div>
 
-		<cardMonitor class="h-auto bg-surface-500 flex flex-col">
-			<cardBar class="w-full p-2 bg-surface-600 flex flex-col">
-				<h1 class="font-light">Monitor</h1>
-			</cardBar>
+		<div class="chart-card">
+			<div class="card-header">System Information</div>
+			<SystemInformationTable />
+		</div>
 
-			<content class="mb-10">
-				<cardMemory class="flex flex-col h-60 bg-surface-500 p-5">
-					<h1 class="font-extralight text-[13.5px]">Memory</h1>
-					<MonitorChart />
-				</cardMemory>
+		<!-- Répétez ce pattern pour les autres cartes -->
+	</div>
 
-				<cardThreads class="flex flex-col bg-surface-500 h-60 p-5 font-extralight text-[13.5px]">
-					<h1>Threads</h1>
-					<ThreadsChart />
-				</cardThreads>
+	<div class="monitor-section">
+		<div class="header-section">Monitor</div>
 
-				<cardContexts class="flex flex-col h-60 bg-surface-500 p-5">
-					<h1 class="font-extralight text-[13.5px]">Contexts</h1>
-					<ContextChart />
-				</cardContexts>
+		<div class="monitor-content">
+			<div class="card">
+				<h1>Memory</h1>
+				<MonitorChart />
+			</div>
 
-				<cardRequestDuration class="flex flex-col h-60 bg-surface-500 p-5">
-					<h1 class="font-extralight text-[13.5px]">Request duration</h1>
-					<RequestDurationChart />
-				</cardRequestDuration>
-			</content>
-		</cardMonitor>
+			<div class="card">
+				<h1>Threads</h1>
+				<ThreadsChart />
+			</div>
+
+			<div class="card">
+				<h1>Threads</h1>
+				<ContextChart />
+			</div>
+
+			<div class="card">
+				<h1>Threads</h1>
+				<RequestDurationChart />
+			</div>
+		</div>
 	</div>
 </div>
+
+<style>
+	.page-container {
+		@apply h-full flex flex-col p-10;
+	}
+	.charts-grid {
+		@apply flex flex-col grid grid-cols-2 gap-10;
+	}
+	.chart-card {
+		@apply h-auto bg-surface-800 border-[0.5px] border-surface-600;
+	}
+	.card-header {
+		@apply w-full p-2 bg-surface-800 flex flex-col font-light;
+	}
+	.header-section {
+		@apply w-full p-2 bg-surface-800 flex flex-col font-light mt-10 mb-10;
+	}
+	.monitor-section {
+		@apply flex flex-col h-auto;
+	}
+	.monitor-content {
+		@apply flex flex-col grid grid-cols-2 gap-10;
+	}
+	.card {
+		@apply flex flex-col bg-surface-800 h-60 p-5 font-extralight text-[13.5px] border-[0.5px] border-surface-600 rounded-none;
+	}
+</style>

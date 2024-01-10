@@ -15,8 +15,8 @@
 
 <AppRail
 	width="w-auto"
-	background="bg-surface-700"
-	class="flex flex-col justify-center border-r-[0.5px] border-surface-100"
+	background="bg-surface-800"
+	class="flex flex-col justify-center border-r-[0.5px] border-surface-800"
 	active="bg-surface-900"
 	hover="hover:bg-surface-900"
 >

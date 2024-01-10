@@ -10,7 +10,6 @@
 	initializeStores();
 
 	let activeComponent = null;
-
 	let theme = localStorageStore('studio.theme', 'skeleton');
 
 	onMount(() => {
@@ -25,72 +24,47 @@
 		document.body.setAttribute('data-theme', $theme);
 	}
 
-	let currentTile = 0;
+	const components = [
+		{ component: MainParameters, label: 'Main parameters' },
+		{ component: AccountSecurity, label: 'Account & security' },
+		{ component: Analytics, label: 'Analytics' },
+		{ component: Cache, label: 'Cache' },
+		{ component: null, label: 'Full sync' },
+		{ component: null, label: 'HTTP client ' },
+		{ component: null, label: 'Legacy Carioca portal' },
+		{ component: null, label: 'Logs' },
+		{ component: null, label: 'Mobile builder' },
+		{ component: null, label: 'Network' },
+		{ component: null, label: 'Notifications' },
+		{ component: null, label: 'Proxy' },
+		{ component: null, label: 'Real-time activity monitoring' },
+		{ component: null, label: 'SSL' },
+		{ component: null, label: 'XML generation' }
+	];
+
+	function setActiveComponent(component) {
+		if (component) {
+			activeComponent = component;
+		} else {
+			console.log("Ce composant n'est pas encore implémenté.");
+		}
+	}
 </script>
 
 <div class="flex flex-col h-full p-10 w-full">
 	<div class="flex flex-col grid grid-cols-6 gap-10">
-		<div class="flex flex-col h-auto col-span-1 gap-2 p-4 bg-surface-600">
-			<button class="flex navbutton" on:click={() => (activeComponent = MainParameters)}
-				>Main parameters <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton" on:click={() => (activeComponent = AccountSecurity)}
-				>Accounts and security <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton" on:click={() => (activeComponent = Analytics)}
-				>Analytics <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton" on:click={() => (activeComponent = Cache)}
-				>Cache <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Full sync <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>HTTP client <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Legacy Carioca portal <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Logs <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Mobile builder <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Network <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Notifications <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Proxy <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>Real-time activity monitoring <Icon
-					icon="uil:arrow-up"
-					rotate={1}
-					class="text-xl"
-				/></button
-			>
-			<button class="flex navbutton"
-				>SSL <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
-			<button class="flex navbutton"
-				>XML generation <Icon icon="uil:arrow-up" rotate={1} class="text-xl" /></button
-			>
+		<div class="nav-sidebar">
+			{#each components as { component, label }}
+				<button class="navbutton" on:click={() => setActiveComponent(component)}>
+					{label}
+					<Icon icon="uil:arrow-up" rotate={1} class="text-xl" />
+				</button>
+			{/each}
 		</div>
 
-		<div class="flex flex-col h-auto col-span-5 p-5 bg-surface-600">
-			{#if activeComponent === MainParameters}
-				<MainParameters />
-			{:else if activeComponent === AccountSecurity}
-				<AccountSecurity />
-			{:else if activeComponent === Analytics}
-				<Analytics />
-			{:else if activeComponent === Cache}
-				<Cache />
+		<div class="content-area">
+			{#if activeComponent}
+				<svelte:component this={activeComponent} />
 			{/if}
 		</div>
 	</div>
@@ -98,6 +72,12 @@
 
 <style>
 	.navbutton {
-		@apply text-[12px] font-light text-start p-1 border-b-[0.5px] border-b-surface-500 justify-between items-center;
+		@apply flex text-[12px] font-light text-start p-1 border-b-[0.5px] border-b-surface-500 justify-between items-center;
+	}
+	.nav-sidebar {
+		@apply flex flex-col h-auto col-span-1 gap-2 p-4 bg-surface-800;
+	}
+	.content-area {
+		@apply flex flex-col h-auto col-span-5 p-5 bg-surface-800;
 	}
 </style>

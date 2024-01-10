@@ -20,7 +20,7 @@
 </script>
 
 {#if statusData}
-	<div class="status-table p-1">
+	<div class="status-table p-2">
 		<table>
 			<tr>
 				<th>Convertigo Version</th>
@@ -59,23 +59,26 @@
 {/if}
 
 <style>
-	.status-table {
+	.system-information-table {
 		width: 100%;
 		margin: auto;
 	}
+
 	table {
 		width: 100%;
 		border-collapse: collapse;
 	}
 	th,
 	td {
-		border: 1px solid #616161;
 		padding: 4px;
 		text-align: left;
 		font-weight: 300;
 		font-size: 13px;
 	}
 	th {
-		@apply bg-surface-800;
+		@apply bg-surface-800 border-r-2 border-surface-900;
+	}
+	tr {
+		@apply border-b-2 border-surface-900;
 	}
 </style>
