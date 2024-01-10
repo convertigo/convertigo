@@ -1,70 +1,80 @@
 <script>
 	import { onMount } from 'svelte';
-	import { fetchSystemInformation } from '../stores/Store';
-
-	let systemInfo = null;
-
-	async function updateSystemInfo() {
-		const response = await fetchSystemInformation();
-		systemInfo = response.admin; // Prenez les données de l'objet 'admin'
-	}
+	import {
+		statusCheck,
+		locale,
+		timezone,
+		product,
+		beans,
+		licenceType,
+		licenceNumber,
+		licenceEnd,
+		licenceExpired,
+		javaVersion,
+		javaClassVersion,
+		javaVendor,
+		hostName,
+		hostAddresses,
+		osName,
+		osVersion,
+		osArchitecture,
+		osAvailableProcessors,
+		browser,
+		cloud
+	} from '../stores/statusStore';
+	import { monitorCheck, memoryMaximal, memoryTotal, memoryUsed } from '../stores/monitorStore';
 
 	onMount(() => {
-		updateSystemInfo();
-		const interval = setInterval(updateSystemInfo, 30000); // Mise à jour toutes les 30 secondes
-
-		return () => {
-			clearInterval(interval); // Nettoyage de l'intervalle lors de la destruction du composant
-		};
+		statusCheck();
+		monitorCheck();
 	});
 </script>
 
-{#if systemInfo}
-	<div class="system-information-table p-2">
-		<table>
-			<tr>
-				<th>Host Name</th>
-				<td>{systemInfo.host['@_name']}</td>
-			</tr>
-			<tr>
-				<th>CPU</th>
-				<td
-					>{systemInfo.os['@_architecture']} architecture, {systemInfo.os['@_availableProcessors']} processor(s)</td
-				>
-			</tr>
-			<tr>
-				<th>OS</th>
-				<td>{systemInfo.os['@_name']} {systemInfo.os['@_version']}</td>
-			</tr>
-			<tr>
-				<th>JAVA</th>
-				<td
-					>{systemInfo.java['@_classVersion']}
-					{systemInfo.java['@_vendor']}
-					{systemInfo.java['@_version']}</td
-				>
-			</tr>
-			<tr>
-				<th>Available memory</th>
-				<td>{(systemInfo.memory['@_available'] / 1048576).toFixed(2)} MB</td>
-			</tr>
-			<tr>
-				<th>Maximum memory</th>
-				<td>{(systemInfo.memory['@_maximal'] / 1048576).toFixed(2)} MB</td>
-			</tr>
-			<tr>
-				<th>Total memory</th>
-				<td>{(systemInfo.memory['@_total'] / 1048576).toFixed(2)} MB</td>
-			</tr>
-			<tr>
-				<th>Your browser</th>
-				<td>{systemInfo.browser}</td>
-			</tr>
-		</table>
-	</div>
-{:else}
-	<p>Loading system information...</p>
-{/if}
+<div class="system-information-table p-2">
+	<table>
+		<tr>
+			<th>Host Name</th>
+			<td>{$hostName}</td>
+		</tr>
+		<tr>
+			<th>CPU</th>
+			<td
+				>{$osArchitecture} architecture, {$osAvailableProcessors} processor{$osAvailableProcessors >
+				1
+					? 's'
+					: ''}</td
+			>
+		</tr>
+		<tr>
+			<th>OS</th>
+			<td>{$osName} {$osVersion}</td>
+		</tr>
+		<tr>
+			<th>Java Vendor</th>
+			<td>{$javaVendor}</td>
+		</tr>
+		<tr>
+			<th>Java</th>
+			<td>{$javaVersion} (classes {$javaClassVersion})</td>
+		</tr>
+		<tr>
+			<th>Used Memory</th>
+			<td>{$memoryUsed[$memoryUsed.length - 1]} MB</td>
+		</tr>
+		<tr>
+			<th>Total memory</th>
+			<td>{$memoryTotal[$memoryTotal.length - 1]} MB</td>
+		</tr>
+		<tr>
+			<th>Maximum memory</th>
+			<td>{$memoryMaximal[$memoryMaximal.length - 1]} MB</td>
+		</tr>
+		<tr>
+			<th>Your browser</th>
+			<td>{$browser}</td>
+		</tr>
+	</table>
+</div>
 
 <style>
 	.system-information-table {

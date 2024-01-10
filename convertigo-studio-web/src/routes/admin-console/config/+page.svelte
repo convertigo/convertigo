@@ -6,6 +6,10 @@
 	import AccountSecurity from '$lib/admin-console/config-comp/AccountSecurity.svelte';
 	import Analytics from '$lib/admin-console/config-comp/Analytics.svelte';
 	import Cache from '$lib/admin-console/config-comp/Cache.svelte';
+	import {
+		refreshConfigurations,
+		configurations
+	} from '$lib/admin-console/stores/configurationStore';
 
 	initializeStores();
 
@@ -13,6 +17,7 @@
 	let theme = localStorageStore('studio.theme', 'skeleton');
 
 	onMount(() => {
+		refreshConfigurations();
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
 
@@ -24,51 +29,55 @@
 		document.body.setAttribute('data-theme', $theme);
 	}
 
-	const components = [
-		{ component: MainParameters, label: 'Main parameters' },
-		{ component: AccountSecurity, label: 'Account & security' },
-		{ component: Analytics, label: 'Analytics' },
-		{ component: Cache, label: 'Cache' },
-		{ component: null, label: 'Full sync' },
-		{ component: null, label: 'HTTP client ' },
-		{ component: null, label: 'Legacy Carioca portal' },
-		{ component: null, label: 'Logs' },
-		{ component: null, label: 'Mobile builder' },
-		{ component: null, label: 'Network' },
-		{ component: null, label: 'Notifications' },
-		{ component: null, label: 'Proxy' },
-		{ component: null, label: 'Real-time activity monitoring' },
-		{ component: null, label: 'SSL' },
-		{ component: null, label: 'XML generation' }
-	];
-
-	function setActiveComponent(component) {
-		if (component) {
-			activeComponent = component;
-		} else {
-			console.log("Ce composant n'est pas encore implémenté.");
-		}
-	}
+	let selectedIndex = 0;
 </script>
 
-<div class="flex flex-col h-full p-10 w-full">
-	<div class="flex flex-col grid grid-cols-6 gap-10">
-		<div class="nav-sidebar">
-			{#each components as { component, label }}
-				<button class="navbutton" on:click={() => setActiveComponent(component)}>
-					{label}
-					<Icon icon="uil:arrow-up" rotate={1} class="text-xl" />
-				</button>
-			{/each}
-		</div>
-
-		<div class="content-area">
-			{#if activeComponent}
-				<svelte:component this={activeComponent} />
-			{/if}
+{#if 'admin' in $configurations}
+	{@const category = $configurations?.admin?.category[selectedIndex]}
+	<!-- {@debug $configurations} -->
+	<div class="flex flex-col h-full p-10 w-full">
+		<div class="flex flex-col grid grid-cols-6 gap-10">
+			<div class="nav-sidebar">
+				{#each $configurations?.admin?.category as category, index}
+					<button class="navbutton" on:click={() => (selectedIndex = index)}>
+						{category['@_displayName']}
+						<Icon icon="uil:arrow-up" rotate={1} class="text-xl" />
+					</button>
+				{/each}
+			</div>
+			<div class="content-area">
+				<div>
+					<h1 class="text-[15px]">{category['@_displayName']}</h1>
+					{#each category.property as property}
+						<h2 class="mt-5 text-[14px]">{property['@_description']}</h2>
+						<!-- {#if typeof value === 'string'}
+						<input
+							type="text"
+							class="text-black w-[60%] mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
+							placeholder={key}
+							bind:value={settings[key]}
+							on:blur={() => handleUpdateSetting(key)}
+						/>
+					{:else}
+						<label class="mt-10 items-center flex">
+							<input
+								type="checkbox"
+								bind:checked={settings[key]}
+								on:click={() => toggleXsrfSetting(key)}
+							/>
+							<p class="ml-5">
+								Enable XSRF protection for {key === 'xsrfAdminEnabled'
+									? 'Administration Console'
+									: 'projects'}
+							</p>
+						</label>
+					{/if} -->
+					{/each}
+				</div>
+			</div>
 		</div>
 	</div>
-</div>
+{/if}
 
 <style>
 	.navbutton {

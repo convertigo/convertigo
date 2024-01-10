@@ -1,7 +1,13 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
-	import { check, memoryUsed, memoryMaximal, memoryTotal, labels } from '../stores/monitorStore';
+	import {
+		monitorCheck,
+		memoryUsed,
+		memoryMaximal,
+		memoryTotal,
+		labels
+	} from '../stores/monitorStore';
 	import { get } from 'svelte/store';
 	Chart.register(...registerables);
 
@@ -52,7 +58,7 @@
 	});
 
 	onMount(() => {
-		check();
+		monitorCheck();
 	});
 </script>
 

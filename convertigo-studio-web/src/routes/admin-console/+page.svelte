@@ -2,6 +2,7 @@
 	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import MonitorChart from '$lib/admin-console/charts/MonitorChart.svelte';
+	import SessionsChart from '$lib/admin-console/charts/SessionsChart.svelte';
 	import ThreadsChart from '$lib/admin-console/charts/ThreadsChart.svelte';
 	import ContextChart from '$lib/admin-console/charts/ContextChart.svelte';
 	import RequestDurationChart from '$lib/admin-console/charts/RequestDurationChart.svelte';
@@ -53,13 +54,18 @@
 			</div>
 
 			<div class="card">
-				<h1>Threads</h1>
+				<h1>Contexts</h1>
 				<ContextChart />
 			</div>
 
 			<div class="card">
-				<h1>Threads</h1>
+				<h1>Requests</h1>
 				<RequestDurationChart />
+			</div>
+
+			<div class="card">
+				<h1>Sessions</h1>
+				<SessionsChart />
 			</div>
 		</div>
 	</div>

@@ -1,14 +1,20 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
-	import { monitorCheck, threads, labels } from '../stores/monitorStore';
+	import {
+		monitorCheck,
+		sessionMaxCV,
+		sessions,
+		availableSessions,
+		labels
+	} from '../stores/monitorStore';
 	import { get } from 'svelte/store';
 	Chart.register(...registerables);
 
 	let chart = null;
 	let chartCanvas;
 
-	threads.subscribe((data) => {
+	availableSessions.subscribe((data) => {
 		if (!data.length || !chartCanvas) {
 			return;
 		}
@@ -19,11 +25,22 @@
 					labels: get(labels),
 					datasets: [
 						{
-							label: 'Threads',
+							label: 'Max',
+							data: get(sessionMaxCV),
+							borderColor: 'rgb(255, 99, 132)',
+							backgroundColor: 'rgba(255, 99, 132, 0.5)'
+						},
+						{
+							label: 'Sessions',
+							data: get(sessions),
+							borderColor: 'rgb(54, 162, 235)',
+							backgroundColor: 'rgba(54, 162, 235, 0.5)'
+						},
+						{
+							label: 'Available',
 							data,
-							fill: false,
 							borderColor: 'rgb(75, 192, 192)',
-							tension: 0.1
+							backgroundColor: 'rgba(75, 192, 192, 0.5)'
 						}
 					]
 				},
@@ -31,13 +48,6 @@
 					scales: {
 						y: {
 							beginAtZero: true
-						},
-						x: {
-							ticks: {
-								callback: function (value, index, values) {
-									return '';
-								}
-							}
 						}
 					}
 				}

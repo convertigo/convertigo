@@ -9,38 +9,60 @@ export const memoryTotal = writable([]);
 export const memoryUsed = writable([]);
 export const threads = writable([]);
 export const contexts = writable([]);
+export const sessions = writable([]);
+export const sessionMaxCV = writable([]);
+export const availableSessions = writable([]);
 export const requests = writable([]);
+export const engineState = writable(null);
+export const startTime = writable(0);
+export const time = writable(0);
 
-const all = { labels, memoryMaximal, memoryTotal, memoryUsed, threads, contexts, requests };
+const allArrays = {
+	labels,
+	memoryMaximal,
+	memoryTotal,
+	memoryUsed,
+	threads,
+	contexts,
+	sessions,
+	sessionMaxCV,
+	availableSessions,
+	requests
+};
+const allValues = { engineState, startTime, time };
 
 let interval = null;
-let count = 0;
 
-export function check() {
+export function monitorCheck() {
 	const _delay = get(delay);
 	if (interval == null) {
 		if (_delay > 0) {
 			interval = window.setInterval(async () => {
-				const response = await call('engine.Monitor');
-				if (response.admin) {
+				const response = await call('engine.JsonMonitor');
+				if ('engineState' in response) {
 					const max = get(maxSaved);
-					response.admin.labels = new Date().toTimeString().split(' ')[0];
-					for (let k in all) {
-						if (k in response.admin) {
-							all[k].update((/** @type {any[]} */ v) => {
+					response.labels = new Date().toTimeString().split(' ')[0];
+					for (let k in allArrays) {
+						if (k in response) {
+							allArrays[k].update((/** @type {any[]} */ v) => {
 								while (v.length + 1 > max) {
 									v.shift();
 								}
-								v.push(response.admin[k]);
+								v.push(response[k]);
 								return v;
 							});
+						}
+					}
+					for (let k in allValues) {
+						if (k in response) {
+							allValues[k].set(response[k]);
 						}
 					}
 				}
 				if (_delay != get(delay)) {
 					window.clearInterval(interval);
 					interval = null;
-					check();
+					monitorCheck();
 				}
 			}, _delay);
 		}

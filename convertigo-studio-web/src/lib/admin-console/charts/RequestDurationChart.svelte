@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
-	import { check, requests, labels } from '../stores/monitorStore';
+	import { monitorCheck, requests, labels } from '../stores/monitorStore';
 	import { get } from 'svelte/store';
 	Chart.register(...registerables);
 
@@ -9,7 +9,7 @@
 	let chartCanvas;
 
 	requests.subscribe((data) => {
-		if (!data.length) {
+		if (!data.length || !chartCanvas) {
 			return;
 		}
 		if (!chart) {
@@ -41,7 +41,7 @@
 	});
 
 	onMount(() => {
-		check();
+		monitorCheck();
 	});
 </script>
 

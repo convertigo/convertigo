@@ -1,17 +1,15 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
-	Chart.register(...registerables);
-
-	import { check, contexts, labels } from '../stores/monitorStore';
+	import { monitorCheck, contexts, labels } from '../stores/monitorStore';
 	import { get } from 'svelte/store';
+	Chart.register(...registerables);
 
 	let chart = null;
 	let chartCanvas;
-	let updateCount = 0;
 
 	contexts.subscribe((data) => {
-		if (!data.length) {
+		if (!data.length || !chartCanvas) {
 			return;
 		}
 		if (!chart) {
@@ -42,7 +40,7 @@
 		}
 	});
 	onMount(() => {
-		check();
+		monitorCheck();
 	});
 </script>
 
