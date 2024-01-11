@@ -66,8 +66,6 @@ public class DatabaseCacheManager extends CacheManager {
 	}
 	
 	public void init() throws EngineException {
-		super.init();
-
 		try {
 			sqlRequester = new SqlRequester(DB_PROP_FILE_NAME);
 			sqlRequester.open();
@@ -81,6 +79,7 @@ public class DatabaseCacheManager extends CacheManager {
 		catch ( ClassNotFoundException e ) {
 			throw new EngineException("[DatabaseCacheManager] Unable to load JDBC Driver.", e);
 		}
+		super.init();
 	}
 	
 	public void destroy() throws EngineException {
