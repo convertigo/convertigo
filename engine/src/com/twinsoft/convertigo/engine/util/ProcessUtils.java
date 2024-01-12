@@ -655,7 +655,7 @@ public class ProcessUtils {
 						if (eGradle.exists()) {
 							gradle = eGradle;
 							dir = gradle.getParentFile().getParentFile();
-							Engine.logEngine.info("Will existing gradle from: " + dir);
+							Engine.logEngine.info("Will use existing gradle from: " + dir);
 							break;
 						}
 					} catch (Exception e) {

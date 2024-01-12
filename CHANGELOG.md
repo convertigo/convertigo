@@ -8,9 +8,9 @@
 
 #### Bug Fixes:
 
-- [#788](https://github.com/convertigo/convertigo/issues/788) [Studio] Fixed, Android 'Local Build' well sets up Gradle
+- [#788](https://github.com/convertigo/convertigo/issues/788) [CI] Fixed, Gradle 8 is supported for the Convertigo plugin
 - [#789](https://github.com/convertigo/convertigo/issues/789) [NGX] Fixed, SCSS Isolation (removed duplicated declaration)
-- [#790](https://github.com/convertigo/convertigo/issues/790) [Studio] Fixed, gradle installation works for local build 
+- [#790](https://github.com/convertigo/convertigo/issues/790) [Studio] Fixed, gradle installation works for Android local build 
 
 ---
 
