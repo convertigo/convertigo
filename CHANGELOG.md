@@ -10,7 +10,8 @@
 
 - [#788](https://github.com/convertigo/convertigo/issues/788) [CI] Fixed, Gradle 8 is supported for the Convertigo plugin
 - [#789](https://github.com/convertigo/convertigo/issues/789) [NGX] Fixed, SCSS Isolation (removed duplicated declaration)
-- [#790](https://github.com/convertigo/convertigo/issues/790) [Studio] Fixed, gradle installation works for Android local build 
+- [#790](https://github.com/convertigo/convertigo/issues/790) [Studio] Fixed, gradle installation works for Android local build
+- [#792](https://github.com/convertigo/convertigo/issues/792) [MobileBuilder] Fixed, doesn't normalize NGX attribute value if the name is set on drop from the palette
 
 ---
 

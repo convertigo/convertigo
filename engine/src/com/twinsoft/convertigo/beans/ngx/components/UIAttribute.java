@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UIAttribute extends UIComponent implements ITagsProperty {
 
@@ -150,8 +151,8 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(attrName)) {
-			attrName = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
+		if (oldName.startsWith(StringUtils.normalize(attrName))) {
+			attrName = newName;
 			hasChanged = true;
 		}
 	}
