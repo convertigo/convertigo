@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2023 Convertigo SA.
+ * Copyright (c) 2001-2024 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +42,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.fileupload.ProgressListener;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -649,11 +651,12 @@ public class ProcessUtils {
 				Engine.logEngine.info("Gradles: " + gradles);
 				for (int i = gradles.length - 1; i >= 0; i--) {
 					try {
-						File eGradle = new File(gradles[i].listFiles()[0], "bin/gradle");
+						File eGradle = new File(gradles[i].listFiles()[0].listFiles((FileFilter) DirectoryFileFilter.DIRECTORY)[0], "bin/gradle");
 						if (eGradle.exists()) {
 							gradle = eGradle;
-							dir = gradles[i].listFiles()[0];
-							Engine.logEngine.info("Will existing gradle from: " + dir);
+							dir = gradle.getParentFile().getParentFile();
+							Engine.logEngine.info("Will use existing gradle from: " + dir);
+							break;
 						}
 					} catch (Exception e) {
 						Engine.logEngine.info("Check gradle failed for " + gradles[i] + ": " + e);
@@ -672,12 +675,12 @@ public class ProcessUtils {
 			if (!m.find()) {
 				Engine.logEngine.error("Cannot find Gradle link");
 			}
-			Engine.logEngine.info("Will download Gradle from: https://downloads.gradle-dn.com/distributions/" + m.group());
+			Engine.logEngine.info("Will download Gradle from: https://downloads.gradle.org/distributions/" + m.group());
 			File archive = new File(Engine.USER_WORKSPACE_PATH, m.group());
 
 			archive.delete();
 
-			get = new HttpGet("https://downloads.gradle-dn.com/distributions/" + m.group());
+			get = new HttpGet("https://downloads.gradle.org/distributions/" + m.group());
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 				FileUtils.deleteQuietly(archive);
 				archive.getParentFile().mkdirs();
@@ -710,6 +713,7 @@ public class ProcessUtils {
 				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), m.group(1));
 				Engine.logEngine.setLevel(l);
 				Engine.logEngine.info("unzip terminated!");
+				gradle = new File(dir, "bin/gradle");
 			} finally {
 				Engine.logEngine.setLevel(l);
 			}

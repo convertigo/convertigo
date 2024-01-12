@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2023 Convertigo SA.
+ * Copyright (c) 2001-2024 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -1306,13 +1306,13 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
 		
-		// Pages scss
-		for (PageComponent pc: getPageComponentList()) {
-			String pageName = pc.getName();
-			String pageDir = pageName.toLowerCase();
-			sb.append("@use \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
-		}
-		sb.append(System.lineSeparator());
+//		// Pages scss
+//		for (PageComponent pc: getPageComponentList()) {
+//			String pageName = pc.getName();
+//			String pageDir = pageName.toLowerCase();
+//			sb.append("@use \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
+//		}
+//		sb.append(System.lineSeparator());
 		
 		// App fonts
 		StringBuilder sbFamilies = new StringBuilder();
