@@ -8,6 +8,8 @@
 	import RequestDurationChart from '$lib/admin-console/charts/RequestDurationChart.svelte';
 	import StatusTable from '$lib/admin-console/tables/StatusTable.svelte';
 	import SystemInformationTable from '$lib/admin-console/tables/SystemInformationTable.svelte';
+	import Card from '$lib/admin-console/admin-components/Card.svelte';
+	import AutoGrid from '$lib/admin-console/admin-components/AutoGrid.svelte';
 
 	initializeStores();
 
@@ -25,49 +27,49 @@
 </script>
 
 <div class="page-container">
-	<div class="charts-grid">
-		<div class="chart-card">
+	<div class="charts-grid"></div>
+
+	<AutoGrid>
+		<Card>
 			<div class="card-header">Status</div>
 			<StatusTable />
-		</div>
+		</Card>
 
-		<div class="chart-card">
+		<Card>
 			<div class="card-header">System Information</div>
 			<SystemInformationTable />
-		</div>
-
-		<!-- Répétez ce pattern pour les autres cartes -->
-	</div>
+		</Card>
+	</AutoGrid>
 
 	<div class="monitor-section">
 		<div class="header-section">Monitor</div>
 
-		<div class="monitor-content">
-			<div class="card">
+		<AutoGrid>
+			<Card customStyle="height: 300px;">
 				<h1>Memory</h1>
 				<MonitorChart />
-			</div>
+			</Card>
 
-			<div class="card">
+			<Card customStyle="height: 300px;">
 				<h1>Threads</h1>
 				<ThreadsChart />
-			</div>
+			</Card>
 
-			<div class="card">
+			<Card customStyle="height: 300px;">
 				<h1>Contexts</h1>
 				<ContextChart />
-			</div>
+			</Card>
 
-			<div class="card">
-				<h1>Requests</h1>
+			<Card customStyle="height: 300px;">
+				<h1>Requests duration</h1>
 				<RequestDurationChart />
-			</div>
+			</Card>
 
-			<div class="card">
+			<Card customStyle="height: 300px;">
 				<h1>Sessions</h1>
 				<SessionsChart />
-			</div>
-		</div>
+			</Card>
+		</AutoGrid>
 	</div>
 </div>
 
@@ -96,4 +98,5 @@
 	.card {
 		@apply flex flex-col bg-surface-800 h-60 p-5 font-extralight text-[13.5px] border-[0.5px] border-surface-600 rounded-none;
 	}
+
 </style>

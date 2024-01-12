@@ -10,11 +10,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft"><SidebarLeft /></svelte:fragment>
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
-	<!-- (sidebarRight) -->
-	<!-- (pageHeader) -->
-	<!-- Router Slot -->
+
 	<slot />
-	<!-- ---- / ---- -->
-	<svelte:fragment slot="pageFooter"></svelte:fragment>
-	<!-- (footer) -->
+
 </AppShell>
