@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2023 Convertigo SA.
+ * Copyright (c) 2001-2024 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 @DboFolderType(type = FolderType.ATTRIBUTE)
 public class UIAttribute extends UIComponent implements ITagsProperty {
@@ -147,8 +148,8 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(attrName)) {
-			attrName = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
+		if (oldName.startsWith(StringUtils.normalize(attrName))) {
+			attrName = newName;
 			hasChanged = true;
 		}
 	}

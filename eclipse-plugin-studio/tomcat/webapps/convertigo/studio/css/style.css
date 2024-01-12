@@ -1,0 +1,509 @@
+/*
+ * Copyright (c) 2001-2024 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
+ */
+
+hr {
+    border: 0;
+    border-top: 1px solid;
+}
+
+/*********************************
+* Jstree projects tree view
+*********************************/
+.folder {
+    background-image: url(../../admin/images/folder.gif) !important;
+}
+
+.projects-tree-view tbody>tr>td {
+    user-select: initial;
+}
+
+.projects-tree-view tbody>tr>td>input {
+    border: none;
+}
+
+.projects-tree-view thead>tr>th {
+    text-align: left
+}
+
+.jstree-rename-input {
+    width: 100% !important; 
+}
+
+.jstree-header {
+    display: block !important;
+    background: none !important;
+}
+
+.jstree-default .jstree-node {
+    margin-left: 10px;
+}
+
+/* Header separator of the jstree grid plugin */
+/*.jstree-grid-separator-regular {
+  border-style: none !important;
+}*/
+
+/*********************************
+* Jstree context menu
+*********************************/
+/* Icons of the context menu */
+.vakata-context li>a>i {
+    background-repeat: no-repeat;
+    /* Center */
+    background-position: 7px 7px;
+}
+
+.contextmenu-entry-default:before {
+    content: "\2713";
+}
+
+/*********************************
+* Modal
+*********************************/
+.align-right {
+    text-align: right;
+}
+
+div.modal button {
+    /* space between buttons */
+    margin-right: 10px;
+}
+
+/* Java Stack trace */
+.modal pre {
+	overflow: scroll;
+    user-select: initial;
+}
+
+.toggle-stacktrace {
+	cursor: pointer;
+    font-weight: bold;
+}
+
+/*********************************
+* Palette
+*********************************/
+/* Sub categories */
+.tab-palette>div>div.sub-category {
+    margin-bottom: 10px;
+}
+
+/* Div containing the icon + text of each sub category */
+.tab-palette>div>div.sub-category>div {
+    display: inline-block;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 210px;
+}
+
+/* Div icons of sub categories */
+.tab-palette>div>div.sub-category>div>i,
+.tab-palette>div>div.category>i {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    vertical-align:middle;
+    margin-right: 8px;
+}
+
+/* Div icons of the categories */
+.tab-palette>div>div.category>i {
+    background-repeat: no-repeat;
+    background-size: 32px 32px;
+}
+
+/* Div containing the icon + text of each category */
+.tab-palette>div>div.category {
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.tab-palette {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+/*********************************
+* Drag and drop
+*********************************/
+i.draggable {
+    display: inline-block;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.checkmark {
+    background: url(../img/checkmark.png) no-repeat;
+}
+
+.forbidden {
+    background: url(../img/forbidden.png) no-repeat;
+}
+
+/*********************************
+* Toolbar
+*********************************/
+/* Logs */
+#engine-logs-select-level tr, #engine-logs-select-columns tr {
+    height: 30px;
+}
+
+#engine-logs-select-columns table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#engine-logs-select-level table {
+    border-spacing: 0px;
+	overflow-y: scroll;
+	display: block;
+    height: 600px;
+}
+
+.action-enabled {
+    border-radius: 1px;
+}
+
+.img-action:hover {
+    border-radius: 2px;
+}
+
+/*********************************
+* Engine Log
+*********************************/
+.engineLogView table {
+	border-spacing: 2px 0px;
+}
+
+/* Enable selection in Engine Log */
+.engineLogView div, .engineLogView td {
+    user-select: initial;
+}
+
+.log-message-sublines {
+    font-size: 9pt;
+    font-family: monospace;
+    border: thin dashed;
+    margin: 2px;
+    padding: 2px;
+}
+
+.log-column-line-number {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.log-column-category {
+    min-width: 80px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-thread {
+    min-width: 160px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-message {
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-extra {
+    min-width: 250px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.engineLogView table {
+    font-size: 10pt;
+    width: 100%;
+}
+
+.engineLogView table th {
+    text-align: center;
+    font-weight: bold;
+    padding: 3px;
+}
+
+.engineLogView table td {
+    padding: 3px;
+}
+
+/*********************************
+* Graphic editors
+*********************************/
+code {
+	user-select: initial;
+}
+
+.editor-top-bar {
+    border-bottom: solid 1px;
+}
+
+.internal-requester-output {
+    margin-right: 1px;
+}
+
+.sequence-output {
+    border-left: 1px solid;
+}
+
+.internal-requester-output, .sequence-output {
+	position: relative;
+    float: left;
+    width: 47%;
+}
+
+/* Align buttons to the left */
+.graphicEditorsView .lm_controls {
+    right: initial !important;
+    margin-top: -16px;
+}
+
+/* Loading animation */
+.loading-animation {
+    margin-top: 3px;
+    margin-right: 3px;
+    float: right;
+}
+
+/* Source: http://www.alessioatzeni.com/blog/css3-loading-animation-loop/ */
+.barlittle {
+    border-left: 1px solid #111;
+    border-top: 1px solid #111;
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+    width: 10px;
+    height: 10px;
+    float: left;
+    margin-left: 5px;
+    -moz-transform: scale(0.7);
+    -webkit-transform: scale(0.7);
+    -moz-animation: move 1s infinite linear;
+    -webkit-animation: move 1s infinite linear;
+}
+
+.block1 {
+    -moz-animation-delay: .4s;
+    -webkit-animation-delay: .4s;
+}
+
+.block2 {
+    -moz-animation-delay: .3s;
+    -webkit-animation-delay: .3s;
+}
+
+.block3 {
+    -moz-animation-delay: .2s;
+    -webkit-animation-delay: .2s;
+}
+
+.block4 {
+    -moz-animation-delay: .3s;
+    -webkit-animation-delay: .3s;
+}
+
+.block5 {
+    -moz-animation-delay: .4s;
+    -webkit-animation-delay: .4s;
+}
+
+@-moz-keyframes move {
+    0% {
+        -moz-transform: scale(1.2);
+    }
+
+    100% {
+        -moz-transform: scale(0.7);
+    };
+}
+
+@-webkit-keyframes move {
+    0% {
+        -webkit-transform: scale(1.2);
+    }
+
+    100% {
+        -webkit-transform: scale(0.7);
+    };
+}
+
+/*********************************
+* Golden Layout
+*********************************/
+body .lm_content {
+	overflow: auto;
+}
+
+/*********************************
+* Jstree properties view
+*********************************/
+.properties-tree-view li[aria-level="1"] {
+    left: -9px;
+    width: 100%;
+    position: relative;
+}
+
+.properties-tree-view li[aria-level="2"] {
+    position: relative;
+    left: -18px;
+    padding-left: 18px;
+    width: 100%;
+}
+
+/*********************************
+* Source Picker
+*********************************/
+.infos {
+	width: 55%;
+}
+
+.help {
+	float: left;
+	width: 40%;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 14px;
+	border: 1px solid;
+	height: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.infos input {
+	width: 75%;
+}
+
+.infos textarea {
+   width: 73%;
+   resize: none;
+}
+
+.infos label {
+    width: 20%;
+}
+
+.infos input {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+div[id^="sourcepicker"] .xpath {
+	resize: none;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+	margin-left: 14px;
+}
+
+.infos label {
+	margin-left: 5px;
+}
+
+.xpath-tree {
+	width: 100%;
+	overflow-y: scroll;
+	height: 15vh;
+	margin-top: 10px;
+}
+
+.buttons-container {
+	display: flex;
+	margin-top: 30px;
+}
+
+.buttons-container button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 4px;
+}
+
+.infos label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xpath-btn button {
+	background-repeat: no-repeat;
+	width: 16px;
+	min-width: initial;
+	background-position: center;
+	padding: 12px 12px;
+	margin-: 4px;
+}
+
+.xpath-btn button:hover {
+    border: solid 1px;
+}
+
+.xpath-btn button[disabled]:hover {
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.xpath-btn button[disabled] {
+   border: solid 1px;
+}
+
+.main-container {
+   display: flex;
+}
+
+.scrollable-container {
+    overflow-y: scroll;
+    height: 20vh;
+    margin-left: 2px;
+    border: solid 1px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 99%;
+}
+
+.xpath-btn {
+	width: 5%;
+	margin-right: 22px;
+	margin-left: 5px;
+}
+
+.xpath-container {
+	width: 95%;
+	display: flex;
+}
+
+.highlightTextarea {
+	display: inline-block;
+	width: 90% !important;
+}
+
+.infos-help-container {
+	height: 33%;
+	width: 100%;
+	display: flex;
+}
+
+.label-input-container {
+    display: flex;
+    margin-top: 5px;
+}

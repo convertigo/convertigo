@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2023 Convertigo SA.
+ * Copyright (c) 2001-2024 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -66,8 +66,6 @@ public class DatabaseCacheManager extends CacheManager {
 	}
 	
 	public void init() throws EngineException {
-		super.init();
-
 		try {
 			sqlRequester = new SqlRequester(DB_PROP_FILE_NAME);
 			sqlRequester.open();
@@ -81,6 +79,7 @@ public class DatabaseCacheManager extends CacheManager {
 		catch ( ClassNotFoundException e ) {
 			throw new EngineException("[DatabaseCacheManager] Unable to load JDBC Driver.", e);
 		}
+		super.init();
 	}
 	
 	public void destroy() throws EngineException {
