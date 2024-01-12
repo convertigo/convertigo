@@ -21,6 +21,6 @@ Contributors:
 	<parent>
 		<artifactId>root</artifactId>
 		<groupId>com.convertigo.studio</groupId>
-<!-- SET-VERSION --><version>8.2.5-SNAPSHOT</version>
+<!-- SET-VERSION --><version>8.2.6-SNAPSHOT</version>
 	</parent>
 </project>

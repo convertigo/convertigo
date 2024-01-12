@@ -99,7 +99,7 @@ RUN sed -i.bak \
     && chmod -w conf/* \
     && chmod 777 conf/context.xml conf/server.xml
 
-ENV CONVERTIGO_VERSION 8.2.5
+ENV CONVERTIGO_VERSION 8.2.6
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
