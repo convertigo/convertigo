@@ -35,7 +35,7 @@ import com.teamdev.jxbrowser.browser.Browser;
 import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.dom.event.Event;
 import com.teamdev.jxbrowser.dom.event.EventType;
-import com.teamdev.jxbrowser.engine.ChromiumBinariesExtractionException;
+import com.teamdev.jxbrowser.engine.ChromiumBinariesDeliveryException;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
 import com.teamdev.jxbrowser.engine.PasswordStore;
@@ -161,9 +161,10 @@ public class C8oBrowser extends Composite {
 								.enableProprietaryFeature(ProprietaryFeature.AAC)
 								.enableProprietaryFeature(ProprietaryFeature.H_264)
 								.addSwitch("--illegal-access=warn")
+								.addSwitch("--remote-allow-origins=*")
 								.remoteDebuggingPort(debugPort).build());
 						rt = 0;
-					} catch (ChromiumBinariesExtractionException e) {
+					} catch (ChromiumBinariesDeliveryException e) {
 						rt--;
 						if (rt == 0) {
 							throw e;
