@@ -10,7 +10,7 @@
 	initializeStores();
 
 	let currentTileDrawer: number = 0;
-    $: tiles = $tilesStore;
+	$: tiles = $tilesStore;
 
 	const drawerStore = getDrawerStore();
 
@@ -41,8 +41,6 @@
 <button class="md:hidden pl-2 pt-2" on:click={triggerDrawer}
 	><Icon icon="iconamoon:menu-burger-horizontal-thin" class="w-8 h-8" /></button
 >
-
-
 
 <Drawer class="">
 	<AppRail

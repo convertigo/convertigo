@@ -25,7 +25,6 @@
 	let hasUnsavedChanges = false;
 	let hasChanges;
 
-	
 	onMount(() => {
 		refreshConfigurations();
 		changeTheme($theme);
@@ -85,7 +84,7 @@
 					<div class="flex grid md:grid-cols-2 grid-cols-1 gap-5">
 						{#each category.property as property, propertyIndex}
 							{#if property['@_isAdvanced'] !== 'true'}
-								<PropertyType {property} {selectedIndex} {propertyIndex}{hasChanges}/>
+								<PropertyType {property} {selectedIndex} {propertyIndex} {hasChanges} />
 							{/if}
 						{/each}
 					</div>
@@ -128,7 +127,7 @@
 	</div>
 {/if}
 
-<style lang="scss">
+<style>
 	.navbutton {
 		@apply flex text-[12px] font-light text-start p-2 border-b-[0.5px] border-b-surface-500 bg-surface-800 items-center;
 	}

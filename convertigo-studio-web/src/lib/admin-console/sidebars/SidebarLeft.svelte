@@ -1,12 +1,11 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { AppRail, AppRailTile} from '@skeletonlabs/skeleton';
+	import { AppRail, AppRailTile } from '@skeletonlabs/skeleton';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { tilesStore, tilesStoreMiscleanous } from '../stores/tilesStore';
-
 
 	initializeStores();
 
@@ -15,7 +14,6 @@
 	$: miscellaneous = $tilesStoreMiscleanous;
 
 	onMount(() => {});
-
 
 	function navigate(url) {
 		if (browser) {
@@ -51,33 +49,31 @@
 					</svelte:fragment>
 					<span class="nav-title">{tile.title}</span>
 				</AppRailTile>
-			{/each}	
+			{/each}
 		</div>
 
 		<div class="flex justify-center">
-			<separator class="border-[1px] flex w-[70%] border-surface-100"/>
+			<separator class="border-[1px] flex w-[70%] border-surface-100" />
 		</div>
-		
-
 
 		<div class="flex grid grid-cols-2 mt-5 mb-10">
 			{#each miscellaneous as tile}
-			<AppRailTile
-				bind:group={currentTileMain}
-				on:click={() => navigate(tile.url)}
-				value={tile.value}
-				name={tile.title.toLowerCase()}
-				title={tile.title}
-				class="border border-surface-900"
-			>
-				<svelte:fragment slot="lead">
-					<div class="flex justify-center flex-col items-center">
-						<Icon icon={tile.icon} class="w-[30px] h-[30px]" />
-					</div>
-				</svelte:fragment>
-				<span class="nav-title">{tile.title}</span>
-			</AppRailTile>
-		{/each}
+				<AppRailTile
+					bind:group={currentTileMain}
+					on:click={() => navigate(tile.url)}
+					value={tile.value}
+					name={tile.title.toLowerCase()}
+					title={tile.title}
+					class="border border-surface-900"
+				>
+					<svelte:fragment slot="lead">
+						<div class="flex justify-center flex-col items-center">
+							<Icon icon={tile.icon} class="w-[30px] h-[30px]" />
+						</div>
+					</svelte:fragment>
+					<span class="nav-title">{tile.title}</span>
+				</AppRailTile>
+			{/each}
 		</div>
 	</AppRail>
 </div>

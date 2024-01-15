@@ -12,5 +12,4 @@
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
 
 	<slot />
-
 </AppShell>

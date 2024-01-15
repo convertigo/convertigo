@@ -98,5 +98,4 @@
 	.card {
 		@apply flex flex-col bg-surface-800 h-60 p-5 font-extralight text-[13.5px] border-[0.5px] border-surface-600 rounded-none;
 	}
-
 </style>
