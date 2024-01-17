@@ -58,7 +58,7 @@ public class ServletUtils {
 			Engine.logContext.debug("If-Modified-Since: " + clientDate);
 			long fileDate = file.lastModified() / 1000;
 			Engine.logContext.debug("File date: " + fileDate);
-			if (clientDate == fileDate) {
+			if (clientDate == fileDate && fileDate > 0) {
 				Engine.logContext.debug("Returned HTTP 304 Not Modified");
 				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
 			}
