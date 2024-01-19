@@ -107,18 +107,20 @@ import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
+import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
@@ -135,6 +137,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -247,6 +250,29 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+		
+		@JsAccessible
+		public void onEditorEvent(String s) {
+			Engine.logStudio.info("onEditorEvent: " + s);
+			try {
+				JSONObject json = new JSONObject(s);
+				String event = json.getString("event");
+				if ("style:target".equals(event)) {
+					JSONArray selectors = json.getJSONObject("target").getJSONArray("selectors");
+					for (int i = 0; i < selectors.length(); i++) {
+						var cls = selectors.getString(i);
+						var matcher =  pPriority.matcher(cls);
+						if (matcher.matches()) {
+							highlightPriority(Long.parseLong(matcher.group(1)));
+							return;
+						}
+					}
+				}
+				json.toString();
+			} catch (Exception e) {
+				Engine.logStudio.error("onEditorEvent", e);
 			}
 		}
 	};
@@ -410,7 +436,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		JSONObject device = null;
 		try {
 			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-			headlessBuild = device.getBoolean("headlessBuild");
+			try {
+				headlessBuild = device.getBoolean("headlessBuild");
+			} catch (Exception e) { }
 		} catch (Exception e) { }
 
 		updateDevicesMenu();
@@ -864,6 +892,72 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 		});
+
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
+		item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Style editor");
+		try {
+			item.setImage(plugin.getStudioIcon("icons/studio/edit_16x16.png"));
+		} catch (Exception e) {
+		}
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				var selected = ((ToolItem) e.widget).getSelection();
+				C8oBrowser.run(() -> {
+					if (selected) {
+						c8oBrowser.executeFunctionAndReturnValue("initGrapesJS");
+					} else {
+						String css = c8oBrowser.executeFunctionAndReturnValue("getEditorCss");
+						Engine.execute(() -> {
+							Engine.logStudio.warn("css\n" + css);
+							var changed = false;
+							var m = Pattern.compile("\\.class(\\d+).*?\\{(.*?)\\}").matcher(css);
+							while (m.find()) {
+								try {
+									var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
+									if (dbo instanceof UIElement uie) {
+										var style = (UIStyle) uie.getDatabaseObjectChild("editorStyle");
+										var added = style == null;
+										var content = m.group(2).replace(";",";\n");
+										if (added) {
+											style = new UIStyle();
+											style.setName("editorStyle");
+										} else if (style.getStyleContent().getString().equals(content)) {
+											continue;
+										}
+										changed = true;
+										style.setStyleContent(new FormatedContent(content));
+										if (added) {
+											uie.addUIComponent(style);
+											BuilderUtils.dboAdded(uie);
+										} else {
+											BuilderUtils.dboUpdated(uie);
+										}
+									}
+									c8oBrowser.getDisplay().asyncExec(() -> {
+										var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										try {
+											pew.reloadDatabaseObject(dbo);
+										} catch (Exception e1) {
+											e1.printStackTrace();
+										}
+									});
+								} catch (Exception ex) {
+									// TODO: handle exception
+									Engine.logStudio.error("failed", ex);
+								}
+							}
+							if (!changed) {
+								c8oBrowser.getDisplay().asyncExec(() -> doReload());
+							}
+						});
+					}
+				});
+			}
+		});
+		item.setSelection(false);
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
@@ -1779,59 +1873,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				try {
 					node = null;
 					long priority = Long.parseLong(mPriority.group(1));
-					Set<DatabaseObject> alreadyWalked =  new HashSet<DatabaseObject>();
-
-					new WalkHelper() {
-
-						@Override
-						protected void walk(DatabaseObject databaseObject) throws Exception {
-							if (databaseObject instanceof UISharedComponent) {
-								UISharedComponent uisc = (UISharedComponent)databaseObject;
-								if (uisc != null) {
-									databaseObject = uisc;
-								}
-							} else if (databaseObject instanceof UIUseShared) {
-								UISharedComponent uisc = ((UIUseShared)databaseObject).getTargetSharedComponent();
-								if (uisc != null) {
-									databaseObject = uisc;
-								}
-							} else if (databaseObject instanceof UIDynamicInvoke) {
-								UIDynamicInvoke uidi = (UIDynamicInvoke) databaseObject;
-								UIActionStack uisa = uidi.getTargetSharedAction();
-								if (uisa != null) {
-									if (!uidi.isRecursive()) {
-										databaseObject = uisa;
-									}
-								}
-							}
-
-							if (databaseObject.priority == priority) {
-								throw new DatabaseObjectFoundException(databaseObject);
-							}
-							if(!alreadyWalked.contains(databaseObject)) {
-								alreadyWalked.add(databaseObject);
-								super.walk(databaseObject);
-							}
-
-						}
-
-					}.init(applicationEditorInput.application);
-				} catch (DatabaseObjectFoundException e) {
-					DatabaseObject databaseObject = e.getDatabaseObject();
-
-					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
-						if (dragStartMobileComponent != null) {
-							DatabaseObject ancestor = databaseObject;
-							while (dragStartMobileComponent != ancestor && ancestor != null) {
-								ancestor = ancestor.getParent();
-							}
-							if (dragStartMobileComponent == ancestor) {
-								return;
-							}
-						}
-						c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
-						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
-					}
+					highlightPriority(priority);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -1843,7 +1885,27 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 	}
-
+	
+	private void highlightPriority(long priority) throws Exception {
+		var databaseObject = findDatabaseObject(priority);
+		if (databaseObject == null) {
+			return;
+		}
+		if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
+			if (dragStartMobileComponent != null) {
+				var ancestor = databaseObject;
+				while (dragStartMobileComponent != ancestor && ancestor != null) {
+					ancestor = ancestor.getParent();
+				}
+				if (dragStartMobileComponent == ancestor) {
+					return;
+				}
+			}
+			c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
+			highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
+		}
+	}
+	
 	public void highlightComponent(MobileComponent mobileComponent, boolean selectPage) {
 		C8oBrowser.run(() -> {
 			if (selectPage && mobileComponent instanceof UIComponent) {
@@ -1882,6 +1944,51 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			c8oBrowser.executeJavaScriptAndReturnValue("_c8o_highlight_class('class" + mc.priority + "');");
 		});
+	}
+	
+	private DatabaseObject findDatabaseObject(long priority) throws Exception {
+		try {
+			var alreadyWalked =  new HashSet<DatabaseObject>();
+
+			new WalkHelper() {
+
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					if (databaseObject instanceof UISharedComponent) {
+						var uisc = (UISharedComponent) databaseObject;
+						if (uisc != null) {
+							databaseObject = uisc;
+						}
+					} else if (databaseObject instanceof UIUseShared) {
+						var uisc = ((UIUseShared) databaseObject).getTargetSharedComponent();
+						if (uisc != null) {
+							databaseObject = uisc;
+						}
+					} else if (databaseObject instanceof UIDynamicInvoke) {
+						var uidi = (UIDynamicInvoke) databaseObject;
+						var uisa = uidi.getTargetSharedAction();
+						if (uisa != null) {
+							if (!uidi.isRecursive()) {
+								databaseObject = uisa;
+							}
+						}
+					}
+
+					if (databaseObject.priority == priority) {
+						throw new DatabaseObjectFoundException(databaseObject);
+					}
+					if(!alreadyWalked.contains(databaseObject)) {
+						alreadyWalked.add(databaseObject);
+						super.walk(databaseObject);
+					}
+
+				}
+
+			}.init(applicationEditorInput.application);
+		} catch (DatabaseObjectFoundException e) {
+			return e.getDatabaseObject();
+		}
+		return null;
 	}
 
 	private void doReload() {

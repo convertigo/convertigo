@@ -343,3 +343,140 @@ window.addEventListener("dragover", function (e) {
 		console.log("dragover: " + ex);
 	}
 });
+
+function initEditor() {
+	let app = document.getElementsByTagName('ion-app')[0];
+	if (app.getAttribute["id"] == "gjs") {
+		return;
+	}
+	app.setAttribute("id", "gjs");
+	const exStyle = [...document.head.getElementsByTagName('style')].at(-1).textContent.replaceAll(/\[_ng.*?]/g,'');
+	const webComponentsPlugin = (editor) => {
+	  editor.Components.addType('web-component', {
+	    isComponent: (el) =>
+	      el.tagName?.includes('-') && {
+	        name: el.tagName.toLowerCase(),
+	        type: 'web-component',
+	      },
+	    view: {
+	      preinitialize(opt) {
+	        this.opts = opt;
+	      },
+	      _createElement(tagName) {
+	        const frameDoc = this.frameView?.getDoc();
+	        const doc = frameDoc || document;
+	        return doc.createElement(tagName);
+	      },
+	    },
+	  });
+	};
+	const editor = window.grapesjs.init({
+	  // Indicate where to init the editor. You can also pass an HTMLElement
+	  container: '#gjs',
+	  // Get the content for the canvas directly from the element
+	  // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
+	  fromElement: true,
+	  // Size of the editor
+	  width: 'auto',
+	  // Disable the storage manager for the moment
+	  storageManager: false,
+	  // Avoid any default panel
+	  plugins: [webComponentsPlugin],
+	  canvas: {
+	    scripts: [
+	      {
+	        src: 'https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js',
+	        type: 'module',
+	      },
+	      {
+	        src: 'https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js',
+	      },
+	    ],
+	    styles: ['https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css'],
+	  },
+	});
+	
+	editor.on('load', () => {
+		let doc = window.document.getElementsByTagName("iframe")[0].contentDocument
+		
+		/* copy Link */
+		let head = doc.getElementsByTagName('head')[0]
+		let link = doc.createElement('link')
+		link.setAttribute("rel", "stylesheet")
+		link.setAttribute("href", "styles.css")
+		head.appendChild(link)
+		
+		/* Set GrapesJS DIV wrapper to be flex */
+		let gjsdiv = doc.querySelector('div[data-gjs-highlightable="true"]')
+		gjsdiv['style']['display'] = 'flex'
+		gjsdiv['style']['flex-direction'] = 'column'
+		gjsdiv['style']['justify-content'] = 'space-beteween'
+		
+	});
+	
+	/* will be called each time a user mofifies a style property */
+	editor.on('style:property:update', (props, obj) => {
+		//console.log("Property is : " +JSON.stringify(props))
+	});
+	
+	/* will be called each time a user selects on aother item to style*/
+	editor.on('style:target', (target) => {
+		window.java.onEditorEvent(JSON.stringify({
+			event: 'style:target',
+			target
+		}));
+		//console.log("target is : " +JSON.stringify(target))
+	});
+	
+	editor.on('component:drag start', (info) => {
+		window.java.onEditorEvent(JSON.stringify({
+			event: 'component:drag start',
+			info
+		}));
+		console.log("Drag Start ...  : " +JSON.stringify(info))
+	});
+	
+	editor.on('component:drag end', (info) => {
+		window.java.onEditorEvent(JSON.stringify({
+			event: 'component:drag end',
+			info
+		}));
+		console.log("Drag end   ...  : " +JSON.stringify(info))
+	});
+	
+	editor.addStyle(exStyle);
+	window.getEditorCss = () => {
+		return editor.getCss();
+	}
+}
+
+function initGrapesJS() {
+	const doc = document;
+	if (doc.getElementsByTagName('ion-app').length == 0) {
+		return;
+	} else if ('grapesjs' in window) {
+		console.log("GrapesJS already init");
+		initEditor();
+	} else {
+		console.log("init GrapesJS");
+		try {
+//			let app = doc.getElementsByTagName('page-page')[0];
+//			let app = doc.getElementsByTagName('ion-app')[0];
+//			app.setAttribute("id", "gjs");
+		
+			/** @type {HTMLElement} */
+			let elt = doc.createElement('script');
+			elt.setAttribute('src', 'https://unpkg.com/grapesjs');
+			elt.onload = () => {
+				initEditor();
+			};
+			doc.head.appendChild(elt);
+			elt = doc.createElement('link');
+			elt.setAttribute('rel', 'stylesheet');
+			elt.setAttribute('href', 'https://unpkg.com/grapesjs/dist/css/grapes.min.css');
+			doc.head.appendChild(elt);
+		} catch(e) {
+			console.log('grapejs init failed', e);
+		}
+	}
+}
