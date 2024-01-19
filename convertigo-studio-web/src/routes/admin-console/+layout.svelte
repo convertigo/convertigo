@@ -1,10 +1,15 @@
 <script>
-	import { AppShell } from '@skeletonlabs/skeleton';
+	import { AppShell, initializeStores } from '@skeletonlabs/skeleton';
 	import SidebarLeft from '$lib/admin-console/sidebars/SidebarLeft.svelte';
 	import Topbar from '$lib/admin-console/sidebars/Topbar.svelte';
+	import { Modal } from '@skeletonlabs/skeleton';
+
+	initializeStores();
 </script>
 
 <AppShell>
+	<Modal />
+
 	<svelte:fragment slot="header">
 		<Topbar />
 	</svelte:fragment>

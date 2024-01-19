@@ -22,7 +22,7 @@
 	}
 </script>
 
-<div class="hidden md:block">
+<div class="hidden md:block bg-surface-800 h-full">
 	<AppRail
 		id="main-apprail"
 		height="h-full"

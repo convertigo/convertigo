@@ -13,7 +13,6 @@
 		configurations,
 		updateConfiguration
 	} from '$lib/admin-console/stores/configurationStore';
-	import ParameterCheckbox from '$lib/admin-console/admin-components/PropertyType.svelte';
 	import PropertyType from '$lib/admin-console/admin-components/PropertyType.svelte';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import { get } from 'svelte/store';
@@ -24,14 +23,16 @@
 	let selectedIndex = 0;
 	let hasUnsavedChanges = false;
 	let hasChanges;
+	let id;
 
 	onMount(() => {
 		refreshConfigurations();
+		updateConfiguration();
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
 	});
 
-	function changeTheme(e) {
+	export function changeTheme(e) {
 		$theme = typeof e == 'string' ? e : e.target?.value;
 		document.body.setAttribute('data-theme', $theme);
 	}
@@ -50,10 +51,12 @@
 	}
 
 	function changeCategory(index) {
-		if (hasChanges) {
+		if (hasUnsavedChanges) {
 			const confirmLeave = confirm('You have unsaved changes. Are you sure you want to continue?');
 			if (confirmLeave) {
-				hasChanges = false;
+				hasUnsavedChanges = false;
+				selectedIndex = index;
+			} else {
 				selectedIndex = index;
 			}
 		} else {
@@ -71,7 +74,7 @@
 	{@debug $configurations}
 	<div class="flex flex-col h-full p-10 w-full">
 		<div class="flex flex-col grid md:grid-cols-6 gap-10">
-			<div class="content-area">
+			<div class="flex flex-col h-auto md:col-span-5">
 				<Card>
 					<div class="flex justify-between p-2 items-center border-1 border-b border-surface-100">
 						<h1 class="text-[15px]">{category['@_displayName']}</h1>
@@ -84,7 +87,7 @@
 					<div class="flex grid md:grid-cols-2 grid-cols-1 gap-5">
 						{#each category.property as property, propertyIndex}
 							{#if property['@_isAdvanced'] !== 'true'}
-								<PropertyType {property} {selectedIndex} {propertyIndex} {hasChanges} />
+								<PropertyType {property} {selectedIndex} {propertyIndex} bind:hasUnsavedChanges />
 							{/if}
 						{/each}
 					</div>
@@ -104,7 +107,12 @@
 									<div class="bg-surface-900 md:p-2 flex grid md:grid-cols-2">
 										{#each category.property as property, propertyIndex}
 											{#if property['@_isAdvanced'] == 'true'}
-												<PropertyType {property} {selectedIndex} {propertyIndex} />
+												<PropertyType
+													{property}
+													{selectedIndex}
+													{propertyIndex}
+													bind:hasUnsavedChanges
+												/>
 											{/if}
 										{/each}
 									</div>
@@ -114,15 +122,16 @@
 					</Card>
 				</div>
 			</div>
-
-			<div class="nav-sidebar">
-				{#each $configurations?.admin?.category as category, index}
-					<button class="navbutton" on:click={() => (selectedIndex = index)}>
-						<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
-						{category['@_displayName']}
-					</button>
-				{/each}
-			</div>
+			<Card>
+				<div class="flex flex-col h-auto md:col-span-1 rounded-2xl">
+					{#each $configurations?.admin?.category as category, index}
+						<button class="navbutton" on:click={() => changeCategory(index)}>
+							<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
+							{category['@_displayName']}
+						</button>
+					{/each}
+				</div>
+			</Card>
 		</div>
 	</div>
 {/if}
@@ -130,11 +139,5 @@
 <style>
 	.navbutton {
 		@apply flex text-[12px] font-light text-start p-2 border-b-[0.5px] border-b-surface-500 bg-surface-800 items-center;
-	}
-	.nav-sidebar {
-		@apply flex flex-col h-auto md:col-span-1 rounded-2xl;
-	}
-	.content-area {
-		@apply flex flex-col h-auto md:col-span-5;
 	}
 </style>

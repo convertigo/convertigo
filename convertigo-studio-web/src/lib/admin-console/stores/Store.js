@@ -67,7 +67,7 @@ export async function fetchConnectionsList() {
 		throw error;
 	}
 }
-
+/*
 export async function fetchProjectsList() {
 	try {
 		const response = await call('projects.List');
@@ -78,3 +78,4 @@ export async function fetchProjectsList() {
 		throw error;
 	}
 }
+ */

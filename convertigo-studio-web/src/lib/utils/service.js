@@ -68,6 +68,15 @@ export function getUrl() {
 	return `${window.location.origin}${m ? m[1] : '/convertigo'}/admin/services/`;
 }
 
+// $lib/utils/xmlConverter.js
+
+export function toXml(data) {
+	let xml = '<?xml version="1.0" encoding="UTF-8"?>';
+	xml += '<configurations>';
+	xml += '</configurations>';
+	return xml;
+}
+
 /* studio.dbo service methods */
 
 /**

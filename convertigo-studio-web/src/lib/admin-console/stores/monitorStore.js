@@ -16,6 +16,7 @@ export const requests = writable([]);
 export const engineState = writable(null);
 export const startTime = writable(0);
 export const time = writable(0);
+export const isLoading = writable(true);
 
 const allArrays = {
 	labels,
@@ -37,8 +38,10 @@ export function monitorCheck() {
 	const _delay = get(delay);
 	if (interval == null) {
 		if (_delay > 0) {
+			isLoading.set(true);
 			interval = window.setInterval(async () => {
 				const response = await call('engine.JsonMonitor');
+				isLoading.set(false);
 				if ('engineState' in response) {
 					const max = get(maxSaved);
 					response.labels = new Date().toTimeString().split(' ')[0];

@@ -75,7 +75,7 @@ export const tilesStoreMiscleanous = writable([
 	},
 	{
 		title: 'Documentation',
-		icon: 'material-symbols-light:cloud-outline',
+		icon: 'arcticons:doc-scanner',
 		url: '/admin-console/documentation',
 		value: 19
 	}

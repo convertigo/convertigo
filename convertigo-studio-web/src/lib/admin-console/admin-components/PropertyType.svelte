@@ -4,18 +4,8 @@
 	export let property;
 	export let propertyIndex;
 	export let selectedIndex;
-	export let hasChanges = false;
-
-	const id = `prop_${selectedIndex}_${propertyIndex}`;
-	function onInputChange() {
-		hasChanges = true;
-	}
-
-	export function handleInputChange(categoryIndex, propertyIndex, event) {
-		const newValue = event.target.value;
-		console.log(`changes detected ${propertyIndex} dans la catégorie ${categoryIndex}:`, newValue);
-		updateConfiguration(categoryIndex, propertyIndex, newValue);
-	}
+	export let id = `property-input-${propertyIndex}`;
+	export let hasUnsavedChanges;
 </script>
 
 {#if property['@_type'] == 'Boolean'}
@@ -25,7 +15,7 @@
 			{id}
 			class="text-black mt-5 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px] cursor-pointer"
 			bind:value={property['@_value']}
-			on:change={onInputChange}
+			on:change={() => (hasUnsavedChanges = true)}
 		/>
 		<label class="mt-5 ml-5 text-[14px] cursor-pointer" for={id}>{property['@_description']}</label>
 	</div>
@@ -38,7 +28,7 @@
 			{id}
 			class="text-black mt-2 p-1 text-[14px] placeholder:pl-1 placeholder:text-[12px]"
 			bind:value={property['@_value']}
-			on:input={onInputChange}
+			on:input={() => (hasUnsavedChanges = true)}
 		/>
 	</div>
 {/if}
