@@ -168,7 +168,7 @@ public class MobileResourceHelper {
 								file = file.replace("c8o.cordova.js", "c8o.cordova.device.js");
 							}
 
-							File inFile = new File(Engine.WEBAPP_PATH + "/f" + file);
+							File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
 
 							try (InputStream is = inFile.exists() ? new FileInputStream(inFile) : getClass().getResourceAsStream("res/" + inFile.getName())) {
 								if (is != null) {
@@ -176,9 +176,7 @@ public class MobileResourceHelper {
 									File outFile = new File(destDir, file);
 									if (!outFile.exists()) {
 										FileUtils.copyInputStreamToFile(is, outFile);
-										if (!inFile.exists()) {
-											outFile.setLastModified(0);
-										}
+										outFile.setLastModified(1);
 									}
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
 
