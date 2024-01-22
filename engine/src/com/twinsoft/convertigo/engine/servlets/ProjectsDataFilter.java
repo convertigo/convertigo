@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/(system/)?projects(/.*)");
-	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/(?:c8oProject\\.yaml|_c8oProject/.*|libs/.*|\\.git/.*))|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_).*)))$");
+	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/(?:c8oProject\\.yaml|_c8oProject/.*|libs/.*|\\.git/.*))|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_)|(?!/ionic/node_modules/@ionic/).*)))$");
 
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
 		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
@@ -102,7 +102,7 @@ public class ProjectsDataFilter implements Filter {
 		}
 		Engine.logContext.debug("requestedObject=" + requestedObject);
 
-		Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
+		Matcher m_forbidden = p_forbidden.matcher(pathInfo);
 		if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
 			if (m_forbidden.group(1) != null) {
 				requestedObject = Engine.WEBAPP_PATH + "/noproject.html";

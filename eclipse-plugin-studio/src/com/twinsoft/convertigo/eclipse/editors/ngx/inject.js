@@ -345,12 +345,20 @@ window.addEventListener("dragover", function (e) {
 });
 
 function initEditor() {
+	_c8o_remove_all_overlay();
 	let app = document.getElementsByTagName('ion-app')[0];
 	if (app.getAttribute["id"] == "gjs") {
 		return;
 	}
 	app.setAttribute("id", "gjs");
-	const exStyle = [...document.head.getElementsByTagName('style')].at(-1).textContent.replaceAll(/\[_ng.*?]/g,'');
+	let textChanged = {};
+	let eltMoved = [];
+	let exStyle = '';
+	for (let s of [...document.head.getElementsByTagName('style')]) {
+	    if (s.textContent.startsWith('.class')) {
+	        exStyle += s.textContent.replaceAll(/\[_ng.*?]/g,'') + '\n';
+	    }
+	}
 	const webComponentsPlugin = (editor) => {
 	  editor.Components.addType('web-component', {
 	    isComponent: (el) =>
@@ -385,32 +393,38 @@ function initEditor() {
 	  canvas: {
 	    scripts: [
 	      {
-	        src: 'https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js',
+	        src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.esm.js',
 	        type: 'module',
 	      },
 	      {
-	        src: 'https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js',
+	        src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.js',
 	      },
 	    ],
-	    styles: ['https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css'],
+	    styles: ['${projectUrl}/_private/ionic/node_modules/@ionic/core/css/ionic.bundle.css'],
 	  },
+	  richTextEditor: {
+		  actions: null,
+		  custom: true
+	  }
 	});
 	
 	editor.on('load', () => {
-		let doc = window.document.getElementsByTagName("iframe")[0].contentDocument
+		let doc = window.document.getElementsByTagName("iframe")[0].contentDocument;
 		
 		/* copy Link */
-		let head = doc.getElementsByTagName('head')[0]
-		let link = doc.createElement('link')
-		link.setAttribute("rel", "stylesheet")
-		link.setAttribute("href", "styles.css")
-		head.appendChild(link)
+		let head = doc.getElementsByTagName('head')[0];
+		let link = doc.createElement('link');
+		link.setAttribute("rel", "stylesheet");
+		link.setAttribute("href", "styles.css");
+		head.appendChild(link);
 		
 		/* Set GrapesJS DIV wrapper to be flex */
-		let gjsdiv = doc.querySelector('div[data-gjs-highlightable="true"]')
-		gjsdiv['style']['display'] = 'flex'
-		gjsdiv['style']['flex-direction'] = 'column'
-		gjsdiv['style']['justify-content'] = 'space-beteween'
+		let gjsdiv = doc.querySelector('div[data-gjs-highlightable="true"]');
+		gjsdiv['style']['display'] = 'flex';
+		gjsdiv['style']['flex-direction'] = 'column';
+		gjsdiv['style']['justify-content'] = 'space-between';
+		
+		document.querySelectorAll('#gjs-clm-tags-field,#gjs-clm-field,.gjs-clm-sels-info,.gjs-pn-views,.gjs-pn-btn.fa-code,.gjs-pn-btn.fa-arrows-all').forEach(elt => elt.hidden = true);
 		
 	});
 	
@@ -428,26 +442,32 @@ function initEditor() {
 		//console.log("target is : " +JSON.stringify(target))
 	});
 	
-	editor.on('component:drag start', (info) => {
-		window.java.onEditorEvent(JSON.stringify({
-			event: 'component:drag start',
-			info
-		}));
-		console.log("Drag Start ...  : " +JSON.stringify(info))
+	editor.on('component:drag:end', (info) => {
+		console.log("Drag end", info);
+		
+		const target = /class(\d+)/.exec(info?.target?.view?.el?.className)?.[1];
+		const parent = /class(\d+)/.exec(info?.parent?.view?.el?.className)?.[1];
+		eltMoved.push({target, parent, index: info?.index});
 	});
 	
-	editor.on('component:drag end', (info) => {
-		window.java.onEditorEvent(JSON.stringify({
-			event: 'component:drag end',
-			info
-		}));
-		console.log("Drag end   ...  : " +JSON.stringify(info))
+	editor.on('rte:disable', (event) => {
+		console.log("rte:disable ", event);
+		
+		const priority = /class(\d+)/.exec(event?.el?.className)?.[1]
+		if (priority) {
+			textChanged[priority] = event.el.textContent;
+		}
 	});
 	
 	editor.addStyle(exStyle);
-	window.getEditorCss = () => {
-		return editor.getCss();
-	}
+	window.getEditorChanges = () => {
+		return JSON.stringify({
+			text: textChanged,
+			move: eltMoved,
+			css: editor.getCss()
+		});
+	};
+	window.gjseditor = editor;
 }
 
 function initGrapesJS() {
@@ -460,11 +480,6 @@ function initGrapesJS() {
 	} else {
 		console.log("init GrapesJS");
 		try {
-//			let app = doc.getElementsByTagName('page-page')[0];
-//			let app = doc.getElementsByTagName('ion-app')[0];
-//			app.setAttribute("id", "gjs");
-		
-			/** @type {HTMLElement} */
 			let elt = doc.createElement('script');
 			elt.setAttribute('src', 'https://unpkg.com/grapesjs');
 			elt.onload = () => {

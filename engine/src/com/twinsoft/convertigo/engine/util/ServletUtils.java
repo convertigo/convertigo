@@ -51,6 +51,7 @@ public class ServletUtils {
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
+			HttpUtils.applyCorsHeaders(request, response);
 
 			// Warning date comparison: 'If-Modified-Since' header precision is second,
 			// although file date precision is milliseconds on Windows

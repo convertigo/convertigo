@@ -112,6 +112,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
@@ -121,6 +122,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
+import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
@@ -222,8 +224,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						try {
 							IEditorPart editorPart = ApplicationComponentEditor.this;
 							if (editorPart != null) {
-								IEditorInput input = editorPart.getEditorInput();
-								mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+								mb = project.getMobileBuilder();
 							}
 							if (mb != null) {
 								mb.prepareBatchBuild();
@@ -287,6 +288,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private ToolBar toolbar;
 	private ToolItem deviceOsToolItem;
 	private ToolItem showGrids;
+	private ToolItem editStyle;
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
@@ -397,7 +399,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		applicationEditorInput = (ApplicationComponentEditorInput) input;
 		ApplicationComponent application = applicationEditorInput.application;
-		Project project = application.getProject();
+		project = application.getProject();
 
 		datasetDir = new File(project.getDirPath(), "dataset");
 		datasetDir.mkdirs();
@@ -500,7 +502,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		String[] inject = {null};
 		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
-			inject[0] = IOUtils.toString(is, "UTF-8"); 
+			inject[0] = IOUtils.toString(is, "UTF-8");
+			inject[0] = inject[0].replace("${projectUrl}", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName());
 		} catch (Exception e2) {
 			Engine.logStudio.info("failure", e2);
 			inject[0] = "alert('the editor is broken, please restart the studio')";
@@ -857,8 +860,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
-
+		
 		item = new ToolItem(toolbar, SWT.PUSH);
+		var refreshBtn = item;
+		
 		item.setToolTipText("Refresh");
 		try {
 			item.setImage(plugin.getStudioIcon("icons/studio/refresh.gif"));
@@ -896,6 +901,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
 		item = new ToolItem(toolbar, SWT.CHECK);
+		editStyle = item;
 		item.setToolTipText("Style editor");
 		try {
 			item.setImage(plugin.getStudioIcon("icons/studio/edit_16x16.png"));
@@ -905,54 +911,127 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				var selected = ((ToolItem) e.widget).getSelection();
+				for (var item: toolbar.getItems()) {
+					if (item != e.widget && item != refreshBtn) {
+						item.setEnabled(!selected);
+					}
+				}
 				C8oBrowser.run(() -> {
 					if (selected) {
 						c8oBrowser.executeFunctionAndReturnValue("initGrapesJS");
 					} else {
-						String css = c8oBrowser.executeFunctionAndReturnValue("getEditorCss");
-						Engine.execute(() -> {
-							Engine.logStudio.warn("css\n" + css);
-							var changed = false;
-							var m = Pattern.compile("\\.class(\\d+).*?\\{(.*?)\\}").matcher(css);
-							while (m.find()) {
+						try {
+							var changes = new JSONObject((String) c8oBrowser.executeFunctionAndReturnValue("getEditorChanges"));
+							Engine.execute(() -> {
 								try {
-									var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
-									if (dbo instanceof UIElement uie) {
-										var style = (UIStyle) uie.getDatabaseObjectChild("editorStyle");
-										var added = style == null;
-										var content = m.group(2).replace(";",";\n");
-										if (added) {
-											style = new UIStyle();
-											style.setName("editorStyle");
-										} else if (style.getStyleContent().getString().equals(content)) {
-											continue;
-										}
-										changed = true;
-										style.setStyleContent(new FormatedContent(content));
-										if (added) {
-											uie.addUIComponent(style);
-											BuilderUtils.dboAdded(uie);
-										} else {
-											BuilderUtils.dboUpdated(uie);
+									var dbosToReload = new HashSet<DatabaseObject>();
+									var css = changes.getString("css");
+									Engine.logStudio.warn("css\n" + css);
+									var m = Pattern.compile("\\.class(\\d+).*?\\{(.*?)\\}").matcher(css);
+									while (m.find()) {
+										try {
+											var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
+											if (dbo instanceof UIElement uie) {
+												var style = (UIStyle) uie.getDatabaseObjectChild("styleEditor");
+												var added = style == null;
+												var content = m.group(2).replace(";",";\n");
+												if (added) {
+													style = new UIStyle();
+													style.setName("styleEditor");
+												} else if (style.getStyleContent().getString().equals(content)) {
+													continue;
+												}
+												dbosToReload.add(dbo);
+												style.setStyleContent(new FormatedContent(content));
+												if (added) {
+													uie.addUIComponent(style);
+													BuilderUtils.dboAdded(uie);
+												}
+											}
+										} catch (Exception ex) {
+											Engine.logStudio.error("failed", ex);
 										}
 									}
-									c8oBrowser.getDisplay().asyncExec(() -> {
-										var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
+									var text = changes.getJSONObject("text");
+									for (var i = text.keys(); i.hasNext();) {
+										var priority = (String) i.next();
+										var txt = text.getString(priority);
+										var dbo = findDatabaseObject(Long.parseLong(priority));
+										var uitext = (UIText) null;
+										for (var c: dbo.getAllChildren()) {
+											if (c instanceof UIText u) {
+												if (uitext == null) {
+													uitext = u;
+												} else {
+													uitext = null;
+													break;
+												}
+											}
+										}
+										if (uitext != null) {
+											var smart = uitext.getTextSmartType();
+											if (smart.getMode() == MobileSmartSourceType.Mode.PLAIN) {
+												var exValue = smart.getSmartValue();
+												if (!exValue.equals(txt)) {
+													smart.setSmartValue(txt);
+													dbosToReload.add(uitext);
+												}
+											}
+										}
+									}
+									var moved = changes.getJSONArray("move");
+									for (var i = 0; i < moved.length(); i++) {
 										try {
-											pew.reloadDatabaseObject(dbo);
-										} catch (Exception e1) {
-											e1.printStackTrace();
+											var move = moved.getJSONObject(i);
+											var target = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("target")));
+											var parent = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("parent")));
+											var index = move.getLong("index");
+											var exParent = target.getParent();
+											if (parent != exParent) {
+												exParent.remove(target);
+												dbosToReload.add(exParent);
+												parent.add(target, null);
+											}
+											var order = (long) parent.getOrder(target);
+											while (order < index) {
+												parent.decreasePriority(target);
+												order = (long) parent.getOrder(target);
+											}
+											while (order > index) {
+												parent.increasePriority(target);
+												order = (long) parent.getOrder(target);
+											}
+											dbosToReload.add(parent);
+										} catch (Exception ex) {
+											// TODO: handle exception
+										}
+									}
+									for (var dbo: dbosToReload) {
+										BuilderUtils.dboUpdated(dbo);
+									}
+									c8oBrowser.getDisplay().asyncExec(() -> {
+										if (dbosToReload.isEmpty()) {
+											doReload();
+										} else {
+											var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
+											for (var dbo: dbosToReload) {
+												try {
+													pew.reloadDatabaseObject(dbo);
+												} catch (Exception e1) {
+													e1.printStackTrace();
+												}
+											}
 										}
 									});
-								} catch (Exception ex) {
-									// TODO: handle exception
-									Engine.logStudio.error("failed", ex);
+								} catch (Exception e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
 								}
-							}
-							if (!changed) {
-								c8oBrowser.getDisplay().asyncExec(() -> doReload());
-							}
-						});
+							});
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
 				});
 			}
@@ -1193,7 +1272,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				MobileBuilder mb = applicationEditorInput.application.getProject().getMobileBuilder();
+				MobileBuilder mb = project.getMobileBuilder();
 				mb.setAutoBuild(((ToolItem) e.widget).getSelection());
 			}
 
@@ -1563,8 +1642,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		// Launch build
 		Engine.execute(() -> {
 			initLoader();
-
-			project = applicationEditorInput.application.getProject();
+			
 			ionicDir = new File(project.getDirPath(), "_private/ionic");
 			nodeModules = new File(ionicDir, "node_modules");
 
@@ -1993,6 +2071,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	private void doReload() {
 		showGrids.setSelection(false);
+		editStyle.setSelection(false);
 		C8oBrowser.run(() -> {
 			if (!c8oBrowser.getURL().equals("about:blank")) {
 				c8oBrowser.reload();
@@ -2016,7 +2095,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void terminateNode(boolean prodOnly) {
-		String projectName = new File(applicationEditorInput.application.getProject().getDirPath()).getName();
+		String projectName = new File(project.getDirPath()).getName();
 		int retry = 10;
 		try {
 			while (retry-- > 0) {
