@@ -24,6 +24,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IPartListener2;
@@ -37,6 +38,9 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
+	private StackLayout stack;
+	
+	private RhinoDebug rhinoDebug;
 	private C8oBrowser c8oBrowser;
 	private String currentUrl = null;
 	
@@ -53,6 +57,11 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		parent.setLayout(stack = new StackLayout());
+		rhinoDebug = new RhinoDebug(parent, SWT.NONE);
+		rhinoDebug.setLayout(new FillLayout());
+		stack.topControl = rhinoDebug;
+		parent.layout();
 		c8oBrowser = new C8oBrowser(parent, SWT.MULTI | SWT.WRAP);
 		c8oBrowser.setLayout(new FillLayout());
 		c8oBrowser.setZoomEnabled(false);

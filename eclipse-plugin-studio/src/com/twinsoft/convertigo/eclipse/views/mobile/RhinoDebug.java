@@ -94,6 +94,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -126,7 +127,7 @@ import org.mozilla.javascript.tools.shell.ConsoleTextArea;
 /** GUI for the Rhino debugger. */
 public class RhinoDebug extends Composite implements GuiCallback {
 
-    Frame self;
+	Frame self;
     
     /** The debugger. */
     Dim dim;
@@ -181,6 +182,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
     /** Creates a new SwingGui. */
     public RhinoDebug(Composite parent, int style) {
         super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+    	com.formdev.flatlaf.themes.FlatMacDarkLaf.setup();
         self = SWT_AWT.new_Frame(this);
         dim = new Dim();
         dim.attachTo(ContextFactory.getGlobal());
@@ -227,12 +229,15 @@ public class RhinoDebug extends Composite implements GuiCallback {
             toplevels.put(key, frame);
         }
     }
-
+    
     /** Constructs the debugger GUI. */
     private void init() {
-    	//com.formdev.flatlaf.themes.FlatMacDarkLaf.setup();
+    	JPanel menuPane = new JPanel();
+    	menuPane.setLayout(new BorderLayout());
+        
         menubar = new Menubar(this);
-        setJMenuBar(menubar);
+        menuPane.add(menubar, BorderLayout.NORTH);
+//        setJMenuBar(menubar);
         toolBar = new JToolBar();
         JButton button;
         JButton breakButton, goButton, stepIntoButton, stepOverButton, stepOutButton;
@@ -297,10 +302,12 @@ public class RhinoDebug extends Composite implements GuiCallback {
         toolBar.add(stepIntoButton);
         toolBar.add(stepOverButton);
         toolBar.add(stepOutButton);
+        
+        menuPane.add(toolBar, BorderLayout.CENTER);
 
         JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
-        self.add(toolBar, BorderLayout.NORTH);
+        self.add(menuPane, BorderLayout.NORTH);
         self.add(contentPane, BorderLayout.CENTER);
         desk = new JDesktopPane();
         desk.setPreferredSize(new Dimension(600, 300));
@@ -343,24 +350,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
                     }
                 };
         dlg.addChoosableFileFilter(filter);
-        addWindowListener(
-                new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        exit();
-                    }
-                });
     }
-
-    private void addWindowListener(WindowAdapter windowAdapter) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void setJMenuBar(Menubar menubar2) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	/** Runs the {@link #exitAction}. */
     private void exit() {
@@ -980,6 +970,14 @@ public class RhinoDebug extends Composite implements GuiCallback {
             dim.setReturnValue(returnValue);
         }
     }
+    
+    @Override
+	public void dispose() {
+		exit();
+		dim.detach();
+		self.dispose();
+		super.dispose();
+	}
 }
 
 /** Helper class for showing a message dialog. */
