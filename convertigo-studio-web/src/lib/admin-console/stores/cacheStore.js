@@ -1,5 +1,6 @@
 import { call } from '$lib/utils/service';
 import { writable } from 'svelte/store';
+import { updateConfiguration } from './configurationStore';
 
 export const cacheProperties = writable({});
 export const cacheConfiguration = writable({});
@@ -16,6 +17,8 @@ export async function showCacheProperties() {
 	}
 	console.log('response for cache properties:', response);
 }
+
+export async function updateCacheProperties() {}
 
 export async function cacheConfig() {
 	const response = await call('cache.Configure');

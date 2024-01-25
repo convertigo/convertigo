@@ -80,17 +80,18 @@
 		</SizableCard>
 	{/if}
 
-	{#if $propertiesSelected}
-		<SizableCard name="properties">
-			<Properties />
-		</SizableCard>
-	{/if}
-
 	{#if $viewerSelected}
 		<SizableCard name="viewer">
 			<Viewer />
 		</SizableCard>
 	{/if}
+
+	{#if $paletteSelected}
+		<SizableCard name="palette">
+			<PaletteCpy />
+		</SizableCard>
+	{/if}
+
 	{#if $ngxbuilderSelected}
 		<SizableCard name="ngxbuilder">
 			<NgxBuilder />
@@ -119,9 +120,9 @@
 		</div>
 	{/if}
 
-	{#if $paletteSelected}
-		<SizableCard name="palette">
-			<PaletteCpy />
+	{#if $propertiesSelected}
+		<SizableCard name="properties">
+			<Properties />
 		</SizableCard>
 	{/if}
 </div>

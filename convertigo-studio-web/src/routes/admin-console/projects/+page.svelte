@@ -45,6 +45,7 @@
 					};
 					console.log(response);
 				});
+				// @ts-ignore
 				modalStore.trigger(exportModalSettings);
 			} else {
 				console.error('There was an error fetching export options.');

@@ -4,7 +4,9 @@
 		Accordion,
 		AccordionItem,
 		initializeStores,
-		localStorageStore
+		localStorageStore,
+		Modal,
+		getModalStore
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
@@ -19,6 +21,8 @@
 
 	initializeStores();
 
+	const modalStoreSaveConfig = getModalStore();
+
 	let theme = localStorageStore('studio.theme', 'skeleton');
 	let selectedIndex = 0;
 	let hasUnsavedChanges = false;
@@ -32,21 +36,32 @@
 		document.body.setAttribute('data-theme', 'dark-theme');
 	});
 
-	export function changeTheme(e) {
+	function changeTheme(e) {
 		$theme = typeof e == 'string' ? e : e.target?.value;
 		document.body.setAttribute('data-theme', $theme);
 	}
 
 	function saveChanges() {
+		const successSavingConfig = {
+			title: 'New configurations saved with success'
+		};
+		const faileSavingConfig = {
+			title: 'A problem occured while saving'
+		};
 		const currentConfigurations = get(configurations);
 
 		currentConfigurations.admin.category.forEach((category, categoryIndex) => {
 			category.property.forEach((property, propertyIndex) => {
 				if (isValid(property['@_value'])) {
 					updateConfiguration(categoryIndex, propertyIndex, property['@_value']);
+				} else {
+					// @ts-ignore
+					modalStoreSaveConfig.trigger(faileSavingConfig);
 				}
 			});
 		});
+		// @ts-ignore
+		modalStoreSaveConfig.trigger(successSavingConfig);
 		hasUnsavedChanges = false;
 	}
 
@@ -69,6 +84,7 @@
 	}
 </script>
 
+<Modal class="text-center" />
 {#if 'admin' in $configurations}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
 	{@debug $configurations}
@@ -113,7 +129,7 @@
 													{propertyIndex}
 													bind:hasUnsavedChanges
 												/>
-											{/if}
+											{:else}{/if}
 										{/each}
 									</div>
 								</svelte:fragment>
