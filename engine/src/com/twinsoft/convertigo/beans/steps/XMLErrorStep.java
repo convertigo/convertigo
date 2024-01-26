@@ -80,9 +80,9 @@ public class XMLErrorStep extends StepWithExpressions implements IStepSmartTypeC
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, code);
-			evaluate(javascriptContext, scope, message);
-			evaluate(javascriptContext, scope, details);
+			evaluate(javascriptContext, scope, "code", code);
+			evaluate(javascriptContext, scope, "message", message);
+			evaluate(javascriptContext, scope, "details", details);
 			
 			return super.stepExecute(javascriptContext, scope);
 		}

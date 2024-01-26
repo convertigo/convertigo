@@ -97,7 +97,7 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, headerName);
+			evaluate(javascriptContext, scope, "headerName", headerName);
 			
 			return super.stepExecute(javascriptContext, scope);
 		}

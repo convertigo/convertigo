@@ -129,13 +129,13 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, server);
-			evaluate(javascriptContext, scope, basePath);
-			evaluate(javascriptContext, scope, login);
-			evaluate(javascriptContext, scope, password);
-			evaluate(javascriptContext, scope, adminLogin);
-			evaluate(javascriptContext, scope, adminPassword);
-			evaluate(javascriptContext, scope, attributes);
+			evaluate(javascriptContext, scope, "server", server);
+			evaluate(javascriptContext, scope, "basePath", basePath);
+			evaluate(javascriptContext, scope, "login", login);
+			evaluate(javascriptContext, scope, "password", password);
+			evaluate(javascriptContext, scope, "adminLogin", adminLogin);
+			evaluate(javascriptContext, scope, "adminPassword", adminPassword);
+			evaluate(javascriptContext, scope, "attributes", attributes);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;

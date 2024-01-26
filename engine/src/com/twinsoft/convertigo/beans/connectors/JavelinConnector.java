@@ -533,7 +533,7 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(Integer.valueOf(threshold), scope);
 			scope.put("threshold", scope, jsDataStableThreshold);
 			
-			RhinoUtils.evalCachedJavascript(javascriptContext, scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
+			RhinoUtils.evalCachedJavascript(this, javascriptContext, scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
 		}
 		catch(EcmaError e) {
 			EngineException ee = new EngineException(

@@ -177,7 +177,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			insertObjectsInScope();
 
 			try {
-				RhinoUtils.evalCachedJavascript(javascriptContext, scope, handlers, getName(), 1, null);
+				RhinoUtils.evalCachedJavascript(this, javascriptContext, scope, handlers, getName(), 1, null);
 				Engine.logBeans.debug("(Transaction) Handlers main code executed");
 			}
 			catch(EcmaError e) {

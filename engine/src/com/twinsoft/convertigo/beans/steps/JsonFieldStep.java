@@ -139,8 +139,8 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, key);
-			evaluate(javascriptContext, scope, value);
+			evaluate(javascriptContext, scope, "key", key);
+			evaluate(javascriptContext, scope, "value", value);
 			
 			return super.stepExecute(javascriptContext, scope);
 		}

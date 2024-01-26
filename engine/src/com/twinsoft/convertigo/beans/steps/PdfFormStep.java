@@ -397,9 +397,9 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
 			// Load PDF file and Form Catalog;
-			evaluate(javascriptContext, scope, fieldsList);
-			evaluate(javascriptContext, scope, filePath);
-			evaluate(javascriptContext, scope, targetFile);
+			evaluate(javascriptContext, scope, "fieldsList", fieldsList);
+			evaluate(javascriptContext, scope, "filePath", filePath);
+			evaluate(javascriptContext, scope, "targetFile", targetFile);
 
 			try {
 				try {

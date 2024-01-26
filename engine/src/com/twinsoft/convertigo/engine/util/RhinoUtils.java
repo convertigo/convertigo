@@ -30,7 +30,10 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+
 public class RhinoUtils {
+	static public boolean debugMode = false;
 	static final private Map<String, Script> compiledScript = new ConcurrentHashMap<String, Script>();
 	static final private NativeJSON json;
 	static {
@@ -46,8 +49,17 @@ public class RhinoUtils {
 		}
 		return scopeCopy;
 	}
-	
 	static public Object evalCachedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		return evalCachedJavascript(null, cx, scope, source, sourceName, lineno, securityDomain);
+	}
+	
+	static public Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		if (debugMode) {
+			if (dbo != null) {
+				sourceName = dbo.getShortQName() + "-" + sourceName;
+			}
+			return evalInterpretedJavascript(cx, scope, source, sourceName, lineno, securityDomain);
+		}
 		Script script = compiledScript.get(source);
 		if (script == null) {
 			cx.setOptimizationLevel(9);

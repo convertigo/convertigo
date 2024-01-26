@@ -108,8 +108,8 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, statusCode);
-			evaluate(javascriptContext, scope, statusText);
+			evaluate(javascriptContext, scope, "statusCode", statusCode);
+			evaluate(javascriptContext, scope, "statusText", statusText);
 			
 			return super.stepExecute(javascriptContext, scope);
 		}

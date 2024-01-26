@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.property_editors.StepSourceXpathEvaluatorComposite;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -106,13 +107,8 @@ class SourcePickerComposite extends Composite {
 		new ToolItem(tb, SWT.SEPARATOR);
 		
 		showBtn = new ToolItem(tb, SWT.NONE);
-		showBtn.setToolTipText(show_step_source);
 		showBtn.setEnabled(false);
-		try {
-			showBtn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/find.gif"));
-		} catch (Exception e3) {
-			showBtn.setText("Source");
-		}
+		SwtUtils.setToolItemIcon(showBtn, "icons/studio/find.gif", "Source", show_step_source);
 		showBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -122,13 +118,8 @@ class SourcePickerComposite extends Composite {
 		});
 		
 		remBtn = new ToolItem(tb, SWT.PUSH);
-		remBtn.setToolTipText(remove_source);
 		remBtn.setEnabled(false);
-		try {
-			remBtn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/delete.gif"));
-		} catch (Exception e3) {
-			remBtn.setText("Remove");
-		}
+		SwtUtils.setToolItemIcon(remBtn, "icons/studio/delete.gif", "Remove", remove_source);
 		remBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

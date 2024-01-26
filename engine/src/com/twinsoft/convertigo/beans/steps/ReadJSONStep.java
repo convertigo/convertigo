@@ -103,7 +103,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, key);
+			evaluate(javascriptContext, scope, "key", key);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;

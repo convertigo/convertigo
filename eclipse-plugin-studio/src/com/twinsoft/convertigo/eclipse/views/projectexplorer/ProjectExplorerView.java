@@ -195,6 +195,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TracePlayAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
@@ -525,11 +526,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		for (int i = 0; i < defs.length; i++) {
 			ToolItem btn = new ToolItem(toolbar, SWT.PUSH);
-			btn.setText("     " + defs[i][0] + "     ");
-			try {
-				btn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + defs[i][1]));
-			} catch (IOException e1) {
-			}
+			SwtUtils.setToolItemIcon(btn, "icons/studio/" + defs[i][1], "     " + defs[i][0] + "     ", defs[i][0]);
 			if (defs[i][2] != null) {
 				btn.setData("newWizardId", "com.twinsoft.convertigo.eclipse.wizards." + defs[i][2]);
 			}

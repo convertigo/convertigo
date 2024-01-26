@@ -3,7 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package com.twinsoft.convertigo.eclipse.views.mobile;
+package com.twinsoft.convertigo.eclipse.views.rhino;
 
 import java.awt.AWTEvent;
 import java.awt.ActiveEvent;
@@ -12,7 +12,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -22,7 +21,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.MenuComponent;
-import java.awt.Point;
+import java.awt.Panel;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -42,12 +41,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +50,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
@@ -65,22 +60,17 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -89,19 +79,15 @@ import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.JViewport;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -111,12 +97,20 @@ import javax.swing.text.Segment;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileInPlaceEditorInput;
 import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Kit;
-import org.mozilla.javascript.SecurityUtilities;
 import org.mozilla.javascript.tools.debugger.Dim;
 import org.mozilla.javascript.tools.debugger.GuiCallback;
 import org.mozilla.javascript.tools.debugger.treetable.JTreeTable;
@@ -124,31 +118,27 @@ import org.mozilla.javascript.tools.debugger.treetable.TreeTableModel;
 import org.mozilla.javascript.tools.debugger.treetable.TreeTableModelAdapter;
 import org.mozilla.javascript.tools.shell.ConsoleTextArea;
 
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
+
 /** GUI for the Rhino debugger. */
 public class RhinoDebug extends Composite implements GuiCallback {
-
+	
 	Frame self;
     
-    /** The debugger. */
+	/** The debugger. */
     Dim dim;
-
-    /** The action to run when the 'Exit' menu item is chosen or the frame is closed. */
-    private Runnable exitAction;
+    
+	private Panel root;
+	private ToolBar tb;
 
     /** The {@link JDesktopPane} that holds the script windows. */
-    private JDesktopPane desk;
+    private JLayeredPane desk;
 
     /** The {@link JPanel} that shows information about the context. */
     private ContextWindow context;
-
-    /** The menu bar. */
-    private Menubar menubar;
-
-    /** The tool bar. */
-    private JToolBar toolBar;
-
-    /** The console that displays I/O from the script. */
-    private JSInternalConsole console;
 
     /**
      * The {@link JSplitPane} that separates {@link #desk} from {@link
@@ -170,9 +160,6 @@ public class RhinoDebug extends Composite implements GuiCallback {
     /** The {@link FileWindow} that last had the focus. */
     private FileWindow currentWindow;
 
-    /** File choose dialog for loading a script. */
-    JFileChooser dlg;
-
     /**
      * The AWT EventQueue. Used for manually pumping AWT events from {@link
      * #dispatchNextGuiEvent()}.
@@ -181,48 +168,108 @@ public class RhinoDebug extends Composite implements GuiCallback {
 
     /** Creates a new SwingGui. */
     public RhinoDebug(Composite parent, int style) {
-        super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
-    	com.formdev.flatlaf.themes.FlatMacDarkLaf.setup();
-        self = SWT_AWT.new_Frame(this);
+        super(parent, style);
+        setLayout(SwtUtils.newGridLayout(1, true, 0, 0, 0, 0));
+        makeToolbar();
+    	FlatMacDarkLaf.setup();
+    	RhinoUtils.debugMode = true;
+    	var wrapper = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
+    	wrapper.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL));
+        self = SWT_AWT.new_Frame(wrapper);
+        root = new Panel();
+        root.setLayout(new BorderLayout());
+        self.add(root);
         dim = new Dim();
         dim.attachTo(ContextFactory.getGlobal());
+//        var old = new SwingGui(dim, "test");
+//        old.pack();
+//        old.setSize(800, 600);
+//        old.setVisible(true);
+//        dim.setGuiCallback(old);
         init();
-        dim.setGuiCallback(this);
+        dim.setGuiCallback(this);		
+		updateEnabled(false);
     }
+    
+    private void makeToolbar() {
+    	var bars = new Composite(this, SWT.NONE);
+    	bars.setLayout(SwtUtils.newGridLayout(3, false, 0, 0, 1, 1));
+		bars.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+    	var toolbar = tb = new ToolBar(bars, SWT.NONE);
+    	toolbar.setLayoutData(new GridData(GridData.CENTER));
+    	
+    	var toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.gif", "Break", "Break on next execution");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreak());
 
-    /** Returns the Menubar of this debugger frame. */
-    public Menubar getMenubar() {
-        return menubar;
+		toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/run.gif", "Go", "Continue execution");
+		toolitem.addSelectionListener((SelectionListener) e -> {
+			updateEnabled(false);
+			dim.setReturnValue(Dim.GO);
+		});
+		
+		toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/step_in.png", "Into", "Step into");
+		toolitem.addSelectionListener((SelectionListener) e -> {
+			updateEnabled(false);
+			dim.setReturnValue(Dim.STEP_INTO);
+		});
+		
+		toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/step_by_step.gif", "Over", "Step Over");
+		toolitem.addSelectionListener((SelectionListener) e -> {
+			updateEnabled(false);
+			dim.setReturnValue(Dim.STEP_OVER);
+		});
+		
+		toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/step_out.png", "Out", "Step Out");
+		toolitem.addSelectionListener((SelectionListener) e -> {
+			updateEnabled(false);
+			dim.setReturnValue(Dim.STEP_OUT);
+		});
+
+        
+		var gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.heightHint = 0;
+		new Composite(bars, SWT.NONE).setLayoutData(gd);
+		
+		toolbar = new ToolBar(bars, SWT.NONE);
+    	toolbar.setLayoutData(new GridData(GridData.CENTER));
+		
+		toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.d.gif", "Break Exception", "Break on Exception");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnExceptions(((ToolItem) e.widget).getSelection()));
+		
+		toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_entry.gif", "Break Funct in", "Break on Function enter");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnEnter(((ToolItem) e.widget).getSelection()));
+		
+		toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_exit.gif", "Break Funct out", "Break on Function return");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnReturn(((ToolItem) e.widget).getSelection()));
+		
+		toolitem = new ToolItem(toolbar, SWT.SEPARATOR);
+		
+		toolitem = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/folder.png", "Choose source", "Choose source");
+		toolitem.addSelectionListener((SelectionListener) e -> {
+			var menu = new Menu(getDisplay().getActiveShell(), SWT.POP_UP);
+			for (var fw: fileWindows.entrySet()) {
+				var item = new MenuItem(menu, SWT.PUSH);
+				item.setText(fw.getKey());
+				item.addSelectionListener((SelectionListener) ev -> {
+					desk.moveToFront(fw.getValue());
+				});
+			}
+			var loc = tb.toDisplay(0, tb.getBounds().height);
+			menu.setLocation(loc.x, loc.y);
+			menu.setVisible(true);
+		});
     }
-
-    /** Sets the {@link Runnable} that will be run when the "Exit" menu item is chosen. */
-    public void setExitAction(Runnable r) {
-        exitAction = r;
-    }
-
-    /** Returns the debugger console component. */
-    public JSInternalConsole getConsole() {
-        return console;
-    }
-
-    /** Sets the visibility of the debugger GUI. */
-    @Override
-    public void setVisible(boolean b) {
-        super.setVisible(b);
-        if (b) {
-            // this needs to be done after the window is visible
-            console.consoleTextArea.requestFocus();
-            context.split.setDividerLocation(0.5);
-            try {
-                console.setMaximum(true);
-                console.setSelected(true);
-                console.show();
-                console.consoleTextArea.requestFocus();
-            } catch (Exception exc) {
-            }
-        }
-    }
-
+    
     /** Records a new internal frame. */
     void addTopLevel(String key, JFrame frame) {
         if (frame != self) {
@@ -232,87 +279,12 @@ public class RhinoDebug extends Composite implements GuiCallback {
     
     /** Constructs the debugger GUI. */
     private void init() {
-    	JPanel menuPane = new JPanel();
-    	menuPane.setLayout(new BorderLayout());
-        
-        menubar = new Menubar(this);
-        menuPane.add(menubar, BorderLayout.NORTH);
-//        setJMenuBar(menubar);
-        toolBar = new JToolBar();
-        JButton button;
-        JButton breakButton, goButton, stepIntoButton, stepOverButton, stepOutButton;
-        String[] toolTips = {
-            "Break (Pause)", "Go (F5)", "Step Into (F11)", "Step Over (F7)", "Step Out (F8)"
-        };
-        int count = 0;
-        button = breakButton = new JButton("Breaking bad2");
-        button.setToolTipText("Break");
-        button.setActionCommand("Break");
-        button.addActionListener(menubar);
-        button.setEnabled(true);
-        button.setToolTipText(toolTips[count++]);
-
-        button = goButton = new JButton("Go");
-        button.setToolTipText("Go");
-        button.setActionCommand("Go");
-        button.addActionListener(menubar);
-        button.setEnabled(false);
-        button.setToolTipText(toolTips[count++]);
-
-        button = stepIntoButton = new JButton("Step Into");
-        button.setToolTipText("Step Into");
-        button.setActionCommand("Step Into");
-        button.addActionListener(menubar);
-        button.setEnabled(false);
-        button.setToolTipText(toolTips[count++]);
-
-        button = stepOverButton = new JButton("Step Over");
-        button.setToolTipText("Step Over");
-        button.setActionCommand("Step Over");
-        button.setEnabled(false);
-        button.addActionListener(menubar);
-        button.setToolTipText(toolTips[count++]);
-
-        button = stepOutButton = new JButton("Step Out");
-        button.setToolTipText("Step Out");
-        button.setActionCommand("Step Out");
-        button.setEnabled(false);
-        button.addActionListener(menubar);
-        button.setToolTipText(toolTips[count++]);
-
-        Dimension dim = stepOverButton.getPreferredSize();
-        breakButton.setPreferredSize(dim);
-        breakButton.setMinimumSize(dim);
-        breakButton.setMaximumSize(dim);
-        breakButton.setSize(dim);
-        goButton.setPreferredSize(dim);
-        goButton.setMinimumSize(dim);
-        goButton.setMaximumSize(dim);
-        stepIntoButton.setPreferredSize(dim);
-        stepIntoButton.setMinimumSize(dim);
-        stepIntoButton.setMaximumSize(dim);
-        stepOverButton.setPreferredSize(dim);
-        stepOverButton.setMinimumSize(dim);
-        stepOverButton.setMaximumSize(dim);
-        stepOutButton.setPreferredSize(dim);
-        stepOutButton.setMinimumSize(dim);
-        stepOutButton.setMaximumSize(dim);
-        toolBar.add(breakButton);
-        toolBar.add(goButton);
-        toolBar.add(stepIntoButton);
-        toolBar.add(stepOverButton);
-        toolBar.add(stepOutButton);
-        
-        menuPane.add(toolBar, BorderLayout.CENTER);
-
         JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
-        self.add(menuPane, BorderLayout.NORTH);
-        self.add(contentPane, BorderLayout.CENTER);
-        desk = new JDesktopPane();
+        root.add(contentPane, BorderLayout.CENTER);
+        desk = new JLayeredPane();
         desk.setPreferredSize(new Dimension(600, 300));
         desk.setMinimumSize(new Dimension(150, 50));
-        desk.add(console = new JSInternalConsole("JavaScript Console"));
         context = new ContextWindow(this);
         context.setPreferredSize(new Dimension(600, 120));
         context.setMinimumSize(new Dimension(50, 50));
@@ -324,39 +296,10 @@ public class RhinoDebug extends Composite implements GuiCallback {
         statusBar = new JLabel();
         statusBar.setText("Thread: ");
         contentPane.add(statusBar, BorderLayout.SOUTH);
-        dlg = new JFileChooser();
-
-        javax.swing.filechooser.FileFilter filter =
-                new javax.swing.filechooser.FileFilter() {
-                    @Override
-                    public boolean accept(File f) {
-                        if (f.isDirectory()) {
-                            return true;
-                        }
-                        String n = f.getName();
-                        int i = n.lastIndexOf('.');
-                        if (i > 0 && i < n.length() - 1) {
-                            String ext = n.substring(i + 1).toLowerCase();
-                            if (ext.equals("js")) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return "JavaScript Files (*.js)";
-                    }
-                };
-        dlg.addChoosableFileFilter(filter);
     }
 
 	/** Runs the {@link #exitAction}. */
     private void exit() {
-        if (exitAction != null) {
-            SwingUtilities.invokeLater(exitAction);
-        }
         dim.setReturnValue(Dim.EXIT);
     }
 
@@ -384,63 +327,12 @@ public class RhinoDebug extends Composite implements GuiCallback {
     /** Closes the given {@link FileWindow}. */
     void removeWindow(FileWindow w) {
         fileWindows.remove(w.getUrl());
-        JMenu windowMenu = getWindowMenu();
-        int count = windowMenu.getItemCount();
-        JMenuItem lastItem = windowMenu.getItem(count - 1);
-        String name = getShortName(w.getUrl());
-        for (int i = 5; i < count; i++) {
-            JMenuItem item = windowMenu.getItem(i);
-            if (item == null) continue; // separator
-            String text = item.getText();
-            // 1 D:\foo.js
-            // 2 D:\bar.js
-            int pos = text.indexOf(' ');
-            if (text.substring(pos + 1).equals(name)) {
-                windowMenu.remove(item);
-                // Cascade    [0]
-                // Tile       [1]
-                // -------    [2]
-                // Console    [3]
-                // -------    [4]
-                if (count == 6) {
-                    // remove the final separator
-                    windowMenu.remove(4);
-                } else {
-                    int j = i - 4;
-                    for (; i < count - 1; i++) {
-                        JMenuItem thisItem = windowMenu.getItem(i);
-                        if (thisItem != null) {
-                            // 1 D:\foo.js
-                            // 2 D:\bar.js
-                            text = thisItem.getText();
-                            if (text.equals("More Windows...")) {
-                                break;
-                            }
-                            pos = text.indexOf(' ');
-                            thisItem.setText((char) ('0' + j) + " " + text.substring(pos + 1));
-                            thisItem.setMnemonic('0' + j);
-                            j++;
-                        }
-                    }
-                    if (count - 6 == 0 && lastItem != item) {
-                        if (lastItem.getText().equals("More Windows...")) {
-                            windowMenu.remove(lastItem);
-                        }
-                    }
-                }
-                break;
-            }
-        }
-        windowMenu.revalidate();
     }
 
     /** Shows the line at which execution in the given stack frame just stopped. */
     void showStopLine(Dim.StackFrame frame) {
         String sourceName = frame.getUrl();
         if (sourceName == null || sourceName.equals("<stdin>")) {
-            if (console.isVisible()) {
-                console.show();
-            }
         } else {
             showFileWindow(sourceName, -1);
             int lineNumber = frame.getLineNumber();
@@ -496,17 +388,12 @@ public class RhinoDebug extends Composite implements GuiCallback {
             w.setVisible(true);
             w.moveToFront();
             w.setSelected(true);
-            requestFocus();
+            self.requestFocus();
             w.requestFocus();
             w.textArea.requestFocus();
         } catch (Exception exc) {
         }
     }
-
-    private void requestFocus() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	/** Creates and shows a new {@link FileWindow} for the given source. */
     protected void createFileWindow(Dim.SourceInfo sourceInfo, int line) {
@@ -533,7 +420,6 @@ public class RhinoDebug extends Composite implements GuiCallback {
         if (line != -1) {
             currentWindow = w;
         }
-        menubar.addFile(url);
         w.setVisible(true);
 
         if (activate) {
@@ -588,10 +474,11 @@ public class RhinoDebug extends Composite implements GuiCallback {
             // fix me
         }
         if (activate) {
-            if (w.isIcon()) {
-                desk.getDesktopManager().deiconifyFrame(w);
-            }
-            desk.getDesktopManager().activateFrame(w);
+//            if (w.isIcon()) {
+//                desk.getDesktopManager().deiconifyFrame(w);
+//            }
+//            desk.getDesktopManager().activateFrame(w);
+            desk.moveToFront(w);
             try {
                 w.show();
                 w.toFront(); // required for correct frame layering (JDK 1.4.1)
@@ -643,96 +530,34 @@ public class RhinoDebug extends Composite implements GuiCallback {
         ctx.setMinimumSize(new Dimension(50, ctx.getMinimumSize().height));
     }
 
-    /** Returns the 'Window' menu. */
-    private JMenu getWindowMenu() {
-        return menubar.getMenu(3);
-    }
-
-    /** Displays a {@link JFileChooser} and returns the selected filename. */
-    private String chooseFile(String title) {
-        dlg.setDialogTitle(title);
-        File CWD = null;
-        String dir = SecurityUtilities.getSystemProperty("user.dir");
-        if (dir != null) {
-            CWD = new File(dir);
-        }
-        if (CWD != null) {
-            dlg.setCurrentDirectory(CWD);
-        }
-        int returnVal = dlg.showOpenDialog(self);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            try {
-                String result = dlg.getSelectedFile().getCanonicalPath();
-                CWD = dlg.getSelectedFile().getParentFile();
-                Properties props = System.getProperties();
-                props.put("user.dir", CWD.getPath());
-                System.setProperties(props);
-                return result;
-            } catch (IOException ignored) {
-            } catch (SecurityException ignored) {
-            }
-        }
-        return null;
-    }
-
     /** Returns the current selected internal frame. */
     private JInternalFrame getSelectedFrame() {
-        JInternalFrame[] frames = desk.getAllFrames();
-        for (int i = 0; i < frames.length; i++) {
-            if (frames[i].isShowing()) {
-                return frames[i];
-            }
-        }
-        return frames[frames.length - 1];
+//        JInternalFrame[] frames = desk.getAllFrames();
+//        for (int i = 0; i < frames.length; i++) {
+//            if (frames[i].isShowing()) {
+//                return frames[i];
+//            }
+//        }
+//        return frames[frames.length - 1];
+    	return null;
     }
 
     /** Enables or disables the menu and tool bars with respect to the state of script execution. */
     private void updateEnabled(boolean interrupted) {
-        ((Menubar) getJMenuBar()).updateEnabled(interrupted);
-        for (int ci = 0, cc = toolBar.getComponentCount(); ci < cc; ci++) {
-            boolean enableButton;
-            if (ci == 0) {
-                // Break
-                enableButton = !interrupted;
-            } else {
-                enableButton = interrupted;
-            }
-            toolBar.getComponent(ci).setEnabled(enableButton);
-        }
-        if (interrupted) {
-            toolBar.setEnabled(true);
-            // raise the debugger window
-            int state = getExtendedState();
-            if (state == Frame.ICONIFIED) {
-                setExtendedState(Frame.NORMAL);
-            }
-            toFront();
-            context.setEnabled(true);
-        } else {
+    	exec(() -> {
+    		int count = tb.getItemCount();
+    		tb.getItem(0).setEnabled(!interrupted);
+    		for (int i = 1; i < count; i++) {
+    			tb.getItem(i).setEnabled(interrupted);
+    		}
+    	});
+    	if (interrupted) {
+        	context.setEnabled(true);
+    	} else {
             if (currentWindow != null) currentWindow.setPosition(-1);
             context.setEnabled(false);
         }
     }
-
-    private void toFront() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void setExtendedState(int normal) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private int getExtendedState() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	private Menubar getJMenuBar() {
-		// TODO Auto-generated method stub
-		return null;
-	}
     
 	/**
      * Calls {@link JSplitPane#setResizeWeight} via reflection. For compatibility, since JDK &lt;
@@ -748,29 +573,62 @@ public class RhinoDebug extends Composite implements GuiCallback {
         }
     }
 
-    /** Reads the file with the given name and returns its contents as a String. */
-    private String readFile(String fileName) {
-        String text;
-        try {
-            try (Reader r = new FileReader(fileName)) {
-                text = Kit.readReader(r);
-            }
-        } catch (IOException ex) {
-            MessageDialogWrapper.showMessageDialog(
-                    self, ex.getMessage(), "Error reading " + fileName, JOptionPane.ERROR_MESSAGE);
-            text = null;
-        }
-        return text;
-    }
-
     // GuiCallback
 
     /** Called when the source text for a script has been updated. */
     @Override
     public void updateSourceText(Dim.SourceInfo sourceInfo) {
-        RunProxy proxy = new RunProxy(this, RunProxy.UPDATE_SOURCE_TEXT);
-        proxy.sourceInfo = sourceInfo;
-        SwingUtilities.invokeLater(proxy);
+    	var url = sourceInfo.url();
+    	String ignoreList = "utils";
+    	if (ignoreList.contains(url)) {
+    		return;
+    	}
+    	getDisplay().syncExec(() -> {
+    		var files = new HashSet<IResource>();
+    		var bpManager = DebugPlugin.getDefault().getBreakpointManager();
+    		for (var bp: bpManager.getBreakpoints()) {
+    			try {
+    				var marker = bp.getMarker();
+    				var file = marker.getResource();
+    				if (!files.add(file)) {
+    					break;
+    				}
+    				var name = file.getParent().getName();
+    				if (url.startsWith(name)) {
+    					try {
+    						var found = false;
+    						for (var ref: PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
+    							if (ref.getEditorInput() instanceof FileInPlaceEditorInput editor) {
+    								if (editor.getFile().equals(file)) {
+    									found = true;
+    									break;
+    								}
+    							}
+    						}
+    						if (!found) {
+    							sourceInfo.removeAllBreakpoints();
+    							continue;
+    						}
+    						var mks = file.findMarkers(marker.getType(), false, IResource.DEPTH_ZERO);
+    						for (var mk: mks) {
+    							var ln = mk.getAttribute(IMarker.LINE_NUMBER);
+    							sourceInfo.breakpoint((int) ln, true);
+    						}
+
+    						RunProxy proxy = new RunProxy(this, RunProxy.UPDATE_SOURCE_TEXT);
+    						proxy.sourceInfo = sourceInfo;
+    						SwingUtilities.invokeLater(proxy);
+    					} catch (Exception e) {
+    						// TODO: handle exception
+    						e.printStackTrace();
+    					}
+    					return;
+    				}
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
+    	});
     }
 
     /** Called when the interrupt loop has been entered. */
@@ -815,169 +673,28 @@ public class RhinoDebug extends Composite implements GuiCallback {
         }
     }
 
-    // ActionListener
-
-    /** Performs an action from the menu or toolbar. */
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        int returnValue = -1;
-        if (cmd.equals("Cut") || cmd.equals("Copy") || cmd.equals("Paste")) {
-            JInternalFrame f = getSelectedFrame();
-            if (f != null && f instanceof ActionListener) {
-                ((ActionListener) f).actionPerformed(e);
-            }
-        } else if (cmd.equals("Step Over")) {
-            returnValue = Dim.STEP_OVER;
-        } else if (cmd.equals("Step Into")) {
-            returnValue = Dim.STEP_INTO;
-        } else if (cmd.equals("Step Out")) {
-            returnValue = Dim.STEP_OUT;
-        } else if (cmd.equals("Go")) {
-            returnValue = Dim.GO;
-        } else if (cmd.equals("Break")) {
-            dim.setBreak();
-        } else if (cmd.equals("Exit")) {
-            exit();
-        } else if (cmd.equals("Open")) {
-            String fileName = chooseFile("Select a file to compile");
-            if (fileName != null) {
-                String text = readFile(fileName);
-                if (text != null) {
-                    RunProxy proxy = new RunProxy(this, RunProxy.OPEN_FILE);
-                    proxy.fileName = fileName;
-                    proxy.text = text;
-                    new Thread(proxy).start();
-                }
-            }
-        } else if (cmd.equals("Load")) {
-            String fileName = chooseFile("Select a file to execute");
-            if (fileName != null) {
-                String text = readFile(fileName);
-                if (text != null) {
-                    RunProxy proxy = new RunProxy(this, RunProxy.LOAD_FILE);
-                    proxy.fileName = fileName;
-                    proxy.text = text;
-                    new Thread(proxy).start();
-                }
-            }
-        } else if (cmd.equals("More Windows...")) {
-            MoreWindows dlg = new MoreWindows(this, self, fileWindows, "Window", "Files");
-            dlg.showDialog(self);
-        } else if (cmd.equals("Console")) {
-            if (console.isIcon()) {
-                desk.getDesktopManager().deiconifyFrame(console);
-            }
-            console.show();
-            desk.getDesktopManager().activateFrame(console);
-            console.consoleTextArea.requestFocus();
-        } else if (cmd.equals("Cut")) {
-        } else if (cmd.equals("Copy")) {
-        } else if (cmd.equals("Paste")) {
-        } else if (cmd.equals("Go to function...")) {
-            FindFunction dlg = new FindFunction(this, self, "Go to function", "Function");
-            dlg.showDialog(self);
-        } else if (cmd.equals("Go to line...")) {
-            final String s =
-                    (String)
-                            JOptionPane.showInputDialog(
-                            		self,
-                                    "Line number",
-                                    "Go to line...",
-                                    JOptionPane.QUESTION_MESSAGE,
-                                    null,
-                                    null,
-                                    null);
-            if (s == null || s.trim().length() == 0) {
-                return;
-            }
-            try {
-                final int line = Integer.parseInt(s);
-                showFileWindow(null, line);
-            } catch (final NumberFormatException nfe) {
-                // ignore
-            }
-        } else if (cmd.equals("Tile")) {
-            JInternalFrame[] frames = desk.getAllFrames();
-            int count = frames.length;
-            int rows, cols;
-            rows = cols = (int) Math.sqrt(count);
-            if (rows * cols < count) {
-                cols++;
-                if (rows * cols < count) {
-                    rows++;
-                }
-            }
-            Dimension size = desk.getSize();
-            int w = size.width / cols;
-            int h = size.height / rows;
-            int x = 0;
-            int y = 0;
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    int index = (i * cols) + j;
-                    if (index >= frames.length) {
-                        break;
-                    }
-                    JInternalFrame f = frames[index];
-                    try {
-                        f.setIcon(false);
-                        f.setMaximum(false);
-                    } catch (Exception exc) {
-                    }
-                    desk.getDesktopManager().setBoundsForFrame(f, x, y, w, h);
-                    x += w;
-                }
-                y += h;
-                x = 0;
-            }
-        } else if (cmd.equals("Cascade")) {
-            JInternalFrame[] frames = desk.getAllFrames();
-            int count = frames.length;
-            int x, y, w, h;
-            x = y = 0;
-            h = desk.getHeight();
-            int d = h / count;
-            if (d > 30) d = 30;
-            for (int i = count - 1; i >= 0; i--, x += d, y += d) {
-                JInternalFrame f = frames[i];
-                try {
-                    f.setIcon(false);
-                    f.setMaximum(false);
-                } catch (Exception exc) {
-                }
-                Dimension dimen = f.getPreferredSize();
-                w = dimen.width;
-                h = dimen.height;
-                desk.getDesktopManager().setBoundsForFrame(f, x, y, w, h);
-            }
-        } else {
-            Object obj = getFileWindow(cmd);
-            if (obj != null) {
-                FileWindow w = (FileWindow) obj;
-                try {
-                    if (w.isIcon()) {
-                        w.setIcon(false);
-                    }
-                    w.setVisible(true);
-                    w.moveToFront();
-                    w.setSelected(true);
-                } catch (Exception exc) {
-                }
-            }
-        }
-        if (returnValue != -1) {
-            updateEnabled(false);
-            dim.setReturnValue(returnValue);
-        }
-    }
+	@Override
+	public boolean setFocus() {
+		SwingUtilities.invokeLater(() -> self.requestFocus());
+		return super.setFocus();
+	}
     
     @Override
 	public void dispose() {
 		exit();
 		dim.detach();
-		self.dispose();
+		RhinoUtils.debugMode = false;
+		SwingUtilities.invokeLater(() -> self.dispose());
 		super.dispose();
 	}
+    
+    void exec(Runnable run) {
+    	if (Thread.currentThread() == getDisplay().getThread()) {
+    		run.run();
+    	} else {
+    		getDisplay().asyncExec(run);
+    	}
+    }
 }
 
 /** Helper class for showing a message dialog. */
@@ -1203,7 +920,7 @@ class EvalTextArea extends JTextArea implements KeyListener, DocumentListener {
 
     /** Attempts to clean up the damage done by {@link #updateUI()}. */
     public synchronized void postUpdateUI() {
-        // requestFocus();
+        requestFocus();
         setCaret(getCaret());
         select(outputMark, outputMark);
     }
@@ -1266,7 +983,7 @@ class JSInternalConsole extends JInternalFrame implements ActionListener {
 
     /** Creates a new JSInternalConsole. */
     public JSInternalConsole(String name) {
-        super(name, true, false, true, true);
+        super(name);
         consoleTextArea = new ConsoleTextArea(null);
         consoleTextArea.setRows(24);
         consoleTextArea.setColumns(80);
@@ -1320,55 +1037,15 @@ class JSInternalConsole extends JInternalFrame implements ActionListener {
     }
 }
 
-/** Popup menu class for right-clicking on {@link FileTextArea}s. */
-class FilePopupMenu extends JPopupMenu {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = 3589525009546013565L;
-
-    /** The popup x position. */
-    int x;
-
-    /** The popup y position. */
-    int y;
-
-    /** Creates a new FilePopupMenu. */
-    public FilePopupMenu(FileTextArea w) {
-        JMenuItem item;
-        add(item = new JMenuItem("Set Breakpoint"));
-        item.addActionListener(w);
-        add(item = new JMenuItem("Clear Breakpoint"));
-        item.addActionListener(w);
-        add(item = new JMenuItem("Run"));
-        item.addActionListener(w);
-    }
-
-    /** Displays the menu at the given coordinates. */
-    public void show(JComponent comp, int x, int y) {
-        this.x = x;
-        this.y = y;
-        super.show(comp, x, y);
-    }
-}
-
 /** Text area to display script source. */
 class FileTextArea extends JTextArea
-        implements ActionListener, PopupMenuListener, KeyListener, MouseListener {
+        implements KeyListener, MouseListener {
 
     /** Serializable magic number. */
     private static final long serialVersionUID = -25032065448563720L;
 
-    /** The owning {@link FileWindow}. */
-    private FileWindow w;
-
-    /** The popup menu. */
-    private FilePopupMenu popup;
-
     /** Creates a new FileTextArea. */
-    public FileTextArea(FileWindow w) {
-        this.w = w;
-        popup = new FilePopupMenu(this);
-        popup.addPopupMenuListener(this);
+    public FileTextArea() {
         addMouseListener(this);
         addKeyListener(this);
         setFont(new Font("Monospaced", 0, Math.max(12, UIManager.getFont("Label.font").getSize())));
@@ -1379,14 +1056,15 @@ class FileTextArea extends JTextArea
         if (pos >= 0) {
             try {
                 int line = getLineOfOffset(pos);
-                Rectangle rect = modelToView(pos);
-                if (rect == null) {
+                var rect2d = modelToView2D(pos);
+                if (rect2d == null) {
                     select(pos, pos);
                 } else {
+                	var rect = rect2d.getBounds();
                     try {
-                        Rectangle nrect = modelToView(getLineStartOffset(line + 1));
-                        if (nrect != null) {
-                            rect = nrect;
+                        var nrect2 = modelToView2D(getLineStartOffset(line + 1));
+                        if (nrect2 != null) {
+                            rect = nrect2.getBounds();
                         }
                     } catch (Exception exc) {
                     }
@@ -1409,25 +1087,16 @@ class FileTextArea extends JTextArea
         }
     }
 
-    /** Checks if the popup menu should be shown. */
-    private void checkPopup(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            popup.show(this, e.getX(), e.getY());
-        }
-    }
-
     // MouseListener
 
     /** Called when a mouse button is pressed. */
     @Override
     public void mousePressed(MouseEvent e) {
-        checkPopup(e);
     }
 
     /** Called when the mouse is clicked. */
     @Override
     public void mouseClicked(MouseEvent e) {
-        checkPopup(e);
         requestFocus();
         getCaret().setVisible(true);
     }
@@ -1443,43 +1112,6 @@ class FileTextArea extends JTextArea
     /** Called when a mouse button is released. */
     @Override
     public void mouseReleased(MouseEvent e) {
-        checkPopup(e);
-    }
-
-    // PopupMenuListener
-
-    /** Called before the popup menu will become visible. */
-    @Override
-    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-
-    /** Called before the popup menu will become invisible. */
-    @Override
-    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
-
-    /** Called when the popup menu is cancelled. */
-    @Override
-    public void popupMenuCanceled(PopupMenuEvent e) {}
-
-    // ActionListener
-
-    /** Performs an action. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        int pos = viewToModel(new Point(popup.x, popup.y));
-        popup.setVisible(false);
-        String cmd = e.getActionCommand();
-        int line = -1;
-        try {
-            line = getLineOfOffset(pos);
-        } catch (Exception exc) {
-        }
-        if (cmd.equals("Set Breakpoint")) {
-            w.setBreakPoint(line + 1);
-        } else if (cmd.equals("Clear Breakpoint")) {
-            w.clearBreakPoint(line + 1);
-        } else if (cmd.equals("Run")) {
-            w.load();
-        }
     }
 
     // KeyListener
@@ -1908,7 +1540,7 @@ class FileHeader extends JPanel implements MouseListener {
     /** Called when a mouse button is released. */
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (e.getComponent() == this && (e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+        if (e.getComponent() == this && e.getButton() == MouseEvent.BUTTON1) {
             int y = e.getY();
             Font font = fileWindow.textArea.getFont();
             FontMetrics metrics = getFontMetrics(font);
@@ -2004,12 +1636,14 @@ class FileWindow extends JInternalFrame implements ActionListener {
 
     /** Creates a new FileWindow. */
     public FileWindow(RhinoDebug debugGui, Dim.SourceInfo sourceInfo) {
-        super(RhinoDebug.getShortName(sourceInfo.url()), true, true, true, true);
+        super(RhinoDebug.getShortName(sourceInfo.url()));//RhinoDebug.getShortName(sourceInfo.url()), true, true, true, true);
+        //((BasicInternalFrameUI) getUI()).setNorthPane(null);
+        setFrameIcon(null);
         this.debugGui = debugGui;
         this.sourceInfo = sourceInfo;
         updateToolTip();
         currentPos = -1;
-        textArea = new FileTextArea(this);
+        textArea = new FileTextArea();
         textArea.setRows(24);
         textArea.setColumns(80);
         p = new JScrollPane();
@@ -2346,7 +1980,10 @@ class VariableModel implements TreeTableModel {
     /** Returns the type of value stored in the given column. */
     @Override
     public Class<?> getColumnClass(int column) {
-        return cTypes[column];
+    	if (column >= 0 && column < cTypes.length) {
+    		return cTypes[column];
+    	}
+    	return null;
     }
 
     /** Returns the value at the given cell. */
@@ -2517,14 +2154,14 @@ class MyTreeTable extends JTreeTable {
             // selection remaining the same. To avoid this, we
             // only dispatch when the modifiers are 0 (or the left mouse
             // button).
-            if (me.getModifiers() == 0
-                    || ((me.getModifiers() & (InputEvent.BUTTON1_MASK | 1024)) != 0
-                            && (me.getModifiers()
-                                            & (InputEvent.SHIFT_MASK
-                                                    | InputEvent.CTRL_MASK
-                                                    | InputEvent.ALT_MASK
-                                                    | InputEvent.BUTTON2_MASK
-                                                    | InputEvent.BUTTON3_MASK
+            if (me.getModifiersEx() == 0
+                    || ((me.getModifiersEx() & (InputEvent.BUTTON1_DOWN_MASK | 1024)) != 0
+                            && (me.getModifiersEx()
+                                            & (InputEvent.SHIFT_DOWN_MASK
+                                                    | InputEvent.CTRL_DOWN_MASK
+                                                    | InputEvent.ALT_DOWN_MASK
+                                                    | InputEvent.BUTTON2_DOWN_MASK
+                                                    | InputEvent.BUTTON3_DOWN_MASK
                                                     | 64
                                                     | // SHIFT_DOWN_MASK
                                                     128
@@ -2544,7 +2181,7 @@ class MyTreeTable extends JTreeTable {
                                         MyTreeTable.this.tree,
                                         me.getID(),
                                         me.getWhen(),
-                                        me.getModifiers(),
+                                        me.getModifiersEx(),
                                         me.getX() - getCellRect(row, counter, true).x,
                                         me.getY(),
                                         me.getClickCount(),
@@ -2893,251 +2530,6 @@ class ContextWindow extends JPanel implements ActionListener {
             debugGui.dim.contextSwitch(frameIndex);
             debugGui.showStopLine(frame);
             tableModel.updateModel();
-        }
-    }
-}
-
-/** The debugger frame menu bar. */
-class Menubar extends JMenuBar implements ActionListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = 3217170497245911461L;
-
-    /** Items that are enabled only when interrupted. */
-    private List<JMenuItem> interruptOnlyItems =
-            Collections.synchronizedList(new ArrayList<JMenuItem>());
-
-    /** Items that are enabled only when running. */
-    private List<JMenuItem> runOnlyItems = Collections.synchronizedList(new ArrayList<JMenuItem>());
-
-    /** The debugger GUI. */
-    private RhinoDebug debugGui;
-
-    /** The menu listing the internal frames. */
-    private JMenu windowMenu;
-
-    /** The "Break on exceptions" menu item. */
-    private JCheckBoxMenuItem breakOnExceptions;
-
-    /** The "Break on enter" menu item. */
-    private JCheckBoxMenuItem breakOnEnter;
-
-    /** The "Break on return" menu item. */
-    private JCheckBoxMenuItem breakOnReturn;
-
-    /** Creates a new Menubar. */
-    Menubar(RhinoDebug debugGui) {
-        super();
-        this.debugGui = debugGui;
-        String[] fileItems = {"Open...", "Run...", "", "Exit"};
-        String[] fileCmds = {"Open", "Load", "", "Exit"};
-        char[] fileShortCuts = {'0', 'N', 0, 'X'};
-        int[] fileAccelerators = {KeyEvent.VK_O, KeyEvent.VK_N, 0, KeyEvent.VK_Q};
-        String[] editItems = {"Cut", "Copy", "Paste", "Go to function...", "Go to line..."};
-        char[] editShortCuts = {'T', 'C', 'P', 'F', 'L'};
-        int[] editAccelerators = {0, 0, 0, 0, KeyEvent.VK_L};
-        String[] debugItems = {"Break", "Go", "Step Into", "Step Over", "Step Out"};
-        char[] debugShortCuts = {'B', 'G', 'I', 'O', 'T'};
-        String[] plafItems = {"Metal", "Windows", "Motif"};
-        char[] plafShortCuts = {'M', 'W', 'F'};
-        int[] debugAccelerators = {
-            KeyEvent.VK_PAUSE, KeyEvent.VK_F5, KeyEvent.VK_F11, KeyEvent.VK_F7, KeyEvent.VK_F8, 0, 0
-        };
-
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setMnemonic('F');
-        JMenu editMenu = new JMenu("Edit");
-        editMenu.setMnemonic('E');
-        JMenu plafMenu = new JMenu("Platform");
-        plafMenu.setMnemonic('P');
-        JMenu debugMenu = new JMenu("Debug");
-        debugMenu.setMnemonic('D');
-        windowMenu = new JMenu("Window");
-        windowMenu.setMnemonic('W');
-        for (int i = 0; i < fileItems.length; ++i) {
-            if (fileItems[i].length() == 0) {
-                fileMenu.addSeparator();
-            } else {
-                JMenuItem item = new JMenuItem(fileItems[i], fileShortCuts[i]);
-                item.setActionCommand(fileCmds[i]);
-                item.addActionListener(this);
-                fileMenu.add(item);
-                if (fileAccelerators[i] != 0) {
-                    KeyStroke k = KeyStroke.getKeyStroke(fileAccelerators[i], Event.CTRL_MASK);
-                    item.setAccelerator(k);
-                }
-            }
-        }
-        for (int i = 0; i < editItems.length; ++i) {
-            JMenuItem item = new JMenuItem(editItems[i], editShortCuts[i]);
-            item.addActionListener(this);
-            editMenu.add(item);
-            if (editAccelerators[i] != 0) {
-                KeyStroke k = KeyStroke.getKeyStroke(editAccelerators[i], Event.CTRL_MASK);
-                item.setAccelerator(k);
-            }
-        }
-        for (int i = 0; i < plafItems.length; ++i) {
-            JMenuItem item = new JMenuItem(plafItems[i], plafShortCuts[i]);
-            item.addActionListener(this);
-            plafMenu.add(item);
-        }
-        for (int i = 0; i < debugItems.length; ++i) {
-            JMenuItem item = new JMenuItem(debugItems[i], debugShortCuts[i]);
-            item.addActionListener(this);
-            if (debugAccelerators[i] != 0) {
-                KeyStroke k = KeyStroke.getKeyStroke(debugAccelerators[i], 0);
-                item.setAccelerator(k);
-            }
-            if (i != 0) {
-                interruptOnlyItems.add(item);
-            } else {
-                runOnlyItems.add(item);
-            }
-            debugMenu.add(item);
-        }
-        breakOnExceptions = new JCheckBoxMenuItem("Break on Exceptions");
-        breakOnExceptions.setMnemonic('X');
-        breakOnExceptions.addActionListener(this);
-        breakOnExceptions.setSelected(false);
-        debugMenu.add(breakOnExceptions);
-
-        breakOnEnter = new JCheckBoxMenuItem("Break on Function Enter");
-        breakOnEnter.setMnemonic('E');
-        breakOnEnter.addActionListener(this);
-        breakOnEnter.setSelected(false);
-        debugMenu.add(breakOnEnter);
-
-        breakOnReturn = new JCheckBoxMenuItem("Break on Function Return");
-        breakOnReturn.setMnemonic('R');
-        breakOnReturn.addActionListener(this);
-        breakOnReturn.setSelected(false);
-        debugMenu.add(breakOnReturn);
-
-        add(fileMenu);
-        add(editMenu);
-        // add(plafMenu);
-        add(debugMenu);
-        JMenuItem item;
-        windowMenu.add(item = new JMenuItem("Cascade", 'A'));
-        item.addActionListener(this);
-        windowMenu.add(item = new JMenuItem("Tile", 'T'));
-        item.addActionListener(this);
-        windowMenu.addSeparator();
-        windowMenu.add(item = new JMenuItem("Console", 'C'));
-        item.addActionListener(this);
-        add(windowMenu);
-
-        updateEnabled(false);
-    }
-
-    /** Returns the "Break on exceptions" menu item. */
-    public JCheckBoxMenuItem getBreakOnExceptions() {
-        return breakOnExceptions;
-    }
-
-    /** Returns the "Break on enter" menu item. */
-    public JCheckBoxMenuItem getBreakOnEnter() {
-        return breakOnEnter;
-    }
-
-    /** Returns the "Break on return" menu item. */
-    public JCheckBoxMenuItem getBreakOnReturn() {
-        return breakOnReturn;
-    }
-
-    /** Returns the "Debug" menu. */
-    public JMenu getDebugMenu() {
-        return getMenu(2);
-    }
-
-    // ActionListener
-
-    /** Performs an action. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        String plaf_name = null;
-        if (cmd.equals("Metal")) {
-            plaf_name = "javax.swing.plaf.metal.MetalLookAndFeel";
-        } else if (cmd.equals("Windows")) {
-            plaf_name = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        } else if (cmd.equals("Motif")) {
-            plaf_name = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-        } else {
-            Object source = e.getSource();
-            if (source == breakOnExceptions) {
-                debugGui.dim.setBreakOnExceptions(breakOnExceptions.isSelected());
-            } else if (source == breakOnEnter) {
-                debugGui.dim.setBreakOnEnter(breakOnEnter.isSelected());
-            } else if (source == breakOnReturn) {
-                debugGui.dim.setBreakOnReturn(breakOnReturn.isSelected());
-            } else {
-                debugGui.actionPerformed(e);
-            }
-            return;
-        }
-        try {
-            UIManager.setLookAndFeel(plaf_name);
-            SwingUtilities.updateComponentTreeUI(debugGui.self);
-            SwingUtilities.updateComponentTreeUI(debugGui.dlg);
-        } catch (Exception ignored) {
-            // ignored.printStackTrace();
-        }
-    }
-
-    /** Adds a file to the window menu. */
-    public void addFile(String url) {
-        int count = windowMenu.getItemCount();
-        JMenuItem item;
-        if (count == 4) {
-            windowMenu.addSeparator();
-            count++;
-        }
-        JMenuItem lastItem = windowMenu.getItem(count - 1);
-        boolean hasMoreWin = false;
-        int maxWin = 5;
-        if (lastItem != null && lastItem.getText().equals("More Windows...")) {
-            hasMoreWin = true;
-            maxWin++;
-        }
-        if (!hasMoreWin && count - 4 == 5) {
-            windowMenu.add(item = new JMenuItem("More Windows...", 'M'));
-            item.setActionCommand("More Windows...");
-            item.addActionListener(this);
-            return;
-        } else if (count - 4 <= maxWin) {
-            if (hasMoreWin) {
-                count--;
-                windowMenu.remove(lastItem);
-            }
-            String shortName = RhinoDebug.getShortName(url);
-
-            windowMenu.add(
-                    item =
-                            new JMenuItem(
-                                    (char) ('0' + (count - 4)) + " " + shortName,
-                                    '0' + (count - 4)));
-            if (hasMoreWin) {
-                windowMenu.add(lastItem);
-            }
-        } else {
-            return;
-        }
-        item.setActionCommand(url);
-        item.addActionListener(this);
-    }
-
-    /** Updates the enabledness of menu items. */
-    public void updateEnabled(boolean interrupted) {
-        for (int i = 0; i != interruptOnlyItems.size(); ++i) {
-            JMenuItem item = interruptOnlyItems.get(i);
-            item.setEnabled(interrupted);
-        }
-
-        for (int i = 0; i != runOnlyItems.size(); ++i) {
-            JMenuItem item = runOnlyItems.get(i);
-            item.setEnabled(!interrupted);
         }
     }
 }

@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.schema;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -193,7 +192,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
 
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needRefresh = true;
 			Engine.theApp.schemaManager.clearCache(projectName);
@@ -201,18 +200,18 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		});
 
 		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
-		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
 		toolItem.setSelection(true);
 
 		toolItem = autoValidate = new ToolItem(toolbar, SWT.CHECK);
-		setToolItemIcon(toolItem, "icons/studio/validate.gif", "AV", "Toggle auto validate");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/validate.gif", "AV", "Toggle auto validate");
 		toolItem.setSelection(false);
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needValidate = autoValidate.getSelection();
 		});
 
 		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
-		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needRefresh = true;
 			updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
@@ -272,13 +271,13 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			domTree.collapseAll();
 		});
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			domTree.expandAll();
 		});
@@ -349,15 +348,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		needRefresh = true;
 	}
 
-	private void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
-		try {
-			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon(iconPath));
-		} catch (IOException e1) {
-			toolItem.setText(text);
-		}
-		toolItem.setToolTipText(tooltip);
-	}
-
 	private TreeViewer makeTreeViewer(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -369,14 +359,14 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		final TreeViewer treeViewer = new TreeViewer(composite);
 
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
 
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			treeViewer.collapseAll();
 		});
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
 
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			treeViewer.expandToLevel(50);

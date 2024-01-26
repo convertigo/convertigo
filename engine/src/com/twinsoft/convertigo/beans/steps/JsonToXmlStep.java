@@ -153,8 +153,8 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, key);
-			evaluate(javascriptContext, scope, jsonObject);
+			evaluate(javascriptContext, scope, "key", key);
+			evaluate(javascriptContext, scope, "jsonObject", jsonObject);
 
 			if (jsonObject.getMode() == Mode.JS) {
 				jsonSource = RhinoUtils.jsonStringify(jsonObject.getEvaluated());

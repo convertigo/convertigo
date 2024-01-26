@@ -549,7 +549,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createDeviceBar(Composite parent) {
-		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		deviceBar = new Composite(parent, SWT.NONE);
 		deviceBar.setData("style", "background-color: #4c525d");
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
@@ -669,11 +668,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
-		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/zoom_out.png"));
-		} catch (Exception e) {
-		}
-		button.setToolTipText("Zoom out");
+		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_out.png", "Zoom out", "Zoom out");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -684,11 +679,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/zoom_reset.png"));
-		} catch (Exception e) {
-		}
-		button.setToolTipText("Zoom reset");
+		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_reset.png", "Zoom reset", "Zoom reset");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -699,11 +690,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/zoom_in.png"));
-		} catch (Exception e) {
-		}
-		button.setToolTipText("Zoom in");
+		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_in.png", "Zoom in", "Zoom in");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -716,11 +703,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		button = new ToolItem(tb, SWT.PUSH);
-		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/dbo_save.gif"));
-		} catch (Exception e) {
-		}
-		button.setToolTipText("Save");
+		SwtUtils.setToolItemIcon(button, "icons/studio/dbo_save.gif", "Save", "Save");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -764,11 +747,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/project_delete.gif"));
-		} catch (Exception e) {
-		}
-		button.setToolTipText("Delete");
+		SwtUtils.setToolItemIcon(button, "icons/studio/project_delete.gif", "Delete", "Delete");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -863,12 +842,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		var refreshBtn = item;
-		
-		item.setToolTipText("Refresh");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/refresh.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.gif", "Refresh", "Refresh");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -879,11 +853,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Back");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/undo.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/undo.gif", "Back", "Back");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -902,11 +872,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		item = new ToolItem(toolbar, SWT.CHECK);
 		editStyle = item;
-		item.setToolTipText("Style editor");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/edit_16x16.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/edit_16x16.png", "Style editor", "Style editor");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -1041,11 +1007,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Remove highlight");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/write_wait_zone.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/write_wait_zone.gif", "Remove highlight", "Remove highlight");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1060,11 +1022,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Show debug");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/debug.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/debug.gif", "Show debug", "Show debug");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1077,11 +1035,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Open in default browser");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/ContinueWithSiteClipperStatement_color_16x16.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/ContinueWithSiteClipperStatement_color_16x16.png", "Open in default browser", "Open in default browser");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1097,11 +1051,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Show QR Code");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/qrcode_16x16.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/qrcode_16x16.png", "Show QR Code", "Show QR Code");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1191,11 +1141,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Headless build");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/invokebrowserjs_16x16.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/invokebrowserjs_16x16.png", "Headless build", "Headless build");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -1236,11 +1182,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		buildItem = item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Build locally");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/build_prod_b.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/build_prod_b.png", "Build locally", "Build locally");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -1262,12 +1204,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Toggle auto build");
+		SwtUtils.setToolItemIcon(item, "icons/studio/accumulate.gif", "Toggle auto build", "Toggle auto build");
 		item.setSelection(true);
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/accumulate.gif"));
-		} catch (Exception e) {
-		}
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1279,11 +1217,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Manage modules");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/show_blocks.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/show_blocks.gif", "Manage modules", "Manage modules");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1306,11 +1240,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		item.setToolTipText("Select dataset");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_show_history.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_show_history.gif", "Select dataset", "Select dataset");
 
 		SelectionListener selectionListener = new SelectionAdapter() {
 
@@ -1366,11 +1296,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Save dataset");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_add.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_add.gif", "Save dataset", "Save dataset");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1427,11 +1353,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Remove dataset");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_delete.gif"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_delete.gif", "Remove dataset", "Remove dataset");
 		item.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -1452,11 +1374,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 
 		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Show all grids or current selected");
-		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/grid_color_16x16.png"));
-		} catch (Exception e) {
-		}
+		SwtUtils.setToolItemIcon(item, "icons/studio/grid_color_16x16.png", "Show", "Show all grids or current selected");
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

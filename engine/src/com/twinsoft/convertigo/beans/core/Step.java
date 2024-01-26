@@ -507,7 +507,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		try {
 			if (sequence != null && sequence.runningThread != null && xpath.contains("{{{")) {
 				Matcher exprMatcher = exprPattern.matcher(xpath);
-				xpath = exprMatcher.replaceAll(m -> "" + RhinoUtils.evalCachedJavascript(sequence.runningThread.javascriptContext, sequence.scope, m.group(1), getName(), 0, null));
+				xpath = exprMatcher.replaceAll(m -> "" + RhinoUtils.evalCachedJavascript(this, sequence.runningThread.javascriptContext, sequence.scope, m.group(1), "xpath", 1, null));
 				Engine.logBeans.trace("XPath of '" + getName() + "' evaluated to '" + xpath + "'");
 			}
 		} catch (Exception e) {
@@ -773,7 +773,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return value;
 	}
 	
-	protected void evaluate(Context javascriptContext, Scriptable scope, SmartType smartType) throws EngineException {
+	protected void evaluate(Context javascriptContext, Scriptable scope, String property, SmartType smartType) throws EngineException {
 		smartType.setEvaluated(null);
 		
 		switch (smartType.getMode()) {
@@ -781,7 +781,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			smartType.setEvaluated(smartType.getExpression());
 			break;
 		case JS:
-			evaluate(javascriptContext, scope, smartType.getExpression(), "smartType", false);
+			evaluate(javascriptContext, scope, smartType.getExpression(), property + "-smartType", false);
 			smartType.setEvaluated(evaluated);
 			evaluated = null;
 			break;
@@ -797,11 +797,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			scope = jsContext.initStandardObjects(null);
 			javascriptContext = jsContext;
 		}
-		
 		String message = null;
 		evaluated = null;
 		try {
-			evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, source, sourceName, 1, null);
+			evaluated = RhinoUtils.evalCachedJavascript(this, javascriptContext, scope, source, sourceName, 1, null);
 			if (evaluated != null && evaluated instanceof NativeJavaObject) {
 				evaluated = ((NativeJavaObject) evaluated).unwrap();
 			}

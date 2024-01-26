@@ -85,7 +85,7 @@ public class SessionSetObjectStep extends Step implements IStepSmartTypeContaine
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
 			if (getSequence().context != null) {
-				evaluate(javascriptContext, scope, value);
+				evaluate(javascriptContext, scope, "value", value);
 				return super.stepExecute(javascriptContext, scope);
 			}
 		}

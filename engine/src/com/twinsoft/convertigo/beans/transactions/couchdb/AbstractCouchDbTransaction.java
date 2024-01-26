@@ -241,7 +241,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			throw new EngineException("empty parameter");
 		}
 		try {
-			Object o = RhinoUtils.evalCachedJavascript(cx, scope, "(" + str + ")", param.name(), 1, null);
+			Object o = RhinoUtils.evalCachedJavascript(this, cx, scope, "(" + str + ")", param.name(), 1, null);
 			o = toJson(o);
 			return o;
 		} catch (Exception e) {}

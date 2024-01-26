@@ -699,6 +699,12 @@
 				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
 			</view>
 			<view
+				id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
+				minimized="false"
+				relationship="stack"
+				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
+			</view>
+			<view
 				id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
 				minimized="false"
 				relationship="stack"
@@ -3861,7 +3867,15 @@
 			class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
 			icon="icons/studio/debug.gif"
 			id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
-			name="Mobile Debug"
+			name="FrontEnd Debug"
+			restorable="true">
+		</view>
+		<view
+			category="convertigo"
+			class="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
+			icon="icons/studio/debug.gif"
+			id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
+			name="Backend Debug"
 			restorable="true">
 		</view>
 		<!--view

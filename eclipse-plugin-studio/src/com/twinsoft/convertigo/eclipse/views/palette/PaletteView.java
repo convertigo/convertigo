@@ -97,6 +97,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -247,13 +248,8 @@ public class PaletteView extends ViewPart {
 		
 		ToolBar bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiLink = new ToolItem(bar, SWT.CHECK);
-		tiLink.setToolTipText("Link with the 'Projects tree' selection");
+		SwtUtils.setToolItemIcon(tiLink, "icons/studio/resize_connector.gif", "Link", "Link with the 'Projects tree' selection");
 		tiLink.setData("style", "background: unset");
-		try {
-			tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
-		} catch (Exception e3) {
-			tiLink.setText("Link");
-		}
 		tiLink.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.link")));
 		if (isType[0]) {
 			ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION)));
@@ -261,13 +257,8 @@ public class PaletteView extends ViewPart {
 		
 		bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiInternal = new ToolItem(bar, SWT.CHECK);
-		tiInternal.setToolTipText("Built-in objects visibility");
+		SwtUtils.setToolItemIcon(tiInternal, "icons/studio/convertigo_logo_16x16.png", "Internal", "Built-in objects visibility");
 		tiInternal.setData("style", "background: unset");
-		try {
-			tiInternal.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/convertigo_logo_16x16.png"));
-		} catch (Exception e3) {
-			tiInternal.setText("Internal");
-		}
 		tiInternal.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.internal")));
 		
 		ToolItem tiShared = new ToolItem(bar, SWT.CHECK);

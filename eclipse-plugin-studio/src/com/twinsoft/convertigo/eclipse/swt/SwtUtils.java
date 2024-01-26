@@ -25,6 +25,7 @@ import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 
@@ -42,7 +43,10 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.PlatformUI;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class SwtUtils {
 	static final public String CSS_CLASS_KEY = "org.eclipse.e4.ui.css.CssClassName";
@@ -184,4 +188,13 @@ public class SwtUtils {
 		@Override
 		default void widgetDefaultSelected(SelectionEvent e) {}
 	};
+	
+	public static void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
+		try {
+			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon(iconPath));
+		} catch (IOException e1) {
+			toolItem.setText(text);
+		}
+		toolItem.setToolTipText(tooltip);
+	}
 }

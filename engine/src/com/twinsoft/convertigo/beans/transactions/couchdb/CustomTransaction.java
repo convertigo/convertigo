@@ -152,7 +152,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	private void evaluateUrl(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
-			eUrl = RhinoUtils.evalCachedJavascript(javascriptContext, scope, getSubUrl(), "subUrl", 1, null);
+			eUrl = RhinoUtils.evalCachedJavascript(this, javascriptContext, scope, getSubUrl(), "subUrl", 1, null);
 			if (eUrl instanceof org.mozilla.javascript.Undefined) {
 				eUrl = null;
 			}
@@ -190,7 +190,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 			if (StringUtils.isNotBlank(data)) {
 				data = "(" + data + ")";
 			}
-			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, data, "httpData", 1, null);
+			eData = RhinoUtils.evalCachedJavascript(this, javascriptContext, scope, data, "httpData", 1, null);
 			if (eData instanceof org.mozilla.javascript.Undefined) {
 				eData = null;
 			}
