@@ -8,22 +8,16 @@ package com.twinsoft.convertigo.eclipse.views.rhino;
 import java.awt.AWTEvent;
 import java.awt.ActiveEvent;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.MenuComponent;
 import java.awt.Panel;
-import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,20 +26,16 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
@@ -53,22 +43,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDesktopPane;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -78,20 +59,15 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.JViewport;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Segment;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -107,13 +83,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.FileInPlaceEditorInput;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.tools.debugger.Dim;
@@ -121,7 +96,6 @@ import org.mozilla.javascript.tools.debugger.GuiCallback;
 import org.mozilla.javascript.tools.debugger.treetable.JTreeTable;
 import org.mozilla.javascript.tools.debugger.treetable.TreeTableModel;
 import org.mozilla.javascript.tools.debugger.treetable.TreeTableModelAdapter;
-import org.mozilla.javascript.tools.shell.ConsoleTextArea;
 
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
@@ -140,37 +114,22 @@ public class RhinoDebug extends Composite implements GuiCallback {
 	private Panel root;
 	private ToolBar tb;
 
-    /** The {@link JDesktopPane} that holds the script windows. */
-    private JLayeredPane desk;
-
     /** The {@link JPanel} that shows information about the context. */
     private ContextWindow context;
 
-    /**
-     * The {@link JSplitPane} that separates {@link #desk} from {@link
-     * org.mozilla.javascript.Context}.
-     */
-    private JSplitPane split1;
-
     /** The status bar. */
     private JLabel statusBar;
-
+    
     /** Hash table of internal frame names to the internal frames themselves. */
     private final Map<String, JFrame> toplevels =
             Collections.synchronizedMap(new HashMap<String, JFrame>());
 
-    /** Hash table of script URLs to their internal frames. */
-    private final Map<String, FileWindow> fileWindows =
-            Collections.synchronizedMap(new TreeMap<String, FileWindow>());
-    
     private final Map<String, IEditorReference> editorRefs =
             Collections.synchronizedMap(new TreeMap<String, IEditorReference>());
 
     private Annotation lastAnnotation;
     private IAnnotationModel lastAnnotationModel;
-    
-    /** The {@link FileWindow} that last had the focus. */
-    private FileWindow currentWindow;
+
 
     /**
      * The AWT EventQueue. Used for manually pumping AWT events from {@link
@@ -182,6 +141,8 @@ public class RhinoDebug extends Composite implements GuiCallback {
     public RhinoDebug(Composite parent, int style) {
         super(parent, style);
         setLayout(SwtUtils.newGridLayout(1, true, 0, 0, 0, 0));
+        dim = new Dim();
+        dim.setGuiCallback(this);
         makeToolbar();
         if (SwtUtils.isDark()) {
         	FlatMacDarkLaf.setup();
@@ -195,15 +156,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
         root = new Panel();
         root.setLayout(new BorderLayout());
         self.add(root);
-        dim = new Dim();
-        dim.attachTo(ContextFactory.getGlobal());
-//        var old = new SwingGui(dim, "test");
-//        old.pack();
-//        old.setSize(800, 600);
-//        old.setVisible(true);
-//        dim.setGuiCallback(old);
-        init();
-        dim.setGuiCallback(this);		
+        init();	
 		updateEnabled(false);
     }
     
@@ -212,10 +165,50 @@ public class RhinoDebug extends Composite implements GuiCallback {
     	bars.setLayout(SwtUtils.newGridLayout(3, false, 0, 0, 1, 1));
 		bars.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-    	var toolbar = tb = new ToolBar(bars, SWT.NONE);
+		var toolbar = new ToolBar(bars, SWT.NONE);
+    	toolbar.setLayoutData(new GridData(GridData.CENTER));
+		
+    	var self = new ToolItem(toolbar, SWT.CHECK);
+    	self.addSelectionListener((SelectionListener) e ->{
+			if (self.getSelection()) {
+				SwtUtils.setToolItemIcon(self, "icons/connector_color_16x16.gif", "Enable Debugger", "Enable Debugger");
+				dim.clearAllBreakpoints();
+				dim.setReturnValue(Dim.GO);
+				updateEnabled(false);
+		        dim.detach();
+		        RhinoDebug.this.self.setVisible(false);
+			} else {
+				SwtUtils.setToolItemIcon(self, "icons/studio/disconnect.gif", "Disable Debugger", "Disable Debugger");
+		        dim.attachTo(ContextFactory.getGlobal());
+		        if (RhinoDebug.this.self != null) {
+		        	RhinoDebug.this.self.setVisible(true);
+		        }
+			}
+		});
+    	self.notifyListeners(SWT.Selection, new Event());
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+    	
+		var toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.d.gif", "Break Exception", "Break on Exception");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnExceptions(((ToolItem) e.widget).getSelection()));
+		
+		toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_entry.gif", "Break Funct in", "Break on Function enter");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnEnter(((ToolItem) e.widget).getSelection()));
+		
+		toolitem = new ToolItem(toolbar, SWT.CHECK);
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_exit.gif", "Break Funct out", "Break on Function return");
+		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnReturn(((ToolItem) e.widget).getSelection()));
+		
+		var gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.heightHint = 0;
+		new Composite(bars, SWT.NONE).setLayoutData(gd);
+		
+		toolbar = tb = new ToolBar(bars, SWT.NONE);
     	toolbar.setLayoutData(new GridData(GridData.CENTER));
     	
-    	var toolitem = new ToolItem(toolbar, SWT.PUSH);
+    	toolitem = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.gif", "Break", "Break on next execution");
 		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreak());
 
@@ -246,44 +239,6 @@ public class RhinoDebug extends Composite implements GuiCallback {
 			updateEnabled(false);
 			dim.setReturnValue(Dim.STEP_OUT);
 		});
-
-        
-		var gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.heightHint = 0;
-		new Composite(bars, SWT.NONE).setLayoutData(gd);
-		
-		toolbar = new ToolBar(bars, SWT.NONE);
-    	toolbar.setLayoutData(new GridData(GridData.CENTER));
-		
-		toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.d.gif", "Break Exception", "Break on Exception");
-		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnExceptions(((ToolItem) e.widget).getSelection()));
-		
-		toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_entry.gif", "Break Funct in", "Break on Function enter");
-		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnEnter(((ToolItem) e.widget).getSelection()));
-		
-		toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_exit.gif", "Break Funct out", "Break on Function return");
-		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnReturn(((ToolItem) e.widget).getSelection()));
-		
-		toolitem = new ToolItem(toolbar, SWT.SEPARATOR);
-		
-		toolitem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/folder.png", "Choose source", "Choose source");
-		toolitem.addSelectionListener((SelectionListener) e -> {
-			var menu = new Menu(getDisplay().getActiveShell(), SWT.POP_UP);
-			for (var fw: fileWindows.entrySet()) {
-				var item = new MenuItem(menu, SWT.PUSH);
-				item.setText(fw.getKey());
-				item.addSelectionListener((SelectionListener) ev -> {
-					desk.moveToFront(fw.getValue());
-				});
-			}
-			var loc = tb.toDisplay(0, tb.getBounds().height);
-			menu.setLocation(loc.x, loc.y);
-			menu.setVisible(true);
-		});
     }
     
     /** Records a new internal frame. */
@@ -298,244 +253,81 @@ public class RhinoDebug extends Composite implements GuiCallback {
         JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
         root.add(contentPane, BorderLayout.CENTER);
-        desk = new JLayeredPane();
-        desk.setPreferredSize(new Dimension(600, 300));
-        desk.setMinimumSize(new Dimension(150, 50));
         context = new ContextWindow(this);
         context.setPreferredSize(new Dimension(600, 120));
         context.setMinimumSize(new Dimension(50, 50));
-
-        split1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, desk, context);
-        split1.setOneTouchExpandable(true);
-        RhinoDebug.setResizeWeight(split1, 0.66);
-        contentPane.add(split1, BorderLayout.CENTER);
+        contentPane.add(context);
         statusBar = new JLabel();
         statusBar.setText("Thread: ");
         contentPane.add(statusBar, BorderLayout.SOUTH);
     }
-
-	/** Runs the {@link #exitAction}. */
-    private void exit() {
-        dim.setReturnValue(Dim.EXIT);
-    }
-
-    /** Returns the {@link FileWindow} for the given URL. */
-    FileWindow getFileWindow(String url) {
-        if (url == null || url.equals("<stdin>")) {
-            return null;
-        }
-        return fileWindows.get(url);
-    }
-
-    /** Returns a short version of the given URL. */
-    static String getShortName(String url) {
-        int lastSlash = url.lastIndexOf('/');
-        if (lastSlash < 0) {
-            lastSlash = url.lastIndexOf('\\');
-        }
-        String shortName = url;
-        if (lastSlash >= 0 && lastSlash + 1 < url.length()) {
-            shortName = url.substring(lastSlash + 1);
-        }
-        return shortName;
-    }
-
-    /** Closes the given {@link FileWindow}. */
-    void removeWindow(FileWindow w) {
-        fileWindows.remove(w.getUrl());
-    }
-
-    /** Shows the line at which execution in the given stack frame just stopped. */
-    void showStopLine(Dim.StackFrame frame) {
-        String sourceName = frame.getUrl();
-        if (sourceName == null || sourceName.equals("<stdin>")) {
-        } else {
-            showFileWindow(sourceName, -1);
-            int lineNumber = frame.getLineNumber();
-            FileWindow w = getFileWindow(sourceName);
-            if (w != null) {
-                setFilePosition(w, lineNumber);
-            }
-            
-            var ref = editorRefs.get(frame.getUrl());
-            if (ref != null) {
-    	        var ed = (ITextEditor) ref.getEditor(false);
-    			//int lineNumber = lastFrame.getLineNumber();
-    			var source = frame.sourceInfo().source();
-    			var start = 0;
-    			var index = source.indexOf('\n');
-    			var length = Math.max(0, index);
-    			while (--lineNumber > 0) {
-    				start = start + length + 1;
-    				index = source.indexOf('\n', start);
-    				if (index == -1) {
-    					index = source.length();
+    
+    IEditorReference getEditorReference(String url) {
+    	var editorRef = new IEditorReference[] { editorRefs.get(url) };
+    	
+    	if (editorRef[0] != null && editorRef[0].getEditor(false) == null) {
+    		editorRefs.remove(url);
+    		editorRef[0] = null;
+    	}
+    	
+    	if (editorRef[0] == null) {
+    		execSync(() -> {
+    			try {
+    				for (var ref: PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
+    					if (ref.getEditorInput() instanceof FileEditorInput editor) {
+    						var path = editor.getFile().getProjectRelativePath().toString();
+    						var name = editor.getFile().getParent().getName();
+    						if (url.startsWith(name) || path.endsWith(url)) {
+    							editorRefs.put(url, editorRef[0] = ref);
+    							break;
+    						};
+    					}
     				}
-    				length = Math.max(0, index - start);
+    			} catch (Exception e) {
+    				e.printStackTrace();
     			}
-    			Position pos = new Position(start, length);
-
-    			clearLastAnnotation();
-    			lastAnnotationModel = ed.getDocumentProvider().getAnnotationModel(ed.getEditorInput());
-    			lastAnnotation = new Annotation("org.eclipse.debug.ui.currentIP", false, "breaked");
-    			lastAnnotationModel.addAnnotation(lastAnnotation, pos);
-    			exec(() -> {
-    				try {
-    					var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-    					page.bringToTop(ed);
-    					var view = page.findViewReference("com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView");
-    					page.bringToTop(view.getView(false));
-    				} catch (Exception e) {
-    					// TODO: handle exception
-    				}
-    			});
-            }
-        }
+    		});
+    	}
+    	return editorRef[0];
     }
+    
+    /** Shows the line at which execution in the given stack frame just stopped. */
+    boolean showStopLine(Dim.StackFrame frame) {
+    	var ref = getEditorReference(frame.getUrl());
+    	if (ref == null) {
+    		return false;
+    	}
+    	var ed = (ITextEditor) ref.getEditor(false);
+    	int lineNumber = frame.getLineNumber();
+    	var source = frame.sourceInfo().source();
+    	var start = 0;
+    	var index = source.indexOf('\n');
+    	var length = Math.max(0, index);
+    	while (--lineNumber > 0) {
+    		start = start + length + 1;
+    		index = source.indexOf('\n', start);
+    		if (index == -1) {
+    			index = source.length();
+    		}
+    		length = Math.max(0, index - start);
+    	}
+    	Position pos = new Position(start, length);
 
-    /**
-     * Shows a {@link FileWindow} for the given source, creating it if it doesn't exist yet. if
-     * <code>lineNumber</code> is greater than -1, it indicates the line number to select and
-     * display.
-     *
-     * @param sourceUrl the source URL
-     * @param lineNumber the line number to select, or -1
-     */
-    protected void showFileWindow(String sourceUrl, int lineNumber) {
-        FileWindow w;
-        if (sourceUrl != null) {
-            w = getFileWindow(sourceUrl);
-        } else {
-            JInternalFrame f = getSelectedFrame();
-            if (f != null && f instanceof FileWindow) {
-                w = (FileWindow) f;
-            } else {
-                w = currentWindow;
-            }
-        }
-        if (w == null && sourceUrl != null) {
-            Dim.SourceInfo si = dim.sourceInfo(sourceUrl);
-            createFileWindow(si, -1);
-            w = getFileWindow(sourceUrl);
-        }
-        if (w == null) {
-            return;
-        }
-        if (lineNumber > -1) {
-            int start = w.getPosition(lineNumber - 1);
-            int end = w.getPosition(lineNumber) - 1;
-            if (start <= 0) {
-                return;
-            }
-            w.textArea.select(start);
-            w.textArea.setCaretPosition(start);
-            w.textArea.moveCaretPosition(end);
-        }
-        try {
-            if (w.isIcon()) {
-                w.setIcon(false);
-            }
-            w.setVisible(true);
-            w.moveToFront();
-            w.setSelected(true);
-            self.requestFocus();
-            w.requestFocus();
-            w.textArea.requestFocus();
-        } catch (Exception exc) {
-        }
-    }
-
-	/** Creates and shows a new {@link FileWindow} for the given source. */
-    protected void createFileWindow(Dim.SourceInfo sourceInfo, int line) {
-        boolean activate = true;
-
-        String url = sourceInfo.url();
-        FileWindow w = new FileWindow(this, sourceInfo);
-        fileWindows.put(url, w);
-        if (line != -1) {
-            if (currentWindow != null) {
-                currentWindow.setPosition(-1);
-            }
-            try {
-                w.setPosition(w.textArea.getLineStartOffset(line - 1));
-            } catch (BadLocationException exc) {
-                try {
-                    w.setPosition(w.textArea.getLineStartOffset(0));
-                } catch (BadLocationException ee) {
-                    w.setPosition(-1);
-                }
-            }
-        }
-        desk.add(w);
-        if (line != -1) {
-            currentWindow = w;
-        }
-        w.setVisible(true);
-
-        if (activate) {
-            try {
-                w.setMaximum(true);
-                w.setSelected(true);
-                w.moveToFront();
-            } catch (Exception exc) {
-            }
-        }
-    }
-
-    /**
-     * Update the source text for <code>sourceInfo</code>. This returns true if a {@link FileWindow}
-     * for the given source exists and could be updated. Otherwise, this does nothing and returns
-     * false.
-     *
-     * @param sourceInfo the source info
-     * @return true if a {@link FileWindow} for the given source exists and could be updated, false
-     *     otherwise.
-     */
-    protected boolean updateFileWindow(Dim.SourceInfo sourceInfo) {
-        String fileName = sourceInfo.url();
-        FileWindow w = getFileWindow(fileName);
-        if (w != null) {
-            w.updateText(sourceInfo);
-            w.show();
-            return true;
-        }
-        return false;
-    }
-
-    /** Moves the current position in the given {@link FileWindow} to the given line. */
-    private void setFilePosition(FileWindow w, int line) {
-        boolean activate = true;
-        JTextArea ta = w.textArea;
-        try {
-            if (line == -1) {
-                w.setPosition(-1);
-                if (currentWindow == w) {
-                    currentWindow = null;
-                }
-            } else {
-                int loc = ta.getLineStartOffset(line - 1);
-                if (currentWindow != null && currentWindow != w) {
-                    currentWindow.setPosition(-1);
-                }
-                w.setPosition(loc);
-                currentWindow = w;
-            }
-        } catch (BadLocationException exc) {
-            // fix me
-        }
-        if (activate) {
-//            if (w.isIcon()) {
-//                desk.getDesktopManager().deiconifyFrame(w);
-//            }
-//            desk.getDesktopManager().activateFrame(w);
-            desk.moveToFront(w);
-            try {
-                w.show();
-                w.toFront(); // required for correct frame layering (JDK 1.4.1)
-                w.setSelected(true);
-            } catch (Exception exc) {
-            }
-        }
+    	clearLastAnnotation();
+    	lastAnnotationModel = ed.getDocumentProvider().getAnnotationModel(ed.getEditorInput());
+    	lastAnnotation = new Annotation("org.eclipse.debug.ui.currentIP", false, "breaked");
+    	lastAnnotationModel.addAnnotation(lastAnnotation, pos);
+    	execAsync(() -> {
+    		try {
+    			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+    			page.bringToTop(ed);
+    			var view = page.findViewReference("com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView");
+    			page.bringToTop(view.getView(false));
+    		} catch (Exception e) {
+				e.printStackTrace();
+    		}
+    	});
+    	return true;
     }
     
     void clearLastAnnotation() {
@@ -548,9 +340,11 @@ public class RhinoDebug extends Composite implements GuiCallback {
     
     /** Handles script interruption. */
     void enterInterruptImpl(Dim.StackFrame lastFrame, String threadTitle, String alertMessage) {
+        if (!showStopLine(lastFrame)) {
+        	dim.setReturnValue(Dim.GO);
+        	return;
+        }
         statusBar.setText("Thread: " + threadTitle);
-
-        showStopLine(lastFrame);
         
         if (alertMessage != null) {
             MessageDialogWrapper.showMessageDialog(
@@ -588,21 +382,9 @@ public class RhinoDebug extends Composite implements GuiCallback {
         ctx.setMinimumSize(new Dimension(50, ctx.getMinimumSize().height));
     }
 
-    /** Returns the current selected internal frame. */
-    private JInternalFrame getSelectedFrame() {
-//        JInternalFrame[] frames = desk.getAllFrames();
-//        for (int i = 0; i < frames.length; i++) {
-//            if (frames[i].isShowing()) {
-//                return frames[i];
-//            }
-//        }
-//        return frames[frames.length - 1];
-    	return null;
-    }
-
     /** Enables or disables the menu and tool bars with respect to the state of script execution. */
     private void updateEnabled(boolean interrupted) {
-    	exec(() -> {
+    	execAsync(() -> {
     		int count = tb.getItemCount();
     		tb.getItem(0).setEnabled(!interrupted);
     		for (int i = 1; i < count; i++) {
@@ -613,8 +395,6 @@ public class RhinoDebug extends Composite implements GuiCallback {
         	context.setEnabled(true);
     	} else {
     		clearLastAnnotation();
-            if (currentWindow != null) currentWindow.setPosition(-1);
-            context.setEnabled(false);
         }
     }
     
@@ -642,49 +422,37 @@ public class RhinoDebug extends Composite implements GuiCallback {
     	if (ignoreList.contains(url)) {
     		return;
     	}
-    	getDisplay().syncExec(() -> {
+    	var editorRef = getEditorReference(url);
+    	if (editorRef == null) {
+    		return;
+    	}
+		sourceInfo.removeAllBreakpoints();
+		
+    	execSync(() -> {
     		var files = new HashSet<IResource>();
-    		DebugPlugin.getDefault().fireDebugEventSet(null);
     		var bpManager = DebugPlugin.getDefault().getBreakpointManager();
     		for (var bp: bpManager.getBreakpoints()) {
     			try {
     				var marker = bp.getMarker();
     				var file = marker.getResource();
     				if (!files.add(file)) {
-    					break;
+    					continue;
     				}
-    				var name = file.getParent().getName();
-    				if (url.startsWith(name)) {
-    					try {
-    						var found = false;
-    						for (var ref: PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
-    							if (ref.getEditorInput() instanceof FileInPlaceEditorInput editor) {
-    								if (editor.getFile().equals(file)) {
-    									found = true;
-    									editorRefs.put(url, ref);
-    									break;
-    								}
-    							}
-    						}
-    						if (!found) {
-    							continue;
-    						}
-							sourceInfo.removeAllBreakpoints();
-    						var mks = file.findMarkers(marker.getType(), false, IResource.DEPTH_ZERO);
-    						for (var mk: mks) {
-    							var ln = mk.getAttribute(IMarker.LINE_NUMBER);
-    							sourceInfo.breakpoint((int) ln, true);
-    						}
+    				
+    				var editor = (ITextEditor) editorRef.getEditor(false);
+    				if (editor.getEditorInput() instanceof FileEditorInput input
+    						&& file.equals(input.getFile())
+    						&& editorRef.getEditor(false) != null) {
+    				} else {
+    					continue;
+    				}
 
-    						RunProxy proxy = new RunProxy(this, RunProxy.UPDATE_SOURCE_TEXT);
-    						proxy.sourceInfo = sourceInfo;
-    						SwingUtilities.invokeLater(proxy);
-    					} catch (Exception e) {
-    						// TODO: handle exception
-    						e.printStackTrace();
-    					}
-    					return;
+    				var mks = file.findMarkers(marker.getType(), false, IResource.DEPTH_ZERO);
+    				for (var mk: mks) {
+    					var ln = mk.getAttribute(IMarker.LINE_NUMBER);
+    					sourceInfo.breakpoint((int) ln, true);
     				}
+    				return;
     			} catch (Exception e) {
     				e.printStackTrace();
     			}
@@ -742,18 +510,29 @@ public class RhinoDebug extends Composite implements GuiCallback {
     
     @Override
 	public void dispose() {
-		exit();
+    	clearLastAnnotation();
+    	dim.clearAllBreakpoints();
+		dim.setReturnValue(Dim.GO);
+        dim.setReturnValue(Dim.EXIT);
 		dim.detach();
 		RhinoUtils.debugMode = false;
 		SwingUtilities.invokeLater(() -> self.dispose());
 		super.dispose();
 	}
     
-    void exec(Runnable run) {
+    void execAsync(Runnable run) {
     	if (Thread.currentThread() == getDisplay().getThread()) {
     		run.run();
     	} else {
     		getDisplay().asyncExec(run);
+    	}
+    }
+    
+    void execSync(Runnable run) {
+    	if (Thread.currentThread() == getDisplay().getThread()) {
+    		run.run();
+    	} else {
+    		getDisplay().syncExec(run);
     	}
     }
 }
@@ -1036,762 +815,6 @@ class EvalWindow extends JInternalFrame implements ActionListener {
     }
 }
 
-/** Internal frame for the console. */
-class JSInternalConsole extends JInternalFrame implements ActionListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = -5523468828771087292L;
-
-    /** Creates a new JSInternalConsole. */
-    public JSInternalConsole(String name) {
-        super(name);
-        consoleTextArea = new ConsoleTextArea(null);
-        consoleTextArea.setRows(24);
-        consoleTextArea.setColumns(80);
-        JScrollPane scroller = new JScrollPane(consoleTextArea);
-        setContentPane(scroller);
-        pack();
-        addInternalFrameListener(
-                new InternalFrameAdapter() {
-                    @Override
-                    public void internalFrameActivated(InternalFrameEvent e) {
-                        // hack
-                        if (consoleTextArea.hasFocus()) {
-                            consoleTextArea.getCaret().setVisible(false);
-                            consoleTextArea.getCaret().setVisible(true);
-                        }
-                    }
-                });
-    }
-
-    /** The console text area. */
-    ConsoleTextArea consoleTextArea;
-
-    /** Returns the input stream of the console text area. */
-    public InputStream getIn() {
-        return consoleTextArea.getIn();
-    }
-
-    /** Returns the output stream of the console text area. */
-    public PrintStream getOut() {
-        return consoleTextArea.getOut();
-    }
-
-    /** Returns the error stream of the console text area. */
-    public PrintStream getErr() {
-        return consoleTextArea.getErr();
-    }
-
-    // ActionListener
-
-    /** Performs an action on the text area. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        if (cmd.equals("Cut")) {
-            consoleTextArea.cut();
-        } else if (cmd.equals("Copy")) {
-            consoleTextArea.copy();
-        } else if (cmd.equals("Paste")) {
-            consoleTextArea.paste();
-        }
-    }
-}
-
-/** Text area to display script source. */
-class FileTextArea extends JTextArea
-        implements KeyListener, MouseListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = -25032065448563720L;
-
-    /** Creates a new FileTextArea. */
-    public FileTextArea() {
-        addMouseListener(this);
-        addKeyListener(this);
-        setFont(new Font("Monospaced", 0, Math.max(12, UIManager.getFont("Label.font").getSize())));
-    }
-
-    /** Moves the selection to the given offset. */
-    public void select(int pos) {
-        if (pos >= 0) {
-            try {
-                int line = getLineOfOffset(pos);
-                var rect2d = modelToView2D(pos);
-                if (rect2d == null) {
-                    select(pos, pos);
-                } else {
-                	var rect = rect2d.getBounds();
-                    try {
-                        var nrect2 = modelToView2D(getLineStartOffset(line + 1));
-                        if (nrect2 != null) {
-                            rect = nrect2.getBounds();
-                        }
-                    } catch (Exception exc) {
-                    }
-                    JViewport vp = (JViewport) getParent();
-                    Rectangle viewRect = vp.getViewRect();
-                    if (viewRect.y + viewRect.height > rect.y) {
-                        // need to scroll up
-                        select(pos, pos);
-                    } else {
-                        // need to scroll down
-                        rect.y += (viewRect.height - rect.height) / 2;
-                        scrollRectToVisible(rect);
-                        select(pos, pos);
-                    }
-                }
-            } catch (BadLocationException exc) {
-                select(pos, pos);
-                // exc.printStackTrace();
-            }
-        }
-    }
-
-    // MouseListener
-
-    /** Called when a mouse button is pressed. */
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-
-    /** Called when the mouse is clicked. */
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        requestFocus();
-        getCaret().setVisible(true);
-    }
-
-    /** Called when the mouse enters the component. */
-    @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    /** Called when the mouse exits the component. */
-    @Override
-    public void mouseExited(MouseEvent e) {}
-
-    /** Called when a mouse button is released. */
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    // KeyListener
-
-    /** Called when a key is pressed. */
-    @Override
-    public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_BACK_SPACE:
-            case KeyEvent.VK_ENTER:
-            case KeyEvent.VK_DELETE:
-            case KeyEvent.VK_TAB:
-                e.consume();
-                break;
-        }
-    }
-
-    /** Called when a key is typed. */
-    @Override
-    public void keyTyped(KeyEvent e) {
-        e.consume();
-    }
-
-    /** Called when a key is released. */
-    @Override
-    public void keyReleased(KeyEvent e) {
-        e.consume();
-    }
-}
-
-/** Dialog to list the available windows. */
-class MoreWindows extends JDialog implements ActionListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = 5177066296457377546L;
-
-    /** Last selected value. */
-    private String value;
-
-    /** The list component. */
-    private JList<String> list;
-
-    /** Our parent frame. */
-    private RhinoDebug swingGui;
-
-    /** The "Select" button. */
-    private JButton setButton;
-
-    /** The "Cancel" button. */
-    private JButton cancelButton;
-
-    /** Creates a new MoreWindows. */
-    MoreWindows(
-    		RhinoDebug swingGui, Frame frame, Map<String, FileWindow> fileWindows, String title, String labelText) {
-        super(frame, title, true);
-        this.swingGui = swingGui;
-        // buttons
-        cancelButton = new JButton("Cancel");
-        setButton = new JButton("Select");
-        cancelButton.addActionListener(this);
-        setButton.addActionListener(this);
-        getRootPane().setDefaultButton(setButton);
-
-        // dim part of the dialog
-        list = new JList<>(new DefaultListModel<String>());
-        DefaultListModel<String> model = (DefaultListModel<String>) list.getModel();
-        model.clear();
-        // model.fireIntervalRemoved(model, 0, size);
-        for (String data : fileWindows.keySet()) {
-            model.addElement(data);
-        }
-        list.setSelectedIndex(0);
-        // model.fireIntervalAdded(model, 0, data.length);
-        setButton.setEnabled(true);
-        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        list.addMouseListener(new MouseHandler());
-        JScrollPane listScroller = new JScrollPane(list);
-        listScroller.setPreferredSize(new Dimension(320, 240));
-        // XXX: Must do the following, too, or else the scroller thinks
-        // XXX: it's taller than it is:
-        listScroller.setMinimumSize(new Dimension(250, 80));
-        listScroller.setAlignmentX(LEFT_ALIGNMENT);
-
-        // Create a container so that we can add a title around
-        // the scroll pane.  Can't add a title directly to the
-        // scroll pane because its background would be white.
-        // Lay out the label and scroll pane from top to button.
-        JPanel listPane = new JPanel();
-        listPane.setLayout(new BoxLayout(listPane, BoxLayout.Y_AXIS));
-        JLabel label = new JLabel(labelText);
-        label.setLabelFor(list);
-        listPane.add(label);
-        listPane.add(Box.createRigidArea(new Dimension(0, 5)));
-        listPane.add(listScroller);
-        listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // Lay out the buttons from left to right.
-        JPanel buttonPane = new JPanel();
-        buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-        buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        buttonPane.add(Box.createHorizontalGlue());
-        buttonPane.add(cancelButton);
-        buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-        buttonPane.add(setButton);
-
-        // Put everything together, using the content pane's BorderLayout.
-        Container contentPane = getContentPane();
-        contentPane.add(listPane, BorderLayout.CENTER);
-        contentPane.add(buttonPane, BorderLayout.SOUTH);
-        pack();
-        addKeyListener(
-                new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent ke) {
-                        int code = ke.getKeyCode();
-                        if (code == KeyEvent.VK_ESCAPE) {
-                            ke.consume();
-                            value = null;
-                            setVisible(false);
-                        }
-                    }
-                });
-    }
-
-    /** Shows the dialog. */
-    public String showDialog(Component comp) {
-        value = null;
-        setLocationRelativeTo(comp);
-        setVisible(true);
-        return value;
-    }
-
-    // ActionListener
-
-    /** Performs an action. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        if (cmd.equals("Cancel")) {
-            setVisible(false);
-            value = null;
-        } else if (cmd.equals("Select")) {
-            value = list.getSelectedValue();
-            setVisible(false);
-            swingGui.showFileWindow(value, -1);
-        }
-    }
-
-    /** MouseListener implementation for {@link #list}. */
-    private class MouseHandler extends MouseAdapter {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) {
-                setButton.doClick();
-            }
-        }
-    }
-}
-
-/** Find function dialog. */
-class FindFunction extends JDialog implements ActionListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = 559491015232880916L;
-
-    /** Last selected function. */
-    private String value;
-
-    /** List of functions. */
-    private JList<String> list;
-
-    /** The debug GUI frame. */
-    private RhinoDebug debugGui;
-
-    /** The "Select" button. */
-    private JButton setButton;
-
-    /** The "Cancel" button. */
-    private JButton cancelButton;
-
-    /** Creates a new FindFunction. */
-    public FindFunction(RhinoDebug debugGui, Frame frame, String title, String labelText) {
-        super(frame, title, true);
-        this.debugGui = debugGui;
-
-        cancelButton = new JButton("Cancel");
-        setButton = new JButton("Select");
-        cancelButton.addActionListener(this);
-        setButton.addActionListener(this);
-        getRootPane().setDefaultButton(setButton);
-
-        list = new JList<>(new DefaultListModel<String>());
-        DefaultListModel<String> model = (DefaultListModel<String>) list.getModel();
-        model.clear();
-
-        String[] a = debugGui.dim.functionNames();
-        java.util.Arrays.sort(a);
-        for (int i = 0; i < a.length; i++) {
-            model.addElement(a[i]);
-        }
-        list.setSelectedIndex(0);
-
-        setButton.setEnabled(a.length > 0);
-        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        list.addMouseListener(new MouseHandler());
-        JScrollPane listScroller = new JScrollPane(list);
-        listScroller.setPreferredSize(new Dimension(320, 240));
-        listScroller.setMinimumSize(new Dimension(250, 80));
-        listScroller.setAlignmentX(LEFT_ALIGNMENT);
-
-        // Create a container so that we can add a title around
-        // the scroll pane.  Can't add a title directly to the
-        // scroll pane because its background would be white.
-        // Lay out the label and scroll pane from top to button.
-        JPanel listPane = new JPanel();
-        listPane.setLayout(new BoxLayout(listPane, BoxLayout.Y_AXIS));
-        JLabel label = new JLabel(labelText);
-        label.setLabelFor(list);
-        listPane.add(label);
-        listPane.add(Box.createRigidArea(new Dimension(0, 5)));
-        listPane.add(listScroller);
-        listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // Lay out the buttons from left to right.
-        JPanel buttonPane = new JPanel();
-        buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-        buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        buttonPane.add(Box.createHorizontalGlue());
-        buttonPane.add(cancelButton);
-        buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-        buttonPane.add(setButton);
-
-        // Put everything together, using the content pane's BorderLayout.
-        Container contentPane = getContentPane();
-        contentPane.add(listPane, BorderLayout.CENTER);
-        contentPane.add(buttonPane, BorderLayout.SOUTH);
-        pack();
-        addKeyListener(
-                new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent ke) {
-                        int code = ke.getKeyCode();
-                        if (code == KeyEvent.VK_ESCAPE) {
-                            ke.consume();
-                            value = null;
-                            setVisible(false);
-                        }
-                    }
-                });
-    }
-
-    /** Shows the dialog. */
-    public String showDialog(Component comp) {
-        value = null;
-        setLocationRelativeTo(comp);
-        setVisible(true);
-        return value;
-    }
-
-    // ActionListener
-
-    /** Performs an action. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        if (cmd.equals("Cancel")) {
-            setVisible(false);
-            value = null;
-        } else if (cmd.equals("Select")) {
-            if (list.getSelectedIndex() < 0) {
-                return;
-            }
-            try {
-                value = list.getSelectedValue();
-            } catch (ArrayIndexOutOfBoundsException exc) {
-                return;
-            }
-            setVisible(false);
-            Dim.FunctionSource item = debugGui.dim.functionSourceByName(value);
-            if (item != null) {
-                Dim.SourceInfo si = item.sourceInfo();
-                String url = si.url();
-                int lineNumber = item.firstLine();
-                debugGui.showFileWindow(url, lineNumber);
-            }
-        }
-    }
-
-    /** MouseListener implementation for {@link #list}. */
-    class MouseHandler extends MouseAdapter {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) {
-                setButton.doClick();
-            }
-        }
-    }
-}
-
-/** Gutter for FileWindows. */
-class FileHeader extends JPanel implements MouseListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = -2858905404778259127L;
-
-    /** The line that the mouse was pressed on. */
-    private int pressLine = -1;
-
-    /** The owning FileWindow. */
-    private FileWindow fileWindow;
-
-    /** Creates a new FileHeader. */
-    public FileHeader(FileWindow fileWindow) {
-        this.fileWindow = fileWindow;
-        addMouseListener(this);
-        update();
-    }
-
-    /** Updates the gutter. */
-    public void update() {
-        FileTextArea textArea = fileWindow.textArea;
-        Font font = textArea.getFont();
-        setFont(font);
-        FontMetrics metrics = getFontMetrics(font);
-        int h = metrics.getHeight();
-        int lineCount = textArea.getLineCount() + 1;
-        String dummy = Integer.toString(lineCount);
-        if (dummy.length() < 2) {
-            dummy = "99";
-        }
-        Dimension d = new Dimension();
-        d.width = metrics.stringWidth(dummy) + 16;
-        d.height = lineCount * h + 100;
-        setPreferredSize(d);
-        setSize(d);
-    }
-
-    /** Paints the component. */
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        FileTextArea textArea = fileWindow.textArea;
-        Font font = textArea.getFont();
-        g.setFont(font);
-        FontMetrics metrics = getFontMetrics(font);
-        Rectangle clip = g.getClipBounds();
-        g.setColor(getBackground());
-        g.fillRect(clip.x, clip.y, clip.width, clip.height);
-        int ascent = metrics.getMaxAscent();
-        int h = metrics.getHeight();
-        int lineCount = textArea.getLineCount() + 1;
-        String dummy = Integer.toString(lineCount);
-        if (dummy.length() < 2) {
-            dummy = "99";
-        }
-        int startLine = clip.y / h;
-        int endLine = (clip.y + clip.height) / h + 1;
-        int width = getWidth();
-        if (endLine > lineCount) endLine = lineCount;
-        for (int i = startLine; i < endLine; i++) {
-            String text;
-            int pos = -2;
-            try {
-                pos = textArea.getLineStartOffset(i);
-            } catch (BadLocationException ignored) {
-            }
-            boolean isBreakPoint = fileWindow.isBreakPoint(i + 1);
-            text = Integer.toString(i + 1) + " ";
-            int y = i * h;
-            g.setColor(Color.blue);
-            g.drawString(text, 0, y + ascent);
-            int x = width - ascent;
-            if (isBreakPoint) {
-                g.setColor(new Color(0x80, 0x00, 0x00));
-                int dy = y + ascent - 9;
-                g.fillOval(x, dy, 9, 9);
-                g.drawOval(x, dy, 8, 8);
-                g.drawOval(x, dy, 9, 9);
-            }
-            if (pos == fileWindow.currentPos) {
-                Polygon arrow = new Polygon();
-                int dx = x;
-                y += ascent - 10;
-                int dy = y;
-                arrow.addPoint(dx, dy + 3);
-                arrow.addPoint(dx + 5, dy + 3);
-                for (x = dx + 5; x <= dx + 10; x++, y++) {
-                    arrow.addPoint(x, y);
-                }
-                for (x = dx + 9; x >= dx + 5; x--, y++) {
-                    arrow.addPoint(x, y);
-                }
-                arrow.addPoint(dx + 5, dy + 7);
-                arrow.addPoint(dx, dy + 7);
-                g.setColor(Color.yellow);
-                g.fillPolygon(arrow);
-                g.setColor(Color.black);
-                g.drawPolygon(arrow);
-            }
-        }
-    }
-
-    // MouseListener
-
-    /** Called when the mouse enters the component. */
-    @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    /** Called when a mouse button is pressed. */
-    @Override
-    public void mousePressed(MouseEvent e) {
-        Font font = fileWindow.textArea.getFont();
-        FontMetrics metrics = getFontMetrics(font);
-        int h = metrics.getHeight();
-        pressLine = e.getY() / h;
-    }
-
-    /** Called when the mouse is clicked. */
-    @Override
-    public void mouseClicked(MouseEvent e) {}
-
-    /** Called when the mouse exits the component. */
-    @Override
-    public void mouseExited(MouseEvent e) {}
-
-    /** Called when a mouse button is released. */
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if (e.getComponent() == this && e.getButton() == MouseEvent.BUTTON1) {
-            int y = e.getY();
-            Font font = fileWindow.textArea.getFont();
-            FontMetrics metrics = getFontMetrics(font);
-            int h = metrics.getHeight();
-            int line = y / h;
-            if (line == pressLine) {
-                fileWindow.toggleBreakPoint(line + 1);
-            } else {
-                pressLine = -1;
-            }
-        }
-    }
-}
-
-/** An internal frame for script files. */
-class FileWindow extends JInternalFrame implements ActionListener {
-
-    /** Serializable magic number. */
-    private static final long serialVersionUID = -6212382604952082370L;
-
-    /** The debugger GUI. */
-    private RhinoDebug debugGui;
-
-    /** The SourceInfo object that describes the file. */
-    private Dim.SourceInfo sourceInfo;
-
-    /** The FileTextArea that displays the file. */
-    FileTextArea textArea;
-
-    /** The FileHeader that is the gutter for {@link #textArea}. */
-    private FileHeader fileHeader;
-
-    /** Scroll pane for containing {@link #textArea}. */
-    private JScrollPane p;
-
-    /** The current offset position. */
-    int currentPos;
-
-    /** Loads the file. */
-    void load() {
-        String url = getUrl();
-        if (url != null) {
-            RunProxy proxy = new RunProxy(debugGui, RunProxy.LOAD_FILE);
-            proxy.fileName = url;
-            proxy.text = sourceInfo.source();
-            new Thread(proxy).start();
-        }
-    }
-
-    /** Returns the offset position for the given line. */
-    public int getPosition(int line) {
-        int result = -1;
-        try {
-            result = textArea.getLineStartOffset(line);
-        } catch (javax.swing.text.BadLocationException exc) {
-        }
-        return result;
-    }
-
-    /** Returns whether the given line has a breakpoint. */
-    public boolean isBreakPoint(int line) {
-        return sourceInfo.breakableLine(line) && sourceInfo.breakpoint(line);
-    }
-
-    /** Toggles the breakpoint on the given line. */
-    public void toggleBreakPoint(int line) {
-        if (!isBreakPoint(line)) {
-            setBreakPoint(line);
-        } else {
-            clearBreakPoint(line);
-        }
-    }
-
-    /** Sets a breakpoint on the given line. */
-    public void setBreakPoint(int line) {
-        if (sourceInfo.breakableLine(line)) {
-            boolean changed = sourceInfo.breakpoint(line, true);
-            if (changed) {
-                fileHeader.repaint();
-            }
-        }
-    }
-
-    /** Clears a breakpoint from the given line. */
-    public void clearBreakPoint(int line) {
-        if (sourceInfo.breakableLine(line)) {
-            boolean changed = sourceInfo.breakpoint(line, false);
-            if (changed) {
-                fileHeader.repaint();
-            }
-        }
-    }
-
-    /** Creates a new FileWindow. */
-    public FileWindow(RhinoDebug debugGui, Dim.SourceInfo sourceInfo) {
-        super(RhinoDebug.getShortName(sourceInfo.url()));//RhinoDebug.getShortName(sourceInfo.url()), true, true, true, true);
-        //((BasicInternalFrameUI) getUI()).setNorthPane(null);
-        setFrameIcon(null);
-        this.debugGui = debugGui;
-        this.sourceInfo = sourceInfo;
-        updateToolTip();
-        currentPos = -1;
-        textArea = new FileTextArea();
-        textArea.setRows(24);
-        textArea.setColumns(80);
-        p = new JScrollPane();
-        fileHeader = new FileHeader(this);
-        p.setViewportView(textArea);
-        p.setRowHeaderView(fileHeader);
-        setContentPane(p);
-        pack();
-        updateText(sourceInfo);
-        textArea.select(0);
-    }
-
-    /** Updates the tool tip contents. */
-    private void updateToolTip() {
-        // Try to set tool tip on frame. On Mac OS X 10.5,
-        // the number of components is different, so try to be safe.
-        int n = getComponentCount() - 1;
-        if (n > 1) {
-            n = 1;
-        } else if (n < 0) {
-            return;
-        }
-        Component c = getComponent(n);
-        // this will work at least for Metal L&F
-        if (c != null && c instanceof JComponent) {
-            ((JComponent) c).setToolTipText(getUrl());
-        }
-    }
-
-    /** Returns the URL of the source. */
-    public String getUrl() {
-        return sourceInfo.url();
-    }
-
-    /** Called when the text of the script has changed. */
-    public void updateText(Dim.SourceInfo sourceInfo) {
-        this.sourceInfo = sourceInfo;
-        String newText = sourceInfo.source();
-        if (!textArea.getText().equals(newText)) {
-            textArea.setText(newText);
-            int pos = 0;
-            if (currentPos != -1) {
-                pos = currentPos;
-            }
-            textArea.select(pos);
-        }
-        fileHeader.update();
-        fileHeader.repaint();
-    }
-
-    /** Sets the cursor position. */
-    public void setPosition(int pos) {
-        textArea.select(pos);
-        currentPos = pos;
-        fileHeader.repaint();
-    }
-
-    /** Selects a range of characters. */
-    public void select(int start, int end) {
-        int docEnd = textArea.getDocument().getLength();
-        textArea.select(docEnd, docEnd);
-        textArea.select(start, end);
-    }
-
-    /** Disposes this FileWindow. */
-    @Override
-    public void dispose() {
-        debugGui.removeWindow(this);
-        super.dispose();
-    }
-
-    // ActionListener
-
-    /** Performs an action. */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String cmd = e.getActionCommand();
-        if (cmd.equals("Cut")) {
-            // textArea.cut();
-        } else if (cmd.equals("Copy")) {
-            textArea.copy();
-        } else if (cmd.equals("Paste")) {
-            // textArea.paste();
-        }
-    }
-}
-
 /** Table model class for watched expressions. */
 class MyTableModel extends AbstractTableModel {
 
@@ -1935,14 +958,22 @@ class VariableModel implements TreeTableModel {
 
     /** The root node. */
     private VariableNode root;
+    
+    private Set<String> filter;
 
     /** Creates a new VariableModel. */
     public VariableModel() {}
 
-    /** Creates a new VariableModel. */
+
     public VariableModel(Dim debugger, Object scope) {
+    	this(debugger, scope, Collections.emptySet());
+    }
+    
+    /** Creates a new VariableModel. */
+    public VariableModel(Dim debugger, Object scope, Collection<String> filter) {
         this.debugger = debugger;
         this.root = new VariableNode(scope, "this");
+        this.filter = new HashSet<>(filter);
     }
 
     // TreeTableModel
@@ -2091,6 +1122,15 @@ class VariableModel implements TreeTableModel {
 
         Object value = getValue(node);
         Object[] ids = debugger.getObjectIds(value);
+        if (node == root && !filter.isEmpty()) {
+        	var copy = new ArrayList<Object>();
+        	for (var id: ids) {
+        		if (!filter.contains(id)) {
+        			copy.add(id);
+        		}
+        	}
+        	ids = copy.toArray();
+        }
         if (ids == null || ids.length == 0) {
             children = CHILDLESS;
         } else {
@@ -2291,6 +1331,10 @@ class ContextWindow extends JPanel implements ActionListener {
     /** The table showing the stack local variables. */
     private MyTreeTable localsTable;
 
+    /** The table showing all objects. */
+    private MyTreeTable allTable;
+
+
     /** The {@link #evaluator}'s table model. */
     private MyTableModel tableModel;
 
@@ -2352,6 +1396,11 @@ class ContextWindow extends JPanel implements ActionListener {
         localsTable.setPreferredSize(null);
         jsp = new JScrollPane(localsTable);
         tabs.add("Locals", jsp);
+        allTable = new MyTreeTable(new VariableModel());
+        allTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        allTable.setPreferredSize(null);
+        jsp = new JScrollPane(allTable);
+        tabs.add("Alls", jsp);
         c.weightx = c.weighty = 1;
         c.gridheight = GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.BOTH;
@@ -2546,6 +1595,7 @@ class ContextWindow extends JPanel implements ActionListener {
         context.setEnabled(enabled);
         thisTable.setEnabled(enabled);
         localsTable.setEnabled(enabled);
+        allTable.setEnabled(enabled);
         evaluator.setEnabled(enabled);
         cmdLine.setEnabled(enabled);
     }
@@ -2580,7 +1630,8 @@ class ContextWindow extends JPanel implements ActionListener {
             Dim.StackFrame frame = contextData.getFrame(frameIndex);
             Object scope = frame.scope();
             Object thisObj = frame.thisObj();
-            thisTable.resetTree(new VariableModel(debugGui.dim, thisObj));
+            thisTable.resetTree(new VariableModel(debugGui.dim, thisObj, filters));
+            allTable.resetTree(new VariableModel(debugGui.dim, thisObj));
             VariableModel scopeModel;
             if (scope != thisObj) {
                 scopeModel = new VariableModel(debugGui.dim, scope);
@@ -2593,6 +1644,17 @@ class ContextWindow extends JPanel implements ActionListener {
             tableModel.updateModel();
         }
     }
+    
+	final static Collection<String> filters = Arrays.asList("__proto__", "Function", "Object", "Error", "CallSite",
+			"decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite", "isNaN",
+			"isXMLName", "parseFloat", "parseInt", "unescape", "uneval", "NaN", "Infinity", "undefined", "globalThis",
+			"EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "InternalError",
+			"JavaException", "Array", "String", "Boolean", "Number", "Math", "JSON", "With", "Call", "Script",
+			"Iterator", "StopIteration", "RegExp", "Continuation", "XML", "XMLList", "Namespace", "QName",
+			"ArrayBuffer", "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array", "Int32Array",
+			"Uint32Array", "Float32Array", "Float64Array", "DataView", "Symbol", "Map", "Promise", "Set", "WeakMap",
+			"WeakSet", "BigInt", "Packages", "getClass", "JavaAdapter", "JavaImporter", "java", "javax", "org", "com",
+			"edu", "net", "steps", "use", "include", "synchronized", "Date");
 }
 
 /**
@@ -2666,12 +1728,6 @@ class RunProxy implements Runnable {
                 break;
 
             case UPDATE_SOURCE_TEXT:
-                {
-                    String fileName = sourceInfo.url();
-                    if (!debugGui.updateFileWindow(sourceInfo) && !fileName.equals("<stdin>")) {
-                        debugGui.createFileWindow(sourceInfo, -1);
-                    }
-                }
                 break;
 
             case ENTER_INTERRUPT:
