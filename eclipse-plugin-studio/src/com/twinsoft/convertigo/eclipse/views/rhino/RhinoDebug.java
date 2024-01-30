@@ -100,6 +100,9 @@ import javax.swing.tree.TreePath;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.GridData;
@@ -108,8 +111,10 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileInPlaceEditorInput;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.tools.debugger.Dim;
 import org.mozilla.javascript.tools.debugger.GuiCallback;
@@ -119,6 +124,7 @@ import org.mozilla.javascript.tools.debugger.treetable.TreeTableModelAdapter;
 import org.mozilla.javascript.tools.shell.ConsoleTextArea;
 
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -156,7 +162,13 @@ public class RhinoDebug extends Composite implements GuiCallback {
     /** Hash table of script URLs to their internal frames. */
     private final Map<String, FileWindow> fileWindows =
             Collections.synchronizedMap(new TreeMap<String, FileWindow>());
+    
+    private final Map<String, IEditorReference> editorRefs =
+            Collections.synchronizedMap(new TreeMap<String, IEditorReference>());
 
+    private Annotation lastAnnotation;
+    private IAnnotationModel lastAnnotationModel;
+    
     /** The {@link FileWindow} that last had the focus. */
     private FileWindow currentWindow;
 
@@ -171,7 +183,11 @@ public class RhinoDebug extends Composite implements GuiCallback {
         super(parent, style);
         setLayout(SwtUtils.newGridLayout(1, true, 0, 0, 0, 0));
         makeToolbar();
-    	FlatMacDarkLaf.setup();
+        if (SwtUtils.isDark()) {
+        	FlatMacDarkLaf.setup();
+        } else {
+        	FlatMacLightLaf.setup();
+        }
     	RhinoUtils.debugMode = true;
     	var wrapper = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
     	wrapper.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL));
@@ -340,6 +356,40 @@ public class RhinoDebug extends Composite implements GuiCallback {
             if (w != null) {
                 setFilePosition(w, lineNumber);
             }
+            
+            var ref = editorRefs.get(frame.getUrl());
+            if (ref != null) {
+    	        var ed = (ITextEditor) ref.getEditor(false);
+    			//int lineNumber = lastFrame.getLineNumber();
+    			var source = frame.sourceInfo().source();
+    			var start = 0;
+    			var index = source.indexOf('\n');
+    			var length = Math.max(0, index);
+    			while (--lineNumber > 0) {
+    				start = start + length + 1;
+    				index = source.indexOf('\n', start);
+    				if (index == -1) {
+    					index = source.length();
+    				}
+    				length = Math.max(0, index - start);
+    			}
+    			Position pos = new Position(start, length);
+
+    			clearLastAnnotation();
+    			lastAnnotationModel = ed.getDocumentProvider().getAnnotationModel(ed.getEditorInput());
+    			lastAnnotation = new Annotation("org.eclipse.debug.ui.currentIP", false, "breaked");
+    			lastAnnotationModel.addAnnotation(lastAnnotation, pos);
+    			exec(() -> {
+    				try {
+    					var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+    					page.bringToTop(ed);
+    					var view = page.findViewReference("com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView");
+    					page.bringToTop(view.getView(false));
+    				} catch (Exception e) {
+    					// TODO: handle exception
+    				}
+    			});
+            }
         }
     }
 
@@ -487,13 +537,21 @@ public class RhinoDebug extends Composite implements GuiCallback {
             }
         }
     }
-
+    
+    void clearLastAnnotation() {
+		if (lastAnnotationModel != null && lastAnnotation != null) {
+			lastAnnotationModel.removeAnnotation(lastAnnotation);
+		}
+		lastAnnotation = null;
+		lastAnnotationModel = null;
+    }
+    
     /** Handles script interruption. */
     void enterInterruptImpl(Dim.StackFrame lastFrame, String threadTitle, String alertMessage) {
         statusBar.setText("Thread: " + threadTitle);
 
         showStopLine(lastFrame);
-
+        
         if (alertMessage != null) {
             MessageDialogWrapper.showMessageDialog(
                     self, alertMessage, "Exception in Script", JOptionPane.ERROR_MESSAGE);
@@ -554,6 +612,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
     	if (interrupted) {
         	context.setEnabled(true);
     	} else {
+    		clearLastAnnotation();
             if (currentWindow != null) currentWindow.setPosition(-1);
             context.setEnabled(false);
         }
@@ -585,6 +644,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
     	}
     	getDisplay().syncExec(() -> {
     		var files = new HashSet<IResource>();
+    		DebugPlugin.getDefault().fireDebugEventSet(null);
     		var bpManager = DebugPlugin.getDefault().getBreakpointManager();
     		for (var bp: bpManager.getBreakpoints()) {
     			try {
@@ -601,14 +661,15 @@ public class RhinoDebug extends Composite implements GuiCallback {
     							if (ref.getEditorInput() instanceof FileInPlaceEditorInput editor) {
     								if (editor.getFile().equals(file)) {
     									found = true;
+    									editorRefs.put(url, ref);
     									break;
     								}
     							}
     						}
     						if (!found) {
-    							sourceInfo.removeAllBreakpoints();
     							continue;
     						}
+							sourceInfo.removeAllBreakpoints();
     						var mks = file.findMarkers(marker.getType(), false, IResource.DEPTH_ZERO);
     						for (var mk: mks) {
     							var ln = mk.getAttribute(IMarker.LINE_NUMBER);
