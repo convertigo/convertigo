@@ -272,6 +272,18 @@ public class ConvertigoError {
 		return new ConvertigoError(errorCode, errorType, convertigoException);
 	}
 
+	public static ConvertigoError initError(ConvertigoException convertigoException) {
+		return initError(ErrorType.Convertigo, convertigoException);
+	}
+
+	public static ConvertigoError initError(ErrorType errorType, ConvertigoException convertigoException) {
+		return initError(-1, errorType, convertigoException);
+	}
+	
+	public static ConvertigoError initError(int errorCode, ErrorType errorType, ConvertigoException convertigoException) {
+		return new ConvertigoError(errorCode, errorType, convertigoException);
+	}
+
 	public static ConvertigoError get(Throwable t) {
 		if (t instanceof ConvertigoException)
 			return ((ConvertigoException)t).getError();
