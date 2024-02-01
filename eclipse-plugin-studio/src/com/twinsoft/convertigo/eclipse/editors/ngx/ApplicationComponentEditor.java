@@ -66,7 +66,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -131,6 +130,7 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -602,13 +602,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
 		deviceOsToolItem = new ToolItem(tb, SWT.DROP_DOWN);
 		final Menu mOS = new Menu(tb);
-		SelectionListener selectionListener = new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setDeviceOS((DeviceOS) e.widget.getData());
-			}
-
+		SelectionListener selectionListener = e -> {
+			setDeviceOS((DeviceOS) e.widget.getData());
 		};
 
 		for (DeviceOS device: DeviceOS.values()) {
@@ -621,17 +616,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		deviceOsToolItem.setToolTipText("Select device OS.");
 		deviceOsToolItem.setImage(deviceOS.image());
-		deviceOsToolItem.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				ToolItem item = (ToolItem) e.widget;
-				Rectangle rect = item.getBounds();
-				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-				mOS.setLocation(pt);
-				mOS.setVisible(true);
-			}
-
+		deviceOsToolItem.addSelectionListener((SelectionListener) e -> {
+			ToolItem item = (ToolItem) e.widget;
+			Rectangle rect = item.getBounds();
+			Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+			mOS.setLocation(pt);
+			mOS.setVisible(true);
 		});
 
 		new Label(deviceBar, SWT.NONE).setText(" ");
@@ -669,110 +659,90 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
 		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_out.png", "Zoom out", "Zoom out");
-		button.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				zoomFactor = zoomFactor.out();
-				updateBrowserSize();
-			}
+		button.addSelectionListener((SelectionListener) e -> {
+			zoomFactor = zoomFactor.out();
+			updateBrowserSize();
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
 		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_reset.png", "Zoom reset", "Zoom reset");
-		button.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				zoomFactor = ZoomFactor.z100;
-				updateBrowserSize();
-			}
+		button.addSelectionListener((SelectionListener) e -> {
+			zoomFactor = ZoomFactor.z100;
+			updateBrowserSize();
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
 		SwtUtils.setToolItemIcon(button, "icons/studio/zoom_in.png", "Zoom in", "Zoom in");
-		button.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				zoomFactor = zoomFactor.in();
-				updateBrowserSize();
-			}
+		button.addSelectionListener((SelectionListener) e -> {
+			zoomFactor = zoomFactor.in();
+			updateBrowserSize();
 		});
 
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		button = new ToolItem(tb, SWT.PUSH);
 		SwtUtils.setToolItemIcon(button, "icons/studio/dbo_save.gif", "Save", "Save");
-		button.addSelectionListener(new SelectionAdapter() {
+		button.addSelectionListener((SelectionListener) e -> {
+			String name = deviceName.getText().trim();
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				String name = deviceName.getText().trim();
-
-				if (name.isEmpty()) {
-					toast("Device name must no be empty.");
-					return;
-				}
-
-				if (findDevice(devicesDefinition, name) != null) {
-					toast("Cannot override the default device '" + name + "'.");
-					return;
-				}
-
-				int width = NumberUtils.toInt(deviceWidth.getText(), -1);
-				int height = NumberUtils.toInt(deviceHeight.getText(), -1);
-
-				C8oBrowser.run(() -> {
-					JSONObject device = findDevice(devicesDefinitionCustom, name);
-
-					try {
-						if (device == null) {
-							device = new JSONObject();
-							device.put("name", name);
-							devicesDefinitionCustom.put(device);
-						}
-						device.put("width", width);
-						device.put("height", height);
-						device.put("zoom", zoomFactor.percent());
-						device.put("os", deviceOS.name());
-						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
-						toast("Device '" + name + "' saved !");
-						parent.getDisplay().asyncExec(() -> updateDevicesMenu());
-					} catch (Exception ex) {
-						toast("Device '" + name + "' NOT saved ! " + ex.getMessage());
-					}
-				});
+			if (name.isEmpty()) {
+				toast("Device name must no be empty.");
+				return;
 			}
+
+			if (findDevice(devicesDefinition, name) != null) {
+				toast("Cannot override the default device '" + name + "'.");
+				return;
+			}
+
+			int width = NumberUtils.toInt(deviceWidth.getText(), -1);
+			int height = NumberUtils.toInt(deviceHeight.getText(), -1);
+
+			C8oBrowser.run(() -> {
+				JSONObject device = findDevice(devicesDefinitionCustom, name);
+
+				try {
+					if (device == null) {
+						device = new JSONObject();
+						device.put("name", name);
+						devicesDefinitionCustom.put(device);
+					}
+					device.put("width", width);
+					device.put("height", height);
+					device.put("zoom", zoomFactor.percent());
+					device.put("os", deviceOS.name());
+					FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+					toast("Device '" + name + "' saved !");
+					parent.getDisplay().asyncExec(() -> updateDevicesMenu());
+				} catch (Exception ex) {
+					toast("Device '" + name + "' NOT saved ! " + ex.getMessage());
+				}
+			});
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
 		SwtUtils.setToolItemIcon(button, "icons/studio/project_delete.gif", "Delete", "Delete");
-		button.addSelectionListener(new SelectionAdapter() {
+		button.addSelectionListener((SelectionListener) e -> {
+			String name = deviceName.getText().trim();
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				String name = deviceName.getText().trim();
+			if (findDevice(devicesDefinition, name) != null) {
+				toast("Cannot remove the default device '" + name + "' !");
+				return;
+			}
 
-				if (findDevice(devicesDefinition, name) != null) {
-					toast("Cannot remove the default device '" + name + "' !");
-					return;
+			JSONObject device = findDevice(devicesDefinitionCustom, name);
+
+			try {
+				if (device != null) {
+					devicesDefinitionCustom.remove(device);
+					FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+					toast("Device '" + deviceName.getText() + "' removed !");
+					updateDevicesMenu();
+				} else {
+					toast("Device '" + deviceName.getText() + "' not found !");
 				}
-
-				JSONObject device = findDevice(devicesDefinitionCustom, name);
-
-				try {
-					if (device != null) {
-						devicesDefinitionCustom.remove(device);
-						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
-						toast("Device '" + deviceName.getText() + "' removed !");
-						updateDevicesMenu();
-					} else {
-						toast("Device '" + deviceName.getText() + "' not found !");
-					}
-				} catch (Exception ex) {
-					toast("Device '" + deviceName.getText() + "' NOT removed ! " + ex);
-				}
+			} catch (Exception ex) {
+				toast("Device '" + deviceName.getText() + "' NOT removed ! " + ex);
 			}
 		});
 
@@ -801,21 +771,19 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 		}
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (e.detail == SWT.ARROW) {
-					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds();
-					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
-					devicesMenu.setLocation(pt);
-					devicesMenu.setVisible(true);
-				} else {
-					setDeviceBarVisible(!deviceBar.getVisible());
-				}
+		item.addSelectionListener((SelectionListener) e -> {
+			if (!((ToolItem) e.widget).isEnabled()) {
+				return;
 			}
-
+			if (e.detail == SWT.ARROW) {
+				ToolItem it = (ToolItem) e.widget;
+				Rectangle rect = it.getBounds();
+				Point pt = it.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
+				devicesMenu.setLocation(pt);
+				devicesMenu.setVisible(true);
+			} else {
+				setDeviceBarVisible(!deviceBar.getVisible());
+			}
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
@@ -826,16 +794,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			item.setImage(plugin.getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16));
 		} catch (Exception e) {
 		}
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				String width = deviceWidth.getText();
-				deviceWidth.setText(deviceHeight.getText());
-				deviceHeight.setText(width);
-				updateBrowserSize();
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			String width = deviceWidth.getText();
+			deviceWidth.setText(deviceHeight.getText());
+			deviceHeight.setText(width);
+			updateBrowserSize();
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
@@ -843,29 +806,23 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		var refreshBtn = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.gif", "Refresh", "Refresh");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				doReload();
+		item.addSelectionListener((SelectionListener) e -> {
+			for (var it: toolbar.getItems()) {
+				it.setEnabled(true);
 			}
-
+			applySelectedDevice();
+			doReload();
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/undo.gif", "Back", "Back");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> {
-					int index = c8oBrowser.getCurrentNavigationEntryIndex();
-					if (index > 2) {
-						c8oBrowser.goBack();
-					}
-				});
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			C8oBrowser.run(() -> {
+				int index = c8oBrowser.getCurrentNavigationEntryIndex();
+				if (index > 2) {
+					c8oBrowser.goBack();
+				}
+			});
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
@@ -873,134 +830,157 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.CHECK);
 		editStyle = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/edit_16x16.png", "Style editor", "Style editor");
-		item.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				var selected = ((ToolItem) e.widget).getSelection();
-				for (var item: toolbar.getItems()) {
-					if (item != e.widget && item != refreshBtn) {
-						item.setEnabled(!selected);
+		item.addSelectionListener((SelectionListener) e -> {
+			var selected = ((ToolItem) e.widget).getSelection();
+			for (var it: toolbar.getItems()) {
+				if (it != e.widget && it != refreshBtn) {
+					it.setEnabled(!selected);
+				}
+			}
+			int width = NumberUtils.toInt(deviceWidth.getText(), -1);
+			int height = NumberUtils.toInt(deviceHeight.getText(), -1);
+			var device = width < 1 ? "desktop" : width > height ? "mobileLandscape" : "mobilePortrait";
+			if (selected) {
+				editStyle.setData("deviceWidth", deviceWidth.getText());
+				editStyle.setData("deviceHeight", deviceHeight.getText());
+				editStyle.setData("zoomFactor", zoomFactor);
+				editStyle.setData("deviceBar.isVisible", deviceBar.isVisible());
+				deviceWidth.setText("-1");
+				deviceHeight.setText("-1");
+				zoomFactor = ZoomFactor.z100;
+				setDeviceBarVisible(false);
+				updateBrowserSize();
+			} else {
+				applySelectedDevice();
+			}
+			C8oBrowser.run(() -> {
+				if (selected) {
+					c8oBrowser.executeFunctionAndReturnValue("initGrapesJS", device);
+				} else {
+					try {
+						var changes = new JSONObject((String) c8oBrowser.executeFunctionAndReturnValue("getEditorChanges"));
+						Engine.execute(() -> {
+							try {
+								var dbosToReload = new HashSet<DatabaseObject>();
+								var scss = changes.getString("scss");
+								Engine.logStudio.warn("Editor scss\n" + scss);
+								var m = Pattern.compile("\\.class(\\d+).*?\\{\n(.*?\n)\\}", Pattern.DOTALL).matcher(scss);
+								while (m.find()) {
+									try {
+										var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
+										if (dbo instanceof UIElement uie) {
+											var dboChanged = false;
+											var style = (UIStyle) null;
+											for (var child :uie.getDatabaseObjectChildren()) {
+												if (child instanceof UIStyle s) {
+													if (style == null) {
+														style = s;
+													} else {
+														uie.remove(s);
+														dboChanged = true;
+													}
+												}
+											};
+
+											var content = m.group(2);
+											
+											if (style == null) {
+												style = new UIStyle();
+												style.setName("styleEditor");
+												uie.addUIComponent(style);
+												BuilderUtils.dboAdded(uie);
+											} else if (!dboChanged && style.getStyleContent().getString().equals(content)) {
+												continue;
+											}
+											style.setStyleContent(new FormatedContent(content));
+											dbosToReload.add(dbo);
+										}
+									} catch (Exception ex) {
+										Engine.logStudio.error("failed", ex);
+									}
+								}
+								var text = changes.getJSONObject("text");
+								for (var i = text.keys(); i.hasNext();) {
+									var priority = (String) i.next();
+									var txt = text.getString(priority);
+									var dbo = findDatabaseObject(Long.parseLong(priority));
+									var uitext = (UIText) null;
+									for (var c: dbo.getAllChildren()) {
+										if (c instanceof UIText u) {
+											if (uitext == null) {
+												uitext = u;
+											} else {
+												uitext = null;
+												break;
+											}
+										}
+									}
+									if (uitext != null) {
+										var smart = uitext.getTextSmartType();
+										if (smart.getMode() == MobileSmartSourceType.Mode.PLAIN) {
+											var exValue = smart.getSmartValue();
+											if (!exValue.equals(txt)) {
+												smart.setSmartValue(txt);
+												dbosToReload.add(uitext);
+											}
+										}
+									}
+								}
+								var moved = changes.getJSONArray("move");
+								for (var i = 0; i < moved.length(); i++) {
+									try {
+										var move = moved.getJSONObject(i);
+										var target = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("target")));
+										var parentc = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("parent")));
+										var index = move.getLong("index");
+										var exParent = target.getParent();
+										if (parentc != exParent) {
+											exParent.remove(target);
+											dbosToReload.add(exParent);
+											parentc.add(target, null);
+										}
+										var order = (long) parentc.getOrder(target);
+										while (order < index) {
+											parentc.decreasePriority(target);
+											order = (long) parentc.getOrder(target);
+										}
+										while (order > index) {
+											parentc.increasePriority(target);
+											order = (long) parentc.getOrder(target);
+										}
+										dbosToReload.add(parentc);
+									} catch (Exception ex) {
+										// TODO: handle exception
+									}
+								}
+								for (var dbo: dbosToReload) {
+									BuilderUtils.dboUpdated(dbo);
+								}
+								c8oBrowser.getDisplay().asyncExec(() -> {
+									if (dbosToReload.isEmpty()) {
+										doReload();
+									} else {
+										var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										for (var dbo: dbosToReload) {
+											try {
+												pew.reloadDatabaseObject(dbo);
+											} catch (Exception e1) {
+												e1.printStackTrace();
+											}
+										}
+									}
+								});
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						});
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
 				}
-				C8oBrowser.run(() -> {
-					if (selected) {
-						c8oBrowser.executeFunctionAndReturnValue("initGrapesJS");
-					} else {
-						try {
-							var changes = new JSONObject((String) c8oBrowser.executeFunctionAndReturnValue("getEditorChanges"));
-							Engine.execute(() -> {
-								try {
-									var dbosToReload = new HashSet<DatabaseObject>();
-									var css = changes.getString("css");
-									Engine.logStudio.warn("css\n" + css);
-									var m = Pattern.compile("\\.class(\\d+).*?\\{(.*?)\\}").matcher(css);
-									while (m.find()) {
-										try {
-											var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
-											if (dbo instanceof UIElement uie) {
-												var style = (UIStyle) uie.getDatabaseObjectChild("styleEditor");
-												var added = style == null;
-												var content = m.group(2).replace(";",";\n");
-												if (added) {
-													style = new UIStyle();
-													style.setName("styleEditor");
-												} else if (style.getStyleContent().getString().equals(content)) {
-													continue;
-												}
-												dbosToReload.add(dbo);
-												style.setStyleContent(new FormatedContent(content));
-												if (added) {
-													uie.addUIComponent(style);
-													BuilderUtils.dboAdded(uie);
-												}
-											}
-										} catch (Exception ex) {
-											Engine.logStudio.error("failed", ex);
-										}
-									}
-									var text = changes.getJSONObject("text");
-									for (var i = text.keys(); i.hasNext();) {
-										var priority = (String) i.next();
-										var txt = text.getString(priority);
-										var dbo = findDatabaseObject(Long.parseLong(priority));
-										var uitext = (UIText) null;
-										for (var c: dbo.getAllChildren()) {
-											if (c instanceof UIText u) {
-												if (uitext == null) {
-													uitext = u;
-												} else {
-													uitext = null;
-													break;
-												}
-											}
-										}
-										if (uitext != null) {
-											var smart = uitext.getTextSmartType();
-											if (smart.getMode() == MobileSmartSourceType.Mode.PLAIN) {
-												var exValue = smart.getSmartValue();
-												if (!exValue.equals(txt)) {
-													smart.setSmartValue(txt);
-													dbosToReload.add(uitext);
-												}
-											}
-										}
-									}
-									var moved = changes.getJSONArray("move");
-									for (var i = 0; i < moved.length(); i++) {
-										try {
-											var move = moved.getJSONObject(i);
-											var target = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("target")));
-											var parent = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("parent")));
-											var index = move.getLong("index");
-											var exParent = target.getParent();
-											if (parent != exParent) {
-												exParent.remove(target);
-												dbosToReload.add(exParent);
-												parent.add(target, null);
-											}
-											var order = (long) parent.getOrder(target);
-											while (order < index) {
-												parent.decreasePriority(target);
-												order = (long) parent.getOrder(target);
-											}
-											while (order > index) {
-												parent.increasePriority(target);
-												order = (long) parent.getOrder(target);
-											}
-											dbosToReload.add(parent);
-										} catch (Exception ex) {
-											// TODO: handle exception
-										}
-									}
-									for (var dbo: dbosToReload) {
-										BuilderUtils.dboUpdated(dbo);
-									}
-									c8oBrowser.getDisplay().asyncExec(() -> {
-										if (dbosToReload.isEmpty()) {
-											doReload();
-										} else {
-											var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
-											for (var dbo: dbosToReload) {
-												try {
-													pew.reloadDatabaseObject(dbo);
-												} catch (Exception e1) {
-													e1.printStackTrace();
-												}
-											}
-										}
-									});
-								} catch (Exception e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							});
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}
-				});
-			}
+			});
 		});
 		item.setSelection(false);
 
@@ -1008,156 +988,129 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/write_wait_zone.gif", "Remove highlight", "Remove highlight");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				exHighlightElement = null;
-				exHighlightMobileComponent = null;
-				C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_remove_all_overlay()"));
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			exHighlightElement = null;
+			exHighlightMobileComponent = null;
+			C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_remove_all_overlay()"));
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/debug.gif", "Show debug", "Show debug");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(true);
-				getSite().getPage().activate(view);
-				view.onActivated(ApplicationComponentEditor.this);
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(true);
+			getSite().getPage().activate(view);
+			view.onActivated(ApplicationComponentEditor.this);
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/ContinueWithSiteClipperStatement_color_16x16.png", "Open in default browser", "Open in default browser");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> {
-					String url = headlessBuild ? getPageUrl() : c8oBrowser.getURL();
-					if (url.startsWith("http")) {
-						org.eclipse.swt.program.Program.launch(url);
-					}
-				});
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			C8oBrowser.run(() -> {
+				String url = headlessBuild ? getPageUrl() : c8oBrowser.getURL();
+				if (url.startsWith("http")) {
+					org.eclipse.swt.program.Program.launch(url);
+				}
+			});
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/qrcode_16x16.png", "Show QR Code", "Show QR Code");
-		item.addSelectionListener(new SelectionAdapter() {
+		item.addSelectionListener((SelectionListener) e -> {
+			C8oBrowser.run(() -> {
+				String url = headlessBuild ? getPageUrl() : c8oBrowser.getURL();
+				if (url.startsWith("http")) {
+					ConvertigoPlugin.asyncExec(() -> {
+						Image[] img = new Image[] { null };
+						Label[] image = new Label[] { null };
+						Dialog dialog = new Dialog(parent.getShell()) {
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> {
-					String url = headlessBuild ? getPageUrl() : c8oBrowser.getURL();
-					if (url.startsWith("http")) {
-						ConvertigoPlugin.asyncExec(() -> {
-							Image[] img = new Image[] { null };
-							Label[] image = new Label[] { null };
-							Dialog dialog = new Dialog(parent.getShell()) {
-
-								@Override
-								protected Control createContents(Composite parent) {
-									Composite composite = new Composite(parent, SWT.NONE);
-									composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-									composite.setLayout(new GridLayout(1, true));
-									Label tips = new Label(composite, SWT.NONE);
-									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("Show the live-view on your Mobile Device  !");
-									tips = new Label(composite, SWT.NONE);
-									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("Please choose the endpoint on the same network");
-									tips = new Label(composite, SWT.NONE);
-									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("your mobile device is connnected to. This will display a QRCode");
-									tips = new Label(composite, SWT.NONE);
-									tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-									tips.setText("you will be able to flash from your mobile device :\n ");
-									try {
-										for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
-											for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
-												String ip = addr.getHostAddress();
-												if (!ip.contains(":")) {
-													Button label = new Button(composite, SWT.FLAT | SWT.PUSH | SWT.WRAP);
-													String href = url.replace("localhost", ip);
-													label.setText("[" + netint.getDisplayName() + "]\n" + href);
-													GridData gd;
-													label.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL));
-													gd.minimumHeight = 50;
-													label.addSelectionListener(new SelectionAdapter() {
-
-														@Override
-														public void widgetSelected(SelectionEvent e) {
-															try {
-																if (img[0] != null) {
-																	img[0].dispose();
-																	img[0] = null;
-																}
-																QRCode qrcode = QRCode.getMinimumQRCode(href, 0);
-																BufferedImage bufferedImage = qrcode.createImage(8, 8);
-																ImageData imageData = SwtUtils.convertToSWT(bufferedImage).scaledTo(250, 250);
-																img[0] = new Image(parent.getDisplay(), imageData);
-																image[0].setImage(img[0]);
-																image[0].addMouseListener(new MouseAdapter() {
-
-																	@Override
-																	public void mouseDown(MouseEvent e) {
-																		close();
-																	}
-																});
-																parent.layout();
-															} catch (Exception e2) {}
+							@Override
+							protected Control createContents(Composite parent) {
+								Composite composite = new Composite(parent, SWT.NONE);
+								composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+								composite.setLayout(new GridLayout(1, true));
+								Label tips = new Label(composite, SWT.NONE);
+								tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+								tips.setText("Show the live-view on your Mobile Device  !");
+								tips = new Label(composite, SWT.NONE);
+								tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+								tips.setText("Please choose the endpoint on the same network");
+								tips = new Label(composite, SWT.NONE);
+								tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+								tips.setText("your mobile device is connnected to. This will display a QRCode");
+								tips = new Label(composite, SWT.NONE);
+								tips.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+								tips.setText("you will be able to flash from your mobile device :\n ");
+								try {
+									for (NetworkInterface netint: Collections.list(NetworkInterface.getNetworkInterfaces())) {
+										for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
+											String ip = addr.getHostAddress();
+											if (!ip.contains(":")) {
+												Button label = new Button(composite, SWT.FLAT | SWT.PUSH | SWT.WRAP);
+												String href = url.replace("localhost", ip);
+												label.setText("[" + netint.getDisplayName() + "]\n" + href);
+												GridData gd;
+												label.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL));
+												gd.minimumHeight = 50;
+												label.addSelectionListener((SelectionListener) e -> {
+													try {
+														if (img[0] != null) {
+															img[0].dispose();
+															img[0] = null;
 														}
-													});
-												}
+														QRCode qrcode = QRCode.getMinimumQRCode(href, 0);
+														BufferedImage bufferedImage = qrcode.createImage(8, 8);
+														ImageData imageData = SwtUtils.convertToSWT(bufferedImage).scaledTo(250, 250);
+														img[0] = new Image(parent.getDisplay(), imageData);
+														image[0].setImage(img[0]);
+														image[0].addMouseListener(new MouseAdapter() {
+
+															@Override
+															public void mouseDown(MouseEvent e) {
+																close();
+															}
+														});
+														parent.layout();
+													} catch (Exception e2) {}
+												});
 											}
 										}
-									} catch (SocketException e) {}
-									image[0] = new Label(composite, SWT.NONE);
-									GridData gd;
-									image[0].setLayoutData(gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
-									gd.minimumHeight = 250;
-									gd.minimumWidth = 250;
-									return composite;
-								}
-							};
-							dialog.open();
-							if (img[0] != null) {
-								img[0].dispose();
+									}
+								} catch (SocketException e) {}
+								image[0] = new Label(composite, SWT.NONE);
+								GridData gd;
+								image[0].setLayoutData(gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL | GridData.HORIZONTAL_ALIGN_CENTER));
+								gd.minimumHeight = 250;
+								gd.minimumWidth = 250;
+								return composite;
 							}
-						});
-					}
-				});
-			}
-
+						};
+						dialog.open();
+						if (img[0] != null) {
+							img[0].dispose();
+						}
+					});
+				}
+			});
 		});
 
 		item = new ToolItem(toolbar, SWT.CHECK);
 		SwtUtils.setToolItemIcon(item, "icons/studio/invokebrowserjs_16x16.png", "Headless build", "Headless build");
-		item.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				headlessBuild = ((ToolItem) e.widget).getSelection();
-				try {
-					JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-					device.put("headlessBuild", headlessBuild);
-					FileUtils.write(devicePref, device.toString(4), "UTF-8");
-				} catch (Exception ex) {
-					// TODO: handle exception
-				}
-				if (headlessBuild) {
-					initLoader();
-				}
-				doLoad();
+		item.addSelectionListener((SelectionListener) e -> {
+			headlessBuild = ((ToolItem) e.widget).getSelection();
+			try {
+				JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+				device.put("headlessBuild", headlessBuild);
+				FileUtils.write(devicePref, device.toString(4), "UTF-8");
+			} catch (Exception ex) {
+				// TODO: handle exception
 			}
+			if (headlessBuild) {
+				initLoader();
+			}
+			doLoad();
 		});
 		item.setSelection(headlessBuild);
 
@@ -1169,35 +1122,27 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setToolTipText(mode.description());
 			menuItem.setData(mode);
 			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
-			menuItem.addSelectionListener(new SelectionAdapter() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					buildItem.setSelection(true);
-					buildMode = (NgxBuilderBuildMode) e.widget.getData();
-					handleProdBuild();
-				}
-
+			menuItem.addSelectionListener((SelectionListener) e -> {
+				buildItem.setSelection(true);
+				buildMode = (NgxBuilderBuildMode) e.widget.getData();
+				handleProdBuild();
 			});
 		}
 
 		buildItem = item = new ToolItem(toolbar, SWT.CHECK);
 		SwtUtils.setToolItemIcon(item, "icons/studio/build_prod_b.png", "Build locally", "Build locally");
-		item.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				boolean selected = ((ToolItem) e.widget).getSelection();
-				if (!selected) {
-					buildMode = null;
-					handleProdBuild();
-				} else {
-					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds();
-					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-					mBuild.setLocation(pt);
-					mBuild.setVisible(true);
-					buildItem.setSelection(false);
-				}
+		item.addSelectionListener((SelectionListener) e -> {
+			boolean selected = ((ToolItem) e.widget).getSelection();
+			if (!selected) {
+				buildMode = null;
+				handleProdBuild();
+			} else {
+				ToolItem it = (ToolItem) e.widget;
+				Rectangle rect = it.getBounds();
+				Point pt = it.getParent().toDisplay(new Point(rect.x, rect.y));
+				mBuild.setLocation(pt);
+				mBuild.setVisible(true);
+				buildItem.setSelection(false);
 			}
 		});
 
@@ -1206,35 +1151,25 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.CHECK);
 		SwtUtils.setToolItemIcon(item, "icons/studio/accumulate.gif", "Toggle auto build", "Toggle auto build");
 		item.setSelection(true);
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				MobileBuilder mb = project.getMobileBuilder();
-				mb.setAutoBuild(((ToolItem) e.widget).getSelection());
-			}
-
+		item.addSelectionListener((SelectionListener) e -> {
+			MobileBuilder mb = project.getMobileBuilder();
+			mb.setAutoBuild(((ToolItem) e.widget).getSelection());
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/show_blocks.gif", "Manage modules", "Manage modules");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				MessageDialog dialog = new MessageDialog(
-						null, "Node_module Update / Reinstall",
-						null, "This will update or reinstall all your project's node_module dependencies. Update when you just " +
-								"added a new dependency to your ionicTpl/package.json file, or re-install if you want clean all your node_modules and do a fresh install (takes more time).",
-								MessageDialog.QUESTION,
-								new String[] {"Update", "Re-install", "Cancel"}, 0
-						);
-				int result = dialog.open();
-				if (result < 2) {
-					launchBuilder(true, result == 1);
-				}
+		item.addSelectionListener((SelectionListener) e -> {
+			MessageDialog dialog = new MessageDialog(
+					null, "Node_module Update / Reinstall",
+					null, "This will update or reinstall all your project's node_module dependencies. Update when you just " +
+							"added a new dependency to your ionicTpl/package.json file, or re-install if you want clean all your node_modules and do a fresh install (takes more time).",
+							MessageDialog.QUESTION,
+							new String[] {"Update", "Re-install", "Cancel"}, 0
+					);
+			int result = dialog.open();
+			if (result < 2) {
+				launchBuilder(true, result == 1);
 			}
-
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
@@ -1242,13 +1177,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_show_history.gif", "Select dataset", "Select dataset");
 
-		SelectionListener selectionListener = new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setDataset(((MenuItem) e.widget).getText());
-			}
-
+		SelectionListener selectionListener = e -> {
+			setDataset(((MenuItem) e.widget).getText());
 		};
 
 		try {
@@ -1256,131 +1186,112 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.gif");
 			final Menu mDataset = new Menu(toolbar);
 
-			item.addSelectionListener(new SelectionAdapter() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					for (MenuItem item: mDataset.getItems()) {
-						item.dispose();
-					}
-
-					MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
-					menuItem.setText("none");
-
-					for (String fDataset: datasetDir.list()) {
-						Matcher m = pDatasetFile.matcher(fDataset);
-						if (m.matches()) {
-							menuItem = new MenuItem(mDataset, SWT.NONE);
-							menuItem.setText(m.group(1));
-						}
-					}
-
-					for (MenuItem item: mDataset.getItems()) {
-						if (item.getText().equals(dataset)) {
-							item.setImage(iDatasetSelected);
-						} else {
-							item.setImage(iDataset);
-						}
-						item.addSelectionListener(selectionListener);
-					}
-
-					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds();
-					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-					mDataset.setLocation(pt);
-					mDataset.setVisible(true);
+			item.addSelectionListener((SelectionListener) e -> {
+				for (MenuItem it: mDataset.getItems()) {
+					it.dispose();
 				}
 
+				MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
+				menuItem.setText("none");
+
+				for (String fDataset: datasetDir.list()) {
+					Matcher m = pDatasetFile.matcher(fDataset);
+					if (m.matches()) {
+						menuItem = new MenuItem(mDataset, SWT.NONE);
+						menuItem.setText(m.group(1));
+					}
+				}
+
+				for (MenuItem it: mDataset.getItems()) {
+					if (it.getText().equals(dataset)) {
+						it.setImage(iDatasetSelected);
+					} else {
+						it.setImage(iDataset);
+					}
+					it.addSelectionListener(selectionListener);
+				}
+
+				ToolItem it = (ToolItem) e.widget;
+				Rectangle rect = it.getBounds();
+				Point pt = it.getParent().toDisplay(new Point(rect.x, rect.y));
+				mDataset.setLocation(pt);
+				mDataset.setVisible(true);
 			});
 
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_add.gif", "Save dataset", "Save dataset");
-		item.addSelectionListener(new SelectionAdapter() {
+		item.addSelectionListener((SelectionListener) e -> {
+			String[] name = {dataset.equals("none") ? "" : dataset};
+			String extra = "";
+			int response;
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				String[] name = {dataset.equals("none") ? "" : dataset};
-				String extra = "";
-				int response;
+			do {
+				MessageDialog dialog = new MessageDialog(null, "Dataset name", null, "What is the name of the dataset ?" + extra, MessageDialog.QUESTION, 0, new String[]{"Save", "Cancel"}) {
 
-				do {
-					MessageDialog dialog = new MessageDialog(null, "Dataset name", null, "What is the name of the dataset ?" + extra, MessageDialog.QUESTION, 0, new String[]{"Save", "Cancel"}) {
+					@Override
+					protected Control createCustomArea(Composite parent) {
+						Text t = new Text(parent, SWT.NONE);
+						t.setLayoutData(new GridData(GridData.FILL_BOTH));
+						t.setText(name[0]);
+						t.addModifyListener(new ModifyListener() {
 
-						@Override
-						protected Control createCustomArea(Composite parent) {
-							Text t = new Text(parent, SWT.NONE);
-							t.setLayoutData(new GridData(GridData.FILL_BOTH));
-							t.setText(name[0]);
-							t.addModifyListener(new ModifyListener() {
-
-								@Override
-								public void modifyText(ModifyEvent e) {
-									name[0] = t.getText();
-								}
-							});
-							return t;
-						}
-
-					};
-					response = dialog.open();
-					extra = "";
-
-					if (response == 0) {
-						if (StringUtils.isBlank(name[0])) {
-							extra = " (cannot be empty)";
-						} else if (name[0].equals("none")) {
-							extra = " (cannot override 'none')";
-						}
+							@Override
+							public void modifyText(ModifyEvent e) {
+								name[0] = t.getText();
+							}
+						});
+						return t;
 					}
-				} while (!extra.isEmpty());
+
+				};
+				response = dialog.open();
+				extra = "";
 
 				if (response == 0) {
-					C8oBrowser.run(() -> {
-						String value = c8oBrowser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
-						try {
-							FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value).toString(2), "UTF-8");
-							toast("Dataset '" + name[0] + "' saved !");
-							dataset = name[0];
-						} catch (Exception e1) {
-							toast("Dataset '" + name[0] + "' NOT saved ! " + e1.getMessage());
-						}
-					});
+					if (StringUtils.isBlank(name[0])) {
+						extra = " (cannot be empty)";
+					} else if (name[0].equals("none")) {
+						extra = " (cannot override 'none')";
+					}
 				}
-			}
+			} while (!extra.isEmpty());
 
+			if (response == 0) {
+				C8oBrowser.run(() -> {
+					String value = c8oBrowser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
+					try {
+						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value).toString(2), "UTF-8");
+						toast("Dataset '" + name[0] + "' saved !");
+						dataset = name[0];
+					} catch (Exception e1) {
+						toast("Dataset '" + name[0] + "' NOT saved ! " + e1.getMessage());
+					}
+				});
+			}
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_delete.gif", "Remove dataset", "Remove dataset");
-		item.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (!dataset.equals("none")) {
-					boolean ok = MessageDialog.openQuestion(null, "Delete '" + dataset + "' ?", "You really want delete'" + dataset + "' ?");
-					if (ok) {
-						new File(datasetDir, dataset + ".json").delete();
-						toast("Dataset '" + dataset + "' removed !");
-						setDataset("none");
-					}
-				} else {
-					toast("No dataset selected !");
+		item.addSelectionListener((SelectionListener) e -> {
+			if (!dataset.equals("none")) {
+				boolean ok = MessageDialog.openQuestion(null, "Delete '" + dataset + "' ?", "You really want delete'" + dataset + "' ?");
+				if (ok) {
+					new File(datasetDir, dataset + ".json").delete();
+					toast("Dataset '" + dataset + "' removed !");
+					setDataset("none");
 				}
+			} else {
+				toast("No dataset selected !");
 			}
-
 		});
-
-
+		
 		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
 		SwtUtils.setToolItemIcon(item, "icons/studio/grid_color_16x16.png", "Show", "Show all grids or current selected");
-		item.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				boolean showGrid = ((ToolItem) e.widget).getSelection();
-				C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_showGrids(" + (showGrid ? "true":"false") +")")); 
-			}
+		item.addSelectionListener((SelectionListener) e -> {
+			boolean showGrid = ((ToolItem) e.widget).getSelection();
+			C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_showGrids(" + (showGrid ? "true":"false") +")")); 
 		});
 
 		for (ToolItem ti: toolbar.getItems()) {
@@ -1437,6 +1348,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 	}
+	
+	private void applySelectedDevice() {
+		if (editStyle.getData("deviceWidth") == null) {
+			return;
+		}
+		deviceWidth.setText((String) editStyle.getData("deviceWidth"));
+		deviceHeight.setText((String) editStyle.getData("deviceHeight"));
+		zoomFactor = (ZoomFactor) editStyle.getData("zoomFactor");
+		setDeviceBarVisible((boolean) editStyle.getData("deviceBar.isVisible"));
+		editStyle.setData("deviceWidth", null);
+		updateBrowserSize();
+	}
 
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
@@ -1444,6 +1367,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		width = zoomFactor.swt(width);
 		height = zoomFactor.swt(height);
+		
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);

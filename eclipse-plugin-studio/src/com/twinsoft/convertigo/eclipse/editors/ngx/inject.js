@@ -344,7 +344,7 @@ window.addEventListener("dragover", function (e) {
 	}
 });
 
-function initEditor() {
+function initEditor(device) {
 	_c8o_remove_all_overlay();
 	let app = document.getElementsByTagName('ion-app')[0];
 	if (app.getAttribute["id"] == "gjs") {
@@ -386,6 +386,7 @@ function initEditor() {
 	  fromElement: true,
 	  // Size of the editor
 	  width: 'auto',
+	  height: 'auto',
 	  // Disable the storage manager for the moment
 	  storageManager: false,
 	  // Avoid any default panel
@@ -405,6 +406,9 @@ function initEditor() {
 	  richTextEditor: {
 		  actions: null,
 		  custom: true
+	  },
+	  deviceManager: {
+		  default: device ?? 'desktop'
 	  }
 	});
 	
@@ -464,26 +468,26 @@ function initEditor() {
 		return JSON.stringify({
 			text: textChanged,
 			move: eltMoved,
-			css: editor.getCss()
+			scss: toSCSS(editor.getCss())
 		});
 	};
 	window.gjseditor = editor;
 }
 
-function initGrapesJS() {
+function initGrapesJS(device) {
 	const doc = document;
 	if (doc.getElementsByTagName('ion-app').length == 0) {
 		return;
 	} else if ('grapesjs' in window) {
 		console.log("GrapesJS already init");
-		initEditor();
+		initEditor(device);
 	} else {
 		console.log("init GrapesJS");
 		try {
 			let elt = doc.createElement('script');
 			elt.setAttribute('src', 'https://unpkg.com/grapesjs');
 			elt.onload = () => {
-				initEditor();
+				initEditor(device);
 			};
 			doc.head.appendChild(elt);
 			elt = doc.createElement('link');
@@ -494,4 +498,83 @@ function initGrapesJS() {
 			console.log('grapejs init failed', e);
 		}
 	}
+}
+
+function toSCSS(css) {
+	css = css.replace(/(\.class\d+).*?(\:.*?)?\{/g, '$1$2{');
+	return (() => {
+		var openingBracket = "{",
+		    closingBracket = "}",
+		    semiColumn = ":",
+		    eol = ";",
+		    indentS = "\t";
+		var depth = 0,
+		    s = "",
+		    indentS = "\t";
+		function exportObject(e) {
+		    var t = "";
+		    return (
+		        Object.keys(e.children).forEach((k) => {
+		            var s = e.children[k];
+		            (t += getIndent() + k + " " + openingBracket + "\n"), depth++;
+		            for (var o = 0; o < s.declarations.length; o++) {
+		                var r = s.declarations[o];
+		                t += getIndent() + r.property + semiColumn + " " + r.value + eol + "\n";
+		            }
+		            (t += exportObject(s)), depth--, (t += getIndent() + closingBracket + "\n");
+		        }),
+		        (t = t.replace(/^\s*$[\n\r]{1,}/gm, ""))
+		    );
+		}
+		function getIndent() {
+		    for (var e = "", t = 0; t < depth; t++) e += indentS;
+		    return e;
+		}
+		function tr(e) {
+		    return e.replace(/\t+/, " ").trim();
+		}
+		
+		function parseCSS(e) {
+		    var t = {
+		        children: {},
+		    };
+		    return (
+		        (e = e.replace(/\/\*[\s\S]*?\*\//gm, "")).replace(/([^{]+)\{([^}]+)\}/g, function (e, s, o) {
+		            var r = {};
+		            (r.source = e), (r.selector = tr(s));
+		            var n = t;
+		            if (r.selector.indexOf(",") > -1) {
+		                var i = r.selector;
+		                n.children[i] ||
+		                    (n.children[i] = {
+		                        children: {},
+		                        declarations: [],
+		                    }),
+		                    (n = n.children[i]);
+		            } else {
+		                (r.selector = r.selector.replace(/\s*([>\+~])\s*/g, " &$1")), (r.selector = r.selector.replace(/(\w)([:\.])/g, "$1 &$2")), (r.selectorParts = r.selector.split(/[\s]+/));
+		                for (var a = 0; a < r.selectorParts.length; a++) {
+		                    (i = (i = (i = r.selectorParts[a]).replace(/&(.)/g, "& $1 ")).replace(/& ([:\.]) /g, "&$1")),
+		                        n.children[i] ||
+		                            (n.children[i] = {
+		                                children: {},
+		                                declarations: [],
+		                            }),
+		                        (n = n.children[i]);
+		                }
+		            }
+		            o.replace(/([^:;]+):([^;]+)/g, function (e, t, s) {
+		                var o = {
+		                    source: e,
+		                    property: tr(t),
+		                    value: tr(s),
+		                };
+		                n.declarations.push(o);
+		            });
+		        }),
+		        exportObject(t)
+		    );
+		}			
+		return parseCSS(css);
+	})();
 }
