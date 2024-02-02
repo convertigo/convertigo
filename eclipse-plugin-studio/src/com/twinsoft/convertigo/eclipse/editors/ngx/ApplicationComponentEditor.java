@@ -862,12 +862,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						Engine.execute(() -> {
 							try {
 								var dbosToReload = new HashSet<DatabaseObject>();
-								var scss = changes.getString("scss");
-								Engine.logStudio.warn("Editor scss\n" + scss);
-								var m = Pattern.compile("\\.class(\\d+).*?\\{\n(.*?\n)\\}", Pattern.DOTALL).matcher(scss);
-								while (m.find()) {
+								var scss = changes.getJSONObject("scss");
+								for (var k = scss.keys(); k.hasNext();) {
+									var p = (String) k.next();
 									try {
-										var dbo = findDatabaseObject(Long.parseLong(m.group(1)));
+										var dbo = findDatabaseObject(Long.parseLong(p));
 										if (dbo instanceof UIElement uie) {
 											var dboChanged = false;
 											var style = (UIStyle) null;
@@ -882,8 +881,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 												}
 											};
 
-											var content = m.group(2);
-											
+											var content = scss.getString(p);											
 											if (style == null) {
 												style = new UIStyle();
 												style.setName("styleEditor");

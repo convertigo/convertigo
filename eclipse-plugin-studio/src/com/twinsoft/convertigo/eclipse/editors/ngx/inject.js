@@ -468,7 +468,7 @@ function initEditor(device) {
 		return JSON.stringify({
 			text: textChanged,
 			move: eltMoved,
-			scss: toSCSS(editor.getCss())
+			scss: toSCSS(editor.getCss({json: true}))
 		});
 	};
 	window.gjseditor = editor;
@@ -485,14 +485,14 @@ function initGrapesJS(device) {
 		console.log("init GrapesJS");
 		try {
 			let elt = doc.createElement('script');
-			elt.setAttribute('src', 'https://unpkg.com/grapesjs');
+			elt.setAttribute('src', '${projectUrl}/../../scripts/grapes.min.js');
 			elt.onload = () => {
 				initEditor(device);
 			};
 			doc.head.appendChild(elt);
 			elt = doc.createElement('link');
 			elt.setAttribute('rel', 'stylesheet');
-			elt.setAttribute('href', 'https://unpkg.com/grapesjs/dist/css/grapes.min.css');
+			elt.setAttribute('href', '${projectUrl}/../../css/grapes.min.css');
 			doc.head.appendChild(elt);
 		} catch(e) {
 			console.log('grapejs init failed', e);
@@ -500,81 +500,40 @@ function initGrapesJS(device) {
 	}
 }
 
-function toSCSS(css) {
-	css = css.replace(/(\.class\d+).*?(\:.*?)?\{/g, '$1$2{');
-	return (() => {
-		var openingBracket = "{",
-		    closingBracket = "}",
-		    semiColumn = ":",
-		    eol = ";",
-		    indentS = "\t";
-		var depth = 0,
-		    s = "",
-		    indentS = "\t";
-		function exportObject(e) {
-		    var t = "";
-		    return (
-		        Object.keys(e.children).forEach((k) => {
-		            var s = e.children[k];
-		            (t += getIndent() + k + " " + openingBracket + "\n"), depth++;
-		            for (var o = 0; o < s.declarations.length; o++) {
-		                var r = s.declarations[o];
-		                t += getIndent() + r.property + semiColumn + " " + r.value + eol + "\n";
-		            }
-		            (t += exportObject(s)), depth--, (t += getIndent() + closingBracket + "\n");
-		        }),
-		        (t = t.replace(/^\s*$[\n\r]{1,}/gm, ""))
-		    );
-		}
-		function getIndent() {
-		    for (var e = "", t = 0; t < depth; t++) e += indentS;
-		    return e;
-		}
-		function tr(e) {
-		    return e.replace(/\t+/, " ").trim();
-		}
-		
-		function parseCSS(e) {
-		    var t = {
-		        children: {},
-		    };
-		    return (
-		        (e = e.replace(/\/\*[\s\S]*?\*\//gm, "")).replace(/([^{]+)\{([^}]+)\}/g, function (e, s, o) {
-		            var r = {};
-		            (r.source = e), (r.selector = tr(s));
-		            var n = t;
-		            if (r.selector.indexOf(",") > -1) {
-		                var i = r.selector;
-		                n.children[i] ||
-		                    (n.children[i] = {
-		                        children: {},
-		                        declarations: [],
-		                    }),
-		                    (n = n.children[i]);
-		            } else {
-		                (r.selector = r.selector.replace(/\s*([>\+~])\s*/g, " &$1")), (r.selector = r.selector.replace(/(\w)([:\.])/g, "$1 &$2")), (r.selectorParts = r.selector.split(/[\s]+/));
-		                for (var a = 0; a < r.selectorParts.length; a++) {
-		                    (i = (i = (i = r.selectorParts[a]).replace(/&(.)/g, "& $1 ")).replace(/& ([:\.]) /g, "&$1")),
-		                        n.children[i] ||
-		                            (n.children[i] = {
-		                                children: {},
-		                                declarations: [],
-		                            }),
-		                        (n = n.children[i]);
-		                }
-		            }
-		            o.replace(/([^:;]+):([^;]+)/g, function (e, t, s) {
-		                var o = {
-		                    source: e,
-		                    property: tr(t),
-		                    value: tr(s),
-		                };
-		                n.declarations.push(o);
-		            });
-		        }),
-		        exportObject(t)
-		    );
-		}			
-		return parseCSS(css);
-	})();
+function toSCSS(rules) {
+    const ruleToString = (rule) => {
+        let style = '';
+        let indent = '    ';
+        if (rule.getAtRule()) {
+            style += `${indent}${rule.getAtRule()} {\n`;
+            indent += '    ';
+        }
+        if (rule.getState()) {
+            style += `${indent}&:${rule.getState().getName()} {\n`;
+            indent += '    ';
+        }
+        style += Object.entries(rule.getStyle()).map(s => `${indent}${s[0]}: ${s[1]};`).join('\n');
+
+        if (rule.getState()) {
+            indent = indent.substring(4);
+            style += `\n${indent}}`;
+        }
+        if (rule.getAtRule()) {
+            style += `\n${indent.substring(4)}}\n`;
+        }
+        return style;
+    };
+    const cls = {};
+    for (let r of rules) {
+        let selector = r.getSelectors().models.find(s => s.getFullName().match(/^\.class\d+$/));
+        if (selector) {
+            var k = selector.getFullName().substring(6);
+            cls[k] = cls[k] ?? [];
+            cls[k].push(r);
+        }
+    }
+    for (let k in cls) {
+        cls[k] = cls[k].map(r => ruleToString(r)).join('\n');
+    };
+    return cls;
 }
