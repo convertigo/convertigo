@@ -6,14 +6,9 @@
 	import {
 		localStorageStore,
 		getModalStore,
-		Modal,
-		initializeStores
 	} from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
-	import AutoGrid from '$lib/admin-console/admin-components/AutoGrid.svelte';
 	import Icon from '@iconify/svelte';
-
-	initializeStores();
 
 	const keyModalStore = getModalStore();
 
@@ -51,13 +46,6 @@
 	}
 
 	async function deleteKey(keyText) {
-		const successDeletingKeys = {
-			title: 'Key deleted with success'
-		};
-		const faileDeletingKeys = {
-			title: 'A problem occurred while deleting key'
-		};
-
 		const payload = `<?xml version="1.0" encoding="UTF-8"?>
 <admin service="keys.Remove">
   <keys>
@@ -66,33 +54,75 @@
 </admin>`;
 
 		try {
-			const headers = {
-				'Content-Type': 'application/xml',
-				Accept: 'application/xml'
-			};
-			const response = await callXml('keys.Remove', payload, headers);
-			if (response) {
-			}
 			// @ts-ignore
-			keyModalStore.trigger(successDeletingKeys);
+			const response = await callXml('keys.Remove', payload);
+			if (response) {
+				keysCheck();
+			}
 		} catch (error) {
 			console.error(error);
-			// @ts-ignore
-			keyModalStore.trigger(faileDeletingKeys);
 		}
 	}
-</script>
 
-<Modal class="text-center" />
+	function openModal(keyText) {
+		const modalOptions = {
+			type: 'confirm',
+			title: 'Please confirm',
+			body: 'Are you sure you want to proceed ?',
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteKey(keyText);
+					console.log('key deleted :', { keyText });
+				}
+			}
+		};
+		// @ts-ignore
+		keyModalStore.trigger(modalOptions);
+	}
+
+	async function keysUpdate(keyText) {
+		const payload = `<?xml version="1.0" encoding="UTF-8"?>
+		<admin service="keys.Update">
+			<keys>
+				<key text ="${keyText}"/>
+			</keys>
+		</admin>`;
+
+		try {
+			const headers = {
+				'Content-Type': 'text/xml',
+				Accept: 'application/xml'
+			};
+			// @ts-ignore
+			const resUpdate = await callXml('keys.Update', payload, headers);
+			if (resUpdate) {
+				console.log(resUpdate);
+				keysCheck();
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	}
+
+	async function handleFormSubmit() {
+		await keysUpdate(newKey);
+		newKey = '';
+	}
+</script>
 
 <div class="p-10">
 	<h1 class="mb-5">Keys</h1>
 
 	<Card>
 		<div class="flex items-center">
-			<form on:submit|preventDefault>
-				<input type="text" placeholder="Enter a new key" />
-				<button type="submit">Add Key</button>
+			<form on:submit|preventDefault={handleFormSubmit}>
+				<input
+					type="text"
+					bind:value={newKey}
+					class="text-black placeholder:text-surface-300"
+					placeholder="Enter a new key"
+				/>
+				<button type="submit" class="btn variant-filled">Add Key</button>
 			</form>
 		</div>
 	</Card>
@@ -111,7 +141,6 @@
 								<th class="px-4 py-2">Expired</th>
 								<th class="px-4 py-2">Remaining</th>
 								<th class="px-4 py-2">In use</th>
-								<th class="px-4 py-2">Delete</th>
 							</tr>
 						</thead>
 
@@ -134,11 +163,12 @@
 									{/if}
 									<td class="border px-4 py-2">{category['@_remaining']}</td>
 									<td class="border px-4 py-2">{category['@_remaining']}</td>
-									<td class="border px-4 py-2"
-										><button on:click={() => deleteKey(key['@_text'])}
-											><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" /></button
-										></td
-									>
+
+									<button
+										class="bg-red-700 px-4 py-1 ml-4 rounded-xl"
+										on:click={() => openModal(key['@_text'])}
+										><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+									</button>
 								</tr>
 							{/each}
 						</tbody>

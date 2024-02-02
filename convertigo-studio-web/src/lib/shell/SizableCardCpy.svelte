@@ -54,7 +54,7 @@
 >
 	<div class="flex flex-row items-stretch h-full dark:bg-surface-800 bg-surface-500">
 		<div
-			class="flex-col flex bg-surface-500 items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
+			class="flex-col flex bg-surface-900 items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
 		>
 			{#if $authenticated}
 				<slot />

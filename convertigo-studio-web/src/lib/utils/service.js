@@ -63,6 +63,41 @@ export async function callXml(service, xmlPayload) {
 	}
 }
 
+
+export async function callFormUrlEncoded(service, params) {
+    let url = getUrl() + service;
+    loading.set(cpt + 1);
+
+    let encodedParams = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
+
+    let headers = {
+        'Accept': 'application/xml, text/xml, */*; q=0.01', 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+    };
+
+    let res = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: encodedParams,
+        credentials: 'include'
+    });
+
+    loading.set(cpt - 1);
+    var xsrf = res.headers.get('x-xsrf-token');
+    if (xsrf != null) {
+        localStorage.setItem('x-xsrf-token', xsrf);
+    }
+
+    const contentType = res.headers.get('content-type');
+    if (contentType?.includes('xml')) {
+        return new XMLParser({ ignoreAttributes: false }).parse(await res.text());
+    } else {
+        return await res.json();
+    }
+}
+
+
 export function getUrl() {
 	const m = window.location.pathname.match('^(.*?)/studio/');
 	return `${window.location.origin}${m ? m[1] : '/convertigo'}/admin/services/`;

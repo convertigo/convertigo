@@ -19,15 +19,12 @@
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import { get } from 'svelte/store';
 
-	initializeStores();
 
 	const modalStoreSaveConfig = getModalStore();
 
 	let theme = localStorageStore('studio.theme', 'skeleton');
 	let selectedIndex = 0;
 	let hasUnsavedChanges = false;
-	let hasChanges;
-	let id;
 
 	onMount(() => {
 		refreshConfigurations();
@@ -45,10 +42,23 @@
 		const successSavingConfig = {
 			title: 'New configurations saved with success'
 		};
-		const faileSavingConfig = {
+		const failedSavingConfig = {
 			title: 'A problem occured while saving'
 		};
+
 		const currentConfigurations = get(configurations);
+		// for the moment it's not working. We have to implement the modal in the following logic
+		// Modal to ask confirmation to update config data's
+		const modalConfirmation = {
+			type: 'confirm',
+			title: 'Please confirm',
+			body: 'Are your sure you want to proceed ?',
+			response: (confirmed) => {
+				if (confirmed) {
+					console.log('config updated')
+				}
+			}
+		}
 
 		currentConfigurations.admin.category.forEach((category, categoryIndex) => {
 			category.property.forEach((property, propertyIndex) => {
@@ -56,10 +66,11 @@
 					updateConfiguration(categoryIndex, propertyIndex, property['@_value']);
 				} else {
 					// @ts-ignore
-					modalStoreSaveConfig.trigger(faileSavingConfig);
+					modalStoreSaveConfig.trigger(failedSavingConfig);
 				}
 			});
 		});
+		
 		// @ts-ignore
 		modalStoreSaveConfig.trigger(successSavingConfig);
 		hasUnsavedChanges = false;

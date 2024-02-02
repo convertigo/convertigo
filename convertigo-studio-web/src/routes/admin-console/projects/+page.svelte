@@ -11,21 +11,12 @@
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import { call } from '$lib/utils/service';
 
-	let theme = localStorageStore('studio.theme', 'skeleton');
-
 	export const modalStore = getModalStore();
 
 	onMount(() => {
-		changeTheme($theme);
-		document.body.setAttribute('data-theme', 'dark-theme');
-
 		projectsCheck();
 	});
 
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
-	}
 
 	export async function exportProject(projectName) {
 		const exportModalSettings = {
