@@ -120,3 +120,75 @@ project(':engine').afterEvaluate {
 		inputs.property('engine-dependency', '' + project(':engine').configurations.runtimeClasspath.getAllDependencies())
 	}
 }
+
+task catlClasses(type: Copy) {
+	def classesDir = file('catl/dist/classes')
+    from('bin/main') {
+    	exclude 'com/twinsoft/convertigo/**/*BeanInfo.class'
+    	
+    	//beans
+    	include 'com/twinsoft/convertigo/beans/connectors/SqlConnector*.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/rest/AbstractRestOperation*.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/transactions/SqlTransaction*.class'
+    	
+    	// eclipse
+    	
+    	// engine
+   		include 'com/twinsoft/convertigo/engine/ConvertigoError*.class'
+     	include 'com/twinsoft/convertigo/engine/ProductVersion*.class'
+    	
+        include 'com/twinsoft/convertigo/engine/providers/sapjco/SapJcoDestinationDataProvider*.class'
+        include 'com/twinsoft/convertigo/engine/providers/sapjco/SapJCoProvider*.class'
+    }
+    into(classesDir)
+    
+    // uncomment to preserve file lastModified
+    /*def copyDetails = []
+    eachFile { copyDetails << it }
+    doLast {
+    	copyDetails.each { FileCopyDetails details ->
+        	def target = new File(destinationDir, details.path)
+            if (target.exists()) { target.setLastModified(details.lastModified) }
+        }
+    }*/
+}
+
+task catlStudioPatch(type: Zip, dependsOn: ['catlClasses']) {
+	archiveFileName = "patchStudio.zip"
+	destinationDir = file('catl/dist/patch')
+	preserveFileTimestamps = true
+    from('catl/dist/classes')
+}
+
+task catlServerPatch(type: Zip, dependsOn: ['catlClasses']) {
+	archiveFileName = "patchServer.zip"
+	destinationDir = file('catl/dist/patch')
+	preserveFileTimestamps = true
+    from('catl/dist/classes') {
+    	exclude 'com/twinsoft/convertigo/eclipse'
+    }
+}
+
+task generateCatlPatches(dependsOn: ['catlStudioPatch','catlServerPatch']) {
+	group 'catl'
+	
+	doLast {
+		def classesDir = file('catl/dist/classes')
+		delete classesDir
+		
+		def d = new Date().format('yyyyMMdd')
+		
+		def studioZip = file('catl/dist/patch/patchStudio_'+d+'.zip')
+		delete studioZip
+		file('catl/dist/patch/patchStudio.zip').renameTo(studioZip)
+		
+		def serverZip = file('catl/dist/patch/patchServer_'+d+'.zip')
+		delete serverZip
+		file('catl/dist/patch/patchServer.zip').renameTo(serverZip)
+		
+		println "VERIFIER si com.twinsoft.convertigo.engine.ProductVersion.tag est bien positionné à patch-" + d + " !!"
+		println "Si ce n'est pas le cas, modifier le à la date du jour et relancer la tâche !"
+	}
+}
