@@ -32,7 +32,8 @@
 			}
 		},
 		yaxis: {
-			min: 0
+			min: 0,
+			forceNiceScale: true,
 		},
 		noData: {
   			text: "Loading...",
