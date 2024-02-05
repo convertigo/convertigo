@@ -18,6 +18,9 @@
 		chart: {
 			type: 'line',
 			height: 300 - 32,
+			toolbar: {
+				show: false
+			}
 		},
 		series: _series,
 		xaxis: {
@@ -28,6 +31,9 @@
 				datetimeUTC: false
 			}
 		},
+		yaxis: {
+			min: 0
+		},
 		noData: {
   			text: "Loading...",
 		},
@@ -36,7 +42,17 @@
 			show: true,
 			format: 'HH:mm:ss',
 			}
-		}	
+		},
+		stroke: {
+          curve: 'smooth'
+        },
+		legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          floating: true,
+          offsetY: -25,
+          offsetX: 0
+        }
 	}; 
 	$: if (_labels && _labels.length > 0 && _series && _series.length > 0 && chart != undefined) {
 		options.xaxis.categories = _labels;
