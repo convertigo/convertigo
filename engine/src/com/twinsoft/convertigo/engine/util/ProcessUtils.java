@@ -500,16 +500,15 @@ public class ProcessUtils {
 		String env = System.getenv("ANDROID_HOME");
 		if (env != null) {
 			dir = new File(env);
-			if (dir.exists() && new File(dir, "tools").exists()) {
+			if (new File(dir, "tools").exists() || new File(dir, "cmdline-tools").exists()) {
 				Engine.logEngine.info("Use the ANDROID SDK from env ANDROID_HOME: " + dir);
 				return dir;
 			}
 		}
 
 		dir = new File(Engine.USER_WORKSPACE_PATH, "android-sdk");
-		File tools = new File(dir, "tools");
 
-		if (!tools.exists()) {
+		if (!new File(dir, "tools").exists() && !new File(dir, "cmdline-tools").exists()) {
 			HttpGet get = new HttpGet("https://developer.android.com/studio");
 			String content;
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
@@ -582,53 +581,88 @@ public class ProcessUtils {
 			}
 		}
 
-		Engine.logEngine.info("Android commands");
-		Process p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
-		BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
-		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
-		Engine.execute(() -> {
-			try {
-				while (true) {
-					bos.write("y\n".getBytes("UTF-8"));
-					bos.flush();
-				}
-			} catch (IOException e) {
-				// end of process
-			} catch (Exception e) {
-				Engine.logEngine.info("Boom: " + e);
-			}
-		});
-		String line;
-		String output = "";
-		while ((line = br.readLine()) != null) {
-			Engine.logEngine.info("Android licenses: " + line);
-		}
-		int code = p.waitFor();
-		Engine.logEngine.info("Android licenses: " + code + "\n" + output);
 
-		String buildTools = "";
-		if (StringUtils.isNotBlank(preferedAndroidBuildTools)) {
-			buildTools = preferedAndroidBuildTools;
-			if (!buildTools.startsWith("build-tools;")) {
-				buildTools = "build-tools;" + buildTools; 
+		File buildToolsDir = null;
+		try {
+			buildToolsDir = new File(dir, "build-tools").listFiles()[0];
+		} catch (Exception e) {
+		}
+		
+		Process p;
+		int code;
+		String output;
+		if (buildToolsDir == null) {
+			Engine.logEngine.info("Android commands");
+			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+			BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
+			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+			Engine.execute(() -> {
+				try {
+					while (true) {
+						bos.write("y\n".getBytes("UTF-8"));
+						bos.flush();
+					}
+				} catch (IOException e) {
+					// end of process
+				} catch (Exception e) {
+					Engine.logEngine.info("Boom: " + e);
+				}
+			});
+			String line;
+			output = "";
+			while ((line = br.readLine()) != null) {
+				Engine.logEngine.info("Android licenses: " + line);
 			}
-			Engine.logEngine.info("use prefered build-tools: " + buildTools);
-		} else {
-			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+			code = p.waitFor();
+			Engine.logEngine.info("Android licenses: " + code + "\n" + output);
+		}
+		
+		if (buildToolsDir == null) {
+			String buildTools = "";
+			if (StringUtils.isNotBlank(preferedAndroidBuildTools)) {
+				buildTools = preferedAndroidBuildTools;
+				if (!buildTools.startsWith("build-tools;")) {
+					buildTools = "build-tools;" + buildTools; 
+				}
+				Engine.logEngine.info("use prefered build-tools: " + buildTools);
+			} else {
+				p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+				output = IOUtils.toString(p.getInputStream(), "UTF-8");
+				code = p.waitFor();
+				Engine.logEngine.info("Android package list: " + code + "\n" + output);
+	
+				Matcher m = Pattern.compile(".*(build-tools;[0-9.]+?) .*").matcher(output);
+				while (m.find()) {
+					buildTools = m.group(1);
+				}
+				Engine.logEngine.info("build-tools: " + buildTools);
+			}
+			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
 			output = IOUtils.toString(p.getInputStream(), "UTF-8");
 			code = p.waitFor();
-			Engine.logEngine.info("Android package list: " + code + "\n" + output);
-
-			Matcher m = Pattern.compile(".*(build-tools;[0-9.]+?) .*").matcher(output);
-			while (m.find()) {
-				buildTools = m.group(1);
+			Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
+			try {
+				buildToolsDir = new File(dir, "build-tools").listFiles()[0];
+			} catch (Exception e) {
 			}
-			Engine.logEngine.info("build-tools: " + buildTools);
 		}
-		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
-		output = IOUtils.toString(p.getInputStream(), "UTF-8");
-		code = p.waitFor();
-		Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
+		
+		if (buildToolsDir != null) {
+			try {
+				String suffix = Engine.isWindows() ? ".exe" : "";
+				File dxbin = new File(buildToolsDir, "dx" + suffix);
+				if (!dxbin.exists()) {
+					FileUtils.copyFile(new File(buildToolsDir, "d8" + suffix), dxbin);
+					dxbin.setExecutable(true);
+				}
+				dxbin = new File(buildToolsDir, "lib/dx.jar");
+				if (!dxbin.exists()) {
+					FileUtils.copyFile(new File(buildToolsDir, "lib/d8.jar"), dxbin);
+				}
+			} catch (Exception e) {
+				Engine.logEngine.warn("Failed to path build-tools for dx: " + e.getMessage());
+			}
+		}
 
 		return dir;
 	}
