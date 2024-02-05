@@ -1,25 +1,19 @@
 <script lang="ts">
 	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import MonitorChart from '$lib/admin-console/charts/MonitorChart.svelte';
-	import SessionsChart from '$lib/admin-console/charts/SessionsChart.svelte';
-	import ThreadsChart from '$lib/admin-console/charts/ThreadsChart.svelte';
-	import ContextChart from '$lib/admin-console/charts/ContextChart.svelte';
-	import RequestDurationChart from '$lib/admin-console/charts/RequestDurationChart.svelte';
+	import ApexChartLineAdmin from '$lib/admin-console/charts/ApexChartLineAdmin.svelte';
 	import StatusTable from '$lib/admin-console/tables/StatusTable.svelte';
 	import SystemInformationTable from '$lib/admin-console/tables/SystemInformationTable.svelte';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import AutoGrid from '$lib/admin-console/admin-components/AutoGrid.svelte';
-
+	import { monitorCheck, isLoading, monitorData } from '$lib/admin-console/stores/monitorStore';
 	initializeStores();
-
 	let theme = localStorageStore('studio.theme', 'skeleton');
-
 	onMount(() => {
 		changeTheme($theme);
 		document.body.setAttribute('data-theme', 'dark-theme');
+		monitorCheck();
 	});
-
 	function changeTheme(e) {
 		$theme = typeof e == 'string' ? e : e.target?.value;
 		document.body.setAttribute('data-theme', $theme);
@@ -32,12 +26,12 @@
 	<AutoGrid>
 		<Card>
 			<div class="card-header">Status</div>
-			<StatusTable />
+			<StatusTable time={$monitorData.time} startTime={$monitorData.startTime} engineState={$monitorData.engineState} />
 		</Card>
 
 		<Card>
 			<div class="card-header">System Information</div>
-			<SystemInformationTable />
+			<SystemInformationTable memoryMaximal={$monitorData.memoryMaximal} memoryTotal={$monitorData.memoryTotal} memoryUsed={$monitorData.memoryUsed}/>
 		</Card>
 	</AutoGrid>
 
@@ -46,28 +40,62 @@
 
 		<AutoGrid>
 			<Card customStyle="height: 300px;">
-				<h1>Memory</h1>
-				<MonitorChart />
+				<ApexChartLineAdmin 
+					_title="Memory"
+					_isLoading={isLoading}
+					_series={[
+						{name: 'Memory maximal', data: $monitorData.memoryMaximal},
+						{name: 'Memory total', data: $monitorData.memoryTotal},
+						{name: 'Memory used', data: $monitorData.memoryUsed}
+					]}
+					_labels={$monitorData.labels}
+				/>
 			</Card>
 
 			<Card customStyle="height: 300px;">
-				<h1>Threads</h1>
-				<ThreadsChart />
+				<ApexChartLineAdmin 
+					_title="Threads"
+					_isLoading={isLoading}
+					_series={[
+						{name: 'Threads', data: $monitorData.threads},
+					]}
+					_labels={$monitorData.labels}
+				/>
 			</Card>
 
 			<Card customStyle="height: 300px;">
-				<h1>Contexts</h1>
-				<ContextChart />
+				<ApexChartLineAdmin 
+					_title="Contexts"
+					_isLoading={isLoading}
+					_series={[
+						{name: 'Contexts', data: $monitorData.contexts},
+					]}
+					_labels={$monitorData.labels}
+				/>
 			</Card>
 
 			<Card customStyle="height: 300px;">
-				<h1>Requests duration</h1>
-				<RequestDurationChart />
+				<ApexChartLineAdmin 
+					_title="Requests duration"
+					_isLoading={isLoading}
+					_series={[
+						{name: 'Requests duration', data: $monitorData.requests},
+					]}
+					_labels={$monitorData.labels}
+				/>
 			</Card>
 
 			<Card customStyle="height: 300px;">
-				<h1>Sessions</h1>
-				<SessionsChart />
+				<ApexChartLineAdmin 
+					_title="Sessions"
+					_isLoading={isLoading}
+					_series={[
+						{name: 'Max sessions', data: $monitorData.sessionMaxCV},
+						{name: 'Current sessions', data: $monitorData.sessions},
+						{name: 'Available sessions', data: $monitorData.availableSessions}
+					]}
+					_labels={$monitorData.labels}
+				/>
 			</Card>
 		</AutoGrid>
 	</div>

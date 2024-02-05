@@ -2,31 +2,17 @@
 	import { onMount } from 'svelte';
 	import {
 		statusCheck,
-		locale,
-		timezone,
 		product,
-		beans,
 		licenceType,
 		licenceNumber,
-		licenceEnd,
 		licenceExpired,
-		javaVersion,
-		javaClassVersion,
-		javaVendor,
-		hostName,
-		hostAddresses,
-		osName,
-		osVersion,
-		osArchitecture,
-		osAvailableProcessors,
-		browser,
-		cloud
 	} from '../stores/statusStore';
-	import { monitorCheck, time, startTime, engineState } from '../stores/monitorStore';
+	export let time;
+	export let startTime;
+	export let engineState;
 
 	onMount(() => {
 		statusCheck();
-		monitorCheck();
 	});
 </script>
 
@@ -63,9 +49,9 @@
 		</tr> -->
 		<tr>
 			<th>Engine State</th>
-			{#if $engineState}
+			{#if engineState}
 				<td style="background-color:lightgreen; color: black">Running</td>
-			{:else if $engineState == false}
+			{:else if engineState == false}
 				<td style="background-color:lightcoral; color: black">Stopped</td>
 			{:else}
 				<td></td>
@@ -77,11 +63,11 @@
 		</tr>
 		<tr>
 			<th>Last Startup</th>
-			<td>{new Date($startTime).toLocaleString()}</td>
+			<td>{new Date(startTime).toLocaleString()}</td>
 		</tr>
 		<tr>
 			<th>Uptime</th>
-			<td>{new Date($time - $startTime).toLocaleTimeString()}</td>
+			<td>{new Date(time - startTime).toLocaleTimeString()}</td>
 		</tr>
 		<tr>
 			<th>Licence Type</th>

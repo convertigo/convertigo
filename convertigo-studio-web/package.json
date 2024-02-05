@@ -40,6 +40,7 @@
 		"typescript": "^5.3.3",
 		"unplugin-icons": "^0.18.2",
 		"vite": "^5.0.12",
+		"vite-plugin-iso-import": "^1.1.0",
 		"vite-plugin-tailwind-purgecss": "0.2.0",
 		"vitest": "^1.2.1"
 	},
@@ -47,9 +48,10 @@
 	"dependencies": {
 		"@flaticon/flaticon-uicons": "^3.1.0",
 		"@floating-ui/dom": "1.6.0",
+		"apexcharts": "^3.45.2",
 		"chart.js": "^4.4.1",
 		"fast-xml-parser": "^4.3.3",
 		"monaco-editor": "^0.45.0",
-		"svelte-chartjs": "^3.1.2"
+		"svelte-apexcharts": "^1.0.2"
 	}
 }

@@ -22,11 +22,12 @@
 		browser,
 		cloud
 	} from '../stores/statusStore';
-	import { monitorCheck, memoryMaximal, memoryTotal, memoryUsed } from '../stores/monitorStore';
+	export let memoryMaximal
+	export let memoryTotal;
+	export let memoryUsed;
 
 	onMount(() => {
 		statusCheck();
-		monitorCheck();
 	});
 </script>
 
@@ -59,15 +60,15 @@
 		</tr>
 		<tr>
 			<th>Used Memory</th>
-			<td>{$memoryUsed[$memoryUsed.length - 1]} MB</td>
+			<td>{memoryUsed[memoryUsed.length - 1]?? "..."} MB</td>
 		</tr>
 		<tr>
 			<th>Total memory</th>
-			<td>{$memoryTotal[$memoryTotal.length - 1]} MB</td>
+			<td>{memoryTotal[memoryTotal.length - 1] ?? "..."} MB</td>
 		</tr>
 		<tr>
 			<th>Maximum memory</th>
-			<td>{$memoryMaximal[$memoryMaximal.length - 1]} MB</td>
+			<td>{memoryMaximal[memoryMaximal.length - 1] ?? "..."} MB</td>
 		</tr>
 		<tr>
 			<th>Your browser</th>
