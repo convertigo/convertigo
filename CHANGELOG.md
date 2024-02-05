@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.2.6
+
+#### Bug Fixes:
+
+- [#793](https://github.com/convertigo/convertigo/issues/793) [FlashUpdate] Fixed, flashupdate from Android APK is ok
+- [#798](https://github.com/convertigo/convertigo/issues/798) [NGX] Fixed, bypass Close actions error like 'overlay does not exist'
+- [#799](https://github.com/convertigo/convertigo/issues/799) [Android] Fixed, auto Android SDK setup handles build-tools > 30 and prevents the 'DX not found' error
+
+---
+
 ## 8.2.5
 
 #### Improvements:
