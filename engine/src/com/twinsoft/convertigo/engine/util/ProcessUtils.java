@@ -649,7 +649,7 @@ public class ProcessUtils {
 		
 		if (buildToolsDir != null) {
 			try {
-				String suffix = Engine.isWindows() ? ".exe" : "";
+				String suffix = Engine.isWindows() ? ".bat" : "";
 				File dxbin = new File(buildToolsDir, "dx" + suffix);
 				if (!dxbin.exists()) {
 					FileUtils.copyFile(new File(buildToolsDir, "d8" + suffix), dxbin);
