@@ -66,7 +66,7 @@ public class Rename extends JSonService {
 			} else {
 				String oldName = dbo.getName();
 				
-				// change bean name and propagate to other beans
+				// changes bean name and does the refactoring
 				done = DboUtils.changeBeanName(ids, dbo, oldName, newName, update);
 				
 				// notify for app generation

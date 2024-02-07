@@ -21,7 +21,12 @@ package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -30,14 +35,32 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.ITokenPath;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
+import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
+import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -46,6 +69,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncClient;
 
 public class DboUtils {
 
@@ -262,86 +287,187 @@ public class DboUtils {
 		return null;
 	}
 
-	static protected boolean changeBeanName(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue, String update) {
+	static protected boolean changeBeanName(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue,
+			String update) {
 		if (dbo == null || newValue == null || newValue.toString().isBlank()) {
 			return false;
 		}
 
-		// first rename dbo
+		RefactorMap map = new DboUtils().new RefactorMap();
 		try {
-			String oldQName = dbo.getFullQName();
-			dbo.setName((String) newValue);
-			dbo.hasChanged = true;
-			ids.put(oldQName);
-		} catch (Exception e) {
-			Engine.logEngine.error("Failed to rename " + dbo.getClass().getName() + " " + dbo.getQName(), e);
-			return false;
-		}
+			// first rename dbo
+			try {
+				String oldQName = dbo.getFullQName();
+				dbo.setName((String) newValue);
+				dbo.hasChanged = true;
+				map.addEvent(oldQName, "name", dbo, oldValue, newValue);
+			} catch (Exception e) {
+				Engine.logEngine.error("Failed to rename " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+				return false;
+			}
 
-		// if nothing else to rename return
-		if (update.equals("UPDATE_NONE") || update.isBlank()) {
-			return true;
-		}
+			// if nothing else to do return
+			if (update.equals("UPDATE_NONE") || update.isBlank()) {
+				return true;
+			}
 
-		// then propagate rename to other beans
-		List<String> projectNames = null;
-		if (update.equals("UPDATE_LOCAL")) {
-			projectNames = new ArrayList<String>();
-			projectNames.add(dbo.getProject().getName());
-		} else if (update.equals("UPDATE_ALL")) {
-			projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true);
-		}
+			// then propagate to other beans
+			List<String> projectNames = null;
+			if (update.equals("UPDATE_LOCAL")) {
+				projectNames = new ArrayList<String>();
+				projectNames.add(dbo.getProject().getName());
+			} else if (update.equals("UPDATE_ALL")) {
+				projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true);
+			}
 
-		if (projectNames != null) {
-			WalkHelper walker = getRenameHelper(ids, dbo, oldValue, newValue, update);
-			for (String projectName : projectNames) {
-				Project project;
-				try {
-					project = (Project) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
-					walker.init(project);
-				} catch (Exception e) {
-					Engine.logEngine.error("Failed to propagate rename of " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+			if (projectNames != null) {
+				Map.Entry<String, DboUtils.DboChangeEvent> entry = null;
+				while ((entry = map.getNextEntry()) != null) {
+					DboChangeEvent event = entry.getValue();
+					if (event.propertyName.isBlank()) continue;
+					WalkHelper walker = getEventHelper(map, event, update);
+					for (String projectName : projectNames) {
+						Project project;
+						try {
+							project = (Project) Engine.theApp.databaseObjectsManager
+									.getDatabaseObjectByQName(projectName);
+							walker.init(project);
+						} catch (Exception e) {
+							Engine.logEngine.error(
+									"Failed to propagate rename of " + dbo.getClass().getName() + " " + dbo.getQName(),
+									e);
+						}
+					}
 				}
+
+				map.fillWithKeys(ids);
+			}
+
+			return true;
+		} finally {
+			if (map != null) {
+				map.clear();
+				map = null;
 			}
 		}
-		
-		return true;
 	}
 
-	static private WalkHelper getRenameHelper(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue, String update) {
+	private class RefactorMap {
+		Map<String, DboChangeEvent> map = new LinkedHashMap<String, DboUtils.DboChangeEvent>(10);
+		Set<String> set = new HashSet<String>();
+
+		private synchronized void addEvent(String key, String propertyName, DatabaseObject dbo, Object oldValue,
+				Object newValue) {
+			DboChangeEvent event = new DboChangeEvent(propertyName, dbo, oldValue, newValue);
+			set.add(key);
+			map.put(key, event);
+			System.out.println("map size=" + map.size() + " - added event " + event.toString());
+		}
+
+		private synchronized Entry<String, DboChangeEvent> getNextEntry() {
+			try {
+				Entry<String, DboChangeEvent> entry = map.entrySet().iterator().next();
+				DboChangeEvent event = map.remove(entry.getKey());
+				System.out.println("map size=" + map.size() + " - peek event " + event.toString());
+				if (event != null) {
+					return entry;
+				}
+			} catch (Exception e) {
+			}
+			return null;
+		}
+
+		private synchronized void fillWithKeys(JSONArray ids) {
+			for (String key : set) {
+				ids.put(key);
+			}
+		}
+
+		private synchronized void clear() {
+			map.clear();
+			set.clear();
+		}
+	}
+
+	static private WalkHelper getEventHelper(RefactorMap map, DboChangeEvent event, String update) {
+		DatabaseObject dbo = event.dbo;
+		String propertyName = event.propertyName;
+		Object oldValue = event.oldValue;
+		Object newValue = event.newValue;
+
 		return new WalkHelper() {
-			private void setDboName(JSONArray ids, DatabaseObject dbo, Object newValue) {
+			private void setDboName(RefactorMap map, DatabaseObject databaseObject) {
 				try {
-					String oldQName = dbo.getFullQName();
-					dbo.setName((String) newValue);
-					dbo.hasChanged = true;
-					ids.put(oldQName);
+					String oldQName = databaseObject.getFullQName();
+					databaseObject.setName((String) newValue);
+					databaseObject.hasChanged = true;
+					map.addEvent(oldQName, "name", databaseObject, oldValue, newValue);
 				} catch (EngineException e) {
-					Engine.logEngine.warn("Failed to rename " + dbo.getClass().getName() + " " + dbo.getQName(), e);
+					Engine.logEngine.warn(
+							"Failed to rename " + databaseObject.getClass().getName() + " " + databaseObject.getQName(),
+							e);
 				}
 			}
 
-			@Override
-			protected void walk(DatabaseObject databaseObject) throws Exception {
-				boolean isLocalProject = dbo.getProject().equals(databaseObject.getProject());
-				boolean isSameValue = databaseObject.getName().equals(oldValue);
-				boolean shouldUpdate = update.equals("UPDATE_ALL") || (update.equals("UPDATE_LOCAL") && isLocalProject);
-
-				if (shouldUpdate) {
-					if (isSameValue) {
+			private void refactor(DatabaseObject databaseObject) {
+				String oldToken = null, newToken = null;
+				if (("name".equals(propertyName) && dbo instanceof ITokenPath) || "qname".equals(propertyName)) {
+					oldToken = dbo.getTokenPath((String)oldValue);
+					newToken = dbo.getTokenPath((String)newValue);
+				}
+				
+				if ("name".equals(propertyName)) {
+					// A project changed its name
+					if (dbo instanceof Project) {
+						// refactor reference's project
+						if (databaseObject instanceof ProjectSchemaReference) {
+							ProjectSchemaReference reference = (ProjectSchemaReference) databaseObject;
+							if (reference.getParser().getProjectName().equals(oldValue)) {
+								String oldQName = reference.getFullQName();
+								reference.setProjectName((String) newValue);
+								reference.hasChanged = true;
+								map.addEvent(oldQName, "projectName", reference, oldValue, newValue);
+							}
+						}
+					}
+					// A transaction changed its name
+					else if (dbo instanceof Transaction) {
+						// refactor connector's end transaction
+						if (databaseObject instanceof Connector) {
+							Connector connector = (Connector)databaseObject;
+							if (((Transaction)dbo).getConnector().equals(connector)) {
+								if (connector.getEndTransactionName().equals(oldValue)) {
+									String oldQName = connector.getFullQName();
+									connector.setEndTransactionName((String)newValue);
+									connector.hasChanged = true;
+									map.addEvent(oldQName, "endTransactionName", connector, oldValue, newValue);
+								}
+							}
+						}
+					}
+					// A sequence changed its name
+					else if (dbo instanceof Sequence) {
+						;
+					}
+	
+					// Bean names equality
+					else if (databaseObject.getName().equals(oldValue)) {
 						// A RequestableVariable changed its name
 						if (dbo instanceof RequestableVariable) {
 							RequestableVariable requestableVariable = (RequestableVariable) dbo;
 							String rqname = requestableVariable.getParent().getQName();
-
+	
+							// refactor TestCaseVariable name
 							if (databaseObject instanceof TestCaseVariable) {
 								TestCaseVariable testCaseVariable = (TestCaseVariable) databaseObject;
 								TestCase testCase = (TestCase) testCaseVariable.getParent();
 								String tqname = testCase.getParent().getQName();
 								if (rqname.equals(tqname)) {
-									setDboName(ids, testCaseVariable, newValue);
+									setDboName(map, databaseObject);
 								}
-							} else if (databaseObject instanceof StepVariable) {
+							}
+							// refactor StepVariable name
+							else if (databaseObject instanceof StepVariable) {
 								StepVariable stepVariable = (StepVariable) databaseObject;
 								RequestableStep requestableStep = (RequestableStep) stepVariable.getParent();
 								boolean isTransactionStep = requestableStep instanceof TransactionStep;
@@ -349,15 +475,304 @@ public class DboUtils {
 										? ((TransactionStep) requestableStep).getSourceTransaction()
 										: ((SequenceStep) requestableStep).getSourceSequence();
 								if (rqname.equals(sqname)) {
-									setDboName(ids, stepVariable, newValue);
+									setDboName(map, databaseObject);
 								}
 							}
 						}
-					} else {
-						super.walk(databaseObject);
 					}
+					
+					if (oldToken != null && newToken != null) {
+						if (databaseObject instanceof TransactionStep) {
+							TransactionStep transactionStep = (TransactionStep)databaseObject;
+							if (transactionStep.getSourceTransaction().equals(oldToken)) {
+								String oldQName = transactionStep.getFullQName();
+								transactionStep.setSourceTransaction(newToken);
+								transactionStep.hasChanged = true;
+								map.addEvent(oldQName, "sourceTransaction", transactionStep, oldToken, newToken);
+							}
+						}
+						else if (databaseObject instanceof SequenceStep) {
+							SequenceStep sequenceStep = (SequenceStep)databaseObject;
+							if (sequenceStep.getSourceSequence().equals(oldToken)) {
+								String oldQName = sequenceStep.getFullQName();
+								sequenceStep.setSourceSequence(newToken);
+								sequenceStep.hasChanged = true;
+								map.addEvent(oldQName, "sourceSequence", sequenceStep, oldToken, newToken);
+							}
+						}
+						else if (databaseObject instanceof UrlAuthentication) {
+							UrlAuthentication urlAuthentication = (UrlAuthentication)databaseObject;
+							if (urlAuthentication.getAuthRequestable().equals(oldToken)) {
+								String oldQName = urlAuthentication.getFullQName();
+								urlAuthentication.setAuthRequestable(newToken);
+								urlAuthentication.hasChanged = true;
+								map.addEvent(oldQName, "authRequestable", urlAuthentication, oldToken, newToken);
+							}
+						}
+					}
+				}
+			}
+
+			private static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
+				if (uic1 != null && uic2 != null) {
+					try {
+						return uic1.getMainScriptComponent().equals(uic2.getMainScriptComponent());
+					} catch (Exception e) {}
+				}
+				return false;
+			}
+			
+			private void refactorSmartSources(UIComponent databaseObject, Object oldValue, Object newValue) {
+				try {
+					boolean sourcesUpdated = false;
+
+					// A bean name has changed
+					if (propertyName.equals("name")) {
+						try {
+							if (dbo instanceof Project) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (databaseObject.updateSmartSource("'"+oldName+"\\.", "'"+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (databaseObject.updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof Sequence) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (databaseObject.updateSmartSource("'"+projectName+"\\."+oldName, "'"+projectName+"."+newName)) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof FullSyncConnector) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (databaseObject.updateSmartSource("\\/"+projectName+"\\."+oldName+"\\.", "/"+projectName+"."+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (databaseObject.updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof DesignDocument) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (databaseObject.updateSmartSource("ddoc='"+oldName+"'", "ddoc='"+newName+"'")) {
+										sourcesUpdated = true;
+									}
+								}
+							} else if (dbo instanceof UIStackVariable || dbo instanceof UICompVariable) {
+								if (!newValue.equals(oldValue)) {
+									UIComponent obj = databaseObject;
+									DatabaseObject d = obj;
+									while (d != null) {
+										if (dbo instanceof UIStackVariable) {
+											if (d instanceof UIActionStack) {
+												break;
+											} else if (d instanceof UIDynamicInvoke) {
+												String pqname = dbo.getParent().getQName();
+												String qname = ((UIDynamicInvoke) d).getSharedActionQName();
+												if (pqname.equals(qname)) {
+													break;
+												}
+											}
+										} else if (dbo instanceof UICompVariable) {
+											if (d instanceof UISharedComponent) {
+												break;
+											}
+										}
+										d = d.getParent();
+									}
+									if (d != null) {
+										String oldName = (String)oldValue;
+										String newName = (String)newValue;
+										try {
+											if (obj.updateSmartSource("((?:\"|vars)\\??\\.)"+oldName+"\\b", "$1"+newName)) {
+												sourcesUpdated = true;
+											}
+										} catch (Exception e) {}
+									}
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					if (dbo instanceof UIComponent) {
+						UIComponent uic = (UIComponent)dbo;
+						if (hasSameScriptComponent(databaseObject, uic)) {
+							// A ControlName property has changed
+							if (propertyName.equals("ControlName") || uic.isFormControlAttribute()) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+										if (uic.getUIForm() != null) {
+											if (databaseObject.updateSmartSource("\\?\\.controls\\['"+oldSmart+"'\\]", "?.controls['"+newSmart+"']")) {
+												sourcesUpdated = true;
+											}
+										}
+									} catch (Exception e) {}
+								}
+							}
+							else if (propertyName.equals("identifier")) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldId = (String)oldValue;
+										String newId = (String)newValue;
+										if (uic.getUIForm() != null) {
+											if (databaseObject.updateSmartSource("\"identifier\":\""+oldId+"\"", "\"identifier\":\""+newId+"\"")) {
+												sourcesUpdated = true;
+											}
+										}
+									} catch (Exception e) {}
+								}
+							}
+						}
+					}
+					
+					if (sourcesUpdated) {
+						String oldQName = databaseObject.getQName();
+						map.addEvent(oldQName, "", databaseObject, oldValue, newValue);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				boolean isSameProject = dbo.getProject().equals(databaseObject.getProject());
+				boolean doUpdate = update.equals("UPDATE_ALL") || (update.equals("UPDATE_LOCAL") && isSameProject);
+				if (doUpdate) {
+
+					// This bean changed : do some utility works
+					if (databaseObject.equals(dbo)) {
+						// This project changed
+						if (databaseObject instanceof Project) {
+							Project project = (Project) databaseObject;
+							if (propertyName.equals("schemaElementForm") || propertyName.equals("namespaceUri")) {
+								for (Connector connector : project.getConnectorsList()) {
+									for (Transaction transaction : connector.getTransactionsList()) {
+										synchronized (transaction) {
+											transaction.updateSchemaToFile();
+										}
+									}
+								}
+							}
+							Engine.theApp.schemaManager.clearCache(project.getName());
+						}
+						// This SapJcoConnector changed
+						else if (databaseObject instanceof SapJcoConnector) {
+							try {
+								((SapJcoConnector) databaseObject).getSapJCoProvider().updateDestination();
+							} catch (Exception e) {
+								Engine.logEngine.error("Could not update SAP destination !", e);
+							}
+						}
+						// This CouchDbConnector changed
+						else if (databaseObject instanceof CouchDbConnector) {
+							CouchDbConnector connector = (CouchDbConnector) databaseObject;
+							if (propertyName.equals("name")) {
+								if (databaseObject instanceof FullSyncConnector) {
+									try {
+										FullSyncClient fsclient = Engine.theApp.couchDbManager.getFullSyncClient();
+										JSONObject res = fsclient.getDatabase((String) oldValue);
+										if (res.getInt("doc_count") <= 1) {
+											fsclient.deleteDatabase((String) oldValue);
+										}
+									} catch (Exception e) {}
+									CouchDbManager.syncDocument(connector);
+								}
+							}
+							else if (propertyName.equals("https") || propertyName.equals("port")
+									|| propertyName.equals("server") || propertyName.equals("couchUsername")
+									|| propertyName.equals("couchPassword")) {
+								connector.release();
+								CouchDbManager.syncDocument(connector);
+							} else if (propertyName.equals("databaseName")) {
+								CouchDbManager.syncDocument(connector);
+							}
+						}
+						// This JsonIndex changed
+						else if (databaseObject instanceof JsonIndex) {
+							if (propertyName.equals("name") || propertyName.equals("fields") || propertyName.equals("ascending")) {
+								Connector connector = (Connector) databaseObject.getParent();
+								CouchDbManager.syncDocument(connector);
+							}
+						}
+						
+
+					}
+
+					// Propagate to other beans
+					else {
+						
+						// makes refactoring (will create new events)
+						refactor(databaseObject);
+						if (databaseObject instanceof UIComponent) {
+							refactorSmartSources((UIComponent)databaseObject, oldValue, newValue);
+						}
+						
+						if (databaseObject instanceof Project) {
+							if (databaseObject.equals(dbo.getProject())) {
+								Engine.theApp.schemaManager.clearCache(databaseObject.getName());
+							}
+						}
+						else if (databaseObject instanceof ProjectSchemaReference) {
+							ProjectSchemaReference reference = (ProjectSchemaReference) databaseObject;
+							if (dbo.getProject().getName().equals(reference.getParser().getProjectName())) {
+								Engine.theApp.schemaManager.clearCache(reference.getProject().getName());
+							}
+						}
+					}
+					
+					super.walk(databaseObject);
 				}
 			}
 		};
 	}
+
+	private class DboChangeEvent {
+		private DatabaseObject dbo;
+		private String propertyName;
+		private Object oldValue;
+		private Object newValue;
+		private JSONObject jsonOb = new JSONObject();
+
+		private DboChangeEvent(String propertyName, DatabaseObject dbo, Object oldValue, Object newValue) {
+			this.propertyName = propertyName;
+			this.dbo = dbo;
+			this.oldValue = oldValue;
+			this.newValue = newValue;
+
+			try {
+				jsonOb.put("priority", dbo.priority);
+				jsonOb.put("databaseObject", dbo.getName());
+				jsonOb.put("propertyName", propertyName);
+				jsonOb.put("oldValue", oldValue.toString());
+				jsonOb.put("newValue", newValue.toString());
+			} catch (Exception e) {
+			}
+		}
+
+		@Override
+		public String toString() {
+			return jsonOb.toString();
+		}
+
+	}
+
 }
