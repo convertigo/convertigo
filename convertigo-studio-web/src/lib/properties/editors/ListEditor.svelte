@@ -88,7 +88,7 @@
 	{/if}
 </div>
 
-<style>
+<style lang="postcss">
 	.bginput {
 		@apply bg-surface-900;
 	}

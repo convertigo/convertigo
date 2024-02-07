@@ -30,7 +30,7 @@
 	<option value="false">false</option>
 </select>
 
-<style>
+<style lang="postcss">
 	.bginput {
 		@apply bg-surface-900;
 	}

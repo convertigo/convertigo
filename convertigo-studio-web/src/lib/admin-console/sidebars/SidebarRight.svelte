@@ -1,8 +1,8 @@
-<script lang="ts">
+<script>
 	import Icon from '@iconify/svelte';
-	import { AppRail, AppRailAnchor, AppRailTile } from '@skeletonlabs/skeleton';
+	import { AppRail, AppRailTile } from '@skeletonlabs/skeleton';
 
-	let currentTile: number = 0;
+	let currentTile = 0;
 </script>
 
 <AppRail width="w-auto p-4" background="bg-surface-600">

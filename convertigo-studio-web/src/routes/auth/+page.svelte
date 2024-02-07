@@ -1,19 +1,9 @@
 <script>
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { call } from '$lib/utils/service';
-	import { initializeStores, localStorageStore } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 
-	initializeStores();
-
-	let theme = localStorageStore('studio.theme', 'skeleton');
 	let error = null;
-
-	onMount(() => {
-		changeTheme($theme);
-		document.body.setAttribute('data-theme', 'dark-theme');
-	});
 
 	async function handleSubmit(/** @type {SubmitEvent} */ e) {
 		e.preventDefault();
@@ -35,11 +25,6 @@
 		} catch (error) {
 			error = '' + error;
 		}
-	}
-
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
 	}
 </script>
 

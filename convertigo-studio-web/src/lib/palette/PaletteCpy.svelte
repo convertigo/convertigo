@@ -298,7 +298,7 @@
 	</div>
 </div>
 
-<style>
+<style lang="postcss">
 	.palette {
 		display: flex;
 		flex-direction: column;
@@ -317,12 +317,5 @@
 	.items-container {
 		display: flex;
 		flex-flow: row wrap;
-	}
-
-	.searchbar {
-		padding: 4px;
-		@apply bg-surface-900;
-		border-radius: 4px;
-		font-size: 11.5px;
 	}
 </style>

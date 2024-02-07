@@ -5,7 +5,6 @@
 
 	let value = 0;
 
-
 	let file;
 
 	onMount(() => {
@@ -32,29 +31,21 @@
 	<h1 class="text-xl mb-5 text-center">Import global symbols</h1>
 
 	<RadioGroup>
-		<RadioItem bind:group={value} name="justify" value="ClearImport"
-			>Clear & import</RadioItem
-		>
-		<RadioItem bind:group={value} name="justify" value="MergeSymbols"
-			>Merge symbols</RadioItem
-		>
+		<RadioItem bind:group={value} name="justify" value="ClearImport">Clear & import</RadioItem>
+		<RadioItem bind:group={value} name="justify" value="MergeSymbols">Merge symbols</RadioItem>
 	</RadioGroup>
 
 	<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
 
 	<RadioGroup>
-		<RadioItem bind:group={value} name="justify" value="PriorityServer"
-			>Priority Server</RadioItem
-		>
-		<RadioItem bind:group={value} name="justify" value="PriorityImport"
-			>Priority import</RadioItem
-		>
+		<RadioItem bind:group={value} name="justify" value="PriorityServer">Priority Server</RadioItem>
+		<RadioItem bind:group={value} name="justify" value="PriorityImport">Priority import</RadioItem>
 	</RadioGroup>
 
 	<button type="submit" class="btn variant-filled mt-5">Import</button>
 </form>
 
-<style>
+<style lang="postcss">
 	.glass {
 		background: rgba(255, 255, 255, 0.15);
 		box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -64,19 +55,7 @@
 		border: 2px solid rgba(138, 138, 138, 0.18);
 	}
 
-	input {
-		margin: 10px 0;
-		padding: 10px;
-		background: rgba(255, 255, 255, 1);
-		border: none;
-		border-radius: 5px;
-	}
-
 	form {
 		background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond légèrement transparente */
-	}
-
-	label {
-		@apply flex items-center;
 	}
 </style>

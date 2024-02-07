@@ -1,15 +1,8 @@
 <script>
-	import { AppBar } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
-	import Drawer from '../admin-components/Drawer.svelte';
+	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
-
-	onMount(() => {});
-
-	function navigateToStudio() {
-		goto('/ui/dev');
-	}
+	import PagesRailToggle from '../admin-components/PagesRailToggle.svelte';
 </script>
 
 <AppBar
@@ -18,19 +11,20 @@
 	padding="p-0"
 >
 	<svelte:fragment slot="lead">
-		<Drawer />
+		<PagesRailToggle />
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
-		<div class="pr-4 p-1 flex items-center">
+		<div class="pr-4 p-1 flex items-center space-x-5">
 			<button
 				type="button"
-				class="btn mr-10 p-1 pl-5 pr-5 bg-surface-500"
-				on:click={navigateToStudio}
+				class="btn p-1 pl-5 pr-5 bg-surface-500"
+				on:click={() => goto('/ui/dev')}
 			>
 				<span><Icon icon="material-symbols-light:design-services-outline-sharp" /></span>
 				<span class="text-[13px] font-light">Go to studio</span>
 			</button>
+			<LightSwitch />
 			<Icon icon="ph:gear-six-thin" class="w-6 h-6" />
 		</div>
 	</svelte:fragment>

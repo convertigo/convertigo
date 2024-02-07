@@ -1,27 +1,31 @@
 <script>
-	import { AppShell, initializeStores } from '@skeletonlabs/skeleton';
-	import SidebarLeft from '$lib/admin-console/sidebars/SidebarLeft.svelte';
+	import { AppShell, Drawer } from '@skeletonlabs/skeleton';
 	import Topbar from '$lib/admin-console/sidebars/Topbar.svelte';
 	import { Modal, Toast } from '@skeletonlabs/skeleton';
 	import ModalAddSymbol from '$lib/admin-console/modals/ModalAddSymbol.svelte';
-
-	initializeStores();
+	import PagesRail from '$lib/admin-console/admin-components/PagesRail.svelte';
+	import PagesRailToggle from '$lib/admin-console/admin-components/PagesRailToggle.svelte';
 
 	const modalComponentRegistry = {
 		modalAddSymbols: { ref: ModalAddSymbol }
 	};
-
 </script>
 
+<Modal components={modalComponentRegistry} />
+<Toast />
+<Drawer>
+	<PagesRailToggle open={false} />
+	<PagesRail />
+</Drawer>
+
 <AppShell>
-	<Modal components={modalComponentRegistry} />
-	<Toast/>
-
-	<svelte:fragment slot="header">
-		<Topbar />
+	<Topbar slot="header" />
+	<svelte:fragment slot="sidebarLeft">
+		<div class="hidden md:block bg-surface-800 h-full">
+			<PagesRail />
+		</div>
 	</svelte:fragment>
-	<svelte:fragment slot="sidebarLeft"><SidebarLeft /></svelte:fragment>
-	<svelte:fragment slot="sidebarRight"></svelte:fragment>
-
-	<slot />
+	<div class="h-full flex flex-col p-10">
+		<slot />
+	</div>
 </AppShell>

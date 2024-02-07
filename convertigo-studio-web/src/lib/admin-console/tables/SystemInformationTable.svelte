@@ -22,7 +22,7 @@
 		browser,
 		cloud
 	} from '../stores/statusStore';
-	export let memoryMaximal
+	export let memoryMaximal;
 	export let memoryTotal;
 	export let memoryUsed;
 
@@ -60,15 +60,15 @@
 		</tr>
 		<tr>
 			<th>Used Memory</th>
-			<td>{memoryUsed[memoryUsed.length - 1]?? "..."} MB</td>
+			<td>{memoryUsed[memoryUsed.length - 1] ?? '...'} MB</td>
 		</tr>
 		<tr>
 			<th>Total memory</th>
-			<td>{memoryTotal[memoryTotal.length - 1] ?? "..."} MB</td>
+			<td>{memoryTotal[memoryTotal.length - 1] ?? '...'} MB</td>
 		</tr>
 		<tr>
 			<th>Maximum memory</th>
-			<td>{memoryMaximal[memoryMaximal.length - 1] ?? "..."} MB</td>
+			<td>{memoryMaximal[memoryMaximal.length - 1] ?? '...'} MB</td>
 		</tr>
 		<tr>
 			<th>Your browser</th>
@@ -77,7 +77,7 @@
 	</table>
 </div>
 
-<style>
+<style lang="postcss">
 	.system-information-table {
 		width: 100%;
 		margin: auto;

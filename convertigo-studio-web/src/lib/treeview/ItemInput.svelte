@@ -1,7 +1,7 @@
-<script lang="ts">
+<script>
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { getModalStore, type ModalComponent } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import ModalWithButtonOptions from '$lib/components/modals/ModalWithButtonOptions.svelte';
 
 	const dispatch = createEventDispatcher();
@@ -20,7 +20,6 @@
 		let s = '' + nodeData.id;
 		s = s.substring(s.lastIndexOf('.') + 1);
 		s = s.indexOf(':') != -1 ? s.substring(s.indexOf(':') + 1) : s;
-		//console.log("getName", s)
 		return s;
 	}
 
@@ -50,7 +49,7 @@
 
 			let newName = input.value;
 			if (newName !== '' && newName !== initial) {
-				const cmwb: ModalComponent = {
+				const cmwb = {
 					ref: ModalWithButtonOptions,
 					props: {
 						buttons: [

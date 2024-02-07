@@ -6,7 +6,6 @@
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { authenticated } from '$lib/utils/loadingStore';
-	import { initializeStores } from '@skeletonlabs/skeleton';
 
 	import SizableCard from '$lib/shell/SizableCardCpy.svelte';
 	import Monaco from '$lib/editor/Editor.svelte';
@@ -17,9 +16,6 @@
 	import Properties from '$lib/properties/Properties.svelte';
 	import PaletteCpy from '$lib/palette/PaletteCpy.svelte';
 
-	initializeStores();
-
-	let theme = localStorageStore('studio.theme', 'skeleton');
 	let editorTab = 0;
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
@@ -29,8 +25,6 @@
 	let ngxbuilderSelected = localStorageStore('studio.ngxbuilderSelected', false);
 
 	onMount(() => {
-		changeTheme($theme);
-		document.body.setAttribute('data-theme', 'dark-theme');
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated) {
@@ -44,14 +38,6 @@
 			}
 		});
 	});
-
-	/**
-	 * @param {any} e
-	 */
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
-	}
 
 	/**
 	 * @param {HTMLDivElement} node

@@ -1,0 +1,101 @@
+[
+	[
+		{
+			"title": "Home",
+			"icon": "iconoir:home",
+			"url": ""
+		},
+		{
+			"title": "Config",
+			"icon": "ph:gear-thin",
+			"url": "config"
+		},
+		{
+			"title": "Connections",
+			"icon": "ph:plugs-connected-thin",
+			"url": "connections"
+		},
+		{
+			"title": "Projects",
+			"icon": "ph:folder-thin",
+			"url": "projects"
+		},
+		{
+			"title": "Certificate",
+			"icon": "ph:certificate-thin",
+			"url": "certificate"
+		},
+		{
+			"title": "Logs",
+			"icon": "lets-icons:search-light",
+			"url": "logs"
+		},
+		{
+			"title": "Trace Player",
+			"icon": "ph:video-thin",
+			"url": "trace-player"
+		},
+		{
+			"title": "Cache",
+			"icon": "material-symbols-light:update",
+			"url": "cache"
+		},
+		{
+			"title": "Scheduler",
+			"icon": "material-symbols-light:schedule-outline",
+			"url": "scheduler"
+		},
+		{
+			"title": "Keys",
+			"icon": "material-symbols-light:key-outline",
+			"url": "keys"
+		},
+		{
+			"title": "Roles",
+			"icon": "lets-icons:user-alt-light",
+			"url": "roles"
+		},
+		{
+			"title": "Symbols",
+			"icon": "et:tools-2",
+			"url": "symbols"
+		},
+		{
+			"title": "Store",
+			"icon": "material-symbols-light:cloud-outline",
+			"url": "store"
+		},
+		{
+			"title": "Full Sync",
+			"icon": "material-symbols-light:sync-outline",
+			"url": "full-sync"
+		}
+	],
+	[
+		{
+			"title": "Test Platform",
+			"icon": "file-icons:test-ruby",
+			"url": "test-platform"
+		},
+		{
+			"title": "Swagger",
+			"icon": "codicon:json",
+			"url": "swagger"
+		},
+		{
+			"title": "Convertigo",
+			"icon": "material-symbols-light:cloud-outline",
+			"url": "convertigo"
+		},
+		{
+			"title": "Dev Network",
+			"icon": "material-symbols-light:sync-outline",
+			"url": "dev-network"
+		},
+		{
+			"title": "Documentation",
+			"icon": "arcticons:doc-scanner",
+			"url": "documentation"
+		}
+	]
+]

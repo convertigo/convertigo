@@ -5,7 +5,7 @@
 		product,
 		licenceType,
 		licenceNumber,
-		licenceExpired,
+		licenceExpired
 	} from '../stores/statusStore';
 	export let time;
 	export let startTime;
@@ -18,35 +18,6 @@
 
 <div class="status-table p-2">
 	<table>
-		<!-- <tr>
-			<th>Convertigo Version</th>
-			<td>{statusData.version['@_product']}</td>
-		</tr>
-		<tr>
-			<th>Engine State</th>
-			<td>{statusData.engineState}</td>
-		</tr>
-		<tr>
-			<th>Last Startup</th>
-			<td>{statusData.startStopDate['@_localeFormatted']}</td>
-		</tr>
-		<tr>
-			<th>Uptime</th>
-			<td>
-				{statusData.runningElapse['@_days']} days,
-				{statusData.runningElapse['@_hours']} hours,
-				{statusData.runningElapse['@_minutes']} minutes,
-				{statusData.runningElapse['@_seconds']} seconds
-			</td>
-		</tr>
-		<tr>
-			<th>Current Time</th>
-			<td>{statusData.time['@_localeFormatted']}</td>
-		</tr>
-		<tr>
-			<th>Mode</th>
-			<td>{statusData.mode}</td>
-		</tr> -->
 		<tr>
 			<th>Engine State</th>
 			{#if engineState}
@@ -84,12 +55,7 @@
 	</table>
 </div>
 
-<style>
-	.system-information-table {
-		width: 100%;
-		margin: auto;
-	}
-
+<style lang="postcss">
 	table {
 		width: 100%;
 		border-collapse: collapse;

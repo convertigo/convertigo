@@ -1,12 +1,9 @@
-<script lang="ts">
+<script>
 	import { writable } from 'svelte/store';
 	import { keysCheck, categoryStore } from '$lib/admin-console/stores/keysStore';
-	import { call, callXml } from '$lib/utils/service';
+	import { callXml } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import {
-		localStorageStore,
-		getModalStore,
-	} from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -17,16 +14,7 @@
 
 	onMount(() => {
 		keysCheck();
-		changeTheme($theme);
-		document.body.setAttribute('data-theme', 'dark-theme');
 	});
-
-	let theme = localStorageStore('studio.theme', 'skeleton');
-
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
-	}
 
 	function formatExpiration(expirationCode) {
 		if (expirationCode === '0') {
@@ -110,76 +98,74 @@
 	}
 </script>
 
-<div class="p-10">
-	<h1 class="mb-5">Keys</h1>
+<h1 class="mb-5">Keys</h1>
 
-	<Card>
-		<div class="flex items-center">
-			<form on:submit|preventDefault={handleFormSubmit}>
-				<input
-					type="text"
-					bind:value={newKey}
-					class="text-black placeholder:text-surface-300"
-					placeholder="Enter a new key"
-				/>
-				<button type="submit" class="btn variant-filled">Add Key</button>
-			</form>
-		</div>
-	</Card>
+<Card>
+	<div class="flex items-center">
+		<form on:submit|preventDefault={handleFormSubmit}>
+			<input
+				type="text"
+				bind:value={newKey}
+				class="text-black placeholder:text-surface-300"
+				placeholder="Enter a new key"
+			/>
+			<button type="submit" class="btn variant-filled">Add Key</button>
+		</form>
+	</div>
+</Card>
 
-	{#if $categoryStore.length >= 0}
-		{#each $categoryStore as category}
-			<div class="mt-5">
-				<Card>
-					<h1 class="text-start mb-2">{category['@_name']}</h1>
-					<table>
-						<thead>
+{#if $categoryStore.length >= 0}
+	{#each $categoryStore as category}
+		<div class="mt-5">
+			<Card>
+				<h1 class="text-start mb-2">{category['@_name']}</h1>
+				<table>
+					<thead>
+						<tr>
+							<th class="px-4 py-2">key</th>
+							<th class="px-4 py-2">Total</th>
+							<th class="px-4 py-2">Expiration date</th>
+							<th class="px-4 py-2">Expired</th>
+							<th class="px-4 py-2">Remaining</th>
+							<th class="px-4 py-2">In use</th>
+						</tr>
+					</thead>
+
+					<tbody>
+						{#each category.keys as key}
 							<tr>
-								<th class="px-4 py-2">key</th>
-								<th class="px-4 py-2">Total</th>
-								<th class="px-4 py-2">Expiration date</th>
-								<th class="px-4 py-2">Expired</th>
-								<th class="px-4 py-2">Remaining</th>
-								<th class="px-4 py-2">In use</th>
+								<td class="border px-4 py-2">{key['@_text']}</td>
+								<td class="border px-4 py-2">{key['@_value']}</td>
+								{#if key['@_expiration'] === '0'}
+									<td class="border px-4 py-2 bg-green-400 text-black"
+										>{formatExpiration(key['@_expiration'])}</td
+									>
+								{:else}
+									<td class="border px-4 py-2">{formatExpiration(key['@_expiration'])}</td>
+								{/if}
+								{#if key['@_expired'] === 'false'}
+									<td class="border px-4 py-2 bg-green-500 text-black">{key['@_expired']}</td>
+								{:else}
+									<td class="border px-4 py-2 bg-red-400">{key['@_expired']}</td>
+								{/if}
+								<td class="border px-4 py-2">{category['@_remaining']}</td>
+								<td class="border px-4 py-2">{category['@_remaining']}</td>
+
+								<button
+									class="bg-red-700 px-4 py-1 ml-4 rounded-xl"
+									on:click={() => openModal(key['@_text'])}
+									><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+								</button>
 							</tr>
-						</thead>
-
-						<tbody>
-							{#each category.keys as key}
-								<tr>
-									<td class="border px-4 py-2">{key['@_text']}</td>
-									<td class="border px-4 py-2">{key['@_value']}</td>
-									{#if key['@_expiration'] === '0'}
-										<td class="border px-4 py-2 bg-green-400 text-black"
-											>{formatExpiration(key['@_expiration'])}</td
-										>
-									{:else}
-										<td class="border px-4 py-2">{formatExpiration(key['@_expiration'])}</td>
-									{/if}
-									{#if key['@_expired'] === 'false'}
-										<td class="border px-4 py-2 bg-green-500 text-black">{key['@_expired']}</td>
-									{:else}
-										<td class="border px-4 py-2 bg-red-400">{key['@_expired']}</td>
-									{/if}
-									<td class="border px-4 py-2">{category['@_remaining']}</td>
-									<td class="border px-4 py-2">{category['@_remaining']}</td>
-
-									<button
-										class="bg-red-700 px-4 py-1 ml-4 rounded-xl"
-										on:click={() => openModal(key['@_text'])}
-										><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
-									</button>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</Card>
-			</div>
-		{/each}
-	{:else}
-		Loading
-	{/if}
-</div>
+						{/each}
+					</tbody>
+				</table>
+			</Card>
+		</div>
+	{/each}
+{:else}
+	Loading
+{/if}
 
 <style>
 	th,

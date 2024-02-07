@@ -85,10 +85,10 @@
 	}
 
 	function openImportSymbols() {
-		const ModalComponentImport =  { ref: ModalImportSymbol};
+		const ModalComponentImport = { ref: ModalImportSymbol };
 		const modalImportSettings = {
 			type: 'component',
-			component: ModalComponentImport,
+			component: ModalComponentImport
 		};
 		//@ts-ignore
 		symbolModalStore.trigger(modalImportSettings);

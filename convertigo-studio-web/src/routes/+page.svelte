@@ -14,7 +14,7 @@
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { loading, authenticated } from '$lib/utils/loadingStore';
-	import { Toast, Modal, initializeStores } from '@skeletonlabs/skeleton';
+	import { Toast, Modal } from '@skeletonlabs/skeleton';
 
 	// @ts-ignore
 	import IconCloud from '~icons/mdi/cloud-outline';
@@ -35,15 +35,11 @@
 	import Monaco from '$lib/editor/Editor.svelte';
 	import C8oTree from '$lib/treeview/Treeview.svelte';
 	import Palette from '$lib/palette/Palette.svelte';
-	import themes from '$lib/resources/themes.json';
 	import Viewer from '$lib/viewer/Viewer.svelte';
 	import NgxBuilder from '$lib/viewer/NgxBuilder.svelte';
 	import Properties from '$lib/properties/Properties.svelte';
 	import { goto } from '$app/navigation';
 
-	initializeStores();
-
-	let theme = localStorageStore('studio.theme', 'skeleton');
 	let editorTab = 0;
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
@@ -53,8 +49,6 @@
 	let ngxbuilderSelected = localStorageStore('studio.ngxbuilderSelected', false);
 
 	onMount(() => {
-		changeTheme($theme);
-
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated) {
@@ -69,14 +63,6 @@
 			}
 		});
 	});
-
-	/**
-	 * @param {any} e
-	 */
-	function changeTheme(e) {
-		$theme = typeof e == 'string' ? e : e.target?.value;
-		document.body.setAttribute('data-theme', $theme);
-	}
 
 	/**
 	 * @param {HTMLDivElement} node
@@ -112,12 +98,7 @@
 				</div></svelte:fragment
 			>
 			Low Code Studio
-			<svelte:fragment slot="trail"
-				><select on:change={changeTheme} class="select" value={$theme}>
-					{#each themes as theme}
-						<option>{theme}</option>
-					{/each}
-				</select>
+			<svelte:fragment slot="trail">
 				<LightSwitch /></svelte:fragment
 			>
 		</AppBar></svelte:fragment

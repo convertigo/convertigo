@@ -2,7 +2,7 @@ import { purgeCss } from 'vite-plugin-tailwind-purgecss';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import Icons from 'unplugin-icons/vite';
-import { isoImport } from 'vite-plugin-iso-import'
+import { isoImport } from 'vite-plugin-iso-import';
 
 function determineProxy() {
 	const c8oPort =
@@ -36,5 +36,5 @@ export default defineConfig({
 				ws: true
 			}
 		}
-	},
+	}
 });
