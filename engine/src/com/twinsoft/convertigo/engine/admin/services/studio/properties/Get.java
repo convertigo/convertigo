@@ -66,21 +66,23 @@ public class Get extends JSonService {
 				addFolderTypeProperties(props, ft.displayName());
 			} else {
 				var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(id);
-				var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-				var elt = dbo.toXml(document, ExportOption.bIncludeBlackListedElements,
-						ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName,
-						ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription,
-						ExportOption.bHidePassword);
-//				document.appendChild(elt);
-//				System.out.println(XMLUtils.prettyPrintDOM(document));
-				var node = elt.getFirstChild();
-				while (node != null) {
-					if (node instanceof Element e && e.getNodeName().equals("property")) {
-						addDboProperties(props, e);
+				if (dbo != null) {
+					var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+					var elt = dbo.toXml(document, ExportOption.bIncludeBlackListedElements,
+							ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName,
+							ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription,
+							ExportOption.bHidePassword);
+//					document.appendChild(elt);
+//					System.out.println(XMLUtils.prettyPrintDOM(document));
+					var node = elt.getFirstChild();
+					while (node != null) {
+						if (node instanceof Element e && e.getNodeName().equals("property")) {
+							addDboProperties(props, e);
+						}
+						node = node.getNextSibling();
 					}
-					node = node.getNextSibling();
+					addInfosProperties(props, dbo);
 				}
-				addInfosProperties(props, dbo);
 			}
 		}
 		response.put("properties", props);
