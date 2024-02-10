@@ -38,8 +38,7 @@
 </script>
 
 <AutoGrid>
-	<Card>
-		<div class="card-header">Status</div>
+	<Card title="Status">
 		<StatusTable
 			time={$monitorData.time}
 			startTime={$monitorData.startTime}
@@ -47,8 +46,7 @@
 		/>
 	</Card>
 
-	<Card>
-		<div class="card-header">System Information</div>
+	<Card title="System Information">
 		<SystemInformationTable
 			memoryMaximal={$monitorData.memoryMaximal}
 			memoryTotal={$monitorData.memoryTotal}
@@ -57,12 +55,10 @@
 	</Card>
 </AutoGrid>
 
-<div class="monitor-section">
-	<div class="header-section">Monitor</div>
-
+<div class="mt-5">
 	<AutoGrid>
 		{#each charts as chart}
-			<Card customStyle="height: 300px;">
+			<Card customStyle="mb-10">
 				<ApexChartLineAdmin {...chart} {isLoading} {categories} />
 			</Card>
 		{/each}
@@ -70,13 +66,21 @@
 </div>
 
 <style lang="postcss">
-	.card-header {
-		@apply w-full p-2 bg-surface-800 flex flex-col font-light;
+	.table-container {
+		overflow-x: auto;
+		margin: 0 auto;
+		max-width: 100%;
 	}
-	.header-section {
-		@apply w-full p-2 bg-surface-800 flex flex-col font-light mt-10 mb-10;
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		@apply rounded-xl;
 	}
-	.monitor-section {
-		@apply flex flex-col h-auto;
+
+	@media screen and (max-width: 600px) {
+		.table-container {
+			-webkit-overflow-scrolling: touch;
+		}
 	}
 </style>

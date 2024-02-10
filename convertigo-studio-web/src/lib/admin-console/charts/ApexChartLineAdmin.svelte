@@ -11,7 +11,7 @@
 	/** @type {any} */
 	let options = {
 		theme: {
-			mode: 'dark'
+			mode: 'light'
 		},
 		title: {
 			text: title

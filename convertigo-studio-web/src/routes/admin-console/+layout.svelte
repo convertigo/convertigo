@@ -11,21 +11,24 @@
 	};
 </script>
 
-<Modal components={modalComponentRegistry} />
-<Toast />
-<Drawer>
-	<PagesRailToggle open={false} />
-	<PagesRail />
-</Drawer>
-
 <AppShell>
-	<Topbar slot="header" />
+	<Drawer>
+		<PagesRailToggle open={false} />
+		<PagesRail />
+	</Drawer>
+	<Modal components={modalComponentRegistry} />
+	<Toast />
+
+	<svelte:fragment slot="header">
+		<Topbar />
+	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<div class="hidden md:block bg-surface-800 h-full">
 			<PagesRail />
 		</div>
 	</svelte:fragment>
-	<div class="h-full flex flex-col p-10">
+	<svelte:fragment slot="sidebarRight"></svelte:fragment>
+	<div class="p-5 flex flex-col h-full">
 		<slot />
 	</div>
 </AppShell>

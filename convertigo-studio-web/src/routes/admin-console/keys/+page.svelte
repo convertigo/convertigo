@@ -1,15 +1,14 @@
 <script>
-	import { writable } from 'svelte/store';
 	import { keysCheck, categoryStore } from '$lib/admin-console/stores/keysStore';
 	import { callXml } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { Table, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import Icon from '@iconify/svelte';
+	import Tables from '$lib/admin-console/admin-components/Tables.svelte';
 
 	const keyModalStore = getModalStore();
 
-	let keys = writable('');
 	let newKey = '';
 
 	onMount(() => {
@@ -98,86 +97,59 @@
 	}
 </script>
 
-<h1 class="mb-5">Keys</h1>
-
 <Card>
 	<div class="flex items-center">
 		<form on:submit|preventDefault={handleFormSubmit}>
 			<input
 				type="text"
 				bind:value={newKey}
-				class="text-black placeholder:text-surface-300"
+				class="text-black placeholder:text-surface-200 rounded-xl w-80 bg-surface-500"
 				placeholder="Enter a new key"
 			/>
-			<button type="submit" class="btn variant-filled">Add Key</button>
+			<button type="submit" class="btn variant-filled ml-5">Add Key</button>
 		</form>
 	</div>
 </Card>
 
-{#if $categoryStore.length >= 0}
+{#if $categoryStore.length > 0}
 	{#each $categoryStore as category}
 		<div class="mt-5">
-			<Card>
-				<h1 class="text-start mb-2">{category['@_name']}</h1>
-				<table>
-					<thead>
+			<Card title={category['@_name']}>
+				<Tables
+					headers={['Key', 'Total', 'Expiration Date', 'Expired', 'Remaining', 'In use', 'Delete']}
+				>
+					{#each category.keys as key}
 						<tr>
-							<th class="px-4 py-2">key</th>
-							<th class="px-4 py-2">Total</th>
-							<th class="px-4 py-2">Expiration date</th>
-							<th class="px-4 py-2">Expired</th>
-							<th class="px-4 py-2">Remaining</th>
-							<th class="px-4 py-2">In use</th>
-						</tr>
-					</thead>
+							<td>{key['@_text']}</td>
+							<td>{key['@_value']}</td>
+							{#if key['@_expiration'] === '0'}
+								<td class="border bg-green-500 text-black"
+									>{formatExpiration(key['@_expiration'])}</td
+								>
+							{:else}
+								<td>{formatExpiration(key['@_expiration'])}</td>
+							{/if}
+							{#if key['@_expired'] === 'false'}
+								<td class="bg-green-500 text-black">{key['@_expired']}</td>
+							{:else}
+								<td class="bg-red-400">{key['@_expired']}</td>
+							{/if}
+							<td>{category['@_remaining']}</td>
+							<td>{category['@_remaining']}</td>
 
-					<tbody>
-						{#each category.keys as key}
-							<tr>
-								<td class="border px-4 py-2">{key['@_text']}</td>
-								<td class="border px-4 py-2">{key['@_value']}</td>
-								{#if key['@_expiration'] === '0'}
-									<td class="border px-4 py-2 bg-green-400 text-black"
-										>{formatExpiration(key['@_expiration'])}</td
-									>
-								{:else}
-									<td class="border px-4 py-2">{formatExpiration(key['@_expiration'])}</td>
-								{/if}
-								{#if key['@_expired'] === 'false'}
-									<td class="border px-4 py-2 bg-green-500 text-black">{key['@_expired']}</td>
-								{:else}
-									<td class="border px-4 py-2 bg-red-400">{key['@_expired']}</td>
-								{/if}
-								<td class="border px-4 py-2">{category['@_remaining']}</td>
-								<td class="border px-4 py-2">{category['@_remaining']}</td>
-
+							<td>
 								<button
-									class="bg-red-700 px-4 py-1 ml-4 rounded-xl"
+									class="btn variant-filled py-1 rounded-xl"
 									on:click={() => openModal(key['@_text'])}
-									><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+									><Icon icon="material-symbols-light:delete-outline" class="h-4 w-4" />
 								</button>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+							</td>
+						</tr>
+					{/each}
+				</Tables>
 			</Card>
 		</div>
 	{/each}
 {:else}
-	Loading
+	Loading...
 {/if}
-
-<style>
-	th,
-	td {
-		border: 1px solid #616161;
-		padding: 4px;
-		text-align: left;
-		font-weight: 300;
-		font-size: 13px;
-	}
-
-	table {
-		border-collapse: collapse;
-	}
-</style>

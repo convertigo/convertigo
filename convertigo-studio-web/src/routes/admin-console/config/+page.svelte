@@ -1,8 +1,13 @@
 <script>
 	import Icon from '@iconify/svelte';
-	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		Accordion,
+		AccordionItem,
+		ListBox,
+		ListBoxItem,
+		getModalStore
+	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-
 	import {
 		refreshConfigurations,
 		configurations,
@@ -82,16 +87,17 @@
 {#if 'admin' in $configurations}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
 	{@debug $configurations}
-	<div class="flex flex-col grid md:grid-cols-6 gap-10">
-		<div class="flex flex-col h-auto md:col-span-5">
-			<Card>
-				<div class="flex justify-between p-2 items-center border-1 border-b border-surface-100">
-					<h1 class="text-[15px]">{category['@_displayName']}</h1>
-					<button type="button" class="btn p-1 pl-5 pr-5 bg-surface-600" on:click={saveChanges}>
-						<span><Icon icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
-						<span class="text-[13px] font-light">Save changes</span>
-					</button>
-				</div>
+	<div class="flex flex-col grid md:grid-cols-5 gap-5">
+		<div class="flex flex-col h-auto md:col-span-4">
+			<Card title={category['@_displayName']}>
+				<button
+					type="button"
+					class="btn p-1 pl-5 pr-5 mb-5 w-80 variant-filled"
+					on:click={saveChanges}
+				>
+					<span><Icon icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
+					<span class="text-[13px] font-light">Save changes</span>
+				</button>
 
 				<div class="flex grid md:grid-cols-2 grid-cols-1 gap-5">
 					{#each category.property as property, propertyIndex}
@@ -103,9 +109,9 @@
 			</Card>
 
 			<div class="mt-10">
-				<Card>
+				<Card title="Advanced properties">
 					<Accordion>
-						<AccordionItem class=" md:w-[90%] bg-surface-900">
+						<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
 							<svelte:fragment slot="lead"
 								><Icon icon="game-icons:level-three-advanced" />
 							</svelte:fragment>
@@ -113,7 +119,7 @@
 								<p>Advanced properties</p>
 							</svelte:fragment>
 							<svelte:fragment slot="content">
-								<div class="bg-surface-900 md:p-2 flex grid md:grid-cols-2">
+								<div class="md:p-2 flex grid md:grid-cols-2 gap-10">
 									{#each category.property as property, propertyIndex}
 										{#if property['@_isAdvanced'] == 'true'}
 											<PropertyType
@@ -133,12 +139,16 @@
 		</div>
 		<Card>
 			<div class="flex flex-col h-auto md:col-span-1 rounded-2xl">
-				{#each $configurations?.admin?.category as category, index}
-					<button class="navbutton" on:click={() => changeCategory(index)}>
-						<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
-						{category['@_displayName']}
-					</button>
-				{/each}
+				<ListBox active="dark:bg-surface-600 bg-surface-50">
+					{#each $configurations?.admin?.category as category, index}
+						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">
+							<div class="flex">
+								<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
+								{category['@_displayName']}
+							</div>
+						</ListBoxItem>
+					{/each}
+				</ListBox>
 			</div>
 		</Card>
 	</div>
@@ -146,6 +156,6 @@
 
 <style lang="postcss">
 	.navbutton {
-		@apply flex text-[12px] font-light text-start p-2 border-b-[0.5px] border-b-surface-500 bg-surface-800 items-center;
+		@apply flex text-[12px] font-light text-start p-2 border-b-[0.5px] border-b-surface-500 dark:bg-surface-800 bg-white items-center;
 	}
 </style>

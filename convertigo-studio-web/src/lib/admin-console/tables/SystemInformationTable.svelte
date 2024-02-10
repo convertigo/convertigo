@@ -22,82 +22,33 @@
 		browser,
 		cloud
 	} from '../stores/statusStore';
+	import Table from '../admin-components/Table.svelte';
 	export let memoryMaximal;
 	export let memoryTotal;
 	export let memoryUsed;
 
+	let headers = ['Name', 'Value'];
+	let data = [];
+
+	let showHeaders = false;
+
 	onMount(() => {
 		statusCheck();
+
+		data = [
+			{ Name: 'Host Name', Value: $hostName },
+			{ Name: 'CPU', Value: `${$osArchitecture} architecture ${$osAvailableProcessors} processor` },
+			{ Name: 'OS', Value: `${$osName} ${$osVersion}` },
+			{ Name: 'Java Vendor', Value: $javaVendor },
+			{ Name: 'Java', Value: `${$javaVersion} (classes version: ${$javaClassVersion})` },
+			{ Name: 'Used Memory', Value: `${memoryUsed[memoryUsed.length - 1] ?? '...'} MB` },
+			{ Name: 'Total Memory', Value: `${memoryTotal[memoryTotal.length - 1] ?? '...'} MB` },
+			{ Name: 'Maximum Memory', Value: `${memoryMaximal[memoryMaximal.length - 1] ?? '...'} MB` },
+			{ Name: 'Your Browser', Value: $browser }
+		];
 	});
 </script>
 
-<div class="system-information-table p-2">
-	<table>
-		<tr>
-			<th>Host Name</th>
-			<td>{$hostName}</td>
-		</tr>
-		<tr>
-			<th>CPU</th>
-			<td
-				>{$osArchitecture} architecture, {$osAvailableProcessors} processor{$osAvailableProcessors >
-				1
-					? 's'
-					: ''}</td
-			>
-		</tr>
-		<tr>
-			<th>OS</th>
-			<td>{$osName} {$osVersion}</td>
-		</tr>
-		<tr>
-			<th>Java Vendor</th>
-			<td>{$javaVendor}</td>
-		</tr>
-		<tr>
-			<th>Java</th>
-			<td>{$javaVersion} (classes {$javaClassVersion})</td>
-		</tr>
-		<tr>
-			<th>Used Memory</th>
-			<td>{memoryUsed[memoryUsed.length - 1] ?? '...'} MB</td>
-		</tr>
-		<tr>
-			<th>Total memory</th>
-			<td>{memoryTotal[memoryTotal.length - 1] ?? '...'} MB</td>
-		</tr>
-		<tr>
-			<th>Maximum memory</th>
-			<td>{memoryMaximal[memoryMaximal.length - 1] ?? '...'} MB</td>
-		</tr>
-		<tr>
-			<th>Your browser</th>
-			<td>{$browser}</td>
-		</tr>
-	</table>
+<div>
+	<Table {headers} {data} {showHeaders} />
 </div>
-
-<style lang="postcss">
-	.system-information-table {
-		width: 100%;
-		margin: auto;
-	}
-
-	table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-	th,
-	td {
-		padding: 4px;
-		text-align: left;
-		font-weight: 300;
-		font-size: 13px;
-	}
-	th {
-		@apply bg-surface-800 border-r-2 border-surface-900;
-	}
-	tr {
-		@apply border-b-2 border-surface-900;
-	}
-</style>

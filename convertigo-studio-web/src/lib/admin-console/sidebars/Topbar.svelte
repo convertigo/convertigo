@@ -6,19 +6,23 @@
 </script>
 
 <AppBar
-	background="bg-surface-800"
-	class="flex w-full justify-between border-b-[0.5px] border-surface-500"
-	padding="p-0"
+	background="dark:bg-surface-800 bg-white"
+	class="flex w-full justify-between border-b-[0.5px] dark:border-surface-500 border-surface-50"
+	padding="p-3"
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
+		<img src="/logo.png" alt="logo convertigo" class="w-10 h-full mr-5 ml-3" />
+		<h1 class="font-normal dark:text-surface-200 text-surface-800 hidden md:block">
+			Convertigo Admin Console
+		</h1>
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
 		<div class="pr-4 p-1 flex items-center space-x-5">
 			<button
 				type="button"
-				class="btn p-1 pl-5 pr-5 bg-surface-500"
+				class="btn p-1 pl-5 pr-5 btn variant-filled"
 				on:click={() => goto('/ui/dev')}
 			>
 				<span><Icon icon="material-symbols-light:design-services-outline-sharp" /></span>

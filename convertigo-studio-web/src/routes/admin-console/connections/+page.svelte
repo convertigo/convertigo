@@ -53,7 +53,7 @@
 	});
 </script>
 
-<div class=" p-1">
+<div class="p-5">
 	<AutoGrid>
 		<Card>
 			<h1 class="text-[15px]">Connections</h1>

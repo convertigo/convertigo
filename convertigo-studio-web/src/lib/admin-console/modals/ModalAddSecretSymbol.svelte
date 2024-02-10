@@ -24,21 +24,16 @@
 		formData.set('symbolName', symbolName);
 
 		if (newSecretSymbol.submitter.textContent == 'Confirm') {
-			try {
+			//@ts-ignore
+			const response = await call('global_symbols.Add', formData);
+			if (response.includes('success')) {
 				//@ts-ignore
-				const response = await call('global_symbols.Add', formData);
+				modalStore.close(successModal);
 				//@ts-ignore
-				//modalStore.close(successModal);
-				globalSymbols();
-				if (response.includes('have been succesfully declared')) {
-					//@ts-ignore
-					modalStore.trigger(successModal);
-				} else {
-					//@ts-ignore
-					modalStore.trigger(failedModal);
-				}
-			} catch (err) {
-				console.error(err);
+				modalStore.trigger(successModal);
+			} else {
+				//@ts-ignore
+				modalStore.trigger(failedModal);
 			}
 		}
 	}

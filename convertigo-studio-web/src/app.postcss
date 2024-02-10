@@ -43,3 +43,31 @@ body {
 	scale: 2;
 	margin: auto;
 }
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 4px;
+	border-color: white;
+	@apply rounded-xl;
+}
+th,
+td {
+	padding: 9px;
+	text-align: left;
+	font-weight: 300;
+	font-size: 15px;
+}
+th {
+	@apply dark:border-surface-900;
+}
+tr {
+}
+
+tr:nth-child(even) {
+	@apply dark:bg-surface-800 bg-surface-100;
+}
+
+tr:nth-child(odd) {
+	@apply dark:bg-surface-900 bg-white;
+}

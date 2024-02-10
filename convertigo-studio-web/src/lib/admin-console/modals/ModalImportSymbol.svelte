@@ -34,7 +34,7 @@
 		<RadioItem bind:group={value} name="justify" value="ClearImport">Clear & import</RadioItem>
 		<RadioItem bind:group={value} name="justify" value="MergeSymbols">Merge symbols</RadioItem>
 	</RadioGroup>
-
+	<input type="file" />
 	<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
 
 	<RadioGroup>
