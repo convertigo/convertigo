@@ -11,8 +11,6 @@
 	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import ModalAddSymbol from '$lib/admin-console/modals/ModalAddSymbol.svelte';
-	import ModalAddSecretSymbol from '$lib/admin-console/modals/ModalAddSecretSymbol.svelte';
-	import ModalImportSymbol from '$lib/admin-console/modals/ModalImportSymbol.svelte';
 	import Tables from '$lib/admin-console/admin-components/Tables.svelte';
 
 	onMount(() => {
@@ -51,11 +49,6 @@
 		}
 	}
 
-	async function handlesubmti() {
-		const response = await call('global_symbols.List');
-		console.log(response);
-	}
-
 	export function confirmSymbolDeletion(symbolId) {
 		const modalSettings = {
 			type: 'confirm',
@@ -72,33 +65,27 @@
 	}
 
 	function openAddGlobalSymbolModal() {
-		const ModalComponent = { ref: ModalAddSymbol };
-		const modalSymbolAdd = {
+		symbolModalStore.trigger({
 			type: 'component',
-			component: ModalComponent
-		};
-		//@ts-ignore
-		symbolModalStore.trigger(modalSymbolAdd);
+			component: { ref: ModalAddSymbol },
+			meta: { mode: 'add' }
+		});
 	}
 
 	function openAddSecretSymbols() {
-		const ModalComponentSecret = { ref: ModalAddSecretSymbol };
-		const modalSecretSymbolAdd = {
+		symbolModalStore.trigger({
 			type: 'component',
-			component: ModalComponentSecret
-		};
-		//@ts-ignore
-		symbolModalStore.trigger(modalSecretSymbolAdd);
+			component: { ref: ModalAddSymbol },
+			meta: { mode: 'secret' }
+		});
 	}
 
 	function openImportSymbols() {
-		const ModalComponentImport = { ref: ModalImportSymbol };
-		const modalImportSettings = {
+		symbolModalStore.trigger({
 			type: 'component',
-			component: ModalComponentImport
-		};
-		//@ts-ignore
-		symbolModalStore.trigger(modalImportSettings);
+			component: { ref: ModalAddSymbol },
+			meta: { mode: 'import' }
+		});
 	}
 </script>
 
