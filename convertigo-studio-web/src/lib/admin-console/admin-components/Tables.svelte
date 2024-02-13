@@ -17,6 +17,6 @@
 
 <style lang="postcss">
 	.header {
-		@apply dark:bg-surface-600 bg-surface-300 border-b-[1px] border-primary-100;
+		@apply dark:bg-surface-600 bg-surface-300 border-b-[1px] dark:border-primary-100 border-primary-100;
 	}
 </style>

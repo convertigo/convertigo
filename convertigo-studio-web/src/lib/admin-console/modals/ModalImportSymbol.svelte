@@ -1,6 +1,6 @@
 <script>
 	import { call } from '$lib/utils/service';
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { FileButton, RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	let value = 0;
@@ -27,14 +27,16 @@
 	}
 </script>
 
-<form on:submit={importSymbol} class="p-10 rounded-xl glass flex flex-col">
+<form on:submit={importSymbol} class="p-10 rounded-xl flex flex-col">
 	<h1 class="text-xl mb-5 text-center">Import global symbols</h1>
 
 	<RadioGroup>
 		<RadioItem bind:group={value} name="justify" value="ClearImport">Clear & import</RadioItem>
 		<RadioItem bind:group={value} name="justify" value="MergeSymbols">Merge symbols</RadioItem>
 	</RadioGroup>
-	<input type="file" />
+
+	<FileButton name="files" class="mt-5" />
+
 	<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
 
 	<RadioGroup>
@@ -56,6 +58,6 @@
 	}
 
 	form {
-		background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond légèrement transparente */
+		background-color: rgba(255, 255, 255, 1); /* Couleur de fond légèrement transparente */
 	}
 </style>

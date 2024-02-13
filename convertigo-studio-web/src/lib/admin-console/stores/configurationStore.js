@@ -28,24 +28,15 @@ export async function updateConfiguration(categoryIndex, propertyIndex, newValue
 	const response = await callXml('configuration.Update', xmlPayload);
 
 	console.log('update service:', response);
-	if (response)
-		if (isValid(newValue)) {
-			configurations.update((currentConfigs) => {
-				currentConfigs.admin.category[categoryIndex].property[propertyIndex]['@_value'] = newValue;
-				console.log('New Value:', newValue);
-				return currentConfigs;
-			});
-		} else {
-			console.error('invalid Value:', newValue);
-		}
-}
-
-function isValid(value) {
-	if (typeof value === 'string') {
-		return value.trim().length > 0;
-	} else if (typeof value === 'number') {
-		return !isNaN(value);
+	if (response) {
+		configurations.update((currentConfigs) => {
+			currentConfigs.admin.category[categoryIndex].property[propertyIndex]['@_value'] = newValue;
+			console.log('New Value:', newValue);
+			return currentConfigs;
+		});
 	} else {
-		return value != null;
+		console.error('invalid Value:', newValue);
 	}
+	
 }
+		

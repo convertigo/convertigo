@@ -52,6 +52,9 @@
 	}
 
 	function openModal(keyText) {
+		const confirmDeleted = {
+			title: 'Key deleted with success'
+		}
 		const modalOptions = {
 			type: 'confirm',
 			title: 'Please confirm',
@@ -60,6 +63,8 @@
 				if (confirmed) {
 					deleteKey(keyText);
 					console.log('key deleted :', { keyText });
+					//@ts-ignore
+					keyModalStore.trigger(confirmDeleted);
 				}
 			}
 		};
@@ -92,8 +97,19 @@
 	}
 
 	async function handleFormSubmit() {
-		await keysUpdate(newKey);
-		newKey = '';
+		const modalSuccess = {
+			title: 'key added with success'
+		}
+		try {
+			await keysUpdate(newKey);
+			newKey = '';
+			
+			//@ts-ignore
+			keyModalStore.trigger(modalSuccess);
+
+		} catch (err) {
+			console.error(err);
+		}
 	}
 </script>
 
@@ -103,7 +119,7 @@
 			<input
 				type="text"
 				bind:value={newKey}
-				class="text-black placeholder:text-surface-200 rounded-xl w-80 bg-surface-500"
+				class="dark:text-black text-surface-800 placeholder:text-surface-200 rounded-xl w-80 dark:bg-surface-500 bg-white border-surface-200"
 				placeholder="Enter a new key"
 			/>
 			<button type="submit" class="btn variant-filled ml-5">Add Key</button>

@@ -37,7 +37,7 @@
 	}
 </script>
 
-<form on:submit={addGlobalSymbol} class="p-10 rounded-xl glass">
+<form on:submit={addGlobalSymbol} class="p-10 rounded-xl">
 	<h1 class="text-2xl mb-5">Add a new symbol</h1>
 	<div class="flex gap-5">
 		<label>
@@ -75,6 +75,6 @@
 	}
 
 	form {
-		background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond légèrement transparente */
+		background-color: rgba(255, 255, 255, 1); /* Couleur de fond légèrement transparente */
 	}
 </style>

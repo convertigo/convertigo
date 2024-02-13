@@ -6,15 +6,40 @@
 	import { writable } from 'svelte/store';
 	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import PropertyType from '$lib/admin-console/admin-components/PropertyType.svelte';
+	import CacheInput from '$lib/admin-console/admin-components/CacheInput.svelte';
+	import Icon from '@iconify/svelte';
 
 	let conf = writable(/** @type {any}*/ {});
 
 	export const modalStoreCache = getModalStore();
 
+	let databaseConfigurations = [
+		{ label: 'Server Name', name: 'serverName', value: $conf.serverName ?? '' },
+		{ label: 'Access port:', name: 'serverPort', value: $conf.serverPort ?? '' },
+		{ label: 'Database/Service name:', name: 'databaseName', value: $conf.databaseName ?? '' }
+	];
+
+	let identificationConfigurations = [
+		{ label: 'User name:', name: 'cacheUserName', value: $conf.userName ?? '' },
+		{
+			label: 'User password:',
+			name: 'userPassword',
+			type: 'password',
+			value: $conf.userPassword ?? ''
+		},
+		{ label: 'Confirmation:', name: 'userPasswordConfirmation', type: 'password', value: '' }
+	];
+
+	let cacheTableConfigurations = [
+		{ label: 'Table Name', name: 'cacheTableName', value: $conf.cacheTableName ?? '' }
+	];
+
 	onMount(() => {
 		call('cache.ShowProperties').then((response) => {
 			cacheType = response.admin.cacheType;
 			$conf = response.admin;
+			console.log($conf);
 		});
 	});
 
@@ -34,6 +59,7 @@
 		try {
 			// @ts-ignore
 			const response = await call('cache.Configure', formData);
+			console.log(response);
 			// @ts-ignore
 			modalStoreCache.trigger(successModalapplied);
 		} catch (error) {
@@ -45,16 +71,13 @@
 	let cacheType = 'com.twinsoft.convertigo.engine.cache.FileCacheManager';
 </script>
 
-<h1 class="mb-5 pb-2 border-1 border-b border-surface-100">Cache</h1>
-
 {#if $conf}
 	<form on:submit={handlesubmit}>
-		<Card>
-			<h2>Cache type</h2>
+		<Card title="Cache type">
 			<p class="mt-5">Choose the desired cache type :</p>
 			<div class="flex mt-5">
 				<div class="flex items-center">
-					<RadioGroup active="variant-filled-primary" hover="hover:variant-soft-primary">
+					<RadioGroup>
 						<RadioItem
 							bind:group={cacheType}
 							name="cacheType"
@@ -73,116 +96,75 @@
 						</RadioItem>
 					</RadioGroup>
 
-					<button type="submit" class="ml-10 p-0 bg-surface-100 pl-4 pr-4 btn variant-filled"
-						>Apply</button
-					>
+					<button type="submit" class="ml-5 btn variant-filled">Apply</button>
 				</div>
-			</div></Card
-		>
+			</div>
+		</Card>
 
 		{#if cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
-			<Accordion width="w-[100%] mt-10 bg-surface-700">
-				<AccordionItem
-					open={cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
-				>
-					<svelte:fragment slot="summary">Configurations</svelte:fragment>
-					<svelte:fragment slot="content">
-						<AutoGrid>
-							<Card>
-								<label class="bg-surface-800 p-1 text-[14px]" for="databaseUsed"
-									>Database used:</label
-								>
-								<select
-									name="databaseDriver"
-									id="databaseUsed"
-									class="text-black mt-5 text-[13px]"
-									value={$conf.databaseDriver ?? 'sqlserver'}
-								>
-									<option value="sqlserver" class="text-[13px]">SQLServer</option>
-									<option value="oracle" class="text-[13px]">Oracle</option>
-									<option value="mysql" class="text-[13px]">MySQL</option>
-								</select>
-							</Card>
-
-							<Card>
-								<h2 class="bg-surface-800 text-[14px]">Access configuration :</h2>
-								<label for="serverName">Server name:</label>
-								<input
-									id="serverName"
-									name="serverName"
-									class="text-black"
-									type="text"
-									value={$conf.serverName ?? ''}
-								/>
-
-								<label for="accessPort">Access port:</label>
-								<input
-									id="accessPort"
-									type="text"
-									name="serverPort"
-									value={$conf.serverPort ?? ''}
-								/>
-
-								<label for="databaseServiceName">Database/Service name:</label>
-								<input
-									id="databaseServiceName"
-									type="text"
-									name="databaseName"
-									value={$conf.databaseName ?? ''}
-								/>
-							</Card>
-						</AutoGrid>
-
-						<div class="mt-3">
+		<Card title="Database configurations" customStyle="margin-top: 20px;">
+				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl ">
+					<AccordionItem
+						class="dark:bg-surface-800 bg-white rounded-xl"
+						open={cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
+					>
+						<svelte:fragment slot="summary">
+							<div class="flex items-center">
+								<Icon icon="bi:database-fill-gear" class="mr-2 h-7 w-7" />
+								Configurations
+							</div>
+						</svelte:fragment>
+						<svelte:fragment slot="content">
 							<AutoGrid>
-								<Card>
-									<h2 class="bg-surface-800 text-[14px]">Configuration of the identification :</h2>
-									<label for="userName">User name:</label>
-									<input
-										id="userName"
-										type="text"
-										name="cacheUserName"
-										value={$conf.userName ?? ''}
-									/>
-
-									<label for="userPassword">User password:</label>
-									<input
-										id="userPassword"
-										type="password"
-										name="userPassword"
-										value={$conf.userPassword ?? ''}
-									/>
-
-									<label for="userPasswordConfirmation">Confirmation:</label>
-									<input id="userPasswordConfirmation" type="password" />
+								<Card title="Database used">
+									<select
+										name="databaseDriver"
+										id="databaseUsed"
+										class="text-surface-800 mt-5 text-[13px] rounded-xl border-surface-200"
+										value={$conf.databaseDriver ?? 'sqlserver'}
+									>
+										<option value="sqlserver" class="text-[13px]">SQLServer</option>
+										<option value="oracle" class="text-[13px]">Oracle</option>
+										<option value="mysql" class="text-[13px]">MySQL</option>
+									</select>
 								</Card>
 
-								<Card>
-									<h2 class="bg-surface-800 text-[14px]">Cache table</h2>
-									<label for="tableName">Table name:</label>
-									<input
-										id="tableName"
-										type="text"
-										name="cacheTableName"
-										value={$conf.cacheTableName ?? ''}
-									/>
+								<Card title="Access configuration" customStyle="">
+									{#each databaseConfigurations as config}
+										<CacheInput {...config} />
+									{/each}
 								</Card>
 							</AutoGrid>
-						</div>
 
-						<div class="mt-3">
-							<Card>
-								<div class="flex justify-center">
-									<button type="submit" class="p-0 bg-surface-100 w-80 btn variant-filled"
-										>Create table and apply</button
-									>
-								</div>
-							</Card>
-						</div>
-					</svelte:fragment>
-				</AccordionItem>
-			</Accordion>
+							<div class="mt-3">
+								<AutoGrid>
+									<Card title="Configuration of the identification">
+										{#each identificationConfigurations as identificationConfig}
+											<CacheInput {...identificationConfig} />
+										{/each}
+									</Card>
+
+									<Card title="Cache table">
+										{#each cacheTableConfigurations as cacheTable}
+											<CacheInput {...cacheTable} />
+										{/each}
+									</Card>
+								</AutoGrid>
+							</div>
+
+							<div class="mt-3">
+								<Card>
+									<div class="flex justify-center">
+										<button type="submit" class="btn variant-filled">Create table and apply</button>
+									</div>
+								</Card>
+							</div>
+						</svelte:fragment>
+					</AccordionItem>
+				</Accordion>
+			</Card>
 		{/if}
+		
 	</form>
 {:else}
 	Loading

@@ -15,6 +15,7 @@
 		connectionsStore,
 		sessionsStore
 	} from '$lib/admin-console/stores/connectionsStore';
+	import Tables from '$lib/admin-console/admin-components/Tables.svelte';
 
 	let legendItems = [
 		{
@@ -53,25 +54,24 @@
 	});
 </script>
 
-<div class="p-5">
+
 	<AutoGrid>
-		<Card>
-			<h1 class="text-[15px]">Connections</h1>
-			<div class="bg-surface-900 p-1 border-[0.5px] border-surface-600 mt-5">
+		<Card title="Connections">
+			<div class="mt-5">
 				<div class="flex-col w-[60%]">
-					<div class="flex bg-surface-900 p-2 border-b-[0.5px] border-surface-500">
+					<div class="flex p-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
 						<p class="">Contexts In Use :</p>
 						<p class="ml-5 mr-10 font-bold">{$contextsInUse} / {$contextsNumber}</p>
 					</div>
-					<div class="flex bg-surface-900 p-2 mt-2 border-b-[0.5px] border-surface-500">
+					<div class="flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
 						<p class="">Threads currently In Use :</p>
 						<p class="ml-5 mr-10 font-bold">{$threadsInUse} / {$threadsNumber}</p>
 					</div>
-					<div class="flex bg-surface-900 p-2 mt-2 border-b-[0.5px] border-surface-500">
+					<div class="flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
 						<p class="">Sessions currently in use:</p>
 						<p class="ml-5 mr-10 font-bold">{$sessionsInUse} / {$sessionsNumber}</p>
 					</div>
-					<div class="flex bg-surface-900 p-2 mt-2">
+					<div class="flex p-2 mt-2">
 						<p class="">Max http session inactivity :</p>
 						<p class="ml-5 mr-10 font-bold">{$httpTimeout}</p>
 					</div>
@@ -79,11 +79,10 @@
 			</div>
 		</Card>
 
-		<Card>
-			<h1 class="text-[15px] mb-2">Legends</h1>
-			<div class="bg-surface-900 p-2 mt-2 border-[0.5px] border-surface-600">
+		<Card title="Legends">
+			<div class="p-2 mt-2">
 				{#each legendItems as legend}
-					<div class={`flex items-center pl-2 p-1 border-b border-surface-800 justify-between`}>
+					<div class={`flex items-center pl-2 p-1 border-b dark:border-surface-500 border-surface-100 justify-between`}>
 						<p class="mr-5">{legend.title}</p>
 						<div class="flex">
 							<Icon icon={legend.icon} class="w-6 h-6" />
@@ -96,9 +95,8 @@
 	</AutoGrid>
 
 	<div class="mt-10">
-		<Card>
-			<h1 class="text-[15px]">Sessions</h1>
-
+		<Card title="Sessions">
+			<!--
 			<table class="mt-5 w-full bg-surface-700">
 				<thead>
 					<tr class="bg-surface-900">
@@ -133,31 +131,64 @@
 						{/each}
 					{/if}
 				</tbody>
-			</table>
+			</table>-->
+
+			<Tables headers={['ID', 'Contexts', 'User', 'Roles', 'UUID', 'FS', ]}>
+				{#if $sessionsStore.length >= 0}
+					{#each $sessionsStore as session}
+						<tr>
+							<td>{session['@_sessionID']}</td>
+							<td>{session['@_contexts']}</td>
+							<td>{session['@__authenticatedUser']}</td>
+							<td>{session['@_adminRoles']}</td>
+							<td>{session['@_deviceUUID']}</td>
+							<td>{session['@_isFullSyncActive']}</td>
+							<td>{session['@_lastSessionAccessDate']}</td>
+							<td>{session['@_sessionInactivityTime']}</td>
+							<td>{session['@_clientIP']}</td>
+						</tr>
+					{/each}
+				{/if}
+			</Tables>
 		</Card>
 	</div>
 
 	<div class="mt-10">
-		<Card>
-			<h1 class="text-[15px]">Contexts</h1>
+		<Card title="Contexts">
+			<Tables headers={['Context', 'Project', 'Connector', 'Requested', 'Status', 'User', 'Client Computer']}>
+				{#if $connectionsStore.length >= 0}
+					{#each $connectionsStore as connection}
+						<tr>
+							<td>{connection['@_contextName']}</td>
+							<td>{connection['@_project']}</td>
+							<td>{connection['@_connector']}</td>
+							<td>{connection['@_requested']}</td>
+							<td>{connection['@_status']}</td>
+							<td>{connection['@_user']}</td>
+							<td>{connection['@_clientComputer']}</td>
+						</tr>
+					{/each}
+				{/if}
+			</Tables>
 
+			<!--
 			<table class="mt-5 w-full bg-surface-700">
 				<thead>
-					<tr class="bg-surface-900">
-						<th class="px-4 py-2">Context</th>
-						<th class="px-4 py-2">Project</th>
-						<th class="px-4 py-2">Connector</th>
-						<th class="px-4 py-2">Requested</th>
-						<th class="px-4 py-2">Status</th>
-						<th class="px-4 py-2">User</th>
-						<th class="px-4 py-2">Client Computer</th>
+					<tr>
+						<th>Context</th>
+						<th>Project</th>
+						<th>Connector</th>
+						<th>Requested</th>
+						<th>Status</th>
+						<th>User</th>
+						<th>Client Computer</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#if $connectionsStore.length >= 0}
 						{#each $connectionsStore as connection}
 							<tr>
-								<td class="border px-4 py-2">{connection['@_contextName']}</td>
+								<td>{connection['@_contextName']}</td>
 								<td>{connection['@_project']}</td>
 								<td>{connection['@_connector']}</td>
 								<td>{connection['@_requested']}</td>
@@ -168,22 +199,7 @@
 						{/each}
 					{/if}
 				</tbody>
-			</table>
+			</table>-->
 		</Card>
 	</div>
-</div>
 
-<style>
-	th,
-	td {
-		border: 1px solid #616161;
-		padding: 4px;
-		text-align: left;
-		font-weight: 300;
-		font-size: 13px;
-	}
-
-	table {
-		border-collapse: collapse;
-	}
-</style>

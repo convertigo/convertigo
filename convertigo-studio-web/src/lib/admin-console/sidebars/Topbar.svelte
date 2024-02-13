@@ -19,6 +19,11 @@
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
+		<a href="https://github.com/convertigo/convertigo" target="_blank" class="flex items-center btn font-normal">
+			<p>Star us on</p>
+			<Icon icon="logos:github" />
+		</a>
+		
 		<div class="pr-4 p-1 flex items-center space-x-5">
 			<button
 				type="button"

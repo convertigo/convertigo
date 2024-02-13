@@ -1,18 +1,8 @@
 <script>
 	import Icon from '@iconify/svelte';
-	import {
-		Accordion,
-		AccordionItem,
-		ListBox,
-		ListBoxItem,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem, ListBox, ListBoxItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import {
-		refreshConfigurations,
-		configurations,
-		updateConfiguration
-	} from '$lib/admin-console/stores/configurationStore';
+	import { refreshConfigurations, configurations, updateConfiguration } from '$lib/admin-console/stores/configurationStore';
 	import PropertyType from '$lib/admin-console/admin-components/PropertyType.svelte';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import { get } from 'svelte/store';
@@ -24,45 +14,35 @@
 
 	onMount(() => {
 		refreshConfigurations();
-		updateConfiguration();
 	});
 
-	function saveChanges() {
-		const successSavingConfig = {
-			title: 'New configurations saved with success'
-		};
-		const failedSavingConfig = {
-			title: 'A problem occured while saving'
-		};
-
-		const currentConfigurations = get(configurations);
-		// for the moment it's not working. We have to implement the modal in the following logic
-		// Modal to ask confirmation to update config data's
+	async function saveChanges() {
 		const modalConfirmation = {
 			type: 'confirm',
 			title: 'Please confirm',
-			body: 'Are your sure you want to proceed ?',
-			response: (confirmed) => {
+			body: 'Are you sure you want to proceed?',
+			response: async (confirmed) => {
 				if (confirmed) {
-					console.log('config updated');
+					const currentConfigurations = get(configurations);
+					for (const [categoryIndex, category] of currentConfigurations.admin.category.entries()) {
+						for (const [propertyIndex, property] of category.property.entries()) {
+							if (property['@_value']) {
+								await updateConfiguration(categoryIndex, propertyIndex, property['@_value']);
+							}
+						}
+					}
+					// @ts-ignore
+					modalStoreSaveConfig.trigger({
+						title: 'New configurations saved with success'
+					});
+					hasUnsavedChanges = false;
+				} else {
+					// we can handle cancellation logic here if needed
 				}
 			}
 		};
-
-		currentConfigurations.admin.category.forEach((category, categoryIndex) => {
-			category.property.forEach((property, propertyIndex) => {
-				if (isValid(property['@_value'])) {
-					updateConfiguration(categoryIndex, propertyIndex, property['@_value']);
-				} else {
-					// @ts-ignore
-					modalStoreSaveConfig.trigger(failedSavingConfig);
-				}
-			});
-		});
-
 		// @ts-ignore
-		modalStoreSaveConfig.trigger(successSavingConfig);
-		hasUnsavedChanges = false;
+		modalStoreSaveConfig.trigger(modalConfirmation);
 	}
 
 	function changeCategory(index) {
@@ -71,16 +51,10 @@
 			if (confirmLeave) {
 				hasUnsavedChanges = false;
 				selectedIndex = index;
-			} else {
-				selectedIndex = index;
 			}
 		} else {
 			selectedIndex = index;
 		}
-	}
-
-	function isValid(value) {
-		return true;
 	}
 </script>
 
@@ -110,7 +84,7 @@
 
 			<div class="mt-10">
 				<Card title="Advanced properties">
-					<Accordion>
+					<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
 						<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
 							<svelte:fragment slot="lead"
 								><Icon icon="game-icons:level-three-advanced" />
@@ -119,7 +93,7 @@
 								<p>Advanced properties</p>
 							</svelte:fragment>
 							<svelte:fragment slot="content">
-								<div class="md:p-2 flex grid md:grid-cols-2 gap-10">
+								<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
 									{#each category.property as property, propertyIndex}
 										{#if property['@_isAdvanced'] == 'true'}
 											<PropertyType
@@ -128,7 +102,9 @@
 												{propertyIndex}
 												bind:hasUnsavedChanges
 											/>
-										{:else}{/if}
+										{:else}
+										
+										{/if}
 									{/each}
 								</div>
 							</svelte:fragment>
@@ -141,10 +117,10 @@
 			<div class="flex flex-col h-auto md:col-span-1 rounded-2xl">
 				<ListBox active="dark:bg-surface-600 bg-surface-50">
 					{#each $configurations?.admin?.category as category, index}
-						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">
+						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">	
 							<div class="flex">
 								<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
-								{category['@_displayName']}
+								{category['@_displayName']}		
 							</div>
 						</ListBoxItem>
 					{/each}
