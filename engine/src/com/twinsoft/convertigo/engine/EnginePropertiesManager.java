@@ -562,7 +562,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		ANALYTICS_PERSISTENCE_MAX_RETRY ("billing.persistence.jdbc.maxretry", "2", "JDBC max retry on connection failed", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
-		ANALYTICS_GOOGLE_ID ("billing.google.analytics.id", "", "Google Analytics ID", PropertyCategory.Analytics),
+		ANALYTICS_GOOGLE_ID ("billing.google.analytics.measurement_id", "", "Google Analytics Measurement ID", PropertyCategory.Analytics),
+		@PropertyOptions(advance = true)
+		ANALYTICS_GOOGLE_SECRET ("billing.google.analytics.api_secret", "", "Google Analytics API Secret", PropertyCategory.Analytics),
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

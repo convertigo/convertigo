@@ -40,28 +40,36 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
+
+	static private final String[] keys = Crypto2
+			.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(),
+					"xead864b734a0400bf0dac127fe32013367869fb7fb429bf22bf27e695dc52f270828ce7b5384765f0ed7c25a623e9c50")
+			.split(":");
+	static private final String dkey = Crypto2.decodeFromHexString("xffd37e28952823f1be24b330ad153a72");
+
 	private boolean isDestroying = true;
-	
-	private String customer_name = ""; 
-	
+
+	private String customer_name = "";
+
 	private Collection<Ticket> tickets;
-	
+
 	private Collection<ITicketManager> managers = new ArrayList<ITicketManager>(2);
-	
+
 	private Thread consumer;
-	
+
 	private boolean serverMonitor = false;
-	
-	public BillingManager() throws EngineException {
-		serverMonitor = Engine.isEngineMode();
-	}
-	
+
 	public void init() throws EngineException {
-		customer_name = Engine.isCloudMode() ? Engine.cloud_customer_name : (Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server");
+		customer_name = Engine.isCloudMode() ? Engine.cloud_customer_name
+				: (Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server");
 		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
-		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED) ||
-			EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED) ||
-			serverMonitor) {
+
+		serverMonitor = !dkey.equals(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID))
+				&& Engine.isEngineMode();
+
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)
+				|| EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)
+				|| serverMonitor) {
 			isDestroying = false;
 			tickets = new LinkedList<Ticket>();
 			consumer = new Thread(new Runnable() {
@@ -79,20 +87,22 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 								}
 							}
 							if (ticket != null) {
-								for (ITicketManager manager: managers) {
+								for (ITicketManager manager : managers) {
 									manager.addTicket(ticket);
 								}
 							}
 						} catch (JDBCConnectionException e) {
 							Throwable cause = e.getCause();
-							Engine.logBillers.info("JDBCConnectionException on ticket insertion" + (cause == null ? "" : " (cause by " + cause.getClass().getSimpleName() + ")") + ": " + ticket);
+							Engine.logBillers.info("JDBCConnectionException on ticket insertion"
+									+ (cause == null ? "" : " (cause by " + cause.getClass().getSimpleName() + ")")
+									+ ": " + ticket);
 						} catch (Exception e) {
-							Engine.logBillers.error("Something failed in ticket insertion : " + ticket, e);
+							Engine.logBillers.error("Something failed in ticket insertion : " + ticket + "\n[" + e.getClass().getName() + "] " + e.getMessage());
 						}
 					}
 				}
 			});
-			
+
 			renewManager(false);
 			consumer.setName("BillingManager consumer");
 			consumer.setDaemon(true);
@@ -102,7 +112,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 
 	public void destroy() throws EngineException {
 		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
-		
+
 		isDestroying = true;
 		tickets = null;
 		consumer = null;
@@ -112,7 +122,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	void insertBilling(Context context) throws EngineException {
 		insertBilling(context, null, null);
 	}
-	
+
 	public synchronized void insertBilling(Context context, Long responseTime, Long score) throws EngineException {
 		if (isDestroying) {
 			return;
@@ -126,13 +136,13 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		if (context.requestedObject == null) {
 			return;
 		}
-		
+
 		try {
 			String username = context.getAuthenticatedUser();
 			username = username == null ? (String) context.get("username") : username;
 			username = username == null ? context.tasUserName : username;
 			username = username == null ? "user" : username;
-			
+
 			Ticket ticket = new Ticket();
 			ticket.setCreationDate(System.currentTimeMillis());
 			ticket.setClientIp(context.remoteAddr);
@@ -143,11 +153,13 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			ticket.setConnectorType(context.connector == null ? "" : context.connector.getClass().getSimpleName());
 			ticket.setRequestableName(context.requestedObject.getName());
 			ticket.setRequestableType(context.requestedObject.getClass().getSimpleName());
-			ticket.setResponseTime(responseTime == null ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT) : responseTime);
+			ticket.setResponseTime(
+					responseTime == null ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT)
+							: responseTime);
 			ticket.setScore(score == null ? context.requestedObject.getScore() : score);
 			ticket.setSessionID(context.httpSession.getId());
 			ticket.setUserAgent(context.userAgent);
-			
+
 			String uiid = (String) context.httpSession.getAttribute(Parameter.UIid.name());
 			String deviceUUID = (String) context.httpSession.getAttribute(Parameter.DeviceUUID.name());
 			if (uiid != null) {
@@ -156,7 +168,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			if (deviceUUID != null) {
 				ticket.setDeviceUUID(deviceUUID);
 			}
-			
+
 			synchronized (tickets) {
 				tickets.add(ticket);
 				tickets.notify();
@@ -165,15 +177,16 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			throw new EngineException("Ticket create failed", e);
 		}
 	}
-	
-	public synchronized void insertBilling(HttpSessionListener sessionListener, String operation) throws EngineException {
+
+	public synchronized void insertBilling(HttpSessionListener sessionListener, String operation)
+			throws EngineException {
 		if (isDestroying) {
 			return;
 		}
 		if (managers.isEmpty()) {
 			return;
 		}
-		
+
 		try {
 			long now = System.currentTimeMillis();
 			long time = now - sessionListener.getCreationTime();
@@ -189,7 +202,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			ticket.setSessionID(sessionListener.getSessionID());
 			ticket.setUserAgent(sessionListener.getUserAgent());
 			ticket.setDeviceUUID(sessionListener.getUuid());
-			
+
 			synchronized (tickets) {
 				tickets.add(ticket);
 				tickets.notify();
@@ -200,7 +213,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	}
 
 	private synchronized void renewManager(boolean justDestroy) throws EngineException {
-		for (ITicketManager manager: managers) {
+		for (ITicketManager manager : managers) {
 			try {
 				manager.destroy();
 			} catch (BillingException e) {
@@ -208,7 +221,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			}
 		}
 		managers.clear();
-		
+
 		if (!justDestroy) {
 			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)) {
 				try {
@@ -217,54 +230,59 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 					throw new EngineException("TicketManager instanciation failed", t);
 				}
 			}
-			
-			String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), "xac909b630d418d27b33d9e01c2f1ff87");
+
 			if (serverMonitor) {
 				try {
-					managers.add(new GoogleAnalyticsTicketManager(key, new NOPLogger(null, "void")));
+					managers.add(new GoogleAnalyticsTicketManager(keys[0], keys[1], new NOPLogger(null, "void")));
 				} catch (Throwable t) {
-					throw new EngineException("TicketManager instanciation failed", t);
 				}
 			}
-			
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED) && !key.equals(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID))) {
+
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)
+					&& (!keys[0].equals(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID))
+							|| !serverMonitor)) {
 				try {
-					managers.add(new GoogleAnalyticsTicketManager(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID), Engine.logBillers));
+					managers.add(new GoogleAnalyticsTicketManager(
+							EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID),
+							EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_SECRET),
+							Engine.logBillers));
 				} catch (Throwable t) {
 					throw new EngineException("TicketManager instanciation failed", t);
 				}
 			}
 		}
 	}
-	
+
 	public void onEvent(PropertyChangeEvent event) {
 		PropertyName name = event.getKey();
 		switch (name) {
-			case ANALYTICS_PERSISTENCE_ENABLED:
-			case ANALYTICS_GOOGLE_ENABLED:
-				try {
-					destroy();
-				} catch(EngineException e) {
-					Engine.logBillers.error("Error on BillingManager.destroy", e);
-				}
-				try {
-					init();
-				} catch(EngineException e) {
-					Engine.logBillers.error("Error on BillingManager.init", e);
-				}
-				break;
-			case ANALYTICS_PERSISTENCE_DIALECT:
-			case ANALYTICS_PERSISTENCE_JDBC_DRIVER:
-			case ANALYTICS_PERSISTENCE_JDBC_PASSWORD:
-			case ANALYTICS_PERSISTENCE_JDBC_URL:
-			case ANALYTICS_PERSISTENCE_JDBC_USERNAME:
-			case ANALYTICS_GOOGLE_ID:
-				try {
-					renewManager(false);
-				} catch (EngineException e) {
-					Engine.logBillers.error("Error on BillingManager.renewManager", e);
-				}
-			default: break;
+		case ANALYTICS_PERSISTENCE_ENABLED:
+		case ANALYTICS_GOOGLE_ENABLED:
+			try {
+				destroy();
+			} catch (EngineException e) {
+				Engine.logBillers.error("Error on BillingManager.destroy: [" + e.getClass().getName() + "] " + e.getMessage());
+			}
+			try {
+				init();
+			} catch (EngineException e) {
+				Engine.logBillers.error("Error on BillingManager.init: [" + e.getClass().getName() + "] " + e.getMessage());
+			}
+			break;
+		case ANALYTICS_PERSISTENCE_DIALECT:
+		case ANALYTICS_PERSISTENCE_JDBC_DRIVER:
+		case ANALYTICS_PERSISTENCE_JDBC_PASSWORD:
+		case ANALYTICS_PERSISTENCE_JDBC_URL:
+		case ANALYTICS_PERSISTENCE_JDBC_USERNAME:
+		case ANALYTICS_GOOGLE_ID:
+		case ANALYTICS_GOOGLE_SECRET:
+			try {
+				renewManager(false);
+			} catch (EngineException e) {
+				Engine.logBillers.error("Error on BillingManager.renewManager [" + e.getClass().getName() + "] " + e.getMessage());
+			}
+		default:
+			break;
 		}
 	}
 }
