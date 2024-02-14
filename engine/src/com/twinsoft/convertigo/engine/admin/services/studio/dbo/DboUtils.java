@@ -58,9 +58,12 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -452,6 +455,7 @@ public class DboUtils {
 	
 					// Bean names equality
 					else if (databaseObject.getName().equals(oldValue)) {
+						
 						// A RequestableVariable changed its name
 						if (dbo instanceof RequestableVariable) {
 							RequestableVariable requestableVariable = (RequestableVariable) dbo;
@@ -478,9 +482,42 @@ public class DboUtils {
 									setDboName(map, databaseObject);
 								}
 							}
+							// refactor UIControlVariable name
+							else if (databaseObject instanceof UIControlVariable) {
+								UIControlVariable uiControlVariable = (UIControlVariable)databaseObject;
+								DatabaseObject parent = uiControlVariable.getParent();
+								if (parent instanceof UIDynamicAction) {
+									IonBean ionBean = ((UIDynamicAction)parent).getIonBean();
+									if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
+										String qname = (String) ionBean.getProperty("requestable").getValue();
+										if (qname != null && rqname.equals(qname)) {
+											setDboName(map, databaseObject);
+										}
+									}
+								}
+							}
+						}
+						// A UIStackVariable changed its name
+						else if (dbo instanceof UIStackVariable) {
+							UIStackVariable uiStackVariable = (UIStackVariable) dbo;
+							String pqname = uiStackVariable.getParent().getQName();
+							
+							// refactor UIControlVariable name
+							if (databaseObject instanceof UIControlVariable) {
+								UIControlVariable uiControlVariable = (UIControlVariable)databaseObject;
+								DatabaseObject parent = uiControlVariable.getParent();
+								if (parent instanceof UIDynamicInvoke) {
+									String qname = ((UIDynamicInvoke) parent).getSharedActionQName();
+									if (qname != null && pqname.equals(qname)) {
+										setDboName(map, databaseObject);
+									}
+								}
+							}
+							
 						}
 					}
 					
+					// Bean property equals token (qname)
 					if (oldToken != null && newToken != null) {
 						if (databaseObject instanceof TransactionStep) {
 							TransactionStep transactionStep = (TransactionStep)databaseObject;
@@ -507,6 +544,26 @@ public class DboUtils {
 								urlAuthentication.setAuthRequestable(newToken);
 								urlAuthentication.hasChanged = true;
 								map.addEvent(oldQName, "authRequestable", urlAuthentication, oldToken, newToken);
+							}
+						}
+						else if (databaseObject instanceof UIDynamicInvoke) {
+							UIDynamicInvoke uiDynamicInvoke = (UIDynamicInvoke)databaseObject;
+							if (uiDynamicInvoke.getSharedActionQName().equals(oldToken)) {
+								String oldQName = uiDynamicInvoke.getFullQName();
+								uiDynamicInvoke.setSharedActionQName(newToken);
+								uiDynamicInvoke.hasChanged = true;
+								map.addEvent(oldQName, "stack", uiDynamicInvoke, oldToken, newToken);
+							}
+						} else if (databaseObject instanceof UIDynamicAction) {
+							UIDynamicAction uiDynamicAction = (UIDynamicAction)databaseObject;
+							IonBean ionBean = uiDynamicAction.getIonBean();
+							if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
+								if (ionBean.getProperty("requestable").getValue().equals(oldToken)) {
+									String oldQName = uiDynamicAction.getFullQName();
+									ionBean.setPropertyValue("requestable", new MobileSmartSourceType(newToken));
+									uiDynamicAction.hasChanged = true;
+									map.addEvent(oldQName, "requestable", uiDynamicAction, oldToken, newToken);
+								}
 							}
 						}
 					}
@@ -602,6 +659,23 @@ public class DboUtils {
 												sourcesUpdated = true;
 											}
 										} catch (Exception e) {}
+									}
+								}
+							} else if (dbo instanceof UIControlVariable) {
+								if (!newValue.equals(oldValue)) {
+									UIComponent obj = databaseObject;
+									DatabaseObject p = dbo.getParent();
+									if (obj.getQName().startsWith(p.getQName())) {
+										boolean doIt = false; //true; //TODO: obj.checkSmartSource
+										if (doIt) {
+											String oldName = (String)oldValue;
+											String newName = (String)newValue;
+											try {
+												if (obj.updateSmartSource("((?:\"|vars)\\??\\.)"+oldName+"\\b", "$1"+newName)) {
+													sourcesUpdated = true;
+												}
+											} catch (Exception e) {}
+										}
 									}
 								}
 							}
