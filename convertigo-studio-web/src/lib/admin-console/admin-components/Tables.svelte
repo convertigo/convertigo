@@ -1,12 +1,13 @@
 <script>
 	export let headers = [];
+	export let customStyle = '';
 </script>
 
-<table class="rounded-xl table">
+<table style={customStyle} class="rounded-xl table">
 	<thead class="rounded-xl">
 		<tr>
 			{#each headers as header}
-				<th class="header dark:text-surface-100 text-white font-normal">{header}</th>
+				<th class="header dark:text-surface-100 text-surface-800 font-normal">{header}</th>
 			{/each}
 		</tr>
 	</thead>
@@ -17,6 +18,6 @@
 
 <style lang="postcss">
 	.header {
-		@apply dark:bg-surface-600 bg-surface-300 border-b-[1px] dark:border-primary-100 border-primary-100;
+		@apply dark:bg-surface-800 bg-white border-b-[1px] dark:border-primary-100 border-primary-100;
 	}
 </style>

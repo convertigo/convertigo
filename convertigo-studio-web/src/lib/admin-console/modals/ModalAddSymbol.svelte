@@ -13,7 +13,7 @@
 	/**
 	 * @param {SubmitEvent} event
 	 */
-	async function addGlobalSymbol(event) {
+	export async function addGlobalSymbol(event) {
 		event.preventDefault();
 		if (event.submitter?.textContent == 'Confirm') {
 			const fd = new FormData(event.target);

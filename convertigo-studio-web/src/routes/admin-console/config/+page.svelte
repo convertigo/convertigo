@@ -1,8 +1,18 @@
 <script>
 	import Icon from '@iconify/svelte';
-	import { Accordion, AccordionItem, ListBox, ListBoxItem, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		Accordion,
+		AccordionItem,
+		ListBox,
+		ListBoxItem,
+		getModalStore
+	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { refreshConfigurations, configurations, updateConfiguration } from '$lib/admin-console/stores/configurationStore';
+	import {
+		refreshConfigurations,
+		configurations,
+		updateConfiguration
+	} from '$lib/admin-console/stores/configurationStore';
 	import PropertyType from '$lib/admin-console/admin-components/PropertyType.svelte';
 	import Card from '$lib/admin-console/admin-components/Card.svelte';
 	import { get } from 'svelte/store';
@@ -66,11 +76,13 @@
 			<Card title={category['@_displayName']}>
 				<button
 					type="button"
-					class="btn p-1 pl-5 pr-5 mb-5 w-80 variant-filled"
+					class="btn p-1 pl-5 pr-5 mb-5 w-80 bg-buttons font-normal rounded-full font-medium"
 					on:click={saveChanges}
 				>
-					<span><Icon icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
-					<span class="text-[13px] font-light">Save changes</span>
+					<span
+						><Icon icon="material-symbols-light:save-as-outline" class="w-6 h-6 text-white" /></span
+					>
+					<span class="text-[13px] text-white">Save changes</span>
 				</button>
 
 				<div class="flex grid md:grid-cols-2 grid-cols-1 gap-5">
@@ -102,9 +114,7 @@
 												{propertyIndex}
 												bind:hasUnsavedChanges
 											/>
-										{:else}
-										
-										{/if}
+										{:else}{/if}
 									{/each}
 								</div>
 							</svelte:fragment>
@@ -117,10 +127,10 @@
 			<div class="flex flex-col h-auto md:col-span-1 rounded-2xl">
 				<ListBox active="dark:bg-surface-600 bg-surface-50">
 					{#each $configurations?.admin?.category as category, index}
-						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">	
+						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">
 							<div class="flex">
 								<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
-								{category['@_displayName']}		
+								{category['@_displayName']}
 							</div>
 						</ListBoxItem>
 					{/each}

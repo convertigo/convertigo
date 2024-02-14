@@ -5,7 +5,8 @@
 		getEnvironmentVar,
 		environmentVariables,
 		globalSymbols,
-		globalSymbolsList
+		globalSymbolsList,
+		defaultSymbolList
 	} from '$lib/admin-console/stores/symbolsStore.js';
 	import Icon from '@iconify/svelte';
 	import { call } from '$lib/utils/service';
@@ -46,6 +47,27 @@
 			}
 		} catch (error) {
 			console.error(error);
+		}
+	}
+
+	async function addDefaultSymbol(defaultSymbol) {
+		if (!defaultSymbol || !defaultSymbol['@_name'] || !defaultSymbol['@_value']) {
+			console.error('symbole name or value is empty');
+
+			return;
+		}
+
+		let fd = new FormData();
+		fd.append('symbolName', defaultSymbol['@_name']);
+		fd.append('symbolValue', defaultSymbol['@_value']);
+
+		try {
+			//@ts-ignore
+			const response = await call('global_symbols.Add', fd);
+			console.log(response);
+			globalSymbols();
+		} catch (err) {
+			console.error(err);
 		}
 	}
 
@@ -91,22 +113,22 @@
 
 <Card title="Global Symbols">
 	<div class="flex gap-5 mb-10">
-		<button class="btn variant-filled" on:click={openAddGlobalSymbolModal}>
+		<button class="btn bg-buttons text-white" on:click={openAddGlobalSymbolModal}>
 			<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 			Add symbols</button
 		>
-		<button class="btn variant-filled" on:click={openAddSecretSymbols}>
+		<button class="btn bg-buttons text-white" on:click={openAddSecretSymbols}>
 			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
 			Add secret symbols
 		</button>
 
-		<button class="btn variant-filled" on:click={openImportSymbols}
+		<button class="btn bg-buttons text-white" on:click={openImportSymbols}
 			><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />import symbols</button
 		>
-		<button class="btn variant-filled"
+		<button class="btn bg-buttons text-white"
 			><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
 		>
-		<button class="btn variant-filled"
+		<button class="btn bg-buttons text-white"
 			><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
 		>
 	</div>
@@ -120,21 +142,47 @@
 	<Tables headers={['Name', 'Value', 'Edit', 'Delete']}>
 		{#each $globalSymbolsList as globalSymbols}
 			<tr>
-				<td>{globalSymbols['@_name']}</td>
-				<td>{globalSymbols['@_value']}</td>
-				<td><Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" /></td>
+				<td class="align">{globalSymbols['@_name']}</td>
+				<td class="align">{globalSymbols['@_value']}</td>
+				<td class="align"><Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" /></td>
 
-				<td>
+				<td class="align">
 					<button
-						class="btn variant-filled px-4 py-1 rounded-xl"
+						class="btn p-1 px-2 shadow-md"
 						on:click={() => confirmSymbolDeletion(globalSymbols['@_name'])}
 					>
-						<Icon icon="material-symbols-light:delete-outline" class="w-4 h-4" />
+						<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 					</button>
 				</td>
 			</tr>
 		{/each}
 	</Tables>
+	<p class="dark:text-surface-100 text-surface-700 font-bold mt-20 w-[70%]">
+		List of global symbols with default value currently used. You can import them as regular symbol.
+	</p>
+
+	{#if $defaultSymbolList.length > 0}
+		<Tables
+			customStyle="margin-top: 20px; margin-bottom: 20px; "
+			headers={['Project', 'Name', 'Value', 'Add']}
+		>
+			{#each $defaultSymbolList as defaultSymbol}
+				<tr>
+					<td class="align">{defaultSymbol['@_project']}</td>
+					<td class="align">{defaultSymbol['@_name']}</td>
+					<td class="align">{defaultSymbol['@_value']}</td>
+
+					<td>
+						<button class="btn p-1 px-2 shadow-md" on:click={() => addDefaultSymbol(defaultSymbol)}>
+							<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+						</button>
+					</td>
+				</tr>
+			{/each}
+		</Tables>
+	{:else}
+		no data
+	{/if}
 </Card>
 
 <Card customStyle={customCard} title="Environment Variables">
@@ -147,3 +195,6 @@
 		{/each}
 	</Tables>
 </Card>
+
+<style lang="postcss">
+</style>

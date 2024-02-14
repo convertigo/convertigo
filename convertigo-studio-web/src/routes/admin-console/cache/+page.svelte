@@ -83,6 +83,7 @@
 							name="cacheType"
 							value="com.twinsoft.convertigo.engine.cache.FileCacheManager"
 							id="cacheTypeFile"
+							active="bg-buttons text-white"
 						>
 							<label for="cacheTypeFile" class="text-[14px]">file</label>
 						</RadioItem>
@@ -91,18 +92,19 @@
 							name="cacheType"
 							value="com.twinsoft.convertigo.engine.cache.DatabaseCacheManager"
 							id="cacheTypeDatabase"
+							active="bg-buttons text-white"
 						>
 							<label for="cacheTypeDatabase" class="text-[14px]">database</label>
 						</RadioItem>
 					</RadioGroup>
 
-					<button type="submit" class="ml-5 btn variant-filled">Apply</button>
+					<button type="submit" class="ml-5 btn bg-buttons text-white">Apply</button>
 				</div>
 			</div>
 		</Card>
 
 		{#if cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
-		<Card title="Database configurations" customStyle="margin-top: 20px;">
+			<Card title="Database configurations" customStyle="margin-top: 20px;">
 				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl ">
 					<AccordionItem
 						class="dark:bg-surface-800 bg-white rounded-xl"
@@ -155,7 +157,9 @@
 							<div class="mt-3">
 								<Card>
 									<div class="flex justify-center">
-										<button type="submit" class="btn variant-filled">Create table and apply</button>
+										<button type="submit" class="btn bg-buttons text-white"
+											>Create table and apply</button
+										>
 									</div>
 								</Card>
 							</div>
@@ -164,7 +168,6 @@
 				</Accordion>
 			</Card>
 		{/if}
-		
 	</form>
 {:else}
 	Loading

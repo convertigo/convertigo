@@ -19,19 +19,23 @@
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
-		<a href="https://github.com/convertigo/convertigo" target="_blank" class="flex items-center btn font-normal">
-			<p>Star us on</p>
+		<a
+			href="https://github.com/convertigo/convertigo"
+			target="_blank"
+			class="flex items-center btn font-normal"
+		>
+			<p class="">Star us on</p>
 			<Icon icon="logos:github" />
 		</a>
-		
+
 		<div class="pr-4 p-1 flex items-center space-x-5">
 			<button
 				type="button"
-				class="btn p-1 pl-5 pr-5 btn variant-filled"
+				class="btn p-1 pl-5 pr-5 text-white bg-buttons font-normal rounded-full font-medium"
 				on:click={() => goto('/ui/dev')}
 			>
-				<span><Icon icon="material-symbols-light:design-services-outline-sharp" /></span>
-				<span class="text-[13px] font-light">Go to studio</span>
+				<Icon icon="arcticons:gearup-booster" class="w-7 h-7" />
+				<span class="text-[13px] font-medium">Go to studio</span>
 			</button>
 			<LightSwitch />
 			<Icon icon="ph:gear-six-thin" class="w-6 h-6" />

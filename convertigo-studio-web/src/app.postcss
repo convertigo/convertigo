@@ -57,6 +57,7 @@ td {
 	text-align: left;
 	font-weight: 300;
 	font-size: 15px;
+	@apply align-middle !important;
 }
 th {
 	@apply dark:border-surface-900;
@@ -70,4 +71,12 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
 	@apply dark:bg-surface-900 bg-white;
+}
+
+.bg-buttons {
+	background-color: #4285f4;
+}
+
+.align {
+	@apply align-middle;
 }

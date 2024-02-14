@@ -54,7 +54,7 @@
 	function openModal(keyText) {
 		const confirmDeleted = {
 			title: 'Key deleted with success'
-		}
+		};
 		const modalOptions = {
 			type: 'confirm',
 			title: 'Please confirm',
@@ -99,14 +99,13 @@
 	async function handleFormSubmit() {
 		const modalSuccess = {
 			title: 'key added with success'
-		}
+		};
 		try {
 			await keysUpdate(newKey);
 			newKey = '';
-			
+
 			//@ts-ignore
 			keyModalStore.trigger(modalSuccess);
-
 		} catch (err) {
 			console.error(err);
 		}
@@ -122,7 +121,7 @@
 				class="dark:text-black text-surface-800 placeholder:text-surface-200 rounded-xl w-80 dark:bg-surface-500 bg-white border-surface-200"
 				placeholder="Enter a new key"
 			/>
-			<button type="submit" class="btn variant-filled ml-5">Add Key</button>
+			<button type="submit" class="btn bg-buttons text-white ml-5">Add Key</button>
 		</form>
 	</div>
 </Card>
@@ -154,10 +153,8 @@
 							<td>{category['@_remaining']}</td>
 
 							<td>
-								<button
-									class="btn variant-filled py-1 rounded-xl"
-									on:click={() => openModal(key['@_text'])}
-									><Icon icon="material-symbols-light:delete-outline" class="h-4 w-4" />
+								<button on:click={() => openModal(key['@_text'])}
+									><Icon icon="material-symbols-light:delete-outline" class="h-7 w-7" />
 								</button>
 							</td>
 						</tr>

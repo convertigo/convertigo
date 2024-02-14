@@ -7,18 +7,10 @@
 	export let placeholder = 'Enter value ..';
 </script>
 
-<div class="input-field border-common mt-5 ">
+<div class="input-field border-common mt-5">
 	<label for={id} class="label-common">{label}</label>
-		<input
-        id={id}
-        name={name}
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        class="input-common input-text"
-        />
+	<input {id} {name} {type} {value} {placeholder} class="input-common input-text" />
 </div>
-
 
 <style lang="postcss">
 	/**style for label*/
@@ -44,7 +36,7 @@
 		@apply border-b-[1px] dark:border-surface-600 border-surface-100;
 	}
 
-	.green{
+	.green {
 		background-color: green;
 	}
 </style>

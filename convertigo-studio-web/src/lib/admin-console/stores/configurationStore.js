@@ -37,6 +37,4 @@ export async function updateConfiguration(categoryIndex, propertyIndex, newValue
 	} else {
 		console.error('invalid Value:', newValue);
 	}
-	
 }
-		
