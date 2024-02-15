@@ -1,8 +1,9 @@
 <script>
 	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
-	import { goto } from '$app/navigation';
 	import PagesRailToggle from '../admin-components/PagesRailToggle.svelte';
+	import { assets, base } from '$app/paths';
+	import { monitorData } from '../stores/monitorStore';
 </script>
 
 <AppBar
@@ -12,10 +13,15 @@
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
-		<img src="/logo.png" alt="logo convertigo" class="w-10 h-full mr-5 ml-3" />
+		<img src="{assets}/logo.png" alt="logo convertigo" class="w-10 h-full mr-5 ml-3" />
 		<h1 class="font-normal dark:text-surface-200 text-surface-800 hidden md:block">
 			Convertigo Admin Console
 		</h1>
+		{#if $monitorData.time > 0}
+			<span class="m-2 p-1 border-[1px] rounded font-mono text-xs"
+				>{new Date($monitorData.time).toTimeString().split(' ')[0]}</span
+			>
+		{/if}
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
@@ -24,19 +30,15 @@
 			target="_blank"
 			class="flex items-center btn font-normal"
 		>
-			<p class="">Star us on</p>
+			<p>Star us on</p>
 			<Icon icon="logos:github" />
 		</a>
 
 		<div class="pr-4 p-1 flex items-center space-x-5">
-			<button
-				type="button"
-				class="btn p-1 pl-5 pr-5 text-white bg-buttons font-normal rounded-full font-medium"
-				on:click={() => goto('/ui/dev')}
-			>
-				<Icon icon="arcticons:gearup-booster" class="w-7 h-7" />
-				<span class="text-[13px] font-medium">Go to studio</span>
-			</button>
+			<a type="button" class="btn p-1 pl-5 pr-5 btn variant-filled" href="{base}/ui/dev">
+				<span><Icon icon="material-symbols-light:design-services-outline-sharp" /></span>
+				<span class="text-[13px] font-light">Go to studio</span>
+			</a>
 			<LightSwitch />
 			<Icon icon="ph:gear-six-thin" class="w-6 h-6" />
 		</div>

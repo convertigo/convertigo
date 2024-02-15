@@ -31,11 +31,14 @@
 			type: 'confirm',
 			title: 'Please confirm',
 			body: 'Are you sure you want to proceed?',
-			response: async (confirmed) => {
+			response: /** @param {boolean} confirmed */ async (confirmed) => {
 				if (confirmed) {
 					const currentConfigurations = get(configurations);
-					for (const [categoryIndex, category] of currentConfigurations.admin.category.entries()) {
-						for (const [propertyIndex, property] of category.property.entries()) {
+					for (const [
+						categoryIndex,
+						category
+					] of currentConfigurations.admin?.category?.entries()) {
+						for (const [propertyIndex, property] of category.property?.entries()) {
 							if (property['@_value']) {
 								await updateConfiguration(categoryIndex, propertyIndex, property['@_value']);
 							}
@@ -70,7 +73,6 @@
 
 {#if 'admin' in $configurations}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
-	{@debug $configurations}
 	<div class="flex flex-col grid md:grid-cols-5 gap-5">
 		<div class="flex flex-col h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
@@ -85,7 +87,7 @@
 					<span class="text-[13px] text-white">Save changes</span>
 				</button>
 
-				<div class="flex grid md:grid-cols-2 grid-cols-1 gap-5">
+				<div class="grid md:grid-cols-2 grid-cols-1 gap-5">
 					{#each category.property as property, propertyIndex}
 						{#if property['@_isAdvanced'] !== 'true'}
 							<PropertyType {property} {selectedIndex} {propertyIndex} bind:hasUnsavedChanges />
@@ -94,48 +96,44 @@
 				</div>
 			</Card>
 
-			<div class="mt-10">
-				<Card title="Advanced properties">
-					<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
-						<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
-							<svelte:fragment slot="lead"
-								><Icon icon="game-icons:level-three-advanced" />
-							</svelte:fragment>
-							<svelte:fragment slot="summary">
-								<p>Advanced properties</p>
-							</svelte:fragment>
-							<svelte:fragment slot="content">
-								<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
-									{#each category.property as property, propertyIndex}
-										{#if property['@_isAdvanced'] == 'true'}
-											<PropertyType
-												{property}
-												{selectedIndex}
-												{propertyIndex}
-												bind:hasUnsavedChanges
-											/>
-										{:else}{/if}
-									{/each}
-								</div>
-							</svelte:fragment>
-						</AccordionItem>
-					</Accordion>
-				</Card>
-			</div>
-		</div>
-		<Card>
-			<div class="flex flex-col h-auto md:col-span-1 rounded-2xl">
-				<ListBox active="dark:bg-surface-600 bg-surface-50">
-					{#each $configurations?.admin?.category as category, index}
-						<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">
-							<div class="flex">
-								<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
-								{category['@_displayName']}
+			<Card title="Advanced properties" class="mt-10">
+				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
+					<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
+						<svelte:fragment slot="lead"
+							><Icon icon="game-icons:level-three-advanced" />
+						</svelte:fragment>
+						<svelte:fragment slot="summary">
+							<p>Advanced properties</p>
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
+								{#each category.property as property, propertyIndex}
+									{#if property['@_isAdvanced'] == 'true'}
+										<PropertyType
+											{property}
+											{selectedIndex}
+											{propertyIndex}
+											bind:hasUnsavedChanges
+										/>
+									{:else}{/if}
+								{/each}
 							</div>
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</div>
+						</svelte:fragment>
+					</AccordionItem>
+				</Accordion>
+			</Card>
+		</div>
+		<Card class="flex flex-col h-auto md:col-span-1 rounded-2xl">
+			<ListBox active="dark:bg-surface-600 bg-surface-50">
+				{#each $configurations?.admin?.category as category, index}
+					<ListBoxItem bind:group={selectedIndex} name="category" value={index} class="flex">
+						<div class="flex">
+							<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
+							{category['@_displayName']}
+						</div>
+					</ListBoxItem>
+				{/each}
+			</ListBox>
 		</Card>
 	</div>
 {/if}

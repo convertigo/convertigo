@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';
+	import { modeCurrent } from '@skeletonlabs/skeleton';
 	export let categories;
 	export let series;
 	export let title;
@@ -11,7 +12,7 @@
 	/** @type {any} */
 	let options = {
 		theme: {
-			mode: 'light'
+			mode: $modeCurrent ? 'light' : 'dark'
 		},
 		title: {
 			text: title
@@ -56,12 +57,19 @@
 			offsetX: 0
 		}
 	};
+
 	$: if (categories && categories.length > 0 && series && series.length > 0 && chart != undefined) {
+		delete options.chart.foreColor;
+		delete options.chart.background;
+		delete options.theme.palette;
+
+		options.theme.mode = $modeCurrent ? 'light' : 'dark';
 		options.xaxis.categories = categories;
 		options.series = series;
 		chart.updateOptions(options);
 	}
-	onMount(async () => {
+
+	onMount(() => {
 		chart = new ApexCharts(chartEl, options);
 		chart.render();
 	});

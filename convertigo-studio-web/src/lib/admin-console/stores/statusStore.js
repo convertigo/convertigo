@@ -1,5 +1,5 @@
 import { call } from '$lib/utils/service';
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 export const locale = writable('');
 export const timezone = writable('');

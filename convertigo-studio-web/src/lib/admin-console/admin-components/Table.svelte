@@ -23,7 +23,13 @@
 		{#each data as row}
 			<tr>
 				{#each headers as header}
-					<td class="font-normal">{row[header]}</td>
+					<td class="font-normal">
+						{#if row[header] != null}
+							{row[header]}
+						{:else}
+							<div class="placeholder animate-pulse w-full min-w-32"></div>
+						{/if}
+					</td>
 				{/each}
 			</tr>
 		{/each}

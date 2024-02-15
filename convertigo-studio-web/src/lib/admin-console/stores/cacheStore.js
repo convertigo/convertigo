@@ -1,6 +1,5 @@
 import { call } from '$lib/utils/service';
 import { writable } from 'svelte/store';
-import { updateConfiguration } from './configurationStore';
 
 export const cacheProperties = writable({});
 export const cacheConfiguration = writable({});

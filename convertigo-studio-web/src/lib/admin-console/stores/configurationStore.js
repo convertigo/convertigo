@@ -1,10 +1,11 @@
 import { call, callXml } from '$lib/utils/service';
 import { get, writable } from 'svelte/store';
 
-export let configurations = writable(/** @type {any []} */ {});
+/** @type {import('svelte/store').Writable<any>} */
+export let configurations = writable({});
 
 export async function refreshConfigurations() {
-	configurations.set(await call('configuration.List', {}));
+	configurations.set(await call('configuration.List'));
 }
 
 export function getPropertyKey(categoryIndex, propertyIndex) {

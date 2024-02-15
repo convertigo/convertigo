@@ -8,7 +8,6 @@
 		licenceExpired
 	} from '../stores/statusStore';
 	import Table from '../admin-components/Table.svelte';
-	import Tables from '../admin-components/Tables.svelte';
 	export let time;
 	export let startTime;
 	export let engineState;
@@ -16,16 +15,25 @@
 	let headers = ['Name', 'Value'];
 
 	let showHeaders = false;
+	/** @type {{Name: string, Value: string|null}[]} */
+	let data;
 
-	const data = [
-		{ Name: 'Engine State', Value: engineState ? 'Running' : 'Stopped' },
-		{ Name: 'Convertigo Version', Value: $product },
-		{ Name: 'Last Startup', Value: new Date(startTime).toLocaleString() },
-		{ Name: 'Uptime', Value: new Date(time - startTime).toLocaleTimeString() },
-		{ Name: 'License Type', Value: $licenceType },
-		{ Name: 'License n°', Value: $licenceNumber },
-		{ Name: 'License expiration date', Value: $licenceExpired }
-	];
+	$: {
+		data = [
+			{ Name: 'Engine State', Value: engineState ? 'Running' : 'Stopped' },
+			{ Name: 'Convertigo Version', Value: $product },
+			{ Name: 'Last Startup', Value: new Date(startTime).toLocaleString() },
+			{ Name: 'Uptime', Value: new Date(time - startTime).toLocaleTimeString() },
+			{ Name: 'License Type', Value: $licenceType },
+			{ Name: 'License n°', Value: $licenceNumber },
+			{ Name: 'License expiration date', Value: $licenceExpired }
+		];
+		if ($product == '') {
+			for (let d of data) {
+				d.Value = null;
+			}
+		}
+	}
 	onMount(() => {
 		statusCheck();
 	});

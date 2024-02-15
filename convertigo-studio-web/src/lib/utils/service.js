@@ -9,14 +9,37 @@ loading.subscribe((n) => (cpt = n));
  */
 export async function call(service, data = {}) {
 	let url = getUrl() + service;
+	let body;
+	let headers = {
+		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+	};
+	if (data instanceof FormData) {
+		let files = new FormData();
+		for (let [key, value] of data.entries()) {
+			key = /** @type {string} */ (key);
+			if (value instanceof File) {
+				files.append(key, value);
+				data.delete(key);
+			}
+		}
+		if (!files.keys().next().done) {
+			body = files;
+			let query = new URLSearchParams(data).toString();
+			if (query.length) {
+				url += `${url.includes('?') ? '&' : '?'}${query}`;
+			}
+		}
+	}
+	if (!body) {
+		body = new URLSearchParams(data);
+		headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	}
+
 	loading.set(cpt + 1);
 	let res = await fetch(url, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
-		},
-		body: new URLSearchParams(data),
+		headers,
+		body,
 		credentials: 'include'
 	});
 	loading.set(cpt - 1);

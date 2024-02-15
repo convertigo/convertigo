@@ -38,7 +38,12 @@
 				False
 			</RadioItem>
 		</RadioGroup>
-		<label class="label-common ml-5" for={id}>{property['@_description']}</label>
+		<a
+			class="label-common ml-5"
+			href={''}
+			on:click|preventDefault={() => (booleanValue = booleanValue == 'true' ? 'false' : 'true')}
+			>{property['@_description']}</a
+		>
 	</div>
 {/if}
 

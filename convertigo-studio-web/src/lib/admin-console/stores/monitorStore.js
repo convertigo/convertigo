@@ -1,6 +1,7 @@
 import { call } from '$lib/utils/service';
 import { writable } from 'svelte/store';
 let interval = null;
+let secInterval = null;
 export const monitorData = writable({
 	delay: 2000,
 	maxSaved: 100,
@@ -25,6 +26,7 @@ export function monitorCheck() {
 		const _delay = $monitorData.delay;
 		if (interval == null && _delay > 0) {
 			interval = window.setInterval(async () => {
+				window.clearInterval(secInterval);
 				const response = await call('engine.JsonMonitor');
 
 				if ('engineState' in response) {
@@ -40,6 +42,10 @@ export function monitorCheck() {
 							$monitorData[key] = response[key];
 						}
 					});
+					secInterval = window.setInterval(() => {
+						$monitorData.time += 1000;
+						monitorData.set($monitorData);
+					}, 1000);
 				}
 				monitorData.set($monitorData);
 				isLoading.set(false);
@@ -55,6 +61,3 @@ export function monitorCheck() {
 		}
 	});
 }
-monitorData.subscribe(($data) => {
-	console.log($data);
-});
