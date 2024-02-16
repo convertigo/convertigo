@@ -16,6 +16,7 @@
 	export async function addGlobalSymbol(event) {
 		event.preventDefault();
 		if (event.submitter?.textContent == 'Confirm') {
+			//@ts-ignore
 			const fd = new FormData(event.target);
 			if (mode == 'secret') {
 				fd.set('symbolName', fd.get('symbolName') + '.secret');
@@ -55,7 +56,7 @@
 </script>
 
 {#if mode == 'import'}
-	<form class="p-10 rounded-xl glass flex flex-col">
+	<form class="p-10 rounded-xl flex flex-col">
 		<h1 class="text-xl mb-5 text-center">Import global symbols</h1>
 		<RadioGroup>
 			<RadioItem bind:group={importAction} name="action-import" value="clear-import"
@@ -88,7 +89,7 @@
 		>
 	</form>
 {:else}
-	<form on:submit={addGlobalSymbol} class="p-10 rounded-xl glass">
+	<form on:submit={addGlobalSymbol} class="p-10 rounded-xl">
 		<h1 class="text-2xl mb-5">Add a new {prefix}symbol</h1>
 		{#if mode == 'secret'}
 			<p class="mb-5">
@@ -96,20 +97,20 @@
 			</p>
 		{/if}
 		<div class="flex gap-5">
-			<label>
+			<label class="border-common">
 				<p class="font-light text-[14px]">Enter {prefix}symbol name :</p>
-				<input placeholder="{prefix}name" name="symbolName" class="text-black" />
+				<input placeholder="{prefix}name" name="symbolName" class="input-common" />
 				{#if mode == 'secret'}
 					<span>.secret</span>
 				{/if}
 			</label>
-			<label>
+			<label class="border-common">
 				<p class="font-light text-[14px]">Enter {prefix}symbol value :</p>
-				<input placeholder="{prefix}value" {type} name="symbolValue" class="text-black" />
+				<input placeholder="{prefix}value" {type} name="symbolValue" class="input-common" />
 			</label>
 		</div>
-		<button type="submit" class="mt-5 btn bg-white text-black font-light">Confirm</button>
-		<button class="mt-5 btn bg-white text-black font-light" on:click={() => modalStore.close()}
+		<button type="submit" class="btn bg-buttons text-white mt-5">Confirm</button>
+		<button class="btn bg-buttons text-white mt-5" on:click={() => modalStore.close()}
 			>Cancel</button
 		>
 	</form>

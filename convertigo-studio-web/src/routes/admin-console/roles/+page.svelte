@@ -16,7 +16,7 @@
 		usersList();
 	});
 
-	async function usersList() {
+	export async function usersList() {
 		const res = await call('roles.List');
 		console.log('roles List', res);
 
@@ -56,6 +56,12 @@
 		}
 	}
 
+	async function deleteAllRoles() {
+		const response = await call('roles.DeleteAll');
+		usersList();
+		console.log('delete all', response);
+	}
+
 	function openAddUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
@@ -81,11 +87,33 @@
 	}
 
 	function openDeleteAllModal() {
-		rolesModalStore.trigger({
-			type: 'component',
-			component: { ref: ModalAddRoles },
-			meta: { mode: 'delete all' }
-		});
+		const modalDeleteConfirmation = {
+			type: 'confirm',
+			title: 'Please confirm',
+			body: 'Are you sure you want to proceed ? All roles are going to be Deleted ..',
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteAllRoles();
+				}
+			}
+		};
+		//@ts-ignore
+		rolesModalStore.trigger(modalDeleteConfirmation);
+	}
+
+	function openDeleteModal(userName) {
+		const modalDeleteConfirmation = {
+			type: 'confirm',
+			title: 'Please confirm',
+			body: 'Are you sure you want to proceed ?',
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteUsersRoles(userName);
+				}
+			}
+		};
+		//@ts-ignore
+		rolesModalStore.trigger(modalDeleteConfirmation);
 	}
 </script>
 
@@ -118,7 +146,7 @@
 					</button>
 				</td>
 				<td>
-					<button class="btn p-1 px-2 shadow-md" on:click={() => deleteUsersRoles(users['@_name'])}
+					<button class="btn p-1 px-2 shadow-md" on:click={() => openDeleteModal(users['@_name'])}
 						><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 					</button>
 				</td>

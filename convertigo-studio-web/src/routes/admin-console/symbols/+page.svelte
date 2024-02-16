@@ -50,6 +50,12 @@
 		}
 	}
 
+	async function deleteAllSymbols() {
+		const res = await call('global_symbols.DeleteAll');
+		console.log('delete all', res);
+		globalSymbols();
+	}
+
 	async function addDefaultSymbol(defaultSymbol) {
 		if (!defaultSymbol || !defaultSymbol['@_name'] || !defaultSymbol['@_value']) {
 			console.error('symbole name or value is empty');
@@ -84,6 +90,21 @@
 		};
 		// @ts-ignore
 		symbolModalStore.trigger(modalSettings);
+	}
+
+	function confirmDeleteAll() {
+		const modalDeleteAll = {
+			type: 'confirm',
+			title: 'Please Confirm',
+			body: 'Are you sure you wish to proceed ?',
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteAllSymbols();
+				}
+			}
+		};
+		// @ts-ignore
+		symbolModalStore.trigger(modalDeleteAll);
 	}
 
 	function openAddGlobalSymbolModal() {
@@ -128,7 +149,7 @@
 		<button class="btn bg-buttons text-white"
 			><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
 		>
-		<button class="btn bg-buttons text-white"
+		<button class="btn bg-buttons text-white" on:click={confirmDeleteAll}
 			><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
 		>
 	</div>

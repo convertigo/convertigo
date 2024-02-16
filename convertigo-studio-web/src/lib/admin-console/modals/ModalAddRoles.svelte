@@ -1,5 +1,5 @@
 <script>
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { RadioGroup, RadioItem, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../admin-components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
@@ -11,21 +11,32 @@
 
 	let viewRolesStore = writable([]);
 	let configRolesStore = writable([]);
+	let otherRolesStore = writable([]);
 
 	let viewRolesChecked = false;
 	let configRolesChecked = false;
 
-	function toggleViewRoles(shouldBeChecked) {
-		viewRolesChecked = shouldBeChecked;
-	}
-
-	function toggleConfigRoles(shouldBeChecked) {
-		configRolesChecked = shouldBeChecked;
-	}
+	let importAction = '';
+	let importPriority = 'priority-import';
 
 	onMount(() => {
 		rolesList();
 	});
+
+	function toggleViewRoles(shouldBeChecked) {
+		viewRolesChecked = shouldBeChecked;
+		//@ts-ignore
+		viewRolesStore.update((roles) => roles.map((role) => ({ ...role, selected: shouldBeChecked })));
+	}
+
+	function toggleConfigRoles(shouldBeChecked) {
+		configRolesChecked = shouldBeChecked;
+		//@ts-ignore
+		configRolesStore.update((roles) =>
+			//@ts-ignore
+			roles.map((role) => ({ ...role, selected: shouldBeChecked }))
+		);
+	}
 
 	async function rolesList() {
 		const res = await call('roles.List');
@@ -33,12 +44,32 @@
 
 		const roleArray = res?.admin?.roles?.role;
 		if (roleArray) {
-			const viewRoles = roleArray.filter((role) => role['@_name'].endsWith('_VIEW'));
-			const configRoles = roleArray.filter((role) => role['@_name'].endsWith('_CONFIG'));
+			const viewRoles = roleArray
+				.filter((role) => role['@_name'].endsWith('_VIEW'))
+				.map((role) => ({ ...role, selected: false }));
+			const configRoles = roleArray
+				.filter((role) => role['@_name'].endsWith('_CONFIG'))
+				.map((role) => ({ ...role, selected: false }));
+			const otherRoles = roleArray
+				.filter((role) => !role['@_name'].endsWith('_VIEW') && !role['@_name'].endsWith('_CONFIG'))
+				.map((role) => ({ ...role, selected: false }));
 
 			viewRolesStore.set(viewRoles);
 			configRolesStore.set(configRoles);
+			otherRolesStore.set(otherRoles);
 		}
+	}
+
+	function toggleRoleSelection(roleName, roleType) {
+		const store = roleType === 'view' ? viewRolesStore : configRolesStore;
+		//@ts-ignore
+		store.update((roles) =>
+			//@ts-ignore
+			roles.map((role) =>
+				//@ts-ignore
+				role['@_name'] === roleName ? { ...role, selected: !role.selected } : role
+			)
+		);
 	}
 
 	async function rolesAdd(event) {
@@ -48,8 +79,23 @@
 		//@ts-ignore
 		const res = await call('roles.Add', fd);
 		console.log('role add res:', res);
-		rolesList();
 		modalStore.close();
+	}
+
+	/**
+	 * @param {Event} e
+	 */
+
+	async function importRoles(e) {
+		//@ts-ignore
+		const fd = new FormData(e.target.form);
+		try {
+			//@ts-ignore
+			const response = await call('roles.Import', fd);
+			console.log(response);
+		} catch (err) {
+			console.error(err);
+		}
 	}
 </script>
 
@@ -74,31 +120,80 @@
 			</div>
 
 			<p class="text-[16px] font-medium mt-10 mb-5">View Roles:</p>
-			<div class="grid grid-cols-5 gap-5">
-				{#each $viewRolesStore as role}
-					<label class="items-center flex">
+			<div class="grid grid-cols-6 gap-5">
+				{#each $viewRolesStore as view}
+					<!--
+					<div class="flex">
+						<SlideToggle
+							active="bg-tertiary-500"
+							name="roles"
+							bind:checked={view.selected}
+							on:click={() => toggleRoleSelection(view['@_name'], 'view')}
+							value={view['@_name']}
+						/>
+						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
+					</div>-->
+
+					<label class="flex items-center">
 						<input
 							type="checkbox"
-							bind:checked={viewRolesChecked}
-							value={role['@_name']}
+							bind:checked={view.selected}
 							name="roles"
+							value={view['@_name']}
 						/>
-						<p class="p-1 ml-2 font-normal">{role['@_name']}</p>
+						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
 					</label>
 				{/each}
 			</div>
 
 			<p class="text-[16px] font-medium mt-10 mb-5">Config Roles</p>
-			<div class="grid grid-cols-5 gap-5">
-				{#each $configRolesStore as role}
-					<label class="items-center flex">
+			<div class="grid grid-cols-6 gap-5">
+				{#each $configRolesStore as config}
+					<!--
+					<div class="flex">
+						<SlideToggle
+							active="bg-tertiary-500"
+							name="roles"
+							bind:checked={config.selected}
+							on:click={() => toggleRoleSelection(config['@_name'], 'config')}
+							value={config['@_name']}
+						/>
+						<p class="p-1 ml-2 font-normal">{config['@_name']}</p>
+					</div>-->
+					<label class="flex items-center">
 						<input
 							type="checkbox"
-							bind:checked={configRolesChecked}
-							value={role['@_name']}
+							bind:checked={config.selected}
 							name="roles"
+							value={config['@_name']}
 						/>
-						<p class="p-1 ml-2 font-normal">{role['@_name']}</p>
+						<p class="p-1 ml-2 font-normal">{config['@_name']}</p>
+					</label>
+				{/each}
+			</div>
+
+			<p class="text-[16px] font-medium mt-10 mb-5">Other Roles:</p>
+			<div class="grid grid-cols-6 gap-5">
+				{#each $otherRolesStore as other}
+					<!--
+					<div class="flex">
+						<SlideToggle
+							active="bg-tertiary-500"
+							name="roles"
+							bind:checked={other.selected}
+							value={other['@_name']}
+						/>
+						<p class="p-1 ml-2 font-normal">{other['@_name']}</p>
+					</div>-->
+
+					<label class="flex items-center">
+						<input
+							type="checkbox"
+							bind:checked={other.selected}
+							name="roles"
+							value={other['@_name']}
+						/>
+						<p class="p-1 ml-2 font-normal">{other['@_name']}</p>
 					</label>
 				{/each}
 			</div>
@@ -147,7 +242,41 @@
 {/if}
 
 {#if mode == 'import'}
-	import user
+	<Card>
+		<form class="p-5 rounded-xl glass flex flex-col">
+			<h1 class="text-xl mb-5 text-center">Import users</h1>
+			<RadioGroup>
+				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
+					>Clear & import</RadioItem
+				>
+				<RadioItem bind:group={importAction} name="action-import" value="">Merge users</RadioItem>
+			</RadioGroup>
+			{#if importAction == ''}
+				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
+				<RadioGroup>
+					<RadioItem bind:group={importPriority} name="priority" value="priority-server"
+						>Priority Server</RadioItem
+					>
+					<RadioItem bind:group={importPriority} name="priority" value="priority-import"
+						>Priority import</RadioItem
+					>
+				</RadioGroup>
+			{/if}
+			<p class="font-medium mt-10">Actual users list will be saved aside in a backup file.</p>
+			<input
+				type="file"
+				name="userfile"
+				id="symbolUploadFile"
+				accept=".properties"
+				class="hidden"
+				on:change={importRoles}
+			/>
+			<label for="symbolUploadFile" class="btn variant-filled mt-5">Import</label>
+			<button class="mt-5 btn bg-white text-black font-light" on:click={() => modalStore.close()}
+				>Cancel</button
+			>
+		</form>
+	</Card>
 {/if}
 
 {#if mode == 'export'}
@@ -157,28 +286,3 @@
 {#if mode == 'delete all'}
 	Delete all
 {/if}
-
-<style lang="postcss">
-	/**style for label*/
-	.label-common {
-		@apply text-[14px] cursor-pointer;
-	}
-	/**Style for Input*/
-	.input-common {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-400 placeholder:text-surface-200 dark:text-surface-100 text-surface-800 placeholder:font-light font-normal border-none dark:bg-surface-800 w-full;
-		border-bottom: surface-200;
-	}
-
-	.input-text {
-		@apply mt-1 pl-4 text-[16px] dark:text-surface-200 text-surface-600;
-	}
-
-	/**Style for checkbox*/
-	.checkbox-common {
-		@apply cursor-pointer;
-	}
-
-	.border-common {
-		@apply border-b-[1px] dark:border-surface-600 border-surface-100;
-	}
-</style>
