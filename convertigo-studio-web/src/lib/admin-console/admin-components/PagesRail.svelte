@@ -20,7 +20,7 @@
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
 			<a
 				href={`${isRoot ? '' : '../'}${url}`}
-				class="flex p-2 items-center dark:hover:bg-surface-500 hover:bg-surface-50 rounded-xl {(
+				class="flex p-[5px] mt-1 px-3 items-center dark:hover:bg-surface-500 hover:bg-surface-50 rounded-xl {(
 					url == '' ? isRoot : $page.url.pathname.endsWith(url)
 				)
 					? 'bg'

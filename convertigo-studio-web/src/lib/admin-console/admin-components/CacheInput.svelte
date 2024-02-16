@@ -35,8 +35,4 @@
 	.border-common {
 		@apply border-b-[1px] dark:border-surface-600 border-surface-100;
 	}
-
-	.green {
-		background-color: green;
-	}
 </style>

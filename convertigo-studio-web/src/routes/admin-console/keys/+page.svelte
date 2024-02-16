@@ -118,7 +118,7 @@
 			<input
 				type="text"
 				bind:value={newKey}
-				class="dark:text-black text-surface-800 placeholder:text-surface-200 rounded-xl w-80 dark:bg-surface-500 bg-white border-surface-200"
+				class="dark:text-black text-surface-800 placeholder:text-surface-200 rounded-xl w-[400px] dark:bg-surface-500 bg-white border-surface-200"
 				placeholder="Enter a new key"
 			/>
 			<button type="submit" class="btn bg-buttons text-white ml-5">Add Key</button>
@@ -153,7 +153,7 @@
 							<td>{category['@_remaining']}</td>
 
 							<td>
-								<button on:click={() => openModal(key['@_text'])}
+								<button class="shadow-md p-1 px-2 btn" on:click={() => openModal(key['@_text'])}
 									><Icon icon="material-symbols-light:delete-outline" class="h-7 w-7" />
 								</button>
 							</td>

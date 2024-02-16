@@ -27,7 +27,7 @@
 				active="bg-buttons text-white"
 				value="true"
 			>
-				True
+				Yes
 			</RadioItem>
 			<RadioItem
 				bind:group={booleanValue}
@@ -35,7 +35,7 @@
 				active="dark:bg-surface-400 bg-white"
 				value="false"
 			>
-				False
+				No
 			</RadioItem>
 		</RadioGroup>
 		<a

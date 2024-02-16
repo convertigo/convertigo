@@ -96,7 +96,7 @@
 				</div>
 			</Card>
 
-			<Card title="Advanced properties" class="mt-10">
+			<Card title="Advanced properties" class="mt-5">
 				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
 					<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
 						<svelte:fragment slot="lead"
