@@ -57,7 +57,7 @@
 <AutoGrid>
 	<Card title="Connections">
 		<div class="mt-5">
-			<div class="flex-col w-[60%]">
+			<div class="flex-col">
 				<div class="flex p-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
 					<p class="">Contexts In Use :</p>
 					<p class="ml-5 mr-10 font-bold">{$contextsInUse} / {$contextsNumber}</p>
@@ -87,7 +87,9 @@
 					<p class="mr-5">{legend.title}</p>
 					<div class="flex">
 						<Icon icon={legend.icon} class="w-6 h-6" />
-						<Icon icon={legend.icon2} class="w-6 h-6" />
+						{#if legend.icon2}
+							<Icon icon={legend.icon2} class="w-6 h-6" />
+						{/if}
 					</div>
 				</div>
 			{/each}

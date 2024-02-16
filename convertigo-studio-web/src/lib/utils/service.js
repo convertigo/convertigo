@@ -1,11 +1,11 @@
-import { XMLParser } from 'fast-xml-parser';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { loading } from '$lib/utils/loadingStore';
 
 let cpt = 0;
 loading.subscribe((n) => (cpt = n));
 /**
  * @param {string} service
- * @param {string | Record<string, string> | string[][] | URLSearchParams | undefined} data
+ * @param {any} data
  */
 export async function call(service, data = {}) {
 	let url = getUrl() + service;
@@ -24,12 +24,17 @@ export async function call(service, data = {}) {
 		}
 		if (!files.keys().next().done) {
 			body = files;
+			// @ts-ignore
 			let query = new URLSearchParams(data).toString();
 			if (query.length) {
 				url += `${url.includes('?') ? '&' : '?'}${query}`;
 			}
 		}
+	} else if (data?.['@_xml']) {
+		body = new XMLBuilder({ ignoreAttributes: false }).build(data);
+		headers['Content-Type'] = 'application/xml';
 	}
+
 	if (!body) {
 		body = new URLSearchParams(data);
 		headers['Content-Type'] = 'application/x-www-form-urlencoded';

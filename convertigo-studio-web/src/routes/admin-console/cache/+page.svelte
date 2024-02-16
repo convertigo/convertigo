@@ -6,7 +6,6 @@
 	import { writable } from 'svelte/store';
 	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import PropertyType from '$lib/admin-console/admin-components/PropertyType.svelte';
 	import CacheInput from '$lib/admin-console/admin-components/CacheInput.svelte';
 	import Icon from '@iconify/svelte';
 

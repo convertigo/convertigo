@@ -98,6 +98,7 @@ public class List extends XmlService{
 	        		propertyElement.setAttribute("description", property.getDescription());
 	        		propertyElement.setAttribute("value", value);
 	        		propertyElement.setAttribute("originalValue", originalValue);
+	        		propertyElement.setAttribute("defaultValue", property.getDefaultValue());
 	        		propertyElement.setAttribute("isAdvanced", Boolean.toString(property.isAdvance()));
 	
 	
