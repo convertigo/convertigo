@@ -379,37 +379,62 @@ function initEditor(device) {
 	  });
 	};
 	const editor = window.grapesjs.init({
-	  // Indicate where to init the editor. You can also pass an HTMLElement
-	  container: '#gjs',
-	  // Get the content for the canvas directly from the element
-	  // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
-	  fromElement: true,
-	  // Size of the editor
-	  width: 'auto',
-	  height: 'auto',
-	  // Disable the storage manager for the moment
-	  storageManager: false,
-	  // Avoid any default panel
-	  plugins: [webComponentsPlugin],
-	  canvas: {
-	    scripts: [
-	      {
-	        src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.esm.js',
-	        type: 'module',
-	      },
-	      {
-	        src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.js',
-	      },
-	    ],
-	    styles: ['${projectUrl}/_private/ionic/node_modules/@ionic/core/css/ionic.bundle.css'],
-	  },
-	  richTextEditor: {
-		  actions: null,
-		  custom: true
-	  },
-	  deviceManager: {
-		  default: device ?? 'desktop'
-	  }
+		// Indicate where to init the editor. You can also pass an HTMLElement
+		container: '#gjs',
+		// Get the content for the canvas directly from the element
+		// As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
+		fromElement: true,
+		// Size of the editor
+		width: 'auto',
+		height: 'auto',
+		// Disable the storage manager for the moment
+		storageManager: false,
+		// Avoid any default panel
+		plugins: [webComponentsPlugin],
+		canvas: {
+			scripts: [
+				{
+					src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.esm.js',
+					type: 'module',
+				},
+				{
+					src: '${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/ionic/ionic.js',
+				},
+			],
+			styles: ['${projectUrl}/_private/ionic/node_modules/@ionic/core/css/ionic.bundle.css'],
+		},
+		richTextEditor: {
+			actions: null,
+			custom: true
+		},
+		deviceManager: {
+			default: device ?? 'desktop'
+		},
+//		styleManager: {
+//			sectors: [
+//				{
+//					name: 'First sector',
+//    properties: [
+//      {
+//        // Default options
+//        // id: 'padding', // The id of the property, if missing, will be the same as `property` value
+//        type: 'number',
+//        label: 'Padding', // Label for the property
+//        property: 'padding', // CSS property to change
+//        default: '0', // Default value to display
+//        // Additonal `number` options
+//        units: ['px', '%'], // Units (available only for the 'number' type)
+//        min: 0, // Min value (available only for the 'number' type)
+//      }
+//    ]
+//				},
+//				{
+//					open: false, // render it closed by default
+//					name: 'Second sector',
+//					properties: [],
+//				},
+//			],
+//		},
 	});
 	
 	editor.on('load', () => {
@@ -471,6 +496,13 @@ function initEditor(device) {
 			scss: toSCSS(editor.getCss({json: true}))
 		});
 	};
+	const sm = editor.StyleManager;
+	sm.addSector('sector-ionic', {
+	  name: 'Ionic',
+	  properties: [
+		  { type: 'color', default: 'black', property: '--background' },
+	  ],
+	});
 	window.gjseditor = editor;
 }
 

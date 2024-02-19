@@ -81,6 +81,7 @@ public class CompressionFilter implements Filter {
 		
 		if (doGZip) {
 			GZipServletResponseWrapper gzipResponse = new GZipServletResponseWrapper(response);
+			request.setAttribute("response", gzipResponse);
 			filterChain.doFilter(request, gzipResponse);
 			gzipResponse.close();
 		} else {

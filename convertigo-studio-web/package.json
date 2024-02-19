@@ -17,6 +17,7 @@
 	"devDependencies": {
 		"@fontsource-variable/inter": "^5.0.16",
 		"@iconify-json/mdi": "^1.1.64",
+		"@iconify-json/octicon": "^1.1.52",
 		"@iconify/svelte": "^3.1.6",
 		"@playwright/test": "^1.41.2",
 		"@skeletonlabs/skeleton": "^2.8.0",
@@ -51,7 +52,6 @@
 		"apexcharts": "^3.45.2",
 		"chart.js": "^4.4.1",
 		"fast-xml-parser": "^4.3.4",
-		"monaco-editor": "^0.45.0",
-		"svelte-apexcharts": "^1.0.2"
+		"monaco-editor": "^0.45.0"
 	}
 }
