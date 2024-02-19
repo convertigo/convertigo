@@ -1,12 +1,10 @@
 <script>
 	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
-
-	// @ts-ignore
-	import IconGitHub from '~icons/octicon/logo-github-16';
 	import PagesRailToggle from '../components/PagesRailToggle.svelte';
 	import { assets, base } from '$app/paths';
 	import { monitorData } from '../stores/monitorStore';
+	import Ico from '$lib/utils/Ico.svelte';
 </script>
 
 <AppBar
@@ -34,7 +32,7 @@
 			class="flex items-center btn font-normal"
 		>
 			<p class="mr-2">Star us on</p>
-			<IconGitHub />
+			<Ico icon="~icons/octicon/logo-github-16" />
 		</a>
 
 		<div class="pr-4 p-1 flex items-center space-x-5">
