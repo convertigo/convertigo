@@ -218,7 +218,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				try {
 					Object ob = RhinoUtils.evalInterpretedJavascript(javascriptContext, scope, source, sourceName, 1, null);
 					if (ob instanceof Function) {
-						Object returnedValue = ((Function) ob).call(javascriptContext, scope, scope, new Object[] {});
+						Object returnedValue = ((Function) ob).call(javascriptContext, scope, scope, RhinoUtils.EMPTY_ARGS);
 						return returnedValue.toString();
 					}
 				}

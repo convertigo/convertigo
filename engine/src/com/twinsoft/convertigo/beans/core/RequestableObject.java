@@ -457,7 +457,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	Function fun = (Function) args[1];
     	Object res;
     	synchronized (lock) {
-			res = fun.call(cx, thisObj, thisObj, null);
+			res = fun.call(cx, thisObj, thisObj, RhinoUtils.EMPTY_ARGS);
 		}
     	return res;
 	}

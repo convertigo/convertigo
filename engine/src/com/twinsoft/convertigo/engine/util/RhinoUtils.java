@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 public class RhinoUtils {
 	static public boolean debugMode = false;
+	static final public Object[] EMPTY_ARGS = new Object[0];
 	static final private Map<String, Script> compiledScript = new ConcurrentHashMap<String, Script>();
 	static final private NativeJSON json;
 	static {

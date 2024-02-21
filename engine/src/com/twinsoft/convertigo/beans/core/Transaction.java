@@ -401,7 +401,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 
 		function = (Function) object;
 
-		Object returnedValue = function.call(myJavascriptContext, scope, scope, null);
+		Object returnedValue = function.call(myJavascriptContext, scope, scope, RhinoUtils.EMPTY_ARGS);
 		if (returnedValue instanceof org.mozilla.javascript.Undefined) {
 			handlerResult = "";
 		}

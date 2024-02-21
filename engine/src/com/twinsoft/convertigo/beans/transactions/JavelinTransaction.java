@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -477,7 +478,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     
 		Object returnedValue = null;
 		try {
-			returnedValue = function.call(javascriptContext, scope, scope, null);
+			returnedValue = function.call(javascriptContext, scope, scope, RhinoUtils.EMPTY_ARGS);
 		}
 		finally {
 			context.statistics.stop(th, bNotFirstLoop1);
