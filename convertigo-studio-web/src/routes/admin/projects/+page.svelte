@@ -10,7 +10,7 @@
 	import Icon from '@iconify/svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
-	import Tables from '$lib/admin/components/Tables.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	export const modalStore = getModalStore();
 
@@ -58,49 +58,40 @@
 
 <Card customStyle={tableStyle}>
 	{#if $projectsStore.length >= 0}
-		<Tables
-			headers={[
-				'Name',
-				'Comment',
-				'Version',
-				'Exported',
-				'Deployment',
-				'Delete',
-				'Reload',
-				'Export',
-				'Test'
+		<TableAutoCard
+			definition={[
+				{ name: 'Name', key: '@_name' },
+				{ name: 'Comment', key: '@_comment' },
+				{ name: 'Version', key: '@_version' },
+				{ name: 'Exported', key: '@_exported' },
+				{ name: 'Deployment', key: '@_deployDate' },
+				{ name: 'Delete', custom: true },
+				{ name: 'Reload', custom: true },
+				{ name: 'Export', custom: true },
+				{ name: 'Test', custom: true }
 			]}
+			data={$projectsStore}
+			let:row
+			let:def
 		>
-			{#each $projectsStore as project}
-				<tr>
-					<td>{project['@_name']}</td>
-					<td>{project['@_comment']}</td>
-					<td>{project['@_version']}</td>
-					<td>{project['@_exported']}</td>
-					<td>{project['@_deployDate']}</td>
-					<td>
-						<button on:click={() => deleteProject(project['@_name'])}>
-							<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
-						</button>
-					</td>
-					<td>
-						<button on:click={() => reloadProject(project['@_name'])}>
-							<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
-						</button>
-					</td>
-					<td>
-						<button on:click={() => exportProject(project['@_name'])}>
-							<Icon icon="bytesize:export" class="w-6 h-6" />
-						</button>
-					</td>
-					<td>
-						<a href="/admin-console">
-							<Icon icon="fluent-mdl2:test-plan" class="w-6 h-6" />
-						</a>
-					</td>
-				</tr>
-			{/each}
-		</Tables>
+			{#if def.name == 'Delete'}
+				<button on:click={() => deleteProject(row['@_name'])}>
+					<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
+				</button>
+			{:else if def.name == 'Reload'}
+				<button on:click={() => reloadProject(row['@_name'])}>
+					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
+				</button>
+			{:else if def.name == 'Export'}
+				<button on:click={() => exportProject(row['@_name'])}>
+					<Icon icon="bytesize:export" class="w-6 h-6" />
+				</button>
+			{:else if def.name == 'Test'}
+				<a href="/admin-console">
+					<Icon icon="fluent-mdl2:test-plan" class="w-6 h-6" />
+				</a>
+			{/if}
+		</TableAutoCard>
 	{:else}
 		<div>No projects data available</div>
 	{/if}
