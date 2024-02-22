@@ -6,6 +6,9 @@ export let configurations = writable({});
 
 export async function refreshConfigurations() {
 	configurations.set(await call('configuration.List'));
+
+	const res = await call('configuration.List');
+	console.log('List des config', res);
 }
 
 /**

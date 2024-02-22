@@ -16,6 +16,7 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { browser } from '$app/environment';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const modalStore = getModalStore();
 
@@ -32,6 +33,7 @@
 				)
 			);
 		});
+		refreshConfigurations();
 	});
 
 	function saveChanges() {
@@ -87,18 +89,18 @@
 
 {#if selectedIndex > -1}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
-	<div class="flex flex-col grid md:grid-cols-5 gap-5">
-		<div class="flex flex-col h-auto md:col-span-4">
+	<div class="grid md:grid-cols-5 gap-5">
+		<div class="h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
-				<div class="flex flex-row justify-around flex-wrap">
+				<div class="flex flex-row justify-start gap-10 flex-wrap">
 					<button
 						type="button"
 						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 w-80 bg-buttons font-normal rounded-full font-medium mb-5"
+						class="btn p-1 pl-5 pr-5 w-80 bg-buttons font-normal font-medium mb-5"
 						on:click={saveChanges}
 					>
 						<span
-							><Icon
+							><Ico
 								icon="material-symbols-light:save-as-outline"
 								class="w-6 h-6 text-white"
 							/></span
@@ -108,14 +110,11 @@
 					<button
 						type="button"
 						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 w-80 variant-filled-error font-normal rounded-full font-medium mb-5"
+						class="btn p-1 pl-5 pr-5 w-80 variant-filled-error font-normal font-medium mb-5"
 						on:click={refreshConfigurations}
 					>
 						<span
-							><Icon
-								icon="material-symbols-light:cancel-outline"
-								class="w-6 h-6 text-white"
-							/></span
+							><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6 text-white" /></span
 						>
 						<span class="text-[13px] text-white">Cancel changes</span>
 					</button>
@@ -129,27 +128,29 @@
 				</div>
 			</Card>
 
-			<Card title="Advanced properties" class="mt-5">
-				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
-					<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
-						<svelte:fragment slot="lead"
-							><Icon icon="game-icons:level-three-advanced" />
-						</svelte:fragment>
-						<svelte:fragment slot="summary">
-							<p>Advanced properties</p>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
-								{#each category.property as property}
-									{#if property['@_isAdvanced'] == 'true'}
-										<PropertyType {property} />
-									{/if}
-								{/each}
-							</div>
-						</svelte:fragment>
-					</AccordionItem>
-				</Accordion>
-			</Card>
+			{#if category.property.filter((p) => p['@_isAdvanced'] == 'true').length > 0}
+				<Card title="Advanced properties" class="mt-5">
+					<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
+						<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
+							<svelte:fragment slot="lead"
+								><Icon icon="game-icons:level-three-advanced" />
+							</svelte:fragment>
+							<svelte:fragment slot="summary">
+								<p>Advanced properties</p>
+							</svelte:fragment>
+							<svelte:fragment slot="content">
+								<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
+									{#each category.property as property}
+										{#if property['@_isAdvanced'] == 'true'}
+											<PropertyType {property} />
+										{/if}
+									{/each}
+								</div>
+							</svelte:fragment>
+						</AccordionItem>
+					</Accordion>
+				</Card>
+			{/if}
 		</div>
 		<Card class="flex flex-col h-auto md:col-span-1 rounded-2xl">
 			<ListBox active="dark:bg-surface-600 bg-surface-50">
@@ -214,7 +215,7 @@
 				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
 					<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
 						<svelte:fragment slot="lead"
-							><Icon icon="game-icons:level-three-advanced" />
+							><Ico icon="game-icons:level-three-advanced" />
 						</svelte:fragment>
 						<svelte:fragment slot="summary">
 							<p>Advanced properties</p>

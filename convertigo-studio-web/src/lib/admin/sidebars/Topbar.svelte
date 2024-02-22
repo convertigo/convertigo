@@ -41,7 +41,7 @@
 				<span class="text-[13px] font-light">Go to studio</span>
 			</a>
 			<LightSwitch />
-			<Icon icon="ph:gear-six-thin" class="w-6 h-6" />
+			<Ico icon="ph:gear-six-thin" class="w-6 h-6" />
 		</div>
 	</svelte:fragment>
 </AppBar>

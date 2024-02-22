@@ -6,6 +6,8 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import Icon from '@iconify/svelte';
 	import Tables from '$lib/admin/components/Tables.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const keyModalStore = getModalStore();
 
@@ -118,14 +120,14 @@
 
 <Card>
 	<div class="flex items-center">
-		<form on:submit|preventDefault={handleFormSubmit}>
+		<form on:submit|preventDefault={handleFormSubmit} class="flex space-x-5">
 			<input
 				type="text"
 				bind:value={newKey}
 				class="dark:text-black text-surface-800 placeholder:text-surface-200 rounded-xl w-[400px] dark:bg-surface-500 bg-white border-surface-200"
 				placeholder="Enter a new key"
 			/>
-			<button type="submit" class="btn bg-buttons text-white ml-5">Add Key</button>
+			<button type="submit" class="bg-buttons">Add Key</button>
 		</form>
 	</div>
 </Card>
@@ -134,6 +136,7 @@
 	{#each $categoryStore as category}
 		<div class="mt-5">
 			<Card title={category['@_name']}>
+				<!--
 				<Tables
 					headers={['Key', 'Total', 'Expiration Date', 'Expired', 'Remaining', 'In use', 'Delete']}
 				>
@@ -158,12 +161,48 @@
 
 							<td>
 								<button class="shadow-md p-1 px-2 btn" on:click={() => openModal(key['@_text'])}
-									><Icon icon="material-symbols-light:delete-outline" class="h-7 w-7" />
+									><Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
 								</button>
 							</td>
 						</tr>
 					{/each}
-				</Tables>
+				</Tables>-->
+
+				<TableAutoCard
+					definition={[
+						{ name: 'Key', key: '@_text' },
+						{ name: 'Expiration Date', key: '@_expiration', custom: true },
+						{ name: 'Expired', key: '@_expired', custom: true },
+						{ name: 'Delete', custom: true }
+					]}
+					data={category.keys}
+					let:row
+					let:def
+				>
+					{#if def.custom}
+						{#if def.name === 'Expiration Date'}
+							{#if row[def.key] === '0'}
+								<div class="border bg-green-500 text-black">
+									{formatExpiration(row[def.key])}
+								</div>
+							{:else}
+								{formatExpiration(row[def.key])}
+							{/if}
+						{:else if def.name === 'Expired'}
+							{#if row[def.key] === 'false'}
+								<div class="bg-green-500 p-2 rounded-xl text-black">{row[def.key]}</div>
+							{:else}
+								<div class="bg-red-400">{row[def.key]}</div>
+							{/if}
+						{:else if def.name === 'Delete'}
+							<button class="shadow-md p-1 px-2 btn" on:click={() => openModal(row['@_text'])}>
+								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
+							</button>
+						{/if}
+					{:else}
+						<td>{row[def.key]}</td>
+					{/if}
+				</TableAutoCard>
 			</Card>
 		</div>
 	{/each}

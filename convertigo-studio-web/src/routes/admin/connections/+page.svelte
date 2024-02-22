@@ -15,7 +15,7 @@
 		connectionsStore,
 		sessionsStore
 	} from '$lib/admin/stores/connectionsStore';
-	import Tables from '$lib/admin/components/Tables.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	let legendItems = [
 		{
@@ -58,21 +58,21 @@
 	<Card title="Connections">
 		<div class="mt-5">
 			<div class="flex-col">
-				<div class="flex p-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
+				<div class="legendDiv">
 					<p class="">Contexts In Use :</p>
-					<p class="ml-5 mr-10 font-bold">{$contextsInUse} / {$contextsNumber}</p>
+					<p class="valueConnectionsText">{$contextsInUse} / {$contextsNumber}</p>
 				</div>
-				<div class="flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
+				<div class="legendDiv">
 					<p class="">Threads currently In Use :</p>
-					<p class="ml-5 mr-10 font-bold">{$threadsInUse} / {$threadsNumber}</p>
+					<p class="valueConnectionsText">{$threadsInUse} / {$threadsNumber}</p>
 				</div>
-				<div class="flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100">
+				<div class="legendDiv">
 					<p class="">Sessions currently in use:</p>
-					<p class="ml-5 mr-10 font-bold">{$sessionsInUse} / {$sessionsNumber}</p>
+					<p class="valueConnectionsText">{$sessionsInUse} / {$sessionsNumber}</p>
 				</div>
 				<div class="flex p-2 mt-2">
 					<p class="">Max http session inactivity :</p>
-					<p class="ml-5 mr-10 font-bold">{$httpTimeout}</p>
+					<p class="valueConnectionsText">{$httpTimeout}</p>
 				</div>
 			</div>
 		</div>
@@ -97,54 +97,48 @@
 	</Card>
 </AutoGrid>
 
-<div class="mt-10">
-	<Card title="Sessions">
-		<Tables headers={['ID', 'Contexts', 'User', 'Roles', 'UUID', 'FS']}>
-			{#if $sessionsStore.length >= 0}
-				{#each $sessionsStore as session}
-					<tr>
-						<td>{session['@_sessionID']}</td>
-						<td>{session['@_contexts']}</td>
-						<td>{session['@__authenticatedUser']}</td>
-						<td>{session['@_adminRoles']}</td>
-						<td>{session['@_deviceUUID']}</td>
-						<td>{session['@_isFullSyncActive']}</td>
-						<td>{session['@_lastSessionAccessDate']}</td>
-						<td>{session['@_sessionInactivityTime']}</td>
-						<td>{session['@_clientIP']}</td>
-					</tr>
-				{/each}
-			{/if}
-		</Tables>
-	</Card>
-</div>
+<Card title="Sessions" class="mt-5">
+	<TableAutoCard
+		definition={[
+			{ name: 'ID', key: '@_sessionID' },
+			{ name: 'Contexts', key: '@_contexts' },
+			{ name: 'User', key: '@__authenticatedUser' },
+			{ name: 'Roles', key: '@_adminRoles' },
+			{ name: 'UUID', key: '@_deviceUUID' },
+			{ name: 'FS', key: '@_isFullSyncActive' },
+			{ name: '', key: '@_lastSessionAccessDate' },
+			{ name: '', key: '@_sessionInactivityTime' },
+			{ name: '', key: '@_clientIP' }
+		]}
+		data={$sessionsStore}
+		let:row
+		let:def
+	></TableAutoCard>
+</Card>
 
-<div class="mt-10">
-	<Card title="Contexts">
-		<Tables
-			headers={[
-				'Context',
-				'Project',
-				'Connector',
-				'Requested',
-				'Status',
-				'User',
-				'Client Computer'
-			]}
-		>
-			{#if $connectionsStore.length >= 0}
-				{#each $connectionsStore as connection}
-					<tr>
-						<td>{connection['@_contextName']}</td>
-						<td>{connection['@_project']}</td>
-						<td>{connection['@_connector']}</td>
-						<td>{connection['@_requested']}</td>
-						<td>{connection['@_status']}</td>
-						<td>{connection['@_user']}</td>
-						<td>{connection['@_clientComputer']}</td>
-					</tr>
-				{/each}
-			{/if}
-		</Tables>
-	</Card>
-</div>
+<Card title="Contexts" class="mt-5">
+	<TableAutoCard
+		definition={[
+			{ name: 'Context', key: '@_contextName' },
+			{ name: 'Project', key: '@_project' },
+			{ name: 'Connector', key: '@_connector' },
+			{ name: 'Requested', key: '@_requested' },
+			{ name: 'Status', key: '@_status' },
+			{ name: 'User', key: '@_user' },
+			{ name: 'Client Computer', key: '@_clientComputer' }
+		]}
+		data={$connectionsStore}
+		let:row
+		let:def
+	></TableAutoCard>
+</Card>
+
+<style lang="postcss">
+	.legendDiv {
+		@apply flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100;
+	}
+
+	.valueConnectionsText {
+		@apply ml-5 mr-10 font-bold;
+	}
+</style>

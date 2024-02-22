@@ -3,7 +3,7 @@
 	export let customStyle = '';
 </script>
 
-<table style={customStyle} class="rounded-xl table">
+<table style={customStyle} class="rounded-xl table overflow-hidden">
 	<thead class="rounded-xl">
 		<tr>
 			{#each headers as header}

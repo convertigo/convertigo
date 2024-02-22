@@ -133,23 +133,23 @@
 </script>
 
 <Card title="Global Symbols">
-	<div class="flex gap-5 mb-10">
-		<button class="btn bg-buttons text-white" on:click={openAddGlobalSymbolModal}>
+	<div class="flex space-x-5 mb-10">
+		<button class="bg-buttons" on:click={openAddGlobalSymbolModal}>
 			<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 			Add symbols</button
 		>
-		<button class="btn bg-buttons text-white" on:click={openAddSecretSymbols}>
+		<button class="bg-buttons" on:click={openAddSecretSymbols}>
 			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
 			Add secret symbols
 		</button>
 
-		<button class="btn bg-buttons text-white" on:click={openImportSymbols}
+		<button class="bg-buttons" on:click={openImportSymbols}
 			><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />import symbols</button
 		>
-		<button class="btn bg-buttons text-white"
+		<button class="bg-buttons"
 			><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
 		>
-		<button class="btn bg-buttons text-white" on:click={confirmDeleteAll}
+		<button class="bg-buttons" on:click={confirmDeleteAll}
 			><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
 		>
 	</div>

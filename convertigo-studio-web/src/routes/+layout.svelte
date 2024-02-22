@@ -5,7 +5,7 @@
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { initializeStores, storePopup } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { call } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
@@ -22,6 +22,7 @@
 			}
 		});
 	});
+
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 

@@ -2,7 +2,7 @@
 	[
 		{
 			"title": "Home",
-			"icon": "iconoir:home",
+			"icon": "material-symbols-light:home-outline",
 			"url": ""
 		},
 		{
@@ -43,7 +43,7 @@
 		{
 			"title": "Scheduler",
 			"icon": "material-symbols-light:schedule-outline",
-			"url": "."
+			"url": "scheduler"
 		},
 		{
 			"title": "Keys",

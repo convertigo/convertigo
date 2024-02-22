@@ -6,11 +6,13 @@
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 	import { configurations } from '../stores/configurationStore';
 	import Icon from '@iconify/svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	export let property;
 
 	let id = `property-input-${cpt++}`;
 
 	function update() {
+		console.log('update');
 		$configurations = $configurations;
 	}
 </script>
@@ -18,12 +20,13 @@
 <div class="flex flox-row items-center">
 	{#if property['@_type'] == 'Boolean'}
 		<div class="flex-1 flex items-center">
-			<RadioGroup class="text-token" on:change={update}>
+			<RadioGroup class="text-token">
 				<RadioItem
 					name={id}
 					bind:group={property['@_value']}
 					active="bg-buttons text-white"
 					value="true"
+					on:change={update}
 				>
 					Yes
 				</RadioItem>
@@ -32,6 +35,7 @@
 					bind:group={property['@_value']}
 					active="dark:bg-surface-400 bg-white"
 					value="false"
+					on:change={update}
 				>
 					No
 				</RadioItem>
@@ -39,9 +43,10 @@
 			<a
 				class="label-common ml-5"
 				href={''}
-				on:click|preventDefault={() =>
-					(property['@_value'] = property['@_value'] == 'true' ? 'false' : 'true')}
-				>{property['@_description']}</a
+				on:click|preventDefault={() => {
+					property['@_value'] = property['@_value'] == 'true' ? 'false' : 'true';
+					update();
+				}}>{property['@_description']}</a
 			>
 		</div>
 	{:else if property['@_type'] == 'Text'}
@@ -56,19 +61,52 @@
 				on:input={update}
 			/>
 		</div>
-	{:else}
+	{:else if property['@_type'] == 'PasswordHash'}
 		<div class="flex-1 flex flex-col justify-center border-common">
-			Type {property['@_type']} not handled yet! ({property['@_description']})
+			<label class="label-common" for={id}>{property['@_description']}</label>
+			<input
+				type="text"
+				{id}
+				placeholder="Enter value ..."
+				class="input-common input-text placeholder:pl-1"
+				bind:value={property['@_value']}
+				on:input={update}
+			/>
 		</div>
+	{:else if property['@_type'] == 'PasswordPlain'}
+		<div class="flex-1 flex flex-col justify-center border-common">
+			<label class="label-common" for={id}>{property['@_description']}</label>
+			<input
+				type="password"
+				{id}
+				placeholder="Enter value ..."
+				class="input-common input-text placeholder:pl-1"
+				bind:value={property['@_value']}
+				on:input={update}
+			/>
+		</div>
+	{:else if property['@_type'] == 'Combo'}
+		<div class="flex-1 flex flex-col justify-center border-common">
+			<label class="label-common" for={id}>{property['@_description']}</label>
+
+			<select class="input-common" bind:value={property['@_value']}>
+				{#each property.item as option}
+					<option {id} on:change={update} value={option['@_value']}>{option['@_value']}</option>
+				{/each}
+			</select>
+		</div>
+	{:else if property['@_type'] == 'Array'}
+		<div class="flex-1 flex flex-col justify-center border-common">pas géré</div>
 	{/if}
-	<div class="flex-none btn-group-vertical variant-ghost ml-1">
+
+	<div class="flex-none btn-group-vertical shadow-md ml-10 mr-10">
 		<button
 			disabled={property['@_value'] == property['@_originalValue']}
 			on:click={() => {
 				property['@_value'] = property['@_originalValue'];
 				update();
 			}}
-			title={`restore:${property['@_originalValue']}`}><Icon icon="mdi:arrow-u-left-top" /></button
+			title={`restore:${property['@_originalValue']}`}><Ico icon="mdi:arrow-u-left-top" /></button
 		>
 		<button
 			disabled={property['@_value'] == property['@_defaultValue']}
@@ -76,15 +114,14 @@
 				property['@_value'] = property['@_defaultValue'];
 				update();
 			}}
-			title={`reset:${property['@_defaultValue']}`}><Icon icon="mdi:backup-restore" /></button
+			title={`reset:${property['@_defaultValue']}`}><Ico icon="mdi:backup-restore" /></button
 		>
 	</div>
 </div>
 
 <style lang="postcss">
 	.btn-group-vertical button {
-		@apply py-1 px-2;
-		background-color: rgba(255, 162, 0, 0.5);
+		@apply bg-green-400;
 	}
 
 	.btn-group-vertical button:disabled {

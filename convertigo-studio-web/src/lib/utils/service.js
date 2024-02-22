@@ -31,7 +31,9 @@ export async function call(service, data = {}) {
 			}
 		}
 	} else if (data?.['@_xml']) {
-		body = new XMLBuilder({ ignoreAttributes: false }).build(data);
+		body = new XMLBuilder({ ignoreAttributes: false, suppressBooleanAttributes: false }).build(
+			data
+		);
 		headers['Content-Type'] = 'application/xml';
 	}
 
