@@ -355,10 +355,15 @@ function initEditor(device) {
 	let eltMoved = [];
 	let exStyle = '';
 	for (let s of [...document.head.getElementsByTagName('style')]) {
-	    if (s.textContent.startsWith('.class')) {
+	    if (s.textContent.includes('.class')) {
 	        exStyle += s.textContent.replaceAll(/\[_ng.*?]/g,'') + '\n';
 	    }
 	}
+	var docs = {};
+	fetch('${projectUrl}/_private/ionic/node_modules/@ionic/core/dist/docs.json').then(async (r) => {
+		docs = await r.json();
+	});
+	
 	const webComponentsPlugin = (editor) => {
 	  editor.Components.addType('web-component', {
 	    isComponent: (el) =>
@@ -375,7 +380,7 @@ function initEditor(device) {
 	        const doc = frameDoc || document;
 	        return doc.createElement(tagName);
 	      },
-	    },
+	    }
 	  });
 	};
 	const editor = window.grapesjs.init({
@@ -409,32 +414,7 @@ function initEditor(device) {
 		},
 		deviceManager: {
 			default: device ?? 'desktop'
-		},
-//		styleManager: {
-//			sectors: [
-//				{
-//					name: 'First sector',
-//    properties: [
-//      {
-//        // Default options
-//        // id: 'padding', // The id of the property, if missing, will be the same as `property` value
-//        type: 'number',
-//        label: 'Padding', // Label for the property
-//        property: 'padding', // CSS property to change
-//        default: '0', // Default value to display
-//        // Additonal `number` options
-//        units: ['px', '%'], // Units (available only for the 'number' type)
-//        min: 0, // Min value (available only for the 'number' type)
-//      }
-//    ]
-//				},
-//				{
-//					open: false, // render it closed by default
-//					name: 'Second sector',
-//					properties: [],
-//				},
-//			],
-//		},
+		}
 	});
 	
 	editor.on('load', () => {
@@ -454,7 +434,7 @@ function initEditor(device) {
 		gjsdiv['style']['justify-content'] = 'space-between';
 		
 		document.querySelectorAll('#gjs-clm-tags-field,#gjs-clm-field,.gjs-clm-sels-info,.gjs-pn-views,.gjs-pn-btn.fa-code,.gjs-pn-btn.fa-arrows-all').forEach(elt => elt.hidden = true);
-		
+		document.querySelector('.gjs-pn-views-container').style.minWidth = '200px';
 	});
 	
 	/* will be called each time a user mofifies a style property */
@@ -468,7 +448,38 @@ function initEditor(device) {
 			event: 'style:target',
 			target
 		}));
-		//console.log("target is : " +JSON.stringify(target))
+		const sm = editor.StyleManager;
+		if (sm.getSector('sector-ionic')) {
+			sm.removeSector('sector-ionic');
+		}
+		const attrs = editor.getSelected().attributes;
+		if (attrs?.type == 'web-component') {
+			const tagName = attrs.tagName;
+			var styles = docs?.components?.find(c => c.tag == tagName).styles ?? [];
+			if (styles.length > 0) {
+				sm.addSector('sector-ionic', {
+					name: tagName,
+					open: false,
+					properties: styles.map(({name}) => {
+						const prop = { property: name, full: true };
+						if (name.includes('border-style')) {
+							prop.extend = 'border-style';
+						} else if (name.includes('opacity')) {
+							prop.extend = "opacity";
+							prop.type = "slider";
+						} else if (name.includes('color') || name.includes('background')) {
+							prop.type = "color";
+						} else if (name.includes('transition') || name.includes('box-shadow')) {
+							prop.type = "text";
+						} else {
+							prop.type = "number";
+							prop.units = ['px', '%', 'em', 'rem', 'vh', 'vw'];
+						}
+						return prop;
+					})
+				});
+			}
+		}
 	});
 	
 	editor.on('component:drag:end', (info) => {
@@ -487,8 +498,6 @@ function initEditor(device) {
 			textChanged[priority] = event.el.textContent;
 		}
 	});
-	
-	editor.addStyle(exStyle);
 	window.getEditorChanges = () => {
 		return JSON.stringify({
 			text: textChanged,
@@ -496,13 +505,10 @@ function initEditor(device) {
 			scss: toSCSS(editor.getCss({json: true}))
 		});
 	};
-	const sm = editor.StyleManager;
-	sm.addSector('sector-ionic', {
-	  name: 'Ionic',
-	  properties: [
-		  { type: 'color', default: 'black', property: '--background' },
-	  ],
-	});
+	
+	console.log('add current style:\n' + exStyle);
+	editor.addStyle(exStyle);
+	
 	window.gjseditor = editor;
 }
 
@@ -534,6 +540,7 @@ function initGrapesJS(device) {
 
 function toSCSS(rules) {
     const ruleToString = (rule) => {
+		console.log(rule);
         let style = '';
         let indent = '    ';
         if (rule.getAtRule()) {
@@ -565,7 +572,7 @@ function toSCSS(rules) {
         }
     }
     for (let k in cls) {
-        cls[k] = cls[k].map(r => ruleToString(r)).join('\n');
+        cls[k] = cls[k].map(r => ruleToString(r)).join('\n') + '\n';
     };
     return cls;
 }
