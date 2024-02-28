@@ -23,10 +23,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -34,6 +36,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.util.WsReference;
+import com.twinsoft.convertigo.engine.util.WsReference.CreateSequenceOptions;
 
 public class WsReferenceComposite extends Composite {
 	private String[] filterExtension = new String[]{"*.wsdl", "*.xml"};
@@ -147,22 +152,74 @@ public class WsReferenceComposite extends Composite {
 		passwordText.setEnabled(false);
 		passwordText.setLayoutData(gridData);
 		
-		/*Object o = getShell().getData();
-		if (o instanceof WsReferenceImportDialog) {
-			WsReferenceImportDialog ws = (WsReferenceImportDialog) o;
-			String URL = ws.getURL();
-			String filePath = ws.getFilePath();
-			if (URL != null) {
-				combo.add(URL,0);
-				combo.select(0);
-				
-				editor.setStringValue(filePath);
-				
-				label1.setEnabled(false);
-				combo.setEnabled(false);
-				editor.setEnabled(false, fileSelectionArea);
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.heightHint = 20;
+		gridData.horizontalSpan = 2;
+		
+		var separator = new Label(this, SWT.HORIZONTAL | SWT.SEPARATOR);
+	    separator.setLayoutData(gridData);
+		
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalSpan = 2;
+	    
+		WsReference.nextCreateSequences = null;
+		var createSequences = new Button(this, SWT.CHECK);
+		createSequences.setText("Create related Sequences");
+		createSequences.setSelection(false);
+		createSequences.setLayoutData(gridData);
+		
+		RowLayout rl;
+		var seqOpt = new Composite(this, SWT.NONE);
+		seqOpt.setVisible(false);
+		seqOpt.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
+		gridData.horizontalSpan = 2;
+		
+		seqOpt.setLayout(rl = new RowLayout(SWT.VERTICAL));
+		rl.spacing = 10;
+		
+		var label = new Label(seqOpt, SWT.NONE);
+		label.setText("Default security settings for created sequences (not for updated):");
+		
+		var accessibility = new Composite(seqOpt, SWT.NONE);
+		accessibility.setLayout(rl = new RowLayout());
+		rl.center = true;
+		label = new Label(accessibility, SWT.NONE);
+		label.setText("Accessibility: ");
+		var combo = new Combo(accessibility, SWT.READ_ONLY);
+		for (Accessibility a: Accessibility.values()) {
+			combo.add(a.name());
+		}
+		combo.setText(Accessibility.Hidden.name());
+		
+		label = new Label(seqOpt, SWT.NONE);
+		label.setText("↓ Check this to set authenticated session MANDATORY ↓");
+		
+		var auth = new Button(seqOpt, SWT.CHECK);
+		auth.setText(" Authentication required");
+		auth.setSelection(true);
+		
+		var listener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (createSequences.getSelection()) {
+					WsReference.nextCreateSequences = new CreateSequenceOptions(Accessibility.valueOf(combo.getText()), auth.getSelection());
+					seqOpt.setVisible(true);
+				} else {
+					WsReference.nextCreateSequences = null;
+					seqOpt.setVisible(false);
+				}
 			}
-		}*/
+		};
+		
+		auth.addSelectionListener(listener);
+		combo.addSelectionListener(listener);		
+		createSequences.addSelectionListener(listener);
+		
+		layout();
 	}
 	
 	public void setFilterExtension(String[] filterExtension) {

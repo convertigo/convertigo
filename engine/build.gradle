@@ -235,6 +235,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:1.4.7'
+	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.77'
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'

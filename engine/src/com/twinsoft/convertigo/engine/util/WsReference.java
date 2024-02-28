@@ -68,6 +68,10 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
+import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.beans.steps.InputVariablesStep;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -76,6 +80,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -86,8 +91,12 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 
 public class WsReference {
+	public record CreateSequenceOptions(Accessibility accessiblity, boolean authenticationRequired) {};
+	
+	public static CreateSequenceOptions nextCreateSequences = null;
 	
 	private RemoteFileReference reference = null;
+	private CreateSequenceOptions createSequences = nextCreateSequences;
 	
 	protected WsReference(WebServiceReference reference) {
 		this.reference = reference;
@@ -103,7 +112,7 @@ public class WsReference {
 	
 	protected HttpConnector importInto(Project project) throws Exception {
 		boolean needAuthentication = false;
-		
+		HttpConnector httpConnector = null;
 		try {
 			if (project != null) {
 				RemoteFileReference wsReference = getReference();
@@ -138,7 +147,7 @@ public class WsReference {
 							}
 							
 							WebServiceReference soapServiceReference = (WebServiceReference)wsReference;
-							return importSoapWebService(project, soapServiceReference);
+							httpConnector = importSoapWebService(project, soapServiceReference);
 						} finally {
 							if (needAuthentication) {
 								//We clear login/password
@@ -149,16 +158,40 @@ public class WsReference {
 					}
 					
 					// REST web service
-					if (wsReference instanceof RestServiceReference) {
+					else if (wsReference instanceof RestServiceReference) {
 						RestServiceReference restServiceReference = (RestServiceReference)wsReference;
-						return importRestWebService(project, restServiceReference);
+						httpConnector = importRestWebService(project, restServiceReference);
 					}
 				}
 			}
+			
+			if (createSequences != null && httpConnector != null) {
+				var prefix = project.getName() + TransactionStep.SOURCE_SEPARATOR + httpConnector.getName() + TransactionStep.SOURCE_SEPARATOR;
+				for (var tr: httpConnector.getTransactionsList()) {
+					var seq = new GenericSequence();
+					seq.setAccessibility(createSequences.accessiblity());
+					seq.setAuthenticatedContextRequired(createSequences.authenticationRequired());
+					seq.setName(tr.getName());
+					var call = new TransactionStep();
+					call.setSourceTransaction(prefix + tr.getName());
+					seq.add(new InputVariablesStep());
+					seq.add(call);
+					var copy = new XMLCopyStep();
+					var source = new XMLVector<String>();
+					source.add(Long.toString(call.priority));
+					source.add("document/object");
+					copy.setSourceDefinition(source);
+					seq.add(copy);
+					project.add(seq);
+					call.importVariableDefinition();
+					call.exportVariableDefinition();
+				}
+			}
+			
 		} catch (Throwable t) {
 			throw new EngineException("Unable to import the web service reference", t);
 		}
-		return null;
+		return httpConnector;
 	}
 	
 	static public int getTotalTaskNumber() {
