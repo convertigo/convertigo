@@ -3,16 +3,17 @@
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { initializeStores, storePopup } from '@skeletonlabs/skeleton';
-	import { goto } from '$app/navigation';
-	import { onDestroy, onMount } from 'svelte';
+	import { Modal, initializeStores, storePopup } from '@skeletonlabs/skeleton';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { call } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
+	import ModalAddSymbol from '$lib/admin/modals/ModalAddSymbol.svelte';
+	import ModalProjects from '$lib/admin/modals/ModalProjects.svelte';
 	initializeStores();
 
-	onMount(() => {
+	afterNavigate(() => {
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated) {
@@ -23,7 +24,13 @@
 		});
 	});
 
+	const modalComponentRegistry = {
+		modalAddSymbols: { ref: ModalAddSymbol },
+		modalProjects: { ref: ModalProjects }
+	};
+
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
+<Modal components={modalComponentRegistry} />
 <slot />

@@ -18,6 +18,20 @@
 		projectsCheck();
 	});
 
+	/**
+	 * @param {string} mode
+	 */
+	function openModal(mode) {
+		modalStore.trigger({
+			type: 'component',
+			component: 'modalProjects',
+			meta: { mode }
+		});
+	}
+
+	/**
+	 * @param {string} projectName
+	 */
 	export async function exportProject(projectName) {
 		const exportModalSettings = {
 			title: 'Export options',
@@ -50,9 +64,13 @@
 
 <Card>
 	<div class="flex">
-		<button class="mr-10 btn bg-buttons text-white">Deploy project</button>
-		<button class="mr-10 btn bg-buttons text-white">Import a Remote Project URL</button>
-		<button class="mr-10 btn bg-buttons text-white">Delete</button>
+		<button class="mr-10 btn bg-buttons text-white" on:click={() => openModal('deploy')}
+			>Deploy project</button
+		>
+		<button class="mr-10 btn bg-buttons text-white" on:click={() => openModal('import')}
+			>Import a Remote Project URL</button
+		>
+		<button class="mr-10 btn bg-buttons text-white">Delete all</button>
 	</div>
 </Card>
 

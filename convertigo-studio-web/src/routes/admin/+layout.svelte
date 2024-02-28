@@ -1,14 +1,9 @@
 <script>
 	import { AppShell, Drawer } from '@skeletonlabs/skeleton';
 	import Topbar from '$lib/admin/sidebars/Topbar.svelte';
-	import { Modal, Toast } from '@skeletonlabs/skeleton';
-	import ModalAddSymbol from '$lib/admin/modals/ModalAddSymbol.svelte';
+	import { Toast } from '@skeletonlabs/skeleton';
 	import PagesRail from '$lib/admin/components/PagesRail.svelte';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-
-	const modalComponentRegistry = {
-		modalAddSymbols: { ref: ModalAddSymbol }
-	};
 </script>
 
 <AppShell>
@@ -16,7 +11,6 @@
 		<PagesRailToggle open={false} />
 		<PagesRail />
 	</Drawer>
-	<Modal components={modalComponentRegistry} />
 	<Toast />
 
 	<svelte:fragment slot="header">
