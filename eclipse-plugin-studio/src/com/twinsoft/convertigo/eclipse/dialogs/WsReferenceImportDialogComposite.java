@@ -86,6 +86,9 @@ class WsReferenceImportDialogComposite extends MyAbstractDialogComposite impleme
 		else {
 			fillReference();
 		}
+		getDisplay().asyncExec(() -> {
+			parentDialog.getShell().pack();
+		});
 	}
 
 
