@@ -7,26 +7,9 @@
 	export let placeholder = 'Enter value ..';
 </script>
 
-<div class="input-field border-common mt-5">
-	<label for={id} class="label-common">{label}</label>
-	<input {id} {name} {type} {value} {placeholder} class="input-common input-text" />
+<div class="border-common mt-5">
+	<label for={id} class="text-input">{label}</label>
+	<input {id} {name} {type} {value} {placeholder} class="input-common" />
 </div>
 
-<style lang="postcss">
-	.label-common {
-		@apply text-[14px] cursor-pointer;
-	}
 
-	.input-common {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-100 placeholder:text-surface-100 placeholder:font-light font-normal border-none dark:bg-surface-800 w-full;
-		border-bottom: surface-200;
-	}
-
-	.input-text {
-		@apply mt-1 pl-4 text-[16px] dark:text-surface-200 text-surface-600;
-	}
-
-	.border-common {
-		@apply border-b-[1px] dark:border-surface-600 border-surface-100;
-	}
-</style>

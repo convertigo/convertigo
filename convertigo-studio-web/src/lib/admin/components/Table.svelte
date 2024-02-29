@@ -4,7 +4,8 @@
 	export let showHeaders = false;
 </script>
 
-<table class="table">
+<div class="table-container">
+<table class="table ">
 	{#if showHeaders && headers.length > 0}
 		<thead>
 			<tr>
@@ -38,3 +39,18 @@
 		{/each}
 	</tbody>
 </table>
+</div>
+
+<style lang="postcss">
+	.table-container {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	@media (max-width: 640px) {
+		th,
+		td {
+			@apply text-sm;
+		}
+	}
+</style>

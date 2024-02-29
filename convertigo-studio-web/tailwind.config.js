@@ -4,7 +4,7 @@ import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
 import { developperTheme } from './src/themes/developper';
-import { darkTheme } from './src/themes/dark';
+import { convertigoTheme } from './src/themes/convertigoTheme';
 /** @type {import('tailwindcss').Config} */
 export default {
 	darkMode: 'class',
@@ -20,7 +20,7 @@ export default {
 		typography,
 		skeleton({
 			themes: {
-				custom: [darkTheme, developperTheme]
+				custom: [convertigoTheme, developperTheme]
 			}
 		})
 	]

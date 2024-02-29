@@ -33,7 +33,6 @@
 				)
 			);
 		});
-		refreshConfigurations();
 	});
 
 	function saveChanges() {
@@ -92,32 +91,35 @@
 	<div class="grid md:grid-cols-5 gap-5">
 		<div class="h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
-				<div class="flex flex-row justify-start gap-10 flex-wrap">
+				<div class="flex flex-wrap gap-5 mb-10 ">
+
 					<button
 						type="button"
 						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 w-80 bg-buttons font-normal font-medium mb-5"
+						class="p-1 pl-5 pr-5 w-80 ring-outline-token"
 						on:click={saveChanges}
 					>
 						<span
 							><Ico
 								icon="material-symbols-light:save-as-outline"
-								class="w-6 h-6 text-white"
+								class="w-6 h-6"
 							/></span
 						>
-						<span class="text-[13px] text-white">Save changes</span>
+						<span>Save changes</span>
 					</button>
+
 					<button
 						type="button"
 						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 w-80 variant-filled-error font-normal font-medium mb-5"
+						class="btn p-1 pl-5 pr-5 w-80 ring-outline-token"
 						on:click={refreshConfigurations}
 					>
 						<span
-							><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6 text-white" /></span
+							><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span
 						>
-						<span class="text-[13px] text-white">Cancel changes</span>
-					</button>
+						<span class="">Cancel changes</span>
+					</button> 
+
 				</div>
 				<div class="grid md:grid-cols-2 grid-cols-1 gap-5">
 					{#each category.property as property}
@@ -130,8 +132,8 @@
 
 			{#if category.property.filter((p) => p['@_isAdvanced'] == 'true').length > 0}
 				<Card title="Advanced properties" class="mt-5">
-					<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
-						<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
+					<Accordion class="">
+						<AccordionItem class="">
 							<svelte:fragment slot="lead"
 								><Icon icon="game-icons:level-three-advanced" />
 							</svelte:fragment>
@@ -139,7 +141,7 @@
 								<p>Advanced properties</p>
 							</svelte:fragment>
 							<svelte:fragment slot="content">
-								<div class="md:p-2 flex grid md:grid-cols-2 gap-5">
+								<div class="md:p-2 flex grid md:grid-cols-2 gap-5 mt-10">
 									{#each category.property as property}
 										{#if property['@_isAdvanced'] == 'true'}
 											<PropertyType {property} />
@@ -212,8 +214,8 @@
 			</Card>
 
 			<Card title="Advanced properties" class="mt-5">
-				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl">
-					<AccordionItem class="dark:bg-surface-800 bg-white rounded-xl">
+				<Accordion class="rounded-token">
+					<AccordionItem class="rounded-token">
 						<svelte:fragment slot="lead"
 							><Ico icon="game-icons:level-three-advanced" />
 						</svelte:fragment>

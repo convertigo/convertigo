@@ -1,50 +1,86 @@
 <script>
-    export let definition;
-    export let data;
-    let cls = '';
-    export { cls as class };
+	export let definition;
+	export let data;
+	let cls = '';
+	export { cls as class };
 </script>
 
 <div class={`table-container ${cls}`}>
-    <table class="rounded-xl table">
-        <thead class="rounded-xl">
-            <tr>
-                {#each definition as def}
-                    <th class="header">{def.name}</th>
-                {/each}
-            </tr>
-        </thead>
-        <tbody>
-            {#each data as row}
-                <tr>
-                    {#each definition as def}
-                        <td data-label={def.name}>
-                            {#if def.custom}
-                                <slot {row} {def}>{row[def.key] ?? ''}</slot>
-                            {:else}
-                                {row[def.key] ?? ''}
-                            {/if}
-                        </td>
-                    {/each}
-                </tr>
-            {/each}
-        </tbody>
-    </table>
+	<table class="rounded-token table">
+		<thead class="rounded-token">
+			<tr>
+				{#each definition as def}
+					<th class="header dark:bg-surface-800">{def.name}</th>
+				{/each}
+			</tr>
+		</thead>
+		<tbody>
+			{#each data as row}
+				<tr>
+					{#each definition as def}
+						<td data-label={def.name}>
+							{#if def.custom}
+								<slot {row} {def}>{row[def.key] ?? ''}</slot>
+							{:else}
+								{row[def.key] ?? ''}
+							{/if}
+						</td>
+					{/each}
+				</tr>
+			{/each}
+		</tbody>
+	</table>
 </div>
 
 <style lang="postcss">
-    .table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+	.table-container {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
 
-    @media (max-width: 640px) {
-        th, td {
-            @apply text-sm;
-        }
-    }
+	@media (max-width: 640px) {
+		th,
+		td {
+			@apply text-sm text-wrap;
+		}
 
-    th {
-        @apply dark:bg-surface-800 bg-white border-b-[1px] dark:border-primary-100 border-primary-100 dark:text-surface-100 text-surface-800 font-normal;
-    }
+		tr {
+			display: block;
+		}
+
+		tr + tr {
+			margin-top: 1.5rem;
+		}
+
+		thead {
+			display: none;
+		}
+		td {
+			justify-content: flex-start;
+			align-items: center;
+			padding-left: 50%;
+			position: relative;
+            @apply border-token flex
+		}
+		td:before {
+			content: attr(data-label);
+			display: inline-block;
+			font-weight: bold;
+			line-height: 1.5;
+			margin-left: -100%;
+			width: 100%;
+			/* width: var(--witdh, 100px); */
+			position: relative;
+			z-index: 1;
+		}
+		/* td:after {
+            content: '';
+            position: absolute;
+            width: 45%;
+            height: 95%;
+            left: 1px;
+            top: 1px;
+            z-index: 0;
+        } */
+	}
 </style>

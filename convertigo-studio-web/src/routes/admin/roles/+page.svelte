@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import ModalAddRoles from '$lib/admin/modals/ModalAddRoles.svelte';
 	import { writable } from 'svelte/store';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const rolesModalStore = getModalStore();
 
@@ -118,39 +119,76 @@
 </script>
 
 <Card title="Roles">
-	<div class="flex gap-5 mb-10">
-		<button class="btn bg-buttons text-white" on:click={openAddUserModal}>
-			<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-			Add user</button
-		>
-		<button class="btn bg-buttons text-white" on:click={openImportUserModal}>
-			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
-			Import Users
-		</button>
-
-		<button class="btn bg-buttons text-white" on:click={openExportUserModal}
-			><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />export users</button
-		>
-		<button class="btn bg-buttons text-white" on:click={openDeleteAllModal}
-			><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />Delete all</button
-		>
+	<div class="flex flex-wrap gap-5 mb-10">
+		<div class="flex-1">
+			<button class="w-full" on:click={openAddUserModal}>
+				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
+				Add user
+			</button>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={openImportUserModal}>
+				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
+				Import Users
+			</button>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={openExportUserModal}>
+				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
+				Export users
+			</button>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={openDeleteAllModal}>
+				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
+				Delete all
+			</button>
+		</div>
 	</div>
+
+	<!--
 	<Tables headers={['Name', 'Value', 'Edit', 'Delete']}>
 		{#each $usersStore as users}
 			<tr>
 				<td>{users['@_name']}</td>
 				<td>{users.role}</td>
 				<td class="align">
-					<button class="btn p-1 px-2 shadow-md">
+					<button class="p-1 px-2 shadow-md">
 						<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 					</button>
 				</td>
 				<td>
-					<button class="btn p-1 px-2 shadow-md" on:click={() => openDeleteModal(users['@_name'])}
+					<button class="p-1 px-2 shadow-md" on:click={() => openDeleteModal(users['@_name'])}
 						><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 					</button>
 				</td>
 			</tr>
 		{/each}
-	</Tables>
+	</Tables>-->
+
+	{#if $usersStore.length > 0}
+		<TableAutoCard
+			definition={[
+				{ name: 'Name', key: '@_name' },
+				{ name: 'Role', key: 'role' },
+				{ name: 'Edit', custom: true },
+				{ name: 'Delete', custom: true }
+			]}
+			data={$usersStore}
+			let:row
+			let:def
+		>
+			{#if def.name === 'Edit'}
+				<button class="p-1 px-2 shadow-md">
+					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+				</button>
+			{:else if def.name === 'Delete'}
+				<button class="p-1 px-2 shadow-md" on:click={() => openDeleteModal(row['@_name'])}>
+					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+				</button>
+			{/if}
+		</TableAutoCard>
+	{:else}
+		<div>No users data available</div>
+	{/if}
 </Card>

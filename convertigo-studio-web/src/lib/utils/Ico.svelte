@@ -29,9 +29,10 @@
 	import ReturnIcon from '~icons/mdi/arrow-u-left-top';
 	import BackUpRestoreIcon from '~icons/mdi/backup-restore';
 	import LeftArrowIcon from '~icons/game-icons/level-three-advanced';
+	import HamburgerIcon from '~icons/iconamoon/menu-burger-horizontal-thin';
 
 	const ico = {
-		'~icons/octicon/logo-github-16': IconGitHub,
+		'octicon:logo-github-16': IconGitHub,
 		'ph:gear-six-thin': gearIcon,
 		'material-symbols-light:home-outline': HomeIcon,
 		'ph:gear-thin': GearIconConfig,
@@ -60,7 +61,8 @@
 		'material-symbols-light:cancel-outline': CancelChanges,
 		'mdi:arrow-u-left-top': ReturnIcon,
 		'mdi:backup-restore': BackUpRestoreIcon,
-		'game-icons:level-three-advanced': LeftArrowIcon
+		'game-icons:level-three-advanced': LeftArrowIcon,
+		'iconamoon:menu-burger-horizontal-thin': HamburgerIcon,
 	};
 </script>
 

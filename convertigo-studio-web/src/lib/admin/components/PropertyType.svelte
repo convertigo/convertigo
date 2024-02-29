@@ -3,28 +3,35 @@
 </script>
 
 <script>
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { RadioGroup, RadioItem, SlideToggle } from '@skeletonlabs/skeleton';
 	import { configurations } from '../stores/configurationStore';
-	import Icon from '@iconify/svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	export let property;
 
 	let id = `property-input-${cpt++}`;
 
 	function update() {
-		console.log('update');
 		$configurations = $configurations;
 	}
+
+	/**
+     * @param { Event } e
+     */
+	 function check(e) {
+        // @ts-ignore
+        property['@_value'] = '' + e.target.checked;
+        update();
+    }
 </script>
 
 <div class="flex flox-row items-center">
 	{#if property['@_type'] == 'Boolean'}
 		<div class="flex-1 flex items-center">
-			<RadioGroup class="text-token">
+	<!--	<RadioGroup class="text-token">
 				<RadioItem
 					name={id}
 					bind:group={property['@_value']}
-					active="bg-buttons text-white"
+					active="variant-filled-success text-token"
 					value="true"
 					on:change={update}
 				>
@@ -33,13 +40,14 @@
 				<RadioItem
 					name={id}
 					bind:group={property['@_value']}
-					active="dark:bg-surface-400 bg-white"
+					active="variant-filled-surface text-white"
 					value="false"
 					on:change={update}
 				>
 					No
 				</RadioItem>
 			</RadioGroup>
+		
 			<a
 				class="label-common ml-5"
 				href={''}
@@ -48,6 +56,13 @@
 					update();
 				}}>{property['@_description']}</a
 			>
+		-->	
+
+			<SlideToggle size='sm' name={id} active="bg-success-400 dark:bg-success-700" background="bg-error-400 dark:bg-error-700" checked={property['@_value'] == 'true'} on:change={check}>
+                <span class="cursor-pointer">{property['@_description']}</span>
+            </SlideToggle>
+
+			
 		</div>
 	{:else if property['@_type'] == 'Text'}
 		<div class="flex-1 flex flex-col justify-center border-common">
@@ -56,7 +71,7 @@
 				type="text"
 				{id}
 				placeholder="Enter value ..."
-				class="input-common input-text placeholder:pl-1"
+				class="input-common placeholder:pl-1"
 				bind:value={property['@_value']}
 				on:input={update}
 			/>
@@ -121,28 +136,10 @@
 
 <style lang="postcss">
 	.btn-group-vertical button {
-		@apply bg-green-400;
+		@apply hover:variant-filled-primary;
 	}
 
 	.btn-group-vertical button:disabled {
 		background-color: inherit;
-	}
-
-	/**style for label*/
-	.label-common {
-		@apply text-[14px] cursor-pointer;
-	}
-	/**Style for Input*/
-	.input-common {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-100 placeholder:text-surface-100 placeholder:font-light font-normal border-none dark:bg-surface-800;
-		border-bottom: surface-200;
-	}
-
-	.input-text {
-		@apply mt-1 pl-4 text-[16px] dark:text-surface-200 text-surface-600;
-	}
-
-	.border-common {
-		@apply border-b-[1px] dark:border-surface-600 border-surface-100;
 	}
 </style>

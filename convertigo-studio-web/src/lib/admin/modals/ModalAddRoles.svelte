@@ -119,10 +119,10 @@
 				</label>
 			</div>
 
-			<p class="text-[16px] font-medium mt-10 mb-5">View Roles:</p>
+			<!--	<p class="text-[16px] font-medium mt-10 mb-5">View Roles:</p>
 			<div class="grid grid-cols-6 gap-5">
 				{#each $viewRolesStore as view}
-					<!--
+		
 					<div class="flex">
 						<SlideToggle
 							active="bg-tertiary-500"
@@ -133,7 +133,7 @@
 						/>
 						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
 					</div>-->
-
+			<!--
 					<label class="flex items-center">
 						<input
 							type="checkbox"
@@ -144,22 +144,12 @@
 						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
 					</label>
 				{/each}
-			</div>
+			</div>-->
 
-			<p class="text-[16px] font-medium mt-10 mb-5">Config Roles</p>
+			<!--	<p class="text-[16px] font-medium mt-10 mb-5">Config Roles</p>
 			<div class="grid grid-cols-6 gap-5">
 				{#each $configRolesStore as config}
-					<!--
-					<div class="flex">
-						<SlideToggle
-							active="bg-tertiary-500"
-							name="roles"
-							bind:checked={config.selected}
-							on:click={() => toggleRoleSelection(config['@_name'], 'config')}
-							value={config['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{config['@_name']}</p>
-					</div>-->
+
 					<label class="flex items-center">
 						<input
 							type="checkbox"
@@ -170,22 +160,12 @@
 						<p class="p-1 ml-2 font-normal">{config['@_name']}</p>
 					</label>
 				{/each}
-			</div>
+			</div>-->
 
-			<p class="text-[16px] font-medium mt-10 mb-5">Other Roles:</p>
+			<!--	<p class="text-[16px] font-medium mt-10 mb-5">Other Roles:</p>
 			<div class="grid grid-cols-6 gap-5">
 				{#each $otherRolesStore as other}
-					<!--
-					<div class="flex">
-						<SlideToggle
-							active="bg-tertiary-500"
-							name="roles"
-							bind:checked={other.selected}
-							value={other['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{other['@_name']}</p>
-					</div>-->
-
+				
 					<label class="flex items-center">
 						<input
 							type="checkbox"
@@ -195,47 +175,86 @@
 						/>
 						<p class="p-1 ml-2 font-normal">{other['@_name']}</p>
 					</label>
+
 				{/each}
-			</div>
+			</div>-->
 
-			<div class="flex gap-5 mt-10">
-				<button
-					type="button"
-					class="btn bg-buttons text-white"
-					on:click={() => toggleViewRoles(true)}
-				>
-					<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
-					Check view</button
-				>
-				<button
-					type="button"
-					class="btn bg-buttons text-white"
-					on:click={() => toggleViewRoles(false)}
-				>
-					<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
-					Uncheck View
-				</button>
+			<div class="grid grid-cols-3 gap-10">
+				<Card title="View Roles :">
+					<div class="grid grid-cols-2 gap-5">
+						{#each $viewRolesStore as view}
+							<SlideToggle
+								size="sm"
+								name="roles"
+								active="bg-success-400 dark:bg-success-700"
+								background="bg-error-400 dark:bg-error-700"
+								value={view.selected ? view['@_name'] : ''}
+								checked={view.selected}
+							>
+								<span class="cursor-pointer">{view['@_name']}</span>
+							</SlideToggle>
+						{/each}
+					</div>
+					<div class="flex gap-5 mt-10">
+						<button type="button" class="" on:click={() => toggleViewRoles(true)}>
+							<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
+							Check view</button
+						>
+						<button type="button" class="" on:click={() => toggleViewRoles(false)}>
+							<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
+							Uncheck View
+						</button>
+					</div>
+				</Card>
 
-				<button
-					type="button"
-					class="btn bg-buttons text-white"
-					on:click={() => toggleConfigRoles(true)}
-					><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
-				>
-				<button
-					type="button"
-					class="btn bg-buttons text-white"
-					on:click={() => toggleConfigRoles(false)}
-					><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
-				>
+				<Card title="Config Roles :">
+					<div class="grid grid-cols-2 gap-5">
+						{#each $configRolesStore as config}
+							<SlideToggle
+								size="sm"
+								name="roles"
+								active="bg-success-400 dark:bg-success-700"
+								background="bg-error-400 dark:bg-error-700"
+								value={config.selected ? config['@_name'] : ''}
+								checked={config.selected}
+							>
+								<span class="cursor-pointer">{config['@_name']}</span>
+							</SlideToggle>
+						{/each}
+					</div>
+
+					<div class="flex gap-5 mt-10">
+						<button type="button" class="" on:click={() => toggleConfigRoles(true)}
+							><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
+						>
+						<button type="button" class="" on:click={() => toggleConfigRoles(false)}
+							><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
+						>
+					</div>
+				</Card>
+
+				<Card title="Other Roles">
+					<div class="flex flex-col gap-5">
+						{#each $otherRolesStore as other}
+							<SlideToggle
+								size="sm"
+								name="roles"
+								active="bg-success-400 dark:bg-success-700"
+								background="bg-error-400 dark:bg-error-700"
+								value={other.selected ? other['@_name'] : ''}
+								checked={other.selected}
+							>
+								<span class="cursor-pointer">{other['@_name']}</span>
+							</SlideToggle>
+						{/each}
+					</div>
+				</Card>
 			</div>
 
 			<div class="flex gap-10 mt-10">
-				<button type="submit" class="btn bg-buttons w-40 text-white">Confirm</button>
+				<button type="submit" class="btn variant-filled-primary text-white">Confirm</button>
 
-				<button class="btn bg-buttons w-40 text-white" on:click={() => modalStore.close()}
-					>Cancel</button
-				>
+				<button class="variant-filled-error" on:click={() => modalStore.close()}>Cancel</button>
 			</div>
 		</form>
 	</Card>

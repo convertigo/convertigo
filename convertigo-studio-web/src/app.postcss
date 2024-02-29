@@ -3,53 +3,37 @@
 @tailwind utilities;
 @tailwind variants;
 
-/* modern theme */
-@font-face {
-	font-family: 'Quicksand';
-	src: url('/fonts/Quicksand.ttf');
-	font-display: swap;
-}
-/* rocket theme */
-@font-face {
-	font-family: 'Space Grotesk';
-	src: url('/fonts/SpaceGrotesk.ttf');
-	font-display: swap;
-}
-/* gold-nouveau theme */
-@font-face {
-	font-family: 'Quicksand';
-	src: url('/fonts/Quicksand.ttf');
-	font-display: swap;
-}
-/* vintage theme */
-@font-face {
-	font-family: 'Abril Fatface';
-	src: url('/fonts/AbrilFatface.ttf');
-	font-display: swap;
-}
-/* seafoam theme */
-@font-face {
-	font-family: 'Playfair Display';
-	src: url('/fonts/PlayfairDisplay-Italic.ttf');
-	font-display: swap;
-}
 
 html,
 body {
-	@apply h-full;
+	@apply h-full bg-surface-50-900-token;
 }
 
-.ico {
-	scale: 2;
-	margin: auto;
+button {
+	@apply font-light btn bg-primary-400-500-token text-token;
 }
+
+button[type="button"] {
+	@apply font-light btn bg-surface-50-900-token text-token;
+}
+
+button[type="submit"] {
+	@apply font-light btn bg-primary-400-500-token text-token;
+}
+
+.align {
+	@apply align-middle;
+}
+
+
+/*TABLES STYLE*/
 
 table {
 	width: 100%;
 	border-collapse: collapse;
 	border: 4px;
 	border-color: white;
-	@apply rounded-xl;
+	@apply rounded-token;
 }
 th,
 td {
@@ -64,23 +48,17 @@ th {
 }
 tr {
 }
-
 tr:nth-child(even) {
-	@apply dark:bg-surface-800 bg-surface-100;
+	@apply dark:bg-surface-800 bg-surface-50 ;
 }
 
 tr:nth-child(odd) {
-	@apply dark:bg-surface-900 bg-white;
+	@apply dark:bg-surface-900 bg-white dark:bg-surface-hover-token;
 }
+/* END TABLES STYLE*/
 
-.bg-buttons {
-	background-color: #4285f4;
-	@apply text-white font-light p-1 px-5 flex items-center rounded-xl;
-}
 
-.align {
-	@apply align-middle;
-}
+/*INPUT STYLES !!*/
 
 /**style for label*/
 .label-common {
@@ -88,23 +66,30 @@ tr:nth-child(odd) {
 }
 /**Style for Input*/
 .input-common {
-	@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 dark:text-surface-100 text-surface-800 placeholder:font-light font-normal border-none dark:bg-surface-800 w-full;
+	@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 w-full;
 	border-bottom: surface-200;
 }
-
 .input-text {
-	@apply mt-1 pl-4 text-[16px] dark:text-surface-200 text-surface-800;
+	@apply mt-1 pl-4 text-[16px] dark:text-surface-500 text-surface-800;
 }
-
 /**Style for checkbox*/
 .checkbox-common {
 	@apply cursor-pointer;
 }
-
 .border-common {
 	@apply border-b-[1px] dark:border-surface-600 border-surface-100;
 }
-
 .input-name {
 	@apply font-light text-[14px] mb-3;
 }
+/* END INOUT STYLES */
+
+
+
+/*FORM STYLE*/
+form {
+	@apply rounded-token;
+}
+
+
+/*END FORM STYLE*/

@@ -12,7 +12,7 @@
 	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import ModalAddSymbol from '$lib/admin/modals/ModalAddSymbol.svelte';
-	import Tables from '$lib/admin/components/Tables.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	onMount(() => {
 		getEnvironmentVar();
@@ -133,89 +133,100 @@
 </script>
 
 <Card title="Global Symbols">
-	<div class="flex space-x-5 mb-10">
-		<button class="bg-buttons" on:click={openAddGlobalSymbolModal}>
-			<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-			Add symbols</button
-		>
-		<button class="bg-buttons" on:click={openAddSecretSymbols}>
-			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
-			Add secret symbols
-		</button>
-
-		<button class="bg-buttons" on:click={openImportSymbols}
-			><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />import symbols</button
-		>
-		<button class="bg-buttons"
-			><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
-		>
-		<button class="bg-buttons" on:click={confirmDeleteAll}
-			><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
-		>
+	<div class="flex flex-wrap gap-5 mb-10">
+		<div class="flex-1">
+			<button class="w-full" on:click={openAddGlobalSymbolModal}>
+				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
+				Add symbols</button
+			>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={openAddSecretSymbols}>
+				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
+				Add secret symbols
+			</button>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={openImportSymbols}
+				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />import symbols</button
+			>
+		</div>
+		<div class="flex-1">
+			<button class="w-full"
+				><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
+			>
+		</div>
+		<div class="flex-1">
+			<button class="w-full" on:click={confirmDeleteAll}
+				><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
+			>
+		</div>
 	</div>
 
-	<p class="dark:text-surface-100 text-surface-900 font-bold mb-10 w-[70%]">
+	<p class="dark:text-surface-100 text-surface-900 font-bold mb-5 w-[70%]">
 		Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
 		symbol is defined for the Default value or if it contains a closing curly braces it must be
 		escaped with a backslash.
 	</p>
 
-	<Tables headers={['Name', 'Value', 'Edit', 'Delete']}>
-		{#each $globalSymbolsList as globalSymbols}
-			<tr>
-				<td class="align">{globalSymbols['@_name']}</td>
-				<td class="align">{globalSymbols['@_value']}</td>
-				<td class="align"><Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" /></td>
+	<TableAutoCard
+		definition={[
+			{ name: 'Name', key: '@_name' },
+			{ name: 'Value', key: '@_value' },
+			{ name: 'Edit', custom: true },
+			{ name: 'Delete', custom: true }
+		]}
+		data={$globalSymbolsList}
+		let:row
+		let:def
+	>
+		{#if def.custom}
+			{#if def.name === 'Edit'}
+				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+			{:else if def.name === 'Delete'}
+				<button
+					class="btn p-1 px-2 shadow-md"
+					on:click={() => confirmSymbolDeletion(globalSymbols['@_name'])}
+				>
+					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+				</button>
+			{/if}
+		{/if}
+	</TableAutoCard>
 
-				<td class="align">
-					<button
-						class="btn p-1 px-2 shadow-md"
-						on:click={() => confirmSymbolDeletion(globalSymbols['@_name'])}
-					>
-						<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
-					</button>
-				</td>
-			</tr>
-		{/each}
-	</Tables>
-	<p class="dark:text-surface-100 text-surface-700 font-bold mt-20 w-[70%]">
+	<p class="dark:text-surface-100 text-surface-700 font-bold mt-20 mb-5 w-[70%]">
 		List of global symbols with default value currently used. You can import them as regular symbol.
 	</p>
 
 	{#if $defaultSymbolList.length > 0}
-		<Tables
-			customStyle="margin-top: 20px; margin-bottom: 20px; "
-			headers={['Project', 'Name', 'Value', 'Add']}
+		<TableAutoCard
+			definition={[
+				{ name: 'Project', key: '@_project' },
+				{ name: 'Name', key: '@_name' },
+				{ name: 'Value', key: '@_value' },
+				{ name: 'Add', custom: true, key: 'add' }
+			]}
+			data={$defaultSymbolList}
+			let:row
+			let:def
 		>
-			{#each $defaultSymbolList as defaultSymbol}
-				<tr>
-					<td class="align">{defaultSymbol['@_project']}</td>
-					<td class="align">{defaultSymbol['@_name']}</td>
-					<td class="align">{defaultSymbol['@_value']}</td>
-
-					<td>
-						<button class="btn p-1 px-2 shadow-md" on:click={() => addDefaultSymbol(defaultSymbol)}>
-							<Icon icon="material-symbols-light:add" class="w-7 h-7" />
-						</button>
-					</td>
-				</tr>
-			{/each}
-		</Tables>
+			{#if def.name === 'Add'}
+				<button class="btn p-1 px-2 shadow-md" on:click={() => addDefaultSymbol(row.defaultSymbol)}>
+					<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+				</button>
+			{/if}
+		</TableAutoCard>
 	{:else}
 		no data
 	{/if}
 </Card>
 
 <Card customStyle={customCard} title="Environment Variables">
-	<Tables headers={['Name', 'Value']}>
-		{#each $environmentVariables as env}
-			<tr>
-				<td>{env['@_name']}</td>
-				<td>{env['@_value']}</td>
-			</tr>
-		{/each}
-	</Tables>
+	<TableAutoCard
+		definition={[
+			{ name: 'Name', key: '@_name' },
+			{ name: 'Value', key: '@_value' }
+		]}
+		data={$environmentVariables}
+	></TableAutoCard>
 </Card>
-
-<style lang="postcss">
-</style>

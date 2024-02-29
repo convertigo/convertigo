@@ -36,6 +36,9 @@
 	];
 
 	onMount(() => {
+
+		$conf.databaseDriver = 'sqlserver';
+		
 		call('cache.ShowProperties').then((response) => {
 			cacheType = response.admin.cacheType;
 			$conf = response.admin;
@@ -83,7 +86,7 @@
 							name="cacheType"
 							value="com.twinsoft.convertigo.engine.cache.FileCacheManager"
 							id="cacheTypeFile"
-							active="bg-buttons text-white"
+							active="variant-filled-surface text-white "
 						>
 							<label for="cacheTypeFile" class="text-[14px]">file</label>
 						</RadioItem>
@@ -92,22 +95,22 @@
 							name="cacheType"
 							value="com.twinsoft.convertigo.engine.cache.DatabaseCacheManager"
 							id="cacheTypeDatabase"
-							active="bg-buttons text-white"
+							active="variant-filled-surface text-white"
 						>
 							<label for="cacheTypeDatabase" class="text-[14px]">database</label>
 						</RadioItem>
 					</RadioGroup>
 
-					<button type="submit" class="ml-5 btn bg-buttons text-white">Apply</button>
+					<button type="submit" class="ml-5 bg-primary-400">Apply</button>
 				</div>
 			</div>
 		</Card>
 
 		{#if cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
-			<Card title="Database configurations" customStyle="margin-top: 20px;">
-				<Accordion class="dark:border-surface-600 border-[1px] rounded-xl ">
+			<Card title="Database configurations" class="mt-5">
+				<Accordion class="rounded-token ">
 					<AccordionItem
-						class="dark:bg-surface-800 bg-white rounded-xl"
+						class="rounded-token"
 						open={cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
 					>
 						<svelte:fragment slot="summary">
@@ -117,18 +120,28 @@
 							</div>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<AutoGrid>
+							<AutoGrid class="mt-5">
 								<Card title="Database used">
-									<select
-										name="databaseDriver"
-										id="databaseUsed"
-										class="text-surface-800 mt-5 text-[13px] rounded-xl border-surface-200"
-										value={$conf.databaseDriver ?? 'sqlserver'}
-									>
-										<option value="sqlserver" class="text-[13px]">SQLServer</option>
-										<option value="oracle" class="text-[13px]">Oracle</option>
-										<option value="mysql" class="text-[13px]">MySQL</option>
-									</select>
+									<RadioGroup class="flex flex-col mt-5 p-5 variant-filled-success text-token" active="variant-filled-success">
+										<RadioItem
+											bind:group={$conf.databaseDriver}
+											name="databaseDriver"
+											value="sqlserver"
+											id="driverSqlserver">SQL Server</RadioItem
+										>
+										<RadioItem
+											bind:group={$conf.databaseDriver}
+											name="databaseDriver"
+											value="oracle"
+											id="driverOracle">Oracle</RadioItem
+										>
+										<RadioItem
+											bind:group={$conf.databaseDriver}
+											name="databaseDriver"
+											value="mysql"
+											id="driverMysql">MySQL</RadioItem
+										>
+									</RadioGroup>
 								</Card>
 
 								<Card title="Access configuration" customStyle="">
@@ -157,9 +170,7 @@
 							<div class="mt-3">
 								<Card>
 									<div class="flex justify-center">
-										<button type="submit" class="btn bg-buttons text-white"
-											>Create table and apply</button
-										>
+										<button type="submit">Create table and apply</button>
 									</div>
 								</Card>
 							</div>
