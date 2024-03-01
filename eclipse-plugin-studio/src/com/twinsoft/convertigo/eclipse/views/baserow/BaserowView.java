@@ -76,17 +76,23 @@ import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IfStep;
+import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
 import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
 import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
 import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.JsonToXmlStep;
-import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
+import com.twinsoft.convertigo.beans.steps.SimpleIteratorStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
+import com.twinsoft.convertigo.beans.steps.SourceStep;
+import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
+import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -694,7 +700,11 @@ public class BaserowView extends ViewPart {
 							project.add(sequence);
 						}
 
-						SimpleStep simpleStep = new SimpleStep();
+						var simpleStep = new SimpleStep();
+						simpleStep.setName("table_id");
+						simpleStep.setExpression("table_id = " + table_id + ";");
+						sequence.add(simpleStep);
+						simpleStep = new SimpleStep();
 						simpleStep.setName("apiKey");
 						simpleStep.setCompilablePropertySourceValue("expression", "(__header_Authorization = 'Token ${lib_baserow.apikey.secret=}') == 'Token '");
 						simpleStep.updateSymbols();
@@ -721,7 +731,7 @@ public class BaserowView extends ViewPart {
 								RequestableVariable var = null;
 								if ((isCreate || isUpdate) && !"formula".equals(varType)) {
 									String comment = varName + " [" + varType + "]";
-									var = new RequestableVariable();
+									var = varType.equals("file") ? new RequestableMultiValuedVariable() : new RequestableVariable();
 									var.setName("field_" + com.twinsoft.convertigo.engine.util.StringUtils.normalize(varName));
 									var.setComment(comment);
 									sequence.add(var);
@@ -742,41 +752,70 @@ public class BaserowView extends ViewPart {
 									jsonObjectStep.add(ifStep);
 									if (varType.equals("file")) {
 										var.setIsFileUpload(true);
-										IfStep ifStp = new IfStep(var.getName() + " != null");
+										var ifStp = new IfStep(var.getName() + " != null");
 										sequence.add(ifStp, beforeBody);
 										beforeBody = ifStp.priority;
+										var files = new XMLComplexStep();
+										files.setNodeName("files");
+										files.setName("files");
+										files.setOutput(false);
+										ifStp.add(files);
+										var jiterator = new SimpleIteratorStep();
+										jiterator.setExpression(var.getName());
+										files.add(jiterator);
+										var ifEmpty = new IfStep("item != \"\"");
+										jiterator.add(ifEmpty);
+										var ifThenStep = new IfThenElseStep();
+										ifEmpty.add(ifThenStep);
+										ifThenStep.setCondition("new RegExp(\"^https?://\").test(file = item)");
+										var thenStep = new ThenStep();
+										ifThenStep.add(thenStep);
+										var elseStep = new ElseStep();
+										ifThenStep.add(elseStep);
 										simpleStep = new SimpleStep();
-										simpleStep.setName("setFile");
-										simpleStep.setExpression("file = " + var.getName());
-										ifStp.add(simpleStep);
-										TransactionStep transactionStep = new TransactionStep();
+										simpleStep.setName("setBody");
+										simpleStep.setExpression("__body = JSON.stringify({url: file});");
+										thenStep.add(simpleStep);
+										var transactionStep = new TransactionStep();
+										transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_user_files_upload_via_url__POST");
+										var stepVariable = new StepVariable();
+										stepVariable.setName("__header_Authorization");
+										transactionStep.add(stepVariable);
+										stepVariable = new StepVariable();
+										stepVariable.setName("__body");
+										transactionStep.add(stepVariable);
+										thenStep.add(transactionStep);
+										transactionStep = new TransactionStep();
 										transactionStep.setSourceTransaction("lib_BaseRow.Baserow_API_spec._api_user_files_upload_file__POST");
-										StepVariable stepVariable = new StepVariable();
+										stepVariable = new StepVariable();
 										stepVariable.setName("__header_Authorization");
 										transactionStep.add(stepVariable);
 										stepVariable = new StepVariable();
 										stepVariable.setName("file");
 										transactionStep.add(stepVariable);
-										ifStp.add(transactionStep);
-										SimpleSourceStep simpleSource = new SimpleSourceStep();
-										simpleSource.setVariableName(var.getName());
-										XMLVector<String> source = new XMLVector<String>();
-										source.add(Long.toString(transactionStep.priority));
-										source.add("/document/object/name/text()");
-										simpleSource.setSourceDefinition(source);
-										ifStp.add(simpleSource);
-										JsonArrayStep jsonArrayStep = new JsonArrayStep();
+										elseStep.add(transactionStep);
+										var sourceStep = new SourceStep();
+										sourceStep.setVariableName(var.getName());
+										var source = new XMLVector<String>();
+										source.add(Long.toString(files.priority));
+										source.add("/transaction/document/object/name/text()");
+										sourceStep.setSourceDefinition(source);
+										ifStp.add(sourceStep);
+										var jsonArrayStep = new JsonArrayStep();
 										jsonArrayStep.setName(varName);
 										jsonArrayStep.setOutput(false);
 										ifStep.add(jsonArrayStep);
-										JsonObjectStep jsonObject = new JsonObjectStep();
+										jiterator = new SimpleIteratorStep();
+										jiterator.setExpression(var.getName());
+										jsonArrayStep.add(jiterator);
+										var jsonObject = new JsonObjectStep();
 										jsonObject.setOutput(false);
-										jsonArrayStep.add(jsonObject);
-										JsonFieldStep jsonFieldStep = new JsonFieldStep();
+										jiterator.add(jsonObject);
+										var jsonFieldStep = new JsonFieldStep();
 										jsonFieldStep.setName("name");
-										SmartType st = new SmartType();
+										var st = new SmartType();
 										st.setMode(Mode.JS);
-										st.setExpression(var.getName());
+										st.setExpression("item.getNodeValue()");
 										jsonFieldStep.setValue(st);
 										jsonFieldStep.setOutput(false);
 										jsonObject.add(jsonFieldStep);
@@ -829,7 +868,6 @@ public class BaserowView extends ViewPart {
 
 							stepVariable = new StepVariable();
 							stepVariable.setName("table_id");
-							stepVariable.setValueOrNull(table_id);
 							transactionStep.add(stepVariable);
 
 							stepVariable = new StepVariable();
@@ -904,7 +942,6 @@ public class BaserowView extends ViewPart {
 
 							stepVariable = new StepVariable();
 							stepVariable.setName("table_id");
-							stepVariable.setValueOrNull(table_id);
 							transactionStep.add(stepVariable);
 
 							stepVariable = new StepVariable();
@@ -960,7 +997,6 @@ public class BaserowView extends ViewPart {
 
 							stepVariable = new StepVariable();
 							stepVariable.setName("table_id");
-							stepVariable.setValueOrNull(table_id);
 							transactionStep.add(stepVariable);
 
 							stepVariable = new StepVariable();
