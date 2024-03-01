@@ -30,6 +30,7 @@
 	import BackUpRestoreIcon from '~icons/mdi/backup-restore';
 	import LeftArrowIcon from '~icons/game-icons/level-three-advanced';
 	import HamburgerIcon from '~icons/iconamoon/menu-burger-horizontal-thin';
+	import CloudFillIcon from '~icons/iconamoon/cloud-fill';
 
 	const ico = {
 		'octicon:logo-github-16': IconGitHub,
@@ -63,6 +64,7 @@
 		'mdi:backup-restore': BackUpRestoreIcon,
 		'game-icons:level-three-advanced': LeftArrowIcon,
 		'iconamoon:menu-burger-horizontal-thin': HamburgerIcon,
+		'iconamoon:cloud-fill' : CloudFillIcon,
 	};
 </script>
 

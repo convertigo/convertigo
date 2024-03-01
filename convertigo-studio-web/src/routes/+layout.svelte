@@ -9,8 +9,10 @@
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
-	import ModalAddSymbol from '$lib/admin/modals/ModalAddSymbol.svelte';
 	import ModalProjects from '$lib/admin/modals/ModalProjects.svelte';
+	import ModalSymbols from '$lib/admin/modals/ModalSymbols.svelte';
+	import ModalRoles from '$lib/admin/modals/ModalRoles.svelte';
+	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
 	initializeStores();
 
 	afterNavigate(() => {
@@ -25,12 +27,15 @@
 	});
 
 	const modalComponentRegistry = {
-		modalAddSymbols: { ref: ModalAddSymbol },
-		modalProjects: { ref: ModalProjects }
+		modalSymbols: { ref: ModalSymbols },
+		modalProjects: { ref: ModalProjects },
+		modalRoles: { ref: ModalRoles },
+		modalScheduler: { ref: ModalScheduler}
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
 
 <Modal components={modalComponentRegistry} />
+
 <slot />

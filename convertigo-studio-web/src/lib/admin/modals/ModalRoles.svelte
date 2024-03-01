@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
+	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -100,16 +101,16 @@
 </script>
 
 {#if mode == 'add'}
-	<Card title="Add user" customStyle="padding: 40px;">
+	<Card title="Add User" customStyle="padding: 40px;">
 		<form on:submit={rolesAdd}>
 			<div class="flex items-center gap-10 mb-10">
 				<label class="border-common">
-					<p class="label-common text-input">Name :</p>
+					<p class="label-common text-input">Name</p>
 					<input class="input-common" type="text" name="username" placeholder="Enter name .." />
 				</label>
 
 				<label class="border-common">
-					<p class="label-common">Password :</p>
+					<p class="label-common">Password</p>
 					<input
 						class="input-common"
 						type="password"
@@ -119,142 +120,99 @@
 				</label>
 			</div>
 
-			<!--	<p class="text-[16px] font-medium mt-10 mb-5">View Roles:</p>
-			<div class="grid grid-cols-6 gap-5">
-				{#each $viewRolesStore as view}
-		
-					<div class="flex">
-						<SlideToggle
-							active="bg-tertiary-500"
-							name="roles"
-							bind:checked={view.selected}
-							on:click={() => toggleRoleSelection(view['@_name'], 'view')}
-							value={view['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
-					</div>-->
-			<!--
-					<label class="flex items-center">
-						<input
-							type="checkbox"
-							bind:checked={view.selected}
-							name="roles"
-							value={view['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{view['@_name']}</p>
-					</label>
-				{/each}
-			</div>-->
-
-			<!--	<p class="text-[16px] font-medium mt-10 mb-5">Config Roles</p>
-			<div class="grid grid-cols-6 gap-5">
-				{#each $configRolesStore as config}
-
-					<label class="flex items-center">
-						<input
-							type="checkbox"
-							bind:checked={config.selected}
-							name="roles"
-							value={config['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{config['@_name']}</p>
-					</label>
-				{/each}
-			</div>-->
-
-			<!--	<p class="text-[16px] font-medium mt-10 mb-5">Other Roles:</p>
-			<div class="grid grid-cols-6 gap-5">
-				{#each $otherRolesStore as other}
-				
-					<label class="flex items-center">
-						<input
-							type="checkbox"
-							bind:checked={other.selected}
-							name="roles"
-							value={other['@_name']}
-						/>
-						<p class="p-1 ml-2 font-normal">{other['@_name']}</p>
-					</label>
-
-				{/each}
-			</div>-->
-
-			<div class="grid grid-cols-3 gap-10">
-				<Card title="View Roles :">
-					<div class="grid grid-cols-2 gap-5">
+			<ResponsiveContainer scrollable={true} smCols="sm:grid-cols-1" mdCols="md:grid-cols-3" lgCols="lg:grid-cols-3" >
+				<div class="container-child">
+					<h1 class="mb-5 font-bold text-xl">View Roles</h1>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
 						{#each $viewRolesStore as view}
-							<SlideToggle
-								size="sm"
-								name="roles"
-								active="bg-success-400 dark:bg-success-700"
-								background="bg-error-400 dark:bg-error-700"
-								value={view.selected ? view['@_name'] : ''}
-								checked={view.selected}
-							>
-								<span class="cursor-pointer">{view['@_name']}</span>
-							</SlideToggle>
+							<div class="flex items-center">
+								<SlideToggle
+									size="sm"
+									name="roles"
+									active="bg-success-400 dark:bg-success-700"
+									background="bg-error-400 dark:bg-error-700"
+									value={view.selected ? view['@_name'] : ''}
+									checked={view.selected}
+								>
+									<span class="cursor-pointer">{view['@_name'].replace('_VIEW', '')}</span>
+								</SlideToggle>
+							</div>
 						{/each}
 					</div>
-					<div class="flex gap-5 mt-10">
-						<button type="button" class="" on:click={() => toggleViewRoles(true)}>
-							<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
-							Check view</button
-						>
-						<button type="button" class="" on:click={() => toggleViewRoles(false)}>
-							<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
-							Uncheck View
-						</button>
+					<div class="flex flex-wrap gap-5 mt-10">
+						<div class="flex-1">
+							<button type="button" class="w-full" on:click={() => toggleViewRoles(true)}>
+								<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
+								Check view
+							</button>
+						</div>
+						<div class="flex-1">
+							<button type="button" class="w-full" on:click={() => toggleViewRoles(false)}>
+								<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
+								Uncheck View
+							</button>
+						</div>
 					</div>
-				</Card>
+				</div>
 
-				<Card title="Config Roles :">
-					<div class="grid grid-cols-2 gap-5">
+				<div class="container-child">
+					<h1 class="mb-5 font-bold text-xl">Config Roles</h1>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
 						{#each $configRolesStore as config}
-							<SlideToggle
-								size="sm"
-								name="roles"
-								active="bg-success-400 dark:bg-success-700"
-								background="bg-error-400 dark:bg-error-700"
-								value={config.selected ? config['@_name'] : ''}
-								checked={config.selected}
-							>
-								<span class="cursor-pointer">{config['@_name']}</span>
-							</SlideToggle>
+							<div class="flex items-center">
+								<SlideToggle
+									size="sm"
+									name="roles"
+									active="bg-success-400 dark:bg-success-700"
+									background="bg-error-400 dark:bg-error-700"
+									value={config.selected ? config['@_name'] : ''}
+									checked={config.selected}
+								>
+									<span class="cursor-pointer">{config['@_name'].replace('_CONFIG', '')}</span>
+								</SlideToggle>
+							</div>
 						{/each}
 					</div>
 
 					<div class="flex gap-5 mt-10">
-						<button type="button" class="" on:click={() => toggleConfigRoles(true)}
-							><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
-						>
-						<button type="button" class="" on:click={() => toggleConfigRoles(false)}
-							><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
-						>
-					</div>
-				</Card>
-
-				<Card title="Other Roles">
-					<div class="flex flex-col gap-5">
-						{#each $otherRolesStore as other}
-							<SlideToggle
-								size="sm"
-								name="roles"
-								active="bg-success-400 dark:bg-success-700"
-								background="bg-error-400 dark:bg-error-700"
-								value={other.selected ? other['@_name'] : ''}
-								checked={other.selected}
+						<div class="flex-1">
+							<button type="button" class="w-full" on:click={() => toggleConfigRoles(true)}
+								><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
 							>
-								<span class="cursor-pointer">{other['@_name']}</span>
-							</SlideToggle>
+						</div>
+						<div class="flex-1">
+							<button type="button" class="w-full" on:click={() => toggleConfigRoles(false)}
+								><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
+							>
+						</div>
+					</div>
+				</div>
+
+				<div class="container-child">
+					<h1 class="mb-5 font-bold text-xl">Other Roles</h1>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
+						{#each $otherRolesStore as other}
+							<div class="flex items-center">
+								<SlideToggle
+									size="sm"
+									name="roles"
+									active="bg-success-400 dark:bg-success-700"
+									background="bg-error-400 dark:bg-error-700"
+									value={other.selected ? other['@_name'] : ''}
+									checked={other.selected}
+								>
+									<span class="cursor-pointer">{other['@_name']}</span>
+								</SlideToggle>
+							</div>
 						{/each}
 					</div>
-				</Card>
-			</div>
+				</div>
+			</ResponsiveContainer>
 
 			<div class="flex gap-10 mt-10">
-				<button type="submit" class="btn variant-filled-primary text-white">Confirm</button>
+				<button type="submit" class="btn variant-filled-primary w-40">Confirm</button>
 
-				<button class="variant-filled-error" on:click={() => modalStore.close()}>Cancel</button>
+				<button class="variant-filled-error w-40" on:click={() => modalStore.close()}>Cancel</button>
 			</div>
 		</form>
 	</Card>
@@ -305,3 +263,9 @@
 {#if mode == 'delete all'}
 	Delete all
 {/if}
+
+<style lang="postcss">
+	.container-child {
+		@apply flex flex-wrap flex-col;
+	}
+</style>

@@ -73,7 +73,7 @@
 		</div>
 
 		<div class="flex-1">
-			<button class="w-full">Delete all</button>
+			<button class="w-full">Delete All</button>
 		</div>
 	</div>
 </Card>

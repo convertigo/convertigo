@@ -3,7 +3,7 @@
 </script>
 
 <script>
-	import { RadioGroup, RadioItem, SlideToggle } from '@skeletonlabs/skeleton';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { configurations } from '../stores/configurationStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	export let property;
@@ -15,55 +15,32 @@
 	}
 
 	/**
-     * @param { Event } e
-     */
-	 function check(e) {
-        // @ts-ignore
-        property['@_value'] = '' + e.target.checked;
-        update();
-    }
+	 * @param { Event } e
+	 */
+	function check(e) {
+		// @ts-ignore
+		property['@_value'] = '' + e.target.checked;
+		update();
+	}
 </script>
 
-<div class="flex flox-row items-center">
+<div class="flex items-center">
 	{#if property['@_type'] == 'Boolean'}
-		<div class="flex-1 flex items-center">
-	<!--	<RadioGroup class="text-token">
-				<RadioItem
-					name={id}
-					bind:group={property['@_value']}
-					active="variant-filled-success text-token"
-					value="true"
-					on:change={update}
-				>
-					Yes
-				</RadioItem>
-				<RadioItem
-					name={id}
-					bind:group={property['@_value']}
-					active="variant-filled-surface text-white"
-					value="false"
-					on:change={update}
-				>
-					No
-				</RadioItem>
-			</RadioGroup>
-		
-			<a
-				class="label-common ml-5"
-				href={''}
-				on:click|preventDefault={() => {
-					property['@_value'] = property['@_value'] == 'true' ? 'false' : 'true';
-					update();
-				}}>{property['@_description']}</a
+		<div class="flex-shrink-0 flex-1">
+			<SlideToggle
+				size="md"
+				name={id}
+				active="bg-success-400 dark:bg-success-700"
+				background="bg-error-400 dark:bg-error-700"
+				checked={property['@_value'] == 'true'}
+				on:change={check}
 			>
-		-->	
-
-			<SlideToggle size='md' name={id} active="bg-success-400 dark:bg-success-700" background="bg-error-400 dark:bg-error-700" checked={property['@_value'] == 'true'} on:change={check}>
-                <span class="cursor-pointer">{property['@_description']}</span>
-            </SlideToggle>
-
-			
+				<div class="flex-grow">
+					<span class="block cursor-pointer break-words">{property['@_description']}</span>
+				</div>
+			</SlideToggle>
 		</div>
+
 	{:else if property['@_type'] == 'Text'}
 		<div class="flex-1 flex flex-col justify-center border-common">
 			<label class="label-common" for={id}>{property['@_description']}</label>
@@ -104,17 +81,17 @@
 		<div class="flex-1 flex flex-col justify-center border-common">
 			<label class="label-common" for={id}>{property['@_description']}</label>
 
-			<select class="input-common" bind:value={property['@_value']}>
+			<select class="input-common" {id} bind:value={property['@_value']} on:change={update}>
 				{#each property.item as option}
-					<option {id} on:change={update} value={option['@_value']}>{option['@_value']}</option>
+					<option value={option['@_value']}>{option['#text']}</option>
 				{/each}
 			</select>
 		</div>
 	{:else if property['@_type'] == 'Array'}
-		<div class="flex-1 flex flex-col justify-center border-common">pas géré</div>
+		<div class="flex-1 flex flex-col justify-center border-common">Not handled</div>
 	{/if}
 
-	<div class="flex-none btn-group-vertical shadow-md ml-10 mr-10">
+	<div class="flex-none btn-group-vertical shadow-md ml-10">
 		<button
 			disabled={property['@_value'] == property['@_originalValue']}
 			on:click={() => {
@@ -141,5 +118,9 @@
 
 	.btn-group-vertical button:disabled {
 		background-color: inherit;
+	}
+
+	.container-child {
+		@apply flex flex-wrap flex-col;
 	}
 </style>

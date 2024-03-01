@@ -11,7 +11,7 @@
 	import Icon from '@iconify/svelte';
 	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import ModalAddSymbol from '$lib/admin/modals/ModalAddSymbol.svelte';
+	import ModalSymbols from '$lib/admin/modals/ModalSymbols.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	onMount(() => {
@@ -110,7 +110,7 @@
 	function openAddGlobalSymbolModal() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddSymbol },
+			component: { ref: ModalSymbols },
 			meta: { mode: 'add' }
 		});
 	}
@@ -118,7 +118,7 @@
 	function openAddSecretSymbols() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddSymbol },
+			component: { ref: ModalSymbols },
 			meta: { mode: 'secret' }
 		});
 	}
@@ -126,7 +126,7 @@
 	function openImportSymbols() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddSymbol },
+			component: { ref: ModalSymbols },
 			meta: { mode: 'import' }
 		});
 	}
@@ -137,23 +137,23 @@
 		<div class="flex-1">
 			<button class="w-full" on:click={openAddGlobalSymbolModal}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-				Add symbols</button
+				Add Symbols</button
 			>
 		</div>
 		<div class="flex-1">
 			<button class="w-full" on:click={openAddSecretSymbols}>
 				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
-				Add secret symbols
+				Add Secret Symbols
 			</button>
 		</div>
 		<div class="flex-1">
 			<button class="w-full" on:click={openImportSymbols}
-				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />import symbols</button
+				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />Import Symbols</button
 			>
 		</div>
 		<div class="flex-1">
 			<button class="w-full"
-				><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />export symbols</button
+				><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />Export Symbols</button
 			>
 		</div>
 		<div class="flex-1">

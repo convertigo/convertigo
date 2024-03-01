@@ -36,6 +36,7 @@
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
+		
 	}
 
 	@media (max-width: 640px) {
@@ -44,8 +45,13 @@
 			@apply text-sm text-wrap;
 		}
 
+		table {
+			background-color: unset;
+		}
+
 		tr {
 			display: block;
+			@apply rounded-token;
 		}
 
 		tr + tr {
@@ -73,14 +79,6 @@
 			position: relative;
 			z-index: 1;
 		}
-		/* td:after {
-            content: '';
-            position: absolute;
-            width: 45%;
-            height: 95%;
-            left: 1px;
-            top: 1px;
-            z-index: 0;
-        } */
+
 	}
 </style>

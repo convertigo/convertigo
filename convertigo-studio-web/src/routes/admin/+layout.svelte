@@ -6,13 +6,13 @@
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 </script>
 
-<AppShell>
-	<Drawer>
-		<PagesRailToggle open={false} />
-		<PagesRail />
-	</Drawer>
-	<Toast />
+<Drawer>
+	<PagesRailToggle open={false} />
+	<PagesRail />
+</Drawer>
+<Toast />
 
+<AppShell>
 	<svelte:fragment slot="header">
 		<Topbar />
 	</svelte:fragment>

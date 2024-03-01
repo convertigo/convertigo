@@ -16,14 +16,14 @@
 
 	let databaseConfigurations = [
 		{ label: 'Server Name', name: 'serverName', value: $conf.serverName ?? '' },
-		{ label: 'Access port:', name: 'serverPort', value: $conf.serverPort ?? '' },
-		{ label: 'Database/Service name:', name: 'databaseName', value: $conf.databaseName ?? '' }
+		{ label: 'Access Port', name: 'serverPort', value: $conf.serverPort ?? '' },
+		{ label: 'Database / Service Name', name: 'databaseName', value: $conf.databaseName ?? '' }
 	];
 
 	let identificationConfigurations = [
-		{ label: 'User name:', name: 'cacheUserName', value: $conf.userName ?? '' },
+		{ label: 'User Name:', name: 'cacheUserName', value: $conf.userName ?? '' },
 		{
-			label: 'User password:',
+			label: 'User Password:',
 			name: 'userPassword',
 			type: 'password',
 			value: $conf.userPassword ?? ''
@@ -77,7 +77,7 @@
 {#if $conf}
 	<form on:submit={handlesubmit}>
 		<Card title="Cache type">
-			<p class="mt-5">Choose the desired cache type :</p>
+			<p class="mt-5">Choose the desired cache type</p>
 			<div class="flex mt-5">
 				<div class="flex items-center">
 					<RadioGroup>
@@ -108,7 +108,7 @@
 
 		{#if cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
 			<Card title="Database configurations" class="mt-5">
-				<Accordion class="rounded-token ">
+				<Accordion class="rounded-token" caretOpen="rotate-0" caretClosed="-rotate-90">
 					<AccordionItem
 						class="rounded-token"
 						open={cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
@@ -119,9 +119,10 @@
 								Configurations
 							</div>
 						</svelte:fragment>
+
 						<svelte:fragment slot="content">
 							<AutoGrid class="mt-5">
-								<Card title="Database used">
+								<Card title="Database Used">
 									<RadioGroup class="flex flex-col mt-5 p-5 variant-filled-success text-token" active="variant-filled-success">
 										<RadioItem
 											bind:group={$conf.databaseDriver}
@@ -144,7 +145,7 @@
 									</RadioGroup>
 								</Card>
 
-								<Card title="Access configuration" customStyle="">
+								<Card title="Access Configuration" customStyle="">
 									{#each databaseConfigurations as config}
 										<CacheInput {...config} />
 									{/each}
@@ -153,13 +154,13 @@
 
 							<div class="mt-3">
 								<AutoGrid>
-									<Card title="Configuration of the identification">
+									<Card title="Configuration of the Identification">
 										{#each identificationConfigurations as identificationConfig}
 											<CacheInput {...identificationConfig} />
 										{/each}
 									</Card>
 
-									<Card title="Cache table">
+									<Card title="Cache Table">
 										{#each cacheTableConfigurations as cacheTable}
 											<CacheInput {...cacheTable} />
 										{/each}

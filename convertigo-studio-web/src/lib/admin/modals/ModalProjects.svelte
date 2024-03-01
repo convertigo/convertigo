@@ -60,21 +60,32 @@
 		</form>
 	</Card>
 {:else}
-	<form on:submit={importProject} class="p-5 rounded-xl flex flex-col">
-		<h1 class="text-xl mb-5 text-center">Import from a Remote Project URL</h1>
-		<p>
-			Import a project from url like:<br /><b
-				>&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional
-				subpath&gt;][:branch=&lt;optional branch&gt;]</b
-			>
-		</p>
-		<p>Or a Convertigo Archive HTTP(S) URL.</p>
-		<input type="text" class="input" name="url" size="70" />
-		<button class="btn">Import</button>
-		<button class="mt-5 btn bg-white text-black font-light" on:click={() => modalStore.close()}
-			>Cancel</button
-		>
-	</form>
+	<Card>
+		<form on:submit={importProject} class="p-5 rounded-xl flex flex-col">
+			<h1 class="text-xl mb-5 text-center">Import from a Remote Project URL</h1>
+			<p>
+				Import a project from url like:<br /><b
+					>&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional
+					subpath&gt;][:branch=&lt;optional branch&gt;]</b
+				>
+			</p>
+			<p>Or a Convertigo Archive HTTP(S) URL.</p>
+			<input type="text" class="input" name="url" size="70" />
+
+			<div class="flex flex-wrap gap-5 mt-5">
+				<div class="flex-1">
+					<button class="btn w-full">Import</button>
+				</div>
+				<div class="flex-1">
+					<button class="w-full variant-filled-error" on:click={() => modalStore.close()}
+						>Cancel</button
+					>
+				</div>
+				
+			</div>
+			
+		</form>
+	</Card>
 {/if}
 
 <style lang="postcss">
@@ -85,6 +96,4 @@
 		border: none;
 		border-radius: 5px;
 	}
-
-
 </style>

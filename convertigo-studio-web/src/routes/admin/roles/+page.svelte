@@ -5,7 +5,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import ModalAddRoles from '$lib/admin/modals/ModalAddRoles.svelte';
+	import ModalRoles from '$lib/admin/modals/ModalRoles.svelte';
 	import { writable } from 'svelte/store';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
@@ -66,7 +66,7 @@
 	function openAddUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddRoles },
+			component: { ref: ModalRoles },
 			meta: { mode: 'add' }
 		});
 	}
@@ -74,7 +74,7 @@
 	function openImportUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddRoles },
+			component: { ref: ModalRoles },
 			meta: { mode: 'import' }
 		});
 	}
@@ -82,7 +82,7 @@
 	function openExportUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalAddRoles },
+			component: { ref: ModalRoles },
 			meta: { mode: 'export' }
 		});
 	}
@@ -123,7 +123,7 @@
 		<div class="flex-1">
 			<button class="w-full" on:click={openAddUserModal}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-				Add user
+				Add User
 			</button>
 		</div>
 		<div class="flex-1">
@@ -135,13 +135,13 @@
 		<div class="flex-1">
 			<button class="w-full" on:click={openExportUserModal}>
 				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
-				Export users
+				Export Users
 			</button>
 		</div>
 		<div class="flex-1">
 			<button class="w-full" on:click={openDeleteAllModal}>
 				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
-				Delete all
+				Delete All
 			</button>
 		</div>
 	</div>
@@ -149,7 +149,7 @@
 	{#if $usersStore.length > 0}
 		<TableAutoCard
 			definition={[
-				{ name: 'Profile', custom: true },
+				{ name: 'User', custom: true },
 				{ name: 'Name', key: '@_name' },
 				{ name: 'Role', key: 'role' },
 				{ name: 'Edit', custom: true },
@@ -159,7 +159,7 @@
 			let:row
 			let:def
 		>
-			{#if def.name === 'Profile'}
+			{#if def.name === 'User'}
 				<Icon icon="iconoir:profile-circle" class="w-7 h-7"/>
 			{:else if def.name === 'Edit'}
 				<button class="p-1 px-2 shadow-md">

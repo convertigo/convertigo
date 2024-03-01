@@ -17,6 +17,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { browser } from '$app/environment';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 
 	const modalStore = getModalStore();
 
@@ -91,63 +92,71 @@
 	<div class="grid md:grid-cols-5 gap-5">
 		<div class="h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
-				<div class="flex flex-wrap gap-5 mb-10 ">
-
-					<button
-						type="button"
-						disabled={!hasChanges}
-						class="p-1 pl-5 pr-5 w-80 ring-outline-token"
-						on:click={saveChanges}
-					>
-						<span
-							><Ico
-								icon="material-symbols-light:save-as-outline"
-								class="w-6 h-6"
-							/></span
+				<div class="flex flex-wrap gap-5 mb-10">
+					<div class="flex-1">
+						<button
+							type="button"
+							disabled={!hasChanges}
+							class="p-1 pl-5 pr-5 ring-outline-token w-full"
+							on:click={saveChanges}
 						>
-						<span>Save changes</span>
-					</button>
-
-					<button
-						type="button"
-						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 w-80 ring-outline-token"
-						on:click={refreshConfigurations}
-					>
-						<span
-							><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span
+							<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
+							<span>Save changes</span>
+						</button>
+					</div>
+					<div class="flex-1">
+						<button
+							type="button"
+							disabled={!hasChanges}
+							class="btn p-1 pl-5 pr-5 ring-outline-token w-full"
+							on:click={refreshConfigurations}
 						>
-						<span class="">Cancel changes</span>
-					</button> 
-
+							<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
+							<span class="">Cancel changes</span>
+						</button>
+					</div>
 				</div>
-				<div class="grid md:grid-cols-2 grid-cols-1 gap-5">
+				<ResponsiveContainer
+					scrollable={false}
+					maxHeight="h-auto"
+					smCols="sm:grid-cols-1"
+					mdCols="md:grid-cols-1"
+					lgCols="lg:grid-cols-2"
+				>
 					{#each category.property as property}
 						{#if property['@_isAdvanced'] != 'true'}
 							<PropertyType {property} />
 						{/if}
 					{/each}
-				</div>
+				</ResponsiveContainer>
 			</Card>
 
 			{#if category.property.filter((p) => p['@_isAdvanced'] == 'true').length > 0}
 				<Card title="Advanced properties" class="mt-5">
-					<Accordion class="">
-						<AccordionItem class="">
-							<svelte:fragment slot="lead"
-								><Icon icon="game-icons:level-three-advanced" />
-							</svelte:fragment>
+					<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
+						<AccordionItem>
 							<svelte:fragment slot="summary">
-								<p>Advanced properties</p>
+								<div class="flex items-center">
+									<Icon icon="game-icons:level-three-advanced" />
+									<p class="ml-4">Advanced properties</p>
+								</div>
 							</svelte:fragment>
+
 							<svelte:fragment slot="content">
-								<div class="md:p-2 flex grid md:grid-cols-2 gap-5 mt-10">
+								<ResponsiveContainer
+									scrollable={false}
+									maxHeight="h-auto"
+									class="mt-10"
+									smCols="sm:grid-cols-1"
+									mdCols="md:grid-cols-1"
+									lgCols="lg:grid-cols-2"
+								>
 									{#each category.property as property}
 										{#if property['@_isAdvanced'] == 'true'}
 											<PropertyType {property} />
 										{/if}
 									{/each}
-								</div>
+								</ResponsiveContainer>
 							</svelte:fragment>
 						</AccordionItem>
 					</Accordion>
@@ -165,7 +174,7 @@
 						on:click={changeCategory}
 					>
 						<div class="flex">
-							<Icon icon="uil:arrow-up" rotate={3} class="text-xl mr-2" />
+							<Icon icon="uil:arrow-up" rotate={3} class="text-xl md:mr-2 hidden mb:block" />
 							{category['@_displayName']}
 						</div>
 					</ListBoxItem>
@@ -226,7 +235,7 @@
 				</Accordion>
 			</Card>
 		</div>
-		<Card class="flex flex-col h-auto md:col-span-1 rounded-2xl">
+		<Card class="flex flex-col h-auto md:col-span-1 rounded-token">
 			{#each Array(12) as _}
 				<div class="placeholder animate-pulse my-3 h-8"></div>
 			{/each}
