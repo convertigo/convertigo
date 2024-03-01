@@ -807,10 +807,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		var refreshBtn = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.gif", "Refresh", "Refresh");
 		item.addSelectionListener((SelectionListener) e -> {
-			for (var it: toolbar.getItems()) {
-				it.setEnabled(true);
-			}
-			applySelectedDevice();
+			disableEdition();
 			doReload();
 		});
 
@@ -1405,6 +1402,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				// silently ignore
 			}
 		});
+		disableEdition();
 	}
 
 	private void error(String msg) {
@@ -2135,5 +2133,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			throw ex[0];
 		}
 		return ok[0];
+	}
+	
+	private void disableEdition() {
+		editStyle.getDisplay().syncExec(() -> {
+			if (editStyle.getSelection()) {
+				editStyle.setSelection(false);
+				Event event = new Event();
+				event.widget = editStyle;
+				event.type = SWT.Selection;
+				editStyle.notifyListeners(SWT.Selection, event);
+			}
+		});
 	}
 }
