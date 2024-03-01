@@ -1462,7 +1462,13 @@ public class XMLUtils {
 		// Normalize object key
 		String originalObjectKey = objectKey;
 		if (objectKey != null) {
-			objectKey = StringUtils.normalize(objectKey);
+			if (objectKey.length() == 0) {
+				objectKey = "_";
+			} else if (objectKey.matches("^\\s+$")) {
+				objectKey = objectKey.replaceAll("\\s", "_");
+			} else {
+				objectKey = StringUtils.normalize(objectKey);
+			}
 		}
 
 		// JSON object value case
