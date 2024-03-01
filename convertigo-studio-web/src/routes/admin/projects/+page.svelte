@@ -62,15 +62,19 @@
 	let tableStyle = 'margin-top: 30px';
 </script>
 
-<Card title='Projects'>
+<Card title="Projects">
 	<div class="flex flex-wrap gap-5">
-		<button on:click={() => openModal('deploy')}
-			>Deploy project</button
-		>
-		<button on:click={() => openModal('import')}
-			>Import a Remote Project URL</button
-		>
-		<button>Delete all</button>
+		<div class="flex-1">
+			<button class="w-full" on:click={() => openModal('deploy')}>Deploy project</button>
+		</div>
+
+		<div class="flex-1">
+			<button class="w-full" on:click={() => openModal('import')}>Import a Remote Project URL</button>
+		</div>
+
+		<div class="flex-1">
+			<button class="w-full">Delete all</button>
+		</div>
 	</div>
 </Card>
 

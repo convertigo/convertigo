@@ -146,29 +146,10 @@
 		</div>
 	</div>
 
-	<!--
-	<Tables headers={['Name', 'Value', 'Edit', 'Delete']}>
-		{#each $usersStore as users}
-			<tr>
-				<td>{users['@_name']}</td>
-				<td>{users.role}</td>
-				<td class="align">
-					<button class="p-1 px-2 shadow-md">
-						<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
-					</button>
-				</td>
-				<td>
-					<button class="p-1 px-2 shadow-md" on:click={() => openDeleteModal(users['@_name'])}
-						><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
-					</button>
-				</td>
-			</tr>
-		{/each}
-	</Tables>-->
-
 	{#if $usersStore.length > 0}
 		<TableAutoCard
 			definition={[
+				{ name: 'Profile', custom: true },
 				{ name: 'Name', key: '@_name' },
 				{ name: 'Role', key: 'role' },
 				{ name: 'Edit', custom: true },
@@ -178,7 +159,9 @@
 			let:row
 			let:def
 		>
-			{#if def.name === 'Edit'}
+			{#if def.name === 'Profile'}
+				<Icon icon="iconoir:profile-circle" class="w-7 h-7"/>
+			{:else if def.name === 'Edit'}
 				<button class="p-1 px-2 shadow-md">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>

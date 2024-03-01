@@ -58,7 +58,7 @@
 			>
 		-->	
 
-			<SlideToggle size='sm' name={id} active="bg-success-400 dark:bg-success-700" background="bg-error-400 dark:bg-error-700" checked={property['@_value'] == 'true'} on:change={check}>
+			<SlideToggle size='md' name={id} active="bg-success-400 dark:bg-success-700" background="bg-error-400 dark:bg-error-700" checked={property['@_value'] == 'true'} on:change={check}>
                 <span class="cursor-pointer">{property['@_description']}</span>
             </SlideToggle>
 
