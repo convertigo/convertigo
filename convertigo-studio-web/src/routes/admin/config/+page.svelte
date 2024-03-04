@@ -26,7 +26,6 @@
 	onMount(() => {
 		const name = window.location.hash.substring(1);
 		refreshConfigurations().then(() => {
-			console.log(name);
 			selectedIndex = Math.max(
 				0,
 				$configurations?.admin?.category?.findIndex(

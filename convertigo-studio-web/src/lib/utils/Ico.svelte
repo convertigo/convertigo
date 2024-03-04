@@ -73,4 +73,4 @@
 	export let icon;
 </script>
 
-<svelte:component this={ico[icon]} class="" {...$$restProps}><slot /></svelte:component>
+<svelte:component this={ico[icon]} class="" {...$$restProps} />

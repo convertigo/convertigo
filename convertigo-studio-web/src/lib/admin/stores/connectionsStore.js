@@ -34,7 +34,6 @@ export async function connectionsCheck() {
 	if (!init) {
 		init = true;
 		const response = await call('connections.List');
-		console.log('connection list response :', response);
 		if (response?.admin) {
 			for (let k in all) {
 				if (k in response.admin) {

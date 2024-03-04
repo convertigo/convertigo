@@ -10,13 +10,11 @@ export async function projectsCheck() {
 	if (!init) {
 		init = true;
 		const response = await call('projects.List');
-		console.log('project.list response:', response);
 		if (response?.admin?.projects) {
 			if (!Array.isArray(response.admin.projects.project)) {
 				response.admin.projects.project = [response.admin.projects.project];
 			}
 			projectsStore.set(response.admin.projects.project);
-			console.log(get(projectsStore));
 		}
 	}
 }
@@ -52,7 +50,6 @@ export async function reloadProject(projectName) {
 
 	try {
 		const response = await call('projects.Reload', { projectName });
-		console.log(response);
 		if (response) {
 			alert(`The project '${projectName}' has been successfully reloaded.`);
 		} else {
