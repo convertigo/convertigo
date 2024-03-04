@@ -386,18 +386,6 @@
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
 			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_twitter_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryTwitterWizard"
-			name="Twitter library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo Twitter library project.</description>
-			{ "url":
-			"lib_Twitter=https://github.com/convertigo/c8oprj-lib-twitter.git:branch=7.9.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
 			icon="icons/studio/library_sigfox_color_32x32.png"
 			id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
 			name="Sigfox library"

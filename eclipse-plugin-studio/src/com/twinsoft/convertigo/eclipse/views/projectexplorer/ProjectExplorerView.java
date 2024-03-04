@@ -426,7 +426,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		String[][] rateDef = {
 				{"2", "Star us on GitHub", "icons/studio/github-16.png", "https://github.com/convertigo/convertigo"},
-				{"1", null, "icons/studio/twitter-16.png", "https://twitter.com/convertigo"},
 				{"1", null, "icons/studio/linkedin-16.png", "https://www.linkedin.com/company/convertigo/"},
 				{null, null, "icons/studio/close-16.png", null}
 		};
