@@ -225,6 +225,9 @@ public class SqlConnector extends Connector {
 			String fileURL = currentJdbcURL.substring("jdbc:hsqldb:file:".length());
 			fileURL = Engine.theApp.filePropertyManager.getFilepathFromProperty(fileURL, getProject().getName());
 			realJdbcURL = "jdbc:hsqldb:file:"+fileURL;
+		} else if (currentJdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(getJdbcDriverClassName())) {
+			// MariaDB Java 3.x migration
+			realJdbcURL = "jdbc:mariadb:" + currentJdbcURL.substring(11);
 		}
 		
 		// Now attempt to create a database connection

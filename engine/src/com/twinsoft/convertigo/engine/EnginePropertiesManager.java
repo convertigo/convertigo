@@ -550,13 +550,13 @@ public class EnginePropertiesManager {
 
 		/** ANALYTICS ADVANCE */
 		@PropertyOptions(advance = true)
-		ANALYTICS_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence SQL Dialect", PropertyCategory.Analytics),
+		ANALYTICS_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.MySQLDialect", "Persistence SQL Dialect", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
 		ANALYTICS_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "Persistence JDBC driver", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		ANALYTICS_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "Persistence JDBC password", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
-		ANALYTICS_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:mysql://localhost:3306/c8oAnalytics", "Persistence JDBC URL", PropertyCategory.Analytics),
+		ANALYTICS_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:mariadb://localhost:3306/c8oAnalytics", "Persistence JDBC URL", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
 		ANALYTICS_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "", "Persistence JDBC username", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)

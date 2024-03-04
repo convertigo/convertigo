@@ -42,6 +42,15 @@ public class HibernateHelper {
 		this.log = log;
 		this.retry = retry + 1;
 		
+		// MariaDB Java 3.x migration
+		if (url.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(driver_class)) {
+			url = "jdbc:mariadb:" + url.substring(11);
+		}
+		
+		if ("org.hibernate.dialect.MySQL5InnoDBDialect".equals(dialect)) {
+			dialect = "org.hibernate.dialect.MySQLDialect";
+		}
+		
 		configuration = new Configuration();
 		configuration.setProperty("hibernate.connection.driver_class", driver_class);
 		configuration.setProperty("hibernate.connection.url", url);

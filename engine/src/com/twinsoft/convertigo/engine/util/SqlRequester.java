@@ -90,7 +90,12 @@ public class SqlRequester {
 		String jdbcURL = getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 		String jdbcUserName = getProperty(SqlRequester.PROPERTIES_JDBC_USER_NAME);
 		String jdbcUserPassword = Crypto2.decodeFromHexString(getProperty(SqlRequester.PROPERTIES_JDBC_USER_PASSWORD));
-
+		
+		// MariaDB Java 3.x migration
+		if (jdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(jdbcClassName)) {
+			jdbcURL = "jdbc:mariadb:" + jdbcURL.substring(11);
+		}
+		
 		Engine.logEngine.debug("[SqlRequester] JDBC URL: " + jdbcURL);
 		Engine.logEngine.debug("[SqlRequester] User name: " + jdbcUserName);
 		Engine.logEngine.debug("[SqlRequester] User password: " + jdbcUserPassword);
