@@ -41,9 +41,10 @@ RUN apt-get update -y \
 
 ENV ENABLE_JDWP_DEBUG="true"
 
-RUN (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
-  && (curl -fsSL https://pkgs.k8s.io/core:/stable:/$(curl -L -s https://dl.k8s.io/release/stable.txt | cut -d. -f-2)/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg) \
-  && (echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$(curl -L -s https://dl.k8s.io/release/stable.txt | cut -d. -f-2)/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list) \
+RUN KUBECTL=$(curl -L -s https://dl.k8s.io/release/stable.txt | cut -d. -f-2) \
+  && (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
+  && (curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBECTL/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg) \
+  && (echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBECTL/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list) \
   && apt-get update \
   && apt-get install -y --no-install-recommends kubectl \
        nano less \
