@@ -56,7 +56,7 @@ dependencies {
 	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	toSync project.property('sapjco3Version')
 	toSync 'com.convertigo.lib:jxbrowser-license:2023.04.04'
-	toSync 'com.formdev:flatlaf:3.3'
+	toSync 'com.formdev:flatlaf:3.4'
 	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 

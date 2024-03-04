@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -378,7 +377,7 @@ class RegistrationPage extends WizardPage implements CheckConnectedCallback {
 			for (String line : GenericUtils.<List<String>>cast(IOUtils.readLines(getClass().getResourceAsStream("countries.txt"), "utf-8"))) {
 				country.add(line);
 			}
-		} catch (IOException e1) {
+		} catch (Exception e1) {
 			country.add("Failed to load countries …");
 		}
 		

@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -408,7 +409,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 					String sSourcePath = filePath.getSingleString(this);
 					String afp = getAbsoluteFilePath(sSourcePath);
 					File file = new File(afp);
-					pdf = PDDocument.load(file);
+					pdf = Loader.loadPDF(file);
 					PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
 					acroForm = docCatalog.getAcroForm();
 				} catch (IOException e) {

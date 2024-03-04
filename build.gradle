@@ -13,6 +13,10 @@ buildscript {
 //    id 'com.dorongold.task-tree' version '1.5'
 //}
 
+plugins {
+  id 'com.github.ben-manes.versions' version '0.51.0'
+}
+
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
@@ -27,7 +31,7 @@ ext.convertigoCode = 'Bi'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.37.0'
+ext.jxBrowserVersion = '7.37.2'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.85'
 ext.eclipseVersion = '2023-12'
@@ -469,5 +473,12 @@ task checkLicenseDate {
 task updateWrapper(type: Wrapper) {
     group 'convertigo'
     
-    gradleVersion '8.5'
+    gradleVersion 'latest'
+}
+
+// https://github.com/ben-manes/gradle-versions-plugin
+tasks.named("dependencyUpdates").configure {
+  rejectVersionIf {
+    it.candidate.version.matches('.*(alpha|beta|rc).*')
+  }
 }
