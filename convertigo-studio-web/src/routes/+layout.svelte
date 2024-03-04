@@ -30,7 +30,7 @@
 		modalSymbols: { ref: ModalSymbols },
 		modalProjects: { ref: ModalProjects },
 		modalRoles: { ref: ModalRoles },
-		modalScheduler: { ref: ModalScheduler}
+		modalScheduler: { ref: ModalScheduler }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });

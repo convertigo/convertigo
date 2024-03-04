@@ -36,9 +36,8 @@
 	];
 
 	onMount(() => {
-
 		$conf.databaseDriver = 'sqlserver';
-		
+
 		call('cache.ShowProperties').then((response) => {
 			cacheType = response.admin.cacheType;
 			$conf = response.admin;
@@ -123,7 +122,10 @@
 						<svelte:fragment slot="content">
 							<AutoGrid class="mt-5">
 								<Card title="Database Used">
-									<RadioGroup class="flex flex-col mt-5 p-5 variant-filled-success text-token" active="variant-filled-success">
+									<RadioGroup
+										class="flex flex-col mt-5 p-5 variant-filled-success text-token"
+										active="variant-filled-success"
+									>
 										<RadioItem
 											bind:group={$conf.databaseDriver}
 											name="databaseDriver"

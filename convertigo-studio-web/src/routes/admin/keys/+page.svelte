@@ -156,7 +156,10 @@
 								<div class="bg-red-400">{row[def.key]}</div>
 							{/if}
 						{:else if def.name === 'Delete'}
-							<button class="shadow-md p-1 px-2 ring-outline-token" on:click={() => openModal(row['@_text'])}>
+							<button
+								class="shadow-md p-1 px-2 ring-outline-token"
+								on:click={() => openModal(row['@_text'])}
+							>
 								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
 							</button>
 						{/if}
@@ -170,8 +173,6 @@
 {:else}
 	Loading...
 {/if}
-
-
 
 <style lang="postcss">
 	.input-new-key {

@@ -81,9 +81,7 @@
 						>Cancel</button
 					>
 				</div>
-				
 			</div>
-			
 		</form>
 	</Card>
 {/if}

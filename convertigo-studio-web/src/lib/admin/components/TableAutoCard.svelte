@@ -36,7 +36,6 @@
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
-		
 	}
 
 	@media (max-width: 640px) {
@@ -66,7 +65,7 @@
 			align-items: center;
 			padding-left: 50%;
 			position: relative;
-            @apply border-token flex
+			@apply border-token flex;
 		}
 		td:before {
 			content: attr(data-label);
@@ -79,6 +78,5 @@
 			position: relative;
 			z-index: 1;
 		}
-
 	}
 </style>

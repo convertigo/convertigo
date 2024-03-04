@@ -5,19 +5,15 @@
 	export { cls as class };
 </script>
 
-<div
-	style={customStyle}
-	class="card-style {cls}"
->
+<div style={customStyle} class="card-style {cls}">
 	{#if title.length > 0}
 		<h1 class="text-xl mb-5 font-bold">{title}</h1>
 	{/if}
 	<slot />
 </div>
 
-
 <style lang="postcss">
-.card-style {
-	@apply flex flex-col border-[0.5px] border-surface-200 dark:border-surface-700 rounded-container-token dark:bg-surface-800 bg-white h-auto p-4 font-extralight text-[13.5px];
-}
+	.card-style {
+		@apply flex flex-col border-[0.5px] border-surface-200 dark:border-surface-700 rounded-container-token dark:bg-surface-800 bg-white h-auto p-4 font-extralight text-[13.5px];
+	}
 </style>

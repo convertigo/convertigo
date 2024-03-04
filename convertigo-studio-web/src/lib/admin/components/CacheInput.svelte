@@ -11,5 +11,3 @@
 	<label for={id} class="text-input">{label}</label>
 	<input {id} {name} {type} {value} {placeholder} class="input-common" />
 </div>
-
-

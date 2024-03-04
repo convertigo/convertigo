@@ -182,9 +182,7 @@
 	>
 		{#if def.custom}
 			{#if def.name === 'Edit'}
-				<button
-					class="btn p-1 px-2 shadow-md"
-				>
+				<button class="btn p-1 px-2 shadow-md">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}

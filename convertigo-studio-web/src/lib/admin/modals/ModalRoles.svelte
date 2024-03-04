@@ -120,7 +120,12 @@
 				</label>
 			</div>
 
-			<ResponsiveContainer scrollable={true} smCols="sm:grid-cols-1" mdCols="md:grid-cols-3" lgCols="lg:grid-cols-3" >
+			<ResponsiveContainer
+				scrollable={true}
+				smCols="sm:grid-cols-1"
+				mdCols="md:grid-cols-3"
+				lgCols="lg:grid-cols-3"
+			>
 				<div class="container-child">
 					<h1 class="mb-5 font-bold text-xl">View Roles</h1>
 					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
@@ -212,7 +217,8 @@
 			<div class="flex gap-10 mt-10">
 				<button type="submit" class="btn variant-filled-primary w-40">Confirm</button>
 
-				<button class="variant-filled-error w-40" on:click={() => modalStore.close()}>Cancel</button>
+				<button class="variant-filled-error w-40" on:click={() => modalStore.close()}>Cancel</button
+				>
 			</div>
 		</form>
 	</Card>

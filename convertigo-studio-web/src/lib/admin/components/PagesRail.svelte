@@ -7,7 +7,6 @@
 	$: isRoot = $page.route.id == '/admin';
 
 	const drawerStore = getDrawerStore();
-
 </script>
 
 <AppRail
@@ -18,7 +17,6 @@
 	active="dark:bg-surface-900"
 	hover="hover:bg-surface-900"
 >
-
 	{#each parts as tiles, i}
 		{#each tiles as tile}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
@@ -29,10 +27,7 @@
 				on:click={drawerStore.close}
 			>
 				<Ico icon={tile.icon} width={25} height={25} />
-				<span
-					class="text-links-style"
-					>{tile.title}</span
-				>
+				<span class="text-links-style">{tile.title}</span>
 			</a>
 		{/each}
 

@@ -160,7 +160,7 @@
 			let:def
 		>
 			{#if def.name === 'User'}
-				<Icon icon="iconoir:profile-circle" class="w-7 h-7"/>
+				<Icon icon="iconoir:profile-circle" class="w-7 h-7" />
 			{:else if def.name === 'Edit'}
 				<button class="p-1 px-2 shadow-md">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />

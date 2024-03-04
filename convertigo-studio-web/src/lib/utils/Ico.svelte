@@ -64,7 +64,7 @@
 		'mdi:backup-restore': BackUpRestoreIcon,
 		'game-icons:level-three-advanced': LeftArrowIcon,
 		'iconamoon:menu-burger-horizontal-thin': HamburgerIcon,
-		'iconamoon:cloud-fill' : CloudFillIcon,
+		'iconamoon:cloud-fill': CloudFillIcon
 	};
 </script>
 

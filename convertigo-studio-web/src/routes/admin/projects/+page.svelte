@@ -69,7 +69,9 @@
 		</div>
 
 		<div class="flex-1">
-			<button class="w-full" on:click={() => openModal('import')}>Import a Remote Project URL</button>
+			<button class="w-full" on:click={() => openModal('import')}
+				>Import a Remote Project URL</button
+			>
 		</div>
 
 		<div class="flex-1">
