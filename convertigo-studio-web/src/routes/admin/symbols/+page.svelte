@@ -196,7 +196,7 @@
 		{/if}
 	</TableAutoCard>
 
-	<p class="dark:text-surface-100 text-surface-700 font-bold mt-20 mb-5 w-[70%]">
+	<p class="font-bold mt-20 mb-5 w-[70%]">
 		List of global symbols with default value currently used. You can import them as regular symbol.
 	</p>
 
@@ -223,7 +223,7 @@
 	{/if}
 </Card>
 
-<Card customStyle={customCard} title="Environment Variables">
+<Card class="mt-5" title="Environment Variables">
 	<TableAutoCard
 		definition={[
 			{ name: 'Name', key: '@_name' },

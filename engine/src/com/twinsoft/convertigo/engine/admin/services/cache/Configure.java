@@ -111,13 +111,12 @@ public class Configure extends XmlService {
 		root = document.getDocumentElement();		
 		
 		cacheType = request.getParameter("cacheType");
-		if(cacheType!=null  && cacheType.equals("database")){
-			cacheType=cacheManagerDatabaseType;
+		if( cacheManagerDatabaseType.equals(cacheType) || "database".equals(cacheType)) {
+			cacheType = cacheManagerDatabaseType;
+		} else {
+			cacheType = cacheManagerFileType;
 		}
-		else{			
-			cacheType=cacheManagerFileType;
-		}
-
+		
 		dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;
 		PropertiesUtils.load(dbCacheProp, dbCachePropFileName);
 
@@ -247,6 +246,9 @@ public class Configure extends XmlService {
 			dbCacheProp.setProperty("sql.table.name", cacheTableName);
 			
 			String databaseDriver = request.getParameter("databaseDriver");
+			if (databaseDriver == null) {
+				databaseDriver = request.getParameter("databaseType");
+			}
 			if (databaseDriver.equals("mysql")) {
 				databaseDriver=mySQLDriver;
 			} else if(databaseDriver.equals("sqlserver")) {
@@ -264,26 +266,42 @@ public class Configure extends XmlService {
 			String databaseUrl = "jdbc:";
 			if (sqlServerDriver.equals(databaseDriver))
 				databaseUrl += "jtds:sqlserver://";
-			else if (mySQLDriver.equals(databaseDriver) || mariadbDriver.equals(databaseDriver))
+			else if (mySQLDriver.equals(databaseDriver))
 				databaseUrl += "mysql://";
+			else if (mariadbDriver.equals(databaseDriver))
+				databaseUrl += "mariadb://";
 			else if (oracleDriver.equals(databaseDriver))
 				databaseUrl += "oracle:thin:@//";
 			else if (postgresqlDriver.equals(databaseDriver))
 				databaseUrl += "postgresql://";
 			
 			String databaseServerName = request.getParameter("databaseServerName");
+			if (databaseServerName == null) {
+				databaseServerName = request.getParameter("serverName");
+			}
 			if (!databaseServerName.equals(""))
 				databaseUrl += databaseServerName;
 			String databaseServerPort = request.getParameter("databaseServerPort");
+			if (databaseServerPort == null) {
+				databaseServerPort = request.getParameter("port");
+			}
 			if (!databaseServerPort.equals(""))
 				databaseUrl += ":" + databaseServerPort;
 			String databaseName = request.getParameter("databaseName");
 			if (!databaseName.equals(""))
 				databaseUrl += "/"+ databaseName;
 
-			dbCacheProp.setProperty("jdbc.url", databaseUrl);			
-			dbCacheProp.setProperty("jdbc.user.name", request.getParameter("user"));
-			dbCacheProp.setProperty("jdbc.user.password", Crypto2.encodeToHexString(request.getParameter("password")));
+			dbCacheProp.setProperty("jdbc.url", databaseUrl);
+			var userName = request.getParameter("user");
+			if (userName == null) {
+				userName = request.getParameter("userName");
+			}
+			dbCacheProp.setProperty("jdbc.user.name", userName);
+			var userPassword = request.getParameter("password");
+			if (userPassword == null) {
+				userPassword = request.getParameter("userPassword");
+			}
+			dbCacheProp.setProperty("jdbc.user.password", Crypto2.encodeToHexString(userPassword));
 			
 			PropertiesUtils.store(dbCacheProp, dbCachePropFileName);
 		} 	

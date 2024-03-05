@@ -101,7 +101,7 @@
 </script>
 
 {#if mode == 'add'}
-	<Card title="Add User" customStyle="padding: 40px;">
+	<Card title="Add User" style="padding: 40px;">
 		<form on:submit={rolesAdd}>
 			<div class="flex items-center gap-10 mb-10">
 				<label class="border-common">

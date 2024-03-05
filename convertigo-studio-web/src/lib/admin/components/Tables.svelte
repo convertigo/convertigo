@@ -1,9 +1,8 @@
 <script>
 	export let headers = [];
-	export let customStyle = '';
 </script>
 
-<table style={customStyle} class="rounded-xl table overflow-hidden">
+<table class="rounded-xl table overflow-hidden" {...$$restProps}>
 	<thead class="rounded-xl">
 		<tr>
 			{#each headers as header}

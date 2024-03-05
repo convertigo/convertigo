@@ -25,8 +25,8 @@
 			{ Name: 'Last Startup', Value: new Date(startTime).toLocaleString() },
 			{ Name: 'Uptime', Value: new Date(time - startTime).toLocaleTimeString() },
 			{ Name: 'License Type', Value: $licenceType },
-			{ Name: 'License n°', Value: $licenceNumber },
-			{ Name: 'License expiration date', Value: $licenceExpired }
+			{ Name: 'License N°', Value: $licenceNumber },
+			{ Name: 'License Expiration Date', Value: $licenceExpired }
 		];
 		if ($product == '' || !startTime) {
 			for (let d of data) {

@@ -24,23 +24,19 @@
 	}
 </script>
 
-<div class="flex items-center">
+<div class="flex items-center gap-x-2">
 	{#if property['@_type'] == 'Boolean'}
-		<div class="flex-shrink-0 flex-1">
-			<SlideToggle
-				size="md"
-				name={id}
-				active="bg-success-400 dark:bg-success-700"
-				background="bg-error-400 dark:bg-error-700"
-				checked={property['@_value'] == 'true'}
-				on:change={check}
-			>
-				<div class="flex-grow">
-					<span class="block cursor-pointer break-words">{property['@_description']}</span>
-				</div>
-			</SlideToggle>
-		</div>
-
+		<SlideToggle
+			class="grow"
+			size="md"
+			name={id}
+			active="min-w-16 bg-success-400 dark:bg-success-700"
+			background="min-w-16 bg-error-400 dark:bg-error-700"
+			checked={property['@_value'] == 'true'}
+			on:change={check}
+		>
+			<span class="block cursor-pointer break-words">{property['@_description']}</span>
+		</SlideToggle>
 	{:else if property['@_type'] == 'Text'}
 		<div class="flex-1 flex flex-col justify-center border-common">
 			<label class="label-common" for={id}>{property['@_description']}</label>
@@ -91,7 +87,7 @@
 		<div class="flex-1 flex flex-col justify-center border-common">Not handled</div>
 	{/if}
 
-	<div class="flex-none btn-group-vertical shadow-md ml-10">
+	<div class="flex-none btn-group-vertical shadow-md">
 		<button
 			disabled={property['@_value'] == property['@_originalValue']}
 			on:click={() => {
@@ -118,9 +114,5 @@
 
 	.btn-group-vertical button:disabled {
 		background-color: inherit;
-	}
-
-	.container-child {
-		@apply flex flex-wrap flex-col;
 	}
 </style>

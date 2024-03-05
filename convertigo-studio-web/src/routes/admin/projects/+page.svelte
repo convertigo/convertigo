@@ -58,8 +58,6 @@
 			console.error(`An error occurred: ${error}`);
 		}
 	}
-
-	let tableStyle = 'margin-top: 30px';
 </script>
 
 <Card title="Projects">
@@ -80,7 +78,7 @@
 	</div>
 </Card>
 
-<Card customStyle={tableStyle}>
+<Card class="mt-10">
 	{#if $projectsStore.length >= 0}
 		<TableAutoCard
 			definition={[

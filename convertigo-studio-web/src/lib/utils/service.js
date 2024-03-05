@@ -170,3 +170,20 @@ export async function renameDbo(id = '', name = '', update = 'UPDATE_NONE') {
 	let result = await call('studio.dbo.Rename', { id, name, update });
 	return result;
 }
+
+/**
+ * @param {any} obj
+ */
+export function copyObj(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * @param {any} o1
+ * @param {any} o2
+ */
+export function equalsObj(o1, o2) {
+	console.log('o1', JSON.stringify(o1));
+	console.log('o2', JSON.stringify(o2));
+	return JSON.stringify(o1) == JSON.stringify(o2);
+}

@@ -216,14 +216,14 @@ public class EnginePropertiesManager {
 	public enum PropertyType { Text, PasswordHash, PasswordPlain, Boolean, Combo, Array };
 
 	public enum PropertyCategory {
-		Main ("Main parameters"),
-		Account ("Accounts and security"),
+		Main ("Main Parameters"),
+		Account ("Accounts and Security"),
 		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
 		Logs ("Logs"),
 		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
-		Context ("Real-time activity monitoring"),
-		XmlGeneration ("XML generation"),
-		HttpClient ("HTTP client"),
+		Context ("Real-time Activity Monitoring"),
+		XmlGeneration ("XML Generation"),
+		HttpClient ("HTTP Client"),
 		Network ("Network"),
 		Proxy ("Proxy"),
 		@CategoryOptions(viewRoles = {Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG}, configRoles = {Role.CERTIFICATE_CONFIG})
@@ -231,13 +231,13 @@ public class EnginePropertiesManager {
 		@CategoryOptions(viewRoles = {Role.CACHE_VIEW, Role.CACHE_CONFIG}, configRoles = {Role.CACHE_CONFIG})
 		Cache ("Cache"),
 		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-		Carioca ("Legacy Carioca portal"),
+		Carioca ("Legacy Carioca Portal"),
 		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
 		Analytics ("Analytics"),
 		Notifications ("Notifications"),
-		MobileBuilder ("Mobile builder"),
+		MobileBuilder ("Mobile Builder"),
 		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-		FullSync ("Full sync")
+		FullSync ("FullSync")
 		;
 
 		final String displayName;

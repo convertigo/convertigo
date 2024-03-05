@@ -479,6 +479,6 @@ task updateWrapper(type: Wrapper) {
 // https://github.com/ben-manes/gradle-versions-plugin
 tasks.named("dependencyUpdates").configure {
   rejectVersionIf {
-    it.candidate.version.matches('.*(alpha|beta|rc).*')
+    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
   }
 }

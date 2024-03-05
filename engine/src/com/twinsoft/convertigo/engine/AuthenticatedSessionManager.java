@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -220,7 +221,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 				data = Crypto2.decodeFromByteArray(EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE), data);
 				String json = new String(data, "UTF-8");
 				cache = new JSONObject(json);
-			} catch (FileNotFoundException e) {
+			} catch (FileNotFoundException | NoSuchFileException e) {
 				cache = new JSONObject();
 			} catch (Exception e) {
 				File copy = new File(Engine.CONFIGURATION_PATH + "/user_roles." + System.currentTimeMillis() + ".db");

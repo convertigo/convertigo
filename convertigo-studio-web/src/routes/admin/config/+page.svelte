@@ -44,7 +44,7 @@
 			}));
 		modalStore.trigger({
 			type: 'confirm',
-			title: 'Please confirm',
+			title: 'Please Confirm',
 			body: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
 			response: /** @param {boolean} confirmed */ async (confirmed) => {
 				if (confirmed) {
@@ -130,14 +130,14 @@
 				</ResponsiveContainer>
 			</Card>
 
-			{#if category.property.filter((p) => p['@_isAdvanced'] == 'true').length > 0}
-				<Card title="Advanced properties" class="mt-5">
+			{#if category.property.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
+				<Card class="mt-5">
 					<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
 						<AccordionItem>
 							<svelte:fragment slot="summary">
 								<div class="flex items-center">
 									<Icon icon="game-icons:level-three-advanced" />
-									<p class="ml-4">Advanced properties</p>
+									<p class="ml-4">Advanced Properties</p>
 								</div>
 							</svelte:fragment>
 
@@ -198,7 +198,7 @@
 								class="w-6 h-6 text-white"
 							/></span
 						>
-						<span class="text-[13px] text-white">Save changes</span>
+						<span class="text-[13px] text-white">Save Changes</span>
 					</button>
 					<button
 						type="button"
@@ -211,7 +211,7 @@
 								class="w-6 h-6 text-white"
 							/></span
 						>
-						<span class="text-[13px] text-white">Cancel changes</span>
+						<span class="text-[13px] text-white">Cancel Changes</span>
 					</button>
 				</div>
 				<div class="grid md:grid-cols-2 grid-cols-1 gap-5">

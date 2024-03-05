@@ -1,11 +1,10 @@
 <script>
-	export let customStyle = '';
 	export let title = '';
 	let cls = '';
 	export { cls as class };
 </script>
 
-<div style={customStyle} class="card-style {cls}">
+<div class="card-style {cls}" {...$$restProps}>
 	{#if title.length > 0}
 		<h1 class="text-xl mb-5 font-bold">{title}</h1>
 	{/if}
