@@ -623,6 +623,9 @@ public class EnginePropertiesManager {
 		ANALYTICS_GOOGLE_ID ("billing.google.analytics.measurement_id", "", "Google Analytics Measurement ID", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
 		ANALYTICS_GOOGLE_SECRET ("billing.google.analytics.api_secret", "", "Google Analytics API Secret", PropertyCategory.Analytics),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		ANALYTICS_OLD_GOOGLE_ID ("billing.google.analytics.id", "", "Google Old Analytics ID", PropertyCategory.Analytics),
+
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
