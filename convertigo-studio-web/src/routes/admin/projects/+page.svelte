@@ -61,19 +61,23 @@
 </script>
 
 <Card title="Projects">
-	<div class="flex flex-wrap gap-5">
+	<div slot="cornerOption">
+		<button class="w-full bg-error-400-500-token">
+			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
+			Delete All Projects</button
+		>
+	</div>
+	<div class="flex flex-wrap gap-5 mt-10">
 		<div class="flex-1">
-			<button class="w-full" on:click={() => openModal('deploy')}>Deploy project</button>
-		</div>
-
-		<div class="flex-1">
-			<button class="w-full" on:click={() => openModal('import')}
-				>Import a Remote Project URL</button
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}
+				>Deploy project</button
 			>
 		</div>
 
 		<div class="flex-1">
-			<button class="w-full">Delete All</button>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('import')}
+				>Import a Remote Project URL</button
+			>
 		</div>
 	</div>
 </Card>
@@ -97,19 +101,19 @@
 			let:def
 		>
 			{#if def.name == 'Delete'}
-				<button on:click={() => deleteProject(row['@_name'])}>
+				<button on:click={() => deleteProject(row['@_name'])} class="bg-error-400-500-token">
 					<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Reload'}
-				<button on:click={() => reloadProject(row['@_name'])}>
+				<button on:click={() => reloadProject(row['@_name'])} class="bg-tertiary-400-500-token">
 					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Export'}
-				<button on:click={() => exportProject(row['@_name'])}>
+				<button on:click={() => exportProject(row['@_name'])} class="bg-primary-400-500-token">
 					<Icon icon="bytesize:export" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Test'}
-				<a href="/admin-console">
+				<a href="/admin-console" class="bg-secondary-400-500-token btn">
 					<Icon icon="fluent-mdl2:test-plan" class="w-6 h-6" />
 				</a>
 			{/if}

@@ -15,6 +15,10 @@
 	let headers = ['Name', 'Value'];
 
 	let showHeaders = false;
+
+	let cls = '';
+	export { cls as class };
+
 	/** @type {{Name: string, Value: string|null}[]} */
 	let data;
 
@@ -39,6 +43,6 @@
 	});
 </script>
 
-<div>
+<div class={`${cls}`}>
 	<Table {headers} {data} {showHeaders} />
 </div>

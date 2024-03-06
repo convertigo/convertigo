@@ -1,7 +1,6 @@
 <script>
 	import { call } from '$lib/utils/service';
 	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
-	import CacheInput from '../components/CacheInput.svelte';
 	import Card from '../components/Card.svelte';
 
 	const modalStore = getModalStore();

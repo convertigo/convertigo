@@ -49,6 +49,13 @@
 		}
 	];
 
+	$: statsData = [
+		{ category: 'Contexts In Use', inUse: $contextsInUse, total: $contextsNumber },
+		{ category: 'Threads currently In Use', inUse: $threadsInUse, total: $threadsNumber },
+		{ category: 'Sessions currently in use', inUse: $sessionsInUse, total: $sessionsNumber },
+		{ category: 'Max http session inactivity', timeout: $httpTimeout }
+	];
+
 	onMount(() => {
 		connectionsCheck();
 	});
@@ -56,44 +63,55 @@
 
 <AutoGrid>
 	<Card title="Connections">
-		<div class="mt-5">
-			<div class="flex-col">
-				<div class="legendDiv">
-					<p class="">Contexts In Use :</p>
-					<p class="valueConnectionsText">{$contextsInUse} / {$contextsNumber}</p>
-				</div>
-				<div class="legendDiv">
-					<p class="">Threads currently In Use :</p>
-					<p class="valueConnectionsText">{$threadsInUse} / {$threadsNumber}</p>
-				</div>
-				<div class="legendDiv">
-					<p class="">Sessions currently in use:</p>
-					<p class="valueConnectionsText">{$sessionsInUse} / {$sessionsNumber}</p>
-				</div>
-				<div class="flex p-2 mt-2">
-					<p class="">Max http session inactivity :</p>
-					<p class="valueConnectionsText">{$httpTimeout}</p>
-				</div>
-			</div>
-		</div>
+		<TableAutoCard
+			definition={[
+				{ name: 'Category', custom: true },
+				{ name: 'In Use / Total', custom: true }
+			]}
+			data={statsData}
+			let:row
+			let:def
+		>
+			{#if def.name === 'Category'}
+				{row.category}
+			{:else if def.name === 'In Use / Total'}
+				{#if row.total !== undefined}
+					{row.inUse} / {row.total}
+				{:else}
+					{row.timeout}
+				{/if}
+			{/if}
+		</TableAutoCard>
+
+			<button class="bg-error-400-500-token max-w-80 mt-10">Delete all Sessions and Connections</button>
+
 	</Card>
 
 	<Card title="Legends">
-		<div class="p-2 mt-2">
-			{#each legendItems as legend}
-				<div
-					class={`flex items-center pl-2 p-1 border-b dark:border-surface-500 border-surface-100 justify-between`}
-				>
-					<p class="mr-5">{legend.title}</p>
-					<div class="flex">
-						<Icon icon={legend.icon} class="w-6 h-6" />
-						{#if legend.icon2}
-							<Icon icon={legend.icon2} class="w-6 h-6" />
-						{/if}
-					</div>
+		<TableAutoCard
+			definition={[
+				{ name: 'Name', custom: true },
+				{ name: 'Icon', custom: true }
+			]}
+			data={legendItems}
+			let:row
+			let:def
+		>
+			{#if def.name === 'Name'}
+				{row.title}
+			{/if}
+
+			{#if def.name === 'Icon'}
+				<div class="flex">
+					{#if row.icon !== undefined}
+						<Icon icon={row.icon} class="w-6 h-6" />
+					{/if}
+					{#if row.icon2}
+						<Icon icon={row.icon2} class="w-6 h-6" />
+					{/if}
 				</div>
-			{/each}
-		</div>
+			{/if}
+		</TableAutoCard>
 	</Card>
 </AutoGrid>
 
@@ -135,10 +153,6 @@
 
 <style lang="postcss">
 	.legendDiv {
-		@apply flex p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100;
-	}
-
-	.valueConnectionsText {
-		@apply ml-5 mr-10 font-bold;
+		@apply flex justify-between p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100;
 	}
 </style>

@@ -64,31 +64,41 @@
 
 {#if oriConf}
 	{@const disabled = equalsObj($conf, oriConf)}
-	<Card class="mb-4">
-		<button class="variant-filled-error" on:click={cacheClear}
-			><Ico icon="material-symbols-light:delete-outline" />Clear entries</button
-		>
-	</Card>
 	<form on:submit|preventDefault={handlesubmit}>
 		<Card title="Cache Type">
+			<div slot="cornerOption">
+				<div class="flex-1">
+					<button class="bg-tertiary-400-500-token" on:click={cacheClear}
+						><Ico icon="material-symbols-light:delete-outline" class="mr-2 h-7 w-7" />Clear entries</button
+					>
+				</div>
+			</div>
+
 			<p class="mt-5">Choose the desired cache type</p>
-			<div class="flex mt-5">
-				<div class="flex items-center gap-4">
-					<RadioGroup>
-						{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
-							<RadioItem
-								bind:group={$conf.cacheType}
-								name="cacheType"
-								{value}
-								active="variant-filled-surface text-white"
-							>
-								{text}
-							</RadioItem>
-						{/each}
-					</RadioGroup>
-					<button type="submit" class="bg-primary-400" {disabled}>Apply</button>
+			<div class="flex flex-wrap gap-5 mt-5">
+				<RadioGroup>
+					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
+						<RadioItem
+							bind:group={$conf.cacheType}
+							name="cacheType"
+							{value}
+							active="variant-filled-surface text-white"
+						>
+							{text}
+						</RadioItem>
+					{/each}
+				</RadioGroup>
+				<div class="flex-1">
+					<button type="submit" class="bg-primary-400-500-token w-full" {disabled}>Apply</button>
+				</div>
+				<div class="flex-1">
+					<button type="submit" class="bg-primary-400-500-token w-full" {disabled}
+						>Create Table and Apply</button
+					>
+				</div>
+				<div class="flex-1">
 					<button
-						class="variant-filled-error"
+						class="bg-error-400-500-token w-full"
 						{disabled}
 						on:click={() => ($conf = copyObj(oriConf))}>Cancel</button
 					>
@@ -100,8 +110,8 @@
 			<AutoGrid class="mt-5">
 				<Card title="Database Used">
 					<RadioGroup
-						class="flex flex-col mt-5 p-5 variant-filled-success text-token"
-						active="variant-filled-success"
+						class="flex flex-col p-5 variant-filled-success text-token"
+						active="bg-secondary-400-500-token"
 					>
 						{@const data = [
 							{ value: 'sqlserver', text: 'SQLServer' },
@@ -150,19 +160,6 @@
 					</Card>
 				{/each}
 			</AutoGrid>
-
-			<div class="mt-3">
-				<Card>
-					<div class="flex flex-row flex-wrap justify-center gap-4">
-						<button type="submit" {disabled}>Create Table and Apply</button>
-						<button
-							class="variant-filled-error"
-							{disabled}
-							on:click={() => ($conf = copyObj(oriConf))}>Cancel</button
-						>
-					</div>
-				</Card>
-			</div>
 		{/if}
 	</form>
 {:else}

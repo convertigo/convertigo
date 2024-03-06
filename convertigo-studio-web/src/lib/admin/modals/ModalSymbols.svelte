@@ -91,16 +91,25 @@
 					>
 				</RadioGroup>
 			{/if}
-			<input
-				type="file"
-				name="userfile"
-				id="symbolUploadFile"
-				accept=".properties"
-				class="hidden"
-				on:change={importSymbol}
-			/>
-			<label for="symbolUploadFile" class="btn variant-filled-primary mt-5">Import</label>
-			<button class="mt-5 variant-filled-error" on:click={() => modalStore.close()}>Cancel</button>
+
+			<div class="flex flex-wrap gap-5">
+				<div class="flex-1">
+					<input
+						type="file"
+						name="userfile"
+						id="symbolUploadFile"
+						accept=".properties"
+						class="hidden"
+						on:change={importSymbol}
+					/>
+					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full">Import</label>
+				</div>
+				<div class="flex-1">
+					<button class="mt-5 bg-error-400-500-token w-full" on:click={() => modalStore.close()}
+						>Cancel</button
+					>
+				</div>
+			</div>
 		</form>
 	</Card>
 {:else}
@@ -114,19 +123,29 @@
 			{/if}
 			<div class="flex gap-5">
 				<label class="border-common">
-					<p class="input-name">Enter {prefix}symbol name :</p>
+					<p class="input-name">Enter {prefix}symbol name</p>
 					<input placeholder="{prefix}name" name="symbolName" class="input-common" />
 					{#if mode == 'secret'}
 						<span>.secret</span>
 					{/if}
 				</label>
 				<label class="border-common">
-					<p class="input-name">Enter {prefix}symbol value :</p>
+					<p class="input-name">Enter {prefix}symbol value</p>
 					<input placeholder="{prefix}value" {type} name="symbolValue" class="input-common" />
 				</label>
 			</div>
-			<button type="submit" class="mt-5">Confirm</button>
-			<button class="mt-5 variant-filled-error" on:click={() => modalStore.close()}>Cancel</button>
+
+			<div class="flex flex-wrap gap-5">
+				<div class="flex-1">
+					<button type="submit" class="mt-5 w-full bg-primary-400-500-token">Confirm</button>
+				</div>
+
+				<div class="flex-1">
+					<button class="mt-5 w-full bg-error-400-500-token" on:click={() => modalStore.close()}
+						>Cancel</button
+					>
+				</div>
+			</div>
 		</form>
 	</Card>
 {/if}

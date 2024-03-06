@@ -27,12 +27,13 @@
 				<Icon icon="brandico:github" class="w-7 h-7" />
 			</a>
 
-			<a type="button" class="studio-link" href="{base}/studio/">
+			<LightSwitch class="light-switch" />
+			
+			<a type="button" class="studio-link bg-primary-400-500-token" href="{base}/studio/">
 				<span><Ico icon="iconamoon:cloud-fill" class="text-token w-7 h-7 mr-2" /></span>
 				<span class="text-token text-[14px]">Go to studio</span>
 			</a>
-			<LightSwitch class="light-switch" />
-
+			
 			<img src="{assets}/logo.png" alt="logo convertigo" class="logo-mobile" />
 		</div>
 	</svelte:fragment>
@@ -61,7 +62,7 @@
 		@apply pr-4 p-1 flex items-center gap-5;
 	}
 	.studio-link {
-		@apply items-center p-1 pl-5 pr-5 bg-primary-400 hidden md:inline-flex rounded-token;
+		@apply items-center p-1 pl-5 pr-5 hidden md:inline-flex rounded-token;
 	}
 
 	.icon-size {

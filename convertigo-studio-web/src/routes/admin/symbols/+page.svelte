@@ -133,32 +133,34 @@
 </script>
 
 <Card title="Global Symbols">
-	<div class="flex flex-wrap gap-5 mb-10">
+	<div slot="cornerOption">
 		<div class="flex-1">
-			<button class="w-full" on:click={openAddGlobalSymbolModal}>
+			<button class="bg-error-400-500-token w-full" on:click={confirmDeleteAll}
+				><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
+			>
+		</div>
+	</div>
+	<div class="flex flex-wrap gap-5 mb-10 mt-10">
+		<div class="flex-1">
+			<button class="w-full bg-primary-400-500-token" on:click={openAddGlobalSymbolModal}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 				Add Symbols</button
 			>
 		</div>
 		<div class="flex-1">
-			<button class="w-full" on:click={openAddSecretSymbols}>
+			<button class="w-full bg-primary-400-500-token" on:click={openAddSecretSymbols}>
 				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
 				Add Secret Symbols
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full" on:click={openImportSymbols}
+			<button class="w-full bg-primary-400-500-token" on:click={openImportSymbols}
 				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />Import Symbols</button
 			>
 		</div>
 		<div class="flex-1">
-			<button class="w-full"
+			<button class="w-full bg-primary-400-500-token"
 				><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />Export Symbols</button
-			>
-		</div>
-		<div class="flex-1">
-			<button class="w-full" on:click={confirmDeleteAll}
-				><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
 			>
 		</div>
 	</div>
@@ -182,12 +184,12 @@
 	>
 		{#if def.custom}
 			{#if def.name === 'Edit'}
-				<button class="btn p-1 px-2 shadow-md">
+				<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}
 				<button
-					class="btn p-1 px-2 shadow-md"
+					class="btn p-1 px-2 shadow-md bg-error-400-500-token"
 					on:click={() => confirmSymbolDeletion(globalSymbols['@_name'])}
 				>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
@@ -213,7 +215,10 @@
 			let:def
 		>
 			{#if def.name === 'Add'}
-				<button class="btn p-1 px-2 shadow-md" on:click={() => addDefaultSymbol(row.defaultSymbol)}>
+				<button
+					class="btn p-1 px-2 shadow-md bg-secondary-400-500-token"
+					on:click={() => addDefaultSymbol(row.defaultSymbol)}
+				>
 					<Icon icon="material-symbols-light:add" class="w-7 h-7" />
 				</button>
 			{/if}

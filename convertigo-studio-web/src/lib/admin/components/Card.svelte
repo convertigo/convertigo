@@ -5,9 +5,14 @@
 </script>
 
 <div class="card-style {cls}" {...$$restProps}>
-	{#if title.length > 0}
-		<h1 class="text-xl mb-5 font-bold">{title}</h1>
-	{/if}
+	<div class="flex justify-between">
+		{#if title.length > 0}
+			<h1 class="text-xl mb-5 font-bold">{title}</h1>
+		{/if}
+
+		<slot name="cornerOption" />
+	</div>
+
 	<slot />
 </div>
 

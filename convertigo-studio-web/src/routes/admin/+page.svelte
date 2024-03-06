@@ -6,6 +6,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
+	import { call } from '$lib/utils/service';
 	onMount(() => {
 		monitorCheck();
 	});
@@ -38,11 +39,23 @@
 	 * @type {never[]}
 	 */
 	$: categories = $monitorData.labels;
+
+	async function performGC() {
+		const res = await call('engine.PerformGC');
+	}
+
+
+
+
 </script>
 
 <AutoGrid>
 	<Card title="Status">
+		<div slot="cornerOption">
+			<button on:click={performGC} class="w-full bg-secondary-400-500-token">Perform GC</button>
+		</div>
 		<StatusTable
+			class="mt-5"
 			time={$monitorData.time}
 			startTime={$monitorData.startTime}
 			engineState={$monitorData.engineState}
@@ -50,7 +63,14 @@
 	</Card>
 
 	<Card title="System Information">
+		<div slot="cornerOption">
+			<div class="flex gap-5">
+				<button class="w-full bg-primary-400-500-token">Java System Properties</button>
+				<button class="w-full bg-primary-400-500-token">Environment Variables</button>
+			</div>
+		</div>
 		<SystemInformationTable
+			class="mt-5"
 			memoryMaximal={$monitorData.memoryMaximal}
 			memoryTotal={$monitorData.memoryTotal}
 			memoryUsed={$monitorData.memoryUsed}

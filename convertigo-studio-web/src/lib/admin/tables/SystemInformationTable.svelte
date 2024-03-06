@@ -23,6 +23,9 @@
 
 	let showHeaders = false;
 
+	let cls = '';
+	export { cls as class };
+
 	onMount(() => {
 		statusCheck();
 	});
@@ -47,6 +50,6 @@
 	}
 </script>
 
-<div>
+<div class={`${cls}`}>
 	<Table {headers} {data} {showHeaders} />
 </div>

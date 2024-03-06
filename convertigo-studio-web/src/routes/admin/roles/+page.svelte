@@ -119,29 +119,29 @@
 </script>
 
 <Card title="Roles">
-	<div class="flex flex-wrap gap-5 mb-10">
+	<div slot="cornerOption">
+		<button class="w-full bg-error-400-500-token" on:click={openDeleteAllModal}>
+			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
+			Delete All
+		</button>
+	</div>
+	<div class="flex flex-wrap gap-5 mb-10 mt-10">
 		<div class="flex-1">
-			<button class="w-full" on:click={openAddUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={openAddUserModal}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 				Add User
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full" on:click={openImportUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={openImportUserModal}>
 				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
 				Import Users
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full" on:click={openExportUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={openExportUserModal}>
 				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
 				Export Users
-			</button>
-		</div>
-		<div class="flex-1">
-			<button class="w-full" on:click={openDeleteAllModal}>
-				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
-				Delete All
 			</button>
 		</div>
 	</div>
@@ -162,11 +162,11 @@
 			{#if def.name === 'User'}
 				<Icon icon="iconoir:profile-circle" class="w-7 h-7" />
 			{:else if def.name === 'Edit'}
-				<button class="p-1 px-2 shadow-md">
+				<button class="p-1 px-2 shadow-md bg-tertiary-400-500-token">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}
-				<button class="p-1 px-2 shadow-md" on:click={() => openDeleteModal(row['@_name'])}>
+				<button class="p-1 px-2 shadow-md bg-error-400-500-token" on:click={() => openDeleteModal(row['@_name'])}>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 				</button>
 			{/if}

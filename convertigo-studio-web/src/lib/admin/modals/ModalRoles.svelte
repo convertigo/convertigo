@@ -146,13 +146,13 @@
 					</div>
 					<div class="flex flex-wrap gap-5 mt-10">
 						<div class="flex-1">
-							<button type="button" class="w-full" on:click={() => toggleViewRoles(true)}>
+							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleViewRoles(true)}>
 								<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
 								Check view
 							</button>
 						</div>
 						<div class="flex-1">
-							<button type="button" class="w-full" on:click={() => toggleViewRoles(false)}>
+							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleViewRoles(false)}>
 								<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
 								Uncheck View
 							</button>
@@ -181,12 +181,12 @@
 
 					<div class="flex gap-5 mt-10">
 						<div class="flex-1">
-							<button type="button" class="w-full" on:click={() => toggleConfigRoles(true)}
+							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleConfigRoles(true)}
 								><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
 							>
 						</div>
 						<div class="flex-1">
-							<button type="button" class="w-full" on:click={() => toggleConfigRoles(false)}
+							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleConfigRoles(false)}
 								><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
 							>
 						</div>
@@ -215,9 +215,9 @@
 			</ResponsiveContainer>
 
 			<div class="flex gap-10 mt-10">
-				<button type="submit" class="btn variant-filled-primary w-40">Confirm</button>
+				<button type="submit" class="btn bg-primary-400-500-token w-40">Confirm</button>
 
-				<button class="variant-filled-error w-40" on:click={() => modalStore.close()}>Cancel</button
+				<button class="bg-error-400-500-token w-40" on:click={() => modalStore.close()}>Cancel</button
 				>
 			</div>
 		</form>
@@ -246,18 +246,26 @@
 				</RadioGroup>
 			{/if}
 			<p class="font-medium mt-10">Actual users list will be saved aside in a backup file.</p>
-			<input
-				type="file"
-				name="userfile"
-				id="symbolUploadFile"
-				accept=".properties"
-				class="hidden"
-				on:change={importRoles}
-			/>
-			<label for="symbolUploadFile" class="btn variant-filled mt-5">Import</label>
-			<button class="mt-5 btn bg-white text-black font-light" on:click={() => modalStore.close()}
-				>Cancel</button
-			>
+
+			<div class="flex flex-wrap gap-5">
+				<div class="flex-1">
+					<input
+						type="file"
+						name="userfile"
+						id="symbolUploadFile"
+						accept=".properties"
+						class="hidden"
+						on:change={importRoles}
+					/>
+					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full">Import</label>
+				</div>
+				<div class="flex-1">
+					<button
+						class="mt-5 w-full btn bg-error-400-500-token"
+						on:click={() => modalStore.close()}>Cancel</button
+					>
+				</div>
+			</div>
 		</form>
 	</Card>
 {/if}

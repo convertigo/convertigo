@@ -120,7 +120,7 @@
 	<div class="">
 		<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
 			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-			<button type="submit">Add Key</button>
+			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
 		</form>
 	</div>
 </Card>
@@ -143,7 +143,7 @@
 					{#if def.custom}
 						{#if def.name === 'Expiration Date'}
 							{#if row[def.key] === '0'}
-								<div class="border bg-success-500 text-token">
+								<div class="bg-success-400-500-token p-2 rounded-xl text-token">
 									{formatExpiration(row[def.key])}
 								</div>
 							{:else}
@@ -151,13 +151,13 @@
 							{/if}
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
-								<div class="bg-success-500 p-2 rounded-xl text-token">{row[def.key]}</div>
+								<div class="bg-success-400-500-token p-2 rounded-xl text-token">{row[def.key]}</div>
 							{:else}
 								<div class="bg-red-400">{row[def.key]}</div>
 							{/if}
 						{:else if def.name === 'Delete'}
 							<button
-								class="shadow-md p-1 px-2 ring-outline-token"
+								class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
 								on:click={() => openModal(row['@_text'])}
 							>
 								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
