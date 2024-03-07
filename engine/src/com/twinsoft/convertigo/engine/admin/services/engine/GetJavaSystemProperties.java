@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 
 @ServiceDefinition(
 		name = "GetJavaSystemProperties",
@@ -42,16 +43,20 @@ public class GetJavaSystemProperties extends XmlService{
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
-		
-		Properties properties = System.getProperties();
-        
-        StringBuffer sProperties = new StringBuffer();
-        for(Object propertyName : new TreeSet<Object>(properties.keySet()))
-			sProperties.append(propertyName + "=" + properties.getProperty(propertyName.toString()) + "\n");
 
-        CDATASection cdata = document.createCDATASection("DATA");
-        cdata.setData(sProperties.toString());
-        rootElement.appendChild(cdata);
+		Properties properties = System.getProperties();
+
+		StringBuffer sProperties = new StringBuffer();
+		for (Object propertyName : new TreeSet<Object>(properties.keySet())) {
+			if (propertyName instanceof String pName
+					&& (!Engine.isCloudMode() || !(pName.contains("password") || pName.contains("billing")))) {
+				sProperties.append(pName + "=" + properties.getProperty(pName) + "\n");
+			}
+		}
+
+		CDATASection cdata = document.createCDATASection("DATA");
+		cdata.setData(sProperties.toString());
+		rootElement.appendChild(cdata);
 	}
 
 }

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.spi.NOPLogger;
 import org.hibernate.exception.JDBCConnectionException;
 
@@ -96,7 +97,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 							Engine.logBillers.info("JDBCConnectionException on ticket insertion"
 									+ (cause == null ? "" : " (cause by " + cause.getClass().getSimpleName() + ")")
 									+ ": " + ticket);
-						} catch (Exception e) {
+						} catch (Throwable e) {
 							Engine.logBillers.error("Something failed in ticket insertion : " + ticket + "\n[" + e.getClass().getName() + "] " + e.getMessage());
 						}
 					}
@@ -238,16 +239,20 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				}
 			}
 
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)
-					&& (!keys[0].equals(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID))
-							|| !serverMonitor)) {
-				try {
-					managers.add(new GoogleAnalyticsTicketManager(
-							EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID),
-							EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_SECRET),
-							Engine.logBillers));
-				} catch (Throwable t) {
-					throw new EngineException("TicketManager instanciation failed", t);
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
+				var id = EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID);
+				if (StringUtils.isEmpty(id) && StringUtils.isNoneEmpty(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_OLD_GOOGLE_ID)) ) {
+					Engine.logBillers.error("Your Google Analytics ID is deprecated, please configure your Measurement ID and API Secret. Google Analytics is disabled.");
+				} else if ((!keys[0].equals(id))
+						|| !serverMonitor) {
+					try {
+						managers.add(new GoogleAnalyticsTicketManager(
+								id,
+								EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_SECRET),
+								Engine.logBillers));
+					} catch (Throwable t) {
+						throw new EngineException("TicketManager instanciation failed", t);
+					}
 				}
 			}
 		}
