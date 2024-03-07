@@ -403,22 +403,26 @@ public class ProcessUtils {
 		}
 	}
 
-	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
+	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {	
+		return getJDK(8, progress);
+	}
+	
+	public static File getJDK(int version, ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
 		File dir;
-		String env = System.getenv("JAVA_HOME_8_X64");
+		String env = System.getenv("JAVA_HOME_" + version + "_X64");
 		if (env != null) {
 			dir = new File(env);
 			if (dir.exists() && new File(dir, "bin").exists()) {
-				Engine.logEngine.info("Use the JDK 8 from env JAVA_HOME_8_X64: " + dir);
+				Engine.logEngine.info("Use the JDK 8 from env JAVA_HOME_" + version + "_X64: " + dir);
 				return dir;
 			}
 		}
 		String os = Engine.isWindows() ? "windows" : Engine.isLinux() ? "linux" : "mac";
-		dir = new File(Engine.USER_WORKSPACE_PATH, "jdk/jdk-" + 8 + "-" + os);
+		dir = new File(Engine.USER_WORKSPACE_PATH, "jdk/jdk-" + version + "-" + os);
 		if (dir.exists()) {
 			return dir;
 		}
-		HttpGet get = new HttpGet("https://api.adoptium.net/v3/assets/latest/8/hotspot?vendor=eclipse");
+		HttpGet get = new HttpGet("https://api.adoptium.net/v3/assets/latest/" + version + "/hotspot?vendor=eclipse");
 		String content;
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");

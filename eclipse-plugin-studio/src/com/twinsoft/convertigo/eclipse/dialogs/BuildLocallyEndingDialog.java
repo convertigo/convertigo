@@ -154,7 +154,7 @@ public class BuildLocallyEndingDialog extends Dialog {
 				data = new GridData(GridData.FILL_HORIZONTAL);
 				data.grabExcessHorizontalSpace = true;
 				
-				iosNotify.setText("\nTo generate your \"ipa\" file you need to open the \".xcodeproj\" with Xcode \napplication and go to the menu \"Product>Archive\".");
+				iosNotify.setText("\nTo generate your \"ipa\" file you need to open the \".xcworkspace\" with Xcode \napplication and go to the menu \"Product>Archive\".");
 				iosNotify.setLayoutData(data);
 			}
 		

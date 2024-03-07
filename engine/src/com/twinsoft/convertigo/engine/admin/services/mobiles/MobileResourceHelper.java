@@ -373,6 +373,8 @@ public class MobileResourceHelper {
 			throw new ServiceException("Unknow build mode: " + buildMode);
 		}
 		
+		var endpointHostname = endpoint.replaceFirst(".*?://([^:/]+).*", "$1");
+		
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
 		String configText = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
@@ -387,7 +389,8 @@ public class MobileResourceHelper {
 				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
 				.replace("$(PlatformName)$", mobilePlatform.getName())
 				.replace("$(PlatformType)$", mobilePlatform.getType())
-				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform());
+				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform())
+				.replace("$(EndpointHostname)$", endpointHostname);
 
 		File pluginsFile = new File(destDir, "plugins.txt");
 		if (pluginsFile.exists()) {

@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -74,11 +75,12 @@ public abstract class BuildLocally {
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
 	
-	private File jdk8Dir = null;
+	private File jdkDir = null;
 	private File androidSdkDir = null;
 	private File gradleDir = null;
 	private File nodeDir = null;
 	private String preferedAndroidBuildTools = null;
+	private int preferedJDK = 8;
 	
 	private File mobilePackage = null;
 	private Status lastStatus = null;
@@ -122,8 +124,8 @@ public abstract class BuildLocally {
 		} else {
 			paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
 		}
-		if (jdk8Dir != null) {
-			paths = new File(jdk8Dir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+		if (jdkDir != null) {
+			paths = new File(jdkDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
 		}
 		if (gradleDir != null) {
 			paths = new File(gradleDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
@@ -138,12 +140,19 @@ public abstract class BuildLocally {
 		
 		pb.redirectErrorStream(mergeError);
 		
-		if (jdk8Dir != null) {
-			pb.environment().put("JAVA_HOME", jdk8Dir.getAbsolutePath());
+		if (jdkDir != null) {
+			pb.environment().put("JAVA_HOME", jdkDir.getAbsolutePath());
 		}
 		if (androidSdkDir != null) {
 			pb.environment().put("ANDROID_HOME", androidSdkDir.getAbsolutePath());
 			pb.environment().put("ANDROID_SDK_ROOT", androidSdkDir.getAbsolutePath());
+		}
+		
+		var lang = System.getenv("LANG");
+		if (lang != null && lang.contains("UTF-8")) {
+			pb.environment().put("LANG", lang);
+		} else {
+			pb.environment().put("LANG", "en_US.UTF-8");
 		}
 		
 		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
@@ -407,7 +416,7 @@ public abstract class BuildLocally {
 				
 			// iOS
 			} else if (mobilePlatform instanceof IOs){
-				extension = "xcodeproj";
+				extension = "xcworkspace";
 				
 			// Windows Phone 8
 			} else if (mobilePlatform instanceof WindowsPhone8) {
@@ -560,7 +569,6 @@ public abstract class BuildLocally {
 				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
 			}
 			
-
 			if (androidKeystore != null) {
 				boolean release = "release".equals(option);
 				JSONObject json = new JSONObject();
@@ -578,35 +586,11 @@ public abstract class BuildLocally {
 			
 			List<String> commandsList = new LinkedList<String>();
 			
-			if (mobilePlatform instanceof Windows) {
-				File configFile = new File(cordovaDir, "config.xml");
-				Document doc = XMLUtils.loadXml(configFile);
-				
-				TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
-				
-				Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/engine[@name='windows']");
-				
-				if (singleElement == null) {
-					throw new Exception("The tag 'engine' is not specified in the file config.xml.");
-				}
-				
-				String appx = singleElement.getAttribute("appx");
-				String archs = singleElement.getAttribute("archs");
-				
-				if (appx == null || archs == null || appx.isEmpty() || archs.isEmpty()) {
-					throw new Exception("The attributes 'appx' and 'archs' are not specified in the tag engine.");
-				}
-				
-				commandsList.add("--");
-				commandsList.add("--appx=" + appx);
-				commandsList.add("--archs=" + archs);
-			}
-			
-			jdk8Dir = null;
+			jdkDir = null;
 			if ("android".equals(mobilePlatform.getCordovaPlatform())) {
-				Engine.logEngine.info("Check or install for the JDK8 to build the Android application");
-				jdk8Dir = ProcessUtils.getJDK8((pBytesRead, pContentLength, pItems) -> {
-					Engine.logEngine.info("download JDK8: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				Engine.logEngine.info("Check or install for the JDK to build the Android application");
+				jdkDir = ProcessUtils.getJDK(preferedJDK, (pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download JDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				});
 				androidSdkDir = ProcessUtils.getAndroidSDK(preferedAndroidBuildTools, (pBytesRead, pContentLength, pItems) -> {
 					Engine.logEngine.info("download Android SDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
@@ -720,6 +704,11 @@ public abstract class BuildLocally {
 			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='prefered-android-build-tools']");
 			if (singleElement != null && singleElement.hasAttribute("value")) {
 				preferedAndroidBuildTools = singleElement.getAttribute("value"); 
+			}
+			
+			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='prefered-android-jdk']");
+			if (singleElement != null && singleElement.hasAttribute("value")) {
+				preferedJDK = NumberUtils.toInt(singleElement.getAttribute("value"), preferedJDK);
 			}
 			
 			Engine.logEngine.info("Checking if this cordova version is already installed.");

@@ -12,6 +12,7 @@
 	<!-- $(ApplicationAuthorWebsite)$ : your website -->
 	<!-- $(PlatformName)$ : current platform name -->
 	<!-- $(PlatformType)$ : current platform's target os -->
+	<!-- $(EndpointHostname)$ : extracted hostname of the current endpoint -->
 	
 	<!-- This name is also the application name on your device -->
 	<name>$(ApplicationName)$</name>
@@ -25,14 +26,14 @@
 	
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="$(CordovaPlatform)$" spec="6.1.1" />
+	<engine name="$(CordovaPlatform)$" spec="7.0.1" />
 	
 	<!--  Startup page is FlashUpdate  -->
-	<content src="ionic://localhost/index-fu.html" />
+	<content src="ionic://$(EndpointHostname)$/index-fu.html" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-	<preference name="nodejs-version"             value="v12.18.4" />       <!-- all: version of NodeJS that run Cordova -->
-	<preference name="cordova-version"            value="10.0.0" />         <!-- all: version of Cordova CLI -->
+	<preference name="nodejs-version"             value="v20.11.1" />       <!-- all: version of NodeJS that run Cordova -->
+	<preference name="cordova-version"            value="12.0.0" />         <!-- all: version of Cordova CLI -->
 <!--<preference name="target-device"              value="universal" />      all: possible values handset, tablet, or universal -->
 	<preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
 	<preference name="SplashScreen"               value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
@@ -43,6 +44,7 @@
 	<preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
 	<preference name="webviewbounce"              value="false" />          <!-- ios: Prevent WebView to Bounce  -->
 	<preference name="BackupWebStorage"           value="local" />          <!-- ios: Prevent Webstorage back to cloud  -->
+	<preference name="Hostname"                   value="$(EndpointHostname)$"/>
 	
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="iosPersistentFileLocation" value="Library" />
@@ -90,8 +92,8 @@
 	<plugin name="cordova-plugin-whitelist" spec="~1.3.4" />
 	<plugin name="cordova-plugin-network-information" spec="~2.0.2" />
 	<plugin name="cordova-plugin-statusbar" spec="~2.4.3" />
-	<plugin name="cordova-plugin-ionic-webview" spec="5.0.0" />
-	<plugin name="cordova-plugin-wkwebview-inject-cookie" spec="1.0.6" />
+	<plugin name="cordova-plugin-ionic-webview" spec="5.0.1" />
+	<!-- <plugin name="cordova-plugin-wkwebview-inject-cookie" spec="1.1.6" /> -->
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
 	<access origin="*" />
