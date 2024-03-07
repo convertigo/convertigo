@@ -12,7 +12,7 @@
 <AppRail
 	width="w-auto"
 	height="h-[100%]"
-	background="dark:bg-surface-800 bg-white"
+	background="dark:bg-surface-800 bg-surface-100"
 	class="border-r-[0.5px] dark:border-surface-500 border-surface-200 p-4 "
 	active="dark:bg-surface-900"
 	hover="hover:bg-surface-900"

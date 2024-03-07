@@ -1,4 +1,7 @@
 <script>
+	import Ico from '$lib/utils/Ico.svelte';
+	import Icon from '@iconify/svelte';
+
 	export let definition;
 	export let data;
 	let cls = '';
@@ -10,7 +13,11 @@
 		<thead class="rounded-token">
 			<tr>
 				{#each definition as def}
-					<th class="header dark:bg-surface-800">{def.name}</th>
+					{#if def.icon}
+						<Icon icon={def.icon} class="h-7 w-7" />
+					{:else}
+						<th class="header dark:bg-surface-800">{def.name}</th>
+					{/if}
 				{/each}
 			</tr>
 		</thead>

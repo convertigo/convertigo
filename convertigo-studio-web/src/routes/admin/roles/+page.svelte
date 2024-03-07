@@ -166,12 +166,39 @@
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}
-				<button class="p-1 px-2 shadow-md bg-error-400-500-token" on:click={() => openDeleteModal(row['@_name'])}>
+				<button
+					class="p-1 px-2 shadow-md bg-error-400-500-token"
+					on:click={() => openDeleteModal(row['@_name'])}
+				>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 				</button>
 			{/if}
 		</TableAutoCard>
 	{:else}
-		<div>No users data available</div>
+		<div class="table-container">
+			<table class="rounded-token table">
+				<thead class="rounded-token">
+					<tr>
+						{#each Array(5) as _}
+							<th class="header dark:bg-surface-800">
+								<div class="my-2 h-8 placeholder animate-pulse"></div>
+							</th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each Array(5) as _}
+						<tr>
+							{#each Array(5) as _}
+								<!-- Repeat for each column -->
+								<td>
+									<div class="my-2 h-8 placeholder animate-pulse"></div>
+								</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	{/if}
 </Card>

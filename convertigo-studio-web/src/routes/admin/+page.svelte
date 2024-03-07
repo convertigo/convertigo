@@ -7,6 +7,11 @@
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
 	import { call } from '$lib/utils/service';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
+
+	const homeModalStore = getModalStore();
+
 	onMount(() => {
 		monitorCheck();
 	});
@@ -44,9 +49,21 @@
 		const res = await call('engine.PerformGC');
 	}
 
+	async function javaSystemPropModal() {
+		homeModalStore.trigger({
+			type: 'component',
+			component: { ref: ModalHome },
+			meta: { mode: 'Java System Prop' }
+		});
+	}
 
-
-
+	async function environmentVariablesModal() {
+		homeModalStore.trigger({
+			type: 'component',
+			component: { ref: ModalHome },
+			meta: { mode: 'Environment Variables' }
+		});
+	}
 </script>
 
 <AutoGrid>
@@ -65,8 +82,12 @@
 	<Card title="System Information">
 		<div slot="cornerOption">
 			<div class="flex gap-5">
-				<button class="w-full bg-primary-400-500-token">Java System Properties</button>
-				<button class="w-full bg-primary-400-500-token">Environment Variables</button>
+				<button class="w-full bg-primary-400-500-token" on:click={javaSystemPropModal}
+					>Java System Properties</button
+				>
+				<button class="w-full bg-primary-400-500-token" on:click={environmentVariablesModal}
+					>Environment Variables</button
+				>
 			</div>
 		</div>
 		<SystemInformationTable

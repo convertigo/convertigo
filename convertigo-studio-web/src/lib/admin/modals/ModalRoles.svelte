@@ -146,13 +146,21 @@
 					</div>
 					<div class="flex flex-wrap gap-5 mt-10">
 						<div class="flex-1">
-							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleViewRoles(true)}>
+							<button
+								type="button"
+								class="w-full bg-tertiary-400-500-token"
+								on:click={() => toggleViewRoles(true)}
+							>
 								<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
 								Check view
 							</button>
 						</div>
 						<div class="flex-1">
-							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleViewRoles(false)}>
+							<button
+								type="button"
+								class="w-full bg-tertiary-400-500-token"
+								on:click={() => toggleViewRoles(false)}
+							>
 								<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
 								Uncheck View
 							</button>
@@ -181,12 +189,18 @@
 
 					<div class="flex gap-5 mt-10">
 						<div class="flex-1">
-							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleConfigRoles(true)}
+							<button
+								type="button"
+								class="w-full bg-tertiary-400-500-token"
+								on:click={() => toggleConfigRoles(true)}
 								><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
 							>
 						</div>
 						<div class="flex-1">
-							<button type="button" class="w-full bg-tertiary-400-500-token" on:click={() => toggleConfigRoles(false)}
+							<button
+								type="button"
+								class="w-full bg-tertiary-400-500-token"
+								on:click={() => toggleConfigRoles(false)}
 								><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
 							>
 						</div>
@@ -217,7 +231,8 @@
 			<div class="flex gap-10 mt-10">
 				<button type="submit" class="btn bg-primary-400-500-token w-40">Confirm</button>
 
-				<button class="bg-error-400-500-token w-40" on:click={() => modalStore.close()}>Cancel</button
+				<button class="bg-error-400-500-token w-40" on:click={() => modalStore.close()}
+					>Cancel</button
 				>
 			</div>
 		</form>
@@ -235,7 +250,7 @@
 				<RadioItem bind:group={importAction} name="action-import" value="">Merge users</RadioItem>
 			</RadioGroup>
 			{#if importAction == ''}
-				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
+				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict</p>
 				<RadioGroup>
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server"
 						>Priority Server</RadioItem
@@ -257,12 +272,13 @@
 						class="hidden"
 						on:change={importRoles}
 					/>
-					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full">Import</label>
+					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full"
+						>Import</label
+					>
 				</div>
 				<div class="flex-1">
-					<button
-						class="mt-5 w-full btn bg-error-400-500-token"
-						on:click={() => modalStore.close()}>Cancel</button
+					<button class="mt-5 w-full btn bg-error-400-500-token" on:click={() => modalStore.close()}
+						>Cancel</button
 					>
 				</div>
 			</div>

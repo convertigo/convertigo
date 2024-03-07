@@ -11,6 +11,8 @@
 
 	let newKey = '';
 
+	let selectedIndex = -1;
+
 	onMount(() => {
 		keysCheck();
 	});
@@ -117,7 +119,7 @@
 </script>
 
 <Card>
-	<div class="">
+	<div>
 		<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
 			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
@@ -151,7 +153,9 @@
 							{/if}
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
-								<div class="bg-success-400-500-token p-2 rounded-xl text-token">{row[def.key]}</div>
+								<div class="bg-success-400-500-token p-2 rounded-xl text-token">
+									{row[def.key]}
+								</div>
 							{:else}
 								<div class="bg-red-400">{row[def.key]}</div>
 							{/if}
@@ -171,7 +175,30 @@
 		</div>
 	{/each}
 {:else}
-	Loading...
+	<div class="table-container mt-5">
+		<table class="rounded-token table">
+			<thead class="rounded-token">
+				<tr>
+					{#each Array(4) as _}
+						<th class="header dark:bg-surface-800">
+							<div class="my-2 h-8 placeholder animate-pulse"></div>
+						</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each Array(5) as _}
+					<tr>
+						{#each Array(4) as _}
+							<td>
+								<div class="my-2 h-8 placeholder animate-pulse"></div>
+							</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 {/if}
 
 <style lang="postcss">

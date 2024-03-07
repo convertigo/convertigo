@@ -172,8 +172,7 @@
 						class="flex"
 						on:click={changeCategory}
 					>
-						<div class="flex">
-							<Icon icon="uil:arrow-up" rotate={3} class="text-xl md:mr-2 hidden mb:block" />
+						<div class="flex font-light">
 							{category['@_displayName']}
 						</div>
 					</ListBoxItem>

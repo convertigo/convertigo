@@ -102,7 +102,9 @@
 						class="hidden"
 						on:change={importSymbol}
 					/>
-					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full">Import</label>
+					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full"
+						>Import</label
+					>
 				</div>
 				<div class="flex-1">
 					<button class="mt-5 bg-error-400-500-token w-full" on:click={() => modalStore.close()}

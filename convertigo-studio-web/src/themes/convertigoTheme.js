@@ -86,7 +86,7 @@ export const convertigoTheme = {
 		'--color-error-900': '125 29 24', // #7d1d18
 		// surface | #404040
 		'--color-surface-50': '226 226 226', // #e2e2e2
-		'--color-surface-100': '217 217 217', // #d9d9d9
+		'--color-surface-100': '255 255 255', // IS THE WITE COLOR USED FOR THE PROJECT
 		'--color-surface-200': '207 207 207', // #cfcfcf
 		'--color-surface-300': '179 179 179', // #b3b3b3
 		'--color-surface-400': '121 121 121', // #797979

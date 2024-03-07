@@ -9,7 +9,7 @@
 
 <AppBar
 	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200"
-	background="dark:bg-surface-700 bg-white"
+	background="dark:bg-surface-700 bg-surface-100"
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
@@ -28,12 +28,12 @@
 			</a>
 
 			<LightSwitch class="light-switch" />
-			
+
 			<a type="button" class="studio-link bg-primary-400-500-token" href="{base}/studio/">
 				<span><Ico icon="iconamoon:cloud-fill" class="text-token w-7 h-7 mr-2" /></span>
 				<span class="text-token text-[14px]">Go to studio</span>
 			</a>
-			
+
 			<img src="{assets}/logo.png" alt="logo convertigo" class="logo-mobile" />
 		</div>
 	</svelte:fragment>

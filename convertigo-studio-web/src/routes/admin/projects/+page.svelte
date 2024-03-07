@@ -83,7 +83,7 @@
 </Card>
 
 <Card class="mt-10">
-	{#if $projectsStore.length >= 0}
+	{#if $projectsStore.length > 0}
 		<TableAutoCard
 			definition={[
 				{ name: 'Name', key: '@_name' },
@@ -119,6 +119,29 @@
 			{/if}
 		</TableAutoCard>
 	{:else}
-		<div>No projects data available</div>
+		<div class="table-container">
+			<table class="rounded-token table">
+				<thead class="rounded-token">
+					<tr>
+						{#each Array(9) as _}
+							<th class="header dark:bg-surface-800">
+								<div class="my-2 h-8 placeholder animate-pulse"></div>
+							</th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each Array(5) as _}
+						<tr>
+							{#each Array(9) as _}
+								<td>
+									<div class="my-2 h-8 placeholder animate-pulse"></div>
+								</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	{/if}
 </Card>

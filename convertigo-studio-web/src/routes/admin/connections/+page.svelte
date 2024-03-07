@@ -16,6 +16,7 @@
 		sessionsStore
 	} from '$lib/admin/stores/connectionsStore';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	let legendItems = [
 		{
@@ -83,8 +84,9 @@
 			{/if}
 		</TableAutoCard>
 
-			<button class="bg-error-400-500-token max-w-80 mt-10">Delete all Sessions and Connections</button>
-
+		<button class="bg-error-400-500-token max-w-80 mt-10"
+			>Delete all Sessions and Connections</button
+		>
 	</Card>
 
 	<Card title="Legends">
@@ -124,14 +126,25 @@
 			{ name: 'Roles', key: '@_adminRoles' },
 			{ name: 'UUID', key: '@_deviceUUID' },
 			{ name: 'FS', key: '@_isFullSyncActive' },
-			{ name: '', key: '@_lastSessionAccessDate' },
-			{ name: '', key: '@_sessionInactivityTime' },
-			{ name: '', key: '@_clientIP' }
+			{
+				name: 'last session',
+				icon: 'material-symbols-light:date-range-rounded',
+				key: '@_lastSessionAccessDate'
+			},
+			{ icon: 'carbon:intent-request-inactive', key: '@_sessionInactivityTime' },
+			{ name: 'Client IP', key: '@_clientIP' },
+			{ name: 'Delete', custom: true }
 		]}
 		data={$sessionsStore}
 		let:row
 		let:def
-	></TableAutoCard>
+	>
+		{#if def.name === 'Delete'}
+			<button class="bg-error-400-500-token">
+				<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
+			</button>
+		{/if}
+	</TableAutoCard>
 </Card>
 
 <Card title="Contexts" class="mt-5">
@@ -143,12 +156,19 @@
 			{ name: 'Requested', key: '@_requested' },
 			{ name: 'Status', key: '@_status' },
 			{ name: 'User', key: '@_user' },
-			{ name: 'Client Computer', key: '@_clientComputer' }
+			{ name: 'Client Computer', key: '@_clientComputer' },
+			{ name: 'Delete', custom: true }
 		]}
 		data={$connectionsStore}
 		let:row
 		let:def
-	></TableAutoCard>
+	>
+		{#if def.name === 'Delete'}
+			<button class="bg-error-400-500-token">
+				<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
+			</button>
+		{/if}
+	</TableAutoCard>
 </Card>
 
 <style lang="postcss">
