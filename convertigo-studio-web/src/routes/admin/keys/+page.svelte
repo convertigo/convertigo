@@ -59,14 +59,17 @@
 		}
 	}
 
-	function openModal(keyText) {
+	function openModalDeleteKey(keyText) {
 		const confirmDeleted = {
 			title: 'Key deleted with success'
 		};
-		const modalOptions = {
-			type: 'confirm',
-			title: 'Please confirm',
-			body: 'Are you sure you want to proceed ?',
+		// @ts-ignore
+		keyModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
+			title: 'Please Confirm',
+			body: 'Are you sure you want to delete the key ?',
+			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteKey(keyText);
@@ -75,9 +78,7 @@
 					keyModalStore.trigger(confirmDeleted);
 				}
 			}
-		};
-		// @ts-ignore
-		keyModalStore.trigger(modalOptions);
+		});
 	}
 
 	async function keysUpdate(keyText) {
@@ -127,7 +128,7 @@
 	</div>
 </Card>
 
-{#if $categoryStore.length > 0}
+{#if $categoryStore.length >= 0}
 	{#each $categoryStore as category}
 		<div class="mt-5">
 			<Card title={category['@_name']}>
@@ -162,7 +163,7 @@
 						{:else if def.name === 'Delete'}
 							<button
 								class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
-								on:click={() => openModal(row['@_text'])}
+								on:click={() => openModalDeleteKey(row['@_text'])}
 							>
 								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
 							</button>
@@ -174,31 +175,6 @@
 			</Card>
 		</div>
 	{/each}
-{:else}
-	<div class="table-container mt-5">
-		<table class="rounded-token table">
-			<thead class="rounded-token">
-				<tr>
-					{#each Array(4) as _}
-						<th class="header dark:bg-surface-800">
-							<div class="my-2 h-8 placeholder animate-pulse"></div>
-						</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each Array(5) as _}
-					<tr>
-						{#each Array(4) as _}
-							<td>
-								<div class="my-2 h-8 placeholder animate-pulse"></div>
-							</td>
-						{/each}
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
 {/if}
 
 <style lang="postcss">

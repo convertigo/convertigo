@@ -94,6 +94,11 @@
 
 			<div class="flex flex-wrap gap-5">
 				<div class="flex-1">
+					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
+						>Cancel</button
+					>
+				</div>
+				<div class="flex-1">
 					<input
 						type="file"
 						name="userfile"
@@ -102,14 +107,7 @@
 						class="hidden"
 						on:change={importSymbol}
 					/>
-					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full"
-						>Import</label
-					>
-				</div>
-				<div class="flex-1">
-					<button class="mt-5 bg-error-400-500-token w-full" on:click={() => modalStore.close()}
-						>Cancel</button
-					>
+					<label for="symbolUploadFile" class="btn confirm-button mt-5 w-full">Import</label>
 				</div>
 			</div>
 		</form>
@@ -139,13 +137,12 @@
 
 			<div class="flex flex-wrap gap-5">
 				<div class="flex-1">
-					<button type="submit" class="mt-5 w-full bg-primary-400-500-token">Confirm</button>
-				</div>
-
-				<div class="flex-1">
-					<button class="mt-5 w-full bg-error-400-500-token" on:click={() => modalStore.close()}
+					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
 						>Cancel</button
 					>
+				</div>
+				<div class="flex-1">
+					<button type="submit" class="mt-5 w-full confirm-button">Confirm</button>
 				</div>
 			</div>
 		</form>

@@ -1,18 +1,14 @@
 <script>
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import {
-		deleteProject,
-		projectsCheck,
-		projectsStore,
-		reloadProject
-	} from '$lib/admin/stores/projectsStore';
+	import { projectsCheck, projectsStore, reloadProject } from '$lib/admin/stores/projectsStore';
 	import Icon from '@iconify/svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import { writable } from 'svelte/store';
 
-	export const modalStore = getModalStore();
+	const projectModalStore = getModalStore();
 
 	onMount(() => {
 		projectsCheck();
@@ -22,7 +18,7 @@
 	 * @param {string} mode
 	 */
 	function openModal(mode) {
-		modalStore.trigger({
+		projectModalStore.trigger({
 			type: 'component',
 			component: 'modalProjects',
 			meta: { mode }
@@ -58,6 +54,53 @@
 			console.error(`An error occurred: ${error}`);
 		}
 	}
+
+	export async function deleteProject(projectName) {
+		let notification = {
+			title: '',
+			body: ''
+		};
+
+		try {
+			const response = await call('projects.Delete', { projectName });
+			console.log('deleted project', response);
+
+			if (response?.admin) {
+				notification.title = 'Project Deleted Successfully';
+				projectsStore.update((projects) =>
+					projects.filter((project) => project['@_name'] !== projectName)
+				);
+			} else {
+				throw new Error(
+					response?.error?.message || 'Unknown error occurred while deleting the project.'
+				);
+			}
+		} catch (err) {
+			console.error('Error deleting project:', err);
+			notification.title = 'Error Deleting Project';
+			//@ts-ignore
+			notification.body = err.message || 'An unknown error occurred during the deletion process.';
+		} finally {
+			//@ts-ignore
+			projectModalStore.trigger(notification);
+		}
+	}
+
+	function openDeleteProjectModal(projectName) {
+		projectModalStore.trigger({
+			type: 'component',
+			title: 'Please Confirm',
+			body: 'Are you sure you want to delete this project ?',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteProject(projectName);
+					console.log('key deleted', { projectName });
+				}
+			}
+		});
+	}
 </script>
 
 <Card title="Projects">
@@ -67,7 +110,7 @@
 			Delete All Projects</button
 		>
 	</div>
-	<div class="flex flex-wrap gap-5 mt-10">
+	<div class="flex flex-wrap gap-5 mt-5">
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}
 				>Deploy project</button
@@ -82,7 +125,7 @@
 	</div>
 </Card>
 
-<Card class="mt-10">
+<Card class="mt-5">
 	{#if $projectsStore.length > 0}
 		<TableAutoCard
 			definition={[
@@ -101,7 +144,10 @@
 			let:def
 		>
 			{#if def.name == 'Delete'}
-				<button on:click={() => deleteProject(row['@_name'])} class="bg-error-400-500-token">
+				<button
+					on:click={() => openDeleteProjectModal(row['@_name'])}
+					class="bg-error-400-500-token"
+				>
 					<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Reload'}
@@ -118,30 +164,5 @@
 				</a>
 			{/if}
 		</TableAutoCard>
-	{:else}
-		<div class="table-container">
-			<table class="rounded-token table">
-				<thead class="rounded-token">
-					<tr>
-						{#each Array(9) as _}
-							<th class="header dark:bg-surface-800">
-								<div class="my-2 h-8 placeholder animate-pulse"></div>
-							</th>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each Array(5) as _}
-						<tr>
-							{#each Array(9) as _}
-								<td>
-									<div class="my-2 h-8 placeholder animate-pulse"></div>
-								</td>
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
 	{/if}
 </Card>

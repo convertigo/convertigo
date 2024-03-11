@@ -14,8 +14,8 @@
 	let configRolesStore = writable([]);
 	let otherRolesStore = writable([]);
 
-	let viewRolesChecked = false;
-	let configRolesChecked = false;
+	let viewRolesChecked = writable(false);
+	let configRolesChecked = writable(false);
 
 	let importAction = '';
 	let importPriority = 'priority-import';
@@ -25,13 +25,13 @@
 	});
 
 	function toggleViewRoles(shouldBeChecked) {
-		viewRolesChecked = shouldBeChecked;
+		viewRolesChecked.set(shouldBeChecked);
 		//@ts-ignore
 		viewRolesStore.update((roles) => roles.map((role) => ({ ...role, selected: shouldBeChecked })));
 	}
 
 	function toggleConfigRoles(shouldBeChecked) {
-		configRolesChecked = shouldBeChecked;
+		configRolesChecked.set(shouldBeChecked);
 		//@ts-ignore
 		configRolesStore.update((roles) =>
 			//@ts-ignore
@@ -61,18 +61,6 @@
 		}
 	}
 
-	function toggleRoleSelection(roleName, roleType) {
-		const store = roleType === 'view' ? viewRolesStore : configRolesStore;
-		//@ts-ignore
-		store.update((roles) =>
-			//@ts-ignore
-			roles.map((role) =>
-				//@ts-ignore
-				role['@_name'] === roleName ? { ...role, selected: !role.selected } : role
-			)
-		);
-	}
-
 	async function rolesAdd(event) {
 		event.preventDefault();
 		const fd = new FormData(event.target);
@@ -80,6 +68,7 @@
 		//@ts-ignore
 		const res = await call('roles.Add', fd);
 		console.log('role add res:', res);
+		rolesList();
 		modalStore.close();
 	}
 
@@ -144,28 +133,27 @@
 							</div>
 						{/each}
 					</div>
-					<div class="flex flex-wrap gap-5 mt-10">
-						<div class="flex-1">
-							<button
-								type="button"
-								class="w-full bg-tertiary-400-500-token"
-								on:click={() => toggleViewRoles(true)}
-							>
-								<Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />
-								Check view
-							</button>
-						</div>
-						<div class="flex-1">
-							<button
-								type="button"
-								class="w-full bg-tertiary-400-500-token"
-								on:click={() => toggleViewRoles(false)}
-							>
-								<Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />
-								Uncheck View
-							</button>
-						</div>
-					</div>
+
+					<RadioGroup class="mt-10 max-w-80">
+						<RadioItem
+							bind:group={$viewRolesChecked}
+							on:click={() => toggleViewRoles(true)}
+							name="viewRoles"
+							value={true}
+							active="variant-filled-secondary"
+						>
+							Check Config
+						</RadioItem>
+						<RadioItem
+							bind:group={$viewRolesChecked}
+							on:click={() => toggleViewRoles(false)}
+							name="viewRoles"
+							value={false}
+							active="variant-filled-surface"
+						>
+							Uncheck Config
+						</RadioItem>
+					</RadioGroup>
 				</div>
 
 				<div class="container-child">
@@ -187,24 +175,26 @@
 						{/each}
 					</div>
 
-					<div class="flex gap-5 mt-10">
-						<div class="flex-1">
-							<button
-								type="button"
-								class="w-full bg-tertiary-400-500-token"
-								on:click={() => toggleConfigRoles(true)}
-								><Icon icon="ph:plus-fill" class="w-7 h-7 mr-3" />Check Config</button
-							>
-						</div>
-						<div class="flex-1">
-							<button
-								type="button"
-								class="w-full bg-tertiary-400-500-token"
-								on:click={() => toggleConfigRoles(false)}
-								><Icon icon="typcn:minus-outline" class="w-7 h-7 mr-3" />Uncheck Config</button
-							>
-						</div>
-					</div>
+					<RadioGroup class="mt-10 max-w-80">
+						<RadioItem
+							bind:group={$configRolesChecked}
+							on:click={() => toggleConfigRoles(true)}
+							name="configRoles"
+							value={true}
+							active="variant-filled-secondary"
+						>
+							Check Config
+						</RadioItem>
+						<RadioItem
+							bind:group={$configRolesChecked}
+							on:click={() => toggleConfigRoles(false)}
+							name="configRoles"
+							value={false}
+							active="variant-filled-surface"
+						>
+							Uncheck Config
+						</RadioItem>
+					</RadioGroup>
 				</div>
 
 				<div class="container-child">
@@ -228,12 +218,9 @@
 				</div>
 			</ResponsiveContainer>
 
-			<div class="flex gap-10 mt-10">
-				<button type="submit" class="btn bg-primary-400-500-token w-40">Confirm</button>
-
-				<button class="bg-error-400-500-token w-40" on:click={() => modalStore.close()}
-					>Cancel</button
-				>
+			<div class="flex gap-5 mt-10">
+				<button class="cancel-button w-60" on:click={() => modalStore.close()}>Cancel</button>
+				<button type="submit" class="btn confirm-button w-60">Confirm</button>
 			</div>
 		</form>
 	</Card>
@@ -264,6 +251,11 @@
 
 			<div class="flex flex-wrap gap-5">
 				<div class="flex-1">
+					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
+						>Cancel</button
+					>
+				</div>
+				<div class="flex-1">
 					<input
 						type="file"
 						name="userfile"
@@ -272,14 +264,7 @@
 						class="hidden"
 						on:change={importRoles}
 					/>
-					<label for="symbolUploadFile" class="btn bg-primary-400-500-token mt-5 w-full"
-						>Import</label
-					>
-				</div>
-				<div class="flex-1">
-					<button class="mt-5 w-full btn bg-error-400-500-token" on:click={() => modalStore.close()}
-						>Cancel</button
-					>
+					<label for="symbolUploadFile" class="confirm-button btn mt-5 w-full">Import</label>
 				</div>
 			</div>
 		</form>

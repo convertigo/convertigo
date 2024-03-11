@@ -13,6 +13,8 @@
 	import ModalSymbols from '$lib/admin/modals/ModalSymbols.svelte';
 	import ModalRoles from '$lib/admin/modals/ModalRoles.svelte';
 	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
+	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
+
 	initializeStores();
 
 	afterNavigate(() => {
@@ -30,7 +32,8 @@
 		modalSymbols: { ref: ModalSymbols },
 		modalProjects: { ref: ModalProjects },
 		modalRoles: { ref: ModalRoles },
-		modalScheduler: { ref: ModalScheduler }
+		modalScheduler: { ref: ModalScheduler },
+		modalWarning: { ref: ModalWarning }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });

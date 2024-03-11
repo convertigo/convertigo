@@ -11,6 +11,7 @@
 		try {
 			// @ts-ignore
 			const res = await call('engine.Authenticate', new FormData(e.target));
+			console.log(res);
 			if ('success' in res.admin) {
 				$authenticated = true;
 				if (history.length) {

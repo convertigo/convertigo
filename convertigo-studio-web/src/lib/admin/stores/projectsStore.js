@@ -19,11 +19,8 @@ export async function projectsCheck() {
 	}
 }
 
+/** 
 export async function deleteProject(projectName) {
-	if (!confirm(`Do you really want to delete the project '${projectName}'?`)) {
-		return;
-	}
-
 	try {
 		const response = await call('projects.Delete', { projectName });
 
@@ -37,7 +34,7 @@ export async function deleteProject(projectName) {
 	} catch (error) {
 		alert(`An error occurred`);
 	}
-}
+}*/
 
 export async function reloadProject(projectName) {
 	if (

@@ -69,7 +69,14 @@
 <AutoGrid>
 	<Card title="Status">
 		<div slot="cornerOption">
-			<button on:click={performGC} class="w-full bg-secondary-400-500-token">Perform GC</button>
+			<div class="flex gap-5">
+				<button class="w-full bg-primary-400-500-token" on:click={javaSystemPropModal}
+					>Java System Properties</button
+				>
+				<button class="w-full bg-primary-400-500-token" on:click={environmentVariablesModal}
+					>Environment Variables</button
+				>
+			</div>
 		</div>
 		<StatusTable
 			class="mt-5"
@@ -81,14 +88,7 @@
 
 	<Card title="System Information">
 		<div slot="cornerOption">
-			<div class="flex gap-5">
-				<button class="w-full bg-primary-400-500-token" on:click={javaSystemPropModal}
-					>Java System Properties</button
-				>
-				<button class="w-full bg-primary-400-500-token" on:click={environmentVariablesModal}
-					>Environment Variables</button
-				>
-			</div>
+			<button on:click={performGC} class="w-full bg-secondary-400-500-token">Perform GC</button>
 		</div>
 		<SystemInformationTable
 			class="mt-5"

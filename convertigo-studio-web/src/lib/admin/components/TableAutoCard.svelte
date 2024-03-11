@@ -13,11 +13,13 @@
 		<thead class="rounded-token">
 			<tr>
 				{#each definition as def}
-					{#if def.icon}
-						<Icon icon={def.icon} class="h-7 w-7" />
-					{:else}
-						<th class="header dark:bg-surface-800">{def.name}</th>
-					{/if}
+					<th class="header dark:bg-surface-800">
+						{#if def.icon}
+							<Icon icon={def.icon} class="h-7 w-7" />
+						{:else}
+							{def.name}
+						{/if}
+					</th>
 				{/each}
 			</tr>
 		</thead>
@@ -28,6 +30,8 @@
 						<td data-label={def.name}>
 							{#if def.custom}
 								<slot {row} {def}>{row[def.key] ?? ''}</slot>
+							{:else if row[def.key] == null}
+								<div class="placeholder animate-pulse w-full min-w-32"></div>
 							{:else}
 								{row[def.key] ?? ''}
 							{/if}

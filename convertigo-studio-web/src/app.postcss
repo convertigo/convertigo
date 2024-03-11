@@ -5,7 +5,7 @@
 
 html,
 body {
-	@apply h-full bg-surface-50-900-token;
+	@apply h-full bg-surface-50-900-token h-full overflow-hidden;
 }
 
 button {
@@ -74,7 +74,7 @@ tr:nth-child(odd) {
 	@apply cursor-pointer;
 }
 .border-common {
-	@apply border-b-[1px] dark:border-surface-600 border-surface-100;
+	@apply border-b-[1px] dark:border-surface-600 border-surface-50;
 }
 .input-name {
 	@apply font-light text-[14px] mb-3;
@@ -84,6 +84,14 @@ tr:nth-child(odd) {
 /*FORM STYLE*/
 form {
 	@apply rounded-token;
+}
+
+.cancel-button {
+	@apply bg-surface-200 dark:bg-surface-500;
+}
+
+.confirm-button {
+	@apply bg-primary-400-500-token;
 }
 
 /*END FORM STYLE*/

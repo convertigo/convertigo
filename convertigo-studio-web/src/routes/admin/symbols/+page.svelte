@@ -11,7 +11,6 @@
 	import Icon from '@iconify/svelte';
 	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import ModalSymbols from '$lib/admin/modals/ModalSymbols.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	onMount(() => {
@@ -38,7 +37,7 @@
 			const response = await call('global_symbols.Delete', formData);
 			globalSymbols();
 
-			if (response.includes('success')) {
+			if (response !== undefined) {
 				// @ts-ignore
 				symbolModalStore.trigger(successModalSettings);
 			} else {
@@ -78,18 +77,23 @@
 	}
 
 	export function confirmSymbolDeletion(symbolId) {
-		const modalSettings = {
-			type: 'confirm',
+		const confirmDeleted = {
+			title: 'Key deleted with success'
+		};
+		symbolModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
 			title: 'Please Confirm',
-			body: 'Are you sure you wish to proceed ?',
+			body: 'Are you sure you want to delete this Symbol ?',
+			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
 				if (confirmed) {
 					symbolsDelete(symbolId);
+					// @ts-ignore
+					symbolModalStore.trigger(confirmDeleted);
 				}
 			}
-		};
-		// @ts-ignore
-		symbolModalStore.trigger(modalSettings);
+		});
 	}
 
 	function confirmDeleteAll() {
@@ -110,7 +114,7 @@
 	function openAddGlobalSymbolModal() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalSymbols },
+			component: 'modalSymbols',
 			meta: { mode: 'add' }
 		});
 	}
@@ -118,7 +122,7 @@
 	function openAddSecretSymbols() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalSymbols },
+			component: 'modalSymbols',
 			meta: { mode: 'secret' }
 		});
 	}
@@ -126,7 +130,7 @@
 	function openImportSymbols() {
 		symbolModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalSymbols },
+			component: 'modalSymbols',
 			meta: { mode: 'import' }
 		});
 	}
@@ -165,7 +169,7 @@
 		</div>
 	</div>
 
-	<p class="dark:text-surface-100 text-surface-900 font-bold mb-5 w-[70%]">
+	<p class="dark:text-surface-100 text-surface-900 font-bold mb-5">
 		Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
 		symbol is defined for the Default value or if it contains a closing curly braces it must be
 		escaped with a backslash.
@@ -198,7 +202,7 @@
 		{/if}
 	</TableAutoCard>
 
-	<p class="font-bold mt-20 mb-5 w-[70%]">
+	<p class="font-bold mt-20 mb-5">
 		List of global symbols with default value currently used. You can import them as regular symbol.
 	</p>
 

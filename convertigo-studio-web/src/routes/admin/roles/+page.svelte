@@ -1,11 +1,9 @@
 <script>
-	import Tables from '$lib/admin/components/Tables.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Icon from '@iconify/svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import ModalRoles from '$lib/admin/modals/ModalRoles.svelte';
 	import { writable } from 'svelte/store';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
@@ -66,7 +64,7 @@
 	function openAddUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalRoles },
+			component: 'modalRoles',
 			meta: { mode: 'add' }
 		});
 	}
@@ -74,7 +72,7 @@
 	function openImportUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalRoles },
+			component: 'modalRoles',
 			meta: { mode: 'import' }
 		});
 	}
@@ -82,39 +80,49 @@
 	function openExportUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: { ref: ModalRoles },
+			component: 'modalRoles',
 			meta: { mode: 'export' }
 		});
 	}
 
 	function openDeleteAllModal() {
-		const modalDeleteConfirmation = {
-			type: 'confirm',
-			title: 'Please confirm',
-			body: 'Are you sure you want to proceed ? All roles are going to be Deleted ..',
+		const confirmDeletedAll = {
+			title: 'All Keys deleted with success'
+		};
+		rolesModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
+			title: 'You are going to delete All Roles',
+			body: 'Are you sure you want to ?',
+			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteAllRoles();
+					//@ts-ignore
+					rolesModalStore.trigger(confirmDeletedAll);
 				}
 			}
-		};
-		//@ts-ignore
-		rolesModalStore.trigger(modalDeleteConfirmation);
+		});
 	}
 
 	function openDeleteModal(userName) {
-		const modalDeleteConfirmation = {
-			type: 'confirm',
-			title: 'Please confirm',
-			body: 'Are you sure you want to proceed ?',
+		const confirmDeleted = {
+			title: 'Key deleted with success'
+		};
+		rolesModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
+			title: 'Please Confirm',
+			body: 'Are you sure you want to delete the role ?',
+			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteUsersRoles(userName);
+					//@ts-ignore
+					rolesModalStore.trigger(confirmDeleted);
 				}
 			}
-		};
-		//@ts-ignore
-		rolesModalStore.trigger(modalDeleteConfirmation);
+		});
 	}
 </script>
 
@@ -122,7 +130,7 @@
 	<div slot="cornerOption">
 		<button class="w-full bg-error-400-500-token" on:click={openDeleteAllModal}>
 			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
-			Delete All
+			Delete All Roles
 		</button>
 	</div>
 	<div class="flex flex-wrap gap-5 mb-10 mt-10">
@@ -190,7 +198,6 @@
 					{#each Array(5) as _}
 						<tr>
 							{#each Array(5) as _}
-								<!-- Repeat for each column -->
 								<td>
 									<div class="my-2 h-8 placeholder animate-pulse"></div>
 								</td>

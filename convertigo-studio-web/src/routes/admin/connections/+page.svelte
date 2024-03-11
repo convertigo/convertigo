@@ -83,13 +83,12 @@
 				{/if}
 			{/if}
 		</TableAutoCard>
-
-		<button class="bg-error-400-500-token max-w-80 mt-10"
-			>Delete all Sessions and Connections</button
-		>
 	</Card>
 
 	<Card title="Legends">
+		<div slot="cornerOption">
+			<button class="bg-surface-400-500-token max-w-80">Delete all Sessions and Connections</button>
+		</div>
 		<TableAutoCard
 			definition={[
 				{ name: 'Name', custom: true },
@@ -126,11 +125,7 @@
 			{ name: 'Roles', key: '@_adminRoles' },
 			{ name: 'UUID', key: '@_deviceUUID' },
 			{ name: 'FS', key: '@_isFullSyncActive' },
-			{
-				name: 'last session',
-				icon: 'material-symbols-light:date-range-rounded',
-				key: '@_lastSessionAccessDate'
-			},
+			{ icon: 'material-symbols-light:date-range-rounded', key: '@_lastSessionAccessDate' },
 			{ icon: 'carbon:intent-request-inactive', key: '@_sessionInactivityTime' },
 			{ name: 'Client IP', key: '@_clientIP' },
 			{ name: 'Delete', custom: true }
