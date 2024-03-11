@@ -81,7 +81,7 @@ public class UIDynamicComponent extends UIDynamicElement {
 				Map<String, File> map = new HashMap<String, File>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String compName = ionBean.getName();
+					String compName = ionBean.getComponent();//ionBean.getName();
 					File dir = ComponentManager.getCompBeanDir(compName);
 					if (dir != null) {
 						map.put(compName, dir);

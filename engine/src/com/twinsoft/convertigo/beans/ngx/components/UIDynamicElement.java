@@ -422,6 +422,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 
 	@Override
+	protected String getDeprecatedTplVersion() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getDeprecatedTplVersion();
+		}
+		return "";
+	}
+	
+	@Override
 	protected Contributor getContributor() {
 		return new Contributor() {
 			@Override

@@ -41,6 +41,10 @@ public abstract class MobileObject extends DatabaseObject implements IMobileObje
 		return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
 	}
 	
+	protected String getDeprecatedTplVersion() {
+		return "";
+	}
+	
 	public IApplicationComponent getApplication() {
 		DatabaseObject databaseObject = this;
 		while (!(databaseObject instanceof IApplicationComponent) && databaseObject != null) { 

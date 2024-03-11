@@ -32,13 +32,20 @@
               componentProps    : props.data,
               keyboardClose     : props.keyboardClose,
               showBackdrop      : props.showBackdrop,
-              swipeToClose      : props.swipeToClose,
               backdropDismiss   : props.enableBackdropDismiss,
               animated          : props.animated,
               enterAnimation    : props.enterAnimation ? props.enterAnimation : undefined,
               leaveAnimation    : props.leaveAnimation ? props.leaveAnimation : undefined,
               presentingElement : props.presentingElement ? props.presentingElement : undefined,
-              cssClass          : props.cssClass ? props.cssClass : ''
+              cssClass          : props.cssClass ? props.cssClass : undefined,
+              
+              id					: props.id ? props.id : undefined,
+              canDismiss      		: props.canDismiss ? props.canDismiss : true,
+              htmlAttributes    	: props.htmlAttributes ? props.htmlAttributes : undefined,
+			  breakpoints			: props.breakpoints ? props.breakpoints : undefined,
+			  initialBreakpoint		: props.initialBreakpoint ? props.initialBreakpoint : undefined,
+			  backdropBreakpoint	: props.backdropBreakpoint ? props.backdropBreakpoint : 0,
+			  handle				: props.handle ? props.handle : undefined
             });
 
             /*let modals = page.routerProvider.sharedObject["ModalPages"];

@@ -107,6 +107,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -314,9 +315,9 @@ public class ComponentManager {
 					}
 				}
 				else {
-					System.out.println("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+					System.out.println("(ComponentManager) For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data. Property will be set with default value.");
 					if (Engine.isStarted) {
-						Engine.logBeans.warn("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+						Engine.logBeans.warn("(ComponentManager) For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data: ignore it. Property will be set with default value.");
 					}
 					hasChanged = true;
 				}
@@ -332,7 +333,9 @@ public class ComponentManager {
 			if (Engine.isStarted) {
 				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			}
-			return new IonBean(jsonString);
+			//return new IonBean(jsonString);
+			String deprecatedTplVersion = ProductVersion.productVersion + ".0";
+			return new IonBean(new JSONObject(jsonString).put("deprecatedTplVersion", deprecatedTplVersion).toString());
 		}
 	}
 	
@@ -400,7 +403,7 @@ public class ComponentManager {
 								Class<?> pdc = pd.getPropertyEditorClass();
 								if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 									setter.invoke(dbo, new Object[] { msst });
-								} else if (pname.equals("actionValue")) {// CustomAction
+								} else if (pname.equals("actionValue") || pname.equals("scriptContent") || pname.equals("styleContent")) {
 									FormatedContent fc = new FormatedContent(value);
 									setter.invoke(dbo, new Object[] { fc });
 								} else {
@@ -608,6 +611,11 @@ public class ComponentManager {
 		}
 		
 		for (final IonBean bean: instance.bCache.values()) {
+			// ignore deprecated ionBeans
+			if (!bean.getDeprecatedTplVersion().isEmpty()) {
+				continue;
+			}
+			
 			components.add(new Component() {
 				
 				@Override
@@ -1156,6 +1164,18 @@ public class ComponentManager {
 						UIAttribute.class.isAssignableFrom(dboClass) ||
 						(UIControlEvent.class.isAssignableFrom(dboClass))) {
 						return true;
+					}
+					else if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
+						!UIStackVariable.class.isAssignableFrom(dboClass) &&
+						!UICompVariable.class.isAssignableFrom(dboClass) &&
+						!UIAppEvent.class.isAssignableFrom(dboClass) &&
+						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UISharedComponentEvent.class.isAssignableFrom(dboClass) &&
+						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
+						!UIActionEvent.class.isAssignableFrom(dboClass) &&
+						!UITheme.class.isAssignableFrom(dboClass) &&
+						!IAction.class.isAssignableFrom(dboClass)) {
+							return true;
 					}
 				} else if (dboParent instanceof UIDynamicAttr) {
 					return false;

@@ -694,4 +694,17 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		}
 		return tplVersion;
 	}
+	
+	protected boolean containsDeprecated() {
+		if (!getDeprecatedTplVersion().isEmpty()) {
+			return true;
+		} else {
+			for (UIComponent uic : getUIComponentList()) {
+				if (uic.containsDeprecated()) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 }

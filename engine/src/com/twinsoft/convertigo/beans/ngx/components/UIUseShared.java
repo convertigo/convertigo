@@ -62,7 +62,7 @@ public class UIUseShared extends UIElement {
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		if (!(uiComponent instanceof UIUseVariable) && !(uiComponent instanceof UIControlEvent) && !(uiComponent instanceof UIAttribute)) {
-			throw new EngineException("You can not add this component to a UIUseShared component!");
+			//throw new EngineException("You can not add this component to a UIUseShared component!");
 		}
 		
 		super.addUIComponent(uiComponent, after);
@@ -159,6 +159,7 @@ public class UIUseShared extends UIElement {
 					StringBuilder eventBindings = new StringBuilder();
 					StringBuilder attrclasses = new StringBuilder();
 					StringBuilder params = new StringBuilder();
+					StringBuilder others = new StringBuilder();
 					for (UIComponent uic: getUIComponentList()) {
 						// Overridden component variables
 						if (uic instanceof UIUseVariable) {
@@ -184,6 +185,8 @@ public class UIUseShared extends UIElement {
 									params.append(uiAttribute.computeTemplate());
 								}
 							}
+						} else {
+							others.append(uic.computeTemplate());
 						}
 					}
 					
@@ -192,7 +195,9 @@ public class UIUseShared extends UIElement {
 					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
 					String identifiers = compIdentifier + " " + useIdentifier;
 					String classes = attrclasses.length() > 0 ? "class=\""+attrclasses+"\"": "";
-					computed += "<"+compSelector+" "+ identifiers +" [owner]=\"this\" "+params+" "+classes+" "+eventBindings +"></"+compSelector+">" + System.lineSeparator();
+					computed += "<"+compSelector+" "+ identifiers +" [owner]=\"this\" "+params+" "+classes+" "+eventBindings +">" + System.lineSeparator();
+					if (others.length() > 0) {computed += others;}
+					computed += "</"+compSelector+">" + System.lineSeparator();
 				}
 			}
 		}

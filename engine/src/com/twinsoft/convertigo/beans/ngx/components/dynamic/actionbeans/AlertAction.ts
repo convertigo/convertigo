@@ -84,9 +84,12 @@
                 animated          : props.animated,
                 enterAnimation    : props.enterAnimation ? props.enterAnimation : undefined,
                 leaveAnimation    : props.leaveAnimation ? props.leaveAnimation : undefined,
-                cssClass          : props.cssClass ? props.cssClass : '',
+                cssClass          : props.cssClass ? props.cssClass : undefined,
                 translucent       : props.translucent,
-                buttons           : buttons
+                buttons           : buttons,
+                
+              	id				  : props.id ? props.id : undefined,
+              	htmlAttributes	  : props.htmlAttributes ? props.htmlAttributes : undefined
             });
 
             alert.onDidDismiss().then((data) => {

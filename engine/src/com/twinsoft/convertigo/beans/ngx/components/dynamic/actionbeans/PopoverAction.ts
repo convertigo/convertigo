@@ -37,9 +37,18 @@
                 animated          : props.animated,
                 enterAnimation    : props.enterAnimation ? props.enterAnimation : undefined,
                 leaveAnimation    : props.leaveAnimation ? props.leaveAnimation : undefined,
-                cssClass          : props.cssClass ? props.cssClass : '',
+                cssClass          : props.cssClass ? props.cssClass : undefined,
                 event             : props.event,
-                translucent       : props.translucent
+                translucent       : props.translucent,
+                
+                id				: props.id ? props.id : undefined,
+                alignment    	: props.alignment ? props.alignment : undefined,
+                arrow    		: props.arrow ? props.arrow : undefined,
+                dismissOnSelect	: props.dismissOnSelect ? props.dismissOnSelect : false,
+                htmlAttributes  : props.htmlAttributes ? props.htmlAttributes : undefined,
+                reference    	: props.reference ? props.reference : undefined,
+                side    		: props.side ? props.side : undefined,
+                size    		: props.size ? props.size : undefined
             })
             
             pop.onDidDismiss().then((data) => {

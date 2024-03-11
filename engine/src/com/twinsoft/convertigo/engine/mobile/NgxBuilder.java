@@ -592,6 +592,8 @@ public class NgxBuilder extends MobileBuilder {
 
 			storeEnvFile();
 
+			resetAll();
+			
 			isReleasing = false;
 			initDone = false;
 			Engine.logEngine.debug("(NgxBuilder) End releasing builder for ionic project "+ projectID);
@@ -688,6 +690,24 @@ public class NgxBuilder extends MobileBuilder {
 		    list.clear();
 		    list = null;
 		}
+	}
+	
+	private void resetAll() {
+		try {
+			final MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+				if (application != null) {
+					application.reset();
+					for (UISharedComponent uisc: application.getSharedComponentList()) {
+						uisc.reset();
+					}
+					for (PageComponent page: application.getPageComponentList()) {
+						page.reset();
+					}
+				}
+			}
+		} catch (Exception e) {}
 	}
 	
 	private void call_updateSourceFiles() throws EngineException {
@@ -1848,17 +1868,21 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
 
 		for (String compbean : comp_beans_dirs.keySet()) {
-			File srcCompDir = comp_beans_dirs.get(compbean);
-			File destCompDir = new File(componentsDir, compbean);
-			Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcCompDir.getPath().replace('\\', '/'));
-			if (m.matches()) {
-				ZipUtils.expandZip(m.group(1), destCompDir.getAbsolutePath(), m.group(2));
-			} else {
-				for (File f: srcCompDir.listFiles()) {
-					String fContent = FileUtils.readFileToString(f, "UTF-8");
-					File destFile = new File(componentsDir, compbean+ "/"+ f.getName());
-					writeFile(destFile, fContent, "UTF-8");
+			try {
+				File srcCompDir = comp_beans_dirs.get(compbean);
+				File destCompDir = new File(componentsDir, compbean);
+				Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcCompDir.getPath().replace('\\', '/'));
+				if (m.matches()) {
+					ZipUtils.expandZip(m.group(1), destCompDir.getAbsolutePath(), m.group(2));
+				} else {
+					for (File f: srcCompDir.listFiles()) {
+						String fContent = FileUtils.readFileToString(f, "UTF-8");
+						File destFile = new File(componentsDir, compbean+ "/"+ f.getName());
+						writeFile(destFile, fContent, "UTF-8");
+					}
 				}
+			} catch (Exception e) {
+				Engine.logEngine.warn("(NgxBuilder) Missing component folder for pseudo-bean '"+ compbean +"' !");
 			}
 		}
 

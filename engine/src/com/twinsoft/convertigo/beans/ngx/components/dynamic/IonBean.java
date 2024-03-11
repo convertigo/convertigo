@@ -39,9 +39,11 @@ public class IonBean {
 	enum Key {
 		classname,
 		tplVersion,
+		deprecatedTplVersion,
 		tag,
 		tags,
 		name,
+		component,
 		displayName,
 		label,
 		autoClose,
@@ -69,6 +71,8 @@ public class IonBean {
 				.put(Key.classname.name(), "com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement")
 				.put(Key.tplVersion.name(), "1.0.88")
 				.put(Key.name.name(), "bean")
+				.put(Key.component.name(), "component")
+				.put(Key.deprecatedTplVersion.name(), "")
 				.put(Key.displayName.name(), "")
 				.put(Key.tag.name(), "tag")
 				.put(Key.tags.name(), new JSONArray())
@@ -192,6 +196,15 @@ public class IonBean {
 		}
 	}
 	
+	public String getComponent() {
+		try {
+			return jsonBean.getString(Key.component.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "component";
+		}
+	}
+	
 	public String getDisplayName() {
 		try {
 			String displayName = jsonBean.getString(Key.displayName.name());
@@ -246,6 +259,14 @@ public class IonBean {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "Others";
+		}
+	}
+	public String getDeprecatedTplVersion() {
+		try {
+			return jsonBean.getString(Key.deprecatedTplVersion.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
 		}
 	}
 	public boolean isSelfClose() {

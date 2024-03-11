@@ -1052,6 +1052,15 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return tplVersion;
 	}
 
+	protected boolean containsDeprecated() {
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.containsDeprecated()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
 		if ((TITLE_PREFIX + oldName).equals(title)) {

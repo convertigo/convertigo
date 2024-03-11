@@ -1583,6 +1583,39 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return tplVersion;
 	}
 	
+	public boolean needsMigration() {
+		return containsDeprecated();
+	}
+	
+	protected boolean containsDeprecated() {
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.containsDeprecated()) {
+				return true;
+			}
+		}
+		for (PageComponent page : getPageComponentList()) {
+			if (page.containsDeprecated()) {
+				return true;
+			}
+		}
+		for (UIDynamicMenu menu : getMenuComponentList()) {
+			if (menu.containsDeprecated()) {
+				return true;
+			}
+		}
+		for (UIActionStack sa : getSharedActionList()) {
+			if (sa.containsDeprecated()) {
+				return true;
+			}
+		}
+		for (UISharedComponent sc : getSharedComponentList()) {
+			if (sc.containsDeprecated()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public long getGenerationTime() {
 		try {
 			String str = FileUtils.readFileToString(new File(getProject().getDirFile(), "_private/ionic/src/env.json"), "UTF-8");

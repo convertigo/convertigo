@@ -1327,9 +1327,7 @@
 				}
 			}
 		},
-		/*
-     buttons
-    */
+		/* Buttons */
 		"Button": {
 			"tag": "ion-button",
 			"displayName": "Button",
@@ -1794,6 +1792,19 @@
 					"values": [
 						"false",
 						"true"
+					]
+				},
+				"CloseIcon": {
+					"attr": "closeIcon",
+					"label": "Close icon",
+					"description": "The icon name to use for the close icon. This will appear when the fab button is pressed. Only applies if it is the main button inside of a fab containing a fab list.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "close",
+					"values": [
+						false,
+						"close",
+						true
 					]
 				},
 				"Show": {
@@ -2321,6 +2332,18 @@
 			"icon32": "footer_32x32.png",
 			"properties": {
 				"IonMode": false,
+				"Collapse": {
+					"attr": "collapse",
+					"label": "Collapse",
+					"description": "Describes the scroll effect that will be applied to the footer. Only applies in iOS mode.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						"fade"
+					]
+				},
 				"Translucent": {
 					"attr": "translucent",
 					"label": "Translucent",
@@ -3894,9 +3917,10 @@
 			"icon32": "refresher_32x32.png",
 			"properties": {
 				"Disabled": "false",
+				"IonMode": false,
 				"IonSlot": "fixed",
 				"CloseDuration": {
-					"attr": "close-duration",
+					"attr": "closeDuration",
 					"label": "Close duration",
 					"description": "Time it takes to close the refresher. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
 					"category": "@Properties",
@@ -3927,7 +3951,7 @@
 					"value": "60"
 				},
 				"SnapbackDuration": {
-					"attr": "snapback-duration",
+					"attr": "snapbackDuration",
 					"label": "Snapback duration",
 					"description": "Time it takes the refresher to to snap back to the refreshing state. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
 					"category": "@Properties",
@@ -3963,21 +3987,21 @@
 			"icon32": "refreshercontent_32x32.png",
 			"properties": {
 				"PullingIcon": {
-					"attr": "pulling-icon",
+					"attr": "pullingIcon",
 					"label": "Pulling Icon",
 					"description": "A static icon or a spinner to display when you begin to pull down. A spinner name can be provided to gradually show tick marks when pulling down on iOS devices.",
 					"category": "@Properties",
 					"value": false
 				},
 				"PullingText": {
-					"attr": "pulling-text",
+					"attr": "pullingText",
 					"label": "Pulling Text",
 					"description": "The text you want to display when you begin to pull down. pullingText can accept either plaintext or HTML as a string. To display characters normally reserved for HTML, they must be escaped. For example <Ionic> would become &lt;Ionic&gt;",
 					"category": "@Properties",
 					"value": false
 				},
 				"RefreshingSpinner": {
-					"attr": "refreshing-spinner",
+					"attr": "refreshingSpinner",
 					"label": "Refreshing Spinner",
 					"description": "An animated SVG spinner that shows when refreshing begins.",
 					"category": "@Properties",
@@ -3993,7 +4017,7 @@
 					]
 				},
 				"RefreshingText": {
-					"attr": "refreshing-text",
+					"attr": "refreshingText",
 					"label": "Refreshing Text",
 					"description": "The text you want to display when performing a refresh. refreshingText can accept either plaintext or HTML as a string. To display characters normally reserved for HTML, they must be escaped. For example <Ionic> would become &lt;Ionic&gt;",
 					"category": "@Properties",
@@ -4014,6 +4038,7 @@
 			"icon16": "searchbar_16x16.png",
 			"icon32": "searchbar_32x32.png",
 			"properties": {
+				"ControlName": "",
 				"Disabled": false,
 				"DoubleBinding": false,
 				"IonColor": false,
@@ -4053,21 +4078,21 @@
 					]
 				},
 				"cancelButtonIcon": {
-					"attr": "cancel-button-icon",
+					"attr": "cancelButtonIcon",
 					"label": "Cancel button icon",
 					"description": "Sets the the cancel button icon. Only applies to md mode.",
 					"category": "@Properties",
 					"value": "arrow-back-sharp"
 				},
 				"cancelButtonText": {
-					"attr": "cancel-button-text",
+					"attr": "cancelButtonText",
 					"label": "Cancel button text",
 					"description": "Sets the the cancel button text. Only applies to ios mode.",
 					"category": "@Properties",
 					"value": "Cancel"
 				},
 				"clearIcon": {
-					"attr": "clear-icon",
+					"attr": "clearIcon",
 					"label": "Clear icon",
 					"description": "Sets the clear icon. Defaults to 'close-circle' for ios and 'close-sharp' for md.",
 					"category": "@Properties",
@@ -4081,7 +4106,7 @@
 					]
 				},
 				"searchIcon": {
-					"attr": "search-icon",
+					"attr": "searchIcon",
 					"label": "Search icon",
 					"description": "The icon to use as the search icon. Defaults to 'search-outline' in ios mode and 'search-sharp' in md mode.",
 					"category": "@Properties",
@@ -4144,11 +4169,23 @@
 					"value": "Search"
 				},
 				"showCancelButton": {
-					"attr": "show-cancel-button",
+					"attr": "showCancelButton",
 					"label": "Show Cancel button",
 					"description": "Sets the behavior for the cancel button. Defaults to 'never'. Setting to 'focus' shows the cancel button on focus. Setting to 'never' hides the cancel button. Setting to 'always' shows the cancel button regardless of focus state.",
 					"category": "@Properties",
 					"value": "never",
+					"values": [
+						"always",
+						"focus",
+						"never"
+					]
+				},
+				"showClearButton": {
+					"attr": "showClearButton",
+					"label": "Show Clear button",
+					"description": "Sets the behavior for the clear button. Defaults to 'focus'. Setting to 'focus' shows the clear button on focus if the input is not empty. Setting to 'never' hides the clear button. Setting to 'always' shows the clear button regardless of focus state, but only if the input is not empty.",
+					"category": "@Properties",
+					"value": "focus",
 					"values": [
 						"always",
 						"focus",
@@ -4264,6 +4301,76 @@
 				"//--color\t//Text color of the title"
 			]
 		},
+		"Backdrop": {
+			"tag": "ion-backdrop",
+			"displayName": "Backdrop",
+			"label": "Backdrop",
+			"description": [
+				"ion-backdrop | Defines a <i>Backdrop</i> component.<br/>",
+				"Backdrops are full screen components that overlay other components and prevents clicking or tapping on the content behind.<br>",
+				"They are useful behind components that transition in on top of other content and can be used to dismiss that component.<br/>",
+				"A <i>Backdrop</i> is transparent by default, so you should include CSS to make it visible.<br>",
+				"It can be customized by assigning common CSS properties including <code>background-color</code>, <code>background</code> and <code>opacity</code>.<br>",
+				"Content can be displayed above the backdrop by setting a <code>z-index</code> on the content, higher than the backdrop (defaults to 2).<br/>",
+				" For more information: <a href='https://ionicframework.com/docs/api/backdrop'>Backdrop</a>."
+			],
+			"group": "Miscellaneous",
+			"icon16": "backdrop_16x16.png",
+			"icon32": "backdrop_32x32.png",
+			"properties": {
+				"StopPropagation": {
+					"attr": "[stopPropagation]",
+					"label": "Stop propagation",
+					"description": "If true, the backdrop will stop propagation on tap.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Tappable": {
+					"attr": "[tappable]",
+					"label": "Tappable",
+					"description": "If true, the backdrop will can be clicked and will emit the ionBackdropTap event.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Visible": {
+					"attr": "[visible]",
+					"label": "Visible",
+					"description": "If true, the backdrop will be visible.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				}
+			},
+			"events": {
+				"ionBackdropTap": {
+					"attr": "(ionBackdropTap)",
+					"description": "Emitted when the backdrop is tapped."
+				}
+			},
+			"hint": {
+				"Backdrop": {
+					"com.twinsoft.convertigo.beans.ngx.components.UIStyle": {
+						"properties": {
+							"styleContent": "\tbackground: var(--ion-color-dark);\n\topacity: 0.3;\n"
+						}
+					}
+				}
+			}
+		},
 		"Badge": {
 			"tag": "ion-badge",
 			"displayName": "Badge",
@@ -4291,8 +4398,10 @@
 				"//--padding-top\t//Top padding of the badge"
 			]
 		},
-		/* Slides */
+		
+		/* DEPRECATED */
 		"Slides": {
+			"deprecatedTplVersion": "8.3.0.0",
 			"tag": "ion-slides",
 			"displayName": "SlidesContainer",
 			"label": "Slides Container",
@@ -4427,7 +4536,10 @@
 				"//--scroll-bar-background-active\t//Background of the active pagination scroll-bar"
 			]
 		},
+
+		/* DEPRECATED */
 		"Slide": {
+			"deprecatedTplVersion": "8.3.0.0",
 			"tag": "ion-slide",
 			"displayName": "SlideItem",
 			"label": "Slide Item",
@@ -4440,6 +4552,338 @@
 			"icon16": "slide_16x16.png",
 			"icon32": "slide_32x32.png"
 		},
+
+	 	"SwiperSlides": {
+			"tplVersion": "8.3.0.0",
+			"component": "SlidesComponent",
+			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
+			"tag": "c8o-slides",
+			"displayName": "SwiperSlides",
+			"label": "SwiperSlides Container",
+			"description": [
+				"c8o-slides. | Defines a <i>SwiperSlides Container</i> component.<br>This component replaces the deprecated <i>ion-slides</i> and is based on the <a href='https://swiperjs.com/element#usage'><i>swiper-container</i></a> component.<br/>",
+				"The <i>SwiperSlides Container</i> component is a multi-section container. It contains any number of <i>SwiperSlide Item</i> components which can be swiped or dragged between.<br/>",
+				"Slides make it easy to create galleries, tutorials, and page-based layouts.<br/>",
+				"By setting the <i>Identifier</i> property you can access from your typescript code the swiper instance through <code>page['my-identifier'].swiper</code><br/>",
+				" For more information: <a href='https://swiperjs.com/'>Swiper</a> library.<br/>",
+				" See also <a href='https://ionicframework.com/docs/angular/slides'>Migrating from ion-slides to Swiper.js</a><br/>"
+			],
+			"group": "Slides",
+			"icon16": "slides_16x16.png",
+			"icon32": "slides_32x32.png",
+			"properties": {
+				"Options": {
+					"attr": "[options]",
+					"label": "Options",
+					"description": "Options object to pass all configuration parameters to the swiper instance. See https://swiperjs.com/swiper-api#parameters for valid parameters.",
+					"category": "@Properties",
+					"mode": "script",
+					"value": "{}"
+				}
+			},
+			"events": {
+				"onSwiperActiveIndexChange": {
+					"attr": "(swiperactiveindexchange)",
+					"description": "Event will fired on active index change."
+				},
+				"onSwiperAfterInit": {
+					"attr": "(swiperafterinit)",
+					"description": "Event will fired right after initialization."
+				},
+				"onSwiperBeforeDestroy": {
+					"attr": "(swiperbeforedestroy)",
+					"description": "Event will be fired right before Swiper destroyed."
+				},
+				"onSwiperBeforeInit": {
+					"attr": "(swiperbeforeinit)",
+					"description": "Event will fired right before initialization."
+				},
+				"onSwiperBeforeLoopFix": {
+					"attr": "(swiperbeforeloopfix)",
+					"description": "Event will be fired right before 'loop fix'."
+				},
+				"onSwiperBeforeResize": {
+					"attr": "(swiperbeforeresize)",
+					"description": "Event will fired before resize handler."
+				},
+				"onSwiperBeforeSlideChangeStart": {
+					"attr": "(swiperbeforeslidechangestart)",
+					"description": "Event will fired before slide change transition start."
+				},
+				"onSwiperBeforeTransitionStart": {
+					"attr": "(swiperbeforetransitionstart)",
+					"description": "Event will fired before transition start."
+				},
+				"onSwiperBreakpoint": {
+					"attr": "(swiperbreakpoint)",
+					"description": "Event will be fired on breakpoint change."
+				},
+				"onSwiperChangeDirection": {
+					"attr": "(swiperchangedirection)",
+					"description": "Event will fired on direction change."
+				},
+				"onSwiperClick": {
+					"attr": "(swiperclick)",
+					"description": "Event will be fired when user click/tap on Swiper. Receives pointerup event as an arguments."
+				},
+				"onSwiperDestroy": {
+					"attr": "(swiperdestroy)",
+					"description": "Event will be fired on swiper destroy."
+				},
+				"onSwiperDoubleClick": {
+					"attr": "(swiperdoubleclick)",
+					"description": "Event will be fired when user double click/tap on Swiper."
+				},
+				"onSwiperDoubleTap": {
+					"attr": "(swiperdoubletap)",
+					"description": "Event will be fired when user double tap on Swiper's container. Receives pointerup event as an arguments."
+				},
+				"onSwiperFromEdge": {
+					"attr": "(swiperfromedge)",
+					"description": "Event will be fired when Swiper goes from beginning or end position."
+				},
+				"onSwiperInit": {
+					"attr": "(swiperinit)",
+					"description": "Event will be fired right after Swiper initialization."
+				},
+				"onSwiperLock": {
+					"attr": "(swiperlock)",
+					"description": "Event will be fired when swiper is locked (when watchOverflow enabled)."
+				},
+				"onSwiperLoopFix": {
+					"attr": "(swiperloopfix)",
+					"description": "Event will be fired after 'loop fix'."
+				},
+				"onSwiperMomentumBounce": {
+					"attr": "(swipermomentumbounce)",
+					"description": "Event will be fired on momentum bounce."
+				},
+				"onSwiperObserverUpdate": {
+					"attr": "(swiperobserverupdate)",
+					"description": "Event will be fired if observer is enabled and it detects DOM mutations."
+				},
+				"onSwiperOrientationchange": {
+					"attr": "(swiperorientationchange)",
+					"description": "Event will be fired on orientation change (e.g. landscape -> portrait)."
+				},
+				"onSwiperProgress": {
+					"attr": "(swiperprogress)",
+					"description": "Event will be fired when Swiper progress is changed, as an arguments it receives progress that is always from 0 to 1."
+				},
+				"onSwiperReachBeginning": {
+					"attr": "(swiperreachbeginning)",
+					"description": "Event will be fired when Swiper reach its beginning (initial position)."
+				},
+				"onSwiperReachEnd": {
+					"attr": "(swiperreachend)",
+					"description": "Event will be fired when Swiper reach last slide."
+				},
+				"onSwiperRealIndexChange": {
+					"attr": "(swiperrealindexchange)",
+					"description": "Event will fired on real index change."
+				},
+				"onSwiperResize": {
+					"attr": "(swiperresize)",
+					"description": "Event will be fired on window resize right before swiper's onresize manipulation."
+				},
+				"onSwiperSetTransition": {
+					"attr": "(swipersettransition)",
+					"description": "Event will be fired everytime when swiper starts animation. Receives current transition duration (in ms) as an arguments."
+				},
+				"onSwiperSetTranslate": {
+					"attr": "(swipersettranslate)",
+					"description": "Event will be fired when swiper's wrapper change its position. Receives current translate value as an arguments."
+				},
+				"onSwiperSlideChange": {
+					"attr": "(swiperslidechange)",
+					"description": "Event will be fired when currently active slide is changed."
+				},
+				"onSwiperSlideChangeTransitionEnd": {
+					"attr": "(swiperslidechangetransitionend)",
+					"description": "Event will be fired after animation to other slide (next or previous)."
+				},
+				"onSwiperSlideChangeTransitionStart": {
+					"attr": "(swiperslidechangetransitionstart)",
+					"description": "Event will be fired in the beginning of animation to other slide (next or previous)."
+				},
+				"onSwiperSlideNextTransitionEnd": {
+					"attr": "(swiperslidenexttransitionend)",
+					"description": "Same as 'slideChangeTransitionEnd' but for 'forward' direction only."
+				},
+				"onSwiperSlideNextTransitionStart": {
+					"attr": "(swiperslidenexttransitionstart)",
+					"description": "Same as 'slideChangeTransitionStart' but for 'forward' direction only."
+				},
+				"onSwiperSlidePrevTransitionEnd": {
+					"attr": "(swiperslideprevtransitionend)",
+					"description": "Same as 'slideChangeTransitionEnd' but for 'backward' direction only."
+				},
+				"onSwiperSlidePrevTransitionStart": {
+					"attr": "(swiperslideprevtransitionstart)",
+					"description": "Same as 'slideChangeTransitionStart' but for 'backward' direction only."
+				},
+				"onSwiperSlideResetTransitionEnd": {
+					"attr": "(swiperslideresettransitionend)",
+					"description": "Event will be fired in the end of animation of resetting slide to current one."
+				},
+				"onSwiperSlideResetTransitionStart": {
+					"attr": "(swiperslideresettransitionstart)",
+					"description": "Event will be fired in the beginning of animation of resetting slide to current one."
+				},
+				"onSwiperSliderFirstMove": {
+					"attr": "(swipersliderfirstmove)",
+					"description": "Event will be fired with first touch/drag move."
+				},
+				"onSwiperSliderMove": {
+					"attr": "(swiperslidermove)",
+					"description": "Event will be fired when user touch and move finger over Swiper and move it. Receives pointermove event as an arguments."
+				},
+				"onSwiperSlidesGridLengthChange": {
+					"attr": "(swiperslidesgridlengthchange)",
+					"description": "Event will be fired when slides grid has changed."
+				},
+				"onSwiperSlidesLengthChange": {
+					"attr": "(swiperslideslengthchange)",
+					"description": "Event will be fired when number of slides has changed."
+				},
+				"onSwiperSlidesUpdated": {
+					"attr": "(swiperslidesupdated)",
+					"description": "Event will be fired after slides and their sizes are calculated and updated."
+				},
+				"onSwiperSnapGridLengthChange": {
+					"attr": "(swipersnapgridlengthchange)",
+					"description": "Event will be fired when snap grid has changed."
+				},
+				"onSwiperSnapIndexChange": {
+					"attr": "(swipersnapindexchange)",
+					"description": "Event will fired on snap index change."
+				},
+				"onSwiperTap": {
+					"attr": "(swipertap)",
+					"description": "Event will be fired when user click/tap on Swiper. Receives pointerup event as an arguments."
+				},
+				"onSwiperToEdge": {
+					"attr": "(swipertoedge)",
+					"description": "Event will be fired when Swiper goes to beginning or end position."
+				},
+				"onSwiperTouchEnd": {
+					"attr": "(swipertouchend)",
+					"description": "Event will be fired when user release Swiper. Receives pointerup event as an arguments."
+				},
+				"onSwiperTouchMove": {
+					"attr": "(swipertouchmove)",
+					"description": "Event will be fired when user touch and move finger over Swiper. Receives pointermove event as an arguments."
+				},
+				"onSwiperTouchMoveOpposite": {
+					"attr": "(swipertouchmoveopposite)",
+					"description": "Event will be fired when user touch and move finger over Swiper in direction opposite to direction parameter. Receives pointermove event as an arguments."
+				},
+				"onSwiperTouchStart": {
+					"attr": "(swipertouchstart)",
+					"description": "Event will be fired when user touch Swiper. Receives pointerdown event as an arguments."
+				},
+				"onSwiperTransitionEnd": {
+					"attr": "(swipertransitionend)",
+					"description": "Event will be fired after transition."
+				},
+				"onSwiperTransitionStart": {
+					"attr": "(swipertransitionstart)",
+					"description": "Event will be fired in the beginning of transition."
+				},
+				"onSwiperUnlock": {
+					"attr": "(swiperunlock)",
+					"description": "Event will be fired when swiper is unlocked (when watchOverflow enabled)."
+				},
+				"onSwiperUpdate": {
+					"attr": "(swiperupdate)",
+					"description": "Event will be fired after swiper.update() call."
+				}
+			},
+			"config": {
+				"module_ts_imports": [
+					{
+						"from": "../components/SlidesComponent/SlidesModule",
+						"components": [
+							"SlidesModule"
+						]
+					}
+				],
+				"module_ng_imports": [
+					"SlidesModule"
+				],
+				"module_ng_declarations": [],
+				"module_ng_components": [],
+				"package_dependencies": [
+					{
+						"package": "swiper",
+						"version": "11.0.6"
+					}
+				]
+			},
+			"hint": {
+				"SwiperSlides": {
+					"SwiperSlide": [
+						{
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "Slide1"
+								}
+							}
+						},
+						{
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "Slide2"
+								}
+							}
+						},
+						{
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "Slide3"
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		
+		"SwiperSlide": {
+			"tplVersion": "8.3.0.0",
+			"tag": "swiper-slide",
+			"displayName": "SwiperSlide",
+			"label": "SwiperSlide Item",
+			"description": [
+				"swiper-slide| Defines a <i>SwiperSlide Item</i> component.<br>This component replaces the deprecated <i>ion-slide</i> and is based on the <a href='https://swiperjs.com/element#usage'><i>swiper-slide</i></a> component.<br/>",
+				"Add <i>SwiperSlide Item</i> components inside a <i>SwiperSlides Container</i> component.<br/>",
+				"Any slide content should be written in the <i>SwiperSlide Item</i> component.<br/>",
+				" For more information: <a href='https://swiperjs.com/'>Swiper</a> library."
+			],
+			"group": "Slides",
+			"icon16": "slide_16x16.png",
+			"icon32": "slide_32x32.png",
+			"properties": {},
+			"events": {},
+			"config": {
+				"package_dependencies": [
+					{
+						"package": "swiper",
+						"version": "11.0.6"
+					}
+				]
+			},
+			"hint": {
+				"SwiperSlide": {
+					"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						"properties": {
+							"textValue": "Slide"
+						}
+					}
+				}
+			}
+		},
+		
 		"Chip": {
 			"tag": "ion-chip",
 			"displayName": "Chip",
@@ -4453,6 +4897,7 @@
 			"icon16": "chip_16x16.png",
 			"icon32": "chip_32x32.png",
 			"properties": {
+				"Disabled": "false",
 				"IonColor": false,
 				"IonMode": false,
 				"Outline": {
@@ -4518,6 +4963,30 @@
 						"true"
 					]
 				},
+				"SelectOnFocus": {
+					"attr": "selectOnFocus",
+					"label": "Select on focus",
+					"description": "If true, navigating to an ion-segment-button with the keyboard will focus and select the element. If false, keyboard navigation will only focus the ion-segment-button element.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"SwipeGesture": {
+					"attr": "swipeGesture",
+					"label": "Swipe gesture",
+					"description": "If true, users will be able to swipe between segment buttons to activate them.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
 				"Value": {
 					"attr": "value",
 					"label": "Default value",
@@ -4534,6 +5003,45 @@
 				"ionChange": {
 					"attr": "(ionChange)",
 					"description": "This event is emitted when the value property has changed."
+				}
+			},
+			"hint": {
+				"Segment": {
+					"properties": {
+						"Value": "two",
+						"IonColor": "warning"
+					},
+					"SegmentButton": [
+						{
+							"properties": {
+								"Value": "one"
+							},
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "One"
+									}
+								}
+							}
+						},
+						{
+							"properties": {
+								"Value": "two"
+							},
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "Two"
+									}
+								}
+							},
+							"Icon": {
+								"properties": {
+									"IconName": "SC={\"filter\":\"Icon\",\"project\":\"\",\"input\":\"\",\"model\":{\"data\":[{\"icon\":\"'sunny'\"}],\"path\":\"\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"
+								}
+							}
+						}
+					]
 				}
 			},
 			"scss": [
@@ -4834,63 +5342,65 @@
 							}
 						}
 					},
-					"ListItem": {
-						"Avatar": {
-							"properties": {
-								"IonSlot": "start"
-							},
-							"Image": {
+					"ListItem": [
+						{
+							"Avatar": {
 								"properties": {
-									"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-luke.png?raw=true"
+									"IonSlot": "start"
+								},
+								"Image": {
+									"properties": {
+										"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-luke.png?raw=true"
+									}
+								}
+							},
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "Luke"
+									}
 								}
 							}
 						},
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						{
+							"Avatar": {
 								"properties": {
-									"textValue": "Luke"
+									"IonSlot": "start"
+								},
+								"Image": {
+									"properties": {
+										"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-leia.png?raw=true"
+									}
 								}
-							}
-						}
-					},
-					"ListItem": {
-						"Avatar": {
-							"properties": {
-								"IonSlot": "start"
 							},
-							"Image": {
-								"properties": {
-									"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-leia.png?raw=true"
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "Leia"
+									}
 								}
 							}
 						},
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						{
+							"Avatar": {
 								"properties": {
-									"textValue": "leia"
+									"IonSlot": "start"
+								},
+								"Image": {
+									"properties": {
+										"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-yoda.png?raw=true"
+									}
 								}
-							}
-						}
-					},
-					"ListItem": {
-						"Avatar": {
-							"properties": {
-								"IonSlot": "start"
 							},
-							"Image": {
-								"properties": {
-									"url": "https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-yoda.png?raw=true"
-								}
-							}
-						},
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-								"properties": {
-									"textValue": "Yoda"
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "Yoda"
+									}
 								}
 							}
 						}
-					}
+					]
 				}
 			}
 		},
@@ -4974,33 +5484,35 @@
 							}
 						}
 					},
-					"ListItem": {
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-								"properties": {
-									"textValue": "some item1"
+					"ListItem": [
+						{
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "some item1"
+									}
+								}
+							}
+						},
+						{
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "some item2"
+									}
+								}
+							}
+						},
+						{
+							"Label": {
+								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+									"properties": {
+										"textValue": "some item3"
+									}
 								}
 							}
 						}
-					},
-					"ListItem": {
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-								"properties": {
-									"textValue": "some item2"
-								}
-							}
-						}
-					},
-					"ListItem": {
-						"Label": {
-							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-								"properties": {
-									"textValue": "some item3"
-								}
-							}
-						}
-					}
+					]
 				}
 			}
 		},
@@ -5347,6 +5859,17 @@
 						true
 					]
 				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the item. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
+					]
+				},
 				"ButtonFormType": "button",
 				"Disabled": "false",
 				"IonColor": false,
@@ -5358,6 +5881,7 @@
 				"LinkRel": false,
 				"LinkRouterPath": false,
 				"LinkRouterData": false,
+				"LinkRouterAnimation": false,
 				"LinkRouterDirection": false
 			},
 			"hint": {
@@ -5472,6 +5996,17 @@
 						true
 					]
 				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the item. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
+					]
+				},
 				"ButtonFormType": "button",
 				"Disabled": "false",
 				"IonColor": false,
@@ -5483,6 +6018,7 @@
 				"LinkRel": false,
 				"LinkRouterPath": false,
 				"LinkRouterData": false,
+				"LinkRouterAnimation": false,
 				"LinkRouterDirection": false
 			},
 			"hint": {
@@ -5597,6 +6133,17 @@
 						true
 					]
 				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the item. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
+					]
+				},
 				"ButtonFormType": "button",
 				"Disabled": "false",
 				"IonColor": false,
@@ -5608,20 +6155,15 @@
 				"LinkRel": false,
 				"LinkRouterPath": false,
 				"LinkRouterData": false,
+				"LinkRouterAnimation": false,
 				"LinkRouterDirection": false
 			},
 			"hint": {
 				"FormItem": {
-					"Label": {
-						"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-							"properties": {
-								"textValue": "some form item"
-							}
-						}
-					},
 					"Input": {
 						"properties": {
-							"ControlName": "controlName"
+							"ControlName": "controlName",
+							"Label": "some form item"
 						}
 					}
 				}
@@ -5820,9 +6362,28 @@
 				"CompareWith": {
 					"attr": "compareWith",
 					"label": "Compare with",
-					"description": "A property name or function used to compare object values.",
+					"description": "This property allows developers to specify a custom function or property name for comparing objects when determining the selected option in the ion-select. When not specified, the default behavior will use strict equality (===) for comparison.",
 					"category": "@Properties",
 					"value": false
+				},
+				"ExpandedIcon": {
+					"attr": "expandedIcon",
+					"label": "Expanded icon",
+					"description": "The toggle icon to show when the select is open. If defined, the icon rotation behavior in md mode will be disabled. If undefined, toggleIcon will be used for when the select is both open and closed.",
+					"category": "@Properties",
+					"value": false
+				},
+				"Fill": {
+					"attr": "fill",
+					"label": "Fill",
+					"description": "The fill for the item. If 'solid' the item will have a background. If 'outline' the item will be transparent with a border. Only available in md mode.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"outline",
+						"solid"
+					]
 				},
 				"Interface": {
 					"attr": "interface",
@@ -5843,6 +6404,72 @@
 					"description": "Any additional options that the alert, action-sheet or popover interface can take. See the ion-alert docs, the ion-action-sheet docs and the ion-popover docs for the create options for each interface. Note: Options will not override inputs or buttons with the alert interface.",
 					"category": "@Properties",
 					"value": false
+				},
+				"Justify": {
+					"attr": "justify",
+					"label": "Justify",
+					"description": [
+						"How to pack the label and select within a line.",
+						"start: The label and select will appear on the left in LTR and on the right in RTL.",
+						"end: The label and select will appear on the right in LTR and on the left in RTL.",
+						"space-between: The label and select will appear on opposite ends of the line with space between the two elements."
+					],
+					"category": "@Properties",
+					"value": "space-between",
+					"values": [
+						"end",
+						"space-between",
+						"start"
+					]
+				},
+				"Label": {
+					"attr": "label",
+					"label": "Label",
+					"description": "The visible label associated with the select. Use this if you need to render a plaintext label. The label property will take priority over the label slot if both are used.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the select.",
+						"start: The label will appear to the left of the select in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the select in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"stacked: The label will appear smaller and above the select regardless even when the select is blurred or has no value.",
+						"floating: The label will appear smaller and above the select when the select is focused or it has a value. Otherwise it will appear on top of the select."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"floating",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or have text in the default slot.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
 				},
 				"Placeholder": {
 					"attr": "placeholder",
@@ -5869,6 +6496,28 @@
 					"description": "The text to display instead of the selected option's value.",
 					"category": "@Control",
 					"value": false
+				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the select. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
+					]
+				},
+				"ToggleIcon": {
+					"attr": "toggleIcon",
+					"label": "Toggle icon",
+					"description": "The toggle icon to use. This icon will be rotated when the select is expanded or collapsed. <a href='https://ionic.io/ionicons'>Preview icons.</a>",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				},
 				"Value": {
 					"attr": "value",
@@ -5897,12 +6546,21 @@
 				}
 			},
 			"scss": [
+				"//--background\t//Background of the select",
+				"//--border-color\t//Color of the select border",
+				"//--border-radius\t//Radius of the select border. A large radius may display unevenly when using fill=outline; if needed, use shape=round instead or increase --padding-start",
+				"//--border-style\t//Style of the select border",
+				"//--border-width\t//Width of the select border",
+				"//--highlight-color-focused\t//The color of the highlight on the select when focused",
+				"//--highlight-color-invalid\t//The color of the highlight on the select when invalid",
+				"//--highlight-color-valid\t//The color of the highlight on the select when valid",
 				"//--padding-bottom\t//Bottom padding of the select",
 				"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the select",
 				"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the select",
 				"//--padding-top\t//Top padding of the select",
 				"//--placeholder-color\t//Color of the select placeholder text",
-				"//--placeholder-opacity\t//Opacity of the select placeholder text"
+				"//--placeholder-opacity\t//Opacity of the select placeholder text",
+				"//--ripple-color\t//The color of the ripple effect on MD mode"
 			]
 		},
 		/**************************************************/
@@ -5938,6 +6596,13 @@
 						"true"
 					]
 				},
+				"CompareWith": {
+					"attr": "compareWith",
+					"label": "Compare with",
+					"description": "This property allows developers to specify a custom function or property name for comparing objects when determining the selected option in the ion-radio-group. When not specified, the default behavior will use strict equality (===) for comparison.",
+					"category": "@Properties",
+					"value": false
+				},
 				"Value": {
 					"attr": "value",
 					"label": "Default value",
@@ -5969,6 +6634,35 @@
 					"attr": "(ionChange)",
 					"description": "This event is emitted when the value has changed."
 				}
+			},
+			"hint": {
+				"RadioGroup": {
+					"properties": {
+						"Value": "two"
+					},
+					"RadioButton": [
+						{
+							"properties": {
+								"Value": "one"
+							},
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "radio one"
+								}
+							}
+						},
+						{
+							"properties": {
+								"Value": "two"
+							},
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "radio two"
+								}
+							}
+						}
+					]
+				}
 			}
 		},
 		"RadioButton": {
@@ -5990,6 +6684,74 @@
 				"IonColor": false,
 				"IonMode": false,
 				"IonSlot": false,
+				"Alignment": {
+					"attr": "alignment",
+					"label": "Alignment",
+					"description": [
+						"How to control the alignment of the radio and label on the cross axis",
+						"start: The label and control will appear on the left of the cross axis in LTR, and on the right side in RTL.",
+						"center: The label and control will appear at the center of the cross axis in both LTR and RTL."
+					],
+					"category": "@Properties",
+					"value": "center",
+					"values": [
+						"center",
+						"start"
+					]
+				},
+				"Justify": {
+					"attr": "justify",
+					"label": "Justify",
+					"description": [
+						"How to pack the label and radio within a line.",
+						"start: The label and radio will appear on the left in LTR and on the right in RTL.",
+						"end: The label and radio will appear on the right in LTR and on the left in RTL.",
+						"space-between: The label and radio will appear on opposite ends of the line with space between the two elements."
+					],
+					"category": "@Properties",
+					"value": "space-between",
+					"values": [
+						"end",
+						"space-between",
+						"start"
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the radio.",
+						"start: The label will appear to the left of the radio in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the radio in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"stacked: The label will appear above the radio regardless of the direction. The alignment of the label can be controlled with the alignment property."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or have text in the default slot.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
 				"Value": {
 					"attr": "value",
 					"label": "Value",
@@ -6000,6 +6762,15 @@
 						false,
 						true
 					]
+				}
+			},
+			"hint": {
+				"RadioButton": {
+					"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						"properties": {
+							"textValue": "radio label"
+						}
+					}
 				}
 			},
 			"events": {
@@ -6042,6 +6813,21 @@
 				"Disabled": "false",
 				"IonColor": false,
 				"IonMode": false,
+				"Alignment": {
+					"attr": "alignment",
+					"label": "Alignment",
+					"description": [
+						"How to control the alignment of the toggle and label on the cross axis",
+						"start: The label and control will appear on the left of the cross axis in LTR, and on the right side in RTL.",
+						"center: The label and control will appear at the center of the cross axis in both LTR and RTL."
+					],
+					"category": "@Properties",
+					"value": "center",
+					"values": [
+						"center",
+						"start"
+					]
+				},
 				"Checked": {
 					"attr": "checked",
 					"label": "Control checked",
@@ -6058,6 +6844,59 @@
 					"attr": "[enableOnOffLabels]",
 					"label": "Enable OnOff Labels",
 					"description": "Enables the on/off accessibility switch labels within the toggle.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Justify": {
+					"attr": "justify",
+					"label": "Justify",
+					"description": [
+						"How to pack the label and toggle within a line.",
+						"start: The label and toggle will appear on the left in LTR and on the right in RTL.",
+						"end: The label and toggle will appear on the right in LTR and on the left in RTL.",
+						"space-between: The label and toggle will appear on opposite ends of the line with space between the two elements."
+					],
+					"category": "@Properties",
+					"value": "space-between",
+					"values": [
+						"end",
+						"space-between",
+						"start"
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the toggle.",
+						"start: The label will appear to the left of the toggle in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the toggle in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"stacked: The label will appear above the toggle regardless of the direction. The alignment of the label can be controlled with the alignment property."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or have text in the default slot.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
 					"category": "@Properties",
 					"type": "boolean",
 					"value": "false",
@@ -6107,9 +6946,20 @@
 					"description": "This event is emitted when the button has focus."
 				}
 			},
+			"hint": {
+				"Toggle": {
+					"properties": {
+						"Checked": "true",
+						"IonColor": "warning"
+					},
+					"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						"properties": {
+							"textValue": "toggle label"
+						}
+					}
+				}
+			},
 			"scss": [
-				"//--background\t//Background of the toggle",
-				"//--background-checked\t//Background of the toggle when checked",
 				"//--border-radius\t//Border radius of the toggle track",
 				"//--handle-background\t//Background of the toggle handle",
 				"//--handle-background-checked\t//Background of the toggle handle when checked",
@@ -6119,7 +6969,9 @@
 				"//--handle-max-height\t//Maximum height of the toggle handle",
 				"//--handle-spacing\t//Horizontal spacing around the toggle handle",
 				"//--handle-transition\t//Transition of the toggle handle",
-				"//--handle-width\t//Width of the toggle handle"
+				"//--handle-width\t//Width of the toggle handle",
+				"//--track-background\t//Background of the toggle",
+				"//--track-background-checked\t//Background of the toggle when checked"
 			]
 		},
 		/**************************************************/
@@ -6146,17 +6998,6 @@
 				"Disabled": "false",
 				"IonColor": false,
 				"IonMode": false,
-				"Accept": {
-					"attr": "accept",
-					"label": "Accept",
-					"description": "If the value of the type attribute is 'file', then this attribute will indicate the types of files that the server accepts, otherwise it will be ignored. The value must be a comma-separated list of unique content type specifiers.",
-					"category": "@Properties",
-					"value": false,
-					"values": [
-						false,
-						true
-					]
-				},
 				"Autocapitalize": {
 					"attr": "autocapitalize",
 					"label": "Autocapitalize",
@@ -6230,13 +7071,43 @@
 						"true"
 					]
 				},
+				"Counter": {
+					"attr": "counter",
+					"label": "Counter",
+					"description": [
+						"If true, a character counter will display the ratio of characters used and the total character limit.",
+						"Developers must also set the maxlength property for the counter to be calculated correctly."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"CounterFormatter": {
+					"attr": "counterFormatter",
+					"label": "Counter formatter",
+					"description": [
+						"A callback used to format the counter text. By default the counter text is set to 'itemLength / maxLength'.",
+						"See https://ionicframework.com/docs/troubleshooting/runtime#accessing-this if you need to access <b>this</b> from within the callback."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"Debounce": {
 					"attr": "debounce",
 					"label": "Debounce",
 					"description": "Set the amount of time, in milliseconds, to wait to trigger the ionChange event after each keystroke.",
 					"category": "@Properties",
 					"type": "number",
-					"value": 0,
+					"value": false,
 					"values": [
 						false,
 						true
@@ -6259,6 +7130,40 @@
 						"send"
 					]
 				},
+				"ErrorText": {
+					"attr": "errorText",
+					"label": "Error text",
+					"description": "Text that is placed under the input and displayed when an error is detected.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"Fill": {
+					"attr": "fill",
+					"label": "Fill",
+					"description": "The fill for the item. If 'solid' the item will have a background. If 'outline' the item will be transparent with a border. Only available in md mode.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"outline",
+						"solid"
+					]
+				},
+				"HelperText": {
+					"attr": "helperText",
+					"label": "Helper text",
+					"description": "Text that is placed under the input and displayed when no error is detected.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"InputMode": {
 					"attr": "inputmode",
 					"label": "Browser input mode hint",
@@ -6275,6 +7180,55 @@
 						"tel",
 						"text",
 						"url"
+					]
+				},
+				"Label": {
+					"attr": "label",
+					"label": "Label",
+					"description": "The visible label associated with the input. Use this if you need to render a plaintext label. The label property will take priority over the label slot if both are used.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the input.",
+						"start: The label will appear to the left of the input in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the input in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"floating: The label will appear smaller and above the input when the input is focused or it has a value. Otherwise it will appear on top of the input.",
+						"stacked: The label will appear smaller and above the input regardless even when the input is blurred or has no value."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"floating",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or the label property.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
 					]
 				},
 				"Max": {
@@ -6381,6 +7335,17 @@
 						"true"
 					]
 				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the input. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
+					]
+				},
 				"Size": {
 					"attr": "size",
 					"label": "Size",
@@ -6469,9 +7434,23 @@
 					"description": "This event is emitted when a keyboard input occurred."
 				}
 			},
+			"hint": {
+				"Input": {
+					"properties": {
+						"Label": "input label"
+					}
+				}
+			},
 			"scss": [
 				"//--background\t//Background of the input",
+				"//--border-color\t//Color of the border below the input when using helper text, error text, or counter",
+				"//--border-radius\t//Radius of the input. A large radius may display unevenly when using fill=outline; if needed, use shape=round instead or increase --padding-start",
+				"//--border-style\t//Style of the border below the input when using helper text, error text, or counter",
+				"//--border-width\t//Width of the border below the input when using helper text, error text, or counter",
 				"//--color\t//Color of the input text",
+				"//--highlight-color-focused\t//The color of the highlight on the input when focused",
+				"//--highlight-color-invalid\t//The color of the highlight on the input when invalid",
+				"//--highlight-color-valid\t//The color of the highlight on the input when valid",
 				"//--padding-bottom\t//Bottom padding of the input",
 				"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the input",
 				"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the input",
@@ -6553,13 +7532,43 @@
 						"true"
 					]
 				},
+				"Counter": {
+					"attr": "counter",
+					"label": "Counter",
+					"description": [
+						"If true, a character counter will display the ratio of characters used and the total character limit.",
+						"Developers must also set the maxlength property for the counter to be calculated correctly."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"CounterFormatter": {
+					"attr": "counterFormatter",
+					"label": "Counter formatter",
+					"description": [
+						"A callback used to format the counter text. By default the counter text is set to 'itemLength / maxLength'.",
+						"See https://ionicframework.com/docs/troubleshooting/runtime#accessing-this if you need to access <b>this</b> from within the callback."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"Debounce": {
 					"attr": "debounce",
 					"label": "Debounce",
 					"description": "Set the amount of time, in milliseconds, to wait to trigger the ionChange event after each keystroke.",
 					"category": "@Properties",
 					"type": "number",
-					"value": 0,
+					"value": false,
 					"values": [
 						false,
 						true
@@ -6582,6 +7591,40 @@
 						"send"
 					]
 				},
+				"ErrorText": {
+					"attr": "errorText",
+					"label": "Error text",
+					"description": "Text that is placed under the textarea and displayed when an error is detected.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"Fill": {
+					"attr": "fill",
+					"label": "Fill",
+					"description": "The fill for the item. If 'solid' the item will have a background. If 'outline' the item will be transparent with a border. Only available in md mode.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"outline",
+						"solid"
+					]
+				},
+				"HelperText": {
+					"attr": "helperText",
+					"label": "Helper text",
+					"description": "Text that is placed under the textarea and displayed when no error is detected.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"InputMode": {
 					"attr": "inputmode",
 					"label": "Browser input mode hint",
@@ -6598,6 +7641,55 @@
 						"tel",
 						"text",
 						"url"
+					]
+				},
+				"Label": {
+					"attr": "label",
+					"label": "Label",
+					"description": "The visible label associated with the textarea. Use this if you need to render a plaintext label. The label property will take priority over the label slot if both are used.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the textarea.",
+						"start: The label will appear to the left of the textarea in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the textarea in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"floating: The label will appear smaller and above the textarea when the input is focused or it has a value. Otherwise it will appear on top of the textarea.",
+						"stacked: The label will appear smaller and above the textarea regardless even when the textarea is blurred or has no value."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"floating",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or the label property.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
 					]
 				},
 				"MaxLength": {
@@ -6657,6 +7749,17 @@
 					"values": [
 						"false",
 						"true"
+					]
+				},
+				"Shape": {
+					"attr": "shape",
+					"label": "Shape",
+					"description": "The shape of the textarea. If 'round' it will have an increased border radius.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						"round"
 					]
 				},
 				"Spellcheck": {
@@ -6730,6 +7833,13 @@
 					"description": "This event is emitted when a keyboard input occurred."
 				}
 			},
+			"hint": {
+				"TextArea": {
+					"properties": {
+						"Label": "textarea label"
+					}
+				}
+			},
 			"scss": [
 				"//--background\t//Background of the textarea",
 				"//--border-radius\t//Border radius of the textarea",
@@ -6766,6 +7876,21 @@
 				"Disabled": "false",
 				"IonColor": false,
 				"IonMode": false,
+				"Alignment": {
+					"attr": "alignment",
+					"label": "Alignment",
+					"description": [
+						"How to control the alignment of the checkbox and label on the cross axis",
+						"start: The label and control will appear on the left of the cross axis in LTR, and on the right side in RTL.",
+						"center: The label and control will appear at the center of the cross axis in both LTR and RTL."
+					],
+					"category": "@Properties",
+					"value": "center",
+					"values": [
+						"center",
+						"start"
+					]
+				},
 				"Checked": {
 					"attr": "checked",
 					"label": "Control checked",
@@ -6790,6 +7915,59 @@
 						"true"
 					]
 				},
+				"Justify": {
+					"attr": "justify",
+					"label": "Justify",
+					"description": [
+						"How to pack the label and checkbox within a line.",
+						"start: The label and checkbox will appear on the left in LTR and on the right in RTL.",
+						"end: The label and checkbox will appear on the right in LTR and on the left in RTL.",
+						"space-between: The label and checkbox will appear on opposite ends of the line with space between the two elements."
+					],
+					"category": "@Properties",
+					"value": "space-between",
+					"values": [
+						"end",
+						"space-between",
+						"start"
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the checkbox.",
+						"start: The label will appear to the left of the checkbox in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the checkbox in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"stacked: The label will appear above the checkbox regardless of the direction. The alignment of the label can be controlled with the alignment property."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt checkboxes in to the modern form markup when they are using either the aria-label attribute or have text in the default slot.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
 				"Value": {
 					"attr": "value",
 					"label": "Value",
@@ -6800,20 +7978,6 @@
 						false,
 						"on",
 						true
-					]
-				},
-				"SetPosition": {
-					"attr": "slot",
-					"label": "Position",
-					"description": "Specifies the position.",
-					"category": "@Properties",
-					"value": false,
-					"values": [
-						false,
-						"start",
-						"end",
-						"secondary",
-						"primary"
 					]
 				}
 			},
@@ -6831,14 +7995,23 @@
 					"description": "This event is emitted when the button has focus."
 				}
 			},
+			"hint": {
+				"CheckBox": {
+					"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+						"properties": {
+							"textValue": "checkbox label"
+						}
+					}
+				}
+			},
 			"scss": [
-				"//--background\t//Background of the checkbox icon",
-				"//--background-checked\t//Background of the checkbox icon when checked",
 				"//--border-color\t//Border color of the checkbox icon",
 				"//--border-color-checked\t//Border color of the checkbox icon when checked",
 				"//--border-radius\t//Border radius of the checkbox icon",
 				"//--border-style\t//Border style of the checkbox icon",
 				"//--border-width\t//Border width of the checkbox icon",
+				"//--checkbox-background\t//Background of the checkbox icon",
+				"//--checkbox-background-checked\t//Background of the checkbox icon when checked",
 				"//--checkmark-color\t//Color of the checkbox checkmark when checked",
 				"//--checkmark-width\t//Stroke width of the checkbox checkmark",
 				"//--size\t//Size of the checkbox icon",
@@ -6936,6 +8109,18 @@
 					"description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either a number, an array of numbers, or string of comma separated numbers.",
 					"category": "@Properties",
 					"value": false
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The datetime id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				},
 				"MonthValues": {
 					"attr": "monthValues",
@@ -7115,6 +8300,53 @@
 				"//--title-color\t//The text color of the datetime's 'title"
 			]
 		},
+		"DateTimeButton": {
+			"tag": "ion-datetime-button",
+			"displayName": "DateTimeButton",
+			"label": "DateTime Button",
+			"description": [
+				"ion-datetime-button| Defines a <i>DateTimeButton</i> component.<br/>",
+				"<i>DatetimeButton</i> links with a <i>DateTime</i> component to display the formatted date and time.<br/>",
+				"This component displays buttons which show the current date and time values. When the buttons are tapped, the date or time pickers open in the overlay.<br/>",
+				"For more information: <a href='https://ionicframework.com/docs/api/datetime-button'>DateTime Button</a>.<br/><br/>"
+			],
+			"group": "Buttons",
+			"icon16": "datetimebutton_16x16.png",
+			"icon32": "datetimebutton_32x32.png",
+			"properties": {
+				"Disabled": "false",
+				"IonColor": false,
+				"IonMode": false,
+				"DateTime": {
+					"attr": "datetime",
+					"label": "Datetime",
+					"description": "The ID of the <i>DateTime</i> instance associated with the datetime button.",
+					"category": "@Properties",
+					"value": false
+				}
+			},
+			"events": {},
+			"scss": [],
+			"hint": {
+				"DivTag": {
+					"DateTimeButton": {
+						"properties": {
+							"DateTime": "modal-id"
+						}
+					},
+					"InlineModal": {
+						"properties": {
+							"KeepContentsMounted": "true"
+						},
+						"DateTime": {
+							"properties": {
+								"Id": "modal-id"
+							}
+						}
+					}
+				}
+			}
+		},
 		"Range": {
 			"tag": "ion-range",
 			"displayName": "RangeSlider",
@@ -7136,18 +8368,82 @@
 				"Disabled": "false",
 				"IonColor": false,
 				"IonMode": false,
+				"ActiveBarStart": {
+					"attr": "activeBarStart",
+					"label": "ActiveBar start",
+					"description": "The start position of the range active bar. This feature is only available with a single knob (dualKnobs=false). Valid values are greater than or equal to the min value and less than or equal to the max value.",
+					"category": "@Properties",
+					"type": "number",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"Debounce": {
 					"attr": "debounce",
 					"label": "Debounce",
 					"description": "How long, in milliseconds, to wait to trigger the ionChange event after each change in the range value. Default 0.",
 					"category": "@Properties",
 					"type": "number",
-					"value": "0"
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				},
 				"DualKnobs": {
 					"attr": "dualKnobs",
 					"label": "Dual Knobs",
 					"description": "Setting the dualKnobs property to true on the range component will enable two knobs on the range. If the range has two knobs, the value will be an object containing two properties: lower and upper.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Label": {
+					"attr": "label",
+					"label": "Label",
+					"description": "The text to display as the control's label. Use this over the label slot if you only need plain text. The label property will take priority over the label slot if both are used.",
+					"category": "@Properties",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"LabelPlacement": {
+					"attr": "labelPlacement",
+					"label": "LabelPlacement",
+					"description": [
+						"Where to place the label relative to the range.",
+						"start: The label will appear to the left of the range in LTR and to the right in RTL.",
+						"end: The label will appear to the right of the range in LTR and to the left in RTL.",
+						"fixed: The label has the same behavior as start except it also has a fixed width. Long text will be truncated with ellipses (...).",
+						"stacked: The label will appear above the range regardless of the direction."
+					],
+					"category": "@Properties",
+					"value": "start",
+					"values": [
+						"end",
+						"fixed",
+						"floating",
+						"stacked",
+						"start"
+					]
+				},
+				"Legacy": {
+					"attr": "legacy",
+					"label": "Legacy",
+					"description": [
+						"Set the legacy property to true to forcibly use the legacy form control markup.",
+						"Ionic will only opt components in to the modern form markup when they are using either the aria-label attribute or have text in the default slot.",
+						"As a result, the legacy property should only be used as an escape hatch when you want to avoid this automatic opt-in behavior.",
+						"<u>Note</u>: this property will be removed in an upcoming major release of Ionic, and all form components will be opted-in to using the modern form markup."
+					],
 					"category": "@Properties",
 					"type": "boolean",
 					"value": "false",
@@ -7182,6 +8478,21 @@
 					"values": [
 						"false",
 						"true"
+					]
+				},
+				"PinFormatter": {
+					"attr": "pinFormatter",
+					"label": "Pin formatter",
+					"description": [
+						"A callback used to format the pin text. By default the pin text is set to Math.round(value).<br/>",
+						"See https://ionicframework.com/docs/troubleshooting/runtime#accessing-this if you need to access this from within the callback."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
 					]
 				},
 				"Snaps": {
@@ -7293,7 +8604,7 @@
 					"description": "Specifies the height of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
 					"category": "@Properties",
 					"type": "string",
-					"value": "100%",
+					"value": false,
 					"values": [
 						false,
 						"100%",
@@ -7823,6 +9134,7 @@
 				"LinkRel": false,
 				"LinkRouterPath": false,
 				"LinkRouterData": false,
+				"LinkRouterAnimation": false,
 				"LinkRouterDirection": false
 			},
 			"scss": [
@@ -8951,10 +10263,12 @@
       }
     },
 */
-		/*
+	
+	/*
      * SignatureComponent
      */
 		"SignatureComponent": {
+			"component": "SignatureComponent",
 			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
 			"tag": "c8o-signature",
 			"displayName": "Signature",
@@ -9120,10 +10434,12 @@
 				]
 			}
 		},
-		/*
+	
+	/*
      * TreeviewComponent
      */
 		"TreeviewComponent": {
+			"component": "TreeviewComponent",
 			"enabled": true,
 			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
 			"tag": "c8o-treeview",
@@ -9292,9 +10608,11 @@
 				]
 			}
 		},
-		/*
+		
+	
+	/*
      * Actions
-      */
+     */
 		"ModalAction": {
 			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 			"displayName": "ModalPage",
@@ -9345,7 +10663,6 @@
 					]
 				},
 				"enterAnimation": {
-					"attr": "enterAnimation",
 					"label": "Animation (enter)",
 					"description": "Animation to use when the modal is presented. ((baseEl: any, opts?: any) => Animation).",
 					"category": "@Expert",
@@ -9353,7 +10670,6 @@
 					"value": false
 				},
 				"leaveAnimation": {
-					"attr": "leaveAnimation",
 					"label": "Animation (leave)",
 					"description": "Animation to use when the modal is dismissed. ((baseEl: any, opts?: any) => Animation).",
 					"category": "@Expert",
@@ -9378,34 +10694,12 @@
 						"true"
 					]
 				},
-				"blockWhileDisplayed": {
-					"label": "Block while displayed",
-					"description": "Define if execution of next actions has to be blocked while modal page is displayed",
-					"category": "@Properties",
-					"type": "boolean",
-					"value": "false",
-					"values": [
-						"false",
-						"true"
-					]
-				},
 				"showBackdrop": {
 					"label": "Show Backdrop",
 					"description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>.",
 					"category": "@Properties",
 					"type": "boolean",
 					"value": "true",
-					"values": [
-						"true",
-						"false"
-					]
-				},
-				"swipeToClose": {
-					"label": "Swipe to close",
-					"description": "If true, the modal can be swiped to dismiss. Only applies in iOS mode.",
-					"category": "@Expert",
-					"type": "boolean",
-					"value": "false",
 					"values": [
 						"true",
 						"false"
@@ -9424,10 +10718,89 @@
 				},
 				"cssClass": {
 					"label": "Css Classes",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"description": "Additional classes for custom styles. Type: string | string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the modal. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"canDismiss": {
+					"label": "Can dismiss",
+					"description": [
+						"Determines whether or not a modal can dismiss when calling the dismiss method.",
+						"If the value is true or the value's function returns true, the modal will close when trying to dismiss.",
+						"If the value is false or the value's function returns false, the modal will not close when trying to dismiss.",
+						"See https://ionicframework.com/docs/troubleshooting/runtime#accessing-this if you need to access this from within the callback.",
+						"Type: ((data?: any, role?: string ｜ undefined) => Promise<boolean>) ｜ boolean"
+					],
+					"category": "@Expert",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"id": {
+					"label": "Id",
+					"description": "The modal id.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"handle": {
+					"label": "Sheet handle",
+					"description": "The horizontal line that displays at the top of a sheet modal. It is true by default when setting the breakpoints and initialBreakpoint properties.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"breakpoints": {
+					"label": "Sheet breakpoints",
+					"description": "(TS mode) The breakpoints to use when creating a sheet modal. Each value in the array must be a decimal between 0 and 1 where 0 indicates the modal is fully closed and 1 indicates the modal is fully open. Values are relative to the height of the modal, not the height of the screen. One of the values in this array must be the value of the initialBreakpoint property. For example: [0, .25, .5, 1]",
+					"category": "@Properties",
+					"type": "array",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"backdropBreakpoint": {
+					"label": "Sheet backdrop breakpoint",
+					"description": "A decimal value between 0 and 1 that indicates the point after which the backdrop will begin to fade in when using a sheet modal. Prior to this point, the backdrop will be hidden and the content underneath the sheet can be interacted with. This value is exclusive meaning the backdrop will become active after the value specified.",
+					"category": "@Properties",
+					"type": "number",
+					"value": "0",
+					"values": [
+						false,
+						true
+					]
+				},
+				"initialBreakpoint": {
+					"label": "Sheet initial breakpoint",
+					"description": "A decimal value between 0 and 1 that indicates the initial point the modal will open at when creating a sheet modal. This value must also be listed in the breakpoints array.",
+					"category": "@Properties",
+					"type": "number",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				}
 			}
 		},
@@ -9570,10 +10943,42 @@
 						"true"
 					]
 				},
+				"Event": {
+					"attr": "event",
+					"label": "Animation event",
+					"description": "The event to pass to the popover animation.",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The popover id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
 				"IsOpen": {
 					"attr": "isOpen",
 					"label": "Is open",
 					"description": "If true, the popover will open. If false, the popover will close. Use this if you need finer grained control over presentation, otherwise just use the popoverController or the trigger property. Note: isOpen will not automatically be set back to false when the popover dismisses. You will need to do that in your code.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"KeepContentsMounted": {
+					"attr": "Keep contents mounted",
+					"label": "Keyboard close",
+					"description": "If true, the component passed into ion-popover will automatically be mounted when the popover is created. The component will remain mounted even when the popover is dismissed. However, the component will be destroyed when the popover is destroyed. This property is not reactive and should only be used when initially creating a popover.",
 					"category": "@Properties",
 					"type": "boolean",
 					"value": "false",
@@ -9774,6 +11179,24 @@
 						"true"
 					]
 				},
+				"CanDismiss": {
+					"attr": "[canDismiss]",
+					"label": "Can dismiss",
+					"description": [
+						"Determines whether or not a modal can dismiss when calling the dismiss method.",
+						"If the value is true or the value's function returns true, the modal will close when trying to dismiss.",
+						"If the value is false or the value's function returns false, the modal will not close when trying to dismiss.",
+						"See https://ionicframework.com/docs/troubleshooting/runtime#accessing-this if you need to access this from within the callback.",
+						"Type: ((data?: any, role?: string ｜ undefined) => Promise<boolean>) ｜ boolean"
+					],
+					"category": "@Expert",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
 				"enterAnimation": {
 					"attr": "[enterAnimation]",
 					"label": "Animation (enter)",
@@ -9838,12 +11261,36 @@
 						"true"
 					]
 				},
+				"SheetHandleBehavior": {
+					"attr": "[handleBehavior]",
+					"label": "Sheet handle behavior",
+					"description": "The interaction behavior for the sheet modal when the handle is pressed.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "none",
+					"values": [
+						"cycle",
+						"none"
+					]
+				},
 				"SheetInitialBreakpoint": {
 					"attr": "[initialBreakpoint]",
 					"label": "Sheet initial breakpoint",
 					"description": "A decimal value between 0 and 1 that indicates the initial point the modal will open at when creating a sheet modal. This value must also be listed in the breakpoints array.",
 					"category": "@Properties",
 					"type": "number",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The modal id.",
+					"category": "@Control",
+					"type": "string",
 					"value": false,
 					"values": [
 						false,
@@ -9897,18 +11344,6 @@
 						"true"
 					]
 				},
-				"SwipeToClose": {
-					"attr": "[swipeToClose]",
-					"label": "Swipe to close",
-					"description": "If true, the modal can be swiped to dismiss. Only applies in iOS mode.",
-					"category": "@Properties",
-					"type": "boolean",
-					"value": "false",
-					"values": [
-						"false",
-						"true"
-					]
-				},
 				"Trigger": {
 					"attr": "trigger",
 					"label": "Trigger",
@@ -9918,6 +11353,18 @@
 					"values": [
 						false,
 						true
+					]
+				},
+				"KeepContentsMounted": {
+					"attr": "[keepContentsMounted]",
+					"label": "Keep contents mounted",
+					"description": "If true, the component passed into ion-modal will automatically be mounted when the modal is created. The component will remain mounted even when the modal is dismissed. However, the component will be destroyed when the modal is destroyed. This property is not reactive and should only be used when initially creating a modal.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
 					]
 				}
 			},
@@ -9980,6 +11427,1236 @@
 				"//--width\t//Width of the modal"
 			]
 		},
+		"InlineActionSheet": {
+			"tag": "ion-action-sheet",
+			"needNgTemplate": false,
+			"displayName": "ActionSheet",
+			"label": "ActionSheet",
+			"description": [
+				"ion-action-sheet | Defines an inline <i>ActionSheet</i> component.<br/>",
+				"An Action Sheet is a dialog that displays a set of options. It appears on top of the app's content,",
+				" and must be manually dismissed by the user before they can resume interaction with the app.<br/>",
+				" For more information : <a href='https://ionicframework.com/docs/api/action-sheet'>Inline Action Sheet</a>."
+			],
+			"group": "Components",
+			"icon16": "actionsheetaction_16x16.png",
+			"icon32": "actionsheetaction_32x32.png",
+			"properties": {
+				"IonMode": false,
+				"Animated": {
+					"attr": "[animated]",
+					"label": "Animated",
+					"description": "If true, the action sheet will animate.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"enterAnimation": {
+					"attr": "[enterAnimation]",
+					"label": "Animation (enter)",
+					"description": "(TS mode) Animation to use when the action sheet is presented. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"leaveAnimation": {
+					"attr": "[leaveAnimation]",
+					"label": "Animation (leave)",
+					"description": "(TS mode) Animation to use when the action sheet is dismissed. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"BackdropDismiss": {
+					"attr": "[backdropDismiss]",
+					"label": "Backdrop dismiss",
+					"description": "If true, the action sheet will be dismissed when the backdrop is clicked.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Buttons": {
+					"attr": "[buttons]",
+					"label": "Alert buttons",
+					"description": [
+						"(TS mode) Array of buttons to be added to the action sheet. Type: (string ｜ ActionSheetButton)[]<br/>",
+						" See: https://ionicframework.com/docs/api/action-sheet#actionsheetbutton"
+					],
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]"
+				},
+				"CssClass": {
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Header": {
+					"attr": "[header]",
+					"label": "Header",
+					"description": "The main title in the heading of the action sheet.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The action sheet id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"IsOpen": {
+					"attr": "[isOpen]",
+					"label": "Is open",
+					"description": [
+						"If true, the action sheet will open. If false, the action sheet will close.<br/>",
+						"Use this if you need finer grained control over presentation, otherwise just use the actionSheetController or the trigger property.<br/>",
+						"Note: isOpen will not automatically be set back to false when the action sheet dismisses. You will need to do that in your code."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"KeyboardClose": {
+					"attr": "[keyboardClose]",
+					"label": "Keyboard close",
+					"description": "If true, the keyboard will be automatically dismissed when the overlay is presented.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Message": {
+					"attr": "[message]",
+					"label": "Message",
+					"description": [
+						"The main message to be displayed in the action sheet.<br/>",
+						"Message can accept either plaintext or HTML as a string.<br>To display characters normally reserved for HTML, they must be escaped, for example <Ionic> would become <code>&lt;Ionic&gt;</code>"
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"SubHeader": {
+					"attr": "[subHeader]",
+					"label": "Subheader",
+					"description": "The subtitle in the heading of the action sheet. Displayed under the title.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Translucent": {
+					"attr": "[translucent]",
+					"label": "Translucent",
+					"description": "If true, the action sheet will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Trigger": {
+					"attr": "trigger",
+					"label": "Trigger",
+					"description": "An ID corresponding to the trigger element that causes the action sheet to open.",
+					"category": "@Control",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				}
+			},
+			"events": {
+				"didDismiss": {
+					"attr": "(didDismiss)",
+					"description": "Emitted after the alert has dismissed. Shorthand for onActionSheetDidDismiss."
+				},
+				"didPresent": {
+					"attr": "(didPresent)",
+					"description": "Emitted after the alert has presented. Shorthand for onActionSheetWillDismiss."
+				},
+				"willDismiss": {
+					"attr": "(willDismiss)",
+					"description": "Emitted before the alert has dismissed. Shorthand for onActionSheetWillDismiss."
+				},
+				"willPresent": {
+					"attr": "(willPresent)",
+					"description": "Emitted before the alert has presented. Shorthand for onActionSheetWillPresent."
+				}
+			},
+			"hint": {
+				"DivTag": {
+					"InlineActionSheet": {
+						"properties": {
+							"Buttons": "TS=[{text:'Delete',role:'destructive',data:{action:'delete'}},{text:'Share',data:{action:'share'}},{text:'Cancel',role:'cancel',data:{action:'cancel'}}]",
+							"Header": "A header",
+							"Message": "A message",
+							"SubHeader": "A subheader",
+							"Trigger": "actionsheet-trigger-id"
+						},
+						"com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+							"properties": {
+								"eventName": "didDismiss"
+							},
+							"com.twinsoft.convertigo.beans.ngx.components.UICustomAction": {
+								"properties": {
+									"name": "didDismiss",
+									"actionValue": "\t\t\tconsole.log(JSON.stringify(event.detail, null, 2));\n\t\t\tresolve();\n"
+								}
+							}
+						}
+					},
+					"Button": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIAttribute": {
+							"properties": {
+								"attrName": "id",
+								"attrValue": "actionsheet-trigger-id"
+							}
+						},
+						"Label": {
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "show action sheet"
+								}
+							}
+						},
+					}
+				}
+			},
+			"scss": [
+				"//--backdrop-opacity\t//Opacity of the backdrop",
+				"//--background\t//Background of the action sheet",
+				"//--button-background\t//Background of the action sheet button",
+				"//--button-background-activated\t//Background of the action sheet button when pressed. Note: setting this will interfere with the Material Design ripple.",
+				"//--button-background-activated-opacity\t//Opacity of the action sheet button background when pressed",
+				"//--button-background-focused\t//Background of the action sheet button when tabbed to",
+				"//--button-background-focused-opacity\t//Opacity of the action sheet button background when tabbed to",
+				"//--button-background-hover\t//Background of the action sheet button on hover",
+				"//--button-background-hover-opacity\t//Opacity of the action sheet button background on hover",
+				"//--button-background-selected\t//Background of the selected action sheet button",
+				"//--button-background-selected-opacity\t//Opacity of the selected action sheet button background",
+				"//--button-color\t//Color of the action sheet button",
+				"//--button-color-activated\t//Color of the action sheet button when pressed",
+				"//--button-color-focused\t//Color of the action sheet button when tabbed to",
+				"//--button-color-hover\t//Color of the action sheet button on hover",
+				"//--button-color-selected\t//Color of the selected action sheet button",
+				"//--color\t//Color of the action sheet text",
+				"//--height\t//Height of the action sheet",
+				"//--max-height\t//Maximum height of the action sheet",
+				"//--max-width\t//Maximum width of the action sheet",
+				"//--min-height\t//Minimum height of the action sheet",
+				"//--min-width\t//Minimum width of the action sheet",
+				"//--width\t//Width of the action sheet"
+			]
+		},
+		"InlineAlert": {
+			"tag": "ion-alert",
+			"needNgTemplate": false,
+			"displayName": "Alert",
+			"label": "Alert",
+			"description": [
+				"ion-alert | Defines an inline <i>Alert</i> component.<br/>",
+				"Alerts are dialogs that presents users with information or collects information from the user using inputs.<br/>",
+				"The <i>Alert</i> is presented following an action on a trigger component.<br/>",
+				" For more information : <a href='https://ionicframework.com/docs/api/alert#inline-alerts-recommended'>Inline Alerts</a>."
+			],
+			"group": "Components",
+			"icon16": "alertaction_16x16.png",
+			"icon32": "alertaction_32x32.png",
+			"properties": {
+				"IonMode": false,
+				"Animated": {
+					"attr": "[animated]",
+					"label": "Animated",
+					"description": "If true, the alert will animate.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"enterAnimation": {
+					"attr": "[enterAnimation]",
+					"label": "Animation (enter)",
+					"description": "(TS mode) Animation to use when the alert is presented. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"leaveAnimation": {
+					"attr": "[leaveAnimation]",
+					"label": "Animation (leave)",
+					"description": "(TS mode) Animation to use when the alert is dismissed. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"BackdropDismiss": {
+					"attr": "[backdropDismiss]",
+					"label": "Backdrop dismiss",
+					"description": "If true, the alert will be dismissed when the backdrop is clicked.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Buttons": {
+					"attr": "[buttons]",
+					"label": "Alert buttons",
+					"description": [
+						"(TS mode) Array of buttons to be added to the alert. Type: (string ｜ AlertButton)[]<br/>",
+						" See: https://ionicframework.com/docs/api/alert#alertbutton"
+					],
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]"
+				},
+				"CssClass": {
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Header": {
+					"attr": "[header]",
+					"label": "Header",
+					"description": "The main title in the heading of the alert.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Inputs": {
+					"attr": "[inputs]",
+					"label": "Alert inputs",
+					"description": [
+						"(TS mode) Array of input to show in the alert. Type: AlertInput[]<br/>",
+						" See: https://ionicframework.com/docs/api/alert#alertinput"
+					],
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]"
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The alert id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"IsOpen": {
+					"attr": "[isOpen]",
+					"label": "Is open",
+					"description": [
+						"If true, the alert will open. If false, the alert will close.<br/>",
+						"Use this if you need finer grained control over presentation, otherwise just use the alertController or the trigger property.<br/>",
+						"Note: isOpen will not automatically be set back to false when the alert dismisses. You will need to do that in your code."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"KeyboardClose": {
+					"attr": "[keyboardClose]",
+					"label": "Keyboard close",
+					"description": "If true, the keyboard will be automatically dismissed when the overlay is presented.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Message": {
+					"attr": "[message]",
+					"label": "Message",
+					"description": [
+						"The main message to be displayed in the alert.<br/>",
+						"Message can accept either plaintext or HTML as a string.<br>To display characters normally reserved for HTML, they must be escaped, for example <Ionic> would become <code>&lt;Ionic&gt;</code>"
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"SubHeader": {
+					"attr": "[subHeader]",
+					"label": "Subheader",
+					"description": "The subtitle in the heading of the alert. Displayed under the title.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Translucent": {
+					"attr": "[translucent]",
+					"label": "Translucent",
+					"description": "If true, the alert will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Trigger": {
+					"attr": "trigger",
+					"label": "Trigger",
+					"description": "An ID corresponding to the trigger element that causes the alert to open.",
+					"category": "@Control",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				}
+			},
+			"events": {
+				"didDismiss": {
+					"attr": "(didDismiss)",
+					"description": "Emitted after the alert has dismissed. Shorthand for ionAlertDidDismiss."
+				},
+				"didPresent": {
+					"attr": "(didPresent)",
+					"description": "Emitted after the alert has presented. Shorthand for ionAlertWillDismiss."
+				},
+				"willDismiss": {
+					"attr": "(willDismiss)",
+					"description": "Emitted before the alert has dismissed. Shorthand for ionAlertWillDismiss."
+				},
+				"willPresent": {
+					"attr": "(willPresent)",
+					"description": "Emitted before the alert has presented. Shorthand for ionAlertWillPresent."
+				}
+			},
+			"hint": {
+				"DivTag": {
+					"InlineAlert": {
+						"properties": {
+							"Buttons": "TS=['OK']",
+							"Header": "A header",
+							"Message": "A message",
+							"SubHeader": "A subheader",
+							"Trigger": "alert-trigger-id"
+						}
+					},
+					"Button": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIAttribute": {
+							"properties": {
+								"attrName": "id",
+								"attrValue": "alert-trigger-id"
+							}
+						},
+						"Label": {
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "show alert"
+								}
+							}
+						},
+					}
+				}
+			},
+			"scss": [
+				"//--backdrop-opacity\t//Opacity of the backdrop",
+				"//--background\t//Background of the alert",
+				"//--height\t//Height of the alert",
+				"//--max-height\t//Maximum height of the alert",
+				"//--max-width\t//Maximum width of the alert",
+				"//--min-height\t//Minimum height of the alert",
+				"//--min-width\t//Minimum width of the alert",
+				"//--width\t//Width of the alert"
+			]
+		},
+		"InlinePicker": {
+			"tag": "ion-picker",
+			"needNgTemplate": false,
+			"displayName": "Picker",
+			"label": "Picker",
+			"description": [
+				"ion-picker | Defines an inline <i>Picker</i> component.<br/>",
+				"A Picker is a dialog that displays a row of buttons and columns underneath.<br>",
+				"It appears on top of the app's content, and at the bottom of the viewport.<br/>",
+				" For more information : <a href='https://ionicframework.com/docs/api/picker#inline-pickers-recommended'>Inline Pickers</a>."
+			],
+			"group": "Components",
+			"icon16": "picker_16x16.png",
+			"icon32": "picker_32x32.png",
+			"properties": {
+				"IonMode": false,
+				"Animated": {
+					"attr": "[animated]",
+					"label": "Animated",
+					"description": "If true, the picker will animate.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"enterAnimation": {
+					"attr": "[enterAnimation]",
+					"label": "Animation (enter)",
+					"description": "(TS mode) Animation to use when the picker is presented. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"leaveAnimation": {
+					"attr": "[leaveAnimation]",
+					"label": "Animation (leave)",
+					"description": "(TS mode) Animation to use when the picker is dismissed. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"BackdropDismiss": {
+					"attr": "[backdropDismiss]",
+					"label": "Backdrop dismiss",
+					"description": "If true, the picker will be dismissed when the backdrop is clicked.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Buttons": {
+					"attr": "[buttons]",
+					"label": "Picker buttons",
+					"description": [
+						"(TS mode) Array of buttons to be displayed at the top of the picker. Type: PickerButton[]<br/>",
+						" See: https://ionicframework.com/docs/api/picker#pickerbutton"
+					],
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]"
+				},
+				"Columns": {
+					"attr": "[columns]",
+					"label": "Picker columns",
+					"description": [
+						"(TS mode) Array of columns to be displayed in the picker. Type: PickerColumn[]<br/>",
+						" See: https://ionicframework.com/docs/api/picker#pickercolumn"
+					],
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]"
+				},
+				"CssClass": {
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Duration": {
+					"attr": "[duration]",
+					"label": "Duration",
+					"description": "Number of milliseconds to wait before dismissing the picker.",
+					"category": "@Properties",
+					"type": "number",
+					"value": "0",
+					"values": [
+						false,
+						true
+					]
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The picker id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"IsOpen": {
+					"attr": "[isOpen]",
+					"label": "Is open",
+					"description": [
+						"If true, the picker will open. If false, the picker will close.<br/>",
+						"Use this if you need finer grained control over presentation, otherwise just use the pickerController or the trigger property.<br/>",
+						"Note: isOpen will not automatically be set back to false when the picker dismisses. You will need to do that in your code."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"KeyboardClose": {
+					"attr": "[keyboardClose]",
+					"label": "Keyboard close",
+					"description": "If true, the keyboard will be automatically dismissed when the overlay is presented.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Trigger": {
+					"attr": "trigger",
+					"label": "Trigger",
+					"description": "An ID corresponding to the trigger element that causes the picker to open.",
+					"category": "@Control",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				}
+			},
+			"events": {
+				"didDismiss": {
+					"attr": "(didDismiss)",
+					"description": "Emitted after the picker has dismissed. Shorthand for ionPickerDidDismiss."
+				},
+				"didPresent": {
+					"attr": "(didPresent)",
+					"description": "Emitted after the picker has presented. Shorthand for ionPickerWillDismiss."
+				},
+				"willDismiss": {
+					"attr": "(willDismiss)",
+					"description": "Emitted before the picker has dismissed. Shorthand for ionPickerWillDismiss."
+				},
+				"willPresent": {
+					"attr": "(willPresent)",
+					"description": "Emitted before the picker has presented. Shorthand for ionPickerWillPresent."
+				}
+			},
+			"hint": {
+				"DivTag": {
+					"InlinePicker": {
+						"properties": {
+							"Buttons": "TS=[{text:'Cancel',role:'cancel'},{text:'Confirm',role:'confirm'}]",
+							"Columns": "TS=[{name:'languages', options:[{text:'JavaScript',value:'javascript'},{text:'TypeScript',value:'typescript'},{text:'Rust',value:'rust'},{text:'C#',value:'c#'}]}]",
+							"Trigger": "picker-trigger-id"
+						},
+						"com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+							"properties": {
+								"eventName": "didDismiss"
+							},
+							"com.twinsoft.convertigo.beans.ngx.components.UICustomAction": {
+								"properties": {
+									"name": "didDismiss",
+									"actionValue": "\t\t\tconsole.log(JSON.stringify(event.detail, null, 2));\n\t\t\tresolve();\n"
+								}
+							}
+						}
+					},
+					"Button": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIAttribute": {
+							"properties": {
+								"attrName": "id",
+								"attrValue": "picker-trigger-id"
+							}
+						},
+						"Label": {
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "show picker"
+								}
+							}
+						},
+					}
+				}
+			},
+			"scss": [
+				"//--backdrop-opacity\t//Opacity of the backdrop",
+				"//--background\t//Background of the picker",
+				"//--background-rgb\t//Background of the picker in rgb format",
+				"//--border-color\t//Border color of the picker",
+				"//--border-radius\t//Border radius of the picker",
+				"//--border-style\t//Border style of the picker",
+				"//--border-width\t//Border width of the picker",
+				"//--height\t//Height of the picker",
+				"//--max-height\t//Maximum height of the picker",
+				"//--max-width\t//Maximum width of the picker",
+				"//--min-height\t//Minimum height of the picker",
+				"//--min-width\t//Minimum width of the picker",
+				"//--width\t//Width of the picker"
+			]
+		},
+		"InlineToast": {
+			"tag": "ion-toast",
+			"displayName": "Toast",
+			"label": "Toast",
+			"description": [
+				"ion-toast | Defines a inline <i>Toast</i> component. | This component helps displaying some informations.<br/>",
+				"A <i>Toast</i> is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message.",
+				"The toast appears on top of the applications content, and can be dismissed to resume user interaction with the application.<br/>",
+				"<i>Toast</i> is presented following an action on a trigger component.<br/>",
+				"For more information : <a href='https://ionicframework.com/docs/api/toast#inline-toasts-recommended'>Inline Toasts</a>."
+			],
+			"group": "Components",
+			"icon16": "toastaction_16x16.png",
+			"icon32": "toastaction_32x32.png",
+			"properties": {
+				"IonColor": false,
+				"IonMode": false,
+				"Header": {
+					"attr": "[header]",
+					"label": "Header",
+					"description": "Defines the toast's header.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"Message": {
+					"attr": "[message]",
+					"label": "Message",
+					"description": "Defines the toast's message.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "some message",
+					"values": [
+						false,
+						true
+					]
+				},
+				"Duration": {
+					"attr": "[duration]",
+					"label": "Duration",
+					"description": "Defines the toast's duration in milliseconds.",
+					"category": "@Properties",
+					"type": "number",
+					"value": "3000",
+					"values": [
+						false,
+						true
+					]
+				},
+				"IsOpen": {
+					"attr": "[isOpen]",
+					"label": "Is open",
+					"description": [
+						"If true, the toast will open. If false, the toast will close.<br/>",
+						"Use this if you need finer grained control over presentation, otherwise just use the alertController or the trigger property.<br/>",
+						"Note: isOpen will not automatically be set back to false when the toast dismisses. You will need to do that in your code."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Position": {
+					"attr": "[position]",
+					"label": "Position",
+					"description": "Defines the toast's position.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "bottom",
+					"values": [
+						false,
+						"bottom",
+						"middle",
+						"top"
+					]
+				},
+				"PositionAnchor": {
+					"attr": "[positionAnchor]",
+					"label": "Position anchor",
+					"description": [
+						"The element to anchor the toast's position to.<br>",
+						"Can be set as a direct reference or the ID of the element. Type: HTMLElement ｜ string<br/>",
+						"With position='bottom', the toast will sit above the chosen element.<br>",
+						"With position='top', the toast will sit below the chosen element.<br>",
+						"With position='middle', the value of positionAnchor is ignored."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"cssClass": {
+					"attr": "[cssClass]",
+					"label": "Css classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Id": {
+					"attr": "id",
+					"label": "Control id",
+					"description": "The toast id.",
+					"category": "@Control",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"Icon": {
+					"attr": "[icon]",
+					"label": "Icon",
+					"description": "The name of the icon to display, or the path to a valid SVG file. See ion-icon: https://ionic.io/ionicons",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"Buttons": {
+					"attr": "[buttons]",
+					"label": "Buttons",
+					"description": "An array of buttons for the toast.Type: (string ｜ ToastButton)[]",
+					"category": "@Expert",
+					"type": "array",
+					"mode": "script",
+					"value": "[]",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"Animated": {
+					"attr":"[animated]",
+					"label": "Animated",
+					"description": "If true, the toast will animate",
+					"category": "@Expert",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"enterAnimation": {
+					"attr": "[enterAnimation]",
+					"label": "Animation (enter)",
+					"description": "Animation to use when the toast is presented. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"leaveAnimation": {
+					"attr": "[leaveAnimation]",
+					"label": "Animation (leave)",
+					"description": "Animation to use when the toast is dismissed. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"KeyboardClose": {
+					"attr": "[keyboardClose]",
+					"label": "Keyboard close",
+					"description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Layout": {
+					"attr": "[layout]",
+					"label": "Layout",
+					"description": [
+						"Defines how the message and buttons are laid out in the toast.<br/>",
+						"'baseline': The message and the buttons will appear on the same line. Message text may wrap within the message container.<br>",
+						"'stacked': The buttons containers and message will stack on top of each other. Use this if you have long text in your buttons."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": "baseline",
+					"values": [
+						"baseline",
+						"stacked"
+					]
+				},
+				"SwipeGesture": {
+					"attr": "[swipeGesture]",
+					"label": "Swipe gesture",
+					"description": [
+						"If set to 'vertical', the Toast can be dismissed with a swipe gesture.<br/>",
+						"The swipe direction is determined by the value of the position property:<br>",
+						" top: The Toast can be swiped up to dismiss.<br>",
+						" bottom: The Toast can be swiped down to dismiss.<br>",
+						" middle: The Toast can be swiped up or down to dismiss.<br>"
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						"vertical"
+					]
+				},
+				"Translucent": {
+					"attr": "[translucent]",
+					"label": "Translucent",
+					"description": "If true, the toast will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"Trigger": {
+					"attr": "[trigger]",
+					"label": "Trigger",
+					"description": "An ID corresponding to the trigger element that causes the toast to open when clicked.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				}
+			},
+			"events": {
+				"didDismiss": {
+					"attr": "(didDismiss)",
+					"description": "Emitted after the toast has dismissed. Shorthand for ionToastDidDismiss."
+				},
+				"didPresent": {
+					"attr": "(didPresent)",
+					"description": "Emitted after the toast has presented. Shorthand for ionToastWillDismiss."
+				},
+				"willDismiss": {
+					"attr": "(willDismiss)",
+					"description": "Emitted before the toast has dismissed. Shorthand for ionToastWillDismiss."
+				},
+				"willPresent": {
+					"attr": "(willPresent)",
+					"description": "Emitted before the toast has presented. Shorthand for ionToastWillPresent."
+				}
+			},
+			"hint": {
+				"DivTag": {
+					"InlineToast": {
+						"properties": {
+							"Header": "A header",
+							"Message": "A message",
+							"Trigger": "toast-trigger-id"
+						}
+					},
+					"Button": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIAttribute": {
+							"properties": {
+								"attrName": "id",
+								"attrValue": "toast-trigger-id"
+							}
+						},
+						"Label": {
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "show toast"
+								}
+							}
+						},
+					}
+				}
+			},
+			"scss": [
+				"//--background\t//Background of the toast",
+				"//--border-color\t//Border color of the toast",
+				"//--border-radius\t//Border radius of the toast",
+				"//--border-style\t//Border style of the toast",
+				"//--border-width\t//Border width of the toast",
+				"//--box-shadow\t//Box shadow of the toast",
+				"//--button-color\t//Color of the button text",
+				"//--color\t//Color of the toast text",
+				"//--end\t//Position from the right if direction is left-to-right, and from the left if direction is right-to-left",
+				"//--height\t//Height of the toast",
+				"//--max-height\t//Maximum height of the toast",
+				"//--max-width\t//Maximum width of the toast",
+				"//--min-height\t//Minimum height of the toast",
+				"//--min-width\t//Minimum width of the toast",
+				"//--start\t//Position from the left if direction is left-to-right, and from the right if direction is right-to-left",
+				"//--white-space\t//White space of the toast message",
+				"//--width\t//Width of the toast"
+			]
+		},
+		"InlineLoading": {
+			"tag": "ion-loading",
+			"displayName": "Loading",
+			"label": "Loading",
+			"description": [
+				"ion-loading | Defines an inline <i>Loading</i> component. | An overlay that can be used to indicate activity.<br/>",
+				"Once presented, the loading indicator will automatically dismiss after a <code>duration</code> of 3s by default.<br>",
+				"If the <i>Duration</i> property is set to <code>false</code>, the loading will display indefinitely until dismissed by clicking on the backdrop or by a calling the <code>dismiss()</code> method.<br/>",
+				"For more information : <a href='https://ionicframework.com/docs/api/loading#inline-recommended'>Inline Loading</a>"
+			],
+			"group": "Miscellaneous",
+			"icon16": "showloadingaction_16x16.png",
+			"icon32": "showloadingaction_32x32.png",
+			"properties": {
+				"IonMode": false,
+				"Message": {
+					"attr": "[message]",
+					"label": "Message",
+					"description": "Optional text content to display in the loading indicator.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "Please wait...",
+					"values": [
+						false,
+						true
+					]
+				},
+				"Duration": {
+					"attr": "[duration]",
+					"label": "Duration",
+					"description": "Number of milliseconds to wait before dismissing the loading indicator.",
+					"category": "@Properties",
+					"type": "number",
+					"value": "3000",
+					"values": [
+						false,
+						true
+					]
+				},
+				"Spinner": {
+					"attr": "[spinner]",
+					"label": "Spinner",
+					"description": "The name of the spinner to display.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						"bubbles",
+						"circles",
+						"circular",
+						"crescent",
+						"dots",
+						"lines",
+						"lines-sharp",
+						"lines-sharp-small",
+						"lines-small"
+					]
+				},
+				"CssClass": {
+					"attr": "cssClass",
+					"label": "Css classes",
+					"description": "Additional classes for custom styles. Type: string ｜ string[]",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"IsOpen": {
+					"attr": "[isOpen]",
+					"label": "Is open",
+					"description": [
+						"If true, the loading indicator will open. If false, the loading indicator will close.<br/>",
+						"Use this if you need finer grained control over presentation, otherwise just use the loadingController or the trigger property.<br/>",
+						"Note: isOpen will not automatically be set back to false when the loading indicator dismisses. You will need to do that in your code."
+					],
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"ShowBackdrop": {
+					"attr": "[showBackdrop]",
+					"label": "Show Backdrop",
+					"description": "If true, a backdrop will be displayed behind the loading indicator.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"BackdropDismiss": {
+					"attr": "[backdropDismiss]",
+					"label": "Enable backdrop dismiss",
+					"description": "If true, the loading indicator will be dismissed when the backdrop is clicked.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"Animated": {
+					"attr": "[animated]",
+					"label": "Animated",
+					"description": "If true, the loading will animate",
+					"category": "@Expert",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"enterAnimation": {
+					"attr": "[enterAnimation]",
+					"label": "Animation (enter)",
+					"description": "Animation to use when the loading is presented. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"leaveAnimation": {
+					"attr": "[leaveAnimation]",
+					"label": "Animation (leave)",
+					"description": "Animation to use when the loading is dismissed. ((baseEl: any, opts?: any) => Animation).",
+					"category": "@Expert",
+					"type": "string",
+					"value": false
+				},
+				"KeyboardClose": {
+					"attr": "[keyboardClose]",
+					"label": "Keyboard close",
+					"description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"false",
+						"true"
+					]
+				},
+				"Translucent": {
+					"attr": "[translucent]",
+					"label": "Translucent",
+					"description": "If true, the loading will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"Trigger": {
+					"attr": "[trigger]",
+					"label": "Trigger",
+					"description": "An ID corresponding to the trigger element that causes the loading indicator to open when clicked.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				}
+			},
+			"events": {
+				"didDismiss": {
+					"attr": "(didDismiss)",
+					"description": "Emitted after the toast has dismissed. Shorthand for ionLoadingDidDismiss."
+				},
+				"didPresent": {
+					"attr": "(didPresent)",
+					"description": "Emitted after the toast has presented. Shorthand for ionLoadingWillDismiss."
+				},
+				"willDismiss": {
+					"attr": "(willDismiss)",
+					"description": "Emitted before the toast has dismissed. Shorthand for ionLoadingWillDismiss."
+				},
+				"willPresent": {
+					"attr": "(willPresent)",
+					"description": "Emitted before the toast has presented. Shorthand for ionLoadingWillPresent."
+				}
+			},
+			"hint": {
+				"DivTag": {
+					"InlineLoading": {
+						"properties": {
+							"Duration": false,
+							"Message": "Clik on backdrop to dismiss",
+							"Spinner": "bubbles",
+							"Trigger": "loading-trigger-id"
+						}
+					},
+					"Button": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIAttribute": {
+							"properties": {
+								"attrName": "id",
+								"attrValue": "loading-trigger-id"
+							}
+						},
+						"Label": {
+							"com.twinsoft.convertigo.beans.ngx.components.UIText": {
+								"properties": {
+									"textValue": "show loading"
+								}
+							}
+						},
+					}
+				}
+			},
+			"scss": [
+				"//--background-opacity\t//Opacity of the backdrop",
+				"//--background\t//Background of the loading dialog",
+				"//--height\t//Height of the loading dialog",
+				"//--max-height\t//Maximum height of the loading dialog",
+				"//--max-width\t//Maximum width of the loading dialog",
+				"//--min-height\t//Minimum height of the loading dialog",
+				"//--min-width\t//Minimum width of the loading dialog",
+				"//--spinner-color\t//Color of the loading spinner",
+				"//--width\t//Width of the loading dialog"
+			]
+		},
+		
+		
 		"PopoverAction": {
 			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 			"displayName": "Popover",
@@ -10087,18 +12764,112 @@
 				"event": {
 					"hidden": true,
 					"label": "Event",
-					"description": "The event to pass to the popover animation..",
+					"description": "The event to pass to the popover animation.",
 					"category": "@Expert",
 					"type": "string",
 					"mode": "script",
 					"value": "(event == undefined ? $event : event)"
 				},
 				"cssClass": {
-					"label": "Css Class",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the modal. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"id": {
+					"label": "Id",
+					"description": "The popover id.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"alignment": {
+					"label": "Alignment",
+					"description": "Describes how to align the popover content with the reference point. Defaults to 'center' for ios mode, and 'start' for md mode.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						"center",
+						"end",
+						"start"
+					]
+				},
+				"arrow": {
+					"label": "Arrow",
+					"description": "If true, the popover will display an arrow that points at the reference when running in ios mode. Does not apply in md mode.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "true",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"dismissOnSelect": {
+					"label": "Dismiss on select",
+					"description": "f true, the popover will be automatically dismissed when the content has been clicked.",
+					"category": "@Properties",
+					"type": "boolean",
+					"value": "false",
+					"values": [
+						"true",
+						"false"
+					]
+				},
+				"reference": {
+					"label": "Reference",
+					"description": [
+						"Describes what to position the popover relative to.",
+						"If 'trigger', the popover will be positioned relative to the trigger button. If passing in an event, this is determined via event.target.",
+						"If 'event', the popover will be positioned relative to the x/y coordinates of the trigger action. If passing in an event, this is determined via event.clientX and event.clientY."
+					],
+					"category": "@Properties",
+					"type": "string",
+					"value": "trigger",
+					"values": [
+						"event",
+						"trigger"
+					]
+				},
+				"side": {
+					"label": "Side",
+					"description": "Describes which side of the reference point to position the popover on. The 'start' and 'end' values are RTL-aware, and the 'left' and 'right' values are not.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "bottom",
+					"values": [
+						"bottom",
+						"end",
+						"left",
+						"right",
+						"start",
+						"top"
+					]
+				},
+				"size": {
+					"label": "Size",
+					"description": "Describes how to calculate the popover width. If 'cover', the popover width will match the width of the trigger. If 'auto', the popover width will be set to a static default value.",
+					"category": "@Properties",
+					"type": "string",
+					"value": "auto",
+					"values": [
+						"auto",
+						"cover"
+					]
 				}
 			}
 		},
@@ -10107,9 +12878,10 @@
 			"displayName": "Toast",
 			"label": "Toast",
 			"description": [
-				"Defines a <i>ToastAction</i> action component. | This component helps displaying some informations.<br/>",
-				"A Toast is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message. The toast appears on top of the applications content, and can be dismissed to resume user interaction with the application.<br/>",
-				"For more information : <a href='https://ionicframework.com/docs/api/toast'>Toast</a>."
+				"Defines a <i>Toast</i> action component. | This component helps displaying some informations.<br/>",
+				"A <i>Toast</i> is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message. The toast appears on top of the applications content, and can be dismissed to resume user interaction with the application.<br/>",
+				"<i>Toast</i> action component can be added under an <i>Event</i> or another action.<br/>",
+				"For more information : <a href='https://ionicframework.com/docs/api/toast#controller-toasts'>Controller Toasts</a>."
 			],
 			"group": "Actions",
 			"icon16": "toastaction_16x16.png",
@@ -10165,10 +12937,35 @@
 				},
 				"cssClass": {
 					"label": "Css classes",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"description": "Additional classes for custom styles. Type: string | string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the toast. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"id": {
+					"label": "Id",
+					"description": "The toast id.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
+				},
+				"icon": {
+					"label": "Icon",
+					"description": "The name of the icon to display, or the path to a valid SVG file. See ion-icon: https://ionic.io/ionicons",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
 				},
 				"showCloseButton": {
 					"label": "Show close button",
@@ -10395,7 +13192,14 @@
 			"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 			"displayName": "Show Loading",
 			"label": "Show Loading",
-			"description": "Defines a <i>Show Loading</i> action component. | This component show a loading",
+			"description": [
+				"Defines a <i>Show Loading</i> action component. | An overlay that can be used to indicate activity.<br/>",
+				"Once presented, the loading indicator will automatically dismiss after a <code>duration</code> of 3s by default.<br>",
+				"If the <i>Duration</i> property is set to <code>false</code>, the loading will display indefinitely until dismissed by a <i>Close Loading</i> action or a backdrop click.<br/>",
+				"Place a <i>Show Loading</i> action at the very beginning of an action chain, under an <i>Event</i> or <i>Shared action</i>.<br>",
+				"Place a <i>Close Loading</i> action under a <i>Finally handler</i>.<br/>",
+				"For more information : <a href='https://ionicframework.com/docs/api/loading#controller'>Controller</a>"
+			],
 			"group": "Actions",
 			"icon16": "showloadingaction_16x16.png",
 			"icon32": "showloadingaction_32x32.png",
@@ -10437,15 +13241,24 @@
 						"crescent",
 						"dots",
 						"lines",
+						"lines-sharp",
+						"lines-sharp-small",
 						"lines-small"
 					]
 				},
 				"cssClass": {
 					"label": "Css classes",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"description": "Additional classes for custom styles. Type: string ｜ string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the toast. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
 				},
 				"showBackdrop": {
 					"label": "Show Backdrop",
@@ -12622,9 +15435,10 @@
 			"displayName": "Alert",
 			"label": "Alert",
 			"description": [
-				"Defines an <i>Alert</i> component. | The Alerts are a great way to offer the user the ability to choose a specific action or list of actions. They also can provide the user with important information, or require them to make a decision.<br/>",
-				"The return value can be accessed by the navigation stack, using <code> parent.out </code> for example.<br/>",
-				" For more information : <a href='https://ionicframework.com/docs/api/alert'>Alert</a>."
+				"Defines a controller <i>Alert</i> action component. | The Alerts are a great way to offer the user the ability to choose a specific action or list of actions.",
+				"They also can provide the user with important information, or require them to make a decision.<br/>",
+				"<i>Alert</i> action component can be added under an <i>Event</i> or another action. Its returned value can be accessed by the navigation stack, using <code> parent.out </code> for example.<br/>",
+				" For more information : <a href='https://ionicframework.com/docs/api/alert#controller-alerts'>Controller Alerts</a>."
 			],
 			"group": "Actions",
 			"icon16": "alertaction_16x16.png",
@@ -12665,11 +15479,29 @@
 					]
 				},
 				"cssClass": {
-					"label": "Css classes",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the alert. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"id": {
+					"label": "Id",
+					"description": "The alert id.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				},
 				"animated": {
 					"label": "Animated",
@@ -12842,26 +15674,28 @@
 						"properties": {
 							"expression": "TS=parent.out.role"
 						},
-						"com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
-							"properties": {
-								"caseValue": "'backdrop'"
-							},
-							"ToastAction": {
+						"com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": [
+							{
 								"properties": {
-									"message": "backdrop"
+									"caseValue": "'backdrop'"
+								},
+								"ToastAction": {
+									"properties": {
+										"message": "backdrop"
+									}
+								}
+							},
+							{
+								"properties": {
+									"caseValue": "'cancel'"
+								},
+								"ToastAction": {
+									"properties": {
+										"message": "cancel"
+									}
 								}
 							}
-						},
-						"com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent": {
-							"properties": {
-								"caseValue": "'cancel'"
-							},
-							"ToastAction": {
-								"properties": {
-									"message": "cancel"
-								}
-							}
-						},
+						],
 						"com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent": {
 							"ToastAction": {
 								"properties": {
@@ -12909,11 +15743,29 @@
 					]
 				},
 				"cssClass": {
-					"label": "Css classes",
-					"description": "Additional classes for custom styles, separated by spaces.",
+					"label": "Css Classes",
+					"description": "Additional classes for custom styles. Type: string | string[]",
 					"category": "@Properties",
 					"type": "string",
-					"value": ""
+					"value": false
+				},
+				"htmlAttributes": {
+					"label": "Html Attributes",
+					"description": "Additional attributes to pass to the sheet. Type: { [key: string]: any }",
+					"category": "@Properties",
+					"type": "string",
+					"value": false
+				},
+				"id": {
+					"label": "Id",
+					"description": "The sheet id.",
+					"category": "@Properties",
+					"type": "string",
+					"value": false,
+					"values": [
+						false,
+						true
+					]
 				},
 				"animated": {
 					"label": "Animated",
@@ -14281,30 +17133,18 @@
 					},
 					"FormItem": [
 						{
-							"Label": {
-								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-									"properties": {
-										"textValue": "name"
-									}
-								}
-							},
 							"Input": {
 								"properties": {
-									"ControlName": "name"
+									"ControlName": "name",
+									"Label": "name"
 								}
 							}
 						},
 						{
-							"Label": {
-								"com.twinsoft.convertigo.beans.ngx.components.UIText": {
-									"properties": {
-										"textValue": "firstname"
-									}
-								}
-							},
 							"Input": {
 								"properties": {
-									"ControlName": "firstname"
+									"ControlName": "firstname",
+									"Label": "firstname"
 								}
 							}
 						}

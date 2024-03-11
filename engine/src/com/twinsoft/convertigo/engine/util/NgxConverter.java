@@ -66,14 +66,29 @@ public class NgxConverter {
 	private File outputDir;
 	private String tplScss;
 	private String indent = "";
-
+	private String builderTemplateProjectName;
+	
 	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
 		this.tplScss = getThemeTplScss();
 	}
 
+	private String getBuilderTemplateProjectName() {
+		if (this.builderTemplateProjectName == null) {
+			try {
+				builderTemplateProjectName = "mobilebuilder_tpl_"+ 
+						com.twinsoft.convertigo.engine.ProductVersion.majorProductVersion + "_" +
+						com.twinsoft.convertigo.engine.ProductVersion.minorProductVersion + "_" +
+						com.twinsoft.convertigo.engine.ProductVersion.servicePack + "_ngx";
+			} catch (Exception e) {
+				return "mobilebuilder_tpl_8_1_0_ngx";
+			}
+		}
+		return this.builderTemplateProjectName;
+	}
+	
 	private String getThemeTplScss() {
-		File appThemeTpl = new File(outputDir, "../mobilebuilder_tpl_8_0_0_ngx/ionicTpl/src/theme/variables.scss");
+		File appThemeTpl = new File(outputDir, "../"+ getBuilderTemplateProjectName() +"/ionicTpl/src/theme/variables.scss");
 		try {
 			return FileUtils.readFileToString(appThemeTpl, "UTF-8");
 		} catch (IOException e) {
@@ -224,7 +239,7 @@ public class NgxConverter {
 		// for application
 		if (yaml_key.indexOf("ngx.components.ApplicationComponent") != -1) {
 			try {
-				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent("mobilebuilder_tpl_8_0_0_ngx");
+				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(getBuilderTemplateProjectName());
 			} catch (Exception e) {}
 		}
 		
@@ -1353,6 +1368,128 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 
+	private static void ngx_handleSlides(Element beanEl) {
+		JSONObject jsonBean = getJsonBean(beanEl);
+		try {
+			
+			// 8.3.0.0
+			String yaml_key = beanEl.getAttribute("yaml_key");
+			beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIDynamicElement", "UIDynamicComponent"));
+			
+			String options = "";
+			jsonBean.put("ionBean", "SwiperSlides");
+			if (jsonBean.has("Options")) {
+				String value = jsonBean.getString("Options");
+				if (!value.equals("plain:false")) {
+					try {
+						options = value.substring(value.indexOf(':')+1).trim();
+						if (options.startsWith("{") && options.endsWith("}")) {
+							options = options.substring(1);
+						} else {
+							options = null;//
+						}
+					} catch (Exception e) {}
+				}
+			}
+			if (jsonBean.has("IonMode")) {
+				jsonBean.remove("IonMode");
+			}
+			if (jsonBean.has("Height")) {
+				jsonBean.remove("Height");
+			}
+			if (jsonBean.has("Pager")) {
+				String value = jsonBean.getString("Pager");
+				if (!value.equals("plain:false")) {
+					try {
+						if (options != null) {
+							options = (options.isEmpty() ? "" : ",") + "pagination:" 
+									+ Boolean.valueOf(value.substring(value.indexOf(':')+1)).booleanValue();
+						}
+					} catch (Exception e) {}
+				}
+				jsonBean.remove("Pager");
+			}
+			if (jsonBean.has("Scrollbar")) {
+				String value = jsonBean.getString("Scrollbar");
+				if (!value.equals("plain:false")) {
+					try {
+						if (options != null) {
+							options = (options.isEmpty() ? "" : ",") + "scrollbar:" 
+									+ Boolean.valueOf(value.substring(value.indexOf(':')+1)).booleanValue();
+						}
+					} catch (Exception e) {}
+				}
+				jsonBean.remove("Scrollbar");
+			}
+			
+			if (options != null) {
+				jsonBean.put("Options", "script:"+ "{"+ options +"}");
+			}
+			setBeanData(beanEl, jsonBean.toString());
+			setTagName(beanEl, "c8o-slides");
+		} catch (Exception e) {}
+	}
+	
+	private static void ngx_handleSlidesEvents(Element beanEl) {
+//		try {
+//			String eventName = xpath.selectList(beanEl, "eventName").get(0).getTextContent();
+//			if ("ionSlideDidChange".equals(eventName) || "(ionSlideDidChange)".equals(eventName)) {
+//				xpath.selectList(beanEl, "eventName").get(0).setTextContent("onSwiperSlideChange");
+//			}
+//		} catch (Exception e) {}
+//		try {
+//			String attrName = xpath.selectList(beanEl, "attrName").get(0).getTextContent();
+//			if ("(ionSlideDidChange)".equals(attrName)) {
+//				xpath.selectList(beanEl, "attrName").get(0).setTextContent("(swiperslidechange)");
+//			}
+//		} catch (Exception e) {}
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("ionSlideDidChange","onSwiperSlideChangeTransitionEnd");
+		map.put("ionSlideDoubleTap","onSwiperDoubleTap");
+		map.put("ionSlideDrag","onSwiperSliderMove");
+		map.put("ionSlideNextEnd","onSwiperSlideNextTransitionEnd");
+		map.put("ionSlideNextStart","onSwiperSlideNextTransitionStart");
+		map.put("ionSlidePrevEnd","onSwiperSlidePrevTransitionEnd");
+		map.put("ionSlidePrevStart","onSwiperSlidePrevTransitionStart");
+		map.put("ionSlideReachEnd","onSwiperReachEnd");
+		map.put("ionSlideReachStart","onSwiperReachBeginning");
+		map.put("ionSlidesDidLoad","onSwiperInit");
+		map.put("ionSlideTap","onSwiperTap");
+		map.put("ionSlideTouchEnd","onSwiperTouchEnd");
+		map.put("ionSlideTouchStart","onSwiperTouchStart");
+		map.put("ionSlideTransitionEnd","onSwiperTransitionEnd");
+		map.put("ionSlideTransitionStart","onSwiperTransitionStart");
+		map.put("ionSlideWillChange","onSwiperSlideChangeTransitionStart");
+		
+		for (String _eventName: map.keySet()) {
+			String _bindName = "("+_eventName+")";
+			try {
+				String eventName = xpath.selectList(beanEl, "eventName").get(0).getTextContent();
+				if (_eventName.equals(eventName) || _bindName.equals(eventName)) {
+					String _value = map.get(_eventName);
+					xpath.selectList(beanEl, "eventName").get(0).setTextContent(_value);
+				}
+			} catch (Exception e) {}
+			try {
+				String attrName = xpath.selectList(beanEl, "attrName").get(0).getTextContent();
+				if (_bindName.equals(attrName)) {
+					String _value = "(" + map.get(_eventName).toLowerCase().substring(2) + ")";
+					xpath.selectList(beanEl, "attrName").get(0).setTextContent(_value);
+				}
+			} catch (Exception e) {}
+		}
+	}
+	
+	private static void ngx_handleSlide(Element beanEl) {
+		JSONObject jsonBean = getJsonBean(beanEl);
+		try {
+			// 8.3.0.0
+			jsonBean.put("ionBean", "SwiperSlide");
+			setBeanData(beanEl, jsonBean.toString());
+			setTagName(beanEl, "swiper-slide");
+		} catch (Exception e) {}
+	}
+	
 	private Element sharedCompEl = null;
 	
 	private void convertBean(Element element) throws Exception {
@@ -1531,6 +1668,13 @@ public class NgxConverter {
 			// Already migrated project
 			else if (yaml_key.indexOf("ngx.components") != -1) {
 				
+				// for application
+				if (yaml_key.indexOf("ngx.components.ApplicationComponent") != -1) {
+					try {
+						xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(getBuilderTemplateProjectName());
+					} catch (Exception e) {}
+				}
+				
 				// for shared component
 				if (yaml_key.indexOf("ngx.components.UISharedComponent") != -1) {
 					beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
@@ -1546,11 +1690,22 @@ public class NgxConverter {
 					}
 				}
 				
+				// for control event
+				if (yaml_key.indexOf("ngx.components.UIControlEvent") != -1) {
+					ngx_handleSlidesEvents(beanEl);
+				}
+				
 				String ionBeanName = getIonBeanName(beanEl);
 				if ("PublishEventAction".equalsIgnoreCase(ionBeanName)) {
 					if (sharedCompEl != null) {
 						sharedMap.get(sharedCompEl).add(beanEl);
 					}
+				}
+				else if ("Slides".equalsIgnoreCase(ionBeanName)) {
+					ngx_handleSlides(beanEl);
+				}
+				else if ("Slide".equalsIgnoreCase(ionBeanName)) {
+					ngx_handleSlide(beanEl);
 				}
 			}
 			
@@ -1580,7 +1735,9 @@ public class NgxConverter {
 		Document document = YamlConverter.readYaml(yaml);
 		//XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
 		Element root = document.getDocumentElement();
-		root.getAttributeNode("convertigo").setTextContent("8.0.0.m006");
+		//root.getAttributeNode("convertigo").setTextContent("8.3.0.m006");
+		root.getAttributeNode("convertigo").setTextContent(com.twinsoft.convertigo.beans.Version.version);
+		//System.out.println(XMLUtils.prettyPrintDOM(root.getOwnerDocument()));
 		convertBean(root);
 		//XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
 		document = BeansDefaultValues.unshrinkProject(document);

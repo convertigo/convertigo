@@ -24,16 +24,20 @@ import java.util.Arrays;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.IconAndMessageDialog;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.PlainMessageDialog;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -53,6 +57,32 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = false;
+			super.selectionChanged(action, selection);
+			
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof ProjectTreeObject) {
+				Project project = ((ProjectTreeObject)treeObject).getObject();
+				IApplicationComponent app = project.getMobileApplication().getApplicationComponent();
+				if (app != null) {
+					if (app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+						action.setText("Convert Mobile Application to Ngx");
+						enable = true;
+					}
+					if (app instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+						action.setText("Upgrade Ngx Application");
+						enable = ((com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent)app).needsMigration();
+					}
+				}
+			}
+			action.setEnabled(enable);
+		} catch (Exception e) {}
+	}
+	
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
@@ -70,9 +100,10 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 					return;
 				}
 				Project project = projectTreeObject.getObject();
+				boolean isMobileApplicationProject = project.testAttribute("isMobileApplicationProject", null);
+				String dialogTitle = isMobileApplicationProject ? "Converting Mobile Application to NGX" : "Upgrading NGX Application";
 				
-				InputDialog dlg = new InputDialog(shell,
-						"Converting Mobile Application to NGX",
+				InputDialog dlg = new InputDialog(shell, dialogTitle,
 						"Your project '" + project.getName() + "' will be converted to use the new version of the Mobile Builder.\n"
 							+ "Please enter a new project name for a converted copy.\n"
 							+ "Or convert the current project.",
@@ -100,6 +131,7 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 					return;
 				}
 				String projectName = dlg.getValue();
+				String taskName = isMobileApplicationProject ? "Converting to NGX" : "Upgrading";
 				
 				if (projectName.equals(project.getName())) {
 					PlainMessageDialog msg = PlainMessageDialog.getBuilder(shell, "Confirmation")
@@ -115,12 +147,12 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 						File projectDir = project.getDirFile();
 						explorerView.setSelectedTreeObject(projectTreeObject);
 						explorerView.unloadSelectedProjectTreeObject();
-						Job.create("Project '" + projectName + "' converting to NGX", monitor -> {
-							monitor.beginTask("Converting to NGX..." , IProgressMonitor.UNKNOWN);
+						Job.create("Project '" + projectName + "' " + taskName, monitor -> {
+							monitor.beginTask(taskName + "..." , IProgressMonitor.UNKNOWN);
 							try {
 								new NgxConverter(projectDir).convertFile();
 							} catch (Exception e) {
-								Engine.logStudio.error("Error while converting to NGX", e);
+								Engine.logStudio.error("Error while "+ taskName, e);
 							}
 							monitor.beginTask("Open the converted project..." , IProgressMonitor.UNKNOWN);
 							display.syncExec(() -> {
@@ -139,7 +171,7 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 					}
 				} else {
 					
-					Job.create("Project '" + projectName + "' converting to NGX", monitor -> {
+					Job.create("Project '" + projectName + "' " + taskName, monitor -> {
 						try {
 							monitor.beginTask("Exporting '" + project.getName() + "'", IProgressMonitor.UNKNOWN);
 							File car = CarUtils.makeArchive(project, ArchiveExportOption.all);
@@ -148,11 +180,11 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 							if (prj == null) {
 								return;
 							}
-							monitor.beginTask("Converting to NGX..." , IProgressMonitor.UNKNOWN);
+							monitor.beginTask(taskName + "..." , IProgressMonitor.UNKNOWN);
 							new NgxConverter(prj.getDirFile()).convertFile();
 							prj = Engine.theApp.databaseObjectsManager.importProject(Engine.projectYamlFile(projectName), true);
 						} catch (Exception e) {
-							Engine.logStudio.error("Error while converting to NGX", e);
+							Engine.logStudio.error("Error while "+ taskName, e);
 						}
 						monitor.beginTask("Open the converted project..." , IProgressMonitor.UNKNOWN);
 						display.syncExec(() -> {
@@ -167,7 +199,7 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 			}
 		}
 		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to edit mobile component class!");
+			ConvertigoPlugin.logException(e, "Unable to convert or upgrade project!");
 		}
 		finally {
 			shell.setCursor(null);

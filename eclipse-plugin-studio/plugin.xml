@@ -161,8 +161,8 @@
 			preferredPerspectives="convertigo"
 			project="true">
 			<description>Creates a NGX Builder application project based on
-			ionic6 and Convertigo Angular frameworks.</description> { "url":
-			"template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.1.0.zip",
+			Ionic and Convertigo Angular frameworks.</description> { "url":
+			"template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.3.0.zip",
 			"doPage1": true } </wizard>
 		<primaryWizard
 			id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"></primaryWizard>
@@ -855,14 +855,6 @@
 		<objectContribution
 			id="convertigo.mobileApplicationComponentContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject">
-			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertMobileUIApplicationToNgxAction"
-				enablesFor="1"
-				icon="icons/studio/menu/extractionrule_color_16x16.png"
-				id="convertigo.action.ConvertMobileUIApplicationToNgx"
-				label="Convert Mobile Application Ngx"
-				menubarPath="convert">
-			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction"
 				enablesFor="1"
@@ -1654,12 +1646,12 @@
 		<objectContribution
 			id="convertigo.projectContributionForMobileApplication"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
-			<visibility>
+			<!--<visibility>
 				<objectState
 					name="isMobileApplicationProject"
 					value="true">
 				</objectState>
-			</visibility>
+			</visibility>-->
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertMobileUIApplicationToNgxAction"
 				enablesFor="1"

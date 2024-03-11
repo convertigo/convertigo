@@ -250,7 +250,7 @@ public class BeansDefaultValues {
 									if (hVersion.compareTo(lVersion) < 0) {
 										hVersion = lVersion;
 										if (Engine.logEngine != null) {
-											Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+											Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname") + " ("+ionName+")");
 										}
 									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");

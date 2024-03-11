@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
 
@@ -51,9 +52,22 @@ public abstract class MobileComponent extends MobileObject {
 			return (ApplicationComponent) databaseObject;
 	}
 	
+	@Override
 	protected String getRequiredTplVersion() {
 		//return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
 		return "7.9.0.2"; // the 7.9.0 has been released with v7.9.0.2
+	}
+
+	public boolean isDeprecated() {
+		// tpl version since bean is deprecated
+		String tplDeprecatedVersion = getDeprecatedTplVersion();
+		if (tplDeprecatedVersion.isEmpty()) {
+			return false;
+		}
+		
+		// project builder tpl version
+		String tplBuilderVersion = getTplVersion();
+		return MobileBuilder.compareVersions(tplBuilderVersion, tplDeprecatedVersion) >= 0;
 	}
 
 	public static String cleanStyle(String style) {

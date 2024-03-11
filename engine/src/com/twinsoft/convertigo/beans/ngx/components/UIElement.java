@@ -28,6 +28,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements ITagsProperty, IStyleGenerator {
@@ -270,6 +271,11 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 
 	@Override
 	public String computeTemplate() {
+		if (isDeprecated()) {
+			Engine.logEngine.warn(getTagName() + " is deprecated for project's ionic used version");
+			return "<!-- Warn:" + getTagName() + " is deprecated -->" + System.getProperty("line.separator");
+		}
+		
 		if (isEnabled()) {
 			StringBuilder attributes = initAttributes();
 			StringBuilder attrclasses = initAttrClasses();
