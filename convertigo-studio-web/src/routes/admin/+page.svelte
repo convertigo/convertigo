@@ -8,9 +8,8 @@
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
 	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
 
-	const homeModalStore = getModalStore();
+	const modalStore = getModalStore();
 
 	onMount(() => {
 		monitorCheck();
@@ -45,38 +44,38 @@
 	 */
 	$: categories = $monitorData.labels;
 
-	async function performGC() {
-		const res = await call('engine.PerformGC');
+	/**
+	 * @param {{ target: { disabled: boolean; }; }} e
+	 */
+	async function performGC(e) {
+		e.target.disabled = true;
+		try {
+			await call('engine.PerformGC');
+		} catch (_) {}
+		e.target.disabled = false;
 	}
 
-	async function javaSystemPropModal() {
-		homeModalStore.trigger({
+	/**
+	 * @param {string} mode
+	 */
+	function modal(mode) {
+		modalStore.trigger({
 			type: 'component',
-			component: { ref: ModalHome },
-			meta: { mode: 'Java System Prop' }
-		});
-	}
-
-	async function environmentVariablesModal() {
-		homeModalStore.trigger({
-			type: 'component',
-			component: { ref: ModalHome },
-			meta: { mode: 'Environment Variables' }
+			component: 'modalHome',
+			meta: { mode }
 		});
 	}
 </script>
 
 <AutoGrid>
 	<Card title="Status">
-		<div slot="cornerOption">
-			<div class="flex gap-5">
-				<button class="w-full bg-primary-400-500-token" on:click={javaSystemPropModal}
-					>Java System Properties</button
-				>
-				<button class="w-full bg-primary-400-500-token" on:click={environmentVariablesModal}
-					>Environment Variables</button
-				>
-			</div>
+		<div slot="cornerOption" class="flex flex-wrap gap-5 w-min ml-2">
+			<button class="w-full bg-primary-400-500-token" on:click={() => modal('props')}
+				>Java System Properties</button
+			>
+			<button class="w-full bg-primary-400-500-token" on:click={() => modal('env')}
+				>Environment Variables</button
+			>
 		</div>
 		<StatusTable
 			class="mt-5"

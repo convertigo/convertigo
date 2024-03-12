@@ -6,10 +6,10 @@ export let globalSymbolsList = writable([]);
 export let defaultSymbolList = writable([]);
 
 export async function getEnvironmentVar() {
-	const res = await call('engine.GetEnvironmentVariablesList');
-	console.log('env:', res);
-	if (res?.admin) {
-		environmentVariables.set(res.admin.environmentVariables.environmentVariable);
+	const res = await call('engine.GetEnvironmentVariablesJson');
+	if (res?.variables) {
+		environmentVariables.set(res.variables);
+		return res.variables;
 	}
 }
 

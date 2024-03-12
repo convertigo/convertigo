@@ -18,7 +18,6 @@
 		globalSymbols();
 	});
 
-	let customCard = 'margin-top: 20px';
 	const symbolModalStore = getModalStore();
 
 	async function symbolsDelete(symbolId) {
@@ -235,8 +234,8 @@
 <Card class="mt-5" title="Environment Variables">
 	<TableAutoCard
 		definition={[
-			{ name: 'Name', key: '@_name' },
-			{ name: 'Value', key: '@_value' }
+			{ name: 'Name', key: 'name' },
+			{ name: 'Value', key: 'value' }
 		]}
 		data={$environmentVariables}
 	></TableAutoCard>

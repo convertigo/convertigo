@@ -14,25 +14,27 @@
 	import ModalRoles from '$lib/admin/modals/ModalRoles.svelte';
 	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
 	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
+	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
 
 	initializeStores();
 
 	afterNavigate(() => {
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
-			if (!$authenticated) {
+			if (!$authenticated && $page.route.id != '/login') {
 				goto(`${base}/login/`);
-			} else if ($page.route.id == '/') {
+			} else if ($page.route.id == '/' || $page.route.id == '/login') {
 				goto(`${base}/admin/`);
 			}
 		});
 	});
 
 	const modalComponentRegistry = {
-		modalSymbols: { ref: ModalSymbols },
+		modalHome: { ref: ModalHome },
 		modalProjects: { ref: ModalProjects },
 		modalRoles: { ref: ModalRoles },
 		modalScheduler: { ref: ModalScheduler },
+		modalSymbols: { ref: ModalSymbols },
 		modalWarning: { ref: ModalWarning }
 	};
 
