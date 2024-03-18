@@ -26,14 +26,14 @@
 	
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="$(CordovaPlatform)$" spec="7.0.1" />
+	<engine name="$(CordovaPlatform)$" spec="6.1.1" />
 	
 	<!--  Startup page is FlashUpdate  -->
 	<content src="ionic://$(EndpointHostname)$/index-fu.html" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-	<preference name="nodejs-version"             value="v20.11.1" />       <!-- all: version of NodeJS that run Cordova -->
-	<preference name="cordova-version"            value="12.0.0" />         <!-- all: version of Cordova CLI -->
+	<preference name="nodejs-version"             value="v12.18.4" />       <!-- all: version of NodeJS that run Cordova -->
+	<preference name="cordova-version"            value="10.0.0" />         <!-- all: version of Cordova CLI -->
 <!--<preference name="target-device"              value="universal" />      all: possible values handset, tablet, or universal -->
 	<preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
 	<preference name="SplashScreen"               value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
@@ -85,7 +85,7 @@
 	<preference name="permissions" value="none"/>
 	
 	<!-- Core plugins mandatory for FlashUpdate service -->
-	<plugin name="cordova-plugin-device" spec="~2.0.3" />
+	<plugin name="cordova-plugin-device" spec="~2.1.0" />
 	<plugin name="cordova-plugin-file" spec="~6.0.2" />
 	<plugin name="cordova-plugin-file-transfer-ios-fix" spec="~1.7.2" />
 	<plugin name="cordova-plugin-splashscreen" spec="~6.0.0" />
@@ -93,7 +93,7 @@
 	<plugin name="cordova-plugin-network-information" spec="~2.0.2" />
 	<plugin name="cordova-plugin-statusbar" spec="~2.4.3" />
 	<plugin name="cordova-plugin-ionic-webview" spec="5.0.1" />
-	<!-- <plugin name="cordova-plugin-wkwebview-inject-cookie" spec="1.1.6" /> -->
+	<plugin name="cordova-plugin-wkwebview-inject-cookie" spec="1.0.6" />
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
 	<access origin="*" />
@@ -107,6 +107,7 @@
 		<allow-intent href="itms:*" />
 		<allow-intent href="itms-apps:*" />
 	</platform>
+	<allow-navigation href="*://*/*" />
 	
 	<!-- Application mandatory plugins -->
 </widget>

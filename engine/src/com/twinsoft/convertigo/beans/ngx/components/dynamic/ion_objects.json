@@ -14096,8 +14096,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/google-plus",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -14387,8 +14391,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/file",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -14871,12 +14879,16 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/file-chooser",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					},
 					{
 						"package": "@ionic-native/file-path",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -14953,7 +14965,7 @@
 				"package_dependencies": [
 					{
 						"package": "@ionic-native/chooser",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -15143,8 +15155,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/speech-recognition",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -15248,12 +15264,16 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/globalization",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					},
 					{
 						"package": "@ionic-native/text-to-speech",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -15418,8 +15438,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/action-sheet",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -15990,8 +16014,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/file-opener",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -16224,8 +16252,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/camera",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -16412,8 +16444,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/barcode-scanner",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -16491,8 +16527,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/file-opener",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
@@ -16693,8 +16733,12 @@
 				],
 				"package_dependencies": [
 					{
+						"package": "@ionic-native/core",
+						"version": "^5.36.0"
+					},
+					{
 						"package": "@ionic-native/file-opener",
-						"version": "^5.26.0"
+						"version": "^5.36.0"
 					}
 				],
 				"cordova_plugins": [
