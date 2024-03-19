@@ -42,6 +42,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -489,5 +490,10 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	
 	protected String getRequestableName() {
 		return sequenceName;
+	}
+
+	@Override
+	protected IVariableContainer getTargetVariableContainer() throws EngineException {
+		return getTargetSequence();
 	}
 }
