@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -670,6 +671,15 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		if (source != null && !source.isEmpty()) {
 			source.updateTargetStep((Step)stepEvent.getSource(), (String)stepEvent.data);
 		}
+	}
+
+	@Override
+	protected IVariableContainer getTargetVariableContainer() throws EngineException {
+		Transaction transaction = getTargetTransaction();
+		if (transaction instanceof IVariableContainer tr) {
+			return tr;
+		}
+		return null;
 	}
 	
 }

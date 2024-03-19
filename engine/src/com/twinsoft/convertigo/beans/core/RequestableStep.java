@@ -585,7 +585,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		}
     }
     
+    abstract protected IVariableContainer getTargetVariableContainer() throws EngineException;
+    
     public void exportVariableDefinition() throws EngineException {
+    	IVariableContainer variableContainer = getTargetVariableContainer();
     	for (StepVariable stepVariable: getVariables()) {
     		String variableName = stepVariable.getName();
     		if (sequence.getVariable(variableName) == null) {
@@ -600,7 +603,16 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	    		requestableVariable.setRequired(stepVariable.isRequired());
 	    		requestableVariable.setValueOrNull(stepVariable.getValueOrNull());
 	    		requestableVariable.setVisibility(stepVariable.getVisibility());
+	    		
+	    		if (variableContainer != null) {
+	    			Variable v = variableContainer.getVariable(variableName);
+	    			if (v != null) {
+	    				requestableVariable.setIsFileUpload(v.getIsFileUpload());
+	    			}
+	    		}
+	    		
 	    		sequence.addVariable(requestableVariable);
+	    		requestableVariable.toString();
 	    		
 	    		requestableVariable.bNew = true;
 	    		requestableVariable.hasChanged = true;
