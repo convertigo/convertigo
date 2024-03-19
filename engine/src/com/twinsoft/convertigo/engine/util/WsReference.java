@@ -91,7 +91,22 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 
 public class WsReference {
-	public record CreateSequenceOptions(Accessibility accessiblity, boolean authenticationRequired) {};
+	public static class CreateSequenceOptions {
+		Accessibility accessiblity;
+		boolean authenticationRequired;
+		public CreateSequenceOptions(Accessibility accessiblity, boolean authenticationRequired) {
+			this.accessiblity = accessiblity;
+			this.authenticationRequired = authenticationRequired;
+		}
+
+		Accessibility accessiblity() {
+			return accessiblity;
+		};
+		
+		boolean authenticationRequired() {
+			return authenticationRequired;
+		};
+	};
 	
 	public static CreateSequenceOptions nextCreateSequences = null;
 	

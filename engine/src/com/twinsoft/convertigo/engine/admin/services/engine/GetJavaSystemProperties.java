@@ -48,9 +48,11 @@ public class GetJavaSystemProperties extends XmlService{
 
 		StringBuffer sProperties = new StringBuffer();
 		for (Object propertyName : new TreeSet<Object>(properties.keySet())) {
-			if (propertyName instanceof String pName
-					&& (!Engine.isCloudMode() || !(pName.contains("password") || pName.contains("billing")))) {
-				sProperties.append(pName + "=" + properties.getProperty(pName) + "\n");
+			if (propertyName instanceof String) {
+				String pName = (String) propertyName;
+				if (!Engine.isCloudMode() || !(pName.contains("password") || pName.contains("billing"))) {
+					sProperties.append(pName + "=" + properties.getProperty(pName) + "\n");
+				}
 			}
 		}
 
