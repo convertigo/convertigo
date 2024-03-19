@@ -970,15 +970,13 @@ public class OpenApiUtils {
 							String operationDesc = operation.getDescription();
 							String summary = operation.getSummary();
 							
-							String name = StringUtils.normalize(subDir + ":" + 
-											(customHttpVerb.isEmpty() ? httpMethodType.toString() : customHttpVerb));
+							String custom = subDir + ":" + (customHttpVerb.isEmpty() ? httpMethodType.toString() : customHttpVerb);
+							
+							String name = StringUtils.normalize(operationId);
 							if (name.isEmpty()) {
-								name = StringUtils.normalize(operationId);
+								name = StringUtils.normalize(custom);
 								if (name.isEmpty()) {
-									name = StringUtils.normalize(summary);
-									if (name.isEmpty()) {
-										name = "operation";
-									}
+									name = "operation";
 								}
 							}
 							
@@ -1042,65 +1040,67 @@ public class OpenApiUtils {
 							RequestBody body = operation.getRequestBody();
 							if (body != null) {
 								Map<String, MediaType> medias = body.getContent();
-								for (String contentType : medias.keySet()) {
-									MediaType mediaType = medias.get(contentType);
-									Schema<?> mediaSchema =  mediaType.getSchema();
-									List<String> requiredList = mediaSchema.getRequired();
-									if (contentType.equals("application/x-www-form-urlencoded")) {
-										@SuppressWarnings("rawtypes")
-										Map<String, Schema> properties = mediaSchema.getProperties();
-										if (properties != null) {
-											for (String p_name : properties.keySet()) {
-												Schema<?> schema = properties.get(p_name);
-												String p_description = schema.getDescription();
-												boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
-												
-												boolean isMultiValued = false;
-												if (schema instanceof ArraySchema) {
-													isMultiValued = true;
+								if (medias != null) {
+									for (String contentType : medias.keySet()) {
+										MediaType mediaType = medias.get(contentType);
+										Schema<?> mediaSchema =  mediaType.getSchema();
+										List<String> requiredList = mediaSchema.getRequired();
+										if (contentType.equals("application/x-www-form-urlencoded")) {
+											@SuppressWarnings("rawtypes")
+											Map<String, Schema> properties = mediaSchema.getProperties();
+											if (properties != null) {
+												for (String p_name : properties.keySet()) {
+													Schema<?> schema = properties.get(p_name);
+													String p_description = schema.getDescription();
+													boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
+													
+													boolean isMultiValued = false;
+													if (schema instanceof ArraySchema) {
+														isMultiValued = true;
+													}
+													
+													RequestableHttpVariable httpVariable = isMultiValued ? 
+															new RequestableHttpMultiValuedVariable():
+															new RequestableHttpVariable();
+													httpVariable.bNew = true;
+													httpVariable.setHttpMethod(HttpMethodType.POST.name());
+													httpVariable.setName(p_name);
+													httpVariable.setDescription(p_name);
+													httpVariable.setHttpName(p_name);
+													httpVariable.setRequired(p_required);
+													httpVariable.setComment(p_description == null ? "":p_description);
+													
+													if (schema instanceof FileSchema) {
+														httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
+													}
+													
+													Object defaultValue = schema.getDefault();
+													if (defaultValue == null && p_required) {
+														defaultValue = "";
+													}
+													httpVariable.setValueOrNull(defaultValue);
+													
+													transaction.addVariable(httpVariable);
 												}
-												
-												RequestableHttpVariable httpVariable = isMultiValued ? 
-														new RequestableHttpMultiValuedVariable():
-														new RequestableHttpVariable();
-												httpVariable.bNew = true;
-												httpVariable.setHttpMethod(HttpMethodType.POST.name());
-												httpVariable.setName(p_name);
-												httpVariable.setDescription(p_name);
-												httpVariable.setHttpName(p_name);
-												httpVariable.setRequired(p_required);
-												httpVariable.setComment(p_description == null ? "":p_description);
-												
-												if (schema instanceof FileSchema) {
-													httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
-												}
-												
-												Object defaultValue = schema.getDefault();
-												if (defaultValue == null && p_required) {
-													defaultValue = "";
-												}
-												httpVariable.setValueOrNull(defaultValue);
-												
-												transaction.addVariable(httpVariable);
 											}
+										} else if (!hasBodyVariable) {
+											RequestableHttpVariable httpVariable = new RequestableHttpVariable();
+											httpVariable.bNew = true;
+											httpVariable.setHttpMethod(HttpMethodType.POST.name());
+											httpVariable.setRequired(true);
+											
+											// overrides variable's name for internal use
+											httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
+											
+											Object defaultValue = null;
+											httpVariable.setValueOrNull(defaultValue);
+											
+											transaction.addVariable(httpVariable);
+											
+											h_ContentType = contentType;
+											
+											hasBodyVariable = true;
 										}
-									} else if (!hasBodyVariable) {
-										RequestableHttpVariable httpVariable = new RequestableHttpVariable();
-										httpVariable.bNew = true;
-										httpVariable.setHttpMethod(HttpMethodType.POST.name());
-										httpVariable.setRequired(true);
-										
-										// overrides variable's name for internal use
-										httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
-										
-										Object defaultValue = null;
-										httpVariable.setValueOrNull(defaultValue);
-										
-										transaction.addVariable(httpVariable);
-										
-										h_ContentType = contentType;
-										
-										hasBodyVariable = true;
 									}
 								}
 							}
