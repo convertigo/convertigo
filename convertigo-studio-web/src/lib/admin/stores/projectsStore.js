@@ -1,5 +1,4 @@
 import { call } from '$lib/utils/service';
-import { getModalStore } from '@skeletonlabs/skeleton';
 import { get, writable } from 'svelte/store';
 
 export const projectsStore = writable([]);
@@ -16,43 +15,5 @@ export async function projectsCheck() {
 			}
 			projectsStore.set(response.admin.projects.project);
 		}
-	}
-}
-
-/** 
-export async function deleteProject(projectName) {
-	try {
-		const response = await call('projects.Delete', { projectName });
-
-		if (response) {
-			projectsStore.update((projects) => {
-				return projects.filter((project) => project['@_name'] !== projectName);
-			});
-		} else {
-			alert('There was an error deleting the project.');
-		}
-	} catch (error) {
-		alert(`An error occurred`);
-	}
-}*/
-
-export async function reloadProject(projectName) {
-	if (
-		!confirm(
-			`Do you really want to reload the project '${projectName}'? All unsaved changes will be lost.`
-		)
-	) {
-		return;
-	}
-
-	try {
-		const response = await call('projects.Reload', { projectName });
-		if (response) {
-			alert(`The project '${projectName}' has been successfully reloaded.`);
-		} else {
-			alert('There was an error reloading the project.');
-		}
-	} catch (error) {
-		alert(`An error occurred`);
 	}
 }

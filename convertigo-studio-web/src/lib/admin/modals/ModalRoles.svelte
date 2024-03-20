@@ -142,7 +142,7 @@
 							value={true}
 							active="variant-filled-secondary"
 						>
-							Check Config
+							<Icon icon="mdi:plus" class="w-6 h-6" />
 						</RadioItem>
 						<RadioItem
 							bind:group={$viewRolesChecked}
@@ -151,7 +151,7 @@
 							value={false}
 							active="variant-filled-surface"
 						>
-							Uncheck Config
+							<Icon icon="mdi:minus" class="w-6 h-6" />
 						</RadioItem>
 					</RadioGroup>
 				</div>
@@ -175,7 +175,7 @@
 						{/each}
 					</div>
 
-					<RadioGroup class="mt-10 max-w-80">
+					<RadioGroup class="mt-10 flex max-w-80">
 						<RadioItem
 							bind:group={$configRolesChecked}
 							on:click={() => toggleConfigRoles(true)}
@@ -183,7 +183,7 @@
 							value={true}
 							active="variant-filled-secondary"
 						>
-							Check Config
+							<Icon icon="mdi:plus" class="w-6 h-6" />
 						</RadioItem>
 						<RadioItem
 							bind:group={$configRolesChecked}
@@ -192,7 +192,7 @@
 							value={false}
 							active="variant-filled-surface"
 						>
-							Uncheck Config
+							<Icon icon="mdi:minus" class="w-6 h-6" />
 						</RadioItem>
 					</RadioGroup>
 				</div>
@@ -230,7 +230,7 @@
 	<Card>
 		<form class="p-5 rounded-xl glass flex flex-col">
 			<h1 class="text-xl mb-5 text-center">Import users</h1>
-			<RadioGroup>
+			<RadioGroup active="bg-secondary-400-500-token">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
 					>Clear & import</RadioItem
 				>
@@ -238,7 +238,7 @@
 			</RadioGroup>
 			{#if importAction == ''}
 				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict</p>
-				<RadioGroup>
+				<RadioGroup active="bg-secondary-400-500-token">
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server"
 						>Priority Server</RadioItem
 					>

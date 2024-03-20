@@ -87,7 +87,9 @@
 
 	<Card title="Legends">
 		<div slot="cornerOption">
-			<button class="bg-surface-400-500-token max-w-80">Delete all Sessions and Connections</button>
+			<button class="bg-surface-200 dark:bg-surface-600 max-w-80"
+				>Delete all Sessions and Connections</button
+			>
 		</div>
 		<TableAutoCard
 			definition={[

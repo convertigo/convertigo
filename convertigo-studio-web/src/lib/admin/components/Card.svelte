@@ -18,6 +18,6 @@
 
 <style lang="postcss">
 	.card-style {
-		@apply flex flex-col border-[0.5px] border-surface-200 dark:border-surface-700 rounded-container-token dark:bg-surface-800 bg-surface-100 h-auto p-4 font-extralight text-[13.5px];
+		@apply flex flex-col border-[0.5px] border-surface-200 dark:border-surface-600 rounded-container-token dark:bg-surface-800 bg-surface-100 h-auto p-4 font-extralight text-[13.5px];
 	}
 </style>

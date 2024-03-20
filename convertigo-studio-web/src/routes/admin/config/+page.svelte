@@ -105,7 +105,7 @@
 					<button
 						type="button"
 						disabled={!hasChanges}
-						class="btn p-1 pl-5 pr-5 ring-outline-token variant-filled-error w-full max-w-60"
+						class="btn p-1 pl-5 pr-5 ring-outline-token variant-filled-tertiary w-full max-w-60"
 						on:click={refreshConfigurations}
 					>
 						<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
@@ -186,7 +186,7 @@
 					<button
 						type="button"
 						disabled={true}
-						class="btn p-1 pl-5 pr-5 mb-5 w-80 bg-buttons font-normal rounded-full font-medium"
+						class="btn p-1 pl-5 pr-5 mb-5 w-80 font-normal rounded-full font-medium"
 					>
 						<span
 							><Icon

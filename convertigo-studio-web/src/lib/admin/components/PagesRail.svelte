@@ -13,7 +13,7 @@
 	width="w-auto"
 	height="h-[100%]"
 	background="dark:bg-surface-800 bg-surface-100"
-	class="border-r-[0.5px] dark:border-surface-500 border-surface-200 p-4 "
+	class="border-r-[0.5px] dark:border-surface-600 border-surface-200 p-4 "
 	active="dark:bg-surface-900"
 	hover="hover:bg-surface-900"
 >
@@ -32,8 +32,8 @@
 		{/each}
 
 		{#if i < parts.length - 1}
-			<div class="col-span-2 flex justify-center my-5">
-				<separator class="border-[1px] flex w-[70%] border-surface-100" />
+			<div class="col-span-2 flex my-5 p-3">
+				<separator class="border-[1px] flex w-[70%] dark:border-surface-300 border-surface-400" />
 			</div>
 		{/if}
 	{/each}

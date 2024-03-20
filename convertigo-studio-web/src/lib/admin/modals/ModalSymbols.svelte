@@ -60,39 +60,25 @@
 	<Card>
 		<form class="flex flex-col p-5">
 			<h1 class="text-xl mb-5 text-center text-token">Import global symbols</h1>
-			<RadioGroup>
-				<RadioItem
-					bind:group={importAction}
-					name="action-import"
-					value="clear-import"
-					active="variant-filled-surface text-white">Clear & import</RadioItem
+			<RadioGroup active="bg-secondary-400-500-token">
+				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
+					>Clear & import</RadioItem
 				>
-				<RadioItem
-					bind:group={importAction}
-					name="action-import"
-					value=""
-					active="variant-filled-surface text-white">Merge symbols</RadioItem
-				>
+				<RadioItem bind:group={importAction} name="action-import" value="">Merge symbols</RadioItem>
 			</RadioGroup>
 			{#if importAction == ''}
 				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
-				<RadioGroup>
-					<RadioItem
-						bind:group={importPriority}
-						name="priority"
-						value="priority-server "
-						active="variant-filled-surface text-white">Priority Server</RadioItem
+				<RadioGroup active="bg-secondary-400-500-token">
+					<RadioItem bind:group={importPriority} name="priority" value="priority-server "
+						>Priority Server</RadioItem
 					>
-					<RadioItem
-						bind:group={importPriority}
-						name="priority"
-						value="priority-import"
-						active="variant-filled-surface text-white">Priority import</RadioItem
+					<RadioItem bind:group={importPriority} name="priority" value="priority-import"
+						>Priority import</RadioItem
 					>
 				</RadioGroup>
 			{/if}
 
-			<div class="flex flex-wrap gap-5">
+			<div class="flex flex-wrap gap-5 mt-5">
 				<div class="flex-1">
 					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
 						>Cancel</button

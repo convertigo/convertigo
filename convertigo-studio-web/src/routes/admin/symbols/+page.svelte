@@ -50,14 +50,12 @@
 
 	async function deleteAllSymbols() {
 		const res = await call('global_symbols.DeleteAll');
-		console.log('delete all', res);
 		globalSymbols();
 	}
 
 	async function addDefaultSymbol(defaultSymbol) {
 		if (!defaultSymbol || !defaultSymbol['@_name'] || !defaultSymbol['@_value']) {
 			console.error('symbole name or value is empty');
-
 			return;
 		}
 
@@ -95,19 +93,19 @@
 		});
 	}
 
-	function confirmDeleteAll() {
-		const modalDeleteAll = {
-			type: 'confirm',
+	function openConfirmDeleteAll() {
+		symbolModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
 			title: 'Please Confirm',
-			body: 'Are you sure you wish to proceed ?',
+			body: 'Are you sure you want to delete All Symbols ?',
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteAllSymbols();
 				}
 			}
-		};
-		// @ts-ignore
-		symbolModalStore.trigger(modalDeleteAll);
+		});
 	}
 
 	function openAddGlobalSymbolModal() {
@@ -138,7 +136,7 @@
 <Card title="Global Symbols">
 	<div slot="cornerOption">
 		<div class="flex-1">
-			<button class="bg-error-400-500-token w-full" on:click={confirmDeleteAll}
+			<button class="bg-error-400-500-token w-full" on:click={openConfirmDeleteAll}
 				><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
 			>
 		</div>
@@ -205,7 +203,7 @@
 		List of global symbols with default value currently used. You can import them as regular symbol.
 	</p>
 
-	{#if $defaultSymbolList.length > 0}
+	{#if $defaultSymbolList.length >= 0}
 		<TableAutoCard
 			definition={[
 				{ name: 'Project', key: '@_project' },

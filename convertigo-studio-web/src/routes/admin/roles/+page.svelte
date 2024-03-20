@@ -142,13 +142,13 @@
 		</div>
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={openImportUserModal}>
-				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
+				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
 				Import Users
 			</button>
 		</div>
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={openExportUserModal}>
-				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
+				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
 				Export Users
 			</button>
 		</div>
@@ -157,7 +157,6 @@
 	{#if $usersStore.length > 0}
 		<TableAutoCard
 			definition={[
-				{ name: 'User', custom: true },
 				{ name: 'Name', key: '@_name' },
 				{ name: 'Role', key: 'role' },
 				{ name: 'Edit', custom: true },
@@ -167,9 +166,7 @@
 			let:row
 			let:def
 		>
-			{#if def.name === 'User'}
-				<Icon icon="iconoir:profile-circle" class="w-7 h-7" />
-			{:else if def.name === 'Edit'}
+			{#if def.name === 'Edit'}
 				<button class="p-1 px-2 shadow-md bg-tertiary-400-500-token">
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>

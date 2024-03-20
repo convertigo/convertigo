@@ -1,17 +1,17 @@
 <script>
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { projectsCheck, projectsStore, reloadProject } from '$lib/admin/stores/projectsStore';
+	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
 	import Icon from '@iconify/svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import { writable } from 'svelte/store';
 
 	const projectModalStore = getModalStore();
 
 	onMount(() => {
 		projectsCheck();
+		exportProject();
 	});
 
 	/**
@@ -28,6 +28,8 @@
 	/**
 	 * @param {string} projectName
 	 */
+
+	/**
 	export async function exportProject(projectName) {
 		const exportModalSettings = {
 			title: 'Export options',
@@ -53,37 +55,114 @@
 		} catch (error) {
 			console.error(`An error occurred: ${error}`);
 		}
+	}*/
+
+	async function exportProject(projectName) {
+		try {
+			const response = await call('projects.ExportOptions', { projectName });
+
+			if (response !== undefined) {
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	}
+
+	function openExportProjectModal(projectName) {
+		projectModalStore.trigger({
+			type: 'component',
+			component: 'modalProjects',
+			meta: { mode: 'Export' },
+			response: () => {
+				exportProject(projectName);
+			}
+		});
 	}
 
 	export async function deleteProject(projectName) {
-		let notification = {
-			title: '',
-			body: ''
-		};
-
 		try {
 			const response = await call('projects.Delete', { projectName });
 			console.log('deleted project', response);
 
+			// If the deletion was successful
 			if (response?.admin) {
-				notification.title = 'Project Deleted Successfully';
 				projectsStore.update((projects) =>
 					projects.filter((project) => project['@_name'] !== projectName)
 				);
+				projectModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Success' },
+					title: 'Success',
+					body: 'Project Deleted Successfully',
+					response: () => {}
+				});
 			} else {
 				throw new Error(
-					response?.error?.message || 'Unknown error occurred while deleting the project.'
+					response?.admin?.error?.message || 'Unknown error occurred while deleting the project.'
 				);
 			}
 		} catch (err) {
 			console.error('Error deleting project:', err);
-			notification.title = 'Error Deleting Project';
-			//@ts-ignore
-			notification.body = err.message || 'An unknown error occurred during the deletion process.';
-		} finally {
-			//@ts-ignore
-			projectModalStore.trigger(notification);
+			projectModalStore.trigger({
+				type: 'component',
+				component: 'modalWarning',
+				meta: { mode: 'Error' },
+				title: 'Error Deleting Project',
+				//@ts-ignore
+				body: err.message || 'An unknown error occurred during the deletion process. Retry later',
+				response: () => {}
+			});
 		}
+	}
+
+	async function reloadProject(projectName) {
+		try {
+			const response = await call('projects.Reload', { projectName });
+			console.log('Reload service', response);
+
+			if (response && response.admin && response.admin['@_service'] === 'projects.Reload') {
+				projectModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Success' },
+					title: 'Success',
+					body: 'Project Reloaded Successfully',
+					response: () => {}
+				});
+			} else {
+				throw new Error('Unexpected response structure from reload service.');
+			}
+		} catch (err) {
+			console.error(err);
+			//@ts-ignore
+			const errorMessage =
+				//@ts-ignore
+				err.response?.admin?.error?.message || 'An error occurred while reloading the project.';
+			projectModalStore.trigger({
+				type: 'component',
+				component: 'modalWarning',
+				meta: { mode: 'Error' },
+				title: 'Error',
+				body: errorMessage,
+				response: () => {}
+			});
+		}
+	}
+
+	function openReloadProjectModal(projectName) {
+		projectModalStore.trigger({
+			type: 'component',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
+			title: 'Please Confirm',
+			body: `Reload the Project '${projectName}' ?`,
+			response: (confirmed) => {
+				if (confirmed) {
+					reloadProject(projectName);
+				}
+			}
+		});
 	}
 
 	function openDeleteProjectModal(projectName) {
@@ -112,15 +191,17 @@
 	</div>
 	<div class="flex flex-wrap gap-5 mt-5">
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}
-				>Deploy project</button
-			>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}>
+				<Icon icon="grommet-icons:deploy" class="w-5 h-5 mr-4" />
+				Deploy project
+			</button>
 		</div>
 
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('import')}
-				>Import a Remote Project URL</button
-			>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('import')}>
+				<Icon icon="solar:import-line-duotone" class="w-6 h-6 mr-4" />
+				Import a Remote Project URL
+			</button>
 		</div>
 	</div>
 </Card>
@@ -151,15 +232,21 @@
 					<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Reload'}
-				<button on:click={() => reloadProject(row['@_name'])} class="bg-tertiary-400-500-token">
+				<button
+					on:click={() => openReloadProjectModal(row['@_name'])}
+					class="bg-tertiary-400-500-token"
+				>
 					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Export'}
-				<button on:click={() => exportProject(row['@_name'])} class="bg-primary-400-500-token">
-					<Icon icon="bytesize:export" class="w-6 h-6" />
+				<button
+					on:click={() => openExportProjectModal(row['@_name'])}
+					class="bg-primary-400-500-token"
+				>
+					<Icon icon="solar:export-line-duotone" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Test'}
-				<a href="/admin-console" class="bg-secondary-400-500-token btn">
+				<a href="/admin" class="bg-secondary-400-500-token btn">
 					<Icon icon="fluent-mdl2:test-plan" class="w-6 h-6" />
 				</a>
 			{/if}

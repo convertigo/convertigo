@@ -30,7 +30,7 @@
 						<td data-label={def.name}>
 							{#if def.custom}
 								<slot {row} {def}>{row[def.key] ?? ''}</slot>
-							{:else if row[def.key] == null}
+							{:else if row[def.key] === null}
 								<div class="placeholder animate-pulse w-full min-w-32"></div>
 							{:else}
 								{row[def.key] ?? ''}

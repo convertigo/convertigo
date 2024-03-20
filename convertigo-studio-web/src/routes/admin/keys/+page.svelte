@@ -11,8 +11,6 @@
 
 	let newKey = '';
 
-	let selectedIndex = -1;
-
 	onMount(() => {
 		keysCheck();
 	});
@@ -110,9 +108,17 @@
 		try {
 			await keysUpdate(newKey);
 			newKey = '';
-
-			//@ts-ignore
-			keyModalStore.trigger(modalSuccess);
+			keyModalStore.trigger({
+				type: 'component',
+				component: 'modalWarning',
+				meta: { mode: 'Success' },
+				title: 'Please Confirm',
+				body: 'Are you sure you want to delete All Symbols ?',
+				response: (confirmed) => {
+					if (confirmed) {
+					}
+				}
+			});
 		} catch (err) {
 			console.error(err);
 		}
@@ -120,12 +126,10 @@
 </script>
 
 <Card>
-	<div>
-		<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
-			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
-		</form>
-	</div>
+	<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
+		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
+		<button type="submit" class="bg-primary-400-500-token">Add Key</button>
+	</form>
 </Card>
 
 {#if $categoryStore.length >= 0}
