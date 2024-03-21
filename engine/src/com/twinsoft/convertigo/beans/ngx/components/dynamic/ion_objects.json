@@ -2808,6 +2808,11 @@
 			"description": [
 				" | Defines a <i>Tooltip</i> component. The <i>Tooltip</i> is a pop-up tip that appears when you hover over an item or click on it.<br/>",
 				" To use it, place the <i>Tooltip</i> inside any component such as <i>Button</i> or <i>Generic item</i>.<br/>",
+				"Usage for the <i>Tooltip content</i> to be displayed according to the <i>Tooltip content type</i> property:</br><ul>",
+				"<li>string:</br>[TX mode] <code>A simple tooltip string</code></li>",
+				"<li>html:</br>[TX mode] <code><span>Hello i'm a <strong>bold</strong> text!</span></code></li>",
+				"<li>template:</br>[TS mode] <code>this.MyNgTemplateIdentifier</li>",
+				"</ul><br/>",
 				" For more information: <a href='https://www.npmjs.com/package/ng2-tooltip-directive'>ng2-tooltip-directive</a>."
 			],
 			"group": "Miscellaneous",
@@ -2938,7 +2943,7 @@
 				"Position": {
 					"attr": "[position]",
 					"label": "Coordinates",
-					"description": "The tooltip coordinates relative to the browser window, e.g.: {top: number, left: number} ",
+					"description": "The tooltip coordinates relative to the browser window, e.g. in TS mode: {top: number, left: number} ",
 					"category": "@Properties",
 					"mode": "script",
 					"value": false,
@@ -2960,9 +2965,16 @@
 					]
 				},
 				"Tooltip": {
-					"attr": "tooltip",
-					"label": "Tooltip string",
-					"description": "The string to be displayed in the popup.",
+					"attr": "[tooltip]",
+					"label": "Tooltip content",
+					"description": [
+						"The content to be displayed in the popup according to the <i>Tooltip content type</i> property.<br/>",
+						"Usage according to content type:</br><ul>",
+						"<li>string:</br>[TX mode] <code>A simple tooltip string</code></li>",
+						"<li>html:</br>[TX mode] <code><span>Hello i'm a <strong>bold</strong> text!</span></code></li>",
+						"<li>template:</br>[TS mode] <code>this.MyNgTemplateIdentifier</li>",
+						"</ul>"
+					],
 					"category": "@Properties",
 					"value": "A tooltip string",
 					"values": [
@@ -2983,7 +2995,7 @@
 				},
 				"TooltipContent": {
 					"attr": "contentType",
-					"label": "Tooltip content",
+					"label": "Tooltip content type",
 					"description": "The content type passed to the tooltip.",
 					"category": "@Properties",
 					"value": "string",
@@ -3058,7 +3070,7 @@
 				"package_dependencies": [
 					{
 						"package": "ng2-tooltip-directive",
-						"version": "2.9.20"
+						"version": "2.10.3"
 					}
 				]
 			}
