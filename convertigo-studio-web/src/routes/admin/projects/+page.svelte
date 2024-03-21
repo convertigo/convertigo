@@ -84,7 +84,6 @@
 			const response = await call('projects.Delete', { projectName });
 			console.log('deleted project', response);
 
-			// If the deletion was successful
 			if (response?.admin) {
 				projectsStore.update((projects) =>
 					projects.filter((project) => project['@_name'] !== projectName)
@@ -121,7 +120,7 @@
 			const response = await call('projects.Reload', { projectName });
 			console.log('Reload service', response);
 
-			if (response && response.admin && response.admin['@_service'] === 'projects.Reload') {
+			if (response.admin['@_service'] === 'projects.Reload') {
 				projectModalStore.trigger({
 					type: 'component',
 					component: 'modalWarning',
@@ -130,7 +129,7 @@
 					body: 'Project Reloaded Successfully',
 					response: () => {}
 				});
-			} else {
+			} else if (response.error) {
 				throw new Error('Unexpected response structure from reload service.');
 			}
 		} catch (err) {

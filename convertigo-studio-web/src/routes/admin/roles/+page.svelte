@@ -45,9 +45,32 @@
 			const res = await call('roles.Delete', formData);
 			console.log('service delete roles', res);
 			usersList();
-			if (res.success) {
+			if (res.admin.response['@_state'] === 'success') {
 				usersStore.update((users) => {
 					return users.filter((user) => user['@_name'] !== userName);
+				});
+				rolesModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					title: 'Success',
+					body: 'Role deleted with success',
+					meta: { mode: 'Success' },
+					response: (confirmed) => {
+						if (confirmed) {
+						}
+					}
+				});
+			} else {
+				rolesModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					title: 'Error',
+					body: 'An error occurred',
+					meta: { mode: 'Error' },
+					response: (confirmed) => {
+						if (confirmed) {
+						}
+					}
 				});
 			}
 		} catch (error) {
@@ -59,6 +82,33 @@
 		const response = await call('roles.DeleteAll');
 		usersList();
 		console.log('delete all', response);
+
+		if (response.admin.response['@_state'] === 'success') {
+			rolesModalStore.trigger({
+				type: 'component',
+				component: 'modalWarning',
+				title: 'Success',
+				body: 'All Roles deleted with success',
+				meta: { mode: 'Success' },
+				response: (confirmed) => {
+					if (confirmed) {
+						usersList();
+					}
+				}
+			});
+		} else if (response.admin.response['@_state'] === 'error') {
+			rolesModalStore.trigger({
+				type: 'component',
+				component: 'modalWarning',
+				title: 'Error',
+				body: 'An error occurred',
+				meta: { mode: 'Error' },
+				response: (confirmed) => {
+					if (confirmed) {
+					}
+				}
+			});
+		}
 	}
 
 	function openAddUserModal() {
@@ -86,9 +136,6 @@
 	}
 
 	function openDeleteAllModal() {
-		const confirmDeletedAll = {
-			title: 'All Keys deleted with success'
-		};
 		rolesModalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
@@ -98,17 +145,12 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteAllRoles();
-					//@ts-ignore
-					rolesModalStore.trigger(confirmDeletedAll);
 				}
 			}
 		});
 	}
 
 	function openDeleteModal(userName) {
-		const confirmDeleted = {
-			title: 'Key deleted with success'
-		};
 		rolesModalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
@@ -118,8 +160,6 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteUsersRoles(userName);
-					//@ts-ignore
-					rolesModalStore.trigger(confirmDeleted);
 				}
 			}
 		});

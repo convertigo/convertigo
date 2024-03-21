@@ -3,6 +3,7 @@
 	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { onMount } from 'svelte';
+	import { projectsCheck, projectsStore } from '../stores/projectsStore';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -22,19 +23,10 @@
 	async function deployProject(e) {
 		try {
 			// @ts-ignore
-			await call('projects.Deploy', new FormData(e.target.form));
-			modalStore.close();
-		} catch (err) {
-			console.error(err);
-		}
-	}
-
-	async function exportProject(projectName) {
-		try {
-			const response = await call('projects.ExportOptions', { projectName });
-			const fd = new FormData();
-
-			if (response !== undefined) {
+			const res = await call('projects.Deploy', new FormData(e.target.form));
+			if (res?.admin) {
+				modalStore.close();
+				projectsCheck();
 			}
 		} catch (err) {
 			console.error(err);

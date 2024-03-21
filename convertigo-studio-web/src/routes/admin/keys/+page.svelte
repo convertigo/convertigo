@@ -49,7 +49,26 @@
 					}
 				}
 			});
-			if (response) {
+			console.log('remove key service', response);
+			if (response.error) {
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Error' },
+					title: 'Error',
+					body: 'An error occurred',
+					response: (confirmed) => {}
+				});
+				keysCheck();
+			} else {
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Success' },
+					title: 'Key removed',
+					body: 'The Key has been removed with success',
+					response: (confirmed) => {}
+				});
 				keysCheck();
 			}
 		} catch (error) {
@@ -58,9 +77,6 @@
 	}
 
 	function openModalDeleteKey(keyText) {
-		const confirmDeleted = {
-			title: 'Key deleted with success'
-		};
 		// @ts-ignore
 		keyModalStore.trigger({
 			type: 'component',
@@ -72,8 +88,6 @@
 				if (confirmed) {
 					deleteKey(keyText);
 					console.log('key deleted :', { keyText });
-					//@ts-ignore
-					keyModalStore.trigger(confirmDeleted);
 				}
 			}
 		});
@@ -92,8 +106,27 @@
 					}
 				}
 			});
-			if (resUpdate) {
-				console.log(resUpdate);
+			const errorMessage = resUpdate?.admin?.keys?.key['@_errorMessage'];
+			if (errorMessage) {
+				console.log('keysUpdate function response :', resUpdate);
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Error' },
+					title: 'Error',
+					body: errorMessage,
+					response: (confirmed) => {}
+				});
+				keysCheck();
+			} else {
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Success' },
+					title: 'Key added',
+					body: 'The Key has been added with success',
+					response: (confirmed) => {}
+				});
 				keysCheck();
 			}
 		} catch (err) {
@@ -102,23 +135,9 @@
 	}
 
 	async function handleFormSubmit() {
-		const modalSuccess = {
-			title: 'key added with success'
-		};
 		try {
-			await keysUpdate(newKey);
+			const res = await keysUpdate(newKey);
 			newKey = '';
-			keyModalStore.trigger({
-				type: 'component',
-				component: 'modalWarning',
-				meta: { mode: 'Success' },
-				title: 'Please Confirm',
-				body: 'Are you sure you want to delete All Symbols ?',
-				response: (confirmed) => {
-					if (confirmed) {
-					}
-				}
-			});
 		} catch (err) {
 			console.error(err);
 		}

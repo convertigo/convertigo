@@ -8,7 +8,7 @@
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 
 	const modalStore = getModalStore();
-	const { mode } = $modalStore[0].meta;
+	const { mode } = $modalStore[0].meta ?? {};
 
 	let viewRolesStore = writable([]);
 	let configRolesStore = writable([]);
