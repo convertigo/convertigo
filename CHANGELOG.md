@@ -1,5 +1,21 @@
 # Changelog
 
+## 8.2.7
+
+#### Improvements:
+
+- [#803](https://github.com/convertigo/convertigo/issues/803) [Analytics] Upgrade Google Analytics to G4
+- [#804](https://github.com/convertigo/convertigo/issues/804) [Studio] Option to create sequences with call transaction when importing from Web Services
+- [#806](https://github.com/convertigo/convertigo/issues/806) [Studio] Baserow stub wizard handle upload file via url for Create and Update
+
+#### Bug Fixes:
+
+- [#805](https://github.com/convertigo/convertigo/issues/805) [Engine] Fixed, allow blank key of JSON parsed by Convertigo
+- [#810](https://github.com/convertigo/convertigo/issues/810) [Studio] Fixed, 'Export variables to main sequence' on a Call_transaction Step keeps the 'Is file upload' value on the variable
+- [#812](https://github.com/convertigo/convertigo/issues/812) [OpenApi] Fixed, REST WS reference creation trough a YAML prevents NPE
+
+---
+
 ## 8.2.6
 
 #### Bug Fixes:

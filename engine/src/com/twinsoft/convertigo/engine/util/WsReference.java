@@ -179,7 +179,7 @@ public class WsReference {
 					var copy = new XMLCopyStep();
 					var source = new XMLVector<String>();
 					source.add(Long.toString(call.priority));
-					source.add("document/object");
+					source.add("./document/*[name() != 'HttpInfo']");
 					copy.setSourceDefinition(source);
 					seq.add(copy);
 					project.add(seq);

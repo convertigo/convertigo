@@ -798,7 +798,7 @@ public class BaserowView extends ViewPart {
 										sourceStep.setVariableName(var.getName());
 										var source = new XMLVector<String>();
 										source.add(Long.toString(files.priority));
-										source.add("/transaction/document/object/name/text()");
+										source.add("./transaction/document/object/name/text()");
 										sourceStep.setSourceDefinition(source);
 										ifStp.add(sourceStep);
 										var jsonArrayStep = new JsonArrayStep();
@@ -916,7 +916,7 @@ public class BaserowView extends ViewPart {
 							XMLCopyStep xmlCopyStep = new XMLCopyStep();
 							XMLVector<String> source = new XMLVector<String>();
 							source.add(Long.toString(transactionStep.priority));
-							source.add("document/object");
+							source.add("./document/object");
 							xmlCopyStep.setSourceDefinition(source);
 							sequence.add(xmlCopyStep);
 
@@ -1140,7 +1140,7 @@ public class BaserowView extends ViewPart {
 							XMLCopyStep xmlCopyStep = new XMLCopyStep();
 							XMLVector<String> source = new XMLVector<String>();
 							source.add(Long.toString(transactionStep.priority));
-							source.add("document/object");
+							source.add("./document/object");
 							xmlCopyStep.setSourceDefinition(source);
 							sequence.add(xmlCopyStep);
 
