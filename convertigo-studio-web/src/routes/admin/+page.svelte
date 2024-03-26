@@ -102,14 +102,10 @@
 			memoryUsed={$monitorData.memoryUsed}
 		/>
 	</Card>
-</AutoGrid>
 
-<div class="mt-5">
-	<AutoGrid>
-		{#each charts as chart}
-			<Card>
-				<ApexChartLineAdmin {...chart} {isLoading} {categories} />
-			</Card>
-		{/each}
-	</AutoGrid>
-</div>
+	{#each charts as chart}
+		<Card>
+			<ApexChartLineAdmin {...chart} {isLoading} {categories} />
+		</Card>
+	{/each}
+</AutoGrid>

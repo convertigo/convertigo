@@ -21,13 +21,6 @@
 	const symbolModalStore = getModalStore();
 
 	async function symbolsDelete(symbolId) {
-		const successModalSettings = {
-			title: 'Delete Successful'
-		};
-		const failureModalSettings = {
-			title: 'Delete Failed'
-		};
-
 		let formData = new FormData();
 		formData.append('symbolName', symbolId);
 		//globalSymbols();
@@ -38,10 +31,14 @@
 
 			if (response !== undefined) {
 				// @ts-ignore
-				symbolModalStore.trigger(successModalSettings);
+				symbolModalStore.trigger({
+					title: 'Delete Successful'
+				});
 			} else {
 				// @ts-ignore
-				symbolModalStore.trigger(failureModalSettings);
+				symbolModalStore.trigger({
+					title: 'Delete Failed'
+				});
 			}
 		} catch (error) {
 			console.error(error);
@@ -74,9 +71,6 @@
 	}
 
 	export function confirmSymbolDeletion(symbolId) {
-		const confirmDeleted = {
-			title: 'Key deleted with success'
-		};
 		symbolModalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
@@ -87,7 +81,9 @@
 				if (confirmed) {
 					symbolsDelete(symbolId);
 					// @ts-ignore
-					symbolModalStore.trigger(confirmDeleted);
+					symbolModalStore.trigger({
+						title: 'Key deleted with success'
+					});
 				}
 			}
 		});

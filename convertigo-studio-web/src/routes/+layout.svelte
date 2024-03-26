@@ -4,7 +4,7 @@
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { Modal, initializeStores, storePopup } from '@skeletonlabs/skeleton';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { call } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
@@ -15,15 +15,17 @@
 	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
 	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
 	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
+	import { onMount } from 'svelte';
+	import ModalSessionLegend from '$lib/admin/modals/ModalSessionLegend.svelte';
 
 	initializeStores();
 
-	afterNavigate(() => {
+	onMount(() => {
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated && $page.route.id != '/login') {
 				goto(`${base}/login/`);
-			} else if ($page.route.id == '/' || $page.route.id == '/login') {
+			} else if ($authenticated && ($page.route.id == '/' || $page.route.id == '/login')) {
 				goto(`${base}/admin/`);
 			}
 		});
@@ -35,7 +37,8 @@
 		modalRoles: { ref: ModalRoles },
 		modalScheduler: { ref: ModalScheduler },
 		modalSymbols: { ref: ModalSymbols },
-		modalWarning: { ref: ModalWarning }
+		modalWarning: { ref: ModalWarning },
+		modalSessionLegend: { ref: ModalSessionLegend }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });

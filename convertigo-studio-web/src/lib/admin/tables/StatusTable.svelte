@@ -7,14 +7,11 @@
 		licenceNumber,
 		licenceExpired
 	} from '../stores/statusStore';
-	import Table from '../components/Table.svelte';
+	import TableAutoCard from '../components/TableAutoCard.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	export let time;
 	export let startTime;
 	export let engineState;
-
-	let headers = ['Name', 'Value'];
-
-	let showHeaders = false;
 
 	let cls = '';
 	export { cls as class };
@@ -43,6 +40,27 @@
 	});
 </script>
 
-<div class={`${cls}`}>
-	<Table {headers} {data} {showHeaders} />
-</div>
+<TableAutoCard
+	class={`statusTable ${cls}`}
+	showHeaders={false}
+	definition={[{ key: 'Name' }, { key: 'Value', custom: true }]}
+	{data}
+	let:row
+	let:def
+>
+	{#if row[def.key] == 'Running'}
+		<span class="on" />
+	{:else if row[def.key] == 'Stopped'}
+		<span class="off" />
+	{/if}
+	<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
+</TableAutoCard>
+
+<style lang="postcss">
+	:global(.statusTable td:has(> .on)) {
+		@apply bg-success-500;
+	}
+	:global(.statusTable td:has(> .off)) {
+		@apply bg-error-500;
+	}
+</style>

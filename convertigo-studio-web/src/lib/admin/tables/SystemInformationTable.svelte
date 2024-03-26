@@ -12,16 +12,13 @@
 		osAvailableProcessors,
 		browser
 	} from '../stores/statusStore';
-	import Table from '../components/Table.svelte';
+	import TableAutoCard from '../components/TableAutoCard.svelte';
 	export let memoryMaximal;
 	export let memoryTotal;
 	export let memoryUsed;
 
-	let headers = ['Name', 'Value'];
 	/** @type {{Name: string, Value: string|null}[]} */
 	let data = [];
-
-	let showHeaders = false;
 
 	let cls = '';
 	export { cls as class };
@@ -50,6 +47,9 @@
 	}
 </script>
 
-<div class={`${cls}`}>
-	<Table {headers} {data} {showHeaders} />
-</div>
+<TableAutoCard
+	class={`statusTable ${cls}`}
+	showHeaders={false}
+	definition={[{ key: 'Name' }, { key: 'Value' }]}
+	{data}
+/>
