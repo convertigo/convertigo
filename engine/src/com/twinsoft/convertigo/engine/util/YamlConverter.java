@@ -224,7 +224,7 @@ public class YamlConverter {
 					Element nElt = doc.createElement("bean");
 					elt.appendChild(nElt);
 					nElt.setAttribute("yaml_key", parse.group(P_KEY));
-					if (parse.group(P_FILE) != null) {
+					if (parse.group(P_FILE) != null && subdir != null) {
 						String value = parse.group(P_VALUE);
 						File subfile = new File(subdir, value);
 						BufferedReader brSaved = br;
@@ -292,9 +292,13 @@ public class YamlConverter {
 	}
 	
 	public static Document readYaml(File yaml) throws Exception {
+		return readYaml(yaml, false);
+	}
+	
+	public static Document readYaml(File yaml, boolean onlyRoot) throws Exception {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
 			YamlConverter y = new YamlConverter();
-			y.subdir = new File(yaml.getParentFile(), "_c8oProject");
+			y.subdir = onlyRoot ? null : new File(yaml.getParentFile(), "_c8oProject");
 			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			y.doc.appendChild(y.doc.createElement("convertigo"));
 			y.br = br;

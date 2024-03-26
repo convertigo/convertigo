@@ -20,17 +20,25 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
 
 public class ReferencedProjectManager {
 	private Map<File, Object> dirLock = new HashMap<>();
@@ -230,5 +238,45 @@ public class ReferencedProjectManager {
 			}
 		}
 		return project;
+	}
+
+	public void check(File projectFile) {
+		try {
+			for (var ref: references(projectFile)) {
+				try {
+			        importProject(ref.getParser(), true);
+			    } catch (Exception e) {
+			        Engine.logEngine.error("Failed to load " + ref.getProjectName(), e);
+			    }
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check " + projectFile + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+		}
+	}
+	
+	public static Set<ProjectSchemaReference> references(File file) throws Exception {
+		if (!file.getName().endsWith(".yaml")) {
+			return Collections.emptySet();
+		}
+		var doc = YamlConverter.readYaml(file, true);
+		var nl = doc.getElementsByTagName("bean");
+		for (int i = 0; i < nl.getLength();) {
+			var n = (Element) nl.item(i);
+			var key = n.getAttribute("yaml_key");
+			if (key == null || !(key.contains("[core.Project]") || key.contains("[references.ProjectSchemaReference]"))) {
+				n.getParentNode().removeChild(n);
+			} else {
+				i++;
+			}
+		}
+		doc = BeansDefaultValues.unshrinkProject(doc);
+		nl = doc.getElementsByTagName("reference");
+		var refs = new HashSet<ProjectSchemaReference>(nl.getLength());
+		for (int i = 0; i < nl.getLength(); i++) {
+			var n = nl.item(i);
+			var ref = (ProjectSchemaReference) DatabaseObject.read(n);
+			refs.add(ref);
+		}
+		return refs;
 	}
 }

@@ -1132,6 +1132,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (lock) {
 				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
 
+				Engine.theApp.referencedProjectManager.check(importFile);
+				
 				if (!override) {
 					synchronized (projects) {
 						project = projects.get(projectName);
@@ -1224,10 +1226,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			MobileBuilder.initBuilder(project);
 			Engine.logDatabaseObjectManager
 					.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
-
-			if (!Engine.isStudioMode()) {
-				Engine.theApp.referencedProjectManager.check(project);
-			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)
 			performWsMigration(version, projectName);
