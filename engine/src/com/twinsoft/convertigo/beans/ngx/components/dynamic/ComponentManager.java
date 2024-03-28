@@ -70,10 +70,11 @@ import com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIAnimation;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIAttribute;
+import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
@@ -94,11 +95,10 @@ import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIFont;
 import com.twinsoft.convertigo.beans.ngx.components.UIFontStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
-import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
-import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
@@ -1170,6 +1170,7 @@ public class ComponentManager {
 						!UICompVariable.class.isAssignableFrom(dboClass) &&
 						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UISharedComponent.class.isAssignableFrom(dboClass) &&
 						!UISharedComponentEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
@@ -1189,6 +1190,7 @@ public class ComponentManager {
 						!UICompVariable.class.isAssignableFrom(dboClass) &&
 						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UISharedComponent.class.isAssignableFrom(dboClass) &&
 						!UISharedComponentEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
