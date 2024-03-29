@@ -1,5 +1,11 @@
 <script>
-	import { RadioGroup, RadioItem, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		RadioGroup,
+		RadioItem,
+		SlideToggle,
+		getModalStore,
+		getToastStore
+	} from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
@@ -8,6 +14,7 @@
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 	const { mode } = $modalStore[0].meta ?? {};
 
 	let viewRolesStore = writable([]);
@@ -66,9 +73,8 @@
 		const fd = new FormData(event.target);
 
 		//@ts-ignore
-		const res = await call('roles.Add', fd);
+		const res = await call('roles.Add', fd, toastStore);
 		console.log('role add res:', res);
-		rolesList();
 		modalStore.close();
 	}
 

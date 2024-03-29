@@ -2,13 +2,13 @@
 	import { keysCheck, categoryStore } from '$lib/admin/stores/keysStore';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const keyModalStore = getModalStore();
-
+	const toastStore = getToastStore();
 	let newKey = '';
 
 	onMount(() => {
@@ -21,13 +21,10 @@
 		} else {
 			let year = parseInt(expirationCode.substring(0, 2), 10);
 			let dayOfYear = parseInt(expirationCode.substring(2), 10);
-
 			year += year < 70 ? 2000 : 1900;
-
 			let date = new Date(year, 0);
 
 			date.setDate(date.getDate() + dayOfYear - 1);
-
 			return date.toDateString();
 		}
 	}
@@ -95,40 +92,25 @@
 
 	async function keysUpdate(keyText) {
 		try {
-			const resUpdate = await call('keys.Update', {
-				'@_xml': true,
-				admin: {
-					'@_service': 'keys.Update',
-					keys: {
-						key: {
-							'@_text': keyText
+			const pathRes = ['admin', 'keys', 'key'];
+			const resUpdate = await call(
+				'keys.Update',
+				{
+					'@_xml': true,
+					admin: {
+						'@_service': 'keys.Update',
+						keys: {
+							key: {
+								'@_text': keyText
+							}
 						}
 					}
-				}
-			});
-			const errorMessage = resUpdate?.admin?.keys?.key['@_errorMessage'];
-			if (errorMessage) {
-				console.log('keysUpdate function response :', resUpdate);
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Error' },
-					title: 'Error',
-					body: errorMessage,
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			} else {
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Success' },
-					title: 'Key added',
-					body: 'The Key has been added with success',
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			}
+				},
+				toastStore,
+				//@ts-ignore
+				pathRes
+			);
+			console.log('res update ', resUpdate);
 		} catch (err) {
 			console.error(err);
 		}
@@ -144,7 +126,7 @@
 	}
 </script>
 
-<Card>
+<Card title="Keys">
 	<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
 		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 		<button type="submit" class="bg-primary-400-500-token">Add Key</button>

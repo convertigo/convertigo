@@ -35,9 +35,7 @@
 
 <Card title="Connections">
 	<div slot="cornerOption">
-		<button class="bg-surface-200 dark:bg-surface-600 max-w-80"
-			>Delete all Sessions and Connections</button
-		>
+		<button class="bg-primary-400-500-token max-w-80">Delete all Sessions and Connections</button>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -53,7 +51,7 @@
 <Card title="Sessions" class="mt-5">
 	<div slot="cornerOption">
 		<button
-			class="bg-surface-200 dark:bg-surface-600 max-w-80"
+			class="bg-primary-400-500-token max-w-80"
 			on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
 			>Show Legends</button
 		>

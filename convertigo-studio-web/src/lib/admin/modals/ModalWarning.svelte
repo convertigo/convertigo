@@ -90,4 +90,26 @@
 			</div>
 		</div>
 	</Card>
+{:else if mode == 'Warnings'}
+	<Card>
+		<div class="p-5">
+			{#if $modalStore[0]}
+				<header class="text-2xl font-bold mb-5">{$modalStore[0].title}</header>
+				<article class="mb-10">{$modalStore[0].body}</article>
+			{/if}
+			<div class="flex flex-wrap">
+				<button
+					on:click={() => {
+						if ($modalStore[0].response) {
+							$modalStore[0].response(false);
+							modalStore.close();
+						}
+					}}
+					class="cancel-button"
+				>
+					Ok
+				</button>
+			</div>
+		</div>
+	</Card>
 {/if}

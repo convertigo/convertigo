@@ -7,7 +7,7 @@ loading.subscribe((n) => (cpt = n));
  * @param {string} service
  * @param {any} data
  */
-export async function call(service, data = {}) {
+export async function call(service, data = {}, toastState = null) {
 	let url = getUrl() + service;
 	let body;
 	let headers = {
@@ -56,10 +56,48 @@ export async function call(service, data = {}) {
 	}
 
 	const contentType = res.headers.get('content-type');
+	let dataContent;
+
 	if (contentType?.includes('xml')) {
-		return new XMLParser({ ignoreAttributes: false }).parse(await res.text());
+		dataContent = new XMLParser({ ignoreAttributes: false }).parse(await res.text());
 	} else {
-		return await res.json();
+		dataContent = await res.json();
+	}
+
+	if (toastState) {
+		handleStateMessage(dataContent, toastState);
+	}
+
+	return dataContent;
+}
+
+/**
+ * Handles displaying state messages with dynamic response structures.
+ *
+ * @param {Object} dataContent - The parsed response data.
+ * @param {Object} toastState - The state object for triggering toasts.
+ * @param {Array} [path=null] - Optional path to the state message within dataContent.
+ */
+//@ts-ignore
+function handleStateMessage(dataContent, toastState, path) {
+	let defaultPath = ['admin', 'response'];
+	let finalPath = path || defaultPath;
+	let stateMessage = finalPath.reduce((acc, key) => acc[key], dataContent);
+
+	if (stateMessage) {
+		let modalState =
+			stateMessage['@_state'] || (stateMessage['@_errorMessage'] ? 'error' : 'success');
+		let modalStateBody =
+			stateMessage['@_message'] || stateMessage['@_errorMessage'] || 'No message provided';
+		let background = modalState === 'error' ? 'bg-error-400-500-token' : 'bg-success-400-500-token';
+
+		toastState.trigger({
+			message: modalStateBody,
+			timeout: 8000,
+			background: background
+		});
+	} else {
+		console.warn('State message could not be found in the response data.');
 	}
 }
 

@@ -3,7 +3,7 @@
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { Modal, initializeStores, storePopup } from '@skeletonlabs/skeleton';
+	import { Modal, Toast, initializeStores, storePopup } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
 	import { call } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
@@ -45,5 +45,7 @@
 </script>
 
 <Modal components={modalComponentRegistry} />
+
+<Toast />
 
 <slot />

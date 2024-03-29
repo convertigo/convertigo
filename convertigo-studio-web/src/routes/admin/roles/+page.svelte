@@ -1,13 +1,14 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import Icon from '@iconify/svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const rolesModalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	let usersStore = writable([]);
 
@@ -42,37 +43,8 @@
 		formData.append('username', userName);
 		try {
 			//@ts-ignore
-			const res = await call('roles.Delete', formData);
+			const res = await call('roles.Delete', formData, toastStore);
 			console.log('service delete roles', res);
-			usersList();
-			if (res.admin.response['@_state'] === 'success') {
-				usersStore.update((users) => {
-					return users.filter((user) => user['@_name'] !== userName);
-				});
-				rolesModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					title: 'Success',
-					body: 'Role deleted with success',
-					meta: { mode: 'Success' },
-					response: (confirmed) => {
-						if (confirmed) {
-						}
-					}
-				});
-			} else {
-				rolesModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					title: 'Error',
-					body: 'An error occurred',
-					meta: { mode: 'Error' },
-					response: (confirmed) => {
-						if (confirmed) {
-						}
-					}
-				});
-			}
 		} catch (error) {
 			console.error('Error deleting user role:', error);
 		}
@@ -80,7 +52,7 @@
 
 	async function deleteAllRoles() {
 		const response = await call('roles.DeleteAll');
-		usersList();
+
 		console.log('delete all', response);
 
 		if (response.admin.response['@_state'] === 'success') {
@@ -115,7 +87,11 @@
 		rolesModalStore.trigger({
 			type: 'component',
 			component: 'modalRoles',
-			meta: { mode: 'add' }
+			meta: { mode: 'add' },
+			response: (confirmed) => {
+				if (confirmed) {
+				}
+			}
 		});
 	}
 
