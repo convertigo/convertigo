@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.eclipse.ColorEnum;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -204,7 +205,9 @@ public class TextGenericCellEditor extends TextCellEditor {
 		try {
 			getInput();
 			String ext = input.getFile().getFileExtension();
+			var value = editorInitValue();
 			if ("js".equals(ext)) {
+				var variables = ". Available variables: log, dom, context";
 				DatabaseObject dbo = databaseObjectTreeObject.getObject();
 				if (dbo instanceof Step) {
 					dbo = ((Step) dbo).getSequence();
@@ -213,15 +216,21 @@ public class TextGenericCellEditor extends TextCellEditor {
 					IVariableContainer vc = (IVariableContainer) dbo;
 					StringBuilder sb = new StringBuilder();
 					for (Variable v: vc.getVariables()) {
+						variables += ", " + v.getName();
 						sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
 					}
 					SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("variables.d.ts"), sb.toString());
+				}
+				if (dbo instanceof Transaction) {
+					value = "// Copilot helper: this is a javascript script executed with RhinoJS by a Convertigo Transaction over the JVM" + variables + "\n" + value;
+				} else {
+					value = "// Copilot helper: this is a javascript script executed with RhinoJS by a Convertigo Sequence over the JVM" + variables + "\n" + value;
 				}
 				String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
 						"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
 				SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("jsconfig.json"), conf);
 			}
-			SwtUtils.fillFile(input.getFile(), editorInitValue());
+			SwtUtils.fillFile(input.getFile(), value);
 			setEditable(false);
 			
 			if ("md".equals(ext)) {
@@ -260,7 +269,9 @@ public class TextGenericCellEditor extends TextCellEditor {
 			listener = (Object source, int propId) -> {
 				if (propId == IEditorPart.PROP_DIRTY && !((IEditorPart) source).isDirty()) {
 					try (InputStream is = getInput().getFile().getContents()) {
-						setNewValue(IOUtils.toString(is, "UTF-8"));
+						var expression = IOUtils.toString(is, "UTF-8");
+						expression = expression.replaceFirst("// Copilot helper:.*\n", "");
+						setNewValue(expression);
 					} catch (Exception e) {
 						Engine.logStudio.error("Failed to save " + getInput().getFile().getName(), e);
 					}
