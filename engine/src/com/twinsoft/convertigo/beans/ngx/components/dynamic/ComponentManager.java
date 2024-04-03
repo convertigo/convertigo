@@ -118,6 +118,9 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
 public class ComponentManager {
+	private static final String TPL_IONOBJECTS_JSONPATH = "ionicTpl/ion/ion_objects.json";
+	private static final String TPL_IONACTIONS_DIRPATH = "ionicTpl/ion/actionbeans";
+	
 	private static String JAVA_NGX = "Java@Ngx";
 	private static ComponentManager instance = new ComponentManager();
 	
@@ -257,7 +260,7 @@ public class ComponentManager {
 		if (!isInstance()) {
 			try {
 				File projectDir = new File(Engine.projectDir(templateProjectName));
-				File ion_objects = new File(projectDir, "ionicTpl/ion/ion_objects.json");
+				File ion_objects = new File(projectDir, TPL_IONOBJECTS_JSONPATH);
 				return FileUtils.readFileToString(ion_objects, "UTF-8");
 			} catch (IOException e) {
 				// no ionicTpl/ion/ion_objects.json file
@@ -1537,8 +1540,8 @@ public class ComponentManager {
 			if (code == null) {
 				if (!this.equals(instance)) {
 					try {
-						File tplProjectDir = new File(Engine.PROJECTS_PATH, templateProjectName);
-						File actionTsFile = new File(tplProjectDir, "ionicTpl/ion/actionbeans/"+ name +".ts");
+						File tplProjectDir = new File(Engine.projectDir(templateProjectName));
+						File actionTsFile = new File(tplProjectDir, TPL_IONACTIONS_DIRPATH + "/"+ name +".ts");
 						code = FileUtils.readFileToString(actionTsFile, "UTF-8");
 						aCache.put(name, code);
 					} catch (IOException e) {
@@ -1572,7 +1575,7 @@ public class ComponentManager {
 		}
 	}
 	
-	public static File getCompBeanDir(String name) {
+	public File getCompBeanDir(String name) {
 		try {
 			if (instance.compbeansDir == null) {
 				String path = URLUtils.getFullpathRessources(instance.getClass(), "compbeans");

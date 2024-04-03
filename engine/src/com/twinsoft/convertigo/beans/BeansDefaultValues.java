@@ -59,6 +59,8 @@ public class BeansDefaultValues {
 	private static final String NGX_JSONPATH = "/com/twinsoft/convertigo/beans/ngx/components/dynamic/ion_objects_default.json";
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
 
+	private static final String TPL_JSONPATH = "ionicTpl/ion/ion_objects.json";
+	
 	private static Element nextElement(Node node, boolean checkParameter) {
 		if (node == null || (checkParameter && node instanceof Element)) {
 			return (Element) node;
@@ -131,7 +133,7 @@ public class BeansDefaultValues {
 
 	static private JSONObject getIonObjectsFromFile(String templateProjectName) throws Exception {
 		File projectDir = new File(Engine.projectDir(templateProjectName));
-		File ion_objects = new File(projectDir, "ionicTpl/ion/ion_objects.json");
+		File ion_objects = new File(projectDir, TPL_JSONPATH);
 		String json = FileUtils.readFileToString(ion_objects, "UTF-8");
 		return new JSONObject(json);
 	}

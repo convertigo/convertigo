@@ -81,8 +81,11 @@ public class UIDynamicComponent extends UIDynamicElement {
 				Map<String, File> map = new HashMap<String, File>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String compName = ionBean.getComponent();//ionBean.getName();
-					File dir = ComponentManager.getCompBeanDir(compName);
+					String compName = ionBean.getComponent(); // since TPL 8.3.0.0
+					if ("component".equals(compName)) {
+						compName = ionBean.getName(); // before TPL 8.3.0.0
+					}
+					File dir = ComponentManager.of(getContainer()).getCompBeanDir(compName);
 					if (dir != null) {
 						map.put(compName, dir);
 					}
