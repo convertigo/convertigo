@@ -851,8 +851,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
 								com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
 								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynElem.getIonBean();
-								if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-									ionBean.setPropertyValue("FormControlName", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+								if (ionBean != null && ionBean.hasProperty("ControlName")) {
+									ionBean.setPropertyValue("ControlName", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
 								}
 								dboItem.add(dboInput);
 							}
