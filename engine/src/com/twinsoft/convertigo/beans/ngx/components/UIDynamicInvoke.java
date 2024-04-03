@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,4 +183,23 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		return getName() + " (invoke " + stackName + ")";
 	}
 	
+	@Override
+	public String requiredTplVersion() {
+		if (!stack.isEmpty()) {
+			UIActionStack uias = getTargetSharedAction();
+			if (uias == null && parent == null) { // palette case
+				try {
+					String projectName = stack.split("\\.")[0];
+					File f = Engine.projectFile(projectName);
+					if (f != null && f.exists()) {
+						uias = (UIActionStack) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(stack);
+					}
+				} catch (Exception e) {}
+			}
+			if (uias != null && uias.isEnabled()) {
+				return uias.requiredTplVersion();
+			}
+		}
+		return super.requiredTplVersion();
+	}
 }

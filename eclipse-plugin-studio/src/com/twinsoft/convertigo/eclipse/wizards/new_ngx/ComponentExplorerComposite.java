@@ -117,7 +117,7 @@ class ComponentExplorerComposite extends Composite {
 	private boolean isAllowed(Component c) {
 		boolean isAllowed = parentObject != null ? c.isAllowedIn(parentObject):true;
 		if (isAllowed && folderType != -1) {
-			DatabaseObject dbo = ComponentManager.createBean(c);
+			DatabaseObject dbo = ComponentManager.of(parentObject).createBean(c);
 			if (dbo != null) {
 				isAllowed = ProjectExplorerView.folderAcceptMobileComponent(folderType, dbo);
 			}
@@ -129,10 +129,10 @@ class ComponentExplorerComposite extends Composite {
 		if (objectsMap.isEmpty()) {
 			try {
 				List<String> categories = new ArrayList<String>();
-				categories.addAll(ComponentManager.getGroups());
+				categories.addAll(ComponentManager.of(parentObject).getGroups());
 				
 				List<Component> components = new ArrayList<Component>();
-				components.addAll(ComponentManager.getComponentsByGroup());
+				components.addAll(ComponentManager.of(parentObject).getComponentsByGroup());
 				
 				boolean showBuiltins = bBtn.getSelection();
 				boolean showAdditionals = aBtn.getSelection();
@@ -277,7 +277,8 @@ class ComponentExplorerComposite extends Composite {
 						currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
 
 						Component c = (Component) objectsMap.get(label);
-						DatabaseObject dbo = ComponentManager.createBeanFromHint(c);
+						ComponentManager cm = ComponentManager.of(c.getTemplateProjectName());
+						DatabaseObject dbo = cm.createBeanFromHint(c);
 						if (dbo != null) {
 							event.doit = true;
 							PaletteSourceTransfer.getInstance().setPaletteSource(event.data = new PaletteSource(dbo));
@@ -452,13 +453,13 @@ class ComponentExplorerComposite extends Composite {
 		gridData.grabExcessHorizontalSpace = true;
 		helpBrowser.setLayoutData(gridData);
 
-		ComponentManager.reloadModels();
+		ComponentManager.of(parentObject).reloadModels();
 		
 		reloadComponents();
 	}
 
 	private void reloadComponents() {
-		ComponentManager.reloadComponents();
+		ComponentManager.of(parentObject).reloadComponents();
 
 		getDisplay().asyncExec(() -> {
 			if (!searchText.isDisposed()) {

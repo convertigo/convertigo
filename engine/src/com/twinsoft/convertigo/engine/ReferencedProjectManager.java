@@ -244,7 +244,7 @@ public class ReferencedProjectManager {
 		try {
 			for (var ref: references(projectFile)) {
 				try {
-			        importProject(ref.getParser(), true);
+					importProject(ref.getParser()); //importProject(ref.getParser(), true);
 			    } catch (Exception e) {
 			        Engine.logEngine.error("Failed to load " + ref.getProjectName(), e);
 			    }
@@ -278,5 +278,28 @@ public class ReferencedProjectManager {
 			refs.add(ref);
 		}
 		return refs;
+	}
+	
+	protected void checkForIonicTemplate(String projectName, File projectFile) {
+		try {
+			if (projectFile != null && projectFile.exists()) {
+				File ionicTplDir = new File(projectFile.getParentFile(), "ionicTpl");
+				// this is a ionic builder template
+				if (ionicTplDir.exists() && ionicTplDir.isDirectory()) {
+					// this is a ngx ionic builder template
+					if (new File(ionicTplDir,"angular.json").exists()) {
+						File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
+						// this template has its own ion_objects.json file
+						if (ngxIonObjects.exists()) {
+							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
+							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+								.addIonicTemplateProject(projectName);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check for ionic template of " + projectName + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+		}
 	}
 }

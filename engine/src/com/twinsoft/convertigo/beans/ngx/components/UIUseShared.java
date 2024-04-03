@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -472,4 +473,23 @@ public class UIUseShared extends UIElement {
 		return "use " + compName + (identifier.isBlank() ? "":" #"+identifier);
 	}
 
+	@Override
+	public String requiredTplVersion() {
+		if (!sharedcomponent.isEmpty()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc == null && parent == null) { // palette case
+				try {
+					String projectName = sharedcomponent.split("\\.")[0];
+					File f = Engine.projectFile(projectName);
+					if (f != null && f.exists()) {
+						uisc = (UISharedComponent) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(sharedcomponent);
+					}
+				} catch (Exception e) {}
+			}
+			if (uisc != null && uisc.isEnabled()) {
+				return uisc.requiredTplVersion();
+			}
+		}
+		return super.requiredTplVersion();
+	}
 }

@@ -205,7 +205,7 @@ public class NgxConverter {
 		try {
 			if (isPseudoBean(beanEl)) {
 				String ionBeanName = getIonBeanName(beanEl);
-				if (com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName(ionBeanName) == null) {
+				if (com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName(ionBeanName) == null) {
 					System.out.println(yaml_key.replaceAll("ngx\\.components", "mobile.components") + " : ERROR");
 					if (ionBeanName.endsWith("Action")) {
 						System.err.println("Unhandled pseudo-action (replaced by a ToastAction) : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
@@ -904,8 +904,8 @@ public class NgxConverter {
 		cleanBeanData(beanEl);
 		
 		try {
-			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("TabBar"));
+			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("TabBar"));
 			if (dbo != null) {
 				JSONObject jsonTabBar = new JSONObject().put("ionBean", "TabBar");
 				
@@ -960,8 +960,8 @@ public class NgxConverter {
 		try {
 			DatabaseObject dbo = null;
 			
-			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Label"));
+			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("Label"));
 			if (dbo != null) {
 				JSONObject jsonLabel =  new JSONObject().put("ionBean", "Label");
 				
@@ -978,8 +978,8 @@ public class NgxConverter {
 				child3.appendChild(beanEl.getOwnerDocument().createTextNode("ion-label"));
 				labelEl.appendChild(child3);
 				
-				dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-						com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("UIText"));
+				dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+						com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UIText"));
 				if (dbo != null) {
 					Element textEl = beanEl.getOwnerDocument().createElement("bean");
 					textEl.setAttribute("yaml_key", "Text [ngx.components.UIText-"+ dbo.priority +"]");
@@ -995,8 +995,8 @@ public class NgxConverter {
 				}
 			}
 			
-			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Icon"));
+			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("Icon"));
 			if (dbo != null) {
 				JSONObject jsonIcon = new JSONObject().put("ionBean", "Icon").put("IconName", "plain:"+ tabIcon);
 				
@@ -1021,8 +1021,8 @@ public class NgxConverter {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
 			Element parentEl = (Element) beanEl.getParentNode();
-			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("FormatLayout"));
+			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("FormatLayout"));
 			if (dbo != null) {
 				JSONObject jsonData = new JSONObject().put("ionBean", "FormatLayout");
 				
@@ -1119,8 +1119,8 @@ public class NgxConverter {
 					if ("onCanEnter".equals(viewEvent) || "onCanLeave".equals(viewEvent)) {
 						try {
 							Element parentEl = (Element) beanEl.getParentNode();
-							DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-									com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("UIEventSubscriber"));
+							DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+									com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UIEventSubscriber"));
 							if (dbo != null) {
 								Element eventSubscriberEl = beanEl.getOwnerDocument().createElement("bean");
 								eventSubscriberEl.setAttribute("yaml_key", beanName + " [ngx.components.UIEventSubscriber-"+ dbo.priority +"]");
@@ -1174,8 +1174,8 @@ public class NgxConverter {
 						DatabaseObject dbo = null;
 						
 						// add a CompEvent for each event a shared component expose
-						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("UICompEvent"));
+						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UICompEvent"));
 						if (dbo != null) {
 							Element compEventEl = beanEl.getOwnerDocument().createElement("bean");
 							compEventEl.setAttribute("yaml_key", eventName + " [ngx.components.UICompEvent-"+ dbo.priority +"]");
@@ -1190,8 +1190,8 @@ public class NgxConverter {
 						}
 						
 						// add an EmitEventAction action beside each PublishEventAction
-						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
-								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("EmitEventAction"));
+						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("EmitEventAction"));
 						if (dbo != null) {
 							Element emitEventEl = beanEl.getOwnerDocument().createElement("bean");
 							emitEventEl.setAttribute("yaml_key", "EmitEvent" + " [ngx.components.UIDynamicEmit-"+ dbo.priority +"]");

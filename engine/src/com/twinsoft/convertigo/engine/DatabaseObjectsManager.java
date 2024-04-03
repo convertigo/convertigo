@@ -1148,6 +1148,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Document document;
 				Engine.logDatabaseObjectManager.info("Importing project from: " + importFile);
 				if (importFile.getName().equals("c8oProject.yaml")) {
+					
+					Engine.theApp.referencedProjectManager.checkForIonicTemplate(projectName, importFile);
+
 					document = YamlConverter.readYaml(importFile);
 					document = BeansDefaultValues.unshrinkProject(document);
 				} else {

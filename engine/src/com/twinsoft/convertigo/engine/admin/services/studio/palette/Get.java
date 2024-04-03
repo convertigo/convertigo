@@ -134,9 +134,9 @@ public class Get extends JSonService {
 			}
 		}
 
-		List<String> groups = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getGroups();
-		List<com.twinsoft.convertigo.beans.ngx.components.dynamic.Component> components = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
-				.getComponents();
+		com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parentDbo);
+		List<String> groups = cm.getGroups();
+		List<com.twinsoft.convertigo.beans.ngx.components.dynamic.Component> components = cm.getComponents();
 
 		for (String group : groups) {
 			JSONObject jsonCategory = new JSONObject();
@@ -149,8 +149,7 @@ public class Get extends JSonService {
 				if (component.getGroup().equals(group)) {
 					String cn = "";
 					try {
-						cn = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(component)
-								.getClass().getCanonicalName();
+						cn = cm.createBean(component).getClass().getCanonicalName();
 					} catch (Exception e) {
 					}
 

@@ -809,6 +809,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add child components to fill the form
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm) {
 					com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm = GenericUtils.cast(parent);
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(uiForm);
 					try {
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 
@@ -818,7 +819,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						event.bNew = true;
 						event.hasChanged = true;
 
-						DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+						DatabaseObject call = cm.createBean(cm.getComponentByName("CallSequenceAction"));
 						if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 							com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
 							com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();
@@ -832,12 +833,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						event.add(call);
 
 						// add a list of item with label & input for each variable
-						DatabaseObject dboList = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("List"));
+						DatabaseObject dboList = cm.createBean(cm.getComponentByName("List"));
 						for (RequestableVariable variable: sequence.getVariables()) {
-							DatabaseObject dboItem = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ListItem"));
+							DatabaseObject dboItem = cm.createBean(cm.getComponentByName("ListItem"));
 							dboList.add(dboItem);
 
-							DatabaseObject dboLabel = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Label"));
+							DatabaseObject dboLabel = cm.createBean(cm.getComponentByName("Label"));
 							dboItem.add(dboLabel);
 
 							com.twinsoft.convertigo.beans.ngx.components.UIText uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
@@ -846,7 +847,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()+":"));
 							dboLabel.add(uiText);
 
-							DatabaseObject dboInput = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Input"));
+							DatabaseObject dboInput = cm.createBean(cm.getComponentByName("Input"));
 							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
 								com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
 								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynElem.getIonBean();
@@ -858,9 +859,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 
 						// add a buttonset with a submit and a reset button
-						DatabaseObject dboBtnSet = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ButtonSet"));
+						DatabaseObject dboBtnSet = cm.createBean(cm.getComponentByName("ButtonSet"));
 
-						DatabaseObject dboSubmit = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("SubmitButton"));
+						DatabaseObject dboSubmit = cm.createBean(cm.getComponentByName("SubmitButton"));
 						dboBtnSet.add(dboSubmit);
 						com.twinsoft.convertigo.beans.ngx.components.UIText sText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
 						sText.bNew = true;
@@ -868,7 +869,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						sText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType("Submit"));
 						dboSubmit.add(sText);
 
-						DatabaseObject dboReset = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ResetButton"));
+						DatabaseObject dboReset = cm.createBean(cm.getComponentByName("ResetButton"));
 						dboBtnSet.add(dboReset);
 						com.twinsoft.convertigo.beans.ngx.components.UIText rText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
 						rText.bNew = true;
@@ -895,9 +896,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
 						) {
 					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(uiComponent);
+					
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 
-					DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+					DatabaseObject call = cm.createBean(cm.getComponentByName("CallSequenceAction"));
 					if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 						com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
 						com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();
@@ -927,12 +930,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
 						) {
 					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(uiComponent);
 
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
 
-					DatabaseObject invokeAction = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
+					DatabaseObject invokeAction = cm.createBean(cm.getComponentByName("InvokeAction"));
 					com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
 					if (invoke != null) {
 						invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
@@ -1398,7 +1402,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						if (dbop instanceof FullSyncConnector) {
 							dbop.setName(parent.getProject().getName().toLowerCase() + "_fullsync");
 						}
-
+						if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = 
+									com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parent);
+							cm.reload((com.twinsoft.convertigo.beans.ngx.components.MobileComponent)dbop);
+						}
+						
 						paste(dbop, parent, true);
 						if (dbop == null) {
 							throw new Exception();

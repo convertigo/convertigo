@@ -242,7 +242,8 @@ public class DboFactory {
 	}
 
 	static private DatabaseObject createNgxInvokesharedAction(com.twinsoft.convertigo.beans.ngx.components.UIActionStack stack) throws Exception {
-		DatabaseObject invokeAction = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
+		com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(stack);
+		DatabaseObject invokeAction = cm.createBean(cm.getComponentByName("InvokeAction"));
 		com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
 		if (invoke != null) {
 			invoke.setSharedActionQName(stack.getQName());
@@ -253,7 +254,8 @@ public class DboFactory {
 	}
 
 	static private DatabaseObject createNgxCallSequenceAction(Sequence sequence) throws Exception {
-		DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+		com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(sequence);
+		DatabaseObject call = cm.createBean(cm.getComponentByName("CallSequenceAction"));
 		if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 			com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
 			com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();

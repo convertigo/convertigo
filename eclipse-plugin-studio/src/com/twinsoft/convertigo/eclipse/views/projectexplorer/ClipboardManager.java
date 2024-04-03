@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager {
@@ -95,6 +96,8 @@ public class ClipboardManager {
 	public boolean isCut = false;
 	public boolean isCopy = false;
 
+	private TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+	
 	public void reset() {
 		objectsType = ProjectExplorerView.TREE_OBJECT_TYPE_UNKNOWN;
 		objects = null;
@@ -275,6 +278,7 @@ public class ClipboardManager {
 	
 				e = clipboardDocument.createElement("application");
 				e.setAttribute("name", uic.getApplication().getName());
+				e.setAttribute("requiredTplVersion", uic.requiredTplVersion());
 				dnd.appendChild(e);
 			}
 		} catch (Exception ex) {}
@@ -456,9 +460,26 @@ public class ClipboardManager {
 					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 						throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
 					}
-					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
-						String tplVersion = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getTplRequired(databaseObject);
-						throw new EngineException("Template project "+ tplVersion +" compatibility required");
+//					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+//						String tplVersion = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getTplRequired(databaseObject);
+//						throw new EngineException("Template project "+ tplVersion +" compatibility required");
+//					}
+					String requiredTplVersion = ""; // requiredTplVersion of the copied object
+					try {
+						requiredTplVersion = xpathApi.selectSingleNode((Element)node, "dnd/application/@requiredTplVersion").getTextContent();
+					} catch (Exception e) {}
+					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, requiredTplVersion)) {
+						throw new EngineException("Template project "+ requiredTplVersion +" compatibility required");
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
+						com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement ude = (com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement)databaseObject;
+						try {
+							// before adding: load beanData with the parent's ComponentManager !!
+							ude.loadBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parentDatabaseObject));
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 				
@@ -894,7 +915,8 @@ public class ClipboardManager {
 						try {
 							com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parentDatabaseObject);
 								
-							DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("FullSyncViewAction"));
+							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parentDatabaseObject);
+							DatabaseObject call = cm.createBean(cm.getComponentByName("FullSyncViewAction"));
 							if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
 								com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
 								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();

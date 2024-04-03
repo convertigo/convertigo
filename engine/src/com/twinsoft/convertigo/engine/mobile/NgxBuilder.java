@@ -472,6 +472,17 @@ public class NgxBuilder extends MobileBuilder {
 		return false;
 	}
 
+	
+	@Override
+	protected void copyTemplateFiles() throws EngineException {
+		super.copyTemplateFiles();
+		
+		try {
+			// delete ion templates (ion_objects, actions, ...)
+			FileUtils.deleteDirectory(new File(ionicWorkDir, "ion"));
+		} catch (IOException e) {}
+	}
+
 	@Override
 	protected void updateTplVersion() {
 		super.updateTplVersion();

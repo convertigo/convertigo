@@ -728,7 +728,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
 					String actionName = getActionName();
-					String actionCode = ComponentManager.getActionTsCode(actionName);
+					String actionCode = ComponentManager.of(getContainer()).getActionTsCode(actionName);
 					functions.put(actionName, actionCode);
 				}
 				return functions;
@@ -979,7 +979,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public String toString() {
-		if (isSetGlobalOrLocalAction()) {
+		if (ionBean != null && isSetGlobalOrLocalAction()) {
 			String key = getSetActionKeyName();
 			if (key != null && !key.isEmpty()) {
 				Object val = getSetActionValueLabel();

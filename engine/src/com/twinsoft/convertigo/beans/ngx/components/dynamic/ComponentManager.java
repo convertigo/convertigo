@@ -25,6 +25,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -51,6 +52,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
@@ -108,6 +110,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -115,6 +118,7 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
 public class ComponentManager {
+	private static String JAVA_NGX = "Java@Ngx";
 	private static ComponentManager instance = new ComponentManager();
 	
 	private SortedMap<String, IonProperty> pCache = new TreeMap<>();
@@ -131,44 +135,177 @@ public class ComponentManager {
 	
 	private File compbeansDir;
 	
+	private String templateProjectName;
+	
+	protected static interface IonicTemplateProjects {
+		public ComponentManager get(String templateProjectName);
+		public void add(String templateProjectName);
+		public void clear();
+	}
+	
+	protected static IonicTemplateProjects ionicTemplateProjects = new IonicTemplateProjects() {
+		Map<String, ComponentManager> itpMap = new HashMap<String, ComponentManager>();
+
+		public ComponentManager get(String templateProjectName) {
+			ComponentManager cm = null;
+			try {
+				synchronized (itpMap) {
+					cm = itpMap.get(templateProjectName);
+				}
+			} catch (Exception e) {
+			}
+			return cm;
+		}
+
+		public void add(String templateProjectName) {
+			try {
+				synchronized (itpMap) {
+					ComponentManager cm = new ComponentManager(templateProjectName);
+					ComponentManager old_cm = itpMap.get(templateProjectName);
+					itpMap.put(templateProjectName, cm);
+					Engine.logEngine.info((old_cm == null ? "Added" : "Updated") + " component manager for "+ templateProjectName);
+				}
+			} catch (Exception e) {
+				Engine.logEngine.error("Failed to add ionic template for "+ templateProjectName, e);
+			}
+		}
+		
+		public void clear() {
+			try {
+				synchronized (itpMap) {
+					for (String templateProjectName: itpMap.keySet()) {
+						ComponentManager cm = itpMap.get(templateProjectName);
+						if (cm != null) {
+							cm.clear();
+						}
+					}
+					itpMap.clear();
+				}
+			} catch (Exception e) {
+			}
+		}
+	};
+	
+	public static void addIonicTemplateProject(String templateProjectName) {
+		ionicTemplateProjects.add(templateProjectName);
+	}
+	
+	public static ComponentManager of(Object object) {
+		ComponentManager cm = null;
+		try {
+			if (object != null) {
+				String templateProjectName = null;
+				if (object instanceof DatabaseObject) {
+					DatabaseObject dbo = (DatabaseObject) object;
+					if (dbo.getProject() != null) {
+						MobileApplication mobileApplication = dbo.getProject().getMobileApplication();
+						if (mobileApplication != null) {
+							templateProjectName = mobileApplication.getApplicationComponent().getTplProjectName();
+						}
+					}
+				} else if (object instanceof String) {
+					templateProjectName = (String)object;
+				}
+				
+				if (templateProjectName != null && !templateProjectName.equals(JAVA_NGX)) {
+					cm = ionicTemplateProjects.get(templateProjectName);
+					if (cm == null) {
+						Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unable to retrieve ComponentManager associated with "+ templateProjectName + ". Will use default one.");
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("(ComponentManager) Unable to retrieve ComponentManager associated with object: "+ object.toString() + ". Will use default one.");
+		}
+		return cm == null ? instance : cm;
+	}
+	
 	private ComponentManager() {
+		this(JAVA_NGX);
+	}
+	
+	private ComponentManager(String templateProjectName) {
+		this.templateProjectName = templateProjectName;
 		loadModels();
 		loadFonts();
+	}
+	
+	public void reload(MobileComponent mc) {
+		try {
+			new WalkHelper() {
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					// Remember the current screen class or transaction for detecting inherited objects.
+					if (databaseObject instanceof UIDynamicElement) {
+						UIDynamicElement ude = (UIDynamicElement)databaseObject;
+						ude.loadBean(ComponentManager.this);
+					}
+					super.walk(databaseObject);
+				}
+			}.init(mc);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private boolean isInstance() {
+		return this.templateProjectName.equals(JAVA_NGX);
+	}
+	
+	private String ionObjectsAsString() throws Exception {
+		// try to read from file
+		if (!isInstance()) {
+			try {
+				File projectDir = new File(Engine.projectDir(templateProjectName));
+				File ion_objects = new File(projectDir, "ionicTpl/ion/ion_objects.json");
+				return FileUtils.readFileToString(ion_objects, "UTF-8");
+			} catch (IOException e) {
+				// no ionicTpl/ion/ion_objects.json file
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion_object.json from "+ templateProjectName + " ionicTpl. Will use default ion objects definition !");
+				// continue
+			}
+		}
+		
+		// try to read from java resources
+		InputStream inputstream = getClass().getResourceAsStream("ion_objects.json");
+		return IOUtils.toString(inputstream, "UTF-8");
 	}
 	
 	private synchronized void loadModels() {
 		clearModels();
 		
 		if (Engine.isStarted) {
-			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
+			Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Start loading Ionic objects");
 		} else {
-			System.out.println("(ComponentManager) Start loading Ionic objects");
+			System.out.println("(ComponentManager@"+ templateProjectName +") Start loading Ionic objects");
 		}
 		
-		try (InputStream inputstream = getClass().getResourceAsStream("ion_objects.json")) {
-			String json = IOUtils.toString(inputstream, "UTF-8");
-			
+		try {
+			String json = ionObjectsAsString();
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
 			readBeanModels(root);
 			readC8oBeanModels(root);
 			
 			if (Engine.isStarted) {
-				Engine.logEngine.info("(ComponentManager) End loading Ionic objects");
+				Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") End loading Ionic objects");
 			} else {
-				System.out.println("(ComponentManager) End loading Ionic objects");
+				System.out.println("(ComponentManager@"+ templateProjectName +") End loading Ionic objects");
 			}
 		} catch (Exception e) {
 			if (Engine.isStarted) {
-				Engine.logEngine.error("(ComponentManager) Could not load Ionic objects", e);
+				Engine.logEngine.error("(ComponentManager@"+ templateProjectName +") Could not load Ionic objects", e);
 			} else {
-				System.out.println("(ComponentManager) Could not load Ionic objects:");
+				System.out.println("(ComponentManager@"+ templateProjectName +") Could not load Ionic objects:");
 				e.printStackTrace();
 			}
 		}
 	}
 	
 	private void clear() {
+		if (isInstance()) {
+			ionicTemplateProjects.clear();
+		}
 		clearModels();
 		clearFonts();
 	}
@@ -252,9 +389,9 @@ public class ComponentManager {
 											property.setValue(value);
 											bean.putProperty(property);
 										} else {
-											System.out.println("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+											System.out.println("(ComponentManager@"+ templateProjectName +") Ion property \""+pkey+"\" does not exist anymore in cache.");
 											if (Engine.isStarted) {
-												Engine.logEngine.warn("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+												Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Ion property \""+pkey+"\" does not exist anymore in cache.");
 											}
 										}
 									}
@@ -287,17 +424,20 @@ public class ComponentManager {
 		}
 	}
 
-	public static Map<String, JSONObject> getC8oBeans() {
-		return Collections.unmodifiableMap(instance.c8oBeans);
+	public Map<String, JSONObject> getC8oBeans() {
+		return Collections.unmodifiableMap(c8oBeans);
 	}
 	
-	public static IonBean loadBean(String jsonString) throws Exception {
+	public IonBean loadBean(String jsonString) throws Exception {
 		JSONObject jsonBean = new JSONObject(jsonString);
 		String modelName = "Unknown";
 		if (jsonBean.has(IonBean.Key.name.name())) {
 			modelName = jsonBean.getString(IonBean.Key.name.name());
 		}
-		final IonBean model = instance.bCache.get(modelName);
+		if (!templateProjectName.equals(JAVA_NGX)) {
+			System.out.println("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
+		}
+		final IonBean model = bCache.get(modelName);
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
@@ -315,9 +455,9 @@ public class ComponentManager {
 					}
 				}
 				else {
-					System.out.println("(ComponentManager) For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data. Property will be set with default value.");
+					System.out.println("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data. Property will be set with default value.");
 					if (Engine.isStarted) {
-						Engine.logBeans.warn("(ComponentManager) For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data: ignore it. Property will be set with default value.");
+						Engine.logBeans.warn("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data: ignore it. Property will be set with default value.");
 					}
 					hasChanged = true;
 				}
@@ -329,9 +469,9 @@ public class ComponentManager {
 		}
 		// The model doesn't exist (anymore)
 		else {
-			System.out.println("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
+			System.out.println("(ComponentManager@"+ templateProjectName +") Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			if (Engine.isStarted) {
-				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
+				Engine.logBeans.warn("(ComponentManager@"+ templateProjectName +") Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			}
 			//return new IonBean(jsonString);
 			String deprecatedTplVersion = ProductVersion.productVersion + ".0";
@@ -339,11 +479,11 @@ public class ComponentManager {
 		}
 	}
 	
-	public static DatabaseObject createBean(Component c) {
+	public DatabaseObject createBean(Component c) {
 		return c != null ? c.createBean():null;
 	}
 	
-	public static DatabaseObject createBeanFromHint(Component c) {
+	public DatabaseObject createBeanFromHint(Component c) {
 		DatabaseObject dbo = null;
 		try {
 			dbo = createBeanFromHint(c.getHint());
@@ -353,7 +493,7 @@ public class ComponentManager {
 		return dbo == null ? c.createBean() : dbo;
 	}
 	
-	private static DatabaseObject createBeanFromHint(JSONObject jsonHint) {
+	private DatabaseObject createBeanFromHint(JSONObject jsonHint) {
 		try {
 			@SuppressWarnings("unchecked")
 			Iterator<String> it = jsonHint.keys();
@@ -370,7 +510,7 @@ public class ComponentManager {
 		return null;
 	}
 	
-	private static DatabaseObject createBeanFromJson(Component c, JSONObject jsonObject) {
+	private DatabaseObject createBeanFromJson(Component c, JSONObject jsonObject) {
 		DatabaseObject dbo = c.createBean();
 		
 		try {
@@ -456,21 +596,21 @@ public class ComponentManager {
 		return dbo;
 	}
 	
-	public static void reloadModels() {
-		instance.loadModels();
+	public void reloadModels() {
+		loadModels();
 	}
 
-	public static void reloadComponents() {
-		instance.groups = null;
-		instance.orderedComponents = null;
-		instance.components = null;
+	public void reloadComponents() {
+		groups = null;
+		orderedComponents = null;
+		components = null;
 		
-		instance.makeGroups();
-		instance.makeComponentsByGroup();
+		makeGroups();
+		makeComponentsByGroup();
 	}
 
-	public static List<String> getGroups() {
-		return instance.makeGroups();
+	public List<String> getGroups() {
+		return makeGroups();
 	}
 	
 	private static String GROUP_SHARED_ACTIONS = "Shared Actions";
@@ -485,7 +625,7 @@ public class ComponentManager {
 		}
 		groups = new ArrayList<String>(10);
 		groups.add(GROUP_CUSTOMS);
-		for (final IonBean bean: instance.bCache.values()) {
+		for (final IonBean bean: bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
 				groups.add(bean.getGroup());
 			}
@@ -513,8 +653,8 @@ public class ComponentManager {
 		return groups = Collections.unmodifiableList(groups);
 	}
 	
-	public static List<Component> getComponentsByGroup() {
-		return instance.makeComponentsByGroup();
+	public List<Component> getComponentsByGroup() {
+		return makeComponentsByGroup();
 	}
 	
 	private synchronized List<Component> makeComponentsByGroup() {
@@ -535,8 +675,8 @@ public class ComponentManager {
 		return orderedComponents = Collections.unmodifiableList(orderedComponents);
 	}
 	
-	public static List<Component> getComponents() {
-		return instance.makeComponents();
+	public List<Component> getComponents() {
+		return makeComponents();
 	}
 	
 	private synchronized List<Component> makeComponents() {
@@ -610,7 +750,7 @@ public class ComponentManager {
 			e.printStackTrace();
 		}
 		
-		for (final IonBean bean: instance.bCache.values()) {
+		for (final IonBean bean: bCache.values()) {
 			// ignore deprecated ionBeans
 			if (!bean.getDeprecatedTplVersion().isEmpty()) {
 				continue;
@@ -618,6 +758,11 @@ public class ComponentManager {
 			
 			components.add(new Component() {
 				
+				@Override
+				public String getTemplateProjectName() {
+					return templateProjectName;
+				}
+
 				@Override
 				public boolean isAllowedIn(DatabaseObject parent) {
 					if (bean.getTag().equals("ion-menu")) {
@@ -726,7 +871,16 @@ public class ComponentManager {
 				
 				@Override
 				protected DatabaseObject createBean() {
+					// create bean
 					DatabaseObject dbo = bean.createBean();
+					if (dbo instanceof UIDynamicElement) {
+						try {
+							// load bean data from this ComponentManager
+							((UIDynamicElement)dbo).loadBean(ComponentManager.this);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
 					return dbo;
 				}
 
@@ -765,6 +919,11 @@ public class ComponentManager {
 								if (action.isEnabled() && action.isExposed()) {
 									components.add(new Component() {
 	
+										@Override
+										public String getTemplateProjectName() {
+											return templateProjectName;
+										}
+										
 										@Override
 										public String getDescription() {
 											String description = action.getComment();
@@ -829,7 +988,8 @@ public class ComponentManager {
 											try {
 												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke");
 												if (acceptDatabaseObjects(parent, dboClass)) {
-													return true;
+													//return true;
+													return isTplCompatible(parent, action);
 												}
 											} catch (Exception e) {
 												e.printStackTrace();
@@ -854,7 +1014,8 @@ public class ComponentManager {
 										
 										@Override
 										protected DatabaseObject createBean() {
-											DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
+											//DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
+											DatabaseObject invokeAction = ComponentManager.this.createBean(ComponentManager.this.getComponentByName("InvokeAction"));
 											UIDynamicInvoke uidi = GenericUtils.cast(invokeAction);
 											if (uidi != null) {
 												uidi.setSharedActionQName(action.getQName());
@@ -874,11 +1035,17 @@ public class ComponentManager {
 									components.add(new Component() {
 										
 										@Override
+										public String getTemplateProjectName() {
+											return templateProjectName;
+										}
+										
+										@Override
 										public boolean isAllowedIn(DatabaseObject parent) {
 											try {
 												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIUseShared");
 												if (acceptDatabaseObjects(parent, dboClass)) {
-													return true;
+													//return true;
+													return isTplCompatible(parent, uisrc);
 												}
 											} catch (Exception e) {
 												e.printStackTrace();
@@ -1034,6 +1201,18 @@ public class ComponentManager {
 		return true;
 	}
 	
+	public static boolean isTplCompatible(DatabaseObject parentDatabaseObject, String version) {
+		if (parentDatabaseObject.getParent() != null && parentDatabaseObject instanceof MobileComponent) {
+			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplVersion(version) >= 0;
+			if (!compatible) {
+				Engine.logStudio.warn("The component isn't compatible with your Template project."
+						+ " Please change your Template project for version "+version+" to use it.");
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public static String getTplRequired(DatabaseObject databaseObject) {
 		if (databaseObject instanceof MobileComponent) {
 			return ((MobileComponent)databaseObject).requiredTplVersion();
@@ -1041,7 +1220,7 @@ public class ComponentManager {
 		return "";
 	}
 	
-	protected static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
+	private static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
 		if (UIComponent.class.isAssignableFrom(dboClass)) {
 			if (UIDynamicEmit.class.isAssignableFrom(dboClass)) {
 				if (dboParent instanceof UIComponent) {
@@ -1209,7 +1388,7 @@ public class ComponentManager {
 		return true;
 	}
 	
-	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException {
+	private Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException {
 		String className = dboClass.getName();
 		String beanInfoClassName = className + "BeanInfo";
 		
@@ -1219,6 +1398,11 @@ public class ComponentManager {
 		
 		return new Component() {
 
+			@Override
+			public String getTemplateProjectName() {
+				return templateProjectName;
+			}
+			
 			@Override
 			public String getDescription() {
 				String description = bd.getShortDescription();
@@ -1335,7 +1519,7 @@ public class ComponentManager {
 		};
 	}
 
-	public static Component getComponentByName(String name) {
+	public Component getComponentByName(String name) {
 		for (Component component : getComponents()) {
 			if (name.startsWith("com.twinsoft.convertigo.beans.ngx.components.")) {
 				name = name.replace("com.twinsoft.convertigo.beans.ngx.components.", "");
@@ -1347,22 +1531,45 @@ public class ComponentManager {
 		return null;
 	}
 	
-	public static String getActionTsCode(String name) {
-		String code = instance.aCache.get(name);
-		if (code == null) {
-			try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
-				code = IOUtils.toString(inputstream, "UTF-8");
-				instance.aCache.put(name, code);
-			} catch (Exception e) {
-				code = "";
-				if (Engine.isStarted) {
-					Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-				} else {
-					System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+	public String getActionTsCode(String name) {
+		synchronized (aCache) {
+			String code = aCache.get(name);
+			if (code == null) {
+				if (!this.equals(instance)) {
+					try {
+						File tplProjectDir = new File(Engine.PROJECTS_PATH, templateProjectName);
+						File actionTsFile = new File(tplProjectDir, "ionicTpl/ion/actionbeans/"+ name +".ts");
+						code = FileUtils.readFileToString(actionTsFile, "UTF-8");
+						aCache.put(name, code);
+					} catch (IOException e) {
+						code = null;
+						if (Engine.isStarted) {
+							Engine.logBeans.warn("(ComponentManager@"+templateProjectName+") Missing action typescript file for pseudo-bean '"+ name +"'. Will use default one !");
+						} else {
+							System.out.println("(ComponentManager@"+templateProjectName+") Missing action typescript file for pseudo-bean '"+ name +"'. Will use default one !");
+						}
+					}
+					if (code != null) {
+						//System.out.println("(ComponentManager@"+templateProjectName+") Pseudo-action loaded from template: '"+ name);
+					}
+				}
+				
+				if (code == null || this.equals(instance)) {
+					try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
+						code = IOUtils.toString(inputstream, "UTF-8");
+						aCache.put(name, code);
+					} catch (Exception e) {
+						code = "";
+						if (Engine.isStarted) {
+							Engine.logBeans.warn("(ComponentManager@"+templateProjectName+") Missing action typescript file for pseudo-bean '"+ name +"' !");
+						} else {
+							System.out.println("(ComponentManager@"+templateProjectName+") Missing action typescript file for pseudo-bean '"+ name +"' !");
+						}
+					}
 				}
 			}
+			return code;
 		}
-		return code;
 	}
 	
 	public static File getCompBeanDir(String name) {
@@ -1386,8 +1593,8 @@ public class ComponentManager {
 		return null;
 	}
 	
-	public static Map<String, IonBean> getIonBeans() {
-		return Collections.unmodifiableMap(instance.bCache);
+	public Map<String, IonBean> getIonBeans() {
+		return Collections.unmodifiableMap(bCache);
 	}
 	
 	protected static void printIcons() {
@@ -1407,7 +1614,7 @@ public class ComponentManager {
 				File output = new File(args[0]);
 				if (output.exists() && output.isDirectory()) {
 					List<IonBean> beans = new ArrayList<IonBean>();
-					beans.addAll(getIonBeans().values());
+					beans.addAll(ComponentManager.of(null).getIonBeans().values());
 					Collections.sort(beans, new Comparator<IonBean>() {
 						@Override
 						public int compare(IonBean b1, IonBean b2) {
@@ -1471,7 +1678,7 @@ public class ComponentManager {
 						fontMap.put(fontId, new JSONObject(sContent));
 					}
 				} catch (Exception e) {
-					Engine.logEngine.warn("(ComponentManager) Unabled to get font with id "+ fontId + " : " + e.getMessage());
+					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to get font with id "+ fontId + " : " + e.getMessage());
 				}
 			}
 			jsonFont = fontMap.get(fontId);
@@ -1507,9 +1714,9 @@ public class ComponentManager {
 				}
 			} catch (Exception e) {
 				if (Engine.isStarted) {
-					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
 				} else {
-					System.out.println("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+					System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
 				}
 				fontMap.clear();
 			}
@@ -1530,15 +1737,15 @@ public class ComponentManager {
 				}
 				
 				if (Engine.isStarted) {
-					Engine.logEngine.info("(ComponentManager) Font sources loaded from file");
+					Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
 				} else {
-					System.out.println("(ComponentManager) Font sources loaded from file");
+					System.out.println("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
 				}
 			} catch (Exception e) {
 				if (Engine.isStarted) {
-					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
 				} else {
-					System.out.println("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+					System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -1552,7 +1759,7 @@ public class ComponentManager {
 				File file = new File("C://Dev/font-sources-bis.json");
 				if (!file.exists()) {
 					Map<String, JSONObject> map = instance.loadFontsFromFile();
-					System.out.println("(ComponentManager) retrieving "+ map.size() +" fonts...");
+					System.out.println("(ComponentManager@"+ templateProjectName +") retrieving "+ map.size() +" fonts...");
 					
 					List<String> fontIds = map.keySet().stream().sorted((e1, e2) -> 
 					e1.toString().compareTo(e2.toString())).collect(Collectors.toList());
@@ -1561,33 +1768,33 @@ public class ComponentManager {
 					for (String fontId: fontIds) {
 						JSONObject jsonOb = getFont(fontId);
 						if (jsonOb == null) {
-							System.out.println("(ComponentManager) Unabled to retrieve font " + fontId);
+							System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to retrieve font " + fontId);
 							jsonOb = new JSONObject();
 							jsonOb.put("id", fontId);
 						} else {
-							System.out.println("(ComponentManager) Retrieved font " + fontId);
+							System.out.println("(ComponentManager@"+ templateProjectName +") Retrieved font " + fontId);
 						}
 						array.put(jsonOb);
 					}
 					
 					String content = array.toString(1);
 					FileUtils.write(file, content, "UTF-8");
-					System.out.println("(ComponentManager) font-sources-bis.json written");
+					System.out.println("(ComponentManager@"+ templateProjectName +") font-sources-bis.json written");
 				} else {
 					String content = FileUtils.readFileToString(file, "UTF-8");
 					JSONArray array = new JSONArray(content);
-					System.out.println("(ComponentManager) checking "+ array.length() +" fonts...");
+					System.out.println("(ComponentManager@"+ templateProjectName +") checking "+ array.length() +" fonts...");
 					for (int i = 0; i < array.length(); i++) {
 						JSONObject jsonFont = array.getJSONObject(i);
 						String fontId = jsonFont.getString("id");
 						if (jsonFont.length() <= 1) {
-							System.out.println("(ComponentManager) Invalid font " + fontId);
+							System.out.println("(ComponentManager@"+ templateProjectName +") Invalid font " + fontId);
 						}
 					}
-					System.out.println("(ComponentManager) check done");
+					System.out.println("(ComponentManager@"+ templateProjectName +") check done");
 				}
 			} catch (Exception e) {
-				System.out.println("(ComponentManager) storeFonts: exception occured " + e.getMessage());
+				System.out.println("(ComponentManager@"+ templateProjectName +") storeFonts: exception occured " + e.getMessage());
 			}
 		});
 	}

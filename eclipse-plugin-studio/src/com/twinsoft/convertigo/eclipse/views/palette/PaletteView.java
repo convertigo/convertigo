@@ -604,7 +604,8 @@ public class PaletteView extends ViewPart {
 				}
 			};
 
-			for (Component comp: ComponentManager.getComponentsByGroup()) {
+			ComponentManager cm = ComponentManager.of(null);
+			for (Component comp: cm.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
 				all.put(id, new Item() {
 
@@ -630,11 +631,21 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return isCtrl[0] ? ComponentManager.createBean(comp) : ComponentManager.createBeanFromHint(comp);
+						ComponentManager cm = ComponentManager.of(comp.getTemplateProjectName());
+						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
+						try {
+							dbo.setName(name());
+						} catch (Exception e) {
+						}
+						return dbo;
 					}
 
 					@Override
 					boolean allowedIn(DatabaseObject parent) {
+						/*if (!cm.equals(ComponentManager.of(parent))) {
+							return false;
+						}*/
+					
 						if (isType[0]) {
 							return parent instanceof ApplicationComponent;
 						}
@@ -1189,7 +1200,7 @@ public class PaletteView extends ViewPart {
 	
 	private void refresh(long threshold) {
 		Engine.execute(() -> {
-			ComponentManager.reloadComponents();
+			ComponentManager.of(null).reloadComponents();
 			parent.getDisplay().asyncExec(() -> {
 				String txt = searchText != null ? searchText.getText() : null;
 				for (Control c: parent.getChildren()) {
