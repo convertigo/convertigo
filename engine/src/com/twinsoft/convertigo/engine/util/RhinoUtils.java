@@ -55,6 +55,7 @@ public class RhinoUtils {
 	}
 	
 	static public Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		source = CopilotHelper.addInstruction(dbo, source);
 		if (debugMode) {
 			if (dbo != null) {
 				sourceName = dbo.getShortQName() + "-" + sourceName;

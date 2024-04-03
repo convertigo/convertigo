@@ -12,15 +12,12 @@
 			<unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="0.0.0"/>
 			<unit id="org.eclipse.wst.xml_ui.feature.feature.group" version="0.0.0"/>
 			<unit id="org.eclipse.mylyn.wikitext.feature.feature.group" version="0.0.0"/>
+			<unit id="org.eclipse.epp.mpc.feature.group" version="0.0.0"/>
 			<repository location="https://download.eclipse.org/releases/2024-03/"/>
 		</location>
 		<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 			<unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
 			<repository location="https://download.eclipse.org/eclipse/updates/4.31/"/>
-		</location>
-		<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-			<unit id="com.genuitec.copilot4eclipse.feature.feature.group" version="0.0.0"/>
-			<repository location="https://www.genuitec.com/updates/copilot4eclipse/"/>
 		</location>
 	</locations>
 </target>

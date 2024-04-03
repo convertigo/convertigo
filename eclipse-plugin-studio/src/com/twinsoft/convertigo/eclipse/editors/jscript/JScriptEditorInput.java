@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
 import java.io.InputStream;
-import java.util.LinkedList;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
@@ -37,19 +36,18 @@ import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ConvertigoTypeScriptDefinition;
+import com.twinsoft.convertigo.engine.util.CopilotHelper;
 
 public class JScriptEditorInput extends FileInPlaceEditorInput implements IPropertyListener {
 	
 	static private IFile makeFile(IJScriptContainer jsContainer, IProject project) {
 		String fullname = jsContainer.getFullName();
-		var variables = new LinkedList<String>();
 		if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
 			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
 			String conf = "{\"compilerOptions\": {\"module\": \"es5\", \"target\": \"es5\"}, \"include\": [\"*\"]}";
@@ -67,7 +65,6 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 				IVariableContainer vc = (IVariableContainer) dbo;
 				StringBuilder sb = new StringBuilder();
 				for (Variable v: vc.getVariables()) {
-					variables.add(v.getName());
 					sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
 				}
 				SwtUtils.fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());
@@ -79,19 +76,7 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 		}
 		IFile file = project.getFile("_private/editor/" + fullname + "/code.js");
 		var expression = jsContainer.getExpression();
-		if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
-			expression = "// Copilot helper: this is a javascript script executed by a CouchDB view\n" + expression;
-		} else {
-			var v = ". Available variables: log, dom, context";
-			if (variables.size() > 0) {
-				v += ", " + String.join(", ", variables);
-			}
-			if (jsContainer instanceof Transaction) {
-				expression = "// Copilot helper: this is a javascript script executed with RhinoJS by a Convertigo Transaction over the JVM" + v + "\n" + expression;
-			} else {
-				expression = "// Copilot helper: this is a javascript script executed with RhinoJS by a Convertigo Sequence over the JVM" + v + "\n" + expression;
-			}
-		}
+		expression = CopilotHelper.addInstruction(jsContainer.getDatabaseObject(), expression);
 		SwtUtils.fillFile(file, expression);
 		
 		return file;
@@ -189,7 +174,7 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 		if (propId == IEditorPart.PROP_DIRTY && !((IEditorPart) source).isDirty()) {
 			try (InputStream is = getFile().getContents()) {
 				var expression = IOUtils.toString(is, "UTF-8");
-				expression = expression.replaceFirst("// Copilot helper:.*\n", "");
+				expression = CopilotHelper.removeInstruction(expression);
 				jsContainer.setExpression(expression);
 				dboTree.hasBeenModified(true);
 			} catch (Exception e) {
