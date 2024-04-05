@@ -17,6 +17,7 @@
 	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
 	import { onMount } from 'svelte';
 	import ModalSessionLegend from '$lib/admin/modals/ModalSessionLegend.svelte';
+	import ModalCertificates from '$lib/admin/modals/ModalCertificates.svelte';
 
 	initializeStores();
 
@@ -38,7 +39,8 @@
 		modalScheduler: { ref: ModalScheduler },
 		modalSymbols: { ref: ModalSymbols },
 		modalWarning: { ref: ModalWarning },
-		modalSessionLegend: { ref: ModalSessionLegend }
+		modalSessionLegend: { ref: ModalSessionLegend },
+		modalCertificates: { ref: ModalCertificates }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });

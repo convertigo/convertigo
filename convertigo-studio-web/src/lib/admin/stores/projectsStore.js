@@ -15,5 +15,6 @@ export async function projectsCheck() {
 			}
 			projectsStore.set(response.admin.projects.project);
 		}
+		console.log(response);
 	}
 }

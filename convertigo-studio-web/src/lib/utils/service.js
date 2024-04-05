@@ -65,7 +65,7 @@ export async function call(service, data = {}) {
 		dataContent = await res.json();
 	}
 
-	// handleStateMessage(dataContent);
+	//handleStateMessage(dataContent);
 	return dataContent;
 }
 
@@ -74,9 +74,11 @@ function handleStateMessage(dataContent) {
 		const toastNotif = getToastStore();
 		//Miss stateMessage for config
 		//Missing for projects reload & delete services
-
 		let stateMessage =
-			dataContent?.admin?.response || dataContent?.admin?.keys?.key || dataContent?.admin;
+			dataContent?.admin?.response ||
+			dataContent?.admin?.keys?.key ||
+			dataContent?.admin ||
+			dataContent?.admin?.message;
 		let modalStateBody =
 			stateMessage?.['@_message'] || stateMessage?.['@_errorMessage'] || stateMessage?.message;
 

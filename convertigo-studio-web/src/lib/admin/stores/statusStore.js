@@ -20,6 +20,7 @@ export const osArchitecture = writable('');
 export const osAvailableProcessors = writable(0);
 export const browser = writable('');
 export const cloud = writable(null);
+export const id = writable('');
 
 const all = {
 	locale,
@@ -40,7 +41,8 @@ const all = {
 	osArchitecture,
 	osAvailableProcessors,
 	browser,
-	cloud
+	cloud,
+	id
 };
 
 let init = false;
@@ -56,5 +58,6 @@ export async function statusCheck() {
 				}
 			}
 		}
+		console.log('status', response);
 	}
 }
