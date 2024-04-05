@@ -28,6 +28,7 @@
 			...response.admin
 		};
 		oriConf = copyObj($conf);
+		console.log('cache res', response);
 	}
 
 	onMount(() => {

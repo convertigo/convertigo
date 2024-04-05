@@ -28,6 +28,7 @@
 				modalStore.close();
 				projectsCheck();
 			}
+			console.log('deploy res', res);
 		} catch (err) {
 			console.error(err);
 		}

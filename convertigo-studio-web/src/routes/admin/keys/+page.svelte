@@ -2,13 +2,13 @@
 	import { keysCheck, categoryStore } from '$lib/admin/stores/keysStore';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const keyModalStore = getModalStore();
-	const toastStore = getToastStore();
+
 	let newKey = '';
 
 	onMount(() => {
@@ -47,6 +47,8 @@
 				}
 			});
 			console.log('remove key service', response);
+			keysCheck();
+			/**
 			if (response.error) {
 				keyModalStore.trigger({
 					type: 'component',
@@ -67,7 +69,7 @@
 					response: (confirmed) => {}
 				});
 				keysCheck();
-			}
+			}*/
 		} catch (error) {
 			console.error(error);
 		}
@@ -92,25 +94,42 @@
 
 	async function keysUpdate(keyText) {
 		try {
-			const pathRes = ['admin', 'keys', 'key'];
-			const resUpdate = await call(
-				'keys.Update',
-				{
-					'@_xml': true,
-					admin: {
-						'@_service': 'keys.Update',
-						keys: {
-							key: {
-								'@_text': keyText
-							}
+			const resUpdate = await call('keys.Update', {
+				'@_xml': true,
+				admin: {
+					'@_service': 'keys.Update',
+					keys: {
+						key: {
+							'@_text': keyText
 						}
 					}
-				},
-				toastStore,
-				//@ts-ignore
-				pathRes
-			);
-			console.log('res update ', resUpdate);
+				}
+			});
+			const errorMessage = resUpdate?.admin?.keys?.key['@_errorMessage'];
+			keysCheck();
+			/**
+			if (errorMessage) {
+				console.log('keysUpdate function response :', resUpdate);
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Error' },
+					title: 'Error',
+					body: errorMessage,
+					response: (confirmed) => {}
+				});
+				keysCheck();
+			} else {
+				keyModalStore.trigger({
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Success' },
+					title: 'Key added',
+					body: 'The Key has been added with success',
+					response: (confirmed) => {}
+				});
+				keysCheck();
+			}*/
 		} catch (err) {
 			console.error(err);
 		}

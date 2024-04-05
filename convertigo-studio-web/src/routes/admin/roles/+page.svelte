@@ -8,7 +8,6 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 
 	const rolesModalStore = getModalStore();
-	const toastStore = getToastStore();
 
 	let usersStore = writable([]);
 
@@ -43,7 +42,7 @@
 		formData.append('username', userName);
 		try {
 			//@ts-ignore
-			const res = await call('roles.Delete', formData, toastStore);
+			const res = await call('roles.Delete', formData);
 			console.log('service delete roles', res);
 		} catch (error) {
 			console.error('Error deleting user role:', error);

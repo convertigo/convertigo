@@ -28,18 +28,7 @@
 			// @ts-ignore
 			const response = await call('global_symbols.Delete', formData);
 			globalSymbols();
-
-			if (response !== undefined) {
-				// @ts-ignore
-				symbolModalStore.trigger({
-					title: 'Delete Successful'
-				});
-			} else {
-				// @ts-ignore
-				symbolModalStore.trigger({
-					title: 'Delete Failed'
-				});
-			}
+			console.log('symbols delete', response);
 		} catch (error) {
 			console.error(error);
 		}
@@ -80,10 +69,6 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					symbolsDelete(symbolId);
-					// @ts-ignore
-					symbolModalStore.trigger({
-						title: 'Key deleted with success'
-					});
 				}
 			}
 		});

@@ -3,6 +3,7 @@
 
 	import { call } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
+	import AutoGrid from '../components/AutoGrid.svelte';
 
 	const modalStore = getModalStore();
 
@@ -19,56 +20,68 @@
 </script>
 
 {#if mode == 'newTransaction'}
-	<Card title="New transaction" class="p-10">
-		<form class="flex flex-col" on:submit={createScheduledElements} name="type">
-			<div class="flex gap-5 mb-10">
-				<label class="border-common">
-					<p class="input-name">Name :</p>
-					<input name="name" class="input-common" />
-				</label>
+	<Card title="New transaction">
+		<form class="flex flex-col mt-5" on:submit={createScheduledElements} name="type">
+			<AutoGrid>
+				<div>
+					<div class="flex gap-5 mb-10">
+						<label class="border-common">
+							<p class="input-name">Name :</p>
+							<input name="name" class="input-common" />
+						</label>
 
-				<label class="border-common">
-					<p class="input-name">description :</p>
-					<input name="description" class="input-common" />
-				</label>
-			</div>
+						<label class="border-common">
+							<p class="input-name">description :</p>
+							<input name="description" class="input-common" />
+						</label>
+					</div>
 
-			<p class="input-name">Enable :</p>
-			<RadioGroup>
-				<RadioItem name="enabled" bind:group={enable} value="true">Yes</RadioItem>
-				<RadioItem name="enabled" bind:group={enable} value="false">No</RadioItem>
-			</RadioGroup>
+					<p class="input-name">Enable :</p>
+					<RadioGroup>
+						<RadioItem name="enabled" bind:group={enable} value="true">Yes</RadioItem>
+						<RadioItem name="enabled" bind:group={enable} value="false">No</RadioItem>
+					</RadioGroup>
 
-			<label class="border-common mt-10">
-				<p class="input-name">Context :</p>
-				<input name="context" class="input-common" />
-			</label>
+					<label class="border-common mt-10">
+						<p class="input-name">Context :</p>
+						<input name="context" class="input-common" />
+					</label>
 
-			<p class="input-name mt-5">Write output :</p>
-			<RadioGroup>
-				<RadioItem name="writeOutput" bind:group={writeOutput} value="true">Yes</RadioItem>
-				<RadioItem name="writeOutput" bind:group={writeOutput} value="false">No</RadioItem>
-			</RadioGroup>
+					<p class="input-name mt-5">Write output :</p>
+					<RadioGroup>
+						<RadioItem name="writeOutput" bind:group={writeOutput} value="true">Yes</RadioItem>
+						<RadioItem name="writeOutput" bind:group={writeOutput} value="false">No</RadioItem>
+					</RadioGroup>
+				</div>
 
-			<p class="input-name mt-10">Project :</p>
-			<select name="project">
-				<option></option>
-			</select>
+				<div class="flex flex-col ml-20">
+					<div class="border-common">
+						<p class="label-common w-full">Project :</p>
+						<select name="project" class="input-common">
+							<option></option>
+						</select>
+					</div>
 
-			<p class="input-name mt-5">Connector :</p>
-			<select name="connector">
-				<option></option>
-			</select>
+					<div class="border-common">
+						<p class="label-common mt-10 w-full">Connector :</p>
+						<select name="connector" class="input-common">
+							<option></option>
+						</select>
+					</div>
 
-			<p class="input-name mt-5">Transaction :</p>
-			<select name="transaction">
-				<option></option>
-			</select>
+					<div class="border-common">
+						<p class="label-common mt-10 w-full">Transaction :</p>
+						<select name="transaction" class="input-common">
+							<option></option>
+						</select>
+					</div>
+				</div>
+			</AutoGrid>
 
 			<div class="flex gap-10 mt-10">
-				<button type="submit" class="btn bg-buttons w-40 text-white">Confirm</button>
+				<button type="submit" class="bg-primary-400-500-token w-40">Confirm</button>
 
-				<button class="btn bg-buttons w-40 text-white" on:click={() => modalStore.close()}
+				<button class="bg-error-400-500-token w-40" on:click={() => modalStore.close()}
 					>Cancel</button
 				>
 			</div>

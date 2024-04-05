@@ -1,5 +1,6 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { loading } from '$lib/utils/loadingStore';
+import { getToastStore } from '@skeletonlabs/skeleton';
 
 let cpt = 0;
 loading.subscribe((n) => (cpt = n));
@@ -7,7 +8,7 @@ loading.subscribe((n) => (cpt = n));
  * @param {string} service
  * @param {any} data
  */
-export async function call(service, data = {}, toastState = null) {
+export async function call(service, data = {}) {
 	let url = getUrl() + service;
 	let body;
 	let headers = {
@@ -64,40 +65,38 @@ export async function call(service, data = {}, toastState = null) {
 		dataContent = await res.json();
 	}
 
-	if (toastState) {
-		handleStateMessage(dataContent, toastState);
-	}
-
+	// handleStateMessage(dataContent);
 	return dataContent;
 }
 
-/**
- * Handles displaying state messages with dynamic response structures.
- *
- * @param {Object} dataContent - The parsed response data.
- * @param {Object} toastState - The state object for triggering toasts.
- * @param {Array} [path=null] - Optional path to the state message within dataContent.
- */
-//@ts-ignore
-function handleStateMessage(dataContent, toastState, path) {
-	let defaultPath = ['admin', 'response'];
-	let finalPath = path || defaultPath;
-	let stateMessage = finalPath.reduce((acc, key) => acc[key], dataContent);
+function handleStateMessage(dataContent) {
+	try {
+		const toastNotif = getToastStore();
+		//Miss stateMessage for config
+		//Missing for projects reload & delete services
 
-	if (stateMessage) {
-		let modalState =
-			stateMessage['@_state'] || (stateMessage['@_errorMessage'] ? 'error' : 'success');
+		let stateMessage =
+			dataContent?.admin?.response || dataContent?.admin?.keys?.key || dataContent?.admin;
 		let modalStateBody =
-			stateMessage['@_message'] || stateMessage['@_errorMessage'] || 'No message provided';
-		let background = modalState === 'error' ? 'bg-error-400-500-token' : 'bg-success-400-500-token';
+			stateMessage?.['@_message'] || stateMessage?.['@_errorMessage'] || stateMessage?.message;
 
-		toastState.trigger({
-			message: modalStateBody,
-			timeout: 8000,
-			background: background
-		});
-	} else {
-		console.warn('State message could not be found in the response data.');
+		if (modalStateBody) {
+			let background =
+				stateMessage?.['@_state'] === 'error'
+					? 'bg-error-400-500-token'
+					: 'bg-success-400-500-token';
+
+			toastNotif.trigger({
+				message: modalStateBody,
+				timeout: 8000,
+				background: background
+			});
+		} else {
+			console.warn('No valid message found in the response data.');
+			return;
+		}
+	} catch (err) {
+		console.error('Error handling state message:', err);
 	}
 }
 

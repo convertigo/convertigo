@@ -26,17 +26,6 @@
 			const response = await call('global_symbols.Add', fd);
 			modalStore.close();
 			globalSymbols();
-			if (response) {
-				modalStore.trigger({
-					type: 'alert',
-					title: 'Added with success'
-				});
-			} else {
-				modalStore.trigger({
-					type: 'alert',
-					title: 'failed adding new symbol'
-				});
-			}
 		}
 	}
 

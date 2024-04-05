@@ -14,4 +14,8 @@ export async function refreshConfigurations() {
 export async function updateConfigurations(property) {
 	await call('configuration.Update', { '@_xml': true, configuration: { property } });
 	await refreshConfigurations();
+	console.log(
+		'save serv',
+		await call('configuration.Update', { '@_xml': true, configuration: { property } })
+	);
 }

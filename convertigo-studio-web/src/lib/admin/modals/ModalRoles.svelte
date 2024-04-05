@@ -73,8 +73,9 @@
 		const fd = new FormData(event.target);
 
 		//@ts-ignore
-		const res = await call('roles.Add', fd, toastStore);
+		const res = await call('roles.Add', fd);
 		console.log('role add res:', res);
+
 		modalStore.close();
 	}
 

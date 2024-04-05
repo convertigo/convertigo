@@ -5,7 +5,7 @@ export let categoryStore = writable([]);
 
 export async function keysCheck() {
 	const response = await call('keys.List');
-	console.log(response);
+	console.log('keys list', response);
 
 	if (response?.admin?.category) {
 		let categories = response.admin.category;

@@ -31,7 +31,7 @@
 			{#each data as row}
 				<tr>
 					{#each definition as def}
-						<td data-label={def.name ?? ''}>
+						<td class={def.class ? def.class(row) : ''} data-label={def.name ?? ''}>
 							{#if def.custom}
 								<slot {row} {def}>{row[def.key] ?? ''}</slot>
 							{:else}
