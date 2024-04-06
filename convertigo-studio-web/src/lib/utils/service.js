@@ -65,7 +65,7 @@ export async function call(service, data = {}) {
 		dataContent = await res.json();
 	}
 
-	//handleStateMessage(dataContent);
+	handleStateMessage(dataContent);
 	return dataContent;
 }
 

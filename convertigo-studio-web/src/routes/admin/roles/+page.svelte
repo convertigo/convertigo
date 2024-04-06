@@ -4,38 +4,14 @@
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 
 	const rolesModalStore = getModalStore();
-
-	let usersStore = writable([]);
 
 	onMount(() => {
 		usersList();
 	});
-
-	export async function usersList() {
-		const res = await call('roles.List');
-		console.log('roles List', res);
-
-		if (res?.admin?.users?.user) {
-			if (!Array.isArray(res.admin.users.user)) {
-				res.admin.users.user = [res?.admin?.users?.user];
-			}
-
-			let usersWithRoles = res.admin.users.user.map((user) => {
-				return {
-					...user,
-					role: Array.isArray(user.role)
-						? user.role.map((role) => role['@_name']).join(', ')
-						: 'No roles'
-				};
-			});
-
-			usersStore.set(usersWithRoles);
-		}
-	}
 
 	async function deleteUsersRoles(userName) {
 		const formData = new FormData();
@@ -44,41 +20,19 @@
 			//@ts-ignore
 			const res = await call('roles.Delete', formData);
 			console.log('service delete roles', res);
+			usersList();
 		} catch (error) {
 			console.error('Error deleting user role:', error);
 		}
 	}
 
 	async function deleteAllRoles() {
-		const response = await call('roles.DeleteAll');
-
-		console.log('delete all', response);
-
-		if (response.admin.response['@_state'] === 'success') {
-			rolesModalStore.trigger({
-				type: 'component',
-				component: 'modalWarning',
-				title: 'Success',
-				body: 'All Roles deleted with success',
-				meta: { mode: 'Success' },
-				response: (confirmed) => {
-					if (confirmed) {
-						usersList();
-					}
-				}
-			});
-		} else if (response.admin.response['@_state'] === 'error') {
-			rolesModalStore.trigger({
-				type: 'component',
-				component: 'modalWarning',
-				title: 'Error',
-				body: 'An error occurred',
-				meta: { mode: 'Error' },
-				response: (confirmed) => {
-					if (confirmed) {
-					}
-				}
-			});
+		try {
+			const res = await call('roles.DeleteAll');
+			console.log('service delete All roles', res);
+			usersList();
+		} catch (err) {
+			console.error(err);
 		}
 	}
 
@@ -169,7 +123,7 @@
 		</div>
 	</div>
 
-	{#if $usersStore.length > 0}
+	{#if $usersStore.length >= 0}
 		<TableAutoCard
 			definition={[
 				{ name: 'Name', key: '@_name' },

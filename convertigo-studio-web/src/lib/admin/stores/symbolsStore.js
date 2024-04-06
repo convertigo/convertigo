@@ -17,20 +17,19 @@ export async function globalSymbols() {
 	const res = await call('global_symbols.List');
 	console.log('global symbols list:', res);
 
-	let symbolList = res.admin.symbols.symbol;
-	let defaultSymbol = res.admin.defaultSymbols.defaultSymbol;
-
+	// Handling undefined or empty symbolList
+	let symbolList = res.admin?.symbols?.symbol ?? [];
+	// Ensure it's an array
 	if (!Array.isArray(symbolList)) {
-		symbolList = [symbolList];
+		symbolList = symbolList ? [symbolList] : [];
 	}
-	if (res?.admin) {
-		globalSymbolsList.set(symbolList);
-	}
+	globalSymbolsList.set(symbolList);
 
-	if (!Array.isArray(defaultSymbolList)) {
-		defaultSymbol = [defaultSymbol];
+	// Handling undefined or empty defaultSymbol
+	let defaultSymbol = res.admin?.defaultSymbols?.defaultSymbol ?? [];
+	// Ensure it's an array
+	if (!Array.isArray(defaultSymbol)) {
+		defaultSymbol = defaultSymbol ? [defaultSymbol] : [];
 	}
-	if (res?.admin) {
-		defaultSymbolList.set(defaultSymbol);
-	}
+	defaultSymbolList.set(defaultSymbol);
 }

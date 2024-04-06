@@ -12,6 +12,7 @@
 	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
+	import { usersList } from '../stores/rolesStore';
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
@@ -75,7 +76,7 @@
 		//@ts-ignore
 		const res = await call('roles.Add', fd);
 		console.log('role add res:', res);
-
+		usersList();
 		modalStore.close();
 	}
 
@@ -123,8 +124,30 @@
 				lgCols="lg:grid-cols-3"
 			>
 				<div class="container-child">
-					<h1 class="mb-5 font-bold text-xl">View Roles</h1>
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
+					<div class="flex items-center gap-5">
+						<h1 class="font-bold text-xl">View Roles</h1>
+						<RadioGroup class="shadow-md">
+							<RadioItem
+								bind:group={$viewRolesChecked}
+								on:click={() => toggleViewRoles(false)}
+								name="viewRoles"
+								value={false}
+								active="variant-filled-surface"
+							>
+								<Icon icon="mdi:minus" class="w-6 h-6" />
+							</RadioItem>
+							<RadioItem
+								bind:group={$viewRolesChecked}
+								on:click={() => toggleViewRoles(true)}
+								name="viewRoles"
+								value={true}
+								active="variant-filled-secondary"
+							>
+								<Icon icon="mdi:plus" class="w-6 h-6" />
+							</RadioItem>
+						</RadioGroup>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
 						{#each $viewRolesStore as view}
 							<div class="flex items-center">
 								<SlideToggle
@@ -140,32 +163,34 @@
 							</div>
 						{/each}
 					</div>
-
-					<RadioGroup class="mt-10 max-w-80">
-						<RadioItem
-							bind:group={$viewRolesChecked}
-							on:click={() => toggleViewRoles(true)}
-							name="viewRoles"
-							value={true}
-							active="variant-filled-secondary"
-						>
-							<Icon icon="mdi:plus" class="w-6 h-6" />
-						</RadioItem>
-						<RadioItem
-							bind:group={$viewRolesChecked}
-							on:click={() => toggleViewRoles(false)}
-							name="viewRoles"
-							value={false}
-							active="variant-filled-surface"
-						>
-							<Icon icon="mdi:minus" class="w-6 h-6" />
-						</RadioItem>
-					</RadioGroup>
 				</div>
 
 				<div class="container-child">
-					<h1 class="mb-5 font-bold text-xl">Config Roles</h1>
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
+					<div class="flex items-center gap-5">
+						<h1 class="font-bold text-xl">Config Roles</h1>
+						<RadioGroup class="">
+							<RadioItem
+								bind:group={$configRolesChecked}
+								on:click={() => toggleConfigRoles(false)}
+								name="configRoles"
+								value={false}
+								active="variant-filled-surface"
+							>
+								<Icon icon="mdi:minus" class="w-6 h-6" />
+							</RadioItem>
+							<RadioItem
+								bind:group={$configRolesChecked}
+								on:click={() => toggleConfigRoles(true)}
+								name="configRoles"
+								value={true}
+								active="variant-filled-secondary"
+							>
+								<Icon icon="mdi:plus" class="w-6 h-6" />
+							</RadioItem>
+						</RadioGroup>
+					</div>
+
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
 						{#each $configRolesStore as config}
 							<div class="flex items-center">
 								<SlideToggle
@@ -181,32 +206,11 @@
 							</div>
 						{/each}
 					</div>
-
-					<RadioGroup class="mt-10 flex max-w-80">
-						<RadioItem
-							bind:group={$configRolesChecked}
-							on:click={() => toggleConfigRoles(true)}
-							name="configRoles"
-							value={true}
-							active="variant-filled-secondary"
-						>
-							<Icon icon="mdi:plus" class="w-6 h-6" />
-						</RadioItem>
-						<RadioItem
-							bind:group={$configRolesChecked}
-							on:click={() => toggleConfigRoles(false)}
-							name="configRoles"
-							value={false}
-							active="variant-filled-surface"
-						>
-							<Icon icon="mdi:minus" class="w-6 h-6" />
-						</RadioItem>
-					</RadioGroup>
 				</div>
 
 				<div class="container-child">
 					<h1 class="mb-5 font-bold text-xl">Other Roles</h1>
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5">
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
 						{#each $otherRolesStore as other}
 							<div class="flex items-center">
 								<SlideToggle
@@ -226,8 +230,10 @@
 			</ResponsiveContainer>
 
 			<div class="flex gap-5 mt-10">
-				<button class="cancel-button w-60" on:click={() => modalStore.close()}>Cancel</button>
-				<button type="submit" class="btn confirm-button w-60">Confirm</button>
+				<button class="bg-error-400-500-token w-60" on:click={() => modalStore.close()}
+					>Cancel</button
+				>
+				<button type="submit" class="confirm-button w-60">Confirm</button>
 			</div>
 		</form>
 	</Card>

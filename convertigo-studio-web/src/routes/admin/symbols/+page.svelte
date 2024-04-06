@@ -40,11 +40,6 @@
 	}
 
 	async function addDefaultSymbol(defaultSymbol) {
-		if (!defaultSymbol || !defaultSymbol['@_name'] || !defaultSymbol['@_value']) {
-			console.error('symbole name or value is empty');
-			return;
-		}
-
 		let fd = new FormData();
 		fd.append('symbolName', defaultSymbol['@_name']);
 		fd.append('symbolValue', defaultSymbol['@_value']);
@@ -172,7 +167,7 @@
 			{:else if def.name === 'Delete'}
 				<button
 					class="btn p-1 px-2 shadow-md bg-error-400-500-token"
-					on:click={() => confirmSymbolDeletion(globalSymbols['@_name'])}
+					on:click={() => confirmSymbolDeletion(row['@_name'])}
 				>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 				</button>
@@ -199,7 +194,7 @@
 			{#if def.name === 'Add'}
 				<button
 					class="btn p-1 px-2 shadow-md bg-secondary-400-500-token"
-					on:click={() => addDefaultSymbol(row.defaultSymbol)}
+					on:click={() => addDefaultSymbol(row)}
 				>
 					<Icon icon="material-symbols-light:add" class="w-7 h-7" />
 				</button>
