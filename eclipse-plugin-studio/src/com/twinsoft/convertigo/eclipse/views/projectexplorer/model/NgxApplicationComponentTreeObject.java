@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.beans.BeanInfo;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Set;
@@ -30,9 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -53,7 +49,6 @@ import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
@@ -301,38 +296,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				if (doto.equals(this)) {
 					// application tpl has changed
 					if (propertyName.equals("tplProjectName")) {
-						Engine.logStudio.info("tplProjectName property of " + projectName + " changed, reloading builder...");
-						
-						// close app editor and reinitialize builder
-						Project project = getObject().getProject();
-						closeAllEditors(false);
-						MobileBuilder.releaseBuilder(project);
-						MobileBuilder.initBuilder(project);
-						
-						// refresh resources
-						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
-						
-						// delete node modules and alert user
-						final File nodeModules = new File(getObject().getProject().getDirPath(), "/_private/ionic/node_modules");
-						if (nodeModules.exists()) {
-							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
-							dialog.open();
-							dialog.run(true, false, new IRunnableWithProgress() {
-								@Override
-								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-									monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
-									String alert = "template changed!";
-									if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
-										alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
-									} else {
-										alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
-									}
-									monitor.done();
-									ConvertigoPlugin.infoMessageBox(alert);
-								}
-							});
-						}
+						Engine.logStudio.info("tplProjectName property of " + projectName + " changed, reloading project and builder...");
+						ConvertigoPlugin.projectManager.getProjectExplorerView().reloadProjectAndDeleteNodeModules(getProjectTreeObject());
 						return;
 					}
 				}
