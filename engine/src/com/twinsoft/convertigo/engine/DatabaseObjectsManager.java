@@ -1117,11 +1117,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		Object lock;
 		Project project = null;
+		boolean firstImport = true;
 		try {
 			synchronized (importLocks) {
 				lock = importLocks.get(projectName);
 				if (lock == null) {
 					importLocks.put(projectName, lock = new Object());
+				} else {
+					firstImport = false;
 				}
 			}
 			String version;
@@ -1131,8 +1134,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.info("[importProject] Waiting synchronized: " + projectName);
 			synchronized (lock) {
 				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
-
-				Engine.theApp.referencedProjectManager.check(importFile);
+				
+				if (firstImport) {
+					Engine.theApp.referencedProjectManager.check(importFile);
+				}
 				
 				if (!override) {
 					synchronized (projects) {
