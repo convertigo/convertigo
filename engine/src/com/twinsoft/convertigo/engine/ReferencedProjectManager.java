@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
@@ -36,6 +37,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
@@ -288,8 +290,37 @@ public class ReferencedProjectManager {
 				if (ionicTplDir.exists() && ionicTplDir.isDirectory()) {
 					// this is a ngx ionic builder template
 					if (new File(ionicTplDir,"angular.json").exists()) {
-						File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
+						
+						// if template's ion folder does not exist: get and copy default one
+						File versionJson = new File(ionicTplDir,"version.json");
+						if (versionJson.exists()) {
+							String tplVersion = null;
+							try {
+								String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+								JSONObject jsonOb = new JSONObject(tsContent);
+								tplVersion = jsonOb.getString("version");
+							} catch (Exception e) {
+								Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve template's version for " + projectName);
+							}
+							
+							File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
+							if (tplVersion != null && !ngxIonObjects.exists()) {
+								String v = tplVersion;
+								try {
+									v = tplVersion.substring(0, 3);
+									File ionSrcDir = new File(Engine.TEMPLATES_PATH, "ionic/"+ v +"/ion");
+									if (ionSrcDir.exists()) {
+										Engine.logEngine.info("(ReferencedProjectManager) Copying default "+ v +" ionic objects in template for " + projectName);
+										FileUtils.copyDirectory(ionSrcDir, new File(ionicTplDir,"ion"));
+									}
+								} catch( Exception e) {
+									Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
+								}
+							}
+						}
+						
 						// this template has its own ion_objects.json file
+						File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
 						if (ngxIonObjects.exists()) {
 							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
 							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
