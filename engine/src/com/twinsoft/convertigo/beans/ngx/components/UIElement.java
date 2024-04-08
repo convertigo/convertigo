@@ -53,7 +53,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	/*
 	 * The tagname
 	 */
-	protected String tagName = defaultBeanName("");
+	protected String tagName = "tag";
 	
 	public String getTagName() {
 		return tagName;
@@ -389,18 +389,4 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	public String[] getTagsForProperty(String propertyName) {
 		return new String[0];
 	}
-	
-	@Override
-	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(tagName)) {
-			tagName = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
-			hasChanged = true;
-		}
-	}
-	
-	@Override
-	protected String defaultBeanName(String displayName) {
-		return "tag";
-	}
-
 }

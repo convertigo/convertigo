@@ -25,7 +25,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.enums.FolderType;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 
 @DboFolderType(type = FolderType.ATTRIBUTE)
 public class UIAttribute extends UIComponent implements ITagsProperty {
@@ -42,7 +41,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		return cloned;
 	}
 
-	protected String attrName = defaultBeanName("");
+	protected String attrName = "attr";
 	
 	public String getAttrName() {
 		return attrName;
@@ -144,18 +143,5 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 			updated = this.hasChanged = true;
 		}
 		return updated;
-	}
-	
-	@Override
-	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(StringUtils.normalize(attrName))) {
-			attrName = newName;
-			hasChanged = true;
-		}
-	}
-	
-	@Override
-	protected String defaultBeanName(String displayName) {
-		return "attr";
 	}
 }
