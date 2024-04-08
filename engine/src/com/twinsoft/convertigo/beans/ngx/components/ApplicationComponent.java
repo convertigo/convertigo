@@ -1443,7 +1443,14 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"angular.json").exists()) {
-				return true;
+				try {
+					File versionJson = new File(tplDir, "version.json");
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+					String tplVersion = new JSONObject(tsContent).getString("version");
+					String appVersion = requiredTplVersion();
+					return MobileBuilder.compareVersions(tplVersion, appVersion) >= 0;
+				} catch (Exception e) {
+				}
 			}
 		}
 		return false;
@@ -1453,7 +1460,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
 			TreeSet<String> projects = new TreeSet<String>();
-			projects.add(defaultTplProjectName);
 			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
