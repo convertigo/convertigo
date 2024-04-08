@@ -838,21 +838,29 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							DatabaseObject dboItem = cm.createBean(cm.getComponentByName("ListItem"));
 							dboList.add(dboItem);
 
-							DatabaseObject dboLabel = cm.createBean(cm.getComponentByName("Label"));
-							dboItem.add(dboLabel);
-
-							com.twinsoft.convertigo.beans.ngx.components.UIText uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
-							uiText.bNew = true;
-							uiText.hasChanged = true;
-							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()+":"));
-							dboLabel.add(uiText);
-
 							DatabaseObject dboInput = cm.createBean(cm.getComponentByName("Input"));
 							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
 								com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
 								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynElem.getIonBean();
 								if (ionBean != null && ionBean.hasProperty("ControlName")) {
 									ionBean.setPropertyValue("ControlName", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+								}
+								if (ionBean != null) {
+									// since TPL 8.3.0.0
+									if (ionBean.hasProperty("Label")) {
+										ionBean.setPropertyValue("Label", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+									}
+									// legacy case
+									else {
+										DatabaseObject dboLabel = cm.createBean(cm.getComponentByName("Label"));
+										dboItem.add(dboLabel);
+
+										com.twinsoft.convertigo.beans.ngx.components.UIText uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
+										uiText.bNew = true;
+										uiText.hasChanged = true;
+										uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()+":"));
+										dboLabel.add(uiText);
+									}
 								}
 								dboItem.add(dboInput);
 							}
