@@ -48,6 +48,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -116,8 +118,10 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ComponentManager {
+	private static final String TPL_VERSION_JSONPATH = "ionicTpl/version.json";
 	private static final String TPL_IONOBJECTS_JSONPATH = "ionicTpl/ion/ion_objects.json";
 	private static final String TPL_IONACTIONS_DIRPATH = "ionicTpl/ion/actionbeans";
 	
@@ -233,6 +237,10 @@ public class ComponentManager {
 		loadFonts();
 	}
 	
+	public String getTemplateProjectName() {
+		return this.templateProjectName;
+	}
+	
 	public void reload(MobileComponent mc) {
 		try {
 			new WalkHelper() {
@@ -253,6 +261,24 @@ public class ComponentManager {
 	
 	private boolean isInstance() {
 		return this.templateProjectName.equals(JAVA_NGX);
+	}
+	
+	public String getVersion() {
+		String tplVersion = null;
+		if (isInstance()) {
+			tplVersion = ProductVersion.productVersion + ".0";
+		} else {
+			try {
+				File projectDir = new File(Engine.projectDir(templateProjectName));
+				File versionJson = new File(projectDir, TPL_VERSION_JSONPATH);
+				String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+				JSONObject jsonOb = new JSONObject(tsContent);
+				tplVersion = jsonOb.getString("version");
+			} catch (Exception e) {
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not retrieve version from "+ templateProjectName + " ionicTpl !");
+			}
+		}
+		return tplVersion;
 	}
 	
 	private String ionObjectsAsString() throws Exception {
@@ -437,9 +463,12 @@ public class ComponentManager {
 		if (jsonBean.has(IonBean.Key.name.name())) {
 			modelName = jsonBean.getString(IonBean.Key.name.name());
 		}
-		if (!templateProjectName.equals(JAVA_NGX)) {
+		//if (!templateProjectName.equals(JAVA_NGX)) {
 			System.out.println("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
-		}
+			if (Engine.isStarted) {
+				Engine.logBeans.trace("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
+			}
+		//}
 		final IonBean model = bCache.get(modelName);
 		// The model exists
 		if (model != null) {
@@ -517,6 +546,13 @@ public class ComponentManager {
 		DatabaseObject dbo = c.createBean();
 		
 		try {
+			if (jsonObject.has("displayName")) {
+				try {
+					dbo.setName(jsonObject.getString("displayName"));
+				} catch (Exception e) {
+				}
+			}
+			
 			JSONObject jsonProperties = (JSONObject) jsonObject.remove("properties");
 			if (jsonProperties != null) {
 				@SuppressWarnings("unchecked")
@@ -552,14 +588,17 @@ public class ComponentManager {
 								} else {
 									setter.invoke(dbo, new Object[] { value });
 								}
+								break;
 							}
 						}
 						
 						if (dbo instanceof UIDynamicElement) {
-							IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+							UIDynamicElement ude = (UIDynamicElement)dbo;
+							IonBean ionBean = ude.getIonBean();
 							if (ionBean != null) {
 								ionBean.setPropertyValue(pname, msst);
 							}
+							ude.saveBean();
 						}
 						
 					} catch (Exception e) {
@@ -1486,6 +1525,10 @@ public class ComponentManager {
 			protected DatabaseObject createBean() {
 				try {
 					DatabaseObject dbo = dboClass.getConstructor().newInstance();
+					try {
+						dbo.setName(getLabel());
+					} catch (Exception e) {
+					}
 					dbo.bNew = true;
 					dbo.hasChanged = true;
 					return dbo;
@@ -1608,6 +1651,34 @@ public class ComponentManager {
 				String key = icon + "(\""+ name +"\"),";
 				System.out.println(key);
 			}
+		}
+	}
+	
+	protected static void print(DatabaseObject dbo) {
+		try {
+			final Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			final Element rootElement = doc.createElement("convertigo");
+			doc.appendChild(rootElement);
+			
+			new WalkHelper() {
+				protected Element parentElement = rootElement;
+
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					Element parentElement = this.parentElement;
+					
+					Element element = parentElement;
+					element = databaseObject.toXml(doc);
+					parentElement.appendChild(element);
+					
+					this.parentElement = element;
+					super.walk(databaseObject);
+					this.parentElement = parentElement;
+				}
+			}.init(dbo);
+			System.out.println(XMLUtils.prettyPrintDOM(doc));
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

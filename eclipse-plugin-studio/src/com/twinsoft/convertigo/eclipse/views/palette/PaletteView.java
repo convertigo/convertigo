@@ -633,10 +633,6 @@ public class PaletteView extends ViewPart {
 					DatabaseObject newDatabaseObject() {
 						ComponentManager cm = ComponentManager.of(comp.getTemplateProjectName());
 						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
-						try {
-							dbo.setName(name());
-						} catch (Exception e) {
-						}
 						return dbo;
 					}
 

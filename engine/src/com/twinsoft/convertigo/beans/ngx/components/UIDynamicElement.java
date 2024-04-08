@@ -107,7 +107,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		}
 	}
 	
-	protected void saveBean() {
+	public void saveBean() {
 		if (ionBean != null) {
 			beanData = ionBean.toBeanData();
     	}
