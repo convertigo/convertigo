@@ -729,6 +729,8 @@ public class NgxBuilder extends MobileBuilder {
 				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
 				if (application != null) {
 					String appTplVersion = application.requiredTplVersion();
+					Engine.logEngine.debug("(NgxBuilder) Min template version required: " + appTplVersion 
+							+ " for project '"+ application.getProject().getName() +"'.");
 					if (compareVersions(tplVersion, appTplVersion) >= 0) {
 						long t0 = System.currentTimeMillis();
 						

@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
@@ -58,6 +60,23 @@ public abstract class MobileComponent extends MobileObject {
 		return "7.9.0.2"; // the 7.9.0 has been released with v7.9.0.2
 	}
 
+	@Override
+	public String requiredTplVersion() {
+		return requiredTplVersion(new HashSet<MobileComponent>());
+	}
+	
+	protected transient String minTplVersion;
+	
+	public String requiredTplVersion(Set<MobileComponent> done) {
+		String tplVersion = getRequiredTplVersion();
+		if (done.add(this)) {
+			minTplVersion = tplVersion;
+		} else {
+			tplVersion = minTplVersion;
+		}
+		return tplVersion;
+	}
+	
 	public boolean isDeprecated() {
 		// tpl version since bean is deprecated
 		String tplDeprecatedVersion = getDeprecatedTplVersion();
