@@ -143,10 +143,11 @@ public class ComponentManager {
 	private File compbeansDir;
 	
 	private String templateProjectName;
+	private File templateProjectDir;
 	
 	protected static interface IonicTemplateProjects {
 		public ComponentManager get(String templateProjectName);
-		public void add(String templateProjectName);
+		public void add(String templateProjectName, File templateProjectDir);
 		public void clear();
 	}
 	
@@ -164,10 +165,10 @@ public class ComponentManager {
 			return cm;
 		}
 
-		public void add(String templateProjectName) {
+		public void add(String templateProjectName, File templateProjectDir) {
 			try {
 				synchronized (itpMap) {
-					ComponentManager cm = new ComponentManager(templateProjectName);
+					ComponentManager cm = new ComponentManager(templateProjectName, templateProjectDir);
 					ComponentManager old_cm = itpMap.get(templateProjectName);
 					itpMap.put(templateProjectName, cm);
 					Engine.logEngine.info((old_cm == null ? "Added" : "Updated") + " component manager for "+ templateProjectName);
@@ -193,8 +194,8 @@ public class ComponentManager {
 		}
 	};
 	
-	public static void addIonicTemplateProject(String templateProjectName) {
-		ionicTemplateProjects.add(templateProjectName);
+	public static void addIonicTemplateProject(String templateProjectName, File templateProjectDir) {
+		ionicTemplateProjects.add(templateProjectName, templateProjectDir);
 	}
 	
 	public static ComponentManager of(Object object) {
@@ -228,11 +229,12 @@ public class ComponentManager {
 	}
 	
 	private ComponentManager() {
-		this(JAVA_NGX);
+		this(JAVA_NGX, null);
 	}
 	
-	private ComponentManager(String templateProjectName) {
+	private ComponentManager(String templateProjectName, File templateProjectDir) {
 		this.templateProjectName = templateProjectName;
+		this.templateProjectDir = templateProjectDir;
 		loadModels();
 		loadFonts();
 	}
@@ -269,8 +271,7 @@ public class ComponentManager {
 			tplVersion = ProductVersion.productVersion + ".0";
 		} else {
 			try {
-				File projectDir = new File(Engine.projectDir(templateProjectName));
-				File versionJson = new File(projectDir, TPL_VERSION_JSONPATH);
+				File versionJson = new File(templateProjectDir, TPL_VERSION_JSONPATH);
 				String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
 				JSONObject jsonOb = new JSONObject(tsContent);
 				tplVersion = jsonOb.getString("version");
@@ -285,8 +286,7 @@ public class ComponentManager {
 		// try to read from file
 		if (!isInstance()) {
 			try {
-				File projectDir = new File(Engine.projectDir(templateProjectName));
-				File ion_objects = new File(projectDir, TPL_IONOBJECTS_JSONPATH);
+				File ion_objects = new File(templateProjectDir, TPL_IONOBJECTS_JSONPATH);
 				return FileUtils.readFileToString(ion_objects, "UTF-8");
 			} catch (IOException e) {
 				// no ionicTpl/ion/ion_objects.json file
@@ -1583,8 +1583,7 @@ public class ComponentManager {
 			if (code == null) {
 				if (!this.equals(instance)) {
 					try {
-						File tplProjectDir = new File(Engine.projectDir(templateProjectName));
-						File actionTsFile = new File(tplProjectDir, TPL_IONACTIONS_DIRPATH + "/"+ name +".ts");
+						File actionTsFile = new File(templateProjectDir, TPL_IONACTIONS_DIRPATH + "/"+ name +".ts");
 						code = FileUtils.readFileToString(actionTsFile, "UTF-8");
 						aCache.put(name, code);
 					} catch (IOException e) {

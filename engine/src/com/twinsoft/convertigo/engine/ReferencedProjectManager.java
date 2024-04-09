@@ -285,7 +285,8 @@ public class ReferencedProjectManager {
 	protected void checkForIonicTemplate(String projectName, File projectFile) {
 		try {
 			if (projectFile != null && projectFile.exists()) {
-				File ionicTplDir = new File(projectFile.getParentFile(), "ionicTpl");
+				File projectDir = projectFile.getParentFile();
+				File ionicTplDir = new File(projectDir, "ionicTpl");
 				// this is a ionic builder template
 				if (ionicTplDir.exists() && ionicTplDir.isDirectory()) {
 					// this is a ngx ionic builder template
@@ -324,7 +325,7 @@ public class ReferencedProjectManager {
 						if (ngxIonObjects.exists()) {
 							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
 							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
-								.addIonicTemplateProject(projectName);
+								.addIonicTemplateProject(projectName, projectDir);
 						}
 					}
 				}
