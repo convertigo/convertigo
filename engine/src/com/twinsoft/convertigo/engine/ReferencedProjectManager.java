@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ReferencedProjectManager {
 	private Map<File, Object> dirLock = new HashMap<>();
@@ -309,10 +310,12 @@ public class ReferencedProjectManager {
 								String v = tplVersion;
 								try {
 									v = tplVersion.substring(0, 3);
-									File ionSrcDir = new File(Engine.TEMPLATES_PATH, "ionic/"+ v +"/ion");
-									if (ionSrcDir.exists()) {
+									File ionZipFile = new File(Engine.TEMPLATES_PATH, "ionic/"+ v +"/ion.zip");
+									if (ionZipFile.exists()) {
 										Engine.logEngine.info("(ReferencedProjectManager) Copying default "+ v +" ionic objects in template for " + projectName);
-										FileUtils.copyDirectory(ionSrcDir, new File(ionicTplDir,"ion"));
+										ZipUtils.expandZip(ionZipFile.getAbsolutePath(), ionicTplDir.getAbsolutePath());
+									} else {
+										Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
 									}
 								} catch( Exception e) {
 									Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
