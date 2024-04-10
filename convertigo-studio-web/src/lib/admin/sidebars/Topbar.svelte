@@ -29,9 +29,13 @@
 
 			<LightSwitch class="light-switch" />
 
-			<a type="button" class="studio-link bg-primary-400-500-token" href="{base}/studio/">
-				<span><Ico icon="iconamoon:cloud-fill" class="text-token w-7 h-7 mr-2" /></span>
-				<span class="text-token text-[14px]">Go to studio</span>
+			<a
+				type="button"
+				class="studio-link blue-button bg-primary-400-500-token"
+				href="{base}/studio/"
+			>
+				<span><Ico icon="iconamoon:cloud-fill" class="w-7 h-7 mr-2" /></span>
+				<span class="text-[14px]">Go to studio</span>
 			</a>
 
 			<img src="{assets}/logo.png" alt="logo convertigo" class="logo-mobile" />

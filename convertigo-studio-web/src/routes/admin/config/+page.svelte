@@ -43,9 +43,10 @@
 				'@_value': p['@_value']
 			}));
 		modalStore.trigger({
-			type: 'confirm',
-			title: 'Please Confirm',
-			body: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
+			type: 'component',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
+			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
 			response: /** @param {boolean} confirmed */ async (confirmed) => {
 				if (confirmed) {
 					updateConfigurations(toSave);
@@ -62,11 +63,15 @@
 			event.preventDefault();
 			const confirm = await new Promise((resolve) => {
 				modalStore.trigger({
-					type: 'confirm',
-					title: 'Please Confirm',
-					body: 'You have unsaved changes. Are you sure you want to continue?',
-					response: (r) => {
-						resolve(r);
+					type: 'component',
+					component: 'modalWarning',
+					meta: { mode: 'Confirm' },
+					title: 'You have unsaved changes',
+					body: ' Are you sure you want to continue ?',
+					response: (confirmed) => {
+						if (confirmed) {
+							resolve(confirmed);
+						}
 					}
 				});
 			});

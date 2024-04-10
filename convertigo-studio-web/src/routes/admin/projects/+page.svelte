@@ -6,6 +6,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const projectModalStore = getModalStore();
 
@@ -83,35 +84,19 @@
 		try {
 			const response = await call('projects.Delete', { projectName });
 			console.log('deleted project', response);
-
-			if (response?.admin) {
-				projectsStore.update((projects) =>
-					projects.filter((project) => project['@_name'] !== projectName)
-				);
-				projectModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Success' },
-					title: 'Success',
-					body: 'Project Deleted Successfully',
-					response: () => {}
-				});
-			} else {
-				throw new Error(
-					response?.admin?.error?.message || 'Unknown error occurred while deleting the project.'
-				);
-			}
+			await projectsCheck(true);
 		} catch (err) {
 			console.error('Error deleting project:', err);
-			projectModalStore.trigger({
-				type: 'component',
-				component: 'modalWarning',
-				meta: { mode: 'Error' },
-				title: 'Error Deleting Project',
-				//@ts-ignore
-				body: err.message || 'An unknown error occurred during the deletion process. Retry later',
-				response: () => {}
-			});
+		}
+	}
+
+	export async function deleteAllProjects() {
+		try {
+			const response = await call('projects.DeleteAll');
+			console.log('deleted project', response);
+			await projectsCheck(true);
+		} catch (err) {
+			console.error('Error deleting all project:', err);
 		}
 	}
 
@@ -179,6 +164,22 @@
 			}
 		});
 	}
+
+	function openDeleteAllProjectModal(projectName) {
+		projectModalStore.trigger({
+			type: 'component',
+			title: 'Please Confirm',
+			body: 'Are you sure you want to delete this project ?',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
+			response: (confirmed) => {
+				if (confirmed) {
+					deleteProject(projectName);
+					console.log('key deleted', { projectName });
+				}
+			}
+		});
+	}
 </script>
 
 <Card title="Projects">
@@ -191,7 +192,7 @@
 	<div class="flex flex-wrap gap-5 mt-5">
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}>
-				<Icon icon="grommet-icons:deploy" class="w-5 h-5 mr-4" />
+				<Icon icon="carbon:application" class="w-6 h-6 mr-3" />
 				Deploy project
 			</button>
 		</div>
@@ -228,7 +229,7 @@
 					on:click={() => openDeleteProjectModal(row['@_name'])}
 					class="bg-error-400-500-token"
 				>
-					<Icon icon="fluent:delete-28-regular" class="w-6 h-6" />
+					<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 				</button>
 			{:else if def.name == 'Reload'}
 				<button

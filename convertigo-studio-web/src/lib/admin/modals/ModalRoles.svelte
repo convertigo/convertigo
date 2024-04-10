@@ -18,6 +18,7 @@
 	const toastStore = getToastStore();
 	const { mode } = $modalStore[0].meta ?? {};
 
+	export let parent;
 	let viewRolesStore = writable([]);
 	let configRolesStore = writable([]);
 	let otherRolesStore = writable([]);
@@ -230,7 +231,7 @@
 			</ResponsiveContainer>
 
 			<div class="flex gap-5 mt-10">
-				<button class="bg-error-400-500-token w-60" on:click={() => modalStore.close()}
+				<button class="bg-surface-400-500-token w-60" on:click={() => modalStore.close()}
 					>Cancel</button
 				>
 				<button type="submit" class="confirm-button w-60">Confirm</button>

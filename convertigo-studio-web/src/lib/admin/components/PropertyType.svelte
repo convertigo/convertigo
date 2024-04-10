@@ -28,10 +28,10 @@
 	{#if property['@_type'] == 'Boolean'}
 		<SlideToggle
 			class="grow"
-			size="md"
+			size="sm"
 			name={id}
-			active="min-w-16 bg-success-400 dark:bg-success-700"
-			background="min-w-16 bg-error-400 dark:bg-error-700"
+			active="min-w-12 bg-success-400 dark:bg-success-700"
+			background="min-w-12 bg-error-400 dark:bg-error-700"
 			checked={property['@_value'] == 'true'}
 			on:change={check}
 		>

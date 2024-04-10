@@ -31,28 +31,25 @@ const all = {
 let init = false;
 
 export async function connectionsCheck() {
-	if (!init) {
-		init = true;
-		const response = await call('connections.List');
-		if (response?.admin) {
-			for (let k in all) {
-				if (k in response.admin) {
-					all[k].set(response.admin[k]);
-				}
+	const response = await call('connections.List');
+	if (response?.admin) {
+		for (let k in all) {
+			if (k in response.admin) {
+				all[k].set(response.admin[k]);
 			}
 		}
+	}
 
-		if (response?.admin?.connections) {
-			if (!Array.isArray(response.admin.connections.connection)) {
-				response.admin.connections.connection = [response.admin.connections.connection];
-			}
-			connectionsStore.set(response.admin.connections.connection);
+	if (response?.admin?.connections) {
+		if (!Array.isArray(response.admin.connections.connection)) {
+			response.admin.connections.connection = [response.admin.connections.connection];
 		}
-		if (response?.admin?.sessions) {
-			if (!Array.isArray(response.admin.sessions.session)) {
-				response.admin.sessions.session = [response.admin.sessions.session];
-			}
-			sessionsStore.set(response.admin.sessions.session);
+		connectionsStore.set(response.admin.connections.connection);
+	}
+	if (response?.admin?.sessions) {
+		if (!Array.isArray(response.admin.sessions.session)) {
+			response.admin.sessions.session = [response.admin.sessions.session];
 		}
+		sessionsStore.set(response.admin.sessions.session);
 	}
 }

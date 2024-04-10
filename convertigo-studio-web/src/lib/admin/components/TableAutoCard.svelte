@@ -1,6 +1,5 @@
 <script>
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { loading } from '$lib/utils/loadingStore';
 	import Icon from '@iconify/svelte';
 
 	export let definition;
@@ -16,7 +15,7 @@
 			<thead class="rounded-token">
 				<tr>
 					{#each definition as def}
-						<th class="header dark:bg-surface-800">
+						<th class="dark:bg-surface-800">
 							{#if def.icon}
 								<Icon icon={def.icon} class="h-7 w-7" />
 							{:else}
@@ -27,23 +26,35 @@
 				</tr>
 			</thead>
 		{/if}
-		<tbody>
-			{#each data as row}
+		{#if data && data.length > 0}
+			<tbody>
+				{#each data as row}
+					<tr>
+						{#each definition as def}
+							<td class={def.class ? def.class(row) : ''} data-label={def.name ?? ''}>
+								{#if def.custom}
+									<slot {row} {def}>{row[def.key] ?? ''}</slot>
+								{:else}
+									<AutoPlaceholder loading={row[def.key] == null}
+										>{row[def.key] ?? ''}</AutoPlaceholder
+									>
+								{/if}
+							</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		{:else}
+			<tbody>
 				<tr>
 					{#each definition as def}
-						<td class={def.class ? def.class(row) : ''} data-label={def.name ?? ''}>
-							{#if def.custom}
-								<slot {row} {def}>{row[def.key] ?? ''}</slot>
-							{:else}
-								<AutoPlaceholder loading={row[def.key] == null}
-									>{row[def.key] ?? ''}</AutoPlaceholder
-								>
-							{/if}
+						<td>
+							<AutoPlaceholder></AutoPlaceholder>
 						</td>
 					{/each}
 				</tr>
-			{/each}
-		</tbody>
+			</tbody>
+		{/if}
 	</table>
 </div>
 

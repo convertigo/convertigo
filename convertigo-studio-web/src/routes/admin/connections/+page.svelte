@@ -15,9 +15,11 @@
 	} from '$lib/admin/stores/connectionsStore';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import Icon from '@iconify/svelte';
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	$: data = [
 		{
@@ -31,11 +33,32 @@
 	onMount(() => {
 		connectionsCheck();
 	});
+
+	function refreshConnections() {
+		try {
+			connectionsCheck();
+			toastStore.trigger({
+				message: 'Refreshed successfully',
+				background: 'bg-success-400-500-token',
+				timeout: 8000
+			});
+		} catch (err) {
+			console.error(err);
+			toastStore.trigger({
+				message: 'An error occurred',
+				background: 'bg-success-400-500-token',
+				timeout: 8000
+			});
+		}
+	}
 </script>
 
 <Card title="Connections">
 	<div slot="cornerOption">
-		<button class="bg-primary-400-500-token max-w-80">Delete all Sessions and Connections</button>
+		<button class="bg-error-400-500-token"
+			><Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 mr-3" />Delete all Sessions
+			and Connections</button
+		>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -50,11 +73,16 @@
 
 <Card title="Sessions" class="mt-5">
 	<div slot="cornerOption">
-		<button
-			class="bg-primary-400-500-token max-w-80"
-			on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
-			>Show Legends</button
-		>
+		<div class="gap-5 flex">
+			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
+				><Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6 mr-3 " />Refresh Sessions</button
+			>
+			<button
+				class="bg-primary-400-500-token max-w-80"
+				on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
+				><Icon icon="mdi:show" class="h-6 w-6 mr-3" />Show Legends</button
+			>
+		</div>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -75,13 +103,18 @@
 	>
 		{#if def.name === 'Delete'}
 			<button class="bg-error-400-500-token">
-				<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
+				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 			</button>
 		{/if}
 	</TableAutoCard>
 </Card>
 
 <Card title="Contexts" class="mt-5">
+	<div slot="cornerOption">
+		<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
+			><Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6 mr-3" /> Refresh Contexts</button
+		>
+	</div>
 	<TableAutoCard
 		definition={[
 			{ name: 'Context', key: '@_contextName' },
@@ -99,7 +132,7 @@
 	>
 		{#if def.name === 'Delete'}
 			<button class="bg-error-400-500-token">
-				<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
+				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 			</button>
 		{/if}
 	</TableAutoCard>

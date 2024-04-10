@@ -7,9 +7,10 @@
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
 	import { call } from '$lib/utils/service';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
+	const toastStore = getToastStore();
 
 	onMount(() => {
 		monitorCheck();
@@ -47,12 +48,22 @@
 	/**
 	 * @param {{ target: { disabled: boolean; }; }} e
 	 */
-	async function performGC(e) {
-		e.target.disabled = true;
+	async function performGC() {
 		try {
-			await call('engine.PerformGC');
-		} catch (_) {}
-		e.target.disabled = false;
+			const res = await call('engine.PerformGC');
+			toastStore.trigger({
+				message: 'GC performed successfully',
+				timeout: 8000,
+				background: 'bg-success-400-500-token'
+			});
+			console.log(res);
+		} catch (err) {
+			toastStore.trigger({
+				message: 'An error occurred while performing GC',
+				timeout: 8000,
+				background: 'bg-error-400-500-token'
+			});
+		}
 	}
 
 	/**
@@ -91,9 +102,7 @@
 
 	<Card title="System Information">
 		<div slot="cornerOption">
-			<button on:click={() => performGC} class="w-full bg-secondary-400-500-token"
-				>Perform GC</button
-			>
+			<button on:click={performGC} class="w-full bg-secondary-400-500-token">Perform GC</button>
 		</div>
 		<SystemInformationTable
 			class="mt-5"

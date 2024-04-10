@@ -1,12 +1,16 @@
 <script>
 	import { call } from '$lib/utils/service';
-	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
+	import { FileDropzone, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { onMount } from 'svelte';
-	import { projectsCheck, projectsStore } from '../stores/projectsStore';
+	import { projectsCheck } from '../stores/projectsStore';
+	import Icon from '@iconify/svelte';
+	import { loading } from '$lib/utils/loadingStore';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
+
+	let isLoading = false;
 
 	const exportOptions = [
 		{ name: 'Include Test Case' },
@@ -21,16 +25,17 @@
 	 * @param {Event} e
 	 */
 	async function deployProject(e) {
+		isLoading = true;
 		try {
 			// @ts-ignore
 			const res = await call('projects.Deploy', new FormData(e.target.form));
-			if (res?.admin) {
-				modalStore.close();
-				projectsCheck();
-			}
+			await projectsCheck(true);
 			console.log('deploy res', res);
 		} catch (err) {
 			console.error(err);
+		} finally {
+			isLoading = false; // Stop loading regardless of success or failure
+			modalStore.close();
 		}
 	}
 
@@ -50,35 +55,44 @@
 
 {#if mode == 'deploy'}
 	<Card>
-		<form class="p-5 rounded-xl flex flex-col">
-			<h1 class="text-xl mb-5 text-center">Choose .car file and Deploy</h1>
-			<SlideToggle
-				name="bAssembleXsl"
-				value="true"
-				active="bg-success-500"
-				background="bg-error-500"
-				>Assemble XSL files included in style sheets when deploying</SlideToggle
-			>
-
-			<div class="flex flex-wrap gap-5 mt-5">
-				<div class="flex-1">
-					<button
-						class="mt-5 btn cancel-button w-full font-light"
-						on:click={() => modalStore.close()}>Cancel</button
+		<form class="p-5 rounded-xl flex flex-col items-center">
+			{#if isLoading}
+				<Icon icon="eos-icons:three-dots-loading" class="w-10 h-10" />
+			{:else}
+				<h1 class="text-xl mb-5 text-center">Choose .car file and Deploy</h1>
+				<SlideToggle
+					name="bAssembleXsl"
+					value="true"
+					active="bg-success-500"
+					background="bg-error-500"
+					>Assemble XSL files included in style sheets when deploying</SlideToggle
+				>
+				<FileDropzone
+					class="mt-5"
+					name="userfile"
+					id="deployProject"
+					accept=".car,.zip"
+					on:change={deployProject}
+				>
+					<svelte:fragment slot="message"
+						><div class="flex flex-col items-center">
+							<Icon icon="icon-park:application-one" class="w-10 h-10" />Upload your project or drag
+							and drop
+						</div></svelte:fragment
 					>
+					<svelte:fragment slot="meta">.car file</svelte:fragment>
+				</FileDropzone>
+
+				<div class="flex flex-wrap gap-5 mt-5">
+					<div class="flex-1">
+						<button
+							class="mt-5 btn cancel-button w-full font-light"
+							on:click={() => modalStore.close()}>Cancel</button
+						>
+					</div>
+					<div class="flex-1"></div>
 				</div>
-				<div class="flex-1">
-					<input
-						type="file"
-						name="userfile"
-						id="deployProject"
-						accept=".car,.zip"
-						class="hidden"
-						on:change={deployProject}
-					/>
-					<label for="deployProject" class="btn w-full confirm-button mt-5">Deploy</label>
-				</div>
-			</div>
+			{/if}
 		</form>
 	</Card>
 {:else if mode == 'Export'}

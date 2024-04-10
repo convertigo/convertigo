@@ -24,8 +24,7 @@
 	});
 
 	async function UpdateCertificate(e) {
-		e.preventDefault();
-		const fd = new FormData(e.target.form);
+		const fd = new FormData(e.target);
 		try {
 			const res = await call('certificates.Configure', fd);
 			console.log('add certificate', res);
