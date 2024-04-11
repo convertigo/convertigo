@@ -144,6 +144,7 @@ public class ComponentManager {
 	
 	private String templateProjectName;
 	private File templateProjectDir;
+	private String tplVersion = null;
 	
 	protected static interface IonicTemplateProjects {
 		public ComponentManager get(String templateProjectName);
@@ -235,6 +236,7 @@ public class ComponentManager {
 	private ComponentManager(String templateProjectName, File templateProjectDir) {
 		this.templateProjectName = templateProjectName;
 		this.templateProjectDir = templateProjectDir;
+		getVersion();
 		loadModels();
 		loadFonts();
 	}
@@ -261,22 +263,23 @@ public class ComponentManager {
 		}
 	}
 	
-	private boolean isInstance() {
+	public boolean isInstance() {
 		return this.templateProjectName.equals(JAVA_NGX);
 	}
 	
-	public String getVersion() {
-		String tplVersion = null;
-		if (isInstance()) {
-			tplVersion = ProductVersion.productVersion + ".0";
-		} else {
-			try {
-				File versionJson = new File(templateProjectDir, TPL_VERSION_JSONPATH);
-				String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
-				JSONObject jsonOb = new JSONObject(tsContent);
-				tplVersion = jsonOb.getString("version");
-			} catch (Exception e) {
-				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not retrieve version from "+ templateProjectName + " ionicTpl !");
+	public synchronized String getVersion() {
+		if (tplVersion == null) {
+			if (isInstance()) {
+				tplVersion = ProductVersion.productVersion + ".0";
+			} else {
+				try {
+					File versionJson = new File(templateProjectDir, TPL_VERSION_JSONPATH);
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+					JSONObject jsonOb = new JSONObject(tsContent);
+					tplVersion = jsonOb.getString("version");
+				} catch (Exception e) {
+					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not retrieve version from "+ templateProjectName + " ionicTpl !");
+				}
 			}
 		}
 		return tplVersion;
@@ -642,7 +645,7 @@ public class ComponentManager {
 		loadModels();
 	}
 
-	public void reloadComponents() {
+	public synchronized void reloadComponents() {
 		groups = null;
 		orderedComponents = null;
 		components = null;
@@ -946,7 +949,7 @@ public class ComponentManager {
 		/*-------------------------- ADDITIONALS --------------------------*/
 		if (Engine.isStarted) {
 			try {
-				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
 				for (String projectName : projectNames) {
 					if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
 						continue;
@@ -1233,10 +1236,11 @@ public class ComponentManager {
 
 	public static boolean isTplCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
 		if (parentDatabaseObject.getParent() != null && parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
-			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplVersion(getTplRequired(databaseObject)) >= 0;
+			String requiredTplVersion = getTplRequired(databaseObject);
+			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplVersion(requiredTplVersion) >= 0;
 			if (!compatible) {
 				Engine.logStudio.warn("The '"+databaseObject.getName()+"' component isn't compatible with your Template project."
-						+ " Please change your Template project for a newer one to use it.");
+						+ " Please change your Template project for version "+requiredTplVersion+" to use it.");
 				return false;
 			}
 		}

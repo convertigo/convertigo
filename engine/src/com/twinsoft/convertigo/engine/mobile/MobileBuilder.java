@@ -237,11 +237,11 @@ public abstract class MobileBuilder {
 		throw new EngineException("Builder for "+ app.getClass().getName() + " isn't implemented yet");
 	}
 	
-	private String builderType = "MobileBuilder";
+	protected String builderType = "MobileBuilder";
 	
 	protected MobileBuilder(Project project) {
 		this.project = project;
-		builderType = this.getClass().getSimpleName();
+		builderType = this.getClass().getSimpleName() + "@" + project.hashCode();
 		projectDir = new File(project.getDirPath());
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
@@ -383,6 +383,7 @@ public abstract class MobileBuilder {
 						JSONObject jsonOb = new JSONObject(tsContent);
 						JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
 						tplVersion = jsonDeps.getString("c8ocaf");
+						Engine.logEngine.warn("("+ builderType +") Template version not found! Retrieved one from package.json: "+ tplVersion+ " for ionic project '"+ project.getName() +"'");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

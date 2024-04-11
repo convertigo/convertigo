@@ -48,7 +48,9 @@ import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -71,7 +73,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 	
-	transient private String tplProjectVersion = "";
+	transient private String tplProjectVersion = null;
 	
 	private String tplProjectName = defaultTplProjectName;
 	private String splitPaneLayout = "not set";
@@ -120,6 +122,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		cloned.contributors = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
+		cloned.tplProjectVersion = null;
 		
 		cloned.c8o_version = c8o_version;
 		return cloned;
@@ -1400,13 +1403,28 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 
 	public String getTplProjectVersion() {
-		try {
-			String tplVersion = getTplVersion();
-			if (tplVersion != null) {
-				tplProjectVersion = tplVersion;
+		if (tplProjectVersion == null) {
+			try {
+				//String tplVersion = getTplVersion();
+				String tplVersion = null;
+				Project p = getProject();
+				if (p != null) {
+					ComponentManager cm = ComponentManager.of(p);
+					if (!cm.isInstance()) {
+						tplVersion = cm.getVersion();
+						Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from CM for component " + getQName());
+					}
+				}
+				if (tplVersion == null) {
+					tplVersion = super.getTplVersion();
+					Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from super MB for component " + getQName());
+				}
+				if (tplVersion != null) {
+					tplProjectVersion = tplVersion;
+				}
+			} catch (NullPointerException e) {
+				// ignore error for BeansDefaultValues
 			}
-		} catch (NullPointerException e) {
-			// ignore error for BeansDefaultValues
 		}
 		return tplProjectVersion;
 	}
