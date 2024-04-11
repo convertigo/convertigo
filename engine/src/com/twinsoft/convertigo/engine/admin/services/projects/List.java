@@ -25,6 +25,7 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -67,14 +68,32 @@ public class List extends XmlService{
 				String deployDate = "n/a";
 				File file = new File(Engine.projectDir(projectName) + ".car");
 				if (file.exists())
-					deployDate = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
+					deployDate = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
 
 				String comment = project.getComment();
+				try {
+					var json = new JSONObject(comment);
+					var locale = request.getLocale().getLanguage();
+					if (json.has(locale)) {
+						json = json.getJSONObject(locale);
+					} else {
+						json = json.getJSONObject(json.keys().next().toString());
+					}
+					comment = project.getName();
+					if (json.has("displayName")) {
+						comment = json.getString("displayName");
+					}
+					if (json.has("comment")) {
+						comment += ": " + json.getString("comment");
+					}
+				} catch (Exception e) {
+				}
+				comment = comment.replaceAll("<.*?>", "");
 				if (comment.length() > 100) comment = comment.substring(0, 100) + "...";
 
 				String version = project.getVersion();
 
-				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale());
+				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, request.getLocale());
 				String exported = project.getInfoForProperty("exported", df, request.getLocale());
 
 				Element projectElement = document.createElement("project");
