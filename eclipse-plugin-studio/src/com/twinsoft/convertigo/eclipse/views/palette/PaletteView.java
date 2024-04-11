@@ -87,6 +87,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
@@ -127,6 +128,7 @@ public class PaletteView extends ViewPart {
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
 	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
+	private Project selectedProject = null;
 
 	private abstract class Item implements Comparable<Item> {
 		private String shortDescription;
@@ -604,7 +606,7 @@ public class PaletteView extends ViewPart {
 				}
 			};
 
-			ComponentManager cm = ComponentManager.of(null);
+			ComponentManager cm = ComponentManager.of(selectedProject);
 			for (Component comp: cm.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
 				all.put(id, new Item() {
@@ -631,7 +633,6 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						ComponentManager cm = ComponentManager.of(comp.getTemplateProjectName());
 						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
 						return dbo;
 					}
@@ -1075,6 +1076,15 @@ public class PaletteView extends ViewPart {
 									PaletteView.this.parent.setData("FolderType", folderType);
 									PaletteView.this.parent.setData("Selected", selected);
 									PaletteView.this.parent.setData("Parent", parent);
+									if (selected != null) {
+										var project = selected.getProject();
+										if (project != selectedProject) {
+											selectedProject = project;
+											refresh();
+										}
+									} else {
+										selectedProject = null;
+									}
 									if (clear == true) {
 										searchText.setText("");
 									} else {
@@ -1196,7 +1206,7 @@ public class PaletteView extends ViewPart {
 	
 	private void refresh(long threshold) {
 		Engine.execute(() -> {
-			ComponentManager.of(null).reloadComponents();
+			ComponentManager.of(selectedProject).reloadComponents();
 			parent.getDisplay().asyncExec(() -> {
 				String txt = searchText != null ? searchText.getText() : null;
 				for (Control c: parent.getChildren()) {
