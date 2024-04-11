@@ -20,7 +20,9 @@
 package com.twinsoft.convertigo.beans;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -131,11 +133,46 @@ public class BeansDefaultValues {
 		return true;
 	}
 
-	static private JSONObject getIonObjectsFromFile(String templateProjectName) throws Exception {
+	static private JSONObject getIonObjectsFromFiles(String templateProjectName) throws Exception {
 		File projectDir = new File(Engine.projectDir(templateProjectName));
+
+		// Read from ion_object.json file
 		File ion_objects = new File(projectDir, TPL_JSONPATH);
-		String json = FileUtils.readFileToString(ion_objects, "UTF-8");
-		return new JSONObject(json);
+		JSONObject ionObjects = new JSONObject(FileUtils.readFileToString(ion_objects, "UTF-8"));
+		JSONObject ionBeans = ionObjects.getJSONObject("Beans");
+		
+		// Read from other *_object.json files
+		File ionDir = ion_objects.getParentFile();
+		File[] files = ionDir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.isFile() && file.getName().endsWith("_objects.json") && !file.getName().equals("ion_objects.json");
+			}});
+		Arrays.sort(files);
+		
+		File file;
+        for (int i = 0 ; i < files.length ; i++) {
+            file = files[i];
+			if (!file.equals(ion_objects)) {
+				try {
+					String json = FileUtils.readFileToString(file, "UTF-8");
+					JSONObject jsonObjects = new JSONObject(json);
+					JSONObject jsonBeans = jsonObjects.getJSONObject("Beans");
+					
+					@SuppressWarnings("unchecked")
+					Iterator<String> it = jsonObjects.getJSONObject("Beans").keys();
+					while (it.hasNext()) {
+						String key = it.next();
+						if (!key.isEmpty()) {
+							ionBeans.put(key, jsonBeans.getJSONObject(key));
+						}
+					}
+				} catch (Exception e) {
+				}
+			}
+        }
+        
+        return ionObjects;
 	}
 	
 	static private class ShrinkProject {
@@ -145,7 +182,7 @@ public class BeansDefaultValues {
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
 		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 
-		String templateProjectName = null;
+		JSONObject templateProjectIonObjects = null;
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -164,10 +201,11 @@ public class BeansDefaultValues {
 		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
 			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
 				try {
-					return getIonObjectsFromFile(templateProjectName);
+					return getIonObjectsFromFiles(templateProjectName);
 				} catch (Exception e) {
-					// could not read from ion_objects.json file
+					// could not read from *_objects.json files
 					// continue
+					Engine.logEngine.error("[BeansDefaultValues] Unable to read ion objects from files. Will use default java ion objects !", e);
 				}
 			}
 			return isNgx ? ngx_ionObjects : mobile_ionObjects;
@@ -256,12 +294,12 @@ public class BeansDefaultValues {
 							nProp.setTextContent(content.getAttribute("value"));
 
 							if (isNgxApplicationComponent && name.equals("tplProjectName")) {
-								templateProjectName = content.getAttribute("value");
+								templateProjectIonObjects = getIonObjects(classname.indexOf(".ngx.") != -1, content.getAttribute("value"));
 							}
 							
 							if (name.equals("beanData")) {
 								try {
-									JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
+									JSONObject ionObjects = templateProjectIonObjects;
 
 									String beanData = nProp.getTextContent();
 									JSONObject ion = new JSONObject(beanData);
@@ -366,7 +404,7 @@ public class BeansDefaultValues {
 				shrinkChildren(pBean, nCopy);
 				
 				if (isNgxApplicationComponent) {
-					templateProjectName = null;
+					templateProjectIonObjects = null;
 				}
 			}
 		}
@@ -402,7 +440,7 @@ public class BeansDefaultValues {
 		String nVersion;
 		boolean isMigrating = false;
 
-		String templateProjectName = null;
+		JSONObject templateProjectIonObjects = null;
 		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
@@ -421,10 +459,11 @@ public class BeansDefaultValues {
 		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
 			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
 				try {
-					return getIonObjectsFromFile(templateProjectName);
+					return getIonObjectsFromFiles(templateProjectName);
 				} catch (Exception e) {
-					// could not read from ion_objects.json file
+					// could not read from *_objects.json files
 					// continue
+					Engine.logEngine.error("[BeansDefaultValues] Unable to read ion objects from files. Will use default java ion objects !", e);
 				}
 			}
 			return isNgx ? ngx_ionObjects : mobile_ionObjects;
@@ -532,12 +571,12 @@ public class BeansDefaultValues {
 						String value = ((Element) pPropNode).getTextContent();
 
 						if (isNgxApplicationComponent && propName.equals("tplProjectName")) {
-							templateProjectName = value;
+							templateProjectIonObjects = getIonObjects(classname.indexOf(".ngx.") != -1, value);
 						}
 						
 						if (propName.equals("beanData")) {
 							try {
-								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
+								JSONObject ionObjects = templateProjectIonObjects;
 								
 								JSONObject ion = new JSONObject(value);
 								String ionName = (String) ion.remove("ionBean");
@@ -631,7 +670,7 @@ public class BeansDefaultValues {
 				unshrinkChildren(pBean, nBean);
 				
 				if (isNgxApplicationComponent) {
-					templateProjectName = null;
+					templateProjectIonObjects = null;
 				}
 			}
 		}

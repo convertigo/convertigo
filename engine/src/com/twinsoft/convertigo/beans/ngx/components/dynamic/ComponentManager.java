@@ -25,6 +25,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -224,7 +225,7 @@ public class ComponentManager {
 				}
 			}
 		} catch (Exception e) {
-			Engine.logEngine.error("(ComponentManager) Unable to retrieve ComponentManager associated with object: "+ object.toString() + ". Will use default one.");
+			Engine.logEngine.error("(ComponentManager) Unable to retrieve ComponentManager associated with object: "+ object.toString() + ". Will use default java one.");
 		}
 		return cm == null ? instance : cm;
 	}
@@ -285,6 +286,88 @@ public class ComponentManager {
 		return tplVersion;
 	}
 	
+	private JSONObject ionObjectsAsJsonFromFiles() throws Exception {
+		if (!isInstance()) {
+			File ion_objects = new File(templateProjectDir, TPL_IONOBJECTS_JSONPATH);
+			File ionDir = ion_objects.getParentFile();
+			try {
+				// Read from ion_object.json file
+				JSONObject ionObjects = new JSONObject(FileUtils.readFileToString(ion_objects, "UTF-8"));
+				JSONObject ionBeans = ionObjects.getJSONObject("Beans");
+				Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read of ion objects from ion_objects.json of "+ templateProjectName + " ionicTpl.");
+			
+				// Read from other *_object.json files
+				File[] files = ionDir.listFiles(new FileFilter() {
+					@Override
+					public boolean accept(File file) {
+						return file.isFile() && file.getName().endsWith("_objects.json") && !file.getName().equals("ion_objects.json");
+					}});
+				Arrays.sort(files);
+				
+				File file;
+		        for (int i = 0 ; i < files.length ; i++) {
+		            file = files[i];
+					String filename = file.getName();
+					if (!file.equals(ion_objects)) {
+						try {
+							String json = FileUtils.readFileToString(file, "UTF-8");
+							JSONObject jsonObjects = new JSONObject(json);
+							JSONObject jsonBeans = jsonObjects.getJSONObject("Beans");
+							Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read of ion objects from "+ filename +" of "+ templateProjectName + " ionicTpl.");
+							
+							@SuppressWarnings("unchecked")
+							Iterator<String> it = jsonObjects.getJSONObject("Beans").keys();
+							while (it.hasNext()) {
+								String key = it.next();
+								if (!key.isEmpty()) {
+									boolean hasKey = ionBeans.has(key);
+									ionBeans.put(key, jsonBeans.getJSONObject(key));
+									Engine.logEngine.debug("(ComponentManager@"+ templateProjectName +") " + key + (hasKey ? " has been overriden":" has been added") + " from " + file.getName());
+								}
+							}
+						} catch (Exception e) {
+							Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion objects from "+ filename +" of "+ templateProjectName + " ionicTpl.", e);
+						}
+					}
+		        }
+		        
+		        return ionObjects;
+			
+			} catch (Exception e) {
+				// no ionicTpl/ion/ion_objects.json file
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion_objects.json from "+ templateProjectName + " ionicTpl.", e);
+				throw e;
+			}
+		}
+		throw new Exception("ComponentManager@"+ templateProjectName +": invalid ionObjectsAsJsonFromFiles() call.");
+	}
+	
+	@SuppressWarnings("unused")
+	private JSONObject ionObjectsAsJsonFromFile() throws Exception {
+		// try to read from file
+		if (!isInstance()) {
+			try {
+				File ion_objects = new File(templateProjectDir, TPL_IONOBJECTS_JSONPATH);
+				JSONObject ionObjects = new JSONObject(FileUtils.readFileToString(ion_objects, "UTF-8"));
+				Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read ion_objects.json from "+ templateProjectName + " ionicTpl.");
+				return ionObjects;
+			} catch (Exception e) {
+				// no ionicTpl/ion/ion_objects.json file
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion_objects.json from "+ templateProjectName + " ionicTpl.");
+				throw e;
+			}
+		}
+		throw new Exception("ComponentManager@"+ templateProjectName +": invalid ionObjectsAsJsonFromFile() call.");
+	}
+	
+	private JSONObject ionObjectsAsJsonFromClass() throws Exception {
+		InputStream inputstream = getClass().getResourceAsStream("ion_objects.json");
+		JSONObject ionObjects =  new JSONObject(IOUtils.toString(inputstream, "UTF-8"));
+		Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read of default java ion_objects.json from Class.");
+		return ionObjects;
+	}
+	
+	@SuppressWarnings("unused")
 	private String ionObjectsAsString() throws Exception {
 		// try to read from file
 		if (!isInstance()) {
@@ -293,7 +376,7 @@ public class ComponentManager {
 				return FileUtils.readFileToString(ion_objects, "UTF-8");
 			} catch (IOException e) {
 				// no ionicTpl/ion/ion_objects.json file
-				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion_object.json from "+ templateProjectName + " ionicTpl. Will use default ion objects definition !");
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Could not read ion_objects.json from "+ templateProjectName + " ionicTpl. Will use default java ion objects definition !");
 				// continue
 			}
 		}
@@ -313,8 +396,9 @@ public class ComponentManager {
 		}
 		
 		try {
-			String json = ionObjectsAsString();
-			JSONObject root = new JSONObject(json);
+//			String json = ionObjectsAsString();
+//			JSONObject root = new JSONObject(json);
+			JSONObject root = isInstance() ? ionObjectsAsJsonFromClass() : ionObjectsAsJsonFromFiles();
 			readPropertyModels(root);
 			readBeanModels(root);
 			readC8oBeanModels(root);
@@ -1739,7 +1823,8 @@ public class ComponentManager {
 		return loadFonts().get(fontId);
 	}
 	
-	protected JSONObject loadFontFromApi(String fontId) {
+	@SuppressWarnings("unused")
+	private JSONObject loadFontFromApi(String fontId) {
 		JSONObject jsonFont = null;
 		if (fontId != null && !fontId.isBlank()) {
 			if (fontMap.get(fontId) == null || !fontMap.get(fontId).has("variants")) {
@@ -1767,7 +1852,8 @@ public class ComponentManager {
 		return loadFontsFromFile();
 	}
 	
-	protected Map<String, JSONObject> loadFontsFromApi() {
+	@SuppressWarnings("unused")
+	private Map<String, JSONObject> loadFontsFromApi() {
 		if (fontMap.isEmpty()) {
 			JSONArray jsonFonts = null;
 			try {
@@ -1830,7 +1916,8 @@ public class ComponentManager {
 		return fontMap;
 	}
 	
-	protected void storeFonts() {
+	@SuppressWarnings("unused")
+	private void storeFonts() {
 		Engine.execute(() -> {
 			try {
 				File file = new File("C://Dev/font-sources-bis.json");
