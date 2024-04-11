@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 export let candidates = writable([]);
 export let certificates = writable([]);
 
-export async function candidatesList() {
+export async function certificatesList() {
 	const res = await call('certificates.List');
 
 	let candidateArray = res?.admin?.candidates?.candidate ?? [];
@@ -14,16 +14,12 @@ export async function candidatesList() {
 
 	candidates.set(candidateArray);
 	console.log('candidatesList res', res);
-}
-
-export async function certificatesList() {
-	const res = await call('certificates.List');
 
 	let certificateArray = res?.admin?.certificates?.certificate ?? [];
 	if (!Array.isArray(certificateArray)) {
 		certificateArray = [certificateArray];
 	}
-
+	certificateArray.push('new');
 	certificates.set(certificateArray);
 	console.log('certificatesList res', res);
 }

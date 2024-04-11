@@ -113,7 +113,7 @@
 	</Card>
 
 	{#each charts as chart}
-		<Card>
+		<Card class="max-h-[300px]">
 			<ApexChartLineAdmin {...chart} {isLoading} {categories} />
 		</Card>
 	{/each}

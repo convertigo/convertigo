@@ -101,7 +101,7 @@
 						<button
 							type="button"
 							disabled={!hasChanges}
-							class="p-1 pl-5 pr-5 ring-outline-token bg-primary-400-500-token w-full max-w-60"
+							class="bg-primary-400-500-token w-full"
 							on:click={saveChanges}
 						>
 							<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
@@ -113,7 +113,7 @@
 						<button
 							type="button"
 							disabled={!hasChanges}
-							class="btn p-1 pl-5 pr-5 ring-outline-token variant-filled-tertiary w-full max-w-60"
+							class="bg-tertiary-400-500-token w-full"
 							on:click={refreshConfigurations}
 						>
 							<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>

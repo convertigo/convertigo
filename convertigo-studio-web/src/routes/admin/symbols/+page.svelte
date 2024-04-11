@@ -142,13 +142,11 @@
 		</div>
 	</div>
 
-	<p class="dark:text-surface-100 text-surface-900 font-bold mb-5">
-		Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
-		symbol is defined for the Default value or if it contains a closing curly braces it must be
-		escaped with a backslash.
-	</p>
-
 	<TableAutoCard
+		title="Regular Symbols"
+		comment="Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
+		symbol is defined for the Default value or if it contains a closing curly braces it must be
+		escaped with a backslash."
 		definition={[
 			{ name: 'Name', key: '@_name' },
 			{ name: 'Value', key: '@_value' },
@@ -175,12 +173,11 @@
 		{/if}
 	</TableAutoCard>
 
-	<p class="font-bold mt-20 mb-5">
-		List of global symbols with default value currently used. You can import them as regular symbol.
-	</p>
-
 	{#if $defaultSymbolList.length >= 0}
 		<TableAutoCard
+			title="Global symbols with default value currently used"
+			comment="List of global symbols with default value currently used. You can import them as regular symbol."
+			class='mt-10'
 			definition={[
 				{ name: 'Project', key: '@_project' },
 				{ name: 'Name', key: '@_name' },
@@ -207,6 +204,7 @@
 
 <Card class="mt-5" title="Environment Variables">
 	<TableAutoCard
+	comment='These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional.'
 		definition={[
 			{ name: 'Name', key: 'name' },
 			{ name: 'Value', key: 'value' }

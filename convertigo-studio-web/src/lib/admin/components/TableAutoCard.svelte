@@ -5,11 +5,21 @@
 	export let definition;
 	export let data;
 	export let showHeaders = true;
+	export let title = '';
+	export let comment = '';
 	let cls = '';
 	export { cls as class };
 </script>
 
 <div class={`table-container ${cls}`}>
+	{#if title.length > 0}
+		<h1 class="tableTitle">{title}</h1>
+	{/if}
+	{#if comment.length > 0}
+		<h1 class="font-bold text-surface-300 p-3">{comment}</h1>
+	{/if}
+	<slot name="title" />
+
 	<table class="rounded-token table">
 		{#if showHeaders}
 			<thead class="rounded-token">
@@ -47,11 +57,12 @@
 		{:else}
 			<tbody>
 				<tr>
-					{#each definition as def}
-						<td>
-							<AutoPlaceholder></AutoPlaceholder>
-						</td>
-					{/each}
+					<td colspan={definition.length}>
+						<div class="flex gap-5 items-center">
+							<Icon icon="line-md:coffee-loop" class="w-20 h-20" />
+							<p class="font-bold text-surface-300 text-xl">There is no data to display ...</p>
+						</div>
+					</td>
 				</tr>
 			</tbody>
 		{/if}
@@ -59,6 +70,9 @@
 </div>
 
 <style lang="postcss">
+	.tableTitle {
+		@apply text-[18px] font-normal text-surface-400 p-3 underline decoration-2 dark:decoration-green-700 decoration-green-400 underline-offset-8;
+	}
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
