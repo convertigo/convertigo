@@ -55,18 +55,20 @@
 			<form on:submit|preventDefault={removeCertificates}>
 				<label for="certificateSelect" class="label-common">Select Certificate:</label>
 				{#if $candidates.length > 0}
-				<select id="certificateSelect" class="input-common mb-5" name="certificateName">
+					<select id="certificateSelect" class="input-common mb-5" name="certificateName">
 						{#each $candidates as candidate}
 							<option value={candidate['@_name']}>{candidate['@_name']}</option>
 						{/each}
-				</select>
+					</select>
 				{:else}
-				No certificate
-			{/if}
+					No certificate
+				{/if}
 				<div class="flex flex-wrap gap-5 mt-5">
 					<div class="flex-1">
-						<button type="button" class="btn cancel-button w-full font-light" on:click={() => modalStore.close()}
-							>Cancel</button
+						<button
+							type="button"
+							class="btn cancel-button w-full font-light"
+							on:click={() => modalStore.close()}>Cancel</button
 						>
 					</div>
 					<div class="flex-1">

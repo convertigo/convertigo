@@ -177,7 +177,7 @@
 		<TableAutoCard
 			title="Global symbols with default value currently used"
 			comment="List of global symbols with default value currently used. You can import them as regular symbol."
-			class='mt-10'
+			class="mt-10"
 			definition={[
 				{ name: 'Project', key: '@_project' },
 				{ name: 'Name', key: '@_name' },
@@ -204,7 +204,7 @@
 
 <Card class="mt-5" title="Environment Variables">
 	<TableAutoCard
-	comment='These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional.'
+		comment="These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional."
 		definition={[
 			{ name: 'Name', key: 'name' },
 			{ name: 'Value', key: 'value' }
