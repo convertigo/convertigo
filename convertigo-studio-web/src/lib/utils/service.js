@@ -1,6 +1,10 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { loading } from '$lib/utils/loadingStore';
-import { getToastStore } from '@skeletonlabs/skeleton';
+
+let toastNotif = null;
+export function setToastStore(toastStore) {
+	toastNotif = toastStore;
+}
 
 let cpt = 0;
 loading.subscribe((n) => (cpt = n));
@@ -71,41 +75,36 @@ export async function call(service, data = {}) {
 }
 
 function handleStateMessage(dataContent) {
-    try {
-        const toastNotif = getToastStore();
-      
+	try {
+		if (toastNotif == null) {
+			return;
+		}
+		let stateMessage =
+			dataContent?.admin?.response ||
+			dataContent?.admin?.keys?.key ||
+			dataContent?.admin ||
+			dataContent?.admin?.message;
 
-        let stateMessage =
-            dataContent?.admin?.response ||
-            dataContent?.admin?.keys?.key ||
-            dataContent?.admin ||
-            dataContent?.admin?.message;
+		let modalStateBody =
+			stateMessage?.['@_message'] || stateMessage?.['@_errorMessage'] || stateMessage?.message;
 
-        let modalStateBody =
-            stateMessage?.['@_message'] ||
-            stateMessage?.['@_errorMessage'] ||
-            stateMessage?.message;
+		if (modalStateBody) {
+			let isError = stateMessage?.['@_state'] === 'error' || !!stateMessage?.['@_errorMessage'];
+			let background = isError ? 'bg-error-400-500-token' : 'bg-success-400-500-token';
 
-        if (modalStateBody) {
-            let isError = stateMessage?.['@_state'] === 'error' || !!stateMessage?.['@_errorMessage'];
-            let background = isError 
-                ? 'bg-error-400-500-token'  
-                : 'bg-success-400-500-token'; 
-
-            toastNotif.trigger({
-                message: modalStateBody,
-                timeout: 8000,
-                background: background
-            });
-        } else {
-            console.warn('No valid message found in the response data.');
-            return;
-        }
-    } catch (err) {
-        console.error('Error handling state message:', err);
-    }
+			toastNotif.trigger({
+				message: modalStateBody,
+				timeout: 8000,
+				background: background
+			});
+		} else {
+			console.warn('No valid message found in the response data.');
+			return;
+		}
+	} catch (err) {
+		console.error('Error handling state message:', err);
+	}
 }
-
 
 export function getUrl() {
 	const m = window.location.pathname.match('^(.+?)/studio/');

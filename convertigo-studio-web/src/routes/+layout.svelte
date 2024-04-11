@@ -3,9 +3,15 @@
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { Modal, Toast, initializeStores, storePopup } from '@skeletonlabs/skeleton';
+	import {
+		Modal,
+		Toast,
+		getToastStore,
+		initializeStores,
+		storePopup
+	} from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
-	import { call } from '$lib/utils/service';
+	import { call, setToastStore } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
@@ -21,6 +27,7 @@
 	import ModalLoading from '$lib/admin/modals/ModalLoading.svelte';
 
 	initializeStores();
+	setToastStore(getToastStore());
 
 	onMount(() => {
 		call('engine.CheckAuthentication').then((res) => {
