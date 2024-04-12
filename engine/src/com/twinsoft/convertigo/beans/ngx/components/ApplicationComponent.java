@@ -1411,7 +1411,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 				if (p != null) {
 					ComponentManager cm = ComponentManager.of(p);
 					if (!cm.isInstance()) {
-						tplVersion = cm.getVersion();
+						tplVersion = cm.getTemplateProjectVersion();
 						Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from CM for component " + getQName());
 					}
 				}

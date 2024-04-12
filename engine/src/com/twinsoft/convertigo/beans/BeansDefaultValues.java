@@ -182,6 +182,7 @@ public class BeansDefaultValues {
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
 		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 
+		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
 		
 		ShrinkProject() throws Exception {
@@ -201,7 +202,10 @@ public class BeansDefaultValues {
 		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
 			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
 				try {
-					return getIonObjectsFromFiles(templateProjectName);
+					if (templateProjectIonObjects == null) {
+						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
+					}
+					return templateProjectIonObjects;
 				} catch (Exception e) {
 					// could not read from *_objects.json files
 					// continue
@@ -294,12 +298,12 @@ public class BeansDefaultValues {
 							nProp.setTextContent(content.getAttribute("value"));
 
 							if (isNgxApplicationComponent && name.equals("tplProjectName")) {
-								templateProjectIonObjects = getIonObjects(classname.indexOf(".ngx.") != -1, content.getAttribute("value"));
+								templateProjectName = content.getAttribute("value");
 							}
 							
 							if (name.equals("beanData")) {
 								try {
-									JSONObject ionObjects = templateProjectIonObjects;
+									JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 
 									String beanData = nProp.getTextContent();
 									JSONObject ion = new JSONObject(beanData);
@@ -404,7 +408,7 @@ public class BeansDefaultValues {
 				shrinkChildren(pBean, nCopy);
 				
 				if (isNgxApplicationComponent) {
-					templateProjectIonObjects = null;
+					templateProjectName = null;
 				}
 			}
 		}
@@ -440,6 +444,7 @@ public class BeansDefaultValues {
 		String nVersion;
 		boolean isMigrating = false;
 
+		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
 		
 		UnshrinkProject() throws Exception {
@@ -459,7 +464,10 @@ public class BeansDefaultValues {
 		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
 			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
 				try {
-					return getIonObjectsFromFiles(templateProjectName);
+					if (templateProjectIonObjects == null) {
+						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
+					}
+					return templateProjectIonObjects;
 				} catch (Exception e) {
 					// could not read from *_objects.json files
 					// continue
@@ -571,12 +579,12 @@ public class BeansDefaultValues {
 						String value = ((Element) pPropNode).getTextContent();
 
 						if (isNgxApplicationComponent && propName.equals("tplProjectName")) {
-							templateProjectIonObjects = getIonObjects(classname.indexOf(".ngx.") != -1, value);
+							templateProjectName = value;
 						}
 						
 						if (propName.equals("beanData")) {
 							try {
-								JSONObject ionObjects = templateProjectIonObjects;
+								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 								
 								JSONObject ion = new JSONObject(value);
 								String ionName = (String) ion.remove("ionBean");
@@ -670,7 +678,7 @@ public class BeansDefaultValues {
 				unshrinkChildren(pBean, nBean);
 				
 				if (isNgxApplicationComponent) {
-					templateProjectIonObjects = null;
+					templateProjectName = null;
 				}
 			}
 		}

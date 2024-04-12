@@ -237,13 +237,17 @@ public class ComponentManager {
 	private ComponentManager(String templateProjectName, File templateProjectDir) {
 		this.templateProjectName = templateProjectName;
 		this.templateProjectDir = templateProjectDir;
-		getVersion();
+		getTemplateProjectVersion();
 		loadModels();
 		loadFonts();
 	}
 	
 	public String getTemplateProjectName() {
 		return this.templateProjectName;
+	}
+
+	public File getTemplateProjectDir() {
+		return this.templateProjectDir;
 	}
 	
 	public void reload(MobileComponent mc) {
@@ -268,7 +272,7 @@ public class ComponentManager {
 		return this.templateProjectName.equals(JAVA_NGX);
 	}
 	
-	public synchronized String getVersion() {
+	public synchronized String getTemplateProjectVersion() {
 		if (tplVersion == null) {
 			if (isInstance()) {
 				tplVersion = ProductVersion.productVersion + ".0";
