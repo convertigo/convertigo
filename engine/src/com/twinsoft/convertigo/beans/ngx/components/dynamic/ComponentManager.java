@@ -474,6 +474,13 @@ public class ComponentManager {
 	
 	private void readBeanModels(JSONObject root) {
 		try {
+			String templateImageFolder = null;
+			if (templateProjectDir != null) {
+				var images = new File(templateProjectDir, "ionicTpl/ion/images");
+				if (images.exists() && images.isDirectory()) {
+					templateImageFolder = images.getAbsolutePath() + File.separator;
+				}
+			}
 			JSONObject beans = root.getJSONObject("Beans");
 			@SuppressWarnings("unchecked")
 			Iterator<String> it = beans.keys();
@@ -517,6 +524,9 @@ public class ComponentManager {
 									}
 								}
 							}
+						}
+						if (templateImageFolder != null) {
+							bean.setImageFolder(templateImageFolder);
 						}
 						bCache.put(key, bean);
 					}

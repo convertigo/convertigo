@@ -218,8 +218,12 @@ public class PaletteView extends ViewPart {
 		} else if (imageCache.containsKey(imagePath)) {
 			image = imageCache.get(imagePath);
 		} else {
-			image = new Image(handCursor.getDevice(), imagePath);
-			imageCache.put(imagePath, image);
+			try {
+				image = new Image(handCursor.getDevice(), imagePath);
+				imageCache.put(imagePath, image);
+			} catch (Exception e) {
+				System.out.println("Cannot load image " + imagePath);
+			}
 		}
 		return image;
 	}
