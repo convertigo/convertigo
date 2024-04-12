@@ -42,6 +42,9 @@ public class IonConfig implements Cloneable {
 		module_ng_components,
 		package_dependencies,
 		cordova_plugins,
+		build_assets,
+		build_scripts,
+		build_styles
 		;
 	}
 
@@ -96,11 +99,22 @@ public class IonConfig implements Cloneable {
 		return getCfgImports(Key.package_dependencies, "package", "version");
 	}
 
-
 	public Map<String, String> getConfigPlugins() {
 		return getCfgPlugins(Key.cordova_plugins, "plugin");
 	}
 
+	public Set<String> getBuildAssets() {
+		return getNgSet(Key.build_assets);
+	}
+	
+	public Set<String> getBuildScripts() {
+		return getNgSet(Key.build_scripts);
+	}
+	
+	public Set<String> getBuildStyles() {
+		return getNgSet(Key.build_styles);
+	}
+	
 	protected Map<String, List<String>> getTsImports(Key key) {
 		if (this != emptyConfig) {
 			try {

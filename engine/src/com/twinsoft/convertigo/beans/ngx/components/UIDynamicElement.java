@@ -583,16 +583,28 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 			@Override
 			public Set<String> getBuildAssets() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildAssets();
+				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildScripts() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildScripts();
+				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildStyles() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildStyles();
+				}
 				return new HashSet<String>();
 			}
 		};
