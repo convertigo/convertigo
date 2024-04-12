@@ -1,73 +1,33 @@
 <script>
-	import {
-		RadioGroup,
-		RadioItem,
-		SlideToggle,
-		getModalStore,
-		getToastStore
-	} from '@skeletonlabs/skeleton';
+	import { RadioGroup, RadioItem, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
-	import { usersList } from '../stores/rolesStore';
+	import { usersList, rolesStore } from '../stores/rolesStore';
 
 	const modalStore = getModalStore();
-	const toastStore = getToastStore();
-	const { mode } = $modalStore[0].meta ?? {};
+	const { mode, row } = $modalStore[0].meta ?? {};
 
 	export let parent;
-	let viewRolesStore = writable([]);
-	let configRolesStore = writable([]);
-	let otherRolesStore = writable([]);
-
-	let viewRolesChecked = writable(false);
-	let configRolesChecked = writable(false);
 
 	let importAction = '';
 	let importPriority = 'priority-import';
 
 	onMount(() => {
-		rolesList();
+		if (mode == 'add' && row?.role) {
+			for (let part of $rolesStore) {
+				for (let role of part.roles) {
+					role.checked = row.role.includes(role.value);
+				}
+				part.toggle = part.roles.findIndex((role) => !role.checked) == -1;
+			}
+		}
 	});
 
-	function toggleViewRoles(shouldBeChecked) {
-		viewRolesChecked.set(shouldBeChecked);
-		//@ts-ignore
-		viewRolesStore.update((roles) => roles.map((role) => ({ ...role, selected: shouldBeChecked })));
-	}
-
-	function toggleConfigRoles(shouldBeChecked) {
-		configRolesChecked.set(shouldBeChecked);
-		//@ts-ignore
-		configRolesStore.update((roles) =>
-			//@ts-ignore
-			roles.map((role) => ({ ...role, selected: shouldBeChecked }))
-		);
-	}
-
-	async function rolesList() {
-		const res = await call('roles.List');
-		console.log('roles List', res);
-
-		const roleArray = res?.admin?.roles?.role;
-		if (roleArray) {
-			const viewRoles = roleArray
-				.filter((role) => role['@_name'].endsWith('_VIEW'))
-				.map((role) => ({ ...role, selected: false }));
-			const configRoles = roleArray
-				.filter((role) => role['@_name'].endsWith('_CONFIG'))
-				.map((role) => ({ ...role, selected: false }));
-			const otherRoles = roleArray
-				.filter((role) => !role['@_name'].endsWith('_VIEW') && !role['@_name'].endsWith('_CONFIG'))
-				.map((role) => ({ ...role, selected: false }));
-
-			viewRolesStore.set(viewRoles);
-			configRolesStore.set(configRoles);
-			otherRolesStore.set(otherRoles);
-		}
+	function toggleRoles(checked, roles) {
+		roles.forEach((role) => (role.checked = checked));
 	}
 
 	async function rolesAdd(event) {
@@ -75,10 +35,12 @@
 		const fd = new FormData(event.target);
 
 		//@ts-ignore
-		const res = await call('roles.Add', fd);
+		const res = await call(`roles.${row ? 'Edit' : 'Add'}`, fd);
 		console.log('role add res:', res);
-		usersList();
-		modalStore.close();
+		if (res?.admin?.response?.['@_state'] == 'success') {
+			usersList();
+			modalStore.close();
+		}
 	}
 
 	/**
@@ -99,12 +61,21 @@
 </script>
 
 {#if mode == 'add'}
-	<Card title="Add User" style="padding: 40px;">
+	<Card title={`${row ? 'Edit' : 'Add'} User`} style="padding: 40px;">
 		<form on:submit={rolesAdd}>
+			{#if row}
+				<input type="hidden" name="oldUsername" value={row.name} />
+			{/if}
 			<div class="flex items-center gap-10 mb-10">
 				<label class="border-common">
 					<p class="label-common text-input">Name</p>
-					<input class="input-common" type="text" name="username" placeholder="Enter name .." />
+					<input
+						class="input-common"
+						type="text"
+						name="username"
+						placeholder="Enter name …"
+						value={row?.name ?? ''}
+					/>
 				</label>
 
 				<label class="border-common">
@@ -113,7 +84,8 @@
 						class="input-common"
 						type="password"
 						name="password"
-						placeholder="Enter password .."
+						placeholder={row ? 'Leave blank for no change…' : 'Enter password …'}
+						value=""
 					/>
 				</label>
 			</div>
@@ -124,115 +96,52 @@
 				mdCols="md:grid-cols-3"
 				lgCols="lg:grid-cols-3"
 			>
-				<div class="container-child">
-					<div class="flex items-center gap-5">
-						<h1 class="font-bold text-xl">View Roles</h1>
-						<RadioGroup class="shadow-md">
-							<RadioItem
-								bind:group={$viewRolesChecked}
-								on:click={() => toggleViewRoles(false)}
-								name="viewRoles"
-								value={false}
-								active="variant-filled-surface"
-							>
-								<Icon icon="mdi:minus" class="w-6 h-6" />
-							</RadioItem>
-							<RadioItem
-								bind:group={$viewRolesChecked}
-								on:click={() => toggleViewRoles(true)}
-								name="viewRoles"
-								value={true}
-								active="variant-filled-secondary"
-							>
-								<Icon icon="mdi:plus" class="w-6 h-6" />
-							</RadioItem>
-						</RadioGroup>
+				{#each $rolesStore as { name, end, roles, toggle }}
+					<div class="container-child">
+						<div class="flex items-center gap-5">
+							<h1 class="font-bold text-xl">{name}</h1>
+							<RadioGroup class="shadow-md">
+								{@const radioDef = [
+									{ value: false, active: 'variant-filled-surface', icon: 'mdi:minus' },
+									{ value: true, active: 'variant-filled-secondary', icon: 'mdi:plus' }
+								]}
+								{#each radioDef as { value, active, icon }}
+									<RadioItem
+										bind:group={toggle}
+										on:click={() => toggleRoles(value, roles)}
+										name="viewRoles"
+										{value}
+										{active}
+									>
+										<Icon {icon} class="w-6 h-6" />
+									</RadioItem>
+								{/each}
+							</RadioGroup>
+						</div>
+						<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
+							{#each roles as { value, checked, description }}
+								<div class="flex items-center" title={description}>
+									<SlideToggle
+										size="sm"
+										name="roles"
+										active="min-w-12 bg-success-400 dark:bg-success-700"
+										background="min-w-12 bg-error-400 dark:bg-error-700"
+										{value}
+										{checked}
+									>
+										<span class="cursor-pointer">{value.replace(end, '').replace(/_/g, ' ')}</span>
+									</SlideToggle>
+								</div>
+							{/each}
+						</div>
 					</div>
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
-						{#each $viewRolesStore as view}
-							<div class="flex items-center">
-								<SlideToggle
-									size="sm"
-									name="roles"
-									active="bg-success-400 dark:bg-success-700"
-									background="bg-error-400 dark:bg-error-700"
-									value={view.selected ? view['@_name'] : ''}
-									checked={view.selected}
-								>
-									<span class="cursor-pointer">{view['@_name'].replace('_VIEW', '')}</span>
-								</SlideToggle>
-							</div>
-						{/each}
-					</div>
-				</div>
-
-				<div class="container-child">
-					<div class="flex items-center gap-5">
-						<h1 class="font-bold text-xl">Config Roles</h1>
-						<RadioGroup class="">
-							<RadioItem
-								bind:group={$configRolesChecked}
-								on:click={() => toggleConfigRoles(false)}
-								name="configRoles"
-								value={false}
-								active="variant-filled-surface"
-							>
-								<Icon icon="mdi:minus" class="w-6 h-6" />
-							</RadioItem>
-							<RadioItem
-								bind:group={$configRolesChecked}
-								on:click={() => toggleConfigRoles(true)}
-								name="configRoles"
-								value={true}
-								active="variant-filled-secondary"
-							>
-								<Icon icon="mdi:plus" class="w-6 h-6" />
-							</RadioItem>
-						</RadioGroup>
-					</div>
-
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
-						{#each $configRolesStore as config}
-							<div class="flex items-center">
-								<SlideToggle
-									size="sm"
-									name="roles"
-									active="bg-success-400 dark:bg-success-700"
-									background="bg-error-400 dark:bg-error-700"
-									value={config.selected ? config['@_name'] : ''}
-									checked={config.selected}
-								>
-									<span class="cursor-pointer">{config['@_name'].replace('_CONFIG', '')}</span>
-								</SlideToggle>
-							</div>
-						{/each}
-					</div>
-				</div>
-
-				<div class="container-child">
-					<h1 class="mb-5 font-bold text-xl">Other Roles</h1>
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
-						{#each $otherRolesStore as other}
-							<div class="flex items-center">
-								<SlideToggle
-									size="sm"
-									name="roles"
-									active="bg-success-400 dark:bg-success-700"
-									background="bg-error-400 dark:bg-error-700"
-									value={other.selected ? other['@_name'] : ''}
-									checked={other.selected}
-								>
-									<span class="cursor-pointer">{other['@_name']}</span>
-								</SlideToggle>
-							</div>
-						{/each}
-					</div>
-				</div>
+				{/each}
 			</ResponsiveContainer>
 
 			<div class="flex gap-5 mt-10">
-				<button class="bg-surface-400-500-token w-60" on:click={() => modalStore.close()}
-					>Cancel</button
+				<button
+					class="bg-surface-400-500-token w-60"
+					on:click|preventDefault={() => modalStore.close()}>Cancel</button
 				>
 				<button type="submit" class="confirm-button w-60">Confirm</button>
 			</div>

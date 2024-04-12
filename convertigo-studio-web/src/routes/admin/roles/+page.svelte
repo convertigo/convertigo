@@ -1,7 +1,7 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import Icon from '@iconify/svelte';
-	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -93,6 +93,14 @@
 			}
 		});
 	}
+
+	function openEditModal(row) {
+		rolesModalStore.trigger({
+			type: 'component',
+			component: 'modalRoles',
+			meta: { mode: 'add', row }
+		});
+	}
 </script>
 
 <Card title="Roles">
@@ -126,7 +134,7 @@
 	{#if $usersStore.length >= 0}
 		<TableAutoCard
 			definition={[
-				{ name: 'Name', key: '@_name' },
+				{ name: 'Name', key: 'name' },
 				{ name: 'Role', key: 'role' },
 				{ name: 'Edit', custom: true },
 				{ name: 'Delete', custom: true }
@@ -136,7 +144,10 @@
 			let:def
 		>
 			{#if def.name === 'Edit'}
-				<button class="p-1 px-2 shadow-md bg-tertiary-400-500-token">
+				<button
+					class="p-1 px-2 shadow-md bg-tertiary-400-500-token"
+					on:click={() => openEditModal(row)}
+				>
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}

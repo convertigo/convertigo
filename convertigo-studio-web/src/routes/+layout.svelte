@@ -57,6 +57,6 @@
 
 <Modal components={modalComponentRegistry} />
 
-<Toast />
+<Toast zIndex="z-[1000]" />
 
 <slot />
