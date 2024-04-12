@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.mobile;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -475,12 +476,19 @@ public class NgxBuilder extends MobileBuilder {
 	
 	@Override
 	protected void copyTemplateFiles() throws EngineException {
-		super.copyTemplateFiles();
-		
+		FileFilter ff = new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return (file.isDirectory() && file.getName().equals("ion")) ? false : true;
+			}
+		};
 		try {
-			// delete ion templates (ion_objects, actions, ...)
-			FileUtils.deleteQuietly(new File(ionicWorkDir, "ion"));
-		} catch (Exception e) {}
+			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir, ff, true);
+			Engine.logEngine.trace("("+ builderType +") Template files copied for ionic project '"+ project.getName() +"'");
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
+		}
 	}
 
 	@Override
