@@ -272,8 +272,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	@Override
 	public String computeTemplate() {
 		if (isDeprecated()) {
-			Engine.logEngine.warn(getTagName() + " is deprecated for project's ionic used version");
-			return "<!-- Warn:" + getTagName() + " is deprecated -->" + System.getProperty("line.separator");
+			String deprecationText = getName() + " (tagname: " + getTagName() + ")";
+			Engine.logEngine.warn(deprecationText + " is deprecated or does not exists");
+			return "<!-- Warn:" + deprecationText + " is deprecated or does not exists -->" + System.getProperty("line.separator");
 		}
 		
 		if (isEnabled()) {
