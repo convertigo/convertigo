@@ -125,6 +125,7 @@ public class ComponentManager {
 	private static final String TPL_VERSION_JSONPATH = "ionicTpl/version.json";
 	private static final String TPL_IONOBJECTS_JSONPATH = "ionicTpl/ion/ion_objects.json";
 	private static final String TPL_IONACTIONS_DIRPATH = "ionicTpl/ion/actionbeans";
+	private static final String TPL_IONCOMPS_DIRPATH = "ionicTpl/ion/compbeans";
 	
 	private static String JAVA_NGX = "Java@Ngx";
 	private static ComponentManager instance = new ComponentManager();
@@ -140,8 +141,6 @@ public class ComponentManager {
 	private List<String> groups;
 	private List<Component> orderedComponents;
 	private List<Component> components;
-	
-	private File compbeansDir;
 	
 	private String templateProjectName;
 	private File templateProjectDir;
@@ -1699,7 +1698,7 @@ public class ComponentManager {
 		synchronized (aCache) {
 			String code = aCache.get(name);
 			if (code == null) {
-				if (!this.equals(instance)) {
+				if (!isInstance()) {
 					try {
 						File actionTsFile = new File(templateProjectDir, TPL_IONACTIONS_DIRPATH + "/"+ name +".ts");
 						code = FileUtils.readFileToString(actionTsFile, "UTF-8");
@@ -1717,8 +1716,8 @@ public class ComponentManager {
 					}
 				}
 				
-				if (code == null || this.equals(instance)) {
-					try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
+				if (code == null || isInstance()) {
+					try (InputStream inputstream = getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
 						code = IOUtils.toString(inputstream, "UTF-8");
 						aCache.put(name, code);
 					} catch (Exception e) {
@@ -1737,20 +1736,24 @@ public class ComponentManager {
 	
 	public File getCompBeanDir(String name) {
 		try {
-			if (instance.compbeansDir == null) {
-				String path = URLUtils.getFullpathRessources(instance.getClass(), "compbeans");
+			File compBeanDir = null;
+			if (isInstance()) {
+				String path = URLUtils.getFullpathRessources(getClass(), "compbeans");
 				if (path != null) {
-					instance.compbeansDir = new File(path);
+					compBeanDir = new File(new File(path), name);
 				}
+			} else {
+				File compBeansDir = new File(templateProjectDir, TPL_IONCOMPS_DIRPATH);
+				compBeanDir = new File(compBeansDir, name);
 			}
-			if (instance.compbeansDir != null) {
-				return new File(instance.compbeansDir, name);
+			if (compBeanDir != null && compBeanDir.exists() && compBeanDir.isDirectory()) {
+				return compBeanDir;
 			}
 		} catch (Exception e) {
 			if (Engine.isStarted) {
-				Engine.logBeans.warn("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+				Engine.logBeans.warn("(ComponentManager@"+templateProjectName+") Missing component folder for pseudo-bean '"+ name +"' !");
 			} else {
-				System.out.println("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+				System.out.println("(ComponentManager@"+templateProjectName+") Missing component folder for pseudo-bean '"+ name +"' !");
 			}
 		}
 		return null;

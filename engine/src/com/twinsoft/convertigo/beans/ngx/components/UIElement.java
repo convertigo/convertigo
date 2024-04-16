@@ -273,7 +273,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	public String computeTemplate() {
 		if (isDeprecated()) {
 			String deprecationText = getName() + " (tagname: " + getTagName() + ")";
-			Engine.logEngine.warn(deprecationText + " is deprecated or does not exists");
+			Engine.logBeans.warn(deprecationText + " is deprecated or does not exists");
 			return "<!-- Warn:" + deprecationText + " is deprecated or does not exists -->" + System.getProperty("line.separator");
 		}
 		
