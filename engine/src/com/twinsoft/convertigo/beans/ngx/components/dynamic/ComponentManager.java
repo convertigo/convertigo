@@ -1059,7 +1059,7 @@ public class ComponentManager {
 		/*-------------------------- ADDITIONALS --------------------------*/
 		if (Engine.isStarted) {
 			try {
-				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
+				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true);
 				for (String projectName : projectNames) {
 					if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
 						continue;

@@ -1128,9 +1128,11 @@ public class PaletteView extends ViewPart {
 					public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 						if (bag.isDisposed()) {
 							pev.removeTreeObjectListener(this);
+							return;
 						}
 						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+							selectedProject = null;
 							refresh();
 						}
 					}
@@ -1151,9 +1153,11 @@ public class PaletteView extends ViewPart {
 					public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 						if (bag.isDisposed()) {
 							pev.removeTreeObjectListener(this);
+							return;
 						}
 						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+							selectedProject = null;
 							refresh();
 						}
 					}
