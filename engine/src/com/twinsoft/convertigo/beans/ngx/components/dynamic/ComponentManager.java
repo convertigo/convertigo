@@ -367,7 +367,11 @@ public class ComponentManager {
 	private JSONObject ionObjectsAsJsonFromClass() throws Exception {
 		InputStream inputstream = getClass().getResourceAsStream("ion_objects.json");
 		JSONObject ionObjects =  new JSONObject(IOUtils.toString(inputstream, "UTF-8"));
-		Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read of default java ion_objects.json from Class.");
+		if (Engine.isStarted) {
+			Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Successful read of default java ion_objects.json from Class.");
+		} else {
+			System.out.println("(ComponentManager@"+ templateProjectName +") Successful read of default java ion_objects.json from Class.");
+		}
 		return ionObjects;
 	}
 	
