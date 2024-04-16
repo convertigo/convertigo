@@ -110,17 +110,21 @@ public class ViewImageProvider {
 			InputStream inputStream = null;
 			Device device = Display.getCurrent();
 			try {
-				inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-				if (inputStream == null) {
-					inputStream = ConvertigoPlugin.class.getResourceAsStream(defIconName);
+				if (iconName.startsWith("/com/twinsoft/convertigo/")) {
+					inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
+					if (inputStream == null) {
+						inputStream = ConvertigoPlugin.class.getResourceAsStream(defIconName);
+					}
+					image = new Image(device, inputStream);
+				} else {
+					image = new Image(device, iconName);
 				}
-				image = new Image(device, inputStream);
-
+				
 				ImageData imageData = getImageData(image, object);
 				image = new Image(device, imageData);
-
 				imagesCache.put(imageName, image);
 			} catch (Throwable e) {
+				System.out.println("Cannot load image " + imageName);
 				if (inputStream != null) {
 					try {
 						inputStream.close();

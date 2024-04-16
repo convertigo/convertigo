@@ -26,6 +26,7 @@ import java.beans.IntrospectionException;
 import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -256,7 +257,19 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 		if (dbo != null && dbo instanceof IDynamicBean) {
 			String dynamicIconName = ((IDynamicBean)dbo).getDynamicIconName(iconType);
 			if (dynamicIconName != null) {
-				iconName = dynamicIconName;
+				boolean overwrite = dynamicIconName.startsWith("/com/twinsoft/convertigo");
+				if (!overwrite) {
+					try {
+						File iconFile = new File(dynamicIconName);
+						overwrite = iconFile.exists() && iconFile.isFile();
+					} catch (Exception e) {}
+					if (!overwrite) {
+						//System.out.println("Could not find "+ dynamicIconName);		
+					}
+				}
+				if (overwrite) {
+					iconName = dynamicIconName;
+				}
 			}
 		}
 		return iconName;

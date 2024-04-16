@@ -472,15 +472,19 @@ public class ComponentManager {
 		}
 	}
 	
+	private String getTemplateProjectImagesFolder() {
+		if (templateProjectDir != null) {
+			var images = new File(templateProjectDir, "ionicTpl/ion/images");
+			if (images.exists() && images.isDirectory()) {
+				return images.getAbsolutePath() + File.separator;
+			}
+		}
+		return null;
+	}
+	
 	private void readBeanModels(JSONObject root) {
 		try {
-			String templateImageFolder = null;
-			if (templateProjectDir != null) {
-				var images = new File(templateProjectDir, "ionicTpl/ion/images");
-				if (images.exists() && images.isDirectory()) {
-					templateImageFolder = images.getAbsolutePath() + File.separator;
-				}
-			}
+			String templateImageFolder = getTemplateProjectImagesFolder();
 			JSONObject beans = root.getJSONObject("Beans");
 			@SuppressWarnings("unchecked")
 			Iterator<String> it = beans.keys();
@@ -565,12 +569,13 @@ public class ComponentManager {
 			modelName = jsonBean.getString(IonBean.Key.name.name());
 		}
 		//if (!templateProjectName.equals(JAVA_NGX)) {
-			System.out.println("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
+			//System.out.println("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
 			if (Engine.isStarted) {
 				Engine.logBeans.trace("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ modelName);
 			}
 		//}
 		final IonBean model = bCache.get(modelName);
+		String templateImageFolder = getTemplateProjectImagesFolder();
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
@@ -598,6 +603,9 @@ public class ComponentManager {
 			if (hasChanged) {
 				//TODO
 			}
+			if (templateImageFolder != null) {
+				ionBean.setImageFolder(templateImageFolder);
+			}
 			return ionBean;
 		}
 		// The model doesn't exist (anymore)
@@ -608,7 +616,11 @@ public class ComponentManager {
 			}
 			//return new IonBean(jsonString);
 			String deprecatedTplVersion = ProductVersion.productVersion + ".0";
-			return new IonBean(new JSONObject(jsonString).put("deprecatedTplVersion", deprecatedTplVersion).toString());
+			IonBean ionBean = new IonBean(new JSONObject(jsonString).put("deprecatedTplVersion", deprecatedTplVersion).toString());
+			if (templateImageFolder != null) {
+				ionBean.setImageFolder(templateImageFolder);
+			}
+			return ionBean;
 		}
 	}
 	
@@ -1233,9 +1245,9 @@ public class ComponentManager {
 										public String getImagePath() {
 											String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_32x32.png";
 											try {
-												File f = new File(project.getDirPath(), uisrc.getIconFileName());
+												File f = new File(uisrc.getDynamicIconName(BeanInfo.ICON_COLOR_32x32));
 												if (f.exists()) {
-													return f.getCanonicalPath();
+													return f.getAbsolutePath();
 												}
 											} catch (Exception e) {}
 											return defaultImagePath;
