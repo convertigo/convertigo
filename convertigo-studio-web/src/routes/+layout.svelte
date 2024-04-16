@@ -10,7 +10,7 @@
 		initializeStores,
 		storePopup
 	} from '@skeletonlabs/skeleton';
-	import { goto } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { call, setToastStore } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
@@ -29,11 +29,11 @@
 	initializeStores();
 	setToastStore(getToastStore());
 
-	onMount(() => {
+	afterNavigate(() => {
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated && $page.route.id != '/login') {
-				goto(`${base}/login/`);
+				goto(`${base}/login/?redirect=${$page.route.id}`);
 			} else if ($authenticated && ($page.route.id == '/' || $page.route.id == '/login')) {
 				goto(`${base}/admin/`);
 			}

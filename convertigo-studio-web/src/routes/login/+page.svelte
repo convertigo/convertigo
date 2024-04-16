@@ -2,23 +2,20 @@
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { call } from '$lib/utils/service';
 	import { goto } from '$app/navigation';
-	import { assets, base } from '$app/paths';
+	import { base } from '$app/paths';
+
+	/** @type {import('./$types').PageData} */
+	export let data;
 
 	let error = null;
 
 	async function handleSubmit(/** @type {SubmitEvent} */ e) {
-		e.preventDefault();
 		try {
 			// @ts-ignore
 			const res = await call('engine.Authenticate', new FormData(e.target));
-			console.log(res);
 			if ('success' in res.admin) {
 				$authenticated = true;
-				if (history.length) {
-					history.back();
-				} else {
-					goto(`${base}admin`);
-				}
+				goto(`${base}${data.redirect ?? '/admin'}`);
 			} else if ('error' in res.admin) {
 				error = res.admin.error;
 			} else {
@@ -37,7 +34,7 @@
 	</h1>
 
 	<form
-		on:submit={handleSubmit}
+		on:submit|preventDefault={handleSubmit}
 		class="flex flex-col w-[600px] bg-surface h-80 mt-40 rounded-xl p-4 items-center"
 	>
 		<input type="hidden" name="authType" value="login" />
