@@ -30,7 +30,6 @@
 	}
 
 	async function installNewCertificates(e) {
-		isLoading = true;
 		const file = e.target.files[0];
 		if (file) {
 			const formData = new FormData();
@@ -38,12 +37,11 @@
 
 			try {
 				const res = await call('certificates.Install', formData);
+				certificatesList();
 			} catch (err) {
 				console.error('Error installing certificate:', err);
 			} finally {
-				isLoading = false;
 				modalStore.close();
-				await certificatesList();
 			}
 		}
 	}

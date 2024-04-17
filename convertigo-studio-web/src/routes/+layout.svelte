@@ -6,12 +6,13 @@
 	import {
 		Modal,
 		Toast,
+		getModalStore,
 		getToastStore,
 		initializeStores,
 		storePopup
 	} from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
-	import { call, setToastStore } from '$lib/utils/service';
+	import { call, setModalStore, setToastStore } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
@@ -28,6 +29,7 @@
 
 	initializeStores();
 	setToastStore(getToastStore());
+	setModalStore(getModalStore());
 
 	onMount(() => {
 		call('engine.CheckAuthentication').then((res) => {

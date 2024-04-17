@@ -2,8 +2,13 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { loading } from '$lib/utils/loadingStore';
 
 let toastNotif = null;
+let modalLoading = null;
 export function setToastStore(toastStore) {
 	toastNotif = toastStore;
+}
+
+export function setModalStore(modalStore) {
+	modalLoading = modalStore;
 }
 
 let cpt = 0;
@@ -74,6 +79,32 @@ export async function call(service, data = {}) {
 	return dataContent;
 }
 
+/**
+ * Handles the display and hide of the loading modal based on the service call status.
+ * @param {boolean} isLoading - Flag indicating if the service is loading or not.
+ * @param {string} serviceName - Optional. The name of the service being called, if exclusion is needed.
+ */
+function handleServiceLoading(isLoading, serviceName = '') {
+	if (serviceName === 'engine.JsonMonitor') {
+		return;
+	}
+	if (isLoading) {
+		loading.set(cpt + 1);
+		if (modalLoading) {
+			modalLoading.trigger({
+				type: 'component',
+				component: 'modalLoading',
+				meta: { mode: 'Loading' }
+			});
+		}
+	} else {
+		loading.set(cpt - 1);
+		if (modalLoading) {
+			modalLoading.close();
+		}
+	}
+}
+
 function handleStateMessage(dataContent) {
 	try {
 		if (toastNotif == null) {
@@ -83,21 +114,32 @@ function handleStateMessage(dataContent) {
 			dataContent?.admin?.response ||
 			dataContent?.admin?.keys?.key ||
 			dataContent?.admin ||
-			dataContent?.admin?.message;
+			dataContent?.admin?.message ||
+			dataContent?.error.message;
 
-		let modalStateBody =
+		let toastStateBody =
 			stateMessage?.['@_message'] || stateMessage?.['@_errorMessage'] || stateMessage?.message;
 
-		if (modalStateBody) {
+		if (toastStateBody) {
 			let isError = stateMessage?.['@_state'] === 'error' || !!stateMessage?.['@_errorMessage'];
 			let background = isError ? 'bg-error-400-500-token' : 'bg-success-400-500-token';
 
 			toastNotif.trigger({
-				message: modalStateBody,
+				message: toastStateBody,
 				timeout: 8000,
 				background: background
 			});
-		} else {
+
+		} 
+		/** else if (stateMessage === dataContent?.error.message) {
+			modalLoading.trigger({
+				type: 'component',
+				component: 'modalLoading',
+				meta: { mode: 'Insufficient right' }
+			})
+		}*/ 
+
+		else {
 			console.warn('No valid message found in the response data.');
 			return;
 		}

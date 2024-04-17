@@ -76,12 +76,11 @@
 </script>
 
 {#if $isLoading == true}
-	<div class="h-6 mt-5 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
-	<div class="h-6 mt-2 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
-	<div class="h-6 mt-3 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
-	<div class="h-5 mt-2 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
-	<div class="h-4 mt-4 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
-	<div class="h-7 mt-2 flex" class:placeholder={$isLoading} class:animate-pulse={$isLoading}></div>
+	<div
+		class="h-full mt-5 flex"
+		class:placeholder={$isLoading}
+		class:animate-pulse={$isLoading}
+	></div>
 {/if}
 <div
 	bind:this={chartEl}

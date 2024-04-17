@@ -80,17 +80,15 @@
 
 <AutoGrid>
 	<Card title="Status">
-		<div slot="cornerOption" class="flex flex-wrap gap-5 ml-2">
-			<div class="flex-1">
-				<button class="w-full bg-primary-400-500-token" on:click={() => modal('props')}
+		<div slot="cornerOption" class="">
+			<div class="">
+				<button class="bg-primary-400-500-token min-w-60" on:click={() => modal('props')}
 					>Java System Properties</button
 				>
-			</div>
-			<div class="flex-1">
-				<button class="w-full bg-primary-400-500-token" on:click={() => modal('env')}
+				<button class="bg-primary-400-500-token min-w-60 mt-1" on:click={() => modal('env')}
 					>Environment Variables</button
 				>
-			</div>
+			</div>	
 		</div>
 		<StatusTable
 			class="mt-5"
