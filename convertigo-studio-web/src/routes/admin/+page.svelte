@@ -46,7 +46,7 @@
 	$: categories = $monitorData.labels;
 
 	/**
-	 * @param {{ target: { disabled: boolean; }; }} e
+	 * @param {{ target: { disabled: boolean; }; }}
 	 */
 	async function performGC() {
 		try {
@@ -88,7 +88,7 @@
 				<button class="bg-primary-400-500-token min-w-60 mt-1" on:click={() => modal('env')}
 					>Environment Variables</button
 				>
-			</div>	
+			</div>
 		</div>
 		<StatusTable
 			class="mt-5"

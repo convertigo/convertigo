@@ -36,14 +36,11 @@
 		}
 	}
 
-	function openAddUserModal() {
+	function openAddUserModal(mode, row) {
 		rolesModalStore.trigger({
 			type: 'component',
 			component: 'modalRoles',
-			meta: { mode: 'add' },
-			response: (confirmed) => {
-				if (confirmed) {
-				}
+			meta: { mode, row }
 			}
 		});
 	}

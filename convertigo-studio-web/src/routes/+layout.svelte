@@ -11,13 +11,8 @@
 		initializeStores,
 		storePopup
 	} from '@skeletonlabs/skeleton';
-<<<<<<< HEAD
-	import { goto } from '$app/navigation';
-	import { call, setModalStore, setToastStore } from '$lib/utils/service';
-=======
 	import { afterNavigate, goto } from '$app/navigation';
-	import { call, setToastStore } from '$lib/utils/service';
->>>>>>> branch 'develop' of git@github.com:convertigo/convertigo.git
+	import { call, setModalStore, setToastStore } from '$lib/utils/service';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
@@ -27,7 +22,6 @@
 	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
 	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
 	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
-	import { onMount } from 'svelte';
 	import ModalSessionLegend from '$lib/admin/modals/ModalSessionLegend.svelte';
 	import ModalCertificates from '$lib/admin/modals/ModalCertificates.svelte';
 	import ModalLoading from '$lib/admin/modals/ModalLoading.svelte';

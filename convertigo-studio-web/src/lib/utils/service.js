@@ -129,17 +129,14 @@ function handleStateMessage(dataContent) {
 				timeout: 8000,
 				background: background
 			});
-
-		} 
-		/** else if (stateMessage === dataContent?.error.message) {
+		} else {
+			/** else if (stateMessage === dataContent?.error.message) {
 			modalLoading.trigger({
 				type: 'component',
 				component: 'modalLoading',
 				meta: { mode: 'Insufficient right' }
 			})
-		}*/ 
-
-		else {
+		}*/
 			console.warn('No valid message found in the response data.');
 			return;
 		}
