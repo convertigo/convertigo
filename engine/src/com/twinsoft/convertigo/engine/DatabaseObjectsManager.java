@@ -1152,6 +1152,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				Document document;
 				Engine.logDatabaseObjectManager.info("Importing project from: " + importFile);
+				studioProjects.declareProject(projectName, importFile);
+				
 				if (importFile.getName().equals("c8oProject.yaml")) {
 					
 					Engine.theApp.referencedProjectManager.checkForIonicTemplate(projectName, importFile);
@@ -1189,8 +1191,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 					// Delete project's data only (will backup project)
 					deleteProject(projectName, true, true);
 				}
-
-				studioProjects.declareProject(projectName, importFile);
 
 				projectLoadingDataThreadLocal.remove();
 				getProjectLoadingData().projectName = projectName;
