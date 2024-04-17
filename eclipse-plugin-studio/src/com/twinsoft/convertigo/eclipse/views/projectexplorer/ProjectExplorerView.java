@@ -2467,7 +2467,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void reloadProject(TreeObject projectTreeObject) {
-		((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+		ConvertigoPlugin.syncExec(() -> {
+			((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+		});
 	}
 
 	public void reloadProjectAndDeleteNodeModules(ProjectTreeObject projectTreeObject) {
