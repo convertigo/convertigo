@@ -234,6 +234,8 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 			
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+			projectNames.remove(project.getName());
+			projectNames.add(0, project.getName());
 
 			Map<String, Set<String>> map = mobileComponent.getApplication().getInfoMap();
 			
@@ -262,8 +264,11 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 				for (String projectName : projectNames) {
 					try {
 						Project p = projectExplorerView.getProject(projectName);
-						boolean isReferenced = !p.getName().equals(project.getName());
-						addSequences(map, tvs, isReferenced ? p:project, isReferenced);
+						if (!p.getSequencesList().isEmpty()) {
+							var tvp = tvs.add(new TVObject(projectName));
+							boolean isReferenced = !p.getName().equals(project.getName());
+							addSequences(map, tvp, isReferenced ? p:project, isReferenced);
+						}
 					} catch (Exception e) {
 					}
 				}
@@ -330,7 +335,7 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					tvs.add(new TVObject(label, s, sd));
+					tvs.add(new TVObject(s.getName(), s, sd));
 					
 					Set<String> infos = map.get(s.getQName());
 					if (infos != null) {
