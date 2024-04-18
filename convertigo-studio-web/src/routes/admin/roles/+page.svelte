@@ -13,14 +13,14 @@
 		usersList();
 	});
 
-	async function deleteUsersRoles(userName) {
+	async function deleteUsersRoles(username) {
 		const formData = new FormData();
-		formData.append('username', userName);
+		formData.append('username', username);
 		try {
 			//@ts-ignore
 			const res = await call('roles.Delete', formData);
 			console.log('service delete roles', res);
-			usersList();
+			await usersList();
 		} catch (error) {
 			console.error('Error deleting user role:', error);
 		}
@@ -36,28 +36,30 @@
 		}
 	}
 
-	function openAddUserModal(mode, row) {
-		rolesModalStore.trigger({
-			type: 'component',
-			component: 'modalRoles',
-			meta: { mode, row }
-			}
-		});
-	}
+	function openModals(mode, row) {
+		let component = 'modalRoles';
+		let title = '';
 
-	function openImportUserModal() {
-		rolesModalStore.trigger({
-			type: 'component',
-			component: 'modalRoles',
-			meta: { mode: 'import' }
-		});
-	}
+		switch (mode) {
+			case 'add':
+				title = 'Add User';
+				break;
+			case 'import':
+				title = 'Import Users';
+				break;
+			case 'export':
+				title = 'Export Users';
+				break;
+			case 'edit':
+				title = 'Edit User Role';
+				break;
+		}
 
-	function openExportUserModal() {
 		rolesModalStore.trigger({
 			type: 'component',
-			component: 'modalRoles',
-			meta: { mode: 'export' }
+			component: component,
+			meta: { mode, row },
+			title: title
 		});
 	}
 
@@ -90,14 +92,6 @@
 			}
 		});
 	}
-
-	function openEditModal(row) {
-		rolesModalStore.trigger({
-			type: 'component',
-			component: 'modalRoles',
-			meta: { mode: 'add', row }
-		});
-	}
 </script>
 
 <Card title="Roles">
@@ -109,19 +103,19 @@
 	</div>
 	<div class="flex flex-wrap gap-5 mb-10 mt-10">
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openAddUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('add')}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 				Add User
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openImportUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('import')}>
 				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
 				Import Users
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openExportUserModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('export')}>
 				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
 				Export Users
 			</button>
@@ -143,14 +137,14 @@
 			{#if def.name === 'Edit'}
 				<button
 					class="p-1 px-2 shadow-md bg-tertiary-400-500-token"
-					on:click={() => openEditModal(row)}
+					on:click={() => openModals('add', row)}
 				>
 					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 				</button>
 			{:else if def.name === 'Delete'}
 				<button
 					class="p-1 px-2 shadow-md bg-error-400-500-token"
-					on:click={() => openDeleteModal(row['@_name'])}
+					on:click={() => openDeleteModal(row.name)}
 				>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 				</button>

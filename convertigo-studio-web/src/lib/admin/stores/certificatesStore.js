@@ -6,35 +6,18 @@ export let certificates = writable([]);
 export let anonymousBinding = writable([]);
 export let cariocaBinding = writable([]);
 
-let init = false;
+function prepareAndSetData(data, store) {
+	let dataArray = Array.isArray(data) ? data : [data];
+	dataArray.push('new');
+	store.set(dataArray);
+}
 
 export async function certificatesList() {
 	const res = await call('certificates.List');
 	console.log('certif Store', res);
-	let candidateArray = res?.admin?.candidates?.candidate ?? [];
-	if (!Array.isArray(candidateArray)) {
-		candidateArray = [candidateArray];
-	}
-	candidates.set(candidateArray);
 
-	let certificateArray = res?.admin?.certificates?.certificate ?? [];
-	if (!Array.isArray(certificateArray)) {
-		certificateArray = [certificateArray];
-	}
-	certificateArray.push('new');
-	certificates.set(certificateArray);
-
-	let anonymousArray = res?.admin?.bindings?.anonymous?.binding ?? [];
-	if (!Array.isArray(anonymousArray)) {
-		anonymousArray = [anonymousArray];
-	}
-	anonymousArray.push('new');
-	anonymousBinding.set(anonymousArray);
-
-	let cariocaArray = res?.admin?.bindings?.carioca?.binding ?? [];
-	if (!Array.isArray(cariocaArray)) {
-		cariocaArray = [cariocaArray];
-	}
-	cariocaArray.push('new');
-	cariocaBinding.set(cariocaArray);
+	prepareAndSetData(res?.admin?.candidates?.candidate ?? [], candidates);
+	prepareAndSetData(res?.admin?.certificates?.certificate ?? [], certificates);
+	prepareAndSetData(res?.admin?.bindings?.anonymous?.binding ?? [], anonymousBinding);
+	prepareAndSetData(res?.admin?.bindings?.carioca?.binding ?? [], cariocaBinding);
 }

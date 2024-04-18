@@ -19,10 +19,14 @@
 
 	let selectedProjectId;
 	let selectedCertificateId;
+	let virtualServerValue;
+	let authorizationValue;
+	let userValue;
 
 	onMount(async () => {
 		await certificatesList();
 		await projectsCheck();
+		selectedProjectId = $projectsStore[0]['@_name'];
 	});
 
 	async function UpdateCertificate(e) {
@@ -63,27 +67,59 @@
 		}
 	}
 
-	async function mappingCertificates(event) {
-		const fd = new FormData();
-		fd.append('targettedObject_0', 'projects');
-		fd.append('cert_0', selectedCertificateId);
-		fd.append('convProject_0', selectedProjectId);
-
+	async function mappingAnonymous() {
 		try {
-			await call('certificates.mappings.Configure', fd);
+			await call('certificates.mappings.Configure', {
+				targettedObject_0: 'projects',
+				cert_0: selectedCertificateId,
+				convProject_0: selectedProjectId
+			});
 			await certificatesList();
 		} catch (err) {
 			console.error(err);
 		}
 	}
 
-	async function deleteMappedCertificate(row) {
-		const fd = new FormData();
-		fd.append('link_1', row);
+	async function mappingCarioca() {
 		try {
-			await call('certificates.mappings.Delete', fd);
+			await call('certificates.mappings.Configure', {
+				targettedObject_0: 'tas',
+				cert_0: selectedCertificateId,
+				virtualServer_0: virtualServerValue,
+				group_0: authorizationValue,
+				user_0: userValue,
+				project_0: selectedProjectId
+			});
+			await certificatesList();
 		} catch (err) {
 			console.error(err);
+		}
+	}
+
+	async function deleteAnonymousCertificates(row) {
+		// Need to configure row Type in link_1 format. type can be server or client.
+		// actually it is set to server value
+		const link_1 = `projects.${row['@_projectName']}.server.store`;
+
+		try {
+			const response = await call('certificates.mappings.Delete', { link_1 });
+			console.log('Deleted:', response);
+			await certificatesList();
+			console.log(row['@_type'], 'row type log');
+		} catch (err) {
+			console.error('Error deleting:', link_1, err);
+		}
+	}
+
+	async function deleteCariocaCertificates(row) {
+		const link_1 = `tas.${row['@_virtualServerName']}.${row['@_imputationGroup']}.${row['@_userName']}.projects.${row['@_projectName']}.server.store`;
+
+		try {
+			const response = await call('certificates.mappings.Delete', { link_1 });
+			await certificatesList();
+			console.log(row, 'row type log');
+		} catch (err) {
+			console.error('Error deleting:', link_1, err);
 		}
 	}
 
@@ -206,59 +242,63 @@
 </Card>
 
 <Card title="Mappings configuration" class="mt-5">
-	<form on:submit|preventDefault={mappingCertificates}>
-		{#if $anonymousBinding.length > 0}
-			<TableAutoCard
-				title="Mappings for anonymous users"
-				definition={[
-					{ name: 'Project Name', custom: true },
-					{ name: 'Certificate / Store', custom: true },
-					{ name: 'Update', custom: true },
-					{ name: 'Delete', custom: true }
-				]}
-				data={$anonymousBinding}
-				let:def
-				let:row
-			>
-				{#if def.name === 'Project Name'}
-					{#if row == 'new'}
-						<select class="input-common" bind:value={selectedProjectId}>
-							{#each $projectsStore as project}
-								<option value={project['@_name']}>{project['@_name']}</option>
-							{/each}
-						</select>
-					{:else}
-						{row['@_projectName']}
-					{/if}
-				{:else if def.name === 'Certificate / Store'}
-					{#if row == 'new'}
-						<select class="input-common" bind:value={selectedCertificateId}>
-							{#each $certificates as certificate}
-								<option value={certificate['@_name']}>{certificate['@_name']}</option>
-							{/each}
-						</select>
-					{:else}
-						{row['@_name']}
-					{/if}
-				{:else if def.name === 'Update'}
-					<button
-						type="submit"
-						class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
-						on:click|preventDefault={() => mappingCertificates(row)}
-					>
-						<Icon icon="material-symbols-light:update" class="h-7 w-7" />
-					</button>
-				{:else if def.name === 'Delete'}
+	{#if $anonymousBinding.length > 0}
+		<TableAutoCard
+			title="Mappings for anonymous users"
+			definition={[
+				{ name: 'Project Name', custom: true },
+				{ name: 'Certificate / Store', custom: true },
+				{ name: 'Update', custom: true },
+				{ name: 'Delete', custom: true }
+			]}
+			data={$anonymousBinding}
+			let:def
+			let:row
+		>
+			{#if def.name === 'Project Name'}
+				{#if row == 'new'}
+					<select class="input-common" bind:value={selectedProjectId}>
+						{#each $projectsStore as project}
+							<option value={project['@_name']}>{project['@_name']}</option>
+						{/each}
+					</select>
+				{:else}
+					{row['@_projectName']}
+				{/if}
+			{:else if def.name === 'Certificate / Store'}
+				{#if row == 'new'}
+					<select class="input-common" bind:value={selectedCertificateId}>
+						{#each $certificates as certificate}
+							{#if certificate != 'new'}
+								<option value={certificate['@_name']}>
+									{certificate['@_name']}
+								</option>
+							{/if}
+						{/each}
+					</select>
+				{:else}
+					{row['@_certificateName']}
+				{/if}
+			{:else if def.name === 'Update'}
+				<button
+					type="submit"
+					class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
+					on:click={() => mappingAnonymous()}
+				>
+					<Icon icon="material-symbols-light:update" class="h-7 w-7" />
+				</button>
+			{:else if def.name === 'Delete'}
+				{#if row !== 'new'}
 					<button
 						class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
-						on:click|preventDefault={() => deleteMappedCertificate(row['@_name'])}
+						on:click={() => deleteAnonymousCertificates(row)}
 					>
 						<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
 					</button>
 				{/if}
-			</TableAutoCard>
-		{/if}
-	</form>
+			{/if}
+		</TableAutoCard>
+	{/if}
 
 	{#if $cariocaBinding.length > 0}
 		<TableAutoCard
@@ -279,31 +319,85 @@
 		>
 			{#if def.name === 'Project Name'}
 				{#if row == 'new'}
-					<select class="input-common" name="name_0">
+					<select class="input-common" name="project_0">
 						{#each $projectsStore as project}
 							<option value={project['@_name']}>{project['@_name']}</option>
 						{/each}
 					</select>
+				{:else}
+					{row['@_projectName']}
 				{/if}
 			{:else if def.name === 'Virtual Server'}
-				<input class="input-common" placeholder="Enter Value ..." />
+				{#if row == 'new'}
+					<input
+						class="input-common"
+						name="virtualServer_0"
+						bind:value={virtualServerValue}
+						placeholder="Enter Value ..."
+					/>
+				{:else}
+					<input
+						class="input-common"
+						name="virtualServer_0"
+						value={row['@_virtualServerName']}
+						placeholder="Enter Value ..."
+					/>
+				{/if}
+			{:else if def.name === 'Authorization Group'}
+				{#if row == 'new'}
+					<input
+						class="input-common"
+						name="group_0"
+						bind:value={authorizationValue}
+						placeholder="Enter Value ..."
+					/>
+				{:else}
+					<input
+						class="input-common"
+						name="virtualServer_0"
+						value={row['@_imputationGroup']}
+						placeholder="Enter Value ..."
+					/>
+				{/if}
+			{:else if def.name === 'User'}
+				{#if row == 'new'}
+					<input
+						class="input-common"
+						name="user_0"
+						bind:value={userValue}
+						placeholder="Enter Value ..."
+					/>
+				{:else}
+					<input
+						class="input-common"
+						name="virtualServer_0"
+						value={row['@_userName']}
+						placeholder="Enter Value ..."
+					/>
+				{/if}
 			{:else if def.name === 'Certificate / Store'}
-				<select class="input-common" name="name_0">
-					{#each $candidates as candidate}
-						<option value={candidate['@_name']}>{candidate['@_name']}</option>
+				<select class="input-common" name="cert_0">
+					{#each $certificates as certificate}
+						<option value={certificate['@_name']}>{certificate['@_name']}</option>
 					{/each}
 				</select>
 			{:else if def.name === 'Update'}
 				<button
 					type="submit"
 					class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
+					on:click={() => mappingCarioca()}
 				>
 					<Icon icon="material-symbols-light:update" class="h-7 w-7" />
 				</button>
 			{:else if def.name === 'Delete'}
-				<button class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token">
-					<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
-				</button>
+				{#if row !== 'new'}
+					<button
+						class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
+						on:click={() => deleteCariocaCertificates(row)}
+					>
+						<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
+					</button>
+				{/if}
 			{/if}
 		</TableAutoCard>
 	{/if}
