@@ -371,6 +371,24 @@ public class ClipboardManager {
 						}
 					}
 				}
+			// NGX COMPONENTS
+			} else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							//page.getApplication().updateSourceFiles();
+						}
+					}
+				}
+				else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							//uic.getApplication().updateSourceFiles();
+						}
+					}
+				}
 			}
 		}
 	}
