@@ -221,7 +221,7 @@ public class ReferencedProjectManager {
 			}
 		}
 		if (dir != null) {
-			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
+			if (!cloneDone && (force || (parser.isAutoPull() && !Engine.isStudioMode()))) {
 				synchronized (getLock(dir)) {
 					String exRev = GitUtils.getRev(dir);
 					GitUtils.fetch(dir);

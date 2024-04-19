@@ -135,6 +135,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.ProgressEvent;
 import com.twinsoft.convertigo.engine.events.ProgressEventListener;
@@ -803,6 +804,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 
 			Repository.getGlobalListenerList().addWorkingTreeModifiedListener(event -> {
+				for (var trace: Thread.currentThread().getStackTrace()) {
+					if (trace.getClassName().equals(ReferencedProjectManager.class.getName())) {
+						return;
+					}
+				}
 				Engine.logStudio.debug("(Git Event) onWorkingTreeModified " + event);
 				File workDir = event.getRepository().getWorkTree();
 				Collection<String> files = new TreeSet<>(event.getModified());

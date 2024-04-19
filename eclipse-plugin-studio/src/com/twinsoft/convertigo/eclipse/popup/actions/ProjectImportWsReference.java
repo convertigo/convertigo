@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -27,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -80,6 +83,27 @@ public class ProjectImportWsReference extends MyAbstractAction {
 						if (wsType == TYPE_REST) {
 							reference = new RestServiceReference();
 							reference.bNew = true;
+						}
+					}
+					else if (treeObject.getObject() instanceof ProjectSchemaReference prjRef) {
+						var parser = prjRef.getParser();
+						if (parser.isValid()) {
+							Job.create("Import project " + parser.getProjectName(), (mon) -> {
+								try {
+									mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
+									Project project = Engine.theApp.referencedProjectManager.importProject(parser, true); 
+									if (project != null) {
+										TreeObject tree = explorerView.getProjectRootObject(project.getName());
+										if (tree != null) {
+											explorerView.reloadProject(tree);
+										}
+										explorerView.refreshProjects();
+									}
+								} catch (Exception e) {
+									Engine.logStudio.debug("Loading from remote URL failed", e);
+								}
+								mon.done();
+							}).schedule();
 						}
 					}
 					// Update an existing WS reference
