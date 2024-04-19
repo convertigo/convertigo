@@ -5,7 +5,12 @@
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Icon from '@iconify/svelte';
-	import { schedulerList, jobsStore } from '$lib/admin/stores/schedulerStore';
+	import {
+		schedulerList,
+		jobsStore,
+		schedulesStore,
+		scheduledStore
+	} from '$lib/admin/stores/schedulerStore';
 	import { call } from '$lib/utils/service';
 
 	const modalStore = getModalStore();
@@ -112,7 +117,38 @@
 		</div>
 	</div>
 
-	<Tables headers={['Enabled', 'Name', 'Description', 'Info', 'Next', 'Edit', 'Delete']}></Tables>
+	<TableAutoCard
+		definition={[
+			{
+				name: 'Enabled',
+				key: '@_enabled',
+				class: (row) =>
+					row['@_enabled'] === 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
+			},
+			{ name: 'Name', key: '@_name' },
+			{ name: 'Description', key: '@_description' },
+			{ name: 'Info', key: '@_info' },
+			{ name: 'Next', key: '@_info' },
+			{ name: 'Edit', custom: true },
+			{ name: 'Delete', custom: true }
+		]}
+		data={$schedulesStore}
+		let:def
+		let:row
+	>
+		{#if def.name === 'Edit'}
+			<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+			</button>
+		{:else if def.name === 'Delete'}
+			<button
+				class="btn p-1 px-2 shadow-md bg-error-400-500-token"
+				on:click={() => deleteScheduledElement(row)}
+			>
+				<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+			</button>
+		{/if}
+	</TableAutoCard>
 </Card>
 
 <Card title="Scheduled jobs" class="mt-5">
@@ -124,5 +160,35 @@
 		</div>
 	</div>
 
-	<Tables headers={['Enabled', 'Name', 'Description', 'Info', 'Edit', 'Delete']}></Tables>
+	<TableAutoCard
+		definition={[
+			{
+				name: 'Enabled',
+				key: '@_enabled',
+				class: (row) =>
+					row['@_enabled'] === 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
+			},
+			{ name: 'Name', key: '@_name' },
+			{ name: 'Description', key: '@_description' },
+			{ name: 'Info', key: '@_info' },
+			{ name: 'Edit', custom: true },
+			{ name: 'Delete', custom: true }
+		]}
+		data={$scheduledStore}
+		let:def
+		let:row
+	>
+		{#if def.name === 'Edit'}
+			<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+			</button>
+		{:else if def.name === 'Delete'}
+			<button
+				class="btn p-1 px-2 shadow-md bg-error-400-500-token"
+				on:click={() => deleteScheduledElement(row)}
+			>
+				<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+			</button>
+		{/if}
+	</TableAutoCard>
 </Card>

@@ -2,15 +2,24 @@ import { call } from '$lib/utils/service';
 import { writable } from 'svelte/store';
 
 export let jobsStore = writable([]);
+export let schedulesStore = writable([]);
+export let scheduledStore = writable([]);
 
 export async function schedulerList() {
 	const res = await call('scheduler.List');
+	const elements = res?.admin?.element ?? [];
+	const elementArray = Array.isArray(elements) ? elements : [elements];
 
-	let elementArray = res?.admin?.element ?? [];
-	if (!Array.isArray(elementArray)) {
-		elementArray = [elementArray];
-	}
+	const jobs = elementArray.filter((el) => el['@_category'] === 'jobs');
+	const schedules = elementArray.filter((el) => el['@_category'] === 'schedules');
+	const scheduledJobs = elementArray.filter((el) => el['@_category'] === 'scheduledJobs');
 
-	jobsStore.set(elementArray);
+	//@ts-ignore
+	jobsStore.set(jobs);
+	//@ts-ignore
+	schedulesStore.set(schedules);
+	//@ts-ignore
+	scheduledStore.set(scheduledJobs);
+
 	console.log('scheduler list res:', res);
 }
