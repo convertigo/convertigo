@@ -107,23 +107,35 @@ function handleServiceLoading(isLoading, serviceName = '') {
 
 function handleStateMessage(dataContent) {
 	try {
-		if (toastNotif == null) {
+		if (!toastNotif) {
 			return;
 		}
+
 		let stateMessage =
 			dataContent?.admin?.response ||
 			dataContent?.admin?.keys?.key ||
 			dataContent?.admin ||
 			dataContent?.admin?.message ||
-			dataContent?.error.message;
+			dataContent?.error?.message;
 
 		let toastStateBody =
-			stateMessage?.['@_message'] || stateMessage?.['@_errorMessage'] || stateMessage?.message;
+			stateMessage?.['@_message'] ||
+			stateMessage?.['@_errorMessage'] ||
+			stateMessage?.message ||
+			stateMessage?.problem;
 
 		if (toastStateBody) {
 			let isError = stateMessage?.['@_state'] === 'error' || !!stateMessage?.['@_errorMessage'];
-			let background = isError ? 'bg-error-400-500-token' : 'bg-success-400-500-token';
+			let problem = stateMessage?.problem;
 
+			let background;
+			if (problem) {
+				background = 'bg-tertiary-400-500-token';
+			} else if (isError) {
+				background = 'bg-error-400-500-token';
+			} else {
+				background = 'bg-success-400-500-token';
+			}
 			toastNotif.trigger({
 				message: toastStateBody,
 				timeout: 8000,

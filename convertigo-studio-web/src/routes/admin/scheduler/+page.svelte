@@ -1,70 +1,78 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import Tables from '$lib/admin/components/Tables.svelte';
-	import ModalScheduler from '$lib/admin/modals/ModalScheduler.svelte';
-	import { call } from '$lib/utils/service';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Icon from '@iconify/svelte';
+	import { schedulerList, jobsStore } from '$lib/admin/stores/schedulerStore';
+	import { call } from '$lib/utils/service';
 
-	const schedulerModalStore = getModalStore();
+	const modalStore = getModalStore();
 
-	let jobs = writable([]);
-
-	onMount(() => {
-		schedulerList();
+	onMount(async () => {
+		await schedulerList();
 	});
 
-	async function schedulerList() {
-		const res = await call('scheduler.List');
+	function openModals(mode) {
+		let component = 'modalScheduler';
+		let title = '';
 
-		let elementArray = res?.admin?.element ?? [];
-		if (!Array.isArray(elementArray)) {
-			elementArray = [elementArray];
+		switch (mode) {
+			case 'newJobs':
+				break;
 		}
-
-		jobs.set(elementArray);
-		console.log('scheduler list res:', res);
-	}
-
-	async function createScheduleElement() {
-		const res = await call('scheduler.CreateScheduledElements');
-		console.log('scheduler create:', res);
-	}
-
-	function openNewTransactionModal() {
-		schedulerModalStore.trigger({
+		modalStore.trigger({
 			type: 'component',
-			component: 'modalScheduler',
-			meta: { mode: 'newTransaction' }
+			component: component,
+			meta: { mode },
+			title: title
 		});
+	}
+
+	//Service do not include any response fro that
+	async function deleteScheduledElement(row) {
+		try {
+			await call('scheduler.CreateScheduledElements', {
+				del: 'true',
+				exname: row['@_name'],
+				type: 'schedulerNew' + row['@_type']
+			});
+			await schedulerList();
+		} catch (err) {
+			console.error(err);
+		}
 	}
 </script>
 
 <Card title="Jobs" class="">
 	<div slot="cornerOption">
-		<div class="mb-5 flex space-x-5">
-			<button class="bg-primary-400-500-token" on:click={openNewTransactionModal}>
+		<div class="mb-5 flex space-x-1">
+			<button
+				class="bg-primary-400-500-token min-w-auto w-40"
+				on:click={() => openModals('newJobs')}
+			>
 				<p>New transaction</p>
 			</button>
-
-			<button class="bg-primary-400-500-token">
+			<button
+				class="bg-primary-400-500-token min-w-auto w-40"
+				on:click={() => openModals('newJobs')}
+			>
 				<p>New sequence</p>
 			</button>
-
-			<button class="bg-primary-400-500-token">
+			<button class="bg-primary-400-500-token min-w-auto w-40">
 				<p>New job group</p>
 			</button>
 		</div>
 	</div>
+
 	<TableAutoCard
 		definition={[
 			{
 				name: 'Enabled',
 				key: '@_enabled',
-				class: (row) => (row['@_enabled'] ? 'bg-success-400-500-token' : 'bg-error-400-500-token')
+				class: (row) =>
+					row['@_enabled'] === 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
 			},
 			{ name: 'Name', key: '@_name' },
 			{ name: 'Description', key: '@_description' },
@@ -72,7 +80,7 @@
 			{ name: 'Edit', custom: true },
 			{ name: 'Delete', custom: true }
 		]}
-		data={$jobs}
+		data={$jobsStore}
 		let:def
 		let:row
 	>
@@ -81,7 +89,10 @@
 				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 			</button>
 		{:else if def.name === 'Delete'}
-			<button class="btn p-1 px-2 shadow-md bg-error-400-500-token">
+			<button
+				class="btn p-1 px-2 shadow-md bg-error-400-500-token"
+				on:click={() => deleteScheduledElement(row)}
+			>
 				<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 			</button>
 		{/if}
@@ -90,12 +101,12 @@
 
 <Card title="Schedules" class="mt-5">
 	<div slot="cornerOption">
-		<div class="mb-5 flex space-x-5">
-			<button class="bg-primary-400-500-token">
+		<div class="mb-5 flex space-x-1">
+			<button class="bg-primary-400-500-token min-w-auto w-40">
 				<p>New Cron</p>
 			</button>
 
-			<button class="bg-primary-400-500-token">
+			<button class="bg-primary-400-500-token min-w-auto w-40">
 				<p>New run now</p>
 			</button>
 		</div>
@@ -107,7 +118,7 @@
 <Card title="Scheduled jobs" class="mt-5">
 	<div slot="cornerOption">
 		<div class="mb-5 flex space-x-5">
-			<button class="bg-primary-400-500-token">
+			<button class="bg-primary-400-500-token min-w-auto w-60">
 				<p>New scheduled job</p>
 			</button>
 		</div>
