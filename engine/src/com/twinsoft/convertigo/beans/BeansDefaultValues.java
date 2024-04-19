@@ -364,22 +364,24 @@ public class BeansDefaultValues {
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
 										String keyProp = (String) i.next();
 										JSONObject ionProp = ionProps.getJSONObject(keyProp);
+										String mode = ionProp.has("mode") ? ionProp.getString("mode") : "plain";
+										Object value = ionProp.has("value") ? ionProp.get("value") : Boolean.FALSE;
 										if (dIonProps.has(keyProp)) {
 											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
 											if (!dIonProp.equals(ionProp)) {
-												if (Boolean.FALSE.equals(ionProp.get("value"))) {
+												if (Boolean.FALSE.equals(value)) {
 													// <not set> case
-													ion.put(keyProp, ionProp.getString("mode"));
+													ion.put(keyProp, mode);
 												} else {
-													ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+													ion.put(keyProp, mode + ":" + value);
 												}
 											}
 										} else {
-											if (Boolean.FALSE.equals(ionProp.get("value"))) {
+											if (Boolean.FALSE.equals(value)) {
 												// <not set> case
-												ion.put(keyProp, ionProp.getString("mode"));
+												ion.put(keyProp, mode);
 											} else {
-												ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+												ion.put(keyProp, mode + ":" + value);
 											}
 										}
 									}
@@ -391,6 +393,10 @@ public class BeansDefaultValues {
 									}
 								} catch (Exception e) {
 									e.printStackTrace();
+									if (Engine.logEngine != null) {
+										String beanData = nProp.getTextContent();
+										Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while serializing data: "+ beanData, e);
+									}
 								}
 							}
 						} else {
@@ -589,7 +595,7 @@ public class BeansDefaultValues {
 								
 								// unshrink using TPL ion_objects.json
 								if (ionObjects.has("Beans")) {
-									try {
+									if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
 										JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
 										
 										JSONObject ionProps = new JSONObject();
@@ -597,19 +603,17 @@ public class BeansDefaultValues {
 
 										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
 											String keyProp = (String) iProp.next();
-											if (ionObjects.has("Beans")) {
-												Object ob = dIonProps.get(keyProp);
-												JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject();
-												jsonObject.put("name", keyProp);
-												if (ion.has(keyProp)) {
-													String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
-													jsonObject.put("mode", smart[0]);
-													jsonObject.put("value", smart.length == 1 ? false : smart[1]);
-												}
-												ionProps.put(keyProp, jsonObject);
+											Object ob = dIonProps.get(keyProp);
+											JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject();
+											jsonObject.put("name", keyProp);
+											if (ion.has(keyProp)) {
+												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
+												jsonObject.put("mode", smart[0]);
+												jsonObject.put("value", smart.length == 1 ? false : smart[1]);
 											}
+											ionProps.put(keyProp, jsonObject);
 										}
-									} catch (Exception ex) {
+									} else {
 										System.out.println("No properties for "+ ionName);
 									}
 								}
@@ -653,6 +657,10 @@ public class BeansDefaultValues {
 								value = ion.toString();
 							} catch (Exception e) {
 								e.printStackTrace();
+								if (Engine.logEngine != null) {
+									String beanData = value;
+									Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while deserializing data: "+ beanData, e);
+								}
 							}
 						}
 

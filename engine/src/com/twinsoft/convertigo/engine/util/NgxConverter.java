@@ -43,6 +43,9 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -64,31 +67,21 @@ public class NgxConverter {
 	private static TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 	
 	private File outputDir;
-	private String tplScss;
 	private String indent = "";
-	private String builderTemplateProjectName;
+	
+	private static String NGX_TPL_PROJECT_NAME = "mobilebuilder_tpl_8_3_0_ngx";
 	
 	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
-		this.tplScss = getThemeTplScss();
 	}
 
-	private String getBuilderTemplateProjectName() {
-		if (this.builderTemplateProjectName == null) {
-			try {
-				builderTemplateProjectName = "mobilebuilder_tpl_"+ 
-						com.twinsoft.convertigo.engine.ProductVersion.majorProductVersion + "_" +
-						com.twinsoft.convertigo.engine.ProductVersion.minorProductVersion + "_" +
-						com.twinsoft.convertigo.engine.ProductVersion.servicePack + "_ngx";
-			} catch (Exception e) {
-				return "mobilebuilder_tpl_8_1_0_ngx";
-			}
-		}
-		return this.builderTemplateProjectName;
+	private static ComponentManager getComponentManager()  {
+		return ComponentManager.of(NGX_TPL_PROJECT_NAME);
 	}
 	
-	private String getThemeTplScss() {
-		File appThemeTpl = new File(outputDir, "../"+ getBuilderTemplateProjectName() +"/ionicTpl/src/theme/variables.scss");
+	private static String getThemeTplScss() throws Exception {
+		File tplProjectDir = getComponentManager().getTemplateProjectDir();
+		File appThemeTpl = new File(tplProjectDir, "ionicTpl/src/theme/variables.scss");
 		try {
 			return FileUtils.readFileToString(appThemeTpl, "UTF-8");
 		} catch (IOException e) {
@@ -200,12 +193,13 @@ public class NgxConverter {
 		return !getIonBeanName(beanEl).isEmpty();
 	}
 	
-	private static boolean checkPseudoBean(Element beanEl) {
+	private static boolean checkPseudoBean(Element beanEl) throws Exception {
 		String yaml_key = beanEl.getAttribute("yaml_key");
+		ComponentManager cm = getComponentManager();
 		try {
 			if (isPseudoBean(beanEl)) {
 				String ionBeanName = getIonBeanName(beanEl);
-				if (com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName(ionBeanName) == null) {
+				if (cm.getComponentByName(ionBeanName) == null) {
 					System.out.println(yaml_key.replaceAll("ngx\\.components", "mobile.components") + " : ERROR");
 					if (ionBeanName.endsWith("Action")) {
 						System.err.println("Unhandled pseudo-action (replaced by a ToastAction) : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
@@ -239,7 +233,7 @@ public class NgxConverter {
 		// for application
 		if (yaml_key.indexOf("ngx.components.ApplicationComponent") != -1) {
 			try {
-				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(getBuilderTemplateProjectName());
+				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(NGX_TPL_PROJECT_NAME);
 			} catch (Exception e) {}
 		}
 		
@@ -261,7 +255,7 @@ public class NgxConverter {
 			try {
 				Node formatedContent = xpath.selectList(beanEl, "//com.twinsoft.convertigo.beans.common.FormatedContent").get(0);
 				CDATASection cdata = (CDATASection)formatedContent.getFirstChild();
-				cdata.setTextContent(this.tplScss);
+				cdata.setTextContent(getThemeTplScss());
 				//System.out.println("CDATASection:\n"+ cdata.getTextContent());
 			} catch (Exception e) {}
 		}
@@ -904,8 +898,8 @@ public class NgxConverter {
 		cleanBeanData(beanEl);
 		
 		try {
-			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("TabBar"));
+			ComponentManager cm = getComponentManager();
+			DatabaseObject dbo = cm.createBean(cm.getComponentByName("TabBar"));
 			if (dbo != null) {
 				JSONObject jsonTabBar = new JSONObject().put("ionBean", "TabBar");
 				
@@ -958,10 +952,10 @@ public class NgxConverter {
 		} catch (Exception e) {}	
 
 		try {
-			DatabaseObject dbo = null;
+			ComponentManager cm = getComponentManager();
 			
-			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("Label"));
+			DatabaseObject dbo = null;
+			dbo = cm.createBean(cm.getComponentByName("Label"));
 			if (dbo != null) {
 				JSONObject jsonLabel =  new JSONObject().put("ionBean", "Label");
 				
@@ -978,8 +972,7 @@ public class NgxConverter {
 				child3.appendChild(beanEl.getOwnerDocument().createTextNode("ion-label"));
 				labelEl.appendChild(child3);
 				
-				dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-						com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UIText"));
+				dbo = cm.createBean(cm.getComponentByName("UIText"));
 				if (dbo != null) {
 					Element textEl = beanEl.getOwnerDocument().createElement("bean");
 					textEl.setAttribute("yaml_key", "Text [ngx.components.UIText-"+ dbo.priority +"]");
@@ -995,8 +988,7 @@ public class NgxConverter {
 				}
 			}
 			
-			dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("Icon"));
+			dbo = cm.createBean(cm.getComponentByName("Icon"));
 			if (dbo != null) {
 				JSONObject jsonIcon = new JSONObject().put("ionBean", "Icon").put("IconName", "plain:"+ tabIcon);
 				
@@ -1020,9 +1012,9 @@ public class NgxConverter {
 	private static void handleTextFormat(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
+			ComponentManager cm = getComponentManager();
 			Element parentEl = (Element) beanEl.getParentNode();
-			DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-					com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("FormatLayout"));
+			DatabaseObject dbo = cm.createBean(cm.getComponentByName("FormatLayout"));
 			if (dbo != null) {
 				JSONObject jsonData = new JSONObject().put("ionBean", "FormatLayout");
 				
@@ -1108,6 +1100,7 @@ public class NgxConverter {
 	
 	private static void handlePageEvent(Element beanEl) {
 		try {
+			ComponentManager cm = getComponentManager();
 			String yaml_key = beanEl.getAttribute("yaml_key");
 			Matcher matcherBeanName = patternBeanName.matcher(yaml_key);
 			matcherBeanName.matches();
@@ -1119,8 +1112,7 @@ public class NgxConverter {
 					if ("onCanEnter".equals(viewEvent) || "onCanLeave".equals(viewEvent)) {
 						try {
 							Element parentEl = (Element) beanEl.getParentNode();
-							DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-									com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UIEventSubscriber"));
+							DatabaseObject dbo = cm.createBean(cm.getComponentByName("UIEventSubscriber"));
 							if (dbo != null) {
 								Element eventSubscriberEl = beanEl.getOwnerDocument().createElement("bean");
 								eventSubscriberEl.setAttribute("yaml_key", beanName + " [ngx.components.UIEventSubscriber-"+ dbo.priority +"]");
@@ -1171,11 +1163,12 @@ public class NgxConverter {
 						eventName = topic.substring(topic.indexOf("'")+1, topic.lastIndexOf("'"));
 					}
 					if (eventName != null) {
+						ComponentManager cm = getComponentManager();
+						
 						DatabaseObject dbo = null;
 						
 						// add a CompEvent for each event a shared component expose
-						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("UICompEvent"));
+						dbo = cm.createBean(cm.getComponentByName("UICompEvent"));
 						if (dbo != null) {
 							Element compEventEl = beanEl.getOwnerDocument().createElement("bean");
 							compEventEl.setAttribute("yaml_key", eventName + " [ngx.components.UICompEvent-"+ dbo.priority +"]");
@@ -1190,8 +1183,7 @@ public class NgxConverter {
 						}
 						
 						// add an EmitEventAction action beside each PublishEventAction
-						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).createBean(
-								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null).getComponentByName("EmitEventAction"));
+						dbo = cm.createBean(cm.getComponentByName("EmitEventAction"));
 						if (dbo != null) {
 							Element emitEventEl = beanEl.getOwnerDocument().createElement("bean");
 							emitEventEl.setAttribute("yaml_key", "EmitEvent" + " [ngx.components.UIDynamicEmit-"+ dbo.priority +"]");
@@ -1671,7 +1663,7 @@ public class NgxConverter {
 				// for application
 				if (yaml_key.indexOf("ngx.components.ApplicationComponent") != -1) {
 					try {
-						xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(getBuilderTemplateProjectName());
+						xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(NGX_TPL_PROJECT_NAME);
 					} catch (Exception e) {}
 				}
 				
@@ -1730,6 +1722,14 @@ public class NgxConverter {
 	private Map<Element, List<Element>> sharedMap = new HashMap<Element, List<Element>>();
 	
 	public void convertFile() throws Exception {
+		// Check for template project
+		ProjectSchemaReference prjRef = new ProjectSchemaReference();
+		prjRef.setProjectName(NGX_TPL_PROJECT_NAME + "=https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + NGX_TPL_PROJECT_NAME + ".zip");
+		Project p = Engine.theApp.referencedProjectManager.importProject(prjRef.getParser());
+		if (p == null) {
+			throw new Exception("Unable to convert: "+ NGX_TPL_PROJECT_NAME + " does not exist.");
+		}
+
 		File yaml = new File(outputDir, "c8oProject.yaml");
 		
 		Document document = YamlConverter.readYaml(yaml);
