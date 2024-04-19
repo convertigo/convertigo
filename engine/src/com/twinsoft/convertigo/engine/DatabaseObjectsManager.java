@@ -158,8 +158,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	};
 
+	private class Lock {
+		private boolean checkDone = false;
+	}
+	
 	private Map<String, Project> projects;
-	private Map<String, Object> importLocks;
+	private Map<String, Lock> importLocks;
 
 	private String globalSymbolsFilePath = null;
 	/**
@@ -176,7 +180,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void init() throws EngineException {
 		projects = new HashMap<String, Project>();
-		importLocks = new HashMap<String, Object>();
+		importLocks = new HashMap<String, Lock>();
 		symbolsInit();
 	}
 
@@ -438,11 +442,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void clearCache(String projectName) {
-		Object lock;
+		Lock lock;
 		synchronized (importLocks) {
 			lock = importLocks.get(projectName);
 			if (lock == null) {
-				importLocks.put(projectName, lock = new Object());
+				importLocks.put(projectName, lock = new Lock());
 			}
 		}
 		Project project = null;
@@ -466,11 +470,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void clearCacheIfSymbolError(String projectName) throws Exception {
-		Object lock;
+		Lock lock;
 		synchronized (importLocks) {
 			lock = importLocks.get(projectName);
 			if (lock == null) {
-				importLocks.put(projectName, lock = new Object());
+				importLocks.put(projectName, lock = new Lock());
 			}
 		}
 		Project project = null;
@@ -1115,16 +1119,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (projectName == null) {
 			return null;
 		}
-		Object lock;
+		Lock lock;
 		Project project = null;
-		boolean firstImport = true;
 		try {
 			synchronized (importLocks) {
 				lock = importLocks.get(projectName);
 				if (lock == null) {
-					importLocks.put(projectName, lock = new Object());
-				} else {
-					firstImport = false;
+					importLocks.put(projectName, lock = new Lock());
 				}
 			}
 			String version;
@@ -1135,8 +1136,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (lock) {
 				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
 				
-				if (firstImport) {
+				if (!lock.checkDone) {
 					Engine.theApp.referencedProjectManager.check(importFile);
+					lock.checkDone = true;
+					Engine.logDatabaseObjectManager.info("[importProject] Check for references done: " + projectName);
 				}
 				
 				if (!override) {
