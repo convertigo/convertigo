@@ -64,6 +64,10 @@ public abstract class MobileComponent extends MobileObject {
 		}
 	}
 
+	protected String getTplVersionFromBuilder() {
+		return super.getTplVersion();
+	}
+	
 	@Override
 	protected String getRequiredTplVersion() {
 		//return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88

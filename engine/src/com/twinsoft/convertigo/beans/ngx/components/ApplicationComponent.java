@@ -1416,7 +1416,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 					}
 				}
 				if (tplVersion == null) {
-					tplVersion = super.getTplVersion();
+					tplVersion = super.getTplVersionFromBuilder();
 					Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from super MB for component " + getQName());
 				}
 				if (tplVersion != null) {
