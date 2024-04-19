@@ -47,6 +47,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -58,7 +59,6 @@ public class BeansDefaultValues {
 
 	private static final String DBO_XMLPATH = "/com/twinsoft/convertigo/beans/database_objects_default.xml";
 	private static final String MOBILE_JSONPATH = "/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json";
-	private static final String NGX_JSONPATH = "/com/twinsoft/convertigo/beans/ngx/components/dynamic/ion_objects_default.json";
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
 
 	private static final String TPL_JSONPATH = "ionicTpl/ion/ion_objects.json";
@@ -134,10 +134,18 @@ public class BeansDefaultValues {
 	}
 
 	static private JSONObject getIonObjectsFromFiles(String templateProjectName) throws Exception {
+		// Retrieve template project directory and read from ion_object.json file
 		File projectDir = new File(Engine.projectDir(templateProjectName));
-
-		// Read from ion_object.json file
 		File ion_objects = new File(projectDir, TPL_JSONPATH);
+		if (Engine.logEngine != null) {
+			if (ion_objects.exists()) {
+				Engine.logEngine.info("[BeansDefaultValues] Read ion objects for " + templateProjectName + " in: "+ ion_objects);
+			} else if (projectDir.exists()) {
+				Engine.logEngine.error("[BeansDefaultValues] Corrupted template " + templateProjectName + ". Missing "+ ion_objects);
+			} else {
+				Engine.logEngine.error("[BeansDefaultValues] Missing template " + templateProjectName + " ("+ projectDir + ")");
+			}
+		}
 		JSONObject ionObjects = new JSONObject(FileUtils.readFileToString(ion_objects, "UTF-8"));
 		JSONObject ionBeans = ionObjects.getJSONObject("Beans");
 		
@@ -178,7 +186,7 @@ public class BeansDefaultValues {
 	static private class ShrinkProject {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
-		JSONObject mobile_ionObjects, ngx_ionObjects;
+		JSONObject mobile_ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
 		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 
@@ -193,14 +201,11 @@ public class BeansDefaultValues {
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
 				mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
 			}
-			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(NGX_JSONPATH)) {
-				ngx_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
-			}
 			beans = beansDoc.getDocumentElement();
 		}
 
-		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
-			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
+		JSONObject getIonObjects(boolean isNgx, String templateProjectName) throws Exception {
+			if (isNgx) {
 				try {
 					if (templateProjectIonObjects == null) {
 						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
@@ -208,14 +213,13 @@ public class BeansDefaultValues {
 					return templateProjectIonObjects;
 				} catch (Exception e) {
 					// could not read from *_objects.json files
-					// continue
-					Engine.logEngine.error("[BeansDefaultValues] Unable to read ion objects from files. Will use default java ion objects !", e);
+					throw new EngineException("Unable to read ion objects from files", e);
 				}
 			}
-			return isNgx ? ngx_ionObjects : mobile_ionObjects;
+			return mobile_ionObjects;
 		}
 		
-		private void shrinkChildren(Element element, Element copy) {
+		private void shrinkChildren(Element element, Element copy) throws Exception {
 			for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
 				Element pBean = (Element) pBeanNode;
 				String classname = pBean.getAttribute("classname");
@@ -302,9 +306,8 @@ public class BeansDefaultValues {
 							}
 							
 							if (name.equals("beanData")) {
+								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 								try {
-									JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
-
 									String beanData = nProp.getTextContent();
 									JSONObject ion = new JSONObject(beanData);
 									String ionName = (String) ion.remove("name");
@@ -439,7 +442,7 @@ public class BeansDefaultValues {
 	static private class UnshrinkProject {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
-		JSONObject mobile_ionObjects, ngx_ionObjects;
+		JSONObject mobile_ionObjects;
 		String version;
 		String nVersion;
 		boolean isMigrating = false;
@@ -455,14 +458,11 @@ public class BeansDefaultValues {
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
 				mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
 			}
-			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(NGX_JSONPATH)) {
-				ngx_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
-			}
 			beans = beansDoc.getDocumentElement();
 		}
 
-		JSONObject getIonObjects(boolean isNgx, String templateProjectName) {
-			if (isNgx && templateProjectName != null && !templateProjectName.isBlank()) {
+		JSONObject getIonObjects(boolean isNgx, String templateProjectName) throws Exception {
+			if (isNgx) {
 				try {
 					if (templateProjectIonObjects == null) {
 						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
@@ -470,11 +470,10 @@ public class BeansDefaultValues {
 					return templateProjectIonObjects;
 				} catch (Exception e) {
 					// could not read from *_objects.json files
-					// continue
-					Engine.logEngine.error("[BeansDefaultValues] Unable to read ion objects from files. Will use default java ion objects !", e);
+					throw new EngineException("Unable to read ion objects from files", e);
 				}
 			}
-			return isNgx ? ngx_ionObjects : mobile_ionObjects;
+			return mobile_ionObjects;
 		}
 		
 		Document unshrinkProject(Document project) throws Exception {
@@ -502,7 +501,7 @@ public class BeansDefaultValues {
 			return nProjectDoc;
 		}
 
-		void unshrinkChildren(Element element, Element nParent) {
+		void unshrinkChildren(Element element, Element nParent) throws Exception {
 			Document document = nParent.getOwnerDocument();
 			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
 				Element pBean = (Element) pBeanNode;
@@ -583,9 +582,8 @@ public class BeansDefaultValues {
 						}
 						
 						if (propName.equals("beanData")) {
+							JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 							try {
-								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
-								
 								JSONObject ion = new JSONObject(value);
 								String ionName = (String) ion.remove("ionBean");
 								
@@ -833,42 +831,6 @@ public class BeansDefaultValues {
 		FileUtils.write(output, content, "UTF-8");
 	}
 
-	private static void updateNgxIonBeansDefaultValues(File output) throws Exception {
-		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
-		JSONObject jObject;
-		try {
-			jObject = new JSONObject(FileUtils.readFileToString(output, "UTF-8"));
-		} catch (Exception e) {
-			jObject = new JSONObject();
-		}
-
-		com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(null);
-		for (Entry<String, com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean> entry : cm.getIonBeans().entrySet()) {
-			String key = entry.getKey();
-			JSONObject beans;
-			if (jObject.has(key)) {
-				beans = jObject.getJSONObject(key);
-			} else {
-				jObject.put(key, beans = new JSONObject());
-			}
-			Iterator<?> i = beans.keys();
-			String lastKey = null;
-			while (i.hasNext()) {
-				lastKey = (String) i.next();
-			}
-			JSONObject dBean = new JSONObject(entry.getValue().toBeanData());
-			JSONObject lBean = lastKey != null ? beans.getJSONObject(lastKey) : null;
-			if (!dBean.equals(lBean)) {
-				beans.put(nVersion, dBean);
-			}
-		}
-		String content = jObject.toString(1);
-		if (System.lineSeparator().equals("\r\n")) {
-			content = content.replace("\n", "\r\n");
-		}
-		FileUtils.write(output, content, "UTF-8");
-	}
-
 	public static void main(String[] args) throws Exception {
 		if (args.length > 0) {
 			File output = new File(args[0]);
@@ -878,13 +840,11 @@ public class BeansDefaultValues {
 
 			File xOutput = new File(output, DBO_XMLPATH);
 			File m_jOutput = new File(output, MOBILE_JSONPATH);
-			File n_jOutput = new File(output, NGX_JSONPATH);
 
 			Engine.logBeans = Logger.getRootLogger();
 
 			updateBeansDefaultValues(xOutput);
 			updateMobileIonBeansDefaultValues(m_jOutput);
-			updateNgxIonBeansDefaultValues(n_jOutput);
 
 			System.out.println("Beans default values updated in: " + output.getCanonicalPath());
 			for (int i = 1; i < args.length; i++) {
@@ -897,10 +857,6 @@ public class BeansDefaultValues {
 					fCopy = new File(copy, MOBILE_JSONPATH);
 					FileUtils.copyFile(m_jOutput, fCopy);
 					System.out.println("Mobile Ion Beans default values updated in: " + fCopy.getCanonicalPath());
-
-					fCopy = new File(copy, NGX_JSONPATH);
-					FileUtils.copyFile(n_jOutput, fCopy);
-					System.out.println("Ngx Ion Beans default values updated in: " + fCopy.getCanonicalPath());
 				}
 			}
 		}

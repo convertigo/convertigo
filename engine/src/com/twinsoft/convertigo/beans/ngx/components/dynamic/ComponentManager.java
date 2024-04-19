@@ -117,7 +117,6 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
-import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -363,6 +362,7 @@ public class ComponentManager {
 		throw new Exception("ComponentManager@"+ templateProjectName +": invalid ionObjectsAsJsonFromFile() call.");
 	}
 	
+	@SuppressWarnings("unused")
 	private JSONObject ionObjectsAsJsonFromClass() throws Exception {
 		InputStream inputstream = getClass().getResourceAsStream("ion_objects.json");
 		JSONObject ionObjects =  new JSONObject(IOUtils.toString(inputstream, "UTF-8"));
@@ -371,6 +371,14 @@ public class ComponentManager {
 		} else {
 			System.out.println("(ComponentManager@"+ templateProjectName +") Successful read of default java ion_objects.json from Class.");
 		}
+		return ionObjects;
+	}
+	
+	private JSONObject ionObjectsAsJsonFromEmpty() throws Exception {
+		JSONObject ionObjects = new JSONObject();
+		ionObjects.put("Props", new JSONObject());
+		ionObjects.put("Beans", new JSONObject());
+		ionObjects.put("C8oBeans", new JSONObject());
 		return ionObjects;
 	}
 	
@@ -403,9 +411,7 @@ public class ComponentManager {
 		}
 		
 		try {
-//			String json = ionObjectsAsString();
-//			JSONObject root = new JSONObject(json);
-			JSONObject root = isInstance() ? ionObjectsAsJsonFromClass() : ionObjectsAsJsonFromFiles();
+			JSONObject root = isInstance() ? ionObjectsAsJsonFromEmpty() : ionObjectsAsJsonFromFiles();
 			readPropertyModels(root);
 			readBeanModels(root);
 			readC8oBeanModels(root);
@@ -1736,18 +1742,12 @@ public class ComponentManager {
 	
 	public File getCompBeanDir(String name) {
 		try {
-			File compBeanDir = null;
-			if (isInstance()) {
-				String path = URLUtils.getFullpathRessources(getClass(), "compbeans");
-				if (path != null) {
-					compBeanDir = new File(new File(path), name);
-				}
-			} else {
+			if (templateProjectDir != null) {
 				File compBeansDir = new File(templateProjectDir, TPL_IONCOMPS_DIRPATH);
-				compBeanDir = new File(compBeansDir, name);
-			}
-			if (compBeanDir != null && compBeanDir.exists() && compBeanDir.isDirectory()) {
-				return compBeanDir;
+				File compBeanDir = new File(compBeansDir, name);
+				if (compBeanDir != null && compBeanDir.exists() && compBeanDir.isDirectory()) {
+					return compBeanDir;
+				}
 			}
 		} catch (Exception e) {
 			if (Engine.isStarted) {
@@ -1802,55 +1802,55 @@ public class ComponentManager {
 		}
 	}
 	
-	public static void main(String[] args) throws Exception {
-		try {
-			if (args.length > 0) {
-				File output = new File(args[0]);
-				if (output.exists() && output.isDirectory()) {
-					List<IonBean> beans = new ArrayList<IonBean>();
-					beans.addAll(ComponentManager.of(null).getIonBeans().values());
-					Collections.sort(beans, new Comparator<IonBean>() {
-						@Override
-						public int compare(IonBean b1, IonBean b2) {
-							return b1.getName().toLowerCase().compareTo(b2.getName().toLowerCase());
-						}				
-					} );
-					
-					for (IonBean bean: beans) {
-						JSONObject jsonBean = new JSONObject();
-						jsonBean.put(IonBean.Key.tag.name(), bean.getTag());
-						
-						List<IonProperty> properties = new ArrayList<IonProperty>();
-						properties.addAll(bean.getProperties().values());
-						Collections.sort(properties, new Comparator<IonProperty>() {
-							@Override
-							public int compare(IonProperty p1, IonProperty p2) {
-								return p1.getName().toLowerCase().compareTo(p2.getName().toLowerCase());
-							}				
-						} );
-					
-						JSONObject jsonProperties = new JSONObject();
-						jsonBean.put(IonBean.Key.properties.name(), jsonProperties);
-						for (IonProperty property: properties) {
-							JSONObject jsonProperty = new JSONObject();
-							jsonProperty.put(IonProperty.Key.attr.name(), property.getAttr());
-							jsonProperty.put(IonProperty.Key.type.name(), property.getType());
-							jsonProperty.put(IonProperty.Key.mode.name(), property.getMode());
-							jsonProperty.put(IonProperty.Key.value.name(), property.getValue());
-							jsonProperty.put(IonProperty.Key.values.name(), property.getJSONObject().getJSONArray(IonProperty.Key.values.name()));
-							jsonProperties.put(property.getName(), jsonProperty);
-						}
-								
-						String jsonString = jsonBean.toString(1);
-						FileUtils.write(new File(output, "c8o-beans/ion5/"+ bean.getName() +".json"), jsonString, "UTF-8");
-					}
-				}
-			}
-			
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+//	public static void main(String[] args) throws Exception {
+//		try {
+//			if (args.length > 0) {
+//				File output = new File(args[0]);
+//				if (output.exists() && output.isDirectory()) {
+//					List<IonBean> beans = new ArrayList<IonBean>();
+//					beans.addAll(ComponentManager.of(null).getIonBeans().values());
+//					Collections.sort(beans, new Comparator<IonBean>() {
+//						@Override
+//						public int compare(IonBean b1, IonBean b2) {
+//							return b1.getName().toLowerCase().compareTo(b2.getName().toLowerCase());
+//						}				
+//					} );
+//					
+//					for (IonBean bean: beans) {
+//						JSONObject jsonBean = new JSONObject();
+//						jsonBean.put(IonBean.Key.tag.name(), bean.getTag());
+//						
+//						List<IonProperty> properties = new ArrayList<IonProperty>();
+//						properties.addAll(bean.getProperties().values());
+//						Collections.sort(properties, new Comparator<IonProperty>() {
+//							@Override
+//							public int compare(IonProperty p1, IonProperty p2) {
+//								return p1.getName().toLowerCase().compareTo(p2.getName().toLowerCase());
+//							}				
+//						} );
+//					
+//						JSONObject jsonProperties = new JSONObject();
+//						jsonBean.put(IonBean.Key.properties.name(), jsonProperties);
+//						for (IonProperty property: properties) {
+//							JSONObject jsonProperty = new JSONObject();
+//							jsonProperty.put(IonProperty.Key.attr.name(), property.getAttr());
+//							jsonProperty.put(IonProperty.Key.type.name(), property.getType());
+//							jsonProperty.put(IonProperty.Key.mode.name(), property.getMode());
+//							jsonProperty.put(IonProperty.Key.value.name(), property.getValue());
+//							jsonProperty.put(IonProperty.Key.values.name(), property.getJSONObject().getJSONArray(IonProperty.Key.values.name()));
+//							jsonProperties.put(property.getName(), jsonProperty);
+//						}
+//								
+//						String jsonString = jsonBean.toString(1);
+//						FileUtils.write(new File(output, "c8o-beans/ion5/"+ bean.getName() +".json"), jsonString, "UTF-8");
+//					}
+//				}
+//			}
+//			
+//		} catch (Throwable t) {
+//			t.printStackTrace();
+//		}
+//	}
 	
 	private JSONObject loadFont(String fontId) {
 		return loadFonts().get(fontId);
