@@ -49,6 +49,7 @@ import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
@@ -108,8 +109,14 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				String projectName = getObject().getProject().getName();
 				boolean doUpdate = false;
 				if (deletedTreeObject != null) {
-					DatabaseObject parentOfDeleted = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
-					String deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
+					DatabaseObject parentOfDeleted = null;
+					String deletedobjectQName = null;
+					if (deletedObject instanceof Project) {
+						deletedobjectQName = deletedObject.getName();
+					} else {
+						parentOfDeleted = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+						deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
+					}
 
 					if (deletedTreeObject.isChildOf(this)) {
 						resetMainScriptComponents(parentOfDeleted, reset);
@@ -156,8 +163,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 							}
 						}
 						// an object has been removed from an external object used in this app
-						if (deletedTreeObject.getParentDatabaseObjectTreeObject().getObject() instanceof UIComponent) {
-							UIComponent puic = (UIComponent) deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+						if (parentOfDeleted != null && parentOfDeleted instanceof UIComponent) {
+							UIComponent puic = (UIComponent) parentOfDeleted;
 							UIActionStack uias = puic.getSharedAction();
 							if (uias != null && uias.isEnabled()) {
 								if (ComponentRefManager.isCompUsedBy(uias.getQName(), projectName)) {
