@@ -84,7 +84,7 @@
 		try {
 			const response = await call('projects.Delete', { projectName });
 			console.log('deleted project', response);
-			await projectsCheck(true);
+			await projectsCheck();
 		} catch (err) {
 			console.error('Error deleting project:', err);
 		}
@@ -94,7 +94,7 @@
 		try {
 			const response = await call('projects.DeleteAll');
 			console.log('deleted project', response);
-			await projectsCheck(true);
+			await projectsCheck();
 		} catch (err) {
 			console.error('Error deleting all project:', err);
 		}

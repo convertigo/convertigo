@@ -1,6 +1,5 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import Tables from '$lib/admin/components/Tables.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -19,19 +18,27 @@
 		await schedulerList();
 	});
 
-	function openModals(mode) {
-		let component = 'modalScheduler';
-		let title = '';
+	function openModals(jobTypeFromRow, context = 'create') {
+		const jobType =
+			{
+				TransactionConvertigoJob: 'TransactionConvertigoJob',
+				SequenceConvertigoJob: 'SequenceConvertigoJob',
+				JobGroupJob: 'JobGroupJob'
+			}[jobTypeFromRow] || 'defaultType';
 
-		switch (mode) {
-			case 'newJobs':
-				break;
-		}
+		const action = context === 'edit' ? 'Edit' : 'New';
+		const jobName = {
+			TransactionConvertigoJob: 'Job Transaction',
+			SequenceConvertigoJob: 'Job Sequence',
+			JobGroupJob: 'Jobs Group',
+			defaultType: 'Job'
+		}[jobType];
+
 		modalStore.trigger({
 			type: 'component',
-			component: component,
-			meta: { mode },
-			title: title
+			component: 'modalScheduler',
+			meta: { mode: jobType, context },
+			title: `${action} ${jobName}`
 		});
 	}
 
@@ -52,21 +59,24 @@
 
 <Card title="Jobs" class="">
 	<div slot="cornerOption">
-		<div class="mb-5 flex space-x-1">
+		<div class="mb-5 flex flex-wrap space-x-1">
 			<button
-				class="bg-primary-400-500-token min-w-auto w-40"
-				on:click={() => openModals('newJobs')}
+				class="bg-primary-400-500-token min-w-auto md:w-60"
+				on:click={() => openModals('TransactionConvertigoJob')}
 			>
-				<p>New transaction</p>
+				<p>New Job Transaction</p>
 			</button>
 			<button
-				class="bg-primary-400-500-token min-w-auto w-40"
-				on:click={() => openModals('newJobs')}
+				class="bg-primary-400-500-token min-w-auto md:w-60"
+				on:click={() => openModals('SequenceConvertigoJob')}
 			>
-				<p>New sequence</p>
+				<p>New Job Sequence</p>
 			</button>
-			<button class="bg-primary-400-500-token min-w-auto w-40">
-				<p>New job group</p>
+			<button
+				class="bg-primary-400-500-token min-w-auto md:w-60"
+				on:click={() => openModals('JobGroupJob')}
+			>
+				<p>New Job Group</p>
 			</button>
 		</div>
 	</div>
@@ -79,6 +89,7 @@
 				class: (row) =>
 					row['@_enabled'] === 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
 			},
+			{ name: 'Type', key: '@_type', custom: true },
 			{ name: 'Name', key: '@_name' },
 			{ name: 'Description', key: '@_description' },
 			{ name: 'Info', key: '@_info' },
@@ -89,8 +100,13 @@
 		let:def
 		let:row
 	>
-		{#if def.name === 'Edit'}
-			<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+		{#if def.name === 'Type'}
+			{row['@_type'].replace('ConvertigoJob', '')}
+		{:else if def.name === 'Edit'}
+			<button
+				class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
+				on:click={() => openModals(row['@_type'], 'edit')}
+			>
 				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 			</button>
 		{:else if def.name === 'Delete'}
@@ -106,14 +122,17 @@
 
 <Card title="Schedules" class="mt-5">
 	<div slot="cornerOption">
-		<div class="mb-5 flex space-x-1">
-			<button class="bg-primary-400-500-token min-w-auto w-40">
-				<p>New Cron</p>
-			</button>
-
-			<button class="bg-primary-400-500-token min-w-auto w-40">
-				<p>New run now</p>
-			</button>
+		<div class="mb-5 flex flex-wrap space-x-1">
+			<div class="flex-1">
+				<button class="bg-primary-400-500-token min-w-auto md:w-60">
+					<p>New Cron</p>
+				</button>
+			</div>
+			<div class="flex-1">
+				<button class="bg-primary-400-500-token min-w-auto md:w-60">
+					<p>New run now</p>
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -137,7 +156,10 @@
 		let:row
 	>
 		{#if def.name === 'Edit'}
-			<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+			<button
+				class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
+				on:click={() => openModals()}
+			>
 				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 			</button>
 		{:else if def.name === 'Delete'}

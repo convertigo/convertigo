@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 import { call } from '$lib/utils/service';
 export let connectorsStore = writable([]);
 export let transactionsStore = writable([]);
+export let sequencesStore = writable([]);
 
 export async function getProjectTestPlatform(projectName) {
 	try {
@@ -17,6 +18,12 @@ export async function getProjectTestPlatform(projectName) {
 			transactions = [transactions];
 		}
 		transactionsStore.set(transactions);
+
+		let sequences = res?.admin?.project?.sequence || [];
+		if (!Array.isArray(sequences)) {
+			sequences = [sequences];
+		}
+		sequencesStore.set(sequences);
 	} catch (error) {
 		console.error('Error fetching project test platform:', error);
 	}

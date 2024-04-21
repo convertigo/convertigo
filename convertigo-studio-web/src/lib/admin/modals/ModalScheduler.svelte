@@ -2,23 +2,28 @@
 	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
-	import AutoGrid from '../components/AutoGrid.svelte';
 	import { onMount } from 'svelte';
-	import { schedulerList } from '../stores/schedulerStore';
+	import { jobsStore, schedulerList } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
 	import {
 		getProjectTestPlatform,
 		connectorsStore,
-		transactionsStore
+		transactionsStore,
+		sequencesStore
 	} from '../stores/testPlatformStore';
+	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 
 	const modalStore = getModalStore();
 
-	let enable = 'false';
-	let writeOutput = 'false';
+	export let parent;
+	let enable = false;
+	let writeOutput = false;
 	let selectedProjectId;
 	let projectConnector;
 	let projectTransaction;
+	let projectSequence;
+	let selectedJob;
+	let jobCount = 1;
 
 	const { mode } = $modalStore[0].meta;
 
@@ -27,6 +32,7 @@
 		await projectsCheck();
 		selectedProjectId = $projectsStore[0]['@_name'];
 		await getProjectTestPlatform(selectedProjectId);
+		selectedJob = $jobsStore[0]['@_name'];
 	});
 
 	function handleProjectChange(event) {
@@ -35,28 +41,48 @@
 
 		console.log('selectedProject', selectedProjectId);
 	}
+	function getType(mode) {
+		switch (mode) {
+			case 'TransactionConvertigoJob':
+				return 'schedulerNewTransactionConvertigoJob';
+			case 'SequenceConvertigoJob':
+				return 'schedulerNewSequenceConvertigoJob';
+			case 'jobGroupJob':
+				return 'schedulerNewJobGroupJob';
+			default:
+				return 'schedulerUnknownType';
+		}
+	}
 
-	//Service do not include any response fro that
 	async function createScheduledElements(e) {
 		e.preventDefault();
 		const fd = new FormData(e.target);
-		fd.append('enabled', enable);
-		fd.append('writeOutput', writeOutput);
-		//type actually not dynamic, have to update that
-		fd.append('type', 'schedulerNewTransactionConvertigoJob');
+		fd.append('enabled', enable.toString());
+		fd.append('writeOutput', writeOutput.toString());
+		fd.append('parallelJob', jobCount.toString());
 
+		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
+		fd.append('type', getType(mode));
 		try {
 			await call('scheduler.CreateScheduledElements', fd);
 			await schedulerList();
-			modalStore.close();
 		} catch (err) {
-			console.error(err);
+			console.error('Error creating scheduled elements:', err);
+		} finally {
+			modalStore.close();
+		}
+	}
+
+	function adjustJobCount(change) {
+		let newCount = jobCount + change;
+		if (newCount > 0) {
+			jobCount = newCount;
 		}
 	}
 </script>
 
-{#if mode == 'newJobs'}
-	<Card title="New Sequence">
+{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob' || $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
+	<Card title={$modalStore[0].title}>
 		<form class="p-5" on:submit={createScheduledElements}>
 			<div class="grid grid-cols-2 gap-10">
 				<div class="col-span-1 flex flex-col gap-5">
@@ -74,13 +100,13 @@
 							name="enabled"
 							bind:group={enable}
 							active="bg-success-400-500-token"
-							value="true">Yes</RadioItem
+							value={true}>Yes</RadioItem
 						>
 						<RadioItem
 							name="enabled"
 							bind:group={enable}
 							active="bg-error-400-500-token"
-							value="false">No</RadioItem
+							value={false}>No</RadioItem
 						>
 					</RadioGroup>
 					<p class="label-common">Write Output:</p>
@@ -89,13 +115,13 @@
 							name="writeOutput"
 							active="bg-success-400-500-token"
 							bind:group={writeOutput}
-							value="true">Yes</RadioItem
+							value={true}>Yes</RadioItem
 						>
 						<RadioItem
 							name="writeOutput"
 							active="bg-error-400-500-token"
 							bind:group={writeOutput}
-							value="false">No</RadioItem
+							value={false}>No</RadioItem
 						>
 					</RadioGroup>
 				</div>
@@ -120,45 +146,126 @@
 							{/each}
 						</select>
 					</div>
+					{#if $modalStore[0]?.meta?.mode === 'New Job Transaction'}
+						<div class="border-common mt-5">
+							<p class="label-common w-full">Connector:</p>
+							{#if $connectorsStore.length > 0}
+								<select name="connector" bind:value={projectConnector} class="input-common">
+									{#each $connectorsStore as connector}
+										<option value={connector['@_name']} selected={projectConnector}
+											>{connector['@_name']}</option
+										>
+									{/each}
+								</select>
+							{:else}
+								No connectors
+							{/if}
+						</div>
 
-					<div class="border-common mt-5">
-						<p class="label-common w-full">Connector:</p>
-						{#if $connectorsStore.length > 0}
-							<select name="connector" bind:value={projectConnector} class="input-common">
-								{#each $connectorsStore as connector}
-									<option value={connector['@_name']} selected={projectConnector}
-										>{connector['@_name']}</option
-									>
-								{/each}
-							</select>
-						{:else}
-							No connectors
-						{/if}
-					</div>
-
-					<div class="border-common mt-5">
-						<p class="label-common w-full">Transaction:</p>
-						{#if $transactionsStore.length > 0}
-							<select name="transaction" bind:value={projectTransaction} class="input-common">
-								{#each $transactionsStore as transaction}
-									<option value={transaction['@_name']} selected={projectTransaction}
-										>{transaction['@_name']}</option
-									>
-								{/each}
-							</select>
-						{:else}
-							No transaction
-						{/if}
-					</div>
+						<div class="border-common mt-5">
+							<p class="label-common w-full">Transaction:</p>
+							{#if $transactionsStore.length > 0}
+								<select name="transaction" bind:value={projectTransaction} class="input-common">
+									{#each $transactionsStore as transaction}
+										<option value={transaction['@_name']} selected={projectTransaction}
+											>{transaction['@_name']}</option
+										>
+									{/each}
+								</select>
+							{:else}
+								No transaction
+							{/if}
+						</div>
+					{:else if $modalStore[0]?.meta?.mode === 'New Job Sequence'}
+						<div class="border-common mt-5">
+							<p class="label-common w-full">Sequence:</p>
+							{#if $sequencesStore.length > 0}
+								<select name="sequence" bind:value={projectSequence} class="input-common">
+									{#each $sequencesStore as sequence}
+										<option value={sequence['@_name']} selected={projectSequence}
+											>{sequence['@_name']}</option
+										>
+									{/each}
+								</select>
+							{:else}
+								No Sequences
+							{/if}
+						</div>
+					{/if}
 				</div>
 
-				<div class="flex gap-5 mt-10">
+				<div class="flex gap-1 mt-10">
 					<button
 						class="bg-surface-400-500-token w-40"
 						on:click|preventDefault={() => modalStore.close()}>Cancel</button
 					>
 					<button type="submit" class="bg-primary-400-500-token w-40">Confirm</button>
 				</div>
+			</div>
+		</form>
+	</Card>
+{:else if $modalStore[0]?.meta?.mode === 'JobGroupJob'}
+	<Card title={$modalStore[0].title}>
+		<form class="p-5" on:submit={createScheduledElements}>
+			<div class="grid grid-cols-2 gap-10">
+				<div class="col-span-1 flex flex-col gap-5">
+					<label class="border-common">
+						<p class="label-common">Name:</p>
+						<input name="name" value="" class="input-common" />
+					</label>
+					<label class="border-common">
+						<p class="label-common">Description:</p>
+						<input name="description" value="" class="input-common" />
+					</label>
+					<p class="label-common">Enable:</p>
+					<RadioGroup>
+						<RadioItem
+							name="enabled"
+							bind:group={enable}
+							active="bg-success-400-500-token"
+							value={true}>Yes</RadioItem
+						>
+						<RadioItem
+							name="enabled"
+							bind:group={enable}
+							active="bg-error-400-500-token"
+							value={false}>No</RadioItem
+						>
+					</RadioGroup>
+				</div>
+				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
+					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
+						<button on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
+						<span>{jobCount}</span>
+						<button on:click|preventDefault={() => adjustJobCount(1)}>+</button>
+					</div>
+					<p class="font-bold">Select a job :</p>
+					<ResponsiveContainer
+						scrollable={true}
+						smCols="sm:grid-cols-1"
+						mdCols="md:grid-cols-1"
+						lgCols="lg:grid-cols-1"
+					>
+						<RadioGroup rounded="rounded-container-token" flexDirection="flex-col">
+							{#each $jobsStore as jobName}
+								<RadioItem
+									class=""
+									active="bg-success-400-500-token"
+									bind:group={selectedJob}
+									name="jobsname"
+									value={jobName['@_name']}>{jobName['@_name']}</RadioItem
+								>
+							{/each}
+						</RadioGroup>
+					</ResponsiveContainer>
+				</div>
+			</div>
+			<div class="flex gap-1 mt-10">
+				<button
+					class="bg-surface-400-500-token w-full"
+					on:click|preventDefault={() => modalStore.close()}>Cancel</button
+				>
+				<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
 			</div>
 		</form>
 	</Card>

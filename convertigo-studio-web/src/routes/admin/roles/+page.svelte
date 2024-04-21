@@ -37,7 +37,6 @@
 	}
 
 	function openModals(mode, row) {
-		let component = 'modalRoles';
 		let title = '';
 
 		switch (mode) {
@@ -57,7 +56,7 @@
 
 		rolesModalStore.trigger({
 			type: 'component',
-			component: component,
+			component: 'modalRoles',
 			meta: { mode, row },
 			title: title
 		});

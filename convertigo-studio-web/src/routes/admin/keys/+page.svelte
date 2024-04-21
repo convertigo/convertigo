@@ -48,28 +48,6 @@
 			});
 			console.log('remove key service', response);
 			keysCheck();
-			/**
-			if (response.error) {
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Error' },
-					title: 'Error',
-					body: 'An error occurred',
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			} else {
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Success' },
-					title: 'Key removed',
-					body: 'The Key has been removed with success',
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			}*/
 		} catch (error) {
 			console.error(error);
 		}
@@ -107,29 +85,6 @@
 			});
 			const errorMessage = resUpdate?.admin?.keys?.key['@_errorMessage'];
 			keysCheck();
-			/**
-			if (errorMessage) {
-				console.log('keysUpdate function response :', resUpdate);
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Error' },
-					title: 'Error',
-					body: errorMessage,
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			} else {
-				keyModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Success' },
-					title: 'Key added',
-					body: 'The Key has been added with success',
-					response: (confirmed) => {}
-				});
-				keysCheck();
-			}*/
 		} catch (err) {
 			console.error(err);
 		}
@@ -146,7 +101,7 @@
 </script>
 
 <Card title="Keys">
-	<form on:submit|preventDefault={handleFormSubmit} class="space-x-10">
+	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
 		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 		<button type="submit" class="bg-primary-400-500-token">Add Key</button>
 	</form>
@@ -159,8 +114,24 @@
 				<TableAutoCard
 					definition={[
 						{ name: 'Key', key: '@_text' },
-						{ name: 'Expiration Date', key: '@_expiration', custom: true },
-						{ name: 'Expired', key: '@_expired', custom: true },
+						{
+							name: 'Expiration Date',
+							key: '@_expiration',
+							custom: true,
+							class: (row) =>
+								row['@_expiration'] === '0'
+									? 'bg-success-400-500-token border-r-2 border-surface-100-800-token'
+									: 'bg-tertiary-400-500-token border-r-2 border-surface-100-800-token'
+						},
+						{
+							name: 'Expired',
+							key: '@_expired',
+							custom: true,
+							class: (row) =>
+								row['@_expired'] === 'false'
+									? 'bg-success-400-500-token'
+									: 'bg-tertiary-400-500-token'
+						},
 						{ name: 'Delete', custom: true }
 					]}
 					data={category.keys}
