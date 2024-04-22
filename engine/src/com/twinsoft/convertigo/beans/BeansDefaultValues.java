@@ -320,6 +320,7 @@ public class BeansDefaultValues {
 										JSONObject properties = new JSONObject();
 										try {
 											dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
+											dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
 											for (Iterator<?> i = dIonProps.keys(); i.hasNext();) {
 												String keyProp = (String) i.next();
 												Object ob = dIonProps.get(keyProp);
@@ -597,6 +598,7 @@ public class BeansDefaultValues {
 								if (ionObjects.has("Beans")) {
 									if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
 										JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
+										dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
 										
 										JSONObject ionProps = new JSONObject();
 										ion.put("properties", ionProps);
