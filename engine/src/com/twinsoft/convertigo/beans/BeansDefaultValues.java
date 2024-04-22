@@ -606,7 +606,7 @@ public class BeansDefaultValues {
 										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
 											String keyProp = (String) iProp.next();
 											Object ob = dIonProps.get(keyProp);
-											JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject();
+											JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject().put("mode", "plain").put("value", ob);
 											jsonObject.put("name", keyProp);
 											if (ion.has(keyProp)) {
 												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
