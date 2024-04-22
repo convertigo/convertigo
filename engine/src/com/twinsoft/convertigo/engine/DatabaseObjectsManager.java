@@ -1137,8 +1137,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
 				
 				if (!lock.checkDone) {
-					Engine.theApp.referencedProjectManager.check(importFile);
 					lock.checkDone = true;
+					Engine.theApp.referencedProjectManager.check(importFile);
 					Engine.logDatabaseObjectManager.info("[importProject] Check for references done: " + projectName);
 				}
 				
