@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -44,8 +45,9 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 	public boolean testAttribute(Object target, String name, String value) {
 		if (name.equals("canUpdate")) {
 			ReferenceTreeObject refTreeObject = (ReferenceTreeObject) target;
-			if (refTreeObject.getObject() instanceof RemoteFileReference) {
-				RemoteFileReference remoteFile = (RemoteFileReference) refTreeObject.getObject();
+			if (refTreeObject.getObject() instanceof ProjectSchemaReference ref) {
+				return StringUtils.isNoneBlank(ref.getParser().getGitUrl());
+			} else if (refTreeObject.getObject() instanceof RemoteFileReference remoteFile) {
 				return !remoteFile.getFilepath().isEmpty() && !remoteFile.getUrlpath().isEmpty(); 
 			} 
 		} 

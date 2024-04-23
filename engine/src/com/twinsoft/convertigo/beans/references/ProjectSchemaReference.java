@@ -120,20 +120,4 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 	protected String defaultBeanName(String displayName) {
 		return "project";
 	}
-
-	@Override
-	public String getUrlpath() {
-		return parser.getGitUrl();
-	}
-
-	@Override
-	public String getFilepath() {
-		try {
-			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), true).getDirPath();
-		} catch (Exception e) {
-		}
-		return "";
-	}
-	
-	
 }

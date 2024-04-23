@@ -84,7 +84,6 @@
       <feature id="org.eclipse.wst.xml_core.feature"/>
       <feature id="org.eclipse.wst.xml_ui.feature"/>
       <feature id="org.eclipse.wst.xml_userdoc.feature"/>
-      <feature id="org.eclipse.epp.mpc"/>
    </features>
 
    <configurations>

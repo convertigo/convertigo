@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.engine.studio;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
@@ -321,7 +323,7 @@ public class DatabaseObjectsAction {
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.UpdateReferenceAction": {
-				actionModel.isEnabled = dbo instanceof WebServiceReference || dbo instanceof ProjectSchemaReference;
+				actionModel.isEnabled = dbo instanceof WebServiceReference || (dbo instanceof ProjectSchemaReference ref && StringUtils.isNoneBlank(ref.getParser().getGitUrl()));
 			}
 			break;
 			
