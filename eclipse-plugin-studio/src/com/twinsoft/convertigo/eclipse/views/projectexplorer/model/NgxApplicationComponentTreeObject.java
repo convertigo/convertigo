@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.beans.BeanInfo;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Set;
@@ -30,9 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -113,8 +109,14 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				String projectName = getObject().getProject().getName();
 				boolean doUpdate = false;
 				if (deletedTreeObject != null) {
-					DatabaseObject parentOfDeleted = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
-					String deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
+					DatabaseObject parentOfDeleted = null;
+					String deletedobjectQName = null;
+					if (deletedObject instanceof Project) {
+						deletedobjectQName = deletedObject.getName();
+					} else {
+						parentOfDeleted = deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+						deletedobjectQName = parentOfDeleted.getQName() + "." + deletedObject.getName();
+					}
 
 					if (deletedTreeObject.isChildOf(this)) {
 						resetMainScriptComponents(parentOfDeleted, reset);
@@ -161,8 +163,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 							}
 						}
 						// an object has been removed from an external object used in this app
-						if (deletedTreeObject.getParentDatabaseObjectTreeObject().getObject() instanceof UIComponent) {
-							UIComponent puic = (UIComponent) deletedTreeObject.getParentDatabaseObjectTreeObject().getObject();
+						if (parentOfDeleted != null && parentOfDeleted instanceof UIComponent) {
+							UIComponent puic = (UIComponent) parentOfDeleted;
 							UIActionStack uias = puic.getSharedAction();
 							if (uias != null && uias.isEnabled()) {
 								if (ComponentRefManager.isCompUsedBy(uias.getQName(), projectName)) {
@@ -301,38 +303,8 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				if (doto.equals(this)) {
 					// application tpl has changed
 					if (propertyName.equals("tplProjectName")) {
-						Engine.logStudio.info("tplProjectName property of " + projectName + " changed, reloading builder...");
-						
-						// close app editor and reinitialize builder
-						Project project = getObject().getProject();
-						closeAllEditors(false);
-						MobileBuilder.releaseBuilder(project);
-						MobileBuilder.initBuilder(project);
-						
-						// refresh resources
-						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
-						
-						// delete node modules and alert user
-						final File nodeModules = new File(getObject().getProject().getDirPath(), "/_private/ionic/node_modules");
-						if (nodeModules.exists()) {
-							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
-							dialog.open();
-							dialog.run(true, false, new IRunnableWithProgress() {
-								@Override
-								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-									monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
-									String alert = "template changed!";
-									if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
-										alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
-									} else {
-										alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
-									}
-									monitor.done();
-									ConvertigoPlugin.infoMessageBox(alert);
-								}
-							});
-						}
+						Engine.logStudio.info("tplProjectName property of " + projectName + " changed, reloading project and builder...");
+						ConvertigoPlugin.projectManager.getProjectExplorerView().reloadProjectAndDeleteNodeModules(getProjectTreeObject());
 						return;
 					}
 				}

@@ -20,7 +20,9 @@
 package com.twinsoft.convertigo.beans;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +47,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -56,9 +59,10 @@ public class BeansDefaultValues {
 
 	private static final String DBO_XMLPATH = "/com/twinsoft/convertigo/beans/database_objects_default.xml";
 	private static final String MOBILE_JSONPATH = "/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json";
-	private static final String NGX_JSONPATH = "/com/twinsoft/convertigo/beans/ngx/components/dynamic/ion_objects_default.json";
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
 
+	private static final String TPL_JSONPATH = "ionicTpl/ion/ion_objects.json";
+	
 	private static Element nextElement(Node node, boolean checkParameter) {
 		if (node == null || (checkParameter && node instanceof Element)) {
 			return (Element) node;
@@ -129,13 +133,66 @@ public class BeansDefaultValues {
 		return true;
 	}
 
+	static private JSONObject getIonObjectsFromFiles(String templateProjectName) throws Exception {
+		// Retrieve template project directory and read from ion_object.json file
+		File projectDir = new File(Engine.projectDir(templateProjectName));
+		File ion_objects = new File(projectDir, TPL_JSONPATH);
+		if (Engine.logEngine != null) {
+			if (ion_objects.exists()) {
+				Engine.logEngine.info("[BeansDefaultValues] Read ion objects for " + templateProjectName + " in: "+ ion_objects);
+			} else if (projectDir.exists()) {
+				Engine.logEngine.error("[BeansDefaultValues] Corrupted template " + templateProjectName + ". Missing "+ ion_objects);
+			} else {
+				Engine.logEngine.error("[BeansDefaultValues] Missing template " + templateProjectName + " ("+ projectDir + ")");
+			}
+		}
+		JSONObject ionObjects = new JSONObject(FileUtils.readFileToString(ion_objects, "UTF-8"));
+		JSONObject ionBeans = ionObjects.getJSONObject("Beans");
+		
+		// Read from other *_object.json files
+		File ionDir = ion_objects.getParentFile();
+		File[] files = ionDir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.isFile() && file.getName().endsWith("_objects.json") && !file.getName().equals("ion_objects.json");
+			}});
+		Arrays.sort(files);
+		
+		File file;
+        for (int i = 0 ; i < files.length ; i++) {
+            file = files[i];
+			if (!file.equals(ion_objects)) {
+				try {
+					String json = FileUtils.readFileToString(file, "UTF-8");
+					JSONObject jsonObjects = new JSONObject(json);
+					JSONObject jsonBeans = jsonObjects.getJSONObject("Beans");
+					
+					@SuppressWarnings("unchecked")
+					Iterator<String> it = jsonObjects.getJSONObject("Beans").keys();
+					while (it.hasNext()) {
+						String key = it.next();
+						if (!key.isEmpty()) {
+							ionBeans.put(key, jsonBeans.getJSONObject(key));
+						}
+					}
+				} catch (Exception e) {
+				}
+			}
+        }
+        
+        return ionObjects;
+	}
+	
 	static private class ShrinkProject {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
-		JSONObject mobile_ionObjects, ngx_ionObjects;
+		JSONObject mobile_ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
 		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 
+		String templateProjectName = null;
+		JSONObject templateProjectIonObjects = null;
+		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(DBO_XMLPATH)) {
@@ -144,13 +201,25 @@ public class BeansDefaultValues {
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
 				mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
 			}
-			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(NGX_JSONPATH)) {
-				ngx_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
-			}
 			beans = beansDoc.getDocumentElement();
 		}
 
-		private void shrinkChildren(Element element, Element copy) {
+		JSONObject getIonObjects(boolean isNgx, String templateProjectName) throws Exception {
+			if (isNgx) {
+				try {
+					if (templateProjectIonObjects == null) {
+						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
+					}
+					return templateProjectIonObjects;
+				} catch (Exception e) {
+					// could not read from *_objects.json files
+					throw new EngineException("Unable to read ion objects from files", e);
+				}
+			}
+			return mobile_ionObjects;
+		}
+		
+		private void shrinkChildren(Element element, Element copy) throws Exception {
 			for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
 				Element pBean = (Element) pBeanNode;
 				String classname = pBean.getAttribute("classname");
@@ -158,6 +227,8 @@ public class BeansDefaultValues {
 				String pName = xpath.selectNode(pBean, "property[@name='name']/*/@value").getNodeValue();
 				String pPriority = pBean.getAttribute("priority");
 
+				boolean isNgxApplicationComponent = classname.equals("com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent");
+				
 				pPriority = "0".equals(pPriority) ? "" : '-' + pPriority;
 
 				Element nCopy = copy.getOwnerDocument().createElement("bean");
@@ -230,59 +301,103 @@ public class BeansDefaultValues {
 						if (nextElement(content, false) == null && content.getTagName().startsWith("java.lang.")) {
 							nProp.setTextContent(content.getAttribute("value"));
 
+							if (isNgxApplicationComponent && name.equals("tplProjectName")) {
+								templateProjectName = content.getAttribute("value");
+							}
+							
 							if (name.equals("beanData")) {
+								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 								try {
-									JSONObject ionObjects = classname.indexOf(".ngx.") != -1 ? ngx_ionObjects : mobile_ionObjects;
-
 									String beanData = nProp.getTextContent();
 									JSONObject ion = new JSONObject(beanData);
 									String ionName = (String) ion.remove("name");
 									ion.put("ionBean", ionName);
-									JSONObject dIonProps = ionObjects.getJSONObject(ionName);
-									Iterator<?> keys = dIonProps.keys();
-									String lVersion = keys.next().toString();
-									while (keys.hasNext()) {
-										String v = keys.next().toString();
-										if (v.compareTo(lVersion) > 0) {
-											lVersion = v;
+									
+									JSONObject dIonProps = new JSONObject();
+									
+									// shrink using TPL ion_objects.json
+									if (ionObjects.has("Beans")) {
+										JSONObject properties = new JSONObject();
+										try {
+											dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
+											dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
+											for (Iterator<?> i = dIonProps.keys(); i.hasNext();) {
+												String keyProp = (String) i.next();
+												Object ob = dIonProps.get(keyProp);
+												JSONObject property = new JSONObject();
+												property.put("name", keyProp);
+												if (ob instanceof JSONObject) {
+													JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
+													property.put("mode", dIonProp.has("mode") ? dIonProp.get("mode") : "plain");
+													property.put("value", dIonProp.has("value") ? dIonProp.get("value") : false);
+												} else {
+													property.put("mode", "plain");
+													property.put("value", ob);
+												}
+												properties.put(keyProp, property);
+											}
+										} catch (Exception ex) {
+											System.out.println("No properties for "+ ionName);
 										}
+										dIonProps = properties;
 									}
-									if (hVersion.compareTo(lVersion) < 0) {
-										hVersion = lVersion;
-										if (Engine.logEngine != null) {
-											Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname") + " ("+ionName+")");
+									// shrink using JAVA ion_objects_default.json
+									else {
+										dIonProps = ionObjects.getJSONObject(ionName);
+										Iterator<?> keys = dIonProps.keys();
+										String lVersion = keys.next().toString();
+										while (keys.hasNext()) {
+											String v = keys.next().toString();
+											if (v.compareTo(lVersion) > 0) {
+												lVersion = v;
+											}
 										}
+										if (hVersion.compareTo(lVersion) < 0) {
+											hVersion = lVersion;
+											if (Engine.logEngine != null) {
+												Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname") + " ("+ionName+")");
+											}
+										}
+										dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									}
-									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
+									
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
 										String keyProp = (String) i.next();
 										JSONObject ionProp = ionProps.getJSONObject(keyProp);
+										String mode = ionProp.has("mode") ? ionProp.getString("mode") : "plain";
+										Object value = ionProp.has("value") ? ionProp.get("value") : Boolean.FALSE;
 										if (dIonProps.has(keyProp)) {
 											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
 											if (!dIonProp.equals(ionProp)) {
-												if (Boolean.FALSE.equals(ionProp.get("value"))) {
+												if (Boolean.FALSE.equals(value)) {
 													// <not set> case
-													ion.put(keyProp, ionProp.getString("mode"));
+													ion.put(keyProp, mode);
 												} else {
-													ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+													ion.put(keyProp, mode + ":" + value);
 												}
 											}
 										} else {
-											if (Boolean.FALSE.equals(ionProp.get("value"))) {
+											if (Boolean.FALSE.equals(value)) {
 												// <not set> case
-												ion.put(keyProp, ionProp.getString("mode"));
+												ion.put(keyProp, mode);
 											} else {
-												ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+												ion.put(keyProp, mode + ":" + value);
 											}
 										}
 									}
+									
 									if (ion.length() > 2) {
 										nProp.setTextContent(ion.toString(1));
 									} else {
 										nProp.setTextContent(ion.toString());
 									}
 								} catch (Exception e) {
+									e.printStackTrace();
+									if (Engine.logEngine != null) {
+										String beanData = nProp.getTextContent();
+										Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while serializing data: "+ beanData, e);
+									}
 								}
 							}
 						} else {
@@ -301,6 +416,10 @@ public class BeansDefaultValues {
 				}
 
 				shrinkChildren(pBean, nCopy);
+				
+				if (isNgxApplicationComponent) {
+					templateProjectName = null;
+				}
 			}
 		}
 
@@ -330,11 +449,14 @@ public class BeansDefaultValues {
 	static private class UnshrinkProject {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
-		JSONObject mobile_ionObjects, ngx_ionObjects;
+		JSONObject mobile_ionObjects;
 		String version;
 		String nVersion;
 		boolean isMigrating = false;
 
+		String templateProjectName = null;
+		JSONObject templateProjectIonObjects = null;
+		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(DBO_XMLPATH)) {
@@ -343,12 +465,24 @@ public class BeansDefaultValues {
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
 				mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
 			}
-			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(NGX_JSONPATH)) {
-				ngx_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
-			}
 			beans = beansDoc.getDocumentElement();
 		}
 
+		JSONObject getIonObjects(boolean isNgx, String templateProjectName) throws Exception {
+			if (isNgx) {
+				try {
+					if (templateProjectIonObjects == null) {
+						templateProjectIonObjects = getIonObjectsFromFiles(templateProjectName);
+					}
+					return templateProjectIonObjects;
+				} catch (Exception e) {
+					// could not read from *_objects.json files
+					throw new EngineException("Unable to read ion objects from files", e);
+				}
+			}
+			return mobile_ionObjects;
+		}
+		
 		Document unshrinkProject(Document project) throws Exception {
 			Document nProjectDoc = XMLUtils.createDom();
 			Element eProject = project.getDocumentElement();
@@ -374,7 +508,7 @@ public class BeansDefaultValues {
 			return nProjectDoc;
 		}
 
-		void unshrinkChildren(Element element, Element nParent) {
+		void unshrinkChildren(Element element, Element nParent) throws Exception {
 			Document document = nParent.getOwnerDocument();
 			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
 				Element pBean = (Element) pBeanNode;
@@ -392,6 +526,8 @@ public class BeansDefaultValues {
 					isMigrating = true;
 				}
 
+				boolean isNgxApplicationComponent = classname.equals("com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent");
+				
 				Element nBean = null;
 				try {
 					nBean = (Element) document.importNode(dBean, true);
@@ -448,48 +584,85 @@ public class BeansDefaultValues {
 						}
 						String value = ((Element) pPropNode).getTextContent();
 
+						if (isNgxApplicationComponent && propName.equals("tplProjectName")) {
+							templateProjectName = value;
+						}
+						
 						if (propName.equals("beanData")) {
+							JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
 							try {
-								JSONObject ionObjects = classname.indexOf(".ngx.") != -1 ? ngx_ionObjects : mobile_ionObjects;
-
 								JSONObject ion = new JSONObject(value);
 								String ionName = (String) ion.remove("ionBean");
-								JSONObject dIonProps = ionObjects.getJSONObject(ionName);
+								
+								// unshrink using TPL ion_objects.json
+								if (ionObjects.has("Beans")) {
+									if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
+										JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
+										dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
+										
+										JSONObject ionProps = new JSONObject();
+										ion.put("properties", ionProps);
 
-								Iterator<?> iProp = dIonProps.keys();
-								String dVersion = iProp.next().toString();
-								while (iProp.hasNext()) {
-									String v = iProp.next().toString();
-									if (v.compareTo(nVersion) <= 0 && v.compareTo(dVersion) > 0) {
-										dVersion = v;
-									}
-								}
-								dIonProps = dIonProps.getJSONObject(dVersion).getJSONObject("properties");
-
-								JSONObject ionProps = new JSONObject();
-								ion.put("properties", ionProps);
-
-								for (iProp = dIonProps.keys(); iProp.hasNext();) {
-									String keyProp = (String) iProp.next();
-									if (!ion.has(keyProp)) {
-										ionProps.put(keyProp, dIonProps.getJSONObject(keyProp));
-									} else {
-										String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
-										JSONObject v = new JSONObject();
-										v.put("mode", smart[0]);
-										if (smart.length == 1) {
-											// <not set> case
-											v.put("value", false);
-										} else {
-											v.put("value", smart[1]);
+										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
+											String keyProp = (String) iProp.next();
+											Object ob = dIonProps.get(keyProp);
+											JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject().put("mode", "plain").put("value", ob);
+											jsonObject.put("name", keyProp);
+											if (ion.has(keyProp)) {
+												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
+												jsonObject.put("mode", smart[0]);
+												jsonObject.put("value", smart.length == 1 ? false : smart[1]);
+											}
+											ionProps.put(keyProp, jsonObject);
 										}
-										ionProps.put(keyProp, v);
+									} else {
+										System.out.println("No properties for "+ ionName);
 									}
-									ionProps.getJSONObject(keyProp).put("name", keyProp);
 								}
+								// unshrink using JAVA ion_objects_default.json
+								else {
+									JSONObject dIonProps = ionObjects.getJSONObject(ionName);
+
+									Iterator<?> iProp = dIonProps.keys();
+									String dVersion = iProp.next().toString();
+									while (iProp.hasNext()) {
+										String v = iProp.next().toString();
+										if (v.compareTo(nVersion) <= 0 && v.compareTo(dVersion) > 0) {
+											dVersion = v;
+										}
+									}
+									dIonProps = dIonProps.getJSONObject(dVersion).getJSONObject("properties");
+									JSONObject ionProps = new JSONObject();
+									ion.put("properties", ionProps);
+
+									for (iProp = dIonProps.keys(); iProp.hasNext();) {
+										String keyProp = (String) iProp.next();
+										if (!ion.has(keyProp)) {
+											ionProps.put(keyProp, dIonProps.getJSONObject(keyProp));
+										} else {
+											String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
+											JSONObject v = new JSONObject();
+											v.put("mode", smart[0]);
+											if (smart.length == 1) {
+												// <not set> case
+												v.put("value", false);
+											} else {
+												v.put("value", smart[1]);
+											}
+											ionProps.put(keyProp, v);
+										}
+										ionProps.getJSONObject(keyProp).put("name", keyProp);
+									}
+								}
+
 								ion.put("name", ionName);
 								value = ion.toString();
 							} catch (Exception e) {
+								e.printStackTrace();
+								if (Engine.logEngine != null) {
+									String beanData = value;
+									Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while deserializing data: "+ beanData, e);
+								}
 							}
 						}
 
@@ -511,6 +684,10 @@ public class BeansDefaultValues {
 				}
 
 				unshrinkChildren(pBean, nBean);
+				
+				if (isNgxApplicationComponent) {
+					templateProjectName = null;
+				}
 			}
 		}
 	}
@@ -664,41 +841,6 @@ public class BeansDefaultValues {
 		FileUtils.write(output, content, "UTF-8");
 	}
 
-	private static void updateNgxIonBeansDefaultValues(File output) throws Exception {
-		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
-		JSONObject jObject;
-		try {
-			jObject = new JSONObject(FileUtils.readFileToString(output, "UTF-8"));
-		} catch (Exception e) {
-			jObject = new JSONObject();
-		}
-
-		for (Entry<String, com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean> entry : com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getIonBeans().entrySet()) {
-			String key = entry.getKey();
-			JSONObject beans;
-			if (jObject.has(key)) {
-				beans = jObject.getJSONObject(key);
-			} else {
-				jObject.put(key, beans = new JSONObject());
-			}
-			Iterator<?> i = beans.keys();
-			String lastKey = null;
-			while (i.hasNext()) {
-				lastKey = (String) i.next();
-			}
-			JSONObject dBean = new JSONObject(entry.getValue().toBeanData());
-			JSONObject lBean = lastKey != null ? beans.getJSONObject(lastKey) : null;
-			if (!dBean.equals(lBean)) {
-				beans.put(nVersion, dBean);
-			}
-		}
-		String content = jObject.toString(1);
-		if (System.lineSeparator().equals("\r\n")) {
-			content = content.replace("\n", "\r\n");
-		}
-		FileUtils.write(output, content, "UTF-8");
-	}
-
 	public static void main(String[] args) throws Exception {
 		if (args.length > 0) {
 			File output = new File(args[0]);
@@ -708,13 +850,11 @@ public class BeansDefaultValues {
 
 			File xOutput = new File(output, DBO_XMLPATH);
 			File m_jOutput = new File(output, MOBILE_JSONPATH);
-			File n_jOutput = new File(output, NGX_JSONPATH);
 
 			Engine.logBeans = Logger.getRootLogger();
 
 			updateBeansDefaultValues(xOutput);
 			updateMobileIonBeansDefaultValues(m_jOutput);
-			updateNgxIonBeansDefaultValues(n_jOutput);
 
 			System.out.println("Beans default values updated in: " + output.getCanonicalPath());
 			for (int i = 1; i < args.length; i++) {
@@ -727,10 +867,6 @@ public class BeansDefaultValues {
 					fCopy = new File(copy, MOBILE_JSONPATH);
 					FileUtils.copyFile(m_jOutput, fCopy);
 					System.out.println("Mobile Ion Beans default values updated in: " + fCopy.getCanonicalPath());
-
-					fCopy = new File(copy, NGX_JSONPATH);
-					FileUtils.copyFile(n_jOutput, fCopy);
-					System.out.println("Ngx Ion Beans default values updated in: " + fCopy.getCanonicalPath());
 				}
 			}
 		}

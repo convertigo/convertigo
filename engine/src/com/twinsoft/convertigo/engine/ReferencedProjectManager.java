@@ -20,17 +20,28 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ReferencedProjectManager {
 	private Map<File, Object> dirLock = new HashMap<>();
@@ -210,7 +221,7 @@ public class ReferencedProjectManager {
 			}
 		}
 		if (dir != null) {
-			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
+			if (!cloneDone && (force || (parser.isAutoPull() && !Engine.isStudioMode()))) {
 				synchronized (getLock(dir)) {
 					String exRev = GitUtils.getRev(dir);
 					GitUtils.fetch(dir);
@@ -230,5 +241,100 @@ public class ReferencedProjectManager {
 			}
 		}
 		return project;
+	}
+
+	public void check(File projectFile) {
+		try {
+			for (var ref: references(projectFile)) {
+				try {
+					importProject(ref.getParser()); //importProject(ref.getParser(), true);
+			    } catch (Exception e) {
+			        Engine.logEngine.error("Failed to load " + ref.getProjectName(), e);
+			    }
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check " + projectFile + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+		}
+	}
+	
+	public static Set<ProjectSchemaReference> references(File file) throws Exception {
+		if (!file.getName().endsWith(".yaml")) {
+			return Collections.emptySet();
+		}
+		var doc = YamlConverter.readYaml(file, true);
+		var nl = doc.getElementsByTagName("bean");
+		for (int i = 0; i < nl.getLength();) {
+			var n = (Element) nl.item(i);
+			var key = n.getAttribute("yaml_key");
+			if (key == null || !(key.contains("[core.Project]") || key.contains("[references.ProjectSchemaReference]"))) {
+				n.getParentNode().removeChild(n);
+			} else {
+				i++;
+			}
+		}
+		doc = BeansDefaultValues.unshrinkProject(doc);
+		nl = doc.getElementsByTagName("reference");
+		var refs = new HashSet<ProjectSchemaReference>(nl.getLength());
+		for (int i = 0; i < nl.getLength(); i++) {
+			var n = nl.item(i);
+			var ref = (ProjectSchemaReference) DatabaseObject.read(n);
+			refs.add(ref);
+		}
+		return refs;
+	}
+	
+	protected void checkForIonicTemplate(String projectName, File projectFile) {
+		try {
+			if (projectFile != null && projectFile.exists()) {
+				File projectDir = projectFile.getParentFile();
+				File ionicTplDir = new File(projectDir, "ionicTpl");
+				// this is a ionic builder template
+				if (ionicTplDir.exists() && ionicTplDir.isDirectory()) {
+					// this is a ngx ionic builder template
+					if (new File(ionicTplDir,"angular.json").exists()) {
+						
+						// if template's ion folder does not exist: get and copy default one
+						File versionJson = new File(ionicTplDir,"version.json");
+						if (versionJson.exists()) {
+							String tplVersion = null;
+							try {
+								String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+								JSONObject jsonOb = new JSONObject(tsContent);
+								tplVersion = jsonOb.getString("version");
+							} catch (Exception e) {
+								Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve template's version for " + projectName);
+							}
+							
+							File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
+							if (tplVersion != null && !ngxIonObjects.exists()) {
+								String v = tplVersion;
+								try {
+									v = tplVersion.substring(0, 3);
+									File ionZipFile = new File(Engine.TEMPLATES_PATH, "ionic/"+ v +"/ion.zip");
+									if (ionZipFile.exists()) {
+										Engine.logEngine.info("(ReferencedProjectManager) Copying default "+ v +" ionic objects in template for " + projectName);
+										ZipUtils.expandZip(ionZipFile.getAbsolutePath(), ionicTplDir.getAbsolutePath());
+									} else {
+										Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
+									}
+								} catch( Exception e) {
+									Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
+								}
+							}
+						}
+						
+						// this template has its own ion_objects.json file
+						File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
+						if (ngxIonObjects.exists()) {
+							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
+							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+								.addIonicTemplateProject(projectName, projectDir);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check for ionic template of " + projectName + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+		}
 	}
 }

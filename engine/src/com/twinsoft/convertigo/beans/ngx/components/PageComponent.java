@@ -1041,13 +1041,21 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	}
 	
 	@Override
-	public String requiredTplVersion() {
+	public String requiredTplVersion(Set<MobileComponent> done) {
+		// initialize with page component min version required
 		String tplVersion = getRequiredTplVersion();
-		for (UIComponent uic : getUIComponentList()) {
-			String uicTplVersion = uic.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
-				tplVersion = uicTplVersion;
+		if (done.add(this)) {
+			minTplVersion = tplVersion;
+			// overwrites with target child component min version required
+			for (UIComponent uic : getUIComponentList()) {
+				String uicTplVersion = uic.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+					tplVersion = uicTplVersion;
+				}
 			}
+			minTplVersion = tplVersion;
+		} else {
+			tplVersion = minTplVersion;
 		}
 		return tplVersion;
 	}

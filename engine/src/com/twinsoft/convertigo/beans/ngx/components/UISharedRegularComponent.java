@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.beans.BeanInfo;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +33,7 @@ import java.util.Set;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.IDynamicBean;
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent.ComponentEvent;
@@ -40,7 +42,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class UISharedRegularComponent extends UISharedComponent implements ISharedComponent, IScriptComponent, IStyleGenerator {
+public class UISharedRegularComponent extends UISharedComponent implements IDynamicBean, ISharedComponent, IScriptComponent, IStyleGenerator {
 
 	private static final long serialVersionUID = -2506259541566203802L;
 
@@ -56,12 +58,28 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		super.setName(name);
 	}
 	
+	@Override
+	public String getDynamicIconName(int iconType) {
+		File iconFile = new File(getProject().getDirPath(), getIconFileName(getName(), iconType));
+		return iconFile.getAbsolutePath();
+	}
+	
 	public String getIconFileName() {
-		return getIconFileName(getName());
+		return getIconFileName(getName(), BeanInfo.ICON_COLOR_32x32);
 	}
 	
 	public String getIconFileName(String name) {
-		return (name + "_icon_32x32.png").toLowerCase();
+		return getIconFileName(name, BeanInfo.ICON_COLOR_32x32);
+	}
+	
+	public String getIconFileName(String name, int iconType) {
+		if (iconType == BeanInfo.ICON_COLOR_16x16) {
+			return (name + "_icon_16x16.png").toLowerCase();
+		}
+		if (iconType == BeanInfo.ICON_COLOR_32x32) {
+			return (name + "_icon_32x32.png").toLowerCase();
+		}
+		return (name + "_icon.png").toLowerCase();
 	}
 	
 	@Override

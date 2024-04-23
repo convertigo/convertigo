@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIUseShared extends UIElement {
 
@@ -472,4 +474,44 @@ public class UIUseShared extends UIElement {
 		return "use " + compName + (identifier.isBlank() ? "":" #"+identifier);
 	}
 
+	@Override
+	public String requiredTplVersion(Set<MobileComponent> done) {
+		// initialize with use component min version required
+		String tplVersion = getRequiredTplVersion();
+		
+		if (done.add(this)) {
+			minTplVersion = tplVersion;
+			
+			// overwrites with target shared component min version required
+			if (!sharedcomponent.isEmpty()) {
+				UISharedComponent uisc = getTargetSharedComponent();
+				if (uisc == null && parent == null) { // palette dnd case
+					try {
+						String projectName = sharedcomponent.split("\\.")[0];
+						File f = Engine.projectFile(projectName);
+						if (f != null && f.exists()) {
+							uisc = (UISharedComponent) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(sharedcomponent);
+						}
+					} catch (Exception e) {}
+				}
+				if (uisc != null && uisc.isEnabled()) {
+					tplVersion = uisc.requiredTplVersion(done);
+				}
+			}
+			
+			// overwrites with target child component min version required
+			for (UIComponent uic : getUIComponentList()) {
+				String uicTplVersion = uic.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+					tplVersion = uicTplVersion;
+				}
+			}
+			
+			minTplVersion = tplVersion;
+		} else {
+			tplVersion = minTplVersion;
+		}
+		
+		return tplVersion;
+	}
 }

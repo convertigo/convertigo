@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.mobile;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -196,7 +197,7 @@ public class NgxBuilder extends MobileBuilder {
 			try {
 				appPwaChanged(project.getMobileApplication().getApplicationComponent());
 			} catch (Exception e) {
-				Engine.logEngine.warn("(NgxBuilder) enabled to change build mode");
+				Engine.logEngine.warn("("+ builderType +") enabled to change build mode");
 			}
 		}
 	}
@@ -307,7 +308,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeAppComponentTs(app);	// for prod mode
 				writeAppModuleTs(app); 		// for worker
 				moveFiles();
-				Engine.logEngine.trace("(NgxBuilder) Handled 'appPwaChanged'");
+				Engine.logEngine.trace("("+ builderType +") Handled 'appPwaChanged'");
 			}
 		}
 	}
@@ -325,7 +326,7 @@ public class NgxBuilder extends MobileBuilder {
 		String projectID = Project.formatNameWithHash(project);
 		
 		if (initDone) {
-			Engine.logEngine.warn("(NgxBuilder) Builder already initialized for ionic project "+ projectID +". Skipping");
+			Engine.logEngine.warn("("+ builderType +") Builder already initialized for ionic project "+ projectID +". Skipping");
 			return;
 		}
 
@@ -346,7 +347,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 
 		if (isIonicTemplateBased()) {
-			Engine.logEngine.debug("(NgxBuilder) Start initializing builder for ionic project "+ projectID);
+			Engine.logEngine.debug("("+ builderType +") Start initializing builder for ionic project "+ projectID);
 			
 			if (eventHelper == null) {
 				eventHelper = new EventHelper();
@@ -390,7 +391,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 
 			initDone = true;
-			Engine.logEngine.debug("(NgxBuilder) End initializing builder for ionic project "+ projectID);
+			Engine.logEngine.debug("("+ builderType +") End initializing builder for ionic project "+ projectID);
 		}
 	}
 
@@ -472,6 +473,24 @@ public class NgxBuilder extends MobileBuilder {
 		return false;
 	}
 
+	
+	@Override
+	protected void copyTemplateFiles() throws EngineException {
+		FileFilter ff = new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return (file.isDirectory() && file.getName().equals("ion")) ? false : true;
+			}
+		};
+		try {
+			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir, ff, true);
+			Engine.logEngine.trace("("+ builderType +") Template files copied for ionic project '"+ project.getName() +"'");
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
+		}
+	}
+
 	@Override
 	protected void updateTplVersion() {
 		super.updateTplVersion();
@@ -489,7 +508,7 @@ public class NgxBuilder extends MobileBuilder {
 			envJSON.put("appGenerationTime", appGenerationTime);
 			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
-			Engine.logEngine.trace("(NgxBuilder) Initialized env.json for ionic project "+ project.getName());
+			Engine.logEngine.trace("("+ builderType +") Initialized env.json for ionic project "+ project.getName());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -504,7 +523,7 @@ public class NgxBuilder extends MobileBuilder {
 			envJSON.put("appGenerationTime", System.currentTimeMillis());
 			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
-			Engine.logEngine.trace("(NgxBuilder) Updated env.json for ionic project "+ project.getName());
+			Engine.logEngine.trace("("+ builderType +") Updated env.json for ionic project "+ project.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -543,12 +562,12 @@ public class NgxBuilder extends MobileBuilder {
 		String projectID = Project.formatNameWithHash(project);
 		
 		if (!initDone) {
-			Engine.logEngine.warn("(NgxBuilder) Builder already released for ionic project "+ projectID +". Skipping");
+			Engine.logEngine.warn("("+ builderType +") Builder already released for ionic project "+ projectID +". Skipping");
 			return;
 		}
 
 		if (isIonicTemplateBased()) {
-			Engine.logEngine.debug("(NgxBuilder) Start releasing builder for ionic project "+ projectID);
+			Engine.logEngine.debug("("+ builderType +") Start releasing builder for ionic project "+ projectID);
 			isReleasing = true;
 			
 			moveFilesForce();
@@ -596,7 +615,7 @@ public class NgxBuilder extends MobileBuilder {
 			
 			isReleasing = false;
 			initDone = false;
-			Engine.logEngine.debug("(NgxBuilder) End releasing builder for ionic project "+ projectID);
+			Engine.logEngine.debug("("+ builderType +") End releasing builder for ionic project "+ projectID);
 		}
 	}
 
@@ -608,7 +627,7 @@ public class NgxBuilder extends MobileBuilder {
 			File bAssets = new File(ionicWorkDir, "../../DisplayObjects/mobile/assets");
 			if (tAssets.exists() && bAssets.exists()) {
 				FileUtils.mergeDirectories(tAssets, bAssets);
-				Engine.logEngine.trace("(NgxBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
+				Engine.logEngine.trace("("+ builderType +") Assets files copied for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
@@ -717,8 +736,12 @@ public class NgxBuilder extends MobileBuilder {
 			if (mobileApplication != null) {
 				final ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
 				if (application != null) {
-					String appTplVersion = application.requiredTplVersion();
-					if (compareVersions(tplVersion, appTplVersion) >= 0) {
+					String usedTplVersion = getTplVersion();
+					Engine.logEngine.debug("("+ builderType +") Template version used: " + usedTplVersion 
+							+ " for project '"+ application.getProject().getName() +"'.");					String appTplVersion = application.requiredTplVersion();
+					Engine.logEngine.debug("("+ builderType +") Min template version required: " + appTplVersion 
+							+ " for project '"+ application.getProject().getName() +"'.");
+					if (compareVersions(usedTplVersion, appTplVersion) >= 0) {
 						long t0 = System.currentTimeMillis();
 						
 						List<Callable<String>> cList = new ArrayList<Callable<String>>();
@@ -792,10 +815,10 @@ public class NgxBuilder extends MobileBuilder {
 						}
 						
 						long t1 = System.currentTimeMillis();
-						Engine.logEngine.debug("(NgxBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
+						Engine.logEngine.debug("("+ builderType +") Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
 					} else {
 						cleanDirectories();
-						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
+						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project. Current used is "+ usedTplVersion +"\n" +
 								"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
 								"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
@@ -843,7 +866,7 @@ public class NgxBuilder extends MobileBuilder {
 						}
 						
 						long t1 = System.currentTimeMillis();
-						Engine.logEngine.debug("(NgxBuilder) Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
+						Engine.logEngine.debug("("+ builderType +") Application source files updated for ionic project '"+ project.getName() +"' in "+ (t1-t0) + "ms");
 					} else {
 						cleanDirectories();
 						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
@@ -872,7 +895,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic template file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic template file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -889,7 +912,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(compHtmlFile, computedTemplate, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic template file generated for component '"+comp.getName()+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic template file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -908,7 +931,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(pageScssFile, computedScss, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic scss file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic scss file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -925,7 +948,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(compScssFile, computedScss, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic scss file generated for component '"+comp.getName()+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic scss file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1261,7 +1284,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic ts file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic ts file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -1282,7 +1305,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic ts file generated for component '"+comp.getName()+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic ts file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1333,7 +1356,7 @@ public class NgxBuilder extends MobileBuilder {
 
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic routing module ts file generated for page '"+ page.getName()+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic routing module ts file generated for page '"+ page.getName()+"'");
 				}
 
 			}
@@ -1353,7 +1376,7 @@ public class NgxBuilder extends MobileBuilder {
 					writeFile(pageModuleTsFile, getPageModuleTsContent(page), "UTF-8");
 
 					if (initDone) {
-						Engine.logEngine.trace("(NgxBuilder) Ionic module file generated for page '"+pageName+"'");
+						Engine.logEngine.trace("("+ builderType +") Ionic module file generated for page '"+pageName+"'");
 					}
 				}
 			}
@@ -1370,7 +1393,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(compModuleTsFile, getCompModuleTsContent(comp), "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic module file generated for component '"+comp.getName()+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic module file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1882,7 +1905,7 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 			} catch (Exception e) {
-				Engine.logEngine.warn("(NgxBuilder) Missing component folder for pseudo-bean '"+ compbean +"' !");
+				Engine.logEngine.warn("("+ builderType +") Missing component folder for pseudo-bean '"+ compbean +"' !");
 			}
 		}
 
@@ -2135,7 +2158,7 @@ public class NgxBuilder extends MobileBuilder {
 								}
 							}
 						} catch (Exception e) {
-							Engine.logEngine.warn("(NgxBuilder) For App angular build options: "+ e.getMessage());
+							Engine.logEngine.warn("("+ builderType +") For App angular build options: "+ e.getMessage());
 						}
 
 						try {
@@ -2161,7 +2184,7 @@ public class NgxBuilder extends MobileBuilder {
 								}
 							}
 						} catch (Exception e) {
-							Engine.logEngine.warn("(NgxBuilder) For App angular build configurations: "+ e.getMessage());
+							Engine.logEngine.warn("("+ builderType +") For App angular build configurations: "+ e.getMessage());
 						}
 						
 						setNeedPkgUpdate(true);
@@ -2173,7 +2196,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) App angular json file generated");
+					Engine.logEngine.trace("("+ builderType +") App angular json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -2251,7 +2274,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) App plugins config file generated");
+					Engine.logEngine.trace("("+ builderType +") App plugins config file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -2322,7 +2345,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic package json file generated");
+					Engine.logEngine.trace("("+ builderType +") Ionic package json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -2398,7 +2421,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic service ts file generated for 'app'");
+					Engine.logEngine.trace("("+ builderType +") Ionic service ts file generated for 'app'");
 				}
 			}
 		} catch (Exception e) {
@@ -2444,7 +2467,7 @@ public class NgxBuilder extends MobileBuilder {
 
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic routing module ts file generated for 'app'");
+					Engine.logEngine.trace("("+ builderType +") Ionic routing module ts file generated for 'app'");
 				}
 
 			}
@@ -2627,7 +2650,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic module ts file generated for 'app'");
+					Engine.logEngine.trace("("+ builderType +") Ionic module ts file generated for 'app'");
 				}
 			}
 		}
@@ -2736,7 +2759,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic component ts file generated for 'app'");
+					Engine.logEngine.trace("("+ builderType +") Ionic component ts file generated for 'app'");
 				}
 			}
 		}
@@ -2783,7 +2806,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(appHtmlFile, computedTemplate, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic template file generated for app '"+appName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic template file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -2801,7 +2824,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(appScssFile, computedScss, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -2819,7 +2842,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(themeScssFile, tContent, "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Ionic theme scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("("+ builderType +") Ionic theme scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -2896,7 +2919,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeAppTheme(application);
 				writeAppRoutingTs(application);
 
-				Engine.logEngine.trace("(NgxBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
+				Engine.logEngine.trace("("+ builderType +") Application source files generated for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
@@ -2921,7 +2944,7 @@ public class NgxBuilder extends MobileBuilder {
 			writePageTemplate(page);
 
 			if (initDone) {
-				Engine.logEngine.trace("(NgxBuilder) Ionic source files generated for page '"+pageName+"'");
+				Engine.logEngine.trace("("+ builderType +") Ionic source files generated for page '"+pageName+"'");
 			}
 		}
 		catch (Exception e) {
@@ -2936,7 +2959,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeFile(deletedTsFile, "", "UTF-8");
 
 				if (initDone) {
-					Engine.logEngine.trace("(NgxBuilder) Deleted directory '"+dir+"'");
+					Engine.logEngine.trace("("+ builderType +") Deleted directory '"+dir+"'");
 				}
 			}
 		}
@@ -2961,7 +2984,7 @@ public class NgxBuilder extends MobileBuilder {
 			writeCompTemplate(comp);
 
 			if (initDone) {
-				Engine.logEngine.trace("(NgxBuilder) Ionic source files generated for component '"+compName+"'");
+				Engine.logEngine.trace("("+ builderType +") Ionic source files generated for component '"+compName+"'");
 			}
 		}
 		catch (Exception e) {
@@ -3057,7 +3080,7 @@ public class NgxBuilder extends MobileBuilder {
 					}
 					
 					if (content.equals(excontent)) {
-						Engine.logEngine.trace("(NgxBuilder) No change for " + file.getPath());
+						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
 				}
@@ -3068,11 +3091,11 @@ public class NgxBuilder extends MobileBuilder {
 						try {
 							File dir = file.getParentFile();
 							FileUtils.deleteDirectory(dir);
-							Engine.logEngine.debug("(NgxBuilder) Deleted dir " + dir.getPath());
+							Engine.logEngine.debug("("+ builderType +") Deleted dir " + dir.getPath());
 						} catch (Exception e) {}
 					} else {
 						FileUtils.write(file, content, encoding);
-						Engine.logEngine.debug("(NgxBuilder) Wrote file " + file.getPath());
+						Engine.logEngine.debug("("+ builderType +") Wrote file " + file.getPath());
 					}
 				}
 				// defers the write of file
@@ -3085,9 +3108,9 @@ public class NgxBuilder extends MobileBuilder {
 					
 					// store files modifications
 					if (file.getPath().endsWith(FakeDeleted)) {
-						Engine.logEngine.trace("(NgxBuilder) Defers the deletion of " + nFile.getParentFile().getPath());
+						Engine.logEngine.trace("("+ builderType +") Defers the deletion of " + nFile.getParentFile().getPath());
 					} else {
-						Engine.logEngine.trace("(NgxBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+						Engine.logEngine.trace("("+ builderType +") Defers the write of " + content.length() + " chars to " + nFile.getPath());
 					}
 					if (pushedFiles != null) {
 						synchronized (pushedFiles) {
@@ -3121,7 +3144,7 @@ public class NgxBuilder extends MobileBuilder {
 			synchronized (pushedFiles) {
 				int size = pushedFiles.size();
 				if (size > 0) {
-					Engine.logEngine.debug("(NgxBuilder) >>> moveFilesForce : "+ size +" files");
+					Engine.logEngine.debug("("+ builderType +") >>> moveFilesForce : "+ size +" files");
 					Map<String, CharSequence> map = new HashMap<String, CharSequence>();
 					map.putAll(Collections.unmodifiableMap(pushedFiles));
 					pushedFiles.clear();
@@ -3138,7 +3161,7 @@ public class NgxBuilder extends MobileBuilder {
 							try {
 								File dir = file.getParentFile();
 								org.apache.commons.io.FileUtils.forceDelete(dir);//FileUtils.deleteDirectory(dir);
-								Engine.logEngine.debug("(NgxBuilder) Deleted dir " + dir.getPath());
+								Engine.logEngine.debug("("+ builderType +") Deleted dir " + dir.getPath());
 								hasDeletedFiles = true;
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -3146,7 +3169,7 @@ public class NgxBuilder extends MobileBuilder {
 						} else {
 							try {
 								FileUtils.write(file, map.get(path), "UTF-8");
-								Engine.logEngine.debug("(NgxBuilder) Wrote file " + file.getPath());
+								Engine.logEngine.debug("("+ builderType +") Wrote file " + file.getPath());
 								hasMovedFiles = true;
 								if (path.endsWith("package.json") || path.endsWith("angular.json")) {
 									hasMovedCfgFiles = true;

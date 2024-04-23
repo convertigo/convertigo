@@ -48,7 +48,9 @@ import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -71,7 +73,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 	
-	transient private String tplProjectVersion = "";
+	transient private String tplProjectVersion = null;
 	
 	private String tplProjectName = defaultTplProjectName;
 	private String splitPaneLayout = "not set";
@@ -120,6 +122,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		cloned.contributors = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
+		cloned.tplProjectVersion = null;
 		
 		cloned.c8o_version = c8o_version;
 		return cloned;
@@ -1400,13 +1403,28 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 
 	public String getTplProjectVersion() {
-		try {
-			String tplVersion = getTplVersion();
-			if (tplVersion != null) {
-				tplProjectVersion = tplVersion;
+		if (tplProjectVersion == null) {
+			try {
+				//String tplVersion = getTplVersion();
+				String tplVersion = null;
+				Project p = getProject();
+				if (p != null) {
+					ComponentManager cm = ComponentManager.of(p);
+					if (!cm.isInstance()) {
+						tplVersion = cm.getTemplateProjectVersion();
+						Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from CM for component " + getQName());
+					}
+				}
+				if (tplVersion == null) {
+					tplVersion = super.getTplVersionFromBuilder();
+					Engine.logBeans.trace("(getTplProjectVersion()) version "+ tplVersion +" retrieved from super MB for component " + getQName());
+				}
+				if (tplVersion != null) {
+					tplProjectVersion = tplVersion;
+				}
+			} catch (NullPointerException e) {
+				// ignore error for BeansDefaultValues
 			}
-		} catch (NullPointerException e) {
-			// ignore error for BeansDefaultValues
 		}
 		return tplProjectVersion;
 	}
@@ -1443,7 +1461,14 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"angular.json").exists()) {
-				return true;
+				try {
+					File versionJson = new File(tplDir, "version.json");
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+					String tplVersion = new JSONObject(tsContent).getString("version");
+					String appVersion = requiredTplVersion();
+					return MobileBuilder.compareVersions(tplVersion, appVersion) >= 0;
+				} catch (Exception e) {
+				}
 			}
 		}
 		return false;
@@ -1453,7 +1478,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
 			TreeSet<String> projects = new TreeSet<String>();
-			projects.add(defaultTplProjectName);
 			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
@@ -1539,47 +1563,58 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 
 	@Override
-	public String requiredTplVersion() {
+	public String requiredTplVersion(Set<MobileComponent> done) {
+		// initialize with app component min version required
 		String tplVersion = getRequiredTplVersion();
 		
-		for (UIDynamicMenu menu : getMenuComponentList()) {
-			String menuTplVersion = menu.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
-				tplVersion = menuTplVersion;
-			}
-		}
-		
-		for (UIActionStack sa : getSharedActionList()) {
-			String saTplVersion = sa.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, saTplVersion) <= 0) {
-				tplVersion = saTplVersion;
-			}
-		}
-		
-		for (UISharedComponent sc : getSharedComponentList()) {
-			String scTplVersion = sc.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, scTplVersion) <= 0) {
-				tplVersion = scTplVersion;
-			}
-		}
-		
-		for (UIComponent uic : getUIComponentList()) {
-			String uicTplVersion = uic.requiredTplVersion();
-			if (uic instanceof UIEventSubscriber) {
-				uicTplVersion = "7.6.0.1";
+		if (done.add(this)) {
+			minTplVersion = tplVersion;
+			
+			// overwrites with target child component min version required
+			for (UIDynamicMenu menu : getMenuComponentList()) {
+				String menuTplVersion = menu.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
+					tplVersion = menuTplVersion;
+				}
 			}
 			
-			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
-				tplVersion = uicTplVersion;
+			for (UIActionStack sa : getSharedActionList()) {
+				String saTplVersion = sa.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, saTplVersion) <= 0) {
+					tplVersion = saTplVersion;
+				}
 			}
+			
+			for (UISharedComponent sc : getSharedComponentList()) {
+				String scTplVersion = sc.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, scTplVersion) <= 0) {
+					tplVersion = scTplVersion;
+				}
+			}
+			
+			for (UIComponent uic : getUIComponentList()) {
+				String uicTplVersion = uic.requiredTplVersion(done);
+				if (uic instanceof UIEventSubscriber) {
+					uicTplVersion = "7.6.0.1";
+				}
+				
+				if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+					tplVersion = uicTplVersion;
+				}
+			}
+			
+			for (PageComponent page : getPageComponentList()) {
+				String pageTplVersion = page.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, pageTplVersion) <= 0) {
+					tplVersion = pageTplVersion;
+				}
+			}
+			
+			minTplVersion = tplVersion;
+		} else {
+			tplVersion = minTplVersion;
 		}
 		
-		for (PageComponent page : getPageComponentList()) {
-			String pageTplVersion = page.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, pageTplVersion) <= 0) {
-				tplVersion = pageTplVersion;
-			}
-		}
 		return tplVersion;
 	}
 	

@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIDynamicInvoke extends UIDynamicAction {
 
@@ -182,4 +184,44 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		return getName() + " (invoke " + stackName + ")";
 	}
 	
+	@Override
+	public String requiredTplVersion(Set<MobileComponent> done) {
+		// initialize with invoke component min version required
+		String tplVersion = getRequiredTplVersion();
+		
+		if (done.add(this)) {
+			minTplVersion = tplVersion;
+			
+			// overwrites with target shared action min version required
+			if (!stack.isEmpty()) {
+				UIActionStack uias = getTargetSharedAction();
+				if (uias == null && parent == null) { // palette dnd case
+					try {
+						String projectName = stack.split("\\.")[0];
+						File f = Engine.projectFile(projectName);
+						if (f != null && f.exists()) {
+							uias = (UIActionStack) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(stack);
+						}
+					} catch (Exception e) {}
+				}
+				if (uias != null && uias.isEnabled()) {
+					tplVersion = uias.requiredTplVersion(done);
+				}
+			}
+			
+			// overwrites with target child component min version required
+			for (UIComponent uic : getUIComponentList()) {
+				String uicTplVersion = uic.requiredTplVersion(done);
+				if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+					tplVersion = uicTplVersion;
+				}
+			}
+			
+			minTplVersion = tplVersion;
+		} else {
+			tplVersion = minTplVersion;
+		}
+		
+		return tplVersion;
+	}
 }

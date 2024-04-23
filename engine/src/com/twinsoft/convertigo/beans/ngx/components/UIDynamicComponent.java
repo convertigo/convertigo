@@ -21,11 +21,13 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIDynamicComponent extends UIDynamicElement {
@@ -58,6 +60,35 @@ public class UIDynamicComponent extends UIDynamicElement {
 		return "1.0.100";
 	}
 
+	protected String getCompName() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			String compName = ionBean.getComponent(); // since TPL 8.3.0.0
+			if ("component".equals(compName)) {
+				compName = ionBean.getName(); // before TPL 8.3.0.0
+			}
+			return compName;
+		}
+		return "unknow";
+	}
+	
+	private boolean isValid() {
+		File dir = ComponentManager.of(this).getCompBeanDir(getCompName());
+		return dir != null && dir.exists() && dir.isDirectory();
+	}
+	
+	
+	@Override
+	public String computeTemplate() {
+		if (isValid()) {
+			return super.computeTemplate();
+		}
+		String templateProjectName = ComponentManager.of(this).getTemplateProjectName();
+		String invalidText = getCompName() + " (tagname: " + getTagName() + ")";
+		Engine.logBeans.warn(invalidText + " does not exists in "+ templateProjectName);
+		return "<!-- Warn:" + invalidText + " does not exists in "+ templateProjectName + "-->" + System.getProperty("line.separator");
+	}
+
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement#getContributor()
 	 */
@@ -68,81 +99,78 @@ public class UIDynamicComponent extends UIDynamicElement {
 
 			@Override
 			public Map<String, String> getActionTsFunctions() {
-				return contributor.getActionTsFunctions();
+				return isValid() ? contributor.getActionTsFunctions() : new HashMap<String, String>();
 			}
 
 			@Override
 			public Map<String, String> getActionTsImports() {
-				return contributor.getActionTsImports();
+				return isValid() ? contributor.getActionTsImports() : new HashMap<String, String>();
 			}
 
 			@Override
 			public Map<String, File> getCompBeanDir() {
 				Map<String, File> map = new HashMap<String, File>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					String compName = ionBean.getComponent();//ionBean.getName();
-					File dir = ComponentManager.getCompBeanDir(compName);
-					if (dir != null) {
-						map.put(compName, dir);
-					}
+				String compName = getCompName();
+				File dir = ComponentManager.of(getContainer()).getCompBeanDir(compName);
+				if (dir != null) {
+					map.put(compName, dir);
 				}
 				return map;
 			}
 
 			@Override
 			public Map<String, String> getModuleTsImports() {
-				return contributor.getModuleTsImports();
+				return isValid() ? contributor.getModuleTsImports() : new HashMap<String, String>();
 			}
 
 			@Override
 			public Set<String> getModuleNgImports() {
-				return contributor.getModuleNgImports();
+				return isValid() ? contributor.getModuleNgImports() : new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getModuleNgProviders() {
-				return contributor.getModuleNgProviders();
+				return isValid() ? contributor.getModuleNgProviders() : new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getModuleNgDeclarations() {
-				return contributor.getModuleNgDeclarations();
+				return isValid() ? contributor.getModuleNgDeclarations() : new HashSet<String>();
 			}
 			
 			@Override
 			public Set<String> getModuleNgComponents() {
-				return contributor.getModuleNgComponents();
+				return isValid() ? contributor.getModuleNgComponents() : new HashSet<String>();
 			}
 			
 			@Override
 			public Map<String, String> getPackageDependencies() {
-				return contributor.getPackageDependencies();
+				return isValid() ? contributor.getPackageDependencies() : new HashMap<String, String>();
 			}
 
 			@Override
 			public Map<String, String> getConfigPlugins() {
-				return contributor.getConfigPlugins();
+				return isValid() ? contributor.getConfigPlugins() : new HashMap<String, String>();
 			}
 			
 			@Override
 			public Set<String> getModuleNgRoutes(String pageSegment) {
-				return contributor.getModuleNgRoutes(pageSegment);
+				return isValid() ? contributor.getModuleNgRoutes(pageSegment) : new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildAssets() {
-				return contributor.getBuildAssets();
+				return isValid() ? contributor.getBuildAssets() : new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildScripts() {
-				return contributor.getBuildScripts();
+				return isValid() ? contributor.getBuildScripts() : new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildStyles() {
-				return contributor.getBuildStyles();
+				return isValid() ? contributor.getBuildStyles() : new HashSet<String>();
 			}
 		};
 	}

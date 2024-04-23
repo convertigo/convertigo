@@ -27,6 +27,8 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -696,17 +698,34 @@ public class ReadmeBuilder {
 		}
 	}
 	
+	private static String getIconUrl(DatabaseObject dbo) {
+		String iconName = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+		if (iconName.startsWith("/com/twinsoft/convertigo")) {
+			return "https://github.com/convertigo/convertigo/blob/develop/engine/src" + iconName;
+		}
+		try {
+			File f = new File(iconName);
+			if (f.exists() && f.isFile()) {
+				Path fPath = Paths.get(f.getCanonicalPath());
+				Path pPath = Paths.get(dbo.getProject().getDirFile().getCanonicalPath());
+				String relPath = pPath.relativize(fPath).toString().replace('\\', '/');
+				return "./" + relPath;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "./unknow.png";
+	}
+	
 	private static String getC8oIconMd(DatabaseObject dbo) {
 		String dboClass = dbo.getClass().getSimpleName();
-		String iconUrl = "https://github.com/convertigo/convertigo/blob/develop/engine/src" + 
-				MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+		String iconUrl = getIconUrl(dbo);
 		return "![]("+iconUrl+"?raw=true \""+ dboClass +"\")";
 	}
 	
 	private static String getC8oIconImg(DatabaseObject dbo) {
 		String dboClass = dbo.getClass().getSimpleName();
-		String iconUrl = "https://github.com/convertigo/convertigo/blob/develop/engine/src" + 
-				MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+		String iconUrl = getIconUrl(dbo);
 		return "<img src=\""+ iconUrl+"?raw=true \"  alt=\""+dboClass+"\" >";
 	}
 	

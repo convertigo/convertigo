@@ -178,7 +178,7 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 			public Map<String, File> getCompBeanDir() {
 				Map<String, File> map = new HashMap<String, File>();
 				for (String compName: contributor.getModuleNgComponents()) {
-					File dir = ComponentManager.getCompBeanDir(compName);
+					File dir = ComponentManager.of(getContainer()).getCompBeanDir(compName);
 					if (dir != null) {
 						map.put(compName, dir);
 					}

@@ -100,7 +100,7 @@ public class DboUtils {
 		if (jsonData.has("type")) {
 			var type = jsonData.getString("type");
 			if (type.equals("paletteData")) {
-				return createDboFromPalette(jsonData);
+				return createDboFromPalette(jsonData, parentDbo);
 			} else if (type.equals("treeData")) {
 				return createDboFromTree(jsonData, parentDbo);
 			}
@@ -108,7 +108,7 @@ public class DboUtils {
 		return null;
 	}
 
-	static private DatabaseObject createDboFromPalette(JSONObject jsonData) throws Exception {
+	static private DatabaseObject createDboFromPalette(JSONObject jsonData, DatabaseObject parentDbo) throws Exception {
 		DatabaseObject dbo = null;
 
 		JSONObject jsonItem = jsonData.getJSONObject("data");
@@ -127,10 +127,10 @@ public class DboUtils {
 			if (kind.equals("ngx")) {
 				var ionBeanName = dboId.split(" ")[1];
 				com.twinsoft.convertigo.beans.ngx.components.dynamic.Component component = null;
-				component = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+				component = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parentDbo)
 						.getComponentByName(ionBeanName);
 				if (component != null) {
-					dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+					dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parentDbo)
 							.createBeanFromHint(component);
 				}
 			}

@@ -61,7 +61,8 @@ class ComponentExplorerWizardPage extends WizardPage {
 		Component c = getCurrentSelectedComponent();
 		if (c != null) {
 			try {
-				newBean = ComponentManager.createBeanFromHint(c);
+				ComponentManager cm = ComponentManager.of(c.getTemplateProjectName());
+				newBean = cm.createBeanFromHint(c);
 			} catch (Exception e) {
 				newBean = null;
 			}

@@ -77,11 +77,11 @@ public class Get extends JSonService {
 					var node = elt.getFirstChild();
 					while (node != null) {
 						if (node instanceof Element e && e.getNodeName().equals("property")) {
-							addDboProperties(props, e);
+							addDboProperties(dbo, props, e);
 						}
 						node = node.getNextSibling();
 					}
-					addInfosProperties(props, dbo);
+					addInfosProperties(dbo, props);
 				}
 			}
 		}
@@ -89,7 +89,7 @@ public class Get extends JSonService {
 		response.put("id", id);
 	}
 
-	protected void addInfosProperties(JSONObject props, DatabaseObject dbo) {
+	protected void addInfosProperties(DatabaseObject dbo, JSONObject props) {
 		try {
 			JSONObject info = new JSONObject().put("category", "Information").put("isDisabled", true);
 
@@ -166,7 +166,7 @@ public class Get extends JSonService {
 				.put("isDisabled", true));
 	}
 
-	protected void addDboProperties(JSONObject props, Element elt) throws Exception {
+	protected void addDboProperties(DatabaseObject dbo, JSONObject props, Element elt) throws Exception {
 		JSONObject property = new JSONObject();
 
 		NamedNodeMap map = elt.getAttributes();
@@ -188,7 +188,7 @@ public class Get extends JSonService {
 		var nodeName = fc.getNodeName();
 		if (fc instanceof Element c && c.hasAttribute("value")) {
 			if ("beanData".equals(displayName)) {
-				addIonProperties(props, c.getAttribute("value"));
+				addIonProperties(dbo, props, c.getAttribute("value"));
 			} else {
 				property.put("value", c.getAttribute("value"));
 			}
@@ -236,8 +236,8 @@ public class Get extends JSonService {
 		}
 	}
 
-	protected void addIonProperties(JSONObject props, String beanData) throws Exception {
-		com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
+	protected void addIonProperties(DatabaseObject dbo, JSONObject props, String beanData) throws Exception {
+		com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(dbo)
 				.loadBean(beanData);
 		for (com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty ionProperty : ionBean.getProperties()
 				.values()) {

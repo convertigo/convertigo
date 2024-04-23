@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -760,42 +759,60 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	@Override
 	public String generateXsdRequestData() throws Exception {
 		String prefix = getXsdTypePrefix();
-    	
     	String xsdRequestData = null;
     	RequestableVariable variable = null;
-    	xsdRequestData = 	"  <xsd:complexType name=\""+ prefix + getName() + "RequestData\">\n";
-		//xsdRequestData += 	"    <xsd:annotation>\n";
-		//xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		//xsdRequestData += 	"    </xsd:annotation>\n";
-    	xsdRequestData +=	"    <xsd:sequence>\n";
+    	var doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+    	var root = doc.createElement("xsd:complexType");
+    	doc.appendChild(root);
+    	root.setAttribute("name", prefix + getName() + "RequestData");
+    	var seq = doc.createElement("xsd:sequence");
+    	root.appendChild(seq);
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
 			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
-					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
-					xsdRequestData += "        <xsd:annotation>\n";
-					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
-					xsdRequestData += "        </xsd:annotation>\n";
-					xsdRequestData += "        <xsd:complexType>\n";
-					xsdRequestData += "          <xsd:sequence>\n";
-					xsdRequestData += "            <xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"item\" type=\""+variable.getSchemaType()+"\" />\n";
-					xsdRequestData += "          </xsd:sequence>\n";
-					xsdRequestData += "        </xsd:complexType>\n";
-					xsdRequestData += "      </xsd:element>\n";
+					var el = doc.createElement("xsd:element");
+					el.setAttribute("minOccurs", "1");
+					el.setAttribute("maxOccurs", "1");
+					el.setAttribute("name", variable.getName());
+					seq.appendChild(el);
+					var elAnnot = doc.createElement("xsd:annotation");
+					el.appendChild(elAnnot);
+					var elDoc = doc.createElement("xsd:documentation");
+					elDoc.setTextContent(variable.getComment());
+					elAnnot.appendChild(elDoc);
+					var elAppinfo = doc.createElement("xsd:appinfo");
+					elAppinfo.setTextContent(variable.getDescription());
+					elAnnot.appendChild(elAppinfo);
+					var elType = doc.createElement("xsd:complexType");
+					el.appendChild(elType);
+					var elSeq = doc.createElement("xsd:sequence");
+					elType.appendChild(elSeq);
+					var elItem = doc.createElement("xsd:element");
+					elItem.setAttribute("minOccurs", "0");
+					elItem.setAttribute("maxOccurs", "unbounded");
+					elItem.setAttribute("name", "item");
+					elItem.setAttribute("type", variable.getSchemaType());
+					elSeq.appendChild(elItem);
 				}
 				else {
-					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" type=\""+variable.getSchemaType()+"\">\n";
-					xsdRequestData += "        <xsd:annotation>\n";
-					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
-					xsdRequestData += "        </xsd:annotation>\n";
-					xsdRequestData += "      </xsd:element>\n";
+					var el = doc.createElement("xsd:element");
+					el.setAttribute("minOccurs", "1");
+					el.setAttribute("maxOccurs", "1");
+					el.setAttribute("name", variable.getName());
+					el.setAttribute("type", variable.getSchemaType());
+					seq.appendChild(el);
+					var elAnnot = doc.createElement("xsd:annotation");
+					el.appendChild(elAnnot);
+					var elDoc = doc.createElement("xsd:documentation");
+					elDoc.setTextContent(variable.getComment());
+					elAnnot.appendChild(elDoc);
+					var elAppinfo = doc.createElement("xsd:appinfo");
+					elAppinfo.setTextContent(variable.getDescription());
 				}
 			}
 		}
-		xsdRequestData +=	"    </xsd:sequence>\n";
-		xsdRequestData +=	"  </xsd:complexType>\n";
+		xsdRequestData = XMLUtils.prettyPrintDOM(root).replaceFirst(".*?(<xsd)","$1");
     	return xsdRequestData;
     }
     

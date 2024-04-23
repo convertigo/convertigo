@@ -24,6 +24,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 	
 public abstract class Component {
+	public abstract String getTemplateProjectName();
 	public abstract String getDescription();
 	public abstract String getName();
 	public abstract String getGroup();

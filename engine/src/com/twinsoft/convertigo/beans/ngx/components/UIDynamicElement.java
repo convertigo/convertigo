@@ -85,7 +85,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		super.configure(element);
 
 		// load bean data
-		loadBean();
+		//loadBean();
 	}
 	
 	@Override
@@ -100,14 +100,23 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	protected void loadBean() throws Exception {
 		if (ionBean == null && beanData != null) {
-			ionBean = ComponentManager.loadBean(beanData);
+			if (this.parent == null) {
+				System.out.println("WARN - loading beanData without cm");
+			}
+			ionBean = ComponentManager.of(this).loadBean(beanData);
 		}
 	}
 	
-	protected void saveBean() {
+	public void saveBean() {
 		if (ionBean != null) {
 			beanData = ionBean.toBeanData();
     	}
+	}
+	
+	public void loadBean(ComponentManager cm) throws Exception {
+		if (cm != null /*&& ionBean == null*/ && beanData != null) {
+			ionBean = cm.loadBean(beanData);
+		}
 	}
 	
 	public IonBean getIonBean() {
@@ -414,6 +423,16 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 	@Override
 	protected String getRequiredTplVersion() {
+		if (parent == null && ionBean == null) {
+			if (beanData != null) {
+				try {
+					IonBean ion = new IonBean(beanData);
+					return ion.getTplVersion();
+				} catch (Exception e) {}
+			}
+			return "";
+		}
+		
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			return ionBean.getTplVersion();
@@ -564,16 +583,28 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 			@Override
 			public Set<String> getBuildAssets() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildAssets();
+				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildScripts() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildScripts();
+				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getBuildStyles() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getBuildStyles();
+				}
 				return new HashSet<String>();
 			}
 		};

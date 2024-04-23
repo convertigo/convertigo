@@ -51,16 +51,18 @@ public class ProjectReferenceComposite extends Composite {
 		super(parent, style);
 		this.parser = parser;
 
-		setLayout(new GridLayout(2, false));
+		var gl = new GridLayout(2, false);
+		gl.verticalSpacing = 0;
+		setLayout(gl);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.horizontalSpan = 2;
 		Label label = new Label(this , SWT.NONE);
 		label.setLayoutData(gd);
-		label.setText("<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]\n\n");
+		label.setText("<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]\n");
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Project remote URL");
-		completGitUrl = new Text(this, SWT.NONE);
+		completGitUrl = new Text(this, SWT.SINGLE | SWT.BORDER);
 		completGitUrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		completGitUrl.addModifyListener(e -> {
 			if (!userEvent) {
@@ -84,11 +86,12 @@ public class ProjectReferenceComposite extends Composite {
 
 		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.horizontalSpan = 2;
+		gd.heightHint = 20;
 		new Label(this, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(gd);
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Project name");
-		projectName = new Text(this, SWT.NONE);
+		projectName = new Text(this, SWT.SINGLE | SWT.BORDER);
 		projectName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		projectName.addModifyListener(e -> {
 			if (!userEvent) {
@@ -104,7 +107,7 @@ public class ProjectReferenceComposite extends Composite {
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Git or http URL");
-		gitUrl = new Text(this, SWT.NONE);
+		gitUrl = new Text(this, SWT.SINGLE | SWT.BORDER);
 		gitUrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		gitUrl.addModifyListener(e -> {
 			if (!userEvent) {
@@ -120,7 +123,7 @@ public class ProjectReferenceComposite extends Composite {
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Project Path");
-		projectPath = new Text(this, SWT.NONE);
+		projectPath = new Text(this, SWT.SINGLE | SWT.BORDER);
 		projectPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		projectPath.addModifyListener(e -> {
 			if (!userEvent) {
@@ -136,7 +139,7 @@ public class ProjectReferenceComposite extends Composite {
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Git branch");
-		gitBranch = new Text(this, SWT.NONE);
+		gitBranch = new Text(this, SWT.SINGLE | SWT.BORDER);
 		gitBranch.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		gitBranch.addModifyListener(e -> {
 			if (!userEvent) {

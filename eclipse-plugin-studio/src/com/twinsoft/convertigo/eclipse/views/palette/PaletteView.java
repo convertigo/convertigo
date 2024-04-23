@@ -87,6 +87,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
@@ -127,6 +128,7 @@ public class PaletteView extends ViewPart {
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
 	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
+	private Project selectedProject = null;
 
 	private abstract class Item implements Comparable<Item> {
 		private String shortDescription;
@@ -216,8 +218,12 @@ public class PaletteView extends ViewPart {
 		} else if (imageCache.containsKey(imagePath)) {
 			image = imageCache.get(imagePath);
 		} else {
-			image = new Image(handCursor.getDevice(), imagePath);
-			imageCache.put(imagePath, image);
+			try {
+				image = new Image(handCursor.getDevice(), imagePath);
+				imageCache.put(imagePath, image);
+			} catch (Exception e) {
+				System.out.println("Cannot load image " + imagePath);
+			}
 		}
 		return image;
 	}
@@ -604,7 +610,8 @@ public class PaletteView extends ViewPart {
 				}
 			};
 
-			for (Component comp: ComponentManager.getComponentsByGroup()) {
+			ComponentManager cm = ComponentManager.of(selectedProject);
+			for (Component comp: cm.getComponentsByGroup()) {
 				String id = "ngx " + comp.getName();
 				all.put(id, new Item() {
 
@@ -630,11 +637,16 @@ public class PaletteView extends ViewPart {
 
 					@Override
 					DatabaseObject newDatabaseObject() {
-						return isCtrl[0] ? ComponentManager.createBean(comp) : ComponentManager.createBeanFromHint(comp);
+						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
+						return dbo;
 					}
 
 					@Override
 					boolean allowedIn(DatabaseObject parent) {
+						/*if (!cm.equals(ComponentManager.of(parent))) {
+							return false;
+						}*/
+					
 						if (isType[0]) {
 							return parent instanceof ApplicationComponent;
 						}
@@ -1068,6 +1080,15 @@ public class PaletteView extends ViewPart {
 									PaletteView.this.parent.setData("FolderType", folderType);
 									PaletteView.this.parent.setData("Selected", selected);
 									PaletteView.this.parent.setData("Parent", parent);
+									if (selected != null) {
+										var project = selected.getProject();
+										if (project != selectedProject) {
+											selectedProject = project;
+											refresh();
+										}
+									} else {
+										selectedProject = null;
+									}
 									if (clear == true) {
 										searchText.setText("");
 									} else {
@@ -1107,9 +1128,11 @@ public class PaletteView extends ViewPart {
 					public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 						if (bag.isDisposed()) {
 							pev.removeTreeObjectListener(this);
+							return;
 						}
 						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+							selectedProject = null;
 							refresh();
 						}
 					}
@@ -1130,9 +1153,11 @@ public class PaletteView extends ViewPart {
 					public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 						if (bag.isDisposed()) {
 							pev.removeTreeObjectListener(this);
+							return;
 						}
 						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+							selectedProject = null;
 							refresh();
 						}
 					}
@@ -1189,7 +1214,7 @@ public class PaletteView extends ViewPart {
 	
 	private void refresh(long threshold) {
 		Engine.execute(() -> {
-			ComponentManager.reloadComponents();
+			ComponentManager.of(selectedProject).reloadComponents();
 			parent.getDisplay().asyncExec(() -> {
 				String txt = searchText != null ? searchText.getText() : null;
 				for (Control c: parent.getChildren()) {

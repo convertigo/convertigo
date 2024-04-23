@@ -1532,7 +1532,7 @@
 				label="Delete"
 				menubarPath="project" />
 		</objectContribution>
-		<!--objectContribution
+		<objectContribution
       		id="convertigo.webServiceContribution"
       		objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject">
          <action
@@ -1545,7 +1545,7 @@
                		<objectState name="canUpdate" value="true" />
                </enablement>
          </action>
-	  </objectContribution-->
+		</objectContribution>
 		<objectContribution
 			id="convertigo.transactionContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">

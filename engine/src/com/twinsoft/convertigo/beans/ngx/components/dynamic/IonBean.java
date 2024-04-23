@@ -64,6 +64,7 @@ public class IonBean {
 	private JSONObject jsonBean;
 	private String beanData;
 	private IonConfig ionConfig;
+	private String imageFolder = "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/";
 	
 	public IonBean() {
 		try {
@@ -107,6 +108,10 @@ public class IonBean {
 				}
 			}
 		}
+	}
+	
+	public void setImageFolder(String imageFolder) {
+		this.imageFolder = imageFolder;
 	}
 	
 	public synchronized String toBeanData() {
@@ -333,10 +338,10 @@ public class IonBean {
 		}
 	}
 	public String getIconColor16Path() {
-		return "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/"+ getIcon16();
+		return imageFolder + getIcon16();
 	}
 	public String getIconColor32Path() {
-		return "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/"+ getIcon32();
+		return imageFolder + getIcon32();
 	}
 	
 	public boolean hasProperty(String propertyName) {

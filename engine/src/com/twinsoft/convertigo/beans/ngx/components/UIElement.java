@@ -53,7 +53,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	/*
 	 * The tagname
 	 */
-	protected String tagName = defaultBeanName("");
+	protected String tagName = "tag";
 	
 	public String getTagName() {
 		return tagName;
@@ -272,8 +272,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	@Override
 	public String computeTemplate() {
 		if (isDeprecated()) {
-			Engine.logEngine.warn(getTagName() + " is deprecated for project's ionic used version");
-			return "<!-- Warn:" + getTagName() + " is deprecated -->" + System.getProperty("line.separator");
+			String deprecationText = getName() + " (tagname: " + getTagName() + ")";
+			Engine.logBeans.warn(deprecationText + " is deprecated or does not exists");
+			return "<!-- Warn:" + deprecationText + " is deprecated or does not exists -->" + System.getProperty("line.separator");
 		}
 		
 		if (isEnabled()) {
@@ -389,18 +390,4 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	public String[] getTagsForProperty(String propertyName) {
 		return new String[0];
 	}
-	
-	@Override
-	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(tagName)) {
-			tagName = com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName);
-			hasChanged = true;
-		}
-	}
-	
-	@Override
-	protected String defaultBeanName(String displayName) {
-		return "tag";
-	}
-
 }

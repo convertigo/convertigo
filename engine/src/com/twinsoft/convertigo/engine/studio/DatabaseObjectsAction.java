@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.rest.BodyParameter;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
@@ -320,7 +321,7 @@ public class DatabaseObjectsAction {
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.UpdateReferenceAction": {
-				actionModel.isEnabled = dbo instanceof WebServiceReference;
+				actionModel.isEnabled = dbo instanceof WebServiceReference || dbo instanceof ProjectSchemaReference;
 			}
 			break;
 			

@@ -60,6 +60,7 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -2466,9 +2467,39 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void reloadProject(TreeObject projectTreeObject) {
-		((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+		ConvertigoPlugin.syncExec(() -> {
+			((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+		});
 	}
 
+	public void reloadProjectAndDeleteNodeModules(ProjectTreeObject projectTreeObject) {
+		// reload project
+		((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+		
+		// delete node modules and alert user
+		final File nodeModules = new File(projectTreeObject.getObject().getProject().getDirPath(), "/_private/ionic/node_modules");
+		if (nodeModules.exists()) {
+			try {
+				ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
+				dialog.open();
+				dialog.run(true, false, new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
+						String alert = "template changed!";
+						if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
+							alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
+						} else {
+							alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
+						}
+						monitor.done();
+						ConvertigoPlugin.infoMessageBox(alert);
+					}
+				});
+			} catch (Exception e) {}
+		}
+	}
+	
 	public void refreshTree() {
 		viewer.refresh();
 	}
