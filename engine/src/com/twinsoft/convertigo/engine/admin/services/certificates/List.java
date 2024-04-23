@@ -193,6 +193,7 @@ public class List extends XmlService {
 			Element bindingElement = document.createElement("binding");
 			bindingElement.setAttribute("projectName", convProject);
 			bindingElement.setAttribute("certificateName", certificateName);
+			bindingElement.setAttribute("link", link);
 			anonymous.appendChild(bindingElement);
 
 		}
@@ -268,6 +269,7 @@ public class List extends XmlService {
 			bindingElement.setAttribute("imputationGroup", group);
 			bindingElement.setAttribute("userName", user);
 			bindingElement.setAttribute("certificateName", certificateName);
+			bindingElement.setAttribute("link", link);
 			carioca.appendChild(bindingElement);
 		}
 	}

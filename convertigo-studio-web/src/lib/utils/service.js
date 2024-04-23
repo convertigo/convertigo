@@ -75,7 +75,7 @@ export async function call(service, data = {}) {
 		dataContent = await res.json();
 	}
 
-	handleStateMessage(dataContent);
+	handleStateMessage(dataContent, service);
 	return dataContent;
 }
 
@@ -105,7 +105,7 @@ function handleServiceLoading(isLoading, serviceName = '') {
 	}
 }
 
-function handleStateMessage(dataContent) {
+function handleStateMessage(dataContent, service) {
 	try {
 		if (!toastNotif) {
 			return;
@@ -115,17 +115,27 @@ function handleStateMessage(dataContent) {
 			dataContent?.admin?.response ||
 			dataContent?.admin?.keys?.key ||
 			dataContent?.admin ||
-			dataContent?.admin?.message ||
-			dataContent?.error?.message;
+			dataContent?.error?.message ||
+			dataContent?.error;
 
 		let toastStateBody =
 			stateMessage?.['@_message'] ||
 			stateMessage?.['@_errorMessage'] ||
 			stateMessage?.message ||
-			stateMessage?.problem;
+			stateMessage?.problem ||
+			stateMessage?.error ||
+			(service.endsWith('.List') || service.endsWith('Authentication')
+				? false
+				: typeof stateMessage == 'string'
+					? stateMessage
+					: 'ok');
 
 		if (toastStateBody) {
-			let isError = stateMessage?.['@_state'] === 'error' || !!stateMessage?.['@_errorMessage'];
+			let isError =
+				stateMessage?.['@_state'] === 'error' ||
+				!!stateMessage?.['@_errorMessage'] ||
+				stateMessage?.error ||
+				dataContent?.error;
 			let problem = stateMessage?.problem;
 
 			let background;
@@ -280,4 +290,26 @@ export function equalsObj(o1, o2) {
 	console.log('o1', JSON.stringify(o1));
 	console.log('o2', JSON.stringify(o2));
 	return JSON.stringify(o1) == JSON.stringify(o2);
+}
+
+export function createFormDataFromParent(parent) {
+	const formData = new FormData();
+	const formElements = parent.querySelectorAll('input, select, textarea');
+	formElements.forEach((element) => {
+		if (element.type === 'checkbox' || element.type === 'radio') {
+			if (element.checked) {
+				formData.append(element.name, element.value);
+			}
+		} else {
+			formData.append(element.name, element.value);
+		}
+	});
+	return formData;
+}
+
+/**
+ * @param {any} array
+ */
+export function checkArray(array) {
+	return Array.isArray(array) ? array : array ?? false ? [array] : [];
 }
