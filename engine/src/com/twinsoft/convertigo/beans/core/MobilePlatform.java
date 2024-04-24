@@ -26,6 +26,8 @@ import org.apache.commons.io.FileUtils;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -70,7 +72,11 @@ public abstract class MobilePlatform extends DatabaseObject {
 	@Override
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
-		checkFolder();
+		if (isImporting) {
+			DatabaseObjectsManager.getProjectLoadingData().addAfterLoaded(() -> checkFolder());
+		} else {
+			checkFolder();
+		}
 	}
 	
 	@Override
@@ -90,11 +96,22 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	
 	private void checkFolder() {
-		if (Engine.isCliMode()) {
-			return;
+		File templateFolder = null;
+		try {
+			var tplDir = ComponentManager.of(this).getTemplateProjectDir();
+			templateFolder = new File(tplDir, "ionicTpl/platforms/" + getClass().getSimpleName());
+			if (!templateFolder.exists()) {
+				templateFolder = null;
+			}
+		} catch (Exception e) {
 		}
-		File folder = getResourceFolder();
-		File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
+		if (templateFolder == null) {
+			if (Engine.isCliMode()) {
+				return;
+			}
+			templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
+		}
+		var folder = getResourceFolder();
 
 		try {
 			if (!folder.exists()) {

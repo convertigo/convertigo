@@ -137,6 +137,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 
 		public File getProject(String projectName);
+
+		public void reloadProject(String name) throws EngineException;
 	}
 
 	public static StudioProjects studioProjects = new StudioProjects() {
@@ -155,6 +157,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 				file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 			}
 			return file.exists() ? file : null;
+		}
+
+		@Override
+		public void reloadProject(String name) throws EngineException {
+			Engine.theApp.databaseObjectsManager.importProject(Engine.projectFile(name), true);
 		}
 	};
 
@@ -280,6 +287,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		private String projectName;
 		public boolean undefinedGlobalSymbol = false;
 		public Set<Pair<String, String>> defaultSymbols = null;
+		public List<Runnable> afterLoaded = null;
+		
+		public void addAfterLoaded(Runnable runnable) {
+			if (afterLoaded == null) {
+				afterLoaded = new ArrayList<>();
+			}
+			afterLoaded.add(runnable);
+		}
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {
@@ -1235,6 +1250,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 					.info("[importProject] start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
+			if (getProjectLoadingData().afterLoaded != null) {
+				for (var run: getProjectLoadingData().afterLoaded) {
+					run.run();
+				}
+			}
 			Engine.logDatabaseObjectManager
 					.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
 

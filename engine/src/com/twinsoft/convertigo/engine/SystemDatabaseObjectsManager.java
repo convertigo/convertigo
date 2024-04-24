@@ -30,6 +30,12 @@ class SystemDatabaseObjectsManager extends DatabaseObjectsManager {
 		public File getProject(String projectName) {
 			return null;
 		}
+
+		@Override
+		public void reloadProject(String name) throws EngineException {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	};
 	

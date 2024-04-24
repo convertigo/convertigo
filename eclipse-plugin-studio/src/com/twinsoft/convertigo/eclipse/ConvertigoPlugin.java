@@ -1898,4 +1898,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			// job manager is probably stopped
 		}
 	}
+
+	@Override
+	public void reloadProject(String name) throws EngineException {
+		EngineException[] ex = {null};
+		syncExec(() -> {
+			try {
+				var pev = getProjectExplorerView();
+				pev.reloadProject(pev.getProjectRootObject(name));
+			} catch (EngineException e) {
+				ex[0] = e;
+			}
+		});
+		if (ex[0] != null) {
+			throw ex[0];
+		}
+	}
 }

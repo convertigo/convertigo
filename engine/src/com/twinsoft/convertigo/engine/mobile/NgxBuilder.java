@@ -479,7 +479,8 @@ public class NgxBuilder extends MobileBuilder {
 		FileFilter ff = new FileFilter() {
 			@Override
 			public boolean accept(File file) {
-				return (file.isDirectory() && file.getName().equals("ion")) ? false : true;
+				var name = file.getName();
+				return (file.isDirectory() && (name.equals("ion") || name.equals("platforms"))) ? false : true;
 			}
 		};
 		try {
