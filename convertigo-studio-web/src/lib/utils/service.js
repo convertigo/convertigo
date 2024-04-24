@@ -110,6 +110,9 @@ function handleStateMessage(dataContent, service) {
 		if (!toastNotif) {
 			return;
 		}
+		if (service == 'engine.JsonMonitor') {
+			return;
+		}
 
 		let stateMessage =
 			dataContent?.admin?.response ||
@@ -128,8 +131,11 @@ function handleStateMessage(dataContent, service) {
 				? false
 				: typeof stateMessage == 'string'
 					? stateMessage
-					: 'ok');
+					: !toastNotif);
 
+		if (service.startsWith('engine')) {
+			toastStateBody == null;
+		}
 		if (toastStateBody) {
 			let isError =
 				stateMessage?.['@_state'] === 'error' ||

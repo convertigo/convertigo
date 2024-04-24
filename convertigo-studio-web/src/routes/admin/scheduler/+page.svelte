@@ -18,12 +18,13 @@
 		await schedulerList();
 	});
 
-	function openModals(jobTypeFromRow, context = 'create') {
+	function openModals(jobTypeFromRow, context = 'create', existingCron = '* * * * *') {
 		const jobType =
 			{
 				TransactionConvertigoJob: 'TransactionConvertigoJob',
 				SequenceConvertigoJob: 'SequenceConvertigoJob',
-				JobGroupJob: 'JobGroupJob'
+				JobGroupJob: 'JobGroupJob',
+				schedulerNewScheduleCron: 'schedulerNewScheduleCron'
 			}[jobTypeFromRow] || 'defaultType';
 
 		const action = context === 'edit' ? 'Edit' : 'New';
@@ -31,13 +32,14 @@
 			TransactionConvertigoJob: 'Job Transaction',
 			SequenceConvertigoJob: 'Job Sequence',
 			JobGroupJob: 'Jobs Group',
+			schedulerNewScheduleCron: 'Cron',
 			defaultType: 'Job'
 		}[jobType];
 
 		modalStore.trigger({
 			type: 'component',
 			component: 'modalScheduler',
-			meta: { mode: jobType, context },
+			meta: { mode: jobType, context, cronExpression: existingCron },
 			title: `${action} ${jobName}`
 		});
 	}
@@ -59,25 +61,31 @@
 
 <Card title="Jobs" class="">
 	<div slot="cornerOption">
-		<div class="mb-5 flex flex-wrap space-x-1">
-			<button
-				class="bg-primary-400-500-token min-w-auto md:w-60"
-				on:click={() => openModals('TransactionConvertigoJob')}
-			>
-				<p>New Job Transaction</p>
-			</button>
-			<button
-				class="bg-primary-400-500-token min-w-auto md:w-60"
-				on:click={() => openModals('SequenceConvertigoJob')}
-			>
-				<p>New Job Sequence</p>
-			</button>
-			<button
-				class="bg-primary-400-500-token min-w-auto md:w-60"
-				on:click={() => openModals('JobGroupJob')}
-			>
-				<p>New Job Group</p>
-			</button>
+		<div class="mb-5 flex flex-wrap gap-2 pl-5">
+			<div class="flex-1">
+				<button
+					class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
+					on:click={() => openModals('TransactionConvertigoJob')}
+				>
+					<p>New Job Transaction</p>
+				</button>
+			</div>
+			<div class="flex-1">
+				<button
+					class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
+					on:click={() => openModals('SequenceConvertigoJob')}
+				>
+					<p>New Job Sequence</p>
+				</button>
+			</div>
+			<div class="flex-1">
+				<button
+					class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
+					on:click={() => openModals('JobGroupJob')}
+				>
+					<p>New Job Group</p>
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -122,9 +130,12 @@
 
 <Card title="Schedules" class="mt-5">
 	<div slot="cornerOption">
-		<div class="mb-5 flex flex-wrap space-x-1">
+		<div class="mb-5 flex flex-wrap gap-2">
 			<div class="flex-1">
-				<button class="bg-primary-400-500-token min-w-auto md:w-60">
+				<button
+					class="bg-primary-400-500-token min-w-auto md:w-60"
+					on:click={() => openModals('schedulerNewScheduleCron')}
+				>
 					<p>New Cron</p>
 				</button>
 			</div>
@@ -144,6 +155,7 @@
 				class: (row) =>
 					row['@_enabled'] === 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
 			},
+			{ name: 'Type', key: '@_type' },
 			{ name: 'Name', key: '@_name' },
 			{ name: 'Description', key: '@_description' },
 			{ name: 'Info', key: '@_info' },
@@ -158,7 +170,7 @@
 		{#if def.name === 'Edit'}
 			<button
 				class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
-				on:click={() => openModals()}
+				on:click={() => openModals(row['@_type'], 'edit')}
 			>
 				<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 			</button>

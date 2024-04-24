@@ -120,8 +120,8 @@
 							custom: true,
 							class: (row) =>
 								row['@_expiration'] === '0'
-									? 'bg-success-400-500-token border-r-2 border-surface-100-800-token'
-									: 'bg-tertiary-400-500-token border-r-2 border-surface-100-800-token'
+									? 'bg-success-400-500-token border-r-[1px] border-surface-100-800-token'
+									: 'bg-tertiary-400-500-token border-r-[1px] border-surface-100-800-token'
 						},
 						{
 							name: 'Expired',
@@ -174,7 +174,7 @@
 
 <style lang="postcss">
 	.input-new-key {
-		@apply min-w-80 dark:text-white text-token placeholder:text-surface-300 rounded-token w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
+		@apply dark:text-white w-80 text-token placeholder:text-surface-300 rounded-token w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
 		max-width: 400px;
 	}
 </style>

@@ -2,6 +2,8 @@
 	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
+	import CronWizard from '../components/CronWizard.svelte';
+
 	import { onMount } from 'svelte';
 	import { jobsStore, schedulerList } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
@@ -12,6 +14,7 @@
 		sequencesStore
 	} from '../stores/testPlatformStore';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
+	import { cronStore } from '../stores/cronStore';
 
 	const modalStore = getModalStore();
 
@@ -24,7 +27,6 @@
 	let projectSequence;
 	let selectedJob;
 	let jobCount = 1;
-
 	const { mode } = $modalStore[0].meta;
 
 	onMount(async () => {
@@ -49,6 +51,8 @@
 				return 'schedulerNewSequenceConvertigoJob';
 			case 'jobGroupJob':
 				return 'schedulerNewJobGroupJob';
+			case 'schedulerNewScheduleCron':
+				return 'schedulerNewScheduleCron';
 			default:
 				return 'schedulerUnknownType';
 		}
@@ -57,10 +61,11 @@
 	async function createScheduledElements(e) {
 		e.preventDefault();
 		const fd = new FormData(e.target);
+		const cronExpression = cronStore.compileCronExpression();
 		fd.append('enabled', enable.toString());
 		fd.append('writeOutput', writeOutput.toString());
 		fd.append('parallelJob', jobCount.toString());
-
+		fd.append('cron', cronExpression);
 		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
 		fd.append('type', getType(mode));
 		try {
@@ -87,14 +92,14 @@
 			<div class="grid grid-cols-2 gap-10">
 				<div class="col-span-1 flex flex-col gap-5">
 					<label class="border-common">
-						<p class="label-common">Name:</p>
+						<p class="label-common">Name</p>
 						<input name="name" value="" class="input-common" />
 					</label>
 					<label class="border-common">
-						<p class="label-common">Description:</p>
+						<p class="label-common">Description</p>
 						<input name="description" value="" class="input-common" />
 					</label>
-					<p class="label-common">Enable:</p>
+					<p class="label-common">Enable</p>
 					<RadioGroup>
 						<RadioItem
 							name="enabled"
@@ -109,7 +114,7 @@
 							value={false}>No</RadioItem
 						>
 					</RadioGroup>
-					<p class="label-common">Write Output:</p>
+					<p class="label-common">Write Output</p>
 					<RadioGroup>
 						<RadioItem
 							name="writeOutput"
@@ -128,11 +133,11 @@
 
 				<div class="col-span-1 flex flex-col gap-5">
 					<label class="border-common">
-						<p class="label-common">Context:</p>
+						<p class="label-common">Context</p>
 						<input name="context" value="" class="input-common" />
 					</label>
 					<div class="border-common">
-						<p class="label-common w-full">Project:</p>
+						<p class="label-common w-full">Project</p>
 						<select
 							name="project"
 							bind:value={selectedProjectId}
@@ -146,9 +151,9 @@
 							{/each}
 						</select>
 					</div>
-					{#if $modalStore[0]?.meta?.mode === 'New Job Transaction'}
+					{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob'}
 						<div class="border-common mt-5">
-							<p class="label-common w-full">Connector:</p>
+							<p class="label-common w-full">Connector</p>
 							{#if $connectorsStore.length > 0}
 								<select name="connector" bind:value={projectConnector} class="input-common">
 									{#each $connectorsStore as connector}
@@ -163,7 +168,7 @@
 						</div>
 
 						<div class="border-common mt-5">
-							<p class="label-common w-full">Transaction:</p>
+							<p class="label-common w-full">Transaction</p>
 							{#if $transactionsStore.length > 0}
 								<select name="transaction" bind:value={projectTransaction} class="input-common">
 									{#each $transactionsStore as transaction}
@@ -176,9 +181,9 @@
 								No transaction
 							{/if}
 						</div>
-					{:else if $modalStore[0]?.meta?.mode === 'New Job Sequence'}
+					{:else if $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
 						<div class="border-common mt-5">
-							<p class="label-common w-full">Sequence:</p>
+							<p class="label-common w-full">Sequence</p>
 							{#if $sequencesStore.length > 0}
 								<select name="sequence" bind:value={projectSequence} class="input-common">
 									{#each $sequencesStore as sequence}
@@ -210,14 +215,14 @@
 			<div class="grid grid-cols-2 gap-10">
 				<div class="col-span-1 flex flex-col gap-5">
 					<label class="border-common">
-						<p class="label-common">Name:</p>
+						<p class="label-common">Name</p>
 						<input name="name" value="" class="input-common" />
 					</label>
 					<label class="border-common">
-						<p class="label-common">Description:</p>
+						<p class="label-common">Description</p>
 						<input name="description" value="" class="input-common" />
 					</label>
-					<p class="label-common">Enable:</p>
+					<p class="label-common">Enable</p>
 					<RadioGroup>
 						<RadioItem
 							name="enabled"
@@ -234,12 +239,14 @@
 					</RadioGroup>
 				</div>
 				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
+					<p class="font-bold">Parallel Job execution</p>
 					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
 						<button on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
 						<span>{jobCount}</span>
 						<button on:click|preventDefault={() => adjustJobCount(1)}>+</button>
 					</div>
-					<p class="font-bold">Select a job :</p>
+
+					<p class="font-bold">Select a job</p>
 					<ResponsiveContainer
 						scrollable={true}
 						smCols="sm:grid-cols-1"
@@ -258,6 +265,49 @@
 							{/each}
 						</RadioGroup>
 					</ResponsiveContainer>
+				</div>
+			</div>
+			<div class="flex gap-1 mt-10">
+				<button
+					class="bg-surface-400-500-token w-full"
+					on:click|preventDefault={() => modalStore.close()}>Cancel</button
+				>
+				<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
+			</div>
+		</form>
+	</Card>
+{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleCron'}
+	<Card title={$modalStore[0].title}>
+		<form class="p-5" on:submit={createScheduledElements}>
+			<div class="grid grid-cols-2 gap-10">
+				<div class="col-span-1 flex flex-col gap-5">
+					<label class="border-common">
+						<p class="label-common">Name</p>
+						<input name="name" value="" class="input-common" />
+					</label>
+					<label class="border-common">
+						<p class="label-common">Description</p>
+						<input name="description" value="" class="input-common" />
+					</label>
+					<p class="label-common">Enable</p>
+					<RadioGroup>
+						<RadioItem
+							name="enabled"
+							bind:group={enable}
+							active="bg-success-400-500-token"
+							value={true}>Yes</RadioItem
+						>
+						<RadioItem
+							name="enabled"
+							bind:group={enable}
+							active="bg-error-400-500-token"
+							value={false}>No</RadioItem
+						>
+					</RadioGroup>
+				</div>
+
+				<div class="col-span-1 flex flex-col gap-5">
+					<CronWizard />
 				</div>
 			</div>
 			<div class="flex gap-1 mt-10">

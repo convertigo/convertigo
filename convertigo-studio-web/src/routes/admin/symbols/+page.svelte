@@ -117,7 +117,7 @@
 			>
 		</div>
 	</div>
-	<div class="flex flex-wrap gap-5 mb-10 mt-10">
+	<div class="flex flex-wrap gap-2 mb-10 md:mt-10">
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={openAddGlobalSymbolModal}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />

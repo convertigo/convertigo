@@ -91,6 +91,17 @@
 			}
 		});
 	}
+
+	function getTailwindClass(role) {
+		role = role.toUpperCase();
+		if (role.endsWith('VIEW')) {
+			return 'bg-green-500 mt-2 mr-5 ml-5';
+		} else if (role.endsWith('CONFIG')) {
+			return 'bg-blue-500 mt-2 mr-5 ml-5';
+		} else {
+			return 'bg-yellow-500 mt-2 mr-5 ml-5';
+		}
+	}
 </script>
 
 <Card title="Roles">
@@ -100,7 +111,7 @@
 			Delete All Roles
 		</button>
 	</div>
-	<div class="flex flex-wrap gap-5 mb-10 mt-10">
+	<div class="flex flex-wrap gap-2 mb-10 mt-10">
 		<div class="flex-1">
 			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('add')}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
@@ -125,7 +136,7 @@
 		<TableAutoCard
 			definition={[
 				{ name: 'Name', key: 'name' },
-				{ name: 'Role', key: 'role' },
+				{ name: 'Role', key: 'role', custom: true },
 				{ name: 'Edit', custom: true },
 				{ name: 'Delete', custom: true }
 			]}
@@ -133,7 +144,11 @@
 			let:row
 			let:def
 		>
-			{#if def.name === 'Edit'}
+			{#if def.name === 'Role'}
+				{#each row.role as role}
+					{role.replace(/_/g, ' ')}
+				{/each}
+			{:else if def.name === 'Edit'}
 				<button
 					class="p-1 px-2 shadow-md bg-tertiary-400-500-token"
 					on:click={() => openModals('add', row)}
