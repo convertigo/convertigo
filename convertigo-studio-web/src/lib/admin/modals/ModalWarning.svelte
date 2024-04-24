@@ -7,7 +7,7 @@
 </script>
 
 {#if mode == 'Confirm'}
-	<Card class='min-w-[30vw]'>
+	<Card class="min-w-[30vw]">
 		<div class="p-">
 			{#if $modalStore[0]}
 				<header class="text-2xl font-bold mb-5">{$modalStore[0].title}</header>
@@ -44,7 +44,6 @@
 					</div>
 				</div>
 			</div>
-			
 		</div>
 	</Card>
 {/if}

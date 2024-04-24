@@ -1,4 +1,6 @@
 <script>
+	import { Container } from 'postcss';
+
 	let cls = '';
 	export { cls as class };
 
@@ -10,10 +12,11 @@
 	export let scrollable = true;
 
 	export let maxHeight = '60vh';
+	export let containerGap = 'gap-10';
 </script>
 
 <div
-	class={`responsive-container ${cls} ${smCols} ${mdCols} ${lgCols} ${scrollable ? 'overflow-y-auto' : ''}`}
+	class={`grid ${containerGap} ${cls} ${smCols} ${mdCols} ${lgCols} ${scrollable ? 'overflow-y-auto' : ''}`}
 	style={`max-height: ${maxHeight};`}
 >
 	<slot />
@@ -21,6 +24,6 @@
 
 <style lang="postcss">
 	.responsive-container {
-		@apply grid gap-10;
+		@apply grid;
 	}
 </style>

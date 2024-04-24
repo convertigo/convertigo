@@ -3,7 +3,6 @@
 	import { call } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
 	import CronWizard from '../components/CronWizard.svelte';
-
 	import { onMount } from 'svelte';
 	import { jobsStore, schedulerList } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
@@ -14,7 +13,8 @@
 		sequencesStore
 	} from '../stores/testPlatformStore';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
-	import { cronStore } from '../stores/cronStore';
+	import { cronData } from '../stores/cronStore';
+	//import { cronStore } from '../stores/cronStore';
 
 	const modalStore = getModalStore();
 
@@ -27,6 +27,7 @@
 	let projectSequence;
 	let selectedJob;
 	let jobCount = 1;
+	const cronExpressionValue = $cronData;
 	const { mode } = $modalStore[0].meta;
 
 	onMount(async () => {
@@ -61,11 +62,12 @@
 	async function createScheduledElements(e) {
 		e.preventDefault();
 		const fd = new FormData(e.target);
-		const cronExpression = cronStore.compileCronExpression();
+
+		//const cronExpression = cronStore.compileCronExpression();
 		fd.append('enabled', enable.toString());
 		fd.append('writeOutput', writeOutput.toString());
 		fd.append('parallelJob', jobCount.toString());
-		fd.append('cron', cronExpression);
+		fd.append('cron', cronExpressionValue.toString());
 		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
 		fd.append('type', getType(mode));
 		try {
@@ -239,7 +241,7 @@
 					</RadioGroup>
 				</div>
 				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
-					<p class="font-bold">Parallel Job execution</p>
+					<p class="label-common">Parallel Job execution</p>
 					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
 						<button on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
 						<span>{jobCount}</span>
@@ -278,9 +280,14 @@
 	</Card>
 {:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleCron'}
 	<Card title={$modalStore[0].title}>
-		<form class="p-5" on:submit={createScheduledElements}>
-			<div class="grid grid-cols-2 gap-10">
-				<div class="col-span-1 flex flex-col gap-5">
+		<form class="" on:submit={createScheduledElements}>
+			<ResponsiveContainer
+				scrollable={true}
+				smCols="sm:grid-cols-1"
+				mdCols="md:grid-cols-6"
+				lgCols="lg:grid-cols-6"
+			>
+				<div class="col-span-2 flex flex-col gap-5 p-5">
 					<label class="border-common">
 						<p class="label-common">Name</p>
 						<input name="name" value="" class="input-common" />
@@ -306,16 +313,21 @@
 					</RadioGroup>
 				</div>
 
-				<div class="col-span-1 flex flex-col gap-5">
+				<div class="col-span-4 flex flex-col gap-5">
 					<CronWizard />
 				</div>
-			</div>
-			<div class="flex gap-1 mt-10">
-				<button
-					class="bg-surface-400-500-token w-full"
-					on:click|preventDefault={() => modalStore.close()}>Cancel</button
-				>
-				<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
+			</ResponsiveContainer>
+			<div class="w-full flex justify-end p-5">
+				<div class="flex flex-wrap gap-2">
+					<div class="flex-1">
+						<button class="gray-button w-60" on:click|preventDefault={() => modalStore.close()}
+							>Cancel</button
+						>
+					</div>
+					<div class="flex-1">
+						<button type="submit" class="bg-primary-400-500-token w-60">Confirm</button>
+					</div>
+				</div>
 			</div>
 		</form>
 	</Card>
