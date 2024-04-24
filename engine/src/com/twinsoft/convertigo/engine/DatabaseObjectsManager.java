@@ -287,6 +287,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		private String projectName;
 		public boolean undefinedGlobalSymbol = false;
 		public Set<Pair<String, String>> defaultSymbols = null;
+		public List<Runnable> afterLoaded = null;
+		
+		public void addAfterLoaded(Runnable runnable) {
+			if (afterLoaded == null) {
+				afterLoaded = new ArrayList<>();
+			}
+			afterLoaded.add(runnable);
+		}
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {
@@ -1242,6 +1250,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 					.info("[importProject] start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
+			if (getProjectLoadingData().afterLoaded != null) {
+				for (var run: getProjectLoadingData().afterLoaded) {
+					run.run();
+				}
+			}
 			Engine.logDatabaseObjectManager
 					.info("[importProject] end initializing: " + Project.formatNameWithHash(project));
 
