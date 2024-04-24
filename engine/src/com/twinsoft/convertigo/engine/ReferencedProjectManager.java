@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
@@ -329,6 +330,23 @@ public class ReferencedProjectManager {
 							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
 							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
 								.addIonicTemplateProject(projectName, projectDir);
+							Engine.execute(() -> {
+								var dbom = Engine.theApp.databaseObjectsManager;
+								for (var name: dbom.getAllProjectNamesList(true)) {
+									if (name.equals(projectName)) {
+										continue;
+									}
+									try {
+										var prj = dbom.getOriginalProjectByName(name, true);
+										if (prj.getMobileApplication().getApplicationComponent() instanceof ApplicationComponent app
+												&& app.getTplProjectName().equals(projectName)) {
+											dbom.getStudioProjects().reloadProject(name);
+										}
+									} catch (Exception e) {
+										Engine.logEngine.warn("(ReferencedProjectManager) Failed to reload project " + name + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+									}
+								}
+							});
 						}
 					}
 				}

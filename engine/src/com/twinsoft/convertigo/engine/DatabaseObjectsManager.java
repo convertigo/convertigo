@@ -137,6 +137,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 
 		public File getProject(String projectName);
+
+		public void reloadProject(String name) throws EngineException;
 	}
 
 	public static StudioProjects studioProjects = new StudioProjects() {
@@ -155,6 +157,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 				file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 			}
 			return file.exists() ? file : null;
+		}
+
+		@Override
+		public void reloadProject(String name) throws EngineException {
+			Engine.theApp.databaseObjectsManager.importProject(Engine.projectFile(name), true);
 		}
 	};
 
