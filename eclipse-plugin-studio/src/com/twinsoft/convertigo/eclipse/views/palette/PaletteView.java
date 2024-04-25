@@ -1214,7 +1214,9 @@ public class PaletteView extends ViewPart {
 	
 	private void refresh(long threshold) {
 		Engine.execute(() -> {
-			ComponentManager.of(selectedProject).reloadComponents();
+			if (selectedProject != null) {
+				ComponentManager.of(selectedProject).reloadComponents();
+			}
 			parent.getDisplay().asyncExec(() -> {
 				String txt = searchText != null ? searchText.getText() : null;
 				for (Control c: parent.getChildren()) {
