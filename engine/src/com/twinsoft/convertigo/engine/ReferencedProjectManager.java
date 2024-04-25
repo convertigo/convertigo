@@ -338,9 +338,12 @@ public class ReferencedProjectManager {
 									}
 									try {
 										var prj = dbom.getOriginalProjectByName(name, true);
-										if (prj.getMobileApplication().getApplicationComponent() instanceof ApplicationComponent app
-												&& app.getTplProjectName().equals(projectName)) {
-											dbom.getStudioProjects().reloadProject(name);
+										if (prj.getMobileApplication() != null && prj.getMobileApplication().getApplicationComponent() != null) {
+											var app = prj.getMobileApplication().getApplicationComponent();
+											if (app instanceof ApplicationComponent && app.getTplProjectName().equals(projectName)) {
+												Engine.logEngine.debug("(ReferencedProjectManager) Reloading project " + name + " ("+ prj.hashCode() +")");
+												dbom.getStudioProjects().reloadProject(name);
+											}
 										}
 									} catch (Exception e) {
 										Engine.logEngine.warn("(ReferencedProjectManager) Failed to reload project " + name + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
