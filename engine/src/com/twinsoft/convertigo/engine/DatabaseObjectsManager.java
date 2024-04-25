@@ -514,7 +514,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	private Project getCachedProject(String projectName) {
+	protected Project getCachedProject(String projectName) {
 		synchronized (projects) {
 			return projects.get(projectName);
 		}

@@ -337,8 +337,8 @@ public class ReferencedProjectManager {
 										continue;
 									}
 									try {
-										var prj = dbom.getOriginalProjectByName(name, true);
-										if (prj.getMobileApplication() != null && prj.getMobileApplication().getApplicationComponent() != null) {
+										var prj = dbom.getCachedProject(name);
+										if (prj != null && prj.getMobileApplication() != null && prj.getMobileApplication().getApplicationComponent() != null) {
 											var app = prj.getMobileApplication().getApplicationComponent();
 											if (app instanceof ApplicationComponent && app.getTplProjectName().equals(projectName)) {
 												Engine.logEngine.debug("(ReferencedProjectManager) Reloading project " + name + " ("+ prj.hashCode() +")");
