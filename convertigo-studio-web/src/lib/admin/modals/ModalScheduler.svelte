@@ -2,7 +2,7 @@
 	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
-	import CronWizard from '../components/CronWizard.svelte';
+	import CronWizard from '../components/CronWizard2.svelte';
 	import { onMount } from 'svelte';
 	import { jobsStore, schedulerList } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
@@ -27,6 +27,7 @@
 	let projectSequence;
 	let selectedJob;
 	let jobCount = 1;
+	let cronExpression;
 	const cronExpressionValue = $cronData;
 	const { mode } = $modalStore[0].meta;
 
@@ -64,10 +65,10 @@
 		const fd = new FormData(e.target);
 
 		//const cronExpression = cronStore.compileCronExpression();
-		fd.append('enabled', enable.toString());
+		//fd.append('enabled', enable.toString());
 		fd.append('writeOutput', writeOutput.toString());
 		fd.append('parallelJob', jobCount.toString());
-		fd.append('cron', cronExpressionValue.toString());
+		//fd.append('cron', cronExpressionValue.toString());
 		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
 		fd.append('type', getType(mode));
 		try {
@@ -296,6 +297,10 @@
 						<p class="label-common">Description</p>
 						<input name="description" value="" class="input-common" />
 					</label>
+					<label class="border-common">
+						<p class="label-common">Cron Expression</p>
+						<input name="cron" bind:value={cronExpression} class="input-common" />
+					</label>
 					<p class="label-common">Enable</p>
 					<RadioGroup>
 						<RadioItem
@@ -314,7 +319,7 @@
 				</div>
 
 				<div class="col-span-4 flex flex-col gap-5">
-					<CronWizard />
+					<CronWizard bind:cronExpression />
 				</div>
 			</ResponsiveContainer>
 			<div class="w-full flex justify-end p-5">
