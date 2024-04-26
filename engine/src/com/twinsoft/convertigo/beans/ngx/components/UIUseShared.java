@@ -164,7 +164,9 @@ public class UIUseShared extends UIElement {
 					StringBuilder others = new StringBuilder();
 					for (UIComponent uic: getUIComponentList()) {
 						// Overridden component variables
-						if (uic instanceof UIUseVariable) {
+						if (uic instanceof UIStyle) {
+							// ignore
+						} else if (uic instanceof UIUseVariable) {
 							UIUseVariable uiuv = (UIUseVariable)uic;
 							if (uiuv.isEnabled()) {
 								params.append(uiuv.computeTemplate());
@@ -190,6 +192,11 @@ public class UIUseShared extends UIElement {
 						} else {
 							others.append(uic.computeTemplate());
 						}
+					}
+					
+					String tagClass = getTagClass();
+					if (attrclasses.indexOf(tagClass) == -1) {
+						attrclasses.append(attrclasses.length()>0 ? " ":"").append(tagClass);
 					}
 					
 					String compSelector = uisc.getSelector();
@@ -326,15 +333,16 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public String computeStyle() {
-		if (!getSharedComponentQName().isEmpty()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null /*&& uisc.isEnabled()*/) {
-				if (!isRecursive()) {
-					return uisc.computeStyle(this);
-				}
-			}
-		}
-		return "";
+//		if (!getSharedComponentQName().isEmpty()) {
+//			UISharedComponent uisc = getTargetSharedComponent();
+//			if (uisc != null /*&& uisc.isEnabled()*/) {
+//				if (!isRecursive()) {
+//					return uisc.computeStyle(this);
+//				}
+//			}
+//		}
+//		return "";
+		return super.computeStyle();
 	}
 	
 	
