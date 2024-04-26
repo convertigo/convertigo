@@ -324,16 +324,24 @@ public class BeansDefaultValues {
 											for (Iterator<?> i = dIonProps.keys(); i.hasNext();) {
 												String keyProp = (String) i.next();
 												Object ob = dIonProps.get(keyProp);
+												
+												JSONObject dIonProp;
+												if (ob instanceof JSONObject) {
+													dIonProp = dIonProps.getJSONObject(keyProp);
+												} else {
+													dIonProp = new JSONObject();
+													if (ionObjects.getJSONObject("Props").has(keyProp)) {
+														dIonProp = ionObjects.getJSONObject("Props").getJSONObject(keyProp);
+													}
+													dIonProp.put("mode", dIonProp.has("mode") ? dIonProp.get("mode"): "plain");
+													dIonProp.put("value", ob);
+												}
+												
 												JSONObject property = new JSONObject();
 												property.put("name", keyProp);
-												if (ob instanceof JSONObject) {
-													JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
-													property.put("mode", dIonProp.has("mode") ? dIonProp.get("mode") : "plain");
-													property.put("value", dIonProp.has("value") ? dIonProp.get("value") : false);
-												} else {
-													property.put("mode", "plain");
-													property.put("value", ob);
-												}
+												property.put("mode", dIonProp.has("mode") ? dIonProp.get("mode") : "plain");
+												property.put("value", dIonProp.has("value") ? dIonProp.get("value") : false);
+												
 												properties.put(keyProp, property);
 											}
 										} catch (Exception ex) {
@@ -606,7 +614,20 @@ public class BeansDefaultValues {
 										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
 											String keyProp = (String) iProp.next();
 											Object ob = dIonProps.get(keyProp);
-											JSONObject jsonObject = ob instanceof JSONObject ? (JSONObject)ob : new JSONObject().put("mode", "plain").put("value", ob);
+											
+											JSONObject dIonProp;
+											if (ob instanceof JSONObject) {
+												dIonProp = dIonProps.getJSONObject(keyProp);
+											} else {
+												dIonProp = new JSONObject();
+												if (ionObjects.getJSONObject("Props").has(keyProp)) {
+													dIonProp = ionObjects.getJSONObject("Props").getJSONObject(keyProp);
+												}
+												dIonProp.put("mode", dIonProp.has("mode") ? dIonProp.get("mode"): "plain");
+												dIonProp.put("value", ob);
+											}
+											
+											JSONObject jsonObject = new JSONObject(dIonProp.toString());
 											jsonObject.put("name", keyProp);
 											if (ion.has(keyProp)) {
 												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
