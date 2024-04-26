@@ -13,7 +13,6 @@
 	import KeysIcon from '~icons/material-symbols-light/key-outline';
 	import RolesIcon from '~icons/lets-icons/user-alt-light';
 	import SymbolsIcon from '~icons/et/tools-2';
-	import StoreIcon from '~icons/material-symbols-light/cloud-outline';
 	import FullSyncIcon from '~icons/material-symbols-light/sync-outline';
 	import TestPlatformsIcon from '~icons/file-icons/test-ruby';
 	import SwaggerIcon from '~icons/codicon/json';
@@ -47,7 +46,6 @@
 		'material-symbols-light:key-outline': KeysIcon,
 		'lets-icons:user-alt-light': RolesIcon,
 		'et:tools-2': SymbolsIcon,
-		'material-symbols-light:cloud-outline': StoreIcon,
 		'material-symbols-light:sync-outline': FullSyncIcon,
 		'file-icons:test-ruby': TestPlatformsIcon,
 		'codicon:json': SwaggerIcon,

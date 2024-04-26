@@ -61,14 +61,9 @@
 			"url": "symbols"
 		},
 		{
-			"title": "Store",
-			"icon": "material-symbols-light:cloud-outline",
-			"url": "."
-		},
-		{
 			"title": "Full Sync",
 			"icon": "material-symbols-light:sync-outline",
-			"url": "."
+			"url": "fullsync"
 		}
 	],
 	[
