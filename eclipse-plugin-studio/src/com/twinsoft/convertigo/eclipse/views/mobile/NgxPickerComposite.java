@@ -2030,6 +2030,8 @@ public class NgxPickerComposite extends Composite {
 
 			String[] keys = path.split("\\.");
 			for (String key: keys) {
+				if (key.isBlank())
+					continue;
 				if (key.startsWith("[") && key.endsWith("]"))
 					continue;
 				if (jsonObject.has(key)) {
@@ -2046,6 +2048,7 @@ public class NgxPickerComposite extends Composite {
 							break;
 						}
 					} else {
+						jsonObject = new JSONObject();
 						break;
 					}
 				} else {
