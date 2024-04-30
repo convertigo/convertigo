@@ -869,6 +869,11 @@ public class EnginePropertiesManager {
 
 	public static synchronized void loadProperties() throws EngineException {
 		loadProperties(true);
+
+		if (Boolean.parseBoolean(EnginePropertiesManager.getProperty(PropertyName.SSL_DEBUG))) {
+			System.setProperty("javax.net.debug", "all");
+			System.out.println("(EnginePropertyManager) Enabling SSL debug mode");
+		}
 	}
 
 	public static synchronized void loadProperties(boolean configureLog4J) throws EngineException {

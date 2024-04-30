@@ -69,8 +69,6 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -182,14 +180,6 @@ public class ReverseProxyServlet extends HttpServlet {
 			HttpServletResponse httpServletResponse) throws IOException, ServletException {
 		try {
 			Engine.logEngine.debug("(ReverseProxyServlet) Starting request handling");
-
-			if (Boolean.parseBoolean(EnginePropertiesManager.getProperty(PropertyName.SSL_DEBUG))) {
-				System.setProperty("javax.net.debug", "all");
-				Engine.logEngine.trace("(ReverseProxyServlet) Enabling SSL debug mode");
-			} else {
-				System.setProperty("javax.net.debug", "");
-				Engine.logEngine.debug("(ReverseProxyServlet) Disabling SSL debug mode");
-			}
 
 			String baseUrl;
 			String projectName;

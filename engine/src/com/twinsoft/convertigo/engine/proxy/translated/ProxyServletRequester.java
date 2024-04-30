@@ -38,9 +38,7 @@ import com.twinsoft.convertigo.engine.AbstractBiller;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.proxy.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.proxy.cache.FileCacheManager;
@@ -139,15 +137,6 @@ public class ProxyServletRequester extends ServletRequester {
 				
 				if (context.getConnector() != null)
 					context.getConnector().context = context;
-			
-				if (Boolean.parseBoolean(EnginePropertiesManager.getProperty(PropertyName.SSL_DEBUG))) {
-					System.setProperty("javax.net.debug", "all");
-					Engine.logEngine.trace("(ProxyServletRequester) Enabling SSL debug mode");
-				}
-				else {
-					System.setProperty("javax.net.debug", "");
-					Engine.logEngine.debug("(ProxyServletRequester) Disabling SSL debug mode");
-				}
 
 				if (context.getConnector().isTasAuthenticationRequired() && (context.tasSessionKey == null)) {
 	            	throw new EngineException("A Carioca authentication is required in order to process the transaction.");

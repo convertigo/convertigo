@@ -103,8 +103,6 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
@@ -306,15 +304,6 @@ public class HttpConnector extends Connector {
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {	
 		Engine.logBeans.debug("(HttpConnector) Preparing for transaction");
-
-		if (Boolean.parseBoolean(EnginePropertiesManager.getProperty(PropertyName.SSL_DEBUG))) {
-			System.setProperty("javax.net.debug", "all");
-			Engine.logBeans.trace("(HttpConnector) Enabling SSL debug mode");
-		} else {
-			System.setProperty("javax.net.debug", "");
-			Engine.logBeans.debug("(HttpConnector) Disabling SSL debug mode");
-		}
-
 		Engine.logBeans.debug("(HttpConnector) Initializing...");
 
 		if (context.isRequestFromVic) {
