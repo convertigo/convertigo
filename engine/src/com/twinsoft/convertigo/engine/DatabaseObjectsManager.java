@@ -462,6 +462,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			lock = importLocks.get(projectName);
 			if (lock == null) {
 				importLocks.put(projectName, lock = new Lock());
+			} else {
+				lock.checkDone = false;
 			}
 		}
 		Project project = null;
@@ -490,6 +492,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			lock = importLocks.get(projectName);
 			if (lock == null) {
 				importLocks.put(projectName, lock = new Lock());
+			} else {
+				lock.checkDone = false;
 			}
 		}
 		Project project = null;
@@ -612,6 +616,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			clearCache(projectName);
+//			synchronized (importLocks) {
+//				importLocks.remove(projectName);
+//			}
 		} catch (Exception e) {
 			throw new EngineException(
 					"Unable to delete" + (bDataOnly ? " datas for" : "") + " project \"" + projectName + "\".", e);
