@@ -33,6 +33,7 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -211,26 +212,23 @@ public enum Visibility {
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
 				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(), true));
-				NodeList variableNodeList = toPrint.getElementsByTagName("variable");
+				NodeList variableNodeList = XPathAPI.selectNodeList(toPrint, ".//*[@name and @value]");
 				
 				Element variableElement;
 				NodeList valueNodeList;
 				Attr valueAttrNode;
 				String variableName;
 				Node node;
-				Element firstElement = (Element) variableNodeList.item(0);
 				//Permit to identify if we have an input document or a XSL requestTemplate
 				
-				boolean isInputDoc = false;
-				if (firstElement.getParentNode() != null && firstElement.getParentNode().getNodeName().equals("transaction-variables")){
-					if (firstElement.getParentNode().getParentNode() != null && firstElement.getParentNode().getParentNode().getNodeName().equals("input")) {
-						isInputDoc = true;
-					}
-				}
+				boolean isInputDoc = XPathAPI.selectSingleNode(toPrint, "/input/transaction-variables") != null;
 				
 				for (int i=0; i<variableNodeList.getLength(); i++) {
 					variableElement = (Element) variableNodeList.item(i);
 					variableName = variableElement.getAttribute("name");
+					if (variableElement.getParentNode().getNodeName().equals("transaction-headers")) {
+						variableName = "__header_" + variableName;
+					}
 					valueAttrNode = variableElement.getAttributeNode("value");
 					valueNodeList = variableElement.getChildNodes();
 					for (Variable variable: variableList) {
