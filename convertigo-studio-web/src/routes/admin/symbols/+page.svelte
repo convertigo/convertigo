@@ -10,8 +10,10 @@
 	} from '$lib/admin/stores/symbolsStore.js';
 	import Icon from '@iconify/svelte';
 	import { call } from '$lib/utils/service';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+
+	let tabSet = 0;
 
 	onMount(() => {
 		getEnvironmentVar();
@@ -84,27 +86,21 @@
 		});
 	}
 
-	function openAddGlobalSymbolModal() {
-		symbolModalStore.trigger({
-			type: 'component',
-			component: 'modalSymbols',
-			meta: { mode: 'add' }
-		});
-	}
+	function openModals(mode) {
+		let meta = {};
 
-	function openAddSecretSymbols() {
-		symbolModalStore.trigger({
-			type: 'component',
-			component: 'modalSymbols',
-			meta: { mode: 'secret' }
-		});
-	}
+		if (mode === 'add') {
+			meta.mode = 'add';
+		} else if (mode === 'secret') {
+			meta.mode = 'secret';
+		} else if (mode === 'import') {
+			meta.mode = 'import';
+		}
 
-	function openImportSymbols() {
 		symbolModalStore.trigger({
 			type: 'component',
 			component: 'modalSymbols',
-			meta: { mode: 'import' }
+			meta: meta
 		});
 	}
 </script>
@@ -119,19 +115,19 @@
 	</div>
 	<div class="flex flex-wrap gap-2 mb-10 md:mt-10">
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openAddGlobalSymbolModal}>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('add')}>
 				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
 				Add Symbols</button
 			>
 		</div>
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openAddSecretSymbols}>
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('secret')}>
 				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
 				Add Secret Symbols
 			</button>
 		</div>
 		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={openImportSymbols}
+			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('import')}
 				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />Import Symbols</button
 			>
 		</div>
@@ -142,73 +138,95 @@
 		</div>
 	</div>
 
-	<TableAutoCard
-		title="Regular Symbols"
-		comment="Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
-		symbol is defined for the Default value or if it contains a closing curly braces it must be
-		escaped with a backslash."
-		definition={[
-			{ name: 'Name', key: '@_name' },
-			{ name: 'Value', key: '@_value' },
-			{ name: 'Edit', custom: true },
-			{ name: 'Delete', custom: true }
-		]}
-		data={$globalSymbolsList}
-		let:row
-		let:def
-	>
-		{#if def.custom}
-			{#if def.name === 'Edit'}
-				<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
-					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
-				</button>
-			{:else if def.name === 'Delete'}
-				<button
-					class="btn p-1 px-2 shadow-md bg-error-400-500-token"
-					on:click={() => confirmSymbolDeletion(row['@_name'])}
-				>
-					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
-				</button>
-			{/if}
-		{/if}
-	</TableAutoCard>
-
-	{#if $defaultSymbolList.length >= 0}
-		<TableAutoCard
-			title="Global symbols with default value currently used"
-			comment="List of global symbols with default value currently used. You can import them as regular symbol."
-			class="mt-10"
-			definition={[
-				{ name: 'Project', key: '@_project' },
-				{ name: 'Name', key: '@_name' },
-				{ name: 'Value', key: '@_value' },
-				{ name: 'Add', custom: true, key: 'add' }
-			]}
-			data={$defaultSymbolList}
-			let:row
-			let:def
+	<TabGroup>
+		<Tab
+			bind:group={tabSet}
+			name="tab1"
+			value={0}
+			active="dark:bg-surface-500 bg-surface-200"
+			class="font-bold">Symbols</Tab
 		>
-			{#if def.name === 'Add'}
-				<button
-					class="btn p-1 px-2 shadow-md bg-secondary-400-500-token"
-					on:click={() => addDefaultSymbol(row)}
+		<Tab
+			bind:group={tabSet}
+			name="tab2"
+			value={1}
+			active="dark:bg-surface-500 bg-surface-200"
+			class="font-bold">Default symbols</Tab
+		>
+		<Tab
+			bind:group={tabSet}
+			name="tab3"
+			value={2}
+			active="dark:bg-surface-500 bg-surface-200"
+			class="font-bold">Environment Variables</Tab
+		>
+		<svelte:fragment slot="panel">
+			{#if tabSet === 0}
+				<TableAutoCard
+					comment="Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
+			symbol is defined for the Default value or if it contains a closing curly braces it must be
+			escaped with a backslash."
+					definition={[
+						{ name: 'Name', key: '@_name' },
+						{ name: 'Value', key: '@_value' },
+						{ name: 'Edit', custom: true },
+						{ name: 'Delete', custom: true }
+					]}
+					data={$globalSymbolsList}
+					let:row
+					let:def
 				>
-					<Icon icon="material-symbols-light:add" class="w-7 h-7" />
-				</button>
+					{#if def.custom}
+						{#if def.name === 'Edit'}
+							<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+								<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+							</button>
+						{:else if def.name === 'Delete'}
+							<button
+								class="btn p-1 px-2 shadow-md bg-error-400-500-token"
+								on:click={() => confirmSymbolDeletion(row['@_name'])}
+							>
+								<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+							</button>
+						{/if}
+					{/if}
+				</TableAutoCard>
+			{:else if tabSet === 1}
+				{#if $defaultSymbolList.length >= 0}
+					<TableAutoCard
+						comment="These symbols are defined in projects with default values. You can modify these values by adding them to the symbols list"
+						definition={[
+							{ name: 'Project', key: '@_project' },
+							{ name: 'Name', key: '@_name' },
+							{ name: 'Value', key: '@_value' },
+							{ name: 'Add', custom: true, key: 'add' }
+						]}
+						data={$defaultSymbolList}
+						let:row
+						let:def
+					>
+						{#if def.name === 'Add'}
+							<button
+								class="btn p-1 px-2 shadow-md bg-secondary-400-500-token"
+								on:click={() => addDefaultSymbol(row)}
+							>
+								<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+							</button>
+						{/if}
+					</TableAutoCard>
+				{:else}
+					no data
+				{/if}
+			{:else if tabSet === 2}
+				<TableAutoCard
+					comment="These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional."
+					definition={[
+						{ name: 'Name', key: 'name' },
+						{ name: 'Value', key: 'value' }
+					]}
+					data={$environmentVariables}
+				></TableAutoCard>
 			{/if}
-		</TableAutoCard>
-	{:else}
-		no data
-	{/if}
-</Card>
-
-<Card class="mt-5" title="Environment Variables">
-	<TableAutoCard
-		comment="These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional."
-		definition={[
-			{ name: 'Name', key: 'name' },
-			{ name: 'Value', key: 'value' }
-		]}
-		data={$environmentVariables}
-	></TableAutoCard>
+		</svelte:fragment>
+	</TabGroup>
 </Card>

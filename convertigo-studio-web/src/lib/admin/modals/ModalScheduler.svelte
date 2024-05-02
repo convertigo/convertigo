@@ -239,18 +239,18 @@
 	</Card>
 {:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduledJob'}
 	<Card title={$modalStore[0].title}>
-		<form class="" on:submit={createScheduledElements}>
+		<form class="p-5" on:submit={createScheduledElements}>
 			<ResponsiveContainer
 				scrollable={true}
 				smCols="sm:grid-cols-4"
-				mdCols="md:grid-cols-6"
-				lgCols="lg:grid-cols-6"
+				mdCols="md:grid-cols-4"
+				lgCols="lg:grid-cols-4"
 			>
 				<div class="col-span-2 flex flex-col gap-5">
 					<SchedulerForm />
 				</div>
 
-				<div class="col-span-2 flex flex-col gap-5">
+				<div class="col-span-2 flex flex-col">
 					<ResponsiveContainer
 						scrollable={true}
 						smCols="sm:grid-cols-2"
@@ -264,8 +264,7 @@
 								>
 							{/each}
 						</select>
-
-						<select class="select h-[40vh] rounded-token" multiple={true} name="jobName">
+						<select class="select h-[40vh] rounded-token" multiple={true} name="scheduleName">
 							{#each $schedulesStore as schedule, i}
 								<option class="font-extralight" selected={schedule} value={schedule['@_name']}
 									>{schedule['@_name']}</option

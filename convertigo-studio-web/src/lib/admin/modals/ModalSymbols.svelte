@@ -46,9 +46,8 @@
 </script>
 
 {#if mode == 'import'}
-	<Card>
+	<Card title="Import global symbols">
 		<form class="flex flex-col p-5">
-			<h1 class="text-xl mb-5 text-center text-token">Import global symbols</h1>
 			<RadioGroup active="bg-secondary-400-500-token">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
 					>Clear & import</RadioItem
@@ -88,9 +87,8 @@
 		</form>
 	</Card>
 {:else}
-	<Card>
+	<Card title="Add a new {prefix}symbol">
 		<form on:submit={addGlobalSymbol} class="flex flex-col p-5">
-			<h1 class="text-2xl mb-5">Add a new {prefix}symbol</h1>
 			{#if mode == 'secret'}
 				<p class="mb-5">
 					In secret mode, the value is stored ciphered and the key automatically ends with .secret
@@ -98,14 +96,14 @@
 			{/if}
 			<div class="flex gap-5">
 				<label class="border-common">
-					<p class="input-name">Enter {prefix}symbol name</p>
+					<p class="label-name">Enter {prefix}symbol name</p>
 					<input placeholder="{prefix}name" name="symbolName" class="input-common" />
 					{#if mode == 'secret'}
 						<span>.secret</span>
 					{/if}
 				</label>
 				<label class="border-common">
-					<p class="input-name">Enter {prefix}symbol value</p>
+					<p class="label-name">Enter {prefix}symbol value</p>
 					<input placeholder="{prefix}value" {type} name="symbolValue" class="input-common" />
 				</label>
 			</div>

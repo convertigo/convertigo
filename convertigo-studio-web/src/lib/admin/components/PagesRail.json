@@ -33,7 +33,7 @@
 		{
 			"title": "Trace Player",
 			"icon": "ph:video-thin",
-			"url": "."
+			"url": "trace-player"
 		},
 		{
 			"title": "Cache",

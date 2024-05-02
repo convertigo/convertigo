@@ -4,7 +4,7 @@
 	const modalStore = getModalStore();
 </script>
 
-<div class="w-full flex justify-end mt-5">
+<div class="w-full flex justify-end mt-10">
 	<div class="flex flex-wrap gap-2">
 		<div class="flex-1">
 			<button class="gray-button w-60" on:click|preventDefault={() => modalStore.close()}

@@ -49,7 +49,7 @@
 
 {#if mode === 'Remove'}
 	{#if $modalStore[0]}
-		<Card title="Remove Certificate">
+		<Card title="Remove Certificate" class="w-[30vw]">
 			<form on:submit|preventDefault={removeCertificates}>
 				<label for="certificateSelect" class="label-common">Select Certificate:</label>
 				{#if $candidates.length > 0}
@@ -61,7 +61,7 @@
 				{:else}
 					No certificate
 				{/if}
-				<div class="flex flex-wrap gap-5 mt-5">
+				<div class="flex flex-wrap gap-2 mt-5">
 					<div class="flex-1">
 						<button
 							type="button"
@@ -70,7 +70,7 @@
 						>
 					</div>
 					<div class="flex-1">
-						<button type="submit" class="bg-primary-400-500-token">Confirm</button>
+						<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
 					</div>
 				</div>
 			</form>
