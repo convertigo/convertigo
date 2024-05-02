@@ -32,7 +32,6 @@
 				numbers.push(part);
 			}
 		}
-
 		return numbers;
 	}
 
@@ -107,13 +106,19 @@
 <div class="flex flex-row flex-wrap">
 	{#each def as { title, values, labels }, i}
 		<div>
-			<p class="font-bold text-center">{title}</p>
-			<select class="select h-80" multiple={true} on:change={(e) => changed(e, i)}>
+			<p class="font-bold text-start p-5">{title}</p>
+			<select
+				class="select h-[40vh] rounded-token"
+				multiple={true}
+				on:change={(e) => changed(e, i)}
+			>
 				{#each values as value, j}
-					<option {value} selected={$selection[i].includes(value)}>{labels[j]}</option>
+					<option class="font-extralight" {value} selected={$selection[i].includes(value)}
+						>{labels[j]}</option
+					>
 				{/each}
 			</select>
-			<p>{createRange($selection[i])}</p>
+			<!--<p>{createRange($selection[i])}</p>-->
 		</div>
 	{/each}
 </div>

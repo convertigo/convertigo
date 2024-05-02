@@ -23,16 +23,20 @@
 			{
 				TransactionConvertigoJob: 'TransactionConvertigoJob',
 				SequenceConvertigoJob: 'SequenceConvertigoJob',
-				JobGroupJob: 'JobGroupJob',
-				schedulerNewScheduleCron: 'schedulerNewScheduleCron'
+				schedulerNewJobGroupJob: 'schedulerNewJobGroupJob',
+				schedulerNewScheduleCron: 'schedulerNewScheduleCron',
+				schedulerNewScheduleRunNow: 'schedulerNewScheduleRunNow',
+				schedulerNewScheduledJob: 'schedulerNewScheduledJob'
 			}[jobTypeFromRow] || 'defaultType';
 
 		const action = context === 'edit' ? 'Edit' : 'New';
 		const jobName = {
 			TransactionConvertigoJob: 'Job Transaction',
 			SequenceConvertigoJob: 'Job Sequence',
-			JobGroupJob: 'Jobs Group',
+			schedulerNewJobGroupJob: 'Jobs Group',
 			schedulerNewScheduleCron: 'Cron',
+			schedulerNewScheduleRunNow: 'Run Now',
+			schedulerNewScheduledJob: 'Scheduled Job',
 			defaultType: 'Job'
 		}[jobType];
 
@@ -81,7 +85,7 @@
 			<div class="flex-1">
 				<button
 					class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
-					on:click={() => openModals('JobGroupJob')}
+					on:click={() => openModals('schedulerNewJobGroupJob')}
 				>
 					<p>New Job Group</p>
 				</button>
@@ -140,7 +144,10 @@
 				</button>
 			</div>
 			<div class="flex-1">
-				<button class="bg-primary-400-500-token min-w-auto md:w-60">
+				<button
+					class="bg-primary-400-500-token min-w-auto md:w-60"
+					on:click={() => openModals('schedulerNewScheduleRunNow')}
+				>
 					<p>New run now</p>
 				</button>
 			</div>
@@ -188,7 +195,10 @@
 <Card title="Scheduled jobs" class="mt-5">
 	<div slot="cornerOption">
 		<div class="mb-5 flex space-x-5">
-			<button class="bg-primary-400-500-token min-w-auto w-60">
+			<button
+				on:click={() => openModals('schedulerNewScheduledJob')}
+				class="bg-primary-400-500-token min-w-auto w-60"
+			>
 				<p>New scheduled job</p>
 			</button>
 		</div>

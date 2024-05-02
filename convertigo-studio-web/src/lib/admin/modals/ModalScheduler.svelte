@@ -4,7 +4,7 @@
 	import Card from '../components/Card.svelte';
 	import CronWizard from '../components/CronWizard2.svelte';
 	import { onMount } from 'svelte';
-	import { jobsStore, schedulerList } from '../stores/schedulerStore';
+	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
 	import {
 		getProjectTestPlatform,
@@ -13,14 +13,12 @@
 		sequencesStore
 	} from '../stores/testPlatformStore';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
-	import { cronData } from '../stores/cronStore';
-	//import { cronStore } from '../stores/cronStore';
+	import SchedulerForm from '../components/SchedulerForm.svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
 
 	export let parent;
-	let enable = false;
-	let writeOutput = false;
 	let selectedProjectId;
 	let projectConnector;
 	let projectTransaction;
@@ -28,8 +26,6 @@
 	let selectedJob;
 	let jobCount = 1;
 	let cronExpression;
-	const cronExpressionValue = $cronData;
-	const { mode } = $modalStore[0].meta;
 
 	onMount(async () => {
 		await schedulerList();
@@ -51,10 +47,14 @@
 				return 'schedulerNewTransactionConvertigoJob';
 			case 'SequenceConvertigoJob':
 				return 'schedulerNewSequenceConvertigoJob';
-			case 'jobGroupJob':
+			case 'schedulerNewJobGroupJob':
 				return 'schedulerNewJobGroupJob';
 			case 'schedulerNewScheduleCron':
 				return 'schedulerNewScheduleCron';
+			case 'schedulerNewScheduleRunNow':
+				return 'schedulerNewScheduleRunNow';
+			case 'schedulerNewScheduledJob':
+				return 'schedulerNewScheduledJob';
 			default:
 				return 'schedulerUnknownType';
 		}
@@ -64,11 +64,6 @@
 		e.preventDefault();
 		const fd = new FormData(e.target);
 
-		//const cronExpression = cronStore.compileCronExpression();
-		//fd.append('enabled', enable.toString());
-		fd.append('writeOutput', writeOutput.toString());
-		fd.append('parallelJob', jobCount.toString());
-		//fd.append('cron', cronExpressionValue.toString());
 		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
 		fd.append('type', getType(mode));
 		try {
@@ -90,48 +85,11 @@
 </script>
 
 {#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob' || $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
-	<Card title={$modalStore[0].title}>
+	<Card title={$modalStore[0].title} class="w-[60vw]">
 		<form class="p-5" on:submit={createScheduledElements}>
 			<div class="grid grid-cols-2 gap-10">
-				<div class="col-span-1 flex flex-col gap-5">
-					<label class="border-common">
-						<p class="label-common">Name</p>
-						<input name="name" value="" class="input-common" />
-					</label>
-					<label class="border-common">
-						<p class="label-common">Description</p>
-						<input name="description" value="" class="input-common" />
-					</label>
-					<p class="label-common">Enable</p>
-					<RadioGroup>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-success-400-500-token"
-							value={true}>Yes</RadioItem
-						>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-error-400-500-token"
-							value={false}>No</RadioItem
-						>
-					</RadioGroup>
-					<p class="label-common">Write Output</p>
-					<RadioGroup>
-						<RadioItem
-							name="writeOutput"
-							active="bg-success-400-500-token"
-							bind:group={writeOutput}
-							value={true}>Yes</RadioItem
-						>
-						<RadioItem
-							name="writeOutput"
-							active="bg-error-400-500-token"
-							bind:group={writeOutput}
-							value={false}>No</RadioItem
-						>
-					</RadioGroup>
+				<div class="col-span-1 flex flex-col">
+					<SchedulerForm />
 				</div>
 
 				<div class="col-span-1 flex flex-col gap-5">
@@ -201,52 +159,24 @@
 						</div>
 					{/if}
 				</div>
-
-				<div class="flex gap-1 mt-10">
-					<button
-						class="bg-surface-400-500-token w-40"
-						on:click|preventDefault={() => modalStore.close()}>Cancel</button
-					>
-					<button type="submit" class="bg-primary-400-500-token w-40">Confirm</button>
-				</div>
 			</div>
+			<ModalButtons />
 		</form>
 	</Card>
-{:else if $modalStore[0]?.meta?.mode === 'JobGroupJob'}
-	<Card title={$modalStore[0].title}>
+{:else if $modalStore[0]?.meta?.mode === 'schedulerNewJobGroupJob'}
+	<Card title={$modalStore[0].title} class="w-[60vw]">
 		<form class="p-5" on:submit={createScheduledElements}>
 			<div class="grid grid-cols-2 gap-10">
 				<div class="col-span-1 flex flex-col gap-5">
-					<label class="border-common">
-						<p class="label-common">Name</p>
-						<input name="name" value="" class="input-common" />
-					</label>
-					<label class="border-common">
-						<p class="label-common">Description</p>
-						<input name="description" value="" class="input-common" />
-					</label>
-					<p class="label-common">Enable</p>
-					<RadioGroup>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-success-400-500-token"
-							value={true}>Yes</RadioItem
-						>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-error-400-500-token"
-							value={false}>No</RadioItem
-						>
-					</RadioGroup>
+					<SchedulerForm />
 				</div>
 				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
 					<p class="label-common">Parallel Job execution</p>
+					<input type="hidden" name="parallelJob" value={jobCount} />
 					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
-						<button on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
+						<button type="button" on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
 						<span>{jobCount}</span>
-						<button on:click|preventDefault={() => adjustJobCount(1)}>+</button>
+						<button type="button" on:click|preventDefault={() => adjustJobCount(1)}>+</button>
 					</div>
 
 					<p class="font-bold">Select a job</p>
@@ -270,16 +200,43 @@
 					</ResponsiveContainer>
 				</div>
 			</div>
-			<div class="flex gap-1 mt-10">
-				<button
-					class="bg-surface-400-500-token w-full"
-					on:click|preventDefault={() => modalStore.close()}>Cancel</button
-				>
-				<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
-			</div>
+			<ModalButtons />
+		</form></Card
+	>
+{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleCron'}
+	<Card title={$modalStore[0].title}>
+		<form on:submit={createScheduledElements}>
+			<ResponsiveContainer
+				scrollable={true}
+				smCols="sm:grid-cols-1"
+				mdCols="md:grid-cols-6"
+				lgCols="lg:grid-cols-6"
+			>
+				<div class="col-span-2">
+					<SchedulerForm />
+				</div>
+
+				<div class="col-span-4 flex flex-col gap-5">
+					<label class="border-common">
+						<p class="label-common">Cron Expression</p>
+						<input name="cron" bind:value={cronExpression} class="input-common" />
+					</label>
+					<CronWizard bind:cronExpression />
+				</div>
+			</ResponsiveContainer>
+			<ModalButtons />
 		</form>
 	</Card>
-{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleCron'}
+{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleRunNow'}
+	<Card title={$modalStore[0].title} class="w-[60vw]">
+		<form on:submit={createScheduledElements}>
+			<div class="col-span-2 flex flex-col gap-5">
+				<SchedulerForm />
+			</div>
+			<ModalButtons />
+		</form>
+	</Card>
+{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduledJob'}
 	<Card title={$modalStore[0].title}>
 		<form class="" on:submit={createScheduledElements}>
 			<ResponsiveContainer
@@ -288,52 +245,35 @@
 				mdCols="md:grid-cols-6"
 				lgCols="lg:grid-cols-6"
 			>
-				<div class="col-span-2 flex flex-col gap-5 p-5">
-					<label class="border-common">
-						<p class="label-common">Name</p>
-						<input name="name" value="" class="input-common" />
-					</label>
-					<label class="border-common">
-						<p class="label-common">Description</p>
-						<input name="description" value="" class="input-common" />
-					</label>
-					<label class="border-common">
-						<p class="label-common">Cron Expression</p>
-						<input name="cron" bind:value={cronExpression} class="input-common" />
-					</label>
-					<p class="label-common">Enable</p>
-					<RadioGroup>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-success-400-500-token"
-							value={true}>Yes</RadioItem
-						>
-						<RadioItem
-							name="enabled"
-							bind:group={enable}
-							active="bg-error-400-500-token"
-							value={false}>No</RadioItem
-						>
-					</RadioGroup>
+				<div class="col-span-2 flex flex-col gap-5">
+					<SchedulerForm />
 				</div>
 
 				<div class="col-span-4 flex flex-col gap-5">
-					<CronWizard bind:cronExpression />
+					<ResponsiveContainer
+						scrollable={true}
+						smCols="sm:grid-cols-1"
+						mdCols="md:grid-cols-2"
+						lgCols="lg:grid-cols-2"
+					>
+						<select class="select h-[40vh] rounded-token" multiple={true} name="jobName">
+							{#each $jobsStore as jobName}
+								<option class="font-extralight" selected={jobName} value={jobName['@_name']}
+									>{jobName['@_name']}</option
+								>
+							{/each}
+						</select>
+						<select class="select h-[40vh] rounded-token" multiple={true} name="jobName">
+							{#each $schedulesStore as schedule, i}
+								<option class="font-extralight" selected={schedule} value={schedule['@_name']}
+									>{schedule['@_name']}</option
+								>
+							{/each}
+						</select>
+					</ResponsiveContainer>
 				</div>
 			</ResponsiveContainer>
-			<div class="w-full flex justify-end p-5">
-				<div class="flex flex-wrap gap-2">
-					<div class="flex-1">
-						<button class="gray-button w-60" on:click|preventDefault={() => modalStore.close()}
-							>Cancel</button
-						>
-					</div>
-					<div class="flex-1">
-						<button type="submit" class="bg-primary-400-500-token w-60">Confirm</button>
-					</div>
-				</div>
-			</div>
+			<ModalButtons />
 		</form>
 	</Card>
 {/if}

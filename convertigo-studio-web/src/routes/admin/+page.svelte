@@ -45,9 +45,6 @@
 	 */
 	$: categories = $monitorData.labels;
 
-	/**
-	 * @param {{ target: { disabled: boolean; }; }}
-	 */
 	async function performGC() {
 		try {
 			const res = await call('engine.PerformGC');

@@ -80,7 +80,7 @@
 			bind:this={iframe}
 			src={getUrl().replace('/services/', '/_utils/')}
 			title="fullsync"
-			class="h-full"
+			class="h-full rounded-xl"
 			on:load={onload}
 		></iframe>
 	{/if}
