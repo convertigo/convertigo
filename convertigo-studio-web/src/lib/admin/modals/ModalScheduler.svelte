@@ -173,6 +173,7 @@
 				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
 					<p class="label-common">Parallel Job execution</p>
 					<input type="hidden" name="parallelJob" value={jobCount} />
+
 					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
 						<button type="button" on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
 						<span>{jobCount}</span>
@@ -241,7 +242,7 @@
 		<form class="" on:submit={createScheduledElements}>
 			<ResponsiveContainer
 				scrollable={true}
-				smCols="sm:grid-cols-1"
+				smCols="sm:grid-cols-4"
 				mdCols="md:grid-cols-6"
 				lgCols="lg:grid-cols-6"
 			>
@@ -249,10 +250,10 @@
 					<SchedulerForm />
 				</div>
 
-				<div class="col-span-4 flex flex-col gap-5">
+				<div class="col-span-2 flex flex-col gap-5">
 					<ResponsiveContainer
 						scrollable={true}
-						smCols="sm:grid-cols-1"
+						smCols="sm:grid-cols-2"
 						mdCols="md:grid-cols-2"
 						lgCols="lg:grid-cols-2"
 					>
@@ -263,6 +264,7 @@
 								>
 							{/each}
 						</select>
+
 						<select class="select h-[40vh] rounded-token" multiple={true} name="jobName">
 							{#each $schedulesStore as schedule, i}
 								<option class="font-extralight" selected={schedule} value={schedule['@_name']}
