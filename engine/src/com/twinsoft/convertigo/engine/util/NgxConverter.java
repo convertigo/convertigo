@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 
 class CustomDirectoryFilter implements FileFilter {
 	@Override
@@ -69,7 +70,7 @@ public class NgxConverter {
 	private File outputDir;
 	private String indent = "";
 	
-	private static String NGX_TPL_PROJECT_NAME = "mobilebuilder_tpl_8_3_0_ngx";
+	public final static String NGX_TPL_PROJECT_NAME = "mobilebuilder_tpl_8_3_0_ngx";
 	
 	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
@@ -1724,7 +1725,7 @@ public class NgxConverter {
 	public void convertFile() throws Exception {
 		// Check for template project
 		ProjectSchemaReference prjRef = new ProjectSchemaReference();
-		prjRef.setProjectName(NGX_TPL_PROJECT_NAME + "=https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + NGX_TPL_PROJECT_NAME + ".zip");
+		prjRef.setProjectName(NGX_TPL_PROJECT_NAME + "=" + ReferencedProjectManager.getTemplateUrl(NGX_TPL_PROJECT_NAME));
 		Project p = Engine.theApp.referencedProjectManager.importProject(prjRef.getParser());
 		if (p == null) {
 			throw new Exception("Unable to convert: "+ NGX_TPL_PROJECT_NAME + " does not exist.");

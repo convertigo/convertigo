@@ -23,9 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -53,8 +51,6 @@ import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -101,6 +97,7 @@ import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -777,36 +774,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences)
 			throws Exception {
-		HttpGet get = new HttpGet(projectUrl.toURI());
 		File archive = File.createTempFile("convertigoImportFromHttp", ".car");
 		archive.deleteOnExit();
-		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-			FileUtils.deleteQuietly(archive);
-			archive.getParentFile().mkdirs();
-			long length = response.getEntity().getContentLength();
-			String sl = Long.toString(length);
-			if (length < 1) {
-				length = Integer.MAX_VALUE;
-				sl = "??";
-			}
-			try (FileOutputStream fos = new FileOutputStream(archive)) {
-				InputStream is = response.getEntity().getContent();
-				byte[] buf = new byte[1024 * 1024];
-				int n;
-				long t = 0, now, ts = 0;
-				while (t < length && (n = is.read(buf, 0, (int) Math.min(length - t, buf.length))) > -1) {
-					fos.write(buf, 0, n);
-					t += n;
-					now = System.currentTimeMillis();
-					if (now > ts) {
-						Engine.logEngine
-								.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
-						ts = now + 2000;
-					}
-				}
-				Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
-			}
-			Engine.logEngine.info("Downloaded project " + projectUrl.toString() + " to " + archive.toString());
+		try {
+			HttpUtils.downloadFile(projectUrl.toString(), archive);
 			return deployProject(archive.getAbsolutePath(), targetProjectName, bForce, keepOldReferences);
 		} finally {
 			archive.delete();

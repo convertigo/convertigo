@@ -19,7 +19,10 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Matcher;
@@ -52,6 +55,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.routing.HttpRoute;
@@ -236,7 +240,7 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
-					if (Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
+					if (Engine.theApp != null && Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
 						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
 						httpClientBuilder.setProxy(proxy);
 						HttpRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy) {
@@ -494,6 +498,38 @@ public class HttpUtils {
 				e.setStackTrace(new StackTraceElement[0]);
 				throw e;
 			}
+		}
+	}
+	
+	public static void downloadFile(String url, File file) throws ClientProtocolException, IOException {
+		var client = Engine.theApp != null ? Engine.theApp.httpClient4 : makeHttpClient(false);
+		try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
+			FileUtils.deleteQuietly(file);
+			file.getParentFile().mkdirs();
+			long length = response.getEntity().getContentLength();
+			String sl = Long.toString(length);
+			if (length < 1) {
+				length = Integer.MAX_VALUE;
+				sl = "??";
+			}
+			try (FileOutputStream fos = new FileOutputStream(file)) {
+				InputStream is = response.getEntity().getContent();
+				byte[] buf = new byte[1024 * 1024];
+				int n;
+				long t = 0, now, ts = 0;
+				while (t < length && (n = is.read(buf, 0, (int) Math.min(length - t, buf.length))) > -1) {
+					fos.write(buf, 0, n);
+					t += n;
+					now = System.currentTimeMillis();
+					if (now > ts) {
+						Engine.logEngine
+								.debug("Download " + file.getName() + " from " + url + " : " + t + " / " + sl);
+						ts = now + 2000;
+					}
+				}
+				Engine.logEngine.debug("Download " + file.getName() + " from " + url + " : " + t + " / " + sl);
+			}
+			Engine.logEngine.info("Downloaded " + url + " to " + file.toString());
 		}
 	}
 }

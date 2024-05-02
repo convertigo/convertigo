@@ -47,6 +47,10 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class ReferencedProjectManager {
 	private Map<File, Object> dirLock = new HashMap<>();
 	
+	static public String getTemplateUrl(String projectName) {
+        return "https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + projectName + ".zip";
+	}
+	
 	private Object getLock(File dir) {
 		synchronized (dirLock) {
 			Object lock = dirLock.get(dir);
@@ -140,7 +144,7 @@ public class ReferencedProjectManager {
 		if (prjRef == null) {
 			prjRef = new ProjectSchemaReference();
 			if (projectName.startsWith("mobilebuilder_tpl_")) {
-				prjRef.setProjectName(projectName + "=https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + projectName + ".zip");
+				prjRef.setProjectName(projectName + "=" + getTemplateUrl(projectName) + ".zip");
 			} else {
 				prjRef.setProjectName(projectName);
 			}
