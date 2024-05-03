@@ -117,7 +117,7 @@
 
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
-				<Accordion class="dark:bg-indigo-600 rounded w-[40vw] dark:bg-opacity-30 mt-5">
+				<Accordion class="dark:bg-indigo-600 rounded w-[40%] dark:bg-opacity-30 mt-5">
 					<AccordionItem close>
 						<svelte:fragment slot="lead"
 							><Icon icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment

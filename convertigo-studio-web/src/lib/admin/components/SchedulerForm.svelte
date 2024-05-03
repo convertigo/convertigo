@@ -30,7 +30,7 @@
 			>No</RadioItem
 		>
 	</RadioGroup>
-	{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob'}
+	{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob' || 'SequenceConvertigoJob'}
 		<p class="label-common">Write Output</p>
 		<RadioGroup>
 			<RadioItem

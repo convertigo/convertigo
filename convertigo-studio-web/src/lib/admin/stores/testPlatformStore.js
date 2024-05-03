@@ -3,66 +3,29 @@ import { call } from '$lib/utils/service';
 
 export let projectStore = writable({
 	connectors: [],
-	transactions: [],
 	sequences: []
 });
 
+//Ensures anything is treated as an array
+const asArray = (data) => (Array.isArray(data) ? data : data ? [data] : []);
+
+const processEntities = (entities) =>
+	entities.map((entity) => ({
+		name: entity['@_name'],
+		transactions: entity.transaction ? processEntities(asArray(entity.transaction)) : [],
+		variables: entity.variable ? asArray(entity.variable) : []
+	}));
+
 export async function getProjectTestPlatform(projectName) {
 	try {
-		const res = await call('projects.GetTestPlatform', {
-			projectName
-		});
-		let projectData = {
-			connectors: [],
-			sequences: []
+		const res = await call('projects.GetTestPlatform', { projectName });
+		const project = res?.admin?.project;
+
+		const projectData = {
+			connectors: processEntities(asArray(project?.connector)),
+			sequences: processEntities(asArray(project?.sequence))
 		};
 
-		// Ensure the connector data is properly handled
-		const connectors = res?.admin?.project?.connector
-			? Array.isArray(res.admin.project.connector)
-				? res.admin.project.connector
-				: [res.admin.project.connector]
-			: [];
-
-		projectData.connectors = connectors.map((connector) => {
-			const transactions = connector.transaction
-				? Array.isArray(connector.transaction)
-					? connector.transaction
-					: [connector.transaction]
-				: [];
-
-			return {
-				name: connector['@_name'],
-				transactions: transactions.map((transaction) => {
-					const variables = transaction.variable
-						? Array.isArray(transaction.variable)
-							? transaction.variable
-							: [transaction.variable]
-						: [];
-					return {
-						name: transaction['@_name'],
-						variables
-					};
-				})
-			};
-		});
-		// Process sequences
-		const sequences = res?.admin?.project?.sequence
-			? Array.isArray(res.admin.project.sequence)
-				? res.admin.project.sequence
-				: [res.admin.project.sequence]
-			: [];
-
-		projectData.sequences = sequences.map((sequence) => ({
-			name: sequence['@_name'],
-			variables: sequence.variable
-				? Array.isArray(sequence.variable)
-					? sequence.variable
-					: [sequence.variable]
-				: []
-		}));
-
-		//@ts-ignore
 		projectStore.set(projectData);
 	} catch (error) {
 		console.error('Error fetching project test platform:', error);

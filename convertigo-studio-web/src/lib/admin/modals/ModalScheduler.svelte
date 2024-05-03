@@ -176,16 +176,6 @@
 								</select>
 							{:else}
 								<p>No transactions available for selected connector</p>
-
-								<!--
-							{:else if $sequencesStore.length > 0}
-							<select name="transaction" bind:value={projectSequence} class="input-common">
-								{#each $sequencesStore as sequence}
-									<option value={sequence['@_name']} selected={projectSequence}
-										>{sequence['@_name']}</option
-									>
-								{/each}
-							</select>-->
 							{/if}
 						</div>
 						{#if selectedTransactionVariables.length > 0}
@@ -226,10 +216,10 @@
 										<h3 class="font-bold">Variables:</h3>
 										{#each selectedSequenceVariables as variable}
 											<label class="block mt-2">
-												{variable.name}:
+												{variable['@_name']}:
 												<input
 													type="text"
-													name={'requestable_parameter_' + variable.name}
+													name={'requestable_parameter_' + variable['@_name']}
 													bind:value={variable.value}
 													class="input-common"
 												/>
