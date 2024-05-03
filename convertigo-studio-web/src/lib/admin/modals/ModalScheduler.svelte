@@ -6,12 +6,7 @@
 	import { onMount } from 'svelte';
 	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
-	import {
-		getProjectTestPlatform,
-		connectorsStore,
-		transactionsStore,
-		sequencesStore
-	} from '../stores/testPlatformStore';
+	import { getProjectTestPlatform, projectStore } from '../stores/testPlatformStore';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 	import SchedulerForm from '../components/SchedulerForm.svelte';
 	import ModalButtons from '../components/ModalButtons.svelte';
@@ -19,13 +14,36 @@
 	const modalStore = getModalStore();
 
 	export let parent;
-	let selectedProjectId;
-	let projectConnector;
-	let projectTransaction;
-	let projectSequence;
 	let selectedJob;
 	let jobCount = 1;
 	let cronExpression;
+
+	let selectedProjectId;
+	let selectedConnectorName;
+	let selectedSequence;
+	let selectedTransactionName;
+	let selectedTransactionVariables = [];
+	let selectedSequenceVariables = [];
+
+	$: connectors = $projectStore.connectors;
+
+	$: selectedConnector = connectors.find((connector) => connector.name === selectedConnectorName);
+
+	$: transactions = selectedConnector ? selectedConnector.transactions : [];
+
+	$: sequences = $projectStore.sequences;
+
+	$: if (selectedTransactionName && transactions.length > 0) {
+		const foundTransaction = transactions.find(
+			(transaction) => transaction.name === selectedTransactionName
+		);
+		selectedTransactionVariables = foundTransaction ? foundTransaction.variables : [];
+	}
+
+	$: if (selectedSequence && sequences.length > 0) {
+		const foundSequence = sequences.find((sequence) => sequence.name === selectedSequence);
+		selectedSequenceVariables = foundSequence ? foundSequence.variables : [];
+	}
 
 	onMount(async () => {
 		await schedulerList();
@@ -34,6 +52,18 @@
 		await getProjectTestPlatform(selectedProjectId);
 		selectedJob = $jobsStore[0]['@_name'];
 	});
+
+	function handleConnectorChange(event) {
+		selectedConnectorName = event.target.value;
+	}
+
+	function handleTransactionChange(event) {
+		selectedTransactionName = event.target.value;
+	}
+
+	function handleSequenceChange(event) {
+		selectedSequence = event.target.value;
+	}
 
 	function handleProjectChange(event) {
 		selectedProjectId = event.target.value;
@@ -115,46 +145,102 @@
 					{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob'}
 						<div class="border-common mt-5">
 							<p class="label-common w-full">Connector</p>
-							{#if $connectorsStore.length > 0}
-								<select name="connector" bind:value={projectConnector} class="input-common">
-									{#each $connectorsStore as connector}
-										<option value={connector['@_name']} selected={projectConnector}
-											>{connector['@_name']}</option
-										>
+							{#if $projectStore.connectors.length > 0}
+								<select
+									bind:value={selectedConnectorName}
+									class="input-common"
+									on:change={handleConnectorChange}
+									name="connector"
+								>
+									{#each connectors as connector}
+										<option value={connector.name}>{connector.name}</option>
 									{/each}
 								</select>
 							{:else}
-								No connectors
+								<p>No connectors available</p>
 							{/if}
 						</div>
 
 						<div class="border-common mt-5">
 							<p class="label-common w-full">Transaction</p>
-							{#if $transactionsStore.length > 0}
-								<select name="transaction" bind:value={projectTransaction} class="input-common">
-									{#each $transactionsStore as transaction}
-										<option value={transaction['@_name']} selected={projectTransaction}
-											>{transaction['@_name']}</option
-										>
+							{#if transactions.length > 0}
+								<select
+									name="transaction"
+									bind:value={selectedTransactionName}
+									class="input-common"
+									on:change={handleTransactionChange}
+								>
+									{#each transactions as transaction}
+										<option value={transaction.name}>{transaction.name}</option>
 									{/each}
 								</select>
 							{:else}
-								No transaction
+								<p>No transactions available for selected connector</p>
+
+								<!--
+							{:else if $sequencesStore.length > 0}
+							<select name="transaction" bind:value={projectSequence} class="input-common">
+								{#each $sequencesStore as sequence}
+									<option value={sequence['@_name']} selected={projectSequence}
+										>{sequence['@_name']}</option
+									>
+								{/each}
+							</select>-->
 							{/if}
 						</div>
+						{#if selectedTransactionVariables.length > 0}
+							<div class="mt-5">
+								<h3 class="font-bold">Variables:</h3>
+								{#each selectedTransactionVariables as variable}
+									<label class="block mt-2">
+										{variable['@_name']}:
+										<input
+											type="text"
+											name={'requestable_parameter_' + variable['@_name']}
+											bind:value={variable.value}
+											class="input-common"
+										/>
+									</label>
+								{/each}
+							</div>
+						{:else}
+							<p class="mt-5">No variables available for this transaction.</p>
+						{/if}
 					{:else if $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
 						<div class="border-common mt-5">
 							<p class="label-common w-full">Sequence</p>
-							{#if $sequencesStore.length > 0}
-								<select name="sequence" bind:value={projectSequence} class="input-common">
-									{#each $sequencesStore as sequence}
-										<option value={sequence['@_name']} selected={projectSequence}
-											>{sequence['@_name']}</option
-										>
+
+							{#if sequences.length > 0}
+								<select
+									name="sequence"
+									bind:value={selectedSequence}
+									class="input-common"
+									on:change={handleSequenceChange}
+								>
+									{#each sequences as sequence}
+										<option value={sequence.name}>{sequence.name}</option>
 									{/each}
 								</select>
+								{#if selectedSequenceVariables.length > 0}
+									<div class="mt-5">
+										<h3 class="font-bold">Variables:</h3>
+										{#each selectedSequenceVariables as variable}
+											<label class="block mt-2">
+												{variable.name}:
+												<input
+													type="text"
+													name={'requestable_parameter_' + variable.name}
+													bind:value={variable.value}
+													class="input-common"
+												/>
+											</label>
+										{/each}
+									</div>
+								{:else}
+									<p class="mt-5">No variables available for this sequence.</p>
+								{/if}
 							{:else}
-								No Sequences
+								<p>No Sequences available</p>
 							{/if}
 						</div>
 					{/if}

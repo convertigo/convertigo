@@ -93,7 +93,7 @@
 
 {#if selectedIndex > -1}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
-	<div class="grid md:grid-cols-5 gap-2">
+	<div class="grid md:grid-cols-5 gap-5">
 		<div class="h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
 				<div slot="cornerOption" class="flex flex-wrap gap-2 mb-10 pl-5">

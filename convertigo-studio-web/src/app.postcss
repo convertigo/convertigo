@@ -27,11 +27,11 @@ table {
 }
 th,
 td {
-	padding: 9px;
+	padding: 0;
 	text-align: left;
 	font-weight: 300;
 	font-size: 15px;
-	@apply align-middle !important;
+	@apply align-middle p-2 !important;
 }
 th {
 	@apply dark:border-surface-900;
@@ -55,7 +55,7 @@ tr:nth-child(odd) {
 }
 /**Style for Input*/
 .input-common {
-	@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 w-full;
+	@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token w-full;
 	border-bottom: surface-200;
 }
 .input-text {

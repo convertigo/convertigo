@@ -78,7 +78,7 @@
 		-webkit-overflow-scrolling: touch;
 	}
 
-	@media (max-width: 640px) {
+	@media (max-width: 640px), (max-width: 30vw) {
 		th,
 		td {
 			@apply text-sm text-wrap;

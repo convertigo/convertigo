@@ -115,6 +115,16 @@
 					definition={[
 						{ name: 'Key', key: '@_text' },
 						{
+							name: 'In use',
+							key: '@_total',
+							custom: true
+						},
+						{
+							name: 'Remaining',
+							key: '@_remaining',
+							custom: true
+						},
+						{
 							name: 'Expiration Date',
 							key: '@_expiration',
 							custom: true,
@@ -141,15 +151,23 @@
 					{#if def.custom}
 						{#if def.name === 'Expiration Date'}
 							{#if row[def.key] === '0'}
-								<div class="bg-success-400-500-token p-2 rounded-xl text-token">
+								<div class="bg-success-400-500-token rounded-xl text-token">
 									{formatExpiration(row[def.key])}
 								</div>
 							{:else}
 								{formatExpiration(row[def.key])}
 							{/if}
+						{:else if def.name === 'In use'}
+							<span class="font-bold p-2 bg-teal-200 rounded-token bg-opacity-30"
+								>{category['@_total']}</span
+							>
+						{:else if def.name === 'Remaining'}
+							<span class="font-bold p-2 bg-purple-200 rounded-token bg-opacity-30"
+								>{category['@_remaining']}</span
+							>
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
-								<div class="bg-success-400-500-token p-2 rounded-xl text-token">
+								<div class="bg-success-400-500-token rounded-xl text-token">
 									{row[def.key]}
 								</div>
 							{:else}

@@ -87,20 +87,18 @@
 	}
 
 	function openModals(mode) {
-		let meta = {};
-
 		if (mode === 'add') {
-			meta.mode = 'add';
+			mode = 'add';
 		} else if (mode === 'secret') {
-			meta.mode = 'secret';
+			mode = 'secret';
 		} else if (mode === 'import') {
-			meta.mode = 'import';
+			mode = 'import';
 		}
 
 		symbolModalStore.trigger({
 			type: 'component',
 			component: 'modalSymbols',
-			meta: meta
+			meta: mode
 		});
 	}
 </script>

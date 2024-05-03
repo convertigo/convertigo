@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import Icon from '@iconify/svelte';
-	import { Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem, Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
 	import {
 		certificatesList,
 		candidates,
@@ -19,6 +19,15 @@
 	const custom = true;
 
 	let tabSet = 0;
+
+	const notesTitle = {
+		certificate: 'A note for configuration',
+		mappings: 'A note for Mappings'
+	};
+
+	const notesComment = {
+		certificate: ''
+	};
 
 	onMount(async () => {
 		await projectsCheck();
@@ -108,12 +117,25 @@
 
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
+				<Accordion class="dark:bg-indigo-600 rounded w-[40vw] dark:bg-opacity-30 mt-5">
+					<AccordionItem close>
+						<svelte:fragment slot="lead"
+							><Icon icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
+						>
+						<svelte:fragment slot="summary">{notesTitle.certificate}</svelte:fragment>
+						<svelte:fragment slot="content"
+							>Configure here the certificates used by Convertigo. The certificates can be <strong
+								>individual certificates files (*.pfx, *.p12 or *.cer) or <strong
+									>certificates store files (*.store). Usually, individual certificates authenticate
+									clients, certificates stores authenticate servers.</strong
+								></strong
+							></svelte:fragment
+						>
+					</AccordionItem>
+				</Accordion>
 				<TableAutoCard
 					title="Installed Certificates"
-					comment="Configure here the certificates used by Convertigo.
-					The certificates can be <strong>individual certificates files (*.pfx, *.p12 or
-					*.cer) or <strong>certificates store files (*.store).
-					Usually, individual certificates authenticate clients, certificates stores authenticate servers."
+					comment=""
 					class="mt-5"
 					definition={[
 						{ name: 'Certificate / Store', custom },
@@ -205,17 +227,26 @@
 							store: $cariocaBinding
 						}
 					]}
-					<p class="font-bold text-surface-300 p-3">
-						Configure here the mappings between the authentication paths and the corresponding
-						certificates. The mappings could refer to users either anonymous or authenticated by the
-						Carioca/Vic portal. In the case of the identification of anonymous users, you will have
-						to choose the correct Convertigo project. The 'default' project allows the
-						identification on all projects. Otherwise, you will have to choose the virtual server,
-						the authorization group and the related Carioca/Vic user. An empty 'virtual server'
-						field selects all servers, all groups and all users. An empty 'authorization group'
-						field selects all groups and all users of the specified virtual server. An empty 'user'
-						field selects all users of the specified group.
-					</p>
+					<Accordion class="dark:bg-indigo-600 rounded w-[50vw] dark:bg-opacity-30 mt-5">
+						<AccordionItem close>
+							<svelte:fragment slot="lead"
+								><Icon icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
+							>
+							<svelte:fragment slot="summary">{notesTitle.mappings}</svelte:fragment>
+							<svelte:fragment slot="content">
+								Configure here the mappings between the authentication paths and the corresponding
+								certificates. The mappings could refer to users either anonymous or authenticated by
+								the Carioca/Vic portal. In the case of the identification of anonymous users, you
+								will have to choose the correct Convertigo project. The 'default' project allows the
+								identification on all projects. Otherwise, you will have to choose the virtual
+								server, the authorization group and the related Carioca/Vic user. An empty 'virtual
+								server' field selects all servers, all groups and all users. An empty 'authorization
+								group' field selects all groups and all users of the specified virtual server. An
+								empty 'user' field selects all users of the specified group.
+							</svelte:fragment>
+						</AccordionItem>
+					</Accordion>
+					<p class="font-bold text-surface-300 p-3"></p>
 					{#each conf as { title, definition, store }}
 						<TableAutoCard
 							class="mt-5"
