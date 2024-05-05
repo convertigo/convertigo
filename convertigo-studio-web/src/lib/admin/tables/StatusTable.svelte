@@ -43,17 +43,24 @@
 <TableAutoCard
 	class={`statusTable ${cls}`}
 	showHeaders={false}
-	definition={[{ key: 'Name' }, { key: 'Value', custom: true }]}
+	definition={[
+		{ key: 'Name', custom: true },
+		{ key: 'Value', custom: true }
+	]}
 	{data}
 	let:row
 	let:def
 >
-	{#if row[def.key] == 'Running'}
-		<span class="on" />
-	{:else if row[def.key] == 'Stopped'}
-		<span class="off" />
+	{#if def.key === 'Name'}
+		<span class="font-normal">{row.Name}</span>
+	{:else}
+		{#if row[def.key] == 'Running'}
+			<span class="on" />
+		{:else if row[def.key] == 'Stopped'}
+			<span class="off" />
+		{/if}
+		<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
 	{/if}
-	<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
 </TableAutoCard>
 
 <style lang="postcss">

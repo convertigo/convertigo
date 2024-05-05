@@ -10,6 +10,7 @@
 <AppBar
 	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200"
 	background="dark:bg-surface-700 bg-surface-100"
+	padding="p-0"
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
@@ -45,7 +46,7 @@
 
 <style lang="postcss">
 	.app-bar {
-		@apply flex w-full justify-between p-3 dark:bg-surface-800 bg-white;
+		@apply flex w-full justify-between dark:bg-surface-800 bg-white;
 	}
 	.logo-mobile {
 		@apply w-10 h-full md:hidden;

@@ -6,7 +6,6 @@ export let projectStore = writable({
 	sequences: []
 });
 
-//Ensures anything is treated as an array
 const asArray = (data) => (Array.isArray(data) ? data : data ? [data] : []);
 
 const processEntities = (entities) =>

@@ -52,4 +52,10 @@
 	showHeaders={false}
 	definition={[{ key: 'Name' }, { key: 'Value' }]}
 	{data}
-/>
+	let:row
+	let:def
+>
+	{#if def.key === 'Name'}
+		<span class="font-normal">{row.Name}</span>
+	{/if}
+</TableAutoCard>

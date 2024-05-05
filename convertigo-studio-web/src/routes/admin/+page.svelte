@@ -78,7 +78,7 @@
 <AutoGrid>
 	<Card title="Status">
 		<div slot="cornerOption">
-			<div class="mb-5 flex flex-wrap gap-2 pl-5">
+			<div class="flex flex-wrap gap-2 pl-5">
 				<div class="flex-1">
 					<button class="bg-primary-400-500-token w-full" on:click={() => modal('props')}
 						>Java System Properties</button

@@ -25,12 +25,18 @@
 	let selectedTransactionVariables = [];
 	let selectedSequenceVariables = [];
 
+	const types = {
+		newTransac: 'schedulerNewTransactionConvertigoJob',
+		newSeq: 'schedulerNewSequenceConvertigoJob',
+		newJob: 'schedulerNewJobGroupJob',
+		newScheduleCron: 'schedulerNewScheduleCron',
+		newSchedulerRunNow: 'schedulerNewScheduleRunNow',
+		newScheduledJob: 'schedulerNewScheduledJob'
+	};
+
 	$: connectors = $projectStore.connectors;
-
 	$: selectedConnector = connectors.find((connector) => connector.name === selectedConnectorName);
-
 	$: transactions = selectedConnector ? selectedConnector.transactions : [];
-
 	$: sequences = $projectStore.sequences;
 
 	$: if (selectedTransactionName && transactions.length > 0) {
@@ -71,6 +77,11 @@
 
 		console.log('selectedProject', selectedProjectId);
 	}
+
+	/* function getType(mode) {
+		return types[mode];
+	}
+**/
 	function getType(mode) {
 		switch (mode) {
 			case 'TransactionConvertigoJob':
@@ -199,7 +210,6 @@
 					{:else if $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
 						<div class="border-common mt-5">
 							<p class="label-common w-full">Sequence</p>
-
 							{#if sequences.length > 0}
 								<select
 									name="sequence"
