@@ -319,3 +319,27 @@ export function createFormDataFromParent(parent) {
 export function checkArray(array) {
 	return Array.isArray(array) ? array : array ?? false ? [array] : [];
 }
+
+export function deepObject(obj) {
+	for (let key in obj) {
+		if (!key.startsWith('@_')) {
+			try {
+				obj[key] = checkArray(obj[key]).reduce((acc, obj) => {
+					if (!('@_name' in obj)) {
+						throw 'break';
+					}
+					acc[obj['@_name']] = obj;
+					return acc;
+				}, {});
+				for (let item of Object.values(obj[key])) {
+					deepObject(item);
+				}
+			} catch (e) {}
+		}
+	}
+	return obj;
+}
+
+export function capitalize(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}

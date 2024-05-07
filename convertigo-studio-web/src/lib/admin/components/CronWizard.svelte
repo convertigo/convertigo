@@ -1,214 +1,127 @@
 <script>
 	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
-	import { compileCronExpression, cronData } from '../stores/cronStore';
-	import ResponsiveContainer from './ResponsiveContainer.svelte';
-	import Card from './Card.svelte';
-	import Icon from '@iconify/svelte';
-	import { onDestroy } from 'svelte';
+	import { writable } from 'svelte/store';
+	export let cronExpression = '0 0 0 * * ?';
 
-	const months = [
-		'January',
-		'February',
-		'March',
-		'April',
-		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December'
-	];
-	const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-	let cronExpression = '0 0 0 * * ?';
-	const unsubscribe = cronData.subscribe((values) => {
-		// Assuming these values are indices, joined as strings in cron format
-		cronExpression = compileCronExpression({
-			seconds: '0' || '0',
-			minutes: values.minutes.join('-') || '0',
-			hours: values.hours.join('-') || '0',
-			daysOfMonth: values.daysOfMonth.join('-') || '*',
-			months: values.months.join('-') || '*',
-			daysOfWeek: values.daysOfWeek.join('-') || '?'
-		});
-	});
-	export { cronExpression };
-
-	function updateCronSettings(part, values) {
-		if (part && values) {
-			cronData.update((current) => {
-				current[part] = values;
-				return current;
-			});
+	function createRange(aRange) {
+		const newRange = [];
+		for (let i = 0; i < aRange.length; ) {
+			let deb = aRange[i];
+			let fin = aRange[i];
+			let inc = 1;
+			while (i + inc < aRange.length && +aRange[i + inc] === +aRange[i] + inc) {
+				fin = +aRange[i + inc];
+				inc++;
+			}
+			newRange.push(deb === fin ? deb : `${deb}-${fin}`);
+			i += inc;
 		}
+		return newRange.toString();
 	}
-	onDestroy(unsubscribe);
+
+	function parseRange(rangeStr) {
+		const parts = rangeStr.split(',');
+		const numbers = [];
+
+		for (let part of parts) {
+			if (part.includes('-')) {
+				const [start, end] = part.split('-').map(Number);
+				for (let i = start; i <= end; i++) {
+					numbers.push('' + i);
+				}
+			} else {
+				numbers.push(part);
+			}
+		}
+		return numbers;
+	}
+
+	function makeArray(prefix, lenght, inc) {
+		return [
+			prefix,
+			...Array(lenght)
+				.fill(0)
+				.map((_, index) => '' + (index + inc))
+		];
+	}
+
+	const def = [
+		{
+			title: 'Minutes',
+			values: makeArray('*', 60, 0),
+			labels: makeArray('every', 60, 0)
+		},
+		{
+			title: 'Hours',
+			values: makeArray('*', 24, 0),
+			labels: makeArray('every', 24, 0)
+		},
+		{
+			title: 'Day of month',
+			values: makeArray('*', 31, 1),
+			labels: makeArray('all', 31, 1)
+		},
+		{
+			title: 'Month',
+			values: makeArray('*', 12, 1),
+			labels: [
+				'all',
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December'
+			]
+		},
+		{
+			title: 'Day of week',
+			values: makeArray('?', 7, 1),
+			labels: ['any', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+		}
+	];
+
+	const binds = new Array(def.length).fill(null);
+
+	$: selection = writable(
+		cronExpression
+			.split(' ')
+			.slice(1, 6)
+			.map((v) => parseRange(v))
+	);
+
+	function changed(event, index) {
+		$selection[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
+		let exp = '0';
+		for (let sel of $selection) {
+			exp += ` ${createRange(sel)}`;
+		}
+		cronExpression = exp;
+	}
 </script>
 
-<Card cardBorder="border-none" title="Configure Cron Schedule" class="shadow-md">
-	<div slot="cornerOption">
-		<button class="bg-primary-400-500-token">
-			Generate Cron
-			<Icon icon="ph:gear-six-fill" class="ml-2 " />
-		</button>
-	</div>
-	<ResponsiveContainer
-		scrollable={false}
-		smCols="sm:grid-cols-1"
-		mdCols="md:grid-cols-5"
-		lgCols="lg:grid-cols-5"
-		class="mt-5"
-	>
-		<div class="col-span-1">
-			<p class="mb-5 font-bold">Minutes</p>
-			<ResponsiveContainer
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="h-[20vh]"
-				containerGap="gap-0"
-			>
-				<ListBox multiple>
-					{#each Array(60) as _, index (index)}
-						<ListBoxItem
-							active="gray-button"
-							bind:group={$cronData.minutes}
-							value={index.toString()}
-							name="minutes"
-							on:click={() => updateCronSettings('minutes', $cronData.minutes)}
-						>
-							{index}
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</ResponsiveContainer>
-		</div>
-		<div class="col-span-1">
-			<p class="mb-5 font-bold">Every hour</p>
-			<ResponsiveContainer
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="h-[20vh]"
-				containerGap="gap-0"
-			>
-				<ListBox multiple>
-					{#each Array(24) as _, index (index)}
-						<ListBoxItem
-							active="gray-button"
-							bind:group={$cronData.hours}
-							name="hours"
-							value={index.toString()}
-							on:click={() => updateCronSettings('hours', $cronData.hours)}
-						>
-							{index}
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</ResponsiveContainer>
-		</div>
-		<div class="col-span-1">
-			<p class="mb-5 font-bold">Days of month</p>
-			<ResponsiveContainer
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="h-[20vh]"
-				containerGap="gap-0"
-			>
-				<ListBox multiple>
-					{#each Array(31) as _, index (index)}
-						<ListBoxItem
-							active="gray-button"
-							bind:group={$cronData.daysOfMonth}
-							value={(index + 1).toString()}
-							name="daysOfMonth"
-							on:click={() => updateCronSettings('daysOfMonth', $cronData.daysOfMonth)}
-						>
-							{index}
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</ResponsiveContainer>
-		</div>
-		<div class="col-span-1">
-			<p class="mb-5 font-bold">Months</p>
-			<ResponsiveContainer
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="h-[20vh]"
-				containerGap="gap-0"
-			>
-				<ListBox multiple>
-					{#each months as month, index (index)}
-						<ListBoxItem
-							active="gray-button"
-							bind:group={$cronData.months}
-							value={(index + 1).toString()}
-							name="month"
-							on:click={() => updateCronSettings('month', $cronData.months)}
-						>
-							{month}
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</ResponsiveContainer>
-		</div>
-		<div class="col-span-1">
-			<p class="mb-5 font-bold">Days of week</p>
-			<ResponsiveContainer
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="h-[20vh]"
-				containerGap="gap-0"
-			>
-				<ListBox multiple>
-					{#each daysOfWeek as day, index (index)}
-						<ListBoxItem
-							active="gray-button"
-							bind:group={$cronData.daysOfWeek}
-							value={(index + 1).toString()}
-							name="dayOfWeek"
-							on:click={() => updateCronSettings('dayOfWeek', $cronData.daysOfWeek)}
-						>
-							{day}
-						</ListBoxItem>
-					{/each}
-				</ListBox>
-			</ResponsiveContainer>
-		</div>
-	</ResponsiveContainer>
-
-	<label class="mt-5 font-bold" for={cronExpression}> Current Cron Expression: </label>
-	<input class="input-common flex w-40" value={cronExpression} />
-</Card>
-
-<!--
- {#each Object.keys($cronStore) as key}
-            <div>
-                <label for={key}>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
-                <input
-                    type="text"
-                    class="input-common"
-                    id={key}
-                    value={$cronStore[key]}
-                    on:input={(event) => handleInput(key, event)}
-                />
-            </div>
-        {/each} */
-
-	/**
-          {#each Object.keys($cronStore) as key}
+<div class="flex flex-row flex-wrap">
+	{#each def as { title, values, labels }, i}
 		<div>
-			<label for={key}>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
-			<input
-				type="text"
-				class="input-common"
-				id={key}
-				value={$cronStore[key]}
-				on:input={(event) => handleInput(key, event)}
-			/>
+			<p class="font-bold text-start p-5">{title}</p>
+			<ListBox rounded="rounded-container-token" class="h-52 overflow-y-auto" multiple={true}>
+				{#each values as value, j}
+					<ListBoxItem
+						class="font-extralight"
+						active="bg-success-400-500-token"
+						{value}
+						name={labels[j]}
+						bind:group={$selection[i]}
+						on:change={(e) => changed(e, i)}>{labels[j]}</ListBoxItem
+					>
+				{/each}
+			</ListBox>
 		</div>
 	{/each}
-	<p>Current Cron Expression: {cronExpression}</p>
-         
--->
+</div>

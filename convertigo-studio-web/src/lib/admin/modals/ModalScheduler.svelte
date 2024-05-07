@@ -1,366 +1,233 @@
 <script>
-	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
-	import { call } from '$lib/utils/service';
+	import { getModalStore, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+	import { call, capitalize } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
-	import CronWizard from '../components/CronWizard2.svelte';
-	import { onMount } from 'svelte';
-	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
-	import { projectsCheck, projectsStore } from '../stores/projectsStore';
-	import { getProjectTestPlatform, projectStore } from '../stores/testPlatformStore';
-	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
-	import SchedulerForm from '../components/SchedulerForm.svelte';
+	import CronWizard from '../components/CronWizard.svelte';
 	import ModalButtons from '../components/ModalButtons.svelte';
-
-	const modalStore = getModalStore();
+	import { projectsCheck, projectsStore } from '../stores/projectsStore';
+	import { onMount } from 'svelte';
+	import { checkTestPlatform, testPlatformStore } from '../stores/testPlatformStore';
+	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
+	import CheckState from '../components/CheckState.svelte';
 
 	export let parent;
-	let selectedJob;
-	let jobCount = 1;
-	let cronExpression;
-
-	let selectedProjectId;
-	let selectedConnectorName;
-	let selectedSequence;
-	let selectedTransactionName;
-	let selectedTransactionVariables = [];
-	let selectedSequenceVariables = [];
-
-	const types = {
-		newTransac: 'schedulerNewTransactionConvertigoJob',
-		newSeq: 'schedulerNewSequenceConvertigoJob',
-		newJob: 'schedulerNewJobGroupJob',
-		newScheduleCron: 'schedulerNewScheduleCron',
-		newSchedulerRunNow: 'schedulerNewScheduleRunNow',
-		newScheduledJob: 'schedulerNewScheduledJob'
+	const modalStore = getModalStore();
+	const { mode, row } = $modalStore[0].meta ?? {};
+	console.log('row', row);
+	let binds = {
+		name: row?.['@_name'] ?? '',
+		description: row?.['@_description'] ?? '',
+		enabled: row?.['@_enabled'] == 'true' ?? false,
+		writeOutput: row?.['@_writeOutput'] == 'true' ?? false,
+		project: row?.['@_project'],
+		connector: row?.['@_connector'],
+		transaction: row?.['@_transaction'],
+		sequence: row?.['@_sequence'],
+		parallelJob: row?.['@_parallelJob'] ?? '1',
+		cron: row?.['@_cron'] ?? '0 0 0 * * ?',
+		jobsname: row?.job_group_member ?? [],
+		jobName: row?.['@_jobName'] ?? '',
+		scheduleName: row?.['@_scheduleName'] ?? '',
+		parameter: row?.parameter ?? {}
 	};
 
-	$: connectors = $projectStore.connectors;
-	$: selectedConnector = connectors.find((connector) => connector.name === selectedConnectorName);
-	$: transactions = selectedConnector ? selectedConnector.transactions : [];
-	$: sequences = $projectStore.sequences;
-
-	$: if (selectedTransactionName && transactions.length > 0) {
-		const foundTransaction = transactions.find(
-			(transaction) => transaction.name === selectedTransactionName
-		);
-		selectedTransactionVariables = foundTransaction ? foundTransaction.variables : [];
-	}
-
-	$: if (selectedSequence && sequences.length > 0) {
-		const foundSequence = sequences.find((sequence) => sequence.name === selectedSequence);
-		selectedSequenceVariables = foundSequence ? foundSequence.variables : [];
-	}
+	let selected = {
+		project: /** @type any */ (null),
+		connector: /** @type any */ (null),
+		transaction: /** @type any */ (null),
+		sequence: /** @type any */ (null)
+	};
 
 	onMount(async () => {
-		await schedulerList();
 		await projectsCheck();
-		selectedProjectId = $projectsStore[0]['@_name'];
-		await getProjectTestPlatform(selectedProjectId);
-		selectedJob = $jobsStore[0]['@_name'];
+		await handleChange('project', binds.project ?? $projectsStore[0]['@_name']);
 	});
 
-	function handleConnectorChange(event) {
-		selectedConnectorName = event.target.value;
-	}
-
-	function handleTransactionChange(event) {
-		selectedTransactionName = event.target.value;
-	}
-
-	function handleSequenceChange(event) {
-		selectedSequence = event.target.value;
-	}
-
-	function handleProjectChange(event) {
-		selectedProjectId = event.target.value;
-		getProjectTestPlatform(selectedProjectId);
-
-		console.log('selectedProject', selectedProjectId);
-	}
-
-	/* function getType(mode) {
-		return types[mode];
-	}
-**/
-	function getType(mode) {
-		switch (mode) {
-			case 'TransactionConvertigoJob':
-				return 'schedulerNewTransactionConvertigoJob';
-			case 'SequenceConvertigoJob':
-				return 'schedulerNewSequenceConvertigoJob';
-			case 'schedulerNewJobGroupJob':
-				return 'schedulerNewJobGroupJob';
-			case 'schedulerNewScheduleCron':
-				return 'schedulerNewScheduleCron';
-			case 'schedulerNewScheduleRunNow':
-				return 'schedulerNewScheduleRunNow';
-			case 'schedulerNewScheduledJob':
-				return 'schedulerNewScheduledJob';
-			default:
-				return 'schedulerUnknownType';
+	async function handleChange(type, name) {
+		if (type == 'project') {
+			await checkTestPlatform(name);
+			selected.project = $testPlatformStore[name];
+			handleChange('connector', binds.connector);
+			handleChange('sequence', binds.sequence);
+		} else if (type == 'connector') {
+			selected.connector =
+				selected.project?.connector?.[name] ?? Object.values(selected.project?.connector ?? {})[0];
+			handleChange('transaction', binds.transaction);
+		} else if (type == 'transaction') {
+			selected.transaction =
+				selected.connector?.transaction?.[name] ??
+				Object.values(selected.connector?.transaction ?? {})[0];
+		} else if (type == 'sequence') {
+			selected.sequence =
+				selected.project?.sequence?.[name] ?? Object.values(selected.project?.sequence ?? {})[0];
 		}
+		binds[type] = selected[type]['@_name'];
 	}
 
 	async function createScheduledElements(e) {
-		e.preventDefault();
-		const fd = new FormData(e.target);
-
-		const mode = $modalStore[0]?.meta?.mode || 'Unknown';
-		fd.append('type', getType(mode));
-		try {
-			await call('scheduler.CreateScheduledElements', fd);
-			await schedulerList();
-		} catch (err) {
-			console.error('Error creating scheduled elements:', err);
-		} finally {
-			modalStore.close();
-		}
-	}
-
-	function adjustJobCount(change) {
-		let newCount = jobCount + change;
-		if (newCount > 0) {
-			jobCount = newCount;
-		}
+		await call('scheduler.CreateScheduledElements', new FormData(e.target));
+		await schedulerList();
+		modalStore.close();
 	}
 </script>
 
-{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob' || $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
-	<Card title={$modalStore[0].title} class="w-[60vw]">
-		<form class="p-5" on:submit={createScheduledElements}>
-			<div class="grid grid-cols-2 gap-10">
-				<div class="col-span-1 flex flex-col">
-					<SchedulerForm />
-				</div>
-
-				<div class="col-span-1 flex flex-col gap-5">
+<Card title={$modalStore[0]?.title} class="max-w-full">
+	<form on:submit|preventDefault={createScheduledElements}>
+		<input type="hidden" name="type" value={`schedulerNew${mode}`} />
+		<div class="flex flew-row flex-wrap gap-5 justify-stretch">
+			<div class="flex flex-col gap-5">
+				<label class="border-common">
+					{#if row}
+						<input type="hidden" name="exname" value={row['@_name']} />
+						<input type="hidden" name="edit" value={true} />
+					{/if}
+					<p class="label-common">Name</p>
+					{#if mode == 'ScheduledJob'}
+						<input
+							name="name"
+							value={`${binds.jobName ?? '…'}@${binds.scheduleName ?? '…'}`}
+							class="input-common"
+							readonly={true}
+						/>
+					{:else}
+						<input name="name" bind:value={binds.name} class="input-common" />
+					{/if}
+				</label>
+				<label class="border-common">
+					<p class="label-common">Description</p>
+					<input name="description" bind:value={binds.description} class="input-common" />
+				</label>
+				<CheckState name="enabled" bind:checked={binds.enabled} size="md">Enable</CheckState>
+				{#if mode.endsWith('ConvertigoJob')}
+					<CheckState name="writeOutput" bind:checked={binds.writeOutput} size="md"
+						>Write Output</CheckState
+					>
+				{/if}
+			</div>
+			<div class="flex flex-col gap-5">
+				{#if mode.endsWith('ConvertigoJob')}
+					{@const types = [
+						{
+							name: 'project',
+							obj: $projectsStore.reduce((acc, val) => {
+								acc[val['@_name']] = val;
+								return acc;
+							}, {})
+						},
+						{
+							name: 'connector',
+							obj: selected.project?.connector ?? {},
+							starts: 'Tr'
+						},
+						{
+							name: 'transaction',
+							obj: selected.connector?.transaction ?? {},
+							starts: 'Tr'
+						},
+						{
+							name: 'sequence',
+							obj: selected.project?.sequence ?? {},
+							starts: 'Se'
+						}
+					].filter((type) => !type.starts || mode.startsWith(type.starts))}
+					{#each types as { name, obj }}
+						<div class="border-common">
+							<p class="label-common w-full">{capitalize(name)}</p>
+							<select
+								{name}
+								class="input-common"
+								on:change={(/** @type any */ e) => handleChange(name, e?.target?.value)}
+								bind:value={binds[name]}
+							>
+								{#each Object.keys(obj) as k}
+									<option>{k}</option>
+								{/each}
+							</select>
+						</div>
+					{/each}
 					<label class="border-common">
 						<p class="label-common">Context</p>
 						<input name="context" value="" class="input-common" />
 					</label>
-					<div class="border-common">
-						<p class="label-common w-full">Project</p>
-						<select
-							name="project"
-							bind:value={selectedProjectId}
-							class="input-common"
-							on:change={handleProjectChange}
-						>
-							{#each $projectsStore as project}
-								<option value={project['@_name']} selected={selectedProjectId}
-									>{project['@_name']}</option
-								>
-							{/each}
-						</select>
-					</div>
-					{#if $modalStore[0]?.meta?.mode === 'TransactionConvertigoJob'}
-						<div class="border-common mt-5">
-							<p class="label-common w-full">Connector</p>
-							{#if $projectStore.connectors.length > 0}
-								<select
-									bind:value={selectedConnectorName}
-									class="input-common"
-									on:change={handleConnectorChange}
-									name="connector"
-								>
-									{#each connectors as connector}
-										<option value={connector.name}>{connector.name}</option>
-									{/each}
-								</select>
-							{:else}
-								<p>No connectors available</p>
-							{/if}
-						</div>
-
-						<div class="border-common mt-5">
-							<p class="label-common w-full">Transaction</p>
-							{#if transactions.length > 0}
-								<select
-									name="transaction"
-									bind:value={selectedTransactionName}
-									class="input-common"
-									on:change={handleTransactionChange}
-								>
-									{#each transactions as transaction}
-										<option value={transaction.name}>{transaction.name}</option>
-									{/each}
-								</select>
-							{:else}
-								<p>No transactions available for selected connector</p>
-							{/if}
-						</div>
-						{#if selectedTransactionVariables.length > 0}
-							<div class="mt-5">
-								<h3 class="font-bold">Variables:</h3>
-								{#each selectedTransactionVariables as variable}
-									<label class="block mt-2">
-										{variable['@_name']}:
-										<input
-											type="text"
-											name={'requestable_parameter_' + variable['@_name']}
-											bind:value={variable.value}
-											class="input-common"
-										/>
-									</label>
-								{/each}
-							</div>
-						{:else}
-							<p class="mt-5">No variables available for this transaction.</p>
-						{/if}
-					{:else if $modalStore[0]?.meta?.mode === 'SequenceConvertigoJob'}
-						<div class="border-common mt-5">
-							<p class="label-common w-full">Sequence</p>
-							{#if sequences.length > 0}
-								<select
-									name="sequence"
-									bind:value={selectedSequence}
-									class="input-common"
-									on:change={handleSequenceChange}
-								>
-									{#each sequences as sequence}
-										<option value={sequence.name}>{sequence.name}</option>
-									{/each}
-								</select>
-								{#if selectedSequenceVariables.length > 0}
-									<div class="mt-5">
-										<h3 class="font-bold">Variables:</h3>
-										{#each selectedSequenceVariables as variable}
-											<label class="block mt-2">
-												{variable['@_name']}:
-												<input
-													type="text"
-													name={'requestable_parameter_' + variable['@_name']}
-													bind:value={variable.value}
-													class="input-common"
-												/>
-											</label>
-										{/each}
-									</div>
-								{:else}
-									<p class="mt-5">No variables available for this sequence.</p>
-								{/if}
-							{:else}
-								<p>No Sequences available</p>
-							{/if}
-						</div>
-					{/if}
-				</div>
-			</div>
-			<ModalButtons />
-		</form>
-	</Card>
-{:else if $modalStore[0]?.meta?.mode === 'schedulerNewJobGroupJob'}
-	<Card title={$modalStore[0].title} class="w-[60vw]">
-		<form class="p-5" on:submit={createScheduledElements}>
-			<div class="grid grid-cols-2 gap-10">
-				<div class="col-span-1 flex flex-col gap-5">
-					<SchedulerForm />
-				</div>
-				<div class="col-span-1 flex flex-col gap-5 max-h-[30vh]">
+				{:else if mode == 'JobGroupJob'}
 					<p class="label-common">Parallel Job execution</p>
-					<input type="hidden" name="parallelJob" value={jobCount} />
 
-					<div class="flex shadow-md justify-between items-center rounded-token bg-surface-500">
-						<button type="button" on:click|preventDefault={() => adjustJobCount(-1)}>-</button>
-						<span>{jobCount}</span>
-						<button type="button" on:click|preventDefault={() => adjustJobCount(1)}>+</button>
-					</div>
+					<input
+						class="input"
+						type="number"
+						name="parallelJob"
+						bind:value={binds.parallelJob}
+						on:change={(/** @type any */ e) => (e.target.value = Math.max(e.target.value, 1))}
+					/>
 
-					<p class="font-bold">Select a job</p>
-					<ResponsiveContainer
-						scrollable={true}
-						smCols="sm:grid-cols-1"
-						mdCols="md:grid-cols-1"
-						lgCols="lg:grid-cols-1"
+					<p class="font-bold">Select jobs</p>
+
+					<ListBox
+						rounded="rounded-container-token"
+						multiple={true}
+						class="max-h-52 overflow-y-auto"
 					>
-						<RadioGroup rounded="rounded-container-token" flexDirection="flex-col">
-							{#each $jobsStore as jobName}
-								<RadioItem
+						{#each $jobsStore as job}
+							{#if job['@_name'] != binds.name}
+								<ListBoxItem
 									class=""
 									active="bg-success-400-500-token"
-									bind:group={selectedJob}
+									bind:group={binds.jobsname}
 									name="jobsname"
-									value={jobName['@_name']}>{jobName['@_name']}</RadioItem
+									value={job['@_name']}>{job['@_name']}</ListBoxItem
 								>
-							{/each}
-						</RadioGroup>
-					</ResponsiveContainer>
-				</div>
-			</div>
-			<ModalButtons />
-		</form></Card
-	>
-{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleCron'}
-	<Card title={$modalStore[0].title}>
-		<form on:submit={createScheduledElements}>
-			<ResponsiveContainer
-				scrollable={true}
-				smCols="sm:grid-cols-1"
-				mdCols="md:grid-cols-6"
-				lgCols="lg:grid-cols-6"
-			>
-				<div class="col-span-2">
-					<SchedulerForm />
-				</div>
-
-				<div class="col-span-4 flex flex-col gap-5">
+							{/if}
+						{/each}
+					</ListBox>
+				{:else if mode == 'ScheduleCron'}
 					<label class="border-common">
 						<p class="label-common">Cron Expression</p>
-						<input name="cron" bind:value={cronExpression} class="input-common" />
+						<input name="cron" bind:value={binds.cron} class="input-common" />
 					</label>
-					<CronWizard bind:cronExpression />
-				</div>
-			</ResponsiveContainer>
-			<ModalButtons />
-		</form>
-	</Card>
-{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduleRunNow'}
-	<Card title={$modalStore[0].title} class="w-[60vw]">
-		<form on:submit={createScheduledElements}>
-			<div class="col-span-2 flex flex-col gap-5">
-				<SchedulerForm />
-			</div>
-			<ModalButtons />
-		</form>
-	</Card>
-{:else if $modalStore[0]?.meta?.mode === 'schedulerNewScheduledJob'}
-	<Card title={$modalStore[0].title}>
-		<form class="p-5" on:submit={createScheduledElements}>
-			<ResponsiveContainer
-				scrollable={true}
-				smCols="sm:grid-cols-4"
-				mdCols="md:grid-cols-4"
-				lgCols="lg:grid-cols-4"
-			>
-				<div class="col-span-2 flex flex-col gap-5">
-					<SchedulerForm />
-				</div>
+					<CronWizard bind:cronExpression={binds.cron} />
+				{:else if mode == 'ScheduledJob'}
+					{@const def = [
+						{ label: 'Job', name: 'jobName', store: $jobsStore },
+						{ label: 'Schedule', name: 'scheduleName', store: $schedulesStore }
+					]}
+					<p class="label-common">Association</p>
 
-				<div class="col-span-2 flex flex-col">
-					<ResponsiveContainer
-						scrollable={true}
-						smCols="sm:grid-cols-2"
-						mdCols="md:grid-cols-2"
-						lgCols="lg:grid-cols-2"
-					>
-						<select class="select h-[40vh] rounded-token" multiple={true} name="jobName">
-							{#each $jobsStore as jobName}
-								<option class="font-extralight" selected={jobName} value={jobName['@_name']}
-									>{jobName['@_name']}</option
-								>
+					<div class="flex flex-row flew-wrap">
+						{#each def as { label, name, store }}
+							<div>
+								<p class="font-bold">{label}</p>
+								<select {name} class="select" size="10" bind:value={binds[name]}>
+									{#each store as item}
+										<option>{item['@_name']}</option>
+									{/each}
+								</select>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+			{#if mode.endsWith('ConvertigoJob')}
+				{@const requestable = mode.startsWith('Tr') ? selected.transaction : selected.sequence}
+				{#if requestable?.variable}
+					<div class="flex flex-col gap-5">
+						<p class="font-bold">Variables</p>
+						<div class="overflow-y-auto max-h-80">
+							{#each Object.keys(requestable?.variable) as name}
+								<label class="border-common">
+									<p class="label-common">{name}</p>
+									<input
+										class="input-common"
+										type="text"
+										{name}
+										value={binds.parameter[name]?.value ?? ''}
+									/>
+								</label>
 							{/each}
-						</select>
-						<select class="select h-[40vh] rounded-token" multiple={true} name="scheduleName">
-							{#each $schedulesStore as schedule, i}
-								<option class="font-extralight" selected={schedule} value={schedule['@_name']}
-									>{schedule['@_name']}</option
-								>
-							{/each}
-						</select>
-					</ResponsiveContainer>
-				</div>
-			</ResponsiveContainer>
-			<ModalButtons />
-		</form>
-	</Card>
-{/if}
+						</div>
+					</div>
+				{/if}
+			{/if}
+		</div>
+		<ModalButtons />
+	</form>
+</Card>

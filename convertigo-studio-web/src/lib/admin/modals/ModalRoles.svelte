@@ -1,11 +1,12 @@
 <script>
-	import { RadioGroup, RadioItem, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
+	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 	import { usersList, rolesStore } from '../stores/rolesStore';
+	import CheckState from '../components/CheckState.svelte';
 
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
@@ -121,16 +122,9 @@
 						<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-10">
 							{#each roles as { value, checked, description }}
 								<div class="flex items-center" title={description}>
-									<SlideToggle
-										size="sm"
-										name="roles"
-										active="min-w-12 bg-success-400 dark:bg-success-700"
-										background="min-w-12 bg-error-400 dark:bg-error-700"
-										{value}
-										{checked}
-									>
-										<span class="cursor-pointer">{value.replace(end, '').replace(/_/g, ' ')}</span>
-									</SlideToggle>
+									<CheckState name="roles" {value} {checked}>
+										{value.replace(end, '').replace(/_/g, ' ')}
+									</CheckState>
 								</div>
 							{/each}
 						</div>

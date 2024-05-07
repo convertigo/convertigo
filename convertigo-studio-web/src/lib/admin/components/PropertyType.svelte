@@ -3,9 +3,9 @@
 </script>
 
 <script>
-	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { configurations } from '../stores/configurationStore';
 	import Ico from '$lib/utils/Ico.svelte';
+	import CheckState from './CheckState.svelte';
 	export let property;
 
 	let id = `property-input-${cpt++}`;
@@ -26,17 +26,9 @@
 
 <div class="flex items-center gap-x-2">
 	{#if property['@_type'] == 'Boolean'}
-		<SlideToggle
-			class="grow"
-			size="sm"
-			name={id}
-			active="min-w-12 bg-success-400 dark:bg-success-700"
-			background="min-w-12 bg-error-400 dark:bg-error-700"
-			checked={property['@_value'] == 'true'}
-			on:change={check}
+		<CheckState class="grow" name={id} checked={property['@_value'] == 'true'} on:change={check}
+			>{property['@_description']}</CheckState
 		>
-			<span class="block cursor-pointer break-words">{property['@_description']}</span>
-		</SlideToggle>
 	{:else if property['@_type'] == 'Text'}
 		<div class="flex-1 flex flex-col justify-center border-common">
 			<label class="label-common" for={id}>{property['@_description']}</label>

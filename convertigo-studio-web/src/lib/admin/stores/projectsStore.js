@@ -1,19 +1,14 @@
-import { call } from '$lib/utils/service';
-import { get, writable } from 'svelte/store';
+import { call, checkArray } from '$lib/utils/service';
+import { writable } from 'svelte/store';
 
-export const projectsStore = writable([]);
+export const projectsStore = writable(/** @type {any[]} */ ([]));
 
 let init = false;
 
 export async function projectsCheck() {
 	if (!init) {
 		init = true;
-		const response = await call('projects.List');
-		if (response?.admin?.projects) {
-			if (!Array.isArray(response.admin.projects.project)) {
-				response.admin.projects.project = [response.admin.projects.project];
-			}
-			projectsStore.set(response.admin.projects.project);
-		}
+		const res = await call('projects.List');
+		projectsStore.set(checkArray(res?.admin?.projects?.project));
 	}
 }

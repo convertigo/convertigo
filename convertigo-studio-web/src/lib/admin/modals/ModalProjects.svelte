@@ -1,11 +1,11 @@
 <script>
 	import { call } from '$lib/utils/service';
-	import { FileDropzone, SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
+	import { FileDropzone, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { onMount } from 'svelte';
 	import { projectsCheck } from '../stores/projectsStore';
 	import Icon from '@iconify/svelte';
-	import { loading } from '$lib/utils/loadingStore';
+	import CheckState from '../components/CheckState.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -60,12 +60,8 @@
 				<Icon icon="eos-icons:three-dots-loading" class="w-10 h-10" />
 			{:else}
 				<h1 class="text-xl mb-5 text-center">Choose .car file and Deploy</h1>
-				<SlideToggle
-					name="bAssembleXsl"
-					value="true"
-					active="bg-success-500"
-					background="bg-error-500"
-					>Assemble XSL files included in style sheets when deploying</SlideToggle
+				<CheckState name="bAssembleXsl" checked={false}
+					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
 				<FileDropzone
 					class="mt-5"
@@ -100,14 +96,9 @@
 		<form class="p-5 rounded-xl gap-5 flex flex-col">
 			<h1 class="text-2xl font-bold mb-5">Export Project</h1>
 			{#each exportOptions as exportOpt}
-				<SlideToggle
-					size="sm"
-					name={exportOpt.name}
-					active="bg-success-400 dark:bg-success-700"
-					background="bg-error-400 dark:bg-error-700"
-				>
+				<CheckState name={exportOpt.name}>
 					{exportOpt.name}
-				</SlideToggle>
+				</CheckState>
 			{/each}
 
 			<div class="flex flex-wrap gap-5 mt-5">

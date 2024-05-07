@@ -25,10 +25,6 @@
 		mappings: 'A note for Mappings'
 	};
 
-	const notesComment = {
-		certificate: ''
-	};
-
 	onMount(async () => {
 		await projectsCheck();
 		await certificatesList();
@@ -103,8 +99,6 @@
 			active="dark:bg-surface-500 bg-surface-50"
 			class="font-bold"
 		>
-			<!--
-			<svelte:fragment slot="lead">(icon)</svelte:fragment>-->
 			Certificate configuration
 		</Tab>
 		<Tab
@@ -327,16 +321,3 @@
 		</svelte:fragment>
 	</TabGroup>
 </Card>
-
-<!--
-<Card title="Certificate configuration" class="mt-5">	
-	<div slot="cornerOption" class="flex flex-wrap gap-1 justify-end">
-		<button
-			class="bg-primary-400-500-token min-w-60"
-			on:click={() => openModalCertificates('Install')}>Install a new certificate</button
-		>
-		<button class="bg-error-400-500-token min-w-60" on:click={() => openModalCertificates('Remove')}
-			>Remove a certificate</button
-		>
-	</div>
-</Card>-->

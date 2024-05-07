@@ -1,25 +1,32 @@
-import { call } from '$lib/utils/service';
+import { call, checkArray, deepObject } from '$lib/utils/service';
 import { writable } from 'svelte/store';
 
-export let jobsStore = writable([]);
-export let schedulesStore = writable([]);
-export let scheduledStore = writable([]);
+export let jobsStore = writable(/** @type {any[]} */ ([]));
+export let schedulesStore = writable(/** @type {any[]} */ ([]));
+export let scheduledStore = writable(/** @type {any[]} */ ([]));
 
 export async function schedulerList() {
-	const res = await call('scheduler.List');
-	const elements = res?.admin?.element ?? [];
-	const elementArray = Array.isArray(elements) ? elements : [elements];
+	let res = await call('scheduler.List');
+	const elements = checkArray(res?.admin?.element);
+	for (let el of elements) {
+		deepObject(el);
+	}
+	jobsStore.set(elements.filter((el) => el['@_category'] == 'jobs'));
+	scheduledStore.set(elements.filter((el) => el['@_category'] == 'scheduledJobs'));
 
-	const jobs = elementArray.filter((el) => el['@_category'] === 'jobs');
-	const schedules = elementArray.filter((el) => el['@_category'] === 'schedules');
-	const scheduledJobs = elementArray.filter((el) => el['@_category'] === 'scheduledJobs');
-
-	//@ts-ignore
-	jobsStore.set(jobs);
-	//@ts-ignore
+	const schedules = elements.filter((el) => el['@_category'] == 'schedules');
 	schedulesStore.set(schedules);
-	//@ts-ignore
-	scheduledStore.set(scheduledJobs);
-
-	console.log('scheduler list res:', res);
+	for (let sched of schedules) {
+		if (sched['@_cron']) {
+			res = await call('scheduler.CronCalculator', {
+				name: sched['@_name'],
+				input: sched['@_info'],
+				iteration: 20
+			});
+			sched.next = checkArray(res?.admin?.crons?.nextTime);
+		} else {
+			sched.next = ['n/a'];
+		}
+		scheduledStore.update((s) => s);
+	}
 }
