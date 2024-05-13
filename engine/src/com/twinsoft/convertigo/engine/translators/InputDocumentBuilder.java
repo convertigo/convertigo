@@ -183,7 +183,7 @@ class InputDocumentBuilder {
 			item.setAttribute("value", headerValue);
 			transactionHeadersElement.appendChild(item);
 			
-			Engine.logContext.info("Header parameter: '" + headerName + "' = '" + headerValue + "'");
+			Engine.logContext.info("Header parameter: '" + headerName + "' = '" + Visibility.maskValue(headerValue) + "'");
 		}
 		// This is a transaction uri
 		else if (parameterName.indexOf(Parameter.HttpUri.getName()) == 0) {

@@ -294,4 +294,16 @@ public enum Visibility {
 		} catch (Exception e) {}
 		return keys;
 	}
+	
+	public static String maskQueryValues(String queryString) {
+		if (queryString == null) return null;
+        var params = queryString.split("&");
+        for (int i = 0; i < params.length; i++) {
+            var param = params[i].split("=", 2);
+            if (param.length > 1) {
+                params[i] = param[0] + "=" + STRING_MASK;
+            }
+        }
+        return String.join("&", params);
+	}
 }

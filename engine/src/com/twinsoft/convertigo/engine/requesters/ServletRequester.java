@@ -24,10 +24,10 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -278,7 +279,9 @@ public abstract class ServletRequester extends GenericRequester {
 		context.servletPath = servletPath;
 
 		String queryString = request.getQueryString();
-		Engine.logContext.info("Query string: " + queryString);
+		if (Engine.logContext.isInfoEnabled()) {
+			Engine.logContext.info("Query string: " + Visibility.maskQueryValues(queryString));
+		}
 
 		String userAgent = request.getHeader(HeaderName.UserAgent.value());
 		Engine.logContext.info("User-Agent: \"" + userAgent + "\"");
