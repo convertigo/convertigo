@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
@@ -127,7 +126,7 @@ public class PaletteView extends ViewPart {
 	private Cursor handCursor;
 	private Text searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
-	private LinkedHashMap<String, Item> all = new LinkedHashMap<>();
+	private HashMap<String, Item> all = new HashMap<>();
 	private Project selectedProject = null;
 
 	private abstract class Item implements Comparable<Item> {
@@ -827,8 +826,18 @@ public class PaletteView extends ViewPart {
 
 			Control favoriteslabel = makeLabel.make(topBag, "Favorites");
 			Control lastUsedlabel = makeLabel.make(topBag, "Last used");
-
-			for (Item item: all.values()) {
+			var ordered = new TreeSet<Item>((i1, i2) -> {
+				var r = Boolean.compare(!i1.builtIn(), !i2.builtIn());
+				if (r == 0) {
+					r = i1.category().compareTo(i2.category());
+					if (r == 0) {
+						r = i1.compareTo(i2);
+					}
+				}
+				return r;
+			});
+			ordered.addAll(all.values());
+			for (Item item: ordered) {
 				if (!item.category().equals(lastParent)
 						&& StringUtils.isNotBlank(lastParent = item.category())) {
 					makeLabel.make(bag, lastParent);
