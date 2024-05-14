@@ -155,8 +155,18 @@ public class PaletteView extends ViewPart {
 		}
 
 		@Override
-		public int compareTo(Item o) {
-			return name().compareTo(o.name());
+		public int compareTo(Item i) {
+			var r = Boolean.compare(!builtIn(), !i.builtIn());
+			if (r == 0) {
+				r = category().compareToIgnoreCase(i.category());
+				if (r == 0) {
+					r = name().compareToIgnoreCase(i.name());
+				}
+			}
+			if (r == 0) {
+				r = 1;
+			}
+			return r;
 		}
 		
 		private boolean allowedIn(int folderType) {
@@ -542,9 +552,9 @@ public class PaletteView extends ViewPart {
 
 									propertyDescriptors = propertyDescriptors.clone();
 									Arrays.sort(propertyDescriptors, (o1, o2) -> {
-										if(o1.isExpert() == o2.isExpert()) {
-											return o1.getDisplayName().compareTo(o2.getDisplayName());
-										} else if(o1.isExpert()) {
+										if (o1.isExpert() == o2.isExpert()) {
+											return o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+										} else if (o1.isExpert()) {
 											return 1;
 										} else {
 											return -1;
@@ -826,17 +836,9 @@ public class PaletteView extends ViewPart {
 
 			Control favoriteslabel = makeLabel.make(topBag, "Favorites");
 			Control lastUsedlabel = makeLabel.make(topBag, "Last used");
-			var ordered = new TreeSet<Item>((i1, i2) -> {
-				var r = Boolean.compare(!i1.builtIn(), !i2.builtIn());
-				if (r == 0) {
-					r = i1.category().compareTo(i2.category());
-					if (r == 0) {
-						r = i1.compareTo(i2);
-					}
-				}
-				return r;
-			});
+			var ordered = new TreeSet<Item>((i1, i2) -> i1.compareTo(i2));
 			ordered.addAll(all.values());
+			
 			for (Item item: ordered) {
 				if (!item.category().equals(lastParent)
 						&& StringUtils.isNotBlank(lastParent = item.category())) {
