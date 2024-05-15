@@ -31,6 +31,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	private static final long serialVersionUID = 2750008565134796761L;
 
 	public enum AttrDirective {
+		CdkVirtualFor("*cdkVirtualFor"),
 		ForEach("*ngFor"),
 		If("*ngIf"),
 		Switch("[ngSwitch]"),
@@ -60,6 +61,11 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 			return bindDirective != null ? bindDirective.directive():directiveName;
 		}
 		
+		public static boolean isForDirective(String directiveName) {
+			AttrDirective bindDirective = getDirective(directiveName);
+			return bindDirective != null && 
+					(bindDirective.equals(AttrDirective.CdkVirtualFor) || bindDirective.equals(AttrDirective.ForEach));
+		}
 	}
 	
 	public UIControlDirective() {
@@ -137,8 +143,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		
 		StringBuilder sbListen = new StringBuilder();
 		if (sbSource.length() > 0) {
-			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
-			if (AttrDirective.ForEach.equals(attrDirective)) {
+			if (AttrDirective.isForDirective(getDirectiveName())) {
 				String item = "item"+ this.priority;
 				
 				// add index

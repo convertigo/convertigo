@@ -297,7 +297,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
-				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+				if (AttrDirective.isForDirective(uicd.getDirectiveName())) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
 					

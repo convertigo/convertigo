@@ -526,7 +526,7 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 						}
 						
 						UIControlDirective uicd = (UIControlDirective)uic;
-						if (showInPicker && AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+						if (showInPicker && AttrDirective.isForDirective(uicd.getDirectiveName())) {
 							SourceData sd = null;
 							try {
 								sd = Filter.Iteration.toSourceData(new JSONObject()

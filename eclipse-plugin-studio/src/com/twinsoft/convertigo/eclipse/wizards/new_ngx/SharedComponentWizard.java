@@ -420,7 +420,7 @@ public class SharedComponentWizard extends Wizard {
 					DatabaseObject databaseObject = uic;
 					while (databaseObject != null &&
 							(!(databaseObject instanceof UIControlDirective) ||
-									!AttrDirective.ForEach.name().equals(((UIControlDirective) databaseObject).getDirectiveName()))) {
+									!AttrDirective.isForDirective(((UIControlDirective) databaseObject).getDirectiveName()))) {
 						databaseObject = databaseObject.getParent();
 					}
 
