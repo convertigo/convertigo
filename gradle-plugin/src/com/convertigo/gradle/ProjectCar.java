@@ -121,7 +121,7 @@ public class ProjectCar extends ConvertigoTask {
 		try {
 			destinationDir = project.file(project.getProperties().get("convertigo.car.destinationDir"));
 		} catch (Exception e) {
-			destinationDir = project.getBuildDir();
+			destinationDir = project.getLayout().getBuildDirectory().getAsFile().get();
 		}
 		try {
 			includeTestCases = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeTestCases").toString());
@@ -141,22 +141,6 @@ public class ProjectCar extends ConvertigoTask {
 		try {
 			includeMobilePlatformsAssets = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobilePlatformsAssets").toString());
 		} catch (Exception e) {}
-		
-//		project.afterEvaluate(p -> {
-//			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
-//			getInputs().files((Object[]) project.getProjectDir().listFiles((f, s) -> !filter.reset(s).matches()));
-//			
-//			File yaml = project.file("c8oProject.yaml");
-//			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
-//				br.readLine();
-//				Matcher m = Pattern.compile("↓(.*) \\[core\\.Project\\]:").matcher(br.readLine());
-//				if (m.find()) {
-//					String projectName = m.group(1);
-//					getOutputs().file(new File(destinationDir, projectName + ".car"));
-//				}
-//			} catch (Exception e) {
-//			}
-//		});
 	}
 	
 	@TaskAction

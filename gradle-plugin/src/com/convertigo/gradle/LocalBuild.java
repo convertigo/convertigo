@@ -169,7 +169,7 @@ public class LocalBuild extends ConvertigoTask {
 			mode = getProject().getProperties().get("convertigo.localBuild.mode").toString();
 		} catch (Exception e) {}
 		
-		packageDestinationDir = new File(getProject().getBuildDir(), "localBuild");
+		packageDestinationDir = getProject().getLayout().getBuildDirectory().file("localBuild").get().getAsFile();
 		try {
 			packageDestinationDir = new File(getProject().getProperties().get("convertigo.localBuild.packageDestinationDir").toString());
 		} catch (Exception e) {}

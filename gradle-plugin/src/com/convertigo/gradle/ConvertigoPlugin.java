@@ -88,7 +88,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 		remoteBuild = tasks.create("remoteBuild", RemoteBuild.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("configuration");
-			task.dependsOn(load);
+			task.dependsOn(export);
 			task.setDescription("Configurator task for 'remoteNativeBuild' and 'remoteNativeBuild'.");
 		});
 		
@@ -109,7 +109,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 		localBuild = tasks.create("localBuild", LocalBuild.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
-			task.dependsOn(load);
+			task.dependsOn(export);
 			task.setDescription("Build native package for selected platforms.");
 		});
 	}

@@ -58,7 +58,7 @@ public class RemoteBuildDownload extends ConvertigoTask {
 		try {
 			destinationDir = project.file(project.getProperties().get("convertigo.downloadNativeDir.destinationDir"));
 		} catch (Exception e) {
-			destinationDir = project.getBuildDir();
+			destinationDir = project.getLayout().getBuildDirectory().getAsFile().get();
 		}
 	}
 	
