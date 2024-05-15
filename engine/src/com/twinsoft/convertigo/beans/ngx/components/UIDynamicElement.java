@@ -471,7 +471,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
 					if (map.size() > 0) {
 						for (String from : map.keySet()) {
@@ -487,7 +487,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Set<String> getModuleNgImports() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					return ionBean.getConfig().getModuleNgImports();
 				}
 				return new HashSet<String>();
@@ -496,7 +496,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Set<String> getModuleNgProviders() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					return ionBean.getConfig().getModuleNgProviders();
 				}
 				return new HashSet<String>();
@@ -505,7 +505,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Set<String> getModuleNgDeclarations() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					return ionBean.getConfig().getModuleNgDeclarations();
 				}
 				return new HashSet<String>();
@@ -514,7 +514,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Set<String> getModuleNgComponents() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					return ionBean.getConfig().getModuleNgComponents();
 				}
 				return new HashSet<String>();
@@ -523,7 +523,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Map<String, String> getPackageDependencies() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					return ionBean.getConfig().getPackageDependencies();
 				}
 				return new HashMap<String, String>();
@@ -532,7 +532,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Map<String, String> getConfigPlugins() {
 				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
+				if (ionBean != null && !isDeprecated()) {
 					Map<String, String> map = ionBean.getConfig().getConfigPlugins();
 					for (String plugin: map.keySet()) {
 						try {
