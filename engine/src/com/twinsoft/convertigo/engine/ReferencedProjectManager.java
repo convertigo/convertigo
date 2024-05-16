@@ -144,7 +144,7 @@ public class ReferencedProjectManager {
 		if (prjRef == null) {
 			prjRef = new ProjectSchemaReference();
 			if (projectName.startsWith("mobilebuilder_tpl_")) {
-				prjRef.setProjectName(projectName + "=" + getTemplateUrl(projectName) + ".zip");
+				prjRef.setProjectName(projectName + "=" + getTemplateUrl(projectName));
 			} else {
 				prjRef.setProjectName(projectName);
 			}
