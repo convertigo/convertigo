@@ -12,7 +12,6 @@
 
 	onMount(() => {
 		projectsCheck();
-		exportProject();
 	});
 
 	/**
@@ -29,35 +28,6 @@
 	/**
 	 * @param {string} projectName
 	 */
-
-	/**
-	export async function exportProject(projectName) {
-		const exportModalSettings = {
-			title: 'Export options',
-			body: `Select options for exporting the project "${projectName}".`,
-			options: []
-		};
-
-		try {
-			const response = await call('projects.ExportOptions', { projectName });
-			if (response) {
-				console.log(response);
-				exportModalSettings.options = response.admin.options.option.map((opt) => {
-					return {
-						display: opt['@_display'],
-						checked: true
-					};
-				});
-				// @ts-ignore
-				modalStore.trigger(exportModalSettings);
-			} else {
-				console.error('There was an error fetching export options.');
-			}
-		} catch (error) {
-			console.error(`An error occurred: ${error}`);
-		}
-	}*/
-
 	async function exportProject(projectName) {
 		try {
 			const response = await call('projects.ExportOptions', { projectName });

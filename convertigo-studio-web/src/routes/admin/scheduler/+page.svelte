@@ -39,12 +39,23 @@
 
 	//Service do not include any response for that
 	async function deleteScheduledElement(row) {
-		await call('scheduler.CreateScheduledElements', {
-			del: 'true',
-			exname: row['@_name'],
-			type: 'schedulerNew' + row['@_type']
+		modalStore.trigger({
+			type: 'component',
+			title: 'Please Confirm',
+			body: 'Are you sure you want to delete this project ?',
+			component: 'modalWarning',
+			meta: { mode: 'Confirm' },
+			response: (confirmed) => {
+				if (confirmed) {
+					call('scheduler.CreateScheduledElements', {
+						del: 'true',
+						exname: row['@_name'],
+						type: 'schedulerNew' + row['@_type']
+					});
+					schedulerList();
+				}
+			}
 		});
-		await schedulerList();
 	}
 	const cards = [
 		{
