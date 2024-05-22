@@ -15020,6 +15020,9 @@
         <property name="name">
             <java.lang.String value=""/>
         </property>
+        <property name="releasePackageType">
+            <java.lang.String value="apk"/>
+        </property>
     </mobileplatform>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UITheme" priority="0" version="   7   6   0">
         <property name="comment">

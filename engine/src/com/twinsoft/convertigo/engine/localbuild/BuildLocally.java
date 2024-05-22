@@ -604,18 +604,21 @@ public abstract class BuildLocally {
 
 			// Step 3: Build or Run using Cordova the specific platform.
 			if (run) {
-				commandsList.add(0, "run");
-				commandsList.add(1, cordovaPlatform);
-				commandsList.add(2, "--" + option);
-				commandsList.add(3, "--" + target);
+				commandsList.add("run");
+				commandsList.add(cordovaPlatform);
+				commandsList.add("--" + option);
+				commandsList.add("--" + target);
 				
 				runCordovaCommand(cordovaDir, commandsList);
 			} else {
+				commandsList.add("build");
+				commandsList.add(cordovaPlatform);
+				commandsList.add("--" + option);
 				
-				commandsList.add(0, "build");
-				commandsList.add(1, cordovaPlatform);
-				commandsList.add(2, "--" + option);
-				commandsList.add(3, "--" + target);
+				if (mobilePlatform instanceof Android android && "release".equals(option)) {
+					commandsList.add("--");
+					commandsList.add("--packageType=" + android.getReleasePackageType().name());
+				}
 				
 				String out = runCordovaCommand(cordovaDir, commandsList);
 				

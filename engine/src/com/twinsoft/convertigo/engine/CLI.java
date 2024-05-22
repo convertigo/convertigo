@@ -567,13 +567,13 @@ public class CLI {
 	
 	public void cordovaBuild(Map<String, BuildLocally> localBuilders, String mode) throws EngineException {
 		for (Entry<String, BuildLocally> localBuilder: localBuilders.entrySet()) {
-			Engine.logConvertigo.info("Build and run on emulator ...");
+			Engine.logConvertigo.info("Build for mode '" + mode + "'...");
 			Status status;
 			switch (mode) {
-			case "release": status = localBuilder.getValue().runBuild("release", false, "device"); break;
+			case "release": status = localBuilder.getValue().runBuild("release", false, ""); break;
 			case "emulator": status = localBuilder.getValue().runBuild("debug", true, "emulator"); break;
 			case "device": status = localBuilder.getValue().runBuild("debug", true, "device"); break;
-			default: status = localBuilder.getValue().runBuild("debug", false, "device"); break;
+			default: status = localBuilder.getValue().runBuild("debug", false, ""); break;
 			}
 			Engine.logConvertigo.info("Build and run status for " + localBuilder.getKey() + ": " + status);
 			File pkg = localBuilder.getValue().getMobilePackage();

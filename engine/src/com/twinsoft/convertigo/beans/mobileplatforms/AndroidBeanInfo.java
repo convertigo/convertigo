@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.mobileplatforms;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.AndroidPackageType;
 
 public class AndroidBeanInfo extends MySimpleBeanInfo {
 
@@ -38,7 +39,7 @@ public class AndroidBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 			
 			properties[0] = new PropertyDescriptor("androidCertificateTitle", Android.class, "getAndroidCertificateTitle", "setAndroidCertificateTitle");
 			properties[0].setDisplayName(getExternalizedString("property.androidCertificateTitle.display_name"));
@@ -54,6 +55,12 @@ public class AndroidBeanInfo extends MySimpleBeanInfo {
 			properties[2].setDisplayName(getExternalizedString("property.androidKeystorePw.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.androidKeystorePw.short_description"));
 			properties[2].setExpert(true);
+			
+			properties[3] = new PropertyDescriptor("releasePackageType", Android.class, "getReleasePackageType", "setReleasePackageType");
+			properties[3].setDisplayName(getExternalizedString("property.releasePackageType.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.releasePackageType.short_description"));
+			properties[3].setPropertyEditorClass(AndroidPackageType.class);
+			properties[3].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

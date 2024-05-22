@@ -20,16 +20,17 @@
 package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.engine.enums.AndroidPackageType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
 public class Android extends MobilePlatform {
-
 	private static final long serialVersionUID = 1092999336588542617L;
 	
 	private String androidCertificateTitle = "";
 	private String androidCertificatePw = "";
 	private String androidKeystorePw = "";
-	
+	private AndroidPackageType releasePackageType = AndroidPackageType.apk;
+
 	public Android() {
 		super();
 		this.cordovaPlatform = "android";
@@ -57,6 +58,14 @@ public class Android extends MobilePlatform {
 
 	public void setAndroidKeystorePw(String androidKeystorePw) {
 		this.androidKeystorePw = androidKeystorePw;
+	}
+	
+	public AndroidPackageType getReleasePackageType() {
+		return releasePackageType;
+	}
+
+	public void setReleasePackageType(AndroidPackageType releasePackageType) {
+		this.releasePackageType = releasePackageType;
 	}
 
 	@Override
