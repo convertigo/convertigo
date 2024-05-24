@@ -33,10 +33,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.codehaus.jettison.json.JSONObject;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
@@ -44,8 +42,6 @@ import org.w3c.dom.traversal.NodeIterator;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.Windows;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
@@ -70,8 +66,6 @@ public abstract class BuildLocally {
 	private boolean processCanceled = false;
 	private Process process;
 	
-	private OS osLocal = null;
-	
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
 	
@@ -92,14 +86,6 @@ public abstract class BuildLocally {
 	private String androidKeystorePassword = null;
 	private String androidPassword = null;
 	private String androidAlias = null;
-	
-	private enum OS {
-		generic,
-		linux,
-		mac,
-		win32,
-		solaris;
-	}
 	
 	public BuildLocally(MobilePlatform mobilePlatform) {
 		this.mobilePlatform = mobilePlatform;
@@ -285,53 +271,20 @@ public abstract class BuildLocally {
 					name = name.replace("\"", "\\\"");
 					singleElement.setTextContent(name);
 				}
-			}
-			
-			//iOS
-//			if (mobilePlatform instanceof  IOs) {			
-//			}
-			
-			//WINPHONE
-			if (mobilePlatform instanceof WindowsPhone8) {
-
-				// Without these width and height the local build doesn't work but with these the remote build doesn't work
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[not(@role)]");
-				if (singleElement != null) {
-					singleElement.setAttribute("width", "99");
-					singleElement.setAttribute("height", "99");	
-				}
-				
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[@role='background']");
-				if (singleElement != null) {
-					singleElement.setAttribute("width", "159");
-					singleElement.setAttribute("height", "159");
-				}	
-				
-				// /widget/platform[@name='wp8']/splash
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform/splash");
-				if (singleElement != null) {
-					singleElement.setAttribute("width", "768");
-					singleElement.setAttribute("height", "1280");
-				}
-				
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='phonegap-plugin-push']/param[@name='SENDER_ID']");
-				if (singleElement != null) {
-					// Remote build needs a node named 'param' and local build needs a node named 'variable'
-					singleElement.getParentNode().appendChild(cloneNode(singleElement, "variable"));
-					singleElement.getParentNode().removeChild(singleElement);
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "//preference[@name='AndroidWindowSplashScreenAnimatedIcon']");
+				if (singleElement != null && singleElement.hasAttribute("value")) {
+					var value = singleElement.getAttribute("value");
+					value = "www/" + value;
+					if (new File(cordovaDir, value).exists()) {
+						singleElement.setAttribute("value", value);
+					}
 				}
 			}
-
-			// XMLUtils.saveXml(doc, configFile.getAbsolutePath());
 			
 			// We have to add the root config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
 			
-			// Get preferences from current config.xml
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
-			// File configFile = new File(cordovaDir, "config.xml");
-			
-			// doc = XMLUtils.loadXml(configFile);  // The root config.xml
 			
 			NodeList preferencesList = doc.getElementsByTagName("preference");
 			
@@ -374,20 +327,6 @@ public abstract class BuildLocally {
 		}
 	}
 	
-	private static Element cloneNode(Node node, String newNodeName) {
-		
-		Element newElement = node.getOwnerDocument().createElement(newNodeName);
-		
-		NamedNodeMap attrs = node.getAttributes();
-	    for (int i = 0; i < attrs.getLength(); i++) {
-	    	Attr attr = (Attr) attrs.item(i);
-	    	newElement.setAttribute(attr.getName(), attr.getValue());
-	    }
-	    
-	    return newElement;
-		
-	}
-	
 	/***
 	 * Return the absolute path of built application file
 	 * @param mobilePlatform
@@ -397,7 +336,6 @@ public abstract class BuildLocally {
 	protected File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = File.separator + "platforms" + File.separator + cordovaPlatform + File.separator;
-		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
 		String extension = "";
 		File f = new File(getCordovaDir(), builtPath);		
@@ -417,16 +355,6 @@ public abstract class BuildLocally {
 			// iOS
 			} else if (mobilePlatform instanceof IOs){
 				extension = "xcworkspace";
-				
-			// Windows Phone 8
-			} else if (mobilePlatform instanceof WindowsPhone8) {
-				builtPath = builtPath + "Bin" + File.separator + buildMd + File.separator;
-				extension = "xap";
-				
-			// Windows 8
-			} else if (mobilePlatform instanceof Windows){
-				//TODO : Handle Windows 8
-				
 			} else {
 				return null;
 			}
@@ -492,38 +420,6 @@ public abstract class BuildLocally {
 	 */
 	private File getPrivateDir() {
 		return new File(mobilePlatform.getProject().getDirPath() + "/_private");
-	}
-
-	/***
-	 * Return the local Operating System
-	 * @return
-	 */
-	private OS getOsLocal() {
-		if (osLocal == null) {
-			String osname = System.getProperty("os.name", "generic").toLowerCase();
-			
-			if (osname.startsWith("windows")) {
-				osLocal = OS.win32;
-			} else if (osname.startsWith("linux")) {
-				osLocal = OS.linux;
-			} else if (osname.startsWith("sunos")) {
-				osLocal = OS.solaris;
-			} else if (osname.startsWith("mac") || osname.startsWith("darwin")) {
-				osLocal = OS.mac;
-			} else {
-				osLocal = OS.generic;
-			}
-		}
-		return osLocal;
-	}
-	
-	/***
-	 * Compare two Operating System
-	 * @param os
-	 * @return
-	 */
-	private boolean is(OS os) {
-		return getOsLocal() == os;
 	}
 	
 	public enum Status {
@@ -658,14 +554,7 @@ public abstract class BuildLocally {
 	public void cancelBuild(boolean run) {
 		//Only for the "Run On Device" action
 		if (run) {
-			if (is(OS.win32) && (mobilePlatform instanceof WindowsPhone8) ) {
-				//kill the CordovaDeploy.exe program only for Windows Phone 7 & 8 build platform
-				try {
-					Runtime.getRuntime().exec("taskkill /IM CordovaDeploy.exe").waitFor();
-				} catch (Exception e) {
-					Engine.logEngine.error("Error during kill of process \"CordovaDeploy\"\n" + e.getMessage(), e);
-				}
-			} else if (mobilePlatform instanceof IOs) {
+			if (mobilePlatform instanceof IOs) {
 				//kill the lldb process only for ios build platform
 				try {
 					Runtime.getRuntime().exec("pkill lldb").waitFor();

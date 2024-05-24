@@ -31,7 +31,6 @@ import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -96,7 +95,7 @@ public class GetStoreContent extends XmlService {
 	}
 	
 	private boolean isPlatformValid(MobilePlatform platform) {
-		return platform instanceof Android || platform instanceof IOs || platform instanceof WindowsPhone8;
+		return platform instanceof Android || platform instanceof IOs;
 	}
 	
 	private boolean isRequestedPlatformValid(String requestedPlatform, MobilePlatform currentPlatform) {
