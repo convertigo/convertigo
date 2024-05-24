@@ -6,6 +6,7 @@
 	import { projectsCheck } from '../stores/projectsStore';
 	import Icon from '@iconify/svelte';
 	import CheckState from '../components/CheckState.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -29,7 +30,7 @@
 		try {
 			// @ts-ignore
 			const res = await call('projects.Deploy', new FormData(e.target.form));
-			await projectsCheck(true);
+			await projectsCheck();
 			console.log('deploy res', res);
 		} catch (err) {
 			console.error(err);
@@ -72,7 +73,7 @@
 				>
 					<svelte:fragment slot="message"
 						><div class="flex flex-col items-center">
-							<Icon icon="icon-park:application-one" class="w-10 h-10" />Upload your project or drag
+							<Ico icon="icon-park:application-one" class="w-10 h-10" />Upload your project or drag
 							and drop
 						</div></svelte:fragment
 					>

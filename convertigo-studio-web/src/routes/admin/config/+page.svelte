@@ -142,7 +142,7 @@
 						<AccordionItem>
 							<svelte:fragment slot="summary">
 								<div class="flex items-center">
-									<Icon icon="game-icons:level-three-advanced" />
+									<Ico icon="game-icons:level-three-advanced" />
 									<p class="ml-4">Advanced Properties</p>
 								</div>
 							</svelte:fragment>

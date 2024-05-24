@@ -114,7 +114,7 @@
 				<Accordion class="dark:bg-indigo-600 rounded w-[40%] dark:bg-opacity-30 mt-5">
 					<AccordionItem close>
 						<svelte:fragment slot="lead"
-							><Icon icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
+							><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
 						>
 						<svelte:fragment slot="summary">{notesTitle.certificate}</svelte:fragment>
 						<svelte:fragment slot="content"
@@ -180,7 +180,7 @@
 							class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
 							on:click={updateCertificate}
 						>
-							<Icon icon="material-symbols-light:update" class="h-7 w-7" />
+							<Ico icon="material-symbols-light:update" class="h-7 w-7" />
 						</button>
 					{:else if def.name === 'Delete'}
 						{#if row != 'new'}
@@ -224,7 +224,7 @@
 					<Accordion class="dark:bg-indigo-600 rounded w-[50vw] dark:bg-opacity-30 mt-5">
 						<AccordionItem close>
 							<svelte:fragment slot="lead"
-								><Icon icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
+								><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
 							>
 							<svelte:fragment slot="summary">{notesTitle.mappings}</svelte:fragment>
 							<svelte:fragment slot="content">
@@ -300,7 +300,7 @@
 									class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
 									on:click={updateMapping}
 								>
-									<Icon icon="material-symbols-light:update" class="h-7 w-7" />
+									<Ico icon="material-symbols-light:update" class="h-7 w-7" />
 								</button>
 							{:else if def.name === 'Delete'}
 								{#if row !== 'new'}

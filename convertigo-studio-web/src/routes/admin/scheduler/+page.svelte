@@ -16,12 +16,12 @@
 	const modalStore = getModalStore();
 
 	const jobTypes = {
-		TransactionConvertigoJob: 'Job Transaction',
-		SequenceConvertigoJob: 'Job Sequence',
-		JobGroupJob: 'Jobs Group',
-		ScheduleCron: 'Cron',
-		ScheduleRunNow: 'Run Now',
-		ScheduledJob: 'Scheduled Job'
+		TransactionConvertigoJob: { name: 'Job Transaction', imageUrl: 'carbon:data-regular' },
+		SequenceConvertigoJob: { name: 'Job Sequence', imageUrl: 'material-symbols:api-rounded' },
+		JobGroupJob: { name: 'Jobs Group', imageUrl: 'uim:layer-group' },
+		ScheduleCron: { name: 'Cron', imageUrl: 'eos-icons:cronjob' },
+		ScheduleRunNow: { name: 'Run Now', imageUrl: 'codicon:run-all' },
+		ScheduledJob: { name: 'Scheduled Job', imageUrl: 'mdi:invoice-scheduled-outline' }
 	};
 
 	onMount(async () => {
@@ -33,7 +33,7 @@
 			type: 'component',
 			component: 'modalScheduler',
 			meta: { mode, row },
-			title: `${row ? 'Edit' : 'New'} ${jobTypes[mode]}`
+			title: `${row ? 'Edit' : 'New'} ${jobTypes[mode].name}`
 		});
 	}
 
@@ -79,13 +79,14 @@
 		<Card {title}>
 			<div slot="cornerOption">
 				<div class="mb-5 flex flex-wrap gap-2 pl-5">
-					{#each Object.entries(jobTypes).slice(...range) as [type, name]}
+					{#each Object.entries(jobTypes).slice(...range) as [type, { name, imageUrl }]}
 						<div class="flex-1">
 							<button
 								class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
 								on:click={() => openModals(type)}
 							>
 								<p>New {name}</p>
+								<Icon icon={imageUrl} />
 							</button>
 						</div>
 					{/each}
@@ -96,9 +97,7 @@
 				definition={[
 					{
 						name: 'Enabled',
-						key: '@_enabled',
-						class: (row) =>
-							row['@_enabled'] == 'true' ? 'bg-success-400-500-token' : 'bg-error-400-500-token'
+						custom: true
 					},
 					{ name: 'Name', key: '@_name' },
 					{ name: 'Description', key: '@_description' },
@@ -118,6 +117,10 @@
 					>
 						<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 					</button>
+				{:else if def.name === 'Enabled'}
+					<div class="bg-success-400-500-token rounded-token text-token py-2 px-2">
+						{row['@_enabled']}
+					</div>
 				{:else if def.name === 'Delete'}
 					<button
 						class="btn p-1 px-2 shadow-md bg-error-400-500-token"

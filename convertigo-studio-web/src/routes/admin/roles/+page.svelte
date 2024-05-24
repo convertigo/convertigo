@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const rolesModalStore = getModalStore();
 
@@ -107,7 +108,7 @@
 <Card title="Roles">
 	<div slot="cornerOption">
 		<button class="w-full bg-error-400-500-token" on:click={openDeleteAllModal}>
-			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
+			<Ico icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
 			Delete All Roles
 		</button>
 	</div>

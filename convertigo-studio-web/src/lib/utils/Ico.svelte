@@ -30,6 +30,11 @@
 	import LeftArrowIcon from '~icons/game-icons/level-three-advanced';
 	import HamburgerIcon from '~icons/iconamoon/menu-burger-horizontal-thin';
 	import CloudFillIcon from '~icons/iconamoon/cloud-fill';
+	import UploadProject from '~icons/icon-park/application-one';
+	import NoteIcon from '~icons/fluent/note-48-filled';
+	import UpdateIcon from '~icons/material-symbols-light/update';
+	import CoffeeLoaderIcon from '~icons/line-md/coffee-loop';
+	import AdvancedPropertiesIcon from '~icons/game-icons/level-three-advanced';
 
 	const ico = {
 		'octicon:logo-github-16': IconGitHub,
@@ -62,7 +67,12 @@
 		'mdi:backup-restore': BackUpRestoreIcon,
 		'game-icons:level-three-advanced': LeftArrowIcon,
 		'iconamoon:menu-burger-horizontal-thin': HamburgerIcon,
-		'iconamoon:cloud-fill': CloudFillIcon
+		'iconamoon:cloud-fill': CloudFillIcon,
+		'icon-park:application-one': UploadProject,
+		'fluent:note-48-filled': NoteIcon,
+		'material-symbols-light:update': UpdateIcon,
+		'line-md:coffee-loop': CoffeeLoaderIcon,
+		'game-icons:level-three-advanced': AdvancedPropertiesIcon
 	};
 </script>
 
@@ -71,4 +81,4 @@
 	export let icon;
 </script>
 
-<svelte:component this={ico[icon]} class="" {...$$restProps} />
+<svelte:component this={ico[icon]} {...$$restProps} />

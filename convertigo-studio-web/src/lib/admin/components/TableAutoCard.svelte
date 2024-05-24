@@ -1,5 +1,6 @@
 <script>
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import Icon from '@iconify/svelte';
 
 	export let definition;
@@ -66,7 +67,7 @@
 				<tr>
 					<td colspan={definition.length}>
 						<div class="flex gap-5 items-center">
-							<Icon icon="line-md:coffee-loop" class="w-20 h-20" />
+							<Ico icon="line-md:coffee-loop" class="w-20 h-20" />
 							<p class="font-bold text-surface-300">There is no data to display ...</p>
 						</div>
 					</td>
