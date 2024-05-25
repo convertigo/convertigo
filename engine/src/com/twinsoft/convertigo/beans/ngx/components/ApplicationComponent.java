@@ -1536,20 +1536,33 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		if (Engine.isCliMode()) {
 			return;
 		}
+		File templateFolder = null;
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
+		File index = new File(getParent().getResourceFolder(), "index.html");
+		if (!folder.exists() || !index.exists()) {
+			try {
+				var tplDir = ComponentManager.of(this).getTemplateProjectDir();
+				templateFolder = new File(tplDir, "ionicTpl/flashupdate/Flashupdate");
+				if (!templateFolder.exists()) {
+					templateFolder = null;
+				}
+			} catch (Exception e) {
+			}
+			if (templateFolder == null) {
+				templateFolder = new File(Engine.TEMPLATES_PATH, "base/Flashupdate");
+			}
+		}
 		if (!folder.exists()) {
 			try {
-				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/Flashupdate");
 				FileUtils.copyDirectory(templateFolder, folder);
 			} catch (Exception e) {
 				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
 		}
-		File index = new File(getParent().getResourceFolder(), "index.html");
 		if (!index.exists()) {
 			try {
 				index.getParentFile().mkdirs();
-				File templateIndex = new File(Engine.TEMPLATES_PATH, "base/index_mb.html");
+				File templateIndex = new File(templateFolder.getParentFile(), "index_mb.html");
 				FileUtils.copyFile(templateIndex, index);
 				
 				File indexFu = new File(getParent().getResourceFolder(), "index-fu.html");

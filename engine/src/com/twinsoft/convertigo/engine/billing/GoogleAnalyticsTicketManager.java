@@ -70,7 +70,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 				try (var is = response.getEntity().getContent()) {
 					var res = IOUtils.toString(is, "UTF-8").trim();
 					if (StringUtils.isNotEmpty(res)) {
-						serverHash = DigestUtils.md5Hex(res);
+						serverHash = res;
 					}
 				}
 			} catch (Exception e) {
