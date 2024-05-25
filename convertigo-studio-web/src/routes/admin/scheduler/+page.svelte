@@ -12,6 +12,7 @@
 	} from '$lib/admin/stores/schedulerStore';
 	import { call } from '$lib/utils/service';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 
@@ -78,19 +79,17 @@
 	{#each cards as { title, range, next }, i}
 		<Card {title}>
 			<div slot="cornerOption">
-				<div class="mb-5 flex flex-wrap gap-2 pl-5">
+				<ButtonsContainer marginB="mb-0">
 					{#each Object.entries(jobTypes).slice(...range) as [type, { name, imageUrl }]}
-						<div class="flex-1">
-							<button
-								class="bg-primary-400-500-token min-w-auto md:w-60 w-full"
-								on:click={() => openModals(type)}
-							>
-								<p>New {name}</p>
-								<Icon icon={imageUrl} />
-							</button>
-						</div>
+						<button
+							class="bg-primary-400-500-token"
+							on:click={() => openModals(type)}
+						>
+							<p>New {name}</p>
+							<Icon icon={imageUrl} />
+						</button>
 					{/each}
-				</div>
+				</ButtonsContainer>
 			</div>
 
 			<TableAutoCard

@@ -14,6 +14,7 @@
 		cariocaBinding
 	} from '$lib/admin/stores/certificatesStore';
 	import { projectsStore, projectsCheck } from '$lib/admin/stores/projectsStore';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const custom = true;
@@ -76,13 +77,15 @@
 
 <Card title="Certificates">
 	<div slot="cornerOption">
-		<button
-			class="bg-primary-400-500-token min-w-60"
+		<ButtonsContainer>
+			<button
+			class="basic-button"
 			on:click={() => openModalCertificates('Install')}>Install a new certificate</button
 		>
-		<button class="bg-error-400-500-token min-w-60" on:click={() => openModalCertificates('Remove')}
+		<button class="delete-button" on:click={() => openModalCertificates('Remove')}
 			>Remove a certificate</button
 		>
+		</ButtonsContainer>
 	</div>
 	<p class="font-bold text-surface-300">For each authentication certificate, you can :</p>
 	<ul class="p-3 font-bold text-surface-300 mb-5">

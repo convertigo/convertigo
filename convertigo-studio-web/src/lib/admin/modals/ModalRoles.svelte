@@ -134,7 +134,7 @@
 
 			<div class="flex gap-5 mt-10">
 				<button
-					class="bg-surface-400-500-token w-60"
+					class="cancel-button w-60"
 					on:click|preventDefault={() => modalStore.close()}>Cancel</button
 				>
 				<button type="submit" class="confirm-button w-60">Confirm</button>

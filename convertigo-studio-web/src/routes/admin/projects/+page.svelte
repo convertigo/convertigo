@@ -7,6 +7,7 @@
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const projectModalStore = getModalStore();
 
@@ -155,25 +156,21 @@
 <Card title="Projects">
 	<div slot="cornerOption">
 		<button class="w-full bg-error-400-500-token">
-			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
+			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-2" />
 			Delete All Projects</button
 		>
 	</div>
-	<div class="flex flex-wrap gap-5 mt-5">
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('deploy')}>
-				<Icon icon="carbon:application" class="w-6 h-6 mr-3" />
+	<ButtonsContainer marginB="mb-0">
+			<button class="basic-button" on:click={() => openModal('deploy')}>
+				<Icon icon="carbon:application" class="w-6 h-6" />
 				Deploy project
 			</button>
-		</div>
 
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModal('import')}>
-				<Icon icon="solar:import-line-duotone" class="w-6 h-6 mr-4" />
+			<button class="basic-button" on:click={() => openModal('import')}>
+				<Icon icon="solar:import-line-duotone" class="w-6 h-6" />
 				Import a Remote Project URL
 			</button>
-		</div>
-	</div>
+	</ButtonsContainer>
 </Card>
 
 <Card class="mt-5">
@@ -197,27 +194,27 @@
 			{#if def.name == 'Delete'}
 				<button
 					on:click={() => openDeleteProjectModal(row['@_name'])}
-					class="bg-error-400-500-token"
+					class="delete-button"
 				>
 					<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 				</button>
 			{:else if def.name == 'Reload'}
 				<button
 					on:click={() => openReloadProjectModal(row['@_name'])}
-					class="bg-tertiary-400-500-token"
+					class="cancel-button"
 				>
 					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Export'}
 				<button
 					on:click={() => openExportProjectModal(row['@_name'])}
-					class="bg-primary-400-500-token"
+					class="basic-button"
 				>
 					<Icon icon="solar:export-line-duotone" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Test'}
-				<a href="/admin" class="bg-secondary-400-500-token btn">
-					<Icon icon="fluent-mdl2:test-plan" class="w-6 h-6" />
+				<a href="/admin" class="cancel-button">
+					<Icon icon="fluent-mdl2:test-plan" class="w-4 h-4" />
 				</a>
 			{/if}
 		</TableAutoCard>

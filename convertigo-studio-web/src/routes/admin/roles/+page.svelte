@@ -7,6 +7,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const rolesModalStore = getModalStore();
 
@@ -112,26 +113,20 @@
 			Delete All Roles
 		</button>
 	</div>
-	<div class="flex flex-wrap gap-2 mb-10 mt-10">
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('add')}>
-				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-				Add User
-			</button>
-		</div>
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('import')}>
-				<Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />
-				Import Users
-			</button>
-		</div>
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('export')}>
-				<Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />
-				Export Users
-			</button>
-		</div>
-	</div>
+	<ButtonsContainer>
+		<button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
+			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+			Add User
+		</button>
+		<button class="bg-primary-400-500-token" on:click={() => openModals('import')}>
+			<Icon icon="solar:import-line-duotone" class="w-7 h-7" />
+			Import Users
+		</button>
+		<button class="bg-primary-400-500-token" on:click={() => openModals('export')}>
+			<Icon icon="solar:export-line-duotone" class="w-7 h-7" />
+			Export Users
+		</button>
+	</ButtonsContainer>
 
 	{#if $usersStore.length >= 0}
 		<TableAutoCard

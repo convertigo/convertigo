@@ -3,13 +3,34 @@
 @tailwind utilities;
 @tailwind variants;
 
+
 html,
 body {
 	@apply h-full bg-surface-50-900-token h-full overflow-hidden;
 }
 
 button {
-	@apply font-normal btn text-token;
+	@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-token text-token;
+}
+
+.basic-button {
+	@apply bg-primary-400-500-token;
+}
+
+.cancel-button {
+	@apply bg-surface-200 dark:bg-surface-500;
+}
+
+.delete-button {
+	@apply bg-error-400-500-token;
+}
+
+.yellow-button {
+	@pply bg-tertiary-400-500-token;
+}
+
+.green-button {
+	@apply bg-success-400 dark:bg-success-500;
 }
 
 .align {

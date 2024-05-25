@@ -17,6 +17,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
@@ -55,10 +56,12 @@
 
 <Card title="Connections">
 	<div slot="cornerOption">
-		<button class="bg-error-400-500-token"
-			><Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 mr-3" />Delete all Sessions
-			and Connections</button
-		>
+		<ButtonsContainer>
+			<button class="bg-error-400-500-token">
+				Delete all Sessions and Connections
+				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6" />
+			</button>
+		</ButtonsContainer>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -73,16 +76,19 @@
 
 <Card title="Sessions" class="mt-5">
 	<div slot="cornerOption">
-		<div class="gap-5 flex">
-			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
-				><Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6 mr-3 " />Refresh Sessions</button
-			>
+		<ButtonsContainer>
+			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}>
+				Refresh Sessions
+				<Icon icon="simple-line-icons:reload" rotate={1} class="w-4 h-4" />
+			</button>
 			<button
 				class="bg-primary-400-500-token max-w-80"
 				on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
-				><Icon icon="mdi:show" class="h-6 w-6 mr-3" />Show Legends</button
 			>
-		</div>
+				Show Legends
+				<Icon icon="mdi:show" class="h-4 w-4" /></button
+			>
+		</ButtonsContainer>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -111,9 +117,12 @@
 
 <Card title="Contexts" class="mt-5">
 	<div slot="cornerOption">
-		<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
-			><Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6 mr-3" /> Refresh Contexts</button
-		>
+		<ButtonsContainer>
+			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
+				>Refresh Contexts
+				<Icon icon="simple-line-icons:reload" rotate={1} class="w-4 h-4" />
+			</button>
+		</ButtonsContainer>
 	</div>
 	<TableAutoCard
 		definition={[

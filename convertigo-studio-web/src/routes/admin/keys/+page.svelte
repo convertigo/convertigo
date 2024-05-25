@@ -6,6 +6,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const keyModalStore = getModalStore();
 
@@ -102,8 +103,10 @@
 
 <Card title="Keys">
 	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
-		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-		<button type="submit" class="bg-primary-400-500-token">Add Key</button>
+		<ButtonsContainer marginB='mb-0'>
+			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
+			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
+		</ButtonsContainer>
 	</form>
 </Card>
 
