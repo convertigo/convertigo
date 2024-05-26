@@ -87,19 +87,12 @@
 		});
 	}
 
-	function openModals(mode) {
-		if (mode === 'add') {
-			mode = 'add';
-		} else if (mode === 'secret') {
-			mode = 'secret';
-		} else if (mode === 'import') {
-			mode = 'import';
-		}
-
+	function openSymbolModal(mode, row) {
 		symbolModalStore.trigger({
 			type: 'component',
 			component: 'modalSymbols',
-			meta: mode
+			meta: { mode, row },
+			title: row ? `Edit Symbol` : `New Symbol`
 		});
 	}
 </script>
@@ -113,48 +106,22 @@
 		</div>
 	</div>
 
-	<ButtonsContainer>
-		<button class="bg-primary-400-500-token text-[12px]" on:click={() => openModals('add')}>
+	<ButtonsContainer marginB="mb-10">
+		<button class="bg-primary-400-500-token text-[12px]" on:click={() => openSymbolModal('add')}>
 			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
 			Add Symbols</button
 		>
-		<button class="bg-primary-400-500-token" on:click={() => openModals('secret')}>
+		<button class="bg-primary-400-500-token" on:click={() => openSymbolModal('secret')}>
 			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7" />
 			Add Secret Symbols
 		</button>
-		<button class="bg-primary-400-500-token" on:click={() => openModals('import')}
+		<button class="bg-primary-400-500-token" on:click={() => openSymbolModal('import')}
 			><Icon icon="solar:import-line-duotone" class="w-7 h-7" />Import Symbols</button
 		>
 		<button class="bg-primary-400-500-token"
 			><Icon icon="solar:export-line-duotone" class="w-7 h-7" />Export Symbols</button
 		>
 	</ButtonsContainer>
-
-	<!--
-	<div class="flex flex-wrap gap-2 mb-10 md:mt-10">
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('add')}>
-				<Icon icon="material-symbols-light:add" class="w-7 h-7 mr-3" />
-				Add Symbols</button
-			>
-		</div>
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('secret')}>
-				<Icon icon="material-symbols-light:key-outline" class="w-7 h-7 mr-3" />
-				Add Secret Symbols
-			</button>
-		</div>
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token" on:click={() => openModals('import')}
-				><Icon icon="solar:import-line-duotone" class="w-7 h-7 mr-3" />Import Symbols</button
-			>
-		</div>
-		<div class="flex-1">
-			<button class="w-full bg-primary-400-500-token"
-				><Icon icon="solar:export-line-duotone" class="w-7 h-7 mr-3" />Export Symbols</button
-			>
-		</div>
-	</div>-->
 
 	<TabGroup>
 		<Tab
@@ -196,7 +163,10 @@
 				>
 					{#if def.custom}
 						{#if def.name === 'Edit'}
-							<button class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token">
+							<button
+								class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
+								on:click={() => openSymbolModal('edit', row)}
+							>
 								<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
 							</button>
 						{:else if def.name === 'Delete'}

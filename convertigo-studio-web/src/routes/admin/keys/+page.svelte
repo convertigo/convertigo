@@ -103,7 +103,7 @@
 
 <Card title="Keys">
 	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
-		<ButtonsContainer marginB='mb-0'>
+		<ButtonsContainer marginB="mb-0">
 			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
 		</ButtonsContainer>
@@ -130,20 +130,20 @@
 						{
 							name: 'Expiration Date',
 							key: '@_expiration',
-							custom: true,
-							class: (row) =>
+							custom: true
+							/*class: (row) =>
 								row['@_expiration'] === '0'
 									? 'bg-success-400-500-token border-r-[1px] border-surface-100-800-token'
-									: 'bg-tertiary-400-500-token border-r-[1px] border-surface-100-800-token'
+									: 'bg-tertiary-400-500-token border-r-[1px] border-surface-100-800-token'*/
 						},
 						{
 							name: 'Expired',
 							key: '@_expired',
-							custom: true,
-							class: (row) =>
+							custom: true
+							/* class: (row) =>
 								row['@_expired'] === 'false'
 									? 'bg-success-400-500-token'
-									: 'bg-tertiary-400-500-token'
+									: 'bg-tertiary-400-500-token'*/
 						},
 						{ name: 'Delete', custom: true }
 					]}
@@ -154,11 +154,13 @@
 					{#if def.custom}
 						{#if def.name === 'Expiration Date'}
 							{#if row[def.key] === '0'}
-								<div class="bg-success-400-500-token rounded-xl text-token">
+								<div class="bg-success-400-500-token rounded-token py-2 px-2 text-token">
 									{formatExpiration(row[def.key])}
 								</div>
 							{:else}
-								{formatExpiration(row[def.key])}
+								<div class="bg-tertiary-400-500-token rounded-token py-2 px-2 text-token">
+									{formatExpiration(row[def.key])}
+								</div>
 							{/if}
 						{:else if def.name === 'In use'}
 							<span class="font-bold p-2 bg-teal-200 rounded-token bg-opacity-30"
@@ -170,7 +172,7 @@
 							>
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
-								<div class="bg-success-400-500-token rounded-xl text-token">
+								<div class="bg-success-400-500-token rounded-token py-2 px-2 text-token">
 									{row[def.key]}
 								</div>
 							{:else}

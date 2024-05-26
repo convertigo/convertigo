@@ -3,31 +3,51 @@
 	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { globalSymbols } from '../stores/symbolsStore';
 	import Card from '../components/Card.svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
-	const { mode } = $modalStore[0].meta;
+	const { mode, row } = $modalStore[0].meta;
 	const prefix = mode == 'secret' ? 'secret ' : '';
 	const type = mode == 'secret' ? 'password' : 'text';
-
+	export let parent;
 	let importAction = '';
 	let importPriority = 'priority-import';
+
+	console.log('row', row);
+	let binds = {
+		symbolName: row?.['@_name'] ?? '',
+		symbolValue: row?.['@_value'] ?? ''
+	};
+
 	/**
 	 * @param {SubmitEvent} event
 	 */
-	export async function addGlobalSymbol(event) {
-		event.preventDefault();
-		if (event.submitter?.textContent == 'Confirm') {
-			//@ts-ignore
-			const fd = new FormData(event.target);
-			if (mode == 'secret') {
-				fd.set('symbolName', fd.get('symbolName') + '.secret');
-			}
-			//@ts-ignore
-			const response = await call('global_symbols.Add', fd);
-			modalStore.close();
-			globalSymbols();
-		}
-	}
+
+    async function addGlobalSymbol(event) {
+        event.preventDefault();
+		//@ts-ignore
+        const fd = new FormData(event.target);
+
+        try {
+            if (row) {
+                // No need to delete the existing symbol, just call Add service to update
+                if (mode === 'secret') {
+                    fd.set('symbolName', fd.get('symbolName') + '.secret');
+                }
+                await call('global_symbols.Add', fd);
+            } else {
+                // Add new symbol
+                if (mode === 'secret') {
+                    fd.set('symbolName', fd.get('symbolName') + '.secret');
+                }
+                await call('global_symbols.Add', fd);
+            }
+            modalStore.close();
+            globalSymbols();
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
 	/**
 	 * @param {Event} e
@@ -35,10 +55,9 @@
 	async function importSymbol(e) {
 		try {
 			// @ts-ignore
-			const response = await call('global_symbols.Import', new FormData(e.target.form));
+			await call('global_symbols.Import', new FormData(e.target.form));
 			modalStore.close();
 			globalSymbols();
-			console.log(response);
 		} catch (err) {
 			console.error(err);
 		}
@@ -87,7 +106,7 @@
 		</form>
 	</Card>
 {:else}
-	<Card title="Add a new {prefix}symbol">
+	<Card title={row ? `Edit ${prefix}symbol`: `Add a new ${prefix}symbol`}>
 		<form on:submit={addGlobalSymbol} class="flex flex-col p-5">
 			{#if mode == 'secret'}
 				<p class="mb-5">
@@ -97,27 +116,27 @@
 			<div class="flex gap-5">
 				<label class="border-common">
 					<p class="label-name">Enter {prefix}symbol name</p>
-					<input placeholder="{prefix}name" name="symbolName" class="input-common" />
+					<input
+						placeholder="{prefix}name"
+						name="symbolName"
+						class="input-common"
+						bind:value={binds.symbolName}
+					/>
 					{#if mode == 'secret'}
 						<span>.secret</span>
 					{/if}
 				</label>
 				<label class="border-common">
 					<p class="label-name">Enter {prefix}symbol value</p>
-					<input placeholder="{prefix}value" {type} name="symbolValue" class="input-common" />
+					<input
+						placeholder="{prefix}value"
+						name="symbolValue"
+						class="input-common"
+						bind:value={binds.symbolValue}
+					/>
 				</label>
 			</div>
-
-			<div class="flex flex-wrap gap-5">
-				<div class="flex-1">
-					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
-						>Cancel</button
-					>
-				</div>
-				<div class="flex-1">
-					<button type="submit" class="mt-5 w-full confirm-button">Confirm</button>
-				</div>
-			</div>
+			<ModalButtons />
 		</form>
 	</Card>
 {/if}

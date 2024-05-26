@@ -113,7 +113,7 @@
 			Delete All Roles
 		</button>
 	</div>
-	<ButtonsContainer>
+	<ButtonsContainer marginB="mb-10">
 		<button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
 			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
 			Add User
