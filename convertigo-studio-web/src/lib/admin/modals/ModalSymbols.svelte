@@ -23,31 +23,31 @@
 	 * @param {SubmitEvent} event
 	 */
 
-    async function addGlobalSymbol(event) {
-        event.preventDefault();
+	async function addGlobalSymbol(event) {
+		event.preventDefault();
 		//@ts-ignore
-        const fd = new FormData(event.target);
+		const fd = new FormData(event.target);
 
-        try {
-            if (row) {
-                // No need to delete the existing symbol, just call Add service to update
-                if (mode === 'secret') {
-                    fd.set('symbolName', fd.get('symbolName') + '.secret');
-                }
-                await call('global_symbols.Add', fd);
-            } else {
-                // Add new symbol
-                if (mode === 'secret') {
-                    fd.set('symbolName', fd.get('symbolName') + '.secret');
-                }
-                await call('global_symbols.Add', fd);
-            }
-            modalStore.close();
-            globalSymbols();
-        } catch (err) {
-            console.error(err);
-        }
-    }
+		try {
+			if (row) {
+				// No need to delete the existing symbol, just call Add service to update
+				if (mode === 'secret') {
+					fd.set('symbolName', fd.get('symbolName') + '.secret');
+				}
+				await call('global_symbols.Add', fd);
+			} else {
+				// Add new symbol
+				if (mode === 'secret') {
+					fd.set('symbolName', fd.get('symbolName') + '.secret');
+				}
+				await call('global_symbols.Add', fd);
+			}
+			modalStore.close();
+			globalSymbols();
+		} catch (err) {
+			console.error(err);
+		}
+	}
 
 	/**
 	 * @param {Event} e
@@ -106,7 +106,7 @@
 		</form>
 	</Card>
 {:else}
-	<Card title={row ? `Edit ${prefix}symbol`: `Add a new ${prefix}symbol`}>
+	<Card title={row ? `Edit ${prefix}symbol` : `Add a new ${prefix}symbol`}>
 		<form on:submit={addGlobalSymbol} class="flex flex-col p-5">
 			{#if mode == 'secret'}
 				<p class="mb-5">

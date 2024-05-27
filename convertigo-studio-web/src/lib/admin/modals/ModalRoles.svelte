@@ -133,9 +133,8 @@
 			</ResponsiveContainer>
 
 			<div class="flex gap-5 mt-10">
-				<button
-					class="cancel-button w-60"
-					on:click|preventDefault={() => modalStore.close()}>Cancel</button
+				<button class="cancel-button w-60" on:click|preventDefault={() => modalStore.close()}
+					>Cancel</button
 				>
 				<button type="submit" class="confirm-button w-60">Confirm</button>
 			</div>

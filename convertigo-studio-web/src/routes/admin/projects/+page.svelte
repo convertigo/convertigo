@@ -161,15 +161,15 @@
 		>
 	</div>
 	<ButtonsContainer marginB="mb-0">
-			<button class="basic-button" on:click={() => openModal('deploy')}>
-				<Icon icon="carbon:application" class="w-6 h-6" />
-				Deploy project
-			</button>
+		<button class="basic-button" on:click={() => openModal('deploy')}>
+			<Icon icon="carbon:application" class="w-6 h-6" />
+			Deploy project
+		</button>
 
-			<button class="basic-button" on:click={() => openModal('import')}>
-				<Icon icon="solar:import-line-duotone" class="w-6 h-6" />
-				Import a Remote Project URL
-			</button>
+		<button class="basic-button" on:click={() => openModal('import')}>
+			<Icon icon="solar:import-line-duotone" class="w-6 h-6" />
+			Import a Remote Project URL
+		</button>
 	</ButtonsContainer>
 </Card>
 
@@ -192,24 +192,15 @@
 			let:def
 		>
 			{#if def.name == 'Delete'}
-				<button
-					on:click={() => openDeleteProjectModal(row['@_name'])}
-					class="delete-button"
-				>
+				<button on:click={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
 					<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 				</button>
 			{:else if def.name == 'Reload'}
-				<button
-					on:click={() => openReloadProjectModal(row['@_name'])}
-					class="cancel-button"
-				>
+				<button on:click={() => openReloadProjectModal(row['@_name'])} class="cancel-button">
 					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Export'}
-				<button
-					on:click={() => openExportProjectModal(row['@_name'])}
-					class="basic-button"
-				>
+				<button on:click={() => openExportProjectModal(row['@_name'])} class="basic-button">
 					<Icon icon="solar:export-line-duotone" class="w-6 h-6" />
 				</button>
 			{:else if def.name == 'Test'}

@@ -78,13 +78,12 @@
 <Card title="Certificates">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button
-			class="basic-button"
-			on:click={() => openModalCertificates('Install')}>Install a new certificate</button
-		>
-		<button class="delete-button" on:click={() => openModalCertificates('Remove')}
-			>Remove a certificate</button
-		>
+			<button class="basic-button" on:click={() => openModalCertificates('Install')}
+				>Install a new certificate</button
+			>
+			<button class="delete-button" on:click={() => openModalCertificates('Remove')}
+				>Remove a certificate</button
+			>
 		</ButtonsContainer>
 	</div>
 	<p class="font-bold text-surface-300">For each authentication certificate, you can :</p>

@@ -37,13 +37,16 @@
 			title: `${row ? 'Edit' : 'New'} ${jobTypes[mode].name}`
 		});
 	}
-
+	function makeSingular(title) {
+		return title.endsWith('s') ? title.slice(0, -1) : title;
+	}
 	//Service do not include any response for that
-	async function deleteScheduledElement(row) {
+	async function deleteScheduledElement(row, title) {
+		const singularTitle = makeSingular(title);
 		modalStore.trigger({
 			type: 'component',
 			title: 'Please Confirm',
-			body: 'Are you sure you want to delete this project ?',
+			body: `Are you sure you want to delete this ${singularTitle} ?`,
 			component: 'modalWarning',
 			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
@@ -81,10 +84,7 @@
 			<div slot="cornerOption">
 				<ButtonsContainer marginB="mb-0">
 					{#each Object.entries(jobTypes).slice(...range) as [type, { name, imageUrl }]}
-						<button
-							class="bg-primary-400-500-token"
-							on:click={() => openModals(type)}
-						>
+						<button class="bg-primary-400-500-token" on:click={() => openModals(type)}>
 							<p>New {name}</p>
 							<Icon icon={imageUrl} />
 						</button>
@@ -123,7 +123,7 @@
 				{:else if def.name === 'Delete'}
 					<button
 						class="btn p-1 px-2 shadow-md bg-error-400-500-token"
-						on:click={() => deleteScheduledElement(row)}
+						on:click={() => deleteScheduledElement(row, title)}
 					>
 						<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 					</button>
