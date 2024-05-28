@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -246,7 +245,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			String sDate = HeaderName.LastModified.getResponseHeader(method);
 			Date d = format.parse(sDate);
 			lastModified = d.getTime();
-		} catch (ParseException e) {
+		} catch (Exception e) {
 		}
 		
 		filepath += filename;
@@ -267,7 +266,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			if (fileExistPolicy == FileExistPolicy.override) {
 				skip = false;
 			} else if (fileExistPolicy == FileExistPolicy.overrideNewer) {
-				skip = lastModified <= file.lastModified();
+				skip = lastModified > 0 && lastModified <= file.lastModified();
 			} else if (fileExistPolicy == FileExistPolicy.overrideSize) {
 				String sLen = HeaderName.ContentLength.getResponseHeader(method);
 				if (sLen != null && Long.parseLong(sLen) == file.length()) {
