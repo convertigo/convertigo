@@ -40,7 +40,6 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhoneKeyProvider;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -138,19 +137,6 @@ public class LaunchBuild extends XmlService {
 			params.put("androidCertificateTitle", new String[]{title});
 			params.put("androidCertificatePw", new String[]{certificatePw});
 			params.put("androidKeystorePw", new String[]{keystorePw});
-		}
-		
-		//Windows Phone
-		if (mobilePlatform instanceof WindowsPhoneKeyProvider) { 
-			WindowsPhoneKeyProvider windowsPhone = (WindowsPhoneKeyProvider) mobilePlatform;
-			
-			String title = windowsPhone.getWinphonePublisherIdTitle();
-			
-			if (title.equals("")) {
-				title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
-			}
-			
-			params.put("winphonePublisherIdTitle", new String[]{title});
 		}
 		
 		// Launch the mobile build

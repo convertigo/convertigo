@@ -599,9 +599,6 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_IOS_CERTIFICATE_PW ("mobile.builder.ios_certificate_pw", "", "iOS certificate password", PropertyCategory.MobileBuilder),
 
-		//WINDOWSPHONE
-		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE ("mobile.builder.windows_phone_publisher_id_title", "", "Windows Phone publisher ID title", PropertyCategory.MobileBuilder),
-
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 

@@ -104,8 +104,8 @@ public class MobileApplication extends DatabaseObject {
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
 	private String applicationAuthorSite = "https://www.convertigo.com";
-	private String applicationBgColor = "#4e8ef7";
-	private String applicationThemeColor = "#4e8ef7";
+	private String applicationBgColor = "#01ccfc";
+	private String applicationThemeColor = "#01ccfc";
 	private XMLVector<XMLVector<String>> applicationIcons = initialIcons();
 	
 	private Accessibility accessibility = Accessibility.Public;

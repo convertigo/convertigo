@@ -387,6 +387,8 @@ public class MobileResourceHelper {
 				.replace("$(ApplicationAuthorName)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationAuthorName()))
 				.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
 				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
+				.replace("$(ApplicationBackgroundColor)$", mobileApplication.getApplicationBgColor())
+				.replace("$(ApplicationThemeColor)$", mobileApplication.getApplicationThemeColor())
 				.replace("$(PlatformName)$", mobilePlatform.getName())
 				.replace("$(PlatformType)$", mobilePlatform.getType())
 				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform())

@@ -254,7 +254,7 @@
             <java.lang.String value="https://www.convertigo.com"/>
         </property>
         <property name="applicationBgColor">
-            <java.lang.String value="#4e8ef7"/>
+            <java.lang.String value="#01ccfc"/>
         </property>
         <property name="applicationDescription">
             <java.lang.String value=""/>
@@ -277,7 +277,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="applicationThemeColor">
-            <java.lang.String value="#4e8ef7"/>
+            <java.lang.String value="#01ccfc"/>
         </property>
         <property name="applicationVersion">
             <java.lang.String value=""/>
