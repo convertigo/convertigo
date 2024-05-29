@@ -621,7 +621,7 @@ public class PaletteView extends ViewPart {
 
 			ComponentManager cm = ComponentManager.of(selectedProject);
 			for (Component comp: cm.getComponentsByGroup()) {
-				String id = "ngx " + comp.getName();
+				String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
 				all.put(id, new Item() {
 
 					@Override
@@ -680,7 +680,7 @@ public class PaletteView extends ViewPart {
 			}
 
 			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
-				String id = "mb " + comp.getName();
+				String id = "mb " + comp.getGroup() + "] " + comp.getName();
 				all.put(id, new Item() {
 
 					@Override
