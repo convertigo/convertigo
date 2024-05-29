@@ -21,6 +21,7 @@ export const osAvailableProcessors = writable(0);
 export const browser = writable('');
 export const cloud = writable(null);
 export const id = writable('');
+export const endpoint = writable('');
 
 const all = {
 	locale,
@@ -42,7 +43,8 @@ const all = {
 	osAvailableProcessors,
 	browser,
 	cloud,
-	id
+	id,
+	endpoint
 };
 
 let init = false;

@@ -33,8 +33,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -47,7 +45,10 @@ import org.eclipse.swt.widgets.Text;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 public class MobileApplicationEndpointEditorComposite extends AbstractDialogComposite {
@@ -69,46 +70,54 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		GridLayout gl = new GridLayout(1, false);
 		setLayout(gl);
 		Label label = new Label(this, SWT.WRAP);
-		label.setText("Choose a valid mobile end point.\n\n"
-				+ "The mobile end point will be the URL the mobile application will\n"
+		label.setText("Choose a valid mobile endpoint.\n\n"
+				+ "The mobile endpoint will be the URL the mobile application will\n"
 				+ "use to interact with the Convertigo Server.\n\n"
 				+ "If you want to test your mobile application using sequences running in your studio,\n"
-				+ "use one of the localhost or local IP port 18080 end points.\n\n"
+				+ "use one of the localhost or local IP port 18080 endpoints.\n\n"
 				+ "If you build for production and want to run your apps interacting\n"
-				+ "with cloud or on premises servers, use one of the deployment end points.");
+				+ "with cloud or on premises servers, use one of the deployment endpoints.");
 		Group group = new Group(this, SWT.NONE);
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		FillLayout fillLayout = new FillLayout(SWT.VERTICAL);
 		fillLayout.marginHeight = 5;
 		fillLayout.marginWidth = 5;
 		group.setLayout(fillLayout);
-		group.setText("End point: ");
-		Text tEndpoint = new Text(group, SWT.NONE);
+		group.setText("Endpoint: ");
+		Text tEndpoint = new Text(group, SWT.SINGLE | SWT.BORDER);
 		tEndpoint.setText(value);
 		tEndpoint.addModifyListener((ModifyEvent e) -> {
 			value = tEndpoint.getText();
 		});
 		
+		label = new Label(group, SWT.WRAP);
+		label.setText("Empty endpoint will be replaced by the default endpoint.\n"
+				+ "The value for this Studio is:");
+		
+		var defaultEndpoint = new Text(group, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
+		defaultEndpoint.setText(MobileApplication.getDefaultServerEnpoint());
+		
+		var updateDefault = new Button(group, SWT.PUSH);
+		updateDefault.setText("Update this Studio default endpoint");
+		
+		updateDefault.addSelectionListener((SelectionListener) e -> {
+            EnginePropertiesManager.setProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT, value);
+            defaultEndpoint.setText(value);
+            tEndpoint.setText("");
+        });
+		
 		group = new Group(this, SWT.NONE);
 		group.setLayoutData(new GridData(GridData.FILL_BOTH));
 		group.setLayout(new GridLayout(2, false));
-		group.setText("You can choose one of the following possible end point: ");
+		group.setText("You can choose one of the following possible endpoint: ");
 		
 		
 		LinkedHashSet<Pair<String, String>> endpoints = getEndpoints(cellEditor.databaseObjectTreeObject.getObject().getProject().getName());
 		
-		SelectionListener sl = new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				tEndpoint.setText((String) e.widget.getData());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
+		SelectionListener sl = e -> {
+			tEndpoint.setText((String) e.widget.getData());
 		};
-		
+
 		for (Pair<String, String> endpoint: endpoints) {
 			label = new Label(group, SWT.NONE);
 			label.setText(endpoint.getKey());

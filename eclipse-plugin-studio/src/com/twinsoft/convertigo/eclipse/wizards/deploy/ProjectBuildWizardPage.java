@@ -39,8 +39,6 @@ import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
@@ -165,14 +163,7 @@ class ProjectBuildWizardPage extends WizardPage {
 				ngx = b_ngx;
 				if (ngx) {
 					monitor.beginTask("Launching the " + NgxBuilderBuildMode.prod.label() + " build", 200);
-					String endPointUrl = project.getMobileApplication().getEndpoint();
-					if (endPointUrl.isBlank()) {
-						endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
-						if (endPointUrl.isBlank()) {
-							endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-						}
-					}
-					
+					String endPointUrl = project.getMobileApplication().getComputedEndpoint();
 					String appBaseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
 					try {
 						appBaseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.replaceFirst("https?://.*?/", "/").replaceFirst("(/.*)/.*?$", "$1")) + 

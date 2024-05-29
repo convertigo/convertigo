@@ -281,17 +281,20 @@ public class MobileApplication extends DatabaseObject {
 	}
 	
 	public String getComputedEndpoint() {
-		return endpoint.replaceAll("/+$", "");
+		String endpoint = this.endpoint.replaceAll("/+$", "");
+		if (StringUtils.isBlank(endpoint)) {
+			endpoint = getDefaultServerEnpoint();
+		}
+		return endpoint;
 	}
 	
 	public String getComputedEndpoint(HttpServletRequest request) {
-		String endpoint = getComputedEndpoint();
-		if ("".equals(endpoint)) {
-			if  (request != null) {
-				endpoint = HttpUtils.convertigoRequestURL(request);
-			} else {
-				throw new RuntimeException("Mobile Application Endpoint cannot be empty, you must configure one.");
-			}
+		String endpoint = this.endpoint.replaceAll("/+$", "");
+		if (StringUtils.isBlank(endpoint) && request != null) {
+			endpoint = HttpUtils.convertigoRequestURL(request);
+		}
+		if (StringUtils.isBlank(endpoint)) {
+			endpoint = getDefaultServerEnpoint();
 		}
 		return endpoint;
 	}
@@ -487,5 +490,13 @@ public class MobileApplication extends DatabaseObject {
 
 	public void setApplicationThemeColor(String applicationThemeColor) {
 		this.applicationThemeColor = applicationThemeColor;
+	}
+	
+	public static String getDefaultServerEnpoint() {
+		var endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+		if (StringUtils.isBlank(endPointUrl)) {
+			endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+		}
+		return endPointUrl;
 	}
 }

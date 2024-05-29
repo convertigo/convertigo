@@ -368,15 +368,8 @@ public class CLI {
 				}
 			}
 			
-			String endPointUrl = project.getMobileApplication().getEndpoint();
-			if (endPointUrl.isBlank()) {
-				endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
-				if (endPointUrl.isBlank()) {
-					endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-				}
-			}
-			
-			String appBaseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
+			String endPointUrl = project.getMobileApplication().getComputedEndpoint();			
+			String appBaseHref = "/convertigo/projects/" + project.getName() + "/DisplayObjects/mobile/";
 			try {
 				appBaseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.replaceFirst("https?://.*?/", "/").replaceFirst("(/.*)/.*?$", "$1")) + 
 									"/projects/"+ project.getName() +"/DisplayObjects/mobile/";

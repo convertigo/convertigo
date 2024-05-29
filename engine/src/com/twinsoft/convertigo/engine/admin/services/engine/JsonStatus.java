@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -166,6 +167,7 @@ public class JsonStatus extends JSonService {
         
         response.put("browser", request.getHeader("User-Agent"));
         response.put("cloud", Engine.isCloudMode());
+        response.put("endpoint", MobileApplication.getDefaultServerEnpoint());
 	}
 
 }

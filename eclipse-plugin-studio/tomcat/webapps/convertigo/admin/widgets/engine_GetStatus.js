@@ -88,6 +88,7 @@ function engine_GetStatus_update() {
 			$("#statusLicenceEndDate").css("color", "#595252");
 			$("#statusLicenceEndDate").css("font-weight", "normal");
 		} 
+		$("#statusEndpoint").text($(xml).find("endpoint").text());
 		
 		instanceUpdateDate++;
 		init_date_started_from(instanceUpdateDate);		

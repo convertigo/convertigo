@@ -2001,14 +2001,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			mb.setAppBuildMode(MobileBuilderBuildMode.fast);
 		}
 
-		String endPointUrl = applicationEditorInput.application.getParent().getEndpoint();
-		if (endPointUrl.isBlank()) {
-			endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
-			if (endPointUrl.isBlank()) {
-				endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-			}
-		}
-
+		String endPointUrl = applicationEditorInput.application.getParent().getComputedEndpoint();
 		String baseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
 		try {
 			baseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.replaceFirst("https?://.*?/", "/").replaceFirst("(/.*)/.*?$", "$1")) + 

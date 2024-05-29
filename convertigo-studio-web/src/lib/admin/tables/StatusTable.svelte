@@ -5,7 +5,8 @@
 		product,
 		licenceType,
 		licenceNumber,
-		licenceExpired
+		licenceExpired,
+		endpoint
 	} from '../stores/statusStore';
 	import TableAutoCard from '../components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -27,7 +28,8 @@
 			{ Name: 'Uptime', Value: new Date(time - startTime).toLocaleTimeString() },
 			{ Name: 'License Type', Value: $licenceType },
 			{ Name: 'License N°', Value: $licenceNumber },
-			{ Name: 'License Expiration Date', Value: $licenceExpired }
+			{ Name: 'License Expiration Date', Value: $licenceExpired },
+			{ Name: 'Endpoint', Value: $endpoint }
 		];
 		if ($product == '' || !startTime) {
 			for (let d of data) {

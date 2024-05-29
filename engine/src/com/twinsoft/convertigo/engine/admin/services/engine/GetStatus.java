@@ -36,8 +36,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -185,5 +186,9 @@ public class GetStatus extends XmlService {
 		Element mode = document.createElement("mode");
 		mode.setTextContent(Engine.isStudioMode() ? "studio" : "server");
 		rootElement.appendChild(mode);
+		
+		Element endpoint = document.createElement("endpoint");
+		endpoint.setTextContent(MobileApplication.getDefaultServerEnpoint());
+		rootElement.appendChild(endpoint);
 	}
 }
