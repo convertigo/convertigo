@@ -1,5 +1,49 @@
 # Changelog
 
+## 8.3.0
+
+#### New Features:
+
+- [#132](https://github.com/convertigo/convertigo/issues/132) [Studio] Add an 'Update Mobile Builder Templates' menu for Project Reference beans
+- [#794](https://github.com/convertigo/convertigo/issues/794) [NGX] Include a HTML style editor inside the Mobile Builder editor
+- [#796](https://github.com/convertigo/convertigo/issues/796) [Studio] Add a debugger interface for backend scripts (Sequences / Transactions)
+- [#800](https://github.com/convertigo/convertigo/issues/800) [NGX] TPL 8.3.0 with Ionic 7
+- [#814](https://github.com/convertigo/convertigo/issues/814) [Studio] Ship Studio with the Eclipse MarketPlace Plugin, ready for Copilot
+- [#816](https://github.com/convertigo/convertigo/issues/816) [NGX] Add an Angular virtual scroll bean
+
+#### Improvements:
+
+- [#292](https://github.com/convertigo/convertigo/issues/292) Differentiate App/Page needed imports/modules/providers/packages
+- [#749](https://github.com/convertigo/convertigo/issues/749) [Mobile] Application have icon name and color theme properties to change manifest.json
+- [#750](https://github.com/convertigo/convertigo/issues/750) Update bases (Eclipse 2023-12 / Tomcat 9.0.89 / JVM 21.0.3 / Node ...)
+- [#773](https://github.com/convertigo/convertigo/issues/773) [NGX] SearchBar should be bindable
+- [#820](https://github.com/convertigo/convertigo/issues/820) [NGX] Source Picker for Sequence is a collapsable treeview
+- [#829](https://github.com/convertigo/convertigo/issues/829) [Documentation] Generate the online documentation for NGX components
+- [#830](https://github.com/convertigo/convertigo/issues/830) [Studio] Sort Palette categories by alphanumeric order
+- [#831](https://github.com/convertigo/convertigo/issues/831) [Android] Choose for package APK or bundle AAB for Android release build
+- [#835](https://github.com/convertigo/convertigo/issues/835) [HTTP Download Transaction] Property to get filename from the Content-Disposition header
+
+#### Bug Fixes:
+
+- [#808](https://github.com/convertigo/convertigo/issues/808) Fixed, [Mobile] template the endpoint in cordova config.xml
+- [#813](https://github.com/convertigo/convertigo/issues/813) Fixed, [NGX] tooltips component can be used in ng-template
+- [#815](https://github.com/convertigo/convertigo/issues/815) Fixed, [NGX] segment /:param will not fails if value is 0
+- [#817](https://github.com/convertigo/convertigo/issues/817) Fixed, [Studio] DnD Sequence on a Form component keeps 'Control name' property
+- [#818](https://github.com/convertigo/convertigo/issues/818) Fixed, [NGX] Ngx source picker gives available options when selecting iterator sources
+- [#819](https://github.com/convertigo/convertigo/issues/819) Fixed, [NGX] copying and pasting keeps source picker binds
+- [#821](https://github.com/convertigo/convertigo/issues/821) Fixed, [Studio] no more Invalid Thread Access when importing a project from GIT with <project>=<git url>
+- [#822](https://github.com/convertigo/convertigo/issues/822) Fixed, [NGX] TreeviewComponent works anymore with Angular 16
+- [#824](https://github.com/convertigo/convertigo/issues/824) Fixed, [Studio] generating Schema from connector data success even if documentation of imported REST Swagger contains illegal characters
+- [#825](https://github.com/convertigo/convertigo/issues/825) Fixed, [NGX] UseShared class attribute and its Style content are added in the scss file
+- [#826](https://github.com/convertigo/convertigo/issues/826) Fixed, [Engine] enable "SSL debug" now print SSL debug in stdout after a JVM reboot
+- [#827](https://github.com/convertigo/convertigo/issues/827) Fixed, [Engine] variable __header_ log visibility now respected for the input document log (like other variables)
+- [#828](https://github.com/convertigo/convertigo/issues/828) Fixed, [NGX] Agm core components are now deprecated since Angular 16
+- [#832](https://github.com/convertigo/convertigo/issues/832) Fixed, [Download HTTP Transaction] Doesn't fail if no lastModified header is returned
+- [#833](https://github.com/convertigo/convertigo/issues/833) Fixed, [Palette] SharedComponent with the same name in different projects are all visibles
+- [#834](https://github.com/convertigo/convertigo/issues/834) Fixed, [Studio] Adding and use a sharedComponent appears in page even if the Mobile Builder tab is already opened
+
+---
+
 ## 8.2.7
 
 #### Improvements:
