@@ -35,6 +35,7 @@ public enum Parameter {
 	HttpContentType(DynamicHttpVariable.__contentType.name()),
 	HttpDownloadFolder(DynamicHttpVariable.__download_folder.name()),
 	HttpDownloadFilename(DynamicHttpVariable.__download_filename.name()),
+	HttpDownloadUseContentDisposition(DynamicHttpVariable.__download_useContentDisposition.name()),
 	Lang("__lang"),
 	NoCache("__nocache"),
 	Pool("__pool"),

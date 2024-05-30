@@ -231,6 +231,13 @@ class InputDocumentBuilder {
 			
 			Engine.logContext.info("Download filename parameter: '" + parameterValue + "'");
 		}
+		else if (parameterName.indexOf(Parameter.HttpDownloadUseContentDisposition.getName()) == 0) {
+			Element item = context.inputDocument.createElement("download-use-content-disposition");
+			item.setAttribute("value", parameterValue);
+			root.appendChild(item);
+			
+			Engine.logContext.info("Download use Content-Disposition parameter: '" + parameterValue + "'");
+		}
 		// Action of event on WebViewer definition
 		else if (parameterName.equals(Parameter.WebEventAction.getName())) {
 			Element item = context.inputDocument.createElement("action");

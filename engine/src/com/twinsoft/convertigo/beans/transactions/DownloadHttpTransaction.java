@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
@@ -69,7 +70,8 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 	private String folder = "";
 	private String filename = "";
 	private AutoRemoveFilePolicy autoRemoveFilePolicy = AutoRemoveFilePolicy.contextEnding;
-	
+	private boolean useContentDisposition = false;
+
 	private transient File file;
 	private transient boolean skip;
 	private transient int status;
@@ -77,6 +79,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 	private transient String contentType;
 	private transient String currentFolder;
 	private transient String currentFilename;
+	private transient boolean currentUseContentDisposition;
 
 	
 	public DownloadHttpTransaction() {
@@ -100,25 +103,32 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		currentFolder = folder;
 		currentFilename = filename;
+		currentUseContentDisposition = useContentDisposition;
 		
 		for (RequestableVariable v: getAllVariables()) {
 			if (v.getName().equals(DynamicHttpVariable.__download_folder.name())) {
 				RequestableHttpVariable var = (RequestableHttpVariable) v;
 				Object o = var.getDefaultValue();
-				if (o != null && o instanceof String) {
-					currentFolder = (String) o;
+				if (o != null && o instanceof String s) {
+					currentFolder = s;
 				}
 			} else if (v.getName().equals(DynamicHttpVariable.__download_filename.name())) {
 				RequestableHttpVariable var = (RequestableHttpVariable) v;
 				Object o = var.getDefaultValue();
-				if (o != null && o instanceof String) {
-					currentFilename = (String) o;
+				if (o != null && o instanceof String s) {
+					currentFilename = s;
 				}
-			} 
+			} else if (v.getName().equals(DynamicHttpVariable.__download_useContentDisposition.name())) {
+				RequestableHttpVariable var = (RequestableHttpVariable) v;
+				Object o = var.getDefaultValue();
+				if (o != null && o instanceof String s) {
+					currentUseContentDisposition = s.equalsIgnoreCase("true");
+				}
+			}
 		}
 		
 		NodeList nl = context.inputDocument.getElementsByTagName("download-folder");
-		if (nl.getLength() == 1) {
+		if (nl.getLength() > 0) {
 			Element elt = (Element) nl.item(0);
 			String val  = elt.getAttribute("value");
 			if (StringUtils.isNotBlank(val)) {
@@ -131,18 +141,31 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		}
 		 
 		nl = context.inputDocument.getElementsByTagName("download-filename");
-		int len = nl.getLength();
-		if (len > 0) {
+		if (nl.getLength() > 0) {
 			Element elt = (Element) nl.item(0);
 			String val  = elt.getAttribute("value");
 			if (StringUtils.isNotBlank(val)) {
 				if (getAccessibility() == Accessibility.Private) {
 					currentFilename = val;
 				} else {
-					Engine.logBeans.error("(DownloadHttpTransaction) The transaction isn't Private, the download-folder cannot be override.");
+					Engine.logBeans.error("(DownloadHttpTransaction) The transaction isn't Private, the download-filename cannot be override.");
 				}
 			}
 		}
+		 
+		nl = context.inputDocument.getElementsByTagName("download-use-content-disposition");
+		if (nl.getLength() > 0) {
+			Element elt = (Element) nl.item(0);
+			String val  = elt.getAttribute("value");
+			if (StringUtils.isNotBlank(val)) {
+				if (getAccessibility() == Accessibility.Private) {
+					currentUseContentDisposition = val.equalsIgnoreCase("true");
+				} else {
+					Engine.logBeans.error("(DownloadHttpTransaction) The transaction isn't Private, the download-use-content-disposition cannot be override.");
+				}
+			}
+		}
+		
 	}
 	
 	@Override
@@ -224,6 +247,17 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			folder = ".//_data/download/" + Long.toString(Math.round(Math.random() * 999999), Character.MAX_RADIX);
 			removeParent = true;
 		}
+		
+		if (currentUseContentDisposition) {
+			var cdh = HeaderName.ContentDisposition.getResponseHeader(method);
+			if (cdh != null) {
+				var m = Pattern.compile("filename=\"?((?:\\\\\"|[^\"])*)\"?").matcher(cdh);
+				if (m.find() && StringUtils.isNotBlank(m.group(1))) {
+					currentFilename = m.group(1).replace("\\\"", "\"");
+				}
+			}
+		}
+		
 		String filename = currentFilename;
 		if (filename.isBlank()) {
 			filename = method.getURI().getPath();
@@ -392,5 +426,13 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 
 	public void setAutoRemoveFilePolicy(AutoRemoveFilePolicy autoRemoveFilePolicy) {
 		this.autoRemoveFilePolicy = autoRemoveFilePolicy;
+	}
+	
+	public boolean getUseContentDisposition() {
+		return useContentDisposition;
+	}
+
+	public void setUseContentDisposition(boolean useContentDisposition) {
+		this.useContentDisposition = useContentDisposition;
 	}
 }

@@ -35,7 +35,7 @@ public class DownloadHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/downloadhttptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/downloadhttptransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 
 			resourceBundle = getResourceBundle("res/DownloadHttpTransaction");
 
@@ -59,6 +59,10 @@ public class DownloadHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[3].setDisplayName(getExternalizedString("property.autoRemoveFilePolicy.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.autoRemoveFilePolicy.short_description"));
 			properties[3].setPropertyEditorClass(AutoRemoveFilePolicy.class);
+
+			properties[4] = new PropertyDescriptor("useContentDisposition", beanClass, "getUseContentDisposition", "setUseContentDisposition");
+			properties[4].setDisplayName(getExternalizedString("property.useContentDisposition.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.useContentDisposition.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

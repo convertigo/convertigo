@@ -281,7 +281,7 @@ public abstract class GenericServlet extends HttpServlet {
 
 							HeaderName.ContentType.setHeader(response, contentType);
 							HeaderName.ContentLength.setHeader(response, "" + data.length);
-							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=" + name);
+							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
 							
 							applyCustomHeaders(request, response);
 							

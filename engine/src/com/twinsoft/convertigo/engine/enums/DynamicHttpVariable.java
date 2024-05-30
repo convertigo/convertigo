@@ -30,7 +30,8 @@ public enum DynamicHttpVariable {
 	__contentType("Content-Type", "Override the <b><u>Content-Type</u></b> header of the request. Can be useful in combination of <b><u>body</u></b>."),
 	__header_("Custom Header", "Add dynamic <b><u>custom header</u></b> for this request. You have to rename the <b><u>custom</u></b> part of the variable name.", "__header_"),
 	__download_folder("Download folder", "Override the <b><u>Folder</u></b> property of this transaction", DownloadHttpTransaction.class),
-	__download_filename("Download filename", "Override the <b><u>Filename</u></b> property of this transaction", DownloadHttpTransaction.class);
+	__download_filename("Download filename", "Override the <b><u>Filename</u></b> property of this transaction", DownloadHttpTransaction.class),
+	__download_useContentDisposition("Use Content-Disposition", "Override the <b><u>Use Content-Disposition</u></b> property of this transaction", DownloadHttpTransaction.class);
 	
 	String display;
 	String description;

@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.tas.KeyManager;
 
 public class HttpUtils {
@@ -110,7 +111,7 @@ public class HttpUtils {
 	public static String originalRequestURI(HttpServletRequest request) {
 		String uri;
 		Matcher endpoint = getEndpointMatcher();
-		if (endpoint != null) {
+		if (endpoint != null && !(request instanceof InternalHttpServletRequest)) {
 			String path = request.getContextPath();
 			String rUri = request.getRequestURI();
 			String base = endpoint.group(3);

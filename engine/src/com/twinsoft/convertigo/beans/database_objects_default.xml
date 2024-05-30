@@ -3782,6 +3782,9 @@
         <property name="urlEncodingCharset">
             <java.lang.String value=""/>
         </property>
+        <property name="useContentDisposition">
+            <java.lang.Boolean value="false"/>
+        </property>
         <wsdltype/>
         <handlers/>
     </transaction>
