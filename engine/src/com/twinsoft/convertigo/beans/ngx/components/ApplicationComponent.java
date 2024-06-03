@@ -1533,9 +1533,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 	
 	public void checkFolder() {
-		if (Engine.isCliMode()) {
-			return;
-		}
 		File templateFolder = null;
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
 		File index = new File(getParent().getResourceFolder(), "index.html");
@@ -1549,6 +1546,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			} catch (Exception e) {
 			}
 			if (templateFolder == null) {
+				if (Engine.isCliMode()) {
+					return;
+				}
 				templateFolder = new File(Engine.TEMPLATES_PATH, "base/Flashupdate");
 			}
 		}
