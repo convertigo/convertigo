@@ -141,7 +141,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			if (mobilePlatform != null) {
 				//Check endpoint url is empty or not
 				MobileApplication mobileApplication = mobilePlatform.getObject().getParent();
-				String exEndpoint[] = {mobileApplication.getEndpoint()};
+				String exEndpoint[] = {mobileApplication.getComputedEndpoint()};
 				String curEndpoint[] = {exEndpoint[0]};
 				
 				try {

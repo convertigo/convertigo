@@ -373,7 +373,12 @@ public class MobileResourceHelper {
 			throw new ServiceException("Unknow build mode: " + buildMode);
 		}
 		
-		var endpointHostname = endpoint.replaceFirst(".*?://([^:/]+).*", "$1");
+		var endpointMatcher = Pattern.compile("(.*?)://([^:/]+).*").matcher(endpoint);
+		if (!endpointMatcher.matches()) {
+			throw new ServiceException("Invalid endpoint: " + endpoint);
+		}
+		var endpointScheme = endpointMatcher.group(1);
+		var endpointHostname = endpointMatcher.group(2);
 		
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
@@ -392,6 +397,7 @@ public class MobileResourceHelper {
 				.replace("$(PlatformName)$", mobilePlatform.getName())
 				.replace("$(PlatformType)$", mobilePlatform.getType())
 				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform())
+				.replace("$(EndpointScheme)$", endpointScheme)
 				.replace("$(EndpointHostname)$", endpointHostname);
 
 		File pluginsFile = new File(destDir, "plugins.txt");
