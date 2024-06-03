@@ -902,6 +902,8 @@ public class ComponentManager {
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
 			
+			components.add(getDboComponent(PageComponent.class,"Page Components"));
+			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {

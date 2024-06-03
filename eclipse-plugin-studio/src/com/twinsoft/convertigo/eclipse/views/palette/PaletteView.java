@@ -470,9 +470,11 @@ public class PaletteView extends ViewPart {
 						String beansName = bs.getName().isEmpty() ? categoryName : bs.getName();
 						for (DboBean b: bs.getBeans()) {
 							String cn = b.getClassName();
-							if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
-									|| cn.startsWith("com.twinsoft.convertigo.beans.mobile.components."))
+							if (cn.startsWith("com.twinsoft.convertigo.beans.mobile.components.")
 									&& !cn.endsWith("PageComponent")) {
+								continue;
+							}
+							if (cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")) {
 								continue;
 							}
 							String category = beansName;
