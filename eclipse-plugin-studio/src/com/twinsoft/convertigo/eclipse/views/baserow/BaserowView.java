@@ -702,7 +702,7 @@ public class BaserowView extends ViewPart {
 
 						var simpleStep = new SimpleStep();
 						simpleStep.setName("table_id");
-						simpleStep.setExpression("table_id = " + table_id + ";");
+						simpleStep.setExpression("table_id = \"" + table_id + "\";");
 						sequence.add(simpleStep);
 						simpleStep = new SimpleStep();
 						simpleStep.setName("apiKey");
