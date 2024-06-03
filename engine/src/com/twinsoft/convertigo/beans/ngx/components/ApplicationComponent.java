@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -1020,6 +1021,20 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		for (UIActionStack actionStack: getSharedActionList()) {
 			actionStack.addContributors(done, contributors);
+		}
+		
+		/** 
+		 * FIX #834 - APP VIEWER - Case of build:serve with HMR
+		 * Force unused sharedComponent to be referenced in app.module.ts because of HMR build bug
+		 * [HMR] Update failed: ChunkLoadError: Loading hot update chunk runtime failed
+		 * */
+		if (Engine.isStudioMode()) {
+			String projectName = getProject().getName();
+			for (UISharedComponent comp: getSharedComponentList()) {
+				if (!ComponentRefManager.isCompUsedBy(comp.getQName(), projectName)) {
+					comp.addContributors(done, contributors);
+				}
+			}
 		}
 	}
     

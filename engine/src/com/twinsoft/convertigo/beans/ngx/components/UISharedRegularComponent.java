@@ -804,7 +804,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 				} else if (use != null) {
 					return ((MobileComponent)use.getMainScriptComponent()).equals(getContainer());
 				}
-				return false;
+				
+				/** 
+				 * FIX #834 - APP VIEWER - Case of build:serve with HMR
+				 * Force unused sharedComponent to be referenced in app.module.ts because of HMR build bug
+				 * [HMR] Update failed: ChunkLoadError: Loading hot update chunk runtime failed
+				 * */
+				return getContainer().equals(getParent()); // return false
 			}
 			
 			@Override
