@@ -1388,7 +1388,9 @@ public class ComponentManager {
 	}
 	
 	private static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
-		if (UIComponent.class.isAssignableFrom(dboClass)) {
+		if (PageComponent.class.isAssignableFrom(dboClass)) {
+			return dboParent instanceof ApplicationComponent;
+		} else if (UIComponent.class.isAssignableFrom(dboClass)) {
 			if (UIDynamicEmit.class.isAssignableFrom(dboClass)) {
 				if (dboParent instanceof UIComponent) {
 					UISharedComponent uisc = ((UIComponent)dboParent).getSharedComponent();
