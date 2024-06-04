@@ -115,6 +115,8 @@ public class StartupEditor extends EditorPart {
 					});
 					ev.preventDefault();
 					return true;
+				} else if (href.startsWith("#") || elt.attributes().get("id").startsWith("weglot")) {
+					return true;
 				}
 			} catch (Exception e) {
 			}

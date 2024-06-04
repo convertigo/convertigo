@@ -445,7 +445,7 @@
 			project="true">
 			<description>Imports the Convertigo OAuth library project.</description>
 			{ "url":
-			"lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=7.9.0",
+			"lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=8.0.0",
 			"doPageSummarySampleProject": true } </wizard>
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -502,7 +502,7 @@
 			project="true">
 			<description>Imports the Convertigo FullSync Groups library project.</description>
 			{ "url":
-			"lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=7.9.0",
+			"lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=8.0.0",
 			"doPageSummarySampleProject": true } </wizard>
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -527,7 +527,7 @@
 			<description>Set of shared components you can use in your projects:
 			agGrid, ngxTagInput, angularxQRCode, CardIO, ZXing ...</description>
 			{ "url":
-			"lib_ExtendedComponents_ui_ngx=https://github.com/convertigo/c8oprj-lib-extended-components-ui-ngx.git:branch=8.0.0",
+			"lib_ExtendedComponents_ui_ngx=https://github.com/convertigo/c8oprj-lib-extended-components-ui-ngx.git:branch=8.1.0.0",
 			"doPageSummarySampleProject": true } </wizard>
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -561,33 +561,7 @@
 			offline, posts will be secured in the local FullSync NoSQL database
 			and will be synced automatically when the device is online again.</description>
 			{ "url":
-			"sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/8.1.0.zip",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="org.eclipse.ui.Examples"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/ionicconferenceapp_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewSampleConferenceAppWizard"
-			name="Convertigo IonicConferenceApp sample project"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports a project creating a IonicConferenceApp
-			application. This demo is based on Ionic Conference App but using
-				the Convertigo Mobile Builder.</description> { "url":
-			"IonicConferenceApp=https://github.com/convertigo/c8oprj-sample-ionicconferenceapp/archive/7.9.0.zip",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="org.eclipse.ui.Examples"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/flightshare_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewSampleFlightShareWizard"
-			name="Convertigo FlightShare sample project"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports a project creating a FlightShare application.
-			Flight Share is an application able to share flights within Pilots
-			using Flyin Club Planes.</description> { "url":
-			"FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/8.1.0.zip",
+			"sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/8.3.0.zip",
 			"doPageSummarySampleProject": true } </wizard>
 		<wizard
 			category="org.eclipse.ui.Examples"
@@ -600,7 +574,7 @@
 			<description>Imports a project creating a sample_HelloWorld
 			application. Simple news reader application using the Convertigo
 			Mobile Builder.</description> { "url":
-			"sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/8.1.0.zip",
+			"sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/8.3.0.zip",
 			"doPageSummarySampleProject": true } </wizard>
 		<wizard
 			category="org.eclipse.ui.Examples"
@@ -621,7 +595,7 @@
 			CouchDB
 				server on your workstation before running this demo.</description>
 			{ "url":
-			"sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/8.1.0.zip",
+			"sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/8.3.0.zip",
 			"doPageSummarySampleProject": true } </wizard>
 	</extension>
 	<extension
