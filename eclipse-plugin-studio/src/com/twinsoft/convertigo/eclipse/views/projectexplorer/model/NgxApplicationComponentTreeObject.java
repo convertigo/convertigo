@@ -309,6 +309,24 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					}
 				}
 				if (dbo instanceof UIComponent) {
+					//FIX #839 - App sources not well updated when Cut/Paste or Dnd/Move between different pages
+					if (propertyName.equals("qname") && oldValue != null && newValue != null) {
+						String oldQname = (String)oldValue;
+						String newQname = (String)newValue;
+						String appQname = getObject().getQName();
+						String fromQname = oldQname.indexOf('.') != -1 ? oldQname.substring(0, oldQname.lastIndexOf('.')) : "";
+						DatabaseObject fromDbo = !fromQname.isEmpty() ? ComponentRefManager.getDatabaseObjectByQName(fromQname) : null;
+						DatabaseObject newDbo = !newQname.isEmpty() ? ComponentRefManager.getDatabaseObjectByQName(newQname) : null;
+						if (fromDbo != null && fromDbo.getQName().startsWith(appQname)) {
+							resetMainScriptComponents(fromDbo, reset);
+							doUpdate = true;
+						}
+						if (newDbo != null && newDbo.getQName().startsWith(appQname)) {
+							resetMainScriptComponents(newDbo, reset);
+							doUpdate = true;
+						}
+					}
+					
 					if (doto.isChildOf(this)) {
 						if (dbo instanceof UISharedRegularComponent || dbo instanceof UIActionStack) {
 							// a shared component or shared action of this app changed its name
