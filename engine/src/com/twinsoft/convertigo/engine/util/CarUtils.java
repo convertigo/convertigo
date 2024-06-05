@@ -21,11 +21,13 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.beans.IntrospectionException;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -42,7 +44,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -208,12 +209,12 @@ public class CarUtils {
 			
 			boolean isCR = FileUtils.isCRLF();
 			
-			Writer writer = isCR ? new StringWriter() : new FileWriterWithEncoding(fileName, "UTF-8");
+			Writer writer = isCR ? new StringWriter() : new FileWriter(fileName, StandardCharsets.UTF_8);
 			transformer.transform(new DOMSource(document), new StreamResult(writer));
 			
 			if (isCR) {
 				String content = FileUtils.CrlfToLf(writer.toString());
-				writer = new FileWriterWithEncoding(fileName, "UTF-8");
+				writer = new FileWriter(fileName, StandardCharsets.UTF_8);
 				writer.write(content);
 			}
 			

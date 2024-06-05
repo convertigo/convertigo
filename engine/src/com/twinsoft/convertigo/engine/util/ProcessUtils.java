@@ -60,7 +60,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
-	private static String defaultNodeVersion = "v16.18.0";
+	private static String defaultNodeVersion = "v20.14.0";
 	private static File defaultNodeDir;
 
 	public static String getDefaultNodeVersion() {

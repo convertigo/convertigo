@@ -22,6 +22,8 @@
 - [#830](https://github.com/convertigo/convertigo/issues/830) [Studio] Sort Palette categories by alphanumeric order
 - [#831](https://github.com/convertigo/convertigo/issues/831) [Android] Choose for package APK or bundle AAB for Android release build
 - [#835](https://github.com/convertigo/convertigo/issues/835) [HTTP Download Transaction] Property to get filename from the Content-Disposition header
+- [#836](https://github.com/convertigo/convertigo/issues/836) [NGX] Added hints for Image and LazyImage components
+- [#838](https://github.com/convertigo/convertigo/issues/838) [NGX] Added hints for PageComponent
 
 #### Bug Fixes:
 
@@ -41,6 +43,8 @@
 - [#832](https://github.com/convertigo/convertigo/issues/832) Fixed, [Download HTTP Transaction] Doesn't fail if no lastModified header is returned
 - [#833](https://github.com/convertigo/convertigo/issues/833) Fixed, [Palette] SharedComponent with the same name in different projects are all visibles
 - [#834](https://github.com/convertigo/convertigo/issues/834) Fixed, [Studio] Adding and use a sharedComponent appears in page even if the Mobile Builder tab is already opened
+- [#837](https://github.com/convertigo/convertigo/issues/837) Fixed, [Studio] Baserow view stub generator now generates table_id in quotes
+- [#839](https://github.com/convertigo/convertigo/issues/839) Fixed, [NGX] App sources are well updated when Cut/Paste or Dnd/Move between different pages
 
 ---
 
