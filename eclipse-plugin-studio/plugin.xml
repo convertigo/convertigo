@@ -176,7 +176,7 @@
 			preferredPerspectives="convertigo"
 			project="true">
 			<description>Creates a sequencer project.</description> { "url":
-			"template_sequence=https://github.com/convertigo/c8oprj-template-sequence/archive/7.9.0.zip",
+			"template_sequence=https://github.com/convertigo/c8oprj-template-sequence/archive/8.3.0.zip",
 			"doPage1": true } </wizard>
 		<primaryWizard
 			id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"></primaryWizard>
