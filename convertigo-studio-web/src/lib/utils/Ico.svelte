@@ -1,27 +1,8 @@
 <script context="module">
-	import IconGitHub from '~icons/octicon/logo-github-16';
-	import gearIcon from '~icons/ph/gear-six-thin';
-	import HomeIcon from '~icons/material-symbols-light/home-outline';
-	import GearIconConfig from '~icons/ph/gear-thin';
-	import ConnectionsIcon from '~icons/ph/plugs-connected-thin';
-	import ProjectsIcon from '~icons/ph/folder-thin';
-	import CertificateIcon from '~icons/ph/certificate-thin';
-	import LogsIcon from '~icons/lets-icons/search-light';
-	import TracePlayerIcon from '~icons/ph/video-thin';
-	import CacheIcon from '~icons/material-symbols-light/update';
-	import SchedulerIcon from '~icons/material-symbols-light/schedule-outline';
-	import KeysIcon from '~icons/material-symbols-light/key-outline';
-	import RolesIcon from '~icons/lets-icons/user-alt-light';
-	import SymbolsIcon from '~icons/et/tools-2';
-	import FullSyncIcon from '~icons/material-symbols-light/sync-outline';
-	import TestPlatformsIcon from '~icons/file-icons/test-ruby';
-	import SwaggerIcon from '~icons/codicon/json';
-	import ConvertigoIcon from '~icons/material-symbols-light/cloud-outline';
-	import DevNetworkIcon from '~icons/material-symbols-light/sync-outline';
-	import DocumentationIcon from '~icons/arcticons/doc-scanner';
-	import DeleteIcon from '~icons/material-symbols-light/delete-outline';
+	import DeleteIcon from '~icons/mingcute/delete-line';
 	import ReloadIcon from '~icons/simple-line-icons/reload';
 	import ExportIcon from '~icons/bytesize/export';
+	import ImportIcon from '~icons/bytesize/import';
 	import TestIcon from '~icons/fluent-mdl2/test-plan';
 	import SaveChanges from '~icons/material-symbols-light/save-as-outline';
 	import CancelChanges from '~icons/material-symbols-light/cancel-outline';
@@ -32,34 +13,26 @@
 	import CloudFillIcon from '~icons/iconamoon/cloud-fill';
 	import UploadProject from '~icons/icon-park/application-one';
 	import NoteIcon from '~icons/fluent/note-48-filled';
-	import UpdateIcon from '~icons/material-symbols-light/update';
+	import UpdateIcon from '~icons/dashicons/update';
 	import CoffeeLoaderIcon from '~icons/line-md/coffee-loop';
 	import AdvancedPropertiesIcon from '~icons/game-icons/level-three-advanced';
+	import JobTrs from '~icons/carbon/data-regular';
+	import JobSqs from '~icons/material-symbols/api-rounded';
+	import JobGrp from '~icons/uim/layer-group';
+	import ScheduleCron from '~icons/eos-icons/cronjob';
+	import ScheduleRunNow from '~icons/codicon/run-all';
+	import ScheduledJob from '~icons/mdi/invoice-scheduled-outline';
+	import AddIcon from '~icons/grommet-icons/add';
+	import SecretIcon from '~icons/vaadin/key-o';
+	import DeployIcon from '~icons/carbon/application';
+	import EditIcon from '~icons/mdi/edit-outline';
+	import TestPlatformsIcon from '~icons/file-icons/test-ruby';
 
 	const ico = {
-		'octicon:logo-github-16': IconGitHub,
-		'ph:gear-six-thin': gearIcon,
-		'material-symbols-light:home-outline': HomeIcon,
-		'ph:gear-thin': GearIconConfig,
-		'ph:plugs-connected-thin': ConnectionsIcon,
-		'ph:folder-thin': ProjectsIcon,
-		'ph:certificate-thin': CertificateIcon,
-		'lets-icons:search-light': LogsIcon,
-		'ph:video-thin': TracePlayerIcon,
-		'material-symbols-light:update': CacheIcon,
-		'material-symbols-light:schedule-outline': SchedulerIcon,
-		'material-symbols-light:key-outline': KeysIcon,
-		'lets-icons:user-alt-light': RolesIcon,
-		'et:tools-2': SymbolsIcon,
-		'material-symbols-light:sync-outline': FullSyncIcon,
-		'file-icons:test-ruby': TestPlatformsIcon,
-		'codicon:json': SwaggerIcon,
-		'material-symbols-light:cloud-outline': ConvertigoIcon,
-		'material-symbols-light:sync-outline': DevNetworkIcon,
-		'arcticons:doc-scanner': DocumentationIcon,
-		'material-symbols-light:delete-outline': DeleteIcon,
+		'mingcute:delete-line': DeleteIcon,
 		'simple-line-icons:reload': ReloadIcon,
 		'bytesize:export': ExportIcon,
+		'bytesize:import': ImportIcon,
 		'fluent-mdl2:test-plan': TestIcon,
 		'material-symbols-light:save-as-outline': SaveChanges,
 		'material-symbols-light:cancel-outline': CancelChanges,
@@ -70,9 +43,20 @@
 		'iconamoon:cloud-fill': CloudFillIcon,
 		'icon-park:application-one': UploadProject,
 		'fluent:note-48-filled': NoteIcon,
-		'material-symbols-light:update': UpdateIcon,
+		'dashicons:update': UpdateIcon,
 		'line-md:coffee-loop': CoffeeLoaderIcon,
-		'game-icons:level-three-advanced': AdvancedPropertiesIcon
+		'game-icons:level-three-advanced': AdvancedPropertiesIcon,
+		'carbon:data-regular': JobTrs,
+		'material-symbols:api-rounded': JobSqs,
+		'uim:layer-group': JobGrp,
+		'eos-icons:cronjob': ScheduleCron,
+		'codicon:run-all': ScheduleRunNow,
+		'mdi:invoice-scheduled-outline': ScheduledJob,
+		'grommet-icons:add': AddIcon,
+		'vaadin:key-o': SecretIcon,
+		'carbon:application': DeployIcon,
+		'mdi:edit-outline': EditIcon,
+		'file-icons:test-ruby': TestPlatformsIcon
 	};
 </script>
 
@@ -81,4 +65,4 @@
 	export let icon;
 </script>
 
-<svelte:component this={ico[icon]} {...$$restProps} />
+<svelte:component this={ico[icon]} {...$$restProps} class="w-4 h-4" />

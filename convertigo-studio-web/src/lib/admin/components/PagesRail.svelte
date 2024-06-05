@@ -2,7 +2,7 @@
 	import { AppRail, getDrawerStore } from '@skeletonlabs/skeleton';
 	import parts from './PagesRail.json';
 	import { page } from '$app/stores';
-	import Ico from '$lib/utils/Ico.svelte';
+	import NavIco from '$lib/utils/NavIco.svelte';
 
 	$: isRoot = $page.route.id == '/admin';
 
@@ -26,7 +26,7 @@
 				class:bg={url == '' ? isRoot : $page.url.pathname.endsWith(url)}
 				on:click={drawerStore.close}
 			>
-				<Ico icon={tile.icon} width={25} height={25} />
+				<NavIco icon={tile.icon} />
 				<span class="text-links-style">{tile.title}</span>
 			</a>
 		{/each}
@@ -41,12 +41,12 @@
 
 <style lang="postcss">
 	.nav-links {
-		@apply flex justify-start p-[5px] mt-1 px-3 items-center dark:hover:bg-surface-500 hover:bg-surface-50 rounded-token;
+		@apply flex justify-start p-[5px] mt-1 px-2 items-center dark:hover:bg-surface-700 hover:bg-surface-50 rounded-token;
 	}
 	.text-links-style {
-		@apply font-extralight font-normal ml-3 text-start text-[14px] dark:text-surface-200 text-surface-800;
+		@apply font-extralight font-normal ml-3 text-start text-[14px];
 	}
 	.bg {
-		@apply bg-surface-200 dark:bg-surface-600;
+		@apply bg-primary-500 bg-opacity-30 dark:bg-primary-500 dark:bg-opacity-20 dark:text-primary-200 text-primary-900 font-bold !important;
 	}
 </style>

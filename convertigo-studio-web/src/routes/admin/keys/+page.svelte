@@ -7,6 +7,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import Icon from '@iconify/svelte';
 
 	const keyModalStore = getModalStore();
 
@@ -103,9 +104,12 @@
 
 <Card title="Keys">
 	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
-		<ButtonsContainer marginB="mb-0">
+		<ButtonsContainer>
 			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-			<button type="submit" class="bg-primary-400-500-token">Add Key</button>
+			<button type="submit" class="basic-button gap-2">
+				<Ico icon="vaadin:key-o" />
+				Add Key
+			</button>
 		</ButtonsContainer>
 	</form>
 </Card>
@@ -154,36 +158,33 @@
 					{#if def.custom}
 						{#if def.name === 'Expiration Date'}
 							{#if row[def.key] === '0'}
-								<div class="bg-success-400-500-token rounded-token py-2 px-2 text-token">
+								<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
 									{formatExpiration(row[def.key])}
 								</div>
 							{:else}
-								<div class="bg-tertiary-400-500-token rounded-token py-2 px-2 text-token">
+								<div class="bg-tertiary-400-500-token rounded-token py-1 px-1 text-token">
 									{formatExpiration(row[def.key])}
 								</div>
 							{/if}
 						{:else if def.name === 'In use'}
-							<span class="font-bold p-2 bg-teal-200 rounded-token bg-opacity-30"
+							<span class="font-bold p-1 bg-teal-200 rounded-token bg-opacity-30"
 								>{category['@_total']}</span
 							>
 						{:else if def.name === 'Remaining'}
-							<span class="font-bold p-2 bg-purple-200 rounded-token bg-opacity-30"
+							<span class="font-bold p-1 bg-purple-200 rounded-token bg-opacity-30"
 								>{category['@_remaining']}</span
 							>
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
-								<div class="bg-success-400-500-token rounded-token py-2 px-2 text-token">
+								<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
 									{row[def.key]}
 								</div>
 							{:else}
 								<div class="bg-red-400">{row[def.key]}</div>
 							{/if}
 						{:else if def.name === 'Delete'}
-							<button
-								class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
-								on:click={() => openModalDeleteKey(row['@_text'])}
-							>
-								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7 " />
+							<button class="delete-button" on:click={() => openModalDeleteKey(row['@_text'])}>
+								<Icon icon="mingcute:delete-line" class="h-4 w-4 " />
 							</button>
 						{/if}
 					{:else}

@@ -29,15 +29,12 @@
 			</a>
 
 			<LightSwitch class="light-switch" />
-
-			<a
-				type="button"
-				class="studio-link blue-button bg-primary-400-500-token"
-				href="{base}/studio/"
-			>
-				<span><Ico icon="iconamoon:cloud-fill" class="w-7 h-7 mr-2" /></span>
-				<span class="text-[14px]">Go to studio</span>
-			</a>
+			<button class="gap-2">
+				<a type="button" class="studio-link basic-button gap-2" href="{base}/studio/">
+					<span><Ico icon="iconamoon:cloud-fill" /></span>
+					<span class="text-[14px]">Go to studio</span>
+				</a>
+			</button>
 
 			<img src="{assets}/logo.png" alt="logo convertigo" class="logo-mobile" />
 		</div>

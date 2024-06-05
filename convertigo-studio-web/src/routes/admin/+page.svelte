@@ -8,6 +8,7 @@
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
 	import { call } from '$lib/utils/service';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
@@ -78,18 +79,10 @@
 <AutoGrid>
 	<Card title="Status">
 		<div slot="cornerOption">
-			<div class="flex flex-wrap gap-2 pl-5">
-				<div class="flex-1">
-					<button class="bg-primary-400-500-token w-full" on:click={() => modal('props')}
-						>Java System Properties</button
-					>
-				</div>
-				<div class="flex-1">
-					<button class="bg-primary-400-500-token w-full" on:click={() => modal('env')}
-						>Environment Variables</button
-					>
-				</div>
-			</div>
+			<ButtonsContainer>
+				<button class="basic-button" on:click={() => modal('props')}>Java System Properties</button>
+				<button class="basic-button" on:click={() => modal('env')}>Environment Variables</button>
+			</ButtonsContainer>
 		</div>
 		<StatusTable
 			class="mt-5"
@@ -101,7 +94,7 @@
 
 	<Card title="System Information">
 		<div slot="cornerOption">
-			<button on:click={performGC} class="w-full bg-secondary-400-500-token">Perform GC</button>
+			<button on:click={performGC} class="green-button">Perform GC</button>
 		</div>
 		<SystemInformationTable
 			class="mt-5"

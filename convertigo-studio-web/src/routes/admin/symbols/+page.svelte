@@ -13,6 +13,7 @@
 	import { Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	let tabSet = 0;
 
@@ -95,19 +96,44 @@
 			title: row ? `Edit Symbol` : `New Symbol`
 		});
 	}
+
+	const symbolsActions = {
+		add: {
+			name: 'Add Symbols',
+			icon: 'grommet-icons:add'
+		},
+		secret: {
+			name: 'Add secret symbol',
+			icon: 'vaadin:key-o'
+		},
+		import: {
+			name: 'Import Symbols',
+			icon: 'bytesize:import'
+		},
+		export: {
+			name: 'Export Symbols',
+			icon: 'bytesize:export'
+		}
+	};
 </script>
 
 <Card title="Global Symbols">
 	<div slot="cornerOption">
 		<div class="flex-1">
-			<button class="bg-error-400-500-token w-full" on:click={openConfirmDeleteAll}
-				><Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />Delete symbols</button
+			<button class="delete-button" on:click={openConfirmDeleteAll}
+				><Icon icon="mingcute:delete-line" class="mr-3" />Delete symbols</button
 			>
 		</div>
 	</div>
 
-	<ButtonsContainer marginB="mb-10">
-		<button class="bg-primary-400-500-token text-[12px]" on:click={() => openSymbolModal('add')}>
+	<ButtonsContainer class="mb-10">
+		{#each Object.entries(symbolsActions) as [type, { name, icon }]}
+			<button class="basic-button" on:click={() => openSymbolModal(type)}>
+				<p>{name}</p>
+				<Ico {icon} />
+			</button>
+		{/each}
+		<!-- <button class="bg-primary-400-500-token text-[12px]" on:click={() => openSymbolModal('add')}>
 			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
 			Add Symbols</button
 		>
@@ -120,7 +146,7 @@
 		>
 		<button class="bg-primary-400-500-token"
 			><Icon icon="solar:export-line-duotone" class="w-7 h-7" />Export Symbols</button
-		>
+		> -->
 	</ButtonsContainer>
 
 	<TabGroup>
@@ -163,18 +189,12 @@
 				>
 					{#if def.custom}
 						{#if def.name === 'Edit'}
-							<button
-								class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
-								on:click={() => openSymbolModal('edit', row)}
-							>
-								<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+							<button class="yellow-button" on:click={() => openSymbolModal('edit', row)}>
+								<Ico icon="mdi:edit-outline" />
 							</button>
 						{:else if def.name === 'Delete'}
-							<button
-								class="btn p-1 px-2 shadow-md bg-error-400-500-token"
-								on:click={() => confirmSymbolDeletion(row['@_name'])}
-							>
-								<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+							<button class="delete-button" on:click={() => confirmSymbolDeletion(row['@_name'])}>
+								<Ico icon="mingcute:delete-line" />
 							</button>
 						{/if}
 					{/if}
@@ -194,11 +214,8 @@
 						let:def
 					>
 						{#if def.name === 'Add'}
-							<button
-								class="btn p-1 px-2 shadow-md bg-secondary-400-500-token"
-								on:click={() => addDefaultSymbol(row)}
-							>
-								<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+							<button class="green-button" on:click={() => addDefaultSymbol(row)}>
+								<Ico icon="grommet-icons:add" />
 							</button>
 						{/if}
 					</TableAutoCard>

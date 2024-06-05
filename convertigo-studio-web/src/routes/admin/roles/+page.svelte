@@ -1,7 +1,7 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import Icon from '@iconify/svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -9,11 +9,18 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
-	const rolesModalStore = getModalStore();
+	const modalStore = getModalStore();
+	let value = false;
+
+	let selectRow = false;
 
 	onMount(() => {
 		usersList();
 	});
+
+    function DisplaySelectRow() {
+        selectRow = !selectRow;
+    }
 
 	async function deleteUsersRoles(username) {
 		const formData = new FormData();
@@ -21,8 +28,10 @@
 		try {
 			//@ts-ignore
 			const res = await call('roles.Delete', formData);
-			console.log('service delete roles', res);
-			await usersList();
+			if (res?.admin?.response?.['@_state'] == 'success') {
+				usersList();
+				modalStore.close();
+			}
 		} catch (error) {
 			console.error('Error deleting user role:', error);
 		}
@@ -32,46 +41,32 @@
 		try {
 			const res = await call('roles.DeleteAll');
 			console.log('service delete All roles', res);
-			usersList();
+			if (res?.admin?.response?.['@_state'] == 'success') {
+				usersList();
+				modalStore.close();
+			}
 		} catch (err) {
 			console.error(err);
 		}
 	}
 
 	function openModals(mode, row) {
-		let title = '';
-
-		switch (mode) {
-			case 'add':
-				title = 'Add User';
-				break;
-			case 'import':
-				title = 'Import Users';
-				break;
-			case 'export':
-				title = 'Export Users';
-				break;
-			case 'edit':
-				title = 'Edit User Role';
-				break;
-		}
-
-		rolesModalStore.trigger({
+		modalStore.trigger({
 			type: 'component',
 			component: 'modalRoles',
 			meta: { mode, row },
-			title: title
+			title: row ? `Edit roles` : `New roles`
 		});
 	}
 
 	function openDeleteAllModal() {
-		rolesModalStore.trigger({
+		modalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
 			title: 'You are going to delete All Roles',
 			body: 'Are you sure you want to ?',
 			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
+			response: async (confirmed) => {
 				if (confirmed) {
 					deleteAllRoles();
 				}
@@ -79,8 +74,8 @@
 		});
 	}
 
-	function openDeleteModal(userName) {
-		rolesModalStore.trigger({
+	function openDeleteModal(row) {
+		modalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
 			title: 'Please Confirm',
@@ -88,7 +83,7 @@
 			meta: { mode: 'Confirm' },
 			response: (confirmed) => {
 				if (confirmed) {
-					deleteUsersRoles(userName);
+					deleteUsersRoles(row);
 				}
 			}
 		});
@@ -104,38 +99,64 @@
 			return 'bg-yellow-500 mt-2 mr-5 ml-5';
 		}
 	}
+
+	const userActions = {
+		add: {
+			name: 'Add User',
+			icon: 'grommet-icons:add'
+		},
+		import: {
+			name: 'Import Users',
+			icon: 'bytesize:import'
+		}
+		// export: {
+		// 	name: 'Export Users',
+		// 	icon: 'bytesize:export'
+		// }
+	};
 </script>
 
 <Card title="Roles">
 	<div slot="cornerOption">
-		<button class="w-full bg-error-400-500-token" on:click={openDeleteAllModal}>
+		<button class="delete-button" on:click={openDeleteAllModal}>
 			<Ico icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
 			Delete All Roles
 		</button>
 	</div>
-	<ButtonsContainer marginB="mb-10">
-		<button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
-			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
+	<ButtonsContainer class="mb-10">
+		{#each Object.entries(userActions) as [type, { name, icon }]}
+			<button class="basic-button" on:click={() => openModals(type)}>
+				<p>{name}</p>
+				<Ico {icon} />
+			</button>
+		{/each}
+		<button class="basic-button" on:click={DisplaySelectRow}>
+			<p>Export</p>
+			<Ico icon="bytesize:export" class="ml-3" />
+		</button>
+		<!-- <button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
+			<Ico icon="material-symbols-light:add" class="w-7 h-7" />
 			Add User
 		</button>
 		<button class="bg-primary-400-500-token" on:click={() => openModals('import')}>
-			<Icon icon="solar:import-line-duotone" class="w-7 h-7" />
+			<Ico icon="solar:import-line-duotone" class="w-7 h-7" />
 			Import Users
 		</button>
 		<button class="bg-primary-400-500-token" on:click={() => openModals('export')}>
 			<Icon icon="solar:export-line-duotone" class="w-7 h-7" />
 			Export Users
-		</button>
+		</button> -->
 	</ButtonsContainer>
 
 	{#if $usersStore.length >= 0}
 		<TableAutoCard
 			definition={[
+				{ name: 'Select', custom: true },
 				{ name: 'Name', key: 'name' },
 				{ name: 'Role', key: 'role', custom: true },
 				{ name: 'Edit', custom: true },
 				{ name: 'Delete', custom: true }
-			]}
+			].filter((elt) => selectRow || elt.name != 'Select')}
 			data={$usersStore}
 			let:row
 			let:def
@@ -158,6 +179,14 @@
 				>
 					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
 				</button>
+			{:else if def.name === 'Select'}
+				<SlideToggle
+					active="min-w-12 bg-success-400 dark:bg-success-700"
+					background="min-w-12 bg-error-400 dark:bg-error-700"
+					name="slide"
+					bind:checked={value}
+					size='sm'
+				/>
 			{/if}
 		</TableAutoCard>
 	{:else}

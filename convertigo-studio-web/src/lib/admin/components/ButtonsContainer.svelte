@@ -1,7 +1,8 @@
 <script>
-	export let marginB = 'mb-0';
+	let cls = '';
+	export { cls as class };
 </script>
 
-<div class={`flex flex-wrap gap-3 ${marginB}`}>
+<div class={`flex flex-wrap gap-3 ${cls}`}>
 	<slot />
 </div>

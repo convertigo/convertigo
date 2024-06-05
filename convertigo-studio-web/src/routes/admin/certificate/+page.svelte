@@ -178,20 +178,17 @@
 							value={row['@_group'] ?? ''}
 						/>
 					{:else if def.name === 'Update'}
-						<button
-							class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
-							on:click={updateCertificate}
-						>
-							<Ico icon="material-symbols-light:update" class="h-7 w-7" />
+						<button class="green-button" on:click={updateCertificate}>
+							<Ico icon="dashicons:update" />
 						</button>
 					{:else if def.name === 'Delete'}
 						{#if row != 'new'}
 							<button
-								class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
+								class="delete-button"
 								type="button"
 								on:click={() => removeCertificates(row['@_name'])}
 							>
-								<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
+								<Ico icon="mingcute:delete-line" />
 							</button>
 						{/if}
 					{/if}
@@ -298,19 +295,13 @@
 									{/each}
 								</select>
 							{:else if def.name === 'Update'}
-								<button
-									class="shadow-md p-1 px-2 ring-outline-token bg-secondary-400-500-token"
-									on:click={updateMapping}
-								>
-									<Ico icon="material-symbols-light:update" class="h-7 w-7" />
+								<button class="green-button" on:click={updateMapping}>
+									<Ico icon="dashicons:update" />
 								</button>
 							{:else if def.name === 'Delete'}
 								{#if row !== 'new'}
-									<button
-										class="shadow-md p-1 px-2 ring-outline-token bg-error-400-500-token"
-										on:click={() => deleteMapping(row['@_link'])}
-									>
-										<Ico icon="material-symbols-light:delete-outline" class="h-7 w-7" />
+									<button class="delete-button" on:click={() => deleteMapping(row['@_link'])}>
+										<Ico icon="mingcute:delete-line" />
 									</button>
 								{/if}
 							{/if}

@@ -13,16 +13,17 @@
 	import { call } from '$lib/utils/service';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const modalStore = getModalStore();
 
 	const jobTypes = {
-		TransactionConvertigoJob: { name: 'Job Transaction', imageUrl: 'carbon:data-regular' },
-		SequenceConvertigoJob: { name: 'Job Sequence', imageUrl: 'material-symbols:api-rounded' },
-		JobGroupJob: { name: 'Jobs Group', imageUrl: 'uim:layer-group' },
-		ScheduleCron: { name: 'Cron', imageUrl: 'eos-icons:cronjob' },
-		ScheduleRunNow: { name: 'Run Now', imageUrl: 'codicon:run-all' },
-		ScheduledJob: { name: 'Scheduled Job', imageUrl: 'mdi:invoice-scheduled-outline' }
+		TransactionConvertigoJob: { name: 'Job Transaction', icon: 'carbon:data-regular' },
+		SequenceConvertigoJob: { name: 'Job Sequence', icon: 'material-symbols:api-rounded' },
+		JobGroupJob: { name: 'Jobs Group', icon: 'uim:layer-group' },
+		ScheduleCron: { name: 'Cron', icon: 'eos-icons:cronjob' },
+		ScheduleRunNow: { name: 'Run Now', icon: 'codicon:run-all' },
+		ScheduledJob: { name: 'Scheduled Job', icon: 'mdi:invoice-scheduled-outline' }
 	};
 
 	onMount(async () => {
@@ -78,15 +79,15 @@
 	];
 </script>
 
-<div class="flex flex-col gap-y-5">
+<div class="flex flex-col gap-5">
 	{#each cards as { title, range, next }, i}
 		<Card {title}>
 			<div slot="cornerOption">
-				<ButtonsContainer marginB="mb-0">
-					{#each Object.entries(jobTypes).slice(...range) as [type, { name, imageUrl }]}
-						<button class="bg-primary-400-500-token" on:click={() => openModals(type)}>
+				<ButtonsContainer>
+					{#each Object.entries(jobTypes).slice(...range) as [type, { name, icon }]}
+						<button class="basic-button" on:click={() => openModals(type)}>
+							<Ico {icon} />
 							<p>New {name}</p>
-							<Icon icon={imageUrl} />
 						</button>
 					{/each}
 				</ButtonsContainer>
@@ -114,26 +115,24 @@
 						class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
 						on:click={() => openModals(row['@_type'], row)}
 					>
-						<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+						<Ico icon="mdi:edit-outline" />
 					</button>
 				{:else if def.name === 'Enabled'}
 					<div class="bg-success-400-500-token rounded-token text-token py-2 px-2">
 						{row['@_enabled']}
 					</div>
 				{:else if def.name === 'Delete'}
-					<button
-						class="btn p-1 px-2 shadow-md bg-error-400-500-token"
-						on:click={() => deleteScheduledElement(row, title)}
-					>
-						<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+					<button class="delete-button" on:click={() => deleteScheduledElement(row, title)}>
+						<Ico icon="mingcute:delete-line" />
 					</button>
 				{:else if def.name === 'Next'}
 					<AutoPlaceholder loading={!row.next}
 						><button
+							class="bg-indigo-800"
 							on:click={() =>
 								modalStore.trigger({
 									title: 'Next triggers',
-									body: `<div class="overflow-y-auto max-h-48">${row.next.join('</br>')}</div>`,
+									body: `<div class="overflow-y-auto max-h-[30vh]">${row.next.join('</br>')}</div>`,
 									type: 'alert',
 									modalClasses: 'text-center overflow-y-scroll'
 								})}>{row.next[0]}</button

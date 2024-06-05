@@ -151,25 +151,42 @@
 			}
 		});
 	}
+
+	const projectActions = {
+		deploy: {
+			name: 'Deploy project',
+			icon: 'carbon:application'
+		},
+		export: {
+			name: 'Import a Remote Project URL',
+			icon: 'bytesize:import'
+		}
+	};
 </script>
 
 <Card title="Projects">
 	<div slot="cornerOption">
 		<button class="w-full bg-error-400-500-token">
-			<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-2" />
+			<Ico icon="mingcute:delete-line" />
 			Delete All Projects</button
 		>
 	</div>
-	<ButtonsContainer marginB="mb-0">
-		<button class="basic-button" on:click={() => openModal('deploy')}>
-			<Icon icon="carbon:application" class="w-6 h-6" />
+	<ButtonsContainer>
+		{#each Object.entries(projectActions) as [type, { name, icon }]}
+			<button class="basic-button" on:click={() => openModal(type)}>
+				<p>{name}</p>
+				<Icon {icon} class="w-4 h-4" />
+			</button>
+		{/each}
+		<!-- <button class="basic-button" on:click={() => openModal('deploy')}>
+			<Icon icon="carbon:application" class="w-4 h-4" />
 			Deploy project
 		</button>
 
 		<button class="basic-button" on:click={() => openModal('import')}>
 			<Icon icon="solar:import-line-duotone" class="w-6 h-6" />
 			Import a Remote Project URL
-		</button>
+		</button> -->
 	</ButtonsContainer>
 </Card>
 
@@ -193,20 +210,22 @@
 		>
 			{#if def.name == 'Delete'}
 				<button on:click={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
-					<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
+					<Ico icon="mingcute:delete-line" />
 				</button>
 			{:else if def.name == 'Reload'}
 				<button on:click={() => openReloadProjectModal(row['@_name'])} class="cancel-button">
-					<Icon icon="simple-line-icons:reload" rotate={1} class="w-6 h-6" />
+					<Ico icon="simple-line-icons:reload" />
 				</button>
 			{:else if def.name == 'Export'}
 				<button on:click={() => openExportProjectModal(row['@_name'])} class="basic-button">
-					<Icon icon="solar:export-line-duotone" class="w-6 h-6" />
+					<Ico icon="bytesize:export" />
 				</button>
 			{:else if def.name == 'Test'}
-				<a href="/admin" class="cancel-button">
-					<Icon icon="fluent-mdl2:test-plan" class="w-4 h-4" />
-				</a>
+				<button class="yellow-button">
+					<a href="/admin">
+						<Ico icon="file-icons:test-ruby" />
+					</a>
+				</button>
 			{/if}
 		</TableAutoCard>
 	{/if}

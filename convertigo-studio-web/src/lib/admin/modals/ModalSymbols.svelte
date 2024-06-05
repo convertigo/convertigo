@@ -4,6 +4,7 @@
 	import { globalSymbols } from '../stores/symbolsStore';
 	import Card from '../components/Card.svelte';
 	import ModalButtons from '../components/ModalButtons.svelte';
+	import ButtonsContainer from '../components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta;
@@ -13,40 +14,21 @@
 	let importAction = '';
 	let importPriority = 'priority-import';
 
-	console.log('row', row);
+
 	let binds = {
 		symbolName: row?.['@_name'] ?? '',
 		symbolValue: row?.['@_value'] ?? ''
 	};
+	console.log('row', binds);
 
-	/**
-	 * @param {SubmitEvent} event
-	 */
-
-	async function addGlobalSymbol(event) {
-		event.preventDefault();
-		//@ts-ignore
-		const fd = new FormData(event.target);
-
-		try {
-			if (row) {
-				// No need to delete the existing symbol, just call Add service to update
-				if (mode === 'secret') {
-					fd.set('symbolName', fd.get('symbolName') + '.secret');
-				}
-				await call('global_symbols.Add', fd);
-			} else {
-				// Add new symbol
-				if (mode === 'secret') {
-					fd.set('symbolName', fd.get('symbolName') + '.secret');
-				}
-				await call('global_symbols.Add', fd);
-			}
-			modalStore.close();
-			globalSymbols();
-		} catch (err) {
-			console.error(err);
+	async function addGlobalSymbol(e) {
+		const fd = new FormData(e.target);
+		if (mode === 'secret') {
+			fd.set('symbolName', fd.get('symbolName') + '.secret');
 		}
+		await call('global_symbols.Add', fd);
+		modalStore.close();
+		globalSymbols();
 	}
 
 	/**
@@ -62,6 +44,8 @@
 			console.error(err);
 		}
 	}
+
+	
 </script>
 
 {#if mode == 'import'}
@@ -85,24 +69,19 @@
 				</RadioGroup>
 			{/if}
 
-			<div class="flex flex-wrap gap-5 mt-5">
-				<div class="flex-1">
-					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
-						>Cancel</button
-					>
-				</div>
-				<div class="flex-1">
-					<input
-						type="file"
-						name="userfile"
-						id="symbolUploadFile"
-						accept=".properties"
-						class="hidden"
-						on:change={importSymbol}
-					/>
-					<label for="symbolUploadFile" class="btn confirm-button mt-5 w-full">Import</label>
-				</div>
-			</div>
+			<ButtonsContainer>
+				<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}>Cancel</button
+				>
+				<input
+					type="file"
+					name="userfile"
+					id="symbolUploadFile"
+					accept=".properties"
+					class="hidden"
+					on:change={importSymbol}
+				/>
+				<label for="symbolUploadFile" class="btnStyle confirm-button w-full">Import</label>
+			</ButtonsContainer>
 		</form>
 	</Card>
 {:else}
