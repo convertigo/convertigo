@@ -456,5 +456,5 @@ function exportUserFile(){
 		userstoExport += "{ 'name' : "+$(this).prop('value')+" }";
 	});
 
-	window.open("services/roles.Export?__xsrfToken=" + encodeURIComponent(getXsrfToken()) + "&users=" + userstoExport);
+	window.open("services/roles.Export?__xsrfToken=" + encodeURIComponent(getXsrfToken()) + "&users=" + encodeURIComponent(userstoExport));
 }

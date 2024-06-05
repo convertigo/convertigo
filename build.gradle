@@ -408,7 +408,7 @@ task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm run build"
 }
 
-task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish', ':buildStudioWebNpmInstall', ':buildStudioWebBuild']) {
+task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish' /*, ':buildStudioWebNpmInstall', ':buildStudioWebBuild'*/]) {
 	group 'convertigo'
 }
 
