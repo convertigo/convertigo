@@ -24,13 +24,12 @@ import groovy.xml.XmlUtil
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '8.3.0'
-ext.convertigoTag = ''
-ext.convertigoCodename = 'bismuth'
-ext.convertigoCode = 'Bi'
+ext.convertigoVersion = '8.4.0'
+ext.convertigoTag = 'beta'
+ext.convertigoCodename = 'polonium'
+ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-//ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.39.1'
 ext.swaggerUiVersion = '5.11.10'
 ext.tomcatVersion = '9.0.89'
@@ -408,7 +407,7 @@ task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm run build"
 }
 
-task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish' /*, ':buildStudioWebNpmInstall', ':buildStudioWebBuild'*/]) {
+task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish', ':buildStudioWebNpmInstall', ':buildStudioWebBuild']) {
 	group 'convertigo'
 }
 
