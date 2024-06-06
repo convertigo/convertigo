@@ -13,9 +13,9 @@ buildscript {
 //    id 'com.dorongold.task-tree' version '1.5'
 //}
 
-plugins {
-  id 'com.github.ben-manes.versions' version '0.51.0'
-}
+//plugins {
+//  id 'com.github.ben-manes.versions' version '0.51.0'
+//}
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -25,7 +25,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 ext.convertigoVersion = '8.3.0'
-ext.convertigoTag = 'beta'
+ext.convertigoTag = ''
 ext.convertigoCodename = 'bismuth'
 ext.convertigoCode = 'Bi'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
@@ -477,8 +477,8 @@ task updateWrapper(type: Wrapper) {
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
-tasks.named("dependencyUpdates").configure {
-  rejectVersionIf {
-    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
-  }
-}
+//tasks.named("dependencyUpdates").configure {
+//  rejectVersionIf {
+//    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
+//  }
+//}
