@@ -1,6 +1,5 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import Icon from '@iconify/svelte';
 	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
@@ -13,14 +12,23 @@
 	let value = false;
 
 	let selectRow = false;
+	let selectedUsers = new Set();
 
 	onMount(() => {
 		usersList();
 	});
 
-    function DisplaySelectRow() {
-        selectRow = !selectRow;
-    }
+	function DisplaySelectRow() {
+		selectRow = !selectRow;
+	}
+
+	function toggleUserSelection(user) {
+		if (selectedUsers.has(user)) {
+			selectedUsers.delete(user);
+		} else {
+			selectedUsers.add(user);
+		}
+	}
 
 	async function deleteUsersRoles(username) {
 		const formData = new FormData();
@@ -100,6 +108,18 @@
 		}
 	}
 
+	function exportUserFile() {
+		const usersArray = Array.from(selectedUsers);
+		const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+			JSON.stringify(usersArray)
+		)}`;
+		const link = document.createElement('a');
+		link.href = jsonString;
+		link.download = 'users_export.json';
+
+		link.click();
+	}
+
 	const userActions = {
 		add: {
 			name: 'Add User',
@@ -119,8 +139,8 @@
 <Card title="Roles">
 	<div slot="cornerOption">
 		<button class="delete-button" on:click={openDeleteAllModal}>
-			<Ico icon="material-symbols-light:delete-outline" class="w-7 h-7 mr-3" />
-			Delete All Roles
+			<Ico icon="mingcute:delete-line" />
+			<p>Delete All Roles</p>
 		</button>
 	</div>
 	<ButtonsContainer class="mb-10">
@@ -130,10 +150,24 @@
 				<Ico {icon} />
 			</button>
 		{/each}
-		<button class="basic-button" on:click={DisplaySelectRow}>
-			<p>Export</p>
-			<Ico icon="bytesize:export" class="ml-3" />
-		</button>
+		{#if !selectRow}
+			<button class="basic-button" on:click={DisplaySelectRow}>
+				<p>Export Users</p>
+				<Ico icon="bytesize:export" class="ml-3" />
+			</button>
+		{:else}
+			<button class="delete-button" on:click={DisplaySelectRow}>
+				<p>Cancel Export</p>
+				<Ico icon="bytesize:export" class="ml-3" />
+			</button>
+		{/if}
+
+		{#if selectRow}
+			<button class="yellow-button" on:click={exportUserFile}>
+				<p>Validate export</p>
+				<Ico icon="bytesize:export" class="ml-3" />
+			</button>
+		{/if}
 		<!-- <button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
 			<Ico icon="material-symbols-light:add" class="w-7 h-7" />
 			Add User
@@ -151,12 +185,12 @@
 	{#if $usersStore.length >= 0}
 		<TableAutoCard
 			definition={[
-				{ name: 'Select', custom: true },
+				{ name: 'Export', custom: true },
 				{ name: 'Name', key: 'name' },
 				{ name: 'Role', key: 'role', custom: true },
 				{ name: 'Edit', custom: true },
 				{ name: 'Delete', custom: true }
-			].filter((elt) => selectRow || elt.name != 'Select')}
+			].filter((elt) => selectRow || elt.name != 'Export')}
 			data={$usersStore}
 			let:row
 			let:def
@@ -166,27 +200,22 @@
 					{role.replace(/_/g, ' ')}
 				{/each}
 			{:else if def.name === 'Edit'}
-				<button
-					class="p-1 px-2 shadow-md bg-tertiary-400-500-token"
-					on:click={() => openModals('add', row)}
-				>
-					<Icon icon="bitcoin-icons:edit-outline" class="w-7 h-7" />
+				<button class="yellow-button" on:click={() => openModals('add', row)}>
+					<Ico icon="mdi:edit-outline" />
 				</button>
 			{:else if def.name === 'Delete'}
-				<button
-					class="p-1 px-2 shadow-md bg-error-400-500-token"
-					on:click={() => openDeleteModal(row.name)}
-				>
-					<Icon icon="material-symbols-light:delete-outline" class="w-7 h-7" />
+				<button class="delete-button" on:click={() => openDeleteModal(row.name)}>
+					<Ico icon="mingcute:delete-line" />
 				</button>
-			{:else if def.name === 'Select'}
-				<SlideToggle
+			{:else if def.name === 'Export'}
+				<!-- <SlideToggle
 					active="min-w-12 bg-success-400 dark:bg-success-700"
 					background="min-w-12 bg-error-400 dark:bg-error-700"
 					name="slide"
 					bind:checked={value}
-					size='sm'
-				/>
+					size="sm"
+				/> -->
+				<input type="checkbox" on:change={() => toggleUserSelection(row)} />
 			{/if}
 		</TableAutoCard>
 	{:else}

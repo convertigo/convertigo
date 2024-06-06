@@ -1,13 +1,9 @@
-import {
-	call,
-	checkArray
-} from '$lib/utils/service';
-import {
-	writable
-} from 'svelte/store';
+import { call, checkArray } from '$lib/utils/service';
+import { writable } from 'svelte/store';
 
 export let usersStore = writable([]);
-export let rolesStore = writable([{
+export let rolesStore = writable([
+	{
 		name: 'View Roles',
 		end: '_VIEW',
 		toggle: false,
@@ -36,9 +32,9 @@ export async function usersList() {
 		let usersWithRoles = res.admin.users.user.map((user) => {
 			return {
 				name: user['@_name'],
-				role: Array.isArray(user.role) ?
-					user.role.map((role) => role['@_name']).join(', ') :
-					'No roles'
+				role: Array.isArray(user.role)
+					? user.role.map((role) => role['@_name']).join(', ')
+					: 'No roles'
 			};
 		});
 		usersStore.set(usersWithRoles);

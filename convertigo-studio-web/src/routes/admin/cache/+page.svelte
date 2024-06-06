@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import CacheInput from '$lib/admin/components/CacheInput.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	/** @type {import('svelte/store').Writable<any>}*/
 	let conf = writable({});
@@ -68,15 +69,16 @@
 	<form on:submit|preventDefault={handlesubmit}>
 		<Card title="Cache Type">
 			<div slot="cornerOption">
-				<div class="flex-1">
-					<button class="bg-tertiary-400-500-token" on:click={cacheClear}
-						><Ico icon="material-symbols-light:delete-outline" class="mr-2 h-7 w-7" />Clear entries</button
-					>
-				</div>
+				<ButtonsContainer>
+					<button class="basic-button" on:click={cacheClear}>
+						<Ico icon="mingcute:delete-line" />
+						<p>Clear entries</p>
+					</button>
+				</ButtonsContainer>
 			</div>
 
 			<p class="mt-5">Choose the desired cache type</p>
-			<div class="flex flex-wrap gap-5 mt-5">
+			<div class="flex">
 				<RadioGroup>
 					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
 						<RadioItem
@@ -89,21 +91,13 @@
 						</RadioItem>
 					{/each}
 				</RadioGroup>
-				<div class="flex-1">
-					<button type="submit" class="bg-primary-400-500-token w-full" {disabled}>Apply</button>
-				</div>
-				<div class="flex-1">
-					<button type="submit" class="bg-primary-400-500-token w-full" {disabled}
-						>Create Table and Apply</button
+				<ButtonsContainer>
+					<button type="submit" class="basic-button" {disabled}>Apply</button>
+					<button type="submit" class="basic-button" {disabled}>Create Table and Apply</button>
+					<button class="delete-button" {disabled} on:click={() => ($conf = copyObj(oriConf))}
+						>Cancel</button
 					>
-				</div>
-				<div class="flex-1">
-					<button
-						class="bg-error-400-500-token w-full"
-						{disabled}
-						on:click={() => ($conf = copyObj(oriConf))}>Cancel</button
-					>
-				</div>
+				</ButtonsContainer>
 			</div>
 		</Card>
 

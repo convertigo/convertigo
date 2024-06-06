@@ -14,7 +14,6 @@
 	let importAction = '';
 	let importPriority = 'priority-import';
 
-
 	let binds = {
 		symbolName: row?.['@_name'] ?? '',
 		symbolValue: row?.['@_value'] ?? ''
@@ -44,8 +43,6 @@
 			console.error(err);
 		}
 	}
-
-	
 </script>
 
 {#if mode == 'import'}
