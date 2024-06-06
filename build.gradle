@@ -423,6 +423,10 @@ task generateDockerfile {
 		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')
 		file('docker/default/root-index.html').text = file('docker/root-index.html').text
 		
+		file('docker/arm32v7/Dockerfile').text = base.replace('%BEGIN%', '').replace('-jdk21-', '-jdk17-')
+		file('docker/arm32v7/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')
+		file('docker/arm32v7/root-index.html').text = file('docker/root-index.html').text
+		
 		file('docker/aks/Dockerfile').text = base.replace('%BEGIN%', file('docker/aks-Dockerfile.tpl').text)
 		file('docker/aks/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', file('docker/aks-entrypoint.tpl').text)
 		file('docker/aks/root-index.html').text = file('docker/root-index.html').text
