@@ -600,7 +600,7 @@ public class BaserowView extends ViewPart {
 	}
 	
 	private void addSample(JSONObject sample, String varName, String varType) throws JSONException {
-		if (varType.equals("link_row")) {
+		if (varType.equals("link_row") || varType.equals("lookup")) {
 			JSONObject obj = new JSONObject();
 			obj.put("id", 0);
 			obj.put("value", "");
@@ -632,12 +632,19 @@ public class BaserowView extends ViewPart {
 			JSONArray ar = new JSONArray();
 			ar.put(obj);
 			sample.put(varName, ar);
-		} else if (varType.equals("single_select")) {
+		} else if (varType.equals("single_select") || varType.equals("multiple_select")) {
 			JSONObject obj = new JSONObject();
 			obj.put("id", 0);
 			obj.put("value", "");
 			obj.put("color", "");
 			sample.put(varName, obj);
+		} else if (varType.equals("multiple_collaborators")) {
+			JSONObject obj = new JSONObject();
+			obj.put("id", 0);
+			obj.put("name", "");
+			JSONArray ar = new JSONArray();
+			ar.put(obj);
+			sample.put(varName, ar);
 		} else {
 			sample.put(varName, "");
 		}
