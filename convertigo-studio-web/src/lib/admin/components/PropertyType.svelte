@@ -79,7 +79,7 @@
 		<div class="flex-1 flex flex-col justify-center border-common">Not handled</div>
 	{/if}
 
-	<div class="flex-none l shadow-md">
+	<div class="flex-none shadow-md">
 		<button
 			disabled={property['@_value'] == property['@_originalValue']}
 			on:click={() => {

@@ -4,7 +4,6 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import Icon from '@iconify/svelte';
 	import { Accordion, AccordionItem, Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
 	import {
 		certificatesList,

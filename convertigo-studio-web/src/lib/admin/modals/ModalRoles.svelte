@@ -114,7 +114,7 @@
 										{value}
 										{active}
 									>
-										<Icon {icon} class="w-6 h-6" />
+										<Icon {icon} class="w-4 h-4" />
 									</RadioItem>
 								{/each}
 							</RadioGroup>

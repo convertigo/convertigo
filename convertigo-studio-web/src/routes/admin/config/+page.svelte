@@ -18,6 +18,7 @@
 	import { browser } from '$app/environment';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
+	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 
@@ -96,29 +97,27 @@
 	<div class="grid md:grid-cols-5 gap-5">
 		<div class="h-auto md:col-span-4">
 			<Card title={category['@_displayName']}>
-				<div slot="cornerOption" class="flex flex-wrap gap-2 mb-10 pl-5">
-					<div class="flex-1">
+				<div slot="cornerOption">
+					<ButtonsContainer>
 						<button
 							type="button"
 							disabled={!hasChanges}
-							class="bg-primary-400-500-token w-full"
+							class="basic-button"
 							on:click={saveChanges}
 						>
 							<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
 							<span>Save changes</span>
 						</button>
-					</div>
-					<div class="flex-1">
 						<button
 							type="button"
 							disabled={!hasChanges}
-							class="bg-tertiary-400-500-token w-full"
+							class="yellow-button"
 							on:click={refreshConfigurations}
 						>
 							<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
 							<span class="">Cancel changes</span>
 						</button>
-					</div>
+					</ButtonsContainer>
 				</div>
 
 				<ResponsiveContainer

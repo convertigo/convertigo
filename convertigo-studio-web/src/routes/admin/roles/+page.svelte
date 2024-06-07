@@ -9,7 +9,6 @@
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
-	let value = false;
 
 	let selectRow = false;
 	let selectedUsers = new Set();
@@ -150,36 +149,18 @@
 				<Ico {icon} />
 			</button>
 		{/each}
-		{#if !selectRow}
-			<button class="basic-button" on:click={DisplaySelectRow}>
-				<p>Export Users</p>
-				<Ico icon="bytesize:export" class="ml-3" />
-			</button>
-		{:else}
-			<button class="delete-button" on:click={DisplaySelectRow}>
-				<p>Cancel Export</p>
-				<Ico icon="bytesize:export" class="ml-3" />
-			</button>
-		{/if}
+
+		<button class={selectRow ? 'delete-button' : 'basic-button'} on:click={DisplaySelectRow}>
+			<p>{selectRow ? 'Cancel Export' : 'Export Users'}</p>
+			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
+		</button>
 
 		{#if selectRow}
 			<button class="yellow-button" on:click={exportUserFile}>
 				<p>Validate export</p>
-				<Ico icon="bytesize:export" class="ml-3" />
+				<Ico icon="bytesize:export" />
 			</button>
 		{/if}
-		<!-- <button class="bg-primary-400-500-token" on:click={() => openModals('add')}>
-			<Ico icon="material-symbols-light:add" class="w-7 h-7" />
-			Add User
-		</button>
-		<button class="bg-primary-400-500-token" on:click={() => openModals('import')}>
-			<Ico icon="solar:import-line-duotone" class="w-7 h-7" />
-			Import Users
-		</button>
-		<button class="bg-primary-400-500-token" on:click={() => openModals('export')}>
-			<Icon icon="solar:export-line-duotone" class="w-7 h-7" />
-			Export Users
-		</button> -->
 	</ButtonsContainer>
 
 	{#if $usersStore.length >= 0}

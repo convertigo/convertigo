@@ -8,7 +8,6 @@
 		globalSymbolsList,
 		defaultSymbolList
 	} from '$lib/admin/stores/symbolsStore.js';
-	import Icon from '@iconify/svelte';
 	import { call } from '$lib/utils/service';
 	import { Tab, TabGroup, getModalStore } from '@skeletonlabs/skeleton';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -16,7 +15,8 @@
 	import Ico from '$lib/utils/Ico.svelte';
 
 	let tabSet = 0;
-
+	let selectRow = false;
+	let selectedUsers = new Set();
 	onMount(() => {
 		getEnvironmentVar();
 		globalSymbols();
@@ -109,20 +109,44 @@
 		import: {
 			name: 'Import Symbols',
 			icon: 'bytesize:import'
-		},
-		export: {
-			name: 'Export Symbols',
-			icon: 'bytesize:export'
 		}
+		// export: {
+		// 	name: 'Export Symbols',
+		// 	icon: 'bytesize:export'
+		// }
 	};
+
+	function DisplaySelectRow() {
+		selectRow = !selectRow;
+	}
+
+	function toggleUserSelection(user) {
+		if (selectedUsers.has(user)) {
+			selectedUsers.delete(user);
+		} else {
+			selectedUsers.add(user);
+		}
+	}
+
+	function exportUserFile() {
+		const usersArray = Array.from(selectedUsers);
+		const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+			JSON.stringify(usersArray)
+		)}`;
+		const link = document.createElement('a');
+		link.href = jsonString;
+		link.download = 'symbols_export.json';
+		link.click();
+	}
 </script>
 
 <Card title="Global Symbols">
 	<div slot="cornerOption">
 		<div class="flex-1">
 			<button class="delete-button" on:click={openConfirmDeleteAll}
-				><Icon icon="mingcute:delete-line" class="mr-3" />Delete symbols</button
-			>
+				><Ico icon="mingcute:delete-line" />
+				<p>Delete symbols</p>
+			</button>
 		</div>
 	</div>
 
@@ -133,20 +157,18 @@
 				<Ico {icon} />
 			</button>
 		{/each}
-		<!-- <button class="bg-primary-400-500-token text-[12px]" on:click={() => openSymbolModal('add')}>
-			<Icon icon="material-symbols-light:add" class="w-7 h-7" />
-			Add Symbols</button
-		>
-		<button class="bg-primary-400-500-token" on:click={() => openSymbolModal('secret')}>
-			<Icon icon="material-symbols-light:key-outline" class="w-7 h-7" />
-			Add Secret Symbols
+
+		<button class={selectRow ? 'delete-button' : 'basic-button'} on:click={DisplaySelectRow}>
+			<p>{selectRow ? 'Cancel Export' : 'Export Symbols'}</p>
+			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
 		</button>
-		<button class="bg-primary-400-500-token" on:click={() => openSymbolModal('import')}
-			><Icon icon="solar:import-line-duotone" class="w-7 h-7" />Import Symbols</button
-		>
-		<button class="bg-primary-400-500-token"
-			><Icon icon="solar:export-line-duotone" class="w-7 h-7" />Export Symbols</button
-		> -->
+
+		{#if selectRow}
+			<button class="yellow-button" on:click={exportUserFile}>
+				<p>Validate export</p>
+				<Ico icon="bytesize:export" />
+			</button>
+		{/if}
 	</ButtonsContainer>
 
 	<TabGroup>
@@ -178,11 +200,12 @@
 			symbol is defined for the Default value or if it contains a closing curly braces it must be
 			escaped with a backslash."
 					definition={[
+						{ name: 'Export', custom: true },
 						{ name: 'Name', key: '@_name' },
 						{ name: 'Value', key: '@_value' },
 						{ name: 'Edit', custom: true },
 						{ name: 'Delete', custom: true }
-					]}
+					].filter((elt) => selectRow || elt.name != 'Export')}
 					data={$globalSymbolsList}
 					let:row
 					let:def
@@ -196,6 +219,15 @@
 							<button class="delete-button" on:click={() => confirmSymbolDeletion(row['@_name'])}>
 								<Ico icon="mingcute:delete-line" />
 							</button>
+						{:else if def.name === 'Export'}
+							<!-- <SlideToggle
+								active="min-w-12 bg-success-400 dark:bg-success-700"
+								background="min-w-12 bg-error-400 dark:bg-error-700"
+								name="slide"
+								bind:checked={value}
+								size="sm"
+							/> -->
+							<input type="checkbox" on:change={() => toggleUserSelection(row)} />
 						{/if}
 					{/if}
 				</TableAutoCard>

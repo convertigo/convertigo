@@ -28,7 +28,7 @@
 		{
 			"title": "Logs",
 			"icon": "lets-icons:search-light",
-			"url": "."
+			"url": "logs"
 		},
 		{
 			"title": "Trace Player",
