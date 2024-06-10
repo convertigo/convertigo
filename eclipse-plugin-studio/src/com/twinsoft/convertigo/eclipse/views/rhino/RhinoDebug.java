@@ -97,8 +97,6 @@ import org.mozilla.javascript.tools.debugger.treetable.JTreeTable;
 import org.mozilla.javascript.tools.debugger.treetable.TreeTableModel;
 import org.mozilla.javascript.tools.debugger.treetable.TreeTableModelAdapter;
 
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -144,14 +142,20 @@ public class RhinoDebug extends Composite implements GuiCallback {
         dim = new Dim();
         dim.setGuiCallback(this);
         makeToolbar();
-        if (SwtUtils.isDark()) {
-        	FlatMacDarkLaf.setup();
-        } else {
-        	FlatMacLightLaf.setup();
+
+        try {
+        	if (SwtUtils.isDark()) {
+        		UIManager.setLookAndFeel("com.jtattoo.plaf.noire.NoireLookAndFeel");
+        	} else {
+        		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        	}
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
-    	RhinoUtils.debugMode = true;
-    	var wrapper = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
-    	wrapper.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL));
+        
+        RhinoUtils.debugMode = true;
+        var wrapper = new Composite(this, SWT.EMBEDDED | SWT.NO_BACKGROUND);
+        wrapper.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL));
         self = SWT_AWT.new_Frame(wrapper);
         root = new Panel();
         root.setLayout(new BorderLayout());
