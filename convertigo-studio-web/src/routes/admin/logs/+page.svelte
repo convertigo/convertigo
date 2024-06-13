@@ -3,6 +3,7 @@
 	import { Tab, TabGroup, RangeSlider, getModalStore } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import {
 		refreshConfigurations,
@@ -13,9 +14,11 @@
 	import { onMount } from 'svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import VirtualList from 'svelte-tiny-virtual-list';
 	import { checkArray } from '$lib/utils/service';
+	import VirtualList from 'svelte-tiny-virtual-list';
+	import { flip } from 'svelte/animate';
+	import { fade, slide } from 'svelte/transition';
+	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 
 	onMount(async () => {
 		await refreshConfigurations();
@@ -108,6 +111,72 @@
 	async function handleUpdate(property) {
 		await updateConfigurations(property);
 	}
+
+	let columnsOrder = [
+		{ name: 'Date', show: true, width: 85 },
+		{ name: 'Time', show: true, width: 90 },
+		{ name: 'Delta', show: true, width: 45 },
+		{ name: 'Level', show: false, width: 50 },
+		{ name: 'Category', show: true, width: 110 },
+		{ name: 'Thread', show: true, width: 200 },
+		{ name: 'user', show: true, width: 100 },
+		{ name: 'project', show: true, width: 100 },
+		{ name: 'sequence', show: false, width: 100 },
+		{ name: 'connector', show: false, width: 100 },
+		{ name: 'transaction', show: false, width: 100 },
+		{ name: 'contextid', show: false, width: 100 },
+		{ name: 'uid', show: false, width: 100 },
+		{ name: 'uuid', show: false, width: 100 },
+		{ name: 'clientip', show: false, width: 100 },
+		{ name: 'clienthostname', show: false, width: 100 }
+	];
+
+	const columnsConfiguration = {
+		Date: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[0] },
+		Time: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[1] },
+		Delta: {
+			idx: 1,
+			fn: (v, i) => {
+				const diff =
+					// @ts-ignore
+					i > 0 ? new Date(v.replace(',', '.')) - new Date($logs[i - 1][1].replace(',', '.')) : 0;
+				return diff < 1000
+					? diff + 'ms'
+					: diff < 3600
+						? (diff / 1000).toFixed(2) + 's'
+						: new Date(diff).toISOString().substring(11, 19);
+			}
+		},
+		Category: { idx: 0 },
+		Level: { idx: 2 },
+		Thread: { idx: 3 }
+	};
+
+	let isDragging = false;
+
+	async function itemsUpdated(event) {
+		if (event.detail.end >= $logs.length - 1) {
+			await logsList();
+		}
+	}
+
+	function itemSize(index) {
+		let height = 42 + Math.max(16, $logs[index][4].trim().split('\n').length * 16);
+		return height;
+	}
+
+	function grabFlip(node, elts, options) {
+		if (isDragging) {
+			console.log('isDragging', isDragging, 'node', node, 'elts', elts, 'options', options);
+			return flip(node, elts, options);
+		}
+		return {
+			delay: 0,
+			duration: 0,
+			easing: (t) => t,
+			css: () => ''
+		};
+	}
 </script>
 
 <Card title="Logs">
@@ -179,7 +248,7 @@
 				</div>
 			{:else if tabSet === 2}
 				<Card>
-					{#if logsCategory && checkArray(logsCategory.property)}
+					{#if checkArray(logsCategory.property)}
 						<ResponsiveContainer
 							scrollable={false}
 							maxHeight="h-auto"
@@ -206,36 +275,134 @@
 </Card>
 
 {#if tabSet === 0}
-	<Card class="mt-5">
-		<TableAutoCard
-			definition={[
-				{ name: 'Category', custom: true },
-				{ name: 'Time', custom: true },
-				{ name: 'Thread', custom: true },
-				{ name: 'Message', custom: true },
-				{ name: 'Extra', custom: true }
-			]}
-			data={$logs}
-			let:def
-			let:row
+	{@const columns = columnsOrder
+		.filter((c) => c.show)
+		.map((c) => ({
+			name: c.name,
+			cls: columnsConfiguration[c.name]?.cls ?? '',
+			style: `width: ${c.width}px; min-width: ${c.width}px;`
+		}))}
+	<Card class="mt-5 text-xs">
+		<div class="mb-2 bg-surface-backdrop-token rounded">
+			<div class="flex flex-wrap rounded variant-ghost">
+				{#each columnsOrder as conf, index (index)}
+					{@const { name, show } = conf}
+					<MovableContent
+						bind:items={columnsOrder}
+						{index}
+						grabClass="cursor-grab"
+						bind:dragging={isDragging}
+					>
+						<div
+							class="rounded variant-glass-surface m-1 p-1 flex space-x-2"
+							transition:slide={{ axis: 'x', duration: 500 }}
+						>
+							<span>{name}</span>
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-static-element-interactions -->
+							<span class="cursor-pointer" on:click={() => (conf.show = !show)}
+								><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
+							>
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-static-element-interactions -->
+							<DraggableValue class="cursor-col-resize" bind:deltaX={conf.width}
+								><Ico icon="mdi:resize-horizontal" /></DraggableValue
+							>
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-static-element-interactions -->
+							<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
+						</div>
+					</MovableContent>
+				{/each}
+			</div>
+
+			<div class="flex overflow-x-hidden">
+				{#each columns as { name, cls, style } (name)}
+					<div
+						{style}
+						class={`p-1 ${cls} text-nowrap overflow-hidden`}
+						transition:slide={{ axis: 'x' }}
+						animate:grabFlip
+					>
+						<div class="font-semibold">{name}</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<VirtualList
+			height={800}
+			width="auto"
+			itemCount={$logs.length}
+			{itemSize}
+			on:itemsUpdated={itemsUpdated}
 		>
-			{#if def.name === 'Category'}
-				{row[0]}
-			{:else if def.name === 'Time'}
-				{row[1]}
-			{:else if def.name === 'Thread'}
-				{row[3]}
-			{:else if def.name === 'Message'}
-				{row[4]}
-			{:else if def.name === 'Extra'}
-				{row[2]}
-			{/if}
-		</TableAutoCard>
+			<div slot="item" let:index let:style {style}>
+				{@const log = $logs[index]}
+				<div class={`${log[2]} rounded`}>
+					<div class="flex overflow-x-hidden">
+						{#each columns as { name, cls, style } (name)}
+							<div
+								{style}
+								class={`px-1 ${cls} text-nowrap overflow-hidden`}
+								transition:slide={{ axis: 'x' }}
+								animate:grabFlip
+							>
+								{#if name in columnsConfiguration}
+									{@const value = log[columnsConfiguration[name].idx]}
+									{columnsConfiguration[name].fn
+										? columnsConfiguration[name].fn(value, index)
+										: value}
+								{:else}
+									{log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? ''}
+								{/if}
+							</div>
+						{/each}
+					</div>
+					<div
+						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded variant-ghost`}
+						style="scrollbar-width: thin;"
+					>
+						{log[4]}
+					</div>
+				</div>
+			</div>
+		</VirtualList>
 	</Card>
 {/if}
 
 <style lang="postcss">
 	.logsCard {
 		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded-token;
+	}
+
+	.FATAL {
+		@apply bg-surface-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #404040;
+	}
+
+	.ERROR {
+		@apply bg-error-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #ff3b30;
+	}
+
+	.WARN {
+		@apply bg-warning-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #ff9500;
+	}
+
+	.INFO {
+		@apply bg-secondary-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #71c287;
+	}
+
+	.DEBUG {
+		@apply bg-primary-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #4285f4;
+	}
+
+	.TRACE {
+		@apply bg-tertiary-backdrop-token;
+		box-shadow: 2px 2px 5px 0px #fbbc05;
 	}
 </style>

@@ -27,6 +27,10 @@
 	import DeployIcon from '~icons/carbon/application';
 	import EditIcon from '~icons/mdi/edit-outline';
 	import TestPlatformsIcon from '~icons/file-icons/test-ruby';
+	import EyeIcon from '~icons/mdi/eye';
+	import EyeOffIcon from '~icons/mdi/eye-off';
+	import DotsVertical from '~icons/mdi/dots-vertical';
+	import ResizeHorizontal from '~icons/mdi/resize-horizontal';
 
 	const ico = {
 		'mingcute:delete-line': DeleteIcon,
@@ -56,7 +60,11 @@
 		'vaadin:key-o': SecretIcon,
 		'carbon:application': DeployIcon,
 		'mdi:edit-outline': EditIcon,
-		'file-icons:test-ruby': TestPlatformsIcon
+		'file-icons:test-ruby': TestPlatformsIcon,
+		'mdi:eye': EyeIcon,
+		'mdi:eye-off': EyeOffIcon,
+		'mdi:dots-vertical': DotsVertical,
+		'mdi:resize-horizontal': ResizeHorizontal
 	};
 </script>
 
