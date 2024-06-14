@@ -4,12 +4,12 @@
 	export { cls as class };
 	export let min = 5;
 	export let coef = 0.5;
-	let isDragging = false;
+	export let dragging = false;
 	let startX = 0;
 	let startDeltaX = 0;
 
 	function startDrag(event) {
-		isDragging = true;
+		dragging = true;
 		startX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX;
 		startDeltaX = deltaX;
 		window.addEventListener('mousemove', onMouseMove);
@@ -19,13 +19,13 @@
 	}
 
 	function onMouseMove(event) {
-		if (!isDragging) return;
+		if (!dragging) return;
 		let clientX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX;
 		deltaX = Math.max(min, Math.round(startDeltaX + (clientX - startX) * coef));
 	}
 
 	function endDrag() {
-		isDragging = false;
+		dragging = false;
 		window.removeEventListener('mousemove', onMouseMove);
 		window.removeEventListener('mouseup', endDrag);
 		window.removeEventListener('touchmove', onMouseMove);

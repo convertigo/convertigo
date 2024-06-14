@@ -5,10 +5,12 @@
 	export let dragging = false;
 
 	let draggedIndex = null;
+	let indexesRect = [];
 
 	function handleDragStart(index) {
 		draggedIndex = index;
 		dragging = true;
+		indexesRect = getIndexesRect();
 	}
 
 	function handleDragEnter(index) {
@@ -26,15 +28,21 @@
 		dragging = false;
 	}
 
-	function handleMouseDown(event, index) {
-		event.preventDefault();
+	function getIndexesRect() {
+		const elements = Array.from(document.querySelectorAll('.movable'));
+		return elements.map((element) => element.getBoundingClientRect());
+	}
 
+	function handleMouseDown(event, index) {
 		if (grabClass.length > 0 && !event.target.closest(`.${grabClass}`)) return;
+		event.preventDefault();
 
 		handleDragStart(index);
 
 		const handleMouseMove = (event) => {
-			const targetIndex = getTargetIndex(event.clientX, event.clientY);
+			const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+			const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+			const targetIndex = getTargetIndex(clientX, clientY);
 			handleDragEnter(targetIndex);
 		};
 
@@ -42,17 +50,31 @@
 			handleDragEnd();
 			window.removeEventListener('mousemove', handleMouseMove);
 			window.removeEventListener('mouseup', handleMouseUp);
+			window.removeEventListener('touchmove', handleMouseMove);
+			window.removeEventListener('touchend', handleMouseUp);
 		};
 
 		window.addEventListener('mousemove', handleMouseMove);
 		window.addEventListener('mouseup', handleMouseUp);
+		window.addEventListener('touchmove', handleMouseMove);
+		window.addEventListener('touchend', handleMouseUp);
 	}
 
 	function getTargetIndex(clientX, clientY) {
 		const elements = Array.from(document.querySelectorAll('.movable'));
 		let targetIndex = draggedIndex;
-		elements.forEach((element, index) => {
+		/*elements.forEach((element, index) => {
 			const rect = element.getBoundingClientRect();
+			if (
+				clientX >= rect.left &&
+				clientX <= rect.right &&
+				clientY >= rect.top &&
+				clientY <= rect.bottom
+			) {
+				targetIndex = index;
+			}
+		});*/
+		indexesRect.forEach((rect, index) => {
 			if (
 				clientX >= rect.left &&
 				clientX <= rect.right &&
@@ -71,6 +93,7 @@
 	class="movable"
 	on:mousedown={(e) => handleMouseDown(e, index)}
 	on:touchstart={(e) => handleMouseDown(e, index)}
+	{...$$restProps}
 >
 	<slot />
 </div>

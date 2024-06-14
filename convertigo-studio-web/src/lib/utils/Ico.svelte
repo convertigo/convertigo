@@ -23,6 +23,7 @@
 	import ScheduleRunNow from '~icons/codicon/run-all';
 	import ScheduledJob from '~icons/mdi/invoice-scheduled-outline';
 	import AddIcon from '~icons/grommet-icons/add';
+	import FormSubtractIcon from '~icons/grommet-icons/form-subtract';
 	import SecretIcon from '~icons/vaadin/key-o';
 	import DeployIcon from '~icons/carbon/application';
 	import EditIcon from '~icons/mdi/edit-outline';
@@ -57,6 +58,7 @@
 		'codicon:run-all': ScheduleRunNow,
 		'mdi:invoice-scheduled-outline': ScheduledJob,
 		'grommet-icons:add': AddIcon,
+		'grommet-icons:form-subtract': FormSubtractIcon,
 		'vaadin:key-o': SecretIcon,
 		'carbon:application': DeployIcon,
 		'mdi:edit-outline': EditIcon,

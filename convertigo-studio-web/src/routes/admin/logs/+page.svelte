@@ -121,14 +121,14 @@
 		{ name: 'Thread', show: true, width: 200 },
 		{ name: 'user', show: true, width: 100 },
 		{ name: 'project', show: true, width: 100 },
-		{ name: 'sequence', show: false, width: 100 },
-		{ name: 'connector', show: false, width: 100 },
-		{ name: 'transaction', show: false, width: 100 },
-		{ name: 'contextid', show: false, width: 100 },
-		{ name: 'uid', show: false, width: 100 },
-		{ name: 'uuid', show: false, width: 100 },
-		{ name: 'clientip', show: false, width: 100 },
-		{ name: 'clienthostname', show: false, width: 100 }
+		{ name: 'sequence', show: true, width: 100 },
+		{ name: 'connector', show: true, width: 100 },
+		{ name: 'transaction', show: true, width: 100 },
+		{ name: 'contextid', show: true, width: 100 },
+		{ name: 'uid', show: true, width: 100 },
+		{ name: 'uuid', show: true, width: 100 },
+		{ name: 'clientip', show: true, width: 100 },
+		{ name: 'clienthostname', show: true, width: 100 }
 	];
 
 	const columnsConfiguration = {
@@ -152,7 +152,9 @@
 		Thread: { idx: 3 }
 	};
 
+	let extraLines = 1;
 	let isDragging = false;
+	let virtualList;
 
 	async function itemsUpdated(event) {
 		if (event.detail.end >= $logs.length - 1) {
@@ -161,13 +163,13 @@
 	}
 
 	function itemSize(index) {
-		let height = 42 + Math.max(16, $logs[index][4].trim().split('\n').length * 16);
+		let height =
+			26 + extraLines * 16 + Math.max(16, $logs[index][4].trim().split('\n').length * 16);
 		return height;
 	}
 
 	function grabFlip(node, elts, options) {
-		if (isDragging) {
-			console.log('isDragging', isDragging, 'node', node, 'elts', elts, 'options', options);
+		if (!isDragging) {
 			return flip(node, elts, options);
 		}
 		return {
@@ -283,46 +285,66 @@
 			style: `width: ${c.width}px; min-width: ${c.width}px;`
 		}))}
 	<Card class="mt-5 text-xs">
-		<div class="mb-2 bg-surface-backdrop-token rounded">
+		<div class="relative mb-2 bg-surface-backdrop-token rounded">
 			<div class="flex flex-wrap rounded variant-ghost">
-				{#each columnsOrder as conf, index (index)}
+				{#each columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
-					<MovableContent
-						bind:items={columnsOrder}
-						{index}
-						grabClass="cursor-grab"
-						bind:dragging={isDragging}
-					>
-						<div
-							class="rounded variant-glass-surface m-1 p-1 flex space-x-2"
-							transition:slide={{ axis: 'x', duration: 500 }}
-						>
-							<span>{name}</span>
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<!-- svelte-ignore a11y-no-static-element-interactions -->
-							<span class="cursor-pointer" on:click={() => (conf.show = !show)}
-								><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
+					<div animate:flip={{ duration: 500 }}>
+						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
+							<div
+								class="rounded m-1 p-1 flex space-x-2"
+								class:variant-filled-success={show}
+								class:variant-filled-warning={!show}
 							>
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<!-- svelte-ignore a11y-no-static-element-interactions -->
-							<DraggableValue class="cursor-col-resize" bind:deltaX={conf.width}
-								><Ico icon="mdi:resize-horizontal" /></DraggableValue
-							>
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<!-- svelte-ignore a11y-no-static-element-interactions -->
-							<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
-						</div>
-					</MovableContent>
+								<span>{name}</span>
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions -->
+								<span class="cursor-pointer" on:click={() => (conf.show = !show)}
+									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
+								>
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions -->
+								<DraggableValue
+									class="cursor-col-resize"
+									bind:deltaX={conf.width}
+									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
+								>
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions -->
+								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
+							</div>
+						</MovableContent>
+					</div>
 				{/each}
 			</div>
-
-			<div class="flex overflow-x-hidden">
+			<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
+				<span
+					class="cursor-pointer"
+					on:click={() => {
+						extraLines++;
+						virtualList.recomputeSizes(0);
+					}}><Ico icon="grommet-icons:add" /></span
+				>
+				{#if extraLines > 1}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
+					<span
+						class="cursor-pointer"
+						on:click={() => {
+							extraLines--;
+							virtualList.recomputeSizes(0);
+						}}><Ico icon="grommet-icons:form-subtract" /></span
+					>
+				{/if}
+			</div>
+			<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 20}px`}>
 				{#each columns as { name, cls, style } (name)}
 					<div
 						{style}
 						class={`p-1 ${cls} text-nowrap overflow-hidden`}
-						transition:slide={{ axis: 'x' }}
-						animate:grabFlip
+						animate:grabFlip={{ duration: 500 }}
 					>
 						<div class="font-semibold">{name}</div>
 					</div>
@@ -336,17 +358,17 @@
 			itemCount={$logs.length}
 			{itemSize}
 			on:itemsUpdated={itemsUpdated}
+			bind:this={virtualList}
 		>
 			<div slot="item" let:index let:style {style}>
 				{@const log = $logs[index]}
 				<div class={`${log[2]} rounded`}>
-					<div class="flex overflow-x-hidden">
+					<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 16}px`}>
 						{#each columns as { name, cls, style } (name)}
 							<div
 								{style}
 								class={`px-1 ${cls} text-nowrap overflow-hidden`}
-								transition:slide={{ axis: 'x' }}
-								animate:grabFlip
+								animate:grabFlip={{ duration: 500 }}
 							>
 								{#if name in columnsConfiguration}
 									{@const value = log[columnsConfiguration[name].idx]}
