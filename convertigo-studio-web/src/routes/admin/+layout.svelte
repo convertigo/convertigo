@@ -4,6 +4,14 @@
 	import { Toast } from '@skeletonlabs/skeleton';
 	import PagesRail from '$lib/admin/components/PagesRail.svelte';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
+	import { blur } from 'svelte/transition';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+
+	let mounted = false;
+	onMount(() => {
+		mounted = true;
+	});
 </script>
 
 <Drawer>
@@ -22,7 +30,10 @@
 		</div>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
-	<div class="p-5 flex flex-col h-full">
-		<slot />
-	</div>
+
+	{#key $page.url.pathname}
+		<div class="p-5 flex flex-col h-full" in:blur>
+			<slot />
+		</div>
+	{/key}
 </AppShell>

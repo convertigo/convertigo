@@ -17,7 +17,6 @@
 	import { checkArray } from '$lib/utils/service';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
-	import { fade, slide } from 'svelte/transition';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 
 	onMount(async () => {
@@ -343,7 +342,7 @@
 				{#each columns as { name, cls, style } (name)}
 					<div
 						{style}
-						class={`p-1 ${cls} text-nowrap overflow-hidden`}
+						class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
 						animate:grabFlip={{ duration: 500 }}
 					>
 						<div class="font-semibold">{name}</div>

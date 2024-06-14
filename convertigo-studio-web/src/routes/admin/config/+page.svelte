@@ -19,6 +19,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import { blur } from 'svelte/transition';
 
 	const modalStore = getModalStore();
 
@@ -43,6 +44,7 @@
 				'@_key': p['@_name'],
 				'@_value': p['@_value']
 			}));
+		console.log(toSave);
 		modalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',
@@ -95,89 +97,90 @@
 {#if selectedIndex > -1}
 	{@const category = $configurations?.admin?.category[selectedIndex]}
 	<div class="grid md:grid-cols-5 gap-5">
-		<div class="h-auto md:col-span-4">
-			<Card title={category['@_displayName']}>
-				<div slot="cornerOption">
-					<ButtonsContainer>
-						<button
-							type="button"
-							disabled={!hasChanges}
-							class="basic-button"
-							on:click={saveChanges}
-						>
-							<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
-							<span>Save changes</span>
-						</button>
-						<button
-							type="button"
-							disabled={!hasChanges}
-							class="yellow-button"
-							on:click={refreshConfigurations}
-						>
-							<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
-							<span class="">Cancel changes</span>
-						</button>
-					</ButtonsContainer>
-				</div>
+		{#key selectedIndex}
+			<div class="h-auto md:col-span-4" in:blur>
+				<Card title={category['@_displayName']}>
+					<div slot="cornerOption">
+						<ButtonsContainer>
+							<button
+								type="button"
+								disabled={!hasChanges}
+								class="basic-button"
+								on:click={saveChanges}
+							>
+								<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
+								<span>Save changes</span>
+							</button>
+							<button
+								type="button"
+								disabled={!hasChanges}
+								class="yellow-button"
+								on:click={refreshConfigurations}
+							>
+								<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
+								<span class="">Cancel changes</span>
+							</button>
+						</ButtonsContainer>
+					</div>
 
-				<ResponsiveContainer
-					scrollable={false}
-					maxHeight="h-auto"
-					smCols="sm:grid-cols-1"
-					mdCols="md:grid-cols-1"
-					lgCols="lg:grid-cols-2"
-				>
-					{#each category.property as property}
-						{#if property['@_isAdvanced'] != 'true'}
-							<PropertyType {property} />
-						{/if}
-					{/each}
-				</ResponsiveContainer>
-			</Card>
-
-			{#if category.property.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
-				<Card class="mt-5">
-					<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
-						<AccordionItem>
-							<svelte:fragment slot="summary">
-								<div class="flex items-center">
-									<Ico icon="game-icons:level-three-advanced" />
-									<p class="ml-4">Advanced Properties</p>
-								</div>
-							</svelte:fragment>
-
-							<svelte:fragment slot="content">
-								<ResponsiveContainer
-									scrollable={false}
-									maxHeight="h-auto"
-									class="mt-10"
-									smCols="sm:grid-cols-1"
-									mdCols="md:grid-cols-1"
-									lgCols="lg:grid-cols-2"
-								>
-									{#each category.property as property}
-										{#if property['@_isAdvanced'] == 'true'}
-											<PropertyType {property} />
-										{/if}
-									{/each}
-								</ResponsiveContainer>
-							</svelte:fragment>
-						</AccordionItem>
-					</Accordion>
+					<ResponsiveContainer
+						scrollable={false}
+						maxHeight="h-auto"
+						smCols="sm:grid-cols-1"
+						mdCols="md:grid-cols-1"
+						lgCols="lg:grid-cols-2"
+					>
+						{#each category.property as property}
+							{#if property['@_isAdvanced'] != 'true'}
+								<PropertyType {property} />
+							{/if}
+						{/each}
+					</ResponsiveContainer>
 				</Card>
-			{/if}
-		</div>
-		<Card class="flex flex-col h-auto md:col-span-1 rounded-2xl">
+
+				{#if category.property.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
+					<Card class="mt-5">
+						<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
+							<AccordionItem>
+								<svelte:fragment slot="summary">
+									<div class="flex items-center">
+										<Ico icon="game-icons:level-three-advanced" />
+										<p class="ml-4">Advanced Properties</p>
+									</div>
+								</svelte:fragment>
+
+								<svelte:fragment slot="content">
+									<ResponsiveContainer
+										scrollable={false}
+										maxHeight="h-auto"
+										class="mt-10"
+										smCols="sm:grid-cols-1"
+										mdCols="md:grid-cols-1"
+										lgCols="lg:grid-cols-2"
+									>
+										{#each category.property as property}
+											{#if property['@_isAdvanced'] == 'true'}
+												<PropertyType {property} />
+											{/if}
+										{/each}
+									</ResponsiveContainer>
+								</svelte:fragment>
+							</AccordionItem>
+						</Accordion>
+					</Card>
+				{/if}
+			</div>
+		{/key}
+		<Card class="flex flex-col h-auto md:col-span-1 px-2">
 			<ListBox active="dark:bg-surface-600 bg-surface-50">
 				{#each $configurations?.admin?.category as category, index}
 					<ListBoxItem
 						bind:group={selectedIndex}
 						name="category"
 						value={index}
-						class="flex"
 						on:click={changeCategory}
 					>
-						<div class="flex font-light">
+						<div class="font-light">
 							{category['@_displayName']}
 						</div>
 					</ListBoxItem>
