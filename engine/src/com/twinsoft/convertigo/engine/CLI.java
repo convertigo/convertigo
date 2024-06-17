@@ -661,12 +661,12 @@ public class CLI {
 			
 			CLI cli = new CLI();
 			
-			String version = cmd.getOptionValue("version", null);
-			String mobileApplicationEndpoint = cmd.getOptionValue("mobileApplicationEndpoint", null);
+			String version = cmd.getOptionValue("version", (String) null);
+			String mobileApplicationEndpoint = cmd.getOptionValue("mobileApplicationEndpoint", (String) null);
 			Project project = cli.loadProject(projectDir, version, mobileApplicationEndpoint, cmd.getOptionValue("gitContainer"));
 			
-			String gMode = cmd.getOptionValue("generate", null);
-			String bMode = cmd.getOptionValue("build", null);
+			String gMode = cmd.getOptionValue("generate", (String) null);
+			String bMode = cmd.getOptionValue("build", (String) null);
 			if (cmd.hasOption("generate") || cmd.hasOption("build")) {
 				if (gMode == null && bMode != null) {
 					gMode = bMode;
