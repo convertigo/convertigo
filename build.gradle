@@ -30,12 +30,12 @@ ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '7.39.1'
+ext.jxBrowserVersion = '7.39.2'
 ext.swaggerUiVersion = '5.11.10'
 ext.tomcatVersion = '9.0.89'
-ext.eclipseVersion = '2023-12'
-ext.eclipseBase = '4.30'
-ext.studioWebNodeVersion = '18'
+ext.eclipseVersion = '2024-06'
+ext.eclipseBase = '4.32'
+ext.studioWebNodeVersion = '20'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -469,10 +469,10 @@ task checkLicenseDate {
 	}
 }
 
-task updateWrapper(type: Wrapper) {
+wrapper {
     group 'convertigo'
     
-    gradleVersion 'latest'
+    gradleVersion = 'latest'
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
