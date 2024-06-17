@@ -7,7 +7,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: convertigo/builder-ci:circleci-7
+  - image: cimg/openjdk:21.0
   
 version: 2.1
 orbs:
@@ -15,9 +15,6 @@ orbs:
 jobs:
   build_engine_jar:
     <<: *defaults
-    
-    docker:
-    - image: cimg/openjdk:21.0
     
     steps:
     
