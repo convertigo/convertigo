@@ -11,7 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@3.1.4
+  aws-cli: circleci/aws-cli@4
 jobs:
   build_engine_jar:
     <<: *defaults
@@ -160,6 +160,7 @@ jobs:
     <<: *defaults
     
     steps:
+    - aws-cli/setup
     
     - attach_workspace:
         at: ..
@@ -212,6 +213,7 @@ jobs:
     <<: *defaults
     
     steps:
+    - aws-cli/setup
     
     - attach_workspace:
         at: ..
@@ -338,6 +340,7 @@ jobs:
   qualif_jmx_1:
     <<: *defaults
     steps:
+    - aws-cli/setup
     
     - restore_cache:
         keys:
@@ -381,6 +384,7 @@ jobs:
   qualif_jmx_2:
     <<: *defaults
     steps:
+    - aws-cli/setup
     
     - restore_cache:
         keys:
@@ -424,6 +428,7 @@ jobs:
   qualif_jmx_3:
     <<: *defaults
     steps:
+    - aws-cli/setup
     
     - restore_cache:
         keys:
@@ -466,7 +471,20 @@ jobs:
           
   build_studio:
     <<: *defaults
+    
     steps:
+    - aws-cli/setup
+    
+    - run:
+        name: Install nsis and sign tools
+        command: |
+          sudo apt-get update
+          sudo apt-get install -y osslsigncode p7zip-full nsis
+          wget -q http://7-zip.org/a/7z1604-x64.msi
+          7z x 7z1604-x64.msi _7zCon.sfx -so | sudo tee /usr/lib/p7zip/7zConWin64.sfx >/dev/null
+          sudo chmod +x /usr/lib/p7zip/7zConWin64.sfx
+          rm *.msi
+          
     - attach_workspace:
         at: ..
         
@@ -624,8 +642,10 @@ jobs:
       xcode: 15.0.0
     steps:
     - aws-cli/setup
+    
     - attach_workspace:
         at: for_mac
+    
     - run:
         name: Sign Studio
         command: |
