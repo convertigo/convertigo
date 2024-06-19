@@ -4,13 +4,12 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
-	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import {
 		refreshConfigurations,
 		configurations,
 		updateConfigurations
 	} from '$lib/admin/stores/configurationStore';
-	import { logs, logsList } from '$lib/admin/stores/logsStore';
+	import { logs as allLogs, logsList } from '$lib/admin/stores/logsStore';
 	import { onMount } from 'svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -18,14 +17,15 @@
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
+	import { derived, writable } from 'svelte/store';
+	import { slide } from 'svelte/transition';
 
-	onMount(async () => {
-		await refreshConfigurations();
-		await logsList();
+	onMount(() => {
+		refreshConfigurations();
+		logsList();
 	});
 
 	let tabSet = 0;
-	let value = false;
 	let rangeVal = 15;
 	let max = 25;
 
@@ -44,7 +44,7 @@
 
 	const logsAction = {
 		options: {
-			name: 'Options',
+			name: 'Viewer',
 			icon: 'grommet-icons:add',
 			value: 0
 		},
@@ -57,11 +57,6 @@
 			name: 'Log Levels',
 			icon: 'grommet-icons:add',
 			value: 2
-		},
-		help: {
-			name: 'Help',
-			icon: 'grommet-icons:add',
-			value: 3
 		}
 	};
 
@@ -178,11 +173,66 @@
 			css: () => ''
 		};
 	}
+
+	function getValue(name, log, index) {
+		// {@const _value =
+		// 						name in columnsConfiguration
+		// 							? log[columnsConfiguration[name].idx]
+		// 							: log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? ''}
+		// 					{@const value = columnsConfiguration[name]?.fn
+		// 						? columnsConfiguration[name].fn(_value, index)
+		// 						: _value}
+		let logValue =
+			name in columnsConfiguration
+				? log[columnsConfiguration[name].idx]
+				: // @ts-ignore
+					log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? '';
+		return columnsConfiguration[name]?.fn
+			? columnsConfiguration[name].fn(logValue, index)
+			: logValue;
+	}
+
+	let filters = writable({});
+
+	function addFilter(category, value = '', mode, index, not = false) {
+		modalStore.trigger({
+			type: 'component',
+			component: 'modalLogs',
+			meta: { category, value, mode, index, filters, not }
+		});
+	}
+
+	const logs = derived(allLogs, ($logs) => {
+		return Object.entries($filters).length == 0
+			? $logs
+			: $logs.filter((log, index) => {
+					return Object.entries($filters).every(([name, array]) => {
+						return array.length == 0
+							? true
+							: array.some(({ mode, value, not }) => {
+									let logValue = getValue(name, log, index);
+									let ret = mode == 'equals' ? logValue == value : logValue[mode](value);
+									return not ? !ret : ret;
+								});
+					});
+				});
+	});
+
+	filters.subscribe((f) => {
+		$allLogs = $allLogs;
+	});
 </script>
 
 <Card title="Logs">
 	<div slot="cornerOption">
-		{#if tabSet === 2}
+		{#if tabSet === 1}
+			<ButtonsContainer class="flex">
+				<button type="button" class="basic-button">
+					<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
+					<span>Purge</span>
+				</button>
+			</ButtonsContainer>
+		{:else if tabSet === 2}
 			<ButtonsContainer class="flex">
 				<button type="button" class="basic-button">
 					<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
@@ -207,32 +257,7 @@
 			</Tab>
 		{/each}
 		<svelte:fragment slot="panel">
-			{#if tabSet === 0}
-				<div class="logsCard">
-					<ButtonsContainer>
-						{#each Object.entries(logsOptions) as [opt, { name, icon }]}
-							<button class="basic-button">
-								<p>{name}</p>
-								<Ico {icon} />
-							</button>
-						{/each}
-					</ButtonsContainer>
-					<ButtonsContainer class="mt-5">
-						{#each optionsCheckbox as opt}
-							<SlideToggle
-								active="activeSlideToggle"
-								background="unActiveSlideToggle"
-								size="sm"
-								name="slide"
-								class="mr-5"
-								bind:checked={value}
-							>
-								<p class="font-normal">{opt.name}</p>
-							</SlideToggle>
-						{/each}
-					</ButtonsContainer>
-				</div>
-			{:else if tabSet === 1}
+			{#if tabSet === 1}
 				<div class="logsCard">
 					<RangeSlider
 						accent="accent-tertiary-500 dark:accent-tertiary-500"
@@ -283,71 +308,96 @@
 			cls: columnsConfiguration[c.name]?.cls ?? '',
 			style: `width: ${c.width}px; min-width: ${c.width}px;`
 		}))}
-	<Card class="mt-5 text-xs">
-		<div class="relative mb-2 bg-surface-backdrop-token rounded">
-			<div class="flex flex-wrap rounded variant-ghost">
+	<Card class="mt-2 text-xs">
+		<div class="flex flex-col gap-2">
+			<div class="row-wrap">
 				{#each columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
 					<div animate:flip={{ duration: 500 }}>
 						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
 							<div
-								class="rounded m-1 p-1 flex space-x-2"
+								class="mini-card"
 								class:variant-filled-success={show}
 								class:variant-filled-warning={!show}
 							>
 								<span>{name}</span>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
 								<span class="cursor-pointer" on:click={() => (conf.show = !show)}
 									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
 								>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
 								<DraggableValue
 									class="cursor-col-resize"
 									bind:deltaX={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
 								>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
+								<span class="cursor-pointer" on:click={() => addFilter(conf.name)}
+									><Ico icon="mdi:filter" /></span
+								>
 								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
 							</div>
 						</MovableContent>
 					</div>
 				{/each}
 			</div>
-			<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<span
-					class="cursor-pointer"
-					on:click={() => {
-						extraLines++;
-						virtualList.recomputeSizes(0);
-					}}><Ico icon="grommet-icons:add" /></span
-				>
-				{#if extraLines > 1}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div class="row-wrap">
+				{#each Object.entries($filters).filter(([_, a]) => a.length > 0) as [category, array], idx}
+					{#if idx > 0}
+						<div class="mini-card variant-ghost" transition:slide={{ axis: 'x' }}>AND</div>
+					{/if}
+					{#each array as { value, mode, not }, index}
+						{#if index > 0}
+							<div class="mini-card variant-ghost" transition:slide={{ axis: 'x' }}>OR</div>
+						{/if}
+						<div class="mini-card variant-filled" transition:slide={{ axis: 'x' }}>
+							<span>{category} {not ? 'not' : ''} {mode} {value}</span>
+							<span
+								class="cursor-pointer"
+								on:click={() => addFilter(category, value, mode, index, not)}
+								><Ico icon="mdi:edit-outline" /></span
+							>
+							<span
+								class="cursor-pointer"
+								on:click={() => {
+									array.splice(index, 1);
+									$filters = $filters;
+								}}><Ico icon="mingcute:delete-line" /></span
+							>
+						</div>
+					{/each}
+				{/each}
+			</div>
+			<div class="relative">
+				<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
 					<span
 						class="cursor-pointer"
 						on:click={() => {
-							extraLines--;
+							extraLines++;
 							virtualList.recomputeSizes(0);
-						}}><Ico icon="grommet-icons:form-subtract" /></span
+						}}><Ico icon="grommet-icons:add" /></span
 					>
-				{/if}
-			</div>
-			<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 20}px`}>
-				{#each columns as { name, cls, style } (name)}
-					<div
-						{style}
-						class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
-						animate:grabFlip={{ duration: 500 }}
-					>
-						<div class="font-semibold">{name}</div>
-					</div>
-				{/each}
+					{#if extraLines > 1}
+						<span
+							class="cursor-pointer"
+							on:click={() => {
+								extraLines--;
+								virtualList.recomputeSizes(0);
+							}}><Ico icon="grommet-icons:form-subtract" /></span
+						>
+					{/if}
+				</div>
+				<div
+					class="flex flex-wrap overflow-y-hidden bg-surface-backdrop-token"
+					style={`height: ${2 + extraLines * 20}px`}
+				>
+					{#each columns as { name, cls, style } (name)}
+						<div
+							{style}
+							class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
+							animate:grabFlip={{ duration: 500 }}
+						>
+							<div class="font-semibold">{name}</div>
+						</div>
+					{/each}
+				</div>
 			</div>
 		</div>
 
@@ -364,24 +414,19 @@
 				<div class={`${log[2]} rounded`}>
 					<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 16}px`}>
 						{#each columns as { name, cls, style } (name)}
+							{@const value = getValue(name, log, index)}
 							<div
 								{style}
 								class={`px-1 ${cls} text-nowrap overflow-hidden`}
 								animate:grabFlip={{ duration: 500 }}
+								on:click={() => addFilter(name, value)}
 							>
-								{#if name in columnsConfiguration}
-									{@const value = log[columnsConfiguration[name].idx]}
-									{columnsConfiguration[name].fn
-										? columnsConfiguration[name].fn(value, index)
-										: value}
-								{:else}
-									{log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? ''}
-								{/if}
+								{value}
 							</div>
 						{/each}
 					</div>
 					<div
-						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded variant-ghost`}
+						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost`}
 						style="scrollbar-width: thin;"
 					>
 						{log[4]}
@@ -395,6 +440,14 @@
 <style lang="postcss">
 	.logsCard {
 		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded-token;
+	}
+
+	.row-wrap {
+		@apply flex flex-wrap rounded-token variant-ghost;
+	}
+
+	.mini-card {
+		@apply rounded-token m-1 p-1 flex gap-2 text-nowrap;
 	}
 
 	.FATAL {

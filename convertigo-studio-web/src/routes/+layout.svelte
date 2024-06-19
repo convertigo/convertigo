@@ -25,6 +25,7 @@
 	import ModalSessionLegend from '$lib/admin/modals/ModalSessionLegend.svelte';
 	import ModalCertificates from '$lib/admin/modals/ModalCertificates.svelte';
 	import ModalLoading from '$lib/admin/modals/ModalLoading.svelte';
+	import ModalLogs from '$lib/admin/modals/ModalLogs.svelte';
 
 	initializeStores();
 	setToastStore(getToastStore());
@@ -50,7 +51,8 @@
 		modalWarning: { ref: ModalWarning },
 		modalSessionLegend: { ref: ModalSessionLegend },
 		modalCertificates: { ref: ModalCertificates },
-		modalLoading: { ref: ModalLoading }
+		modalLoading: { ref: ModalLoading },
+		modalLogs: { ref: ModalLogs }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
