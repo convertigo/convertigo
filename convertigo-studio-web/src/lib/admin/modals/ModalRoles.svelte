@@ -1,5 +1,5 @@
 <script>
-	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
+	import { FileDropzone, RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
@@ -7,6 +7,7 @@
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
 	import { usersList, rolesStore } from '../stores/rolesStore';
 	import CheckState from '../components/CheckState.svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
@@ -62,7 +63,7 @@
 </script>
 
 {#if mode == 'add'}
-	<Card title={`${row ? 'Edit' : 'Add'} User`} style="padding: 40px;">
+	<Card title={`${row ? 'Edit' : 'Add'} User`} class="p-10">
 		<form on:submit={rolesAdd}>
 			{#if row}
 				<input type="hidden" name="oldUsername" value={row.name} />
@@ -132,40 +133,50 @@
 				{/each}
 			</ResponsiveContainer>
 
-			<div class="flex gap-5 mt-10">
-				<button class="cancel-button w-60" on:click|preventDefault={() => modalStore.close()}
-					>Cancel</button
-				>
-				<button type="submit" class="confirm-button w-60">Confirm</button>
-			</div>
+			<ModalButtons />
 		</form>
 	</Card>
 {/if}
 
 {#if mode == 'import'}
-	<Card>
-		<form class="p-5 rounded-xl glass flex flex-col">
-			<h1 class="text-xl mb-5 text-center">Import users</h1>
-			<RadioGroup active="bg-secondary-400-500-token">
+	<Card title="Import Users">
+		<form class=" flex flex-col">
+			<RadioGroup active="bg-primary-800" class="font-normal">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
-					>Clear & import</RadioItem
+					><p class="text-[12px]">Clear & import</p></RadioItem
 				>
-				<RadioItem bind:group={importAction} name="action-import" value="">Merge users</RadioItem>
+				<RadioItem bind:group={importAction} name="action-import" value="">
+					<p class="text-[12px]">Merge users</p>
+				</RadioItem>
 			</RadioGroup>
 			{#if importAction == ''}
-				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict</p>
-				<RadioGroup active="bg-secondary-400-500-token">
+				<p class="mt-2 text-[11px] mb-2 font-normal">In case of name conflict :</p>
+				<RadioGroup active="bg-primary-800" class="font-normal">
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server"
-						>Priority Server</RadioItem
-					>
+						><p class="text-[12px]">Priority Server</p>
+					</RadioItem>
 					<RadioItem bind:group={importPriority} name="priority" value="priority-import"
-						>Priority import</RadioItem
-					>
+						><p class="text-[12px]">Priority ServerPriority import</p>
+					</RadioItem>
 				</RadioGroup>
 			{/if}
-			<p class="font-medium mt-10">Actual users list will be saved aside in a backup file.</p>
+			<p class="font-normal text-[11px] mb-1 mt-5">
+				Actual users list will be saved aside in a backup file.
+			</p>
 
-			<div class="flex flex-wrap gap-5">
+			<FileDropzone name="fileinput" id="fileinput" accept=".properties" on:change={importRoles}>
+				<svelte:fragment slot="message"
+					><div class="flex flex-col items-center">
+						<Icon icon="icon-park:application-one" class="w-10 h-10" />Upload Users here or drag and
+						drop
+					</div></svelte:fragment
+				>
+				<svelte:fragment slot="meta">.properties files</svelte:fragment>
+			</FileDropzone>
+			<!-- <button class="mt-5 btn cancel-button w-full font-light" on:click={() => modalStore.close()}
+				>Cancel</button
+			> -->
+			<!-- <div class="flex flex-wrap gap-5">
 				<div class="flex-1">
 					<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}
 						>Cancel</button
@@ -180,9 +191,10 @@
 						class="hidden"
 						on:change={importRoles}
 					/>
-					<label for="symbolUploadFile" class="confirm-button btn mt-5 w-full">Import</label>
+					<label for="symbolUploadFile" class="input-button w-60">Import</label>
 				</div>
-			</div>
+			</div> -->
+			<ModalButtons showConfirmBtn={false} />
 		</form>
 	</Card>
 {/if}

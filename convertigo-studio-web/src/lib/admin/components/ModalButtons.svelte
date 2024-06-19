@@ -1,18 +1,28 @@
+<!-- ModalButtons.svelte -->
 <script>
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
+	export let showConfirmBtn = true;
 </script>
 
 <div class="w-full flex justify-end mt-10">
 	<div class="flex flex-wrap gap-2">
-		<div class="flex-1">
-			<button class="gray-button w-60" on:click|preventDefault={() => modalStore.close()}
-				>Cancel</button
-			>
-		</div>
-		<div class="flex-1">
-			<button type="submit" class="bg-primary-400-500-token w-60">Confirm</button>
-		</div>
+		{#if showConfirmBtn}
+			<div class="flex-1">
+				<button class="cancel-button w-40" on:click|preventDefault={() => modalStore.close()}>
+					Cancel
+				</button>
+			</div>
+			<div class="flex-1">
+				<button type="submit" class="basic-button w-40">Confirm</button>
+			</div>
+		{:else}
+			<div class="flex-1">
+				<button class="cancel-button w-40" on:click|preventDefault={() => modalStore.close()}>
+					Cancel
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>

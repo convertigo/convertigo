@@ -16,7 +16,6 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
-	import Icon from '@iconify/svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
@@ -57,9 +56,9 @@
 <Card title="Connections">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="bg-error-400-500-token">
-				Delete all Sessions and Connections
-				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6" />
+			<button class="delete-button">
+				<Ico icon="mingcute:delete-line" />
+				<p>Delete all Sessions and Connections</p>
 			</button>
 		</ButtonsContainer>
 	</div>
@@ -77,17 +76,17 @@
 <Card title="Sessions" class="mt-5">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}>
-				Refresh Sessions
-				<Icon icon="simple-line-icons:reload" rotate={1} class="w-4 h-4" />
+			<button class="basic-button" on:click={() => refreshConnections()}>
+				<Ico icon="simple-line-icons:reload" />
+				<p>Refresh Sessions</p>
 			</button>
 			<button
-				class="bg-primary-400-500-token max-w-80"
+				class="basic-button"
 				on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
 			>
-				Show Legends
-				<Icon icon="mdi:show" class="h-4 w-4" /></button
-			>
+				<Ico icon="mdi:eye" />
+				<p>Show Legends</p>
+			</button>
 		</ButtonsContainer>
 	</div>
 	<TableAutoCard
@@ -108,8 +107,8 @@
 		let:def
 	>
 		{#if def.name === 'Delete'}
-			<button class="bg-error-400-500-token">
-				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
+			<button class="delete-button">
+				<Ico icon="mingcute:delete-line" />
 			</button>
 		{/if}
 	</TableAutoCard>
@@ -118,9 +117,9 @@
 <Card title="Contexts" class="mt-5">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="bg-success-400-500-token max-w-80" on:click={() => refreshConnections()}
-				>Refresh Contexts
-				<Icon icon="simple-line-icons:reload" rotate={1} class="w-4 h-4" />
+			<button class="basic-button" on:click={() => refreshConnections()}
+				><Ico icon="simple-line-icons:reload" />
+				<p>Refresh Sessions</p>
 			</button>
 		</ButtonsContainer>
 	</div>
@@ -140,7 +139,8 @@
 		let:def
 	>
 		{#if def.name === 'Delete'}
-			<button class="bg-error-400-500-token">
+			<button class="delete-button">
+				<Ico icon="mingcute:delete-line" />
 				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
 			</button>
 		{/if}

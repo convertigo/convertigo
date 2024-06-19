@@ -104,11 +104,11 @@
 
 <Card title="Keys">
 	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
-		<ButtonsContainer>
+		<ButtonsContainer class="items-center">
 			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-			<button type="submit" class="basic-button gap-2">
+			<button type="submit" class="basic-button">
 				<Ico icon="vaadin:key-o" />
-				Add Key
+				<p>Add Key</p>
 			</button>
 		</ButtonsContainer>
 	</form>

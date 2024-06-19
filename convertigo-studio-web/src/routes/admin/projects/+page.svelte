@@ -168,7 +168,7 @@
 	<div slot="cornerOption">
 		<button class="w-full bg-error-400-500-token">
 			<Ico icon="mingcute:delete-line" />
-			Delete All Projects</button
+			<p>Delete All Projects</p></button
 		>
 	</div>
 	<ButtonsContainer>
@@ -213,7 +213,7 @@
 					<Ico icon="mingcute:delete-line" />
 				</button>
 			{:else if def.name == 'Reload'}
-				<button on:click={() => openReloadProjectModal(row['@_name'])} class="cancel-button">
+				<button on:click={() => openReloadProjectModal(row['@_name'])} class="green-button">
 					<Ico icon="simple-line-icons:reload" />
 				</button>
 			{:else if def.name == 'Export'}

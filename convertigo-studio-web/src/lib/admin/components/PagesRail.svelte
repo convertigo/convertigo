@@ -2,8 +2,8 @@
 	import { AppRail, getDrawerStore } from '@skeletonlabs/skeleton';
 	import parts from './PagesRail.json';
 	import { page } from '$app/stores';
-	import NavIco from '$lib/utils/NavIco.svelte';
 	import { fade, fly } from 'svelte/transition';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	let isRoot = false;
 	let activeIndex = 0;
@@ -31,7 +31,7 @@
 						class="absolute inset-0 variant-filled-primary opacity-40 rounded-token"
 					></span>
 				{/if}
-				<NavIco icon={tile.icon} style="z-index: 10;" />
+				<Ico size="nav" icon={tile.icon} style="z-index: 10;" />
 				<span
 					class={`ml-3 text-[14px] z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'extralight'}`}
 					>{tile.title}</span

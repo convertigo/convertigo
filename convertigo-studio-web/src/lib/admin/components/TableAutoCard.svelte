@@ -79,7 +79,7 @@
 
 <style lang="postcss">
 	.tableTitle {
-		@apply text-[18px] font-normal text-surface-400 p-3 underline decoration-2 dark:decoration-green-700 decoration-green-400 underline-offset-8;
+		@apply text-[16px] font-normal text-surface-200 mb-3 mt-5;
 	}
 	.table-container {
 		overflow-x: auto;

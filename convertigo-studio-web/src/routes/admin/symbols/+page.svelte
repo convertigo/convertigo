@@ -17,6 +17,8 @@
 	let tabSet = 0;
 	let selectRow = false;
 	let selectedUsers = new Set();
+	let allSelected = false;
+
 	onMount(() => {
 		getEnvironmentVar();
 		globalSymbols();
@@ -128,6 +130,23 @@
 		}
 	}
 
+	function selectAllUsersFunction() {
+		if (allSelected) {
+			selectedUsers.clear();
+			document
+				.querySelectorAll('input[type="checkbox"]')
+				//@ts-ignore
+				.forEach((checkbox) => (checkbox.checked = false));
+		} else {
+			$globalSymbolsList.forEach((user) => selectedUsers.add(user));
+			document
+				.querySelectorAll('input[type="checkbox"]')
+				//@ts-ignore
+				.forEach((checkbox) => (checkbox.checked = true));
+		}
+		allSelected = !allSelected; // Toggle the selection state
+	}
+
 	function exportUserFile() {
 		const usersArray = Array.from(selectedUsers);
 		const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
@@ -168,6 +187,10 @@
 				<p>Validate export</p>
 				<Ico icon="bytesize:export" />
 			</button>
+			<button class="green-button" on:click={selectAllUsersFunction}>
+				<p>Select all users</p>
+				<Ico icon="bytesize:export" />
+			</button>
 		{/if}
 	</ButtonsContainer>
 
@@ -202,7 +225,7 @@
 					definition={[
 						{ name: 'Export', custom: true },
 						{ name: 'Name', key: '@_name' },
-						{ name: 'Value', key: '@_value' },
+						{ name: 'Value', key: '@_value', class: 'truncate max-w-80' },
 						{ name: 'Edit', custom: true },
 						{ name: 'Delete', custom: true }
 					].filter((elt) => selectRow || elt.name != 'Export')}

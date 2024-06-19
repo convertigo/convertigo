@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { call } from '$lib/utils/service';
 	import Icon from '@iconify/svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta ?? {};
@@ -51,28 +52,19 @@
 	{#if $modalStore[0]}
 		<Card title="Remove Certificate" class="w-[30vw]">
 			<form on:submit|preventDefault={removeCertificates}>
-				<label for="certificateSelect" class="label-common">Select Certificate:</label>
-				{#if $candidates.length > 0}
-					<select id="certificateSelect" class="input-common mb-5" name="certificateName">
-						{#each $candidates as candidate}
-							<option value={candidate['@_name']}>{candidate['@_name']}</option>
-						{/each}
-					</select>
-				{:else}
-					No certificate
-				{/if}
-				<div class="flex flex-wrap gap-2 mt-5">
-					<div class="flex-1">
-						<button
-							type="button"
-							class="btn cancel-button w-full font-light"
-							on:click={() => modalStore.close()}>Cancel</button
-						>
-					</div>
-					<div class="flex-1">
-						<button type="submit" class="bg-primary-400-500-token w-full">Confirm</button>
-					</div>
-				</div>
+				<label for="certificateSelect" class="label-common border-common"
+					><p>Select Certificate:</p>
+					{#if $candidates.length > 0}
+						<select id="certificateSelect" class="input-common mb-5" name="certificateName">
+							{#each $candidates as candidate}
+								<option value={candidate['@_name']}>{candidate['@_name']}</option>
+							{/each}
+						</select>
+					{:else}
+						No certificate
+					{/if}
+				</label>
+				<ModalButtons />
 			</form>
 		</Card>
 	{/if}
@@ -95,9 +87,7 @@
 				>
 				<svelte:fragment slot="meta">.p12 .pfx .cer files</svelte:fragment>
 			</FileDropzone>
-			<button class="mt-5 btn cancel-button w-full font-light" on:click={() => modalStore.close()}
-				>Cancel</button
-			>
+			<ModalButtons showConfirmBtn={false} />
 		{/if}
 	</Card>
 {/if}

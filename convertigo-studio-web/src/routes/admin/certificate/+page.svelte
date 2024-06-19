@@ -21,6 +21,7 @@
 	let tabSet = 0;
 
 	const notesTitle = {
+		note: 'Note',
 		certificate: 'A note for configuration',
 		mappings: 'A note for Mappings'
 	};
@@ -77,20 +78,32 @@
 <Card title="Certificates">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="basic-button" on:click={() => openModalCertificates('Install')}
-				>Install a new certificate</button
-			>
-			<button class="delete-button" on:click={() => openModalCertificates('Remove')}
-				>Remove a certificate</button
-			>
+			<button class="basic-button" on:click={() => openModalCertificates('Install')}>
+				<Ico icon="fluent-mdl2:certificate" />
+				<p>Install a new certificate</p>
+			</button>
+			<button class="delete-button" on:click={() => openModalCertificates('Remove')}>
+				<Ico icon="mingcute:delete-line" />
+				<p>Remove a certificate</p>
+			</button>
 		</ButtonsContainer>
 	</div>
-	<p class="font-bold text-surface-300">For each authentication certificate, you can :</p>
-	<ul class="p-3 font-bold text-surface-300 mb-5">
-		<li>Install the certificate file</li>
-		<li>Define its type (client or server), its password and eventually its group</li>
-		<li>Define its mappings</li>
-	</ul>
+	<div class="flex w-[20%]">
+		<Accordion class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mb-5">
+			<AccordionItem close>
+				<svelte:fragment slot="lead"><Ico icon="fluent:note-48-filled" /></svelte:fragment>
+				<svelte:fragment slot="summary">{notesTitle.note}</svelte:fragment>
+				<svelte:fragment slot="content"
+					><p class="font-bold">For each authentication certificate, you can :</p>
+					<ul class="p-1 font-normal">
+						<li>Install the certificate file</li>
+						<li>Define its type (client or server), its password and eventually its group</li>
+						<li>Define its mappings</li>
+					</ul></svelte:fragment
+				>
+			</AccordionItem>
+		</Accordion>
+	</div>
 
 	<TabGroup>
 		<Tab
@@ -112,22 +125,22 @@
 
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
-				<Accordion class="dark:bg-indigo-600 rounded w-[40%] dark:bg-opacity-30 mt-5">
-					<AccordionItem close>
-						<svelte:fragment slot="lead"
-							><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
-						>
-						<svelte:fragment slot="summary">{notesTitle.certificate}</svelte:fragment>
-						<svelte:fragment slot="content"
-							>Configure here the certificates used by Convertigo. The certificates can be <strong
-								>individual certificates files (*.pfx, *.p12 or *.cer) or <strong
-									>certificates store files (*.store). Usually, individual certificates authenticate
-									clients, certificates stores authenticate servers.</strong
-								></strong
-							></svelte:fragment
-						>
-					</AccordionItem>
-				</Accordion>
+				<div class="flex w-[30%]">
+					<Accordion class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mt-5">
+						<AccordionItem close>
+							<svelte:fragment slot="lead"><Ico icon="fluent:note-48-filled" /></svelte:fragment>
+							<svelte:fragment slot="summary">{notesTitle.certificate}</svelte:fragment>
+							<svelte:fragment slot="content"
+								>Configure here the certificates used by Convertigo. The certificates can be <strong
+									>individual certificates files (*.pfx, *.p12 or *.cer) or <strong
+										>certificates store files (*.store). Usually, individual certificates
+										authenticate clients, certificates stores authenticate servers.</strong
+									></strong
+								></svelte:fragment
+							>
+						</AccordionItem>
+					</Accordion>
+				</div>
 				<TableAutoCard
 					title="Installed Certificates"
 					comment=""
@@ -219,25 +232,27 @@
 							store: $cariocaBinding
 						}
 					]}
-					<Accordion class="dark:bg-indigo-600 rounded w-[50vw] dark:bg-opacity-30 mt-5">
-						<AccordionItem close>
-							<svelte:fragment slot="lead"
-								><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
-							>
-							<svelte:fragment slot="summary">{notesTitle.mappings}</svelte:fragment>
-							<svelte:fragment slot="content">
-								Configure here the mappings between the authentication paths and the corresponding
-								certificates. The mappings could refer to users either anonymous or authenticated by
-								the Carioca/Vic portal. In the case of the identification of anonymous users, you
-								will have to choose the correct Convertigo project. The 'default' project allows the
-								identification on all projects. Otherwise, you will have to choose the virtual
-								server, the authorization group and the related Carioca/Vic user. An empty 'virtual
-								server' field selects all servers, all groups and all users. An empty 'authorization
-								group' field selects all groups and all users of the specified virtual server. An
-								empty 'user' field selects all users of the specified group.
-							</svelte:fragment>
-						</AccordionItem>
-					</Accordion>
+					<div class="flex w-[30%]">
+						<Accordion class="dark:bg-sky-600 rounded w-[50vw] dark:bg-opacity-30 mt-5">
+							<AccordionItem close>
+								<svelte:fragment slot="lead"
+									><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment
+								>
+								<svelte:fragment slot="summary">{notesTitle.mappings}</svelte:fragment>
+								<svelte:fragment slot="content">
+									Configure here the mappings between the authentication paths and the corresponding
+									certificates. The mappings could refer to users either anonymous or authenticated
+									by the Carioca/Vic portal. In the case of the identification of anonymous users,
+									you will have to choose the correct Convertigo project. The 'default' project
+									allows the identification on all projects. Otherwise, you will have to choose the
+									virtual server, the authorization group and the related Carioca/Vic user. An empty
+									'virtual server' field selects all servers, all groups and all users. An empty
+									'authorization group' field selects all groups and all users of the specified
+									virtual server. An empty 'user' field selects all users of the specified group.
+								</svelte:fragment>
+							</AccordionItem>
+						</Accordion>
+					</div>
 					<p class="font-bold text-surface-300 p-3"></p>
 					{#each conf as { title, definition, store }}
 						<TableAutoCard

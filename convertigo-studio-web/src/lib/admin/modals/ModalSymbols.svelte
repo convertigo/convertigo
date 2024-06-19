@@ -1,10 +1,11 @@
 <script>
 	import { call } from '$lib/utils/service';
-	import { RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
+	import { FileDropzone, RadioGroup, RadioItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { globalSymbols } from '../stores/symbolsStore';
 	import Card from '../components/Card.svelte';
 	import ModalButtons from '../components/ModalButtons.svelte';
 	import ButtonsContainer from '../components/ButtonsContainer.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta;
@@ -48,25 +49,44 @@
 {#if mode == 'import'}
 	<Card title="Import global symbols">
 		<form class="flex flex-col p-5">
-			<RadioGroup active="bg-secondary-400-500-token">
+			<RadioGroup active="bg-primary-800" class="font-normal">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
-					>Clear & import</RadioItem
+					><p class="text-[12px]">Clear & import</p></RadioItem
 				>
-				<RadioItem bind:group={importAction} name="action-import" value="">Merge symbols</RadioItem>
+				<RadioItem bind:group={importAction} name="action-import" value=""
+					><p class="text-[12px]">Merge symbols</p></RadioItem
+				>
 			</RadioGroup>
 			{#if importAction == ''}
-				<p class="mt-10 text-[14px] mb-5 text-center">In case of name conflict :</p>
-				<RadioGroup active="bg-secondary-400-500-token">
+				<p class="mt-3 text-[11px] mb-3 font-normal">In case of name conflict :</p>
+				<RadioGroup active="bg-primary-800" class="font-normal">
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server "
-						>Priority Server</RadioItem
+						><p class="text-[12px]">Priority Server</p></RadioItem
 					>
 					<RadioItem bind:group={importPriority} name="priority" value="priority-import"
-						>Priority import</RadioItem
+						><p class="text-[12px]">Priority ServerPriority import</p></RadioItem
 					>
 				</RadioGroup>
 			{/if}
+			<FileDropzone
+				name="userfile"
+				id="symbolUploadFile"
+				accept=".properties"
+				on:change={importSymbol}
+				class="mt-5"
+			>
+				<svelte:fragment slot="message">
+					<div class="flex flex-col items-center">
+						<Ico icon="icon-park:application-one" class="w-10 h-10" />
+						Upload your project or drag and drop
+					</div>
+				</svelte:fragment>
+				<svelte:fragment slot="meta">.properties files</svelte:fragment>
+			</FileDropzone>
 
-			<ButtonsContainer>
+			<ModalButtons showConfirmBtn={false} />
+
+			<!-- <ButtonsContainer>
 				<button class="mt-5 w-full cancel-button" on:click={() => modalStore.close()}>Cancel</button
 				>
 				<input
@@ -78,7 +98,7 @@
 					on:change={importSymbol}
 				/>
 				<label for="symbolUploadFile" class="btnStyle confirm-button w-full">Import</label>
-			</ButtonsContainer>
+			</ButtonsContainer> -->
 		</form>
 	</Card>
 {:else}
@@ -89,27 +109,31 @@
 					In secret mode, the value is stored ciphered and the key automatically ends with .secret
 				</p>
 			{/if}
-			<div class="flex gap-5">
+			<div class="flex gap-10">
 				<label class="border-common">
 					<p class="label-name">Enter {prefix}symbol name</p>
-					<input
-						placeholder="{prefix}name"
-						name="symbolName"
-						class="input-common"
-						bind:value={binds.symbolName}
-					/>
-					{#if mode == 'secret'}
-						<span>.secret</span>
-					{/if}
+					<div class="flex items-center">
+						<input
+							placeholder="{prefix}name"
+							name="symbolName"
+							class="input-common"
+							bind:value={binds.symbolName}
+						/>
+						{#if mode == 'secret'}
+							<span class="ml-2">.secret</span>
+						{/if}
+					</div>
 				</label>
 				<label class="border-common">
 					<p class="label-name">Enter {prefix}symbol value</p>
-					<input
+					<textarea
 						placeholder="{prefix}value"
 						name="symbolValue"
 						class="input-common"
 						bind:value={binds.symbolValue}
-					/>
+						rows="1"
+						cols="50"
+					></textarea>
 				</label>
 			</div>
 			<ModalButtons />

@@ -1,6 +1,6 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -12,7 +12,7 @@
 
 	let selectRow = false;
 	let selectedUsers = new Set();
-
+	let allSelected = false;
 	onMount(() => {
 		usersList();
 	});
@@ -27,6 +27,23 @@
 		} else {
 			selectedUsers.add(user);
 		}
+	}
+
+	function selectAllRoles() {
+		if (allSelected) {
+			selectedUsers.clear();
+			document
+				.querySelectorAll('input[type="checkbox"]')
+				//@ts-ignore
+				.forEach((checkbox) => (checkbox.checked = false));
+		} else {
+			$usersStore.forEach((user) => selectedUsers.add(user));
+			document
+				.querySelectorAll('input[type="checkbox"]')
+				//@ts-ignore
+				.forEach((checkbox) => (checkbox.checked = true));
+		}
+		allSelected = !allSelected; // Toggle the selection state
 	}
 
 	async function deleteUsersRoles(username) {
@@ -158,6 +175,10 @@
 		{#if selectRow}
 			<button class="yellow-button" on:click={exportUserFile}>
 				<p>Validate export</p>
+				<Ico icon="bytesize:export" />
+			</button>
+			<button class="green-button" on:click={selectAllRoles}>
+				<p>Select all users</p>
 				<Ico icon="bytesize:export" />
 			</button>
 		{/if}

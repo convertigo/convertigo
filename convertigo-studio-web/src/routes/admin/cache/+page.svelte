@@ -70,15 +70,15 @@
 		<Card title="Cache Type">
 			<div slot="cornerOption">
 				<ButtonsContainer>
-					<button class="basic-button" on:click={cacheClear}>
+					<button class="delete-button" on:click={cacheClear}>
 						<Ico icon="mingcute:delete-line" />
 						<p>Clear entries</p>
 					</button>
 				</ButtonsContainer>
 			</div>
 
-			<p class="mt-5">Choose the desired cache type</p>
-			<div class="flex">
+			<p class="mt-5 mb-2 font-normal">Choose the desired cache type</p>
+			<div class="flex items-center justify-between gap-5">
 				<RadioGroup>
 					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
 						<RadioItem
@@ -92,10 +92,17 @@
 					{/each}
 				</RadioGroup>
 				<ButtonsContainer>
-					<button type="submit" class="basic-button" {disabled}>Apply</button>
-					<button type="submit" class="basic-button" {disabled}>Create Table and Apply</button>
-					<button class="delete-button" {disabled} on:click={() => ($conf = copyObj(oriConf))}
-						>Cancel</button
+					<button type="submit" class="green-button" {disabled}>
+						<Ico icon="solar:mask-happly-line-duotone" />
+						<p>Apply</p></button
+					>
+					<button type="submit" class="basic-button" {disabled}
+						><Ico icon="lets-icons:table-light" />
+						<p>Create Table and Apply</p></button
+					>
+					<button class="delete-button" {disabled} on:click={() => ($conf = copyObj(oriConf))}>
+						<Ico icon="material-symbols-light:cancel-outline" />
+						<p>Cancel</p></button
 					>
 				</ButtonsContainer>
 			</div>

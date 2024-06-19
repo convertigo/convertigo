@@ -7,6 +7,7 @@
 	import Icon from '@iconify/svelte';
 	import CheckState from '../components/CheckState.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -55,12 +56,11 @@
 </script>
 
 {#if mode == 'deploy'}
-	<Card>
+	<Card title="Choose .car file and Deploy">
 		<form class="p-5 rounded-xl flex flex-col items-center">
 			{#if isLoading}
 				<Icon icon="eos-icons:three-dots-loading" class="w-10 h-10" />
 			{:else}
-				<h1 class="text-xl mb-5 text-center">Choose .car file and Deploy</h1>
 				<CheckState name="bAssembleXsl" checked={false}
 					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
@@ -73,14 +73,14 @@
 				>
 					<svelte:fragment slot="message"
 						><div class="flex flex-col items-center">
-							<Ico icon="icon-park:application-one" class="w-10 h-10" />Upload your project or drag
-							and drop
+							<Ico icon="icon-park:application-one" />Upload your project or drag and drop
 						</div></svelte:fragment
 					>
 					<svelte:fragment slot="meta">.car file</svelte:fragment>
 				</FileDropzone>
 
-				<div class="flex flex-wrap gap-5 mt-5">
+				<ModalButtons showConfirmBtn={false} />
+				<!-- <div class="flex flex-wrap gap-5 mt-5">
 					<div class="flex-1">
 						<button
 							class="mt-5 btn cancel-button w-full font-light"
@@ -88,14 +88,13 @@
 						>
 					</div>
 					<div class="flex-1"></div>
-				</div>
+				</div> -->
 			{/if}
 		</form>
 	</Card>
 {:else if mode == 'Export'}
-	<Card>
+	<Card title="Export project">
 		<form class="p-5 rounded-xl gap-5 flex flex-col">
-			<h1 class="text-2xl font-bold mb-5">Export Project</h1>
 			{#each exportOptions as exportOpt}
 				<CheckState name={exportOpt.name}>
 					{exportOpt.name}
@@ -113,9 +112,8 @@
 		</form>
 	</Card>
 {:else}
-	<Card>
+	<Card title="Import from a Remote Project URL">
 		<form on:submit={importProject} class="p-5 rounded-xl flex flex-col">
-			<h1 class="text-xl mb-5 text-center">Import from a Remote Project URL</h1>
 			<p>
 				Import a project from url like:<br /><b
 					>&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional
@@ -125,14 +123,15 @@
 			<p>Or a Convertigo Archive HTTP(S) URL.</p>
 			<input type="text" class="input" name="url" size="70" />
 
-			<div class="flex flex-wrap gap-5 mt-5">
+			<!-- <div class="flex flex-wrap gap-5 mt-5">
 				<div class="flex-1">
 					<button class="w-full cancel-button" on:click={() => modalStore.close()}>Cancel</button>
 				</div>
 				<div class="flex-1">
 					<button class="btn w-full confirm-button">Import</button>
 				</div>
-			</div>
+			</div> -->
+			<ModalButtons />
 		</form>
 	</Card>
 {/if}

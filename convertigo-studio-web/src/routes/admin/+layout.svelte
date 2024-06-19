@@ -4,7 +4,7 @@
 	import { Toast } from '@skeletonlabs/skeleton';
 	import PagesRail from '$lib/admin/components/PagesRail.svelte';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import { blur } from 'svelte/transition';
+	import { blur, fly, fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 
@@ -32,7 +32,7 @@
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
 
 	{#key $page.url.pathname}
-		<div class="p-5 flex flex-col h-full" in:blur>
+		<div class="p-5 flex flex-col h-full" in:fade>
 			<slot />
 		</div>
 	{/key}
