@@ -3,7 +3,7 @@
 	let cls = '';
 	export { cls as class };
 	export let min = 5;
-	export let coef = 0.5;
+	export let coef = 1;
 	export let dragging = false;
 	let startX = 0;
 	let startDeltaX = 0;
