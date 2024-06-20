@@ -4,7 +4,7 @@
 	import { checkArray } from '$lib/utils/service';
 
 	const modalStore = getModalStore();
-	const { category, filters, mode, index } = $modalStore[0].meta;
+	const { category, filters, mode, ts } = $modalStore[0].meta;
 	let { value, not } = $modalStore[0].meta;
 
 	export let parent;
@@ -15,10 +15,11 @@
 			const val = {
 				mode: e.submitter.value,
 				value,
-				not
+				not,
+				ts
 			};
 			if (mode) {
-				array[index] = val;
+				array[array.findIndex((o) => o.ts == ts)] = val;
 			} else {
 				array.push(val);
 			}

@@ -19,6 +19,7 @@
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import { derived, writable } from 'svelte/store';
 	import { slide } from 'svelte/transition';
+	import { persisted } from 'svelte-persisted-store';
 
 	onMount(() => {
 		refreshConfigurations();
@@ -31,6 +32,7 @@
 
 	let logsCategory = null;
 
+	const duration = 400;
 	const modalStore = getModalStore();
 
 	// Subscribe to config and extract Logs category .. maybe easier than reuse Prprty comp
@@ -106,7 +108,7 @@
 		await updateConfigurations(property);
 	}
 
-	let columnsOrder = [
+	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
 		{ name: 'Time', show: true, width: 90 },
 		{ name: 'Delta', show: true, width: 45 },
@@ -124,6 +126,8 @@
 		{ name: 'clientip', show: true, width: 100 },
 		{ name: 'clienthostname', show: true, width: 100 }
 	];
+
+	const columnsOrder = persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false });
 
 	const columnsConfiguration = {
 		Date: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[0] },
@@ -143,7 +147,8 @@
 		},
 		Category: { idx: 0 },
 		Level: { idx: 2 },
-		Thread: { idx: 3 }
+		Thread: { idx: 3 },
+		Message: { idx: 4 }
 	};
 
 	let extraLines = 1;
@@ -175,13 +180,6 @@
 	}
 
 	function getValue(name, log, index) {
-		// {@const _value =
-		// 						name in columnsConfiguration
-		// 							? log[columnsConfiguration[name].idx]
-		// 							: log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? ''}
-		// 					{@const value = columnsConfiguration[name]?.fn
-		// 						? columnsConfiguration[name].fn(_value, index)
-		// 						: _value}
 		let logValue =
 			name in columnsConfiguration
 				? log[columnsConfiguration[name].idx]
@@ -192,13 +190,37 @@
 			: logValue;
 	}
 
-	let filters = writable({});
+	const filters = persisted('adminLogsFilters', {}, { syncTabs: false });
 
-	function addFilter(category, value = '', mode, index, not = false) {
+	export const filtersFlat = derived(filters, ($filters) => {
+		const result = [];
+		Object.entries($filters).forEach(([category, array]) => {
+			array.forEach((filter, index) => {
+				result.push({
+					category,
+					...filter,
+					index
+				});
+			});
+		});
+		return result;
+	});
+
+	function addFilter(category, value = '', mode, ts = new Date().getTime(), not = false) {
 		modalStore.trigger({
 			type: 'component',
 			component: 'modalLogs',
-			meta: { category, value, mode, index, filters, not }
+			meta: { filters, category, value, mode, ts, not }
+		});
+	}
+
+	function removeFilter(category, index) {
+		filters.update(($filters) => {
+			$filters[category].splice(index, 1);
+			if ($filters[category].length == 0) {
+				delete $filters[category];
+			}
+			return $filters;
 		});
 	}
 
@@ -301,7 +323,7 @@
 </Card>
 
 {#if tabSet === 0}
-	{@const columns = columnsOrder
+	{@const columns = $columnsOrder
 		.filter((c) => c.show)
 		.map((c) => ({
 			name: c.name,
@@ -311,10 +333,10 @@
 	<Card class="mt-2 text-xs">
 		<div class="flex flex-col gap-2">
 			<div class="row-wrap">
-				{#each columnsOrder as conf, index (conf.name)}
+				{#each $columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
-					<div animate:flip={{ duration: 500 }}>
-						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
+					<div animate:flip={{ duration }}>
+						<MovableContent bind:items={$columnsOrder} {index} grabClass="cursor-grab">
 							<div
 								class="mini-card"
 								class:variant-filled-success={show}
@@ -329,7 +351,7 @@
 									bind:deltaX={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
 								>
-								<span class="cursor-pointer" on:click={() => addFilter(conf.name)}
+								<span class="cursor-cell" on:click={() => addFilter(conf.name)}
 									><Ico icon="mdi:filter" /></span
 								>
 								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
@@ -339,30 +361,39 @@
 				{/each}
 			</div>
 			<div class="row-wrap">
-				{#each Object.entries($filters).filter(([_, a]) => a.length > 0) as [category, array], idx}
-					{#if idx > 0}
-						<div class="mini-card variant-ghost" transition:slide={{ axis: 'x' }}>AND</div>
-					{/if}
-					{#each array as { value, mode, not }, index}
-						{#if index > 0}
-							<div class="mini-card variant-ghost" transition:slide={{ axis: 'x' }}>OR</div>
+				<div class="mini-card variant-filled-tertiary">
+					<span>Message</span>
+					<span
+						class="cursor-cell"
+						on:mousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
+						><Ico icon="mdi:filter" /></span
+					>
+				</div>
+				{#each $filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
+					<div
+						class="flex flex-row"
+						animate:flip={{ duration }}
+						transition:slide={{ axis: 'x', duration }}
+					>
+						{#if idx != 0 && index == 0}
+							<div class="mini-card variant-ghost">AND</div>
 						{/if}
-						<div class="mini-card variant-filled" transition:slide={{ axis: 'x' }}>
+						{#if index > 0}
+							<div class="mini-card variant-ghost">OR</div>
+						{/if}
+						<div class="mini-card variant-filled" class:variant-filled-error={not}>
 							<span>{category} {not ? 'not' : ''} {mode} {value}</span>
 							<span
 								class="cursor-pointer"
-								on:click={() => addFilter(category, value, mode, index, not)}
-								><Ico icon="mdi:edit-outline" /></span
+								on:click={() => addFilter(category, value, mode, ts, not)}
 							>
-							<span
-								class="cursor-pointer"
-								on:click={() => {
-									array.splice(index, 1);
-									$filters = $filters;
-								}}><Ico icon="mingcute:delete-line" /></span
-							>
+								<Ico icon="mdi:edit-outline" />
+							</span>
+							<span class="cursor-pointer" on:click={() => removeFilter(category, index)}>
+								<Ico icon="mingcute:delete-line" />
+							</span>
 						</div>
-					{/each}
+					</div>
 				{/each}
 			</div>
 			<div class="relative">
@@ -392,7 +423,7 @@
 						<div
 							{style}
 							class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
-							animate:grabFlip={{ duration: 500 }}
+							animate:grabFlip={{ duration }}
 						>
 							<div class="font-semibold">{name}</div>
 						</div>
@@ -417,8 +448,8 @@
 							{@const value = getValue(name, log, index)}
 							<div
 								{style}
-								class={`px-1 ${cls} text-nowrap overflow-hidden`}
-								animate:grabFlip={{ duration: 500 }}
+								class={`px-1 ${cls} text-nowrap overflow-hidden cursor-cell`}
+								animate:grabFlip={{ duration }}
 								on:click={() => addFilter(name, value)}
 							>
 								{value}
