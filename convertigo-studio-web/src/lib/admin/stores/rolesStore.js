@@ -7,18 +7,21 @@ export let rolesStore = writable([
 		name: 'View Roles',
 		end: '_VIEW',
 		toggle: false,
+		class: 'view-class',
 		roles: /** @type {any[]} */ ([])
 	},
 	{
 		name: 'Config Roles',
 		end: '_CONFIG',
 		toggle: false,
+		class: 'roles-class',
 		roles: []
 	},
 	{
 		name: 'Other Roles',
 		end: '',
 		toggle: false,
+		class: 'other-class',
 		roles: []
 	}
 ]);

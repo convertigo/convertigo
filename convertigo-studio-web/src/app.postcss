@@ -17,7 +17,7 @@ button {
 }
 
 .cancel-button {
-	@apply bg-surface-200 dark:bg-surface-500;
+	@apply bg-surface-400 dark:bg-surface-500;
 }
 
 .delete-button {
@@ -106,10 +106,6 @@ form {
 	@apply rounded-token;
 }
 
-.cancel-button {
-	@apply bg-surface-200 dark:bg-surface-500;
-}
-
 .gray-button {
 	@apply bg-surface-200 dark:bg-surface-500;
 }
@@ -121,16 +117,13 @@ form {
 /*END FORM STYLE*/
 
 .role-view {
-	background-color: #4caf50;
-	color: white; /* other styles */
+	@apply mr-1 px-2 bg-secondary-500 gap-2 rounded-token;
 }
 .role-config {
-	background-color: #2196f3;
-	color: white; /* other styles */
+	@apply mr-1 px-2 bg-primary-500 gap-2 rounded-token;
 }
 .role-other {
-	background-color: #ffc107;
-	color: black; /* other styles */
+	@apply mr-1 px-2 bg-tertiary-600 gap-2 rounded-token;
 }
 
 /**SLIDE TOGGLE */

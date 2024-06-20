@@ -102,9 +102,9 @@
 					<div class="container-child">
 						<div class="flex items-center gap-5">
 							<h1 class="font-bold text-xl">{name}</h1>
-							<RadioGroup class="shadow-md">
+							<RadioGroup class="" background="bg-surface-50 dark:bg-surface-700">
 								{@const radioDef = [
-									{ value: false, active: 'variant-filled-surface', icon: 'mdi:minus' },
+									{ value: false, active: 'variant-filled-error', icon: 'mdi:minus' },
 									{ value: true, active: 'variant-filled-secondary', icon: 'mdi:plus' }
 								]}
 								{#each radioDef as { value, active, icon }}
@@ -141,7 +141,7 @@
 {#if mode == 'import'}
 	<Card title="Import Users">
 		<form class=" flex flex-col">
-			<RadioGroup active="bg-primary-800" class="font-normal">
+			<RadioGroup active="dark:bg-primary-800 bg-primary-400" class="font-normal">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
 					><p class="text-[12px]">Clear & import</p></RadioItem
 				>
@@ -151,7 +151,7 @@
 			</RadioGroup>
 			{#if importAction == ''}
 				<p class="mt-2 text-[11px] mb-2 font-normal">In case of name conflict :</p>
-				<RadioGroup active="bg-primary-800" class="font-normal">
+				<RadioGroup active="dark:bg-primary-800 bg-primary-400" class="font-normal">
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server"
 						><p class="text-[12px]">Priority Server</p>
 					</RadioItem>

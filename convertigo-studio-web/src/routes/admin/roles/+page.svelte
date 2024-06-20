@@ -113,17 +113,6 @@
 		});
 	}
 
-	function getTailwindClass(role) {
-		role = role.toUpperCase();
-		if (role.endsWith('VIEW')) {
-			return 'bg-green-500 mt-2 mr-5 ml-5';
-		} else if (role.endsWith('CONFIG')) {
-			return 'bg-blue-500 mt-2 mr-5 ml-5';
-		} else {
-			return 'bg-yellow-500 mt-2 mr-5 ml-5';
-		}
-	}
-
 	function exportUserFile() {
 		const usersArray = Array.from(selectedUsers);
 		const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
@@ -150,6 +139,11 @@
 		// 	icon: 'bytesize:export'
 		// }
 	};
+
+	const sortRoles = (a, b) =>
+		['_VIEW', '_CONFIG', ''].reduce((res, suffix) => {
+			return res || (a.endsWith(suffix) ? 1 : 0) - (b.endsWith(suffix) ? 1 : 0);
+		}, 0) || a.localeCompare(b);
 </script>
 
 <Card title="Roles">
@@ -198,8 +192,17 @@
 			let:def
 		>
 			{#if def.name === 'Role'}
-				{#each row.role as role}
-					{role.replace(/_/g, ' ')}
+				{#each row.role.split(', ').sort(sortRoles) as role}
+					<span
+						class={role.endsWith('_VIEW')
+							? 'role-view'
+							: role.endsWith('_CONFIG')
+								? 'role-config'
+								: 'role-other'}
+					>
+						{role.replace(/_/g, '-').charAt(0).toUpperCase() +
+							role.replace(/_/g, ' ').slice(1).toLowerCase()}
+					</span>
 				{/each}
 			{:else if def.name === 'Edit'}
 				<button class="yellow-button" on:click={() => openModals('add', row)}>
@@ -247,3 +250,15 @@
 		</div>
 	{/if}
 </Card>
+
+<style lang="postcss">
+	.role-view {
+		@apply mr-1 px-2 dark:bg-secondary-500 bg-secondary-400 font-light gap-2 rounded-token dark:bg-opacity-80;
+	}
+	.role-config {
+		@apply mr-1 px-2 dark:bg-primary-500 bg-primary-400 gap-2 font-light rounded-token dark:bg-opacity-80;
+	}
+	.role-other {
+		@apply mr-1 px-2 dark:bg-tertiary-600 bg-tertiary-400 gap-2 font-light rounded-token dark:bg-opacity-80;
+	}
+</style>

@@ -19,7 +19,8 @@
 	const drawerStore = getDrawerStore();
 </script>
 
-<AppRail width="w-auto" class="border-r-[0.5px] border-surface-200-700-token px-1">
+<AppRail width="w-auto" class="border-r-[0.5px] border-surface-200-700-token px-2">
+	<div class="h-5" />
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
@@ -33,7 +34,7 @@
 				{/if}
 				<Ico size="nav" icon={tile.icon} style="z-index: 10;" />
 				<span
-					class={`ml-3 text-[14px] z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'extralight'}`}
+					class={`ml-3 text-[13px] z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'light'}`}
 					>{tile.title}</span
 				>
 			</a>

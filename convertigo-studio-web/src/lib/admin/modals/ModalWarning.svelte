@@ -1,6 +1,7 @@
 <script>
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
+	import ModalButtons from '../components/ModalButtons.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta ?? {};
@@ -13,7 +14,7 @@
 				<header class="text-2xl font-bold mb-5">{$modalStore[0].title}</header>
 				<article class="mb-10">{$modalStore[0].body}</article>
 			{/if}
-			<div class="w-full flex justify-end">
+			<!-- <div class="w-full flex justify-end">
 				<div class="flex flex-wrap gap-2">
 					<div class="flex-1">
 						<button
@@ -43,7 +44,8 @@
 						</button>
 					</div>
 				</div>
-			</div>
+			</div> -->
+			<ModalButtons />
 		</div>
 	</Card>
 {/if}

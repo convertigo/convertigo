@@ -183,11 +183,11 @@
 		</button>
 
 		{#if selectRow}
-			<button class="yellow-button" on:click={exportUserFile}>
+			<button class="green-button" on:click={exportUserFile}>
 				<p>Validate export</p>
 				<Ico icon="bytesize:export" />
 			</button>
-			<button class="green-button" on:click={selectAllUsersFunction}>
+			<button class="yellow-button" on:click={selectAllUsersFunction}>
 				<p>Select all users</p>
 				<Ico icon="bytesize:export" />
 			</button>
