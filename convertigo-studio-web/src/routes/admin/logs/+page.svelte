@@ -12,6 +12,7 @@
 	import { logs as allLogs, logsList } from '$lib/admin/stores/logsStore';
 	import { onMount } from 'svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
+	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { checkArray } from '$lib/utils/service';
 	import VirtualList from 'svelte-tiny-virtual-list';
@@ -154,6 +155,14 @@
 	let extraLines = 1;
 	let isDragging = false;
 	let virtualList;
+	let pulsedCategory;
+	let pulsedCategoryTimeout;
+
+	function doPulse(e) {
+		clearTimeout(pulsedCategoryTimeout);
+		pulsedCategory = e.target.innerText;
+		pulsedCategoryTimeout = setTimeout(() => (pulsedCategory = ''), 2000);
+	}
 
 	async function itemsUpdated(event) {
 		if (event.detail.end >= $logs.length - 1) {
@@ -279,7 +288,9 @@
 			</Tab>
 		{/each}
 		<svelte:fragment slot="panel">
-			{#if tabSet === 1}
+			{#if tabSet === 0}
+				<TimePicker />
+			{:else if tabSet === 1}
 				<div class="logsCard">
 					<RangeSlider
 						accent="accent-tertiary-500 dark:accent-tertiary-500"
@@ -341,6 +352,7 @@
 								class="mini-card"
 								class:variant-filled-success={show}
 								class:variant-filled-warning={!show}
+								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
 								<span class="cursor-pointer" on:click={() => (conf.show = !show)}
@@ -382,7 +394,9 @@
 							<div class="mini-card variant-ghost">OR</div>
 						{/if}
 						<div class="mini-card variant-filled" class:variant-filled-error={not}>
-							<span>{category} {not ? 'not' : ''} {mode} {value}</span>
+							<span class="overflow-hidden max-w-xs"
+								>{category} {not ? 'not' : ''} {mode} {value}</span
+							>
 							<span
 								class="cursor-pointer"
 								on:click={() => addFilter(category, value, mode, ts, not)}
@@ -425,7 +439,9 @@
 							class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
 							animate:grabFlip={{ duration }}
 						>
-							<div class="font-semibold">{name}</div>
+							<div class="font-semibold cursor-help" on:click={doPulse} on:mouseover={doPulse}>
+								{name}
+							</div>
 						</div>
 					{/each}
 				</div>

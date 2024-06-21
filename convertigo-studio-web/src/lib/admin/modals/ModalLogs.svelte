@@ -32,7 +32,16 @@
 
 <Card title={`${mode ? 'Edit' : 'Add'} log filter for ${category}`}>
 	<form on:submit|preventDefault={submit} class="flex flex-col gap-2">
-		<input class="input" type="text" bind:value />
+		{#if category == 'Message'}
+			<textarea
+				class="textarea overflow-auto"
+				bind:value
+				wrap="off"
+				rows={Math.min(10, value.split('\n').length)}
+			/>
+		{:else}
+			<input class="input" bind:value />
+		{/if}
 		<SlideToggle name="negate" bind:checked={not} active="bg-error-400 dark:bg-error-700"
 			>{not ? 'not' : 'is'}</SlideToggle
 		>
