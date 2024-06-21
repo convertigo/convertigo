@@ -100,7 +100,7 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 		public String getPath() {
 			String path = INVALID_CHARACTERS.matcher(name).find() ?  "['"+name+"']":name;
 			if (parent != null) {
-				path = parent.getPath() + (path.startsWith("[") ? "":"?.") + path;
+				path = parent.getPath() + "?." + path;
 			}
 			return path;
 		}
