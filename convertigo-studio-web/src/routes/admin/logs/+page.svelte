@@ -9,7 +9,7 @@
 		configurations,
 		updateConfigurations
 	} from '$lib/admin/stores/configurationStore';
-	import { logs as allLogs, logsList } from '$lib/admin/stores/logsStore';
+	import { logs as allLogs, logsList, formatDate, formatTime, startDate, endDate, realtime } from '$lib/admin/stores/logsStore';
 	import { onMount } from 'svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
@@ -18,9 +18,10 @@
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
-	import { derived, writable } from 'svelte/store';
+	import { derived } from 'svelte/store';
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
+	import { DatePicker } from '@svelte-plugins/datepicker';
 
 	onMount(() => {
 		refreshConfigurations();
@@ -34,6 +35,7 @@
 	let logsCategory = null;
 
 	const duration = 400;
+	const tzOffset = new Date().getTimezoneOffset() * 60000;
 	const modalStore = getModalStore();
 
 	// Subscribe to config and extract Logs category .. maybe easier than reuse Prprty comp
@@ -252,6 +254,32 @@
 	filters.subscribe((f) => {
 		$allLogs = $allLogs;
 	});
+
+	/** @type {Array<number|null>}*/
+	let datesEdited = [new Date().setDate(new Date().getDate() - 1), new Date().getTime()];
+	let dates = [...datesEdited];
+	let times = datesEdited.map((d) => formatTime(d));
+	let isOpen = false;
+	let showTime = false;
+
+	$startDate = formatDate(dates[0]) + ' ' + times[0];
+	$endDate = formatDate(dates[1]) + ' ' + times[1];
+
+	function onDayClick(e) {
+		if (e.startDate) {
+			dates[0] = e.startDate - tzOffset;
+		}
+		if (e.endDate) {
+			dates[1] = e.endDate - tzOffset;
+		}
+	}
+
+	async function refreshLogs() {
+		$startDate = formatDate(dates[0]) + ' ' + times[0];
+		$endDate = formatDate(dates[1]) + ' ' + times[1];
+		console.log('refreshLogs', dates, times, $startDate, $endDate);
+		await logsList(true);
+	}
 </script>
 
 <Card title="Logs">
@@ -289,7 +317,42 @@
 		{/each}
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
-				<TimePicker />
+			<div class="flex flex-col gap-2">
+				<DatePicker
+					bind:isOpen
+					alwaysShow={false}
+					isRange={true}
+					isMultipane={true}
+					bind:startDate={datesEdited[0]}
+					bind:endDate={datesEdited[1]}
+					showYearControls={true}
+					startOfWeek={1}
+					{onDayClick}
+				>
+					<div class="flex flex-row flex-wrap gap-4">
+						{#each ['From', 'To'] as way, i}
+							<div class="flex flex-col items-center gap-4">
+								<div class="flex flex-row flex-wrap items-center gap-2">
+									<span>{way}</span>
+									<input
+										type="text"
+										class="input max-w-fit"
+										value={formatDate(dates[i])}
+										on:focus={() => {
+											datesEdited[i] = null;
+											isOpen = true;
+											showTime = false;
+										}}
+										size="11"
+									/>
+									<TimePicker bind:inputValue={times[i]} />
+								</div>
+							</div>
+						{/each}
+					</div>
+				</DatePicker>
+				<button class="btn variant-filled-surface" on:click={refreshLogs}>Refresh</button>
+			</div>
 			{:else if tabSet === 1}
 				<div class="logsCard">
 					<RangeSlider

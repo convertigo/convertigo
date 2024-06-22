@@ -76,6 +76,7 @@
 	"dependencies": {
 		"@flaticon/flaticon-uicons": "^3.3.0",
 		"@floating-ui/dom": "^1.6.5",
+		"@svelte-plugins/datepicker": "^1.0.9",
 		"apexcharts": "^3.49.1",
 		"chart.js": "^4.4.3",
 		"fast-xml-parser": "^4.4.0",
