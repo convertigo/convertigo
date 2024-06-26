@@ -44,7 +44,6 @@
 				'@_key': p['@_name'],
 				'@_value': p['@_value']
 			}));
-		console.log(toSave);
 		modalStore.trigger({
 			type: 'component',
 			component: 'modalWarning',

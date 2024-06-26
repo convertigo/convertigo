@@ -17,7 +17,6 @@
 	let element;
 
 	async function updateHeight(e) {
-		console.log('updateHeight', height, e);
 		if (element) {
 			const rect = element.getBoundingClientRect();
 			height = Math.floor(window.innerHeight - rect.top);

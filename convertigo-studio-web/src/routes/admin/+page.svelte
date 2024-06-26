@@ -54,7 +54,6 @@
 				timeout: 8000,
 				background: 'bg-success-400-500-token'
 			});
-			console.log(res);
 		} catch (err) {
 			toastStore.trigger({
 				message: 'An error occurred while performing GC',

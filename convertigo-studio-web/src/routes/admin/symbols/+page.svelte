@@ -34,7 +34,6 @@
 			// @ts-ignore
 			const response = await call('global_symbols.Delete', formData);
 			globalSymbols();
-			console.log('symbols delete', response);
 		} catch (error) {
 			console.error(error);
 		}
@@ -53,7 +52,6 @@
 		try {
 			//@ts-ignore
 			const response = await call('global_symbols.Add', fd);
-			console.log(response);
 			globalSymbols();
 		} catch (err) {
 			console.error(err);

@@ -13,7 +13,7 @@
 	export let parent;
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
-	console.log('row', row);
+
 	let binds = {
 		name: row?.['@_name'] ?? '',
 		description: row?.['@_description'] ?? '',

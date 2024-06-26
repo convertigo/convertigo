@@ -32,7 +32,6 @@
 			// @ts-ignore
 			const res = await call('projects.Deploy', new FormData(e.target.form));
 			await projectsCheck();
-			console.log('deploy res', res);
 		} catch (err) {
 			console.error(err);
 		} finally {

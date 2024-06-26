@@ -15,7 +15,6 @@ export async function getEnvironmentVar() {
 
 export async function globalSymbols() {
 	const res = await call('global_symbols.List');
-	console.log('global symbols list:', res);
 
 	// Handling undefined or empty symbolList
 	let symbolList = res.admin?.symbols?.symbol ?? [];

@@ -60,6 +60,5 @@ export async function statusCheck() {
 				}
 			}
 		}
-		console.log('status', response);
 	}
 }

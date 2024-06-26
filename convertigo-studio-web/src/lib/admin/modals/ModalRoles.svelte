@@ -38,7 +38,6 @@
 
 		//@ts-ignore
 		const res = await call(`roles.${row ? 'Edit' : 'Add'}`, fd);
-		console.log('role add res:', res);
 		if (res?.admin?.response?.['@_state'] == 'success') {
 			usersList();
 			modalStore.close();
@@ -55,7 +54,6 @@
 		try {
 			//@ts-ignore
 			const response = await call('roles.Import', fd);
-			console.log(response);
 		} catch (err) {
 			console.error(err);
 		}

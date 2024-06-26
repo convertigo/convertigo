@@ -261,7 +261,6 @@
 						>
 							{#each logsCategory.property as property}
 								{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
-									{@html console.log(property['@_description'])}
 									<PropertyType {property} />
 								{/if}
 							{/each}

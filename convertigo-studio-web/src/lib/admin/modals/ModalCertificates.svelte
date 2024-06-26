@@ -21,7 +21,6 @@
 		const fd = new FormData(e.target);
 		try {
 			const res = await call('certificates.Remove', fd);
-			console.log('remove', res);
 			await certificatesList();
 		} catch (error) {
 			console.error('Error removing certificate:', error);

@@ -64,7 +64,6 @@
 	async function deleteAllRoles() {
 		try {
 			const res = await call('roles.DeleteAll');
-			console.log('service delete All roles', res);
 			if (res?.admin?.response?.['@_state'] == 'success') {
 				usersList();
 				modalStore.close();

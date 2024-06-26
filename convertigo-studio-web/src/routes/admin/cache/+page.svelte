@@ -29,7 +29,6 @@
 			...response.admin
 		};
 		oriConf = copyObj($conf);
-		console.log('cache res', response);
 	}
 
 	onMount(() => {
@@ -45,7 +44,6 @@
 		try {
 			// @ts-ignore
 			const response = await call('cache.Configure', formData);
-			console.log(response);
 			// @ts-ignore
 			modalStoreCache.trigger({
 				title: 'Applied with success'

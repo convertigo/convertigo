@@ -9,10 +9,8 @@
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
-	let javaSystemProp = '';
 	let data = Array(10).fill({ '@_name': null, '@_value': null });
 	onMount(() => {
-		console.log('mount mode', mode); // props or env
 		if (mode == 'props') {
 			call('engine.GetJavaSystemPropertiesJson').then((res) => {
 				data = res.properties;

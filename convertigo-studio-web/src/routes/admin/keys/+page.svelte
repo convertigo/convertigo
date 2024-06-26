@@ -48,7 +48,6 @@
 					}
 				}
 			});
-			console.log('remove key service', response);
 			keysCheck();
 		} catch (error) {
 			console.error(error);
@@ -66,7 +65,6 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteKey(keyText);
-					console.log('key deleted :', { keyText });
 				}
 			}
 		});

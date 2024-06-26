@@ -54,7 +54,6 @@
 	export async function deleteProject(projectName) {
 		try {
 			const response = await call('projects.Delete', { projectName });
-			console.log('deleted project', response);
 			await projectsCheck();
 		} catch (err) {
 			console.error('Error deleting project:', err);
@@ -64,7 +63,6 @@
 	export async function deleteAllProjects() {
 		try {
 			const response = await call('projects.DeleteAll');
-			console.log('deleted project', response);
 			await projectsCheck();
 		} catch (err) {
 			console.error('Error deleting all project:', err);
@@ -74,7 +72,6 @@
 	async function reloadProject(projectName) {
 		try {
 			const response = await call('projects.Reload', { projectName });
-			console.log('Reload service', response);
 
 			if (response.admin['@_service'] === 'projects.Reload') {
 				projectModalStore.trigger({
@@ -130,7 +127,6 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteProject(projectName);
-					console.log('key deleted', { projectName });
 				}
 			}
 		});
@@ -146,7 +142,6 @@
 			response: (confirmed) => {
 				if (confirmed) {
 					deleteProject(projectName);
-					console.log('key deleted', { projectName });
 				}
 			}
 		});

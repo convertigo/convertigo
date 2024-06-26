@@ -19,7 +19,6 @@
 		symbolName: row?.['@_name'] ?? '',
 		symbolValue: row?.['@_value'] ?? ''
 	};
-	console.log('row', binds);
 
 	async function addGlobalSymbol(e) {
 		const fd = new FormData(e.target);
