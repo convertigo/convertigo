@@ -1,16 +1,10 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { Tab, TabGroup, RangeSlider, getModalStore } from '@skeletonlabs/skeleton';
+	import { Tab, TabGroup, RangeSlider, popup, SlideToggle } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
+	import { refreshConfigurations, configurations } from '$lib/admin/stores/configurationStore';
 	import {
-		refreshConfigurations,
-		configurations,
-		updateConfigurations
-	} from '$lib/admin/stores/configurationStore';
-	import {
-		logs as allLogs,
 		logsList,
 		formatDate,
 		formatTime,
@@ -23,13 +17,9 @@
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { checkArray } from '$lib/utils/service';
-	import VirtualList from 'svelte-tiny-virtual-list';
-	import { flip } from 'svelte/animate';
-	import MovableContent from '$lib/admin/components/MovableContent.svelte';
-	import { derived } from 'svelte/store';
 	import { slide } from 'svelte/transition';
-	import { persisted } from 'svelte-persisted-store';
 	import { DatePicker } from '@svelte-plugins/datepicker';
+	import LogViewer from '$lib/admin/components/LogViewer.svelte';
 
 	onMount(() => {
 		refreshConfigurations();
@@ -42,9 +32,7 @@
 
 	let logsCategory = null;
 
-	const duration = 400;
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
-	const modalStore = getModalStore();
 
 	// Subscribe to config and extract Logs category .. maybe easier than reuse Prprty comp
 	// from configration page
@@ -55,216 +43,18 @@
 		}
 	}
 
-	const logsAction = {
-		options: {
-			name: 'Viewer',
-			icon: 'grommet-icons:add',
-			value: 0
-		},
-		purge: {
-			name: 'Purge',
-			icon: 'grommet-icons:add',
-			value: 1
-		},
-		logLevels: {
-			name: 'Log Levels',
-			icon: 'grommet-icons:add',
-			value: 2
-		}
-	};
-
-	const logsOptions = {
-		fullscreen: {
-			name: 'Fullscreen',
-			icon: 'grommet-icons:add'
-		},
-		realTime: {
-			name: 'Real Time',
-			icon: 'grommet-icons:add'
-		},
-		autoScroll: {
-			name: 'Auto Scroll',
-			icon: 'grommet-icons:add'
-		},
-		download: {
-			name: 'Download',
-			icon: 'grommet-icons:add'
-		},
-		resetOptions: {
-			name: 'Reset Options',
-			icon: 'grommet-icons:add'
-		},
-		goToEnd: {
-			name: 'Go to End',
-			icon: 'grommet-icons:add'
-		},
-		applyOptions: {
-			name: 'Apply Options',
-			icon: 'grommet-icons:add'
-		}
-	};
-
-	const optionsCheckbox = [
-		{ id: 'selectedCol', name: 'Selected Column' },
-		{ id: 'category', name: 'Category' },
-		{ id: 'time', name: 'Time' },
-		{ id: 'deltaTime', name: 'Delta Time' },
-		{ id: 'level', name: 'Level' },
-		{ id: 'thread', name: 'Threads' },
-		{ id: 'message', name: 'Message' },
-		{ id: 'extra', name: 'Extra' }
+	const tabs = [
+		{ name: 'Viewer', icon: 'grommet-icons:add' },
+		{ name: 'Real Time', icon: 'grommet-icons:add' },
+		{ name: 'Purge', icon: 'grommet-icons:add' },
+		{ name: 'Log Levels', icon: 'grommet-icons:add' }
 	];
-
-	async function handleUpdate(property) {
-		await updateConfigurations(property);
-	}
-
-	const _columnsOrder = [
-		{ name: 'Date', show: true, width: 85 },
-		{ name: 'Time', show: true, width: 90 },
-		{ name: 'Delta', show: true, width: 45 },
-		{ name: 'Level', show: false, width: 50 },
-		{ name: 'Category', show: true, width: 110 },
-		{ name: 'Thread', show: true, width: 200 },
-		{ name: 'user', show: true, width: 100 },
-		{ name: 'project', show: true, width: 100 },
-		{ name: 'sequence', show: true, width: 100 },
-		{ name: 'connector', show: true, width: 100 },
-		{ name: 'transaction', show: true, width: 100 },
-		{ name: 'contextid', show: true, width: 100 },
-		{ name: 'uid', show: true, width: 100 },
-		{ name: 'uuid', show: true, width: 100 },
-		{ name: 'clientip', show: true, width: 100 },
-		{ name: 'clienthostname', show: true, width: 100 }
-	];
-
-	const columnsOrder = persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false });
-
-	const columnsConfiguration = {
-		Date: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[0] },
-		Time: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[1] },
-		Delta: {
-			idx: 1,
-			fn: (v, i) => {
-				const diff =
-					// @ts-ignore
-					i > 0 ? new Date(v.replace(',', '.')) - new Date($logs[i - 1][1].replace(',', '.')) : 0;
-				return diff < 1000
-					? diff + 'ms'
-					: diff < 3600
-						? (diff / 1000).toFixed(2) + 's'
-						: new Date(diff).toISOString().substring(11, 19);
-			}
-		},
-		Category: { idx: 0 },
-		Level: { idx: 2 },
-		Thread: { idx: 3 },
-		Message: { idx: 4 }
-	};
-
-	let extraLines = 1;
-	let isDragging = false;
-	let virtualList;
-	let pulsedCategory;
-	let pulsedCategoryTimeout;
-
-	function doPulse(e) {
-		clearTimeout(pulsedCategoryTimeout);
-		pulsedCategory = e.target.innerText;
-		pulsedCategoryTimeout = setTimeout(() => (pulsedCategory = ''), 2000);
-	}
-
-	async function itemsUpdated(event) {
-		if (event.detail.end >= $logs.length - 1) {
-			await logsList();
-		}
-	}
-
-	function itemSize(index) {
-		let height =
-			26 + extraLines * 16 + Math.max(16, $logs[index][4].trim().split('\n').length * 16);
-		return height;
-	}
-
-	function grabFlip(node, elts, options) {
-		if (!isDragging) {
-			return flip(node, elts, options);
-		}
-		return {
-			delay: 0,
-			duration: 0,
-			easing: (t) => t,
-			css: () => ''
-		};
-	}
-
-	function getValue(name, log, index) {
-		let logValue =
-			name in columnsConfiguration
-				? log[columnsConfiguration[name].idx]
-				: // @ts-ignore
-					log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? '';
-		return columnsConfiguration[name]?.fn
-			? columnsConfiguration[name].fn(logValue, index)
-			: logValue;
-	}
-
-	const filters = persisted('adminLogsFilters', {}, { syncTabs: false });
-
-	export const filtersFlat = derived(filters, ($filters) => {
-		const result = [];
-		Object.entries($filters).forEach(([category, array]) => {
-			array.forEach((filter, index) => {
-				result.push({
-					category,
-					...filter,
-					index
-				});
-			});
-		});
-		return result;
-	});
-
-	function addFilter(category, value = '', mode, ts = new Date().getTime(), not = false) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalLogs',
-			meta: { filters, category, value, mode, ts, not }
-		});
-	}
-
-	function removeFilter(category, index) {
-		filters.update(($filters) => {
-			$filters[category].splice(index, 1);
-			if ($filters[category].length == 0) {
-				delete $filters[category];
-			}
-			return $filters;
-		});
-	}
-
-	const logs = derived(allLogs, ($logs) => {
-		return Object.entries($filters).length == 0
-			? $logs
-			: $logs.filter((log, index) => {
-					return Object.entries($filters).every(([name, array]) => {
-						return array.length == 0
-							? true
-							: array.some(({ mode, value, not }) => {
-									let logValue = getValue(name, log, index);
-									let ret = mode == 'equals' ? logValue == value : logValue[mode](value);
-									return not ? !ret : ret;
-								});
-					});
-				});
-	});
-
-	filters.subscribe((f) => {
-		$allLogs = $allLogs;
-	});
 
 	/** @type {Array<number|null>}*/
-	let datesEdited = [new Date().setDate(new Date().getDate() - 1), new Date().getTime()];
+	let datesEdited = [
+		new Date().setDate(new Date().getDate() - 1),
+		new Date().setHours(0, 0, 0, 0) + 86400000
+	];
 	let dates = [...datesEdited];
 	let times = datesEdited.map((d) => formatTime(d));
 	let isOpen = false;
@@ -285,21 +75,64 @@
 	async function refreshLogs() {
 		$startDate = formatDate(dates[0]) + ' ' + times[0];
 		$endDate = formatDate(dates[1]) + ' ' + times[1];
-		console.log('refreshLogs', dates, times, $startDate, $endDate);
+		$realtime = tabs[tabSet].name == 'Real Time';
 		await logsList(true);
+	}
+
+	const presets = [
+		[
+			{ name: 'now', fn: () => new Date().getTime() },
+			{
+				name: '10 min ago',
+				fn: () => new Date(dates[0] ?? 0).setMinutes(new Date(dates[0] ?? 0).getMinutes() - 10)
+			},
+			{
+				name: '1 hour ago',
+				fn: () => new Date(dates[0] ?? 0).setHours(new Date(dates[0] ?? 0).getHours() - 1)
+			},
+			{ name: 'today', fn: () => new Date().setHours(0, 0, 0, 0) },
+			{ name: 'yesterday', fn: () => new Date().setHours(0, 0, 0, 0) - 86400000 },
+			{
+				name: 'start of the month',
+				fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setDate(1)
+			},
+			{
+				name: 'start of the year',
+				fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setMonth(0, 1)
+			},
+			{ name: 'epoch', fn: () => 0 }
+		],
+		[
+			{ name: 'now', fn: () => new Date().getTime() },
+			{ name: '10 min after', fn: () => new Date().setMinutes(new Date().getMinutes() + 10) },
+			{ name: '1 hour after', fn: () => new Date().setHours(new Date().getHours() + 1) },
+			{ name: 'tomorrow', fn: () => new Date().setHours(0, 0, 0, 0) + 86400000 }
+		]
+	];
+
+	let autoScroll = false;
+
+	function tabChanged() {
+		if (tabs[tabSet].name == 'Real Time') {
+			$realtime = true;
+			refreshLogs();
+		} else if (tabs[tabSet].name == 'Viewer' && $realtime) {
+			$realtime = false;
+			refreshLogs();
+		}
 	}
 </script>
 
 <Card title="Logs">
 	<div slot="cornerOption">
-		{#if tabSet === 1}
+		{#if tabs[tabSet].name == 'Purge'}
 			<ButtonsContainer class="flex">
 				<button type="button" class="basic-button">
 					<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
 					<span>Purge</span>
 				</button>
 			</ButtonsContainer>
-		{:else if tabSet === 2}
+		{:else if tabs[tabSet].name == 'Purge'}
 			<ButtonsContainer class="flex">
 				<button type="button" class="basic-button">
 					<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
@@ -313,8 +146,14 @@
 		{/if}
 	</div>
 	<TabGroup>
-		{#each Object.entries(logsAction) as [key, { name, icon, value }]}
-			<Tab bind:group={tabSet} name={key} {value} active="dark:bg-surface-500 bg-surface-50">
+		{#each tabs as { name, icon }, value}
+			<Tab
+				bind:group={tabSet}
+				{name}
+				{value}
+				active="dark:bg-surface-500 bg-surface-50"
+				on:change={tabChanged}
+			>
 				<svelte:fragment slot="lead">
 					<div class="flex items-center gap-2">
 						<p>{name}</p>
@@ -324,44 +163,78 @@
 			</Tab>
 		{/each}
 		<svelte:fragment slot="panel">
-			{#if tabSet === 0}
+			{#if tabs[tabSet].name == 'Viewer'}
 				<div class="flex flex-col gap-2">
-					<DatePicker
-						bind:isOpen
-						alwaysShow={false}
-						isRange={true}
-						isMultipane={true}
-						bind:startDate={datesEdited[0]}
-						bind:endDate={datesEdited[1]}
-						showYearControls={true}
-						startOfWeek={1}
-						{onDayClick}
-					>
-						<div class="flex flex-row flex-wrap gap-4">
-							{#each ['From', 'To'] as way, i}
-								<div class="flex flex-col items-center gap-4">
-									<div class="flex flex-row flex-wrap items-center gap-2">
-										<span>{way}</span>
-										<input
-											type="text"
-											class="input max-w-fit"
-											value={formatDate(dates[i])}
-											on:focus={() => {
-												datesEdited[i] = null;
-												isOpen = true;
-												showTime = false;
+					<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
+						{#each presets as preset, i}
+							<div class="card p-4 variant-filled-surface z-50" data-popup={`preset-${i}`}>
+								<div class="flex flex-col gap-2 overflow-y-auto">
+									{#each preset as { name, fn }}
+										<button
+											class="btn variant-ghost-primary"
+											on:click={() => {
+												dates[i] = fn();
+												times[i] = formatTime(dates[i]);
 											}}
-											size="11"
-										/>
-										<TimePicker bind:inputValue={times[i]} />
-									</div>
+										>
+											{name}
+										</button>
+									{/each}
+									<div class="arrow variant-filled-surface" />
 								</div>
-							{/each}
-						</div>
-					</DatePicker>
-					<button class="btn variant-filled-surface" on:click={refreshLogs}>Refresh</button>
+							</div>
+						{/each}
+						<DatePicker
+							bind:isOpen
+							alwaysShow={false}
+							isRange={true}
+							isMultipane={true}
+							bind:startDate={datesEdited[0]}
+							bind:endDate={datesEdited[1]}
+							showYearControls={true}
+							startOfWeek={1}
+							{onDayClick}
+						>
+							<div class="flex flex-row flex-wrap gap-4">
+								{#each ['From', 'To'] as way, i}
+									<div class="flex flex-col items-center gap-4">
+										<div class="flex flex-row flex-wrap items-center gap-2">
+											<button
+												type="button"
+												class="btn p-2 variant-filled-surface"
+												use:popup={{ event: 'click', target: `preset-${i}`, placement: 'bottom' }}
+												>{way}&nbsp;<Ico icon="mdi:clock-star-four-points-outline" /></button
+											>
+											<input
+												type="text"
+												class="input max-w-fit"
+												value={formatDate(dates[i])}
+												on:focus={() => {
+													datesEdited[i] = null;
+													isOpen = true;
+													showTime = false;
+												}}
+												size="11"
+											/>
+											<TimePicker bind:inputValue={times[i]} />
+										</div>
+									</div>
+								{/each}
+								<button class="btn variant-filled-surface p-2" on:click={refreshLogs}
+									>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
+								>
+							</div>
+						</DatePicker>
+					</div>
 				</div>
-			{:else if tabSet === 1}
+			{:else if tabs[tabSet].name == 'Real Time'}
+				<SlideToggle
+					size="sm"
+					name="realtime"
+					class="variant-ghost-primary p-2"
+					bind:checked={autoScroll}>Autoscroll</SlideToggle
+				>
+			{:else if tabs[tabSet].name == 'Purge'}
 				<div class="logsCard">
 					<RangeSlider
 						accent="accent-tertiary-500 dark:accent-tertiary-500"
@@ -376,7 +249,7 @@
 						</div>
 					</RangeSlider>
 				</div>
-			{:else if tabSet === 2}
+			{:else if tabs[tabSet].name == 'Log Levels'}
 				<Card>
 					{#if checkArray(logsCategory.property)}
 						<ResponsiveContainer
@@ -397,204 +270,19 @@
 						<p>No logs category found or properties are not available.</p>
 					{/if}
 				</Card>
-			{:else if tabSet === 3}
-				<div>Tab Panel 4 Contents</div>
 			{/if}
 		</svelte:fragment>
 	</TabGroup>
 </Card>
 
-{#if tabSet === 0}
-	{@const columns = $columnsOrder
-		.filter((c) => c.show)
-		.map((c) => ({
-			name: c.name,
-			cls: columnsConfiguration[c.name]?.cls ?? '',
-			style: `width: ${c.width}px; min-width: ${c.width}px;`
-		}))}
-	<Card class="mt-2 text-xs">
-		<div class="flex flex-col gap-2">
-			<div class="row-wrap">
-				{#each $columnsOrder as conf, index (conf.name)}
-					{@const { name, show } = conf}
-					<div animate:flip={{ duration }}>
-						<MovableContent bind:items={$columnsOrder} {index} grabClass="cursor-grab">
-							<div
-								class="mini-card"
-								class:variant-filled-success={show}
-								class:variant-filled-warning={!show}
-								class:animate-pulse={name == pulsedCategory}
-							>
-								<span>{name}</span>
-								<span class="cursor-pointer" on:click={() => (conf.show = !show)}
-									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
-								>
-								<DraggableValue
-									class="cursor-col-resize"
-									bind:deltaX={conf.width}
-									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
-								>
-								<span class="cursor-cell" on:click={() => addFilter(conf.name)}
-									><Ico icon="mdi:filter" /></span
-								>
-								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
-							</div>
-						</MovableContent>
-					</div>
-				{/each}
-			</div>
-			<div class="row-wrap">
-				<div class="mini-card variant-filled-tertiary">
-					<span>Message</span>
-					<span
-						class="cursor-cell"
-						on:mousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
-						><Ico icon="mdi:filter" /></span
-					>
-				</div>
-				{#each $filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
-					<div
-						class="flex flex-row"
-						animate:flip={{ duration }}
-						transition:slide={{ axis: 'x', duration }}
-					>
-						{#if idx != 0 && index == 0}
-							<div class="mini-card variant-ghost">AND</div>
-						{/if}
-						{#if index > 0}
-							<div class="mini-card variant-ghost">OR</div>
-						{/if}
-						<div class="mini-card variant-filled" class:variant-filled-error={not}>
-							<span class="overflow-hidden max-w-xs"
-								>{category} {not ? 'not' : ''} {mode} {value}</span
-							>
-							<span
-								class="cursor-pointer"
-								on:click={() => addFilter(category, value, mode, ts, not)}
-							>
-								<Ico icon="mdi:edit-outline" />
-							</span>
-							<span class="cursor-pointer" on:click={() => removeFilter(category, index)}>
-								<Ico icon="mingcute:delete-line" />
-							</span>
-						</div>
-					</div>
-				{/each}
-			</div>
-			<div class="relative">
-				<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
-					<span
-						class="cursor-pointer"
-						on:click={() => {
-							extraLines++;
-							virtualList.recomputeSizes(0);
-						}}><Ico icon="grommet-icons:add" /></span
-					>
-					{#if extraLines > 1}
-						<span
-							class="cursor-pointer"
-							on:click={() => {
-								extraLines--;
-								virtualList.recomputeSizes(0);
-							}}><Ico icon="grommet-icons:form-subtract" /></span
-						>
-					{/if}
-				</div>
-				<div
-					class="flex flex-wrap overflow-y-hidden bg-surface-backdrop-token"
-					style={`height: ${2 + extraLines * 20}px`}
-				>
-					{#each columns as { name, cls, style } (name)}
-						<div
-							{style}
-							class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
-							animate:grabFlip={{ duration }}
-						>
-							<div class="font-semibold cursor-help" on:click={doPulse} on:mouseover={doPulse}>
-								{name}
-							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-		</div>
-
-		<VirtualList
-			height={800}
-			width="auto"
-			itemCount={$logs.length}
-			{itemSize}
-			on:itemsUpdated={itemsUpdated}
-			bind:this={virtualList}
-		>
-			<div slot="item" let:index let:style {style}>
-				{@const log = $logs[index]}
-				<div class={`${log[2]} rounded`}>
-					<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 16}px`}>
-						{#each columns as { name, cls, style } (name)}
-							{@const value = getValue(name, log, index)}
-							<div
-								{style}
-								class={`px-1 ${cls} text-nowrap overflow-hidden cursor-cell`}
-								animate:grabFlip={{ duration }}
-								on:click={() => addFilter(name, value)}
-							>
-								{value}
-							</div>
-						{/each}
-					</div>
-					<div
-						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost`}
-						style="scrollbar-width: thin;"
-					>
-						{log[4]}
-					</div>
-				</div>
-			</div>
-		</VirtualList>
+{#if tabs[tabSet].name == 'Viewer' || tabs[tabSet].name == 'Real Time'}
+	<Card class="mt-2">
+		<LogViewer />
 	</Card>
 {/if}
 
 <style lang="postcss">
 	.logsCard {
 		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded-token;
-	}
-
-	.row-wrap {
-		@apply flex flex-wrap rounded-token variant-ghost;
-	}
-
-	.mini-card {
-		@apply rounded-token m-1 p-1 flex gap-2 text-nowrap;
-	}
-
-	.FATAL {
-		@apply bg-surface-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #404040;
-	}
-
-	.ERROR {
-		@apply bg-error-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #ff3b30;
-	}
-
-	.WARN {
-		@apply bg-warning-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #ff9500;
-	}
-
-	.INFO {
-		@apply bg-secondary-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #71c287;
-	}
-
-	.DEBUG {
-		@apply bg-primary-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #4285f4;
-	}
-
-	.TRACE {
-		@apply bg-tertiary-backdrop-token;
-		box-shadow: 2px 2px 5px 0px #fbbc05;
 	}
 </style>

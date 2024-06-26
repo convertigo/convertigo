@@ -107,18 +107,7 @@
 		const adjustedAngle = time[units[selectedUnit].name] * units[selectedUnit].devided;
 		handPosition.update(({ angle }) => {
 			const diff = adjustedAngle - (angle % 360);
-			console.log(
-				'adjustedAngle',
-				adjustedAngle,
-				'angle',
-				angle,
-				'angle % 360',
-				angle % 360,
-				'diff',
-				diff
-			);
 			angle = (diff > 180 ? angle - 360 : diff < -180 ? angle + 360 : angle) + diff;
-			console.log('angle', angle, 'angle % 360', angle % 360, 'diff', diff);
 			return { angle };
 		});
 	}

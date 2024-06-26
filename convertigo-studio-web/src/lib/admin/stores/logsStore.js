@@ -6,6 +6,7 @@ export let startDate = writable('');
 export let endDate = writable('');
 export let realtime = writable(false);
 export let nbLines = writable(100);
+export let moreResults = writable(false);
 
 let _startDate, _endDate, _realtime, _nbLines;
 startDate.subscribe((value) => (_startDate = value));
@@ -13,7 +14,9 @@ endDate.subscribe((value) => (_endDate = value));
 realtime.subscribe((value) => (_realtime = value));
 nbLines.subscribe((value) => (_nbLines = value));
 
-let moreResults = false;
+let _moreResults = false;
+let calling = false;
+let lastCall = 0;
 
 export function formatDate(timestamp) {
 	if (timestamp === null) return '';
@@ -26,18 +29,31 @@ export function formatTime(timestamp) {
 }
 
 export async function logsList(clear = false) {
+	if (_realtime && calling) {
+		return;
+	}
 	if (clear) {
 		logs.set([]);
-		moreResults = false;
+		moreResults.set((_moreResults = false));
 	}
-	const res = await call('logs.Get', {
-		moreResults,
-		startDate: _startDate,
-		endDate: _endDate,
-		realtime: _realtime,
-		nbLines: _nbLines
-	});
-	moreResults = res?.hasMoreResults;
-	//@ts-ignore
-	logs.update((l) => [...l, ...checkArray(res?.lines)]);
+	calling = true;
+	const currentCall = ++lastCall;
+	try {
+		const res = await call('logs.Get', {
+			moreResults: _moreResults,
+			startDate: _startDate,
+			endDate: _endDate,
+			realtime: _realtime,
+			nbLines: _nbLines
+		});
+		if (currentCall == lastCall) {
+			moreResults.set((_moreResults = res?.hasMoreResults ?? false));
+			//@ts-ignore
+			logs.update((l) => [...l, ...checkArray(res?.lines)]);
+		}
+	} finally {
+		if (currentCall == lastCall) {
+			calling = false;
+		}
+	}
 }

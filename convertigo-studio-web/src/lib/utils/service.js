@@ -343,3 +343,13 @@ export function deepObject(obj) {
 export function capitalize(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function debounce(fn, delay) {
+	let timeout;
+	return (...args) => {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			fn(...args);
+		}, delay);
+	};
+}

@@ -35,12 +35,16 @@
 	import MaterialSymbolsLightUpdate from '~icons/material-symbols-light/update';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top';
 	import MdiBackupRestore from '~icons/mdi/backup-restore';
+	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiEditOutline from '~icons/mdi/edit-outline';
 	import MdiEye from '~icons/mdi/eye';
 	import MdiEyeOff from '~icons/mdi/eye-off';
 	import MdiFilter from '~icons/mdi/filter';
+	import MdiFilterCog from '~icons/mdi/filter-cog';
+	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
+	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line';
 	import OcticonLogoGithub16 from '~icons/octicon/logo-github-16';
@@ -97,12 +101,16 @@
 		'material-symbols-light:update': MaterialSymbolsLightUpdate,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:backup-restore': MdiBackupRestore,
+		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:edit-outline': MdiEditOutline,
 		'mdi:eye': MdiEye,
 		'mdi:eye-off': MdiEyeOff,
 		'mdi:filter': MdiFilter,
+		'mdi:filter-cog': MdiFilterCog,
+		'mdi:filter-cog-outline': MdiFilterCogOutline,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
+		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mingcute:delete-line': MingcuteDeleteLine,
 		'octicon:logo-github-16': OcticonLogoGithub16,
