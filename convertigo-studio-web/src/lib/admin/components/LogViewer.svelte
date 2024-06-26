@@ -213,7 +213,7 @@
 		<div class="row-wrap">
 			<div class="mini-card variant-filled-surface">
 				<span class="cursor-pointer" on:mousedown={() => (fullscreen = !fullscreen)}
-					><Ico icon={`mdi:filter-cog${$showFilters ? '' : '-outline'}`} /></span
+					><Ico icon={`mdi:fullscreen${fullscreen ? '-exit' : ''}`} /></span
 				>
 			</div>
 			<div class="mini-card variant-filled-surface">

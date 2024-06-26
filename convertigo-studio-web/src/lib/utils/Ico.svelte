@@ -1,22 +1,25 @@
 <script context="module">
-	import ApplyIcon from '~icons/solar/mask-happly-line-duotone';
 	import ArcticonsDocScanner from '~icons/arcticons/doc-scanner';
 	import BytesizeExport from '~icons/bytesize/export';
 	import BytesizeImport from '~icons/bytesize/import';
 	import CarbonApplication from '~icons/carbon/application';
 	import CarbonDataRegular from '~icons/carbon/data-regular';
 	import CodiconJson from '~icons/codicon/json';
+	import CodiconOrganization from '~icons/codicon/organization';
 	import CodiconRunAll from '~icons/codicon/run-all';
 	import DashiconsUpdate from '~icons/dashicons/update';
 	import EosIconsCronjob from '~icons/eos-icons/cronjob';
 	import EtTools2 from '~icons/et/tools-2';
+	import FadDuplicate from '~icons/fad/duplicate';
 	import FileIconsTestRuby from '~icons/file-icons/test-ruby';
 	import FluentMdl2Certificate from '~icons/fluent-mdl2/certificate';
 	import FluentMdl2TestPlan from '~icons/fluent-mdl2/test-plan';
 	import FluentNote48Filled from '~icons/fluent/note-48-filled';
+	import FluentOpen24Filled from '~icons/fluent/open-24-filled';
 	import GameIconsLevelThreeAdvanced from '~icons/game-icons/level-three-advanced';
 	import GrommetIconsAdd from '~icons/grommet-icons/add';
 	import GrommetIconsFormSubtract from '~icons/grommet-icons/form-subtract';
+	import GrommetIconsResources from '~icons/grommet-icons/resources';
 	import IconamoonCloudFill from '~icons/iconamoon/cloud-fill';
 	import IconamoonMenuBurgerHorizontalThin from '~icons/iconamoon/menu-burger-horizontal-thin';
 	import IconParkApplicationOne from '~icons/icon-park/application-one';
@@ -24,6 +27,7 @@
 	import LetsIconsTableLight from '~icons/lets-icons/table-light';
 	import LetsIconsUserAltLight from '~icons/lets-icons/user-alt-light';
 	import LineMdCoffeeLoop from '~icons/line-md/coffee-loop';
+	import LucideLayoutPanelTop from '~icons/lucide/layout-panel-top';
 	import MaterialSymbolsApiRounded from '~icons/material-symbols/api-rounded';
 	import MaterialSymbolsLightCancelOutline from '~icons/material-symbols-light/cancel-outline';
 	import MaterialSymbolsLightCloudOutline from '~icons/material-symbols-light/cloud-outline';
@@ -43,7 +47,10 @@
 	import MdiFilter from '~icons/mdi/filter';
 	import MdiFilterCog from '~icons/mdi/filter-cog';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
+	import MdiFullscreen from '~icons/mdi/fullscreen';
+	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
+	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line';
@@ -53,36 +60,35 @@
 	import PhGearSixThin from '~icons/ph/gear-six-thin';
 	import PhGearThin from '~icons/ph/gear-thin';
 	import PhPlugsConnectedThin from '~icons/ph/plugs-connected-thin';
+	import PhUsers from '~icons/ph/users';
 	import PhVideoThin from '~icons/ph/video-thin';
 	import SimpleLineIconsReload from '~icons/simple-line-icons/reload';
+	import SolarMaskHapplyLineDuotone from '~icons/solar/mask-happly-line-duotone';
 	import UimLayerGroup from '~icons/uim/layer-group';
 	import VaadinKeyO from '~icons/vaadin/key-o';
-	import Project from '~icons/lucide/layout-panel-top';
-	import MarketPlace from '~icons/mdi/marketplace-outline';
-	import Organization from '~icons/codicon/organization';
-	import Resources from '~icons/grommet-icons/resources';
-	import Community from '~icons/ph/users';
-	import OpenInNewTab from '~icons/fluent/open-24-filled';
-	import Duplicate from '~icons/fad/duplicate';
 
-	const ico = {
+	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,
 		'bytesize:import': BytesizeImport,
 		'carbon:application': CarbonApplication,
 		'carbon:data-regular': CarbonDataRegular,
 		'codicon:json': CodiconJson,
+		'codicon:organization': CodiconOrganization,
 		'codicon:run-all': CodiconRunAll,
 		'dashicons:update': DashiconsUpdate,
 		'eos-icons:cronjob': EosIconsCronjob,
 		'et:tools-2': EtTools2,
+		'fad:duplicate': FadDuplicate,
 		'file-icons:test-ruby': FileIconsTestRuby,
 		'fluent-mdl2:certificate': FluentMdl2Certificate,
 		'fluent-mdl2:test-plan': FluentMdl2TestPlan,
 		'fluent:note-48-filled': FluentNote48Filled,
+		'fluent:open-24-filled': FluentOpen24Filled,
 		'game-icons:level-three-advanced': GameIconsLevelThreeAdvanced,
 		'grommet-icons:add': GrommetIconsAdd,
 		'grommet-icons:form-subtract': GrommetIconsFormSubtract,
+		'grommet-icons:resources': GrommetIconsResources,
 		'iconamoon:cloud-fill': IconamoonCloudFill,
 		'iconamoon:menu-burger-horizontal-thin': IconamoonMenuBurgerHorizontalThin,
 		'icon-park:application-one': IconParkApplicationOne,
@@ -90,6 +96,7 @@
 		'lets-icons:table-light': LetsIconsTableLight,
 		'lets-icons:user-alt-light': LetsIconsUserAltLight,
 		'line-md:coffee-loop': LineMdCoffeeLoop,
+		'lucide:layout-panel-top': LucideLayoutPanelTop,
 		'material-symbols:api-rounded': MaterialSymbolsApiRounded,
 		'material-symbols-light:cancel-outline': MaterialSymbolsLightCancelOutline,
 		'material-symbols-light:cloud-outline': MaterialSymbolsLightCloudOutline,
@@ -109,7 +116,10 @@
 		'mdi:filter': MdiFilter,
 		'mdi:filter-cog': MdiFilterCog,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
+		'mdi:fullscreen': MdiFullscreen,
+		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
+		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mingcute:delete-line': MingcuteDeleteLine,
@@ -119,18 +129,12 @@
 		'ph:gear-six-thin': PhGearSixThin,
 		'ph:gear-thin': PhGearThin,
 		'ph:plugs-connected-thin': PhPlugsConnectedThin,
+		'ph:users': PhUsers,
 		'ph:video-thin': PhVideoThin,
 		'simple-line-icons:reload': SimpleLineIconsReload,
-		'solar:mask-happly-line-duotone': ApplyIcon,
+		'solar:mask-happly-line-duotone': SolarMaskHapplyLineDuotone,
 		'uim:layer-group': UimLayerGroup,
-		'vaadin:key-o': VaadinKeyO,
-		'lucide:layout-panel-top': Project,
-		'mdi:marketplace-outline': MarketPlace,
-		'codicon:organization': Organization,
-		'grommet-icons:resources': Resources,
-		'ph:users': Community,
-		'fluent:open-24-filled': OpenInNewTab,
-		'fad:duplicate': Duplicate
+		'vaadin:key-o': VaadinKeyO
 	};
 </script>
 
@@ -148,4 +152,4 @@
 	}
 </script>
 
-<svelte:component this={ico[icon]} {...$$restProps} class={`w-${size} aspect-square ${cls}`} />
+<svelte:component this={ico[icon]} {...$$restProps} class={`w-${size} h-${size} ${cls}`} />
