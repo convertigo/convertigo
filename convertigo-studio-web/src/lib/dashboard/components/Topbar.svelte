@@ -21,7 +21,7 @@
 	</svelte:fragment>
 
 	<svelte:fragment slot="trail">
-<LightSwitch/>
+		<LightSwitch />
 	</svelte:fragment>
 </AppBar>
 

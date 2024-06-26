@@ -29,7 +29,7 @@
 			<PagesRail />
 		</div>
 	</svelte:fragment>
-	
+
 	<svelte:fragment slot="sidebarRight"></svelte:fragment>
 
 	{#key $page.url.pathname}

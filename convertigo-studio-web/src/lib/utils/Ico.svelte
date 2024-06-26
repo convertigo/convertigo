@@ -59,7 +59,7 @@
 	import Resources from '~icons/grommet-icons/resources';
 	import Community from '~icons/ph/users';
 	import OpenInNewTab from '~icons/fluent/open-24-filled';
-	import Duplicate from '~icons/fad/duplicate'
+	import Duplicate from '~icons/fad/duplicate';
 
 	const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,

@@ -57,7 +57,7 @@
 		const angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
 		const adjustedAngle = angle < 0 ? 360 + angle : angle;
 		time[units[selectedUnit].name] = Math.floor(adjustedAngle / units[selectedUnit].devided);
-        updateHandPosition();
+		updateHandPosition();
 		updateInputValue();
 	}
 
@@ -105,11 +105,20 @@
 
 	function updateHandPosition() {
 		const adjustedAngle = time[units[selectedUnit].name] * units[selectedUnit].devided;
-        handPosition.update(({ angle }) => {
+		handPosition.update(({ angle }) => {
 			const diff = adjustedAngle - (angle % 360);
-            console.log('adjustedAngle', adjustedAngle, 'angle', angle, 'angle % 360', angle % 360, 'diff', diff);
+			console.log(
+				'adjustedAngle',
+				adjustedAngle,
+				'angle',
+				angle,
+				'angle % 360',
+				angle % 360,
+				'diff',
+				diff
+			);
 			angle = (diff > 180 ? angle - 360 : diff < -180 ? angle + 360 : angle) + diff;
-            console.log('angle', angle, 'angle % 360', angle % 360, 'diff', diff);
+			console.log('angle', angle, 'angle % 360', angle % 360, 'diff', diff);
 			return { angle };
 		});
 	}
@@ -121,7 +130,7 @@
 					unit.prefix + String(Math.min(time[unit.name], unit.count - 1)).padStart(unit.length, '0')
 			)
 			.join('');
-        await tick();
+		await tick();
 		input.setSelectionRange(selectedUnit * 3, selectedUnit * 3 + (selectedUnit == 3 ? 3 : 2));
 		updateHandPosition();
 	}
@@ -237,7 +246,7 @@
 			on:touchstart|preventDefault={handleTouchStart}
 			on:touchmove|preventDefault={handleTouchMove}
 			on:touchend|preventDefault={handleTouchEnd}
-            transition:fly={{ x: 0, y: -30, duration: 300 }}
+			transition:fly={{ x: 0, y: -30, duration: 300 }}
 		>
 			<svg width={size} height={size}>
 				<circle cx={centerX} cy={centerY} r={size / 2} class="shell" />

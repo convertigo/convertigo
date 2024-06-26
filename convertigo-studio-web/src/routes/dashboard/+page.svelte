@@ -115,7 +115,7 @@
 							on:click={() => {
 								console.log(setting.title);
 								if (setting.title === 'Delete Project') {
-                                    console.log('Project name:', project['@_name']);
+									console.log('Project name:', project['@_name']);
 								} else {
 									openModalSettings(setting.title);
 								}

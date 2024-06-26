@@ -9,7 +9,15 @@
 		configurations,
 		updateConfigurations
 	} from '$lib/admin/stores/configurationStore';
-	import { logs as allLogs, logsList, formatDate, formatTime, startDate, endDate, realtime } from '$lib/admin/stores/logsStore';
+	import {
+		logs as allLogs,
+		logsList,
+		formatDate,
+		formatTime,
+		startDate,
+		endDate,
+		realtime
+	} from '$lib/admin/stores/logsStore';
 	import { onMount } from 'svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
@@ -317,42 +325,42 @@
 		{/each}
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
-			<div class="flex flex-col gap-2">
-				<DatePicker
-					bind:isOpen
-					alwaysShow={false}
-					isRange={true}
-					isMultipane={true}
-					bind:startDate={datesEdited[0]}
-					bind:endDate={datesEdited[1]}
-					showYearControls={true}
-					startOfWeek={1}
-					{onDayClick}
-				>
-					<div class="flex flex-row flex-wrap gap-4">
-						{#each ['From', 'To'] as way, i}
-							<div class="flex flex-col items-center gap-4">
-								<div class="flex flex-row flex-wrap items-center gap-2">
-									<span>{way}</span>
-									<input
-										type="text"
-										class="input max-w-fit"
-										value={formatDate(dates[i])}
-										on:focus={() => {
-											datesEdited[i] = null;
-											isOpen = true;
-											showTime = false;
-										}}
-										size="11"
-									/>
-									<TimePicker bind:inputValue={times[i]} />
+				<div class="flex flex-col gap-2">
+					<DatePicker
+						bind:isOpen
+						alwaysShow={false}
+						isRange={true}
+						isMultipane={true}
+						bind:startDate={datesEdited[0]}
+						bind:endDate={datesEdited[1]}
+						showYearControls={true}
+						startOfWeek={1}
+						{onDayClick}
+					>
+						<div class="flex flex-row flex-wrap gap-4">
+							{#each ['From', 'To'] as way, i}
+								<div class="flex flex-col items-center gap-4">
+									<div class="flex flex-row flex-wrap items-center gap-2">
+										<span>{way}</span>
+										<input
+											type="text"
+											class="input max-w-fit"
+											value={formatDate(dates[i])}
+											on:focus={() => {
+												datesEdited[i] = null;
+												isOpen = true;
+												showTime = false;
+											}}
+											size="11"
+										/>
+										<TimePicker bind:inputValue={times[i]} />
+									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-				</DatePicker>
-				<button class="btn variant-filled-surface" on:click={refreshLogs}>Refresh</button>
-			</div>
+							{/each}
+						</div>
+					</DatePicker>
+					<button class="btn variant-filled-surface" on:click={refreshLogs}>Refresh</button>
+				</div>
 			{:else if tabSet === 1}
 				<div class="logsCard">
 					<RangeSlider

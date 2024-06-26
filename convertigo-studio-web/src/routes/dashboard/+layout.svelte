@@ -18,9 +18,8 @@
 
 	const modalComponentRegistry = {
 		modalSettingsProject: { ref: ModalProjectSettings },
-		modalConfirm: {ref: ModalConfirm}
+		modalConfirm: { ref: ModalConfirm }
 	};
-
 </script>
 
 <Modal components={modalComponentRegistry} />

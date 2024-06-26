@@ -2,8 +2,8 @@ import { call, checkArray } from '$lib/utils/service';
 import { writable } from 'svelte/store';
 
 export let logs = writable([]);
-export let startDate = writable("");
-export let endDate = writable("");
+export let startDate = writable('');
+export let endDate = writable('');
 export let realtime = writable(false);
 export let nbLines = writable(100);
 
@@ -30,7 +30,13 @@ export async function logsList(clear = false) {
 		logs.set([]);
 		moreResults = false;
 	}
-	const res = await call('logs.Get', { moreResults, startDate: _startDate, endDate: _endDate, realtime: _realtime, nbLines: _nbLines});
+	const res = await call('logs.Get', {
+		moreResults,
+		startDate: _startDate,
+		endDate: _endDate,
+		realtime: _realtime,
+		nbLines: _nbLines
+	});
 	moreResults = res?.hasMoreResults;
 	//@ts-ignore
 	logs.update((l) => [...l, ...checkArray(res?.lines)]);
