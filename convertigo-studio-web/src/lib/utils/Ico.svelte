@@ -53,6 +53,13 @@
 	import SimpleLineIconsReload from '~icons/simple-line-icons/reload';
 	import UimLayerGroup from '~icons/uim/layer-group';
 	import VaadinKeyO from '~icons/vaadin/key-o';
+	import Project from '~icons/lucide/layout-panel-top';
+	import MarketPlace from '~icons/mdi/marketplace-outline';
+	import Organization from '~icons/codicon/organization';
+	import Resources from '~icons/grommet-icons/resources';
+	import Community from '~icons/ph/users';
+	import OpenInNewTab from '~icons/fluent/open-24-filled';
+	import Duplicate from '~icons/fad/duplicate'
 
 	const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
@@ -108,7 +115,14 @@
 		'simple-line-icons:reload': SimpleLineIconsReload,
 		'solar:mask-happly-line-duotone': ApplyIcon,
 		'uim:layer-group': UimLayerGroup,
-		'vaadin:key-o': VaadinKeyO
+		'vaadin:key-o': VaadinKeyO,
+		'lucide:layout-panel-top': Project,
+		'mdi:marketplace-outline': MarketPlace,
+		'codicon:organization': Organization,
+		'grommet-icons:resources': Resources,
+		'ph:users': Community,
+		'fluent:open-24-filled': OpenInNewTab,
+		'fad:duplicate': Duplicate
 	};
 </script>
 
@@ -120,6 +134,9 @@
 	export { cls as class };
 	if (size == 'nav') {
 		size = 5;
+	}
+	if (size == 'dashboard') {
+		size = 7;
 	}
 </script>
 

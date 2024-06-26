@@ -1,0 +1,29 @@
+[
+	[
+		{
+			"title": "Projects",
+			"icon": "lucide:layout-panel-top",
+			"url": ""
+		},
+		{
+			"title": "My Organization",
+			"icon": "codicon:organization",
+			"url": "config"
+		},
+		{
+			"title": "Marketplace",
+			"icon": "mdi:marketplace-outline",
+			"url": "connections"
+		},
+		{
+			"title": "Resources",
+			"icon": "grommet-icons:resources",
+			"url": "projects"
+		},
+		{
+			"title": "Community",
+			"icon": "ph:users",
+			"url": "certificate"
+		}
+	]
+]
