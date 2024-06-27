@@ -69,5 +69,5 @@
 </script>
 
 <div class="min-w-full" bind:this={element}>
-	<slot></slot>
+	<slot />
 </div>
