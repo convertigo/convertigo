@@ -156,13 +156,12 @@
 		size = 7;
 	}
 	/** @type {string|{}}*/
-	export let animate = true;
+	export let animate = false;
 	export let repeat = false;
 	export let strokeWidth = undefined;
 
 	let _animate = { duration: 2000 };
 
-	// parse ico[icon] as svg element
 	let svg = null;
 	let show = false;
 	if (animate) {
