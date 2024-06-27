@@ -6,14 +6,13 @@
 	import ModalButtons from '../components/ModalButtons.svelte';
 	import { projectsCheck, projectsStore } from '../stores/projectsStore';
 	import { onMount } from 'svelte';
-	import { checkTestPlatform, testPlatformStore } from '../stores/testPlatformStore';
 	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
 	import CheckState from '../components/CheckState.svelte';
 
 	export let parent;
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
-
+	console.log('row', row);
 	let binds = {
 		name: row?.['@_name'] ?? '',
 		description: row?.['@_description'] ?? '',
@@ -45,8 +44,6 @@
 
 	async function handleChange(type, name) {
 		if (type == 'project') {
-			await checkTestPlatform(name);
-			selected.project = $testPlatformStore[name];
 			handleChange('connector', binds.connector);
 			handleChange('sequence', binds.sequence);
 		} else if (type == 'connector') {

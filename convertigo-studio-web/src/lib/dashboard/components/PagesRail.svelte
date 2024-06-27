@@ -20,7 +20,7 @@
 </script>
 
 <AppRail width="w-auto" class="border-r-[0.5px] border-surface-200-700-token px-4">
-	<div class="h-5" />
+	<div class="h-8" />
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
@@ -32,9 +32,9 @@
 						class="absolute inset-0 variant-filled-primary opacity-40 rounded-token"
 					></span>
 				{/if}
-				<Ico size="dashboard" icon={tile.icon} style="z-index: 10;" class="text-surface-300" />
+				<Ico size="dashboard" icon={tile.icon} style="z-index: 10;" class="dark:text-surface-300" />
 				<span
-					class={`ml-3 text-[13px] text-surface-200 z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'light'}`}
+					class={`ml-3 text-[13px] dark:text-surface-200 z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'light'}`}
 					>{tile.title}</span
 				>
 			</a>

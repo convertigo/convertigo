@@ -34,7 +34,7 @@
 		</div>
 	</svelte:fragment>
 
-	<div class="p-5 flex flex-col h-full" in:fade>
+	<div class="p-10 gap-5 flex flex-col h-full" in:fade>
 		<slot />
 	</div>
 </AppShell>
