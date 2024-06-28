@@ -21,7 +21,7 @@
 			{#each data[pkg] as name}
 				<div class="card p-2 flex flex-col items-center gap-2">
 					<Ico icon={`${pkg}:${name}`} size="10" />
-					<Ico icon={`${pkg}:${name}`} animate={{ duration: 3000 }} repeat={true} size={10} />
+					<Ico icon={`${pkg}:${name}`} animate={{ duration: 1000 }} repeat={true} size={10} />
 					<span>{name}</span>
 				</div>
 			{/each}

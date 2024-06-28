@@ -276,7 +276,7 @@
 
 {#if tabs[tabSet].name == 'Viewer' || tabs[tabSet].name == 'Real Time'}
 	<Card class="mt-2">
-		<LogViewer />
+		<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
 	</Card>
 {/if}
 

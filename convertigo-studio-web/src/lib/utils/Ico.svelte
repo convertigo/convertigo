@@ -44,6 +44,8 @@
 	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
 	import MdiEye from '~icons/mdi/eye?raw';
 	import MdiEyeOff from '~icons/mdi/eye-off?raw';
+	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
+	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
 	import MdiFilter from '~icons/mdi/filter?raw';
 	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
@@ -66,8 +68,6 @@
 	import SolarMaskHapplyLineDuotone from '~icons/solar/mask-happly-line-duotone?raw';
 	import UimLayerGroup from '~icons/uim/layer-group?raw';
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
-	import { onMount } from 'svelte';
-	import { draw } from 'svelte/transition';
 
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
@@ -112,6 +112,8 @@
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
+		'mdi:download-lock-outline': MdiDownloadLockOutline,
+		'mdi:download-off-outline': MdiDownloadOffOutline,
 		'mdi:edit-outline': MdiEditOutline,
 		'mdi:eye': MdiEye,
 		'mdi:eye-off': MdiEyeOff,
@@ -142,6 +144,8 @@
 
 <script>
 	import { tick } from 'svelte';
+	import { onMount } from 'svelte';
+	import { draw } from 'svelte/transition';
 
 	export let icon;
 
@@ -155,7 +159,7 @@
 	if (size == 'dashboard') {
 		size = 7;
 	}
-	/** @type {string|{}}*/
+	/** @type {boolean|import('svelte/transition').DrawParams } */
 	export let animate = false;
 	export let repeat = false;
 	export let strokeWidth = undefined;

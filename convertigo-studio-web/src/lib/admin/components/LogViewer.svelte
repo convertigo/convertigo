@@ -1,9 +1,14 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
-	import { logs as allLogs, logsList, realtime, moreResults } from '$lib/admin/stores/logsStore';
+	import {
+		logs as allLogs,
+		logsList,
+		realtime,
+		moreResults,
+		calling
+	} from '$lib/admin/stores/logsStore';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -58,6 +63,7 @@
 		Message: { idx: 4 }
 	};
 
+	export let autoScroll = false;
 	let extraLines = 1;
 	let isDragging = false;
 	let virtualList;
@@ -76,7 +82,14 @@
 		pulsedCategoryTimeout = setTimeout(() => (pulsedCategory = ''), 2000);
 	}
 
+	function doAutoScroll() {
+		if (autoScroll && $logs.length > 1) {
+			scrollToIndex = $logs.length - 1;
+		}
+	}
+
 	async function itemsUpdated(event) {
+		doAutoScroll();
 		showedLines = event.detail;
 		if (event.detail.end >= $logs.length - 1) {
 			await logsList();
@@ -175,6 +188,11 @@
 			cls: columnsConfiguration[c.name]?.cls ?? '',
 			style: `width: ${c.width}px; min-width: ${c.width}px;`
 		}));
+
+	let scrollToIndex;
+	$: if (scrollToIndex >= $logs.length) {
+		scrollToIndex = undefined;
+	}
 </script>
 
 <div class="text-xs" class:fullscreen>
@@ -298,6 +316,7 @@
 			width="auto"
 			itemCount={$logs.length}
 			estimatedItemSize={100}
+			{scrollToIndex}
 			{itemSize}
 			on:itemsUpdated={itemsUpdated}
 			bind:this={virtualList}
@@ -328,11 +347,24 @@
 			</div>
 		</VirtualList>
 	</MaxHeight>
-	<div class="p-2 flex gap-4 rounded-token bg-surface-backdrop-token">
-		<span
+	<div class="flex gap-4 rounded-token bg-surface-backdrop-token justify-between items-center px-4">
+		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {$logs.length}
-			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}</span
+			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}
+			{#if $calling}Calling ...{/if}</span
 		>
+		<div
+			class="mini-card variant-filled"
+			class:variant-filled-success={!autoScroll}
+			class:variant-filled-warning={autoScroll}
+			on:click={() => {
+				autoScroll = !autoScroll;
+				doAutoScroll();
+			}}
+		>
+			{autoScroll ? 'Disable' : 'Enable'} auto scroll
+			<Ico icon={`mdi:download-${autoScroll ? 'off' : 'lock'}-outline`} />
+		</div>
 	</div>
 </div>
 

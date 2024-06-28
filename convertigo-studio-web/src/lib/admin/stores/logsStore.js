@@ -7,6 +7,7 @@ export let endDate = writable('');
 export let realtime = writable(false);
 export let nbLines = writable(100);
 export let moreResults = writable(false);
+export let calling = writable(false);
 
 let _startDate, _endDate, _realtime, _nbLines;
 startDate.subscribe((value) => (_startDate = value));
@@ -15,7 +16,7 @@ realtime.subscribe((value) => (_realtime = value));
 nbLines.subscribe((value) => (_nbLines = value));
 
 let _moreResults = false;
-let calling = false;
+let _calling = false;
 let lastCall = 0;
 
 export function formatDate(timestamp) {
@@ -29,14 +30,17 @@ export function formatTime(timestamp) {
 }
 
 export async function logsList(clear = false) {
-	if (_realtime && calling) {
+	if (_realtime && _calling) {
 		return;
 	}
 	if (clear) {
 		logs.set([]);
 		moreResults.set((_moreResults = false));
 	}
-	calling = true;
+	if (!_realtime && !_moreResults && !clear) {
+		return;
+	}
+	calling.set((_calling = true));
 	const currentCall = ++lastCall;
 	try {
 		const res = await call('logs.Get', {
@@ -53,7 +57,7 @@ export async function logsList(clear = false) {
 		}
 	} finally {
 		if (currentCall == lastCall) {
-			calling = false;
+			calling.set((_calling = false));
 		}
 	}
 }
