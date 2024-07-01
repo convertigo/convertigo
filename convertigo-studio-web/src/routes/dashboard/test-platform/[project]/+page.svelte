@@ -10,8 +10,11 @@
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 
 	let project;
+	let enableInputVar = {};
+
 	const colors = ['bg-pale-violet', 'bg-pale-blue', 'bg-pale-green', 'bg-pale-pink'];
 	onMount(async () => {
 		checkTestPlatform(project);
@@ -33,7 +36,6 @@
 		// Use `marked` to convert Markdown to HTML
 		return marked(cleanedMarkdown);
 	}
-	// console.log($connectorsStore.)
 
 	// Subscribe to sequencesStore to log its value
 	sequencesStore.subscribe((value) => {
@@ -65,162 +67,188 @@
 		</div>
 	</CardD>
 
-	<CardD class="gap-2">
-		<Accordion padding="0" class="bg-pale-pink bg-opacity-50">
-			<AccordionItem>
-				<svelte:fragment slot="lead"></svelte:fragment>
-				<svelte:fragment slot="summary">
-					<p class="text-[14px]">Sequences</p>
-				</svelte:fragment>
-				<svelte:fragment slot="content">
-					{#if $sequencesStore && $sequencesStore.length > 0}
-						{#each $sequencesStore as sequence, index}
-							<Accordion
-								padding="0"
-								class={`rounded-token bg-opacity-0 ${colors[index % colors.length]}`}
-							>
-								<AccordionItem close>
-									<svelte:fragment slot="lead"></svelte:fragment>
-									<svelte:fragment slot="summary">
-										<p class="text-[14px]">{sequence['@_name']}</p>
-									</svelte:fragment>
-									<svelte:fragment slot="content">
-										{#if sequence.variables && Object.keys(sequence.variables).length > 0}
-											<Accordion
-												class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-											>
-												<form>
-													{#each Object.values(sequence.variables) as variable}
-														<div class="p-5">
-															<label class="label-common">
-																<p class="font-semibold">{variable['@_name']}</p>
-																<input class="input-common" />
-															</label>
-														</div>
-													{/each}
-												</form>
-											</Accordion>
-										{:else}
-											<p>No variables available in this sequence</p>
-										{/if}
-
-										{#if sequence.testcases && Object.keys(sequence.testcases).length > 0}
-											<Accordion
-												padding="px-5"
-												class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-											>
-												{#each Object.values(sequence.testcases) as testcase}
-													<AccordionItem close>
-														<svelte:fragment slot="lead"></svelte:fragment>
-														<svelte:fragment slot="summary">
-															<p class="font-semibold">{testcase['@_name']}</p>
-														</svelte:fragment>
-														<svelte:fragment slot="content">
-															{#if testcase.variables && Object.keys(testcase.variables).length > 0}
-																<Accordion
-																	class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-																>
-																	{#each Object.values(testcase.variables) as variable}
-																		<div class="p-5">
-																			<label class="label-common">
-																				<p class="font-semibold">{variable['@_name']}</p>
-																				<input class="input-common" />
-																			</label>
-																		</div>
-																	{/each}
-																</Accordion>
-															{:else}
-																<p>No variables available in this testcase</p>
-															{/if}
-														</svelte:fragment>
-													</AccordionItem>
-												{/each}
-											</Accordion>
-										{:else}
-											<p>No test cases available in this sequence</p>
-										{/if}
-									</svelte:fragment>
-								</AccordionItem>
-							</Accordion>
-						{/each}
-					{:else}
-						<p>No sequences available</p>
-					{/if}
-				</svelte:fragment>
-			</AccordionItem>
-		</Accordion>
-
-		{#if $connectorsStore && $connectorsStore.length > 0}
-			{#each $connectorsStore as connector, index}
-				<Accordion
-					padding="0"
-					class={`rounded-token bg-opacity-50 ${colors[index % colors.length]}`}
-				>
-					<AccordionItem close>
+	<div class="grid grid-cols-2 gap-5">
+		<div class="col-span-1">
+			<CardD class="gap-2">
+				<Accordion padding="0" class="bg-pale-pink bg-opacity-50">
+					<AccordionItem>
 						<svelte:fragment slot="lead"></svelte:fragment>
 						<svelte:fragment slot="summary">
-							<p class="text-[14px]">{connector['@_name']}</p>
+							<p class="text-[14px]">Sequences</p>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							{#if connector.variables && Object.keys(connector.variables).length > 0}
-								<Accordion
-									class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-								>
-									<form>
-										{#each Object.values(connector.variables) as variable}
-											<div class="p-5">
-												<label class="label-common">
-													<p class="font-semibold">{variable['@_name']}</p>
-													<input class="input-common" />
-												</label>
-											</div>
-										{/each}
-									</form>
-								</Accordion>
-							{:else}
-								<p>No variables available in this connector</p>
-							{/if}
-
-							{#if connector.transactions && Object.keys(connector.transactions).length > 0}
-								<Accordion
-									class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-								>
-									{#each Object.values(connector.transactions) as transaction}
+							{#if $sequencesStore && $sequencesStore.length > 0}
+								{#each $sequencesStore as sequence, index}
+									<Accordion
+										padding="0"
+										class={`rounded-token bg-opacity-0 ${colors[index % colors.length]}`}
+									>
 										<AccordionItem close>
 											<svelte:fragment slot="lead"></svelte:fragment>
 											<svelte:fragment slot="summary">
-												<p class="font-semibold">{transaction['@_name']}</p>
+												<p class="text-[14px]">{sequence['@_name']}</p>
 											</svelte:fragment>
 											<svelte:fragment slot="content">
-												{#if transaction.variables && Object.keys(transaction.variables).length > 0}
+												{#if sequence.variables && Object.keys(sequence.variables).length > 0}
 													<Accordion
 														class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
 													>
-														{#each Object.values(transaction.variables) as variable}
-															<div class="p-5">
-																<label class="label-common">
+														<form>
+															{#each Object.values(sequence.variables) as variable}
+																<div class="p-5 flex-col gap-2 items-center">
 																	<p class="font-semibold">{variable['@_name']}</p>
-																	<input class="input-common" />
-																</label>
-															</div>
+																	<div class="flex items-center gap-5">
+																		<label class="label-common">
+																			<input
+																				class="input-common"
+																				disabled={!enableInputVar[variable['@_name']]}
+																			/>
+																			<!-- <label>
+																				<input type="checkbox" bind:checked={enableInputVar} />
+																				Enable Input
+																			</label> -->
+																		</label>
+																		<SlideToggle
+																			active="activeSlideToggle"
+																			background="unActiveSlideToggle"
+																			size="sm"
+																			name="slide"
+																			bind:checked={enableInputVar[variable['@_name']]}
+																		/>
+																	</div>
+																</div>
+															{/each}
+														</form>
+													</Accordion>
+												{:else}
+													<p>No variables available in this sequence</p>
+												{/if}
+
+												{#if sequence.testcases && Object.keys(sequence.testcases).length > 0}
+													<Accordion
+														padding="px-5"
+														class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+													>
+														{#each Object.values(sequence.testcases) as testcase}
+															<AccordionItem close>
+																<svelte:fragment slot="lead"></svelte:fragment>
+																<svelte:fragment slot="summary">
+																	<p class="font-semibold">{testcase['@_name']}</p>
+																</svelte:fragment>
+																<svelte:fragment slot="content">
+																	{#if testcase.variables && Object.keys(testcase.variables).length > 0}
+																		<Accordion
+																			class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+																		>
+																			{#each Object.values(testcase.variables) as variable}
+																				<div class="p-5">
+																					<label class="label-common">
+																						<p class="font-semibold">{variable['@_name']}</p>
+																						<input class="input-common" />
+																					</label>
+																				</div>
+																			{/each}
+																		</Accordion>
+																	{:else}
+																		<p>No variables available in this testcase</p>
+																	{/if}
+																</svelte:fragment>
+															</AccordionItem>
 														{/each}
 													</Accordion>
 												{:else}
-													<p>No variables available in this transaction</p>
+													<p>No test cases available in this sequence</p>
 												{/if}
 											</svelte:fragment>
 										</AccordionItem>
-									{/each}
-								</Accordion>
+									</Accordion>
+								{/each}
 							{:else}
-								<p>No transactions available in this connector</p>
+								<p>No sequences available</p>
 							{/if}
 						</svelte:fragment>
 					</AccordionItem>
 				</Accordion>
-			{/each}
-		{:else}
-			<p>No connectors available</p>
-		{/if}
-	</CardD>
+
+				{#if $connectorsStore && $connectorsStore.length > 0}
+					{#each $connectorsStore as connector, index}
+						<Accordion
+							padding="0"
+							class={`rounded-token bg-opacity-50 ${colors[index % colors.length]}`}
+						>
+							<AccordionItem close>
+								<svelte:fragment slot="lead"></svelte:fragment>
+								<svelte:fragment slot="summary">
+									<p class="text-[14px]">{connector['@_name']}</p>
+								</svelte:fragment>
+								<svelte:fragment slot="content">
+									{#if connector.variables && Object.keys(connector.variables).length > 0}
+										<Accordion
+											class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+										>
+											<form>
+												{#each Object.values(connector.variables) as variable}
+													<div class="p-5">
+														<label class="label-common">
+															<p class="font-semibold">{variable['@_name']}</p>
+															<input class="input-common" />
+														</label>
+													</div>
+												{/each}
+											</form>
+										</Accordion>
+									{:else}
+										<p>No variables available in this connector</p>
+									{/if}
+
+									{#if connector.transactions && Object.keys(connector.transactions).length > 0}
+										<Accordion
+											class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+										>
+											{#each Object.values(connector.transactions) as transaction}
+												<AccordionItem close>
+													<svelte:fragment slot="lead"></svelte:fragment>
+													<svelte:fragment slot="summary">
+														<p class="font-semibold">{transaction['@_name']}</p>
+													</svelte:fragment>
+													<svelte:fragment slot="content">
+														{#if transaction.variables && Object.keys(transaction.variables).length > 0}
+															<Accordion
+																class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+															>
+																{transaction['@_comment']}
+																{#each Object.values(transaction.variables) as variable}
+																	<div class="p-5">
+																		<label class="label-common">
+																			<p class="font-semibold">{variable['@_name']}</p>
+																			<input class="input-common" />
+																		</label>
+																	</div>
+																{/each}
+															</Accordion>
+														{:else}
+															<p>No variables available in this transaction</p>
+														{/if}
+													</svelte:fragment>
+												</AccordionItem>
+											{/each}
+										</Accordion>
+									{:else}
+										<p>No transactions available in this connector</p>
+									{/if}
+								</svelte:fragment>
+							</AccordionItem>
+						</Accordion>
+					{/each}
+				{:else}
+					<p>No connectors available</p>
+				{/if}
+			</CardD>
+		</div>
+		<div class="col-span-1">
+			<CardD>
+				<h1>EXECUTION RESULT</h1>
+			</CardD>
+		</div>
+	</div>
 </main>
