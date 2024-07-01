@@ -82,7 +82,9 @@
 		"apexcharts": "^3.49.2",
 		"chart.js": "^4.4.3",
 		"fast-xml-parser": "^4.4.0",
+		"marked": "^13.0.1",
 		"monaco-editor": "^0.50.0",
+		"svelte-markdown": "^0.4.1",
 		"svelte-persisted-store": "^0.11.0",
 		"svelte-tiny-virtual-list": "^2.1.2"
 	}
