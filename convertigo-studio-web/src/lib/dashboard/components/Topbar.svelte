@@ -7,7 +7,7 @@
 </script>
 
 <AppBar
-	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200 py-4"
+	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200 py-2 px-10"
 	background="dark:bg-surface-700 bg-surface-100"
 	padding="p-0"
 >

@@ -82,7 +82,7 @@
 <div class="flex flex-col gap-5">
 	{#each cards as { title, range, next }, i}
 		<Card {title}>
-			<div slot="cornerOption">
+			<div slot="cornerOption" class="flex">
 				<ButtonsContainer>
 					{#each Object.entries(jobTypes).slice(...range) as [type, { name, icon }]}
 						<button class="basic-button" on:click={() => openModals(type)}>

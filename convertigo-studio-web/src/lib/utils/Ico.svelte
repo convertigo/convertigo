@@ -4,6 +4,7 @@
 	import BytesizeImport from '~icons/bytesize/import?raw';
 	import CarbonApplication from '~icons/carbon/application?raw';
 	import CarbonDataRegular from '~icons/carbon/data-regular?raw';
+	import CarbonAdmin from '~icons/carbon/panel-expansion?raw';
 	import CodiconJson from '~icons/codicon/json?raw';
 	import CodiconOrganization from '~icons/codicon/organization?raw';
 	import CodiconRunAll from '~icons/codicon/run-all?raw';
@@ -75,6 +76,7 @@
 		'bytesize:import': BytesizeImport,
 		'carbon:application': CarbonApplication,
 		'carbon:data-regular': CarbonDataRegular,
+		'carbon:panel-expansion': CarbonAdmin,
 		'codicon:json': CodiconJson,
 		'codicon:organization': CodiconOrganization,
 		'codicon:run-all': CodiconRunAll,
@@ -157,7 +159,7 @@
 		size = 5;
 	}
 	if (size == 'dashboard') {
-		size = 7;
+		size = 5;
 	}
 	/** @type {boolean|import('svelte/transition').DrawParams } */
 	export let animate = false;

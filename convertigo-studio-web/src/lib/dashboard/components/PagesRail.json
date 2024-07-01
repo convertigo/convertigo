@@ -3,7 +3,7 @@
 		{
 			"title": "Projects",
 			"icon": "lucide:layout-panel-top",
-			"url": ""
+			"url": "dashboard"
 		},
 		{
 			"title": "My Organization",
@@ -14,6 +14,11 @@
 			"title": "Marketplace",
 			"icon": "mdi:marketplace-outline",
 			"url": "connections"
+		},
+		{
+			"title": "Admin",
+			"icon": "carbon:panel-expansion",
+			"url": "/admin"
 		},
 		{
 			"title": "Resources",

@@ -24,7 +24,7 @@
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
-			<a href={`${isRoot ? '' : '../'}${url}`} class="nav-links" on:click={drawerStore.close}>
+			<a href={`${isRoot ? '' : '/'}${url}`} class="nav-links" on:click={drawerStore.close}>
 				{#if i == 0 && j == activeIndex}
 					<span
 						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
