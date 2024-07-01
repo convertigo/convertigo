@@ -1,5 +1,5 @@
 <script>
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, popup } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import {
@@ -16,6 +16,7 @@
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
 	import MaxHeight from './MaxHeight.svelte';
+	import { onMount, tick } from 'svelte';
 
 	const duration = 400;
 	const modalStore = getModalStore();
@@ -84,6 +85,7 @@
 
 	function doAutoScroll() {
 		if (autoScroll && $logs.length > 1) {
+			founds = [];
 			scrollToIndex = $logs.length - 1;
 		}
 	}
@@ -193,7 +195,99 @@
 	$: if (scrollToIndex >= $logs.length) {
 		scrollToIndex = undefined;
 	}
+
+	let searched = '';
+	let founds = [];
+	let foundsIndex = 0;
+
+	function doSearch(e) {
+		if (e.key == 'Enter') {
+			doSearchNext();
+		} else if (searched) {
+			const centerLine = showedLines.start + (showedLines.end - showedLines.start) / 2;
+			const s = searched.toLowerCase();
+			let nearest = -1;
+			founds = $logs.reduce((acc, log, index) => {
+				const l = log[4].toLowerCase();
+				let start = l.indexOf(s, 0);
+				if (start != -1) {
+					if (
+						nearest == -1 ||
+						Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
+					) {
+						nearest = acc.length;
+					}
+				}
+				while (start != -1) {
+					const end = start + s.length;
+					acc.push({ index, start, end });
+					start = l.indexOf(s, end);
+				}
+				return acc;
+			}, []);
+			if (founds.length > 0) {
+				scrollToIndex = founds[(foundsIndex = nearest)].index;
+			}
+		} else {
+			founds = [];
+		}
+	}
+
+	function doSearchNext() {
+		if (founds.length > 0) {
+			foundsIndex = (foundsIndex + 1) % founds.length;
+			scrollToIndex = founds[foundsIndex].index;
+		}
+	}
+
+	function doSearchPrev() {
+		if (founds.length > 0) {
+			foundsIndex = (foundsIndex - 1 + founds.length) % founds.length;
+			scrollToIndex = founds[foundsIndex].index;
+		}
+	}
+
+	function scrollIntoView(e) {
+		let { left, width } = e.getBoundingClientRect();
+		left = Math.max(0, left - (e.parentElement.getBoundingClientRect().width + width) / 2);
+		e.parentElement.scrollTo({ left, behavior: 'smooth' });
+	}
+
+	let searchBox;
+	let searchInput;
+	let searchBoxOpened = false;
+
+	const searchBoxSetting = {
+		event: 'click',
+		target: 'searchBox',
+		placement: 'top',
+		closeQuery: '.close-popup',
+		state: async ({ state }) => {
+			searchBoxOpened = state;
+			if (state) {
+				await tick();
+				searchInput.focus();
+				autoScroll = false;
+			}
+		}
+	};
 </script>
+
+<svelte:window
+	on:keydown={(e) => {
+		if ((e.ctrlKey || e.metaKey) && (e.key == 'f' || e.key == 'g')) {
+			e.preventDefault();
+			if (searchBoxOpened) {
+				searchInput.select();
+				if (e.key == 'g') {
+					doSearchNext();
+				}
+			} else {
+				searchBox.click();
+			}
+		}
+	}}
+/>
 
 <div class="text-xs" class:fullscreen>
 	<div class="flex flex-col">
@@ -238,6 +332,35 @@
 				<span class="cursor-pointer" on:mousedown={() => ($showFilters = !$showFilters)}
 					><Ico icon={`mdi:filter-cog${$showFilters ? '' : '-outline'}`} /></span
 				>
+			</div>
+			<div class="mini-card variant-filled-surface">
+				<span bind:this={searchBox} class="cursor-pointer" use:popup={searchBoxSetting}
+					><Ico icon="mdi:search" /></span
+				>
+				<div class="z-50" data-popup="searchBox">
+					<div
+						class="card p-2 bg-stone-200 dark:bg-stone-900 text-black dark:text-white flex flex-row gap-2"
+					>
+						<input
+							type="text"
+							class="rounded-md border-none bg-transparent"
+							bind:this={searchInput}
+							bind:value={searched}
+							on:keyup={doSearch}
+						/>
+						<input
+							type="text"
+							class="rounded-md border-none bg-transparent"
+							style="field-sizing: content;"
+							readonly={true}
+							value={`${Math.min(foundsIndex + 1, founds.length)}/${founds.length}`}
+						/>
+						<button class="btn-search" on:click={doSearchPrev}>↑</button>
+						<button class="btn-search" on:click={doSearchNext}>↓</button>
+						<button class="btn-search close-popup">X</button>
+					</div>
+					<div class="arrow bg-stone-200 dark:bg-stone-900" />
+				</div>
 			</div>
 			<div class="mini-card variant-filled-tertiary">
 				<span>Message</span>
@@ -318,6 +441,8 @@
 			estimatedItemSize={100}
 			{scrollToIndex}
 			{itemSize}
+			scrollToAlignment="center"
+			scrollToBehaviour="smooth"
 			on:itemsUpdated={itemsUpdated}
 			bind:this={virtualList}
 		>
@@ -341,7 +466,25 @@
 						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost`}
 						style="scrollbar-width: thin;"
 					>
-						{log[4]}
+						{#if founds.length > 0}
+							{@const _founds = founds.filter((f) => f.index == index)}
+							{#if _founds.length > 0}
+								{#each _founds as found, index}
+									{@const { start, end } = found}
+									{#if index == 0}
+										{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+											use:scrollIntoView
+											class="searchedCurrent">{log[4].substring(start, end)}</span
+										>{:else}<span class="searched">{log[4].substring(start, end)}</span
+										>{/if}{#if index < _founds.length - 1}{log[4].substring(
+											end,
+											_founds[index + 1].start
+										)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+								{log[4]}
+							{/if}
+						{:else}
+							{log[4]}
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -383,6 +526,22 @@
 
 	.mini-card {
 		@apply rounded-token m-1 p-1 flex gap-2 text-nowrap select-none;
+	}
+
+	.btn-search {
+		@apply btn btn-sm text-black bg-surface-hover-token dark:text-white;
+	}
+
+	.searchedCurrent {
+		color: black;
+		background-color: orange;
+		box-shadow: 2px 2px 5px 0px orange;
+	}
+
+	.searched {
+		color: black;
+		background-color: yellow;
+		box-shadow: 2px 2px 5px 0px yellow;
 	}
 
 	.FATAL {

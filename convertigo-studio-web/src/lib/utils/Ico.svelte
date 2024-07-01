@@ -4,7 +4,7 @@
 	import BytesizeImport from '~icons/bytesize/import?raw';
 	import CarbonApplication from '~icons/carbon/application?raw';
 	import CarbonDataRegular from '~icons/carbon/data-regular?raw';
-	import CarbonAdmin from '~icons/carbon/panel-expansion?raw';
+	import CarbonPanelExpansion from '~icons/carbon/panel-expansion?raw';
 	import CodiconJson from '~icons/codicon/json?raw';
 	import CodiconOrganization from '~icons/codicon/organization?raw';
 	import CodiconRunAll from '~icons/codicon/run-all?raw';
@@ -56,6 +56,7 @@
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
+	import MdiSearch from '~icons/mdi/search?raw';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line?raw';
 	import OcticonLogoGithub16 from '~icons/octicon/logo-github-16?raw';
 	import PhCertificateThin from '~icons/ph/certificate-thin?raw';
@@ -76,7 +77,7 @@
 		'bytesize:import': BytesizeImport,
 		'carbon:application': CarbonApplication,
 		'carbon:data-regular': CarbonDataRegular,
-		'carbon:panel-expansion': CarbonAdmin,
+		'carbon:panel-expansion': CarbonPanelExpansion,
 		'codicon:json': CodiconJson,
 		'codicon:organization': CodiconOrganization,
 		'codicon:run-all': CodiconRunAll,
@@ -128,6 +129,7 @@
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
+		'mdi:search': MdiSearch,
 		'mingcute:delete-line': MingcuteDeleteLine,
 		'octicon:logo-github-16': OcticonLogoGithub16,
 		'ph:certificate-thin': PhCertificateThin,
