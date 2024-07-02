@@ -11,6 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
+  macos: circleci/macos@2
   aws-cli: circleci/aws-cli@4
 jobs:
   build_engine_jar:
@@ -641,6 +642,7 @@ jobs:
     macos:
       xcode: 15.0.0
     steps:
+    - macos/install-rosetta
     - aws-cli/setup
     
     - attach_workspace:
