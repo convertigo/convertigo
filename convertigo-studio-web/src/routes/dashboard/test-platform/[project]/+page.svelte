@@ -49,6 +49,16 @@
 		return marked(cleanedMarkdown);
 	}
 
+	function copyToInputs(testcase) {
+        Object.values(testcase.variables).forEach(variable => {
+            const inputElement = document.querySelector(`input[name="${variable['@_name']}"]`);
+            if (inputElement) {
+				//@ts-ignore
+                inputElement.value = variable['@_value'];
+            }
+        });
+    }
+
 	// Subscribe to sequencesStore to log its value
 	sequencesStore.subscribe((value) => {
 		console.log('Sequences Store Data:', value);
@@ -172,14 +182,8 @@
 																						</tbody>
 																					</table>
 																				{/each}
-																				<button class="basic-button">Copy</button>
+																				<button class="basic-button" on:click={() => copyToInputs(testcase)}>Copy</button>
 																			</div>
-																			<!-- {#each Object.values(testcase.variables) as variable}
-																				<div class="p-5">
-																					<p>{variable['@_name']}</p>
-																					<p>{@html convertMarkdownToHtml(variable['@_value'])}</p>
-																				</div>
-																			{/each} -->
 																		</Accordion>
 																	{:else}
 																		<p>No variables available in this testcase</p>
