@@ -50,14 +50,14 @@
 	}
 
 	function copyToInputs(testcase) {
-        Object.values(testcase.variables).forEach(variable => {
-            const inputElement = document.querySelector(`input[name="${variable['@_name']}"]`);
-            if (inputElement) {
+		Object.values(testcase.variables).forEach((variable) => {
+			const inputElement = document.querySelector(`input[name="${variable['@_name']}"]`);
+			if (inputElement) {
 				//@ts-ignore
-                inputElement.value = variable['@_value'];
-            }
-        });
-    }
+				inputElement.value = variable['@_value'];
+			}
+		});
+	}
 
 	// Subscribe to sequencesStore to log its value
 	sequencesStore.subscribe((value) => {
@@ -182,7 +182,10 @@
 																						</tbody>
 																					</table>
 																				{/each}
-																				<button class="basic-button" on:click={() => copyToInputs(testcase)}>Copy</button>
+																				<button
+																					class="basic-button"
+																					on:click={() => copyToInputs(testcase)}>Copy</button
+																				>
 																			</div>
 																		</Accordion>
 																	{:else}

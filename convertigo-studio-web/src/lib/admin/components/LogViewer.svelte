@@ -17,7 +17,7 @@
 	import { persisted } from 'svelte-persisted-store';
 	import MaxHeight from './MaxHeight.svelte';
 	import { tick } from 'svelte';
-	import { shift } from '@floating-ui/dom';
+	import { debounce } from '$lib/utils/service';
 
 	const duration = 400;
 	const modalStore = getModalStore();
@@ -94,6 +94,11 @@
 	async function itemsUpdated(event) {
 		doAutoScroll();
 		showedLines = event.detail;
+
+		if (recenter) {
+			recenter();
+		}
+
 		if (event.detail.end >= $logs.length - 1) {
 			await logsList();
 		}
@@ -201,11 +206,15 @@
 	let founds = [];
 	let foundsIndex = 0;
 
+	function getCenterLine() {
+		return Math.round(showedLines.start + (showedLines.end - showedLines.start) / 2);
+	}
+
 	function doSearch(e) {
 		if (e.key == 'Enter') {
 			doSearchNext();
 		} else if (searched) {
-			const centerLine = showedLines.start + (showedLines.end - showedLines.start) / 2;
+			const centerLine = getCenterLine();
 			const s = searched.toLowerCase();
 			let nearest = -1;
 			founds = $logs.reduce((acc, log, index) => {
@@ -272,6 +281,18 @@
 			}
 		}
 	};
+
+	let recenter;
+
+	function addExtraLines(inc) {
+		const centerLine = getCenterLine();
+		extraLines += inc;
+		virtualList.recomputeSizes(0);
+		recenter = debounce(() => {
+			scrollToIndex = centerLine;
+			recenter = undefined;
+		}, 333);
+	}
 </script>
 
 <svelte:window
@@ -406,16 +427,14 @@
 				<span
 					class="cursor-pointer"
 					on:click={() => {
-						extraLines++;
-						virtualList.recomputeSizes(0);
+						addExtraLines(1);
 					}}><Ico icon="grommet-icons:add" /></span
 				>
 				{#if extraLines > 1}
 					<span
 						class="cursor-pointer"
 						on:click={() => {
-							extraLines--;
-							virtualList.recomputeSizes(0);
+							addExtraLines(-1);
 						}}><Ico icon="grommet-icons:form-subtract" /></span
 					>
 				{/if}
@@ -522,7 +541,7 @@
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		@apply z-50 bg-surface-active-token min-w-full;
+		@apply z-50 bg-surface-50-900-token dark:bg-surface-900-50-token min-w-full;
 	}
 
 	.row-wrap {

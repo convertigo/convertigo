@@ -58,7 +58,6 @@
 	let dates = [...datesEdited];
 	let times = datesEdited.map((d) => formatTime(d));
 	let isOpen = false;
-	let showTime = false;
 
 	$startDate = formatDate(dates[0]) + ' ' + times[0];
 	$endDate = formatDate(dates[1]) + ' ' + times[1];
@@ -109,8 +108,6 @@
 			{ name: 'tomorrow', fn: () => new Date().setHours(0, 0, 0, 0) + 86400000 }
 		]
 	];
-
-	let autoScroll = false;
 
 	function tabChanged() {
 		if (tabs[tabSet].name == 'Real Time') {
@@ -201,18 +198,17 @@
 										<div class="flex flex-row flex-wrap items-center gap-2">
 											<button
 												type="button"
-												class="btn p-2 variant-filled-surface"
+												class="btn btn-sm p-2 variant-filled-surface"
 												use:popup={{ event: 'click', target: `preset-${i}`, placement: 'bottom' }}
 												>{way}&nbsp;<Ico icon="mdi:clock-star-four-points-outline" /></button
 											>
 											<input
 												type="text"
-												class="input max-w-fit"
+												class="input max-w-fit h-full"
 												value={formatDate(dates[i])}
 												on:focus={() => {
 													datesEdited[i] = null;
 													isOpen = true;
-													showTime = false;
 												}}
 												size="11"
 											/>
@@ -220,20 +216,13 @@
 										</div>
 									</div>
 								{/each}
-								<button class="btn variant-filled-surface p-2" on:click={refreshLogs}
+								<button class="btn btn-sm variant-filled-surface p-2" on:click={refreshLogs}
 									>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
 								>
 							</div>
 						</DatePicker>
 					</div>
 				</div>
-			{:else if tabs[tabSet].name == 'Real Time'}
-				<SlideToggle
-					size="sm"
-					name="realtime"
-					class="variant-ghost-primary p-2"
-					bind:checked={autoScroll}>Autoscroll</SlideToggle
-				>
 			{:else if tabs[tabSet].name == 'Purge'}
 				<div class="logsCard">
 					<RangeSlider
