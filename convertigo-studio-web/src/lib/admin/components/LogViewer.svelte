@@ -16,7 +16,8 @@
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
 	import MaxHeight from './MaxHeight.svelte';
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
+	import { shift } from '@floating-ui/dom';
 
 	const duration = 400;
 	const modalStore = getModalStore();
@@ -280,7 +281,11 @@
 			if (searchBoxOpened) {
 				searchInput.select();
 				if (e.key == 'g') {
-					doSearchNext();
+					if (e.shiftKey) {
+						doSearchPrev();
+					} else {
+						doSearchNext();
+					}
 				}
 			} else {
 				searchBox.click();

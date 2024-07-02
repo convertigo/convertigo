@@ -25,6 +25,15 @@
     </session-config>
     
     <filter>
+		<filter-name>FallbackFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.FallbackFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>FallbackFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
+    
+    <filter>
 		<filter-name>CompressionFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.CompressionFilter</filter-class>
 	</filter>
@@ -223,15 +232,6 @@
         <servlet-name>FullSyncServlet</servlet-name>
         <url-pattern>/fullsync/*</url-pattern>
     </servlet-mapping>
-    
-    <filter>
-		<filter-name>StoreDataFilter</filter-name>
-		<filter-class>com.twinsoft.convertigo.engine.servlets.StoreDataFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>StoreDataFilter</filter-name>
-        <url-pattern>/store/*</url-pattern>
-	</filter-mapping>
 	
     <servlet>
 		<servlet-name>RestApiServlet</servlet-name>
