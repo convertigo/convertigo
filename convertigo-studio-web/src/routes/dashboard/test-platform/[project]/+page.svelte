@@ -59,7 +59,10 @@
 			}
 		});
 	}
+<<<<<<< HEAD
 	let columns = ['Name', 'Value'];
+=======
+>>>>>>> branch 'develop' of git@github.com:convertigo/convertigo.git
 
 	// Subscribe to sequencesStore to log its value
 	sequencesStore.subscribe((value) => {
@@ -154,6 +157,7 @@
 												<div class="col-span-1">
 													{#if sequence.testcases && Object.keys(sequence.testcases).length > 0}
 														{#each Object.values(sequence.testcases) as testcase}
+<<<<<<< HEAD
 															<p class="font-semibold mb-4">{testcase['@_name']}</p>
 
 															{#if testcase.variables && Object.keys(testcase.variables).length > 0}
@@ -171,6 +175,46 @@
 															{:else}
 																<p>No variables available in this testcase</p>
 															{/if}
+=======
+															<AccordionItem close>
+																<svelte:fragment slot="lead"></svelte:fragment>
+																<svelte:fragment slot="summary">
+																	<p class="font-semibold">{testcase['@_name']}</p>
+																</svelte:fragment>
+																<svelte:fragment slot="content">
+																	{#if testcase.variables && Object.keys(testcase.variables).length > 0}
+																		<Accordion
+																			class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+																		>
+																			<div class="table-container p-5 flex flex-col gap-2">
+																				{#each Object.values(testcase.variables) as variable}
+																					<table class="table-auto w-full">
+																						<tbody>
+																							<tr>
+																								<td class="p-2">{variable['@_name']}</td>
+																								<td class="p-2">
+																									<div>
+																										{@html convertMarkdownToHtml(
+																											variable['@_value']
+																										)}
+																									</div>
+																								</td>
+																							</tr>
+																						</tbody>
+																					</table>
+																				{/each}
+																				<button
+																					class="basic-button"
+																					on:click={() => copyToInputs(testcase)}>Copy</button
+																				>
+																			</div>
+																		</Accordion>
+																	{:else}
+																		<p>No variables available in this testcase</p>
+																	{/if}
+																</svelte:fragment>
+															</AccordionItem>
+>>>>>>> branch 'develop' of git@github.com:convertigo/convertigo.git
 														{/each}
 													{:else}
 														<p>No test cases available in this sequence</p>
