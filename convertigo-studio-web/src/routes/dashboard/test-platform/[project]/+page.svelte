@@ -11,6 +11,7 @@
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
+	// import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	let project;
 	let enableInputVar = {};
@@ -20,10 +21,6 @@
 		checkTestPlatform(project);
 	});
 
-	function endsWithAny(str, suffixes) {
-		return suffixes.some((suffix) => str.endsWith(suffix));
-	}
-
 	$: {
 		page.subscribe(($page) => {
 			project = $page.params.project;
@@ -31,9 +28,24 @@
 	}
 
 	function convertMarkdownToHtml(markdown) {
-		// Convert `&#10;` to newline character
-		const cleanedMarkdown = markdown.replace(/&#10;/g, '\n');
-		// Use `marked` to convert Markdown to HTML
+		const entityMap = {
+			'&quot;': '"',
+			'&#10;': '\n',
+			'&#9;': '\t',
+			'&amp;': '&',
+			'&lt;': '<',
+			'&gt;': '>',
+			'&nbsp;': ' ',
+			'&apos;': "'"
+		};
+
+		const cleanedMarkdown = markdown.replace(
+			/&quot;|&#10;|&#9;|&amp;|&lt;|&gt;|&nbsp;|&apos;/g,
+			function (match) {
+				return entityMap[match];
+			}
+		);
+
 		return marked(cleanedMarkdown);
 	}
 
@@ -95,13 +107,16 @@
 													>
 														<form>
 															{#each Object.values(sequence.variables) as variable}
-																<div class="p-5 flex-col gap-2 items-center">
-																	<p class="font-semibold">{variable['@_name']}</p>
+																<div class="px-5 py-2 flex-col items-center">
+																	<p class="font-semibold mb-2">{variable['@_name']}</p>
 																	<div class="flex items-center gap-5">
-																		<label class="label-common">
+																		<label class="label-common w-full">
 																			<input
 																				class="input-common"
 																				disabled={!enableInputVar[variable['@_name']]}
+																				required={variable['@_required']}
+																				name={variable['@_name']}
+																				value={variable['@_value']}
 																			/>
 																			<!-- <label>
 																				<input type="checkbox" bind:checked={enableInputVar} />
@@ -140,14 +155,31 @@
 																		<Accordion
 																			class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
 																		>
-																			{#each Object.values(testcase.variables) as variable}
+																			<div class="table-container p-5 flex flex-col gap-2">
+																				{#each Object.values(testcase.variables) as variable}
+																					<table class="table-auto w-full">
+																						<tbody>
+																							<tr>
+																								<td class="p-2">{variable['@_name']}</td>
+																								<td class="p-2">
+																									<div>
+																										{@html convertMarkdownToHtml(
+																											variable['@_value']
+																										)}
+																									</div>
+																								</td>
+																							</tr>
+																						</tbody>
+																					</table>
+																				{/each}
+																				<button class="basic-button">Copy</button>
+																			</div>
+																			<!-- {#each Object.values(testcase.variables) as variable}
 																				<div class="p-5">
-																					<label class="label-common">
-																						<p class="font-semibold">{variable['@_name']}</p>
-																						<input class="input-common" />
-																					</label>
+																					<p>{variable['@_name']}</p>
+																					<p>{@html convertMarkdownToHtml(variable['@_value'])}</p>
 																				</div>
-																			{/each}
+																			{/each} -->
 																		</Accordion>
 																	{:else}
 																		<p>No variables available in this testcase</p>
@@ -245,10 +277,39 @@
 				{/if}
 			</CardD>
 		</div>
-		<div class="col-span-1">
+		<div class="col-span-1 sticky flex flex-col gap-5">
+			<CardD class="">
+				<div class="flex gap-2">
+					<button class="basic-button"> XML </button>
+					<button class="basic-button"> JSON </button>
+					<button class="basic-button"> Binary </button>
+					<button class="basic-button"> Full Screen </button>
+				</div>
+			</CardD>
 			<CardD>
 				<h1>EXECUTION RESULT</h1>
+				<div class="flex w-full">
+					<img
+						class="qr-code"
+						src="http://localhost:18080/convertigo/qrcode?o=image%2Fpng&d=lib_BaseRow%2FDisplayObjects%2Fmobile%2Findex.html"
+						alt="QR Code"
+					/>
+				</div>
 			</CardD>
 		</div>
 	</div>
 </main>
+
+<style lang="postcss">
+	.sticky {
+		position: -webkit-sticky; /* For Safari */
+		position: sticky;
+		top: 40px;
+		height: calc(100vh - 40px); /* Adjust height to account for the top offset */
+		overflow-y: auto; /* Allow scrolling if content overflows */
+	}
+	.qr-code {
+		width: 200px; /* Adjust the size as needed */
+		height: 200px; /* Adjust the size as needed */
+	}
+</style>
