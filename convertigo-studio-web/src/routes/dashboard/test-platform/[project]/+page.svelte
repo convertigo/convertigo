@@ -8,16 +8,23 @@
 		sequencesStore,
 		testPlatformStore
 	} from '$lib/dashboard/stores/testPlatform';
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	// import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
+	const modalStore = getModalStore();
 	let project;
 	let enableInputVar = {};
 
-	const colors = ['bg-pale-violet', 'bg-pale-blue', 'bg-pale-green', 'bg-pale-pink'];
+	const bgColors = [
+		'bg-pale-violet border-[1px] border-pale-violet',
+		'bg-pale-blue border-[1px] border-pale-blue',
+		'bg-pale-green border-[1px] border-pale-green',
+		'bg-pale-pink border-[1px] border-pale-pink'
+	];
+
 	onMount(async () => {
 		checkTestPlatform(project);
 	});
@@ -59,10 +66,15 @@
 			}
 		});
 	}
-<<<<<<< HEAD
 	let columns = ['Name', 'Value'];
-=======
->>>>>>> branch 'develop' of git@github.com:convertigo/convertigo.git
+
+	function openModalInfo(mode) {
+		modalStore.trigger({
+			type: 'component',
+			component: 'modalInfo',
+			meta: { mode }
+		});
+	}
 
 	// Subscribe to sequencesStore to log its value
 	sequencesStore.subscribe((value) => {
@@ -96,57 +108,65 @@
 
 	<div class="col-span-1">
 		<CardD class="gap-2">
-			<Accordion padding="p-4" class="">
+			<Accordion padding="p-4">
 				<AccordionItem>
 					<svelte:fragment slot="lead"></svelte:fragment>
 					<svelte:fragment slot="summary">
-						<p class="text-[14px] text-token">Sequences</p>
+						<p class="text-[18px] font-semibold text-token pb-4 px-2">Sequences</p>
+						<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
 						{#if $sequencesStore && $sequencesStore.length > 0}
 							{#each $sequencesStore as sequence, index}
-								<Accordion padding="p-4" class="dark:bg-surface-600 bg-surface-50 text-token">
+								<Accordion
+									padding="p-4"
+									class={`rounded-token bg-opacity-20 ${bgColors[index % bgColors.length]} border-2 `}
+								>
 									<AccordionItem close>
 										<svelte:fragment slot="lead"></svelte:fragment>
 										<svelte:fragment slot="summary">
-											<p class="text-[14px] text-token">{sequence['@_name']}</p>
+											<div class="flex items-center justify-between">
+												<p class="text-[14px] text-token">{sequence['@_name']}</p>
+												<button class="basic-button" on:click={() => openModalInfo('Sequence Info')}
+													>Comment</button
+												>
+												<!-- <p class="text-[14px] text-token">{sequence['@_comment']}</p> -->
+											</div>
 										</svelte:fragment>
 										<svelte:fragment slot="content">
 											<div
-												class="p-3 font-semiBold bg-surface-100 flex items-center justify-between"
+												class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
 											>
 												<p>Parameters</p>
 												<button class="basic-button">Try sequence</button>
 											</div>
-											<div class="grid grid-cols-2 gap-10">
+											<div class="grid grid-cols-2 p-5 gap-10">
 												<div class="col-span-1">
 													{#if sequence.variables && Object.keys(sequence.variables).length > 0}
 														<form>
 															{#each Object.values(sequence.variables) as variable}
-																<div class=" py-2 flex-col items-center">
-																	<p class="font-semibold mb-2">{variable['@_name']}</p>
-																	<div class="flex items-center gap-3">
-																		<label class="label-common w-full">
-																			<input
-																				class="input-common"
-																				disabled={!enableInputVar[variable['@_name']]}
-																				required={variable['@_required']}
-																				name={variable['@_name']}
-																				value={variable['@_value']}
-																			/>
-																			<!-- <label>
+																<p class="font-semibold mb-2">{variable['@_name']}</p>
+																<div class="flex items-center gap-3">
+																	<label class="label-common w-full">
+																		<input
+																			class="input-common"
+																			disabled={!enableInputVar[variable['@_name']]}
+																			required={variable['@_required']}
+																			name={variable['@_name']}
+																			value={variable['@_value']}
+																		/>
+																		<!-- <label>
 																				<input type="checkbox" bind:checked={enableInputVar} />
 																				Enable Input
 																			</label> -->
-																		</label>
-																		<SlideToggle
-																			active="activeSlideToggle"
-																			background="unActiveSlideToggle"
-																			size="sm"
-																			name="slide"
-																			bind:checked={enableInputVar[variable['@_name']]}
-																		/>
-																	</div>
+																	</label>
+																	<SlideToggle
+																		active="activeSlideToggle"
+																		background="unActiveSlideToggle"
+																		size="sm"
+																		name="slide"
+																		bind:checked={enableInputVar[variable['@_name']]}
+																	/>
 																</div>
 															{/each}
 														</form>
@@ -157,7 +177,6 @@
 												<div class="col-span-1">
 													{#if sequence.testcases && Object.keys(sequence.testcases).length > 0}
 														{#each Object.values(sequence.testcases) as testcase}
-<<<<<<< HEAD
 															<p class="font-semibold mb-4">{testcase['@_name']}</p>
 
 															{#if testcase.variables && Object.keys(testcase.variables).length > 0}
@@ -175,53 +194,17 @@
 															{:else}
 																<p>No variables available in this testcase</p>
 															{/if}
-=======
-															<AccordionItem close>
-																<svelte:fragment slot="lead"></svelte:fragment>
-																<svelte:fragment slot="summary">
-																	<p class="font-semibold">{testcase['@_name']}</p>
-																</svelte:fragment>
-																<svelte:fragment slot="content">
-																	{#if testcase.variables && Object.keys(testcase.variables).length > 0}
-																		<Accordion
-																			class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
-																		>
-																			<div class="table-container p-5 flex flex-col gap-2">
-																				{#each Object.values(testcase.variables) as variable}
-																					<table class="table-auto w-full">
-																						<tbody>
-																							<tr>
-																								<td class="p-2">{variable['@_name']}</td>
-																								<td class="p-2">
-																									<div>
-																										{@html convertMarkdownToHtml(
-																											variable['@_value']
-																										)}
-																									</div>
-																								</td>
-																							</tr>
-																						</tbody>
-																					</table>
-																				{/each}
-																				<button
-																					class="basic-button"
-																					on:click={() => copyToInputs(testcase)}>Copy</button
-																				>
-																			</div>
-																		</Accordion>
-																	{:else}
-																		<p>No variables available in this testcase</p>
-																	{/if}
-																</svelte:fragment>
-															</AccordionItem>
->>>>>>> branch 'develop' of git@github.com:convertigo/convertigo.git
 														{/each}
 													{:else}
 														<p>No test cases available in this sequence</p>
 													{/if}
 												</div>
 											</div>
-											<div class="p-3 font-semiBold bg-surface-100">Response</div>
+											<div
+												class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
+											>
+												Response
+											</div>
 										</svelte:fragment>
 									</AccordionItem>
 								</Accordion>
@@ -237,7 +220,7 @@
 				{#each $connectorsStore as connector, index}
 					<Accordion
 						padding="0"
-						class={`rounded-token bg-opacity-50 ${colors[index % colors.length]}`}
+						class={`rounded-token bg-opacity-50 ${bgColors[index % bgColors.length]}`}
 					>
 						<AccordionItem close>
 							<svelte:fragment slot="lead"></svelte:fragment>
@@ -247,7 +230,7 @@
 							<svelte:fragment slot="content">
 								{#if connector.variables && Object.keys(connector.variables).length > 0}
 									<Accordion
-										class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+										class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
 									>
 										<form>
 											{#each Object.values(connector.variables) as variable}
@@ -266,7 +249,7 @@
 
 								{#if connector.transactions && Object.keys(connector.transactions).length > 0}
 									<Accordion
-										class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+										class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
 									>
 										{#each Object.values(connector.transactions) as transaction}
 											<AccordionItem close>
@@ -277,7 +260,7 @@
 												<svelte:fragment slot="content">
 													{#if transaction.variables && Object.keys(transaction.variables).length > 0}
 														<Accordion
-															class={`rounded-token bg-opacity-5 gap-2 ${colors[index % colors.length]}`}
+															class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
 														>
 															{transaction['@_comment']}
 															{#each Object.values(transaction.variables) as variable}
