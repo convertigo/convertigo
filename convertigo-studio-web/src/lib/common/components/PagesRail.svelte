@@ -1,15 +1,16 @@
 <script>
 	import { AppRail, getDrawerStore } from '@skeletonlabs/skeleton';
-	import parts from './PagesRail.json';
 	import { page } from '$app/stores';
 	import { fade, fly } from 'svelte/transition';
 	import Ico from '$lib/utils/Ico.svelte';
 
+	export let path;
+	export let parts;
 	let isRoot = false;
 	let activeIndex = 0;
 	let activeIndexLast = 0;
 	$: {
-		isRoot = $page.route.id == '/admin';
+		isRoot = $page.url.pathname == path;
 		activeIndexLast = activeIndex;
 		activeIndex = parts[0].findIndex((part) =>
 			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)

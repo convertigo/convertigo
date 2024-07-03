@@ -267,6 +267,7 @@
 	let searchInput;
 	let searchBoxOpened = false;
 
+	/** @type {import('@skeletonlabs/skeleton').PopupSettings } */
 	const searchBoxSetting = {
 		event: 'click',
 		target: 'searchBox',

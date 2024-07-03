@@ -4,6 +4,7 @@
 	import BytesizeImport from '~icons/bytesize/import?raw';
 	import CarbonApplication from '~icons/carbon/application?raw';
 	import CarbonDataRegular from '~icons/carbon/data-regular?raw';
+	import CarbonIntentRequestInactive from '~icons/carbon/intent-request-inactive?raw';
 	import CarbonPanelExpansion from '~icons/carbon/panel-expansion?raw';
 	import CodiconJson from '~icons/codicon/json?raw';
 	import CodiconOrganization from '~icons/codicon/organization?raw';
@@ -32,6 +33,8 @@
 	import MaterialSymbolsApiRounded from '~icons/material-symbols/api-rounded?raw';
 	import MaterialSymbolsLightCancelOutline from '~icons/material-symbols-light/cancel-outline?raw';
 	import MaterialSymbolsLightCloudOutline from '~icons/material-symbols-light/cloud-outline?raw';
+	import MaterialSymbolsLightDeleteOutline from '~icons/material-symbols-light/delete-outline?raw';
+	import MaterialSymbolsLightDateRangeRounded from '~icons/material-symbols-light/date-range-rounded?raw';
 	import MaterialSymbolsLightHomeOutline from '~icons/material-symbols-light/home-outline?raw';
 	import MaterialSymbolsLightKeyOutline from '~icons/material-symbols-light/key-outline?raw';
 	import MaterialSymbolsLightSaveAsOutline from '~icons/material-symbols-light/save-as-outline?raw';
@@ -77,6 +80,7 @@
 		'bytesize:import': BytesizeImport,
 		'carbon:application': CarbonApplication,
 		'carbon:data-regular': CarbonDataRegular,
+		'carbon:intent-request-inactive': CarbonIntentRequestInactive,
 		'carbon:panel-expansion': CarbonPanelExpansion,
 		'codicon:json': CodiconJson,
 		'codicon:organization': CodiconOrganization,
@@ -105,6 +109,8 @@
 		'material-symbols:api-rounded': MaterialSymbolsApiRounded,
 		'material-symbols-light:cancel-outline': MaterialSymbolsLightCancelOutline,
 		'material-symbols-light:cloud-outline': MaterialSymbolsLightCloudOutline,
+		'material-symbols-light:date-range-rounded': MaterialSymbolsLightDateRangeRounded,
+		'material-symbols-light:delete-outline': MaterialSymbolsLightDeleteOutline,
 		'material-symbols-light:home-outline': MaterialSymbolsLightHomeOutline,
 		'material-symbols-light:key-outline': MaterialSymbolsLightKeyOutline,
 		'material-symbols-light:save-as-outline': MaterialSymbolsLightSaveAsOutline,
@@ -199,9 +205,9 @@
 </script>
 
 {#if !svg || !animate}
-	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls}`)}
+	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
 {:else}
-	<svg {...attrToObj(svg)} class={`${svg.getAttribute('class') ?? ''} w-${size} h-${size} ${cls}`}>
+	<svg {...attrToObj(svg)} class={`${svg.getAttribute('class') ?? ''} w-${size} h-${size} ${cls} `}>
 		{#each svg.children as child}
 			{#if ['path', 'polyline'].includes(child.tagName)}
 				{#if show}

@@ -31,11 +31,6 @@
 			"url": "logs"
 		},
 		{
-			"title": "Trace Player",
-			"icon": "ph:video-thin",
-			"url": "trace-player"
-		},
-		{
 			"title": "Cache",
 			"icon": "material-symbols-light:update",
 			"url": "cache"
@@ -68,9 +63,9 @@
 	],
 	[
 		{
-			"title": "Test Platform",
+			"title": "Dashboard",
 			"icon": "file-icons:test-ruby",
-			"url": "test-platform"
+			"url": "../dashboard"
 		},
 		{
 			"title": "Swagger",

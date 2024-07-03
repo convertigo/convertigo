@@ -19,7 +19,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-	import { blur } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 
 	const modalStore = getModalStore();
 
@@ -97,7 +97,7 @@
 	{@const category = $configurations?.admin?.category[selectedIndex]}
 	<div class="grid md:grid-cols-5 gap-5">
 		{#key selectedIndex}
-			<div class="h-auto md:col-span-4" in:blur>
+			<div class="h-auto md:col-span-4" in:fade>
 				<Card title={category['@_displayName']}>
 					<div slot="cornerOption">
 						<ButtonsContainer>

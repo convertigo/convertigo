@@ -3,7 +3,7 @@
 		{
 			"title": "Projects",
 			"icon": "lucide:layout-panel-top",
-			"url": "dashboard"
+			"url": ""
 		},
 		{
 			"title": "My Organization",
@@ -18,7 +18,7 @@
 		{
 			"title": "Admin",
 			"icon": "carbon:panel-expansion",
-			"url": "/admin"
+			"url": "../admin"
 		},
 		{
 			"title": "Resources",

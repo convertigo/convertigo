@@ -5,19 +5,18 @@
 	import { writable } from 'svelte/store';
 	import { Accordion, AccordionItem, getModalStore, popup } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
-	import { goto } from '$app/navigation';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
+	import { flip } from 'svelte/animate';
+	import { fade } from 'svelte/transition';
 
 	onMount(() => {
-		projectsCheck();
+		projectsCheck(true);
 	});
 
 	const modalStore = getModalStore();
 
 	// Create a writable store for the search query
-	const searchQuery = writable('');
-	const selectedProject = writable('');
+	let searchQuery = '';
 
 	const settingsPopup = [
 		{ icon: 'mdi:edit-outline', title: 'Rename Project' },
@@ -27,6 +26,7 @@
 		{ icon: 'mingcute:delete-line', title: 'Delete Project' }
 	];
 
+	/** @type {import('@skeletonlabs/skeleton').PopupSettings } */
 	const popupClick = {
 		event: 'click',
 		target: 'popupClick',
@@ -41,18 +41,8 @@
 		});
 	}
 
-	async function handleProjectClick(projectName) {
-		const payload = { projectName };
-		await call('projects.GetTestPlatform', payload);
-		goto(`/dashboard/test-platform/${projectName}`);
-	}
-
 	$: filteredProjects = $projectsStore.filter((project) =>
-		project['@_name'].toLowerCase().includes($searchQuery.toLowerCase())
-	);
-
-	$: finalFilteredProjects = filteredProjects.filter((project) =>
-		$selectedProject ? project['@_name'] === $selectedProject : true
+		project['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
 	);
 </script>
 
@@ -62,37 +52,31 @@
 			type="text"
 			placeholder="Search projects..."
 			class="w-72 p-2 pl-10 border rounded-md input-common-dash"
-			bind:value={$searchQuery}
+			bind:value={searchQuery}
 		/>
 		<Icon
 			icon="mdi:magnify"
 			class="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500 w-5 h-5"
 		/>
 
-		<select class="w-72 p-2 border rounded-md input-common-dash w-72" bind:value={$selectedProject}>
-			<option value="">All Projects</option>
-			{#each filteredProjects as project}
-				<option value={project['@_name']}>{project['@_name']}</option>
-			{/each}
-		</select>
+		<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+			<div class="input-group-shim"><Icon icon="mdi:magnify" /></div>
+			<input type="search" placeholder="Search projects..." bind:value={searchQuery} />
+		</div>
 	</div>
 </CardD>
 
 <CardD>
 	<div class="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each finalFilteredProjects as project}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<div class="flex flex-col">
+		{#each filteredProjects as project (project['@_name'])}
+			<div class="flex flex-col" animate:flip={{ duration: 500 }} transition:fade>
 				<div
 					class="flex justify-between items-center p-2 border-[1px] rounded-t-md dark:border-surface-700 border-surface-200"
 				>
 					<span class="text-md font-semibold">{project['@_name']}</span>
-					<div class="flex space-x-2">
-						<button use:popup={popupClick}>
-							<Icon icon="iconamoon:menu-kebab-vertical-bold" />
-						</button>
-					</div>
+					<button use:popup={popupClick}>
+						<Ico icon="mdi:dots-vertical" />
+					</button>
 					<div class="px-2 py-3 z-10 bg-surface-600 rounded-token gap-2" data-popup="popupClick">
 						{#each settingsPopup as setting}
 							<button
@@ -113,13 +97,13 @@
 						<div class="arrow bg-surface-600" />
 					</div>
 				</div>
-				<div on:click={() => handleProjectClick(project['@_name'])}>
+				<a href="{project['@_name']}/">
 					<img
 						src="https://www.impactplus.com/hubfs/Fensea.jpg"
 						class="object-cover border-[1px] border-t-0 rounded-b-md dark:border-surface-700 border-surface-200 dark:opacity-70"
 						alt="project"
 					/>
-				</div>
+				</a>
 				<Accordion>
 					<AccordionItem close>
 						<svelte:fragment slot="summary"
