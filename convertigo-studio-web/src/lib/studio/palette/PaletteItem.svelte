@@ -57,7 +57,7 @@
 	{#if item.icon.includes('/')}
 		<span class="">
 			<AutoSvg
-				src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`}
+				src="{getUrl()}studio.dbo.GetIcon?iconPath={item.icon}"
 				height="35px"
 				width="35px"
 				fill="currentColor"

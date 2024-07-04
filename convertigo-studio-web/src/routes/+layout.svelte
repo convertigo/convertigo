@@ -38,7 +38,7 @@
 		call('engine.CheckAuthentication').then((res) => {
 			$authenticated = res.admin.authenticated;
 			if (!$authenticated && $page.route.id != '/login') {
-				goto(`${base}/login/?redirect=${$page.route.id}`);
+				goto(`${base}/login/?redirect=${$page.url.pathname}`);
 			} else if ($authenticated && ($page.route.id == '/' || $page.route.id == '/login')) {
 				goto(`${base}/admin/`);
 			}

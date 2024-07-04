@@ -10,7 +10,7 @@
 	let activeIndex = 0;
 	let activeIndexLast = 0;
 	$: {
-		isRoot = $page.url.pathname == path;
+		isRoot = $page.route.id == path;
 		activeIndexLast = activeIndex;
 		activeIndex = parts[0].findIndex((part) =>
 			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
@@ -25,7 +25,11 @@
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
-			<a href={`${isRoot ? '' : '../'}${url}`} class="nav-links" on:click={drawerStore.close}>
+			<a
+				href="{isRoot || url.startsWith('http') ? '' : '../'}{url}"
+				class="nav-links"
+				on:click={drawerStore.close}
+			>
 				{#if i == 0 && j == activeIndex}
 					<span
 						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
@@ -34,8 +38,7 @@
 					></span>
 				{/if}
 				<Ico size="nav" icon={tile.icon} class="z-10" />
-				<span
-					class={`ml-3 text-[13px] z-10 font-${i == 0 && j == activeIndex ? 'medium' : 'light'}`}
+				<span class="ml-3 text-[13px] z-10 font-{i == 0 && j == activeIndex ? 'medium' : 'light'}"
 					>{tile.title}</span
 				>
 			</a>

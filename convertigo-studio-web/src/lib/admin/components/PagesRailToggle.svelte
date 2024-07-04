@@ -1,6 +1,5 @@
 <script>
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import Icon from '@iconify/svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	export let open = true;

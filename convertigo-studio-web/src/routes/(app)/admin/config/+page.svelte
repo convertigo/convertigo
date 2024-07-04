@@ -107,7 +107,7 @@
 								class="basic-button"
 								on:click={saveChanges}
 							>
-								<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
+								<span><Ico icon="material-symbols-light:save-as-outline" size="6" /></span>
 								<span>Save changes</span>
 							</button>
 							<button
@@ -116,7 +116,7 @@
 								class="yellow-button"
 								on:click={refreshConfigurations}
 							>
-								<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
+								<span><Ico icon="material-symbols-light:cancel-outline" size="6" /></span>
 								<span class="">Cancel changes</span>
 							</button>
 						</ButtonsContainer>

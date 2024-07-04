@@ -30,7 +30,7 @@
 	}
 </script>
 
-<Card title={`${mode ? 'Edit' : 'Add'} log filter for ${category}`}>
+<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
 	<form on:submit|preventDefault={submit} class="flex flex-col gap-2">
 		{#if category == 'Message'}
 			<textarea

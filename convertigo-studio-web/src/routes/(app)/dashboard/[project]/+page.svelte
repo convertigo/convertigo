@@ -120,7 +120,7 @@
 							{#each $sequencesStore as sequence, index}
 								<Accordion
 									padding="p-4"
-									class={`rounded-token bg-opacity-20 ${bgColors[index % bgColors.length]} border-2 `}
+									class="rounded-token bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
 								>
 									<AccordionItem close>
 										<svelte:fragment slot="lead"></svelte:fragment>
@@ -220,7 +220,7 @@
 				{#each $connectorsStore as connector, index}
 					<Accordion
 						padding="0"
-						class={`rounded-token bg-opacity-50 ${bgColors[index % bgColors.length]}`}
+						class="rounded-token bg-opacity-50 {bgColors[index % bgColors.length]}"
 					>
 						<AccordionItem close>
 							<svelte:fragment slot="lead"></svelte:fragment>
@@ -230,7 +230,7 @@
 							<svelte:fragment slot="content">
 								{#if connector.variables && Object.keys(connector.variables).length > 0}
 									<Accordion
-										class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
+										class="rounded-token bg-opacity-5 gap-2 {bgColors[index % bgColors.length]}"
 									>
 										<form>
 											{#each Object.values(connector.variables) as variable}
@@ -249,7 +249,7 @@
 
 								{#if connector.transactions && Object.keys(connector.transactions).length > 0}
 									<Accordion
-										class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
+										class="rounded-token bg-opacity-5 gap-2 {bgColors[index % bgColors.length]}"
 									>
 										{#each Object.values(connector.transactions) as transaction}
 											<AccordionItem close>
@@ -260,7 +260,9 @@
 												<svelte:fragment slot="content">
 													{#if transaction.variables && Object.keys(transaction.variables).length > 0}
 														<Accordion
-															class={`rounded-token bg-opacity-5 gap-2 ${bgColors[index % bgColors.length]}`}
+															class="rounded-token bg-opacity-5 gap-2 {bgColors[
+																index % bgColors.length
+															]}"
 														>
 															{transaction['@_comment']}
 															{#each Object.values(transaction.variables) as variable}

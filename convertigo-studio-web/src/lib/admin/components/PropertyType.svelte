@@ -86,7 +86,8 @@
 				property['@_value'] = property['@_originalValue'];
 				update();
 			}}
-			title={`restore:${property['@_originalValue']}`}><Ico icon="mdi:arrow-u-left-top" /></button
+			title="restore:{property['@_originalValue']}"
+			class="btn btn-sm"><Ico icon="mdi:arrow-u-left-top" /></button
 		>
 		<button
 			disabled={property['@_value'] == property['@_defaultValue']}
@@ -94,7 +95,7 @@
 				property['@_value'] = property['@_defaultValue'];
 				update();
 			}}
-			title={`reset:${property['@_defaultValue']}`}><Ico icon="mdi:backup-restore" /></button
+			title="reset:{property['@_defaultValue']}"><Ico icon="mdi:backup-restore" /></button
 		>
 	</div>
 </div>

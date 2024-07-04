@@ -164,7 +164,7 @@
 				<div class="flex flex-col gap-2">
 					<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
 						{#each presets as preset, i}
-							<div class="card p-4 variant-filled-surface z-50" data-popup={`preset-${i}`}>
+							<div class="card p-4 variant-filled-surface z-50" data-popup="preset-{i}">
 								<div class="flex flex-col gap-2 overflow-y-auto">
 									{#each preset as { name, fn }}
 										<button

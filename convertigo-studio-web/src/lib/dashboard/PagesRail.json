@@ -8,12 +8,12 @@
 		{
 			"title": "My Organization",
 			"icon": "codicon:organization",
-			"url": "config"
+			"url": "my-organization"
 		},
 		{
 			"title": "Marketplace",
 			"icon": "mdi:marketplace-outline",
-			"url": "connections"
+			"url": "https://www.convertigo.com"
 		},
 		{
 			"title": "Admin",
@@ -28,7 +28,7 @@
 		{
 			"title": "Community",
 			"icon": "ph:users",
-			"url": "certificate"
+			"url": "https://www.convertigo.com"
 		}
 	]
 ]

@@ -225,7 +225,7 @@
 								<AutoSvg
 									class="w-6 h-6"
 									fill="currentColor"
-									src={`${getUrl()}${nodeData.icon}`}
+									src="{getUrl()}{nodeData.icon}"
 									alt="ico"
 									height="35px"
 									width="35px"

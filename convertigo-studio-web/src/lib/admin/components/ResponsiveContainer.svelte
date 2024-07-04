@@ -16,8 +16,8 @@
 </script>
 
 <div
-	class={`grid ${containerGap} ${cls} ${smCols} ${mdCols} ${lgCols} ${scrollable ? 'overflow-y-auto' : ''}`}
-	style={`max-height: ${maxHeight};`}
+	class="grid {containerGap} {cls} {smCols} {mdCols} {lgCols} {scrollable ? 'overflow-y-auto' : ''}"
+	style="max-height: {maxHeight};"
 >
 	<slot />
 </div>

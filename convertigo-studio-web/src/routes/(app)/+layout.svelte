@@ -9,8 +9,8 @@
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
 
-	$: path = $page.url.pathname.startsWith('/admin/') ? '/admin/' : '/dashboard/';
-	$: parts = path == '/admin/' ? partsAdmin : partsDashboard;
+	$: path = $page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin';
+	$: parts = path == '/(app)/admin' ? partsAdmin : partsDashboard;
 </script>
 
 <Drawer>
@@ -20,7 +20,7 @@
 
 <AppShell>
 	<svelte:fragment slot="header">
-		{#if path == '/admin/'}
+		{#if path == '/(app)/admin'}
 			<TopbarAdmin />
 		{:else}
 			<TopbarDashBoard />

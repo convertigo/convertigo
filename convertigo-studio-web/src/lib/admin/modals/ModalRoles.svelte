@@ -61,7 +61,7 @@
 </script>
 
 {#if mode == 'add'}
-	<Card title={`${row ? 'Edit' : 'Add'} User`} class="p-10">
+	<Card title="{row ? 'Edit' : 'Add'} User" class="p-10">
 		<form on:submit={rolesAdd}>
 			{#if row}
 				<input type="hidden" name="oldUsername" value={row.name} />

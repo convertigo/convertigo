@@ -7,7 +7,7 @@
 	export let cardBorder = 'rounded-token';
 </script>
 
-<div class={`card-style ${cardBorder} ${cardStyle} ${cls}`} {...$$restProps}>
+<div class="card-style {cardBorder} {cardStyle} {cls}" {...$$restProps}>
 	<div class="flex justify-between">
 		{#if title?.length > 0}
 			<h1 class="text-xl mb-5 font-bold">{title}</h1>

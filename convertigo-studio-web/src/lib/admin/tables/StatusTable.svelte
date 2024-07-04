@@ -43,7 +43,7 @@
 </script>
 
 <TableAutoCard
-	class={`statusTable ${cls}`}
+	class="statusTable {cls}"
 	showHeaders={false}
 	definition={[
 		{ key: 'Name', custom: true },

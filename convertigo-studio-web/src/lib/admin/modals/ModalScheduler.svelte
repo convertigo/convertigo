@@ -12,7 +12,6 @@
 	export let parent;
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
-	console.log('row', row);
 	let binds = {
 		name: row?.['@_name'] ?? '',
 		description: row?.['@_description'] ?? '',
@@ -70,7 +69,7 @@
 
 <Card title={$modalStore[0]?.title} class="max-w-full">
 	<form on:submit|preventDefault={createScheduledElements}>
-		<input type="hidden" name="type" value={`schedulerNew${mode}`} />
+		<input type="hidden" name="type" value="schedulerNew{mode}" />
 		<div class="flex flew-row flex-wrap gap-5 justify-stretch">
 			<div class="flex flex-col gap-5">
 				<label class="border-common">
@@ -82,7 +81,7 @@
 					{#if mode == 'ScheduledJob'}
 						<input
 							name="name"
-							value={`${binds.jobName ?? '…'}@${binds.scheduleName ?? '…'}`}
+							value="{binds.jobName ?? '…'}@{binds.scheduleName ?? '…'}"
 							class="input-common"
 							readonly={true}
 						/>

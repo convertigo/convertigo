@@ -76,7 +76,7 @@
 <Card title="Sessions" class="mt-5">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="basic-button" on:click={() => refreshConnections()}>
+			<button class="basic-button" on:click={refreshConnections}>
 				<Ico icon="simple-line-icons:reload" />
 				<p>Refresh Sessions</p>
 			</button>
@@ -117,7 +117,7 @@
 <Card title="Contexts" class="mt-5">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="basic-button" on:click={() => refreshConnections()}
+			<button class="basic-button" on:click={refreshConnections}
 				><Ico icon="simple-line-icons:reload" />
 				<p>Refresh Sessions</p>
 			</button>
@@ -140,8 +140,8 @@
 	>
 		{#if def.name === 'Delete'}
 			<button class="delete-button">
-				<Ico icon="mingcute:delete-line" />
-				<Ico icon="material-symbols-light:delete-outline" class="h-6 w-6 " />
+				<Ico icon="mingcute:delete-line" size="6" />
+				<Ico icon="material-symbols-light:delete-outline" size="6" />
 			</button>
 		{/if}
 	</TableAutoCard>

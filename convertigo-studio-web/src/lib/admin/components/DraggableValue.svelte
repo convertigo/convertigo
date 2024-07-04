@@ -40,7 +40,7 @@
 	}
 </script>
 
-<span class={`draggable ${cls}`} on:mousedown={startDrag} on:touchstart={startDrag} {...$$restProps}
+<span class="draggable {cls}" on:mousedown={startDrag} on:touchstart={startDrag} {...$$restProps}
 	><slot /></span
 >
 

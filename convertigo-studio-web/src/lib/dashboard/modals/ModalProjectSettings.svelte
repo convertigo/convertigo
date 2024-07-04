@@ -6,7 +6,6 @@
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta ?? {};
 	export let parent = '';
-	console.log('log meta', mode);
 </script>
 
 {#if mode === 'Rename Project'}

@@ -8,7 +8,7 @@
 		'border-[0.5px] border-surface-200 dark:border-surface-600 rounded-container-token';
 </script>
 
-<div class={`card-style ${cardBorder} ${cardStyle} ${cls}`} {...$$restProps}>
+<div class="card-style {cardBorder} {cardStyle} {cls}" {...$$restProps}>
 	<div class="flex justify-between">
 		{#if title?.length > 0}
 			<h1 class="text-xl mb-5 font-bold">{title}</h1>

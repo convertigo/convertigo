@@ -12,7 +12,7 @@
 	export { cls as class };
 </script>
 
-<div class={`table-container ${cls}`}>
+<div class="table-container {cls}">
 	{#if title.length > 0}
 		<h1 class="tableTitle">{title}</h1>
 	{/if}

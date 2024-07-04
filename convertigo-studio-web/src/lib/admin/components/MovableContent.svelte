@@ -34,7 +34,9 @@
 	}
 
 	function handleMouseDown(event, index) {
-		if (grabClass.length > 0 && !event.target.closest(`.${grabClass}`)) return;
+		if (grabClass.length > 0 && !event.target.closest(`.${grabClass}`)) {
+			return;
+		}
 		event.preventDefault();
 
 		handleDragStart(index);

@@ -352,12 +352,12 @@
 		<div class="row-wrap">
 			<div class="mini-card variant-filled-surface">
 				<span class="cursor-pointer" on:mousedown={() => (fullscreen = !fullscreen)}
-					><Ico icon={`mdi:fullscreen${fullscreen ? '-exit' : ''}`} /></span
+					><Ico icon="mdi:fullscreen{fullscreen ? '-exit' : ''}" /></span
 				>
 			</div>
 			<div class="mini-card variant-filled-surface">
 				<span class="cursor-pointer" on:mousedown={() => ($showFilters = !$showFilters)}
-					><Ico icon={`mdi:filter-cog${$showFilters ? '' : '-outline'}`} /></span
+					><Ico icon="mdi:filter-cog{$showFilters ? '' : '-outline'}" /></span
 				>
 			</div>
 			<div class="mini-card variant-filled-surface">
@@ -380,7 +380,7 @@
 							class="rounded-md border-none bg-transparent"
 							style="field-sizing: content;"
 							readonly={true}
-							value={`${Math.min(foundsIndex + 1, founds.length)}/${founds.length}`}
+							value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
 						/>
 						<button class="btn-search" on:click={doSearchPrev}>↑</button>
 						<button class="btn-search" on:click={doSearchNext}>↓</button>
@@ -442,12 +442,12 @@
 			</div>
 			<div
 				class="flex flex-wrap overflow-y-hidden bg-surface-backdrop-token"
-				style={`height: ${2 + extraLines * 20}px`}
+				style="height: {2 + extraLines * 20}px"
 			>
 				{#each columns as { name, cls, style } (name)}
 					<div
 						{style}
-						class={`p-1 ${cls} text-nowrap overflow-hidden max-h-[20px]`}
+						class="p-1 {cls} text-nowrap overflow-hidden max-h-[20px]"
 						animate:grabFlip={{ duration }}
 					>
 						<div class="font-semibold cursor-help" on:click={doPulse} on:mouseover={doPulse}>
@@ -473,13 +473,13 @@
 		>
 			<div slot="item" let:index let:style {style}>
 				{@const log = $logs[index]}
-				<div class={`${log[2]} rounded`}>
-					<div class="flex flex-wrap overflow-y-hidden" style={`height: ${extraLines * 16}px`}>
+				<div class="{log[2]} rounded">
+					<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
 						{#each columns as { name, cls, style } (name)}
 							{@const value = getValue(name, log, index)}
 							<div
 								{style}
-								class={`px-1 ${cls} text-nowrap overflow-hidden cursor-cell`}
+								class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
 								animate:grabFlip={{ duration }}
 								on:click={() => addFilter(name, value)}
 							>
@@ -488,7 +488,7 @@
 						{/each}
 					</div>
 					<div
-						class={`p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost`}
+						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost"
 						style="scrollbar-width: thin;"
 					>
 						{#if founds.length > 0}
@@ -531,7 +531,7 @@
 			}}
 		>
 			{autoScroll ? 'Disable' : 'Enable'} auto scroll
-			<Ico icon={`mdi:download-${autoScroll ? 'off' : 'lock'}-outline`} />
+			<Ico icon="mdi:download-{autoScroll ? 'off' : 'lock'}-outline" />
 		</div>
 	</div>
 </div>
