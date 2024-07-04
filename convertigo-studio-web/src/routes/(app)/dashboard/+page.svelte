@@ -1,8 +1,6 @@
 <script>
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
-	import Icon from '@iconify/svelte';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import { Accordion, AccordionItem, getModalStore, popup } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
@@ -46,27 +44,11 @@
 	);
 </script>
 
-<CardD>
-	<div class="relative flex gap-10">
-		<input
-			type="text"
-			placeholder="Search projects..."
-			class="w-72 p-2 pl-10 border rounded-md input-common-dash"
-			bind:value={searchQuery}
-		/>
-		<Icon
-			icon="mdi:magnify"
-			class="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500 w-5 h-5"
-		/>
-
-		<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-			<div class="input-group-shim"><Icon icon="mdi:magnify" /></div>
-			<input type="search" placeholder="Search projects..." bind:value={searchQuery} />
-		</div>
+<CardD class="gap-5">
+	<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+		<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
+		<input type="search" placeholder="Search projects..." bind:value={searchQuery} />
 	</div>
-</CardD>
-
-<CardD>
 	<div class="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project (project['@_name'])}
 			<div class="flex flex-col" animate:flip={{ duration: 500 }} transition:fade>

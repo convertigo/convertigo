@@ -18,8 +18,8 @@
 	const modalStore = getModalStore();
 
 	const jobTypes = {
-		TransactionConvertigoJob: { name: 'Job Transaction', icon: 'carbon:data-regular' },
 		SequenceConvertigoJob: { name: 'Job Sequence', icon: 'material-symbols:api-rounded' },
+		TransactionConvertigoJob: { name: 'Job Transaction', icon: 'carbon:data-regular' },
 		JobGroupJob: { name: 'Jobs Group', icon: 'uim:layer-group' },
 		ScheduleCron: { name: 'Cron', icon: 'eos-icons:cronjob' },
 		ScheduleRunNow: { name: 'Run Now', icon: 'codicon:run-all' },

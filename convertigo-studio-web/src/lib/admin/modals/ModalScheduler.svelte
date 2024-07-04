@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
 	import CheckState from '../components/CheckState.svelte';
+	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 
 	export let parent;
 	const modalStore = getModalStore();
@@ -36,13 +37,16 @@
 		sequence: /** @type any */ (null)
 	};
 
-	onMount(async () => {
-		await projectsCheck();
-		await handleChange('project', binds.project ?? $projectsStore[0]['@_name']);
+	onMount(() => {
+		projectsCheck().then(() => {
+			handleChange('project', binds.project ?? $projectsStore[0]['@_name']);
+		});
 	});
 
 	async function handleChange(type, name) {
 		if (type == 'project') {
+			await checkTestPlatform(name);
+			selected.project = $testPlatformStore[name];
 			handleChange('connector', binds.connector);
 			handleChange('sequence', binds.sequence);
 		} else if (type == 'connector') {

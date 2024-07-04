@@ -56,6 +56,7 @@
 	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
+	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
@@ -132,6 +133,7 @@
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
+		'mdi:magnify': MdiMagnigy,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,

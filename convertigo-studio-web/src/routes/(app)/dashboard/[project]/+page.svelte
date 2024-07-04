@@ -2,20 +2,18 @@
 	import { page } from '$app/stores';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import Table from '$lib/dashboard/components/Table.svelte';
-	import {
-		checkTestPlatform,
-		connectorsStore,
-		sequencesStore,
-		testPlatformStore
-	} from '$lib/dashboard/stores/testPlatform';
+	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
-	// import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { fade, fly } from 'svelte/transition';
 
 	const modalStore = getModalStore();
 	let project;
+	let _parts = [];
+	let searchQuery = '';
 	let enableInputVar = {};
 
 	const bgColors = [
@@ -25,15 +23,19 @@
 		'bg-pale-pink border-[1px] border-pale-pink'
 	];
 
-	onMount(async () => {
-		checkTestPlatform(project);
-	});
-
-	$: {
-		page.subscribe(($page) => {
-			project = $page.params.project;
+	onMount(() => {
+		checkTestPlatform($page.params.project).then(() => {
+			project = $testPlatformStore[$page.params.project];
+			_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
+			for (let connector of Object.values(project.connector || {})) {
+				_parts.push({
+					name: connector['@_name'],
+					requestables: Object.values(connector.transaction || {})
+				});
+			}
+			_parts = _parts.filter((part) => part.requestables.length > 0);
 		});
-	}
+	});
 
 	function convertMarkdownToHtml(markdown) {
 		const entityMap = {
@@ -76,107 +78,104 @@
 		});
 	}
 
-	// Subscribe to sequencesStore to log its value
-	sequencesStore.subscribe((value) => {
-		console.log('Sequences Store Data:', value);
-	});
-
-	connectorsStore.subscribe((value) => {
-		console.log('Connectors Store Data:', value);
-	});
-
-	testPlatformStore.subscribe((value) => {
-		console.log('TestPlaroform proejct:', value);
-	});
+	$: parts = _parts
+		.map((part) => ({
+			...part,
+			requestables: part.requestables.filter((requestable) =>
+				requestable['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
+			)
+		}))
+		.filter((part) => part.requestables.length > 0);
 </script>
 
-<main class="gap-5 flex flex-col">
+<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+	<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
+	<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
+</div>
+{#if project}
 	<CardD>
 		<div class="grid grid-cols-2">
 			<div class="col-span-1">
-				<!-- <h1>Project: {project}</h1> -->
-				{#each $testPlatformStore as project}
-					{project['@_name']}
-					<!-- {project['@_comment']} -->
-					<div class="mb-5" />
-					{@html convertMarkdownToHtml(project['@_comment'])}
-				{/each}
+				{project['@_name']}
+				<div class="mb-5" />
+				{@html convertMarkdownToHtml(project['@_comment'])}
 			</div>
 			<div class="col-span-1"></div>
 		</div>
 	</CardD>
-
-	<div class="col-span-1">
-		<CardD class="gap-2">
+	<CardD class="gap-2">
+		{#each parts as { name, requestables }, index}
 			<Accordion padding="p-4">
-				<AccordionItem>
+				<AccordionItem open={index == 0}>
 					<svelte:fragment slot="lead"></svelte:fragment>
 					<svelte:fragment slot="summary">
-						<p class="text-[18px] font-semibold text-token pb-4 px-2">Sequences</p>
+						<p class="text-[18px] font-semibold text-token pb-4 px-2">{name}</p>
 						<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						{#if $sequencesStore && $sequencesStore.length > 0}
-							{#each $sequencesStore as sequence, index}
-								<Accordion
-									padding="p-4"
-									class="rounded-token bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
-								>
-									<AccordionItem close>
-										<svelte:fragment slot="lead"></svelte:fragment>
-										<svelte:fragment slot="summary">
-											<div class="flex items-center justify-between">
-												<p class="text-[14px] text-token">{sequence['@_name']}</p>
-												<button class="basic-button" on:click={() => openModalInfo('Sequence Info')}
-													>Comment</button
+						{#each requestables as requestable, index}
+							<Accordion
+								caretOpen="rotate-0"
+								caretClosed="-rotate-90"
+								padding="p-4"
+								class="rounded-token bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
+							>
+								<AccordionItem on:toggle={(e) => (requestable.open = e.detail?.open)}>
+									<svelte:fragment slot="lead"></svelte:fragment>
+									<svelte:fragment slot="summary">
+										<div class="flex items-center justify-between relative">
+											<span class="text-[14px] text-token font-bold">{requestable['@_name']}</span>
+											{#if !requestable.open}
+												<span
+													transition:fade={{ duration: 200 }}
+													class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
+													>{requestable['@_comment']}</span
 												>
-												<!-- <p class="text-[14px] text-token">{sequence['@_comment']}</p> -->
-											</div>
-										</svelte:fragment>
-										<svelte:fragment slot="content">
+											{/if}
+										</div>
+									</svelte:fragment>
+									<svelte:fragment slot="content">
+										<form on:submit|preventDefault>
+											<span>{requestable['@_comment']}</span>
 											<div
 												class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
 											>
 												<p>Parameters</p>
-												<button class="basic-button">Try sequence</button>
+												<button class="basic-button">Run</button>
 											</div>
 											<div class="grid grid-cols-2 p-5 gap-10">
 												<div class="col-span-1">
-													{#if sequence.variables && Object.keys(sequence.variables).length > 0}
-														<form>
-															{#each Object.values(sequence.variables) as variable}
-																<p class="font-semibold mb-2">{variable['@_name']}</p>
-																<div class="flex items-center gap-3">
-																	<label class="label-common w-full">
-																		<input
-																			class="input-common"
-																			disabled={!enableInputVar[variable['@_name']]}
-																			required={variable['@_required']}
-																			name={variable['@_name']}
-																			value={variable['@_value']}
-																		/>
-																		<!-- <label>
-																				<input type="checkbox" bind:checked={enableInputVar} />
-																				Enable Input
-																			</label> -->
-																	</label>
-																	<SlideToggle
-																		active="activeSlideToggle"
-																		background="unActiveSlideToggle"
-																		size="sm"
-																		name="slide"
-																		bind:checked={enableInputVar[variable['@_name']]}
-																	/>
-																</div>
-															{/each}
-														</form>
-													{:else}
-														<p>No variables available in this sequence</p>
-													{/if}
+													{#each Object.values(requestable.variable ?? {}) as variable}
+														{@const { checked } = variable}
+														<p class="font-semibold mb-2">{variable['@_name']}</p>
+														<div class="flex items-center gap-3">
+															<label class="label-common w-full">
+																<input
+																	class="input-common"
+																	disabled={!checked}
+																	required={variable['@_required']}
+																	name={variable['@_name']}
+																	value={variable['@_value']}
+																/>
+																<!-- <label>
+																<input type="checkbox" bind:checked={enableInputVar} />
+																Enable Input
+															</label> -->
+															</label>
+															<SlideToggle
+																active="activeSlideToggle"
+																background="unActiveSlideToggle"
+																size="sm"
+																name="slide"
+																{checked}
+																on:change={() => (variable.checked = !checked)}
+															/>
+														</div>
+													{/each}
 												</div>
 												<div class="col-span-1">
-													{#if sequence.testcases && Object.keys(sequence.testcases).length > 0}
-														{#each Object.values(sequence.testcases) as testcase}
+													{#if requestable.testcases && Object.keys(requestable.testcases).length > 0}
+														{#each Object.values(requestable.testcases) as testcase}
 															<p class="font-semibold mb-4">{testcase['@_name']}</p>
 
 															{#if testcase.variables && Object.keys(testcase.variables).length > 0}
@@ -205,97 +204,24 @@
 											>
 												Response
 											</div>
-										</svelte:fragment>
-									</AccordionItem>
-								</Accordion>
-							{/each}
-						{:else}
-							<p>No sequences available</p>
-						{/if}
+										</form>
+									</svelte:fragment>
+								</AccordionItem>
+							</Accordion>
+						{/each}
 					</svelte:fragment>
 				</AccordionItem>
 			</Accordion>
-
-			{#if $connectorsStore && $connectorsStore.length > 0}
-				{#each $connectorsStore as connector, index}
-					<Accordion
-						padding="0"
-						class="rounded-token bg-opacity-50 {bgColors[index % bgColors.length]}"
-					>
-						<AccordionItem close>
-							<svelte:fragment slot="lead"></svelte:fragment>
-							<svelte:fragment slot="summary">
-								<p class="text-[14px]">{connector['@_name']}</p>
-							</svelte:fragment>
-							<svelte:fragment slot="content">
-								{#if connector.variables && Object.keys(connector.variables).length > 0}
-									<Accordion
-										class="rounded-token bg-opacity-5 gap-2 {bgColors[index % bgColors.length]}"
-									>
-										<form>
-											{#each Object.values(connector.variables) as variable}
-												<div class="p-5">
-													<label class="label-common">
-														<p class="font-semibold">{variable['@_name']}</p>
-														<input class="input-common" />
-													</label>
-												</div>
-											{/each}
-										</form>
-									</Accordion>
-								{:else}
-									<p>No variables available in this connector</p>
-								{/if}
-
-								{#if connector.transactions && Object.keys(connector.transactions).length > 0}
-									<Accordion
-										class="rounded-token bg-opacity-5 gap-2 {bgColors[index % bgColors.length]}"
-									>
-										{#each Object.values(connector.transactions) as transaction}
-											<AccordionItem close>
-												<svelte:fragment slot="lead"></svelte:fragment>
-												<svelte:fragment slot="summary">
-													<p class="font-semibold">{transaction['@_name']}</p>
-												</svelte:fragment>
-												<svelte:fragment slot="content">
-													{#if transaction.variables && Object.keys(transaction.variables).length > 0}
-														<Accordion
-															class="rounded-token bg-opacity-5 gap-2 {bgColors[
-																index % bgColors.length
-															]}"
-														>
-															{transaction['@_comment']}
-															{#each Object.values(transaction.variables) as variable}
-																<div class="p-5">
-																	<label class="label-common">
-																		<p class="font-semibold">{variable['@_name']}</p>
-																		<input class="input-common" />
-																	</label>
-																</div>
-															{/each}
-														</Accordion>
-													{:else}
-														<p>No variables available in this transaction</p>
-													{/if}
-												</svelte:fragment>
-											</AccordionItem>
-										{/each}
-									</Accordion>
-								{:else}
-									<p>No transactions available in this connector</p>
-								{/if}
-							</svelte:fragment>
-						</AccordionItem>
-					</Accordion>
-				{/each}
-			{:else}
-				<p>No connectors available</p>
-			{/if}
-		</CardD>
-	</div>
-</main>
+		{/each}
+	</CardD>
+{:else}
+	Loading ...
+{/if}
 
 <style lang="postcss">
+	:global(.accordion-summary) {
+		@apply overflow-hidden;
+	}
 	.sticky {
 		position: -webkit-sticky; /* For Safari */
 		position: sticky;
