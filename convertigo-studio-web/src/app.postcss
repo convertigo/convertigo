@@ -8,28 +8,28 @@ body {
 	@apply h-full bg-surface-50-900-token h-full overflow-hidden;
 }
 
-button {
-	@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-token text-token;
+.button {
+	@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-token text-white;
 }
 
 .basic-button {
-	@apply dark:bg-primary-500 bg-primary-500;
+	@apply button dark:bg-primary-500 bg-primary-500;
 }
 
 .cancel-button {
-	@apply bg-surface-400 dark:bg-surface-500;
+	@apply button bg-surface-400 dark:bg-surface-500;
 }
 
 .delete-button {
-	@apply dark:bg-error-500 bg-error-600;
+	@apply button dark:bg-error-500 bg-error-600;
 }
 
 .yellow-button {
-	@apply dark:bg-tertiary-600 bg-tertiary-500;
+	@apply button dark:bg-tertiary-600 bg-tertiary-500;
 }
 
 .green-button {
-	@apply bg-success-500 dark:bg-success-600;
+	@apply button bg-success-500 dark:bg-success-600;
 }
 
 .align {

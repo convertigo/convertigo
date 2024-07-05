@@ -2,7 +2,6 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
-	import Icon from '@iconify/svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -161,7 +160,7 @@
 
 <Card title="Projects">
 	<div slot="cornerOption">
-		<button class="w-full bg-error-400-500-token">
+		<button class="delete-button">
 			<Ico icon="mingcute:delete-line" />
 			<p>Delete All Projects</p></button
 		>
@@ -170,7 +169,7 @@
 		{#each Object.entries(projectActions) as [type, { name, icon }]}
 			<button class="basic-button" on:click={() => openModal(type)}>
 				<p>{name}</p>
-				<Icon {icon} class="w-4 h-4" />
+				<Ico {icon} size="nav" />
 			</button>
 		{/each}
 		<!-- <button class="basic-button" on:click={() => openModal('deploy')}>

@@ -6,24 +6,23 @@
 	import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 	import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
-	let subscriptions = [];
 	export let content = '/* Loading... */';
-	export let language = 'java';
+	export let language = 'json';
 	export let theme = 'vs-dark';
 	export let readOnly = true;
 
 	let divEl;
 	let editor;
-	let Monaco;
 
 	$: if (editor) {
 		editor.updateOptions({
-			language,
 			theme,
 			readOnly
 		});
+		editor.setValue(content);
+		globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), language);
 	}
-	onMount(async () => {
+	onMount(() => {
 		self.MonacoEnvironment = {
 			getWorker: function (_moduleId, label) {
 				if (label === 'json') {
@@ -32,7 +31,7 @@
 				if (label === 'css' || label === 'scss' || label === 'less') {
 					return new cssWorker();
 				}
-				if (label === 'html' || label === 'handlebars' || label === 'razor') {
+				if (label === 'html' || label === 'handlebars' || label === 'razor' || label === 'xml') {
 					return new htmlWorker();
 				}
 				if (label === 'typescript' || label === 'javascript') {
@@ -42,43 +41,31 @@
 			}
 		};
 
-		Monaco = await import('monaco-editor');
-		let initialContent = content;
-		editor = Monaco.editor.create(divEl, {
-			value: initialContent,
-			language: language,
-			theme: theme,
-			readOnly: readOnly
+		import('monaco-editor').then((Monaco) => {
+			globalThis.monaco = Monaco;
+			editor = Monaco.editor.create(divEl, {
+				value: content,
+				language: language,
+				theme: theme,
+				readOnly: readOnly
+			});
+			resize();
 		});
-		editor.onDidChangeModelContent(() => {
-			const text = editor.getValue();
-			subscriptions.forEach((sub) => sub(text));
-		});
-		content = {
-			subscribe(func) {
-				subscriptions.push(func);
-				return () => {
-					subscriptions = subscriptions.filter((sub) => sub != func);
-				};
-			},
-			set(val) {
-				editor.setValue(val);
-			}
-		};
+
 		return () => {
 			editor.dispose();
 		};
 	});
+
+	function resize() {
+		editor.layout({ width: 0, height: 0 });
+		window.requestAnimationFrame(() => {
+			const rect = divEl.parentElement.getBoundingClientRect();
+			editor.layout(rect);
+		});
+	}
 </script>
 
 <div bind:this={divEl} style:width="100%" />
 
-<svelte:window
-	on:resize={() => {
-		editor.layout({ width: 0, height: 0 });
-		window.requestAnimationFrame(() => {
-			const rect = divEl.parentElement.getBoundingClientRect();
-			editor.layout({ width: rect.width, height: rect.height });
-		});
-	}}
-/>
+<svelte:window on:resize={resize} />

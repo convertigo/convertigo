@@ -79,6 +79,51 @@ export async function call(service, data = {}) {
 	return dataContent;
 }
 
+export async function callRequestable(mode, project, data = {}) {
+	let url = getUrl(`/projects/${project}/.${mode.toLowerCase()}`);
+	let body;
+	let headers = {
+		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+	};
+	if (data instanceof FormData) {
+		let files = new FormData();
+		for (let [key, value] of data.entries()) {
+			key = /** @type {string} */ (key);
+			if (value instanceof File) {
+				files.append(key, value);
+				data.delete(key);
+			}
+		}
+		if (!files.keys().next().done) {
+			body = files;
+			// @ts-ignore
+			let query = new URLSearchParams(data).toString();
+			if (query.length) {
+				url += `${url.includes('?') ? '&' : '?'}${query}`;
+			}
+		}
+	}
+
+	if (!body) {
+		body = new URLSearchParams(data);
+		headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	}
+
+	let res = await fetch(url, {
+		method: 'POST',
+		headers,
+		body,
+		credentials: 'include'
+	});
+
+	var xsrf = res.headers.get('x-xsrf-token');
+	if (xsrf != null) {
+		localStorage.setItem('x-xsrf-token', xsrf);
+	}
+
+	return res;
+}
+
 /**
  * Handles the display and hide of the loading modal based on the service call status.
  * @param {boolean} isLoading - Flag indicating if the service is loading or not.
@@ -173,9 +218,9 @@ function handleStateMessage(dataContent, service) {
 	}
 }
 
-export function getUrl() {
+export function getUrl(path = '/admin/services/') {
 	const m = window.location.pathname.match('^(.+?)/studio/');
-	return `${window.location.origin}${m ? m[1] : '/convertigo'}/admin/services/`;
+	return `${window.location.origin}${m ? m[1] : '/convertigo'}${path}`;
 }
 
 // $lib/utils/xmlConverter.js
