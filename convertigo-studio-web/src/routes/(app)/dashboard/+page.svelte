@@ -8,7 +8,7 @@
 	import { fade } from 'svelte/transition';
 
 	onMount(() => {
-		projectsCheck(true);
+		projectsCheck();
 	});
 
 	const modalStore = getModalStore();
@@ -39,6 +39,10 @@
 		});
 	}
 
+	function showQRCode() {
+		let href = 'qrcode/' + $projectsStore['@_name'] + '/DisplayObjects/mobile/index.html';
+	}
+
 	$: filteredProjects = $projectsStore.filter((project) =>
 		project['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
 	);
@@ -53,29 +57,33 @@
 		{#each filteredProjects as project (project['@_name'])}
 			<div class="flex flex-col" animate:flip={{ duration: 500 }} transition:fade>
 				<div
-					class="flex justify-between items-center p-2 border-[1px] rounded-t-md dark:border-surface-700 border-surface-200"
+					class="flex gap-3 justify-between items-center p-2 border-[1px] rounded-t-md dark:border-surface-700 border-surface-200"
 				>
 					<span class="text-md font-semibold">{project['@_name']}</span>
-					<button use:popup={popupClick}>
-						<Ico icon="mdi:dots-vertical" />
-					</button>
-					<div class="px-2 py-3 z-10 bg-surface-600 rounded-token gap-2" data-popup="popupClick">
-						{#each settingsPopup as setting}
-							<button
-								on:click={() => {
-									if (setting.title === 'Delete Project') {
-										console.log('Project name:', project['@_name']);
-									} else {
-										openModalSettings(setting.title);
-									}
-								}}
-								class="flex text-light text-[12px] justify-start w-full px-3 hover:bg-surface-400"
-							>
-								<Ico icon={setting.icon} />
-								<p>{setting.title}</p>
-							</button>
-						{/each}
-						<div class="arrow bg-surface-600" />
+					<div class="flex gap-3">
+						<!-- <button class="basic-button">Back</button>
+						<button class="violet-button">Front</button> -->
+						<button use:popup={popupClick}>
+							<Ico icon="mdi:dots-vertical" />
+						</button>
+						<div class="px-2 py-3 z-10 bg-surface-600 rounded-token gap-2" data-popup="popupClick">
+							{#each settingsPopup as setting}
+								<button
+									on:click={() => {
+										if (setting.title === 'Delete Project') {
+											console.log('Project name:', project['@_name']);
+										} else {
+											openModalSettings(setting.title);
+										}
+									}}
+									class="flex text-light text-[12px] justify-start w-full px-3 hover:bg-surface-400"
+								>
+									<Ico icon={setting.icon} />
+									<p>{setting.title}</p>
+								</button>
+							{/each}
+							<div class="arrow bg-surface-600" />
+						</div>
 					</div>
 				</div>
 				<a href="{project['@_name']}/">

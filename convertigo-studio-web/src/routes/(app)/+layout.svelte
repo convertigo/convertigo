@@ -32,7 +32,7 @@
 		</div>
 	</svelte:fragment>
 	{#key $page.url.pathname}
-		<div class="p-5 flex flex-col h-full" in:fade>
+		<div class="p-5 gap-5 flex flex-col h-full" in:fade>
 			<slot />
 		</div>
 	{/key}
