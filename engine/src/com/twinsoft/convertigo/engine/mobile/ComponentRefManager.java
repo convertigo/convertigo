@@ -244,16 +244,56 @@ public class ComponentRefManager implements DatabaseObjectListener {
     	return Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getConsumers(compQName));
     }
     
+//	private synchronized Set<String> getAllConsumers(String compQName) {
+//		Set<String> set = new HashSet<String>();
+//		try {
+//	    	for (String keyQName: getKeys()) {
+//	    		if (!keyQName.equals(compQName)) {
+//		    		for (String useQName: getConsumers(compQName)) {
+//		    			if (useQName.startsWith(keyQName)) {
+//		    				if (!set.contains(useQName)) {
+//		    					set.addAll(getConsumers(keyQName));
+//		    				}
+//		    			}
+//		    		}
+//	    		}
+//	    	}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//		synchronized (consumers) {
+//			if (consumers.get(compQName) != null) {
+//				set.addAll(consumers.get(compQName));
+//			}
+//		}
+//		
+//		//System.out.println("consumers for "+ compQName + ": "+ set);
+//		return Collections.unmodifiableSet(set);
+//	}
     
 	private synchronized Set<String> getAllConsumers(String compQName) {
+		Set<String> dependencies = getDependencies(new HashSet<String>(), compQName);
+		//System.out.println("for "+ compQName + ": dependencies="+ dependencies);
+		
 		Set<String> set = new HashSet<String>();
+		for (String qname: dependencies) {
+			set.addAll(getConsumers(qname));
+		}
+		
+		//System.out.println("for "+ compQName + ": consumers="+ set);
+		return Collections.unmodifiableSet(set);
+	}
+	
+	private Set<String> getDependencies(Set<String> done, String compQName) {
 		try {
+			done.add(compQName);
 	    	for (String keyQName: getKeys()) {
 	    		if (!keyQName.equals(compQName)) {
 		    		for (String useQName: getConsumers(compQName)) {
 		    			if (useQName.startsWith(keyQName)) {
-		    				if (!set.contains(useQName)) {
-		    					set.addAll(getConsumers(keyQName));
+		    				if (!done.contains(keyQName)) {
+		    					getDependencies(done, keyQName);
 		    				}
 		    			}
 		    		}
@@ -262,17 +302,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		synchronized (consumers) {
-			if (consumers.get(compQName) != null) {
-				set.addAll(consumers.get(compQName));
-			}
-		}
-		
-		//System.out.println("consumers for "+ compQName + ": "+ set);
-		return Collections.unmodifiableSet(set);
+		return Collections.unmodifiableSet(done);
 	}
-	
+    
 	private Set<String> getConsumers(final String compQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
