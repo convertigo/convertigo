@@ -74,7 +74,7 @@
 	import SolarMaskHapplyLineDuotone from '~icons/solar/mask-happly-line-duotone?raw';
 	import UimLayerGroup from '~icons/uim/layer-group?raw';
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
-
+	import Return from '~icons/ion/return-down-back-sharp?raw';
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,
@@ -150,7 +150,8 @@
 		'simple-line-icons:reload': SimpleLineIconsReload,
 		'solar:mask-happly-line-duotone': SolarMaskHapplyLineDuotone,
 		'uim:layer-group': UimLayerGroup,
-		'vaadin:key-o': VaadinKeyO
+		'vaadin:key-o': VaadinKeyO,
+		'ion:return-down-back-sharp': Return
 	};
 </script>
 
