@@ -76,7 +76,7 @@
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
 	import Return from '~icons/ion/return-down-back-sharp?raw';
 	import RightArrow from '~icons/gg/arrow-right?raw';
-	
+
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,

@@ -60,7 +60,7 @@
 		modalSettingsProject: { ref: ModalProjectSettings },
 		modalConfirm: { ref: ModalConfirm },
 		modalInfo: { ref: ModalInfo },
-		modalQrCode: { ref: ModalQrCode },
+		modalQrCode: { ref: ModalQrCode }
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
