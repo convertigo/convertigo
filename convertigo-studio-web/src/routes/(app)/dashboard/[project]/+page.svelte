@@ -24,6 +24,7 @@
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import Icon from '@iconify/svelte';
 	import { DeviceMockup } from 'svelte-device-mockups';
+	import { updateUrls, appUrlStore, qrCodeUrlStore } from '$lib/common/stores/urlStore';
 
 	const modalStore = getModalStore();
 	let project;
@@ -35,9 +36,6 @@
 
 	let tabSet = 0;
 	let deviceVal = 0;
-	let appUrl = '';
-	let qrCodeUrl = '';
-
 	let landscape;
 	let selectedPhoneType = 'iPhone X';
 
@@ -51,13 +49,21 @@
 		{ name: 'MacBook Pro', color: 'gold', scale: 5 },
 		{ name: 'iPad', color: 'gold', scale: 5 },
 		{ name: 'iPhone X', color: 'gold', scale: 5 },
-		{ name: 'iPhone 5c', color: 'yellow', scale: 5 }
+		{ name: 'iPhone 5s', color: 'silver', scale: 5 },
+		{ name: 'Nexus 5', color: 'yellow', scale: 5 },
+		{ name: 'Samsung Galaxy S5', color: 'silver', scale: 5 },
+		{ name: 'HTC one', color: 'yellow', scale: 5 },
+		{ name: 'Lumia 920', color: 'yellow', scale: 5 }
 	];
 
 	const phones = [
 		{ name: 'iPhone X', color: 'gold', scale: 5 },
 		{ name: 'iPhone 5c', color: 'yellow', scale: 5 },
-		{ name: 'iPhone 5s', color: 'silver', scale: 5 }
+		{ name: 'iPhone 5s', color: 'silver', scale: 5 },
+		{ name: 'Nexus 5', color: 'yellow', scale: 5 },
+		{ name: 'Samsung Galaxy S5', color: 'silver', scale: 5 },
+		{ name: 'HTC one', color: 'yellow', scale: 5 },
+		{ name: 'Lumia 920', color: 'red', scale: 5 }
 	];
 
 	function toggleLandscape() {
@@ -67,33 +73,6 @@
 		selectedPhoneType = event.target.value;
 	}
 
-	function generateAppUrl(projectName) {
-		let href = `/projects/${projectName}/DisplayObjects/mobile/index.html`;
-		const fullUrl = getUrl(href);
-		console.log(`Generated App URL: ${fullUrl}`);
-		return fullUrl;
-	}
-
-	function generateQRCodeUrl(projectName) {
-		let targetUrl = generateAppUrl(projectName);
-
-		const qrUrl = `${getUrl('/qrcode')}?${new URLSearchParams({
-			o: 'image/png',
-			e: 'L',
-			s: '2',
-			d: targetUrl
-		}).toString()}`;
-		console.log(`Generated QR Code URL: ${qrUrl}`);
-		return qrUrl;
-	}
-
-	function updateUrls() {
-		const projectName = $page.params.project;
-		appUrl = generateAppUrl(projectName);
-		qrCodeUrl = generateQRCodeUrl(projectName);
-		console.log('App URL', appUrl);
-		console.log('QR Code URL', qrCodeUrl);
-	}
 	// // Create a custom renderer
 	// const renderer = new Renderer();
 
@@ -116,18 +95,22 @@
 	}
 
 	onMount(() => {
-		checkTestPlatform($page.params.project).then(() => {
-			project = $testPlatformStore[$page.params.project];
-			_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
-			for (let connector of Object.values(project.connector || {})) {
-				_parts.push({
-					name: connector['@_name'],
-					requestables: Object.values(connector.transaction || {})
-				});
-			}
-			_parts = _parts.filter((part) => part.requestables.length > 0);
-			updateUrls();
+		const unsubscribe = page.subscribe(($page) => {
+			const projectName = $page.params.project;
+			checkTestPlatform(projectName).then(() => {
+				project = $testPlatformStore[projectName];
+				_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
+				for (let connector of Object.values(project.connector || {})) {
+					_parts.push({
+						name: connector['@_name'],
+						requestables: Object.values(connector.transaction || {})
+					});
+				}
+				_parts = _parts.filter((part) => part.requestables.length > 0);
+				updateUrls(projectName);
+			});
 		});
+		return () => unsubscribe();
 	});
 
 	async function run(requestable, event) {
@@ -160,11 +143,25 @@
 	}
 	let columns = ['Name', 'Value'];
 
+	function openModalQrCode() {
+		const projectName = $page.params.project;
+		updateUrls(projectName);
+		modalStore.trigger({
+			type: 'component',
+			component: 'modalQrCode',
+			meta: {
+				qrCodeUrl: $qrCodeUrlStore
+			}
+		});
+	}
+
 	$: selectedPhone = phones.find((phone) => phone.name === selectedPhoneType) || {
 		name: 'iPhone X',
 		color: 'gold',
 		scale: 5
 	};
+
+	$: buttonTextLandsape = landscape ? 'Portrait' : 'Landscape';
 
 	$: parts = _parts
 		.map((part) => ({
@@ -182,11 +179,21 @@
 
 	{#if tabSet === 0}
 		<CardD>
-			<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] w-96">
-				<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
-				<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
+			<div class="flex gap-10">
+				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] w-96">
+					<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
+					<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
+				</div>
+				{#if tabSet === 0}
+					<!-- <Tab bind:group={tabSet} name="tab1" value={0} class="w-[50%] bg-surface-700">
+						<span>Backend</span>
+					</Tab> -->
+					<Tab bind:group={tabSet} name="tab2" value={1} class="w-72 basic-button">
+						<span class="flex gap-3 items-center">Go to Frontend <Ico icon="gg:arrow-right" /></span
+						>
+					</Tab>
+				{/if}
 			</div>
-
 			<div class="grid grid-cols-2 mt-5">
 				<div class="col-span-1">
 					{project['@_name']}
@@ -209,14 +216,6 @@
 		{/if} -->
 
 	<TabGroup rounded="rounded-none" border="border-none">
-		{#if tabSet === 0}
-			<Tab bind:group={tabSet} name="tab1" value={0} class="w-[50%] bg-surface-700">
-				<span>Backend</span>
-			</Tab>
-			<Tab bind:group={tabSet} name="tab2" value={1} class="w-[50%] bg-surface-700">
-				<span>Frontend</span>
-			</Tab>
-		{/if}
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
 				{#each parts as { name, requestables }, index (name)}
@@ -411,7 +410,8 @@
 						</TabGroup>
 					</div>
 					<div class="col-span-1 flex items-center justify-center gap-5">
-						<RadioGroup active="bg-surface-800" class="">
+						<button class="green-button" on:click={() => openModalQrCode()}>Qr Code</button>
+						<RadioGroup active="bg-surface-800">
 							<RadioItem bind:group={deviceVal} name="justify" value={0}
 								><Icon icon="fluent:laptop-20-regular" style="color: white" /></RadioItem
 							>
@@ -422,7 +422,9 @@
 								><Icon icon="fluent:phone-20-regular" style="color: white" /></RadioItem
 							>
 						</RadioGroup>
-						<button class="basic-button" on:click={() => toggleLandscape()}>Landscape</button>
+						<button class="basic-button" on:click={() => toggleLandscape()}
+							>{buttonTextLandsape}</button
+						>
 						{#if deviceVal == 2}
 							<select on:change={handlePhoneTypeChange} class="select-common text-[12px]">
 								{#each phones as phone}
@@ -440,20 +442,10 @@
 							scale={deviceVal == 2 ? selectedPhone.scale : devices[deviceVal].scale}
 							{landscape}
 							deviceColor={deviceVal == 2 ? selectedPhone.color : devices[deviceVal].color}
-							src={appUrl}
+							src={$appUrlStore}
 						/>
 					{/if}
 				</div>
-
-				{#if qrCodeUrl}
-					<a href={appUrl} target="_blank">
-						<img src={qrCodeUrl} alt="QR code" title="QR code" />
-					</a>
-				{/if}
-				<!-- <iframe
-						src="http://localhost:18080/convertigo/projects/QuestHunter/DisplayObjects/mobile/index.html"
-						class="h-[700px] w-full"
-					></iframe> -->
 			{/if}
 		</svelte:fragment>
 	</TabGroup>

@@ -29,6 +29,7 @@
 	import ModalProjectSettings from '$lib/dashboard/modals/ModalProjectSettings.svelte';
 	import ModalConfirm from '$lib/dashboard/modals/ModalConfirm.svelte';
 	import ModalInfo from '$lib/dashboard/modals/ModalInfo.svelte';
+	import ModalQrCode from '$lib/common/modals/ModalQrCode.svelte';
 
 	initializeStores();
 	setToastStore(getToastStore());
@@ -58,7 +59,8 @@
 		modalLogs: { ref: ModalLogs },
 		modalSettingsProject: { ref: ModalProjectSettings },
 		modalConfirm: { ref: ModalConfirm },
-		modalInfo: { ref: ModalInfo }
+		modalInfo: { ref: ModalInfo },
+		modalQrCode: { ref: ModalQrCode },
 	};
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });

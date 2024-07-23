@@ -75,6 +75,8 @@
 	import UimLayerGroup from '~icons/uim/layer-group?raw';
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
 	import Return from '~icons/ion/return-down-back-sharp?raw';
+	import RightArrow from '~icons/gg/arrow-right?raw';
+	
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,
@@ -151,7 +153,8 @@
 		'solar:mask-happly-line-duotone': SolarMaskHapplyLineDuotone,
 		'uim:layer-group': UimLayerGroup,
 		'vaadin:key-o': VaadinKeyO,
-		'ion:return-down-back-sharp': Return
+		'ion:return-down-back-sharp': Return,
+		'gg:arrow-right': RightArrow
 	};
 </script>
 
