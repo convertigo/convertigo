@@ -11,15 +11,15 @@
 		TabGroup,
 		Tab
 	} from '@skeletonlabs/skeleton';
+	import { decode } from 'html-entities';
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { blur, fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { callRequestable, getUrl } from '$lib/utils/service';
+	import { callRequestable } from '$lib/utils/service';
 	import Editor from '$lib/studio/editor/Editor.svelte';
-	import he from 'he';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import Icon from '@iconify/svelte';
@@ -90,7 +90,7 @@
 	 * @param {string} markdown
 	 */
 	function convertMarkdownToHtml(markdown) {
-		const cleanedMarkdown = he.decode(markdown);
+		const cleanedMarkdown = decode(markdown);
 		return marked(cleanedMarkdown);
 	}
 
@@ -453,7 +453,7 @@
 							device={deviceVal == 2 ? selectedPhone.name : devices[deviceVal].name}
 							scale={deviceVal == 2 ? selectedPhone.scale : devices[deviceVal].scale}
 							{landscape}
-							deviceColor={deviceVal == 2 ? selectedPhone.color : devices[deviceVal].color}
+							color={deviceVal == 2 ? selectedPhone.color : devices[deviceVal].color}
 							src={$appUrlStore}
 						/>
 					{/if}
