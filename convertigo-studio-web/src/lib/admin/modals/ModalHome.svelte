@@ -6,6 +6,7 @@
 	import TableAutoCard from '../components/TableAutoCard.svelte';
 	import { getEnvironmentVar } from '../stores/symbolsStore';
 	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
+	import ButtonsContainer from '../components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
@@ -40,6 +41,8 @@
 			></TableAutoCard>
 		</ResponsiveContainer>
 
-		<button on:click={() => modalStore.close()} class="variant-filled-surface mt-10">Close</button>
+		<ButtonsContainer>
+			<button on:click={() => modalStore.close()} class="cancel-button mt-5">Close</button>
+		</ButtonsContainer>
 	</div>
 </Card>

@@ -1,6 +1,7 @@
 <script>
 	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { writable } from 'svelte/store';
+	import Container from '$lib/common/components/Container.svelte';
 	export let cronExpression = '0 0 0 * * ?';
 
 	function createRange(aRange) {
@@ -108,13 +109,13 @@
 
 <div class="flex flex-row flex-wrap">
 	{#each def as { title, values, labels }, i}
-		<div>
-			<p class="font-bold text-start p-5">{title}</p>
-			<ListBox rounded="rounded-container-token" class="h-52 overflow-y-auto" multiple={true}>
+		<Container flex flexCol gap="5">
+			<p class="font-bold text-start pr-5">{title}</p>
+			<ListBox rounded="rounded-token" class="h-52 overflow-y-auto p-1" multiple={true}>
 				{#each values as value, j}
 					<ListBoxItem
 						class="font-extralight"
-						active="bg-success-400-500-token"
+						active="bg-tertiary-100-800-token"
 						{value}
 						name={labels[j]}
 						bind:group={$selection[i]}
@@ -122,6 +123,6 @@
 					>
 				{/each}
 			</ListBox>
-		</div>
+		</Container>
 	{/each}
 </div>

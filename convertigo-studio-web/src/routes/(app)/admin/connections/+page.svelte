@@ -125,7 +125,7 @@
 	</div>
 	<TableAutoCard
 		definition={[
-			{ name: 'Context', key: '@_contextName' },
+			{ name: 'Context', key: '@_contextName', class: 'max-w-1/4 break-all' },
 			{ name: 'Project', key: '@_project' },
 			{ name: 'Connector', key: '@_connector' },
 			{ name: 'Requested', key: '@_requested' },
@@ -140,8 +140,7 @@
 	>
 		{#if def.name === 'Delete'}
 			<button class="delete-button">
-				<Ico icon="mingcute:delete-line" size="6" />
-				<Ico icon="material-symbols-light:delete-outline" size="6" />
+				<Ico icon="mingcute:delete-line" />
 			</button>
 		{/if}
 	</TableAutoCard>

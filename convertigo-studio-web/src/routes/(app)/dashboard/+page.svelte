@@ -61,8 +61,8 @@
 				>
 					<span class="text-md font-semibold">{project['@_name']}</span>
 					<div class="flex gap-3">
-						<!-- <button class="basic-button">Back</button>
-						<button class="violet-button">Front</button> -->
+						<button class="basic-button">Back</button>
+						<button class="violet-button">Front</button>
 						<button use:popup={popupClick}>
 							<Ico icon="mdi:dots-vertical" />
 						</button>

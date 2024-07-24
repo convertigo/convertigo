@@ -5,7 +5,6 @@
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
-	export let qrCodeUrl = '';
 </script>
 
 <Card title="Qr Code" class="gap-5 w-72">

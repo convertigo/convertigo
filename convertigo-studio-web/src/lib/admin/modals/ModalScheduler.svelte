@@ -9,6 +9,7 @@
 	import { jobsStore, schedulerList, schedulesStore } from '../stores/schedulerStore';
 	import CheckState from '../components/CheckState.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
+	import Container from '$lib/common/components/Container.svelte';
 
 	export let parent;
 	const modalStore = getModalStore();
@@ -75,143 +76,142 @@
 	<form on:submit|preventDefault={createScheduledElements}>
 		<input type="hidden" name="type" value="schedulerNew{mode}" />
 		<div class="flex flew-row flex-wrap gap-5 justify-stretch">
-			<div class="flex flex-col gap-5">
-				<label class="border-common">
-					{#if row}
-						<input type="hidden" name="exname" value={row['@_name']} />
-						<input type="hidden" name="edit" value={true} />
-					{/if}
-					<p class="label-common">Name</p>
-					{#if mode == 'ScheduledJob'}
-						<input
-							name="name"
-							value="{binds.jobName ?? '…'}@{binds.scheduleName ?? '…'}"
-							class="input-common"
-							readonly={true}
-						/>
-					{:else}
-						<input name="name" bind:value={binds.name} class="input-common" />
-					{/if}
-				</label>
-				<label class="border-common">
-					<p class="label-common">Description</p>
-					<input name="description" bind:value={binds.description} class="input-common" />
-				</label>
-				<CheckState name="enabled" bind:checked={binds.enabled} size="md">Enable</CheckState>
-				{#if mode.endsWith('ConvertigoJob')}
-					<CheckState name="writeOutput" bind:checked={binds.writeOutput} size="md"
-						>Write Output</CheckState
-					>
-				{/if}
-			</div>
-			<div class="flex flex-col gap-5">
-				{#if mode.endsWith('ConvertigoJob')}
-					{@const types = [
-						{
-							name: 'project',
-							obj: $projectsStore.reduce((acc, val) => {
-								acc[val['@_name']] = val;
-								return acc;
-							}, {})
-						},
-						{
-							name: 'connector',
-							obj: selected.project?.connector ?? {},
-							starts: 'Tr'
-						},
-						{
-							name: 'transaction',
-							obj: selected.connector?.transaction ?? {},
-							starts: 'Tr'
-						},
-						{
-							name: 'sequence',
-							obj: selected.project?.sequence ?? {},
-							starts: 'Se'
-						}
-					].filter((type) => !type.starts || mode.startsWith(type.starts))}
-					{#each types as { name, obj }}
-						<div class="border-common">
-							<p class="label-common w-full">{capitalize(name)}</p>
-							<select
-								{name}
+			<Card>
+				<Container flex flexCol gap="4">
+					<label class="border-common">
+						{#if row}
+							<input type="hidden" name="exname" value={row['@_name']} />
+							<input type="hidden" name="edit" value={true} />
+						{/if}
+						<p class="label-common">Name</p>
+						{#if mode == 'ScheduledJob'}
+							<input
+								name="name"
+								value="{binds.jobName ?? '…'}@{binds.scheduleName ?? '…'}"
 								class="input-common"
-								on:change={(/** @type any */ e) => handleChange(name, e?.target?.value)}
-								bind:value={binds[name]}
-							>
-								{#each Object.keys(obj) as k}
-									<option>{k}</option>
-								{/each}
-							</select>
-						</div>
-					{/each}
-					<label class="border-common">
-						<p class="label-common">Context</p>
-						<input name="context" value="" class="input-common" />
+								readonly={true}
+							/>
+						{:else}
+							<input name="name" bind:value={binds.name} class="input-common" />
+						{/if}
 					</label>
-				{:else if mode == 'JobGroupJob'}
-					<p class="label-common">Parallel Job execution</p>
-
-					<input
-						class="input"
-						type="number"
-						name="parallelJob"
-						bind:value={binds.parallelJob}
-						on:change={(/** @type any */ e) => (e.target.value = Math.max(e.target.value, 1))}
-					/>
-
-					<p class="font-bold">Select jobs</p>
-
-					<ListBox
-						rounded="rounded-container-token"
-						multiple={true}
-						class="max-h-52 overflow-y-auto"
-					>
-						{#each $jobsStore as job}
-							{#if job['@_name'] != binds.name}
-								<ListBoxItem
-									class=""
-									active="bg-success-400-500-token"
-									bind:group={binds.jobsname}
-									name="jobsname"
-									value={job['@_name']}>{job['@_name']}</ListBoxItem
+					<label class="border-common">
+						<p class="label-common">Description</p>
+						<input name="description" bind:value={binds.description} class="input-common" />
+					</label>
+					<CheckState name="enabled" bind:checked={binds.enabled} size="sm">Enable</CheckState>
+					{#if mode.endsWith('ConvertigoJob')}
+						<CheckState name="writeOutput" bind:checked={binds.writeOutput} size="sm"
+							>Write Output</CheckState
+						>
+					{/if}
+				</Container>
+			</Card>
+			<Card>
+				<Container flex flexCol gap="4">
+					{#if mode.endsWith('ConvertigoJob')}
+						{@const types = [
+							{
+								name: 'project',
+								obj: $projectsStore.reduce((acc, val) => {
+									acc[val['@_name']] = val;
+									return acc;
+								}, {})
+							},
+							{
+								name: 'connector',
+								obj: selected.project?.connector ?? {},
+								starts: 'Tr'
+							},
+							{
+								name: 'transaction',
+								obj: selected.connector?.transaction ?? {},
+								starts: 'Tr'
+							},
+							{
+								name: 'sequence',
+								obj: selected.project?.sequence ?? {},
+								starts: 'Se'
+							}
+						].filter((type) => !type.starts || mode.startsWith(type.starts))}
+						{#each types as { name, obj }}
+							<div class="border-common">
+								<p class="label-common">{capitalize(name)}</p>
+								<select
+									{name}
+									class="input-common"
+									on:change={(/** @type any */ e) => handleChange(name, e?.target?.value)}
+									bind:value={binds[name]}
 								>
-							{/if}
-						{/each}
-					</ListBox>
-				{:else if mode == 'ScheduleCron'}
-					<label class="border-common">
-						<p class="label-common">Cron Expression</p>
-						<input name="cron" bind:value={binds.cron} class="input-common" />
-					</label>
-					<CronWizard bind:cronExpression={binds.cron} />
-				{:else if mode == 'ScheduledJob'}
-					{@const def = [
-						{ label: 'Job', name: 'jobName', store: $jobsStore },
-						{ label: 'Schedule', name: 'scheduleName', store: $schedulesStore }
-					]}
-					<p class="label-common">Association</p>
-
-					<div class="flex flex-row flew-wrap">
-						{#each def as { label, name, store }}
-							<div>
-								<p class="font-bold">{label}</p>
-								<select {name} class="select" size="10" bind:value={binds[name]}>
-									{#each store as item}
-										<option>{item['@_name']}</option>
+									{#each Object.keys(obj) as k}
+										<option>{k}</option>
 									{/each}
 								</select>
 							</div>
 						{/each}
-					</div>
-				{/if}
-			</div>
+						<label class="border-common">
+							<p class="label-common">Context</p>
+							<input name="context" value="" class="input-common" />
+						</label>
+					{:else if mode == 'JobGroupJob'}
+						<p class="label-common">Parallel Job execution</p>
+
+						<input
+							class="input"
+							type="number"
+							name="parallelJob"
+							bind:value={binds.parallelJob}
+							on:change={(/** @type any */ e) => (e.target.value = Math.max(e.target.value, 1))}
+						/>
+
+						<p class="font-bold">Select jobs</p>
+
+						<ListBox rounded="rounded-token" multiple={true} class="max-h-52 overflow-y-auto">
+							{#each $jobsStore as job}
+								{#if job['@_name'] != binds.name}
+									<ListBoxItem
+										active="bg-tertiary-100-800-token"
+										bind:group={binds.jobsname}
+										name="jobsname"
+										value={job['@_name']}>{job['@_name']}</ListBoxItem
+									>
+								{/if}
+							{/each}
+						</ListBox>
+					{:else if mode == 'ScheduleCron'}
+						<label class="border-common">
+							<p class="label-common">Cron Expression</p>
+							<input name="cron" bind:value={binds.cron} class="input-common" />
+						</label>
+						<CronWizard bind:cronExpression={binds.cron} />
+					{:else if mode == 'ScheduledJob'}
+						{@const def = [
+							{ label: 'Job', name: 'jobName', store: $jobsStore },
+							{ label: 'Schedule', name: 'scheduleName', store: $schedulesStore }
+						]}
+						<p class="label-common">Association</p>
+
+						<div class="flex flex-row flew-wrap">
+							{#each def as { label, name, store }}
+								<Container>
+									<p class="font-bold mb-3">{label}</p>
+									<select {name} class="select rounded-token" size="10" bind:value={binds[name]}>
+										{#each store as item}
+											<option class="rounded-token text-[13px] text-token">{item['@_name']}</option>
+										{/each}
+									</select>
+								</Container>
+							{/each}
+						</div>
+					{/if}
+				</Container>
+			</Card>
 			{#if mode.endsWith('ConvertigoJob')}
 				{@const requestable = mode.startsWith('Tr') ? selected.transaction : selected.sequence}
 				{#if requestable?.variable}
-					<div class="flex flex-col gap-5">
-						<p class="font-bold">Variables</p>
-						<div class="overflow-y-auto max-h-80">
+					<Card>
+						<Container flex flexCol gap="4">
+							<p class="font-bold">Variables</p>
 							{#each Object.keys(requestable?.variable) as name}
 								<label class="border-common">
 									<p class="label-common">{name}</p>
@@ -223,8 +223,8 @@
 									/>
 								</label>
 							{/each}
-						</div>
-					</div>
+						</Container>
+					</Card>
 				{/if}
 			{/if}
 		</div>
