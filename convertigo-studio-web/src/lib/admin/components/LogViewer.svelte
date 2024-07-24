@@ -127,7 +127,7 @@
 			name in columnsConfiguration
 				? log[columnsConfiguration[name].idx]
 				: // @ts-ignore
-					log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? '';
+					(log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? '');
 		return columnsConfiguration[name]?.fn
 			? columnsConfiguration[name].fn(logValue, index)
 			: logValue;

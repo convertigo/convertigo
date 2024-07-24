@@ -360,7 +360,7 @@ export function createFormDataFromParent(parent) {
  * @param {any} array
  */
 export function checkArray(array) {
-	return Array.isArray(array) ? array : array ?? false ? [array] : [];
+	return Array.isArray(array) ? array : (array ?? false) ? [array] : [];
 }
 
 export function deepObject(obj) {
