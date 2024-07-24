@@ -101,14 +101,12 @@
 </script>
 
 <Card title="Keys">
-	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0">
-		<ButtonsContainer class="items-center">
-			<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-			<button type="submit" class="basic-button">
-				<Ico icon="vaadin:key-o" />
-				<p>Add Key</p>
-			</button>
-		</ButtonsContainer>
+	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0 flex gap-2 items-center">
+		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
+		<button type="submit" class="basic-button">
+			<Ico icon="vaadin:key-o" />
+			<p>Add Key</p>
+		</button>
 	</form>
 </Card>
 
@@ -165,13 +163,9 @@
 								</div>
 							{/if}
 						{:else if def.name === 'In use'}
-							<span class="font-bold p-1 bg-teal-200 rounded-token bg-opacity-30"
-								>{category['@_total']}</span
-							>
+							<span class="">{category['@_total']}</span>
 						{:else if def.name === 'Remaining'}
-							<span class="font-bold p-1 bg-purple-200 rounded-token bg-opacity-30"
-								>{category['@_remaining']}</span
-							>
+							<span class="">{category['@_remaining']}</span>
 						{:else if def.name === 'Expired'}
 							{#if row[def.key] === 'false'}
 								<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">

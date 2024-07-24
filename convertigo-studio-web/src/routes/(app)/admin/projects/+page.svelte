@@ -172,19 +172,10 @@
 				<Ico {icon} size="nav" />
 			</button>
 		{/each}
-		<!-- <button class="basic-button" on:click={() => openModal('deploy')}>
-			<Icon icon="carbon:application" class="w-4 h-4" />
-			Deploy project
-		</button>
-
-		<button class="basic-button" on:click={() => openModal('import')}>
-			<Icon icon="solar:import-line-duotone" class="w-6 h-6" />
-			Import a Remote Project URL
-		</button> -->
 	</ButtonsContainer>
 </Card>
 
-<Card class="mt-5">
+<Card>
 	{#if $projectsStore.length > 0}
 		<TableAutoCard
 			definition={[

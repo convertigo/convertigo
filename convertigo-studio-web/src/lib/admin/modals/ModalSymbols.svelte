@@ -48,7 +48,7 @@
 {#if mode == 'import'}
 	<Card title="Import global symbols">
 		<form class="flex flex-col p-5">
-			<RadioGroup active="bg-primary-800" class="font-normal">
+			<RadioGroup active="dark:bg-primary-800 bg-primary-500" class="font-normal">
 				<RadioItem bind:group={importAction} name="action-import" value="clear-import"
 					><p class="text-[12px]">Clear & import</p></RadioItem
 				>
@@ -58,7 +58,7 @@
 			</RadioGroup>
 			{#if importAction == ''}
 				<p class="mt-3 text-[11px] mb-3 font-normal">In case of name conflict :</p>
-				<RadioGroup active="bg-primary-800" class="font-normal">
+				<RadioGroup active="dark:bg-primary-800 bg-primary-500" class="font-normal">
 					<RadioItem bind:group={importPriority} name="priority" value="priority-server "
 						><p class="text-[12px]">Priority Server</p></RadioItem
 					>

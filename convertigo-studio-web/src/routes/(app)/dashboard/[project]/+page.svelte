@@ -218,189 +218,192 @@
 	<TabGroup rounded="rounded-none" border="border-none">
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
-				{#each parts as { name, requestables }, index (name)}
-					<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
-						<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" padding="p-4">
-							<AccordionItem open={index == 0 || searchQuery.length > 0}>
-								<svelte:fragment slot="lead"></svelte:fragment>
-								<svelte:fragment slot="summary">
-									<p class="text-[18px] font-semibold text-token pb-4 px-2">{name}</p>
-									<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
-								</svelte:fragment>
-								<svelte:fragment slot="content">
-									{#each requestables as requestable, index (requestable['@_name'])}
-										<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
-											<Accordion
-												caretOpen="rotate-0"
-												caretClosed="-rotate-90"
-												padding="p-4"
-												class="rounded-token bg-opacity-20 {bgColors[
-													index % bgColors.length
-												]} border-2"
-											>
-												<AccordionItem
-													on:toggle={(e) => (requestable.open = e.detail?.open)}
-													open={requestable.open}
+				<CardD>
+					{#each parts as { name, requestables }, index (name)}
+						<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
+							<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" padding="p-4">
+								<AccordionItem open={index == 0 || searchQuery.length > 0}>
+									<svelte:fragment slot="lead"></svelte:fragment>
+									<svelte:fragment slot="summary">
+										<p class="text-[18px] font-semibold text-token pb-4 px-2">{name}</p>
+										<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
+									</svelte:fragment>
+									<svelte:fragment slot="content">
+										{#each requestables as requestable, index (requestable['@_name'])}
+											<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
+												<Accordion
+													caretOpen="rotate-0"
+													caretClosed="-rotate-90"
+													padding="p-4"
+													class="rounded-token bg-opacity-20 {bgColors[
+														index % bgColors.length
+													]} border-2"
 												>
-													<svelte:fragment slot="lead"></svelte:fragment>
-													<svelte:fragment slot="summary">
-														<div class="flex items-center justify-between relative">
-															<span class="text-[14px] text-token font-bold"
-																>{requestable['@_name']}</span
-															>
-															{#if !requestable.open}
-																<span
-																	transition:fly={{ duration, y: 20 }}
-																	class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
-																	>{requestable['@_comment']}</span
+													<AccordionItem
+														on:toggle={(e) => (requestable.open = e.detail?.open)}
+														open={requestable.open}
+													>
+														<svelte:fragment slot="lead"></svelte:fragment>
+														<svelte:fragment slot="summary">
+															<div class="flex items-center justify-between relative">
+																<span class="text-[14px] text-token font-bold"
+																	>{requestable['@_name']}</span
 																>
-															{/if}
-														</div>
-													</svelte:fragment>
-													<svelte:fragment slot="content">
-														<form
-															on:submit|preventDefault={async (e) => {
-																run(requestable, e);
-															}}
-															class="flex flex-col gap-3"
-														>
-															{#if name == 'Sequences'}
-																<input
-																	type="hidden"
-																	name="__sequence"
-																	value={requestable['@_name']}
-																/>
-															{:else}
-																<input type="hidden" name="__connector" value={name} />
-																<input
-																	type="hidden"
-																	name="__transaction"
-																	value={requestable['@_name']}
-																/>
-															{/if}
-															<span>{requestable['@_comment']}</span>
-															<div class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800">
-																<p>Parameters</p>
-															</div>
-															<div class="grid grid-cols-2 p-5 gap-10">
-																<div class="col-span-1">
-																	{#each Object.values(requestable.variable ?? {}) as variable}
-																		{@const { checked } = variable}
-																		<label class="label-common">
-																			<p class="font-semibold mb-2">{variable['@_name']}</p>
-																			<div class="flex items-center gap-3">
-																				{#if checked}
-																					<input
-																						class="input-common"
-																						required={variable['@_required']}
-																						name={variable['@_name']}
-																						value={variable['@_value']}
-																						in:blur={{ duration, opacity }}
-																					/>
-																				{:else}
-																					<input
-																						class="input-common"
-																						style="color: grey;"
-																						value={variable['@_value']}
-																						readonly={true}
-																						in:blur={{ duration, opacity }}
-																						on:click={() => {
-																							variable.checked = true;
-																						}}
-																					/>
-																				{/if}
-																				<SlideToggle
-																					active="activeSlideToggle"
-																					background="unActiveSlideToggle"
-																					size="sm"
-																					name=""
-																					{checked}
-																					on:change={() => {
-																						variable.checked = !checked;
-																					}}
-																				/>
-																			</div>
-																		</label>
-																	{/each}
-																</div>
-																<div class="col-span-1">
-																	{#if requestable.testcases && Object.keys(requestable.testcases).length > 0}
-																		{#each Object.values(requestable.testcases) as testcase}
-																			<p class="font-semibold mb-4">{testcase['@_name']}</p>
-
-																			{#if testcase.variables && Object.keys(testcase.variables).length > 0}
-																				{@const data = Object.values(testcase.variables).map(
-																					(variable) => [
-																						variable['@_name'],
-																						convertMarkdownToHtml(variable['@_value'])
-																					]
-																				)}
-																				<div class="table-container flex flex-col mb-5">
-																					<Table {columns} {data} />
-																					<button
-																						class="basic-button mt-5"
-																						on:click={() => copyToInputs(testcase)}>Copy</button
-																					>
-																				</div>
-																			{:else}
-																				<p>No variables available in this testcase</p>
-																			{/if}
-																		{/each}
-																	{:else}
-																		<p>No test cases available in this sequence</p>
-																	{/if}
-																</div>
-															</div>
-															<div class="flex flex-row gap-5">
-																<button class="basic-button flex-1">Execute</button>
-																{#if requestable.response?.length > 0}
-																	<button class="cancel-button flex-1" in:fly={{ duration, x: -50 }}
-																		>Clear</button
+																{#if !requestable.open}
+																	<span
+																		transition:fly={{ duration, y: 20 }}
+																		class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
+																		>{requestable['@_comment']}</span
 																	>
 																{/if}
 															</div>
-															<div
-																class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
+														</svelte:fragment>
+														<svelte:fragment slot="content">
+															<form
+																on:submit|preventDefault={async (e) => {
+																	run(requestable, e);
+																}}
+																class="flex flex-col gap-3"
 															>
-																<strong>Response</strong>
-																<span
-																	>Response type&nbsp;
-																	<select class="select w-fit" bind:value={mode}>
-																		{#each modes as mode}
-																			<option>{mode}</option>
-																		{/each}
-																	</select></span
-																>
-															</div>
-															{#if 'loading' in requestable}
-																<div
-																	class="h-[480px]"
-																	class:animate-pulse={requestable.loading}
-																	transition:fly={{ duration, y: -100 }}
-																>
-																	<Editor
-																		content={requestable.response}
-																		language={requestable.language}
-																		theme={$modeCurrent ? '' : 'vs-dark'}
+																{#if name == 'Sequences'}
+																	<input
+																		type="hidden"
+																		name="__sequence"
+																		value={requestable['@_name']}
 																	/>
+																{:else}
+																	<input type="hidden" name="__connector" value={name} />
+																	<input
+																		type="hidden"
+																		name="__transaction"
+																		value={requestable['@_name']}
+																	/>
+																{/if}
+																<span>{requestable['@_comment']}</span>
+																<div class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800">
+																	<p>Parameters</p>
 																</div>
-															{/if}
-														</form>
-													</svelte:fragment>
-												</AccordionItem>
-											</Accordion>
-										</div>
-									{/each}
-								</svelte:fragment>
-							</AccordionItem>
-						</Accordion>
-					</div>
-				{/each}
+																<div class="grid grid-cols-2 p-5 gap-10">
+																	<div class="col-span-1">
+																		{#each Object.values(requestable.variable ?? {}) as variable}
+																			{@const { checked } = variable}
+																			<label class="label-common">
+																				<p class="font-semibold mb-2">{variable['@_name']}</p>
+																				<div class="flex items-center gap-3">
+																					{#if checked}
+																						<input
+																							class="input-common"
+																							required={variable['@_required']}
+																							name={variable['@_name']}
+																							value={variable['@_value']}
+																							in:blur={{ duration, opacity }}
+																						/>
+																					{:else}
+																						<input
+																							class="input-common"
+																							style="color: grey;"
+																							value={variable['@_value']}
+																							readonly={true}
+																							in:blur={{ duration, opacity }}
+																							on:click={() => {
+																								variable.checked = true;
+																							}}
+																						/>
+																					{/if}
+																					<SlideToggle
+																						active="activeSlideToggle"
+																						background="unActiveSlideToggle"
+																						size="sm"
+																						name=""
+																						{checked}
+																						on:change={() => {
+																							variable.checked = !checked;
+																						}}
+																					/>
+																				</div>
+																			</label>
+																		{/each}
+																	</div>
+																	<div class="col-span-1">
+																		{#if requestable.testcases && Object.keys(requestable.testcases).length > 0}
+																			{#each Object.values(requestable.testcases) as testcase}
+																				<p class="font-semibold mb-4">{testcase['@_name']}</p>
+
+																				{#if testcase.variables && Object.keys(testcase.variables).length > 0}
+																					{@const data = Object.values(testcase.variables).map(
+																						(variable) => [
+																							variable['@_name'],
+																							convertMarkdownToHtml(variable['@_value'])
+																						]
+																					)}
+																					<div class="table-container flex flex-col mb-5">
+																						<Table {columns} {data} />
+																						<button
+																							class="basic-button mt-5"
+																							on:click={() => copyToInputs(testcase)}>Copy</button
+																						>
+																					</div>
+																				{:else}
+																					<p>No variables available in this testcase</p>
+																				{/if}
+																			{/each}
+																		{:else}
+																			<p>No test cases available in this sequence</p>
+																		{/if}
+																	</div>
+																</div>
+																<div class="flex flex-row gap-5">
+																	<button class="basic-button flex-1">Execute</button>
+																	{#if requestable.response?.length > 0}
+																		<button
+																			class="cancel-button flex-1"
+																			in:fly={{ duration, x: -50 }}>Clear</button
+																		>
+																	{/if}
+																</div>
+																<div
+																	class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
+																>
+																	<strong>Response</strong>
+																	<span
+																		>Response type&nbsp;
+																		<select class="select w-fit" bind:value={mode}>
+																			{#each modes as mode}
+																				<option>{mode}</option>
+																			{/each}
+																		</select></span
+																	>
+																</div>
+																{#if 'loading' in requestable}
+																	<div
+																		class="h-[480px]"
+																		class:animate-pulse={requestable.loading}
+																		transition:fly={{ duration, y: -100 }}
+																	>
+																		<Editor
+																			content={requestable.response}
+																			language={requestable.language}
+																			theme={$modeCurrent ? '' : 'vs-dark'}
+																		/>
+																	</div>
+																{/if}
+															</form>
+														</svelte:fragment>
+													</AccordionItem>
+												</Accordion>
+											</div>
+										{/each}
+									</svelte:fragment>
+								</AccordionItem>
+							</Accordion>
+						</div>
+					{/each}
+				</CardD>
 			{:else if tabSet === 1}
 				<div class="grid grid-cols-3">
 					<div class="col-span-1">
 						<TabGroup rounded="rounded-none" border="border-none" class="">
-							<Tab bind:group={tabSet} name="tab1" value={0} class="bg-surface-700 rounded-token">
+							<Tab bind:group={tabSet} name="tab1" value={0} class="cancel-button rounded-token">
 								<span class="text-[12px] flex items-center gap-2"
 									><Ico icon="ion:return-down-back-sharp" /><span class="text-[12px]"
 										>Return to Backend</span
@@ -411,15 +414,24 @@
 					</div>
 					<div class="col-span-1 flex items-center justify-center gap-5">
 						<button class="green-button" on:click={() => openModalQrCode()}>Qr Code</button>
-						<RadioGroup active="bg-surface-800">
+						<RadioGroup active="dark:bg-surface-800 bg-surface-100">
 							<RadioItem bind:group={deviceVal} name="justify" value={0}
-								><Icon icon="fluent:laptop-20-regular" style="color: white" /></RadioItem
+								><Icon
+									icon="fluent:laptop-20-regular"
+									class="dark:text-white text-black"
+								/></RadioItem
 							>
 							<RadioItem bind:group={deviceVal} name="justify" value={1}
-								><Icon icon="fluent:tablet-48-regular" style="color: white" /></RadioItem
+								><Icon
+									icon="fluent:tablet-48-regular"
+									class="dark:text-white text-black"
+								/></RadioItem
 							>
 							<RadioItem bind:group={deviceVal} name="justify" value={2}
-								><Icon icon="fluent:phone-20-regular" style="color: white" /></RadioItem
+								><Icon
+									icon="fluent:phone-20-regular"
+									class="dark:text-white text-black"
+								/></RadioItem
 							>
 						</RadioGroup>
 						<button class="basic-button" on:click={() => toggleLandscape()}

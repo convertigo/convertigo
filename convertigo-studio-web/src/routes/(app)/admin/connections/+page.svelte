@@ -73,7 +73,7 @@
 	/>
 </Card>
 
-<Card title="Sessions" class="mt-5">
+<Card title="Sessions">
 	<div slot="cornerOption">
 		<ButtonsContainer>
 			<button class="basic-button" on:click={refreshConnections}>
@@ -114,7 +114,7 @@
 	</TableAutoCard>
 </Card>
 
-<Card title="Contexts" class="mt-5">
+<Card title="Contexts">
 	<div slot="cornerOption">
 		<ButtonsContainer>
 			<button class="basic-button" on:click={refreshConnections}

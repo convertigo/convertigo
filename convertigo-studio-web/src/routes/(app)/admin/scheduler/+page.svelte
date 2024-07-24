@@ -128,7 +128,7 @@
 				{:else if def.name === 'Next'}
 					<AutoPlaceholder loading={!row.next}
 						><button
-							class="bg-indigo-800"
+							class="violet-button"
 							on:click={() =>
 								modalStore.trigger({
 									title: 'Next triggers',
