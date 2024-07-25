@@ -9,12 +9,17 @@
 	let isRoot = false;
 	let activeIndex = 0;
 	let activeIndexLast = 0;
+	let relativePath = '';
 	$: {
 		isRoot = $page.route.id == path;
 		activeIndexLast = activeIndex;
 		activeIndex = parts[0].findIndex((part) =>
 			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
 		);
+		// @ts-ignore
+		relativePath = new Array($page?.route?.id?.substring(path.length).split('/').length - 1)
+			.fill('../')
+			.join('');
 	}
 
 	const drawerStore = getDrawerStore();
@@ -26,7 +31,7 @@
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
 			<a
-				href="{isRoot || url.startsWith('http') ? '' : '../'}{url}"
+				href="{url.startsWith('http') ? '' : relativePath}{url}"
 				class="nav-links"
 				on:click={drawerStore.close}
 			>

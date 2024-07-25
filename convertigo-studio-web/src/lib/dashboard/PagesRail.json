@@ -4,6 +4,13 @@
 			"title": "Projects",
 			"icon": "lucide:layout-panel-top",
 			"url": ""
+		}
+	],
+	[
+		{
+			"title": "Admin",
+			"icon": "carbon:panel-expansion",
+			"url": "../admin"
 		},
 		{
 			"title": "My Organization",
@@ -11,19 +18,14 @@
 			"url": "my-organization"
 		},
 		{
-			"title": "Marketplace",
-			"icon": "mdi:marketplace-outline",
-			"url": "https://www.convertigo.com"
-		},
-		{
-			"title": "Admin",
-			"icon": "carbon:panel-expansion",
-			"url": "../admin"
-		},
-		{
 			"title": "Resources",
 			"icon": "grommet-icons:resources",
 			"url": "projects"
+		},
+		{
+			"title": "Marketplace",
+			"icon": "mdi:marketplace-outline",
+			"url": "https://www.convertigo.com"
 		},
 		{
 			"title": "Community",

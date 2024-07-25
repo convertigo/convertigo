@@ -61,8 +61,12 @@
 				>
 					<span class="text-md font-semibold">{project['@_name']}</span>
 					<div class="flex gap-3">
-						<button class="basic-button">Back</button>
-						<button class="violet-button">Front</button>
+						<a href={`${project['@_name']}/backend/`} class="basic-button"
+							><Ico icon="ph:gear-six-thin" size="nav" /></a
+						>
+						<a href={`${project['@_name']}/frontend/`} class="violet-button"
+							><Ico icon="ph:video-thin" size="nav" /></a
+						>
 						<button use:popup={popupClick}>
 							<Ico icon="mdi:dots-vertical" />
 						</button>

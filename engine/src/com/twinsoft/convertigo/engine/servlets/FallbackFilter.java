@@ -50,10 +50,17 @@ public class FallbackFilter implements Filter {
 		if (servletPath.endsWith("/index.html")) {
 			var f = new File(Engine.WEBAPP_PATH, servletPath);
 			if (!f.exists()) {
-				var fallback = new File(f.getParentFile().getParentFile(), "_/index.html");
-				if (fallback.exists()) {
-					request.getRequestDispatcher(fallback.getPath().substring(Engine.WEBAPP_PATH.length())).forward(request, response);
-					return;
+				var path = !File.separator.equals("/") ? f.getAbsolutePath().replace(File.separator, "/") : f.getAbsolutePath();
+				var split = path.split("/");
+				for (var i = split.length - 2; i >= 0; i--) {
+					var part = split[i];
+					split[i] = "_";
+					var fallback = new File(String.join("/", split));
+					split[i] = part;
+					if (fallback.exists()) {
+						request.getRequestDispatcher(fallback.getPath().substring(Engine.WEBAPP_PATH.length())).forward(request, response);
+						return;
+					}
 				}
 			}
 		}
