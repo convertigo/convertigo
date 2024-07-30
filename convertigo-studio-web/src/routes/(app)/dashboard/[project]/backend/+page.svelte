@@ -104,7 +104,7 @@
 
 	<CardD>
 		<div class="flex gap-10">
-			<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] w-96">
+			<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 				<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
 				<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
 			</div>

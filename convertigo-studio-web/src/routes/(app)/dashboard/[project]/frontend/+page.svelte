@@ -91,16 +91,6 @@
 	};
 
 	$: buttonTextLandsape = landscape ? 'Portrait' : 'Landscape';
-
-	$: parts = _parts
-		.map((part) => ({
-			...part,
-			requestables: part.requestables.filter(
-				(/** @type {{ [x: string]: string; }} */ requestable) =>
-					requestable['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
-			)
-		}))
-		.filter((part) => part.requestables.length > 0);
 </script>
 
 {#if project}

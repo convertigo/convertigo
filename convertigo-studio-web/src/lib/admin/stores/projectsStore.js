@@ -1,4 +1,5 @@
 import { call, checkArray } from '$lib/utils/service';
+import { decode } from 'html-entities';
 import { writable } from 'svelte/store';
 
 export const projectsStore = writable(/** @type {any[]} */ ([]));
@@ -9,6 +10,10 @@ export async function projectsCheck(refresh = false) {
 	if (!init || refresh) {
 		init = true;
 		const res = await call('projects.List');
-		projectsStore.set(checkArray(res?.admin?.projects?.project));
+		const projects = checkArray(res?.admin?.projects?.project);
+		for (const project of projects) {
+			project['@_comment'] = decode(project['@_comment']);
+		}
+		projectsStore.set(projects);
 	}
 }
