@@ -63,6 +63,7 @@
 	import MdiSearch from '~icons/mdi/search?raw';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line?raw';
 	import OcticonLogoGithub16 from '~icons/octicon/logo-github-16?raw';
+	import PhBooksThin from '~icons/ph/books-thin?raw';
 	import PhCertificateThin from '~icons/ph/certificate-thin?raw';
 	import PhFolderThin from '~icons/ph/folder-thin?raw';
 	import PhGearSixThin from '~icons/ph/gear-six-thin?raw';
@@ -142,6 +143,7 @@
 		'mdi:search': MdiSearch,
 		'mingcute:delete-line': MingcuteDeleteLine,
 		'octicon:logo-github-16': OcticonLogoGithub16,
+		'ph:books-thin': PhBooksThin,
 		'ph:certificate-thin': PhCertificateThin,
 		'ph:folder-thin': PhFolderThin,
 		'ph:gear-six-thin': PhGearSixThin,

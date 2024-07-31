@@ -104,6 +104,7 @@ public class List extends XmlService{
 				projectElement.setAttribute("exportedTs", "" + project.getExportTime());
 				projectElement.setAttribute("deployDate", deployDate);
 				projectElement.setAttribute("deployDateTs", "" + file.lastModified());
+				projectElement.setAttribute("hasFrontend", new File(project.getDirPath(), "DisplayObjects/mobile/index.html").exists() ? "true" : "false");
 
 				if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
 					projectElement.setAttribute("undefined_symbols", "true");

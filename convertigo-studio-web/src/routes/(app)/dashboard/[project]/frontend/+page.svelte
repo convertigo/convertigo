@@ -12,9 +12,8 @@
 	const modalStore = getModalStore();
 	let project;
 	let _parts = [];
-	let searchQuery = '';
 
-	let deviceVal = 0;
+	let deviceVal = 2;
 	let landscape;
 	let selectedPhoneType = 'iPhone X';
 
@@ -96,32 +95,29 @@
 {#if project}
 	{@const [duration, y, opacity] = [200, -50, 1]}
 
-	<div class="grid grid-cols-3">
-		<div class="col-span-1 flex items-center justify-center gap-5">
-			<button class="green-button" on:click={() => openModalQrCode()}>Qr Code</button>
-			<RadioGroup active="dark:bg-surface-800 bg-surface-100">
-				<RadioItem bind:group={deviceVal} name="justify" value={0}
-					><Icon icon="fluent:laptop-20-regular" class="dark:text-white text-black" /></RadioItem
-				>
-				<RadioItem bind:group={deviceVal} name="justify" value={1}
-					><Icon icon="fluent:tablet-48-regular" class="dark:text-white text-black" /></RadioItem
-				>
-				<RadioItem bind:group={deviceVal} name="justify" value={2}
-					><Icon icon="fluent:phone-20-regular" class="dark:text-white text-black" /></RadioItem
-				>
-			</RadioGroup>
-			<button class="basic-button" on:click={() => toggleLandscape()}>{buttonTextLandsape}</button>
-			{#if deviceVal == 2}
-				<select on:change={handlePhoneTypeChange} class="select-common text-[12px]">
-					{#each phones as phone}
-						<option value={phone.name}><span>{phone.name}</span></option>
-					{/each}
-				</select>
-			{/if}
-		</div>
-		<div class="col-span-1 flex items-center justify-end gap-2"></div>
+	<div class="flex items-center justify-center gap-5">
+		<button class="green-button" on:click={() => openModalQrCode()}>Qr Code</button>
+		<RadioGroup active="dark:bg-surface-800 bg-surface-100">
+			<RadioItem bind:group={deviceVal} name="justify" value={2}
+				><Icon icon="fluent:phone-20-regular" class="dark:text-white text-black" /></RadioItem
+			>
+			<RadioItem bind:group={deviceVal} name="justify" value={1}
+				><Icon icon="fluent:tablet-48-regular" class="dark:text-white text-black" /></RadioItem
+			>
+			<RadioItem bind:group={deviceVal} name="justify" value={0}
+				><Icon icon="fluent:laptop-20-regular" class="dark:text-white text-black" /></RadioItem
+			>
+		</RadioGroup>
+		<button class="basic-button" on:click={() => toggleLandscape()}>{buttonTextLandsape}</button>
+		{#if deviceVal == 2}
+			<select on:change={handlePhoneTypeChange} class="select-common text-[12px]">
+				{#each phones as phone}
+					<option value={phone.name}><span>{phone.name}</span></option>
+				{/each}
+			</select>
+		{/if}
 	</div>
-	<div class="flex flex-col items-center justify-start mt-5">
+	<div class="flex flex-col items-center justify-start">
 		{#if deviceVal >= 0 && deviceVal < devices.length}
 			<DeviceMockup
 				device={deviceVal == 2 ? selectedPhone.name : devices[deviceVal].name}

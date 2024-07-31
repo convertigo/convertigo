@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { fly, slide } from 'svelte/transition';
+	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 
 	$: isBackend = $page.url.pathname.includes('backend');
 	$: isFrontend = $page.url.pathname.includes('frontend');
@@ -18,7 +19,7 @@
 	padding="p-0"
 >
 	<svelte:fragment slot="lead">
-		<!-- <PagesRailToggle /> -->
+		<PagesRailToggle />
 		<!-- <img src="{assets}/logo.png" alt="logo convertigo" class="logo-desktop mr-4 ml-4" />
 		<h1 class="app-title">Convertigo Admin Console</h1> -->
 		{#if $monitorData.time > 0}

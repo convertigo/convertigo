@@ -12,15 +12,48 @@
 
 	let searchQuery = '';
 
-	$: filteredProjects = $projectsStore.filter((project) =>
-		project['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
-	);
+	let filters = [
+		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
+		{
+			icon: 'ph:books-thin',
+			count: 0,
+			filter: (project) => project['@_name'].startsWith('lib')
+		}
+	];
+
+	$: filteredProjects = $projectsStore.filter((project) => {
+		let ok = project['@_name'].toLowerCase().includes(searchQuery.toLowerCase());
+		if (ok) {
+			for (let { count, filter } of filters) {
+				if ((count == 1 && !filter(project)) || (count == 2 && filter(project))) {
+					return false;
+				}
+			}
+		}
+		return ok;
+	});
 </script>
 
 <CardD class="gap-5">
 	<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 		<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
 		<input type="search" placeholder="Search projects..." bind:value={searchQuery} />
+		<span class="flex">
+			{#each filters as { icon, count }, i}
+				<button
+					class="btn"
+					style="padding: 5px"
+					class:variant-ghost-secondary={count == 0}
+					class:variant-filled-secondary={count == 1}
+					class:variant-filled-warning={count == 2}
+					on:click={() => {
+						filters[i].count = (count + 1) % 3;
+					}}
+				>
+					<Ico {icon} size="nav" />
+				</button>
+			{/each}
+		</span>
 	</div>
 	<div class="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project (project['@_name'])}
@@ -48,14 +81,16 @@
 									<Ico icon="ph:gear-six-thin" size="nav" />
 								</a>
 							</div>
-							<div class="grow flex justify-end">
-								<a
-									href="{project['@_name']}/frontend/"
-									class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-bl-lg"
-								>
-									<Ico icon="ph:video-thin" size="nav" />
-								</a>
-							</div>
+							{#if project['@_hasFrontend'] == 'true'}
+								<div class="grow flex justify-end">
+									<a
+										href="{project['@_name']}/frontend/"
+										class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-bl-lg"
+									>
+										<Ico icon="ph:video-thin" size="nav" />
+									</a>
+								</div>
+							{/if}
 						</div>
 					</div>
 					<div
