@@ -806,14 +806,14 @@ public class EnginePropertiesManager {
 	public static void setProperty(PropertyName property, String value) {
 		String exvalue;
 
+		value = encodeValue(property.getType(), value);
+
 		if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
 			exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
 		} else {
 			if (properties == null) {
 				throw new IllegalStateException("Not initialized EnginePropertiesManager");
 			}
-
-			value = encodeValue(property.getType(), value);
 			exvalue = (String) properties.put(property.getKey(), value);
 		}
 		if (!value.equals(exvalue) && Engine.isStarted) {
