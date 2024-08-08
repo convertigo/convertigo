@@ -2,63 +2,89 @@
 	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import { monitorData } from '$lib/admin/stores/monitorStore';
 	import { page } from '$app/stores';
-	import Ico, { ico } from '$lib/utils/Ico.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
+	import { onMount } from 'svelte';
+	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
+	let project;
 
 	$: isBackend = $page.url.pathname.includes('backend');
 	$: isFrontend = $page.url.pathname.includes('frontend');
 	$: isPlatforms = $page.url.pathname.includes('platforms');
+	$: hasFrontend = project?.['@_hasFrontend'] == 'true';
+	$: hasPlatforms = project?.['@_hasPlatform'] == 'true';
+
+	onMount(() => {
+		const unsubscribe = page.subscribe(($page) => {
+			projectsCheck().then(() => {
+				project = $projectsStore.find((project) => project['@_name'] == $page.params.project);
+			});
+		});
+		return () => unsubscribe();
+	});
 </script>
 
 <AppBar
 	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200 py-2 px-10"
 	background="dark:bg-surface-700 bg-surface-100"
-	gridColumns="grid-cols-3"
-	slotDefault="place-self-center"
-	slotTrail="place-content-end"
+	slotDefault="flex justify-center"
 	padding="p-0"
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
-		<!-- <img src="{assets}/logo.png" alt="logo convertigo" class="logo-desktop mr-4 ml-4" />
-		<h1 class="app-title">Convertigo Admin Console</h1> -->
 		{#if $monitorData.time > 0}
 			<span class="monitor-time">{new Date($monitorData.time).toTimeString().split(' ')[0]}</span>
 		{/if}
 	</svelte:fragment>
 
-	{#if isBackend || isFrontend || isPlatforms}
+	{#if project}
 		{@const parts = [
+			{
+				href: '../../',
+				icon: 'lucide:layout-panel-top',
+				state: false,
+				show: true
+			},
+			{
+				href: `../../#${$page.params.project}`,
+				icon: 'ph:plugs-connected-thin',
+				state: false,
+				show: project.ref?.length > 0
+			},
 			{
 				name: 'Backend',
 				href: '../backend/',
-				cls: 'rounded-r-none',
 				icon: 'ph:gear-six-thin',
-				state: isBackend
+				state: isBackend,
+				show: true
 			},
 			{
 				name: 'Frontend',
 				href: '../frontend/',
-				cls: 'rounded-none',
 				icon: 'ph:video-thin',
-				state: isFrontend
+				state: isFrontend,
+				show: hasFrontend
 			},
 			{
 				name: 'Platforms',
 				href: '../platforms/',
-				cls: 'rounded-l-none',
 				icon: 'ph:package-thin',
-				state: isPlatforms
+				state: isPlatforms,
+				show: hasPlatforms
 			}
-		]}
-		<div class="flex" transition:slide={{ axis: 'y' }}>
-			{#each parts as { name, href, cls, icon, state }}
+		].filter((part) => part.show)}
+		<div class="flex flex-wrap" transition:slide={{ axis: 'y' }}>
+			{#each parts as { name, href, cls, icon, state }, i}
 				<a
 					{href}
 					class:variant-filled-secondary={state}
 					class:variant-ghost-secondary={!state}
-					class="btn {cls}"><span><Ico {icon} size="nav" /></span><span>{name}</span></a
+					class:rounded-none={i > 0 && i < parts.length - 1}
+					class:rounded-r-none={i == 0}
+					class:rounded-l-none={i == parts.length - 1}
+					class="btn hover:variant-filled-secondary"
+					><span><Ico {icon} size="nav" /></span>{#if name}<span>{name}</span>{/if}</a
 				>
 			{/each}
 		</div>

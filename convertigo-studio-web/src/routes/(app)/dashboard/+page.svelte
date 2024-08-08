@@ -22,6 +22,22 @@
 		}
 	];
 
+	function handleHashChange() {
+		const hash = window.location.hash?.substring(1);
+		rootProject = hash ? $projectsStore.find((project) => project['@_name'] == hash) : null;
+		if (rootProject == null) {
+			history.replaceState(null, '', ' ');
+		}
+	}
+
+	onMount(() => {
+		window.addEventListener('hashchange', handleHashChange);
+		handleHashChange();
+		return () => {
+			window.removeEventListener('hashchange', handleHashChange);
+		};
+	});
+
 	$: filteredProjects = $projectsStore.filter((project) => {
 		if (rootProject) {
 			return (
@@ -118,15 +134,14 @@
 						<div class="absolute inset-x-0 bottom-0 flex">
 							{#if project.ref?.length > 0}
 								<div class="grow flex">
-									<button
-										on:click={() =>
-											rootProject == project ? (rootProject = null) : (rootProject = project)}
+									<a
+										href={rootProject != project ? `#${project['@_name']}` : '#'}
 										class="p-3 hover:variant-filled-secondary h-fit rounded-tr-lg"
 										class:variant-ghost-secondary={rootProject != project}
 										class:variant-filled-secondary={rootProject == project}
 									>
 										<Ico icon="ph:plugs-connected-thin" size="nav" />
-									</button>
+									</a>
 								</div>
 							{/if}
 							{#if project['@_hasPlatform'] == 'true'}
