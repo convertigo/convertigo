@@ -95,6 +95,11 @@ public class List extends XmlService{
 
 				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, request.getLocale());
 				String exported = project.getInfoForProperty("exported", df, request.getLocale());
+				
+				var hasPlatform = false;
+				if (project.getMobileApplication() != null) {
+                    hasPlatform = project.getMobileApplication().getMobilePlatformList().size() > 0;
+                }
 
 				Element projectElement = document.createElement("project");
 				projectElement.setAttribute("name", projectName);
@@ -105,17 +110,19 @@ public class List extends XmlService{
 				projectElement.setAttribute("deployDate", deployDate);
 				projectElement.setAttribute("deployDateTs", "" + file.lastModified());
 				projectElement.setAttribute("hasFrontend", new File(project.getDirPath(), "DisplayObjects/mobile/index.html").exists() ? "true" : "false");
+				projectElement.setAttribute("hasPlatform", hasPlatform ? "true" : "false");
 
 				if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
 					projectElement.setAttribute("undefined_symbols", "true");
 				}
 
 				for (Reference ref: project.getReferenceList()) {
-					if (ref instanceof ProjectSchemaReference) {
-						ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+					if (ref instanceof ProjectSchemaReference prjRef) {
+						var eRef = document.createElement("ref");
+						eRef.setTextContent(prjRef.getParser().getProjectName());
+						projectElement.appendChild(eRef);
 						if (prjRef.getParser().isValid() && Engine.theApp.databaseObjectsManager.getOriginalProjectByName(prjRef.getParser().getProjectName(), true) == null) {
 							projectElement.setAttribute("missingDependencies", "true");
-							break;
 						}
 					}
 				}

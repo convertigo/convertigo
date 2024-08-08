@@ -43,6 +43,7 @@
 	import MaterialSymbolsLightUpdate from '~icons/material-symbols-light/update?raw';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
+	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
 	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
@@ -50,6 +51,7 @@
 	import MdiEyeOff from '~icons/mdi/eye-off?raw';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
+	import MdiFileDownloadOutline from '~icons/mdi/file-download-outline?raw';
 	import MdiFilter from '~icons/mdi/filter?raw';
 	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
@@ -68,6 +70,7 @@
 	import PhFolderThin from '~icons/ph/folder-thin?raw';
 	import PhGearSixThin from '~icons/ph/gear-six-thin?raw';
 	import PhGearThin from '~icons/ph/gear-thin?raw';
+	import PhPackageThin from '~icons/ph/package-thin?raw';
 	import PhPlugsConnectedThin from '~icons/ph/plugs-connected-thin?raw';
 	import PhUsers from '~icons/ph/users?raw';
 	import PhVideoThin from '~icons/ph/video-thin?raw';
@@ -123,6 +126,7 @@
 		'material-symbols-light:update': MaterialSymbolsLightUpdate,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:backup-restore': MdiBackupRestore,
+		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
@@ -130,6 +134,7 @@
 		'mdi:edit-outline': MdiEditOutline,
 		'mdi:eye': MdiEye,
 		'mdi:eye-off': MdiEyeOff,
+		'mdi:file-download-outline': MdiFileDownloadOutline,
 		'mdi:filter': MdiFilter,
 		'mdi:filter-cog': MdiFilterCog,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
@@ -148,6 +153,7 @@
 		'ph:folder-thin': PhFolderThin,
 		'ph:gear-six-thin': PhGearSixThin,
 		'ph:gear-thin': PhGearThin,
+		'ph:package-thin': PhPackageThin,
 		'ph:plugs-connected-thin': PhPlugsConnectedThin,
 		'ph:users': PhUsers,
 		'ph:video-thin': PhVideoThin,

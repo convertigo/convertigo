@@ -129,7 +129,7 @@
 </div>-->
 
 <div class="flex dark:bg-surface-800 bg-surface-50">
-	<Accordion regionControl="variant-soft-primary">
+	<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" regionControl="variant-soft-primary">
 		<div>
 			{#each Object.entries(categories) as [category, items] (category)}
 				<AccordionItem open rounded="none">

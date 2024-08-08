@@ -13,6 +13,7 @@ export async function projectsCheck(refresh = false) {
 		const projects = checkArray(res?.admin?.projects?.project);
 		for (const project of projects) {
 			project['@_comment'] = decode(project['@_comment']);
+			project.ref = checkArray(project.ref);
 		}
 		projectsStore.set(projects);
 	}

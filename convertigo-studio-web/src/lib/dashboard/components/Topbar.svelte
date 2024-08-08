@@ -2,12 +2,13 @@
 	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import { monitorData } from '$lib/admin/stores/monitorStore';
 	import { page } from '$app/stores';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { fly, slide } from 'svelte/transition';
+	import Ico, { ico } from '$lib/utils/Ico.svelte';
+	import { slide } from 'svelte/transition';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 
 	$: isBackend = $page.url.pathname.includes('backend');
 	$: isFrontend = $page.url.pathname.includes('frontend');
+	$: isPlatforms = $page.url.pathname.includes('platforms');
 </script>
 
 <AppBar
@@ -27,22 +28,39 @@
 		{/if}
 	</svelte:fragment>
 
-	{#if isBackend || isFrontend}
+	{#if isBackend || isFrontend || isPlatforms}
+		{@const parts = [
+			{
+				name: 'Backend',
+				href: '../backend/',
+				cls: 'rounded-r-none',
+				icon: 'ph:gear-six-thin',
+				state: isBackend
+			},
+			{
+				name: 'Frontend',
+				href: '../frontend/',
+				cls: 'rounded-none',
+				icon: 'ph:video-thin',
+				state: isFrontend
+			},
+			{
+				name: 'Platforms',
+				href: '../platforms/',
+				cls: 'rounded-l-none',
+				icon: 'ph:package-thin',
+				state: isPlatforms
+			}
+		]}
 		<div class="flex" transition:slide={{ axis: 'y' }}>
-			<a
-				href="../backend/"
-				class:variant-filled-secondary={isBackend}
-				class:variant-ghost-secondary={isFrontend}
-				class="btn rounded-r-none"
-				><span><Ico icon="ph:gear-six-thin" size="nav" /></span><span>Backend</span></a
-			>
-			<a
-				href="../frontend/"
-				class:variant-filled-secondary={isFrontend}
-				class:variant-ghost-secondary={isBackend}
-				class="btn rounded-l-none"
-				><span>Frontend</span><span><Ico icon="ph:video-thin" size="nav" /></span></a
-			>
+			{#each parts as { name, href, cls, icon, state }}
+				<a
+					{href}
+					class:variant-filled-secondary={state}
+					class:variant-ghost-secondary={!state}
+					class="btn {cls}"><span><Ico {icon} size="nav" /></span><span>{name}</span></a
+				>
+			{/each}
 		</div>
 	{/if}
 	<svelte:fragment slot="trail">

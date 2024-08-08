@@ -11,6 +11,7 @@
 	});
 
 	let searchQuery = '';
+	let rootProject;
 
 	let filters = [
 		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
@@ -22,6 +23,11 @@
 	];
 
 	$: filteredProjects = $projectsStore.filter((project) => {
+		if (rootProject) {
+			return (
+				project['@_name'] == rootProject['@_name'] || rootProject.ref?.includes(project['@_name'])
+			);
+		}
 		let ok = project['@_name'].toLowerCase().includes(searchQuery.toLowerCase());
 		if (ok) {
 			for (let { count, filter } of filters) {
@@ -37,21 +43,38 @@
 <CardD class="gap-5">
 	<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 		<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
-		<input type="search" placeholder="Search projects..." bind:value={searchQuery} />
-		<span class="flex">
+		<input
+			type="search"
+			placeholder="Search projects..."
+			bind:value={searchQuery}
+			disabled={rootProject}
+		/>
+		<span class="flex flex-col">
 			{#each filters as { icon, count }, i}
-				<button
-					class="btn"
-					style="padding: 5px"
-					class:variant-ghost-secondary={count == 0}
-					class:variant-filled-secondary={count == 1}
-					class:variant-filled-warning={count == 2}
-					on:click={() => {
-						filters[i].count = (count + 1) % 3;
-					}}
-				>
-					<Ico {icon} size="nav" />
-				</button>
+				<span class="flex">
+					<button
+						class="btn rounded-none"
+						style="padding: 2px"
+						class:variant-ghost-secondary={count != 1}
+						class:variant-filled-secondary={count == 1}
+						on:click={() => {
+							filters[i].count = count == 1 ? 0 : 1;
+						}}
+					>
+						<Ico {icon} size="nav" />
+					</button>
+					<button
+						class="btn rounded-none"
+						style="padding: 2px"
+						class:variant-ghost-warning={count != 2}
+						class:variant-filled-warning={count == 2}
+						on:click={() => {
+							filters[i].count = count == 2 ? 0 : 2;
+						}}
+					>
+						<Ico {icon} size="nav" />
+					</button>
+				</span>
 			{/each}
 		</span>
 	</div>
@@ -66,13 +89,13 @@
 				<div
 					class="border-[1px] border-t-0 rounded-b-md dark:border-surface-700 border-surface-200 dark:opacity-70"
 				>
-					<div class="relative img-hover-zoom img-hover-zoom--quick-zoom">
+					<div class="relative img-hover-zoom img-hover-zoom--quick-zoom flex justify-center">
 						<img
 							src="https://www.impactplus.com/hubfs/Fensea.jpg"
 							class="object-cover"
 							alt="project"
 						/>
-						<div class="absolute top-0 h-full w-full flex">
+						<div class="absolute top-0 w-full flex">
 							<div class="grow flex">
 								<a
 									href="{project['@_name']}/backend/"
@@ -88,6 +111,31 @@
 										class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-bl-lg"
 									>
 										<Ico icon="ph:video-thin" size="nav" />
+									</a>
+								</div>
+							{/if}
+						</div>
+						<div class="absolute inset-x-0 bottom-0 flex">
+							{#if project.ref?.length > 0}
+								<div class="grow flex">
+									<button
+										on:click={() =>
+											rootProject == project ? (rootProject = null) : (rootProject = project)}
+										class="p-3 hover:variant-filled-secondary h-fit rounded-tr-lg"
+										class:variant-ghost-secondary={rootProject != project}
+										class:variant-filled-secondary={rootProject == project}
+									>
+										<Ico icon="ph:plugs-connected-thin" size="nav" />
+									</button>
+								</div>
+							{/if}
+							{#if project['@_hasPlatform'] == 'true'}
+								<div class="grow flex justify-end">
+									<a
+										href="{project['@_name']}/platforms/"
+										class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-tl-lg"
+									>
+										<Ico icon="ph:package-thin" size="nav" />
 									</a>
 								</div>
 							{/if}

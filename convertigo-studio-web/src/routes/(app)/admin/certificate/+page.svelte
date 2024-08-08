@@ -89,7 +89,11 @@
 		</ButtonsContainer>
 	</div>
 	<div class="flex w-[20%]">
-		<Accordion class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mb-5">
+		<Accordion
+			caretOpen="rotate-0"
+			caretClosed="-rotate-90"
+			class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mb-5"
+		>
 			<AccordionItem close>
 				<svelte:fragment slot="lead"><Ico icon="fluent:note-48-filled" /></svelte:fragment>
 				<svelte:fragment slot="summary">{notesTitle.note}</svelte:fragment>
@@ -126,7 +130,11 @@
 		<svelte:fragment slot="panel">
 			{#if tabSet === 0}
 				<div class="flex w-[30%]">
-					<Accordion class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mt-5">
+					<Accordion
+						caretOpen="rotate-0"
+						caretClosed="-rotate-90"
+						class="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mt-5"
+					>
 						<AccordionItem close>
 							<svelte:fragment slot="lead"><Ico icon="fluent:note-48-filled" /></svelte:fragment>
 							<svelte:fragment slot="summary">{notesTitle.certificate}</svelte:fragment>
@@ -233,7 +241,11 @@
 						}
 					]}
 					<div class="flex w-[30%]">
-						<Accordion class="dark:bg-sky-600 rounded w-[50vw] dark:bg-opacity-30 mt-5">
+						<Accordion
+							caretOpen="rotate-0"
+							caretClosed="-rotate-90"
+							class="dark:bg-sky-600 rounded w-[50vw] dark:bg-opacity-30 mt-5"
+						>
 							<AccordionItem close>
 								<svelte:fragment slot="lead"
 									><Ico icon="fluent:note-48-filled" class="w-7 h-7" /></svelte:fragment

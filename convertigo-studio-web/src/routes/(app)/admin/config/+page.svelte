@@ -228,7 +228,7 @@
 			</Card>
 
 			<Card title="Advanced properties" class="mt-5">
-				<Accordion class="rounded-token">
+				<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="rounded-token">
 					<AccordionItem class="rounded-token">
 						<svelte:fragment slot="lead"
 							><Ico icon="game-icons:level-three-advanced" />

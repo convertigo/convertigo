@@ -240,7 +240,7 @@
 	<div class="border-[1px] border-surface-600 mt-2"></div>
 
 	<div class="content">
-		<Accordion>
+		<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
 			{#if localCategories.length > 0}
 				<AccordionItem open>
 					<svelte:fragment slot="summary">
