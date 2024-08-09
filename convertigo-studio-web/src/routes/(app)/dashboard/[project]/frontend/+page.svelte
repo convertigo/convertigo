@@ -7,7 +7,7 @@
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import Icon from '@iconify/svelte';
 	import { DeviceMockup } from 'svelte-device-mockups';
-	import { updateUrls, appUrlStore, qrCodeUrlStore } from '$lib/common/stores/urlStore';
+	import { getFrontendUrl } from '$lib/utils/service';
 
 	const modalStore = getModalStore();
 	let project;
@@ -65,20 +65,17 @@
 					});
 				}
 				_parts = _parts.filter((part) => part.requestables.length > 0);
-				updateUrls(projectName);
 			});
 		});
 		return () => unsubscribe();
 	});
 
 	function openModalQrCode() {
-		const projectName = $page.params.project;
-		updateUrls(projectName);
 		modalStore.trigger({
 			type: 'component',
 			component: 'modalQrCode',
 			meta: {
-				qrCodeUrl: $qrCodeUrlStore
+				href: getFrontendUrl($page.params.project)
 			}
 		});
 	}
@@ -124,7 +121,7 @@
 				scale={deviceVal == 2 ? selectedPhone.scale : devices[deviceVal].scale}
 				{landscape}
 				color={deviceVal == 2 ? selectedPhone.color : devices[deviceVal].color}
-				src={$appUrlStore}
+				src={getFrontendUrl(project['@_name'])}
 			/>
 		{/if}
 	</div>

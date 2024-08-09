@@ -32,7 +32,8 @@ const config = {
 			base
 		},
 		prerender: {
-			handleHttpError: 'warn'
+			handleHttpError: 'warn',
+			entries: ['*', '/dashboard/_/frontend', '/dashboard/_/platforms']
 		}
 	},
 

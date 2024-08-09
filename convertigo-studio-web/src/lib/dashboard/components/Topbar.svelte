@@ -18,7 +18,7 @@
 	onMount(() => {
 		const unsubscribe = page.subscribe(($page) => {
 			projectsCheck().then(() => {
-				project = $projectsStore.find((project) => project['@_name'] == $page.params.project);
+				project = $projectsStore.find((project) => project['@_name'] == $page.params?.project);
 			});
 		});
 		return () => unsubscribe();

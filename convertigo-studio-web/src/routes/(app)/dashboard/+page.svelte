@@ -5,6 +5,7 @@
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
+	import { replaceState } from '$app/navigation';
 
 	onMount(() => {
 		projectsCheck();
@@ -26,7 +27,9 @@
 		const hash = window.location.hash?.substring(1);
 		rootProject = hash ? $projectsStore.find((project) => project['@_name'] == hash) : null;
 		if (rootProject == null) {
-			history.replaceState(null, '', ' ');
+			if (window.location.href.endsWith('#')) {
+				replaceState('', '');
+			}
 		}
 	}
 

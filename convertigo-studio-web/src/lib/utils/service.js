@@ -223,6 +223,14 @@ export function getUrl(path = '/admin/services/') {
 	return `${window.location.origin}${m ? m[1] : '/convertigo'}${path}`;
 }
 
+export function getQuery(query) {
+	return `?${new URLSearchParams(query).toString()}`;
+}
+
+export function getFrontendUrl(projectName) {
+	return getUrl(`/projects/${projectName}/DisplayObjects/mobile/index.html`);
+}
+
 // $lib/utils/xmlConverter.js
 
 export function toXml(data) {

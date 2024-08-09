@@ -7,9 +7,9 @@
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { call, copyObj, getUrl } from '$lib/utils/service';
-	import { platform } from '@floating-ui/dom';
+	import { call, copyObj, getQuery, getUrl } from '$lib/utils/service';
 	import Ico from '$lib/utils/Ico.svelte';
+	import QrCode from '$lib/common/components/QrCode.svelte';
 
 	const modalStore = getModalStore();
 	let app;
@@ -144,17 +144,12 @@
 						{#if (platform.status ?? 'none') != 'none'}
 							<CardD class="flex min-w-48 justify-center">
 								{#if platform.status == 'complete'}
-									{@const href =
-										getUrl() +
-										`mobiles.GetPackage?project=${$page.params.project}&platform=${platform['@_name']}`}
-									<a {href}>
-										<img
-											class="max-w-48"
-											src="{getUrl('/qrcode')}?o=image%2Fpng&e=L&s=4&d={window.encodeURIComponent(
-												href
-											)}"
-										/></a
-									>
+									<QrCode
+										class="max-w-48"
+										href={getUrl() +
+											'mobiles.GetPackage' +
+											getQuery({ project: $page.params.project, platform: platform['@_name'] })}
+									/>
 								{:else if platform.status == 'pending'}
 									<div class="text-warning-500 animate-pulse">Building...</div>
 								{:else if platform.status == 'error'}

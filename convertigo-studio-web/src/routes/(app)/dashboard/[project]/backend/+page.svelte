@@ -14,7 +14,6 @@
 	import { callRequestable } from '$lib/utils/service';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import 'react-device-frameset/styles/marvel-devices.min.css';
-	import { updateUrls } from '$lib/common/stores/urlStore';
 
 	const modalStore = getModalStore();
 	let project;
@@ -52,7 +51,6 @@
 					});
 				}
 				_parts = _parts.filter((part) => part.requestables.length > 0);
-				updateUrls(projectName);
 			});
 		});
 		return () => unsubscribe();
