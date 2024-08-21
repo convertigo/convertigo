@@ -239,8 +239,8 @@ dependencies {
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.8.0.202311291450-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r'
 	compileFlat    'org.hibernate.orm:hibernate-core:6.4.4.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
 	compileFlat    'org.mozilla:rhino:1.7.14'
