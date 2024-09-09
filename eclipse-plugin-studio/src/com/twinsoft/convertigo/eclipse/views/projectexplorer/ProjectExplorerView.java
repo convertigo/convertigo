@@ -2403,7 +2403,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			try {
 				ConvertigoPlugin.getDefault().closeProjectPluginResource(projectName);
 			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Unable to unload the project '" + projectTreeObject.getName() + "'");
+				if (!e.getMessage().contains("Save operation warnings")) {
+					ConvertigoPlugin.logException(e, "Unable to unload the project '" + projectTreeObject.getName() + "'");
+				}
 			}
 
 			ConvertigoPlugin.getDefault().refreshPaletteView();

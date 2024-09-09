@@ -967,7 +967,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			} finally {
 				isCheckMissingProjects = false;
 			}
-		}).schedule();
+		}).schedule(5000);
 	}
 
 	@Override

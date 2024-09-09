@@ -1756,8 +1756,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				if (!file.exists()) {
 					file = new File(folder, name + ".xml");
 				}
-				if (!name.equals(DatabaseObjectsManager.getProjectName(file))) {
+				var fname = DatabaseObjectsManager.getProjectName(file);
+				if (fname == null) {
 					file = null;
+				} else if (!name.equals(fname)) {
+					Engine.logStudio.warn("project name isn't the same '" + name + "' for in this file '" + file + "'.");
 				}
 			}
 		} catch (EngineException e) {
@@ -1912,6 +1915,18 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		});
 		if (ex[0] != null) {
 			throw ex[0];
+		}
+	}
+
+	@Override
+	public void renameProject(String oldName, String newName) {
+		var project = getIProject(oldName);
+		try {
+			var desc = project.getDescription();
+			desc.setName(newName);
+			project.move(desc, IResource.FORCE | IResource.SHALLOW, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
 	}
 }
