@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 public class TutoView extends ViewPart implements StudioEventListener {
-	private class API {
+	public class API {
 
 		@JsAccessible
 		public void message(JsObject o) {
