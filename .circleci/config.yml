@@ -286,12 +286,12 @@ jobs:
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
           docker buildx create --use
-          docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --platform linux/amd64,linux/arm64/v8 .
+          docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --provenance=mode=max --platform linux/amd64,linux/arm64/v8 .
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
-            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --platform linux/amd64,linux/arm64/v8 .
+            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --provenance=mode=max --platform linux/amd64,linux/arm64/v8 .
           fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION --platform linux/amd64,linux/arm64/v8 .
+            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION --provenance=mode=max --platform linux/amd64,linux/arm64/v8 .
           fi
           
   build_docker_aks:
