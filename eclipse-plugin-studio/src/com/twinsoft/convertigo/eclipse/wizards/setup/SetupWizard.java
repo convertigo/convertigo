@@ -38,9 +38,6 @@ import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
@@ -51,11 +48,8 @@ import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SetupWizard extends Wizard {
-	private static final String registrationServiceUrl = "https://c8o.convertigo.net/cems/projects/studioRegistration/.xml";
-
 	private static final Pattern scheme_host_pattern = Pattern
 			.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
 	private static String uniqueID;
@@ -68,19 +62,12 @@ public class SetupWizard extends Wizard {
 		public void onCheckConnected(boolean isConnected, String message);
 	}
 
-	interface RegisterCallback {
-		public void onRegister(boolean success, String message);
-	}
-
 	private LicensePage licensePage;
 	private WorkspaceMigrationPage workspaceMigrationPage;
 	private WorkspaceCreationPage workspaceCreationPage;
 	private ConfigureProxyPage configureProxyPage;
-//	protected AlreadyPscKeyPage alreadyPscKeyPage;
 	private EmbeddedRegistrationPage embeddedRegistrationPage;
 	private PscKeyValidationPage pscKeyValidationPage;
-//	protected RegistrationPage registrationPage;
-//	protected PscKeyPage pscKeyPage;
 	private SummaryPage summaryPage;
 
 	private ProxyManager proxyManager;
@@ -150,21 +137,12 @@ public class SetupWizard extends Wizard {
 
 		configureProxyPage = new ConfigureProxyPage(proxyManager);
 		addPage(configureProxyPage);
-
-//		alreadyPscKeyPage = new AlreadyPscKeyPage();
-//		addPage(alreadyPscKeyPage);
 		
 		embeddedRegistrationPage = new EmbeddedRegistrationPage();
 		addPage(embeddedRegistrationPage);
 		
 		pscKeyValidationPage = new PscKeyValidationPage();
 		addPage(pscKeyValidationPage);
-		
-//		registrationPage = new RegistrationPage();
-//		addPage(registrationPage);
-
-//		pscKeyPage = new PscKeyPage();
-//		addPage(pscKeyPage);
 
 		summaryPage = new SummaryPage();
 		addPage(summaryPage);
@@ -352,93 +330,6 @@ public class SetupWizard extends Wizard {
 		th.start();
 	}
 
-	void register(final String username, final String password,
-			final String firstname, final String lastname, final String email,
-			final String country, final String company,
-			final String companyHeadcount, final RegisterCallback callback) {
-		Thread th = new Thread(new Runnable() {
-
-			public void run() {
-				synchronized (SetupWizard.this) {
-					boolean success = false;
-					String message;
-
-					try {
-						String[] url = { registrationServiceUrl };
-						HttpClient client = prepareHttpClient(url);
-						PostMethod method = new PostMethod(url[0]);
-						HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
-						// set parameters for POST method
-						method.setParameter("__sequence", "checkEmail");
-						method.setParameter("username", username);
-						method.setParameter("password", password);
-						method.setParameter("firstname", firstname);
-						method.setParameter("lastname", lastname);
-						method.setParameter("email", email);
-						method.setParameter("country", country);
-						method.setParameter("company", company);
-						method.setParameter("companyHeadcount",
-								companyHeadcount);
-
-						// execute HTTP post with parameters
-						int statusCode = client.executeMethod(method);
-						if (statusCode == HttpStatus.SC_OK) {
-							Document document = XMLUtils.parseDOM(method
-									.getResponseBodyAsStream());
-							NodeList nd = document
-									.getElementsByTagName("errorCode");
-
-							if (nd.getLength() > 0) {
-								Node node = nd.item(0);
-								String errorCode = node.getTextContent();
-
-								if ("0".equals(errorCode)) {
-									success = true;
-									message = "Registration submited, please check your email.";
-								} else {
-									method = new PostMethod(
-											registrationServiceUrl);
-
-									// set parameters for POST method to get the
-									// details of error messages
-									method.setParameter("__sequence",
-											"getErrorMessages");
-									client.executeMethod(method);
-									document = XMLUtils.parseDOM(method
-											.getResponseBodyAsStream());
-									nd = document.getElementsByTagName("label");
-									Node nodeDetails = nd.item(Integer
-											.parseInt(errorCode));
-
-									ConvertigoPlugin.logError(nodeDetails
-											.getTextContent());
-									message = "Failed to register: "
-											+ nodeDetails.getTextContent();
-								}
-							} else {
-								success = true;
-								message = "debug";
-							}
-						} else {
-							message = "Unexpected HTTP status: " + statusCode;
-						}
-					} catch (Exception e) {
-						message = "Generic failure: "
-								+ e.getClass().getSimpleName() + ", "
-								+ e.getMessage();
-						ConvertigoPlugin.logException(e,
-								"Error while trying to send registration");
-					}
-					callback.onRegister(success, message);
-				}
-			}
-
-		});
-		th.setDaemon(true);
-		th.setName("SetupWizard.register");
-		th.start();
-	}
-
 	void postRegisterState(final String page) {
 		if (!page.equals(previousPageName)) {
 			previousPageName = page;
@@ -487,5 +378,10 @@ public class SetupWizard extends Wizard {
 
 	private static String getUniqueID() {
 		return uniqueID;
+	}
+
+	@Override
+	public boolean canFinish() {
+		return getContainer().getCurrentPage().getNextPage() == null;
 	}
 }
