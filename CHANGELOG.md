@@ -15,6 +15,7 @@
 - [#848](https://github.com/convertigo/convertigo/issues/848) Fixed, [NGX] The "Include in auto menu" Page property now hide entry in AutoMenu
 - [#849](https://github.com/convertigo/convertigo/issues/849) Fixed, [Studio] Tutorial now detects success steps
 - [#853](https://github.com/convertigo/convertigo/issues/853) Fixed, [Studio] Renaming a project now update the Page property of ion-tab-button
+- [#855](https://github.com/convertigo/convertigo/issues/855) Fixed, [Studio] node based subprocess can be terminated on a fresh Windows 11 (MB builder + PouchDB)
 
 ---
 

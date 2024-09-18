@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
-import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +37,6 @@ import java.util.regex.Pattern;
 import javax.websocket.Session;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -274,40 +272,24 @@ public class WsBuilder extends WebSocketService {
 			int retry = 10;
 			try {
 				while (retry-- > 0) {
+					int code;
 					if (Engine.isWindows()) {
-						String prod = prodOnly ? " AND CommandLine Like '%--watch%'" : "";
-						Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-								"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\DisplayObjects\\\\%'"
-										+ prod,
-								"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
-						String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-						process.waitFor();
-						int id = output.indexOf('\n');
-						if (id == -1 || output.indexOf('\n', id) == -1) {
-							retry = 0;
-						}
-
-						process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-								("Name='node.exe' AND CommandLine Like '%\\\\" + projectName
-										+ "\\\\DisplayObjects\\\\%'" + prod).replace("\\", "\\\\"),
-								"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
-						output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-						process.waitFor();
-						id = output.indexOf('\n');
-						if (id == -1 || output.indexOf('\n', id) == -1) {
-							retry = 0;
-						}
+						String prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
+						var process = new ProcessBuilder("powershell", "-Command",
+							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\DisplayObjects\\*' " + prod + " } | ForEach-Object { $_.Terminate() }"
+						).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
+						code = process.waitFor();
 					} else {
 						String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
 						Process process = new ProcessBuilder("/bin/bash", "-c",
-								"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod
-										+ " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/" + projectName
-										+ "/DisplayObjects/.*,\\1,p\" | xargs kill")
-								.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-						int code = process.waitFor();
-						if (code == 0) {
-							retry = 0;
-						}
+							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod
+							+ " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/" + projectName
+							+ "/DisplayObjects/.*,\\1,p\" | xargs kill")
+						.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
+						code = process.waitFor();
+					}
+					if (code == 0) {
+						retry = 0;
 					}
 				}
 				synchronized (usedPort) {
