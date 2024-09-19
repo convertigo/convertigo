@@ -18,32 +18,33 @@ sourceSets {
 }
 
 eclipse {
-	project {
-		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/com'
-		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
-		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
-	}
-	
-	classpath.file.withXml {
-		def node = it.asNode()
-		def rp = null
-		if ((rp = node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' }) == null) {
-			rp = node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
-		}
-		def accessrules = rp.appendNode('accessrules')
-		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
-		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/e4/ui/**'])
-		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/ui/internal/genericeditor/**'])
-		
-		def depJar
-		if ((depJar = node.classpathentry.find { it.@path.contains('libs/dependencies') }) != null) {
-			depJar.@sourcepath = depJar.@sourcepath = depJar.@path.replace('libs/dependencies', 'libs/dependencies-sources')
-		}
-	}
+    project {
+        linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/com'
+        linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
+        linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
+        linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
+        linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+        linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+        linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+    }
+
+    classpath {
+        file {
+            withXml {
+                def node = it.asNode()
+                node.classpathentry.findAll { it.@path.contains('lib/dependencies') }.each { depJar ->
+                    depJar.@sourcepath = project(':engine').tasks.findByName('dependenciesSourceJar').archiveFile.get().asFile.path
+                }
+
+                // Vérifie si l'entrée 'requiredPlugins' existe et ajoute si nécessaire
+                def rp = node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } ?: node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
+                def accessrules = rp.appendNode('accessrules')
+                accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
+                accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/e4/ui/**'])
+                accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/ui/internal/genericeditor/**'])
+            }
+        }
+    }
 }
 
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
