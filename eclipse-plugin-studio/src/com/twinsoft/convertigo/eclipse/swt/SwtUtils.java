@@ -36,6 +36,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.e4.ui.css.core.engine.CSSEngine;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
@@ -188,6 +190,14 @@ public class SwtUtils {
 		@Override
 		default void widgetDefaultSelected(SelectionEvent e) {}
 	};
+	
+	public interface MouseDownListener extends MouseListener {
+		@Override
+		default void mouseDoubleClick(MouseEvent e) {}
+
+		@Override
+		default void mouseUp(MouseEvent e) {}
+	}
 	
 	public static void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
 		try {

@@ -136,6 +136,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		public File getProject(String projectName);
 
 		public void reloadProject(String name) throws EngineException;
+		
+		public void renameProject(String oldName, String newName);
 	}
 
 	public static StudioProjects studioProjects = new StudioProjects() {
@@ -159,6 +161,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		@Override
 		public void reloadProject(String name) throws EngineException {
 			Engine.theApp.databaseObjectsManager.importProject(Engine.projectFile(name), true);
+		}
+
+		@Override
+		public void renameProject(String oldName, String newName) {
+			var file = projectsDir.remove(oldName);
+			projectsDir.put(newName, file);
 		}
 	};
 
@@ -1516,19 +1524,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (!file.exists()) {
 			return;
 		}
-
-		File dir = file.getParentFile();
-		File newDir = new File(dir.getParentFile(), newName);
-		if (!dir.renameTo(newDir)) {
-			throw new EngineException("Unable to rename the object path \"" + dir.getAbsolutePath() + "\" to \""
-					+ newDir.getAbsolutePath()
-					+ "\".\n This directory already exists or is probably locked by another application.");
+		
+		File newDir = file.getParentFile();
+		boolean renamed = false;
+		if (newDir.getName().equals(oldName)) {
+			File dir = file.getParentFile();
+			newDir = new File(dir.getParentFile(), newName);
+			if (!dir.renameTo(newDir)) {
+				throw new EngineException("Unable to rename the object path \"" + dir.getAbsolutePath() + "\" to \""
+						+ newDir.getAbsolutePath()
+						+ "\".\n This directory already exists or is probably locked by another application.");
+			}
+			renamed = true;
 		}
 
 		try {
 			Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' "
 					+ (keepOldReferences ? "with" : "without") + " keepOldReferences");
 			clearCache(project);
+			if (!renamed) {
+				studioProjects.renameProject(oldName, newName);
+			}
 			project.setName(newName);
 			project.hasChanged = true;
 			exportProject(project);

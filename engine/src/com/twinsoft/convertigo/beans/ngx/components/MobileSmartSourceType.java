@@ -177,6 +177,7 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		String label = getValue();
 		if (Mode.SOURCE.equals(mode)) {
 			try {
+				label = label.replaceAll("\\?\\.\\[", "[");
 				label = label.replaceAll("\\?\\.", ".");
 				label = label.replaceAll("fs\\://", "");
 				

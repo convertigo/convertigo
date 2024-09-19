@@ -1,5 +1,24 @@
 # Changelog
 
+## 8.3.1
+
+#### Improvements:
+
+- [#841](https://github.com/convertigo/convertigo/issues/841) [NGX] Can now use safe operators when generating binding sources on Array
+
+#### Bug Fixes:
+
+- [#840](https://github.com/convertigo/convertigo/issues/840) Fixed, [[Studio] The Baserow View now generates stub schema of "lookup" type as an array
+- [#844](https://github.com/convertigo/convertigo/issues/844) Fixed, [NGX] Shared components files are now copied to main project when using multiple nested shared components from another project
+- [#845](https://github.com/convertigo/convertigo/issues/845) Fixed, [Admin] Prevent broken password properties if a property is set by JAVA_OPTS and changed in the Admin console 
+- [#846](https://github.com/convertigo/convertigo/issues/846) Fixed, [Studio] Can now rename a project imported from Git
+- [#848](https://github.com/convertigo/convertigo/issues/848) Fixed, [NGX] The "Include in auto menu" Page property now hide entry in AutoMenu
+- [#849](https://github.com/convertigo/convertigo/issues/849) Fixed, [Studio] Tutorial now detects success steps
+- [#853](https://github.com/convertigo/convertigo/issues/853) Fixed, [Studio] Renaming a project now update the Page property of ion-tab-button
+- [#855](https://github.com/convertigo/convertigo/issues/855) Fixed, [Studio] node based subprocess can be terminated on a fresh Windows 11 (MB builder + PouchDB)
+
+---
+
 ## 8.3.0
 
 #### New Features:

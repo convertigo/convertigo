@@ -185,7 +185,7 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat    'com.convertigo.lib:soapui:3.5.1'
-	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.2.5'
+	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.1'
 	implementation('com.convertigo.provider:convertigo-provider-plugins:8.1.0-SNAPSHOT') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
@@ -240,7 +240,7 @@ dependencies {
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.10.0.202406032230-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r'
 	compileFlat    'org.hibernate.orm:hibernate-core:6.4.4.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
 	compileFlat    'org.mozilla:rhino:1.7.15'

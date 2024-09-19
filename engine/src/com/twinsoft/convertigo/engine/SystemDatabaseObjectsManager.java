@@ -36,6 +36,12 @@ class SystemDatabaseObjectsManager extends DatabaseObjectsManager {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void renameProject(String oldName, String newName) {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	};
 	

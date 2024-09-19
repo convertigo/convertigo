@@ -22,10 +22,6 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -36,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.CheckConnectedCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -159,88 +156,51 @@ class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckCon
 		proxyPassword.setLayoutData(layoutData);
 		proxyPassword.setText(proxyManager.proxyPassword);
 		
-		proxyMode.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				ProxyMode mode = ProxyMode.values()[proxyMode.getSelectionIndex()];
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_MODE, mode.name());
-				enableComponents(mode);
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
-		});	
-
-		proxyHost.addModifyListener(new ModifyListener() {
-
-			public void modifyText(ModifyEvent e) {
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_HOST, proxyHost.getText());
-			}
-			
+		proxyMode.addSelectionListener((SelectionListener) e -> {
+			ProxyMode mode = ProxyMode.values()[proxyMode.getSelectionIndex()];
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_MODE, mode.name());
+			enableComponents(mode);
 		});
 
-		proxyPort.addModifyListener(new ModifyListener() {
+		proxyHost.addModifyListener(e -> {
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_HOST, proxyHost.getText());
+		});
 
-			public void modifyText(ModifyEvent e) {
-				if (proxyPort.getText().length() > 0) {
-					try {
-						Integer.parseInt(proxyPort.getText());
+		proxyPort.addModifyListener(e -> {
+			if (proxyPort.getText().length() > 0) {
+				try {
+					Integer.parseInt(proxyPort.getText());
 
-						EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PORT, proxyPort.getText());
-						
-						setErrorMessage(null);
-						setMessage(getDescription());
-					} catch (NumberFormatException exp) {
-						setErrorMessage("Please enter a number!");
-					}
+					EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PORT, proxyPort.getText());
+
+					setErrorMessage(null);
+					setMessage(getDescription());
+				} catch (NumberFormatException exp) {
+					setErrorMessage("Please enter a number!");
 				}
 			}
-			
 		});
 		
-		bypassDomains.addModifyListener(new ModifyListener() {
-
-			public void modifyText(ModifyEvent e) {
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS, bypassDomains.getText());
-			}
-			
+		bypassDomains.addModifyListener(e -> {
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS, bypassDomains.getText());
 		});
 
-		proxyAutoConfUrl.addModifyListener(new ModifyListener() {
-
-			public void modifyText(ModifyEvent e) {
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_AUTO, proxyAutoConfUrl.getText());
-			}
+		proxyAutoConfUrl.addModifyListener(e -> {
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_AUTO, proxyAutoConfUrl.getText());
 		});
 		
-		proxyMethod.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				ProxyMethod method = ProxyMethod.values()[proxyMethod.getSelectionIndex()];
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_METHOD, method.name());
-				enableComponents(method);
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
+		proxyMethod.addSelectionListener((SelectionListener) e -> {
+			ProxyMethod method = ProxyMethod.values()[proxyMethod.getSelectionIndex()];
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_METHOD, method.name());
+			enableComponents(method);
 		});
 		
-		proxyUser.addModifyListener(new ModifyListener() {
-
-			public void modifyText(ModifyEvent e) {
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_USER, proxyUser.getText());
-			}
-			
+		proxyUser.addModifyListener(e -> {
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_USER, proxyUser.getText());
 		});
 		
-		proxyPassword.addModifyListener(new ModifyListener() {
-
-			public void modifyText(ModifyEvent e) {
-				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PASSWORD, proxyPassword.getText());
-			}
-			
+		proxyPassword.addModifyListener(e -> {
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PASSWORD, proxyPassword.getText());
 		});
 		statusConnection = new Label(container, SWT.NORMAL);
 		statusConnection.setLayoutData(layoutData);
@@ -250,15 +210,10 @@ class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckCon
 		checkConnection.setText("Check connection");
 		final SetupWizard wizard = (SetupWizard) super.getWizard();
 		final CheckConnectedCallback callback = this;
-		checkConnection.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent arg0) {
-				statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
-				statusConnection.setText("Checking connection ...");
-				wizard.checkConnected(callback);
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent arg0) {}
+		checkConnection.addSelectionListener((SelectionListener) e -> {
+			statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
+			statusConnection.setText("Checking connection ...");
+			wizard.checkConnected(callback);
 		});
 		enableComponents(proxyManager.proxyMode);
 		enableComponents(proxyManager.proxyMethod);
@@ -353,22 +308,18 @@ class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckCon
 	}
 
 	public void onCheckConnected(final boolean isConnected, final String message) {
-		Display.getDefault().asyncExec(new Runnable() {
+		Display.getDefault().asyncExec(() -> {
+			ConfigureProxyPage.this.setConnected(isConnected);
+			String msg = message;
 
-			public void run() {
-				ConfigureProxyPage.this.setConnected(isConnected);
-				String msg = message;
-				
-				if (!isConnected) {
-					msg = "Connection error : " + message;
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ?SWT.COLOR_MAGENTA : SWT.COLOR_RED)); 
-				} else {
-					msg = "The connection test was successful!";
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN)); 
-				}
-				statusConnection.setText(msg);
+			if (!isConnected) {
+				msg = "Connection error : " + message;
+				statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ?SWT.COLOR_MAGENTA : SWT.COLOR_RED)); 
+			} else {
+				msg = "The connection test was successful!";
+				statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN)); 
 			}
-			
+			statusConnection.setText(msg);
 		});
 	}
 

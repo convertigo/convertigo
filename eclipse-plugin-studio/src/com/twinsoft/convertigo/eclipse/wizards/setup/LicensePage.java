@@ -24,8 +24,6 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -34,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
 class LicensePage extends WizardPage implements SummaryGenerator {
@@ -78,15 +77,8 @@ class LicensePage extends WizardPage implements SummaryGenerator {
 		
 		Button acceptLicense = new Button(container, SWT.CHECK);
 		acceptLicense.setText("Accept license");
-		acceptLicense.addSelectionListener(new SelectionListener() {
-			
-			public void widgetSelected(SelectionEvent e) {
-				setPageComplete(((Button) e.widget).getSelection());				
-			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-			
+		acceptLicense.addSelectionListener((SelectionListener) e -> {
+			setPageComplete(((Button) e.widget).getSelection());
 		});
 		
 		setControl(container);

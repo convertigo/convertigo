@@ -146,6 +146,9 @@ public class ProjectUtils {
 		} else {
 			newFile = oldYaml;
 			oldName = DatabaseObjectsManager.getProjectName(oldYaml);
+			if (oldName.equals(newName)) {
+				return newFile;
+			}
 
 			replacements.add(new Replacement("↓" + oldName + " \\[core\\.Project\\]:", "↓" + newName + " [core.Project]:"));
 

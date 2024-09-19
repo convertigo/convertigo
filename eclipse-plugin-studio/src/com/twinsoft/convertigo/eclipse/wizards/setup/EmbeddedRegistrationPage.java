@@ -22,10 +22,6 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,6 +31,8 @@ import org.eclipse.swt.widgets.Label;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.RegistrationBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.MouseDownListener;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 
 class EmbeddedRegistrationPage extends WizardPage {
 	
@@ -62,6 +60,14 @@ class EmbeddedRegistrationPage extends WizardPage {
 		Composite root = new Composite(parent, SWT.NONE);
 		root.setLayout(new GridLayout(2, false));
 		
+		var details = new Label(root, SWT.WRAP);
+		details.setText(
+				"Included with Convertigo Community Edition, you get access to a 7 days free Convertigo Cloud account.\n\n" +
+				"You can deploy your projects to this account, and when the period ends, you can benefit from Convertigo Support and unlimited cloud resources by purchase production licenses."
+		);
+		details.setLayoutData(gd = new GridData(SWT.CENTER, SWT.CENTER, true, false, 2, 1));
+		gd.widthHint = 700;
+		
 		browser = new RegistrationBrowser(root, SWT.NONE);
 		browser.setLayoutData(gd = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 		gd.heightHint = 370;
@@ -72,46 +78,25 @@ class EmbeddedRegistrationPage extends WizardPage {
 				SetupWizard wizard = (SetupWizard) getWizard();
 				wizard.psc = psc;
 				browser.getDisplay().asyncExec(() -> {
-					wizard.performFinish();
+					var summaryPage = getNextPage().getNextPage();
+					wizard.getContainer().showPage(summaryPage);
 				});
 			} catch (PscException exception) {
-				setErrorMessage(exception.getMessage());
-				setPageComplete(false);
+				browser.getDisplay().asyncExec(() -> {
+					setErrorMessage(exception.getMessage());
+					setPageComplete(false);
+				});
 			}
 		}).goRegister();
 		
 		Button havePSC = new Button(root, SWT.CHECK);
-		havePSC.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setPageComplete(havePSC.getSelection());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
+		havePSC.addSelectionListener((SelectionListener) e -> {
+			setPageComplete(havePSC.getSelection());
 		});
 		Label label = new Label(root, SWT.NONE);
-		label.addMouseListener(new MouseListener() {
-			
-			@Override
-			public void mouseUp(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void mouseDown(MouseEvent e) {
-				havePSC.setSelection(!havePSC.getSelection());
-				havePSC.notifyListeners(SWT.Selection, null);
-			}
-			
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+		label.addMouseListener((MouseDownListener) e -> {
+			havePSC.setSelection(!havePSC.getSelection());
+			havePSC.notifyListeners(SWT.Selection, null);
 		});
 		label.setText("I want to paste my PSC");
 		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

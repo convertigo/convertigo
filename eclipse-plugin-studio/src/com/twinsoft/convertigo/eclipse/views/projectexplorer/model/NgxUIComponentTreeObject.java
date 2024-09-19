@@ -718,7 +718,10 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			protected boolean isNamedSource(String propertyName) {
 				UIComponent object = getObject();
 
-				if (object instanceof UIDynamicTab) {
+				if (object instanceof UIDynamicTabButton) {
+					return "tabpage".equals(propertyName);
+				}
+				else if (object instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
 				}
 				else if (object instanceof UIDynamicMenuItem) {
@@ -913,7 +916,13 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						_pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							UIComponent object = getObject();
-							if (object instanceof UIDynamicTab) {
+							if (object instanceof UIDynamicTabButton) {
+								if ("tabpage".equals(propertyName)) {
+									((UIDynamicTabButton)object).setTabQName(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							else if (object instanceof UIDynamicTab) {
 								if ("tabpage".equals(propertyName)) {
 									((UIDynamicTab)object).setTabPage(_pValue);
 									hasBeenRenamed = true;

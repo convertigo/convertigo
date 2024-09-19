@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.util.Properties;
-
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
@@ -31,39 +29,31 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.DeploymentKey;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
-import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
+import com.twinsoft.convertigo.eclipse.DeploymentKey;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
-class PscKeyValidationPage extends WizardPage implements RegisterCallback, SummaryGenerator {
+class PscKeyValidationPage extends WizardPage implements SummaryGenerator {
 	
 	private Composite container;
 	
 	private Text pscKey;
 	private Link infoLink;
-	private Properties decodedPSC;
 	
 	public PscKeyValidationPage () {
 		super("PscKeyPage");
 		setTitle("Personal Studio Configuration");
-		setDescription("Paste your PSC or register...");
+		setDescription("Paste your PSC...");
 	}
 
 	@Override
@@ -91,35 +81,10 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"\nIncluded with Convertigo Community Edition, you get access to a 15 days free « Convertigo Cloud » account. You will be able to deploy your projects on this cloud account, and when the trial expires, " +
-				"you will have the opportunity to buy production Convertigo Cloud devices licences.\n\n" +
-				"As a result of the cloud signup process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
-				"You can access the Convertigo Community support on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
-				"Registered users will also get a free 30 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n"
+				"\nAfter signing up, you'll receive a PSC by email. It is mandatory to deploy projects on your Convertigo Cloud account.\n" +
+				"Could you paste it below to configure your Studio?"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		
-		Composite registerComposite = new Composite(container, SWT.NONE);
-		registerComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		registerComposite.setLayout(new GridLayout(2, false));
-		
-		Button goToRegisterWebsite = new Button(registerComposite, SWT.NONE);
-		goToRegisterWebsite.setText("Click now to Signup");
-		
-		Link registerLink = new Link(registerComposite, SWT.WRAP);
-		registerLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		registerLink.setText("or go to <a href=\"https://www.convertigo.com/signup\">https://www.convertigo.com/signup</a>");
-		
-		Label label = new Label (container, SWT.NONE);
-		FontData fontDefaultData = label.getFont().getFontData()[0];
-		fontDefaultData.setStyle(SWT.BOLD);
-		fontDefaultData.setHeight(14);
-		
-		label.setFont(new Font(parent.getDisplay(), fontDefaultData));
-		Color color = new  Color(container.getDisplay(), 51, 102, 255);
-		label.setForeground(color);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		label.setText("PSC");
 		
 		infoLink = new Link(container, SWT.WRAP);
 		infoLink.setText("Please paste your PSC here and click the 'Next >' button...");
@@ -133,7 +98,7 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 		buttons.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		buttons.setLayout(new GridLayout(3, false));
 		
-		label = new Label(buttons, SWT.NONE);
+		Label label = new Label(buttons, SWT.NONE);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		Button paste = new Button(buttons, SWT.NONE);
@@ -141,31 +106,6 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 		
 		Button clear = new Button(buttons, SWT.NONE);
 		clear.setText("Clear");
-
-		
-		// Events management
-		goToRegisterWebsite.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.program.Program.launch("https://www.convertigo.com/signup");
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) { }
-		});
-		
-		SelectionListener goToTheLink = new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.program.Program.launch(e.text);
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) { }
-		};
-		
-		details.addSelectionListener(goToTheLink);
-		registerLink.addSelectionListener(goToTheLink);
 		
 		pscKey.addModifyListener(new ModifyListener() {
 			@Override
@@ -173,7 +113,7 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 				String psc = getCertificateKey();
 				if (psc.length() != 0) {
 					try {
-						decodedPSC = ConvertigoPlugin.decodePsc(psc);
+						ConvertigoPlugin.decodePsc(psc);
 						SetupWizard wizard = (SetupWizard) getWizard();
 						wizard.psc = psc;
 						setErrorMessage(null);
@@ -204,21 +144,12 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 			public void widgetDefaultSelected(SelectionEvent e) {}
 		});
 		
-		clear.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				pscKey.setText("");
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) { }
+		clear.addSelectionListener((SelectionListener) e -> {
+			pscKey.setText("");
 		});
 		
-		parent.addListener(SWT.Resize, new Listener() {
-			@Override
-			public void handleEvent(Event event) {
-				container.setSize(parent.getSize());
-			}
+		parent.addListener(SWT.Resize, e -> {
+			container.setSize(parent.getSize());
 		});
 
 		sc.setMinSize(400, 500);
@@ -233,39 +164,28 @@ class PscKeyValidationPage extends WizardPage implements RegisterCallback, Summa
 	public String getCertificateKey() {
 		return pscKey.getText().trim();
 	}
-	
-	public void onRegister(final boolean success, final String message) {
-		Display.getDefault().asyncExec(new Runnable() {
-			
-			public void run() {
-				if (success) {
-					infoLink.setText("Please click on the link you received by mail and paste the generated PSC in the following text area and click the 'Next >' button...");
-				} else {
-					infoLink.setText("Some error occure during the online registration: " + message + "\n" +
-							"Try to fix in the previous screen or register manually on " + RegistrationPage.registrationLink);
-					setErrorMessage("Error during the only registration!");
-				}
-				infoLink.getParent().layout();
-			}
-		});
-	}
 
 	public String getSummary() {
 		StringBuffer summary = new StringBuffer("PSC server configuration for:\n");
-		
-		int i = 0;
-		while (++i > 0) {
-			String server = DeploymentKey.server.value(decodedPSC, i);
-			if (server != null && !server.equals("")) {
-				summary.append("\t" + server + "\n");
-			} else {
-				if (i == 1) {
-					summary = new StringBuffer();
+
+		try {
+			var decodedPSC = ConvertigoPlugin.decodePsc(((SetupWizard) getWizard()).psc);
+			int i = 0;
+			while (++i > 0) {
+				String server = DeploymentKey.server.value(decodedPSC, i);
+				if (server != null && !server.equals("")) {
+					summary.append("\t" + server + "\n");
+				} else {
+					if (i == 1) {
+						summary = new StringBuffer();
+					}
+					i = -1;
 				}
-				i = -1;
 			}
-		}	
-		
+		} catch (PscException e) {
+			e.printStackTrace();
+		}
+
 		return summary.toString();
 	}
 	

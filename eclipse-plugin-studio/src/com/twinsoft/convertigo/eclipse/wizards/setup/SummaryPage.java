@@ -21,13 +21,16 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
 class SummaryPage extends WizardPage {
@@ -49,6 +52,21 @@ class SummaryPage extends WizardPage {
 		summaryText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		summaryText.setEditable(false);
 		summaryText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		Link details2 = new Link(container, SWT.WRAP);
+		details2.setText("For support:\n\n" +
+				"- Here are all the resources you may need: <a href=\"https://www.convertigo.com/convertigo-startup-page-8-3\">https://www.convertigo.com/convertigo-startup-page-8-3</a>\n\n" +
+				"- The Convertigo Community Support: <a href=\"https://convertigo.atlassian.net/wiki/spaces/CK/overview\">https://convertigo.atlassian.net/wiki/spaces/CK/overview</a>\n\n" +
+				"- Get a free 30-minute \"onboarding\" session with one of our engineers.\n" +
+				"The session schedule link will be included in the email containing your PSC."
+		);
+		details2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		SelectionListener goToTheLink = e -> {
+			org.eclipse.swt.program.Program.launch(e.text);
+		};
+		
+		details2.addSelectionListener(goToTheLink);
 
 		setControl(container);
 		setPageComplete(false);
@@ -71,6 +89,9 @@ class SummaryPage extends WizardPage {
 		summaryText.setText(summary.toString());
 		
 		setPageComplete(true);
+		var wd = (WizardDialog) getContainer();
+		var bar = (Composite) ((Composite) wd.buttonBar).getChildren()[0];
+		bar.getChildren()[0].setVisible(false);
 		return wizard;
 	}
 }
