@@ -474,7 +474,13 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
 			}			
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
-			computed += "\t\t});"+System.lineSeparator();
+			// zoneless support
+			if (compareToTplVersion("8.4.0.0") >= 0) {
+				computed += "\t\t}).finally(() => {this.ref.markForCheck();});"+System.lineSeparator();
+			}
+			else {
+				computed += "\t\t});"+System.lineSeparator();
+			}
 			computed += "\t}";
 		}
 		return computed;
