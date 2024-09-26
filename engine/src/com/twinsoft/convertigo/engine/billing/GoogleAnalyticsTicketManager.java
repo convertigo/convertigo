@@ -29,6 +29,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -65,6 +66,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 			serverHash = Engine.cloud_customer_name;
 		} else {
 			var get = new HttpGet("http://ifconfig.io");
+			get.setConfig(RequestConfig.custom().setConnectionRequestTimeout(5000).build());
 			get.addHeader("user-agent", "curl");
 			try (var response = http.execute(get)) {
 				try (var is = response.getEntity().getContent()) {
@@ -84,6 +86,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 	public synchronized void addTicket(Ticket ticket) throws BillingException {
 		try {
 			var post = new HttpPost(url);
+			post.setConfig(RequestConfig.custom().setConnectionRequestTimeout(5000).build());
 			var json = new JSONObject();
 			json.put("client_id", serverHash);
 			var user = ticket.getUserName();
