@@ -163,7 +163,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	static public void terminateSession(String httpSessionID) {
 		HttpSession session = httpSessions.get(httpSessionID);
 		if (session != null) {
-			HttpUtils.terminateSession(session);
+			HttpUtils.terminateSession(session, true);
 		}
 	}
 
