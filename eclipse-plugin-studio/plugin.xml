@@ -1675,6 +1675,13 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
 				enablesFor="1"
+				icon="icons/studio/gitlab_16x16.png"
+				id="convertigo.action.upgradeCI.gitlab"
+				label="Update GitLab and Gradle"
+				menubarPath="convertigo.menu.ci/content" />
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+				enablesFor="1"
 				icon="icons/studio/circleci_16x16.png"
 				id="convertigo.action.upgradeCI.circleci"
 				label="Update CircleCI and Gradle"

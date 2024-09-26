@@ -73,7 +73,7 @@ public class CarUtils {
 		return makeArchive(new File(dir, project.getName() + ".car"), project, ArchiveExportOption.all);
 	}
 
-	private static File makeArchive(String dir, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+	public static File makeArchive(String dir, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
 		return makeArchive(new File(dir, project.getName() + ".car"), project, archiveExportOptions);
 	}
 
