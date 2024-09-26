@@ -277,7 +277,7 @@ public class CLI {
 		if (!includeMobilePlatformsAssets) {
 			options.remove(ArchiveExportOption.includeMobilePlatformsAssets);
 		}
-		return CarUtils.makeArchive(dest.getAbsolutePath(), project);
+		return CarUtils.makeArchive(dest.getAbsolutePath(), project, options);
 	}
 	
 	public void generateMobileBuilder(Project project, String mode) throws Exception {
