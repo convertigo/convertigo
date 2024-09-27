@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
@@ -313,9 +314,18 @@ public class ReferencedProjectManager {
 							File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
 							if (tplVersion != null && !ngxIonObjects.exists()) {
 								String v = tplVersion;
+								File ionZipFile = null;
+								boolean delete = false;
 								try {
 									v = tplVersion.substring(0, 3);
-									File ionZipFile = new File(Engine.TEMPLATES_PATH, "ionic/"+ v +"/ion.zip");
+									ionZipFile = new File(Engine.TEMPLATES_PATH, "ionic/"+ v + "/ion.zip");
+									if (Engine.isCliMode() || !ionZipFile.exists() ) {
+										ionZipFile = File.createTempFile("ion-" + v + "-", ".zip");
+										var url = "https://github.com/convertigo/convertigo/raw/refs/tags/8.3.0/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/ionic/" + v + "/ion.zip";
+										Engine.logEngine.info("(ReferencedProjectManager) Trying to download default "+ v +" ionic objects from " + url + " to " + ionZipFile);
+										HttpUtils.downloadFile(url, ionZipFile);
+										delete = true;
+									}
 									if (ionZipFile.exists()) {
 										Engine.logEngine.info("(ReferencedProjectManager) Copying default "+ v +" ionic objects in template for " + projectName);
 										ZipUtils.expandZip(ionZipFile.getAbsolutePath(), ionicTplDir.getAbsolutePath());
@@ -324,6 +334,10 @@ public class ReferencedProjectManager {
 									}
 								} catch( Exception e) {
 									Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
+								} finally {
+									if (delete && ionZipFile != null) {
+										FileUtils.deleteQuietly(ionZipFile);
+									}
 								}
 							}
 						}
