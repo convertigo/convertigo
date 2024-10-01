@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.SortedSet;
@@ -41,12 +40,16 @@ import java.util.TreeSet;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
-import org.apache.log4j.spi.Filter;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.filter.AbstractFilter;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
@@ -1027,11 +1030,10 @@ public class EnginePropertiesManager {
 		return msg;
 	}
 
-	private static final Filter filterLog4J = new Filter() {
-
+	private static final Filter filterLog4J = new AbstractFilter() {
 		@Override
-		public int decide(LoggingEvent event) {
-			return event.getMDC("nolog") == Boolean.TRUE ? Filter.DENY : Filter.NEUTRAL;
+		public Result filter(LogEvent event) {
+			return Boolean.TRUE.equals(MDC.get("nolog")) ? Result.DENY : Result.NEUTRAL;
 		}
 	};
 
@@ -1080,15 +1082,10 @@ public class EnginePropertiesManager {
 		}
 		
 		PropertyConfigurator.configure(log4jProperties);
-
-		Logger cems = Logger.getLogger("cems");
-		Enumeration<Appender> appenders = GenericUtils.cast(cems.getAllAppenders());
-		while(appenders.hasMoreElements()) {
-			Appender appender = appenders.nextElement();
-			if (appender.getFilter() == null) {
-				appender.addFilter(filterLog4J);
-			}
-		}
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        Configuration config = context.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig("cems");
+        loggerConfig.addFilter(filterLog4J);
 
 		if (Engine.logEngine != null) {
 			Engine.logEngine.debug(getPropertiesAsString("Log4J properties:", log4jProperties));

@@ -60,6 +60,8 @@ public class ProjectsDataFilter implements Filter {
 		
 		if (HeaderName.XConvertigoNoLog.has(request) || (query != null && query.matches("(.*&)?__nolog=true(&.*)?")) || requestURI.contains("/system/projects/")) {
 			MDC.put("nolog", true);
+		} else {
+			MDC.remove("nolog");
 		}
 		
 		Engine.logContext.debug("Entering projects data servlet filter");
