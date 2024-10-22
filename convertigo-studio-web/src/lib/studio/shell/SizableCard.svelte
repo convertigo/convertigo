@@ -63,7 +63,7 @@
 				<ProgressRadial ... stroke={100} meter="stroke-primary-500" track="stroke-primary-500/30" />
 			{/if}
 		</div>
-		<span bind:this={dragDiv} class="draggable divider-vertical h-full" draggable="true" />
+		<span bind:this={dragDiv} class="draggable divider-vertical h-full" draggable="true"></span>
 	</div>
 </div>
 

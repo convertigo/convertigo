@@ -82,7 +82,7 @@
 <div class="flex flex-col gap-5">
 	{#each cards as { title, range, next }, i}
 		<Card {title}>
-			<div slot="cornerOption">
+			{#snippet cornerOption()}
 				<ButtonsContainer>
 					{#each Object.entries(jobTypes).slice(...range) as [type, { name, icon }]}
 						<button class="basic-button" onclick={() => openModals(type)}>
@@ -91,7 +91,7 @@
 						</button>
 					{/each}
 				</ButtonsContainer>
-			</div>
+			{/snippet}
 
 			<TableAutoCard
 				definition={[

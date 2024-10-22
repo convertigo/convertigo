@@ -18,7 +18,7 @@
 	const modalStore = getModalStore();
 	const custom = true;
 
-	let tabSet = 0;
+	let tabSet = $state(0);
 	let candidatesState = $state([]);
 
 	const notesTitle = {
@@ -78,18 +78,18 @@
 </script>
 
 <Card title="Certificates">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<ButtonsContainer>
-			<button class="basic-button" on:click={() => openModalCertificates('Install')}>
+			<button class="basic-button" onclick={() => openModalCertificates('Install')}>
 				<Ico icon="fluent-mdl2:certificate" />
 				<p>Install a new certificate</p>
 			</button>
-			<button class="delete-button" on:click={() => openModalCertificates('Remove')}>
+			<button class="delete-button" onclick={() => openModalCertificates('Remove')}>
 				<Ico icon="mingcute:delete-line" />
 				<p>Remove a certificate</p>
 			</button>
 		</ButtonsContainer>
-	</div>
+	{/snippet}
 	<div class="flex w-[20%]">
 		<Accordion
 			caretOpen="rotate-0"
@@ -199,7 +199,7 @@
 							value={row['@_group'] ?? ''}
 						/>
 					{:else if def.name === 'Update'}
-						<button class="green-button" on:click={updateCertificate}>
+						<button class="green-button" onclick={updateCertificate}>
 							<Ico icon="dashicons:update" />
 						</button>
 					{:else if def.name === 'Delete'}
@@ -207,7 +207,7 @@
 							<button
 								class="delete-button"
 								type="button"
-								on:click={() => removeCertificates(row['@_name'])}
+								onclick={() => removeCertificates(row['@_name'])}
 							>
 								<Ico icon="mingcute:delete-line" />
 							</button>
@@ -322,12 +322,12 @@
 									{/each}
 								</select>
 							{:else if def.name === 'Update'}
-								<button class="green-button" on:click={updateMapping}>
+								<button class="green-button" onclick={updateMapping}>
 									<Ico icon="dashicons:update" />
 								</button>
 							{:else if def.name === 'Delete'}
 								{#if row !== 'new'}
-									<button class="delete-button" on:click={() => deleteMapping(row['@_link'])}>
+									<button class="delete-button" onclick={() => deleteMapping(row['@_link'])}>
 										<Ico icon="mingcute:delete-line" />
 									</button>
 								{/if}

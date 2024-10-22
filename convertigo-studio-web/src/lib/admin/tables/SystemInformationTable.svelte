@@ -1,6 +1,4 @@
 <script>
-	import { run } from 'svelte/legacy';
-
 	import { onMount } from 'svelte';
 	import {
 		statusCheck,

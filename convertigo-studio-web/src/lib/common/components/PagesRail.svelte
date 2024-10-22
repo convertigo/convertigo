@@ -28,7 +28,7 @@
 </script>
 
 <AppRail width="w-auto" class="border-r-[0.5px] border-surface-200-700-token px-2">
-	<div class="h-5" />
+	<div class="h-5"></div>
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}
@@ -53,7 +53,7 @@
 
 		{#if i < parts.length - 1}
 			<div class="w-full p-5">
-				<separator class="border-[1px] flex border-surface-700-200-token" />
+				<div class="border-[1px] flex border-surface-700-200-token"></div>
 			</div>
 		{/if}
 	{/each}

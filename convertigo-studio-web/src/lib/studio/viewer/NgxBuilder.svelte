@@ -4,7 +4,7 @@
 	import { selectedId } from '$lib/studio/treeview/treeStore';
 	import { getUrl } from '$lib/utils/service';
 	import { AppBar, AppRail, AppRailAnchor, AppShell, ProgressRadial } from '@skeletonlabs/skeleton';
-	import { afterUpdate, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
 	let project = $state('');
 	let message = $state('');
@@ -76,11 +76,11 @@
 		document.documentElement.removeEventListener('mouseup', stopDrag, false);
 	}
 
-	afterUpdate(() => {
-		if (textarea) {
-			textarea.scrollTop = textarea.scrollHeight;
-		}
-	});
+	// afterUpdate(() => {
+	// 	if (textarea) {
+	// 		textarea.scrollTop = textarea.scrollHeight;
+	// 	}
+	// });
 
 	function runAction(action, params = {}) {
 		progress = 0;
@@ -133,10 +133,10 @@
 				<div class="card variant-ghost w-3/4 py-1 text-center">{output}</div>
 			</div>
 		{:else}
-			<iframe bind:this={iframe} class="h-full w-full" title="test" src={iframeUrl} />
+			<iframe bind:this={iframe} class="h-full w-full" title="test" src={iframeUrl}></iframe>
 		{/if}
 		<svelte:fragment slot="footer">
-			<div class="draggable border-4 w-full" onmousedown={onDrag} />
+			<div class="draggable border-4 w-full" onmousedown={onDrag}></div>
 			<textarea
 				bind:this={textarea}
 				readonly={true}

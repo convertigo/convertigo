@@ -391,7 +391,7 @@
 						<button class="btn-search" onclick={doSearchNext}>↓</button>
 						<button class="btn-search close-popup">X</button>
 					</div>
-					<div class="arrow bg-stone-200 dark:bg-stone-900" />
+					<div class="arrow bg-stone-200 dark:bg-stone-900"></div>
 				</div>
 			</div>
 			<div class="mini-card variant-filled-tertiary">

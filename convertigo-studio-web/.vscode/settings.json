@@ -121,6 +121,9 @@
 		"a11y-missing-content": "ignore",
 		"a11y-click-events-have-key-events": "ignore",
 		"a11y-no-static-element-interactions": "ignore",
-		"unused-export-let": "ignore"
+		"a11y_consider_explicit_label": "ignore",
+		"a11y_missing_attribute": "ignore",
+		"unused-export-let": "ignore",
+		"css_unused_selector": "ignore"
 	}
 }

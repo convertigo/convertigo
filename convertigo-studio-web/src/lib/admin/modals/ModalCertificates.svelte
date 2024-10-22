@@ -1,6 +1,4 @@
 <script>
-	import { preventDefault } from 'svelte/legacy';
-
 	import { FileDropzone, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { candidates, certificatesList } from '../stores/certificatesStore';
@@ -52,7 +50,7 @@
 {#if mode === 'Remove'}
 	{#if $modalStore[0]}
 		<Card title="Remove Certificate" class="w-[30vw]">
-			<form onsubmit={preventDefault(removeCertificates)}>
+			<form onsubmit={removeCertificates}>
 				<label for="certificateSelect" class="label-common border-common"
 					><p>Select Certificate:</p>
 					{#if $candidates.length > 0}

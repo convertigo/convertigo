@@ -1,5 +1,8 @@
 <script>
-	/** @type {{Record<string, any>}} */
+	/** @type {{
+	 * headers: string[],
+	 * children: import('svelte').Snippet
+	}} */
 	let { headers = [], children, ...rest } = $props();
 </script>
 

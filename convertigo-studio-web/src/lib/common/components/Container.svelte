@@ -1,14 +1,5 @@
-<script lang="ts">
-	interface Props {
-		flex?: boolean;
-		flexCol?: boolean;
-		grid?: boolean;
-		cols?: number;
-		gap?: string;
-		class?: string;
-		children?: import('svelte').Snippet;
-	}
-
+<script>
+	/** @type {{flex?: boolean, flexCol?: boolean, grid?: boolean, cols?: number, gap?: string, class?: string, children?: import('svelte').Snippet}} */
 	let {
 		flex = false,
 		flexCol = false,
@@ -17,7 +8,7 @@
 		gap = '0',
 		class: cls = '',
 		children
-	}: Props = $props();
+	} = $props();
 </script>
 
 <div

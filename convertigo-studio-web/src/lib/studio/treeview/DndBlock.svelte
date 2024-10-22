@@ -1,4 +1,4 @@
-<svelte:options accessors />
+<!-- <svelte:options accessors /> -->
 
 <script>
 	import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';

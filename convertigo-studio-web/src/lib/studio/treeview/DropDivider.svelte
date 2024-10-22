@@ -136,7 +136,7 @@
 	ondragover={handleDragOver}
 	ondrop={handleDrop}
 >
-	<span />
+	<span></span>
 </div>
 
 <style lang="postcss">

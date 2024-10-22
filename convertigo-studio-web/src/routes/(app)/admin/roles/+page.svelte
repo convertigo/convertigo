@@ -146,12 +146,12 @@
 </script>
 
 <Card title="Roles">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<button class="delete-button" onclick={openDeleteAllModal}>
 			<Ico icon="mingcute:delete-line" />
 			<p>Delete All Roles</p>
 		</button>
-	</div>
+	{/snippet}
 	<ButtonsContainer class="mb-10">
 		{#each Object.entries(userActions) as [type, { name, icon }]}
 			<button class="basic-button" onclick={() => openModals(type)}>

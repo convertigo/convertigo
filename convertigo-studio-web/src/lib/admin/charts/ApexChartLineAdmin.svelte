@@ -1,6 +1,4 @@
 <script>
-	import { run } from 'svelte/legacy';
-
 	import { onMount, untrack } from 'svelte';
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';

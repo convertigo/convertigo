@@ -1,5 +1,12 @@
 <script>
-	/** @type {{Record<string, any>}} */
+	/** @type {{
+	 * 	title?: string,
+	 * 	class?: string,
+	 * 	cardStyle?: string,
+	 * 	cardBorder?: string,
+	 * 	cornerOption?: import('svelte').Snippet,
+	 * 	children?: import('svelte').Snippet
+	}} */
 	let {
 		title = '',
 		class: cls = '',

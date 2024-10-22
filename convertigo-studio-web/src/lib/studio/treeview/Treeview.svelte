@@ -1,5 +1,3 @@
-<svelte:options accessors />
-
 <script>
 	import { onMount, tick, createEventDispatcher } from 'svelte';
 	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
@@ -11,6 +9,7 @@
 	import DropDivider from './DropDivider.svelte';
 	import Toolbar from '../toolbar/Toolbar.svelte';
 	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
+	import Treeview from './Treeview.svelte';
 
 	// @ts-ignore
 	import IconFile from '~icons/mdi/file';
@@ -192,7 +191,7 @@
 						{#if child.icon.includes('?') && child.id === nodeData.children[0].id}
 							<DropDivider nodeData={child} on:update={update} position="first" />
 						{/if}
-						<svelte:self
+						<Treeview
 							nodeData={child}
 							{root}
 							bind:this={links[child.id]}
@@ -243,7 +242,7 @@
 					{#if nodeData.icon.includes('?')}
 						<Toolbar>
 							<ToolbarItem
-								on:click={(e) => {
+								onclick={(e) => {
 									e.preventDefault();
 									$propertiesSelected = !$propertiesSelected;
 								}}
@@ -253,7 +252,7 @@
 								/></ToolbarItem
 							>
 							<ToolbarItem
-								on:click={(e) => {
+								onclick={(e) => {
 									e.preventDefault();
 								}}
 								><Icon
@@ -262,7 +261,7 @@
 								/></ToolbarItem
 							>
 							<ToolbarItem
-								on:click={(e) => {
+								onclick={(e) => {
 									e.preventDefault();
 									modalStore.trigger({
 										type: 'confirm',
@@ -290,7 +289,7 @@
 			caretOpen="rotate-0"
 		>
 			{#each nodeData.children as child}
-				<svelte:self
+				<TreeView
 					nodeData={child}
 					{root}
 					bind:this={links[child.id]}

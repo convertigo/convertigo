@@ -162,7 +162,7 @@
 			>
 				<div class="card p-1" data-popup="tooltip-link">
 					<p class="text-[11.5px] px-2">Link with the project's tree selection 2</p>
-					<div class="arrow" />
+					<div class="arrow"></div>
 				</div>
 				{#if linkOn}
 					<IconLinkOn class="xl" />
@@ -179,7 +179,7 @@
 			>
 				<div class="card p-4" data-popup="tooltip-builtin">
 					<p class="text-[11.5px] px-2">Built-in objects visibility</p>
-					<div class="arrow" />
+					<div class="arrow"></div>
 				</div>
 				{#if builtinOn}
 					<IconArrangeOn class="xl" />
@@ -196,7 +196,7 @@
 			>
 				<div class="card p-1" data-popup="tooltip-additional">
 					<p class="text-[11.5px] px-2">Shared objects visibility</p>
-					<div class="arrow" />
+					<div class="arrow"></div>
 				</div>
 				{#if additionalOn}
 					<IconDownOn class="xl" />
@@ -215,7 +215,7 @@
 					<p class="text-white">
 						{isFavorite(selectedItem) ? 'Remove from favorites' : 'Add to favorites'}
 					</p>
-					<div class="arrow" />
+					<div class="arrow"></div>
 				</div>
 				{#if isFavorite(selectedItem)}
 					<IconStarOff class="xl" />

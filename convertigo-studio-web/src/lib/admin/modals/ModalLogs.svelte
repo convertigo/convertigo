@@ -41,7 +41,7 @@
 				bind:value
 				wrap="off"
 				rows={Math.min(10, value.split('\n').length)}
-			/>
+			></textarea>
 		{:else}
 			<input class="input" bind:value />
 		{/if}

@@ -1,6 +1,4 @@
 <script>
-	import { Container } from 'postcss';
-
 	// THESE ARE DEFAULT VALUES FOR THE COMP
 
 	/** @type {{class?: string, smCols?: string, mdCols?: string, lgCols?: string, scrollable?: boolean, maxHeight?: string, containerGap?: string, children?: import('svelte').Snippet}} */

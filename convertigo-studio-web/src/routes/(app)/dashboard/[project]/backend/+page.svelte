@@ -114,7 +114,7 @@
 		<div class="grid grid-cols-2 mt-5">
 			<div class="col-span-1">
 				{project['@_name']}
-				<div class="mb-5" />
+				<div class="mb-5"></div>
 				{@html convertMarkdownToHtml(project['@_comment'])}
 			</div>
 			<div class="col-span-1"></div>

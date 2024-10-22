@@ -105,7 +105,7 @@
 		{#key selectedIndex}
 			<div class="h-auto md:col-span-4" in:fade>
 				<Card title={category['@_displayName']}>
-					<div slot="cornerOption">
+					{#snippet cornerOption()}
 						<ButtonsContainer>
 							<button
 								type="button"
@@ -126,7 +126,7 @@
 								<span class="">Cancel changes</span>
 							</button>
 						</ButtonsContainer>
-					</div>
+					{/snippet}
 
 					<ResponsiveContainer
 						scrollable={false}

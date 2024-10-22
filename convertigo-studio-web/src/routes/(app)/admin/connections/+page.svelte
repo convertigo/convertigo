@@ -54,14 +54,14 @@
 </script>
 
 <Card title="Connections">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<ButtonsContainer>
 			<button class="delete-button">
 				<Ico icon="mingcute:delete-line" />
 				<p>Delete all Sessions and Connections</p>
 			</button>
 		</ButtonsContainer>
-	</div>
+	{/snippet}
 	<TableAutoCard
 		definition={[
 			{ name: 'Contexts In Use', key: 'contexts' },
@@ -74,7 +74,7 @@
 </Card>
 
 <Card title="Sessions">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<ButtonsContainer>
 			<button class="basic-button" onclick={refreshConnections}>
 				<Ico icon="simple-line-icons:reload" />
@@ -88,7 +88,7 @@
 				<p>Show Legends</p>
 			</button>
 		</ButtonsContainer>
-	</div>
+	{/snippet}
 	<TableAutoCard
 		definition={[
 			{ name: 'ID', key: '@_sessionID' },
@@ -115,14 +115,14 @@
 </Card>
 
 <Card title="Contexts">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<ButtonsContainer>
 			<button class="basic-button" onclick={refreshConnections}
 				><Ico icon="simple-line-icons:reload" />
 				<p>Refresh Sessions</p>
 			</button>
 		</ButtonsContainer>
-	</div>
+	{/snippet}
 	<TableAutoCard
 		definition={[
 			{ name: 'Context', key: '@_contextName', class: 'max-w-1/4 break-all' },

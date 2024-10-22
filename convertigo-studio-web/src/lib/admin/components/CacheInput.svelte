@@ -3,10 +3,16 @@
 </script>
 
 <script>
-	/** @type {{Record<string, any>}} */
+	/** @type {{
+	 * label?: string,
+	 * id?: string,
+	 * type?: string,
+	 * placeholder?: string,
+	 * value?: any
+	} | any} */
 	let {
 		label = '',
-		id = `cache-input-${cpt++}`,
+		id =  (`cache-input-${cpt++}`),
 		type = 'text',
 		placeholder = 'Enter value ..',
 		value = $bindable(),

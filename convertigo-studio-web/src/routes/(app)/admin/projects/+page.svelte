@@ -159,12 +159,12 @@
 </script>
 
 <Card title="Projects">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<button class="delete-button">
 			<Ico icon="mingcute:delete-line" />
 			<p>Delete All Projects</p></button
 		>
-	</div>
+	{/snippet}
 	<ButtonsContainer>
 		{#each Object.entries(projectActions) as [type, { name, icon }]}
 			<button class="basic-button" onclick={() => openModal(type)}>

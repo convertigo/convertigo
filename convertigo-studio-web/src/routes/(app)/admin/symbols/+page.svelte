@@ -158,14 +158,14 @@
 </script>
 
 <Card title="Global Symbols">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		<div class="flex-1">
 			<button class="delete-button" onclick={openConfirmDeleteAll}
 				><Ico icon="mingcute:delete-line" />
 				<p>Delete symbols</p>
 			</button>
 		</div>
-	</div>
+	{/snippet}
 
 	<ButtonsContainer class="mb-10">
 		{#each Object.entries(symbolsActions) as [type, { name, icon }]}

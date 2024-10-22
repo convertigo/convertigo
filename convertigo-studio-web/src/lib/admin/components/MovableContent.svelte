@@ -1,4 +1,11 @@
 <script>
+	/* @type {{
+		items: any[],
+		index: number,
+		grabClass: string,
+		dragging: boolean,
+		children: import('svelte').Snippet
+	}} */
 	let {
 		items = $bindable([]),
 		index = 0,

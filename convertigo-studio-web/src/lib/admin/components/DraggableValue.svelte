@@ -1,7 +1,15 @@
 <script>
 	let start = 0;
 	let startDelta = 0;
-	/** @type {{Record<string, any>}} */
+	/** @type {{
+	 * delta: number,
+	 * class: string,
+	 * min: number,
+	 * coef: number,
+	 * dragging: boolean,
+	 * axis: 'x' | 'y',
+	 * children: import('svelte').Snippet,
+	}} */
 	let {
 		delta = $bindable(0),
 		class: cls = '',

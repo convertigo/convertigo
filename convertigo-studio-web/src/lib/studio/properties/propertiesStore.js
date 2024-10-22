@@ -29,6 +29,7 @@ export const dboProp = {
 	value: 'Please select a field',
 	class: 'java.lang.String',
 	kind: 'dbo',
+	label: 'DatabaseObject',
 	values: []
 };
 

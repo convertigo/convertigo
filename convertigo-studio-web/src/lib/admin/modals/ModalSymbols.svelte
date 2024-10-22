@@ -4,7 +4,6 @@
 	import { globalSymbols } from '../stores/symbolsStore';
 	import Card from '../components/Card.svelte';
 	import ModalButtons from '../components/ModalButtons.svelte';
-	import ButtonsContainer from '../components/ButtonsContainer.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	const modalStore = getModalStore();

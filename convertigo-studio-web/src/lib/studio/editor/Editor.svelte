@@ -73,6 +73,6 @@
 	}
 </script>
 
-<div bind:this={divEl} style:width="100%" />
+<div bind:this={divEl} style:width="100%"></div>
 
 <svelte:window onresize={resize} />

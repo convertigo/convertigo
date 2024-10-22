@@ -38,7 +38,7 @@ const config = {
 	},
 
 	onwarn: (warning, handler) => {
-		if (warning.code.startsWith('a11y-')) {
+		if (warning.code.startsWith('a11y_') || warning.code.startsWith('css_')) {
 			return;
 		}
 		handler(warning);

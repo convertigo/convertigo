@@ -8,7 +8,7 @@
 	import BooleanEditor from './editors/BooleanEditor.svelte';
 	import ListEditor from './editors/ListEditor.svelte';
 	import StaticEditor from './editors/StaticEditor.svelte';
-	import IonSmartEditor from './editors/IonSmartEditor.svelte';
+	//import IonSmartEditor from './editors/IonSmartEditor.svelte.disable';
 
 	let categories = $state({});
 
@@ -51,9 +51,9 @@
 
 			let propDisabled = prop.isDisabled ?? false;
 
-			if (prop.kind === 'ion' || prop.editorClass === 'NgxSmartSourcePropertyDescriptor') {
-				return IonSmartEditor;
-			}
+			// if (prop.kind === 'ion' || prop.editorClass === 'NgxSmartSourcePropertyDescriptor') {
+			// 	return IonSmartEditor;
+			// }
 
 			if (propValues.length > 0) {
 				return ListEditor;
@@ -139,15 +139,15 @@
 					>
 					<svelte:fragment slot="content">
 						{#each items as item (JSON.stringify(item[1]))}
+						{@const Editor = getEditor(item[1])}
 							<div
 								class="flex flex-row flex-nowrap text-[11.5px] dark:font-light dark:text-surface-200 text-surface-900"
 							>
 								<div class="basis-1/3 ml-2.5">{item[0]}</div>
 								<div class="basis-2/3 pl-1">
-									<svelte:component
-										this={getEditor(item[1])}
+									<Editor
 										{...item[1]}
-										on:valueChanged={valueChanged}
+										onvalueChanged={valueChanged}
 									/>
 								</div>
 							</div>

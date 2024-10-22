@@ -1,6 +1,4 @@
 <script>
-	import { preventDefault } from 'svelte/legacy';
-
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call, copyObj, equalsObj } from '$lib/utils/service';
@@ -39,6 +37,7 @@
 
 	/** @param {any} e */
 	async function handlesubmit(e) {
+		e.preventDefault();
 		let formData = new FormData(e.target);
 		if (e.submitter.textContent == 'Create Table and Apply') {
 			formData.append('create', '');
@@ -66,16 +65,16 @@
 
 {#if oriConf}
 	{@const disabled = equalsObj($conf, oriConf)}
-	<form onsubmit={preventDefault(handlesubmit)}>
+	<form onsubmit={handlesubmit}>
 		<Card title="Cache Type">
-			<div slot="cornerOption">
+			{#snippet cornerOption()}
 				<ButtonsContainer>
 					<button class="delete-button" onclick={cacheClear}>
 						<Ico icon="mingcute:delete-line" />
 						<p>Clear entries</p>
 					</button>
 				</ButtonsContainer>
-			</div>
+			{/snippet}
 
 			<p class="mt-5 mb-2 font-normal">Choose the desired cache type</p>
 			<div class="flex items-center justify-between gap-5">
