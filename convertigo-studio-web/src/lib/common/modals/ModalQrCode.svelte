@@ -12,6 +12,6 @@
 		<QrCode href={$modalStore[0].meta.href} />
 	{/if}
 	<ButtonsContainer>
-		<button class="cancel-button" on:click={() => modalStore.close()}>Close</button>
+		<button class="cancel-button" onclick={() => modalStore.close()}>Close</button>
 	</ButtonsContainer>
 </Card>

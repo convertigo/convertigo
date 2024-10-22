@@ -109,7 +109,7 @@
 		{#if deviceVal == 2}
 			<select on:change={handlePhoneTypeChange} class="select-common text-[12px]">
 				{#each phones as phone}
-					<option value={phone.name}><span>{phone.name}</span></option>
+					<option value={phone.name}>{phone.name}</option>
 				{/each}
 			</select>
 		{/if}

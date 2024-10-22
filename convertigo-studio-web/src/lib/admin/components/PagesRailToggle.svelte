@@ -2,7 +2,8 @@
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 
-	export let open = true;
+	/** @type {{open?: boolean}} */
+	let { open = true } = $props();
 
 	const drawerStore = getDrawerStore();
 	function togglePagesDrawer() {
@@ -20,6 +21,6 @@
 	}
 </script>
 
-<button class="{open ? 'md:hidden' : ''} ms:pl-2 sx:pt-2" on:click={togglePagesDrawer}
+<button class="{open ? 'md:hidden' : ''} ms:pl-2 sx:pt-2" onclick={togglePagesDrawer}
 	><Ico icon="iconamoon:menu-burger-horizontal-thin" class="w-8 h-8" /></button
 >

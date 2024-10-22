@@ -16,7 +16,7 @@
 	import Properties from '$lib/studio/properties/Properties.svelte';
 	import PaletteCpy from '$lib/studio/palette/Palette.svelte';
 
-	let editorTab = 0;
+	let editorTab = $state(0);
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);
 	let paletteSelected = localStorageStore('studio.paletteSelected', false);

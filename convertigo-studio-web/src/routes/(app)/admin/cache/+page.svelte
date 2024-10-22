@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call, copyObj, equalsObj } from '$lib/utils/service';
@@ -12,7 +14,7 @@
 
 	/** @type {import('svelte/store').Writable<any>}*/
 	let conf = writable({});
-	let oriConf = null;
+	let oriConf = $state(null);
 	//
 	export const modalStoreCache = getModalStore();
 
@@ -64,11 +66,11 @@
 
 {#if oriConf}
 	{@const disabled = equalsObj($conf, oriConf)}
-	<form on:submit|preventDefault={handlesubmit}>
+	<form onsubmit={preventDefault(handlesubmit)}>
 		<Card title="Cache Type">
 			<div slot="cornerOption">
 				<ButtonsContainer>
-					<button class="delete-button" on:click={cacheClear}>
+					<button class="delete-button" onclick={cacheClear}>
 						<Ico icon="mingcute:delete-line" />
 						<p>Clear entries</p>
 					</button>
@@ -98,7 +100,7 @@
 						><Ico icon="lets-icons:table-light" />
 						<p>Create Table and Apply</p></button
 					>
-					<button class="delete-button" {disabled} on:click={() => ($conf = copyObj(oriConf))}>
+					<button class="delete-button" {disabled} onclick={() => ($conf = copyObj(oriConf))}>
 						<Ico icon="material-symbols-light:cancel-outline" />
 						<p>Cancel</p></button
 					>

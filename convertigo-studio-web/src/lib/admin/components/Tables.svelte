@@ -1,8 +1,9 @@
 <script>
-	export let headers = [];
+	/** @type {{Record<string, any>}} */
+	let { headers = [], children, ...rest } = $props();
 </script>
 
-<table class="rounded-xl table overflow-hidden" {...$$restProps}>
+<table class="rounded-xl table overflow-hidden" {...rest}>
 	<thead class="rounded-xl">
 		<tr>
 			{#each headers as header}
@@ -11,7 +12,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<slot />
+		{@render children?.()}
 	</tbody>
 </table>
 

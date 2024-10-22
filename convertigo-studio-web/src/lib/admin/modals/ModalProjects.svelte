@@ -12,7 +12,7 @@
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
 
-	let isLoading = false;
+	let isLoading = $state(false);
 
 	const exportOptions = [
 		{ name: 'Include Test Case' },
@@ -102,7 +102,7 @@
 
 			<div class="flex flex-wrap gap-5 mt-5">
 				<div class="flex-1">
-					<button class="w-full cancel-button" on:click={() => modalStore.close()}>Cancel</button>
+					<button class="w-full cancel-button" onclick={() => modalStore.close()}>Cancel</button>
 				</div>
 				<div class="flex-1">
 					<button class="btn w-full confirm-button">Export</button>
@@ -112,7 +112,7 @@
 	</Card>
 {:else}
 	<Card title="Import from a Remote Project URL">
-		<form on:submit={importProject} class="p-5 rounded-xl flex flex-col">
+		<form onsubmit={importProject} class="p-5 rounded-xl flex flex-col">
 			<p>
 				Import a project from url like:<br /><b
 					>&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional

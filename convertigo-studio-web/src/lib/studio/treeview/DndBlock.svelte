@@ -9,9 +9,8 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let nodeData;
-	export let item;
-	export let block;
+	/** @type {{nodeData: any, item: any, block: any, icon?: import('svelte').Snippet, label?: import('svelte').Snippet, content?: import('svelte').Snippet}} */
+	let { nodeData, item = $bindable(), block, icon, label, content } = $props();
 
 	export function dispatchRemove() {
 		dispatch('remove', {});
@@ -21,7 +20,7 @@
 		dispatch('delete', {});
 	}
 
-	let main;
+	let main = $state();
 	let canDrop = false;
 	let dragOver = false;
 	let dropAction = 'none';
@@ -174,28 +173,28 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	bind:this={main}
 	class="flex items-center"
 	draggable="true"
-	on:dragstart={handleDragStart}
-	on:dragend={handleDragEnd}
-	on:dragenter={handleDragEnter}
-	on:dragleave={handleDragLeave}
-	on:dragover={handleDragOver}
-	on:drop={handleDrop}
+	ondragstart={handleDragStart}
+	ondragend={handleDragEnd}
+	ondragenter={handleDragEnter}
+	ondragleave={handleDragLeave}
+	ondragover={handleDragOver}
+	ondrop={handleDrop}
 >
 	<div
 		class="flex-none"
-		on:dragenter={(e) => {
+		ondragenter={(e) => {
 			if (!nodeData.expanded) {
 				item.open = true;
 			}
 		}}
 	>
-		<slot name="icon" />
+		{@render icon?.()}
 	</div>
-	<div class="ml-2"><slot name="label" /></div>
-	<div class="ml-2 grow"><slot name="content" /></div>
+	<div class="ml-2">{@render label?.()}</div>
+	<div class="ml-2 grow">{@render content?.()}</div>
 </div>

@@ -1,13 +1,15 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { call } from '$lib/utils/service';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 
-	/** @type {import('./$types').PageData} */
-	export let data;
+	/** @type {{data: import('./$types').PageData}} */
+	let { data } = $props();
 
-	let error = null;
+	let error = $state(null);
 
 	async function handleSubmit(/** @type {SubmitEvent} */ e) {
 		try {
@@ -34,7 +36,7 @@
 	</h1>
 
 	<form
-		on:submit|preventDefault={handleSubmit}
+		onsubmit={preventDefault(handleSubmit)}
 		class="flex flex-col w-[600px] bg-surface h-80 mt-40 rounded-xl p-4 items-center"
 	>
 		<input type="hidden" name="authType" value="login" />

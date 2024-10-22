@@ -85,7 +85,7 @@
 			<div slot="cornerOption">
 				<ButtonsContainer>
 					{#each Object.entries(jobTypes).slice(...range) as [type, { name, icon }]}
-						<button class="basic-button" on:click={() => openModals(type)}>
+						<button class="basic-button" onclick={() => openModals(type)}>
 							<Ico {icon} />
 							<p>New {name}</p>
 						</button>
@@ -107,38 +107,38 @@
 					{ name: 'Delete', custom: true }
 				].filter((elt) => next || elt.name != 'Next')}
 				data={[$jobsStore, $schedulesStore, $scheduledStore][i]}
-				let:def
-				let:row
 			>
-				{#if def.name === 'Edit'}
-					<button
-						class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
-						on:click={() => openModals(row['@_type'], row)}
-					>
-						<Ico icon="mdi:edit-outline" />
-					</button>
-				{:else if def.name === 'Enabled'}
-					<div class="bg-success-400-500-token rounded-token text-token py-2 px-2">
-						{row['@_enabled']}
-					</div>
-				{:else if def.name === 'Delete'}
-					<button class="delete-button" on:click={() => deleteScheduledElement(row, title)}>
-						<Ico icon="mingcute:delete-line" />
-					</button>
-				{:else if def.name === 'Next'}
-					<AutoPlaceholder loading={!row.next}
-						><button
-							class="violet-button"
-							on:click={() =>
-								modalStore.trigger({
-									title: 'Next triggers',
-									body: `<div class="overflow-y-auto max-h-[30vh]">${row.next.join('</br>')}</div>`,
-									type: 'alert',
-									modalClasses: 'text-center overflow-y-scroll'
-								})}>{row.next[0]}</button
-						></AutoPlaceholder
-					>
-				{/if}
+				{#snippet children(row, def)}
+					{#if def.name === 'Edit'}
+						<button
+							class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
+							onclick={() => openModals(row['@_type'], row)}
+						>
+							<Ico icon="mdi:edit-outline" />
+						</button>
+					{:else if def.name === 'Enabled'}
+						<div class="bg-success-400-500-token rounded-token text-token py-2 px-2">
+							{row['@_enabled']}
+						</div>
+					{:else if def.name === 'Delete'}
+						<button class="delete-button" onclick={() => deleteScheduledElement(row, title)}>
+							<Ico icon="mingcute:delete-line" />
+						</button>
+					{:else if def.name === 'Next'}
+						<AutoPlaceholder loading={!row.next}
+							><button
+								class="violet-button"
+								onclick={() =>
+									modalStore.trigger({
+										title: 'Next triggers',
+										body: `<div class="overflow-y-auto max-h-[30vh]">${row.next.join('</br>')}</div>`,
+										type: 'alert',
+										modalClasses: 'text-center overflow-y-scroll'
+									})}>{row.next[0]}</button
+							></AutoPlaceholder
+						>
+					{/if}
+				{/snippet}
 			</TableAutoCard>
 		</Card>
 	{/each}

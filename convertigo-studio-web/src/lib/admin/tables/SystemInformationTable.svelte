@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import {
 		statusCheck,
@@ -13,22 +15,20 @@
 		browser
 	} from '../stores/statusStore';
 	import TableAutoCard from '../components/TableAutoCard.svelte';
-	export let memoryMaximal;
-	export let memoryTotal;
-	export let memoryUsed;
 
 	/** @type {{Name: string, Value: string|null}[]} */
-	let data = [];
+	let data = $state([]);
 
-	let cls = '';
-	export { cls as class };
+	/** @type {{memoryMaximal: any, memoryTotal: any, memoryUsed: any, class?: string}} */
+	let { memoryMaximal, memoryTotal, memoryUsed, class: cls = '' } = $props();
 
 	onMount(() => {
 		statusCheck();
 	});
 
-	$: {
-		data = [
+	$effect(() => {
+		/** @type {{Name: string, Value: string|null}[]} */
+		let newdata = [
 			{ Name: 'Host Name', Value: $hostName },
 			{ Name: 'CPU', Value: `${$osArchitecture} architecture ${$osAvailableProcessors} processor` },
 			{ Name: 'OS', Value: `${$osName} ${$osVersion}` },
@@ -40,11 +40,12 @@
 			{ Name: 'Your Browser', Value: $browser }
 		];
 		if ($javaVendor == '') {
-			for (let d of data) {
+			for (let d of newdata) {
 				d.Value = null;
 			}
 		}
-	}
+		data = newdata;
+	});
 </script>
 
 <TableAutoCard
@@ -52,10 +53,10 @@
 	showHeaders={false}
 	definition={[{ key: 'Name' }, { key: 'Value' }]}
 	{data}
-	let:row
-	let:def
 >
-	{#if def.key === 'Name'}
-		<span class="font-normal">{row.Name}</span>
-	{/if}
+	{#snippet children(row, def)}
+		{#if def.key === 'Name'}
+			<span class="font-normal">{row.Name}</span>
+		{/if}
+	{/snippet}
 </TableAutoCard>

@@ -1,8 +1,8 @@
 <script>
-	export let name;
-	export let value;
+	/** @type {{Record<string, any>}} */
+	let { name, value, ...rest } = $props();
 
-	if ($$restProps) {
+	if (rest) {
 	}
 </script>
 

@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import Card from '$lib/admin/components/Card.svelte';
 	import { Tab, TabGroup, RangeSlider, popup, SlideToggle } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -22,26 +24,26 @@
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
 
 	onMount(() => {
-		refreshConfigurations();
-		logsList();
+		// refreshConfigurations();
+		// logsList();
 	});
 
-	let tabSet = 0;
-	let rangeVal = 15;
+	let tabSet = $state(0);
+	let rangeVal = $state(15);
 	let max = 25;
 
-	let logsCategory = null;
+	let logsCategory = $state(null);
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
 	// Subscribe to config and extract Logs category .. maybe easier than reuse Prprty comp
 	// from configration page
-	$: {
+	$effect(() => {
 		const config = $configurations;
 		if (config?.admin?.category) {
 			logsCategory = config.admin.category.find((cat) => cat['@_name'] === 'Logs');
 		}
-	}
+	});
 
 	const tabs = [
 		{ name: 'Viewer', icon: 'grommet-icons:add' },
@@ -51,13 +53,13 @@
 	];
 
 	/** @type {Array<number|null>}*/
-	let datesEdited = [
+	let datesEdited = $state([
 		new Date().setDate(new Date().getDate() - 1),
 		new Date().setHours(0, 0, 0, 0) + 86400000
-	];
-	let dates = [...datesEdited];
-	let times = datesEdited.map((d) => formatTime(d));
-	let isOpen = false;
+	]);
+	let dates = $state([...datesEdited]);
+	let times = $state(datesEdited.map((d) => formatTime(d)));
+	let isOpen = $state(false);
 
 	$startDate = formatDate(dates[0]) + ' ' + times[0];
 	$endDate = formatDate(dates[1]) + ' ' + times[1];
@@ -121,7 +123,7 @@
 </script>
 
 <Card title="Logs">
-	<div slot="cornerOption">
+	{#snippet cornerOption()}
 		{#if tabs[tabSet].name == 'Purge'}
 			<ButtonsContainer class="flex">
 				<button type="button" class="basic-button">
@@ -135,13 +137,13 @@
 					<span><Ico icon="material-symbols-light:save-as-outline" class="w-6 h-6" /></span>
 					<span>Save changes</span>
 				</button>
-				<button type="button" class="yellow-button" on:click={refreshConfigurations}>
+				<button type="button" class="yellow-button" onclick={refreshConfigurations}>
 					<span><Ico icon="material-symbols-light:cancel-outline" class="w-6 h-6" /></span>
 					<span class="">Cancel changes</span>
 				</button>
 			</ButtonsContainer>
-		{/if}
-	</div>
+		{/if}		
+	{/snippet}
 	<TabGroup>
 		{#each tabs as { name, icon }, value}
 			<Tab
@@ -169,7 +171,7 @@
 									{#each preset as { name, fn }}
 										<button
 											class="btn variant-ghost-primary"
-											on:click={() => {
+											onclick={() => {
 												dates[i] = fn();
 												times[i] = formatTime(dates[i]);
 											}}
@@ -206,7 +208,7 @@
 												type="text"
 												class="input max-w-fit h-full"
 												value={formatDate(dates[i])}
-												on:focus={() => {
+												onfocus={() => {
 													datesEdited[i] = null;
 													isOpen = true;
 												}}
@@ -216,7 +218,7 @@
 										</div>
 									</div>
 								{/each}
-								<button class="btn btn-sm variant-filled-surface p-2" on:click={refreshLogs}
+								<button class="btn btn-sm variant-filled-surface p-2" onclick={refreshLogs}
 									>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
 								>
 							</div>
@@ -240,7 +242,7 @@
 				</div>
 			{:else if tabs[tabSet].name == 'Log Levels'}
 				<Card>
-					{#if checkArray(logsCategory.property)}
+					{#if checkArray(logsCategory?.property)}
 						<ResponsiveContainer
 							scrollable={false}
 							maxHeight="h-auto"

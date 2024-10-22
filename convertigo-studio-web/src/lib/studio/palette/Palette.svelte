@@ -23,17 +23,17 @@
 
 	let favorites = localStorageStore('palette.favorites', {});
 	let storeCategories = [];
-	let localCategories = [];
-	let favoritesItems = [];
-	let usedItems = [];
-	let selectedItem;
+	let localCategories = $state([]);
+	let favoritesItems = $state([]);
+	let usedItems = $state([]);
+	let selectedItem = $state();
 
-	let search = '';
+	let search = $state('');
 	let textInput;
 
-	let linkOn = true;
-	let builtinOn = true;
-	let additionalOn = true;
+	let linkOn = $state(true);
+	let builtinOn = $state(true);
+	let additionalOn = $state(true);
 
 	onMount(() => {});
 
@@ -157,7 +157,7 @@
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
-				on:click={handleLink}
+				onclick={handleLink}
 				use:popup={tooltip('tooltip-link')}
 			>
 				<div class="card p-1" data-popup="tooltip-link">
@@ -174,7 +174,7 @@
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
-				on:click={handleBuiltin}
+				onclick={handleBuiltin}
 				use:popup={tooltip('tooltip-builtin')}
 			>
 				<div class="card p-4" data-popup="tooltip-builtin">
@@ -191,7 +191,7 @@
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
-				on:click={handleAdditional}
+				onclick={handleAdditional}
 				use:popup={tooltip('tooltip-additional')}
 			>
 				<div class="card p-1" data-popup="tooltip-additional">
@@ -208,7 +208,7 @@
 			<button
 				type="button"
 				class="btn [&>*]:pointer-events-none"
-				on:click={handleFavorite}
+				onclick={handleFavorite}
 				use:popup={tooltip('tooltip-favorite')}
 			>
 				<div class="card p-4" data-popup="tooltip-favorite">
@@ -232,7 +232,7 @@
 				type="search"
 				placeholder="Search..."
 				bind:value={search}
-				on:input={doSearch}
+				oninput={doSearch}
 			/>
 		</div>
 	</div>

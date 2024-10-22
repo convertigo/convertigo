@@ -21,18 +21,14 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let nodeData = $treeData;
-
-	export let links = {};
-
-	/** @type {TreeView | null} */
-	export let root = null;
+	/** @type {{nodeData?: any, links?: any, root?: TreeView | null}} */
+	let { nodeData = $bindable($treeData), links = $bindable({}), root = $bindable(null) } = $props();
 
 	/** @type {TreeViewItem} */
-	let item;
+	let item = $state();
 
 	/** @type {DndBlock} */
-	let block;
+	let block = $state();
 
 	let live = false;
 

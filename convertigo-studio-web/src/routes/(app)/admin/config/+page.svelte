@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import Icon from '@iconify/svelte';
 	import {
 		Accordion,
@@ -23,7 +25,7 @@
 
 	const modalStore = getModalStore();
 
-	let selectedIndex = -1;
+	let selectedIndex = $state(-1);
 
 	onMount(() => {
 		const name = window.location.hash.substring(1);
@@ -84,13 +86,17 @@
 		}
 	}
 
-	$: hasChanges = $configurations?.admin?.category?.[selectedIndex]?.property?.some(
-		(/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue']
+	let hasChanges = $derived(
+		$configurations?.admin?.category?.[selectedIndex]?.property?.some(
+			(/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue']
+		)
 	);
 
-	$: if (browser && 'admin' in $configurations) {
-		window.location.hash = $configurations?.admin?.category?.[selectedIndex]?.['@_name'];
-	}
+	run(() => {
+		if (browser && 'admin' in $configurations) {
+			window.location.hash = $configurations?.admin?.category?.[selectedIndex]?.['@_name'];
+		}
+	});
 </script>
 
 {#if selectedIndex > -1}
@@ -105,7 +111,7 @@
 								type="button"
 								disabled={!hasChanges}
 								class="basic-button"
-								on:click={saveChanges}
+								onclick={saveChanges}
 							>
 								<span><Ico icon="material-symbols-light:save-as-outline" size="6" /></span>
 								<span>Save changes</span>
@@ -114,7 +120,7 @@
 								type="button"
 								disabled={!hasChanges}
 								class="yellow-button"
-								on:click={refreshConfigurations}
+								onclick={refreshConfigurations}
 							>
 								<span><Ico icon="material-symbols-light:cancel-outline" size="6" /></span>
 								<span class="">Cancel changes</span>

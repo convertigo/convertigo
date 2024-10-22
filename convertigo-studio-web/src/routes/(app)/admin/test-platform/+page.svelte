@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { onMount } from 'svelte';
@@ -15,23 +17,25 @@
 	import { projectsStore, projectsCheck } from '$lib/admin/stores/projectsStore';
 	import Icon from '@iconify/svelte';
 
-	let data;
+	let data = $state();
 
 	onMount(() => {
 		statusCheck();
 		projectsCheck();
 	});
 
-	$: data = [
-		{
-			'Convertigo version': $product,
-			'Java version': $javaVersion,
-			'Classes version': $javaClassVersion,
-			'License Type': $licenceType,
-			'License Number': $licenceNumber,
-			'License End': $licenceEnd
-		}
-	];
+	run(() => {
+		data = [
+			{
+				'Convertigo version': $product,
+				'Java version': $javaVersion,
+				'Classes version': $javaClassVersion,
+				'License Type': $licenceType,
+				'License Number': $licenceNumber,
+				'License End': $licenceEnd
+			}
+		];
+	});
 </script>
 
 <Card title="Test Platform">
@@ -58,17 +62,17 @@
 			{ name: 'Web-service definition', custom: true }
 		]}
 		data={$projectsStore}
-		let:row
-		let:def
 	>
-		{#if def.name === 'Test Platform'}
-			<button class="shadow-md">
-				<Icon icon="ic:round-play-arrow" class="w-7 h-7" style="color: #35b13d" />
-			</button>
-		{:else if def.name === 'Web-service definition'}
-			<button class="shadow-md">
-				<Icon icon="ic:round-play-arrow" class="w-7 h-7" style="color: #f14b04" />
-			</button>
-		{/if}
+		{#snippet children(row, def)}
+			{#if def.name === 'Test Platform'}
+				<button class="shadow-md">
+					<Icon icon="ic:round-play-arrow" class="w-7 h-7" style="color: #35b13d" />
+				</button>
+			{:else if def.name === 'Web-service definition'}
+				<button class="shadow-md">
+					<Icon icon="ic:round-play-arrow" class="w-7 h-7" style="color: #f14b04" />
+				</button>
+			{/if}
+		{/snippet}
 	</TableAutoCard>
 </Card>

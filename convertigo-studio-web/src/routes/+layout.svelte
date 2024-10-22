@@ -30,6 +30,8 @@
 	import ModalConfirm from '$lib/dashboard/modals/ModalConfirm.svelte';
 	import ModalInfo from '$lib/dashboard/modals/ModalInfo.svelte';
 	import ModalQrCode from '$lib/common/modals/ModalQrCode.svelte';
+	/** @type {{children?: import('svelte').Snippet}} */
+	let { children } = $props();
 
 	initializeStores();
 	setToastStore(getToastStore());
@@ -70,4 +72,4 @@
 
 <Toast zIndex="z-[1000]" />
 
-<slot />
+{@render children?.()}

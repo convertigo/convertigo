@@ -8,12 +8,16 @@
 	const selectedProject = writable('');
 
 	// Derived store to filter projects based on search query
-	$: filteredProjects = $projectsStore.filter((project) =>
-		project['@_name'].toLowerCase().includes($searchQuery.toLowerCase())
+	let filteredProjects = $derived(
+		$projectsStore.filter((project) =>
+			project['@_name'].toLowerCase().includes($searchQuery.toLowerCase())
+		)
 	);
 
-	$: finalFilteredProjects = filteredProjects.filter((project) =>
-		$selectedProject ? project['@_name'] === $selectedProject : true
+	let finalFilteredProjects = $derived(
+		filteredProjects.filter((project) =>
+			$selectedProject ? project['@_name'] === $selectedProject : true
+		)
 	);
 </script>
 

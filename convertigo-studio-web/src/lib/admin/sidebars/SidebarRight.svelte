@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { AppRail, AppRailTile } from '@skeletonlabs/skeleton';
 
-	let currentTile = 0;
+	let currentTile = $state(0);
 </script>
 
 <AppRail width="w-auto p-4" background="bg-surface-600">

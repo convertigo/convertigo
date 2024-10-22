@@ -19,6 +19,7 @@
 	const custom = true;
 
 	let tabSet = 0;
+	let candidatesState = $state([]);
 
 	const notesTitle = {
 		note: 'Note',
@@ -29,6 +30,7 @@
 	onMount(async () => {
 		await projectsCheck();
 		await certificatesList();
+		candidatesState = $candidates;
 	});
 
 	function openModalCertificates(mode) {
@@ -162,13 +164,12 @@
 						{ name: 'Delete', custom }
 					]}
 					data={$candidates.length ? [...$certificates, 'new'] : $certificates}
-					let:def
-					let:row
 				>
+				{#snippet children(row, def)}
 					{#if def.name === 'Certificate / Store'}
 						{#if row == 'new'}
 							<select class="input-common" name="name_0">
-								{#each $candidates as candidates}
+								{#each candidatesState as candidates}
 									<option value={candidates['@_name']}>{candidates['@_name']}</option>
 								{/each}
 							</select>
@@ -212,6 +213,7 @@
 							</button>
 						{/if}
 					{/if}
+					{/snippet}
 				</TableAutoCard>
 			{:else if tabSet === 1}
 				{#if true}
@@ -272,9 +274,8 @@
 							{title}
 							{definition}
 							data={$certificates.length ? [...store, 'new'] : []}
-							let:def
-							let:row
 						>
+						{#snippet children(row, def)}
 							{#if def.name === 'Project Name'}
 								{#if row == 'new'}
 									<select class="input-common" name="convProject_0">
@@ -331,6 +332,7 @@
 									</button>
 								{/if}
 							{/if}
+							{/snippet}
 						</TableAutoCard>
 					{/each}
 				{/if}

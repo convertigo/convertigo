@@ -4,15 +4,14 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let name;
-	export let value;
-	export let values = [];
-	export let editable = false;
+	/** @type {{Record<string, any>}} */
+	let { name, value, values = [], editable = false, ...rest } = $props();
 
-	let input, select;
-	let groupValue = value;
+	let input = $state(),
+		select = $state();
+	let groupValue = $state(value);
 
-	if ($$restProps) {
+	if (rest) {
 	}
 
 	function combo(id) {
@@ -51,7 +50,7 @@
 			class="rounded select form-select w-full text-[11.5px] py-0 border-[0.5px]"
 			id={name + '-input'}
 			{value}
-			on:change={onChange}
+			onchange={onChange}
 			use:popup={combo(name + '-popup')}
 		/>
 		<div
@@ -79,7 +78,7 @@
 			class="select w-full text-[11.5px] py-0 border-[0.5px] dark:bginput rounded-[4px]"
 			id={name + '-select'}
 			{value}
-			on:change={onChange}
+			onchange={onChange}
 		>
 			{#each values as v}
 				<option value={v}>{v}</option>

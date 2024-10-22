@@ -1,8 +1,12 @@
 <script>
-	export let items = [];
-	export let index = 0;
-	export let grabClass = '';
-	export let dragging = false;
+	let {
+		items = $bindable([]),
+		index = 0,
+		grabClass = '',
+		dragging = $bindable(false),
+		children,
+		...rest
+	} = $props();
 
 	let draggedIndex = null;
 	let indexesRect = [];
@@ -90,12 +94,11 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="movable"
-	on:mousedown={(e) => handleMouseDown(e, index)}
-	on:touchstart={(e) => handleMouseDown(e, index)}
-	{...$$restProps}
+	onmousedown={(e) => handleMouseDown(e, index)}
+	ontouchstart={(e) => handleMouseDown(e, index)}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </div>

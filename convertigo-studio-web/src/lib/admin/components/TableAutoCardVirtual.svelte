@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import {
@@ -8,26 +10,26 @@
 	} from '$lib/admin/stores/configurationStore';
 	import { logsList } from '../stores/logsStore';
 
-	let virtualList;
+	let virtualList = $state();
 	let rowHeights = [];
 	let rowData = [];
-	let logsCategory = null;
+	let logsCategory = $state(null);
 
-	let scrollToIndex;
-	let scrollToAlignment = 'start';
-	let scrollToBehaviour = 'instant';
+	let scrollToIndex = $state();
+	let scrollToAlignment = $state('start');
+	let scrollToBehaviour = $state('instant');
 
 	onMount(async () => {
 		await refreshConfigurations();
 		await logsList();
 	});
 
-	$: {
+	run(() => {
 		const config = $configurations;
 		if (config?.admin?.category) {
 			logsCategory = config.admin.category.find((cat) => cat['@_name'] === 'Logs');
 		}
-	}
+	});
 </script>
 
 <div class="actions">

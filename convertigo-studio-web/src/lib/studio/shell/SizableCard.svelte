@@ -3,8 +3,9 @@
 	import { localStorageStore } from '@skeletonlabs/skeleton';
 	import { authenticated } from '$lib/utils/loadingStore';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	export let name;
-	let dragDiv;
+	/** @type {{name: any, children?: import('svelte').Snippet}} */
+	let { name, children } = $props();
+	let dragDiv = $state();
 	let width = localStorageStore(`studio.${name}Width`, 400);
 
 	let img;
@@ -43,13 +44,13 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="variant-soft-primary overflow-hidden widthTransition border-[0.5] border-r dark:border-surface-800 border-surface-300"
 	style:width="{$width}px"
 	style:min-width="100px"
-	on:drag={widthDrag}
-	on:dragstart={noDragImage}
+	ondrag={widthDrag}
+	ondragstart={noDragImage}
 	transition:withTransition={{ duration: 50 }}
 >
 	<div class="flex flex-row items-stretch h-full dark:bg-surface-800 bg-surface-500">
@@ -57,7 +58,7 @@
 			class="flex-col flex bg-surface-900 items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
 		>
 			{#if $authenticated}
-				<slot />
+				{@render children?.()}
 			{:else}
 				<ProgressRadial ... stroke={100} meter="stroke-primary-500" track="stroke-primary-500/30" />
 			{/if}

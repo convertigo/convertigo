@@ -4,12 +4,12 @@
 	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
 	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
 
-	export let position;
-	export let nodeData;
+	/** @type {{position: any, nodeData: any}} */
+	let { position, nodeData } = $props();
 
 	const dispatch = createEventDispatcher();
 
-	let visible = false;
+	let visible = $state(false);
 	let canDrop = false;
 	let dragOver = false;
 	let dropAction = 'none';
@@ -127,14 +127,14 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	id="dropdivider-{position}-{nodeData.id}"
 	class="drop-divider {visible ? 'dropin' : ''}"
-	on:dragenter={handleDragEnter}
-	on:dragleave={handleDragLeave}
-	on:dragover={handleDragOver}
-	on:drop={handleDrop}
+	ondragenter={handleDragEnter}
+	ondragleave={handleDragLeave}
+	ondragover={handleDragOver}
+	ondrop={handleDrop}
 >
 	<span />
 </div>

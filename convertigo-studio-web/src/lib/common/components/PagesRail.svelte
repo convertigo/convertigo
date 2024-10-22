@@ -1,16 +1,18 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { AppRail, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
 	import { fade, fly } from 'svelte/transition';
 	import Ico from '$lib/utils/Ico.svelte';
 
-	export let path;
-	export let parts;
-	let isRoot = false;
-	let activeIndex = 0;
-	let activeIndexLast = 0;
-	let relativePath = '';
-	$: {
+	/** @type {{path: any, parts: any}} */
+	let { path, parts } = $props();
+	let isRoot = $state(false);
+	let activeIndex = $state(0);
+	let activeIndexLast = $state(0);
+	let relativePath = $state('');
+	run(() => {
 		isRoot = $page.route.id == path;
 		activeIndexLast = activeIndex;
 		activeIndex = parts[0].findIndex((part) =>
@@ -20,7 +22,7 @@
 		relativePath = new Array($page?.route?.id?.substring(path.length).split('/').length - 1)
 			.fill('../')
 			.join('');
-	}
+	});
 
 	const drawerStore = getDrawerStore();
 </script>
@@ -33,7 +35,7 @@
 			<a
 				href="{url.startsWith('http') ? '' : relativePath}{url}"
 				class="nav-links"
-				on:click={drawerStore.close}
+				onclick={drawerStore.close}
 			>
 				{#if i == 0 && j == activeIndex}
 					<span

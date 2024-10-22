@@ -1,11 +1,14 @@
 <script>
 	import { SlideToggle } from '@skeletonlabs/skeleton';
-	export let name;
-	export let value = ['false', 'true'];
-	export let checked = false;
-	export let size = 'sm';
-	let cls = '';
-	export { cls as class };
+	/** @type {{name: any, value?: any, checked?: boolean, size?: string, class?: string, children?: import('svelte').Snippet}} */
+	let {
+		name,
+		value = ['false', 'true'],
+		checked = $bindable(false),
+		size = 'sm',
+		class: cls = '',
+		children
+	} = $props();
 </script>
 
 <SlideToggle
@@ -18,7 +21,7 @@
 	bind:checked
 	on:change
 >
-	<span class="block cursor-pointer break-words"><slot /></span>
+	<span class="block cursor-pointer break-words">{@render children?.()}</span>
 	{#if !checked && Array.isArray(value)}
 		<input type="hidden" {name} value={value[0]} />
 	{/if}

@@ -114,6 +114,7 @@
 		"a11y-img-redundant-alt": "ignore",
 		"a11y-label-has-associated-control": "ignore",
 		"a11y-media-has-caption": "ignore",
+		"a11y_no_static_element_interactions": "ignore",
 		"a11y-distracting-elements": "ignore",
 		"a11y-structure": "ignore",
 		"a11y-mouse-events-have-key-events": "ignore",

@@ -8,9 +8,13 @@
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
+	/** @type {{children?: import('svelte').Snippet}} */
+	let { children } = $props();
 
-	$: path = $page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin';
-	$: parts = path == '/(app)/admin' ? partsAdmin : partsDashboard;
+	let path = $derived(
+		$page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin'
+	);
+	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard);
 </script>
 
 <Drawer>
@@ -33,7 +37,7 @@
 	</svelte:fragment>
 	{#key $page.url.pathname}
 		<div class="p-5 gap-5 flex flex-col h-full" in:fade>
-			<slot />
+			{@render children?.()}
 		</div>
 	{/key}
 </AppShell>

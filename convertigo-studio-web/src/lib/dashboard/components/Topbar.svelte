@@ -7,13 +7,13 @@
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { onMount } from 'svelte';
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
-	let project;
+	let project = $state();
 
-	$: isBackend = $page.url.pathname.includes('backend');
-	$: isFrontend = $page.url.pathname.includes('frontend');
-	$: isPlatforms = $page.url.pathname.includes('platforms');
-	$: hasFrontend = project?.['@_hasFrontend'] == 'true';
-	$: hasPlatforms = project?.['@_hasPlatform'] == 'true';
+	let isBackend = $derived($page.url.pathname.includes('backend'));
+	let isFrontend = $derived($page.url.pathname.includes('frontend'));
+	let isPlatforms = $derived($page.url.pathname.includes('platforms'));
+	let hasFrontend = $derived(project?.['@_hasFrontend'] == 'true');
+	let hasPlatforms = $derived(project?.['@_hasPlatform'] == 'true');
 
 	onMount(() => {
 		const unsubscribe = page.subscribe(($page) => {

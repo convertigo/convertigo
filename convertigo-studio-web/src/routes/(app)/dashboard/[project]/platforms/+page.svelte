@@ -14,12 +14,12 @@
 	const modalStore = getModalStore();
 	let app;
 
-	let data = [
+	let data = $state([
 		{ Name: 'Mobile Project Name', Attr: '@_mobileProjectName' },
 		{ Name: 'Endpoint', Attr: '@_endpoint' },
 		{ Name: 'Application Id', Attr: '@_applicationID' },
 		{ Name: 'Version', Attr: '@_applicationVersion' }
-	];
+	]);
 
 	const dataPlatform = [
 		{ Name: 'Display Name', Attr: '@_displayName' },
@@ -30,7 +30,7 @@
 		{ Name: 'Cordova Version' }
 	];
 
-	let platforms = [];
+	let platforms = $state([]);
 
 	onMount(() => {
 		const unsubscribe = page.subscribe(($page) => {
@@ -94,14 +94,14 @@
 			{ key: 'Value', custom: true }
 		]}
 		{data}
-		let:row
-		let:def
 	>
-		{#if def.key === 'Name'}
-			<span class="font-normal">{row.Name}</span>
-		{:else}
-			<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
-		{/if}
+		{#snippet children(row, def)}
+			{#if def.key === 'Name'}
+				<span class="font-normal">{row.Name}</span>
+			{:else}
+				<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
+			{/if}
+		{/snippet}
 	</TableAutoCard>
 </CardD>
 
@@ -130,16 +130,16 @@
 								{ key: 'Value', custom: true }
 							]}
 							data={platform.data}
-							let:row
-							let:def
 						>
-							{#if def.key === 'Name'}
-								<span class="font-normal">{row.Name}</span>
-							{:else}
-								<AutoPlaceholder loading={row[def.key] == null}
-									>{row[def.key] ?? ''}</AutoPlaceholder
-								>
-							{/if}
+							{#snippet children(row, def)}
+								{#if def.key === 'Name'}
+									<span class="font-normal">{row.Name}</span>
+								{:else}
+									<AutoPlaceholder loading={row[def.key] == null}
+										>{row[def.key] ?? ''}</AutoPlaceholder
+									>
+								{/if}
+							{/snippet}
 						</TableAutoCard>
 						{#if (platform.status ?? 'none') != 'none'}
 							<CardD class="flex min-w-48 justify-center">
@@ -159,7 +159,7 @@
 						{/if}
 					</div>
 					<div class="flex flex-wrap justify-center gap-2">
-						<button on:click={() => build(platform)} class="btn variant-filled-primary"
+						<button onclick={() => build(platform)} class="btn variant-filled-primary"
 							><span><Ico icon="mdi:briefcase-upload-outline" /></span><span
 								>Build Mobile Platform</span
 							></button

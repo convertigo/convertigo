@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
 	//data shared accross each instance of this component
 	let selectedItem;
 </script>
@@ -12,9 +12,10 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let item;
+	/** @type {{item: any}} */
+	let { item } = $props();
 
-	let selected;
+	let selected = $state();
 	let interval;
 
 	//read the data on interval
@@ -42,17 +43,17 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <span
 	class="chip text-left flex flex-col m-1 w-24 h-18 justify-center item-center hover:shadow-lg hover:variant-filled-surface border-b border-surface-500 {item ===
 	selected
 		? 'variant-filled-primary'
 		: ''}"
 	draggable="true"
-	on:dragstart={handleDragStart}
-	on:dragend={(event) => ($draggedData = undefined)}
-	on:click={onClick}
+	ondragstart={handleDragStart}
+	ondragend={(event) => ($draggedData = undefined)}
+	onclick={onClick}
 >
 	{#if item.icon.includes('/')}
 		<span class="">

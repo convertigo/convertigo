@@ -5,7 +5,8 @@
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta ?? {};
-	export let parent = '';
+	/** @type {{parent?: string}} */
+	let { parent = '' } = $props();
 </script>
 
 {#if mode === 'Rename Project'}

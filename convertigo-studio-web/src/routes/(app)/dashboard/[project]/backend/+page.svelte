@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import Table from '$lib/dashboard/components/Table.svelte';
@@ -16,12 +18,12 @@
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 
 	const modalStore = getModalStore();
-	let project;
-	let _parts = [];
-	let searchQuery = '';
+	let project = $state();
+	let _parts = $state([]);
+	let searchQuery = $state('');
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
-	let mode = modes[0];
+	let mode = $state(modes[0]);
 
 	const bgColors = [
 		'bg-pale-violet border-[1px] border-pale-violet',
@@ -86,15 +88,17 @@
 	}
 	let columns = ['Name', 'Value'];
 
-	$: parts = _parts
-		.map((part) => ({
-			...part,
-			requestables: part.requestables.filter(
-				(/** @type {{ [x: string]: string; }} */ requestable) =>
-					requestable['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
-			)
-		}))
-		.filter((part) => part.requestables.length > 0);
+	let parts = $derived(
+		_parts
+			.map((part) => ({
+				...part,
+				requestables: part.requestables.filter(
+					(/** @type {{ [x: string]: string; }} */ requestable) =>
+						requestable['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			}))
+			.filter((part) => part.requestables.length > 0)
+	);
 </script>
 
 {#if project}
@@ -156,9 +160,9 @@
 											</svelte:fragment>
 											<svelte:fragment slot="content">
 												<form
-													on:submit|preventDefault={async (e) => {
+													onsubmit={preventDefault(async (e) => {
 														run(requestable, e);
-													}}
+													})}
 													class="flex flex-col gap-3"
 												>
 													{#if name == 'Sequences'}
@@ -197,7 +201,7 @@
 																				value={variable['@_value']}
 																				readonly={true}
 																				in:blur={{ duration, opacity }}
-																				on:click={() => {
+																				onclick={() => {
 																					variable.checked = true;
 																				}}
 																			/>
@@ -232,7 +236,7 @@
 																			<Table {columns} {data} />
 																			<button
 																				class="basic-button mt-5"
-																				on:click={() => copyToInputs(testcase)}>Copy</button
+																				onclick={() => copyToInputs(testcase)}>Copy</button
 																			>
 																		</div>
 																	{:else}

@@ -1,24 +1,26 @@
 <script>
 	import { getQuery, getUrl } from '$lib/utils/service';
 
-	export let href;
-	export let contentType = 'image/png';
-	export let e = 'L';
-	export let s = '4';
-	export let link = true;
-	export let target = '_blank';
+	/** @type {{href: any, contentType?: string, e?: string, s?: string, link?: boolean, target?: string, class?: string}} */
+	let {
+		href,
+		contentType = 'image/png',
+		e = 'L',
+		s = '4',
+		link = true,
+		target = '_blank',
+		class: cls = ''
+	} = $props();
 
-	let cls = '';
-	export { cls as class };
-
-	$: src =
+	let src = $derived(
 		getUrl('/qrcode') +
-		getQuery({
-			o: contentType,
-			e,
-			s,
-			d: href
-		});
+			getQuery({
+				o: contentType,
+				e,
+				s,
+				d: href
+			})
+	);
 </script>
 
 {#if link}

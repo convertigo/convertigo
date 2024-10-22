@@ -1,30 +1,23 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { selectedId } from '$lib/treeview/treeStore';
 	import { getUrl } from '$lib/utils/service';
 	import Icon from '@iconify/svelte';
 	import { AppBar, AppRail, AppRailAnchor, AppShell, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { afterUpdate, onMount } from 'svelte';
 
-	let project = '';
-	let message = '';
+	let project = $state('');
+	let message = $state('');
 	/** @type {WebSocket|null} */
-	let ws = null;
+	let ws = $state(null);
 
 	/** @type {HTMLIFrameElement} */
-	let iframe;
+	let iframe = $state();
 
-	let iframeUrl = null;
-	let progress = 0;
-	let output = '';
-
-	$: project = $selectedId.replace(/(.*?)[\.:].*/, '$1');
-
-	$: {
-		if (project != '' && ws?.readyState == WebSocket.OPEN) {
-			message = '';
-			runAction('attach');
-		}
-	}
+	let iframeUrl = $state(null);
+	let progress = $state(0);
+	let output = $state('');
 
 	onMount(() => {
 		ws = new WebSocket(
@@ -62,7 +55,7 @@
 		};
 	});
 
-	let textarea;
+	let textarea = $state();
 	let startY, startHeight;
 
 	/** @param {MouseEvent} e*/
@@ -100,6 +93,15 @@
 			})
 		);
 	}
+	run(() => {
+		project = $selectedId.replace(/(.*?)[\.:].*/, '$1');
+	});
+	run(() => {
+		if (project != '' && ws?.readyState == WebSocket.OPEN) {
+			message = '';
+			runAction('attach');
+		}
+	});
 </script>
 
 {#if project == ''}
@@ -108,7 +110,7 @@
 	<h1>Checking for project <u>{project}</u>!</h1>
 {/if}
 {#if project != '' && message != ''}
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<AppShell>
 		<svelte:fragment slot="header">
 			<AppBar padding="p-1 pl-4" background="dark:bg-surface-500 bg-surface-50">
@@ -120,12 +122,12 @@
 
 				<svelte:fragment slot="trail">
 					<button
-						on:click={() => runAction('build_dev')}
+						onclick={() => runAction('build_dev')}
 						type="button"
 						class="p-2 rounded-xl bg-surface-700">Run</button
 					>
 					<button
-						on:click={() => runAction('kill')}
+						onclick={() => runAction('kill')}
 						type="button"
 						class="p-2 rounded-xl bg-surface-700">Kill</button
 					>
@@ -154,7 +156,7 @@
 			<iframe bind:this={iframe} class="h-full w-full" title="test" src={iframeUrl} />
 		{/if}
 		<svelte:fragment slot="footer">
-			<div class="draggable border-4 w-full" on:mousedown={onDrag} />
+			<div class="draggable border-4 w-full" onmousedown={onDrag} />
 			<textarea
 				bind:this={textarea}
 				readonly={true}

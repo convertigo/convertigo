@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { keysCheck, categoryStore } from '$lib/admin/stores/keysStore';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
@@ -11,7 +13,7 @@
 
 	const keyModalStore = getModalStore();
 
-	let newKey = '';
+	let newKey = $state('');
 
 	onMount(() => {
 		keysCheck();
@@ -101,7 +103,7 @@
 </script>
 
 <Card title="Keys">
-	<form on:submit|preventDefault={handleFormSubmit} class="space-x-0 flex gap-2 items-center">
+	<form onsubmit={preventDefault(handleFormSubmit)} class="space-x-0 flex gap-2 items-center">
 		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 		<button type="submit" class="basic-button">
 			<Ico icon="vaadin:key-o" />
@@ -148,40 +150,40 @@
 						{ name: 'Delete', custom: true }
 					]}
 					data={category.keys}
-					let:row
-					let:def
 				>
-					{#if def.custom}
-						{#if def.name === 'Expiration Date'}
-							{#if row[def.key] === '0'}
-								<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
-									{formatExpiration(row[def.key])}
-								</div>
-							{:else}
-								<div class="bg-tertiary-400-500-token rounded-token py-1 px-1 text-token">
-									{formatExpiration(row[def.key])}
-								</div>
+					{#snippet children(row, def)}
+						{#if def.custom}
+							{#if def.name === 'Expiration Date'}
+								{#if row[def.key] === '0'}
+									<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
+										{formatExpiration(row[def.key])}
+									</div>
+								{:else}
+									<div class="bg-tertiary-400-500-token rounded-token py-1 px-1 text-token">
+										{formatExpiration(row[def.key])}
+									</div>
+								{/if}
+							{:else if def.name === 'In use'}
+								<span class="">{category['@_total']}</span>
+							{:else if def.name === 'Remaining'}
+								<span class="">{category['@_remaining']}</span>
+							{:else if def.name === 'Expired'}
+								{#if row[def.key] === 'false'}
+									<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
+										{row[def.key]}
+									</div>
+								{:else}
+									<div class="bg-red-400">{row[def.key]}</div>
+								{/if}
+							{:else if def.name === 'Delete'}
+								<button class="delete-button" onclick={() => openModalDeleteKey(row['@_text'])}>
+									<Icon icon="mingcute:delete-line" class="h-4 w-4 " />
+								</button>
 							{/if}
-						{:else if def.name === 'In use'}
-							<span class="">{category['@_total']}</span>
-						{:else if def.name === 'Remaining'}
-							<span class="">{category['@_remaining']}</span>
-						{:else if def.name === 'Expired'}
-							{#if row[def.key] === 'false'}
-								<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
-									{row[def.key]}
-								</div>
-							{:else}
-								<div class="bg-red-400">{row[def.key]}</div>
-							{/if}
-						{:else if def.name === 'Delete'}
-							<button class="delete-button" on:click={() => openModalDeleteKey(row['@_text'])}>
-								<Icon icon="mingcute:delete-line" class="h-4 w-4 " />
-							</button>
+						{:else}
+							<td>{row[def.key]}</td>
 						{/if}
-					{:else}
-						<td>{row[def.key]}</td>
-					{/if}
+					{/snippet}
 				</TableAutoCard>
 			</Card>
 		</div>

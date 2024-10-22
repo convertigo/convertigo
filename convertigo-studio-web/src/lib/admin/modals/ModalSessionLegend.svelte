@@ -46,22 +46,22 @@
 			{ name: 'Icon', custom: true }
 		]}
 		data={legendItems}
-		let:row
-		let:def
 	>
-		{#if def.name === 'Name'}
-			{row.title}
-		{/if}
+		{#snippet children(row, def)}
+			{#if def.name === 'Name'}
+				{row.title}
+			{/if}
 
-		{#if def.name === 'Icon'}
-			<div class="flex">
-				{#if row.icon !== undefined}
-					<Icon icon={row.icon} class="w-6 h-6" />
-				{/if}
-				{#if row.icon2}
-					<Icon icon={row.icon2} class="w-6 h-6" />
-				{/if}
-			</div>
-		{/if}
+			{#if def.name === 'Icon'}
+				<div class="flex">
+					{#if row.icon !== undefined}
+						<Icon icon={row.icon} class="w-6 h-6" />
+					{/if}
+					{#if row.icon2}
+						<Icon icon={row.icon2} class="w-6 h-6" />
+					{/if}
+				</div>
+			{/if}
+		{/snippet}
 	</TableAutoCard>
 </Card>

@@ -7,14 +7,15 @@
 	const dispatch = createEventDispatcher();
 	const modalStore = getModalStore();
 
-	export let nodeData;
+	/** @type {{nodeData: any}} */
+	let { nodeData } = $props();
 
 	let label = getLabel();
-	let name = getName();
+	let name = $state(getName());
 
-	let editing = false;
+	let editing = $state(false);
 	let initial = getName();
-	let input;
+	let input = $state();
 
 	function getName() {
 		let s = '' + nodeData.id;
@@ -99,9 +100,9 @@
 		aria-autocomplete="none"
 		bind:this={input}
 		value={name}
-		on:input={handleInput}
-		on:keyup={handleKeyUp}
-		on:blur={handleBlur}
+		oninput={handleInput}
+		onkeyup={handleKeyUp}
+		onblur={handleBlur}
 	/>
 {:else}
 	<span>{label}</span>

@@ -21,14 +21,14 @@
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
 
-	$: data = [
+	let data = $derived([
 		{
 			contexts: `${$contextsInUse} / ${$contextsNumber}`,
 			threads: `${$threadsInUse} / ${$threadsNumber}`,
 			sessions: `${$sessionsInUse} / ${$sessionsNumber}`,
 			timeout: $httpTimeout
 		}
-	];
+	]);
 
 	onMount(() => {
 		connectionsCheck();
@@ -76,13 +76,13 @@
 <Card title="Sessions">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="basic-button" on:click={refreshConnections}>
+			<button class="basic-button" onclick={refreshConnections}>
 				<Ico icon="simple-line-icons:reload" />
 				<p>Refresh Sessions</p>
 			</button>
 			<button
 				class="basic-button"
-				on:click={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
+				onclick={() => modalStore.trigger({ type: 'component', component: 'modalSessionLegend' })}
 			>
 				<Ico icon="mdi:eye" />
 				<p>Show Legends</p>
@@ -103,21 +103,21 @@
 			{ name: 'Delete', custom: true }
 		]}
 		data={$sessionsStore}
-		let:row
-		let:def
 	>
-		{#if def.name === 'Delete'}
-			<button class="delete-button">
-				<Ico icon="mingcute:delete-line" />
-			</button>
-		{/if}
+		{#snippet children(row, def)}
+			{#if def.name === 'Delete'}
+				<button class="delete-button">
+					<Ico icon="mingcute:delete-line" />
+				</button>
+			{/if}
+		{/snippet}
 	</TableAutoCard>
 </Card>
 
 <Card title="Contexts">
 	<div slot="cornerOption">
 		<ButtonsContainer>
-			<button class="basic-button" on:click={refreshConnections}
+			<button class="basic-button" onclick={refreshConnections}
 				><Ico icon="simple-line-icons:reload" />
 				<p>Refresh Sessions</p>
 			</button>
@@ -135,14 +135,14 @@
 			{ name: 'Delete', custom: true }
 		]}
 		data={$connectionsStore}
-		let:row
-		let:def
 	>
-		{#if def.name === 'Delete'}
-			<button class="delete-button">
-				<Ico icon="mingcute:delete-line" />
-			</button>
-		{/if}
+		{#snippet children(row, def)}
+			{#if def.name === 'Delete'}
+				<button class="delete-button">
+					<Ico icon="mingcute:delete-line" />
+				</button>
+			{/if}
+		{/snippet}
 	</TableAutoCard>
 </Card>
 

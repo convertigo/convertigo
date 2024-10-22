@@ -10,7 +10,7 @@
 
 	const modalStore = getModalStore();
 
-	let selectRow = false;
+	let selectRow = $state(false);
 	let selectedUsers = new Set();
 	let allSelected = false;
 	onMount(() => {
@@ -147,30 +147,30 @@
 
 <Card title="Roles">
 	<div slot="cornerOption">
-		<button class="delete-button" on:click={openDeleteAllModal}>
+		<button class="delete-button" onclick={openDeleteAllModal}>
 			<Ico icon="mingcute:delete-line" />
 			<p>Delete All Roles</p>
 		</button>
 	</div>
 	<ButtonsContainer class="mb-10">
 		{#each Object.entries(userActions) as [type, { name, icon }]}
-			<button class="basic-button" on:click={() => openModals(type)}>
+			<button class="basic-button" onclick={() => openModals(type)}>
 				<p>{name}</p>
 				<Ico {icon} />
 			</button>
 		{/each}
 
-		<button class={selectRow ? 'delete-button' : 'basic-button'} on:click={DisplaySelectRow}>
+		<button class={selectRow ? 'delete-button' : 'basic-button'} onclick={DisplaySelectRow}>
 			<p>{selectRow ? 'Cancel Export' : 'Export Users'}</p>
 			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
 		</button>
 
 		{#if selectRow}
-			<button class="yellow-button" on:click={exportUserFile}>
+			<button class="yellow-button" onclick={exportUserFile}>
 				<p>Validate export</p>
 				<Ico icon="bytesize:export" />
 			</button>
-			<button class="green-button" on:click={selectAllRoles}>
+			<button class="green-button" onclick={selectAllRoles}>
 				<p>Select all users</p>
 				<Ico icon="bytesize:export" />
 			</button>
@@ -187,40 +187,40 @@
 				{ name: 'Delete', custom: true }
 			].filter((elt) => selectRow || elt.name != 'Export')}
 			data={$usersStore}
-			let:row
-			let:def
 		>
-			{#if def.name === 'Role'}
-				{#each row.role.split(', ').sort(sortRoles) as role}
-					<span
-						class={role.endsWith('_VIEW')
-							? 'role-view'
-							: role.endsWith('_CONFIG')
-								? 'role-config'
-								: 'role-other'}
-					>
-						{role.replace(/_/g, '-').charAt(0).toUpperCase() +
-							role.replace(/_/g, ' ').slice(1).toLowerCase()}
-					</span>
-				{/each}
-			{:else if def.name === 'Edit'}
-				<button class="yellow-button" on:click={() => openModals('add', row)}>
-					<Ico icon="mdi:edit-outline" />
-				</button>
-			{:else if def.name === 'Delete'}
-				<button class="delete-button" on:click={() => openDeleteModal(row.name)}>
-					<Ico icon="mingcute:delete-line" />
-				</button>
-			{:else if def.name === 'Export'}
-				<!-- <SlideToggle
+			{#snippet children(row, def)}
+				{#if def.name === 'Role'}
+					{#each row.role.split(', ').sort(sortRoles) as role}
+						<span
+							class={role.endsWith('_VIEW')
+								? 'role-view'
+								: role.endsWith('_CONFIG')
+									? 'role-config'
+									: 'role-other'}
+						>
+							{role.replace(/_/g, '-').charAt(0).toUpperCase() +
+								role.replace(/_/g, ' ').slice(1).toLowerCase()}
+						</span>
+					{/each}
+				{:else if def.name === 'Edit'}
+					<button class="yellow-button" onclick={() => openModals('add', row)}>
+						<Ico icon="mdi:edit-outline" />
+					</button>
+				{:else if def.name === 'Delete'}
+					<button class="delete-button" onclick={() => openDeleteModal(row.name)}>
+						<Ico icon="mingcute:delete-line" />
+					</button>
+				{:else if def.name === 'Export'}
+					<!-- <SlideToggle
 					active="min-w-12 bg-success-400 dark:bg-success-700"
 					background="min-w-12 bg-error-400 dark:bg-error-700"
 					name="slide"
 					bind:checked={value}
 					size="sm"
 				/> -->
-				<input type="checkbox" on:change={() => toggleUserSelection(row)} />
-			{/if}
+					<input type="checkbox" onchange={() => toggleUserSelection(row)} />
+				{/if}
+			{/snippet}
 		</TableAutoCard>
 	{:else}
 		<div class="table-container">

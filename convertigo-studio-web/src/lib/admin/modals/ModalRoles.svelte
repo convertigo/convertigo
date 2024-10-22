@@ -12,10 +12,11 @@
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
 
-	export let parent;
+	/** @type {{parent: any}} */
+	let { parent } = $props();
 
-	let importAction = '';
-	let importPriority = 'priority-import';
+	let importAction = $state('');
+	let importPriority = $state('priority-import');
 
 	onMount(() => {
 		if (mode == 'add' && row?.role) {
@@ -62,7 +63,7 @@
 
 {#if mode == 'add'}
 	<Card title="{row ? 'Edit' : 'Add'} User" class="p-10">
-		<form on:submit={rolesAdd}>
+		<form onsubmit={rolesAdd}>
 			{#if row}
 				<input type="hidden" name="oldUsername" value={row.name} />
 			{/if}
@@ -96,7 +97,7 @@
 				mdCols="md:grid-cols-3"
 				lgCols="lg:grid-cols-3"
 			>
-				{#each $rolesStore as { name, end, roles, toggle }}
+				{#each $rolesStore as { name, end, roles }, i}
 					<div class="container-child">
 						<div class="flex items-center gap-5">
 							<h1 class="font-bold text-xl">{name}</h1>
@@ -107,7 +108,7 @@
 								]}
 								{#each radioDef as { value, active, icon }}
 									<RadioItem
-										bind:group={toggle}
+										bind:group={$rolesStore[i].toggle}
 										on:click={() => toggleRoles(value, roles)}
 										name="viewRoles"
 										{value}

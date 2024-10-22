@@ -3,7 +3,8 @@
 	import { onMount, tick } from 'svelte';
 	import { tweened } from 'svelte/motion';
 
-	export let height;
+	/** @type {{height: any, children?: import('svelte').Snippet}} */
+	let { height = $bindable(), children } = $props();
 
 	const tHeight = tweened(height, {
 		duration: 100,
@@ -14,7 +15,7 @@
 		height = value;
 	});
 
-	let element;
+	let element = $state();
 
 	async function updateHeight(e) {
 		if (element) {
@@ -69,5 +70,5 @@
 </script>
 
 <div class="min-w-full" bind:this={element}>
-	<slot />
+	{@render children?.()}
 </div>

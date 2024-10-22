@@ -3,12 +3,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let name;
-	export let value;
+	/** @type {{Record<string, any>}} */
+	let { name, value, ...rest } = $props();
 
-	let input;
+	let input = $state();
 
-	if ($$restProps) {
+	if (rest) {
 	}
 
 	function onChange() {
@@ -28,6 +28,6 @@
 		aria-autocomplete="none"
 		id={name + '-input'}
 		{value}
-		on:change={onChange}
+		onchange={onChange}
 	/>
 </div>

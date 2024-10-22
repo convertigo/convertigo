@@ -11,14 +11,15 @@
 	const { mode, row } = $modalStore[0].meta;
 	const prefix = mode == 'secret' ? 'secret ' : '';
 	const type = mode == 'secret' ? 'password' : 'text';
-	export let parent;
-	let importAction = '';
-	let importPriority = 'priority-import';
+	/** @type {{parent: any}} */
+	let { parent } = $props();
+	let importAction = $state('');
+	let importPriority = $state('priority-import');
 
-	let binds = {
+	let binds = $state({
 		symbolName: row?.['@_name'] ?? '',
 		symbolValue: row?.['@_value'] ?? ''
-	};
+	});
 
 	async function addGlobalSymbol(e) {
 		const fd = new FormData(e.target);
@@ -102,7 +103,7 @@
 	</Card>
 {:else}
 	<Card title={row ? `Edit ${prefix}symbol` : `Add a new ${prefix}symbol`}>
-		<form on:submit={addGlobalSymbol} class="flex flex-col p-5">
+		<form onsubmit={addGlobalSymbol} class="flex flex-col p-5">
 			{#if mode == 'secret'}
 				<p class="mb-5">
 					In secret mode, the value is stored ciphered and the key automatically ends with .secret

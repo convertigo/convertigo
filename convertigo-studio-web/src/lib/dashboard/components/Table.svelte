@@ -1,6 +1,6 @@
 <script>
-	export let columns = [];
-	export let data = [];
+	/** @type {{columns?: any, data?: any}} */
+	let { columns = [], data = [] } = $props();
 </script>
 
 <table class="min-w-full divide-y divide-surface-200 dark:divide-surface-600">

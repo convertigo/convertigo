@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
 	let cpt = 0;
 </script>
 
@@ -6,7 +6,8 @@
 	import { configurations } from '../stores/configurationStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import CheckState from './CheckState.svelte';
-	export let property;
+	/** @type {{property: any}} */
+	let { property = $bindable() } = $props();
 
 	let id = `property-input-${cpt++}`;
 
@@ -38,7 +39,7 @@
 				placeholder="Enter value ..."
 				class="input-common placeholder:pl-1"
 				bind:value={property['@_value']}
-				on:input={update}
+				oninput={update}
 			/>
 		</div>
 	{:else if property['@_type'] == 'PasswordHash'}
@@ -50,7 +51,7 @@
 				placeholder="Enter value ..."
 				class="input-common input-text placeholder:pl-1"
 				bind:value={property['@_value']}
-				on:input={update}
+				oninput={update}
 			/>
 		</div>
 	{:else if property['@_type'] == 'PasswordPlain'}
@@ -62,14 +63,14 @@
 				placeholder="Enter value ..."
 				class="input-common input-text placeholder:pl-1"
 				bind:value={property['@_value']}
-				on:input={update}
+				oninput={update}
 			/>
 		</div>
 	{:else if property['@_type'] == 'Combo'}
 		<div class="flex-1 flex flex-col justify-center border-common">
 			<label class="label-common" for={id}>{property['@_description']}</label>
 
-			<select class="input-common" {id} bind:value={property['@_value']} on:change={update}>
+			<select class="input-common" {id} bind:value={property['@_value']} onchange={update}>
 				{#each property.item as option}
 					<option value={option['@_value']}>{option['#text']}</option>
 				{/each}
@@ -82,7 +83,7 @@
 	<div class="flex-none shadow-md">
 		<button
 			disabled={property['@_value'] == property['@_originalValue']}
-			on:click={() => {
+			onclick={() => {
 				property['@_value'] = property['@_originalValue'];
 				update();
 			}}
@@ -91,7 +92,7 @@
 		>
 		<button
 			disabled={property['@_value'] == property['@_defaultValue']}
-			on:click={() => {
+			onclick={() => {
 				property['@_value'] = property['@_defaultValue'];
 				update();
 			}}

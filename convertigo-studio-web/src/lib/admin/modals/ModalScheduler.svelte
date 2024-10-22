@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { getModalStore, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { call, capitalize } from '$lib/utils/service';
 	import Card from '../components/Card.svelte';
@@ -11,10 +13,11 @@
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import Container from '$lib/common/components/Container.svelte';
 
-	export let parent;
+	/** @type {{parent: any}} */
+	let { parent } = $props();
 	const modalStore = getModalStore();
 	const { mode, row } = $modalStore[0].meta ?? {};
-	let binds = {
+	let binds = $state({
 		name: row?.['@_name'] ?? '',
 		description: row?.['@_description'] ?? '',
 		enabled: row?.['@_enabled'] == 'true' ?? false,
@@ -29,14 +32,14 @@
 		jobName: row?.['@_jobName'] ?? '',
 		scheduleName: row?.['@_scheduleName'] ?? '',
 		parameter: row?.parameter ?? {}
-	};
+	});
 
-	let selected = {
+	let selected = $state({
 		project: /** @type any */ (null),
 		connector: /** @type any */ (null),
 		transaction: /** @type any */ (null),
 		sequence: /** @type any */ (null)
-	};
+	});
 
 	onMount(() => {
 		projectsCheck().then(() => {
@@ -73,7 +76,7 @@
 </script>
 
 <Card title={$modalStore[0]?.title} class="max-w-full">
-	<form on:submit|preventDefault={createScheduledElements}>
+	<form onsubmit={preventDefault(createScheduledElements)}>
 		<input type="hidden" name="type" value="schedulerNew{mode}" />
 		<div class="flex flew-row flex-wrap gap-5 justify-stretch">
 			<Card>
@@ -140,7 +143,7 @@
 								<select
 									{name}
 									class="input-common"
-									on:change={(/** @type any */ e) => handleChange(name, e?.target?.value)}
+									onchange={(/** @type any */ e) => handleChange(name, e?.target?.value)}
 									bind:value={binds[name]}
 								>
 									{#each Object.keys(obj) as k}
@@ -161,7 +164,7 @@
 							type="number"
 							name="parallelJob"
 							bind:value={binds.parallelJob}
-							on:change={(/** @type any */ e) => (e.target.value = Math.max(e.target.value, 1))}
+							onchange={(/** @type any */ e) => (e.target.value = Math.max(e.target.value, 1))}
 						/>
 
 						<p class="font-bold">Select jobs</p>

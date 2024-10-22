@@ -14,8 +14,8 @@
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
-	let tabSet = 0;
-	let selectRow = false;
+	let tabSet = $state(0);
+	let selectRow = $state(false);
 	let selectedUsers = new Set();
 	let allSelected = false;
 
@@ -160,7 +160,7 @@
 <Card title="Global Symbols">
 	<div slot="cornerOption">
 		<div class="flex-1">
-			<button class="delete-button" on:click={openConfirmDeleteAll}
+			<button class="delete-button" onclick={openConfirmDeleteAll}
 				><Ico icon="mingcute:delete-line" />
 				<p>Delete symbols</p>
 			</button>
@@ -169,23 +169,23 @@
 
 	<ButtonsContainer class="mb-10">
 		{#each Object.entries(symbolsActions) as [type, { name, icon }]}
-			<button class="basic-button" on:click={() => openSymbolModal(type)}>
+			<button class="basic-button" onclick={() => openSymbolModal(type)}>
 				<p>{name}</p>
 				<Ico {icon} />
 			</button>
 		{/each}
 
-		<button class={selectRow ? 'delete-button' : 'basic-button'} on:click={DisplaySelectRow}>
+		<button class={selectRow ? 'delete-button' : 'basic-button'} onclick={DisplaySelectRow}>
 			<p>{selectRow ? 'Cancel Export' : 'Export Symbols'}</p>
 			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
 		</button>
 
 		{#if selectRow}
-			<button class="green-button" on:click={exportUserFile}>
+			<button class="green-button" onclick={exportUserFile}>
 				<p>Validate export</p>
 				<Ico icon="bytesize:export" />
 			</button>
-			<button class="yellow-button" on:click={selectAllUsersFunction}>
+			<button class="yellow-button" onclick={selectAllUsersFunction}>
 				<p>Select all users</p>
 				<Ico icon="bytesize:export" />
 			</button>
@@ -228,29 +228,29 @@
 						{ name: 'Delete', custom: true }
 					].filter((elt) => selectRow || elt.name != 'Export')}
 					data={$globalSymbolsList}
-					let:row
-					let:def
 				>
-					{#if def.custom}
-						{#if def.name === 'Edit'}
-							<button class="yellow-button" on:click={() => openSymbolModal('edit', row)}>
-								<Ico icon="mdi:edit-outline" />
-							</button>
-						{:else if def.name === 'Delete'}
-							<button class="delete-button" on:click={() => confirmSymbolDeletion(row['@_name'])}>
-								<Ico icon="mingcute:delete-line" />
-							</button>
-						{:else if def.name === 'Export'}
-							<!-- <SlideToggle
+					{#snippet children(row, def)}
+						{#if def.custom}
+							{#if def.name === 'Edit'}
+								<button class="yellow-button" onclick={() => openSymbolModal('edit', row)}>
+									<Ico icon="mdi:edit-outline" />
+								</button>
+							{:else if def.name === 'Delete'}
+								<button class="delete-button" onclick={() => confirmSymbolDeletion(row['@_name'])}>
+									<Ico icon="mingcute:delete-line" />
+								</button>
+							{:else if def.name === 'Export'}
+								<!-- <SlideToggle
 								active="min-w-12 bg-success-400 dark:bg-success-700"
 								background="min-w-12 bg-error-400 dark:bg-error-700"
 								name="slide"
 								bind:checked={value}
 								size="sm"
 							/> -->
-							<input type="checkbox" on:change={() => toggleUserSelection(row)} />
+								<input type="checkbox" onchange={() => toggleUserSelection(row)} />
+							{/if}
 						{/if}
-					{/if}
+					{/snippet}
 				</TableAutoCard>
 			{:else if tabSet === 1}
 				{#if $defaultSymbolList.length >= 0}
@@ -263,14 +263,14 @@
 							{ name: 'Add', custom: true, key: 'add' }
 						]}
 						data={$defaultSymbolList}
-						let:row
-						let:def
 					>
-						{#if def.name === 'Add'}
-							<button class="green-button" on:click={() => addDefaultSymbol(row)}>
-								<Ico icon="grommet-icons:add" />
-							</button>
-						{/if}
+						{#snippet children(row, def)}
+							{#if def.name === 'Add'}
+								<button class="green-button" onclick={() => addDefaultSymbol(row)}>
+									<Ico icon="grommet-icons:add" />
+								</button>
+							{/if}
+						{/snippet}
 					</TableAutoCard>
 				{:else}
 					no data

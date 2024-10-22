@@ -2,7 +2,8 @@
 	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { writable } from 'svelte/store';
 	import Container from '$lib/common/components/Container.svelte';
-	export let cronExpression = '0 0 0 * * ?';
+	/** @type {{cronExpression?: string}} */
+	let { cronExpression = $bindable('0 0 0 * * ?') } = $props();
 
 	function createRange(aRange) {
 		const newRange = [];
@@ -90,11 +91,13 @@
 
 	const binds = new Array(def.length).fill(null);
 
-	$: selection = writable(
-		cronExpression
-			.split(' ')
-			.slice(1, 6)
-			.map((v) => parseRange(v))
+	let selection = $derived(
+		writable(
+			cronExpression
+				.split(' ')
+				.slice(1, 6)
+				.map((v) => parseRange(v))
+		)
 	);
 
 	function changed(event, index) {

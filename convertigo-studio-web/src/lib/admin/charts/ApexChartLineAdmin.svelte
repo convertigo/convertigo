@@ -1,16 +1,16 @@
 <script>
-	import { onMount } from 'svelte';
+	import { run } from 'svelte/legacy';
+
+	import { onMount, untrack } from 'svelte';
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
-	export let categories;
-	export let series;
-	export let title;
-	export let isLoading;
-	let chart;
-	let chartEl;
+	/** @type {{categories: any, series: any, title: any, isLoading: any}} */
+	let { categories, series, title, isLoading } = $props();
+	let chart = $state();
+	let chartEl = $state();
 	/** @type {any} */
-	let options = {
+	let options = $state({
 		theme: {
 			mode: $modeCurrent ? 'light' : 'dark'
 		},
@@ -56,18 +56,22 @@
 			offsetY: -25,
 			offsetX: 0
 		}
-	};
+	});
 
-	$: if (categories && categories.length > 0 && series && series.length > 0 && chart != undefined) {
-		delete options.chart.foreColor;
-		delete options.chart.background;
-		delete options.theme.palette;
+	$effect(() => {
+		if (series && series.length > 0 && categories && categories.length > 0 && chart != undefined) {
+			delete options.chart.foreColor;
+			delete options.chart.background;
+			delete options.theme.palette;
 
-		options.theme.mode = $modeCurrent ? 'light' : 'dark';
-		options.xaxis.categories = categories;
-		options.series = series;
-		chart.updateOptions(options);
-	}
+			options.theme.mode = $modeCurrent ? 'light' : 'dark';
+			options.xaxis.categories = categories;
+			options.series = series;
+			untrack(() => {
+				chart.updateOptions(options);
+			});
+		}
+	});
 
 	onMount(() => {
 		chart = new ApexCharts(chartEl, options);

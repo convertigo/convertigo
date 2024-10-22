@@ -1,13 +1,16 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { SlideToggle, getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '../components/Card.svelte';
 	import { checkArray } from '$lib/utils/service';
 
 	const modalStore = getModalStore();
 	const { category, filters, mode, ts } = $modalStore[0].meta;
-	let { value, not } = $modalStore[0].meta;
+	let { value, not } = $state($modalStore[0].meta);
 
-	export let parent;
+	/** @type {{parent: any}} */
+	let { parent } = $props();
 
 	function submit(e) {
 		filters.update((f) => {
@@ -31,7 +34,7 @@
 </script>
 
 <Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
-	<form on:submit|preventDefault={submit} class="flex flex-col gap-2">
+	<form onsubmit={preventDefault(submit)} class="flex flex-col gap-2">
 		{#if category == 'Message'}
 			<textarea
 				class="textarea overflow-auto"

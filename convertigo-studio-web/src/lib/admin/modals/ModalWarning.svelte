@@ -59,7 +59,7 @@
 			{/if}
 			<div class="flex flex-wrap">
 				<button
-					on:click={() => {
+					onclick={() => {
 						if ($modalStore[0].response) {
 							$modalStore[0].response(false);
 							modalStore.close();
@@ -81,7 +81,7 @@
 			{/if}
 			<div class="flex flex-wrap">
 				<button
-					on:click={() => {
+					onclick={() => {
 						if ($modalStore[0].response) {
 							$modalStore[0].response(false);
 							modalStore.close();
@@ -103,7 +103,7 @@
 			{/if}
 			<div class="flex flex-wrap">
 				<button
-					on:click={() => {
+					onclick={() => {
 						if ($modalStore[0].response) {
 							$modalStore[0].response(false);
 							modalStore.close();

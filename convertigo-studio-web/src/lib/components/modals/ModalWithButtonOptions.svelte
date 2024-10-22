@@ -1,10 +1,8 @@
 <script>
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
-	/** Exposes parent props to this component. */
-	export let parent;
-
-	export let buttons = [];
+	/** @type {{parent: any, buttons?: any}} */
+	let { parent, buttons = [] } = $props();
 
 	const modalStore = getModalStore();
 
@@ -31,12 +29,12 @@
 				<button
 					class="btn w-full {parent.buttonPositive}"
 					value={button.value}
-					on:click={onButtonClick}>{button.label}</button
+					onclick={onButtonClick}>{button.label}</button
 				>
 			</div>
 		{/each}
 		<footer class="modal-footer {parent.regionFooter}">
-			<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}
+			<button class="btn {parent.buttonNeutral}" onclick={parent.onClose}
 				>{parent.buttonTextCancel}</button
 			>
 		</footer>

@@ -2,21 +2,24 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 
-	export let inputValue = '00:00:00,000';
+	/** @type {{inputValue?: string}} */
+	let { inputValue = $bindable('00:00:00,000') } = $props();
 	const size = 150;
-	let showClock = false;
-	let time = { hour: 0, minute: 0, second: 0, millisecond: 0 };
-	let selectedUnit = 0;
-	let isDragging = false;
-	let handCoords = { x: 0, y: 0 };
+	let showClock = $state(false);
+	let time = $state({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+	let selectedUnit = $state(0);
+	let isDragging = $state(false);
+	let handCoords = $state({ x: 0, y: 0 });
 
 	const centerX = size / 2;
 	const centerY = size / 2;
 	const radius = size / 2 - 15;
 
-	let root, input, timeout;
+	let root = $state(),
+		input = $state(),
+		timeout;
 
 	const units = [
 		{ name: 'hour', count: 24, markers: 12, prefix: '' },
@@ -32,11 +35,6 @@
 
 	const handPosition = tweened({ angle: 0 }, { duration: 300, easing: cubicOut });
 	const unitPosition = tweened(-13, { duration: 300, easing: cubicOut });
-
-	$: {
-		handCoords = polarToCartesian(centerX, centerY, radius, $handPosition.angle);
-		unitPosition.set(handCoords.y > centerY ? -13 : 13);
-	}
 
 	function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
 		const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
@@ -62,11 +60,13 @@
 	}
 
 	function handleMouseDown(event) {
+		event.preventDefault();
 		isDragging = true;
 		handleMove(event);
 	}
 
 	function handleMouseUp(event) {
+		event.preventDefault();
 		isDragging = false;
 		const rect = event.target.closest('svg')?.getBoundingClientRect();
 		if (!rect) return;
@@ -82,14 +82,17 @@
 	}
 
 	function handleTouchStart(event) {
+		event.preventDefault();
 		handleMouseDown(event.touches[0]);
 	}
 
 	function handleTouchMove(event) {
+		event.preventDefault();
 		handleMove(event.touches[0]);
 	}
 
 	function handleTouchEnd(event) {
+		event.preventDefault();
 		handleMouseUp(event.changedTouches[0]);
 	}
 
@@ -207,6 +210,12 @@
 	});
 
 	updateTimeValue();
+	$effect(() => {
+		handCoords = polarToCartesian(centerX, centerY, radius, $handPosition.angle);
+		untrack(() => {
+			$unitPosition = handCoords.y > centerY ? -13 : 13;
+		});
+	});
 </script>
 
 <div class="relative flex flex-col items-center" bind:this={root}>
@@ -217,24 +226,24 @@
 		size="11"
 		bind:this={input}
 		bind:value={inputValue}
-		on:click={inputClick}
-		on:keydown={inputKeyDown}
-		on:keyup={inputKeyUp}
-		on:blur={close}
-		on:change={updateTimeValue}
+		onclick={inputClick}
+		onkeydown={inputKeyDown}
+		onkeyup={inputKeyUp}
+		onblur={close}
+		onchange={updateTimeValue}
 	/>
 
 	{#if showClock}
 		<div
 			class="clock cursor-pointer select-none"
 			style="width: {size}px; height: {size}px; position: absolute; top: 35px; z-index: 1000; box-shadow: 5px 5px 10px 0px #404040;"
-			on:mousedown|preventDefault={handleMouseDown}
-			on:mousemove|preventDefault={handleMove}
-			on:mouseup|preventDefault={handleMouseUp}
-			on:mouseleave|preventDefault={() => (isDragging = false)}
-			on:touchstart|preventDefault={handleTouchStart}
-			on:touchmove|preventDefault={handleTouchMove}
-			on:touchend|preventDefault={handleTouchEnd}
+			onmousedown={handleMouseDown}
+			onmousemove={handleMove}
+			onmouseup={handleMouseUp}
+			onmouseleave={(e) => {e.preventDefault(); isDragging = false;}}
+			ontouchstart={handleTouchStart}
+			ontouchmove={handleTouchMove}
+			ontouchend={handleTouchEnd}
 			transition:fly={{ x: 0, y: -30, duration: 300 }}
 		>
 			<svg width={size} height={size}>

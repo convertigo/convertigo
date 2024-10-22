@@ -11,17 +11,17 @@
 		projectsCheck();
 	});
 
-	let searchQuery = '';
-	let rootProject;
+	let searchQuery = $state('');
+	let rootProject = $state();
 
-	let filters = [
+	let filters = $state([
 		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
 		{
 			icon: 'ph:books-thin',
 			count: 0,
 			filter: (project) => project['@_name'].startsWith('lib')
 		}
-	];
+	]);
 
 	function handleHashChange() {
 		const hash = window.location.hash?.substring(1);
@@ -41,22 +41,24 @@
 		};
 	});
 
-	$: filteredProjects = $projectsStore.filter((project) => {
-		if (rootProject) {
-			return (
-				project['@_name'] == rootProject['@_name'] || rootProject.ref?.includes(project['@_name'])
-			);
-		}
-		let ok = project['@_name'].toLowerCase().includes(searchQuery.toLowerCase());
-		if (ok) {
-			for (let { count, filter } of filters) {
-				if ((count == 1 && !filter(project)) || (count == 2 && filter(project))) {
-					return false;
+	let filteredProjects = $derived(
+		$projectsStore.filter((project) => {
+			if (rootProject) {
+				return (
+					project['@_name'] == rootProject['@_name'] || rootProject.ref?.includes(project['@_name'])
+				);
+			}
+			let ok = project['@_name'].toLowerCase().includes(searchQuery.toLowerCase());
+			if (ok) {
+				for (let { count, filter } of filters) {
+					if ((count == 1 && !filter(project)) || (count == 2 && filter(project))) {
+						return false;
+					}
 				}
 			}
-		}
-		return ok;
-	});
+			return ok;
+		})
+	);
 </script>
 
 <CardD class="gap-5">
@@ -76,7 +78,7 @@
 						style="padding: 2px"
 						class:variant-ghost-secondary={count != 1}
 						class:variant-filled-secondary={count == 1}
-						on:click={() => {
+						onclick={() => {
 							filters[i].count = count == 1 ? 0 : 1;
 						}}
 					>
@@ -87,7 +89,7 @@
 						style="padding: 2px"
 						class:variant-ghost-warning={count != 2}
 						class:variant-filled-warning={count == 2}
-						on:click={() => {
+						onclick={() => {
 							filters[i].count = count == 2 ? 0 : 2;
 						}}
 					>
@@ -161,7 +163,7 @@
 					</div>
 					<div
 						class="px-2 truncate cursor-help"
-						on:click={(e) => {
+						onclick={(e) => {
 							e?.target?.['classList']?.toggle('truncate');
 						}}
 					>

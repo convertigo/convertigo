@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
 	import ArcticonsDocScanner from '~icons/arcticons/doc-scanner?raw';
 	import BytesizeExport from '~icons/bytesize/export?raw';
 	import BytesizeImport from '~icons/bytesize/import?raw';
@@ -171,27 +171,27 @@
 	import { onMount } from 'svelte';
 	import { draw } from 'svelte/transition';
 
-	export let icon;
+	/** @type {{icon: any, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any}} */
+	let {
+		icon,
+		size = $bindable(4),
+		class: cls = '',
+		animate = false,
+		repeat = false,
+		strokeWidth = undefined
+	} = $props();
 
-	/** @type {string|number} */
-	export let size = 4;
-	let cls = '';
-	export { cls as class };
 	if (size == 'nav') {
 		size = 5;
 	}
 	if (size == 'dashboard') {
 		size = 5;
 	}
-	/** @type {boolean|import('svelte/transition').DrawParams } */
-	export let animate = false;
-	export let repeat = false;
-	export let strokeWidth = undefined;
 
-	let _animate = { duration: 2000 };
+	let _animate = $state({ duration: 2000 });
 
-	let svg = null;
-	let show = false;
+	let svg = $state(null);
+	let show = $state(false);
 	if (animate) {
 		if (animate != true) {
 			// @ts-ignore

@@ -1,23 +1,28 @@
 <script>
+	import { createBubbler } from 'svelte/legacy';
+	const bubble = createBubbler();
+
 	import { createEventDispatcher } from 'svelte';
 	import StringEditor from './StringEditor.svelte';
 	import BooleanEditor from './BooleanEditor.svelte';
 	import ListEditor from './ListEditor.svelte';
 	import StaticEditor from './StaticEditor.svelte';
+	/** @type {{Record<string, any>}} */
+	let { ...props } = $props();
 
 	const dispatch = createEventDispatcher();
 
 	let prop = $$props;
 
-	if ($$restProps) {
+	if (props) {
 	}
 
-	let clone = getClone();
+	let clone = $state(getClone());
 
-	let btn;
+	let btn = $state();
 	initMode();
 
-	let editor = {};
+	let editor = $state({});
 	function restart() {
 		editor = {};
 	}
@@ -167,15 +172,15 @@
 	</div>
 	<div class="flex flex-nowrap">
 		{#each ['TX', 'TS', 'SC'] as c}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				class="chip text-[11.5px] ml-2 py-0 {btn === c
 					? 'dark:bg-surface-500 bg-surface-300'
 					: 'variant-soft'}"
-				on:click={() => {
+				onclick={() => {
 					setMode(c, true);
 				}}
-				on:keypress
+				onkeypress={bubble('keypress')}
 			>
 				<span>{c}</span>
 			</div>

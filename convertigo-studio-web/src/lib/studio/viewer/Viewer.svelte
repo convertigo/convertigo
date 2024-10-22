@@ -1,13 +1,17 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { selectedId } from '$lib/studio/treeview/treeStore';
 	import { getUrl } from '$lib/utils/service';
 
-	let src = 'about:blank';
+	let src = $state('about:blank');
 
-	$: src = `${getUrl()}../../projects/${$selectedId.replace(
-		/(.*?)[\.:].*/,
-		'$1'
-	)}/DisplayObjects/mobile/`;
+	run(() => {
+		src = `${getUrl()}../../projects/${$selectedId.replace(
+			/(.*?)[\.:].*/,
+			'$1'
+		)}/DisplayObjects/mobile/`;
+	});
 </script>
 
 <iframe title="viewer" {src} class="w-full h-full" />

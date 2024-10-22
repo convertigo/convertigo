@@ -3,13 +3,17 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import Icon from '@iconify/svelte';
 
-	export let definition;
-	export let data;
-	export let showHeaders = true;
-	export let title = '';
-	export let comment = '';
-	let cls = '';
-	export { cls as class };
+	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>}} */
+	let {
+		definition,
+		data,
+		showHeaders = true,
+		title = '',
+		comment = '',
+		class: cls = '',
+		title_1,
+		children
+	} = $props();
 </script>
 
 <div class="table-container {cls}">
@@ -19,7 +23,7 @@
 	{#if comment.length > 0}
 		<h1 class="font-bold text-surface-300 p-3">{comment}</h1>
 	{/if}
-	<slot name="title" />
+	{@render title_1?.()}
 
 	<table class="rounded-token table">
 		{#if showHeaders}
@@ -51,7 +55,11 @@
 								data-label={def.name ?? ''}
 							>
 								{#if def.custom}
-									<slot {row} {def}>{row[def.key] ?? ''}</slot>
+									{#if children}
+										{@render children(row, def)}
+									{:else}
+										{row[def.key] ?? ''}
+									{/if}
 								{:else}
 									<AutoPlaceholder loading={row[def.key] == null}
 										>{row[def.key] ?? ''}</AutoPlaceholder

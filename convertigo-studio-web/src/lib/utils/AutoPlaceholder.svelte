@@ -1,11 +1,10 @@
 <script>
-	export let loading = true;
-	let cls = '';
-	export { cls as class };
+	/** @type {{loading?: boolean, class?: string, children?: import('svelte').Snippet}} */
+	let { loading = true, class: cls = '', children } = $props();
 </script>
 
 {#if loading}
 	<div class={`placeholder animate-pulse w-full min-w-32 ${cls}`}></div>
 {:else}
-	<slot />
+	{@render children?.()}
 {/if}

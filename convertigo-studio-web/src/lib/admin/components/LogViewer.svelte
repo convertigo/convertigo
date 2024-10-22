@@ -65,15 +65,16 @@
 		Message: { idx: 4 }
 	};
 
-	export let autoScroll = false;
-	let extraLines = 1;
-	let isDragging = false;
-	let virtualList;
-	let pulsedCategory;
+	/** @type {{autoScroll?: boolean}} */
+	let { autoScroll = $bindable(false) } = $props();
+	let extraLines = $state(1);
+	let isDragging = $state(false);
+	let virtualList = $state();
+	let pulsedCategory = $state();
 	let pulsedCategoryTimeout;
-	let showedLines = { start: 0, end: 0 };
-	let height = 200;
-	let fullscreen = false;
+	let showedLines = $state({ start: 0, end: 0 });
+	let height = $state(200);
+	let fullscreen = $state(false);
 
 	function doPulse(e) {
 		if (e.type == 'click') {
@@ -188,23 +189,27 @@
 		$allLogs = $allLogs;
 	});
 
-	$: columns = $columnsOrder
-		.filter((c) => c.show)
-		.map((c) => ({
-			name: c.name,
+	let columns = $derived(
+		$columnsOrder
+			.filter((c) => c.show)
+			.map((c) => ({
+				name: c.name,
 
-			cls: columnsConfiguration[c.name]?.cls ?? '',
-			style: `width: ${c.width}px; min-width: ${c.width}px;`
-		}));
+				cls: columnsConfiguration[c.name]?.cls ?? '',
+				style: `width: ${c.width}px; min-width: ${c.width}px;`
+			}))
+	);
 
-	let scrollToIndex;
-	$: if (scrollToIndex >= $logs.length) {
-		scrollToIndex = undefined;
-	}
+	let scrollToIndex = $state();
+	$effect(() => {
+		if (scrollToIndex >= $logs.length) {
+			scrollToIndex = undefined;
+		}
+	});
 
-	let searched = '';
-	let founds = [];
-	let foundsIndex = 0;
+	let searched = $state('');
+	let founds = $state([]);
+	let foundsIndex = $state(0);
 
 	function getCenterLine() {
 		return Math.round(showedLines.start + (showedLines.end - showedLines.start) / 2);
@@ -263,9 +268,9 @@
 		e.parentElement.scrollTo({ left, behavior: 'smooth' });
 	}
 
-	let searchBox;
-	let searchInput;
-	let searchBoxOpened = false;
+	let searchBox = $state();
+	let searchInput = $state();
+	let searchBoxOpened = $state(false);
 
 	/** @type {import('@skeletonlabs/skeleton').PopupSettings } */
 	const searchBoxSetting = {
@@ -297,7 +302,7 @@
 </script>
 
 <svelte:window
-	on:keydown={(e) => {
+	onkeydown={(e) => {
 		if ((e.ctrlKey || e.metaKey) && (e.key == 'f' || e.key == 'g')) {
 			e.preventDefault();
 			if (searchBoxOpened) {
@@ -331,7 +336,7 @@
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
-								<span class="cursor-pointer" on:click={() => (conf.show = !show)}
+								<span class="cursor-pointer" onclick={() => (conf.show = !show)}
 									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
 								>
 								<DraggableValue
@@ -339,7 +344,7 @@
 									bind:delta={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
 								>
-								<span class="cursor-cell" on:click={() => addFilter(conf.name)}
+								<span class="cursor-cell" onclick={() => addFilter(conf.name)}
 									><Ico icon="mdi:filter" /></span
 								>
 								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
@@ -351,12 +356,12 @@
 		{/if}
 		<div class="row-wrap">
 			<div class="mini-card variant-filled-surface">
-				<span class="cursor-pointer" on:mousedown={() => (fullscreen = !fullscreen)}
+				<span class="cursor-pointer" onmousedown={() => (fullscreen = !fullscreen)}
 					><Ico icon="mdi:fullscreen{fullscreen ? '-exit' : ''}" /></span
 				>
 			</div>
 			<div class="mini-card variant-filled-surface">
-				<span class="cursor-pointer" on:mousedown={() => ($showFilters = !$showFilters)}
+				<span class="cursor-pointer" onmousedown={() => ($showFilters = !$showFilters)}
 					><Ico icon="mdi:filter-cog{$showFilters ? '' : '-outline'}" /></span
 				>
 			</div>
@@ -373,7 +378,7 @@
 							class="rounded-md border-none bg-transparent"
 							bind:this={searchInput}
 							bind:value={searched}
-							on:keyup={doSearch}
+							onkeyup={doSearch}
 						/>
 						<input
 							type="text"
@@ -382,8 +387,8 @@
 							readonly={true}
 							value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
 						/>
-						<button class="btn-search" on:click={doSearchPrev}>↑</button>
-						<button class="btn-search" on:click={doSearchNext}>↓</button>
+						<button class="btn-search" onclick={doSearchPrev}>↑</button>
+						<button class="btn-search" onclick={doSearchNext}>↓</button>
 						<button class="btn-search close-popup">X</button>
 					</div>
 					<div class="arrow bg-stone-200 dark:bg-stone-900" />
@@ -393,7 +398,7 @@
 				<span>Message</span>
 				<span
 					class="cursor-cell"
-					on:mousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
+					onmousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
 					><Ico icon="mdi:filter" /></span
 				>
 			</div>
@@ -413,10 +418,10 @@
 						<span class="overflow-hidden max-w-xs"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
-						<span class="cursor-pointer" on:click={() => addFilter(category, value, mode, ts, not)}>
+						<span class="cursor-pointer" onclick={() => addFilter(category, value, mode, ts, not)}>
 							<Ico icon="mdi:edit-outline" />
 						</span>
-						<span class="cursor-pointer" on:click={() => removeFilter(category, index)}>
+						<span class="cursor-pointer" onclick={() => removeFilter(category, index)}>
 							<Ico icon="mingcute:delete-line" />
 						</span>
 					</div>
@@ -427,14 +432,14 @@
 			<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
 				<span
 					class="cursor-pointer"
-					on:click={() => {
+					onclick={() => {
 						addExtraLines(1);
 					}}><Ico icon="grommet-icons:add" /></span
 				>
 				{#if extraLines > 1}
 					<span
 						class="cursor-pointer"
-						on:click={() => {
+						onclick={() => {
 							addExtraLines(-1);
 						}}><Ico icon="grommet-icons:form-subtract" /></span
 					>
@@ -450,7 +455,7 @@
 						class="p-1 {cls} text-nowrap overflow-hidden max-h-[20px]"
 						animate:grabFlip={{ duration }}
 					>
-						<div class="font-semibold cursor-help" on:click={doPulse} on:mouseover={doPulse}>
+						<div class="font-semibold cursor-help" onclick={doPulse} onmouseover={doPulse}>
 							{name}
 						</div>
 					</div>
@@ -481,7 +486,7 @@
 								{style}
 								class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
 								animate:grabFlip={{ duration }}
-								on:click={() => addFilter(name, value)}
+								onclick={() => addFilter(name, value)}
 							>
 								{value}
 							</div>
@@ -525,7 +530,7 @@
 			class="mini-card variant-filled"
 			class:variant-filled-success={!autoScroll}
 			class:variant-filled-warning={autoScroll}
-			on:click={() => {
+			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();
 			}}

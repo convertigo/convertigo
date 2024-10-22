@@ -1,5 +1,6 @@
 <script>
-	export let appUrl;
+	/** @type {{appUrl: any}} */
+	let { appUrl } = $props();
 </script>
 
 <div class="device-iphone-8 device-gold">

@@ -1,25 +1,26 @@
 <script>
 	import { Container } from 'postcss';
 
-	let cls = '';
-	export { cls as class };
-
 	// THESE ARE DEFAULT VALUES FOR THE COMP
-	export let smCols = 'sm:grid-cols-2';
-	export let mdCols = 'md:grid-cols-2';
-	export let lgCols = 'lg:grid-cols-3';
 
-	export let scrollable = true;
-
-	export let maxHeight = '60vh';
-	export let containerGap = 'gap-10';
+	/** @type {{class?: string, smCols?: string, mdCols?: string, lgCols?: string, scrollable?: boolean, maxHeight?: string, containerGap?: string, children?: import('svelte').Snippet}} */
+	let {
+		class: cls = '',
+		smCols = 'sm:grid-cols-2',
+		mdCols = 'md:grid-cols-2',
+		lgCols = 'lg:grid-cols-3',
+		scrollable = true,
+		maxHeight = '60vh',
+		containerGap = 'gap-10',
+		children
+	} = $props();
 </script>
 
 <div
 	class="grid {containerGap} {cls} {smCols} {mdCols} {lgCols} {scrollable ? 'overflow-y-auto' : ''}"
 	style="max-height: {maxHeight};"
 >
-	<slot />
+	{@render children?.()}
 </div>
 
 <style lang="postcss">

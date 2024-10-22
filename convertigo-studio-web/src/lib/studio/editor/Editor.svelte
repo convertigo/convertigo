@@ -1,4 +1,6 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 	import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
@@ -6,22 +8,27 @@
 	import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 	import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
-	export let content = '/* Loading... */';
-	export let language = 'json';
-	export let theme = 'vs-dark';
-	export let readOnly = true;
+	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean}} */
+	let {
+		content = '/* Loading... */',
+		language = 'json',
+		theme = 'vs-dark',
+		readOnly = true
+	} = $props();
 
-	let divEl;
-	let editor;
+	let divEl = $state();
+	let editor = $state();
 
-	$: if (editor) {
-		editor.updateOptions({
-			theme,
-			readOnly
-		});
-		editor.setValue(content);
-		globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), language);
-	}
+	run(() => {
+		if (editor) {
+			editor.updateOptions({
+				theme,
+				readOnly
+			});
+			editor.setValue(content);
+			globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), language);
+		}
+	});
 	onMount(() => {
 		self.MonacoEnvironment = {
 			getWorker: function (_moduleId, label) {
@@ -68,4 +75,4 @@
 
 <div bind:this={divEl} style:width="100%" />
 
-<svelte:window on:resize={resize} />
+<svelte:window onresize={resize} />

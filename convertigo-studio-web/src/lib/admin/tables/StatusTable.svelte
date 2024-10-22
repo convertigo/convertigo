@@ -10,18 +10,16 @@
 	} from '../stores/statusStore';
 	import TableAutoCard from '../components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	export let time;
-	export let startTime;
-	export let engineState;
 
-	let cls = '';
-	export { cls as class };
+	/** @type {{time: any, startTime: any, engineState: any, class?: string}} */
+	let { time, startTime, engineState, class: cls = '' } = $props();
 
 	/** @type {{Name: string, Value: string|null}[]} */
-	let data;
+	let data = $state([]);
 
-	$: {
-		data = [
+	$effect(() => {
+		/** @type {{Name: string, Value: string|null}[]} */
+		let newData = [
 			{ Name: 'Engine State', Value: engineState ? 'Running' : 'Stopped' },
 			{ Name: 'Convertigo Version', Value: $product },
 			{ Name: 'Last Startup', Value: new Date(startTime).toLocaleString() },
@@ -32,11 +30,12 @@
 			{ Name: 'Endpoint', Value: $endpoint }
 		];
 		if ($product == '' || !startTime) {
-			for (let d of data) {
+			for (let d of newData) {
 				d.Value = null;
 			}
 		}
-	}
+		data = newData;
+	});
 	onMount(() => {
 		statusCheck();
 	});
@@ -50,19 +49,19 @@
 		{ key: 'Value', custom: true }
 	]}
 	{data}
-	let:row
-	let:def
 >
-	{#if def.key === 'Name'}
-		<span class="font-normal">{row.Name}</span>
-	{:else}
-		{#if row[def.key] == 'Running'}
-			<span class="on" />
-		{:else if row[def.key] == 'Stopped'}
-			<span class="off" />
+	{#snippet children(row, def)}
+		{#if def.key === 'Name'}
+			<span class="font-normal">{row.Name}</span>
+		{:else}
+			{#if row[def.key] == 'Running'}
+				<span class="on"></span>
+			{:else if row[def.key] == 'Stopped'}
+				<span class="off"></span>
+			{/if}
+			<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
 		{/if}
-		<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
-	{/if}
+	{/snippet}
 </TableAutoCard>
 
 <style lang="postcss">

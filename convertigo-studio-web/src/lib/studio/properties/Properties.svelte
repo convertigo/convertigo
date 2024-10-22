@@ -10,7 +10,7 @@
 	import StaticEditor from './editors/StaticEditor.svelte';
 	import IonSmartEditor from './editors/IonSmartEditor.svelte';
 
-	let categories = {};
+	let categories = $state({});
 
 	const unsubscribeProperties = properties.subscribe((value) => {
 		let cats = [

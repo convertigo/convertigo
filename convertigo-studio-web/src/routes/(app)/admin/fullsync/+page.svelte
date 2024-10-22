@@ -3,7 +3,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { getUrl } from '$lib/utils/service';
 
-	let iframe;
+	let iframe = $state();
 	function onload() {
 		const iframeDoc = iframe.contentWindow.document;
 		const observer = new MutationObserver((mutations) => {
@@ -81,7 +81,7 @@
 			src={getUrl().replace('/services/', '/_utils/')}
 			title="fullsync"
 			class="h-full rounded-xl"
-			on:load={onload}
+			{onload}
 		></iframe>
 	{/if}
 </Card>

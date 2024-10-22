@@ -17,7 +17,7 @@
 		monitorCheck();
 	});
 
-	const charts = [
+	const charts = $derived([
 		{
 			title: 'Memory',
 			series: [
@@ -40,11 +40,11 @@
 				{ name: 'Available Sessions', data: $monitorData.availableSessions }
 			]
 		}
-	];
+	]);
 	/**
 	 * @type {never[]}
 	 */
-	$: categories = $monitorData.labels;
+	let categories = $derived($monitorData.labels);
 
 	async function performGC() {
 		try {
@@ -77,12 +77,12 @@
 
 <AutoGrid>
 	<Card title="Status">
-		<div slot="cornerOption">
+		{#snippet cornerOption()}
 			<ButtonsContainer>
-				<button class="basic-button" on:click={() => modal('props')}>Java System Properties</button>
-				<button class="basic-button" on:click={() => modal('env')}>Environment Variables</button>
+				<button class="basic-button" onclick={() => modal('props')}>Java System Properties</button>
+				<button class="basic-button" onclick={() => modal('env')}>Environment Variables</button>
 			</ButtonsContainer>
-		</div>
+		{/snippet}
 		<StatusTable
 			class="mt-5"
 			time={$monitorData.time}
@@ -92,9 +92,9 @@
 	</Card>
 
 	<Card title="System Information">
-		<div slot="cornerOption">
-			<button on:click={performGC} class="green-button">Perform GC</button>
-		</div>
+		{#snippet cornerOption()}
+			<button onclick={performGC} class="green-button">Perform GC</button>
+		{/snippet}
 		<SystemInformationTable
 			class="mt-5"
 			memoryMaximal={$monitorData.memoryMaximal}

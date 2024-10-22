@@ -1,13 +1,17 @@
 <script>
-	export let delta = 0;
-	let cls = '';
-	export { cls as class };
-	export let min = 5;
-	export let coef = 1;
-	export let dragging = false;
 	let start = 0;
 	let startDelta = 0;
-	export let axis = 'x';
+	/** @type {{Record<string, any>}} */
+	let {
+		delta = $bindable(0),
+		class: cls = '',
+		min = 5,
+		coef = 1,
+		dragging = $bindable(false),
+		axis = 'x',
+		children,
+		...rest
+	} = $props();
 	const events = ['mousemove', 'touchmove', 'mouseup', 'touchend'];
 
 	function getClient(event) {
@@ -40,8 +44,8 @@
 	}
 </script>
 
-<span class="draggable {cls}" on:mousedown={startDrag} on:touchstart={startDrag} {...$$restProps}
-	><slot /></span
+<span class="draggable {cls}" onmousedown={startDrag} ontouchstart={startDrag} {...rest}
+	>{@render children?.()}</span
 >
 
 <style>

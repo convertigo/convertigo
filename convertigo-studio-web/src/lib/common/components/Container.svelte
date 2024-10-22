@@ -1,11 +1,23 @@
 <script lang="ts">
-	export let flex = false;
-	export let flexCol = false;
-	export let grid = false;
-	export let cols = 1;
-	export let gap = '0';
-	let cls = '';
-	export { cls as class };
+	interface Props {
+		flex?: boolean;
+		flexCol?: boolean;
+		grid?: boolean;
+		cols?: number;
+		gap?: string;
+		class?: string;
+		children?: import('svelte').Snippet;
+	}
+
+	let {
+		flex = false,
+		flexCol = false,
+		grid = false,
+		cols = 1,
+		gap = '0',
+		class: cls = '',
+		children
+	}: Props = $props();
 </script>
 
 <div
@@ -13,5 +25,5 @@
 		flex ? (flexCol ? 'flex flex-col' : 'flex') : grid ? `grid grid-cols-${cols}` : ''
 	} gap-${gap} ${cls}`}
 >
-	<slot />
+	{@render children?.()}
 </div>

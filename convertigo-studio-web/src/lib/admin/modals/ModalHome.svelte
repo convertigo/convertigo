@@ -10,7 +10,7 @@
 
 	const modalStore = getModalStore();
 	const { mode } = $modalStore[0].meta;
-	let data = Array(10).fill({ '@_name': null, '@_value': null });
+	let data = $state(Array(10).fill({ '@_name': null, '@_value': null }));
 	onMount(() => {
 		if (mode == 'props') {
 			call('engine.GetJavaSystemPropertiesJson').then((res) => {
@@ -42,7 +42,7 @@
 		</ResponsiveContainer>
 
 		<ButtonsContainer>
-			<button on:click={() => modalStore.close()} class="cancel-button mt-5">Close</button>
+			<button onclick={() => modalStore.close()} class="cancel-button mt-5">Close</button>
 		</ButtonsContainer>
 	</div>
 </Card>

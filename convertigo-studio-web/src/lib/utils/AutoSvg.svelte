@@ -1,9 +1,10 @@
 <script>
 	import { onMount } from 'svelte';
 
-	export let src;
-	let svg = null;
-	let viewBox;
+	/** @type {{Record<string, any>}} */
+	let { src, ...rest } = $props();
+	let svg = $state(null);
+	let viewBox = $state();
 
 	onMount(() => {
 		fetch(src).then(async (r) => {
@@ -17,8 +18,8 @@
 </script>
 
 {#if svg}
-	<svg xmlns="http://www.w3.org/2000/svg" {viewBox} {...$$restProps}>{@html svg}</svg>
+	<svg xmlns="http://www.w3.org/2000/svg" {viewBox} {...rest}>{@html svg}</svg>
 {:else}
-	<!-- svelte-ignore a11y-missing-attribute -->
-	<img {src} {...$$restProps} />
+	<!-- svelte-ignore a11y_missing_attribute -->
+	<img {src} {...rest} />
 {/if}

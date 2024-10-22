@@ -167,7 +167,7 @@
 	</div>
 	<ButtonsContainer>
 		{#each Object.entries(projectActions) as [type, { name, icon }]}
-			<button class="basic-button" on:click={() => openModal(type)}>
+			<button class="basic-button" onclick={() => openModal(type)}>
 				<p>{name}</p>
 				<Ico {icon} size="nav" />
 			</button>
@@ -190,28 +190,28 @@
 				{ name: 'Test', custom: true }
 			]}
 			data={$projectsStore}
-			let:row
-			let:def
 		>
-			{#if def.name == 'Delete'}
-				<button on:click={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
-					<Ico icon="mingcute:delete-line" />
-				</button>
-			{:else if def.name == 'Reload'}
-				<button on:click={() => openReloadProjectModal(row['@_name'])} class="green-button">
-					<Ico icon="simple-line-icons:reload" />
-				</button>
-			{:else if def.name == 'Export'}
-				<button on:click={() => openExportProjectModal(row['@_name'])} class="basic-button">
-					<Ico icon="bytesize:export" />
-				</button>
-			{:else if def.name == 'Test'}
-				<button class="yellow-button">
-					<a href="/admin">
-						<Ico icon="file-icons:test-ruby" />
-					</a>
-				</button>
-			{/if}
+			{#snippet children(row, def)}
+				{#if def.name == 'Delete'}
+					<button onclick={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
+						<Ico icon="mingcute:delete-line" />
+					</button>
+				{:else if def.name == 'Reload'}
+					<button onclick={() => openReloadProjectModal(row['@_name'])} class="green-button">
+						<Ico icon="simple-line-icons:reload" />
+					</button>
+				{:else if def.name == 'Export'}
+					<button onclick={() => openExportProjectModal(row['@_name'])} class="basic-button">
+						<Ico icon="bytesize:export" />
+					</button>
+				{:else if def.name == 'Test'}
+					<button class="yellow-button">
+						<a href="/admin">
+							<Ico icon="file-icons:test-ruby" />
+						</a>
+					</button>
+				{/if}
+			{/snippet}
 		</TableAutoCard>
 	{/if}
 </Card>
