@@ -6,7 +6,7 @@
 	import partsAdmin from '$lib/admin/PagesRail.json';
 	import partsDashboard from '$lib/dashboard/PagesRail.json';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import { fade } from 'svelte/transition';
+	import { fade, fly, slide } from 'svelte/transition';
 	import { page } from '$app/stores';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
@@ -15,6 +15,7 @@
 		$page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin'
 	);
 	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard);
+	let showLeft = $state(true);
 </script>
 
 <Drawer>
@@ -25,15 +26,17 @@
 <AppShell>
 	<svelte:fragment slot="header">
 		{#if path == '/(app)/admin'}
-			<TopbarAdmin />
+			<TopbarAdmin bind:showLeft />
 		{:else}
 			<TopbarDashBoard />
 		{/if}
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<div class="hidden md:block bg-surface-800 h-full">
-			<PagesRail {path} {parts} />
-		</div>
+		{#if showLeft}
+			<div class="hide-md h-full" transition:fly={{ x: '-100%' }}>
+				<PagesRail {path} {parts} />
+			</div>
+		{/if}
 	</svelte:fragment>
 	{#key $page.url.pathname}
 		<div class="p-5 gap-5 flex flex-col h-full" in:fade>

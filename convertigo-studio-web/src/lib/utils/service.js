@@ -202,16 +202,10 @@ function handleStateMessage(dataContent, service) {
 				timeout: 8000,
 				background: background
 			});
+		} else if ('authenticated' in dataContent?.admin) {
+			// ignore
 		} else {
-			/** else if (stateMessage === dataContent?.error.message) {
-			modalLoading.trigger({
-				type: 'component',
-				component: 'modalLoading',
-				meta: { mode: 'Insufficient right' }
-			})
-		}*/
 			console.warn('No valid message found in the response data.');
-			return;
 		}
 	} catch (err) {
 		console.error('Error handling state message:', err);

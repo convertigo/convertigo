@@ -165,54 +165,54 @@
 					]}
 					data={$candidates.length ? [...$certificates, 'new'] : $certificates}
 				>
-				{#snippet children(row, def)}
-					{#if def.name === 'Certificate / Store'}
-						{#if row == 'new'}
-							<select class="input-common" name="name_0">
-								{#each candidatesState as candidates}
-									<option value={candidates['@_name']}>{candidates['@_name']}</option>
-								{/each}
+					{#snippet children(row, def)}
+						{#if def.name === 'Certificate / Store'}
+							{#if row == 'new'}
+								<select class="input-common" name="name_0">
+									{#each candidatesState as candidates}
+										<option value={candidates['@_name']}>{candidates['@_name']}</option>
+									{/each}
+								</select>
+							{:else}
+								<input type="hidden" name="name_0" value={row['@_name']} />
+								{row['@_name']}
+							{/if}
+						{:else if def.name === 'Type'}
+							<select class="input-common" name="type_0">
+								<option value="server" selected={row['@_type'] === 'server'}>Server</option>
+								<option value="client" selected={row['@_type'] === 'client'}>Client</option>
 							</select>
-						{:else}
-							<input type="hidden" name="name_0" value={row['@_name']} />
-							{row['@_name']}
-						{/if}
-					{:else if def.name === 'Type'}
-						<select class="input-common" name="type_0">
-							<option value="server" selected={row['@_type'] === 'server'}>Server</option>
-							<option value="client" selected={row['@_type'] === 'client'}>Client</option>
-						</select>
-					{:else if def.name === 'Password'}
-						<input
-							type="password"
-							placeholder="Enter certificate password ..."
-							class="input-common"
-							name="pwd_0"
-							value={row['@_password'] ?? ''}
-						/>
-					{:else if def.name === 'Group'}
-						<input
-							type="text"
-							placeholder="Enter group value ..."
-							class="input-common"
-							name="group_0"
-							value={row['@_group'] ?? ''}
-						/>
-					{:else if def.name === 'Update'}
-						<button class="green-button" onclick={updateCertificate}>
-							<Ico icon="dashicons:update" />
-						</button>
-					{:else if def.name === 'Delete'}
-						{#if row != 'new'}
-							<button
-								class="delete-button"
-								type="button"
-								onclick={() => removeCertificates(row['@_name'])}
-							>
-								<Ico icon="mingcute:delete-line" />
+						{:else if def.name === 'Password'}
+							<input
+								type="password"
+								placeholder="Enter certificate password ..."
+								class="input-common"
+								name="pwd_0"
+								value={row['@_password'] ?? ''}
+							/>
+						{:else if def.name === 'Group'}
+							<input
+								type="text"
+								placeholder="Enter group value ..."
+								class="input-common"
+								name="group_0"
+								value={row['@_group'] ?? ''}
+							/>
+						{:else if def.name === 'Update'}
+							<button class="green-button" onclick={updateCertificate}>
+								<Ico icon="dashicons:update" />
 							</button>
+						{:else if def.name === 'Delete'}
+							{#if row != 'new'}
+								<button
+									class="delete-button"
+									type="button"
+									onclick={() => removeCertificates(row['@_name'])}
+								>
+									<Ico icon="mingcute:delete-line" />
+								</button>
+							{/if}
 						{/if}
-					{/if}
 					{/snippet}
 				</TableAutoCard>
 			{:else if tabSet === 1}
@@ -275,63 +275,63 @@
 							{definition}
 							data={$certificates.length ? [...store, 'new'] : []}
 						>
-						{#snippet children(row, def)}
-							{#if def.name === 'Project Name'}
-								{#if row == 'new'}
-									<select class="input-common" name="convProject_0">
-										{#each $projectsStore as project}
-											<option value={project['@_name']}>{project['@_name']}</option>
+							{#snippet children(row, def)}
+								{#if def.name === 'Project Name'}
+									{#if row == 'new'}
+										<select class="input-common" name="convProject_0">
+											{#each $projectsStore as project}
+												<option value={project['@_name']}>{project['@_name']}</option>
+											{/each}
+										</select>
+									{:else}
+										<input type="hidden" name="convProject_0" value={row['@_projectName']} />
+										<input type="hidden" name="link" value={row['@_link']} />
+										{row['@_projectName']}
+									{/if}
+								{:else if def.name === 'Virtual Server'}
+									<input
+										class="input-common"
+										name="virtualServer_0"
+										value={row['@_virtualServerName'] ?? ''}
+										placeholder="Enter Value ..."
+									/>
+								{:else if def.name === 'Authorization Group'}
+									<input
+										class="input-common"
+										name="group_0"
+										value={row['@_imputationGroup'] ?? ''}
+										placeholder="Enter Value ..."
+									/>
+								{:else if def.name === 'User'}
+									<input
+										class="input-common"
+										name="user_0"
+										value={row['@_userName'] ?? ''}
+										placeholder="Enter Value ..."
+									/>
+								{:else if def.name === 'Certificate / Store'}
+									<select
+										class="input-common"
+										name="cert_0"
+										value={row['@_certificateName'] ?? $certificates[0]['@_name']}
+									>
+										{#each $certificates as certificate}
+											<option value={certificate['@_name']}>
+												{certificate['@_name']}
+											</option>
 										{/each}
 									</select>
-								{:else}
-									<input type="hidden" name="convProject_0" value={row['@_projectName']} />
-									<input type="hidden" name="link" value={row['@_link']} />
-									{row['@_projectName']}
-								{/if}
-							{:else if def.name === 'Virtual Server'}
-								<input
-									class="input-common"
-									name="virtualServer_0"
-									value={row['@_virtualServerName'] ?? ''}
-									placeholder="Enter Value ..."
-								/>
-							{:else if def.name === 'Authorization Group'}
-								<input
-									class="input-common"
-									name="group_0"
-									value={row['@_imputationGroup'] ?? ''}
-									placeholder="Enter Value ..."
-								/>
-							{:else if def.name === 'User'}
-								<input
-									class="input-common"
-									name="user_0"
-									value={row['@_userName'] ?? ''}
-									placeholder="Enter Value ..."
-								/>
-							{:else if def.name === 'Certificate / Store'}
-								<select
-									class="input-common"
-									name="cert_0"
-									value={row['@_certificateName'] ?? $certificates[0]['@_name']}
-								>
-									{#each $certificates as certificate}
-										<option value={certificate['@_name']}>
-											{certificate['@_name']}
-										</option>
-									{/each}
-								</select>
-							{:else if def.name === 'Update'}
-								<button class="green-button" onclick={updateMapping}>
-									<Ico icon="dashicons:update" />
-								</button>
-							{:else if def.name === 'Delete'}
-								{#if row !== 'new'}
-									<button class="delete-button" onclick={() => deleteMapping(row['@_link'])}>
-										<Ico icon="mingcute:delete-line" />
+								{:else if def.name === 'Update'}
+									<button class="green-button" onclick={updateMapping}>
+										<Ico icon="dashicons:update" />
 									</button>
+								{:else if def.name === 'Delete'}
+									{#if row !== 'new'}
+										<button class="delete-button" onclick={() => deleteMapping(row['@_link'])}>
+											<Ico icon="mingcute:delete-line" />
+										</button>
+									{/if}
 								{/if}
-							{/if}
 							{/snippet}
 						</TableAutoCard>
 					{/each}

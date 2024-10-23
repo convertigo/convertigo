@@ -1,27 +1,23 @@
 <script>
-	import { preventDefault } from 'svelte/legacy';
-
-	import { authenticated } from '$lib/utils/loadingStore';
-	import { call } from '$lib/utils/service';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import Authentication from '$lib/common/Authentication.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
 	let { data } = $props();
 
+	/** @type {string|null} */
 	let error = $state(null);
 
 	async function handleSubmit(/** @type {SubmitEvent} */ e) {
+		e.preventDefault();
 		try {
 			// @ts-ignore
-			const res = await call('engine.Authenticate', new FormData(e.target));
-			if ('success' in res.admin) {
-				$authenticated = true;
+			await Authentication.authenticate(new FormData(e.target));
+			if (Authentication.authenticated) {
 				goto(`${base}${data.redirect ?? '/admin'}`);
-			} else if ('error' in res.admin) {
-				error = res.admin.error;
 			} else {
-				error = 'authentication failed';
+				error = Authentication.error;
 			}
 		} catch (error) {
 			error = '' + error;
@@ -34,9 +30,8 @@
 		<p>Welcome to Convertigo</p>
 		<p>Administration Console</p>
 	</h1>
-
 	<form
-		onsubmit={preventDefault(handleSubmit)}
+		onsubmit={handleSubmit}
 		class="flex flex-col w-[600px] bg-surface h-80 mt-40 rounded-xl p-4 items-center"
 	>
 		<input type="hidden" name="authType" value="login" />
@@ -45,6 +40,7 @@
 			class="bg-white rounded-xl border-none mt-5 text-center text-surface-900 font-light placeholder:font-light"
 			placeholder="username"
 			type="text"
+			autocomplete="username"
 		/>
 
 		<input
@@ -52,6 +48,7 @@
 			class="bg-white rounded-xl border-none mt-5 text-center text-surface-900 font-light placeholder:font-light"
 			placeholder="password"
 			type="password"
+			autocomplete="current-password"
 		/>
 
 		{#if error}

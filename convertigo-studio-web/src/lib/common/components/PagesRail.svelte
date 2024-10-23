@@ -1,6 +1,4 @@
 <script>
-	import { run } from 'svelte/legacy';
-
 	import { AppRail, getDrawerStore } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
 	import { fade, fly } from 'svelte/transition';
@@ -8,20 +6,20 @@
 
 	/** @type {{path: any, parts: any}} */
 	let { path, parts } = $props();
-	let isRoot = $state(false);
-	let activeIndex = $state(0);
-	let activeIndexLast = $state(0);
-	let relativePath = $state('');
-	run(() => {
-		isRoot = $page.route.id == path;
-		activeIndexLast = activeIndex;
-		activeIndex = parts[0].findIndex((part) =>
-			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
-		);
-		// @ts-ignore
-		relativePath = new Array($page?.route?.id?.substring(path.length).split('/').length - 1)
+	let isRoot = $derived($page.route.id == path);
+	let relativePath = $derived(
+		new Array(($page?.route?.id?.substring(path.length).split('/').length ?? 1) - 1)
 			.fill('../')
-			.join('');
+			.join('')
+	);
+	let activeIndex = $derived(
+		parts[0].findIndex((part) =>
+			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
+		)
+	);
+	let activeIndexLast = $state(0);
+	$effect(() => {
+		activeIndexLast = activeIndex;
 	});
 
 	const drawerStore = getDrawerStore();

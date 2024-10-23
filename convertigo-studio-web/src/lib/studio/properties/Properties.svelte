@@ -139,16 +139,13 @@
 					>
 					<svelte:fragment slot="content">
 						{#each items as item (JSON.stringify(item[1]))}
-						{@const Editor = getEditor(item[1])}
+							{@const Editor = getEditor(item[1])}
 							<div
 								class="flex flex-row flex-nowrap text-[11.5px] dark:font-light dark:text-surface-200 text-surface-900"
 							>
 								<div class="basis-1/3 ml-2.5">{item[0]}</div>
 								<div class="basis-2/3 pl-1">
-									<Editor
-										{...item[1]}
-										onvalueChanged={valueChanged}
-									/>
+									<Editor {...item[1]} onvalueChanged={valueChanged} />
 								</div>
 							</div>
 						{/each}

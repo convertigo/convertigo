@@ -69,6 +69,7 @@ public class CheckAuthentication extends XmlService {
 			Engine.logAdmin.info("Check authentication success");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + System.currentTimeMillis(), "time", false);
 		} else {
 			Engine.logAdmin.info("Check authentication failed (no role defined)");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "false", "authenticated", false);

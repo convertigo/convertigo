@@ -232,10 +232,10 @@ public class Authenticate extends XmlService {
 				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, roles);
 
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
+				ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
 				ServiceUtils.addMessage(document, document.getDocumentElement(),
 						"" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
-
 				SessionAttribute.authenticatedUser.set(httpSession, "c8o:admin");
 
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");

@@ -30,6 +30,7 @@
 	import ModalConfirm from '$lib/dashboard/modals/ModalConfirm.svelte';
 	import ModalInfo from '$lib/dashboard/modals/ModalInfo.svelte';
 	import ModalQrCode from '$lib/common/modals/ModalQrCode.svelte';
+	import Authentication from '$lib/common/Authentication.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 
@@ -37,15 +38,16 @@
 	setToastStore(getToastStore());
 	setModalStore(getModalStore());
 
-	afterNavigate(() => {
-		call('engine.CheckAuthentication').then((res) => {
-			$authenticated = res.admin.authenticated;
-			if (!$authenticated && $page.route.id != '/login') {
-				goto(`${base}/login/?redirect=${$page.url.pathname}`);
-			} else if ($authenticated && ($page.route.id == '/' || $page.route.id == '/login')) {
-				goto(`${base}/admin/`);
-			}
-		});
+	afterNavigate(async () => {
+		await Authentication.checkAuthentication();
+		if (!Authentication.authenticated && $page.route.id != '/login') {
+			goto(`${base}/login/?redirect=${$page.url.pathname}`);
+		} else if (
+			Authentication.authenticated &&
+			($page.route.id == '/' || $page.route.id == '/login')
+		) {
+			goto(`${base}/admin/`);
+		}
 	});
 
 	const modalComponentRegistry = {

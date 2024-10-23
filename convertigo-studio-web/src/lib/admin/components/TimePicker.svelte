@@ -240,7 +240,10 @@
 			onmousedown={handleMouseDown}
 			onmousemove={handleMove}
 			onmouseup={handleMouseUp}
-			onmouseleave={(e) => {e.preventDefault(); isDragging = false;}}
+			onmouseleave={(e) => {
+				e.preventDefault();
+				isDragging = false;
+			}}
 			ontouchstart={handleTouchStart}
 			ontouchmove={handleTouchMove}
 			ontouchend={handleTouchEnd}

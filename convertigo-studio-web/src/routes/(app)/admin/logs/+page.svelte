@@ -142,7 +142,7 @@
 					<span class="">Cancel changes</span>
 				</button>
 			</ButtonsContainer>
-		{/if}		
+		{/if}
 	{/snippet}
 	<TabGroup>
 		{#each tabs as { name, icon }, value}

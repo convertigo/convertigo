@@ -12,7 +12,7 @@
 	} | any} */
 	let {
 		label = '',
-		id =  (`cache-input-${cpt++}`),
+		id = `cache-input-${cpt++}`,
 		type = 'text',
 		placeholder = 'Enter value ..',
 		value = $bindable(),

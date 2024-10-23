@@ -57,6 +57,7 @@
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
 	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit?raw';
+	import MdiGithub from '~icons/mdi/github?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
 	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
@@ -140,6 +141,7 @@
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:fullscreen-exit': MdiFullscreenExit,
+		'mdi:github': MdiGithub,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:magnify': MdiMagnigy,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
@@ -167,18 +169,17 @@
 </script>
 
 <script>
-	import { tick } from 'svelte';
-	import { onMount } from 'svelte';
-	import { draw } from 'svelte/transition';
+	import { assets } from '$app/paths';
 
-	/** @type {{icon: any, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any}} */
+	/** @type {{icon: string, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any} | any} */
 	let {
 		icon,
-		size = $bindable(4),
+		size = 4,
 		class: cls = '',
-		animate = false,
-		repeat = false,
-		strokeWidth = undefined
+		// animate = false,
+		// repeat = false,
+		// strokeWidth = undefined
+		...props
 	} = $props();
 
 	if (size == 'nav') {
@@ -188,37 +189,41 @@
 		size = 5;
 	}
 
-	let _animate = $state({ duration: 2000 });
-
-	let svg = $state(null);
-	let show = $state(false);
-	if (animate) {
-		if (animate != true) {
-			// @ts-ignore
-			_animate = animate;
-		}
-		onMount(() => {
-			svg = new DOMParser().parseFromString(ico[icon], 'image/svg+xml').documentElement;
-			let interval;
-			if (repeat) {
-				interval = window.setInterval(() => {
-					show = !show;
-				}, _animate.duration);
-			}
-			tick().then(() => (show = true));
-			return () => window.clearInterval(interval);
-		});
-	}
-
-	function attrToObj(element) {
-		return [...element.attributes].reduce((acc, attr) => {
-			acc[attr.name] = attr.value;
-			return acc;
-		}, {});
-	}
+	// let _animate = $state({ duration: 2000 });
+	// let svg = $state(null);
+	// let show = $state(false);
+	// if (animate) {
+	// 	if (animate != true) {
+	// 		// @ts-ignore
+	// 		_animate = animate;
+	// 	}
+	// 	onMount(() => {
+	// 		svg = new DOMParser().parseFromString(ico[icon], 'image/svg+xml').documentElement;
+	// 		let interval;
+	// 		if (repeat) {
+	// 			interval = window.setInterval(() => {
+	// 				show = !show;
+	// 			}, _animate.duration);
+	// 		}
+	// 		tick().then(() => (show = true));
+	// 		return () => window.clearInterval(interval);
+	// 	});
+	// }
+	// function attrToObj(element) {
+	// 	return [...element.attributes].reduce((acc, attr) => {
+	// 		acc[attr.name] = attr.value;
+	// 		return acc;
+	// 	}, {});
+	// }
 </script>
 
-{#if !svg || !animate}
+{#if icon.includes(':')}
+	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
+{:else}
+	<img src="{assets}/{icon}" class="w-{size} {cls}" {...props} />
+{/if}
+
+<!-- {#if !svg || !animate}
 	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
 {:else}
 	<svg {...attrToObj(svg)} class={`${svg.getAttribute('class') ?? ''} w-${size} h-${size} ${cls} `}>
@@ -240,4 +245,4 @@
 			{/if}
 		{/each}
 	</svg>
-{/if}
+{/if} -->
