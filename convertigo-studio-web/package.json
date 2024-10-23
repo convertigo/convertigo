@@ -81,7 +81,7 @@
 		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.6.11",
 		"@svelte-plugins/datepicker": "^1.0.9",
-		"apexcharts": "^3.53.0",
+		"apexcharts": "^3.54.0",
 		"chart.js": "^4.4.4",
 		"fast-xml-parser": "^4.5.0",
 		"html-entities": "^2.5.2",
