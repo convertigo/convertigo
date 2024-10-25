@@ -327,7 +327,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			}			
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
 			// zoneless support
-			if (compareToTplVersion("8.4.0.0") >= 0) {
+			if (compareToTplVersion("8.3.2.0") >= 0) {
 				computed += "\t\t}).finally(() => {this.ref.markForCheck();});"+System.lineSeparator();
 			}
 			else {

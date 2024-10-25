@@ -346,7 +346,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						}
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
-							smartValue = smartValue.replaceAll("\\?\\.", ".");
+							smartValue = smartValue.replaceAll("\\?\\.\\[", "[").replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
 								smartValue = "scope."+ smartValue;
@@ -388,7 +388,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 								}
 								
-								smartValue = smartValue.replaceAll("\\?\\.", ".");
+								smartValue = smartValue.replaceAll("\\?\\.\\[", "[").replaceAll("\\?\\.", ".");
 								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 								if (paramsPattern.matcher(smartValue).lookingAt()) {
 									smartValue = "scope."+ smartValue;

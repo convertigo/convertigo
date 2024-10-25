@@ -427,7 +427,7 @@ public class UICustomAction extends UIComponent implements IAction {
 								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 							}
 							
-							smartValue = smartValue.replaceAll("\\?\\.", ".");
+							smartValue = smartValue.replaceAll("\\?\\.\\[", "[").replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
 								smartValue = "scope."+ smartValue;

@@ -215,7 +215,7 @@ publishing {
 				}
 			}
 		}
-		
+/*		
 		jxBrowser (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser'
@@ -264,6 +264,7 @@ publishing {
 			version '2.6.0'
 			artifact 'resources/xmlbeans-2.6.0.jar'
 		}
+*/
 	}
 }
 
