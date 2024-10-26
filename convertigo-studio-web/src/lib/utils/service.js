@@ -202,10 +202,12 @@ function handleStateMessage(dataContent, service) {
 				timeout: 8000,
 				background: background
 			});
-		} else if ('authenticated' in dataContent?.admin) {
+		} else if (
+			['engine.JsonStatus', 'engine.CheckAuthentication', 'engine.Authenticate'].includes(service)
+		) {
 			// ignore
 		} else {
-			console.warn('No valid message found in the response data.');
+			console.warn(`No valid message found in the response data: ${service}`);
 		}
 	} catch (err) {
 		console.error('Error handling state message:', err);

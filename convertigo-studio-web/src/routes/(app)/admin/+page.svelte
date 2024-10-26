@@ -4,11 +4,9 @@
 	import StatusTable from '$lib/admin/tables/StatusTable.svelte';
 	import SystemInformationTable from '$lib/admin/tables/SystemInformationTable.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import { monitorCheck, isLoading, monitorData } from '$lib/admin/stores/monitorStore';
 	import { call } from '$lib/utils/service';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
@@ -75,37 +73,46 @@
 	}
 </script>
 
-<AutoGrid>
-	<Card title="Status">
-		{#snippet cornerOption()}
-			<ButtonsContainer>
-				<button class="basic-button" onclick={() => modal('props')}>Java System Properties</button>
-				<button class="basic-button" onclick={() => modal('env')}>Environment Variables</button>
-			</ButtonsContainer>
-		{/snippet}
-		<StatusTable
-			class="mt-5"
-			time={$monitorData.time}
-			startTime={$monitorData.startTime}
-			engineState={$monitorData.engineState}
-		/>
-	</Card>
-
-	<Card title="System Information">
-		{#snippet cornerOption()}
-			<button onclick={performGC} class="green-button">Perform GC</button>
-		{/snippet}
-		<SystemInformationTable
-			class="mt-5"
-			memoryMaximal={$monitorData.memoryMaximal}
-			memoryTotal={$monitorData.memoryTotal}
-			memoryUsed={$monitorData.memoryUsed}
-		/>
-	</Card>
-
-	{#each charts as chart}
-		<Card class="max-h-[300px]">
-			<ApexChartLineAdmin {...chart} {isLoading} {categories} />
+<div class="layout-y md:layout-x !items-start">
+	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min">
+		<Card title="Status" class="max-w-[600px]">
+			{#snippet cornerOption()}
+				<div class="layout-grid-low-[100px]">
+					<button class="basic-button text-wrap w-full" onclick={() => modal('props')}
+						>Java System Properties</button
+					>
+					<button class="basic-button text-wrap w-full" onclick={() => modal('env')}
+						>Environment Variables</button
+					>
+				</div>
+			{/snippet}
+			<StatusTable
+				class="mt-5"
+				time={$monitorData.time}
+				startTime={$monitorData.startTime}
+				engineState={$monitorData.engineState}
+			/>
 		</Card>
-	{/each}
-</AutoGrid>
+
+		<Card title="System Information" class="max-w-[600px]">
+			{#snippet cornerOption()}
+				<div class="layout-grid-wrap-low">
+					<button onclick={performGC} class="green-button text-wrap w-full">Perform GC</button>
+				</div>
+			{/snippet}
+			<SystemInformationTable
+				class="mt-5"
+				memoryMaximal={$monitorData.memoryMaximal}
+				memoryTotal={$monitorData.memoryTotal}
+				memoryUsed={$monitorData.memoryUsed}
+			/>
+		</Card>
+	</div>
+	<div class="layout-grid-[350px] w-full">
+		{#each charts as chart}
+			<Card class="w-full">
+				<ApexChartLineAdmin {...chart} {isLoading} {categories} />
+			</Card>
+		{/each}
+	</div>
+</div>

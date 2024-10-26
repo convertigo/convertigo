@@ -5,6 +5,7 @@ import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
 import { developperTheme } from './src/themes/developper';
 import { convertigoTheme } from './src/themes/convertigoTheme';
+import { convertigoPlugin } from './src/convertigo.plugin';
 /** @type {import('tailwindcss').Config} */
 export default {
 	darkMode: 'class',
@@ -29,6 +30,7 @@ export default {
 			themes: {
 				custom: [convertigoTheme, developperTheme]
 			}
-		})
+		}),
+		convertigoPlugin
 	]
 };

@@ -16,23 +16,27 @@
 	slotTrail="place-content-end"
 >
 	<svelte:fragment slot="lead">
-		<div class="layout-x-low">
+		<div class="layout-x pl-1">
 			<PagesRailToggle />
 			<button class="hide-md" onclick={() => (showLeft = !showLeft)}
 				><Ico icon="iconamoon:menu-burger-horizontal-thin" size={8} /></button
 			>
-			<span class="monitor-time hide-md">you {Time.browserTime}</span>
-			<span class="monitor-time">server {Time.serverTime}</span>
+			{#if Time.isSameTime}
+				<span class="monitor-time">{Time.browserTime}</span>
+			{:else}
+				<span class="monitor-time hide-md">you {Time.browserTime}</span>
+				<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
+			{/if}
 		</div>
 	</svelte:fragment>
 
-	<div class="layout-x-low">
+	<div class="layout-x">
 		<Ico icon="logo.png" alt="logo convertigo" size={10} />
 		<h1 class="hide-md">Convertigo Admin Console</h1>
 	</div>
 
 	<svelte:fragment slot="trail">
-		<div class="layout-x">
+		<div class="layout-x-p">
 			<a
 				href="https://github.com/convertigo/convertigo"
 				target="_blank"

@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -43,6 +45,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 	)
 	
 public class CheckAuthentication extends XmlService {
+	static String timezone = Calendar.getInstance().getTimeZone().getDisplayName(false, TimeZone.SHORT);
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -69,7 +72,8 @@ public class CheckAuthentication extends XmlService {
 			Engine.logAdmin.info("Check authentication success");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
-			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + System.currentTimeMillis(), "time", false);
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + System.currentTimeMillis(), "ts", false);
+			ServiceUtils.addMessage(document, document.getDocumentElement(), timezone, "tz", false);
 		} else {
 			Engine.logAdmin.info("Check authentication failed (no role defined)");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "false", "authenticated", false);

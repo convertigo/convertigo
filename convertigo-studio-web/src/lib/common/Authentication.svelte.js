@@ -18,8 +18,11 @@ export default {
 		result = (await call('engine.CheckAuthentication')).admin ?? {
 			error: 'Error checking authentication'
 		};
-		if (result.time) {
-			Time.serverTimestamp = 1 * result.time;
+		if (result.ts) {
+			Time.serverTimestamp = 1 * result.ts;
+		}
+		if (result.tz) {
+			Time.serverTimezone = result.tz;
 		}
 	},
 	authenticate: async (formData) => {

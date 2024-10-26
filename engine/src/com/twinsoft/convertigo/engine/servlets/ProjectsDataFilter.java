@@ -21,8 +21,8 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,10 +84,8 @@ public class ProjectsDataFilter implements Filter {
 		Engine.logContext.debug("requestURI=" + requestURI);
 
 		// Get a canonicalized form of the request URL, i.e. resolve all ".", "..", "///"...
-		URL url = new URL(request.getRequestURL().toString());
-
 		try {
-			requestURI = url.toURI().normalize().getPath();
+			requestURI = new URI(request.getRequestURL().toString()).normalize().getPath();
 		} catch (URISyntaxException e) {
 			// should never occur
 		}

@@ -8,151 +8,153 @@ body {
 	@apply h-full bg-surface-50-900-token h-full overflow-hidden;
 }
 
-.button {
-	@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-token text-white;
+@layer base {
+	/*TABLES STYLE*/
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		border: 4px;
+		border-color: white;
+		@apply rounded-token;
+	}
+	th,
+	td {
+		padding: 0;
+		text-align: left;
+		font-weight: 300;
+		font-size: 15px;
+		@apply align-middle p-2 !important;
+	}
+	th {
+		@apply dark:border-surface-900;
+	}
+	tr {
+	}
+	tr:nth-child(even) {
+		@apply dark:bg-surface-800 bg-surface-50 hover:bg-surface-200-700-token;
+	}
+
+	tr:nth-child(odd) {
+		@apply dark:bg-surface-900 bg-white dark:bg-surface-hover-token;
+	}
+	/* END TABLES STYLE*/
 }
 
-.basic-button {
-	@apply button dark:bg-primary-500 bg-primary-500;
+@layer components {
+	.button {
+		@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-token text-white;
+	}
+
+	.basic-button {
+		@apply button dark:bg-primary-500 bg-primary-500;
+	}
+
+	.cancel-button {
+		@apply button dark:bg-surface-500 bg-surface-400;
+	}
+
+	.delete-button {
+		@apply button dark:bg-error-500 bg-error-600;
+	}
+
+	.yellow-button {
+		@apply button dark:bg-tertiary-600 bg-tertiary-500;
+	}
+
+	.green-button {
+		@apply button bg-success-500 dark:bg-success-600;
+	}
+
+	.violet-button {
+		@apply button bg-pale-violet bg-opacity-50 text-token;
+	}
+
+	.btnStyle {
+		@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-token text-token;
+	}
+
+	.input-button {
+		@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded-token dark:text-token text-white dark:bg-primary-500 bg-primary-500;
+	}
+
+	/*INPUT STYLES !!*/
+
+	/**style for label*/
+	.label-common {
+		@apply text-[14px] cursor-pointer;
+	}
+	/**Style for Input*/
+	.input-common {
+		@apply placeholder:text-[16px] w-full placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
+		border-bottom: surface-200;
+	}
+
+	.select-common {
+		@apply placeholder:text-[12px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
+		border-bottom: surface-200;
+	}
+	.input-common-dash {
+		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded-token;
+		border-bottom: surface-200;
+	}
+	.input-text {
+		@apply mt-1 pl-4 text-[16px] dark:text-surface-500 text-surface-800;
+	}
+	/**Style for checkbox*/
+	.checkbox-common {
+		@apply cursor-pointer;
+	}
+	.border-common {
+		@apply border-b-[1px] dark:border-surface-600 border-surface-50;
+	}
+	.input-name {
+		@apply font-light text-[14px] mb-3;
+	}
+	/* END INOUT STYLES */
+
+	/*FORM STYLE*/
+	form {
+		@apply rounded-token;
+	}
+
+	.gray-button {
+		@apply bg-surface-200 dark:bg-surface-500;
+	}
+
+	.confirm-button {
+		@apply bg-primary-400-500-token;
+	}
+
+	/*END FORM STYLE*/
 }
 
-.cancel-button {
-	@apply button bg-surface-400 dark:bg-surface-500;
-}
+@layer utilities {
+	.align {
+		@apply align-middle;
+	}
 
-.delete-button {
-	@apply button dark:bg-error-500 bg-error-600;
-}
+	/**SLIDE TOGGLE */
 
-.yellow-button {
-	@apply button dark:bg-tertiary-600 bg-tertiary-500;
-}
+	.activeSlideToggle {
+		@apply min-w-12 bg-success-400 dark:bg-success-600;
+	}
 
-.green-button {
-	@apply button bg-success-500 dark:bg-success-600;
-}
+	.unActiveSlideToggle {
+		@apply min-w-12 bg-error-400 dark:bg-error-600;
+	}
 
-.violet-button {
-	@apply button bg-pale-violet bg-opacity-50 text-token;
-}
+	/*RESPONSIVE*/
+	.hide-md {
+		@apply max-md:hidden;
+	}
 
-.align {
-	@apply align-middle;
-}
+	.show-md {
+		@apply md:hidden;
+	}
+	/*END RESPONSIVE*/
 
-.btnStyle {
-	@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-token text-token;
+	.border-color {
+		@apply border-surface-200-700-token;
+	}
 }
-
-.input-button {
-	@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded-token dark:text-token text-white dark:bg-primary-500 bg-primary-500;
-}
-
-/*TABLES STYLE*/
-
-table {
-	width: 100%;
-	border-collapse: collapse;
-	border: 4px;
-	border-color: white;
-	@apply rounded-token;
-}
-th,
-td {
-	padding: 0;
-	text-align: left;
-	font-weight: 300;
-	font-size: 15px;
-	@apply align-middle p-2 !important;
-}
-th {
-	@apply dark:border-surface-900;
-}
-tr {
-}
-tr:nth-child(even) {
-	@apply dark:bg-surface-800 bg-surface-50 hover:bg-surface-200-700-token;
-}
-
-tr:nth-child(odd) {
-	@apply dark:bg-surface-900 bg-white dark:bg-surface-hover-token;
-}
-/* END TABLES STYLE*/
-
-/*INPUT STYLES !!*/
-
-/**style for label*/
-.label-common {
-	@apply text-[14px] cursor-pointer;
-}
-/**Style for Input*/
-.input-common {
-	@apply placeholder:text-[16px] w-full placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
-	border-bottom: surface-200;
-}
-
-.select-common {
-	@apply placeholder:text-[12px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
-	border-bottom: surface-200;
-}
-.input-common-dash {
-	@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded-token;
-	border-bottom: surface-200;
-}
-.input-text {
-	@apply mt-1 pl-4 text-[16px] dark:text-surface-500 text-surface-800;
-}
-/**Style for checkbox*/
-.checkbox-common {
-	@apply cursor-pointer;
-}
-.border-common {
-	@apply border-b-[1px] dark:border-surface-600 border-surface-50;
-}
-.input-name {
-	@apply font-light text-[14px] mb-3;
-}
-/* END INOUT STYLES */
-
-/*FORM STYLE*/
-form {
-	@apply rounded-token;
-}
-
-.gray-button {
-	@apply bg-surface-200 dark:bg-surface-500;
-}
-
-.confirm-button {
-	@apply bg-primary-400-500-token;
-}
-
-/*END FORM STYLE*/
-
-/**SLIDE TOGGLE */
-
-.activeSlideToggle {
-	@apply min-w-12 bg-success-400 dark:bg-success-600;
-}
-
-.unActiveSlideToggle {
-	@apply min-w-12 bg-error-400 dark:bg-error-600;
-}
-
-/*LAYOUTS*/
-.layout-x {
-	@apply flex items-center gap-5 mx-5;
-}
-.layout-x-low {
-	@apply flex items-center gap-2 mx-2;
-}
-/*END LAYOUTS*/
-
-/*RESPONSIVE*/
-.hide-md {
-	@apply max-md:hidden;
-}
-.show-md {
-	@apply md:hidden;
-}
-/*END RESPONSIVE*/

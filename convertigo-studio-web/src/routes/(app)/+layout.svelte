@@ -6,7 +6,7 @@
 	import partsAdmin from '$lib/admin/PagesRail.json';
 	import partsDashboard from '$lib/dashboard/PagesRail.json';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import { fade, fly, slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/stores';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
@@ -33,13 +33,13 @@
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		{#if showLeft}
-			<div class="hide-md h-full" transition:fly={{ x: '-100%' }}>
+			<div class="hide-md h-full" transition:slide={{ axis: 'x' }}>
 				<PagesRail {path} {parts} />
 			</div>
 		{/if}
 	</svelte:fragment>
 	{#key $page.url.pathname}
-		<div class="p-5 gap-5 flex flex-col h-full" in:fade>
+		<div class="px py h-full" in:fade>
 			{@render children?.()}
 		</div>
 	{/key}
