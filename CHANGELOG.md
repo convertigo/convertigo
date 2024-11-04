@@ -1,5 +1,23 @@
 # Changelog
 
+## 8.3.2
+
+#### Improvements:
+
+- [#860](https://github.com/convertigo/convertigo/issues/860) [NGX] Handle the Zoneless template
+- [#861](https://github.com/convertigo/convertigo/issues/861) [Studio] Add a template for GitLab CI/CD
+
+#### Bug Fixes:
+
+- [#856](https://github.com/convertigo/convertigo/issues/856) [NGX] Fixed, Toast color property works properly
+- [#858](https://github.com/convertigo/convertigo/issues/858) [Admin] Fixed, allow to kill sessions with roles
+- [#862](https://github.com/convertigo/convertigo/issues/862) [CI] Fixed, "include" parameters handled for the "car" task
+- [#864](https://github.com/convertigo/convertigo/issues/864) [CI] Fixed, Gradle can now build projects with ngx tpl < 8.3
+- [#865](https://github.com/convertigo/convertigo/issues/865) [Engine] Fixed, restored handling of requests with __nolog
+- [#869](https://github.com/convertigo/convertigo/issues/869) [NGX] Fixed, mobile picker can now be used with array data
+
+---
+
 ## 8.3.1
 
 #### Improvements:
@@ -8,14 +26,14 @@
 
 #### Bug Fixes:
 
-- [#840](https://github.com/convertigo/convertigo/issues/840) Fixed, [[Studio] The Baserow View now generates stub schema of "lookup" type as an array
-- [#844](https://github.com/convertigo/convertigo/issues/844) Fixed, [NGX] Shared components files are now copied to main project when using multiple nested shared components from another project
-- [#845](https://github.com/convertigo/convertigo/issues/845) Fixed, [Admin] Prevent broken password properties if a property is set by JAVA_OPTS and changed in the Admin console 
-- [#846](https://github.com/convertigo/convertigo/issues/846) Fixed, [Studio] Can now rename a project imported from Git
-- [#848](https://github.com/convertigo/convertigo/issues/848) Fixed, [NGX] The "Include in auto menu" Page property now hide entry in AutoMenu
-- [#849](https://github.com/convertigo/convertigo/issues/849) Fixed, [Studio] Tutorial now detects success steps
-- [#853](https://github.com/convertigo/convertigo/issues/853) Fixed, [Studio] Renaming a project now update the Page property of ion-tab-button
-- [#855](https://github.com/convertigo/convertigo/issues/855) Fixed, [Studio] node based subprocess can be terminated on a fresh Windows 11 (MB builder + PouchDB)
+- [#840](https://github.com/convertigo/convertigo/issues/840) [Studio] Fixed, The Baserow View now generates stub schema of "lookup" type as an array
+- [#844](https://github.com/convertigo/convertigo/issues/844) [NGX] Fixed, Shared components files are now copied to main project when using multiple nested shared components from another project
+- [#845](https://github.com/convertigo/convertigo/issues/845) [Admin] Fixed, Prevent broken password properties if a property is set by JAVA_OPTS and changed in the Admin console 
+- [#846](https://github.com/convertigo/convertigo/issues/846) [Studio] Fixed, Can now rename a project imported from Git
+- [#848](https://github.com/convertigo/convertigo/issues/848) [NGX] Fixed, The "Include in auto menu" Page property now hide entry in AutoMenu
+- [#849](https://github.com/convertigo/convertigo/issues/849) [Studio] Fixed, Tutorial now detects success steps
+- [#853](https://github.com/convertigo/convertigo/issues/853) [Studio] Fixed, Renaming a project now update the Page property of ion-tab-button
+- [#855](https://github.com/convertigo/convertigo/issues/855) [Studio] Fixed, node based subprocess can be terminated on a fresh Windows 11 (MB builder + PouchDB)
 
 ---
 
@@ -46,24 +64,24 @@
 
 #### Bug Fixes:
 
-- [#808](https://github.com/convertigo/convertigo/issues/808) Fixed, [Mobile] template the endpoint in cordova config.xml
-- [#813](https://github.com/convertigo/convertigo/issues/813) Fixed, [NGX] tooltips component can be used in ng-template
-- [#815](https://github.com/convertigo/convertigo/issues/815) Fixed, [NGX] segment /:param will not fails if value is 0
-- [#817](https://github.com/convertigo/convertigo/issues/817) Fixed, [Studio] DnD Sequence on a Form component keeps 'Control name' property
-- [#818](https://github.com/convertigo/convertigo/issues/818) Fixed, [NGX] Ngx source picker gives available options when selecting iterator sources
-- [#819](https://github.com/convertigo/convertigo/issues/819) Fixed, [NGX] copying and pasting keeps source picker binds
-- [#821](https://github.com/convertigo/convertigo/issues/821) Fixed, [Studio] no more Invalid Thread Access when importing a project from GIT with <project>=<git url>
-- [#822](https://github.com/convertigo/convertigo/issues/822) Fixed, [NGX] TreeviewComponent works anymore with Angular 16
-- [#824](https://github.com/convertigo/convertigo/issues/824) Fixed, [Studio] generating Schema from connector data success even if documentation of imported REST Swagger contains illegal characters
-- [#825](https://github.com/convertigo/convertigo/issues/825) Fixed, [NGX] UseShared class attribute and its Style content are added in the scss file
-- [#826](https://github.com/convertigo/convertigo/issues/826) Fixed, [Engine] enable "SSL debug" now print SSL debug in stdout after a JVM reboot
-- [#827](https://github.com/convertigo/convertigo/issues/827) Fixed, [Engine] variable __header_ log visibility now respected for the input document log (like other variables)
-- [#828](https://github.com/convertigo/convertigo/issues/828) Fixed, [NGX] Agm core components are now deprecated since Angular 16
-- [#832](https://github.com/convertigo/convertigo/issues/832) Fixed, [Download HTTP Transaction] Doesn't fail if no lastModified header is returned
-- [#833](https://github.com/convertigo/convertigo/issues/833) Fixed, [Palette] SharedComponent with the same name in different projects are all visibles
-- [#834](https://github.com/convertigo/convertigo/issues/834) Fixed, [Studio] Adding and use a sharedComponent appears in page even if the Mobile Builder tab is already opened
-- [#837](https://github.com/convertigo/convertigo/issues/837) Fixed, [Studio] Baserow view stub generator now generates table_id in quotes
-- [#839](https://github.com/convertigo/convertigo/issues/839) Fixed, [NGX] App sources are well updated when Cut/Paste or Dnd/Move between different pages
+- [#808](https://github.com/convertigo/convertigo/issues/808) [Mobile] Fixed, template the endpoint in cordova config.xml
+- [#813](https://github.com/convertigo/convertigo/issues/813) [NGX] Fixed, tooltips component can be used in ng-template
+- [#815](https://github.com/convertigo/convertigo/issues/815) [NGX] Fixed, segment /:param will not fails if value is 0
+- [#817](https://github.com/convertigo/convertigo/issues/817) [Studio] Fixed, DnD Sequence on a Form component keeps 'Control name' property
+- [#818](https://github.com/convertigo/convertigo/issues/818) [NGX] Fixed, Ngx source picker gives available options when selecting iterator sources
+- [#819](https://github.com/convertigo/convertigo/issues/819) [NGX] Fixed, copying and pasting keeps source picker binds
+- [#821](https://github.com/convertigo/convertigo/issues/821) [Studio] Fixed, no more Invalid Thread Access when importing a project from GIT with <project>=<git url>
+- [#822](https://github.com/convertigo/convertigo/issues/822) [NGX] Fixed, TreeviewComponent works anymore with Angular 16
+- [#824](https://github.com/convertigo/convertigo/issues/824) [Studio] Fixed, generating Schema from connector data success even if documentation of imported REST Swagger contains illegal characters
+- [#825](https://github.com/convertigo/convertigo/issues/825) [NGX] Fixed, UseShared class attribute and its Style content are added in the scss file
+- [#826](https://github.com/convertigo/convertigo/issues/826) [Engine] Fixed, enable "SSL debug" now print SSL debug in stdout after a JVM reboot
+- [#827](https://github.com/convertigo/convertigo/issues/827) [Engine] Fixed, variable __header_ log visibility now respected for the input document log (like other variables)
+- [#828](https://github.com/convertigo/convertigo/issues/828) [NGX] Fixed, Agm core components are now deprecated since Angular 16
+- [#832](https://github.com/convertigo/convertigo/issues/832) [Download HTTP Transaction] Fixed, Doesn't fail if no lastModified header is returned
+- [#833](https://github.com/convertigo/convertigo/issues/833) [Palette] Fixed, SharedComponent with the same name in different projects are all visibles
+- [#834](https://github.com/convertigo/convertigo/issues/834) [Studio] Fixed, Adding and use a sharedComponent appears in page even if the Mobile Builder tab is already opened
+- [#837](https://github.com/convertigo/convertigo/issues/837) [Studio] Fixed, Baserow view stub generator now generates table_id in quotes
+- [#839](https://github.com/convertigo/convertigo/issues/839) [NGX] Fixed, App sources are well updated when Cut/Paste or Dnd/Move between different pages
 
 ---
 
