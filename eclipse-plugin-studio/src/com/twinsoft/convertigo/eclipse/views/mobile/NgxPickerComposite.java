@@ -811,9 +811,9 @@ public class NgxPickerComposite extends Composite {
 						elt = lst.size() == 1 ? lst.get(0) : null;
 					}
 					if (elt != null) {
-						String icon = "'" + elt.attributeValue("href").substring(1) + "'";
-						doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
-						((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+						String icon = "'" + elt.attributes().get("href").substring(1) + "'";
+						doc.findElementsByCssSelector("svg.selected").forEach(s -> s.attributes().remove("class"));
+						((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).attributes().put("class", "selected");
 						ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
 					}
 				}, false);
@@ -834,8 +834,8 @@ public class NgxPickerComposite extends Composite {
 						}
 						String selected = "#" + iconName.replace("'", "");
 						for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("use")) {
-							if (selected.equals(elt.attributeValue("href"))) {
-								((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+							if (selected.equals(elt.attributes().get("href"))) {
+								((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).attributes().put("class", "selected");
 								Rect rect = ((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).boundingClientRect();
 								event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 40) + ");");
 								break;

@@ -13,9 +13,9 @@ buildscript {
 //    id 'com.dorongold.task-tree' version '1.5'
 //}
 
-//plugins {
-//  id 'com.github.ben-manes.versions' version '0.51.0'
-//}
+plugins {
+  id 'com.github.ben-manes.versions' version '0.51.0'
+}
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -30,9 +30,9 @@ ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '7.41.2'
+ext.jxBrowserVersion = '8.1.0'
 ext.swaggerUiVersion = '5.11.10'
-ext.tomcatVersion = '9.0.95'
+ext.tomcatVersion = '9.0.96'
 ext.eclipseVersion = '2024-09'
 ext.eclipseBase = '4.33'
 ext.studioWebNodeVersion = '20'
@@ -477,8 +477,8 @@ wrapper {
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
-//tasks.named("dependencyUpdates").configure {
-//  rejectVersionIf {
-//    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
-//  }
-//}
+tasks.named("dependencyUpdates").configure {
+  rejectVersionIf {
+    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
+  }
+}
