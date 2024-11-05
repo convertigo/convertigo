@@ -21,9 +21,9 @@
 </script>
 
 <div class="card-style {cardBorder} {cardStyle} {cls}" {...rest}>
-	<div class="flex gap">
+	<div class="flex flex-wrap gap">
 		{#if title?.length > 0}
-			<h1 class="text-xl mb-5 font-bold">{title}</h1>
+			<span class="text-xl font-bold">{title}</span>
 		{/if}
 		{#if cornerOption}
 			<div class="grow">
