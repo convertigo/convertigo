@@ -19,11 +19,15 @@ export default {
 	get browserTime() {
 		return browser.toLocaleTimeString();
 	},
+	get server() {
+		return server;
+	},
 	get serverTime() {
 		return server.toLocaleTimeString(undefined, { timeZone: serverTimezone });
 	},
 	set serverTimestamp(timestamp) {
-		serverDiff = new Date().getTime() - timestamp;
+		const diff = new Date().getTime() - timestamp;
+		serverDiff = diff > 2000 ? diff : 0;
 	},
 	get serverTimezone() {
 		return serverTimezone;

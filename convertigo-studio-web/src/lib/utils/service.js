@@ -155,9 +155,6 @@ function handleStateMessage(dataContent, service) {
 		if (!toastNotif) {
 			return;
 		}
-		if (service == 'engine.JsonMonitor') {
-			return;
-		}
 
 		let stateMessage =
 			dataContent?.admin?.response ||
@@ -178,8 +175,10 @@ function handleStateMessage(dataContent, service) {
 					? stateMessage
 					: !toastNotif);
 
-		if (service.startsWith('engine')) {
-			toastStateBody == null;
+		if (!toastStateBody) {
+			if (service == 'engine.PerformGC') {
+				toastStateBody = 'GC performed successfully';
+			}
 		}
 		if (toastStateBody) {
 			let isError =
@@ -190,20 +189,28 @@ function handleStateMessage(dataContent, service) {
 			let problem = stateMessage?.problem;
 
 			let background;
+			let timeout = 2000;
 			if (problem) {
 				background = 'bg-tertiary-400-500-token';
+				timeout = 5000;
 			} else if (isError) {
 				background = 'bg-error-400-500-token';
+				timeout = 10000;
 			} else {
 				background = 'bg-success-400-500-token';
 			}
 			toastNotif.trigger({
 				message: toastStateBody,
-				timeout: 8000,
+				timeout,
 				background: background
 			});
 		} else if (
-			['engine.JsonStatus', 'engine.CheckAuthentication', 'engine.Authenticate'].includes(service)
+			[
+				'engine.JsonMonitor',
+				'engine.JsonStatus',
+				'engine.CheckAuthentication',
+				'engine.Authenticate'
+			].includes(service)
 		) {
 			// ignore
 		} else {

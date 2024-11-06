@@ -9,28 +9,23 @@
 	 * 	children?: import('svelte').Snippet
 	 * }}
 	 */
-	let {
-		title = '',
-		class: cls = '',
-		cardStyle = 'flex flex-col dark:bg-surface-800 bg-surface-100 h-auto p-4 font-extralight text-[13.5px]',
-		cardBorder = 'border-[0.5px] border-color rounded-container-token',
-		cornerOption,
-		children,
-		...rest
-	} = $props();
+	let { title = '', class: cls = '', cornerOption, children } = $props();
 </script>
 
-<div class="card-style {cardBorder} {cardStyle} {cls}" {...rest}>
-	<div class="flex flex-wrap gap">
-		{#if title?.length > 0}
-			<span class="text-xl font-bold">{title}</span>
-		{/if}
-		{#if cornerOption}
-			<div class="grow">
-				{@render cornerOption()}
-			</div>
-		{/if}
-	</div>
-
+<div
+	class="layout-y-p bg-surface-100-800-token border-[0.5px] border-color rounded-container-token {cls}"
+>
+	{#if title?.length > 0 || cornerOption}
+		<div class="layout-x flex-wrap w-full">
+			{#if title?.length > 0}
+				<span class="text-xl font-bold">{title}</span>
+			{/if}
+			{#if cornerOption}
+				<div class="grow">
+					{@render cornerOption()}
+				</div>
+			{/if}
+		</div>
+	{/if}
 	{@render children?.()}
 </div>

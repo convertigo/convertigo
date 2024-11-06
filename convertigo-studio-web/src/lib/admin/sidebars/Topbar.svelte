@@ -9,7 +9,7 @@
 </script>
 
 <AppBar
-	background="dark:bg-surface-700 bg-surface-100"
+	background="bg-surface-200-700-token"
 	padding="p-0"
 	gridColumns="grid-cols-3"
 	slotDefault="place-self-center"
@@ -36,7 +36,7 @@
 	</div>
 
 	<svelte:fragment slot="trail">
-		<div class="layout-x-p">
+		<div class="layout-x-p !py-low">
 			<a
 				href="https://github.com/convertigo/convertigo"
 				target="_blank"

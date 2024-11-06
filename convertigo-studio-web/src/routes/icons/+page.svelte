@@ -2,6 +2,7 @@
 	import { ico } from '$lib/utils/Ico.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray } from '$lib/utils/service';
+	import { clipboard } from '@skeletonlabs/skeleton';
 	import { draw } from 'svelte/transition';
 
 	const data = Object.keys(ico).reduce((acc, key) => {
@@ -21,8 +22,8 @@
 			{#each data[pkg] as name}
 				<div class="card p-2 flex flex-col items-center gap-2">
 					<Ico icon="{pkg}:{name}" size="10" />
-					<Ico icon="{pkg}:{name}" animate={{ duration: 1000 }} repeat={true} size="10" />
-					<span>{name}</span>
+					<!-- <Ico icon="{pkg}:{name}" animate={{ duration: 1000 }} repeat={true} size="10" /> -->
+					<button use:clipboard={`${pkg}:${name}`}>{name}</button>
 				</div>
 			{/each}
 		{/each}

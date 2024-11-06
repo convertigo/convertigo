@@ -56,7 +56,7 @@
 							>
 								{#if def.custom}
 									{#if children}
-										{@render children(row, def)}
+										{@render children({ row, def })}
 									{:else}
 										{row[def.key] ?? ''}
 									{/if}

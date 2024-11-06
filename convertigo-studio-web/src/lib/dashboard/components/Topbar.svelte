@@ -1,12 +1,12 @@
 <script>
 	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
-	import { monitorData } from '$lib/admin/stores/monitorStore';
 	import { page } from '$app/stores';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { onMount } from 'svelte';
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
+	import Time from '$lib/common/Time.svelte';
 	let project = $state();
 
 	let isBackend = $derived($page.url.pathname.includes('backend'));
@@ -33,8 +33,11 @@
 >
 	<svelte:fragment slot="lead">
 		<PagesRailToggle />
-		{#if $monitorData.time > 0}
-			<span class="monitor-time">{new Date($monitorData.time).toTimeString().split(' ')[0]}</span>
+		{#if Time.isSameTime}
+			<span class="monitor-time">{Time.browserTime}</span>
+		{:else}
+			<span class="monitor-time hide-md">you {Time.browserTime}</span>
+			<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
 		{/if}
 	</svelte:fragment>
 
