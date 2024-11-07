@@ -46,9 +46,9 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <span
-	class="chip text-left flex flex-col m-1 w-24 h-18 justify-center item-center hover:shadow-lg hover:variant-filled-surface border-b border-surface-500 {item ===
+	class="chip text-left flex flex-col m-1 w-24 h-18 justify-center item-center hover:shadow-lg hover:preset-filled-surface border-b border-surface-500 {item ===
 	selected
-		? 'variant-filled-primary'
+		? 'preset-filled-primary'
 		: ''}"
 	draggable="true"
 	ondragstart={handleDragStart}

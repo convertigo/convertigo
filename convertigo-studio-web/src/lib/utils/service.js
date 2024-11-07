@@ -22,7 +22,7 @@ export async function call(service, data = {}) {
 	let url = getUrl() + service;
 	let body;
 	let headers = {
-		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+		'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
 	};
 	if (data instanceof FormData) {
 		let files = new FormData();
@@ -61,9 +61,9 @@ export async function call(service, data = {}) {
 		credentials: 'include'
 	});
 	loading.set(cpt - 1);
-	var xsrf = res.headers.get('x-xsrf-token');
+	var xsrf = res.headers.get('x-xsrf');
 	if (xsrf != null) {
-		localStorage.setItem('x-xsrf-token', xsrf);
+		localStorage.setItem('x-xsrf', xsrf);
 	}
 
 	const contentType = res.headers.get('content-type');
@@ -83,7 +83,7 @@ export async function callRequestable(mode, project, data = {}) {
 	let url = getUrl(`/projects/${project}/.${mode.toLowerCase()}`);
 	let body;
 	let headers = {
-		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
+		'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
 	};
 	if (data instanceof FormData) {
 		let files = new FormData();
@@ -116,9 +116,9 @@ export async function callRequestable(mode, project, data = {}) {
 		credentials: 'include'
 	});
 
-	var xsrf = res.headers.get('x-xsrf-token');
+	var xsrf = res.headers.get('x-xsrf');
 	if (xsrf != null) {
-		localStorage.setItem('x-xsrf-token', xsrf);
+		localStorage.setItem('x-xsrf', xsrf);
 	}
 
 	return res;
@@ -191,13 +191,13 @@ function handleStateMessage(dataContent, service) {
 			let background;
 			let timeout = 2000;
 			if (problem) {
-				background = 'bg-tertiary-400-500-token';
+				background = 'bg-tertiary-400-500';
 				timeout = 5000;
 			} else if (isError) {
-				background = 'bg-error-400-500-token';
+				background = 'bg-error-400-500';
 				timeout = 10000;
 			} else {
-				background = 'bg-success-400-500-token';
+				background = 'bg-success-400-500';
 			}
 			toastNotif.trigger({
 				message: toastStateBody,

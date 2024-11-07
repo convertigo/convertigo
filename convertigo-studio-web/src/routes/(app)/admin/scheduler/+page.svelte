@@ -111,13 +111,13 @@
 				{#snippet children(row, def)}
 					{#if def.name === 'Edit'}
 						<button
-							class="btn p-1 px-2 shadow-md bg-tertiary-400-500-token"
+							class="btn p-1 px-2 shadow-md bg-tertiary-400-500"
 							onclick={() => openModals(row['@_type'], row)}
 						>
 							<Ico icon="mdi:edit-outline" />
 						</button>
 					{:else if def.name === 'Enabled'}
-						<div class="bg-success-400-500-token rounded-token text-token py-2 px-2">
+						<div class="bg-success-400-500 rounded text py-2 px-2">
 							{row['@_enabled']}
 						</div>
 					{:else if def.name === 'Delete'}

@@ -224,8 +224,8 @@
 		</TableAutoCard>
 	{:else}
 		<div class="table-container">
-			<table class="rounded-token table">
-				<thead class="rounded-token">
+			<table class="rounded table">
+				<thead class="rounded">
 					<tr>
 						{#each Array(5) as _}
 							<th class="header dark:bg-surface-800">
@@ -252,12 +252,12 @@
 
 <style lang="postcss">
 	.role-view {
-		@apply mr-1 px-2 dark:bg-secondary-500 bg-secondary-400 font-light gap-2 rounded-token dark:bg-opacity-80;
+		@apply mr-1 px-2 dark:bg-secondary-500 bg-secondary-400 font-light gap-2 rounded dark:bg-opacity-80;
 	}
 	.role-config {
-		@apply mr-1 px-2 dark:bg-primary-500 bg-primary-400 gap-2 font-light rounded-token dark:bg-opacity-80;
+		@apply mr-1 px-2 dark:bg-primary-500 bg-primary-400 gap-2 font-light rounded dark:bg-opacity-80;
 	}
 	.role-other {
-		@apply mr-1 px-2 dark:bg-tertiary-600 bg-tertiary-400 gap-2 font-light rounded-token dark:bg-opacity-80;
+		@apply mr-1 px-2 dark:bg-tertiary-600 bg-tertiary-400 gap-2 font-light rounded dark:bg-opacity-80;
 	}
 </style>

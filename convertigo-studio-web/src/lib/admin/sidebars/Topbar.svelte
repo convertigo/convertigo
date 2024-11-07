@@ -1,5 +1,5 @@
 <script>
-	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
+	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import PagesRailToggle from '../components/PagesRailToggle.svelte';
 	import { browser } from '$app/environment';
 	import Time from '$lib/common/Time.svelte';
@@ -8,14 +8,8 @@
 	let { showLeft = $bindable() } = $props();
 </script>
 
-<AppBar
-	background="bg-surface-200-700-token"
-	padding="p-0"
-	gridColumns="grid-cols-3"
-	slotDefault="place-self-center"
-	slotTrail="place-content-end"
->
-	<svelte:fragment slot="lead">
+<AppBar background="bg-surface-200-700" padding="p-0">
+	{#snippet lead()}
 		<div class="layout-x pl-1">
 			<PagesRailToggle />
 			<button class="hide-md" onclick={() => (showLeft = !showLeft)}
@@ -28,14 +22,14 @@
 				<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
 			{/if}
 		</div>
-	</svelte:fragment>
+	{/snippet}
 
 	<div class="layout-x">
 		<Ico icon="logo.png" alt="logo convertigo" size={10} />
 		<h1 class="hide-md">Convertigo Admin Console</h1>
 	</div>
 
-	<svelte:fragment slot="trail">
+	{#snippet trail()}
 		<div class="layout-x-p !py-low">
 			<a
 				href="https://github.com/convertigo/convertigo"
@@ -46,10 +40,10 @@
 				<Ico icon="mdi:github" size={8} />
 			</a>
 			{#if browser}
-				<LightSwitch />
+				<!-- <LightSwitch /> -->
 			{/if}
 		</div>
-	</svelte:fragment>
+	{/snippet}
 </AppBar>
 
 <style lang="postcss">

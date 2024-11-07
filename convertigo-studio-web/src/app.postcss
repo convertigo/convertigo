@@ -5,7 +5,7 @@
 
 html,
 body {
-	@apply h-full bg-surface-50-900-token h-full overflow-hidden;
+	@apply h-full bg-surface-100-900 h-full overflow-hidden;
 }
 
 @layer base {
@@ -16,7 +16,7 @@ body {
 		border-collapse: collapse;
 		border: 4px;
 		border-color: white;
-		@apply rounded-token;
+		@apply rounded;
 	}
 	th,
 	td {
@@ -32,18 +32,18 @@ body {
 	tr {
 	}
 	tr:nth-child(even) {
-		@apply dark:bg-surface-800 bg-surface-50 hover:bg-surface-200-700-token;
+		@apply dark:bg-surface-800 bg-surface-50 hover:bg-surface-300-700;
 	}
 
 	tr:nth-child(odd) {
-		@apply dark:bg-surface-900 bg-white dark:bg-surface-hover-token;
+		@apply dark:bg-surface-900 bg-white dark:bg-surface-500;
 	}
 	/* END TABLES STYLE*/
 }
 
 @layer components {
 	.button {
-		@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-token text-white;
+		@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded text-white;
 	}
 
 	.basic-button {
@@ -67,15 +67,15 @@ body {
 	}
 
 	.violet-button {
-		@apply button bg-pale-violet bg-opacity-50 text-token;
+		@apply button bg-pale-violet bg-opacity-50;
 	}
 
 	.btnStyle {
-		@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-token text-token;
+		@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded;
 	}
 
 	.input-button {
-		@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded-token dark:text-token text-white dark:bg-primary-500 bg-primary-500;
+		@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded text-white dark:bg-primary-500 bg-primary-500;
 	}
 
 	/*INPUT STYLES !!*/
@@ -86,16 +86,16 @@ body {
 	}
 	/**Style for Input*/
 	.input-common {
-		@apply placeholder:text-[16px] w-full placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
+		@apply placeholder:text-[16px] w-full placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
 		border-bottom: surface-200;
 	}
 
 	.select-common {
-		@apply placeholder:text-[12px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
+		@apply placeholder:text-[12px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
 		border-bottom: surface-200;
 	}
 	.input-common-dash {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded-token;
+		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded;
 		border-bottom: surface-200;
 	}
 	.input-text {
@@ -115,7 +115,7 @@ body {
 
 	/*FORM STYLE*/
 	form {
-		@apply rounded-token;
+		@apply rounded;
 	}
 
 	.gray-button {
@@ -123,7 +123,7 @@ body {
 	}
 
 	.confirm-button {
-		@apply bg-primary-400-500-token;
+		@apply bg-primary-400-600;
 	}
 
 	/*END FORM STYLE*/
@@ -155,6 +155,10 @@ body {
 	/*END RESPONSIVE*/
 
 	.border-color {
-		@apply border-surface-200-700-token;
+		@apply border-surface-300-700;
+	}
+
+	.preset-filled-error {
+		@apply preset-filled-error-500;
 	}
 }

@@ -84,7 +84,7 @@
 							bind:group={$conf.cacheType}
 							name="cacheType"
 							{value}
-							active="variant-filled-surface text-white"
+							active="preset-filled-surface text-white"
 						>
 							{text}
 						</RadioItem>
@@ -111,8 +111,8 @@
 			<AutoGrid class="mt-5">
 				<Card title="Database Used">
 					<RadioGroup
-						class="flex flex-col p-5 variant-filled-success text-token"
-						active="bg-secondary-400-500-token"
+						class="flex flex-col p-5 preset-filled-success text"
+						active="bg-secondary-400-500"
 					>
 						{@const data = [
 							{ value: 'sqlserver', text: 'SQLServer' },

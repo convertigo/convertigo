@@ -1,5 +1,5 @@
 <script>
-	import { AppBar, LightSwitch } from '@skeletonlabs/skeleton';
+	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/stores';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
@@ -25,13 +25,8 @@
 	});
 </script>
 
-<AppBar
-	class="app-bar border-b-[0.5px] dark:border-surface-500 border-surface-200 py-2 px-10"
-	background="dark:bg-surface-700 bg-surface-100"
-	slotDefault="flex justify-center"
-	padding="p-0"
->
-	<svelte:fragment slot="lead">
+<AppBar background="dark:bg-surface-700 bg-surface-100" padding="p-0">
+	{#snippet lead()}
 		<PagesRailToggle />
 		{#if Time.isSameTime}
 			<span class="monitor-time">{Time.browserTime}</span>
@@ -39,7 +34,7 @@
 			<span class="monitor-time hide-md">you {Time.browserTime}</span>
 			<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
 		{/if}
-	</svelte:fragment>
+	{/snippet}
 
 	{#if project}
 		{@const parts = [
@@ -81,20 +76,20 @@
 			{#each parts as { name, href, cls, icon, state }, i}
 				<a
 					{href}
-					class:variant-filled-secondary={state}
-					class:variant-ghost-secondary={!state}
+					class:preset-filled-secondary={state}
+					class:preset-ghost-secondary={!state}
 					class:rounded-none={i > 0 && i < parts.length - 1}
 					class:rounded-r-none={i == 0}
 					class:rounded-l-none={i == parts.length - 1}
-					class="btn hover:variant-filled-secondary"
+					class="btn hover:preset-filled-secondary"
 					><span><Ico {icon} size="nav" /></span>{#if name}<span>{name}</span>{/if}</a
 				>
 			{/each}
 		</div>
 	{/if}
-	<svelte:fragment slot="trail">
-		<LightSwitch />
-	</svelte:fragment>
+	{#snippet trail()}
+		<!-- <LightSwitch /> -->
+	{/snippet}
 </AppBar>
 
 <style lang="postcss">
@@ -120,7 +115,7 @@
 		@apply pr-4 p-1 flex items-center gap-5;
 	}
 	.studio-link {
-		@apply items-center p-1 pl-5 pr-5 hidden md:inline-flex rounded-token;
+		@apply items-center p-1 pl-5 pr-5 hidden md:inline-flex rounded;
 	}
 
 	.icon-size {

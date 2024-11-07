@@ -21,7 +21,7 @@
 	);
 </script>
 
-<div class="bg-surface-700 p-4 rounded-token">
+<div class="bg-surface-700 p-4 rounded">
 	<div class="relative flex gap-10">
 		<input
 			type="text"

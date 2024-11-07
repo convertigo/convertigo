@@ -25,9 +25,9 @@
 	{/if}
 	{@render title_1?.()}
 
-	<table class="rounded-token table">
+	<table class="rounded table">
 		{#if showHeaders}
-			<thead class="rounded-token">
+			<thead class="rounded">
 				<tr>
 					{#each definition as def}
 						<th class="dark:bg-surface-800">
@@ -106,7 +106,7 @@
 
 		tr {
 			display: block;
-			@apply rounded-token;
+			@apply rounded;
 		}
 
 		tr + tr {
@@ -120,7 +120,7 @@
 			justify-content: flex-start;
 			align-items: center;
 			position: relative;
-			@apply border-token flex;
+			@apply border flex;
 		}
 		td[data-label]:not([data-label='']) {
 			padding-left: 50%;

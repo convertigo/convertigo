@@ -166,11 +166,11 @@
 				<div class="flex flex-col gap-2">
 					<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
 						{#each presets as preset, i}
-							<div class="card p-4 variant-filled-surface z-50" data-popup="preset-{i}">
+							<div class="card p-4 preset-filled-surface z-50" data-popup="preset-{i}">
 								<div class="flex flex-col gap-2 overflow-y-auto">
 									{#each preset as { name, fn }}
 										<button
-											class="btn variant-ghost-primary"
+											class="btn preset-ghost-primary"
 											onclick={() => {
 												dates[i] = fn();
 												times[i] = formatTime(dates[i]);
@@ -179,7 +179,7 @@
 											{name}
 										</button>
 									{/each}
-									<div class="arrow variant-filled-surface"></div>
+									<div class="arrow preset-filled-surface"></div>
 								</div>
 							</div>
 						{/each}
@@ -200,7 +200,7 @@
 										<div class="flex flex-row flex-wrap items-center gap-2">
 											<button
 												type="button"
-												class="btn btn-sm p-2 variant-filled-surface"
+												class="btn btn-sm p-2 preset-filled-surface"
 												use:popup={{ event: 'click', target: `preset-${i}`, placement: 'bottom' }}
 												>{way}&nbsp;<Ico icon="mdi:clock-star-four-points-outline" /></button
 											>
@@ -218,7 +218,7 @@
 										</div>
 									</div>
 								{/each}
-								<button class="btn btn-sm variant-filled-surface p-2" onclick={refreshLogs}
+								<button class="btn btn-sm preset-filled-surface p-2" onclick={refreshLogs}
 									>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
 								>
 							</div>
@@ -273,6 +273,6 @@
 
 <style lang="postcss">
 	.logsCard {
-		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded-token;
+		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded;
 	}
 </style>

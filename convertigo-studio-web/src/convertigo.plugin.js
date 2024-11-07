@@ -34,8 +34,10 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 		gap: (v) => ({ gap: v }),
 		px: (v) => ({ paddingLeft: v, paddingRight: v }),
 		py: (v) => ({ paddingTop: v, paddingBottom: v }),
+		p: (v) => ({ paddingLeft: v, paddingRight: v, paddingTop: v, paddingBottom: v }),
 		mx: (v) => ({ marginLeft: v, marginRight: v }),
-		my: (v) => ({ marginTop: v, marginBottom: v })
+		my: (v) => ({ marginTop: v, marginBottom: v }),
+		m: (v) => ({ marginLeft: v, marginRight: v, marginTop: v, marginBottom: v })
 	};
 
 	const getVersion = (property, value) => {
@@ -72,8 +74,7 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 				addUtilities({
 					[`.layout-${axis}-${prop}${dash(version)}`]: merge(
 						rule[`.layout-${axis}${dash(version)}`],
-						getVersion(prop + 'x', version),
-						getVersion(prop + 'y', version)
+						getVersion(prop, version)
 					)
 				});
 			});

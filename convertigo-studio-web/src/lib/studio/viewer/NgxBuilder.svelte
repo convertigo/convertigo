@@ -23,7 +23,7 @@
 			`${getUrl().replace(
 				/^http/,
 				'ws'
-			)}studio.ngxbuilder.WsBuilder?__xsrfToken=${localStorage.getItem('x-xsrf-token')}`
+			)}studio.ngxbuilder.WsBuilder?__xsrfToken=${localStorage.getItem('x-xsrf')}`
 		);
 		ws.onopen = () => {
 			ws = ws;
@@ -130,7 +130,7 @@
 		{#if iframeUrl == null}
 			<div class="flex flex-col justify-around items-center h-full w-full">
 				<ProgressRadial value={progress}>{progress}%</ProgressRadial>
-				<div class="card variant-ghost w-3/4 py-1 text-center">{output}</div>
+				<div class="card preset-ghost w-3/4 py-1 text-center">{output}</div>
 			</div>
 		{:else}
 			<iframe bind:this={iframe} class="h-full w-full" title="test" src={iframeUrl}></iframe>

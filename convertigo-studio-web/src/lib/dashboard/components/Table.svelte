@@ -8,7 +8,7 @@
 		<tr>
 			{#each columns as column}
 				<th
-					class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-token"
+					class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text"
 					>{column}</th
 				>
 			{/each}
@@ -18,7 +18,7 @@
 		{#each data as row}
 			<tr>
 				{#each row as cell, i}
-					<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-token">
+					<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text">
 						{@html cell}
 					</td>
 				{/each}

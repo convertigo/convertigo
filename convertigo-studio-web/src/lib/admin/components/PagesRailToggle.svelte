@@ -1,23 +1,23 @@
 <script>
-	import { getDrawerStore } from '@skeletonlabs/skeleton';
+	// import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{open?: boolean}} */
 	let { open = true } = $props();
 
-	const drawerStore = getDrawerStore();
+	// const drawerStore = getDrawerStore();
 	function togglePagesDrawer() {
-		if (open) {
-			drawerStore.open({
-				id: 'pagesRail',
-				position: 'left',
-				bgDrawer: 'dark:bg-surface-800 bg-white',
-				bgBackdrop: 'bg-black/50',
-				width: 'w-auto'
-			});
-		} else {
-			drawerStore.close();
-		}
+		// if (open) {
+		// 	drawerStore.open({
+		// 		id: 'pagesRail',
+		// 		position: 'left',
+		// 		bgDrawer: 'dark:bg-surface-800 bg-white',
+		// 		bgBackdrop: 'bg-black/50',
+		// 		width: 'w-auto'
+		// 	});
+		// } else {
+		// 	drawerStore.close();
+		// }
 	}
 </script>
 

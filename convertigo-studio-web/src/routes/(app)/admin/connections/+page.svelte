@@ -39,14 +39,14 @@
 			connectionsCheck();
 			toastStore.trigger({
 				message: 'Refreshed successfully',
-				background: 'bg-success-400-500-token',
+				background: 'bg-success-400-500',
 				timeout: 8000
 			});
 		} catch (err) {
 			console.error(err);
 			toastStore.trigger({
 				message: 'An error occurred',
-				background: 'bg-success-400-500-token',
+				background: 'bg-success-400-500',
 				timeout: 8000
 			});
 		}

@@ -331,8 +331,8 @@
 						<MovableContent bind:items={$columnsOrder} {index} grabClass="cursor-grab">
 							<div
 								class="mini-card"
-								class:variant-filled-success={show}
-								class:variant-filled-warning={!show}
+								class:preset-filled-success={show}
+								class:preset-filled-warning={!show}
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
@@ -355,17 +355,17 @@
 			</div>
 		{/if}
 		<div class="row-wrap">
-			<div class="mini-card variant-filled-surface">
+			<div class="mini-card preset-filled-surface">
 				<span class="cursor-pointer" onmousedown={() => (fullscreen = !fullscreen)}
 					><Ico icon="mdi:fullscreen{fullscreen ? '-exit' : ''}" /></span
 				>
 			</div>
-			<div class="mini-card variant-filled-surface">
+			<div class="mini-card preset-filled-surface">
 				<span class="cursor-pointer" onmousedown={() => ($showFilters = !$showFilters)}
 					><Ico icon="mdi:filter-cog{$showFilters ? '' : '-outline'}" /></span
 				>
 			</div>
-			<div class="mini-card variant-filled-surface">
+			<div class="mini-card preset-filled-surface">
 				<span bind:this={searchBox} class="cursor-pointer" use:popup={searchBoxSetting}
 					><Ico icon="mdi:search" /></span
 				>
@@ -394,7 +394,7 @@
 					<div class="arrow bg-stone-200 dark:bg-stone-900"></div>
 				</div>
 			</div>
-			<div class="mini-card variant-filled-tertiary">
+			<div class="mini-card preset-filled-tertiary">
 				<span>Message</span>
 				<span
 					class="cursor-cell"
@@ -409,12 +409,12 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="mini-card variant-ghost">AND</div>
+						<div class="mini-card preset-ghost">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="mini-card variant-ghost">OR</div>
+						<div class="mini-card preset-ghost">OR</div>
 					{/if}
-					<div class="mini-card variant-filled" class:variant-filled-error={not}>
+					<div class="mini-card preset-filled" class:preset-filled-error={not}>
 						<span class="overflow-hidden max-w-xs"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
@@ -429,7 +429,7 @@
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] mt-1 p-1 card variant-ghost-primary">
+			<div class="absolute left-[-25px] mt-1 p-1 card preset-ghost-primary">
 				<span
 					class="cursor-pointer"
 					onclick={() => {
@@ -446,7 +446,7 @@
 				{/if}
 			</div>
 			<div
-				class="flex flex-wrap overflow-y-hidden bg-surface-backdrop-token"
+				class="flex flex-wrap overflow-y-hidden bg-surface-backdrop"
 				style="height: {2 + extraLines * 20}px"
 			>
 				{#each columns as { name, cls, style } (name)}
@@ -493,7 +493,7 @@
 						{/each}
 					</div>
 					<div
-						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-token variant-ghost"
+						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-ghost"
 						style="scrollbar-width: thin;"
 					>
 						{#if founds.length > 0}
@@ -520,16 +520,16 @@
 			</div>
 		</VirtualList>
 	</MaxHeight>
-	<div class="flex gap-4 rounded-token bg-surface-backdrop-token justify-between items-center px-4">
+	<div class="flex gap-4 rounded bg-surface-backdrop justify-between items-center px-4">
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {$logs.length}
 			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}
 			{#if $calling}Calling ...{/if}</span
 		>
 		<div
-			class="mini-card variant-filled"
-			class:variant-filled-success={!autoScroll}
-			class:variant-filled-warning={autoScroll}
+			class="mini-card preset-filled"
+			class:preset-filled-success={!autoScroll}
+			class:preset-filled-warning={autoScroll}
 			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();
@@ -547,19 +547,19 @@
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		@apply z-50 bg-surface-50-900-token dark:bg-surface-900-50-token min-w-full;
+		@apply z-50 bg-surface-50-900 dark:bg-surface-900-50 min-w-full;
 	}
 
 	.row-wrap {
-		@apply flex flex-wrap rounded-token variant-ghost;
+		@apply flex flex-wrap rounded preset-ghost;
 	}
 
 	.mini-card {
-		@apply rounded-token m-1 p-1 flex gap-2 text-nowrap select-none;
+		@apply rounded m-1 p-1 flex gap-2 text-nowrap select-none;
 	}
 
 	.btn-search {
-		@apply btn btn-sm text-black bg-surface-hover-token dark:text-white;
+		@apply btn btn-sm text-black bg-surface-hover dark:text-white;
 	}
 
 	.searchedCurrent {
@@ -575,32 +575,32 @@
 	}
 
 	.FATAL {
-		@apply bg-surface-backdrop-token;
+		@apply bg-surface-backdrop;
 		box-shadow: 2px 2px 5px 0px #404040;
 	}
 
 	.ERROR {
-		@apply bg-error-backdrop-token;
+		@apply bg-error-backdrop;
 		box-shadow: 2px 2px 5px 0px #ff3b30;
 	}
 
 	.WARN {
-		@apply bg-warning-backdrop-token;
+		@apply bg-warning-backdrop;
 		box-shadow: 2px 2px 5px 0px #ff9500;
 	}
 
 	.INFO {
-		@apply bg-secondary-backdrop-token;
+		@apply bg-secondary-backdrop;
 		box-shadow: 2px 2px 5px 0px #71c287;
 	}
 
 	.DEBUG {
-		@apply bg-primary-backdrop-token;
+		@apply bg-primary-backdrop;
 		box-shadow: 2px 2px 5px 0px #4285f4;
 	}
 
 	.TRACE {
-		@apply bg-tertiary-backdrop-token;
+		@apply bg-tertiary-backdrop;
 		box-shadow: 2px 2px 5px 0px #fbbc05;
 	}
 </style>

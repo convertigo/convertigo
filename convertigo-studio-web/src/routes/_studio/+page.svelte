@@ -85,7 +85,7 @@
 	{/if}
 	{#if $editorSelected}
 		<div
-			class="grow card m-1 variant-soft-success h-full"
+			class="grow card m-1 preset-soft-success h-full"
 			style="height: calc(100% - 8px);"
 			transition:withTransition={{ duration: 250 }}
 		>

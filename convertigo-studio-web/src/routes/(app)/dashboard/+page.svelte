@@ -76,8 +76,8 @@
 					<button
 						class="btn rounded-none"
 						style="padding: 2px"
-						class:variant-ghost-secondary={count != 1}
-						class:variant-filled-secondary={count == 1}
+						class:preset-ghost-secondary={count != 1}
+						class:preset-filled-secondary={count == 1}
 						onclick={() => {
 							filters[i].count = count == 1 ? 0 : 1;
 						}}
@@ -87,8 +87,8 @@
 					<button
 						class="btn rounded-none"
 						style="padding: 2px"
-						class:variant-ghost-warning={count != 2}
-						class:variant-filled-warning={count == 2}
+						class:preset-ghost-warning={count != 2}
+						class:preset-filled-warning={count == 2}
 						onclick={() => {
 							filters[i].count = count == 2 ? 0 : 2;
 						}}
@@ -120,7 +120,7 @@
 							<div class="grow flex">
 								<a
 									href="{project['@_name']}/backend/"
-									class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-br-lg"
+									class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-br-lg"
 								>
 									<Ico icon="ph:gear-six-thin" size="nav" />
 								</a>
@@ -129,7 +129,7 @@
 								<div class="grow flex justify-end">
 									<a
 										href="{project['@_name']}/frontend/"
-										class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-bl-lg"
+										class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-bl-lg"
 									>
 										<Ico icon="ph:video-thin" size="nav" />
 									</a>
@@ -141,9 +141,9 @@
 								<div class="grow flex">
 									<a
 										href={rootProject != project ? `#${project['@_name']}` : '#'}
-										class="p-3 hover:variant-filled-secondary h-fit rounded-tr-lg"
-										class:variant-ghost-secondary={rootProject != project}
-										class:variant-filled-secondary={rootProject == project}
+										class="p-3 hover:preset-filled-secondary h-fit rounded-tr-lg"
+										class:preset-ghost-secondary={rootProject != project}
+										class:preset-filled-secondary={rootProject == project}
 									>
 										<Ico icon="ph:plugs-connected-thin" size="nav" />
 									</a>
@@ -153,7 +153,7 @@
 								<div class="grow flex justify-end">
 									<a
 										href="{project['@_name']}/platforms/"
-										class="p-3 variant-ghost-secondary hover:variant-filled-secondary h-fit rounded-tl-lg"
+										class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-tl-lg"
 									>
 										<Ico icon="ph:package-thin" size="nav" />
 									</a>
@@ -177,7 +177,7 @@
 
 <style lang="postcss">
 	.search-bar {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text-token placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-token;
+		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
 		border-bottom: surface-200;
 	}
 

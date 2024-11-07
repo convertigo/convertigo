@@ -114,11 +114,11 @@
 	{#each def as { title, values, labels }, i}
 		<Container flex flexCol gap="5">
 			<p class="font-bold text-start pr-5">{title}</p>
-			<ListBox rounded="rounded-token" class="h-52 overflow-y-auto p-1" multiple={true}>
+			<ListBox rounded="rounded" class="h-52 overflow-y-auto p-1" multiple={true}>
 				{#each values as value, j}
 					<ListBoxItem
 						class="font-extralight"
-						active="bg-tertiary-100-800-token"
+						active="bg-tertiary-100-800"
 						{value}
 						name={labels[j]}
 						bind:group={$selection[i]}

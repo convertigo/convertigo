@@ -103,8 +103,8 @@
 							<h1 class="font-bold text-xl">{name}</h1>
 							<RadioGroup class="" background="bg-surface-50 dark:bg-surface-700">
 								{@const radioDef = [
-									{ value: false, active: 'variant-filled-error', icon: 'mdi:minus' },
-									{ value: true, active: 'variant-filled-secondary', icon: 'mdi:plus' }
+									{ value: false, active: 'preset-filled-error', icon: 'mdi:minus' },
+									{ value: true, active: 'preset-filled-secondary', icon: 'mdi:plus' }
 								]}
 								{#each radioDef as { value, active, icon }}
 									<RadioItem

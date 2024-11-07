@@ -11,7 +11,7 @@
 		title = '',
 		class: cls = '',
 		cardStyle = 'flex flex-col dark:bg-surface-800 bg-surface-100 h-auto p-5 text-[13.5px]',
-		cardBorder = 'rounded-token',
+		cardBorder = 'rounded',
 		cornerOption,
 		children,
 		...rest

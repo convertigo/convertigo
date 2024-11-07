@@ -12,9 +12,7 @@
 	let { title = '', class: cls = '', cornerOption, children } = $props();
 </script>
 
-<div
-	class="layout-y-p bg-surface-100-800-token border-[0.5px] border-color rounded-container-token {cls}"
->
+<div class="layout-y-p bg-surface-100-800 border-[0.5px] border-color rounded-container {cls}">
 	{#if title?.length > 0 || cornerOption}
 		<div class="layout-x flex-wrap w-full">
 			{#if title?.length > 0}

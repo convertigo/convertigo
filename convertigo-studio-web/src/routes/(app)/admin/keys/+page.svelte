@@ -135,8 +135,8 @@
 							custom: true
 							/*class: (row) =>
 								row['@_expiration'] === '0'
-									? 'bg-success-400-500-token border-r-[1px] border-surface-100-800-token'
-									: 'bg-tertiary-400-500-token border-r-[1px] border-surface-100-800-token'*/
+									? 'bg-success-400-500 border-r-[1px] border-surface-100-800'
+									: 'bg-tertiary-400-500 border-r-[1px] border-surface-100-800'*/
 						},
 						{
 							name: 'Expired',
@@ -144,8 +144,8 @@
 							custom: true
 							/* class: (row) =>
 								row['@_expired'] === 'false'
-									? 'bg-success-400-500-token'
-									: 'bg-tertiary-400-500-token'*/
+									? 'bg-success-400-500'
+									: 'bg-tertiary-400-500'*/
 						},
 						{ name: 'Delete', custom: true }
 					]}
@@ -155,11 +155,11 @@
 						{#if def.custom}
 							{#if def.name === 'Expiration Date'}
 								{#if row[def.key] === '0'}
-									<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
+									<div class="bg-success-400-500 rounded py-1 px-1 text">
 										{formatExpiration(row[def.key])}
 									</div>
 								{:else}
-									<div class="bg-tertiary-400-500-token rounded-token py-1 px-1 text-token">
+									<div class="bg-tertiary-400-500 rounded py-1 px-1 text">
 										{formatExpiration(row[def.key])}
 									</div>
 								{/if}
@@ -169,7 +169,7 @@
 								<span class="">{category['@_remaining']}</span>
 							{:else if def.name === 'Expired'}
 								{#if row[def.key] === 'false'}
-									<div class="bg-success-400-500-token rounded-token py-1 px-1 text-token">
+									<div class="bg-success-400-500 rounded py-1 px-1 text">
 										{row[def.key]}
 									</div>
 								{:else}
@@ -192,7 +192,7 @@
 
 <style lang="postcss">
 	.input-new-key {
-		@apply dark:text-white w-80 text-token placeholder:text-surface-300 rounded-token w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
+		@apply dark:text-white w-80 text placeholder:text-surface-300 rounded w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
 		max-width: 400px;
 	}
 </style>

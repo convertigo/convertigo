@@ -53,8 +53,8 @@
 				<button
 					type="submit"
 					class="btn"
-					class:variant-filled-primary={mode != _mode}
-					class:variant-filled-success={mode == _mode}
+					class:preset-filled-primary={mode != _mode}
+					class:preset-filled-success={mode == _mode}
 					value={_mode}
 				>
 					{_mode}

@@ -103,7 +103,7 @@
 
 <style lang="postcss">
 	.btn-group-vertical button {
-		@apply hover:bg-primary-400-500-token;
+		@apply hover:bg-primary-400-500;
 	}
 
 	.btn-group-vertical button:disabled {

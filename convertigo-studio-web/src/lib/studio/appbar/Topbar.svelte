@@ -23,7 +23,7 @@
 			>
 
 			<svelte:fragment slot="trail">
-				<div class=" bg-surface-600 mr-7 pr-3 pl-3 variant-filled">
+				<div class=" bg-surface-600 mr-7 pr-3 pl-3 preset-filled">
 					<a href="{base}/admin/" class="flex items-center"
 						><p class="mr-2 text-[12px] font-light">Admin-consoleugugu</p>
 						<Icon icon="arcticons:google-admin" class="w-8 h-8 " /></a

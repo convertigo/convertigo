@@ -1,5 +1,5 @@
 <script>
-	import { AppShell, Drawer } from '@skeletonlabs/skeleton';
+	import { Modal } from '@skeletonlabs/skeleton-svelte';
 	import TopbarAdmin from '$lib/admin/sidebars/Topbar.svelte';
 	import TopbarDashBoard from '$lib/dashboard/components/Topbar.svelte';
 	import PagesRail from '$lib/common/components/PagesRail.svelte';
@@ -18,29 +18,31 @@
 	let showLeft = $state(true);
 </script>
 
-<Drawer>
-	<PagesRailToggle open={false} />
-	<PagesRail {path} {parts} />
-</Drawer>
+<Modal>
+	{#snippet content()}
+		<PagesRailToggle open={false} />
+		<PagesRail {path} {parts} />
+	{/snippet}
+</Modal>
 
-<AppShell>
-	<svelte:fragment slot="header">
+<div>
+	<header>
 		{#if path == '/(app)/admin'}
 			<TopbarAdmin bind:showLeft />
 		{:else}
 			<TopbarDashBoard />
 		{/if}
-	</svelte:fragment>
-	<svelte:fragment slot="sidebarLeft">
+	</header>
+	<aside>
 		{#if showLeft}
 			<div class="hide-md h-full" transition:slide={{ axis: 'x' }}>
 				<PagesRail {path} {parts} />
 			</div>
 		{/if}
-	</svelte:fragment>
+	</aside>
 	{#key $page.url.pathname}
 		<div class="px py h-full" in:fade>
 			{@render children?.()}
 		</div>
 	{/key}
-</AppShell>
+</div>

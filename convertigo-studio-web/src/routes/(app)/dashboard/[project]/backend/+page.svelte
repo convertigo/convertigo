@@ -127,7 +127,7 @@
 					<AccordionItem open={index == 0 || searchQuery.length > 0}>
 						<svelte:fragment slot="lead"></svelte:fragment>
 						<svelte:fragment slot="summary">
-							<p class="text-[18px] font-semibold text-token pb-4 px-2">{name}</p>
+							<p class="text-[18px] font-semibold text pb-4 px-2">{name}</p>
 							<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
@@ -137,7 +137,7 @@
 										caretOpen="rotate-0"
 										caretClosed="-rotate-90"
 										padding="p-4"
-										class="rounded-token bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
+										class="rounded bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
 									>
 										<AccordionItem
 											on:toggle={(e) => (requestable.open = e.detail?.open)}
@@ -146,9 +146,7 @@
 											<svelte:fragment slot="lead"></svelte:fragment>
 											<svelte:fragment slot="summary">
 												<div class="flex items-center justify-between relative">
-													<span class="text-[14px] text-token font-bold"
-														>{requestable['@_name']}</span
-													>
+													<span class="text-[14px] text font-bold">{requestable['@_name']}</span>
 													{#if !requestable.open}
 														<span
 															transition:fly={{ duration, y: 20 }}

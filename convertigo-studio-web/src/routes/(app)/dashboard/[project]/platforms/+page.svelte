@@ -108,7 +108,7 @@
 <CardD>
 	<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="" autocollapse>
 		{#each platforms as platform, i}
-			<AccordionItem open={i == 0} class="variant-ghost-surface rounded-token">
+			<AccordionItem open={i == 0} class="preset-ghost-surface rounded">
 				<svelte:fragment slot="lead">{platform['@_displayName']}</svelte:fragment>
 				<svelte:fragment slot="summary"
 					><AutoPlaceholder loading={!platform.status}
@@ -159,7 +159,7 @@
 						{/if}
 					</div>
 					<div class="flex flex-wrap justify-center gap-2">
-						<button onclick={() => build(platform)} class="btn variant-filled-primary"
+						<button onclick={() => build(platform)} class="btn preset-filled-primary"
 							><span><Ico icon="mdi:briefcase-upload-outline" /></span><span
 								>Build Mobile Platform</span
 							></button
@@ -168,7 +168,7 @@
 							href="{getUrl()}mobiles.GetSourcePackage?project={window.encodeURIComponent(
 								$page.params.project
 							)}&platform={window.encodeURIComponent(platform['@_name'])}"
-							class="btn variant-filled-tertiary"
+							class="btn preset-filled-tertiary"
 							><span><Ico icon="mdi:file-download-outline" /></span><span>Get Source Package</span
 							></a
 						>

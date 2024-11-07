@@ -176,7 +176,7 @@
 			<div
 				class="chip text-[11.5px] ml-2 py-0 {btn === c
 					? 'dark:bg-surface-500 bg-surface-300'
-					: 'variant-soft'}"
+					: 'preset-soft'}"
 				onclick={() => {
 					setMode(c, true);
 				}}

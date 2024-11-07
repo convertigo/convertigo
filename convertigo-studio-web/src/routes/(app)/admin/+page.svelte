@@ -2,15 +2,12 @@
 	import ApexChartLineAdmin from '$lib/admin/charts/ApexChartLineAdmin.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Status from '$lib/common/Status.svelte';
 	import Monitor from '$lib/common/Monitor.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-
-	const modalStore = getModalStore();
 
 	const tables = $derived([
 		{
@@ -133,11 +130,11 @@
 	 * @param {string} mode
 	 */
 	function modal(mode) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalHome',
-			meta: { mode }
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalHome',
+		// 	meta: { mode }
+		// });
 	}
 </script>
 

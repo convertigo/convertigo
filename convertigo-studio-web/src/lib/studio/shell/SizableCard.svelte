@@ -46,7 +46,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="variant-soft-primary overflow-hidden widthTransition border-[0.5] border-r dark:border-surface-800 border-surface-300"
+	class="preset-soft-primary overflow-hidden widthTransition border-[0.5] border-r dark:border-surface-800 border-surface-300"
 	style:width="{$width}px"
 	style:min-width="100px"
 	ondrag={widthDrag}

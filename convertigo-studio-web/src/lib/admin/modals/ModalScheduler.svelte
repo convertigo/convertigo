@@ -169,11 +169,11 @@
 
 						<p class="font-bold">Select jobs</p>
 
-						<ListBox rounded="rounded-token" multiple={true} class="max-h-52 overflow-y-auto">
+						<ListBox rounded="rounded" multiple={true} class="max-h-52 overflow-y-auto">
 							{#each $jobsStore as job}
 								{#if job['@_name'] != binds.name}
 									<ListBoxItem
-										active="bg-tertiary-100-800-token"
+										active="bg-tertiary-100-800"
 										bind:group={binds.jobsname}
 										name="jobsname"
 										value={job['@_name']}>{job['@_name']}</ListBoxItem
@@ -198,9 +198,9 @@
 							{#each def as { label, name, store }}
 								<Container>
 									<p class="font-bold mb-3">{label}</p>
-									<select {name} class="select rounded-token" size="10" bind:value={binds[name]}>
+									<select {name} class="select rounded" size="10" bind:value={binds[name]}>
 										{#each store as item}
-											<option class="rounded-token text-[13px] text-token">{item['@_name']}</option>
+											<option class="rounded text-[13px] text">{item['@_name']}</option>
 										{/each}
 									</select>
 								</Container>

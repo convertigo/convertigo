@@ -215,7 +215,7 @@
 					<button
 						type="button"
 						disabled={true}
-						class="btn p-1 pl-5 pr-5 mb-5 w-80 variant-filled-error font-normal rounded-full font-medium"
+						class="btn p-1 pl-5 pr-5 mb-5 w-80 preset-filled-error font-normal rounded-full font-medium"
 					>
 						<span
 							><Icon
@@ -234,8 +234,8 @@
 			</Card>
 
 			<Card title="Advanced properties" class="mt-5">
-				<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="rounded-token">
-					<AccordionItem class="rounded-token">
+				<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="rounded">
+					<AccordionItem class="rounded">
 						<svelte:fragment slot="lead"
 							><Ico icon="game-icons:level-three-advanced" />
 						</svelte:fragment>
@@ -246,7 +246,7 @@
 				</Accordion>
 			</Card>
 		</div>
-		<Card class="flex flex-col h-auto md:col-span-1 rounded-token">
+		<Card class="flex flex-col h-auto md:col-span-1 rounded">
 			{#each Array(12) as _}
 				<div class="placeholder animate-pulse my-3 h-8"></div>
 			{/each}
