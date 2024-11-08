@@ -30,10 +30,7 @@
 		<p>Welcome to Convertigo</p>
 		<p>Administration Console</p>
 	</h1>
-	<form
-		onsubmit={handleSubmit}
-		class="layout-y-m !gap-5 w-[300px] max-w-full !items-stretch"
-	>
+	<form onsubmit={handleSubmit} class="layout-y-m !gap-5 w-[300px] max-w-full !items-stretch">
 		<input type="hidden" name="authType" value="login" />
 		<input
 			name="authUserName"
@@ -55,8 +52,6 @@
 			<p class="preset-filled-error p-low rounded">{error}</p>
 		{/if}
 
-		<button type="submit" class="basic-button"
-			>Enter</button
-		>
+		<button type="submit" class="basic-button">Enter</button>
 	</form>
 </div>

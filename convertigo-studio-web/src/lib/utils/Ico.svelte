@@ -64,9 +64,11 @@
 	import MdiLanguageJava from '~icons/mdi/language-java?raw';
 	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
+	import MdiMoonAndStars from '~icons/mdi/moon-and-stars?raw';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
 	import MdiSearch from '~icons/mdi/search?raw';
+	import MdiWeatherSunny from '~icons/mdi/weather-sunny?raw';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line?raw';
 	import OcticonLogoGithub16 from '~icons/octicon/logo-github-16?raw';
 	import PhBooksThin from '~icons/ph/books-thin?raw';
@@ -151,9 +153,11 @@
 		'mdi:language-java': MdiLanguageJava,
 		'mdi:magnify': MdiMagnigy,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
+		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:search': MdiSearch,
+		'mdi:weather-sunny': MdiWeatherSunny,
 		'mingcute:delete-line': MingcuteDeleteLine,
 		'octicon:logo-github-16': OcticonLogoGithub16,
 		'ph:books-thin': PhBooksThin,

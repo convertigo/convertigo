@@ -16,33 +16,40 @@
 	);
 	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard);
 	let showLeft = $state(true);
+	let showDrawer = $state(false);
 </script>
 
-<Modal>
+<Modal
+	bind:open={showDrawer}
+	contentBase="shadow-xl w-fit h-screen"
+	triggerBase="hidden"
+	positionerJustify="justify-start"
+	positionerAlign=""
+	positionerPadding=""
+	transitionsPositionerIn={{ x: -480, duration: 200 }}
+	transitionsPositionerOut={{ x: -480, duration: 200 }}
+>
 	{#snippet content()}
-		<PagesRailToggle open={false} />
+		<PagesRailToggle bind:state={showDrawer} />
 		<PagesRail {path} {parts} />
 	{/snippet}
 </Modal>
 
-<div>
-	<header>
-		{#if path == '/(app)/admin'}
-			<TopbarAdmin bind:showLeft />
-		{:else}
-			<TopbarDashBoard />
-		{/if}
-	</header>
-	<aside>
-		{#if showLeft}
-			<div class="hide-md h-full" transition:slide={{ axis: 'x' }}>
-				<PagesRail {path} {parts} />
-			</div>
-		{/if}
-	</aside>
+{#if path == '/(app)/admin'}
+	<TopbarAdmin bind:showLeft bind:showDrawer />
+{:else}
+	<TopbarDashBoard />
+{/if}
+
+<div class="layout-x-low !items-stretch">
+	{#if showLeft}
+		<aside class="hide-md" transition:slide={{ axis: 'x' }}>
+			<PagesRail {path} {parts} />
+		</aside>
+	{/if}
 	{#key $page.url.pathname}
-		<div class="px py h-full" in:fade>
+		<main class="px py h-full w-full" in:fade>
 			{@render children?.()}
-		</div>
+		</main>
 	{/key}
 </div>

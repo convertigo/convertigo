@@ -37,17 +37,17 @@
 	// setToastStore(getToastStore());
 	// setModalStore(getModalStore());
 
-	// afterNavigate(async () => {
-	// 	await Authentication.checkAuthentication();
-	// 	if (!Authentication.authenticated && $page.route.id != '/login') {
-	// 		goto(`${base}/login/?redirect=${$page.url.pathname}`);
-	// 	} else if (
-	// 		Authentication.authenticated &&
-	// 		($page.route.id == '/' || $page.route.id == '/login')
-	// 	) {
-	// 		goto(`${base}/admin/`);
-	// 	}
-	// });
+	afterNavigate(async () => {
+		await Authentication.checkAuthentication();
+		if (!Authentication.authenticated && $page.route.id != '/login') {
+			goto(`${base}/login/?redirect=${$page.url.pathname}`);
+		} else if (
+			Authentication.authenticated &&
+			($page.route.id == '/' || $page.route.id == '/login')
+		) {
+			goto(`${base}/admin/`);
+		}
+	});
 
 	// const modalComponentRegistry = {
 	// 	modalHome: { ref: ModalHome },

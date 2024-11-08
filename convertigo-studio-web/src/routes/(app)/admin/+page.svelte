@@ -8,6 +8,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
 
 	const tables = $derived([
 		{
@@ -101,9 +102,9 @@
 		{
 			title: 'Memory',
 			series: [
-				{ name: 'Memory Maximal', data: Monitor.memoryMaximal },
-				{ name: 'Memory Total', data: Monitor.memoryTotal },
-				{ name: 'Memory Used', data: Monitor.memoryUsed }
+				{ name: 'Max', data: Monitor.memoryMaximal },
+				{ name: 'Total', data: Monitor.memoryTotal },
+				{ name: 'Used', data: Monitor.memoryUsed }
 			]
 		},
 		{ title: 'Threads', series: [{ name: 'Threads', data: Monitor.threads }] },
@@ -115,9 +116,9 @@
 		{
 			title: 'Sessions',
 			series: [
-				{ name: 'Max Sessions', data: Monitor.sessionMaxCV },
-				{ name: 'Current Sessions', data: Monitor.sessions },
-				{ name: 'Available Sessions', data: Monitor.availableSessions }
+				{ name: 'Max', data: Monitor.sessionMaxCV },
+				{ name: 'Current', data: Monitor.sessions },
+				{ name: 'Available', data: Monitor.availableSessions }
 			]
 		}
 	]);
@@ -126,18 +127,16 @@
 	 */
 	let categories = $derived(Monitor.labels);
 
-	/**
-	 * @param {string} mode
-	 */
-	function modal(mode) {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalHome',
-		// 	meta: { mode }
-		// });
+	function modal(m) {
+		mode = m;
+		open = true;
 	}
+
+	let mode = $state();
+	let open = $state(false);
 </script>
 
+<ModalHome {mode} bind:open />
 <div class="layout-y md:layout-x !items-start">
 	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min">
 		{#each tables as { title, buttons, data }}

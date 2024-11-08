@@ -2,6 +2,7 @@
 	import { onMount, untrack } from 'svelte';
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';
+	import Light from '$lib/common/Light.svelte';
 	/** @type {{categories: any, series: any, title: any}} */
 	let { categories, series, title } = $props();
 	let chart = $state();
@@ -11,7 +12,7 @@
 	/** @type {any} */
 	let options = $state({
 		theme: {
-			mode: 'dark'
+			mode: Light.mode
 		},
 		title: {
 			text: title
@@ -66,7 +67,7 @@
 			delete options.chart.background;
 			delete options.theme.palette;
 
-			options.theme.mode = 'dark';
+			options.theme.mode = Light.mode;
 			options.xaxis.categories = categories;
 			options.series = series;
 			untrack(() => {
