@@ -41,14 +41,14 @@
 	<TopbarDashBoard />
 {/if}
 
-<div class="layout-x-low !items-stretch">
+<div class="layout-x !gap-0 !items-stretch min-h-full">
 	{#if showLeft}
 		<aside class="hide-md" transition:slide={{ axis: 'x' }}>
 			<PagesRail {path} {parts} />
 		</aside>
 	{/if}
 	{#key $page.url.pathname}
-		<main class="px py h-full w-full" in:fade>
+		<main class="px py w-full" in:fade>
 			{@render children?.()}
 		</main>
 	{/key}

@@ -74,14 +74,15 @@
 	}
 </script>
 
-<Card title="Full Sync" class="h-full">
-	{#if browser}
-		<iframe
-			bind:this={iframe}
-			src={getUrl().replace('/services/', '/_utils/')}
-			title="fullsync"
-			class="h-full rounded-xl"
-			{onload}
-		></iframe>
-	{/if}
-</Card>
+<!-- <div class="layout-y !items-stretch h-full">
+	<Card title="Full Sync" /> -->
+{#if browser}
+	<iframe
+		bind:this={iframe}
+		src={getUrl().replace('/services/', '/_utils/')}
+		title="fullsync"
+		class="h-full w-full rounded-xl"
+		{onload}
+	></iframe>
+{/if}
+<!-- </div> -->

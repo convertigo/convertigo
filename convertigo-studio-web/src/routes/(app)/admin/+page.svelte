@@ -138,7 +138,9 @@
 
 <ModalHome {mode} bind:open />
 <div class="layout-y md:layout-x !items-start">
-	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min">
+	<div
+		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
+	>
 		{#each tables as { title, buttons, data }}
 			<Card {title} class="max-w-[600px] statusTable">
 				{#snippet cornerOption()}

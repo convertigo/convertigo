@@ -3,9 +3,11 @@
 @tailwind utilities;
 @tailwind variants;
 
-html,
+html {
+	@apply h-full bg-surface-50-950;
+}
 body {
-	@apply h-full bg-surface-50-950 h-full;
+	@apply h-full min-h-fit;
 }
 
 @layer base {
@@ -16,7 +18,7 @@ body {
 		border-collapse: collapse;
 		border: 4px;
 		border-color: white;
-		@apply rounded;
+		@apply rounded overflow-hidden;
 	}
 	th,
 	td {

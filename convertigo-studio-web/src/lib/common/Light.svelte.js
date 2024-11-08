@@ -18,10 +18,8 @@ function checkInit() {
 }
 
 function setLight(value) {
-	console.log('setLight', value);
 	light = value;
 	if (browser) {
-		console.log('setLightBrowser', value);
 		localStorage.theme = light ? 'light' : 'dark';
 		document.documentElement.classList.toggle('dark', !light);
 	}

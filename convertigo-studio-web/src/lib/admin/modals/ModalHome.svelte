@@ -22,7 +22,7 @@
 	});
 </script>
 
-<Modal bind:open triggerBase="hidden">
+<Modal bind:open triggerBase="hidden" contentBase="w-full max-w-4xl">
 	{#snippet content()}
 		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}>
 			<ResponsiveContainer
@@ -30,6 +30,7 @@
 				smCols="sm:grid-cols-1"
 				mdCols="md:grid-cols-1"
 				lgCols="lg:grid-cols-1"
+				class="w-full"
 			>
 				<TableAutoCard
 					definition={[
