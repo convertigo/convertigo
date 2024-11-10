@@ -1530,7 +1530,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				return;
 			}
 			exHighlightElement = element;
-			String classes = element.attributeValue("class");
+			String classes = element.attributes().get("class");
 
 			Matcher mPriority = pPriority.matcher(classes);
 			if (mPriority.find()) {

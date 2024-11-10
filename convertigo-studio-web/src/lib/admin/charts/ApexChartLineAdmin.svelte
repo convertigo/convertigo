@@ -3,10 +3,12 @@
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
-	/** @type {{categories: any, series: any, title: any, isLoading: any}} */
-	let { categories, series, title, isLoading } = $props();
+	/** @type {{categories: any, series: any, title: any}} */
+	let { categories, series, title } = $props();
 	let chart = $state();
-	let chartEl = $state();
+	let isLoading = $derived(!series?.[0]?.data?.length);
+
+	let chartEl;
 	/** @type {any} */
 	let options = $state({
 		theme: {
@@ -17,7 +19,10 @@
 		},
 		chart: {
 			type: 'line',
-			height: 300 - 32,
+			height: 300,
+			zoom: {
+				enabled: false
+			},
 			toolbar: {
 				show: false
 			}
@@ -36,7 +41,7 @@
 			forceNiceScale: true
 		},
 		noData: {
-			text: 'Loading...'
+			text: 'Loading…'
 		},
 		tooltip: {
 			x: {
@@ -74,21 +79,18 @@
 	onMount(() => {
 		chart = new ApexCharts(chartEl, options);
 		chart.render();
+		return () => {
+			chart.destroy();
+			chart = undefined;
+		};
 	});
 </script>
 
-{#if $isLoading == true}
-	<div
-		class="h-full mt-5 flex"
-		class:placeholder={$isLoading}
-		class:animate-pulse={$isLoading}
-	></div>
-{/if}
 <div
 	bind:this={chartEl}
-	class:placeholder={$isLoading}
-	class:animate-pulse={$isLoading}
-	class="transp {$isLoading ? 'invisible' : 'visible'}"
+	class:placeholder={isLoading}
+	class:animate-pulse={isLoading}
+	class="h-[315px]"
 ></div>
 
 <style lang="postcss">

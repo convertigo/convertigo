@@ -2,17 +2,25 @@ const plugin = require('tailwindcss/plugin');
 
 exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 	const dash = (value) => (value.length ? `-${value}` : '');
-	const merge = (target, source) => {
-		if (typeof source !== 'object' || source === null) {
-			return source;
-		}
-		const output = { ...target };
-		for (const key of Object.keys(source)) {
-			if (key in target && typeof target[key] === 'object' && typeof source[key] === 'object') {
-				output[key] = merge(target[key], source[key]);
-			} else {
-				output[key] = source[key];
+
+	/** @return {import('tailwindcss/types/config').CSSRuleObject} */
+	const merge = (...sources) => {
+		/** @type {import('tailwindcss/types/config').CSSRuleObject} */
+		const output = {};
+
+		for (const source of sources) {
+			for (const key of Object.keys(source)) {
+				if (key in output && typeof output[key] == 'object' && typeof source[key] == 'object') {
+					output[key] = merge(output[key], source[key]);
+				} else {
+					output[key] = source[key];
+				}
 			}
+		}
+		for (const key of Object.keys(output).filter((k) => k.startsWith('@'))) {
+			const o = output[key];
+			delete output[key];
+			output[key] = o;
 		}
 		return output;
 	};
@@ -32,7 +40,7 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 
 	const getVersion = (property, value) => {
 		if (!versions[value]) {
-			return;
+			return {};
 		}
 		return {
 			...props[property](versions[value].base),
@@ -64,7 +72,8 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 				addUtilities({
 					[`.layout-${axis}-${prop}${dash(version)}`]: merge(
 						rule[`.layout-${axis}${dash(version)}`],
-						getVersion(prop + 'x', version)
+						getVersion(prop + 'x', version),
+						getVersion(prop + 'y', version)
 					)
 				});
 			});
@@ -84,10 +93,7 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 		['m', 'p'].forEach((edge) => {
 			matchUtilities({
 				[`layout-grid${edge}${dash(version)}`]: (minWidth) =>
-					merge(
-						merge(rule(minWidth), getVersion(edge + 'x', version)),
-						getVersion(edge + 'y', version)
-					)
+					merge(rule(minWidth), getVersion(edge + 'x', version), getVersion(edge + 'y', version))
 			});
 		});
 	});

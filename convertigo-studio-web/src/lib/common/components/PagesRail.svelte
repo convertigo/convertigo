@@ -25,7 +25,11 @@
 	const drawerStore = getDrawerStore();
 </script>
 
-<AppRail width="w-auto" class="border-r-[0.5px] border-color px-low pt-5">
+<AppRail
+	width="w-auto"
+	background="bg-surface-200-700-token"
+	class="border-r-[0.5px] border-color px-low"
+>
 	{#each parts as tiles, i}
 		{#each tiles as tile, j}
 			{@const url = tile.url.length ? `${tile.url}/` : ''}

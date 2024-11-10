@@ -44,7 +44,9 @@
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
+	import MdiBroom from '~icons/mdi/broom?raw';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
+	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
 	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
 	import MdiEye from '~icons/mdi/eye?raw';
@@ -59,6 +61,7 @@
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit?raw';
 	import MdiGithub from '~icons/mdi/github?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
+	import MdiLanguageJava from '~icons/mdi/language-java?raw';
 	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
@@ -128,7 +131,9 @@
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
+		'mdi:broom': MdiBroom,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
+		'mdi:code-block-braces': MdiCodeBlockBraces,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,
@@ -143,6 +148,7 @@
 		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:github': MdiGithub,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
+		'mdi:language-java': MdiLanguageJava,
 		'mdi:magnify': MdiMagnigy,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
@@ -182,10 +188,9 @@
 		...props
 	} = $props();
 
-	if (size == 'nav') {
-		size = 5;
-	}
-	if (size == 'dashboard') {
+	if (size == 'btn') {
+		size = 6;
+	} else if (['nav', 'dashboard'].includes(size)) {
 		size = 5;
 	}
 
