@@ -439,19 +439,20 @@ public class PaletteView extends ViewPart {
 						"document.oncontextmenu = new Function(\"return false\");" +
 						"</script>" +
 						"<style type=\"text/css\">" +
+						"@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');" +
 						"body {" +
-						"font-family: Courrier new, sans-serif;" +
-						"font-size: 14px;" +
+						"font-family: 'Inter', sans-serif;" +
 						"padding-left: 0.3em;" +
 						"color: $foreground$;" +
 						"background-color: $background$ } \n" +
 						"a { color: $link$; }" +
+						"li { margin-bottom: 10px }" +
 						"</style>" +
 						"</head><body><p>"
-						+ "<font size=\"4.5\"><u><b>" + item.name() + "</b></u></font>" + "<br><br>"
+						+ "<b style=\"font-size: 24pt\">" + item.name() + "</b>" + "<br><br>"
 						+ "<i>" + item.shortDescription() + "</i>" + "<br><br>"
-						+ item.longDescription() + "<br><br>"
-						+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
+						+ item.longDescription() + "<br>"
+						+ (propertiesDescription.isEmpty() ? "" : "<h4><b>Properties:</b></h4>")
 						+ propertiesDescription
 						+ "</p></body></html>");
 				updateFav.run();
