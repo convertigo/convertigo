@@ -1,3 +1,4 @@
+<!--
 <script>
 	import Topbar from '$lib/studio/appbar/Topbar.svelte';
 	import SidebarLeft from '$lib/studio/sidebars/SidebarLeft.svelte';
@@ -15,3 +16,4 @@
 	<svelte:fragment slot="pageFooter"></svelte:fragment>
 	<svelte:fragment slot="footer"></svelte:fragment>
 </AppShell>
+-->

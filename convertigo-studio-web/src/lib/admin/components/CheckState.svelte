@@ -1,28 +1,32 @@
 <script>
-	import { SlideToggle } from '@skeletonlabs/skeleton';
-	/** @type {{name: any, value?: any, checked?: boolean, size?: string, class?: string, children?: import('svelte').Snippet}} */
+	import { Switch } from '@skeletonlabs/skeleton-svelte';
+	/** @type {{name: string, values?: string[], value: string, class?: string, children: import('svelte').Snippet}}*/
 	let {
 		name,
-		value = ['false', 'true'],
-		checked = $bindable(false),
-		size = 'sm',
-		class: cls = '',
+		values = ['false', 'true'],
+		value = $bindable(values[0]),
+		class: classes = '',
 		children
 	} = $props();
+
+	let checked = $state(value == values[1]);
+	$effect(() => {
+		value = checked ? values[1] : values[0];
+	});
+	$effect(() => {
+		checked = value == values[1];
+	});
 </script>
 
-<SlideToggle
-	class={cls}
-	{size}
+<Switch
+	{classes}
+	controlClasses="min-w-10"
 	{name}
 	value={Array.isArray(value) ? value[1] : value}
-	active="min-w-12 bg-success-400 dark:bg-success-700"
-	background="min-w-12 bg-error-400 dark:bg-error-700"
 	bind:checked
-	on:change
 >
 	<span class="block cursor-pointer break-words">{@render children?.()}</span>
-	{#if !checked && Array.isArray(value)}
+	{#if !checked && Array.isArray(values)}
 		<input type="hidden" {name} value={value[0]} />
 	{/if}
-</SlideToggle>
+</Switch>

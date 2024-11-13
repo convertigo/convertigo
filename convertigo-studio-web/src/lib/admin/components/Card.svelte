@@ -1,4 +1,6 @@
 <script>
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+
 	/**
 	 * @type {{
 	 * 	title?: string,
@@ -13,8 +15,11 @@
 </script>
 
 <div class="layout-y-p bg-surface-100-900 border-[0.5px] border-color rounded-container {cls}">
-	{#if title?.length > 0 || cornerOption}
+	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x flex-wrap w-full">
+			{#if title == null}
+				<AutoPlaceholder class="max-w-48" loading={true} />
+			{/if}
 			{#if title?.length > 0}
 				<span class="text-xl font-bold">{title}</span>
 			{/if}

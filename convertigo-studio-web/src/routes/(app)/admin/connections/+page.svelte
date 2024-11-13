@@ -16,6 +16,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let data = $derived([
 		{
@@ -52,10 +53,16 @@
 <div class="layout-y !items-stretch">
 	<Card title="Connections">
 		{#snippet cornerOption()}
-			<button class="delete-button text-wrap ml-auto">
-				<span><Ico icon="mingcute:delete-line" size="btn" /></span>
-				<span>Delete all Sessions and Connections</span>
-			</button>
+			<ResponsiveButtons
+				buttons={[
+					{
+						label: 'Delete all Sessions and Connections',
+						icon: 'mingcute:delete-line',
+						cls: 'delete-button',
+						onclick: () => {}
+					}
+				]}
+			/>
 		{/snippet}
 		<TableAutoCard
 			definition={[
@@ -70,18 +77,17 @@
 
 	<Card title="Sessions">
 		{#snippet cornerOption()}
-			<div class="max-w-sm ml-auto">
-				<div class="layout-grid-low-[100px]">
-					<button class="basic-button text-wrap w-full" onclick={refreshConnections}>
-						<span><Ico icon="simple-line-icons:reload" /></span>
-						<span>Refresh Sessions</span>
-					</button>
-					<button class="basic-button text-wrap w-full" onclick={() => {}}>
-						<span><Ico icon="mdi:eye" /></span>
-						<span>Show Legends</span>
-					</button>
-				</div>
-			</div>
+			<ResponsiveButtons
+				buttons={[
+					{
+						label: 'Refresh Sessions',
+						icon: 'simple-line-icons:reload',
+						cls: 'basic-button',
+						onclick: refreshConnections
+					},
+					{ label: 'Show Legends', icon: 'mdi:eye', cls: 'basic-button', onclick: () => {} }
+				]}
+			/>
 		{/snippet}
 		<TableAutoCard
 			definition={[
@@ -98,7 +104,7 @@
 			]}
 			data={$sessionsStore}
 		>
-			{#snippet children(row, def)}
+			{#snippet children({ row, def })}
 				{#if def.name === 'Delete'}
 					<button class="delete-button">
 						<Ico icon="mingcute:delete-line" />
@@ -110,10 +116,16 @@
 
 	<Card title="Contexts">
 		{#snippet cornerOption()}
-			<button class="basic-button ml-auto" onclick={refreshConnections}
-				><span><Ico icon="simple-line-icons:reload" /></span>
-				<span>Refresh Sessions</span>
-			</button>
+			<ResponsiveButtons
+				buttons={[
+					{
+						label: 'Refresh Sessions',
+						icon: 'simple-line-icons:reload',
+						cls: 'basic-button',
+						onclick: refreshConnections
+					}
+				]}
+			/>
 		{/snippet}
 		<TableAutoCard
 			definition={[
@@ -128,7 +140,7 @@
 			]}
 			data={$connectionsStore}
 		>
-			{#snippet children(row, def)}
+			{#snippet children({ row, def })}
 				{#if def?.name == 'Delete'}
 					<button class="delete-button">
 						<Ico icon="mingcute:delete-line" />
@@ -138,9 +150,3 @@
 		</TableAutoCard>
 	</Card>
 </div>
-
-<style lang="postcss">
-	.legendDiv {
-		@apply flex justify-between p-2 mt-2 border-b-[0.5px] dark:border-surface-500 border-surface-100;
-	}
-</style>

@@ -2,8 +2,6 @@
 	import Card from '../components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '../components/TableAutoCard.svelte';
-	import ResponsiveContainer from '../components/ResponsiveContainer.svelte';
-	import ButtonsContainer from '../components/ButtonsContainer.svelte';
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
 	import EnvironmentVariables from '$lib/common/EnvironmentVariables.svelte';
 
@@ -22,24 +20,17 @@
 	});
 </script>
 
-<Modal bind:open triggerBase="hidden" contentBase="w-full max-w-4xl">
+<Modal bind:open triggerBase="hidden" contentBase="w-full">
 	{#snippet content()}
 		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}>
-			<ResponsiveContainer
-				scrollable={true}
-				smCols="sm:grid-cols-1"
-				mdCols="md:grid-cols-1"
-				lgCols="lg:grid-cols-1"
-				class="w-full"
-			>
-				<TableAutoCard
-					definition={[
-						{ name: 'Name', key: 'name' },
-						{ name: 'Value', key: 'value' }
-					]}
-					{data}
-				></TableAutoCard>
-			</ResponsiveContainer>
+			<TableAutoCard
+				definition={[
+					{ name: 'Name', key: 'name' },
+					{ name: 'Value', key: 'value' }
+				]}
+				{data}
+				class="max-h-[80vh]"
+			></TableAutoCard>
 
 			<div class="w-full layout-x justify-end">
 				<button onclick={() => (open = false)} class="cancel-button">Close</button>

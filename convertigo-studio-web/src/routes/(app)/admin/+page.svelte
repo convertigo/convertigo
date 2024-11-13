@@ -7,8 +7,9 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import ModalHome from '$lib/admin/modals/ModalHome.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import DynamicModal from '../../sandbox/DynamicModal.svelte';
+	import EnvironmentVariables from '$lib/common/EnvironmentVariables.svelte';
 
 	const tables = $derived([
 		{
@@ -127,16 +128,46 @@
 	 */
 	let categories = $derived(Monitor.labels);
 
-	function modal(m) {
-		mode = m;
-		open = true;
+	/**
+	 * @param {string} mode
+	 */
+	async function modal(mode) {
+		let data = $state();
+		if (mode == 'props') {
+			data = Array(10).fill({ '@_name': null, '@_value': null });
+			call('engine.GetJavaSystemPropertiesJson').then((res) => {
+				data = res.properties;
+			});
+		}
+		modalHome.open({
+			mode,
+			get data() {
+				return mode == 'props' ? data : EnvironmentVariables.variables;
+			}
+		});
 	}
 
-	let mode = $state();
-	let open = $state(false);
+	let modalHome;
 </script>
 
-<ModalHome {mode} bind:open />
+<DynamicModal bind:this={modalHome}>
+	{#snippet children({ close, params: { mode, data } })}
+		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}>
+			<TableAutoCard
+				definition={[
+					{ name: 'Name', key: 'name' },
+					{ name: 'Value', key: 'value' }
+				]}
+				{data}
+				class="max-h-[80vh]"
+			></TableAutoCard>
+
+			<div class="w-full layout-x justify-end">
+				<button onclick={close} class="cancel-button">Close</button>
+			</div>
+		</Card>
+	{/snippet}
+</DynamicModal>
 <div class="layout-y md:layout-x !items-start">
 	<div
 		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
@@ -144,13 +175,7 @@
 		{#each tables as { title, buttons, data }}
 			<Card {title} class="max-w-[600px] statusTable">
 				{#snippet cornerOption()}
-					<div class="layout-grid-low-[100px]">
-						{#each buttons as { label, icon, cls, onclick }}
-							<button {onclick} class="{cls} text-wrap w-full"
-								><span><Ico {icon} size="btn" /></span><span>{label}</span></button
-							>
-						{/each}
-					</div>
+					<ResponsiveButtons {buttons} />
 				{/snippet}
 				<TableAutoCard
 					showHeaders={false}

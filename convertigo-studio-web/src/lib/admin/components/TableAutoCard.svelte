@@ -135,7 +135,7 @@
 			align-items: center;
 			position: relative;
 			@apply border flex; */
-			@apply layout-y-low !items-start;
+			@apply layout-y-low !items-start overflow-x-auto;
 		}
 		td[data-label]:not([data-label='']) {
 			/* padding-left: 50%; */

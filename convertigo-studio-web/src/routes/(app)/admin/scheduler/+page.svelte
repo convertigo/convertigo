@@ -1,9 +1,7 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import Icon from '@iconify/svelte';
 	import {
 		schedulerList,
 		jobsStore,
@@ -14,8 +12,6 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-
-	const modalStore = getModalStore();
 
 	const jobTypes = {
 		SequenceConvertigoJob: { name: 'Job Sequence', icon: 'material-symbols:api-rounded' },
@@ -31,12 +27,12 @@
 	});
 
 	function openModals(mode, row) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalScheduler',
-			meta: { mode, row },
-			title: `${row ? 'Edit' : 'New'} ${jobTypes[mode].name}`
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalScheduler',
+		// 	meta: { mode, row },
+		// 	title: `${row ? 'Edit' : 'New'} ${jobTypes[mode].name}`
+		// });
 	}
 	function makeSingular(title) {
 		return title.endsWith('s') ? title.slice(0, -1) : title;
@@ -44,23 +40,23 @@
 	//Service do not include any response for that
 	async function deleteScheduledElement(row, title) {
 		const singularTitle = makeSingular(title);
-		modalStore.trigger({
-			type: 'component',
-			title: 'Please Confirm',
-			body: `Are you sure you want to delete this ${singularTitle} ?`,
-			component: 'modalWarning',
-			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
-				if (confirmed) {
-					call('scheduler.CreateScheduledElements', {
-						del: 'true',
-						exname: row['@_name'],
-						type: 'schedulerNew' + row['@_type']
-					});
-					schedulerList();
-				}
-			}
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	title: 'Please Confirm',
+		// 	body: `Are you sure you want to delete this ${singularTitle} ?`,
+		// 	component: 'modalWarning',
+		// 	meta: { mode: 'Confirm' },
+		// 	response: (confirmed) => {
+		// 		if (confirmed) {
+		// 			call('scheduler.CreateScheduledElements', {
+		// 				del: 'true',
+		// 				exname: row['@_name'],
+		// 				type: 'schedulerNew' + row['@_type']
+		// 			});
+		// 			schedulerList();
+		// 		}
+		// 	}
+		// });
 	}
 	const cards = [
 		{
@@ -108,7 +104,7 @@
 				].filter((elt) => next || elt.name != 'Next')}
 				data={[$jobsStore, $schedulesStore, $scheduledStore][i]}
 			>
-				{#snippet children(row, def)}
+				{#snippet children({ row, def })}
 					{#if def.name === 'Edit'}
 						<button
 							class="btn p-1 px-2 shadow-md bg-tertiary-400-500"
@@ -128,13 +124,12 @@
 						<AutoPlaceholder loading={!row.next}
 							><button
 								class="violet-button"
-								onclick={() =>
-									modalStore.trigger({
+								onclick={() => /*modalStore.trigger({
 										title: 'Next triggers',
 										body: `<div class="overflow-y-auto max-h-[30vh]">${row.next.join('</br>')}</div>`,
 										type: 'alert',
 										modalClasses: 'text-center overflow-y-scroll'
-									})}>{row.next[0]}</button
+									})*/ {}}>{row.next[0]}</button
 							></AutoPlaceholder
 						>
 					{/if}

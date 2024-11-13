@@ -8,6 +8,7 @@
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/stores';
+	import RightPart from './admin/RightPart.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 
@@ -35,21 +36,31 @@
 	{/snippet}
 </Modal>
 
-{#if path == '/(app)/admin'}
-	<TopbarAdmin bind:showLeft bind:showDrawer />
-{:else}
-	<TopbarDashBoard />
-{/if}
-
-<div class="layout-x !gap-0 !items-stretch min-h-full">
-	{#if showLeft}
-		<aside class="hide-md" transition:slide={{ axis: 'x' }}>
-			<PagesRail {path} {parts} />
-		</aside>
+<div class="flex flex-col min-h-screen">
+	{#if path == '/(app)/admin'}
+		<TopbarAdmin bind:showLeft bind:showDrawer />
+	{:else}
+		<TopbarDashBoard />
 	{/if}
-	{#key $page.url.pathname}
-		<main class="px py w-full" in:fade>
-			{@render children?.()}
-		</main>
-	{/key}
+
+	<div class="layout-y md:layout-x !gap-0 !items-stretch grow">
+		{#if showLeft}
+			<aside class="hide-md" transition:slide={{ axis: 'x' }}>
+				<PagesRail {path} {parts} />
+			</aside>
+		{/if}
+		{#key $page.url.pathname}
+			<main class="px py w-full" in:fade>
+				{@render children?.()}
+			</main>
+		{/key}
+		{#if RightPart.snippet}
+			<aside
+				class="max-md:order-first"
+				transition:slide={{ axis: window?.matchMedia('(min-width: 768px)').matches ? 'x' : 'y' }}
+			>
+				{@render RightPart.snippet()}
+			</aside>
+		{/if}
+	</div>
 </div>

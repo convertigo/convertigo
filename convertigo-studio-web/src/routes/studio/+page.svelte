@@ -1,3 +1,4 @@
+<!--
 <script>
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
@@ -131,3 +132,4 @@
 		padding: 0px 10px;
 	}
 </style>
+-->

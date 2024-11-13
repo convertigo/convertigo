@@ -1,5 +1,4 @@
 <script>
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -7,8 +6,6 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-
-	const projectModalStore = getModalStore();
 
 	onMount(() => {
 		projectsCheck();
@@ -18,11 +15,11 @@
 	 * @param {string} mode
 	 */
 	function openModal(mode) {
-		projectModalStore.trigger({
-			type: 'component',
-			component: 'modalProjects',
-			meta: { mode }
-		});
+		// projectModalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalProjects',
+		// 	meta: { mode }
+		// });
 	}
 
 	/**
@@ -40,14 +37,14 @@
 	}
 
 	function openExportProjectModal(projectName) {
-		projectModalStore.trigger({
-			type: 'component',
-			component: 'modalProjects',
-			meta: { mode: 'Export' },
-			response: () => {
-				exportProject(projectName);
-			}
-		});
+		// projectModalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalProjects',
+		// 	meta: { mode: 'Export' },
+		// 	response: () => {
+		// 		exportProject(projectName);
+		// 	}
+		// });
 	}
 
 	export async function deleteProject(projectName) {
@@ -73,14 +70,14 @@
 			const response = await call('projects.Reload', { projectName });
 
 			if (response.admin['@_service'] === 'projects.Reload') {
-				projectModalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Success' },
-					title: 'Success',
-					body: 'Project Reloaded Successfully',
-					response: () => {}
-				});
+				// projectModalStore.trigger({
+				// 	type: 'component',
+				// 	component: 'modalWarning',
+				// 	meta: { mode: 'Success' },
+				// 	title: 'Success',
+				// 	body: 'Project Reloaded Successfully',
+				// 	response: () => {}
+				// });
 			} else if (response.error) {
 				throw new Error('Unexpected response structure from reload service.');
 			}
@@ -90,60 +87,60 @@
 			const errorMessage =
 				//@ts-ignore
 				err.response?.admin?.error?.message || 'An error occurred while reloading the project.';
-			projectModalStore.trigger({
-				type: 'component',
-				component: 'modalWarning',
-				meta: { mode: 'Error' },
-				title: 'Error',
-				body: errorMessage,
-				response: () => {}
-			});
+			// projectModalStore.trigger({
+			// 	type: 'component',
+			// 	component: 'modalWarning',
+			// 	meta: { mode: 'Error' },
+			// 	title: 'Error',
+			// 	body: errorMessage,
+			// 	response: () => {}
+			// });
 		}
 	}
 
 	function openReloadProjectModal(projectName) {
-		projectModalStore.trigger({
-			type: 'component',
-			component: 'modalWarning',
-			meta: { mode: 'Confirm' },
-			title: 'Please Confirm',
-			body: `Reload the Project '${projectName}' ?`,
-			response: (confirmed) => {
-				if (confirmed) {
-					reloadProject(projectName);
-				}
-			}
-		});
+		// projectModalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalWarning',
+		// 	meta: { mode: 'Confirm' },
+		// 	title: 'Please Confirm',
+		// 	body: `Reload the Project '${projectName}' ?`,
+		// 	response: (confirmed) => {
+		// 		if (confirmed) {
+		// 			reloadProject(projectName);
+		// 		}
+		// 	}
+		// });
 	}
 
 	function openDeleteProjectModal(projectName) {
-		projectModalStore.trigger({
-			type: 'component',
-			title: 'Please Confirm',
-			body: 'Are you sure you want to delete this project ?',
-			component: 'modalWarning',
-			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
-				if (confirmed) {
-					deleteProject(projectName);
-				}
-			}
-		});
+		// projectModalStore.trigger({
+		// 	type: 'component',
+		// 	title: 'Please Confirm',
+		// 	body: 'Are you sure you want to delete this project ?',
+		// 	component: 'modalWarning',
+		// 	meta: { mode: 'Confirm' },
+		// 	response: (confirmed) => {
+		// 		if (confirmed) {
+		// 			deleteProject(projectName);
+		// 		}
+		// 	}
+		// });
 	}
 
 	function openDeleteAllProjectModal(projectName) {
-		projectModalStore.trigger({
-			type: 'component',
-			title: 'Please Confirm',
-			body: 'Are you sure you want to delete this project ?',
-			component: 'modalWarning',
-			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
-				if (confirmed) {
-					deleteProject(projectName);
-				}
-			}
-		});
+		// projectModalStore.trigger({
+		// 	type: 'component',
+		// 	title: 'Please Confirm',
+		// 	body: 'Are you sure you want to delete this project ?',
+		// 	component: 'modalWarning',
+		// 	meta: { mode: 'Confirm' },
+		// 	response: (confirmed) => {
+		// 		if (confirmed) {
+		// 			deleteProject(projectName);
+		// 		}
+		// 	}
+		// });
 	}
 
 	const projectActions = {
@@ -191,20 +188,20 @@
 			]}
 			data={$projectsStore}
 		>
-			{#snippet children(row, def)}
-				{#if def.name == 'Delete'}
+			{#snippet children({ row, def })}
+				{#if def?.name == 'Delete'}
 					<button onclick={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
 						<Ico icon="mingcute:delete-line" />
 					</button>
-				{:else if def.name == 'Reload'}
+				{:else if def?.name == 'Reload'}
 					<button onclick={() => openReloadProjectModal(row['@_name'])} class="green-button">
 						<Ico icon="simple-line-icons:reload" />
 					</button>
-				{:else if def.name == 'Export'}
+				{:else if def?.name == 'Export'}
 					<button onclick={() => openExportProjectModal(row['@_name'])} class="basic-button">
 						<Ico icon="bytesize:export" />
 					</button>
-				{:else if def.name == 'Test'}
+				{:else if def?.name == 'Test'}
 					<button class="yellow-button">
 						<a href="/admin">
 							<Ico icon="file-icons:test-ruby" />

@@ -1,6 +1,6 @@
 import { call } from '$lib/utils/service';
 
-let variables = $state([]);
+let variables = $state(Array(10).fill({ '@_name': null, '@_value': null }));
 let init = false;
 
 async function check() {

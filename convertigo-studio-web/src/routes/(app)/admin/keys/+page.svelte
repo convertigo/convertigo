@@ -1,17 +1,12 @@
 <script>
-	import { preventDefault } from 'svelte/legacy';
-
 	import { keysCheck, categoryStore } from '$lib/admin/stores/keysStore';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Icon from '@iconify/svelte';
-
-	const keyModalStore = getModalStore();
 
 	let newKey = $state('');
 
@@ -103,7 +98,7 @@
 </script>
 
 <Card title="Keys">
-	<form onsubmit={preventDefault(handleFormSubmit)} class="space-x-0 flex gap-2 items-center">
+	<form onsubmit={handleFormSubmit} class="space-x-0 flex gap-2 items-center">
 		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
 		<button type="submit" class="basic-button">
 			<Ico icon="vaadin:key-o" />
@@ -151,9 +146,9 @@
 					]}
 					data={category.keys}
 				>
-					{#snippet children(row, def)}
+					{#snippet children({ row, def })}
 						{#if def.custom}
-							{#if def.name === 'Expiration Date'}
+							{#if def.name == 'Expiration Date'}
 								{#if row[def.key] === '0'}
 									<div class="bg-success-400-500 rounded py-1 px-1 text">
 										{formatExpiration(row[def.key])}
@@ -192,7 +187,7 @@
 
 <style lang="postcss">
 	.input-new-key {
-		@apply dark:text-white w-80 text placeholder:text-surface-300 rounded w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
+		@apply dark:text-white w-80 placeholder:text-surface-300 rounded w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
 		max-width: 400px;
 	}
 </style>

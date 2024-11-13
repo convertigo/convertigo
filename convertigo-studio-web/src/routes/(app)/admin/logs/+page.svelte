@@ -2,7 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import Card from '$lib/admin/components/Card.svelte';
-	import { Tab, TabGroup, RangeSlider, popup, SlideToggle } from '@skeletonlabs/skeleton';
+	import { Slider, Switch } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import { refreshConfigurations, configurations } from '$lib/admin/stores/configurationStore';
@@ -144,125 +144,123 @@
 			</ButtonsContainer>
 		{/if}
 	{/snippet}
-	<TabGroup>
-		{#each tabs as { name, icon }, value}
-			<Tab
+	<!-- <TabGroup> -->
+	{#each tabs as { name, icon }, value}
+		<!-- <Tab
 				bind:group={tabSet}
 				{name}
 				{value}
 				active="dark:bg-surface-500 bg-surface-50"
 				on:change={tabChanged}
 			>
-				<svelte:fragment slot="lead">
-					<div class="flex items-center gap-2">
-						<p>{name}</p>
-						<Ico {icon} />
+				<svelte:fragment slot="lead"> -->
+		<div class="flex items-center gap-2">
+			<p>{name}</p>
+			<Ico {icon} />
+		</div>
+		<!-- </svelte:fragment>
+			</Tab> -->
+	{/each}
+	<!-- <svelte:fragment slot="panel"> -->
+	{#if tabs[tabSet].name == 'Viewer'}
+		<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
+				{#each presets as preset, i}
+					<div class="card p-4 preset-filled-surface z-50" data-popup="preset-{i}">
+						<div class="flex flex-col gap-2 overflow-y-auto">
+							{#each preset as { name, fn }}
+								<button
+									class="btn preset-ghost-primary"
+									onclick={() => {
+										dates[i] = fn();
+										times[i] = formatTime(dates[i]);
+									}}
+								>
+									{name}
+								</button>
+							{/each}
+							<div class="arrow preset-filled-surface"></div>
+						</div>
 					</div>
-				</svelte:fragment>
-			</Tab>
-		{/each}
-		<svelte:fragment slot="panel">
-			{#if tabs[tabSet].name == 'Viewer'}
-				<div class="flex flex-col gap-2">
-					<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
-						{#each presets as preset, i}
-							<div class="card p-4 preset-filled-surface z-50" data-popup="preset-{i}">
-								<div class="flex flex-col gap-2 overflow-y-auto">
-									{#each preset as { name, fn }}
-										<button
-											class="btn preset-ghost-primary"
-											onclick={() => {
-												dates[i] = fn();
-												times[i] = formatTime(dates[i]);
-											}}
-										>
-											{name}
-										</button>
-									{/each}
-									<div class="arrow preset-filled-surface"></div>
+				{/each}
+				<DatePicker
+					bind:isOpen
+					alwaysShow={false}
+					isRange={true}
+					isMultipane={true}
+					bind:startDate={datesEdited[0]}
+					bind:endDate={datesEdited[1]}
+					showYearControls={true}
+					startOfWeek={1}
+					{onDayClick}
+				>
+					<div class="flex flex-row flex-wrap gap-4">
+						{#each ['From', 'To'] as way, i}
+							<div class="flex flex-col items-center gap-4">
+								<div class="flex flex-row flex-wrap items-center gap-2">
+									<button type="button" class="btn btn-sm p-2 preset-filled-surface"
+										>{way}&nbsp;<Ico icon="mdi:clock-star-four-points-outline" /></button
+									>
+									<!-- use:popup={{ event: 'click', target: `preset-${i}`, placement: 'bottom' }} -->
+									<input
+										type="text"
+										class="input max-w-fit h-full"
+										value={formatDate(dates[i])}
+										onfocus={() => {
+											datesEdited[i] = null;
+											isOpen = true;
+										}}
+										size="11"
+									/>
+									<TimePicker bind:inputValue={times[i]} />
 								</div>
 							</div>
 						{/each}
-						<DatePicker
-							bind:isOpen
-							alwaysShow={false}
-							isRange={true}
-							isMultipane={true}
-							bind:startDate={datesEdited[0]}
-							bind:endDate={datesEdited[1]}
-							showYearControls={true}
-							startOfWeek={1}
-							{onDayClick}
+						<button class="btn btn-sm preset-filled-surface p-2" onclick={refreshLogs}
+							>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
 						>
-							<div class="flex flex-row flex-wrap gap-4">
-								{#each ['From', 'To'] as way, i}
-									<div class="flex flex-col items-center gap-4">
-										<div class="flex flex-row flex-wrap items-center gap-2">
-											<button
-												type="button"
-												class="btn btn-sm p-2 preset-filled-surface"
-												use:popup={{ event: 'click', target: `preset-${i}`, placement: 'bottom' }}
-												>{way}&nbsp;<Ico icon="mdi:clock-star-four-points-outline" /></button
-											>
-											<input
-												type="text"
-												class="input max-w-fit h-full"
-												value={formatDate(dates[i])}
-												onfocus={() => {
-													datesEdited[i] = null;
-													isOpen = true;
-												}}
-												size="11"
-											/>
-											<TimePicker bind:inputValue={times[i]} />
-										</div>
-									</div>
-								{/each}
-								<button class="btn btn-sm preset-filled-surface p-2" onclick={refreshLogs}
-									>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
-								>
-							</div>
-						</DatePicker>
 					</div>
+				</DatePicker>
+			</div>
+		</div>
+	{:else if tabs[tabSet].name == 'Purge'}
+		<div class="logsCard">
+			<Slider
+				accent="accent-tertiary-500 dark:accent-tertiary-500"
+				name="range-slider"
+				bind:value={rangeVal}
+				max={25}
+				step={1}
+			>
+				<div class="flex justify-between items-center">
+					<div class="font-bold">Delete logs files older than 24/05/2024, 13:03:07</div>
+					<div class="text-xs">{rangeVal} / {max}</div>
 				</div>
-			{:else if tabs[tabSet].name == 'Purge'}
-				<div class="logsCard">
-					<RangeSlider
-						accent="accent-tertiary-500 dark:accent-tertiary-500"
-						name="range-slider"
-						bind:value={rangeVal}
-						max={25}
-						step={1}
-					>
-						<div class="flex justify-between items-center">
-							<div class="font-bold">Delete logs files older than 24/05/2024, 13:03:07</div>
-							<div class="text-xs">{rangeVal} / {max}</div>
-						</div>
-					</RangeSlider>
-				</div>
-			{:else if tabs[tabSet].name == 'Log Levels'}
-				<Card>
-					{#if checkArray(logsCategory?.property)}
-						<ResponsiveContainer
-							scrollable={false}
-							maxHeight="h-auto"
-							smCols="sm:grid-cols-1"
-							mdCols="md:grid-cols-1"
-							lgCols="lg:grid-cols-4"
-						>
-							{#each logsCategory.property as property}
-								{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
-									<PropertyType {property} />
-								{/if}
-							{/each}
-						</ResponsiveContainer>
-					{:else}
-						<p>No logs category found or properties are not available.</p>
-					{/if}
-				</Card>
+			</Slider>
+		</div>
+	{:else if tabs[tabSet].name == 'Log Levels'}
+		<Card>
+			{#if checkArray(logsCategory?.property)}
+				<ResponsiveContainer
+					scrollable={false}
+					maxHeight="h-auto"
+					smCols="sm:grid-cols-1"
+					mdCols="md:grid-cols-1"
+					lgCols="lg:grid-cols-4"
+				>
+					{#each logsCategory.property as property}
+						{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
+							<PropertyType {property} />
+						{/if}
+					{/each}
+				</ResponsiveContainer>
+			{:else}
+				<p>No logs category found or properties are not available.</p>
 			{/if}
-		</svelte:fragment>
-	</TabGroup>
+		</Card>
+	{/if}
+	<!-- </svelte:fragment>
+	</TabGroup> -->
 </Card>
 
 {#if tabs[tabSet].name == 'Viewer' || tabs[tabSet].name == 'Real Time'}

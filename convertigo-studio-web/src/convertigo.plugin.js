@@ -26,7 +26,7 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 	};
 
 	const versions = {
-		'': { base: theme('spacing.2'), md: theme('spacing.5') },
+		'': { base: theme('spacing.2'), md: theme('spacing.4') },
 		low: { base: theme('spacing.1'), md: theme('spacing.2') }
 	};
 

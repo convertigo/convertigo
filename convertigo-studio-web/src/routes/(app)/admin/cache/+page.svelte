@@ -2,9 +2,8 @@
 	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call, copyObj, equalsObj } from '$lib/utils/service';
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { Segment } from '@skeletonlabs/skeleton-svelte';
 	import { writable } from 'svelte/store';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import CacheInput from '$lib/admin/components/CacheInput.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -13,8 +12,6 @@
 	/** @type {import('svelte/store').Writable<any>}*/
 	let conf = writable({});
 	let oriConf = $state(null);
-	//
-	export const modalStoreCache = getModalStore();
 
 	async function update() {
 		const response = await call('cache.ShowProperties');
@@ -78,18 +75,13 @@
 
 			<p class="mt-5 mb-2 font-normal">Choose the desired cache type</p>
 			<div class="flex items-center justify-between gap-5">
-				<RadioGroup>
+				<Segment bind:value={$conf.cacheType}>
 					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
-						<RadioItem
-							bind:group={$conf.cacheType}
-							name="cacheType"
-							{value}
-							active="preset-filled-surface text-white"
-						>
+						<Segment.Item {value} stateFocused="preset-filled-surface text-white">
 							{text}
-						</RadioItem>
+						</Segment.Item>
 					{/each}
-				</RadioGroup>
+				</Segment>
 				<ButtonsContainer>
 					<button type="submit" class="green-button" {disabled}>
 						<Ico icon="solar:mask-happly-line-duotone" />
@@ -110,10 +102,11 @@
 		{#if $conf.cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
 			<AutoGrid class="mt-5">
 				<Card title="Database Used">
-					<RadioGroup
-						class="flex flex-col p-5 preset-filled-success text"
-						active="bg-secondary-400-500"
+					<Segment
+						classes="flex flex-col p-5 preset-filled-success text"
+						bind:value={$conf.databaseType}
 					>
+						<!-- active="bg-secondary-400-500" -->
 						{@const data = [
 							{ value: 'sqlserver', text: 'SQLServer' },
 							{ value: 'mysql', text: 'MySQL' },
@@ -122,11 +115,9 @@
 							{ value: 'oracle', text: 'Oracle' }
 						]}
 						{#each data as { value, text }}
-							<RadioItem bind:group={$conf.databaseType} name="databaseDriver" {value}
-								>{text}</RadioItem
-							>
+							<Segment.Item {value}>{text}</Segment.Item>
 						{/each}
-					</RadioGroup>
+					</Segment>
 				</Card>
 
 				{@const sections = [

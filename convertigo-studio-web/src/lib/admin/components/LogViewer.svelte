@@ -1,5 +1,4 @@
 <script>
-	import { getModalStore, popup } from '@skeletonlabs/skeleton';
 	import Ico from '$lib/utils/Ico.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import {
@@ -20,7 +19,6 @@
 	import { debounce } from '$lib/utils/service';
 
 	const duration = 400;
-	const modalStore = getModalStore();
 
 	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
@@ -152,11 +150,11 @@
 	});
 
 	function addFilter(category, value = '', mode, ts = new Date().getTime(), not = false) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalLogs',
-			meta: { filters, category, value, mode, ts, not }
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalLogs',
+		// 	meta: { filters, category, value, mode, ts, not }
+		// });
 	}
 
 	function removeFilter(category, index) {
@@ -189,16 +187,17 @@
 		$allLogs = $allLogs;
 	});
 
-	let columns = $derived(
-		$columnsOrder
-			.filter((c) => c.show)
-			.map((c) => ({
-				name: c.name,
+	let columns = $state([]);
+	// let columns = $derived(
+	// 	$columnsOrder
+	// 		.filter((c) => c.show)
+	// 		.map((c) => ({
+	// 			name: c.name,
 
-				cls: columnsConfiguration[c.name]?.cls ?? '',
-				style: `width: ${c.width}px; min-width: ${c.width}px;`
-			}))
-	);
+	// 			cls: columnsConfiguration[c.name]?.cls ?? '',
+	// 			style: `width: ${c.width}px; min-width: ${c.width}px;`
+	// 		}))
+	// );
 
 	let scrollToIndex = $state();
 	$effect(() => {
@@ -272,21 +271,20 @@
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
 
-	/** @type {import('@skeletonlabs/skeleton').PopupSettings } */
-	const searchBoxSetting = {
-		event: 'click',
-		target: 'searchBox',
-		placement: 'top',
-		closeQuery: '.close-popup',
-		state: async ({ state }) => {
-			searchBoxOpened = state;
-			if (state) {
-				await tick();
-				searchInput.focus();
-				autoScroll = false;
-			}
-		}
-	};
+	// const searchBoxSetting = {
+	// 	event: 'click',
+	// 	target: 'searchBox',
+	// 	placement: 'top',
+	// 	closeQuery: '.close-popup',
+	// 	state: async ({ state }) => {
+	// 		searchBoxOpened = state;
+	// 		if (state) {
+	// 			await tick();
+	// 			searchInput.focus();
+	// 			autoScroll = false;
+	// 		}
+	// 	}
+	// };
 
 	let recenter;
 
@@ -339,11 +337,11 @@
 								<span class="cursor-pointer" onclick={() => (conf.show = !show)}
 									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
 								>
-								<DraggableValue
+								<!-- <DraggableValue
 									class="cursor-col-resize"
 									bind:delta={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
-								>
+								> -->
 								<span class="cursor-cell" onclick={() => addFilter(conf.name)}
 									><Ico icon="mdi:filter" /></span
 								>
@@ -366,9 +364,7 @@
 				>
 			</div>
 			<div class="mini-card preset-filled-surface">
-				<span bind:this={searchBox} class="cursor-pointer" use:popup={searchBoxSetting}
-					><Ico icon="mdi:search" /></span
-				>
+				<span bind:this={searchBox} class="cursor-pointer"><Ico icon="mdi:search" /></span>
 				<div class="z-50" data-popup="searchBox">
 					<div
 						class="card p-2 bg-stone-200 dark:bg-stone-900 text-black dark:text-white flex flex-row gap-2"
@@ -409,10 +405,10 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="mini-card preset-ghost">AND</div>
+						<div class="mini-card preset-ghost-500">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="mini-card preset-ghost">OR</div>
+						<div class="mini-card preset-ghost-500">OR</div>
 					{/if}
 					<div class="mini-card preset-filled" class:preset-filled-error={not}>
 						<span class="overflow-hidden max-w-xs"
@@ -493,7 +489,7 @@
 						{/each}
 					</div>
 					<div
-						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-ghost"
+						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined"
 						style="scrollbar-width: thin;"
 					>
 						{#if founds.length > 0}
@@ -520,7 +516,7 @@
 			</div>
 		</VirtualList>
 	</MaxHeight>
-	<div class="flex gap-4 rounded bg-surface-backdrop justify-between items-center px-4">
+	<div class="flex gap-4 rounded bg-surface-500 justify-between items-center px-4">
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {$logs.length}
 			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}
@@ -547,11 +543,11 @@
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		@apply z-50 bg-surface-50-900 dark:bg-surface-900-50 min-w-full;
+		@apply z-50 bg-surface-50-950 dark:bg-surface-950-50 min-w-full;
 	}
 
 	.row-wrap {
-		@apply flex flex-wrap rounded preset-ghost;
+		@apply flex flex-wrap rounded preset-outlined;
 	}
 
 	.mini-card {
@@ -559,7 +555,7 @@
 	}
 
 	.btn-search {
-		@apply btn btn-sm text-black bg-surface-hover dark:text-white;
+		@apply btn btn-sm text-black bg-surface-500 dark:text-white;
 	}
 
 	.searchedCurrent {
@@ -575,32 +571,32 @@
 	}
 
 	.FATAL {
-		@apply bg-surface-backdrop;
+		@apply bg-surface-500;
 		box-shadow: 2px 2px 5px 0px #404040;
 	}
 
 	.ERROR {
-		@apply bg-error-backdrop;
+		@apply bg-error-500;
 		box-shadow: 2px 2px 5px 0px #ff3b30;
 	}
 
 	.WARN {
-		@apply bg-warning-backdrop;
+		@apply bg-warning-500;
 		box-shadow: 2px 2px 5px 0px #ff9500;
 	}
 
 	.INFO {
-		@apply bg-secondary-backdrop;
+		@apply bg-secondary-500;
 		box-shadow: 2px 2px 5px 0px #71c287;
 	}
 
 	.DEBUG {
-		@apply bg-primary-backdrop;
+		@apply bg-primary-500;
 		box-shadow: 2px 2px 5px 0px #4285f4;
 	}
 
 	.TRACE {
-		@apply bg-tertiary-backdrop;
+		@apply bg-tertiary-500;
 		box-shadow: 2px 2px 5px 0px #fbbc05;
 	}
 </style>

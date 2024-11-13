@@ -47,7 +47,7 @@
 		]}
 		data={legendItems}
 	>
-		{#snippet children(row, def)}
+		{#snippet children({ row, def })}
 			{#if def.name === 'Name'}
 				{row.title}
 			{/if}

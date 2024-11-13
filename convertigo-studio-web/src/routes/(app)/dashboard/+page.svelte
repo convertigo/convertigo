@@ -177,7 +177,7 @@
 
 <style lang="postcss">
 	.search-bar {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 text placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
+		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
 		border-bottom: surface-200;
 	}
 

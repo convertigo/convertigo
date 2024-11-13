@@ -1,19 +1,17 @@
 <script>
 	import { page } from '$app/stores';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { Segment } from '@skeletonlabs/skeleton-svelte';
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import Icon from '@iconify/svelte';
 	import { DeviceMockup } from 'svelte-device-mockups';
 	import { getFrontendUrl } from '$lib/utils/service';
 
-	const modalStore = getModalStore();
 	let project;
 	let _parts = [];
 
-	let deviceVal = 2;
+	let deviceVal = '2';
 	let landscape;
 	let selectedPhoneType = 'iPhone X';
 
@@ -71,13 +69,13 @@
 	});
 
 	function openModalQrCode() {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalQrCode',
-			meta: {
-				href: getFrontendUrl($page.params.project)
-			}
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalQrCode',
+		// 	meta: {
+		// 		href: getFrontendUrl($page.params.project)
+		// 	}
+		// });
 	}
 
 	$: selectedPhone = phones.find((phone) => phone.name === selectedPhoneType) || {
@@ -94,19 +92,19 @@
 
 	<div class="flex items-center justify-center gap-5">
 		<button class="green-button" on:click={() => openModalQrCode()}>Qr Code</button>
-		<RadioGroup active="dark:bg-surface-800 bg-surface-100">
-			<RadioItem bind:group={deviceVal} name="justify" value={2}
-				><Icon icon="fluent:phone-20-regular" class="dark:text-white text-black" /></RadioItem
+		<Segment bind:value={deviceVal} classes="dark:bg-surface-800 bg-surface-100">
+			<Segment.Item classes="justify" value="2"
+				><Icon icon="fluent:phone-20-regular" class="dark:text-white text-black" /></Segment.Item
 			>
-			<RadioItem bind:group={deviceVal} name="justify" value={1}
-				><Icon icon="fluent:tablet-48-regular" class="dark:text-white text-black" /></RadioItem
+			<Segment.Item classes="justify" value="1"
+				><Icon icon="fluent:tablet-48-regular" class="dark:text-white text-black" /></Segment.Item
 			>
-			<RadioItem bind:group={deviceVal} name="justify" value={0}
-				><Icon icon="fluent:laptop-20-regular" class="dark:text-white text-black" /></RadioItem
+			<Segment.Item classes="justify" value="0"
+				><Icon icon="fluent:laptop-20-regular" class="dark:text-white text-black" /></Segment.Item
 			>
-		</RadioGroup>
+		</Segment>
 		<button class="basic-button" on:click={() => toggleLandscape()}>{buttonTextLandsape}</button>
-		{#if deviceVal == 2}
+		{#if deviceVal == '2'}
 			<select on:change={handlePhoneTypeChange} class="select-common text-[12px]">
 				{#each phones as phone}
 					<option value={phone.name}>{phone.name}</option>
@@ -115,7 +113,7 @@
 		{/if}
 	</div>
 	<div class="flex flex-col items-center justify-start">
-		{#if deviceVal >= 0 && deviceVal < devices.length}
+		<!-- {#if deviceVal >= 0 && deviceVal < devices.length}
 			<DeviceMockup
 				device={deviceVal == 2 ? selectedPhone.name : devices[deviceVal].name}
 				scale={deviceVal == 2 ? selectedPhone.scale : devices[deviceVal].scale}
@@ -123,7 +121,7 @@
 				color={deviceVal == 2 ? selectedPhone.color : devices[deviceVal].color}
 				src={getFrontendUrl(project['@_name'])}
 			/>
-		{/if}
+		{/if} -->
 	</div>
 {:else}
 	Loading ...

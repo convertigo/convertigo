@@ -1,255 +1,180 @@
 <script>
-	import { run } from 'svelte/legacy';
-
-	import Icon from '@iconify/svelte';
-	import {
-		Accordion,
-		AccordionItem,
-		ListBox,
-		ListBoxItem,
-		getModalStore
-	} from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
-	import {
-		refreshConfigurations,
-		configurations,
-		updateConfigurations
-	} from '$lib/admin/stores/configurationStore';
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { onDestroy } from 'svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { browser } from '$app/environment';
 	import Ico from '$lib/utils/Ico.svelte';
-	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-	import { fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
+	import RightPart from '../RightPart.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import Configuration from '$lib/admin/Configuration.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
 
-	const modalStore = getModalStore();
+	let selectedIndex = $state(0);
+	let selectedIndexLast = $state(-1);
+	let category = $derived(Configuration.categories[selectedIndex] ?? {});
 
-	let selectedIndex = $state(-1);
+	RightPart.snippet = rightPart;
+	onDestroy(() => {
+		RightPart.snippet = undefined;
+	});
 
-	onMount(() => {
-		const name = window.location.hash.substring(1);
-		refreshConfigurations().then(() => {
+	$effect(() => {
+		if (browser) {
+			const name = window.location.hash.substring(1);
 			selectedIndex = Math.max(
 				0,
-				$configurations?.admin?.category?.findIndex(
+				Configuration.categories.findIndex(
 					(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == name
 				)
 			);
-		});
+		}
+	});
+
+	$effect(() => {
+		if (browser) {
+			if (category?.['@_name']) {
+				window.location.hash = category['@_name'];
+			}
+		}
 	});
 
 	function saveChanges() {
-		const toSave = $configurations?.admin?.category?.[selectedIndex]?.property
+		const toSave = Configuration.categories[selectedIndex]?.property
 			?.filter((/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue'])
 			.map((/** @type {{ [x: string]: any; }} */ p) => ({
 				'@_key': p['@_name'],
 				'@_value': p['@_value']
 			}));
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalWarning',
-			meta: { mode: 'Confirm' },
-			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
-			response: /** @param {boolean} confirmed */ async (confirmed) => {
-				if (confirmed) {
-					updateConfigurations(toSave);
-				}
-			}
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalWarning',
+		// 	meta: { mode: 'Confirm' },
+		// 	title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
+		// 	response: /** @param {boolean} confirmed */ async (confirmed) => {
+		// 		if (confirmed) {
+		// 			updateConfigurations(toSave);
+		// 		}
+		// 	}
+		// });
 	}
 
-	/**
-	 * @param { any } event
-	 */
-	async function changeCategory(event) {
+	async function changeCategory() {
 		if (hasChanges) {
-			event.preventDefault();
-			const confirm = await new Promise((resolve) => {
-				modalStore.trigger({
-					type: 'component',
-					component: 'modalWarning',
-					meta: { mode: 'Confirm' },
-					title: 'You have unsaved changes',
-					body: ' Are you sure you want to continue ?',
-					response: (confirmed) => {
-						if (confirmed) {
-							resolve(confirmed);
-						}
-					}
-				});
-			});
-			if (confirm) {
-				await refreshConfigurations();
-				selectedIndex = event.target?.value;
-			}
+			console.log('change');
+			// const confirm = await new Promise((resolve) => {
+			// modalStore.trigger({
+			// 	type: 'component',
+			// 	component: 'modalWarning',
+			// 	meta: { mode: 'Confirm' },
+			// 	title: 'You have unsaved changes',
+			// 	body: ' Are you sure you want to continue ?',
+			// 	response: (confirmed) => {
+			// 		if (confirmed) {
+			// 			resolve(confirmed);
+			// 		}
+			// 	}
+			// });
+			// });
+			// if (confirm) {
+			// 	Configuration.refresh();
+			// 	selectedIndex = event.target?.value;
+			// }
 		}
 	}
 
 	let hasChanges = $derived(
-		$configurations?.admin?.category?.[selectedIndex]?.property?.some(
+		Configuration.categories[selectedIndex]?.property?.some(
 			(/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue']
 		)
 	);
 
-	run(() => {
-		if (browser && 'admin' in $configurations) {
-			window.location.hash = $configurations?.admin?.category?.[selectedIndex]?.['@_name'];
-		}
-	});
+	let open = $state(true);
 </script>
 
-{#if selectedIndex > -1}
-	{@const category = $configurations?.admin?.category[selectedIndex]}
-	<div class="grid md:grid-cols-5 gap-5">
-		{#key selectedIndex}
-			<div class="h-auto md:col-span-4" in:fade>
-				<Card title={category['@_displayName']}>
-					{#snippet cornerOption()}
-						<ButtonsContainer>
-							<button
-								type="button"
-								disabled={!hasChanges}
-								class="basic-button"
-								onclick={saveChanges}
-							>
-								<span><Ico icon="material-symbols-light:save-as-outline" size="6" /></span>
-								<span>Save changes</span>
-							</button>
-							<button
-								type="button"
-								disabled={!hasChanges}
-								class="yellow-button"
-								onclick={refreshConfigurations}
-							>
-								<span><Ico icon="material-symbols-light:cancel-outline" size="6" /></span>
-								<span class="">Cancel changes</span>
-							</button>
-						</ButtonsContainer>
-					{/snippet}
-
-					<ResponsiveContainer
-						scrollable={false}
-						maxHeight="h-auto"
-						smCols="sm:grid-cols-1"
-						mdCols="md:grid-cols-1"
-						lgCols="lg:grid-cols-2"
-					>
-						{#each category.property as property}
-							{#if property['@_isAdvanced'] != 'true'}
-								<PropertyType {property} />
-							{/if}
-						{/each}
-					</ResponsiveContainer>
-				</Card>
-
-				{#if category.property.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
-					<Card class="mt-5">
-						<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
-							<AccordionItem>
-								<svelte:fragment slot="summary">
-									<div class="flex items-center">
-										<Ico icon="game-icons:level-three-advanced" />
-										<p class="ml-4">Advanced Properties</p>
-									</div>
-								</svelte:fragment>
-
-								<svelte:fragment slot="content">
-									<ResponsiveContainer
-										scrollable={false}
-										maxHeight="h-auto"
-										class="mt-10"
-										smCols="sm:grid-cols-1"
-										mdCols="md:grid-cols-1"
-										lgCols="lg:grid-cols-2"
-									>
-										{#each category.property as property}
-											{#if property['@_isAdvanced'] == 'true'}
-												<PropertyType {property} />
-											{/if}
-										{/each}
-									</ResponsiveContainer>
-								</svelte:fragment>
-							</AccordionItem>
-						</Accordion>
-					</Card>
+{#snippet rightPart()}
+	<nav
+		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
+	>
+		{#each Configuration.categories as category, i}
+			<a
+				href="#{category['@_name']}"
+				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded"
+				onclick={() => {
+					changeCategory();
+					selectedIndexLast = selectedIndex;
+					selectedIndex = i;
+				}}
+			>
+				{#if i == selectedIndex}
+					<span
+						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
+						out:fade
+						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
+					></span>
 				{/if}
-			</div>
-		{/key}
-		<Card class="flex flex-col h-auto md:col-span-1 px-2">
-			<ListBox active="dark:bg-surface-600 bg-surface-50">
-				{#each $configurations?.admin?.category as category, index}
-					<ListBoxItem
-						bind:group={selectedIndex}
-						name="category"
-						value={index}
-						on:click={changeCategory}
+				<AutoPlaceholder loading={category['@_displayName'] == null}>
+					<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
+						>{category['@_displayName']}</span
 					>
-						<div class="font-light">
-							{category['@_displayName']}
-						</div>
-					</ListBoxItem>
-				{/each}
-			</ListBox>
-		</Card>
-	</div>
-{:else}
-	<div class="flex flex-col grid md:grid-cols-5 gap-5">
-		<div class="flex flex-col h-auto md:col-span-4">
-			<Card>
-				<div class="text-xl mb-5 font-bold placeholder animate-pulse"></div>
-				<div class="flex flex-row space-x-5">
-					<button
-						type="button"
-						disabled={true}
-						class="btn p-1 pl-5 pr-5 mb-5 w-80 font-normal rounded-full font-medium"
-					>
-						<span
-							><Icon
-								icon="material-symbols-light:save-as-outline"
-								class="w-6 h-6 text-white"
-							/></span
-						>
-						<span class="text-[13px] text-white">Save Changes</span>
-					</button>
-					<button
-						type="button"
-						disabled={true}
-						class="btn p-1 pl-5 pr-5 mb-5 w-80 preset-filled-error font-normal rounded-full font-medium"
-					>
-						<span
-							><Icon
-								icon="material-symbols-light:cancel-outline"
-								class="w-6 h-6 text-white"
-							/></span
-						>
-						<span class="text-[13px] text-white">Cancel Changes</span>
-					</button>
-				</div>
-				<div class="grid md:grid-cols-2 grid-cols-1 gap-5">
-					{#each Array(10) as _}
-						<div class="my-2 h-8 placeholder animate-pulse"></div>
-					{/each}
-				</div>
-			</Card>
+				</AutoPlaceholder>
+			</a>
+		{/each}
+	</nav>
+{/snippet}
+<ModalWarning bind:open title="test" body="test2" mode="" />
+{#key selectedIndex}
+	<div class="layout-y !items-stretch" in:fade>
+		<Card title={category['@_displayName']}>
+			{#snippet cornerOption()}
+				<ResponsiveButtons
+					buttons={[
+						{
+							label: 'Save changes',
+							icon: 'material-symbols-light:save-as-outline',
+							cls: 'basic-button',
+							disabled: !hasChanges,
+							onclick: saveChanges
+						},
+						{
+							label: 'Cancel changes',
+							icon: 'material-symbols-light:cancel-outline',
+							cls: 'yellow-button',
+							onclick: Configuration.refresh
+						}
+					]}
+				/>
+			{/snippet}
 
-			<Card title="Advanced properties" class="mt-5">
-				<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="rounded">
-					<AccordionItem class="rounded">
-						<svelte:fragment slot="lead"
-							><Ico icon="game-icons:level-three-advanced" />
-						</svelte:fragment>
-						<svelte:fragment slot="summary">
-							<p>Advanced properties</p>
-						</svelte:fragment>
-					</AccordionItem>
+			<div class="w-full layout-cols-2">
+				{#each category.property as property}
+					{#if property['@_isAdvanced'] != 'true'}
+						<PropertyType {property} />
+					{/if}
+				{/each}
+			</div>
+		</Card>
+
+		{#if category.property?.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
+			<Card>
+				<Accordion collapsible>
+					<Accordion.Item value="" panelPadding="py" controlPadding="">
+						{#snippet lead()}<Ico icon="game-icons:level-three-advanced" />{/snippet}
+						{#snippet control()}Advanced Properties{/snippet}
+						{#snippet panel()}
+							<div class="w-full layout-cols-2">
+								{#each category.property as property}
+									{#if property['@_isAdvanced'] == 'true'}
+										<PropertyType {property} />
+									{/if}
+								{/each}
+							</div>
+						{/snippet}
+					</Accordion.Item>
 				</Accordion>
 			</Card>
-		</div>
-		<Card class="flex flex-col h-auto md:col-span-1 rounded">
-			{#each Array(12) as _}
-				<div class="placeholder animate-pulse my-3 h-8"></div>
-			{/each}
-		</Card>
+		{/if}
 	</div>
-{/if}
+{/key}

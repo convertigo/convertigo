@@ -74,8 +74,6 @@
 	}
 </script>
 
-<!-- <div class="layout-y !items-stretch h-full">
-	<Card title="Full Sync" /> -->
 {#if browser}
 	<iframe
 		bind:this={iframe}
@@ -85,4 +83,3 @@
 		{onload}
 	></iframe>
 {/if}
-<!-- </div> -->

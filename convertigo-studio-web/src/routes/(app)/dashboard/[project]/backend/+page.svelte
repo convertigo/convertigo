@@ -5,11 +5,10 @@
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import Table from '$lib/dashboard/components/Table.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
-	import { Accordion, AccordionItem, getModalStore, modeCurrent } from '@skeletonlabs/skeleton';
 	import { decode } from 'html-entities';
 	import { onMount } from 'svelte';
 	import { marked } from 'marked';
-	import { SlideToggle } from '@skeletonlabs/skeleton';
+	import { Switch, Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { blur, fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
@@ -17,7 +16,6 @@
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 
-	const modalStore = getModalStore();
 	let project = $state();
 	let _parts = $state([]);
 	let searchQuery = $state('');
@@ -123,28 +121,26 @@
 	<CardD>
 		{#each parts as { name, requestables }, index (name)}
 			<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
-				<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" padding="p-4">
-					<AccordionItem open={index == 0 || searchQuery.length > 0}>
-						<svelte:fragment slot="lead"></svelte:fragment>
-						<svelte:fragment slot="summary">
+				<Accordion padding="p-4">
+					<Accordion.Item value="ok">
+						<!-- <Accordion.Item open={index == 0 || searchQuery.length > 0}> -->
+						{#snippet control()}
 							<p class="text-[18px] font-semibold text pb-4 px-2">{name}</p>
 							<div class="bottom-0 h-[0.5px] bg-surface-300"></div>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
+						{/snippet}
+						{#snippet panel()}
 							{#each requestables as requestable, index (requestable['@_name'])}
 								<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 									<Accordion
-										caretOpen="rotate-0"
-										caretClosed="-rotate-90"
 										padding="p-4"
-										class="rounded bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
+										classes="rounded bg-opacity-20 {bgColors[index % bgColors.length]} border-2"
 									>
-										<AccordionItem
-											on:toggle={(e) => (requestable.open = e.detail?.open)}
+										<Accordion.Item value="ok">
+											<!-- <Accordion.Item
+											ontoggle={(e) => (requestable.open = e.detail?.open)}
 											open={requestable.open}
-										>
-											<svelte:fragment slot="lead"></svelte:fragment>
-											<svelte:fragment slot="summary">
+										> -->
+											{#snippet control()}
 												<div class="flex items-center justify-between relative">
 													<span class="text-[14px] text font-bold">{requestable['@_name']}</span>
 													{#if !requestable.open}
@@ -155,8 +151,8 @@
 														>
 													{/if}
 												</div>
-											</svelte:fragment>
-											<svelte:fragment slot="content">
+											{/snippet}
+											{#snippet panel()}
 												<form
 													onsubmit={preventDefault(async (e) => {
 														run(requestable, e);
@@ -204,16 +200,22 @@
 																				}}
 																			/>
 																		{/if}
-																		<SlideToggle
-																			active="activeSlideToggle"
-																			background="unActiveSlideToggle"
+																		<Switch
+																			controlActive="activeSlideToggle"
+																			controlInactive="unActiveSlideToggle"
+																			name=""
+																			{checked}
+																		/>
+																		<!-- <Switch
+																			controlActive="activeSlideToggle"
+																			controlInactive="unActiveSlideToggle"
 																			size="sm"
 																			name=""
 																			{checked}
-																			on:change={() => {
+																			onchange={() => {
 																				variable.checked = !checked;
 																			}}
-																		/>
+																		/> -->
 																	</div>
 																</label>
 															{/each}
@@ -276,18 +278,18 @@
 															<Editor
 																content={requestable.response}
 																language={requestable.language}
-																theme={$modeCurrent ? '' : 'vs-dark'}
+																theme={false ? '' : 'vs-dark'}
 															/>
 														</div>
 													{/if}
 												</form>
-											</svelte:fragment>
-										</AccordionItem>
+											{/snippet}
+										</Accordion.Item>
 									</Accordion>
 								</div>
 							{/each}
-						</svelte:fragment>
-					</AccordionItem>
+						{/snippet}
+					</Accordion.Item>
 				</Accordion>
 			</div>
 		{/each}

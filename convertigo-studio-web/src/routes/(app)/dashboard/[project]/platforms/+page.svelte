@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
-	import { Accordion, AccordionItem, getModalStore, modeCurrent } from '@skeletonlabs/skeleton';
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { onMount } from 'svelte';
 	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -11,7 +11,6 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import QrCode from '$lib/common/components/QrCode.svelte';
 
-	const modalStore = getModalStore();
 	let app;
 
 	let data = $state([
@@ -95,7 +94,7 @@
 		]}
 		{data}
 	>
-		{#snippet children(row, def)}
+		{#snippet children({ row, def })}
 			{#if def.key === 'Name'}
 				<span class="font-normal">{row.Name}</span>
 			{:else}
@@ -106,21 +105,20 @@
 </CardD>
 
 <CardD>
-	<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" class="" autocollapse>
+	<Accordion>
 		{#each platforms as platform, i}
-			<AccordionItem open={i == 0} class="preset-ghost-surface rounded">
-				<svelte:fragment slot="lead">{platform['@_displayName']}</svelte:fragment>
-				<svelte:fragment slot="summary"
-					><AutoPlaceholder loading={!platform.status}
+			<!-- open={i == 0} -->
+			<Accordion.Item classes="preset-ghost-surface rounded" value="ok">
+				{#snippet control()}{platform['@_displayName']}
+					<AutoPlaceholder loading={!platform.status}
 						><span
 							class:text-success-500={platform.status}
 							class:text-error-500={platform.status != 'complete'}
 							class:text-warning-500={platform.status == 'pending'}
 							class:animate-pulse={platform.status == 'pending'}>⬤</span
 						></AutoPlaceholder
-					></svelte:fragment
-				>
-				<svelte:fragment slot="content">
+					>{/snippet}
+				{#snippet panel()}
 					<div class="flex flex-wrap justify-center gap-2">
 						<TableAutoCard
 							class="max-w-fit"
@@ -131,7 +129,7 @@
 							]}
 							data={platform.data}
 						>
-							{#snippet children(row, def)}
+							{#snippet children({ row, def })}
 								{#if def.key === 'Name'}
 									<span class="font-normal">{row.Name}</span>
 								{:else}
@@ -173,8 +171,8 @@
 							></a
 						>
 					</div>
-				</svelte:fragment>
-			</AccordionItem>
+				{/snippet}
+			</Accordion.Item>
 		{/each}
 	</Accordion>
 </CardD>

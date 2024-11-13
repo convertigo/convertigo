@@ -7,7 +7,7 @@ html {
 	@apply h-full bg-surface-50-950;
 }
 body {
-	@apply h-full min-h-fit;
+	@apply h-full;
 }
 
 @layer base {
@@ -162,5 +162,9 @@ body {
 
 	.preset-filled-error {
 		@apply preset-filled-error-500;
+	}
+
+	.layout-cols-2 {
+		@apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap;
 	}
 }

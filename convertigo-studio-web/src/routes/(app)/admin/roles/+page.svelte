@@ -1,14 +1,11 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-
-	const modalStore = getModalStore();
 
 	let selectRow = $state(false);
 	let selectedUsers = new Set();
@@ -188,7 +185,7 @@
 			].filter((elt) => selectRow || elt.name != 'Export')}
 			data={$usersStore}
 		>
-			{#snippet children(row, def)}
+			{#snippet children({ row, def })}
 				{#if def.name === 'Role'}
 					{#each row.role.split(', ').sort(sortRoles) as role}
 						<span

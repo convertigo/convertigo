@@ -11,6 +11,7 @@
 			.fill('../')
 			.join('')
 	);
+	//$inspect({ isRoot, relativePath });
 	let activeIndex = $derived(
 		parts[0].findIndex((part) =>
 			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
