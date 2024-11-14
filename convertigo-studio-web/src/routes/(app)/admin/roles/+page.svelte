@@ -6,6 +6,7 @@
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let selectRow = $state(false);
 	let selectedUsers = new Set();
@@ -144,12 +145,37 @@
 
 <Card title="Roles">
 	{#snippet cornerOption()}
-		<button class="delete-button" onclick={openDeleteAllModal}>
-			<Ico icon="mingcute:delete-line" />
-			<p>Delete All Roles</p>
-		</button>
+		<ResponsiveButtons
+			class="max-w-4xl"
+			buttons={[
+				{
+					label: 'Add User',
+					icon: 'grommet-icons:add',
+					cls: 'green-button',
+					onclick: () => openModals('add', { role: '' })
+				},
+				{
+					label: 'Import Users',
+					icon: 'bytesize:import',
+					cls: 'basic-button',
+					onclick: () => openModals('import', { role: '' })
+				},
+				{
+					label: 'Export Users',
+					icon: 'bytesize:export',
+					cls: 'basic-button',
+					onclick: () => openModals('export', { role: '' })
+				},
+				{
+					label: 'Delete All Users',
+					icon: 'mingcute:delete-line',
+					cls: 'delete-button',
+					onclick: openDeleteAllModal
+				}
+			]}
+		/>
 	{/snippet}
-	<ButtonsContainer class="mb-10">
+	<!-- <ButtonsContainer class="mb-10">
 		{#each Object.entries(userActions) as [type, { name, icon }]}
 			<button class="basic-button" onclick={() => openModals(type)}>
 				<p>{name}</p>
@@ -172,10 +198,11 @@
 				<Ico icon="bytesize:export" />
 			</button>
 		{/if}
-	</ButtonsContainer>
+	</ButtonsContainer> -->
 
 	{#if $usersStore.length >= 0}
 		<TableAutoCard
+			class="rounded"
 			definition={[
 				{ name: 'Export', custom: true },
 				{ name: 'Name', key: 'name' },

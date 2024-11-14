@@ -12,6 +12,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let tabSet = $state(0);
 	let selectRow = $state(false);
@@ -156,39 +157,42 @@
 
 <Card title="Global Symbols">
 	{#snippet cornerOption()}
-		<div class="flex-1">
-			<button class="delete-button" onclick={openConfirmDeleteAll}
-				><Ico icon="mingcute:delete-line" />
-				<p>Delete symbols</p>
-			</button>
-		</div>
+		<ResponsiveButtons
+			class="max-w-4xl"
+			buttons={[
+				{
+					label: 'Add Symbols',
+					icon: 'grommet-icons:add',
+					cls: 'basic-button',
+					onclick: () => openSymbolModal('add', {})
+				},
+				{
+					label: 'Add secret symbol',
+					icon: 'vaadin:key-o',
+					cls: 'basic-button',
+					onclick: () => open
+				},
+				{
+					label: 'Import Symbols',
+					icon: 'bytesize:import',
+					cls: 'basic-button',
+					onclick: () => openSymbolModal('import', {})
+				},
+				{
+					label: 'Export Symbols',
+					icon: 'bytesize:export',
+					cls: 'basic-button',
+					onclick: () => openSymbolModal('export', {})
+				},
+				{
+					label: 'Delete All Symbols',
+					icon: 'mingcute:delete-line',
+					cls: 'delete-button',
+					onclick: openConfirmDeleteAll
+				}
+			]}
+		/>
 	{/snippet}
-
-	<ButtonsContainer class="mb-10">
-		{#each Object.entries(symbolsActions) as [type, { name, icon }]}
-			<button class="basic-button" onclick={() => openSymbolModal(type)}>
-				<p>{name}</p>
-				<Ico {icon} />
-			</button>
-		{/each}
-
-		<button class={selectRow ? 'delete-button' : 'basic-button'} onclick={DisplaySelectRow}>
-			<p>{selectRow ? 'Cancel Export' : 'Export Symbols'}</p>
-			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
-		</button>
-
-		{#if selectRow}
-			<button class="green-button" onclick={exportUserFile}>
-				<p>Validate export</p>
-				<Ico icon="bytesize:export" />
-			</button>
-			<button class="yellow-button" onclick={selectAllUsersFunction}>
-				<p>Select all users</p>
-				<Ico icon="bytesize:export" />
-			</button>
-		{/if}
-	</ButtonsContainer>
-
 	<!-- <TabGroup>
 		<Tab
 			bind:group={tabSet}

@@ -1,9 +1,11 @@
 <script>
 	import { browser } from '$app/environment';
 	import Card from '$lib/admin/components/Card.svelte';
+	import MaxHeight from '$lib/admin/components/MaxHeight.svelte';
 	import { getUrl } from '$lib/utils/service';
 
-	let iframe = $state();
+	let iframe;
+	let height;
 	function onload() {
 		const iframeDoc = iframe.contentWindow.document;
 		const observer = new MutationObserver((mutations) => {
@@ -75,11 +77,14 @@
 </script>
 
 {#if browser}
-	<iframe
-		bind:this={iframe}
-		src={getUrl().replace('/services/', '/_utils/')}
-		title="fullsync"
-		class="h-full w-full rounded-xl"
-		{onload}
-	></iframe>
+	<MaxHeight bind:height>
+		<iframe
+			bind:this={iframe}
+			src={getUrl().replace('/services/', '/_utils/')}
+			title="fullsync"
+			class="w-full rounded-xl"
+			style="height: {height}px"
+			{onload}
+		></iframe>
+	</MaxHeight>
 {/if}

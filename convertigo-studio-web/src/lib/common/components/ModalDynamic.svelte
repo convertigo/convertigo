@@ -1,8 +1,8 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
 	import { onDestroy } from 'svelte';
-	/** @type {{children?: import('svelte').Snippet<[any]>}} */
-	let { children } = $props();
+	/** @type {{class?: string, children?: import('svelte').Snippet<[any]>}} */
+	let { class: cls = '', children } = $props();
 	let opened = $state(false);
 	let result = $state();
 	let params = $state();
@@ -31,16 +31,19 @@
 		}
 	});
 
-	function setResult(value) {
+	export function setResult(value) {
 		result = value;
 	}
 
-	function close() {
+	export function close(value) {
+		if (typeof result == 'undefined' || typeof value != 'undefined') {
+			result = value;
+		}
 		opened = false;
 	}
 </script>
 
-<Modal bind:open={opened} contentBase="w-full" triggerBase="hidden">
+<Modal bind:open={opened} triggerBase="hidden" contentBase={cls}>
 	{#snippet content()}
 		{@render children?.({ setResult, close, params })}
 	{/snippet}

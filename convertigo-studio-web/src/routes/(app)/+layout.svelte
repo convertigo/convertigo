@@ -50,7 +50,7 @@
 			</aside>
 		{/if}
 		{#key $page.url.pathname}
-			<main class="px py w-full" in:fade>
+			<main class="px py w-full min-h-full grow" in:fade>
 				{@render children?.()}
 			</main>
 		{/key}

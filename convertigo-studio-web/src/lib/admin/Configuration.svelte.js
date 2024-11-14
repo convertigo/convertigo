@@ -33,5 +33,9 @@ export default {
 		}
 		return properties?.admin?.category;
 	},
-	refresh
+	refresh,
+	updateConfigurations: async (property) => {
+		await call('configuration.Update', { '@_xml': true, configuration: { property } });
+		await refresh();
+	}
 };

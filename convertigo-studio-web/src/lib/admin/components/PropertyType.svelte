@@ -22,57 +22,41 @@
 		{#if property['@_type'] == 'Boolean'}
 			<CheckState name={id} bind:value={property['@_value']}>{property['@_description']}</CheckState
 			>
-		{:else if property['@_type'] == 'Text'}
+		{:else}
 			{@const loading = property['@_description'] == null}
+			{@const autocomplete = 'one-time-code'}
+			{@const placeholder = 'Enter value ...'}
 			<div class="flex-1 flex flex-col justify-center border-common">
 				<AutoPlaceholder {loading}>
 					<label class="label-common" for={id}>{property['@_description']}</label>
 				</AutoPlaceholder>
-
-				<input
-					type="text"
-					{id}
-					disabled={loading}
-					class:animate-pulse={loading}
-					placeholder="Enter value ..."
-					class="input-common placeholder:pl-1"
-					bind:value={property['@_value']}
-				/>
+				{#if property['@_type'] == 'Combo'}
+					<select class="input-common" {id} bind:value={property['@_value']}>
+						{#each property.item as option}
+							<option value={option['@_value']}>{option['#text']}</option>
+						{/each}
+					</select>
+				{:else if property['@_type'] == 'Array'}
+					<textarea
+						{id}
+						{autocomplete}
+						{placeholder}
+						class="input-common input-text placeholder:pl-1"
+						bind:value={property['@_value']}
+					></textarea>
+				{:else}
+					<input
+						{id}
+						{autocomplete}
+						{placeholder}
+						type={property['@_type'] == 'Text' ? 'text' : 'password'}
+						disabled={loading}
+						class:animate-pulse={loading}
+						class="input-common input-text placeholder:pl-1"
+						bind:value={property['@_value']}
+					/>
+				{/if}
 			</div>
-		{:else if property['@_type'] == 'PasswordHash'}
-			<div class="flex-1 flex flex-col justify-center border-common">
-				<label class="label-common" for={id}>{property['@_description']}</label>
-				<input
-					type="text"
-					{id}
-					placeholder="Enter value ..."
-					class="input-common input-text placeholder:pl-1"
-					bind:value={property['@_value']}
-				/>
-			</div>
-		{:else if property['@_type'] == 'PasswordPlain'}
-			<div class="flex-1 flex flex-col justify-center border-common">
-				<label class="label-common" for={id}>{property['@_description']}</label>
-				<input
-					type="password"
-					{id}
-					placeholder="Enter value ..."
-					class="input-common input-text placeholder:pl-1"
-					bind:value={property['@_value']}
-				/>
-			</div>
-		{:else if property['@_type'] == 'Combo'}
-			<div class="flex-1 flex flex-col justify-center border-common">
-				<label class="label-common" for={id}>{property['@_description']}</label>
-
-				<select class="input-common" {id} bind:value={property['@_value']}>
-					{#each property.item as option}
-						<option value={option['@_value']}>{option['#text']}</option>
-					{/each}
-				</select>
-			</div>
-		{:else if property['@_type'] == 'Array'}
-			<div class="flex-1 flex flex-col justify-center border-common">Not handled</div>
 		{/if}
 	</div>
 	<div class="layout-x-low sm:layout-y-low">

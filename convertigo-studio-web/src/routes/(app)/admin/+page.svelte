@@ -8,8 +8,8 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import DynamicModal from '../../sandbox/DynamicModal.svelte';
 	import EnvironmentVariables from '$lib/common/EnvironmentVariables.svelte';
+	import ModalDynamic from '../../../lib/common/components/ModalDynamic.svelte';
 
 	const tables = $derived([
 		{
@@ -150,9 +150,9 @@
 	let modalHome;
 </script>
 
-<DynamicModal bind:this={modalHome}>
+<ModalDynamic bind:this={modalHome} class="w-full">
 	{#snippet children({ close, params: { mode, data } })}
-		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}>
+		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'} class="w-full">
 			<TableAutoCard
 				definition={[
 					{ name: 'Name', key: 'name' },
@@ -167,7 +167,8 @@
 			</div>
 		</Card>
 	{/snippet}
-</DynamicModal>
+</ModalDynamic>
+
 <div class="layout-y md:layout-x !items-start">
 	<div
 		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"

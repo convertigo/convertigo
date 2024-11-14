@@ -1,14 +1,14 @@
 <script>
 	import { onMount } from 'svelte';
-	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import Projects from '$lib/admin/Projects.svelte';
 
 	onMount(() => {
-		projectsCheck();
+		Projects.refresh();
 	});
 
 	/**
@@ -50,7 +50,7 @@
 	export async function deleteProject(projectName) {
 		try {
 			const response = await call('projects.Delete', { projectName });
-			await projectsCheck();
+			await Projects.refresh();
 		} catch (err) {
 			console.error('Error deleting project:', err);
 		}
@@ -59,7 +59,7 @@
 	export async function deleteAllProjects() {
 		try {
 			const response = await call('projects.DeleteAll');
-			await projectsCheck();
+			await Projects.refresh();
 		} catch (err) {
 			console.error('Error deleting all project:', err);
 		}
@@ -157,58 +157,68 @@
 
 <Card title="Projects">
 	{#snippet cornerOption()}
-		<button class="delete-button">
-			<Ico icon="mingcute:delete-line" />
-			<p>Delete All Projects</p></button
-		>
-	{/snippet}
-	<ButtonsContainer>
-		{#each Object.entries(projectActions) as [type, { name, icon }]}
-			<button class="basic-button" onclick={() => openModal(type)}>
-				<p>{name}</p>
-				<Ico {icon} size="nav" />
-			</button>
-		{/each}
-	</ButtonsContainer>
-</Card>
-
-<Card>
-	{#if $projectsStore.length > 0}
-		<TableAutoCard
-			definition={[
-				{ name: 'Name', key: '@_name' },
-				{ name: 'Comment', key: '@_comment' },
-				{ name: 'Version', key: '@_version' },
-				{ name: 'Exported', key: '@_exported' },
-				{ name: 'Deployment', key: '@_deployDate' },
-				{ name: 'Delete', custom: true },
-				{ name: 'Reload', custom: true },
-				{ name: 'Export', custom: true },
-				{ name: 'Test', custom: true }
+		{@const onclick = (e) => openModal(e?.target?.value)}
+		<ResponsiveButtons
+			buttons={[
+				{
+					icon: 'carbon:application',
+					value: 'deploy',
+					cls: 'basic-button',
+					label: 'Deploy project',
+					onclick
+				},
+				{
+					icon: 'bytesize:import',
+					value: 'export',
+					cls: 'basic-button',
+					label: 'Import a Remote Project URL',
+					onclick
+				},
+				{
+					icon: 'mingcute:delete-line',
+					cls: 'delete-button',
+					label: 'Delete All Projects',
+					onclick: deleteAllProjects
+				}
 			]}
-			data={$projectsStore}
-		>
-			{#snippet children({ row, def })}
-				{#if def?.name == 'Delete'}
-					<button onclick={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
-						<Ico icon="mingcute:delete-line" />
-					</button>
-				{:else if def?.name == 'Reload'}
-					<button onclick={() => openReloadProjectModal(row['@_name'])} class="green-button">
-						<Ico icon="simple-line-icons:reload" />
-					</button>
-				{:else if def?.name == 'Export'}
-					<button onclick={() => openExportProjectModal(row['@_name'])} class="basic-button">
-						<Ico icon="bytesize:export" />
-					</button>
-				{:else if def?.name == 'Test'}
-					<button class="yellow-button">
-						<a href="/admin">
-							<Ico icon="file-icons:test-ruby" />
-						</a>
-					</button>
-				{/if}
-			{/snippet}
-		</TableAutoCard>
-	{/if}
+			class="max-w-4xl"
+		/>
+	{/snippet}
+	<TableAutoCard
+		definition={[
+			{ name: 'Name', key: '@_name' },
+			{ name: 'Comment', key: '@_comment' },
+			{ name: 'Version', key: '@_version' },
+			{ name: 'Exported', key: '@_exported' },
+			{ name: 'Deployment', key: '@_deployDate' },
+			{ name: 'Delete', custom: true },
+			{ name: 'Reload', custom: true },
+			{ name: 'Export', custom: true },
+			{ name: 'Test', custom: true }
+		]}
+		data={Projects.projects}
+		class="rounded"
+	>
+		{#snippet children({ row, def })}
+			{#if def?.name == 'Delete'}
+				<button onclick={() => openDeleteProjectModal(row['@_name'])} class="delete-button">
+					<Ico icon="mingcute:delete-line" />
+				</button>
+			{:else if def?.name == 'Reload'}
+				<button onclick={() => openReloadProjectModal(row['@_name'])} class="green-button">
+					<Ico icon="simple-line-icons:reload" />
+				</button>
+			{:else if def?.name == 'Export'}
+				<button onclick={() => openExportProjectModal(row['@_name'])} class="basic-button">
+					<Ico icon="bytesize:export" />
+				</button>
+			{:else if def?.name == 'Test'}
+				<button class="yellow-button">
+					<a href="/admin">
+						<Ico icon="file-icons:test-ruby" />
+					</a>
+				</button>
+			{/if}
+		{/snippet}
+	</TableAutoCard>
 </Card>

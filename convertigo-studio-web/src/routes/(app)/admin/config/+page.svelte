@@ -1,6 +1,6 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { browser } from '$app/environment';
@@ -10,10 +10,11 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import ModalWarning from '$lib/admin/modals/ModalWarning.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 
 	let selectedIndex = $state(0);
 	let selectedIndexLast = $state(-1);
+	let advanced = $state([]);
 	let category = $derived(Configuration.categories[selectedIndex] ?? {});
 
 	RightPart.snippet = rightPart;
@@ -23,66 +24,48 @@
 
 	$effect(() => {
 		if (browser) {
-			const name = window.location.hash.substring(1);
-			selectedIndex = Math.max(
-				0,
-				Configuration.categories.findIndex(
-					(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == name
-				)
-			);
-		}
-	});
-
-	$effect(() => {
-		if (browser) {
-			if (category?.['@_name']) {
-				window.location.hash = category['@_name'];
+			if (selectedIndex != selectedIndexLast) {
+				if (category?.['@_name']) {
+					tick().then(() => {
+						location.hash = category['@_name'];
+					});
+				}
+			} else {
+				const name = location.hash.substring(1);
+				selectedIndex = Math.max(
+					0,
+					Configuration.categories.findIndex(
+						(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == name
+					)
+				);
 			}
 		}
 	});
 
-	function saveChanges() {
+	async function saveChanges() {
 		const toSave = Configuration.categories[selectedIndex]?.property
 			?.filter((/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue'])
 			.map((/** @type {{ [x: string]: any; }} */ p) => ({
 				'@_key': p['@_name'],
 				'@_value': p['@_value']
 			}));
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalWarning',
-		// 	meta: { mode: 'Confirm' },
-		// 	title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`,
-		// 	response: /** @param {boolean} confirmed */ async (confirmed) => {
-		// 		if (confirmed) {
-		// 			updateConfigurations(toSave);
-		// 		}
-		// 	}
-		// });
+		const confirmed = await modalSave.open({
+			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
+		});
+		if (confirmed) {
+			Configuration.updateConfigurations(toSave);
+		}
 	}
 
 	async function changeCategory() {
 		if (hasChanges) {
-			console.log('change');
-			// const confirm = await new Promise((resolve) => {
-			// modalStore.trigger({
-			// 	type: 'component',
-			// 	component: 'modalWarning',
-			// 	meta: { mode: 'Confirm' },
-			// 	title: 'You have unsaved changes',
-			// 	body: ' Are you sure you want to continue ?',
-			// 	response: (confirmed) => {
-			// 		if (confirmed) {
-			// 			resolve(confirmed);
-			// 		}
-			// 	}
-			// });
-			// });
-			// if (confirm) {
-			// 	Configuration.refresh();
-			// 	selectedIndex = event.target?.value;
-			// }
+			if (await modalUnsaved.open()) {
+				Configuration.refresh();
+			} else {
+				return false;
+			}
 		}
+		return true;
 	}
 
 	let hasChanges = $derived(
@@ -91,7 +74,8 @@
 		)
 	);
 
-	let open = $state(true);
+	let modalSave;
+	let modalUnsaved;
 </script>
 
 {#snippet rightPart()}
@@ -102,10 +86,11 @@
 			<a
 				href="#{category['@_name']}"
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded"
-				onclick={() => {
-					changeCategory();
-					selectedIndexLast = selectedIndex;
-					selectedIndex = i;
+				onclick={async () => {
+					if (await changeCategory()) {
+						selectedIndexLast = selectedIndex;
+						selectedIndex = i;
+					}
 				}}
 			>
 				{#if i == selectedIndex}
@@ -124,7 +109,14 @@
 		{/each}
 	</nav>
 {/snippet}
-<ModalWarning bind:open title="test" body="test2" mode="" />
+
+<ModalYesNo bind:this={modalSave} />
+<ModalYesNo
+	bind:this={modalUnsaved}
+	title="You have unsaved changes!"
+	message="Are you sure you want to continue?"
+/>
+
 {#key selectedIndex}
 	<div class="layout-y !items-stretch" in:fade>
 		<Card title={category['@_displayName']}>
@@ -142,6 +134,7 @@
 							label: 'Cancel changes',
 							icon: 'material-symbols-light:cancel-outline',
 							cls: 'yellow-button',
+							disabled: !hasChanges,
 							onclick: Configuration.refresh
 						}
 					]}
@@ -159,7 +152,7 @@
 
 		{#if category.property?.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
 			<Card>
-				<Accordion collapsible>
+				<Accordion collapsible bind:value={advanced}>
 					<Accordion.Item value="" panelPadding="py" controlPadding="">
 						{#snippet lead()}<Ico icon="game-icons:level-three-advanced" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}

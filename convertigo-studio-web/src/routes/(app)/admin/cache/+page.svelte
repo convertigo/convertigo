@@ -8,6 +8,7 @@
 	import CacheInput from '$lib/admin/components/CacheInput.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	/** @type {import('svelte/store').Writable<any>}*/
 	let conf = writable({});
@@ -65,12 +66,16 @@
 	<form onsubmit={handlesubmit}>
 		<Card title="Cache Type">
 			{#snippet cornerOption()}
-				<ButtonsContainer>
-					<button class="delete-button" onclick={cacheClear}>
-						<Ico icon="mingcute:delete-line" />
-						<p>Clear entries</p>
-					</button>
-				</ButtonsContainer>
+				<ResponsiveButtons
+					buttons={[
+						{
+							label: 'Clear entries',
+							icon: 'mingcute:delete-line',
+							cls: 'delete-button',
+							onclick: cacheClear
+						}
+					]}
+				/>
 			{/snippet}
 
 			<p class="mt-5 mb-2 font-normal">Choose the desired cache type</p>

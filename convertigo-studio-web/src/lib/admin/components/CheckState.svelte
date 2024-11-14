@@ -10,23 +10,20 @@
 	} = $props();
 
 	let checked = $state(value == values[1]);
+	let last;
 	$effect(() => {
-		value = checked ? values[1] : values[0];
-	});
-	$effect(() => {
-		checked = value == values[1];
+		if (checked != last) {
+			value = checked ? values[1] : values[0];
+			last = checked;
+		} else {
+			checked = value == values[1];
+		}
 	});
 </script>
 
-<Switch
-	{classes}
-	controlClasses="min-w-10"
-	{name}
-	value={Array.isArray(value) ? value[1] : value}
-	bind:checked
->
+<Switch {classes} {name} {value} controlClasses="min-w-10" bind:checked>
 	<span class="block cursor-pointer break-words">{@render children?.()}</span>
 	{#if !checked && Array.isArray(values)}
-		<input type="hidden" {name} value={value[0]} />
+		<input type="hidden" {name} value={values[0]} />
 	{/if}
 </Switch>

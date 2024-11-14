@@ -21,6 +21,7 @@
 	$effect(() => {
 		activeIndexLast = activeIndex;
 	});
+	$inspect({ pathname: $page.url.pathname, id: $page.route.id, isRoot });
 </script>
 
 <nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">

@@ -14,6 +14,7 @@
 	} from '$lib/admin/stores/certificatesStore';
 	import { projectsStore, projectsCheck } from '$lib/admin/stores/projectsStore';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	const custom = true;
 
@@ -78,16 +79,23 @@
 
 <Card title="Certificates">
 	{#snippet cornerOption()}
-		<ButtonsContainer>
-			<button class="basic-button" onclick={() => openModalCertificates('Install')}>
-				<Ico icon="fluent-mdl2:certificate" />
-				<p>Install a new certificate</p>
-			</button>
-			<button class="delete-button" onclick={() => openModalCertificates('Remove')}>
-				<Ico icon="mingcute:delete-line" />
-				<p>Remove a certificate</p>
-			</button>
-		</ButtonsContainer>
+		<ResponsiveButtons
+			class="max-w-lg"
+			buttons={[
+				{
+					label: 'Install a new certificate',
+					icon: 'fluent-mdl2:certificate',
+					cls: 'basic-button',
+					onclick: () => openModalCertificates('Install')
+				},
+				{
+					label: 'Remove a certificate',
+					icon: 'mingcute:delete-line',
+					cls: 'delete-button',
+					onclick: () => openModalCertificates('Remove')
+				}
+			]}
+		/>
 	{/snippet}
 	<div class="flex w-[20%]">
 		<Accordion classes="dark:bg-sky-600 rounded w-[40%] dark:bg-opacity-30 mb-5">

@@ -1,7 +1,7 @@
 <script>
 	import { Modal, Switch } from '@skeletonlabs/skeleton-svelte';
 	import MyComp from './MyComp.svelte';
-	import DynamicModal from './DynamicModal.svelte';
+	import DynamicModal from '../../lib/common/components/ModalDynamic.svelte';
 
 	let form;
 	$effect(() => {
