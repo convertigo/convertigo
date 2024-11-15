@@ -1,11 +1,7 @@
 <script>
-	import { run } from 'svelte/legacy';
-
 	import Card from '$lib/admin/components/Card.svelte';
-	import { Popover, Slider, Switch, Tabs } from '@skeletonlabs/skeleton-svelte';
+	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-	import { refreshConfigurations, configurations } from '$lib/admin/stores/configurationStore';
 	import {
 		logsList,
 		formatDate,
@@ -18,14 +14,13 @@
 	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import { checkArray } from '$lib/utils/service';
 	import { slide } from 'svelte/transition';
 	import { DatePicker } from '@svelte-plugins/datepicker';
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import Configuration from '$lib/admin/Configuration.svelte';
 
 	onMount(() => {
-		refreshConfigurations();
 		logsList();
 	});
 
@@ -33,18 +28,9 @@
 	let rangeVal = $state([15]);
 	let max = 25;
 
-	let logsCategory = $state(null);
+	let logsCategory = $derived(Configuration.categories.find((c) => c['@_name'] == 'Logs'));
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
-
-	// Subscribe to config and extract Logs category .. maybe easier than reuse Prprty comp
-	// from configration page
-	$effect(() => {
-		const config = $configurations;
-		if (config?.admin?.category) {
-			logsCategory = config.admin.category.find((cat) => cat['@_name'] === 'Logs');
-		}
-	});
 
 	const tabs = [
 		{ name: 'Viewer', icon: 'grommet-icons:add' },
@@ -124,7 +110,7 @@
 </script>
 
 <div class="layout-y !items-stretch">
-	<Card title="Logs">
+	<Card title="Logs" class="!gap-low">
 		{#snippet cornerOption()}
 			{#if tabs[tabSet].name == 'Purge'}
 				<ResponsiveButtons
@@ -150,7 +136,7 @@
 							label: 'Cancel changes',
 							icon: 'material-symbols-light:cancel-outline',
 							cls: 'yellow-button',
-							onclick: refreshConfigurations
+							onclick: Configuration.refresh
 						}
 					]}
 				/>
@@ -159,45 +145,46 @@
 		<Tabs bind:value={tabSet}>
 			{#snippet list()}
 				{#each tabs as { name, icon }, i}
-					<Tabs.Control value={'' + i}>
-						<!-- active="dark:bg-surface-500 bg-surface-50" -->
+					<Tabs.Control
+						value={'' + i}
+						stateLabelActive="dark:bg-surface-500 bg-surface-50"
+						padding=""
+					>
 						<!-- onchange={tabChanged} -->
-						<div class="flex items-center gap-2">
-							<p>{name}</p>
-							<Ico {icon} />
-						</div>
+						{#snippet lead()}{name}{/snippet}
+						<Ico {icon} />
 					</Tabs.Control>
 				{/each}
 			{/snippet}
 			{#snippet content()}
-				{#if tabs[tabSet].name == 'Viewer'}
-					<div class="flex flex-col gap-2">
-						<div class="flex flex-col gap-2" transition:slide={{ axis: 'y' }}>
-							<DatePicker
-								bind:isOpen
-								alwaysShow={false}
-								isRange={true}
-								isMultipane={true}
-								bind:startDate={datesEdited[0]}
-								bind:endDate={datesEdited[1]}
-								showYearControls={true}
-								startOfWeek={1}
-								{onDayClick}
-							>
-								<div class="flex flex-row flex-wrap gap-4">
-									{#each ['From', 'To'] as way, i}
-										<div class="flex flex-col items-center gap-4">
-											<div class="flex flex-row flex-wrap items-center gap-2">
-												<Popover>
-													{#snippet trigger()}{way}&nbsp;<Ico
+				{#if ['Viewer', 'Real Time'].includes(tabs[tabSet].name)}
+					<div class="layout-y-low !items-start" transition:slide={{ axis: 'y' }}>
+						{#if tabs[tabSet].name == 'Viewer'}
+							<div class="w-full" transition:slide={{ axis: 'y' }}>
+								<DatePicker
+									bind:isOpen
+									alwaysShow={false}
+									isRange={true}
+									isMultipane={true}
+									bind:startDate={datesEdited[0]}
+									bind:endDate={datesEdited[1]}
+									showYearControls={true}
+									startOfWeek={1}
+									{onDayClick}
+								>
+									<div class="layout-x flex-wrap !items-stretch">
+										{#each ['From', 'To'] as way, i}
+											<div class="layout-x-low flex-wrap">
+												<Popover triggerBase="basic-button" arrow arrowBackground="">
+													{#snippet trigger()}{way}<Ico
 															icon="mdi:clock-star-four-points-outline"
 														/>{/snippet}
 													{#snippet content()}
-														<div class="card p-4 bg-surface-500 z-50">
-															<div class="flex flex-col gap-2 overflow-y-auto">
+														<Card bg="bg-surface-50-950" class="!p-low">
+															<div class="layout-y-low !items-stretch">
 																{#each presets[i] as { name, fn }}
 																	<button
-																		class="btn preset-ghost-primary"
+																		class="basic-button"
 																		onclick={() => {
 																			dates[i] = fn();
 																			times[i] = formatTime(dates[i]);
@@ -206,9 +193,8 @@
 																		{name}
 																	</button>
 																{/each}
-																<div class="arrow preset-filled-surface"></div>
 															</div>
-														</div>
+														</Card>
 													{/snippet}
 												</Popover>
 												<input
@@ -223,64 +209,36 @@
 												/>
 												<TimePicker bind:inputValue={times[i]} />
 											</div>
-										</div>
-									{/each}
-									<button class="btn btn-sm preset-filled-surface p-2" onclick={refreshLogs}
-										>Search&nbsp;<Ico icon="mdi:receipt-text-send-outline" /></button
-									>
-								</div>
-							</DatePicker>
-						</div>
+										{/each}
+										<button class="basic-button h-auto grow" onclick={refreshLogs}
+											>Search<Ico icon="mdi:receipt-text-send-outline" /></button
+										>
+									</div>
+								</DatePicker>
+							</div>
+						{/if}
+						<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
 					</div>
 				{:else if tabs[tabSet].name == 'Purge'}
-					<div class="logsCard">
-						<Slider
-							accent="accent-tertiary-500 dark:accent-tertiary-500"
-							name="range-slider"
-							bind:value={rangeVal}
-							max={25}
-							step={1}
-						>
-							<div class="flex justify-between items-center">
-								<div class="font-bold">Delete logs files older than 24/05/2024, 13:03:07</div>
-								<div class="text-xs">{rangeVal} / {max}</div>
-							</div>
-						</Slider>
+					<div class="layout-y !items-stretch" transition:slide={{ axis: 'y' }}>
+						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded">
+							<Slider name="range-slider" bind:value={rangeVal} max={25} step={1} />
+						</div>
+						<div class="flex justify-between items-center">
+							<div class="font-bold">Delete logs files older than 24/05/2024, 13:03:07</div>
+							<div class="text-xs">{rangeVal} / {max}</div>
+						</div>
 					</div>
 				{:else if tabs[tabSet].name == 'Log Levels'}
-					<Card>
-						{#if checkArray(logsCategory?.property)}
-							<ResponsiveContainer
-								scrollable={false}
-								maxHeight="h-auto"
-								smCols="sm:grid-cols-1"
-								mdCols="md:grid-cols-1"
-								lgCols="lg:grid-cols-4"
-							>
-								{#each logsCategory.property as property}
-									{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
-										<PropertyType {property} />
-									{/if}
-								{/each}
-							</ResponsiveContainer>
-						{:else}
-							<p>No logs category found or properties are not available.</p>
-						{/if}
-					</Card>
+					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
+						{#each logsCategory.property as property}
+							{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
+								<PropertyType {property} />
+							{/if}
+						{/each}
+					</div>
 				{/if}
 			{/snippet}
 		</Tabs>
 	</Card>
-
-	{#if tabs[tabSet].name == 'Viewer' || tabs[tabSet].name == 'Real Time'}
-		<Card>
-			<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
-		</Card>
-	{/if}
 </div>
-
-<style lang="postcss">
-	.logsCard {
-		@apply bg-surface-50 dark:bg-surface-700 p-5 rounded;
-	}
-</style>

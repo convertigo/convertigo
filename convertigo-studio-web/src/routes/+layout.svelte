@@ -30,6 +30,7 @@
 	// import ModalInfo from '$lib/dashboard/modals/ModalInfo.svelte';
 	// import ModalQrCode from '$lib/common/modals/ModalQrCode.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import { onMount } from 'svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 

@@ -123,6 +123,7 @@
 		"a11y-no-static-element-interactions": "ignore",
 		"a11y_consider_explicit_label": "ignore",
 		"a11y_missing_attribute": "ignore",
+		"a11y_mouse_events_have_key_events": "ignore",
 		"unused-export-let": "ignore",
 		"css_unused_selector": "ignore"
 	}

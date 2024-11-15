@@ -1,9 +1,9 @@
 <script>
-	/* @type {{
-		items: any[],
-		index: number,
-		grabClass: string,
-		dragging: boolean,
+	/** @type {{
+		items?: any[],
+		index?: number,
+		grabClass?: string,
+		dragging?: boolean,
 		children: import('svelte').Snippet
 	}} */
 	let {
@@ -74,19 +74,7 @@
 	}
 
 	function getTargetIndex(clientX, clientY) {
-		const elements = Array.from(document.querySelectorAll('.movable'));
 		let targetIndex = draggedIndex;
-		/*elements.forEach((element, index) => {
-			const rect = element.getBoundingClientRect();
-			if (
-				clientX >= rect.left &&
-				clientX <= rect.right &&
-				clientY >= rect.top &&
-				clientY <= rect.bottom
-			) {
-				targetIndex = index;
-			}
-		});*/
 		indexesRect.forEach((rect, index) => {
 			if (
 				clientX >= rect.left &&

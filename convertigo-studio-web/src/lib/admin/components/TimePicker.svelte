@@ -316,7 +316,7 @@
 		fill: black;
 	}
 	.input {
-		font-size: 18px;
-		width: auto;
+		/* font-size: 18px; */
+		/* width: auto; */
 	}
 </style>

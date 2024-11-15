@@ -5,16 +5,17 @@
 	 * @type {{
 	 * 	title?: string,
 	 * 	class?: string,
+	 *  bg?: string,
 	 * 	cardStyle?: string,
 	 * 	cardBorder?: string,
 	 * 	cornerOption?: import('svelte').Snippet,
 	 * 	children?: import('svelte').Snippet
 	 * }}
 	 */
-	let { title = '', class: cls = '', cornerOption, children } = $props();
+	let { title = '', class: cls = '', bg = 'bg-surface-100-900', cornerOption, children } = $props();
 </script>
 
-<div class="layout-y-p bg-surface-100-900 border-[0.5px] border-color rounded-container {cls}">
+<div class="layout-y-p {bg} border-[0.5px] border-color rounded-container {cls}">
 	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x flex-wrap w-full">
 			{#if title == null}

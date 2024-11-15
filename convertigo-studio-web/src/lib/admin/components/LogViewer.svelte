@@ -11,12 +11,16 @@
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
-	import { derived } from 'svelte/store';
+	import { fromStore } from 'svelte/store';
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
 	import MaxHeight from './MaxHeight.svelte';
 	import { tick } from 'svelte';
-	import { debounce } from '$lib/utils/service';
+	import { checkArray, debounce } from '$lib/utils/service';
+	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
+	import Card from './Card.svelte';
+	import { browser } from '$app/environment';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 
 	const duration = 400;
 
@@ -39,7 +43,8 @@
 		{ name: 'clienthostname', show: true, width: 100 }
 	];
 
-	const columnsOrder = persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false });
+	let columnsOrder = $state(_columnsOrder);
+	//let columnsOrder = fromStore(persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false }));
 
 	const columnsConfiguration = {
 		Date: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[0] },
@@ -49,7 +54,7 @@
 			fn: (v, i) => {
 				const diff =
 					// @ts-ignore
-					i > 0 ? new Date(v.replace(',', '.')) - new Date($logs[i - 1][1].replace(',', '.')) : 0;
+					i > 0 ? new Date(v.replace(',', '.')) - new Date(logs[i - 1][1].replace(',', '.')) : 0;
 				return diff < 1000
 					? diff + 'ms'
 					: diff < 3600
@@ -84,9 +89,9 @@
 	}
 
 	function doAutoScroll() {
-		if (autoScroll && $logs.length > 1) {
+		if (autoScroll && logs.length > 1) {
 			founds = [];
-			scrollToIndex = $logs.length - 1;
+			scrollToIndex = logs.length - 1;
 		}
 	}
 
@@ -98,14 +103,13 @@
 			recenter();
 		}
 
-		if (event.detail.end >= $logs.length - 1) {
+		if (event.detail.end >= logs.length - 1) {
 			await logsList();
 		}
 	}
 
 	function itemSize(index) {
-		let height =
-			26 + extraLines * 16 + Math.max(16, $logs[index][4].trim().split('\n').length * 16);
+		let height = 26 + extraLines * 16 + Math.max(16, logs[index][4].trim().split('\n').length * 16);
 		return height;
 	}
 
@@ -135,7 +139,7 @@
 	const filters = persisted('adminLogsFilters', {}, { syncTabs: false });
 	const showFilters = persisted('adminLogsShowFilters', false, { syncTabs: false });
 
-	export const filtersFlat = derived(filters, ($filters) => {
+	const filtersFlat = $derived.by(() => {
 		const result = [];
 		Object.entries($filters).forEach(([category, array]) => {
 			array.forEach((filter, index) => {
@@ -150,11 +154,8 @@
 	});
 
 	function addFilter(category, value = '', mode, ts = new Date().getTime(), not = false) {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalLogs',
-		// 	meta: { filters, category, value, mode, ts, not }
-		// });
+		modalFilterParams = { category, value, mode, ts, not };
+		modalFilter.open();
 	}
 
 	function removeFilter(category, index) {
@@ -167,10 +168,10 @@
 		});
 	}
 
-	const logs = derived(allLogs, ($logs) => {
+	const logs = $derived.by(() => {
 		return Object.entries($filters).length == 0
-			? $logs
-			: $logs.filter((log, index) => {
+			? $allLogs
+			: $allLogs.filter((log, index) => {
 					return Object.entries($filters).every(([name, array]) => {
 						return array.length == 0
 							? true
@@ -187,21 +188,20 @@
 		$allLogs = $allLogs;
 	});
 
-	let columns = $state([]);
-	// let columns = $derived(
-	// 	$columnsOrder
-	// 		.filter((c) => c.show)
-	// 		.map((c) => ({
-	// 			name: c.name,
+	let columns = $derived(
+		columnsOrder
+			.filter((c) => c.show)
+			.map((c) => ({
+				name: c.name,
 
-	// 			cls: columnsConfiguration[c.name]?.cls ?? '',
-	// 			style: `width: ${c.width}px; min-width: ${c.width}px;`
-	// 		}))
-	// );
+				cls: columnsConfiguration[c.name]?.cls ?? '',
+				style: `width: ${c.width}px; min-width: ${c.width}px;`
+			}))
+	);
 
 	let scrollToIndex = $state();
 	$effect(() => {
-		if (scrollToIndex >= $logs.length) {
+		if (scrollToIndex >= logs.length) {
 			scrollToIndex = undefined;
 		}
 	});
@@ -221,7 +221,7 @@
 			const centerLine = getCenterLine();
 			const s = searched.toLowerCase();
 			let nearest = -1;
-			founds = $logs.reduce((acc, log, index) => {
+			founds = logs.reduce((acc, log, index) => {
 				const l = log[4].toLowerCase();
 				let start = l.indexOf(s, 0);
 				if (start != -1) {
@@ -297,6 +297,31 @@
 			recenter = undefined;
 		}, 333);
 	}
+
+	let modalFilter;
+	/** @type {any} */
+	let modalFilterParams = $state({});
+	let modalFilterSubmit = (e) => {
+		e.preventDefault();
+		const { mode, category, value, not, ts } = modalFilterParams;
+		filters.update((f) => {
+			let array = checkArray(f[category]);
+			const val = {
+				mode: e.submitter.value,
+				value,
+				not,
+				ts
+			};
+			if (mode) {
+				array[array.findIndex((o) => o.ts == ts)] = val;
+			} else {
+				array.push(val);
+			}
+			f[category] = array;
+			return f;
+		});
+		modalFilter.close();
+	};
 </script>
 
 <svelte:window
@@ -318,34 +343,68 @@
 		}
 	}}
 />
-
+<ModalDynamic bind:this={modalFilter}>
+	{@const { mode, category, value, not } = modalFilterParams}
+	<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
+		<form onsubmit={modalFilterSubmit} class="flex flex-col gap-2">
+			{#if category == 'Message'}
+				<textarea
+					class="textarea overflow-auto"
+					bind:value={modalFilterParams.value}
+					wrap={null}
+					rows={Math.min(10, value.split('\n').length)}
+				></textarea>
+			{:else}
+				<input class="input" bind:value={modalFilterParams.value} />
+			{/if}
+			<Switch
+				name="negate"
+				bind:checked={modalFilterParams.not}
+				controlActive="bg-error-400 dark:bg-error-700">{not ? 'not' : 'is'}</Switch
+			>
+			<div class="flex flex-wrap gap-2">
+				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
+					<button
+						type="submit"
+						class="btn"
+						class:preset-filled-primary-500={mode != _mode}
+						class:preset-filled-success-500={mode == _mode}
+						value={_mode}
+					>
+						{_mode}
+					</button>
+				{/each}
+			</div>
+		</form>
+	</Card>
+</ModalDynamic>
 <div class="text-xs" class:fullscreen>
-	<div class="flex flex-col">
+	<div class="layout-y-low !items-stretch">
 		{#if $showFilters}
-			<div class="row-wrap mb-2" transition:slide={{ axis: 'y' }}>
-				{#each $columnsOrder as conf, index (conf.name)}
+			<div class="row-wrap" transition:slide={{ axis: 'y' }}>
+				{#each columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
 					<div animate:flip={{ duration }}>
-						<MovableContent bind:items={$columnsOrder} {index} grabClass="cursor-grab">
+						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
 							<div
 								class="mini-card"
-								class:preset-filled-success={show}
-								class:preset-filled-warning={!show}
+								class:preset-filled-success-500={show}
+								class:preset-filled-warning-500={!show}
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
-								<span class="cursor-pointer" onclick={() => (conf.show = !show)}
-									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></span
+								<button onclick={() => (conf.show = !show)}
+									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></button
 								>
-								<!-- <DraggableValue
+								<DraggableValue
 									class="cursor-col-resize"
 									bind:delta={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
-								> -->
-								<span class="cursor-cell" onclick={() => addFilter(conf.name)}
-									><Ico icon="mdi:filter" /></span
 								>
-								<span class="cursor-grab"><Ico icon="mdi:dots-vertical" /></span>
+								<button class="cursor-cell" onclick={() => addFilter(conf.name)}
+									><Ico icon="mdi:filter" /></button
+								>
+								<button class="cursor-grab"><Ico icon="mdi:dots-vertical" /></button>
 							</div>
 						</MovableContent>
 					</div>
@@ -353,52 +412,57 @@
 			</div>
 		{/if}
 		<div class="row-wrap">
-			<div class="mini-card preset-filled-surface">
-				<span class="cursor-pointer" onmousedown={() => (fullscreen = !fullscreen)}
-					><Ico icon="mdi:fullscreen{fullscreen ? '-exit' : ''}" /></span
+			<div class="mini-card preset-filled-primary-500">
+				<button onmousedown={() => (fullscreen = !fullscreen)}
+					><Ico icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}" /></button
 				>
 			</div>
-			<div class="mini-card preset-filled-surface">
-				<span class="cursor-pointer" onmousedown={() => ($showFilters = !$showFilters)}
-					><Ico icon="mdi:filter-cog{$showFilters ? '' : '-outline'}" /></span
+			<div class="mini-card preset-filled-primary-500">
+				<button onmousedown={() => ($showFilters = !$showFilters)}
+					><Ico icon="mdi:filter-cog{!browser && $showFilters ? '' : '-outline'}" /></button
 				>
 			</div>
-			<div class="mini-card preset-filled-surface">
-				<span bind:this={searchBox} class="cursor-pointer"><Ico icon="mdi:search" /></span>
-				<div class="z-50" data-popup="searchBox">
-					<div
-						class="card p-2 bg-stone-200 dark:bg-stone-900 text-black dark:text-white flex flex-row gap-2"
-					>
-						<input
-							type="text"
-							class="rounded-md border-none bg-transparent"
-							bind:this={searchInput}
-							bind:value={searched}
-							onkeyup={doSearch}
-						/>
-						<input
-							type="text"
-							class="rounded-md border-none bg-transparent"
-							style="field-sizing: content;"
-							readonly={true}
-							value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
-						/>
-						<button class="btn-search" onclick={doSearchPrev}>↑</button>
-						<button class="btn-search" onclick={doSearchNext}>↓</button>
-						<button class="btn-search close-popup">X</button>
-					</div>
-					<div class="arrow bg-stone-200 dark:bg-stone-900"></div>
-				</div>
+			<div class="mini-card preset-filled-primary-500">
+				<Popover
+					arrow
+					arrowBackground="bg-surface-50-950"
+					triggerBase="block"
+					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
+				>
+					{#snippet trigger()}<Ico icon="mdi:search" />{/snippet}
+					{#snippet content()}
+						<Card bg="bg-surface-50-950 text-black dark:text-white" class="!p-low">
+							<div class="layout-x-low !items-stretch">
+								<input
+									type="text"
+									class="rounded-md border-none bg-transparent"
+									bind:this={searchInput}
+									bind:value={searched}
+									onkeyup={doSearch}
+								/>
+								<input
+									type="text"
+									class="rounded-md border-none bg-transparent"
+									style="field-sizing: content;"
+									readonly={true}
+									value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
+								/>
+								<button class="basic-button" onclick={doSearchPrev}>↑</button>
+								<button class="basic-button" onclick={doSearchNext}>↓</button>
+							</div>
+						</Card>
+					{/snippet}
+				</Popover>
 			</div>
-			<div class="mini-card preset-filled-tertiary">
+			<div class="mini-card preset-filled-tertiary-500">
 				<span>Message</span>
-				<span
+				<button
 					class="cursor-cell"
 					onmousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
-					><Ico icon="mdi:filter" /></span
+					><Ico icon="mdi:filter" /></button
 				>
 			</div>
-			{#each $filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
+			{#each filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
 				<div
 					class="flex flex-row"
 					animate:flip={{ duration }}
@@ -414,35 +478,38 @@
 						<span class="overflow-hidden max-w-xs"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
-						<span class="cursor-pointer" onclick={() => addFilter(category, value, mode, ts, not)}>
+						<button
+							class="cursor-pointer"
+							onclick={() => addFilter(category, value, mode, ts, not)}
+						>
 							<Ico icon="mdi:edit-outline" />
-						</span>
-						<span class="cursor-pointer" onclick={() => removeFilter(category, index)}>
+						</button>
+						<button class="cursor-pointer" onclick={() => removeFilter(category, index)}>
 							<Ico icon="mingcute:delete-line" />
-						</span>
+						</button>
 					</div>
 				</div>
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] mt-1 p-1 card preset-ghost-primary">
-				<span
-					class="cursor-pointer"
+			<div class="absolute left-[-25px] layout-y-low p-1 card bg-primary-500">
+				<button
+					class="block"
 					onclick={() => {
 						addExtraLines(1);
-					}}><Ico icon="grommet-icons:add" /></span
+					}}><Ico icon="grommet-icons:add" /></button
 				>
 				{#if extraLines > 1}
-					<span
-						class="cursor-pointer"
+					<button
+						class="block"
 						onclick={() => {
 							addExtraLines(-1);
-						}}><Ico icon="grommet-icons:form-subtract" /></span
+						}}><Ico icon="grommet-icons:form-subtract" /></button
 					>
 				{/if}
 			</div>
 			<div
-				class="flex flex-wrap overflow-y-hidden bg-surface-backdrop"
+				class="flex flex-wrap overflow-y-hidden bg-surface-200-800 rounded rounded-b-none"
 				style="height: {2 + extraLines * 20}px"
 			>
 				{#each columns as { name, cls, style } (name)}
@@ -451,9 +518,9 @@
 						class="p-1 {cls} text-nowrap overflow-hidden max-h-[20px]"
 						animate:grabFlip={{ duration }}
 					>
-						<div class="font-semibold cursor-help" onclick={doPulse} onmouseover={doPulse}>
+						<button class="font-semibold cursor-help" onclick={doPulse} onmouseover={doPulse}>
 							{name}
-						</div>
+						</button>
 					</div>
 				{/each}
 			</div>
@@ -463,7 +530,7 @@
 		<VirtualList
 			{height}
 			width="auto"
-			itemCount={$logs.length}
+			itemCount={logs.length}
 			estimatedItemSize={100}
 			{scrollToIndex}
 			{itemSize}
@@ -473,24 +540,24 @@
 			bind:this={virtualList}
 		>
 			<div slot="item" let:index let:style {style}>
-				{@const log = $logs[index]}
+				{@const log = logs[index]}
 				<div class="{log[2]} rounded">
 					<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
 						{#each columns as { name, cls, style } (name)}
 							{@const value = getValue(name, log, index)}
-							<div
+							<button
 								{style}
 								class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
 								animate:grabFlip={{ duration }}
 								onclick={() => addFilter(name, value)}
 							>
 								{value}
-							</div>
+							</button>
 						{/each}
 					</div>
 					<div
-						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined"
-						style="scrollbar-width: thin;"
+						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined border-b-none"
+						style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
 					>
 						{#if founds.length > 0}
 							{@const _founds = founds.filter((f) => f.index == index)}
@@ -516,13 +583,15 @@
 			</div>
 		</VirtualList>
 	</MaxHeight>
-	<div class="flex gap-4 rounded bg-surface-500 justify-between items-center px-4">
+	<div
+		class="flex gap-4 rounded rounded-t-none bg-surface-200-800 justify-between items-center px-4"
+	>
 		<span class="h-fit"
-			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {$logs.length}
+			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
 			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}
 			{#if $calling}Calling ...{/if}</span
 		>
-		<div
+		<button
 			class="mini-card preset-filled"
 			class:preset-filled-success={!autoScroll}
 			class:preset-filled-warning={autoScroll}
@@ -533,21 +602,29 @@
 		>
 			{autoScroll ? 'Disable' : 'Enable'} auto scroll
 			<Ico icon="mdi:download-{autoScroll ? 'off' : 'lock'}-outline" />
-		</div>
+		</button>
 	</div>
 </div>
 
 <style lang="postcss">
+	:global([data-part='arrow-tip']:is(.dark *)) {
+		--arrow-background: rgb(var(--color-surface-950));
+	}
+
+	:global([data-part='arrow-tip']) {
+		--arrow-background: rgb(var(--color-surface-50));
+	}
+
 	.fullscreen {
 		position: fixed;
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		@apply z-50 bg-surface-50-950 dark:bg-surface-950-50 min-w-full;
+		@apply z-50 bg-surface-950-50 min-w-full;
 	}
 
 	.row-wrap {
-		@apply flex flex-wrap rounded preset-outlined;
+		@apply flex flex-wrap rounded bg-surface-800-200;
 	}
 
 	.mini-card {
@@ -571,32 +648,32 @@
 	}
 
 	.FATAL {
-		@apply bg-surface-500;
-		box-shadow: 2px 2px 5px 0px #404040;
+		@apply bg-surface-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-surface-500) / 0.6);
 	}
 
 	.ERROR {
-		@apply bg-error-500;
-		box-shadow: 2px 2px 5px 0px #ff3b30;
+		@apply bg-error-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-error-500) / 0.6);
 	}
 
 	.WARN {
-		@apply bg-warning-500;
-		box-shadow: 2px 2px 5px 0px #ff9500;
+		@apply bg-warning-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-warning-500) / 0.6);
 	}
 
 	.INFO {
-		@apply bg-secondary-500;
-		box-shadow: 2px 2px 5px 0px #71c287;
+		@apply bg-secondary-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-secondary-500) / 0.6);
 	}
 
 	.DEBUG {
-		@apply bg-primary-500;
-		box-shadow: 2px 2px 5px 0px #4285f4;
+		@apply bg-primary-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-primary-500) / 0.6);
 	}
 
 	.TRACE {
-		@apply bg-tertiary-500;
-		box-shadow: 2px 2px 5px 0px #fbbc05;
+		@apply bg-tertiary-800-200;
+		box-shadow: 2px 2px 5px 0px rgb(var(--color-tertiary-500) / 0.6);
 	}
 </style>

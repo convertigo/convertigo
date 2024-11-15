@@ -11,7 +11,6 @@
 			.fill('../')
 			.join('')
 	);
-	//$inspect({ isRoot, relativePath });
 	let activeIndex = $derived(
 		parts[0].findIndex((part) =>
 			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}/`)
@@ -21,7 +20,6 @@
 	$effect(() => {
 		activeIndexLast = activeIndex;
 	});
-	$inspect({ pathname: $page.url.pathname, id: $page.route.id, isRoot });
 </script>
 
 <nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
