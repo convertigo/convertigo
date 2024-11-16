@@ -2,16 +2,8 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import {
-		logsList,
-		formatDate,
-		formatTime,
-		startDate,
-		endDate,
-		realtime
-	} from '$lib/admin/stores/logsStore';
-	import { onMount } from 'svelte';
-	import ResponsiveContainer from '$lib/admin/components/ResponsiveContainer.svelte';
+	import Logs from '$lib/common/Logs.svelte';
+	import { onMount, untrack } from 'svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { slide } from 'svelte/transition';
@@ -21,7 +13,7 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 
 	onMount(() => {
-		logsList();
+		Logs.list();
 	});
 
 	let tabSet = $state('0');
@@ -45,11 +37,11 @@
 		new Date().setHours(0, 0, 0, 0) + 86400000
 	]);
 	let dates = $state([...datesEdited]);
-	let times = $state(datesEdited.map((d) => formatTime(d)));
+	let times = $state(datesEdited.map((d) => Logs.formatTime(d)));
 	let isOpen = $state(false);
 
-	$startDate = formatDate(dates[0]) + ' ' + times[0];
-	$endDate = formatDate(dates[1]) + ' ' + times[1];
+	Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
+	Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
 
 	function onDayClick(e) {
 		if (e.startDate) {
@@ -61,10 +53,10 @@
 	}
 
 	async function refreshLogs() {
-		$startDate = formatDate(dates[0]) + ' ' + times[0];
-		$endDate = formatDate(dates[1]) + ' ' + times[1];
-		$realtime = tabs[tabSet].name == 'Real Time';
-		await logsList(true);
+		Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
+		Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
+		Logs.realtime = tabs[tabSet].name == 'Real Time';
+		await Logs.list(true);
 	}
 
 	const presets = [
@@ -98,15 +90,11 @@
 		]
 	];
 
-	function tabChanged() {
-		if (tabs[tabSet].name == 'Real Time') {
-			$realtime = true;
-			refreshLogs();
-		} else if (tabs[tabSet].name == 'Viewer' && $realtime) {
-			$realtime = false;
-			refreshLogs();
+	$effect(() => {
+		if (['Viewer', 'Real Time'].includes(tabs[tabSet].name)) {
+			untrack(refreshLogs);
 		}
-	}
+	});
 </script>
 
 <div class="layout-y !items-stretch">
@@ -142,7 +130,7 @@
 				/>
 			{/if}
 		{/snippet}
-		<Tabs bind:value={tabSet}>
+		<Tabs bind:value={tabSet} listClasses="flex-wrap">
 			{#snippet list()}
 				{#each tabs as { name, icon }, i}
 					<Tabs.Control
@@ -187,7 +175,7 @@
 																		class="basic-button"
 																		onclick={() => {
 																			dates[i] = fn();
-																			times[i] = formatTime(dates[i]);
+																			times[i] = Logs.formatTime(dates[i]);
 																		}}
 																	>
 																		{name}
@@ -200,7 +188,7 @@
 												<input
 													type="text"
 													class="input max-w-fit h-full"
-													value={formatDate(dates[i])}
+													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
 														isOpen = true;
@@ -231,7 +219,7 @@
 					</div>
 				{:else if tabs[tabSet].name == 'Log Levels'}
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
-						{#each logsCategory.property as property}
+						{#each logsCategory?.property as property}
 							{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
 								<PropertyType {property} />
 							{/if}

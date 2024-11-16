@@ -1,13 +1,7 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
-	import {
-		logs as allLogs,
-		logsList,
-		realtime,
-		moreResults,
-		calling
-	} from '$lib/admin/stores/logsStore';
+	import Logs from '$lib/common/Logs.svelte';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -104,7 +98,7 @@
 		}
 
 		if (event.detail.end >= logs.length - 1) {
-			await logsList();
+			await Logs.list();
 		}
 	}
 
@@ -170,8 +164,8 @@
 
 	const logs = $derived.by(() => {
 		return Object.entries($filters).length == 0
-			? $allLogs
-			: $allLogs.filter((log, index) => {
+			? Logs.logs
+			: Logs.logs.filter((log, index) => {
 					return Object.entries($filters).every(([name, array]) => {
 						return array.length == 0
 							? true
@@ -184,9 +178,9 @@
 				});
 	});
 
-	filters.subscribe((f) => {
-		$allLogs = $allLogs;
-	});
+	// filters.subscribe((f) => {
+	// 	Logs.logs = Logs.logs;
+	// });
 
 	let columns = $derived(
 		columnsOrder
@@ -584,12 +578,12 @@
 		</VirtualList>
 	</MaxHeight>
 	<div
-		class="flex gap-4 rounded rounded-t-none bg-surface-200-800 justify-between items-center px-4"
+		class="layout-x-p-low rounded rounded-t-none bg-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
-			{#if !$realtime}({$moreResults ? 'More' : 'No more'} on server){/if}
-			{#if $calling}Calling ...{/if}</span
+			{#if !Logs.realtime}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
+			{#if Logs.calling}Calling ...{/if}</span
 		>
 		<button
 			class="mini-card preset-filled"

@@ -8,7 +8,7 @@
 		configurations,
 		updateConfigurations
 	} from '$lib/admin/stores/configurationStore';
-	import { logsList } from '../stores/logsStore';
+	import Logs from '$lib/common/Logs.svelte';
 
 	let virtualList = $state();
 	let rowHeights = [];
@@ -21,7 +21,7 @@
 
 	onMount(async () => {
 		await refreshConfigurations();
-		await logsList();
+		await Logs.list();
 	});
 
 	run(() => {
