@@ -7,6 +7,10 @@
 	import { onMount } from 'svelte';
 	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
 	import Time from '$lib/common/Time.svelte';
+	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
+
+	let { showLeft = $bindable(), showDrawer = $bindable() } = $props();
+
 	let project = $state();
 
 	let isBackend = $derived($page.url.pathname.includes('backend'));
@@ -25,9 +29,10 @@
 	});
 </script>
 
-<AppBar background="dark:bg-surface-700 bg-surface-100" padding="p-0">
+<AppBar background="bg-surface-200-800" padding="p-0">
 	{#snippet lead()}
-		<PagesRailToggle />
+		<PagesRailToggle class="show-md" bind:state={showDrawer} />
+		<PagesRailToggle class="hide-md" bind:state={showLeft} />
 		{#if Time.isSameTime}
 			<span class="monitor-time">{Time.browserTime}</span>
 		{:else}
@@ -88,7 +93,7 @@
 		</div>
 	{/if}
 	{#snippet trail()}
-		<!-- <LightSwitch /> -->
+		<LightSwitch />
 	{/snippet}
 </AppBar>
 

@@ -60,13 +60,13 @@
 	}
 
 	function handleMouseDown(event) {
-		event.preventDefault();
+		event.preventDefault?.();
 		isDragging = true;
 		handleMove(event);
 	}
 
 	function handleMouseUp(event) {
-		event.preventDefault();
+		event.preventDefault?.();
 		isDragging = false;
 		const rect = event.target.closest('svg')?.getBoundingClientRect();
 		if (!rect) return;
@@ -82,17 +82,14 @@
 	}
 
 	function handleTouchStart(event) {
-		event.preventDefault();
 		handleMouseDown(event.touches[0]);
 	}
 
 	function handleTouchMove(event) {
-		event.preventDefault();
 		handleMove(event.touches[0]);
 	}
 
 	function handleTouchEnd(event) {
-		event.preventDefault();
 		handleMouseUp(event.changedTouches[0]);
 	}
 
@@ -218,10 +215,10 @@
 	});
 </script>
 
-<div class="relative flex flex-col items-center" bind:this={root}>
+<div class="relative h-full" bind:this={root}>
 	<input
 		type="text"
-		class="input max-w-fit"
+		class="input-common input-text max-w-fit w-[14ch]"
 		maxlength="12"
 		size="11"
 		bind:this={input}
@@ -286,6 +283,7 @@
 		border-radius: 50%;
 		position: relative;
 		overflow: hidden;
+		/* touch-action: none; */
 	}
 	.hand {
 		stroke: white;
@@ -314,9 +312,5 @@
 		text-anchor: middle;
 		alignment-baseline: middle;
 		fill: black;
-	}
-	.input {
-		/* font-size: 18px; */
-		/* width: auto; */
 	}
 </style>

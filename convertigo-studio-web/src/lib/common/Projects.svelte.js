@@ -1,10 +1,10 @@
 import { browser } from '$app/environment';
-import { call } from '$lib/utils/service';
+import { call, checkArray } from '$lib/utils/service';
+import { decode } from 'html-entities';
 
-/** @type {any} */
-let categories = $state(
+let projects = $state(
 	new Array(15).fill({
-		'@_name': '',
+		'@_name': null,
 		'@_displayName': null,
 		property: new Array(10).fill({
 			'@_type': 'Text',
@@ -17,9 +17,14 @@ let categories = $state(
 async function refresh() {
 	calling = true;
 	try {
-		const res = await call('configuration.List');
-		if (res?.admin?.category?.[0]?.property) {
-			categories = res?.admin?.category;
+		let res = await call('projects.List');
+		if (res?.admin?.projects) {
+			const prjs = checkArray(res?.admin?.projects?.project);
+			for (const project of prjs) {
+				project['@_comment'] = decode(project['@_comment']);
+				project.ref = checkArray(project.ref);
+			}
+			projects = prjs;
 			needRefresh = false;
 		}
 	} catch (error) {
@@ -33,15 +38,11 @@ let needRefresh = true;
 let calling = false;
 
 export default {
-	get categories() {
+	get projects() {
 		if (browser && needRefresh && !calling) {
 			refresh();
 		}
-		return categories;
+		return projects;
 	},
-	refresh,
-	updateConfigurations: async (property) => {
-		await call('configuration.Update', { '@_xml': true, configuration: { property } });
-		await refresh();
-	}
+	refresh
 };

@@ -162,7 +162,7 @@
 								>
 									<div class="layout-x flex-wrap !items-stretch">
 										{#each ['From', 'To'] as way, i}
-											<div class="layout-x-low flex-wrap">
+											<div class="layout-x-low flex-wrap !items-baseline">
 												<Popover triggerBase="basic-button" arrow arrowBackground="">
 													{#snippet trigger()}{way}<Ico
 															icon="mdi:clock-star-four-points-outline"
@@ -187,7 +187,7 @@
 												</Popover>
 												<input
 													type="text"
-													class="input max-w-fit h-full"
+													class="input-common input-text max-w-fit w-[12ch]"
 													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;

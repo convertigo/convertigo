@@ -15,7 +15,7 @@
 			// @ts-ignore
 			await Authentication.authenticate(new FormData(e.target));
 			if (Authentication.authenticated) {
-				goto(`${base}${data.redirect ?? '/admin'}`);
+				goto(`${data.redirect ?? '/admin'}`);
 			} else {
 				error = Authentication.error;
 			}

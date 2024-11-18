@@ -40,7 +40,7 @@
 	{#if path == '/(app)/admin'}
 		<TopbarAdmin bind:showLeft bind:showDrawer />
 	{:else}
-		<TopbarDashBoard />
+		<TopbarDashBoard bind:showLeft bind:showDrawer />
 	{/if}
 
 	<div class="layout-y md:layout-x !gap-0 !items-stretch grow">

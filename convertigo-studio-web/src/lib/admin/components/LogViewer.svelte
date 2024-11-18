@@ -5,16 +5,15 @@
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
-	import { fromStore } from 'svelte/store';
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
 	import MaxHeight from './MaxHeight.svelte';
-	import { tick } from 'svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
 	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
 	import Card from './Card.svelte';
 	import { browser } from '$app/environment';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import { onMount } from 'svelte';
 
 	const duration = 400;
 
@@ -103,7 +102,11 @@
 	}
 
 	function itemSize(index) {
-		let height = 26 + extraLines * 16 + Math.max(16, logs[index][4].trim().split('\n').length * 16);
+		let height =
+			9 +
+			scrollbarHeight +
+			extraLines * 16 +
+			Math.max(16, logs[index][4].trim().split('\n').length * 16);
 		return height;
 	}
 
@@ -177,10 +180,6 @@
 					});
 				});
 	});
-
-	// filters.subscribe((f) => {
-	// 	Logs.logs = Logs.logs;
-	// });
 
 	let columns = $derived(
 		columnsOrder
@@ -316,6 +315,25 @@
 		});
 		modalFilter.close();
 	};
+	let scrollbarHeight = $state(0);
+	onMount(() => {
+		const container = document.createElement('div');
+		container.style.visibility = 'hidden';
+		container.style.overflow = 'scroll';
+		container.style.width = '100px';
+		container.style.height = '100px';
+		container.style.position = 'absolute';
+
+		const inner = document.createElement('div');
+		inner.style.width = '100%';
+		inner.style.height = '100%';
+
+		container.appendChild(inner);
+		document.body.appendChild(container);
+
+		scrollbarHeight = Math.max(container.offsetHeight - inner.clientHeight, 4);
+		document.body.removeChild(container);
+	});
 </script>
 
 <svelte:window
@@ -493,7 +511,7 @@
 						addExtraLines(1);
 					}}><Ico icon="grommet-icons:add" /></button
 				>
-				{#if extraLines > 1}
+				{#if extraLines > 0}
 					<button
 						class="block"
 						onclick={() => {

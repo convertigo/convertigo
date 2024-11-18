@@ -1,15 +1,13 @@
 <script>
-	import { projectsCheck, projectsStore } from '$lib/admin/stores/projectsStore';
 	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { replaceState } from '$app/navigation';
-
-	onMount(() => {
-		projectsCheck();
-	});
+	import Projects from '$lib/common/Projects.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 
 	let searchQuery = $state('');
 	let rootProject = $state();
@@ -25,7 +23,7 @@
 
 	function handleHashChange() {
 		const hash = window.location.hash?.substring(1);
-		rootProject = hash ? $projectsStore.find((project) => project['@_name'] == hash) : null;
+		rootProject = hash ? Projects.projects.find((project) => project['@_name'] == hash) : null;
 		if (rootProject == null) {
 			if (window.location.href.endsWith('#')) {
 				replaceState('', '');
@@ -42,13 +40,13 @@
 	});
 
 	let filteredProjects = $derived(
-		$projectsStore.filter((project) => {
+		Projects.projects.filter((project) => {
 			if (rootProject) {
 				return (
 					project['@_name'] == rootProject['@_name'] || rootProject.ref?.includes(project['@_name'])
 				);
 			}
-			let ok = project['@_name'].toLowerCase().includes(searchQuery.toLowerCase());
+			let ok = project['@_name']?.toLowerCase().includes(searchQuery.toLowerCase()) ?? true;
 			if (ok) {
 				for (let { count, filter } of filters) {
 					if ((count == 1 && !filter(project)) || (count == 2 && filter(project))) {
@@ -61,23 +59,24 @@
 	);
 </script>
 
-<CardD class="gap-5">
-	<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-		<div class="input-group-shim"><Ico icon="mdi:magnify" /></div>
+<Card>
+	<div
+		class="w-full input-group divide-surface-50-950 preset-outlined-surface-50-950 divide-x grid-cols-[auto_1fr_auto]"
+	>
+		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 		<input
 			type="search"
 			placeholder="Search projects..."
 			bind:value={searchQuery}
 			disabled={rootProject}
 		/>
-		<span class="flex flex-col">
+		<span class="layout-y-none !gap-[1px]">
 			{#each filters as { icon, count }, i}
-				<span class="flex">
+				<span class="layout-x-none !gap-[1px]">
 					<button
-						class="btn rounded-none"
-						style="padding: 2px"
-						class:preset-ghost-secondary={count != 1}
-						class:preset-filled-secondary={count == 1}
+						class="btn rounded-none preset-filled p-1"
+						class:!bg-secondary-100={count != 1}
+						class:!bg-secondary-500={count == 1}
 						onclick={() => {
 							filters[i].count = count == 1 ? 0 : 1;
 						}}
@@ -85,10 +84,9 @@
 						<Ico {icon} size="nav" />
 					</button>
 					<button
-						class="btn rounded-none"
-						style="padding: 2px"
-						class:preset-ghost-warning={count != 2}
-						class:preset-filled-warning={count == 2}
+						class="btn rounded-none preset-filled p-1"
+						class:!bg-warning-100={count != 2}
+						class:!bg-warning-500={count == 2}
 						onclick={() => {
 							filters[i].count = count == 2 ? 0 : 2;
 						}}
@@ -99,88 +97,89 @@
 			{/each}
 		</span>
 	</div>
-	<div class="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each filteredProjects as project (project['@_name'])}
-			<div class="flex flex-col" animate:flip={{ duration: 500 }} transition:fade>
-				<div
-					class="flex gap-3 justify-between items-center p-2 border-[1px] rounded-t-md dark:border-surface-700 border-surface-200"
-				>
-					<span class="text-md font-semibold truncate">{project['@_name']}</span>
+	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		{#each filteredProjects as project, i (project['@_name'] ?? i)}
+			<div
+				class="layout-y-none !items-stretch border-[1px] border-surface-700-300 rounded"
+				animate:flip={{ duration: 500 }}
+				transition:fade
+			>
+				<div class="p-2">
+					<span class="text-md font-semibold truncate"
+						><AutoPlaceholder loading={project['@_name'] == null}
+							>{project['@_name']}</AutoPlaceholder
+						></span
+					>
 				</div>
-				<div
-					class="border-[1px] border-t-0 rounded-b-md dark:border-surface-700 border-surface-200 dark:opacity-70"
-				>
-					<div class="relative img-hover-zoom img-hover-zoom--quick-zoom flex justify-center">
+				<div class="relative">
+					<div class="img-hover-zoom flex justify-center dark:opacity-70">
 						<img
 							src="https://www.impactplus.com/hubfs/Fensea.jpg"
 							class="object-cover"
 							alt="project"
 						/>
-						<div class="absolute top-0 w-full flex">
-							<div class="grow flex">
+					</div>
+					<div class="absolute top-0 w-full flex">
+						<div class="grow flex">
+							<a
+								href="{project['@_name']}/backend/"
+								class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-br-lg"
+							>
+								<Ico icon="ph:gear-six-thin" size="nav" />
+							</a>
+						</div>
+						{#if project['@_hasFrontend'] == 'true'}
+							<div class="grow flex justify-end">
 								<a
-									href="{project['@_name']}/backend/"
-									class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-br-lg"
+									href="{project['@_name']}/frontend/"
+									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-bl-lg"
 								>
-									<Ico icon="ph:gear-six-thin" size="nav" />
+									<Ico icon="ph:video-thin" size="nav" />
 								</a>
 							</div>
-							{#if project['@_hasFrontend'] == 'true'}
-								<div class="grow flex justify-end">
-									<a
-										href="{project['@_name']}/frontend/"
-										class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-bl-lg"
-									>
-										<Ico icon="ph:video-thin" size="nav" />
-									</a>
-								</div>
-							{/if}
-						</div>
-						<div class="absolute inset-x-0 bottom-0 flex">
-							{#if project.ref?.length > 0}
-								<div class="grow flex">
-									<a
-										href={rootProject != project ? `#${project['@_name']}` : '#'}
-										class="p-3 hover:preset-filled-secondary h-fit rounded-tr-lg"
-										class:preset-ghost-secondary={rootProject != project}
-										class:preset-filled-secondary={rootProject == project}
-									>
-										<Ico icon="ph:plugs-connected-thin" size="nav" />
-									</a>
-								</div>
-							{/if}
-							{#if project['@_hasPlatform'] == 'true'}
-								<div class="grow flex justify-end">
-									<a
-										href="{project['@_name']}/platforms/"
-										class="p-3 preset-ghost-secondary hover:preset-filled-secondary h-fit rounded-tl-lg"
-									>
-										<Ico icon="ph:package-thin" size="nav" />
-									</a>
-								</div>
-							{/if}
-						</div>
+						{/if}
 					</div>
-					<div
-						class="px-2 truncate cursor-help"
-						onclick={(e) => {
-							e?.target?.['classList']?.toggle('truncate');
-						}}
-					>
-						{project['@_comment']}
+					<div class="absolute inset-x-0 bottom-0 flex">
+						{#if project.ref?.length > 0}
+							<div class="grow flex">
+								<a
+									href={rootProject != project ? `#${project['@_name']}` : '#'}
+									class="p-3 hover:bg-secondary-500 h-fit rounded-tr-lg"
+									class:bg-secondary-300={rootProject != project}
+									class:bg-secondary-500={rootProject == project}
+								>
+									<Ico icon="ph:plugs-connected-thin" size="nav" />
+								</a>
+							</div>
+						{/if}
+						{#if project['@_hasPlatform'] == 'true'}
+							<div class="grow flex justify-end">
+								<a
+									href="{project['@_name']}/platforms/"
+									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-tl-lg"
+								>
+									<Ico icon="ph:package-thin" size="nav" />
+								</a>
+							</div>
+						{/if}
 					</div>
 				</div>
+				<button
+					class="px-2 truncate cursor-help text-start"
+					onclick={(e) => {
+						e?.target?.['classList']?.toggle('truncate');
+					}}
+				>
+					<AutoPlaceholder loading={project['@_comment'] == null}
+						>{project['@_comment']}</AutoPlaceholder
+					>
+				</button>
 			</div>
 		{/each}
 	</div>
-</CardD>
+</Card>
 
 <style lang="postcss">
-	.search-bar {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
-		border-bottom: surface-200;
-	}
-
 	.img-hover-zoom {
 		height: 200px;
 		overflow: hidden;
@@ -189,17 +188,12 @@
 			height 0.5s;
 	}
 
-	.img-hover-zoom:hover {
-		margin: 2px;
-		height: 196px;
-	}
-
-	.img-hover-zoom--quick-zoom img {
+	.img-hover-zoom img {
 		transform-origin: 50% 50%;
 		transition: transform 0.5s;
 	}
 
-	.img-hover-zoom--quick-zoom:hover img {
+	.img-hover-zoom:hover img {
 		transform: scale(1.1);
 	}
 </style>

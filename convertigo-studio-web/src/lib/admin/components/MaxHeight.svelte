@@ -21,7 +21,6 @@
 		if (element) {
 			const rect = element.getBoundingClientRect();
 			height = Math.floor(window.innerHeight - rect.top);
-
 			await tick();
 
 			let ancestor;
@@ -35,11 +34,18 @@
 
 				if (ancestor) {
 					const diff = Math.ceil(ancestor.scrollHeight - ancestor.clientHeight);
+					const lastScrollHeight = ancestor.scrollHeight;
 					if (diff <= 0) {
 						break;
 					}
 					height = Math.max(200, height - diff);
 					await tick();
+					const scrollDiff = lastScrollHeight - ancestor.scrollHeight;
+					if (diff > scrollDiff) {
+						height =
+							scrollDiff > 0 ? (height = Math.max(200, lastHeight - scrollDiff)) : lastHeight;
+						await tick();
+					}
 				}
 			} while (ancestor && lastHeight != height);
 			tHeight.set(height);
