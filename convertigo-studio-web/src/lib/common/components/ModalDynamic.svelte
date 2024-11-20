@@ -5,27 +5,16 @@
 	let { class: cls = '', children } = $props();
 	let opened = $state(false);
 	let result = $state();
-	let _params = $state();
+	let params = $state();
 	let resolve;
 	let reject;
 
 	export async function open(p) {
-		_params = p;
+		params = p;
 		opened = true;
 		return await new Promise((ok) => {
 			resolve = ok;
 		});
-	}
-
-	export function params() {
-		return {
-			get params() {
-				return _params;
-			},
-			set params(value) {
-				_params = value;
-			}
-		};
 	}
 
 	$effect(() => {

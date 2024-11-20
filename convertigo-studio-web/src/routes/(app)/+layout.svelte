@@ -44,7 +44,7 @@
 				<PagesRail {path} {parts} />
 			</aside>
 		{/if}
-		{#key $page.url.pathname}
+		{#key $page.route.id}
 			<main class="px py w-full min-h-full grow" in:fade>
 				{@render children?.()}
 			</main>

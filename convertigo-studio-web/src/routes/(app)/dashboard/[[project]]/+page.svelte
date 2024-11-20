@@ -1,15 +1,17 @@
 <script>
-	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
-	import { replaceState } from '$app/navigation';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
+	import { page } from '$app/stores';
 
 	let searchQuery = $state('');
-	let rootProject = $state();
+	let rootProject = $derived(
+		Projects.projects.find((project) => project['@_name'] == $page.params.project)
+	);
+	let prefix = $derived(rootProject ? '../' : '');
 
 	let filters = $state([
 		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
@@ -19,24 +21,6 @@
 			filter: (project) => project['@_name'].startsWith('lib')
 		}
 	]);
-
-	function handleHashChange() {
-		const hash = window.location.hash?.substring(1);
-		rootProject = hash ? Projects.projects.find((project) => project['@_name'] == hash) : null;
-		if (rootProject == null) {
-			if (window.location.href.endsWith('#')) {
-				replaceState('', '');
-			}
-		}
-	}
-
-	onMount(() => {
-		window.addEventListener('hashchange', handleHashChange);
-		handleHashChange();
-		return () => {
-			window.removeEventListener('hashchange', handleHashChange);
-		};
-	});
 
 	let filteredProjects = $derived(
 		Projects.projects.filter((project) => {
@@ -98,6 +82,8 @@
 	</div>
 	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project['@_name'] ?? i)}
+			{@const name = project['@_name']}
+			{@const loading = name == null}
 			<div
 				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"
 				animate:flip={{ duration: 500 }}
@@ -105,14 +91,10 @@
 			>
 				<div class="layout-x-p-low !py-1 !justify-between">
 					<span class="text-md font-semibold truncate"
-						><AutoPlaceholder loading={project['@_name'] == null}
-							>{project['@_name']}</AutoPlaceholder
-						></span
+						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
 					>
 					<span class="text-sm truncate opacity-50"
-						><AutoPlaceholder loading={project['@_name'] == null}
-							>{project['@_version']}</AutoPlaceholder
-						></span
+						><AutoPlaceholder {loading}>{project['@_version']}</AutoPlaceholder></span
 					>
 				</div>
 				<div class="relative">
@@ -126,7 +108,7 @@
 					<div class="absolute top-0 w-full flex">
 						<div class="grow flex">
 							<a
-								href="{project['@_name']}/backend/"
+								href="{prefix}{name}/backend/"
 								class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-br-lg"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
@@ -135,7 +117,7 @@
 						{#if project['@_hasFrontend'] == 'true'}
 							<div class="grow flex justify-end">
 								<a
-									href="{project['@_name']}/frontend/"
+									href="{prefix}{name}/frontend/"
 									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-bl-lg"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
@@ -147,7 +129,7 @@
 						{#if project.ref?.length > 0}
 							<div class="grow flex">
 								<a
-									href={rootProject != project ? `#${project['@_name']}` : '#'}
+									href="{prefix}{rootProject == project ? '' : `${name}/`}"
 									class="p-3 hover:bg-secondary-500 h-fit rounded-tr-lg"
 									class:bg-secondary-300={rootProject != project}
 									class:bg-secondary-500={rootProject == project}
@@ -159,7 +141,7 @@
 						{#if project['@_hasPlatform'] == 'true'}
 							<div class="grow flex justify-end">
 								<a
-									href="{project['@_name']}/platforms/"
+									href="{prefix}{name}/platforms/"
 									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-tl-lg"
 								>
 									<Ico icon="ph:package-thin" size="nav" />

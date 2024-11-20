@@ -12,31 +12,33 @@
 	$effect(() => {
 		const extras = [];
 		const name = $page.params?.project;
-		extras.push({
-			title: 'Backend',
-			icon: 'ph:gear-six-thin',
-			url: `${name}/backend/`
-		});
-		if (Project.hasFrontend) {
+		if (name) {
+			if (Project.hasRef) {
+				extras.push({
+					title: 'References',
+					icon: 'ph:plugs-connected-thin',
+					url: `${name}/`
+				});
+			}
 			extras.push({
-				title: 'Frontend',
-				icon: 'ph:video-thin',
-				url: `${name}/frontend/`
+				title: 'Backend',
+				icon: 'ph:gear-six-thin',
+				url: `${name}/backend/`
 			});
-		}
-		if (Project.hasPlatforms) {
-			extras.push({
-				title: 'Platforms',
-				icon: 'ph:package-thin',
-				url: `${name}/platforms/`
-			});
-		}
-		if (Project.hasRef) {
-			extras.push({
-				title: 'References',
-				icon: 'ph:plugs-connected-thin',
-				url: `#${name}`
-			});
+			if (Project.hasFrontend) {
+				extras.push({
+					title: 'Frontend',
+					icon: 'ph:video-thin',
+					url: `${name}/frontend/`
+				});
+			}
+			if (Project.hasPlatforms) {
+				extras.push({
+					title: 'Platforms',
+					icon: 'ph:package-thin',
+					url: `${name}/platforms/`
+				});
+			}
 		}
 		PagesRail.extras = extras;
 	});

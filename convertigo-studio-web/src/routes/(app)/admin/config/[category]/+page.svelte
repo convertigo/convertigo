@@ -1,20 +1,28 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { onDestroy, tick } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import { browser } from '$app/environment';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { fade, fly } from 'svelte/transition';
-	import RightPart from '../RightPart.svelte';
+	import RightPart from '../../RightPart.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
+	import { page } from '$app/stores';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import Last from '../Last.svelte';
 
-	let selectedIndex = $state(0);
+	let selectedIndex = $derived(
+		Math.max(
+			0,
+			Configuration.categories.findIndex(
+				(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == $page.params.category
+			)
+		)
+	);
 	let selectedIndexLast = $state(-1);
-	let advanced = $state([]);
 	let category = $derived(Configuration.categories[selectedIndex] ?? {});
 
 	RightPart.snippet = rightPart;
@@ -22,24 +30,24 @@
 		RightPart.snippet = undefined;
 	});
 
-	$effect(() => {
-		if (browser) {
-			if (selectedIndex != selectedIndexLast) {
-				if (category?.['@_name']) {
-					tick().then(() => {
-						location.hash = category['@_name'];
-					});
-				}
+	beforeNavigate(async (nav) => {
+		if (nav.type == 'goto') {
+			return;
+		}
+		if (hasChanges) {
+			nav.cancel();
+			if (await modalUnsaved.open()) {
+				Configuration.refresh();
+				goto(nav.to?.url ?? '');
 			} else {
-				const name = location.hash.substring(1);
-				selectedIndex = Math.max(
-					0,
-					Configuration.categories.findIndex(
-						(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == name
-					)
-				);
+				return;
 			}
 		}
+		selectedIndexLast = selectedIndex;
+	});
+
+	$effect(() => {
+		Last.category = $page.params.category;
 	});
 
 	async function saveChanges() {
@@ -55,17 +63,6 @@
 		if (confirmed) {
 			Configuration.updateConfigurations(toSave);
 		}
-	}
-
-	async function changeCategory() {
-		if (hasChanges) {
-			if (await modalUnsaved.open()) {
-				Configuration.refresh();
-			} else {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	let hasChanges = $derived(
@@ -84,14 +81,8 @@
 	>
 		{#each Configuration.categories as category, i}
 			<a
-				href="#{category['@_name']}"
+				href="../{category['@_name']}/"
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
-				onclick={async () => {
-					if (await changeCategory()) {
-						selectedIndexLast = selectedIndex;
-						selectedIndex = i;
-					}
-				}}
 			>
 				{#if i == selectedIndex}
 					<span
@@ -152,7 +143,7 @@
 
 		{#if category.property?.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
 			<Card>
-				<Accordion collapsible bind:value={advanced}>
+				<Accordion collapsible bind:value={Last.advanced}>
 					<Accordion.Item value="" panelPadding="py" controlPadding="">
 						{#snippet lead()}<Ico icon="game-icons:level-three-advanced" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}

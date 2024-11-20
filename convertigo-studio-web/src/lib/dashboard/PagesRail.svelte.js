@@ -12,7 +12,7 @@ const parts = $derived([
 		{
 			title: 'Admin',
 			icon: 'carbon:panel-expansion',
-			url: '../admin'
+			url: '../admin/'
 		},
 		{
 			title: 'Documentation',

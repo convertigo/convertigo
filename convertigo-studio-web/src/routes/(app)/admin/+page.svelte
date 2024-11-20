@@ -19,13 +19,13 @@
 					label: 'Java Properties',
 					icon: 'mdi:language-java',
 					cls: 'basic-button',
-					onclick: () => modal('props')
+					onclick: (e) => modal(e, 'props')
 				},
 				{
 					label: 'Environment Variables',
 					icon: 'mdi:code-block-braces',
 					cls: 'basic-button',
-					onclick: () => modal('env')
+					onclick: (e) => modal(e, 'env')
 				}
 			],
 			data: [
@@ -131,7 +131,8 @@
 	/**
 	 * @param {string} mode
 	 */
-	async function modal(mode) {
+	async function modal(e, mode) {
+		e.currentTarget.blur();
 		let data = $state();
 		if (mode == 'props') {
 			data = Array(10).fill({ '@_name': null, '@_value': null });

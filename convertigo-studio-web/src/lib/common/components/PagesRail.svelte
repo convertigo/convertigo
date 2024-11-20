@@ -13,7 +13,9 @@
 	);
 	let activeIndex = $derived.by(() => {
 		const i = parts[0].findIndex((part) =>
-			part.url == '' ? isRoot : $page.url.pathname.endsWith(`${part.url}`)
+			part.url == ''
+				? isRoot
+				: $page.url.pathname.endsWith(`${part.url}`) || $page.route.id == part.id
 		);
 		return i == -1 ? 0 : i;
 	});

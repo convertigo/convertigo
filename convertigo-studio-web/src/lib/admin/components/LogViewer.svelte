@@ -390,7 +390,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
-<div class="text-xs" class:fullscreen>
+<div class="text-xs w-full" class:fullscreen>
 	<div class="layout-y-low !items-stretch">
 		{#if $showFilters}
 			<div class="row-wrap" transition:slide={{ axis: 'y' }}>
