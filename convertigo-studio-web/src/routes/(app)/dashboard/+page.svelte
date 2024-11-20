@@ -1,7 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { replaceState } from '$app/navigation';
@@ -61,7 +60,7 @@
 
 <Card>
 	<div
-		class="w-full input-group divide-surface-50-950 preset-outlined-surface-50-950 divide-x grid-cols-[auto_1fr_auto]"
+		class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
 	>
 		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 		<input
@@ -100,14 +99,19 @@
 	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project['@_name'] ?? i)}
 			<div
-				class="layout-y-none !items-stretch border-[1px] border-surface-700-300 rounded"
+				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>
-				<div class="p-2">
+				<div class="layout-x-p-low !py-1 !justify-between">
 					<span class="text-md font-semibold truncate"
 						><AutoPlaceholder loading={project['@_name'] == null}
 							>{project['@_name']}</AutoPlaceholder
+						></span
+					>
+					<span class="text-sm truncate opacity-50"
+						><AutoPlaceholder loading={project['@_name'] == null}
+							>{project['@_version']}</AutoPlaceholder
 						></span
 					>
 				</div>
@@ -165,9 +169,10 @@
 					</div>
 				</div>
 				<button
-					class="px-2 truncate cursor-help text-start"
+					class="px-2 truncate cursor-help text-start opacity-70"
 					onclick={(e) => {
 						e?.target?.['classList']?.toggle('truncate');
+						e?.target?.['classList']?.toggle('opacity-70');
 					}}
 				>
 					<AutoPlaceholder loading={project['@_comment'] == null}

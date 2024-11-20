@@ -1,10 +1,9 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
-	import TopbarAdmin from '$lib/admin/sidebars/Topbar.svelte';
-	import TopbarDashBoard from '$lib/dashboard/components/Topbar.svelte';
+	import Topbar from '$lib/admin/sidebars/Topbar.svelte';
 	import PagesRail from '$lib/common/components/PagesRail.svelte';
 	import partsAdmin from '$lib/admin/PagesRail.json';
-	import partsDashboard from '$lib/dashboard/PagesRail.json';
+	import partsDashboard from '$lib/dashboard/PagesRail.svelte.js';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/stores';
@@ -15,7 +14,7 @@
 	let path = $derived(
 		$page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin'
 	);
-	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard);
+	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard.parts);
 	let showLeft = $state(true);
 	let showDrawer = $state(false);
 </script>
@@ -37,11 +36,7 @@
 </Modal>
 
 <div class="flex flex-col min-h-screen">
-	{#if path == '/(app)/admin'}
-		<TopbarAdmin bind:showLeft bind:showDrawer />
-	{:else}
-		<TopbarDashBoard bind:showLeft bind:showDrawer />
-	{/if}
+	<Topbar bind:showLeft bind:showDrawer />
 
 	<div class="layout-y md:layout-x !gap-0 !items-stretch grow">
 		{#if showLeft}

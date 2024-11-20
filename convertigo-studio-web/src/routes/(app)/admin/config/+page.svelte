@@ -85,7 +85,7 @@
 		{#each Configuration.categories as category, i}
 			<a
 				href="#{category['@_name']}"
-				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded"
+				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
 				onclick={async () => {
 					if (await changeCategory()) {
 						selectedIndexLast = selectedIndex;

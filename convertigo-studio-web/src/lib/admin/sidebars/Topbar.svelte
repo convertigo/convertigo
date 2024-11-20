@@ -3,6 +3,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
+	import { page } from '$app/stores';
 
 	let { showLeft = $bindable(), showDrawer = $bindable() } = $props();
 </script>
@@ -23,7 +24,9 @@
 
 	<section class="layout-x">
 		<Ico icon="logo.png" alt="logo convertigo" size={10} />
-		<h1 class="hide-md">Convertigo Admin Console</h1>
+		<h1 class="hide-md">
+			Convertigo {$page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}
+		</h1>
 	</section>
 
 	<section class="layout-x-p !py-low">

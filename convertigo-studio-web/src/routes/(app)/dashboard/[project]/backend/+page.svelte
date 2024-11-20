@@ -106,7 +106,7 @@
 <Card title={project?.['@_name'] ?? null} class="!items-stretch">
 	{#snippet cornerOption()}
 		<div
-			class="w-full input-group divide-surface-50-950 preset-outlined-surface-50-950 divide-x grid-cols-[auto_1fr_auto]"
+			class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
 		>
 			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />

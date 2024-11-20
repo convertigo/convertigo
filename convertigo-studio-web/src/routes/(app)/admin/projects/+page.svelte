@@ -5,7 +5,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Projects from '$lib/admin/Projects.svelte';
+	import Projects from '$lib/common/Projects.svelte';
 
 	onMount(() => {
 		Projects.refresh();

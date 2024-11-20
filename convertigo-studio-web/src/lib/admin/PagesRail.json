@@ -8,64 +8,64 @@
 		{
 			"title": "Config",
 			"icon": "ph:gear-thin",
-			"url": "config"
+			"url": "config/"
 		},
 		{
 			"title": "Connections",
 			"icon": "ph:plugs-connected-thin",
-			"url": "connections"
+			"url": "connections/"
 		},
 		{
 			"title": "Projects",
 			"icon": "ph:folder-thin",
-			"url": "projects"
+			"url": "projects/"
 		},
 		{
 			"title": "Certificate",
 			"icon": "ph:certificate-thin",
-			"url": "certificate"
+			"url": "certificate/"
 		},
 		{
 			"title": "Logs",
 			"icon": "lets-icons:search-light",
-			"url": "logs"
+			"url": "logs/"
 		},
 		{
 			"title": "Cache",
 			"icon": "material-symbols-light:update",
-			"url": "cache"
+			"url": "cache/"
 		},
 		{
 			"title": "Scheduler",
 			"icon": "material-symbols-light:schedule-outline",
-			"url": "scheduler"
+			"url": "scheduler/"
 		},
 		{
 			"title": "Keys",
 			"icon": "material-symbols-light:key-outline",
-			"url": "keys"
+			"url": "keys/"
 		},
 		{
 			"title": "Roles",
 			"icon": "lets-icons:user-alt-light",
-			"url": "roles"
+			"url": "roles/"
 		},
 		{
 			"title": "Symbols",
 			"icon": "et:tools-2",
-			"url": "symbols"
+			"url": "symbols/"
 		},
 		{
 			"title": "Full Sync",
 			"icon": "material-symbols-light:sync-outline",
-			"url": "fullsync"
+			"url": "fullsync/"
 		}
 	],
 	[
 		{
 			"title": "Dashboard",
 			"icon": "file-icons:test-ruby",
-			"url": "../dashboard"
+			"url": "../dashboard/"
 		},
 		{
 			"title": "Swagger",
