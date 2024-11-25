@@ -12,7 +12,7 @@
 	let checked = $state(value == values[1]);
 	let last;
 	$effect(() => {
-		if (checked != last) {
+		if (value && checked != last) {
 			value = checked ? values[1] : values[0];
 			last = checked;
 		} else {

@@ -89,14 +89,20 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 			'> *': { minWidth },
 			...getVersion('gap', version)
 		});
-		matchUtilities({
-			[`layout-grid${dash(version)}`]: rule
-		});
+		matchUtilities(
+			{
+				[`layout-grid${dash(version)}`]: rule
+			},
+			{ values: theme('spacing') }
+		);
 		['m', 'p'].forEach((edge) => {
-			matchUtilities({
-				[`layout-grid${edge}${dash(version)}`]: (minWidth) =>
-					merge(rule(minWidth), getVersion(edge + 'x', version), getVersion(edge + 'y', version))
-			});
+			matchUtilities(
+				{
+					[`layout-grid${edge}${dash(version)}`]: (minWidth) =>
+						merge(rule(minWidth), getVersion(edge + 'x', version), getVersion(edge + 'y', version))
+				},
+				{ values: theme('spacing') }
+			);
 		});
 	});
 });

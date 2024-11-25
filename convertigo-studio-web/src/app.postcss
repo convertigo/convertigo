@@ -17,7 +17,6 @@ body {
 		width: 100%;
 		border-collapse: collapse;
 		border: 4px;
-		border-color: white;
 		@apply rounded overflow-hidden;
 	}
 	th,
@@ -29,16 +28,18 @@ body {
 		@apply align-middle p-2 !important;
 	}
 	th {
-		@apply dark:border-surface-900;
+		@apply preset-filled-surface-200-800 font-bold;
 	}
-	tr {
+	thead {
+		@apply border-surface-900-100 border-b-[0.5px];
 	}
+
 	tr:nth-child(even) {
-		@apply dark:bg-surface-800 bg-surface-50 hover:bg-surface-300-700;
+		@apply bg-surface-200-800 hover:bg-opacity-40;
 	}
 
 	tr:nth-child(odd) {
-		@apply dark:bg-surface-900 bg-white dark:bg-surface-500;
+		@apply bg-surface-300-700 hover:bg-opacity-40;
 	}
 	/* END TABLES STYLE*/
 }

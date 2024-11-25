@@ -40,12 +40,12 @@
 		<h1 class="font-bold text-surface-300 p-3">{comment}</h1>
 	{/if}
 
-	<table class="rounded table">
+	<table>
 		{#if showHeaders}
-			<thead class="rounded">
+			<thead>
 				<tr>
 					{#each definition as def}
-						<th class="dark:bg-surface-800">
+						<th>
 							{#if def.icon}
 								<Icon icon={def.icon} class="h-7 w-7" />
 							{:else}
@@ -89,8 +89,8 @@
 			<tbody>
 				<tr>
 					<td colspan={definition.length}>
-						<div class="flex gap-5 items-center">
-							<Ico icon="line-md:coffee-loop" class="w-20 h-20" />
+						<div class="layout-x">
+							<Ico icon="line-md:coffee-loop" size={20} />
 							<p class="font-bold text-surface-300">There is no data to display ...</p>
 						</div>
 					</td>
@@ -124,32 +124,22 @@
 
 		tr {
 			display: block;
-			@apply rounded layout-grid-low-[150px];
+			@apply rounded layout-grid-low-40;
 		}
 
 		thead {
 			display: none;
 		}
 		td {
-			/* justify-content: flex-start;
-			align-items: center;
-			position: relative;
-			@apply border flex; */
 			@apply layout-y-low !items-start overflow-x-auto;
-		}
-		td[data-label]:not([data-label='']) {
-			/* padding-left: 50%; */
 		}
 		td[data-label]:not([data-label='']):before {
 			content: attr(data-label);
 			display: inline-block;
 			font-weight: bold;
 			line-height: 1.5;
-			/* margin-left: -100%; */
 			width: 100%;
-			/* position: relative; */
 			z-index: 1;
-			/* width: var(--witdh, 100px); */
 		}
 	}
 </style>
