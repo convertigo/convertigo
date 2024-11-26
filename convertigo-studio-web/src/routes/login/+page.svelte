@@ -1,6 +1,5 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
 	import Authentication from '$lib/common/Authentication.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */

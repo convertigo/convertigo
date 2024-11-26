@@ -126,5 +126,11 @@
 		"a11y_mouse_events_have_key_events": "ignore",
 		"unused-export-let": "ignore",
 		"css_unused_selector": "ignore"
-	}
+	},
+	"json.schemas": [
+		{
+			"fileMatch": [".ncurc", ".ncurc.json"],
+			"url": "https://raw.githubusercontent.com/raineorshine/npm-check-updates/main/src/types/RunOptions.json"
+		}
+	]
 }

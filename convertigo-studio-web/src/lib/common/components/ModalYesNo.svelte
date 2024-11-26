@@ -6,7 +6,7 @@
 
 	export async function open(props) {
 		({ title = title, message = message, class: cls = cls } = props ?? {});
-		return await modal.open();
+		return await modal.open(props);
 	}
 
 	let modal;

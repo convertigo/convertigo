@@ -2,7 +2,6 @@
 	import { preventDefault } from 'svelte/legacy';
 
 	import { page } from '$app/stores';
-	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import Table from '$lib/dashboard/components/Table.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { decode } from 'html-entities';

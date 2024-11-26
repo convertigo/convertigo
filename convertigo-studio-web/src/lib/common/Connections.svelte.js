@@ -50,6 +50,23 @@ function connectionsCheck() {
 	}
 }
 
+function stop() {
+	if (browser) {
+		window.clearInterval(interval);
+	}
+	interval = null;
+}
+
+function refresh() {
+	stop();
+	connectionsCheck();
+}
+
+async function callDelete(params) {
+	await call('connections.Delete', params);
+	refresh();
+}
+
 export default {
 	get connections() {
 		connectionsCheck();
@@ -96,22 +113,17 @@ export default {
 	},
 	set selectedSession(value) {
 		selectedSession = value;
-		this.refresh();
+		refresh();
 	},
-	refresh() {
-		this.stop();
-		connectionsCheck();
-	},
-	stop() {
-		if (browser) {
-			window.clearInterval(interval);
-		}
-		interval = null;
-	},
+	refresh,
+	stop,
 	async deleteSession(sessionId) {
-		await call('connections.Delete', { sessionId });
+		await callDelete({ sessionId });
 	},
 	async deleteContext(contextName) {
-		await call('connections.Delete', { contextName });
+		await callDelete({ contextName });
+	},
+	async deleteAll() {
+		await callDelete({ removeAll: true });
 	}
 };

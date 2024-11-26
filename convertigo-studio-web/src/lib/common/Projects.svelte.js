@@ -13,7 +13,6 @@ let projects = $state(
 		})
 	})
 );
-
 async function refresh() {
 	calling = true;
 	try {
@@ -34,6 +33,24 @@ async function refresh() {
 	calling = false;
 }
 
+async function remove(projectName) {
+	await call('projects.Delete', { projectName });
+	await refresh();
+}
+
+async function reload(projectName) {
+	await call('projects.Reload', { projectName });
+	await refresh();
+}
+
+async function exportOptions(projectName) {
+	const res = await call('projects.ExportOptions', { projectName });
+	return checkArray(res?.admin?.options?.option).map((option) => ({
+		name: option['@_name'],
+		display: option['@_display']
+	}));
+}
+
 let needRefresh = true;
 let calling = false;
 
@@ -44,5 +61,8 @@ export default {
 		}
 		return projects;
 	},
-	refresh
+	refresh,
+	remove,
+	reload,
+	exportOptions
 };

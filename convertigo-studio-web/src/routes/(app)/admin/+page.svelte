@@ -131,8 +131,7 @@
 	/**
 	 * @param {string} mode
 	 */
-	async function modal(e, mode) {
-		e.currentTarget.blur();
+	async function modal(event, mode) {
 		let data = $state();
 		if (mode == 'props') {
 			data = Array(10).fill({ '@_name': null, '@_value': null });
@@ -141,6 +140,7 @@
 			});
 		}
 		modalHome.open({
+			event,
 			mode,
 			get data() {
 				return mode == 'props' ? data : EnvironmentVariables.variables;
@@ -156,8 +156,8 @@
 		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'} class="w-full">
 			<TableAutoCard
 				definition={[
-					{ name: 'Name', key: 'name' },
-					{ name: 'Value', key: 'value' }
+					{ name: 'Name', key: 'name', class: 'break-all min-w-48' },
+					{ name: 'Value', key: 'value', class: 'break-all min-w-48' }
 				]}
 				{data}
 				class="max-h-[80vh]"

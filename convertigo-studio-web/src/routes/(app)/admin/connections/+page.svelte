@@ -39,11 +39,21 @@
 			<ResponsiveButtons
 				buttons={[
 					{
-						label: 'Delete all Sessions and Connections',
+						label: 'Delete all Sessions and Contexts',
 						icon: 'mingcute:delete-line',
 						cls: 'delete-button',
 						disabled,
-						onclick: () => {}
+						onclick: async (event) => {
+							if (
+								await modalDelete.open({
+									event,
+									title: 'Do you confirm to delete',
+									message: `${Connections.sessionsInUse} sessions and ${Connections.contextsInUse} contexts?`
+								})
+							) {
+								Connections.deleteAll();
+							}
+						}
 					}
 				]}
 			/>
@@ -63,7 +73,7 @@
 		<TableAutoCard
 			definition={[
 				{ name: 'Actions', custom: true },
-				{ name: 'ID', key: '@_sessionID' },
+				{ name: 'ID', key: '@_sessionID', class: 'break-all' },
 				{ name: 'User', key: '@_authenticatedUser' },
 				{ name: 'Contexts', key: '@_contexts' },
 				{ name: 'Roles', key: '@_adminRoles' },
@@ -73,19 +83,22 @@
 				{ name: 'Activity', key: '@_sessionInactivityTime' },
 				{ name: 'Client IP', key: '@_clientIP' }
 			]}
+			class="session-table"
 			data={Connections.sessions}
 		>
 			{#snippet children({ row, def })}
 				{#if def.name === 'Actions'}
-					<!-- {@debug row} -->
 					<ResponsiveButtons
 						class="min-w-24 w-full"
+						size="4"
 						buttons={[
 							{
 								icon: 'lets-icons:search-light',
 								cls: 'basic-button',
 								disabled,
-								onclick: () => {}
+								onclick: () => {
+									alert('TODO: filter in log viewer');
+								}
 							},
 							{
 								icon: 'mdi:filter',
@@ -93,16 +106,16 @@
 								disabled,
 								onclick: () => {
 									Connections.selectedSession = row['@_sessionID'];
-									Connections.refresh();
 								}
 							},
 							{
 								icon: 'mingcute:delete-line',
 								cls: 'delete-button',
 								disabled,
-								onclick: async () => {
+								onclick: async (event) => {
 									if (
 										await modalDelete.open({
+											event,
 											title: 'Delete session',
 											message: `${row['@_sessionID']}?`
 										})
@@ -113,6 +126,9 @@
 							}
 						]}
 					/>
+					{#if row['@_isCurrentSession'] == 'true'}
+						<span class="current"></span>
+					{/if}
 				{:else if def.name === 'FS'}
 					<Ico
 						icon="material-symbols-light:sync-outline"
@@ -148,10 +164,10 @@
 		<TableAutoCard
 			definition={[
 				{ name: 'Actions', custom: true },
-				{ name: 'Context', key: '@_contextName', class: 'max-w-1/4 break-all' },
-				{ name: 'Project', key: '@_project' },
-				{ name: 'Connector', key: '@_connector' },
-				{ name: 'Requested', key: '@_requested' },
+				{ name: 'Context', key: '@_contextName', class: 'break-all min-w-40' },
+				{ name: 'Project', key: '@_project', class: 'break-all min-w-40' },
+				{ name: 'Connector', key: '@_connector', class: 'break-all min-w-40' },
+				{ name: 'Requested', key: '@_requested', class: 'break-all min-w-40' },
 				{ name: 'Status', key: '@_status' },
 				{ name: 'User', key: '@_user' },
 				{ name: 'Client Computer', key: '@_clientComputer' }
@@ -162,6 +178,7 @@
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="min-w-16 w-full"
+						size="4"
 						buttons={[
 							{
 								icon: 'lets-icons:search-light',
@@ -173,9 +190,10 @@
 								icon: 'mingcute:delete-line',
 								cls: 'delete-button',
 								disabled,
-								onclick: async () => {
+								onclick: async (event) => {
 									if (
 										await modalDelete.open({
+											event,
 											title: 'Delete context',
 											message: `${row['@_contextName']}?`
 										})
@@ -191,3 +209,12 @@
 		</TableAutoCard>
 	</Card>
 </div>
+
+<style lang="postcss">
+	:global(.session-table tr:has(.current)) {
+		@apply bg-success-300;
+	}
+	:global(.dark .session-table tr:has(.current)) {
+		@apply bg-success-900;
+	}
+</style>

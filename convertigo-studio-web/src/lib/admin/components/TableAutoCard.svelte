@@ -26,9 +26,14 @@
 	}
 
 	onMount(() => {
-		checkOverflow();
 		window.addEventListener('resize', checkOverflow);
 		return () => window.removeEventListener('resize', checkOverflow);
+	});
+
+	$effect(() => {
+		if (data) {
+			checkOverflow();
+		}
 	});
 </script>
 
@@ -124,7 +129,7 @@
 
 		tr {
 			display: block;
-			@apply rounded layout-grid-low-40;
+			@apply rounded layout-grid-low-48;
 		}
 
 		thead {
