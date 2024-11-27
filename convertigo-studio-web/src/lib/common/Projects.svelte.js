@@ -4,12 +4,12 @@ import { decode } from 'html-entities';
 
 let projects = $state(
 	new Array(15).fill({
-		'@_name': null,
-		'@_displayName': null,
+		name: null,
+		displayName: null,
 		property: new Array(10).fill({
-			'@_type': 'Text',
-			'@_description': null,
-			'@_value': ''
+			type: 'Text',
+			description: null,
+			value: ''
 		})
 	})
 );
@@ -20,7 +20,7 @@ async function refresh() {
 		if (res?.admin?.projects) {
 			const prjs = checkArray(res?.admin?.projects?.project);
 			for (const project of prjs) {
-				project['@_comment'] = decode(project['@_comment']);
+				project.comment = decode(project.comment);
 				project.ref = checkArray(project.ref);
 			}
 			projects = prjs;
@@ -45,10 +45,7 @@ async function reload(projectName) {
 
 async function exportOptions(projectName) {
 	const res = await call('projects.ExportOptions', { projectName });
-	return checkArray(res?.admin?.options?.option).map((option) => ({
-		name: option['@_name'],
-		display: option['@_display']
-	}));
+	return checkArray(res?.admin?.options?.option);
 }
 
 let needRefresh = true;

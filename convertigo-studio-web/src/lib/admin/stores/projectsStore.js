@@ -12,7 +12,7 @@ export async function projectsCheck(refresh = false) {
 		const res = await call('projects.List');
 		const projects = checkArray(res?.admin?.projects?.project);
 		for (const project of projects) {
-			project['@_comment'] = decode(project['@_comment']);
+			project.comment = decode(project.comment);
 			project.ref = checkArray(project.ref);
 		}
 		projectsStore.set(projects);

@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
+import Time from '$lib/common/Time.svelte';
 import { call } from '$lib/utils/service';
-import Time from './Time.svelte';
 
 let monitor = $state({
 	delay: 2000,

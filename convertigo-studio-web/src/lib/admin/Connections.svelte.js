@@ -3,8 +3,8 @@ import { call } from '$lib/utils/service';
 
 const all = $state({
 	delay: 2000,
-	sessions: Array(5).fill({ '@_sessionID': null }),
-	connections: Array(10).fill({ '@_contextName': null }),
+	sessions: Array(5).fill({ sessionID: null }),
+	connections: Array(10).fill({ contextName: null }),
 	contextsInUse: null,
 	contextsNumber: null,
 	httpTimeout: null,

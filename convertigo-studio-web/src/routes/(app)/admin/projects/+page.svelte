@@ -9,7 +9,6 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { preventDefault } from 'svelte/legacy';
 
 	onMount(() => {
 		Projects.refresh();
@@ -77,17 +76,17 @@
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true },
-			{ name: 'Name', key: '@_name', class: 'font-medium' },
-			{ name: 'Comment', key: '@_comment' },
-			{ name: 'Version', key: '@_version', class: 'break-words opacity-80 min-w-32' },
-			{ name: 'Exported', key: '@_exported', class: 'text-sm min-w-32' },
-			{ name: 'Deployment', key: '@_deployDate', class: 'text-sm min-w-32' }
+			{ name: 'Name', key: 'name', class: 'font-medium' },
+			{ name: 'Comment', key: 'comment' },
+			{ name: 'Version', key: 'version', class: 'break-words opacity-80 min-w-32' },
+			{ name: 'Exported', key: 'exported', class: 'text-sm min-w-32' },
+			{ name: 'Deployment', key: 'deployDate', class: 'text-sm min-w-32' }
 		]}
 		data={Projects.projects}
 		class="rounded"
 	>
-		{#snippet children({ row, def })}
-			{@const project = row['@_name'] ? row['@_name'] : '_'}
+		{#snippet children({ row: { name }, def })}
+			{@const project = name ? name : '_'}
 			{#if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[

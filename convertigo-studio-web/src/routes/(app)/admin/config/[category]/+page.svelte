@@ -17,9 +17,7 @@
 	let selectedIndex = $derived(
 		Math.max(
 			0,
-			Configuration.categories.findIndex(
-				(/** @type {{ [x: string]: string; }} */ c) => c['@_name'] == $page.params.category
-			)
+			Configuration.categories.findIndex(({ name }) => name == $page.params.category)
 		)
 	);
 	let selectedIndexLast = $state(-1);
@@ -50,14 +48,15 @@
 		Last.category = $page.params.category;
 	});
 
-	async function saveChanges() {
+	async function saveChanges(event) {
 		const toSave = Configuration.categories[selectedIndex]?.property
-			?.filter((/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue'])
-			.map((/** @type {{ [x: string]: any; }} */ p) => ({
-				'@_key': p['@_name'],
-				'@_value': p['@_value']
+			?.filter(({ value, originalValue }) => value != originalValue)
+			.map(({ name, value }) => ({
+				'@_key': name,
+				'@_value': value
 			}));
 		const confirmed = await modalSave.open({
+			event,
 			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
 		});
 		if (confirmed) {
@@ -67,7 +66,7 @@
 
 	let hasChanges = $derived(
 		Configuration.categories[selectedIndex]?.property?.some(
-			(/** @type {{ [x: string]: any; }} */ p) => p['@_value'] != p['@_originalValue']
+			({ value, originalValue }) => value != originalValue
 		)
 	);
 
@@ -79,9 +78,9 @@
 	<nav
 		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
 	>
-		{#each Configuration.categories as category, i}
+		{#each Configuration.categories as { name, displayName }, i}
 			<a
-				href="../{category['@_name'] ? category['@_name'] : '_'}/"
+				href="../{name ? name : '_'}/"
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
 			>
 				{#if i == selectedIndex}
@@ -91,9 +90,9 @@
 						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
 					></span>
 				{/if}
-				<AutoPlaceholder loading={category['@_displayName'] == null}>
+				<AutoPlaceholder loading={name == null}>
 					<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
-						>{category['@_displayName']}</span
+						>{displayName}</span
 					>
 				</AutoPlaceholder>
 			</a>
@@ -110,7 +109,7 @@
 
 {#key selectedIndex}
 	<div class="layout-y !items-stretch" in:fade>
-		<Card title={category['@_displayName']}>
+		<Card title={category.displayName}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons
 					buttons={[
@@ -134,14 +133,14 @@
 
 			<div class="w-full layout-cols-2">
 				{#each category.property as property}
-					{#if property['@_isAdvanced'] != 'true'}
+					{#if property.isAdvanced != 'true'}
 						<PropertyType {property} />
 					{/if}
 				{/each}
 			</div>
 		</Card>
 
-		{#if category.property?.filter((/** @type {{ [x: string]: string; }} */ p) => p['@_isAdvanced'] == 'true').length > 0}
+		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
 			<Card>
 				<Accordion collapsible bind:value={Last.advanced}>
 					<Accordion.Item value="" panelPadding="py" controlPadding="">
@@ -150,7 +149,7 @@
 						{#snippet panel()}
 							<div class="w-full layout-cols-2">
 								{#each category.property as property}
-									{#if property['@_isAdvanced'] == 'true'}
+									{#if property.isAdvanced == 'true'}
 										<PropertyType {property} />
 									{/if}
 								{/each}

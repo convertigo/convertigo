@@ -1,15 +1,15 @@
 <script>
-	import ApexChartLineAdmin from '$lib/admin/charts/ApexChartLineAdmin.svelte';
+	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
 	import Status from '$lib/common/Status.svelte';
-	import Monitor from '$lib/common/Monitor.svelte';
+	import Monitor from '$lib/admin/Monitor.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import EnvironmentVariables from '$lib/common/EnvironmentVariables.svelte';
-	import ModalDynamic from '../../../lib/common/components/ModalDynamic.svelte';
+	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 
 	const tables = $derived([
 		{
@@ -134,7 +134,7 @@
 	async function modal(event, mode) {
 		let data = $state();
 		if (mode == 'props') {
-			data = Array(10).fill({ '@_name': null, '@_value': null });
+			data = Array(10).fill({ name: null, value: null });
 			call('engine.GetJavaSystemPropertiesJson').then((res) => {
 				data = res.properties;
 			});

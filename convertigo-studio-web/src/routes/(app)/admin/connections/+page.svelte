@@ -3,7 +3,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Connections from '$lib/common/Connections.svelte';
+	import Connections from '$lib/admin/Connections.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
@@ -73,20 +73,20 @@
 		<TableAutoCard
 			definition={[
 				{ name: 'Actions', custom: true },
-				{ name: 'ID', key: '@_sessionID', class: 'break-all' },
-				{ name: 'User', key: '@_authenticatedUser' },
-				{ name: 'Contexts', key: '@_contexts' },
-				{ name: 'Roles', key: '@_adminRoles' },
-				{ name: 'FS', custom: true, key: '@_isFullSyncActive' },
-				{ name: 'UUID', key: '@_deviceUUID' },
-				{ name: 'Access', key: '@_lastSessionAccessDate' },
-				{ name: 'Activity', key: '@_sessionInactivityTime' },
-				{ name: 'Client IP', key: '@_clientIP' }
+				{ name: 'ID', key: 'sessionID', class: 'break-all' },
+				{ name: 'User', key: 'authenticatedUser' },
+				{ name: 'Contexts', key: 'contexts' },
+				{ name: 'Roles', key: 'adminRoles' },
+				{ name: 'FS', custom: true, key: 'isFullSyncActive' },
+				{ name: 'UUID', key: 'deviceUUID' },
+				{ name: 'Access', key: 'lastSessionAccessDate' },
+				{ name: 'Activity', key: 'sessionInactivityTime' },
+				{ name: 'Client IP', key: 'clientIP' }
 			]}
 			class="session-table"
 			data={Connections.sessions}
 		>
-			{#snippet children({ row, def })}
+			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
 				{#if def.name === 'Actions'}
 					<ResponsiveButtons
 						class="min-w-24 w-full"
@@ -105,7 +105,7 @@
 								cls: 'yellow-button',
 								disabled,
 								onclick: () => {
-									Connections.selectedSession = row['@_sessionID'];
+									Connections.selectedSession = sessionID;
 								}
 							},
 							{
@@ -117,16 +117,16 @@
 										await modalDelete.open({
 											event,
 											title: 'Delete session',
-											message: `${row['@_sessionID']}?`
+											message: `${sessionID}?`
 										})
 									) {
-										Connections.deleteSession(row['@_sessionID']);
+										Connections.deleteSession(sessionID);
 									}
 								}
 							}
 						]}
 					/>
-					{#if row['@_isCurrentSession'] == 'true'}
+					{#if isCurrentSession == 'true'}
 						<span class="current"></span>
 					{/if}
 				{:else if def.name === 'FS'}
@@ -134,7 +134,7 @@
 						icon="material-symbols-light:sync-outline"
 						class={disabled
 							? 'animate-pulse'
-							: row['@_isFullSyncActive'] == 'true'
+							: isFullSyncActive == 'true'
 								? 'text-green-500'
 								: 'text-red-500'}
 						size="btn"
@@ -164,17 +164,17 @@
 		<TableAutoCard
 			definition={[
 				{ name: 'Actions', custom: true },
-				{ name: 'Context', key: '@_contextName', class: 'break-all min-w-40' },
-				{ name: 'Project', key: '@_project', class: 'break-all min-w-40' },
-				{ name: 'Connector', key: '@_connector', class: 'break-all min-w-40' },
-				{ name: 'Requested', key: '@_requested', class: 'break-all min-w-40' },
-				{ name: 'Status', key: '@_status' },
-				{ name: 'User', key: '@_user' },
-				{ name: 'Client Computer', key: '@_clientComputer' }
+				{ name: 'Context', key: 'contextName', class: 'break-all min-w-40' },
+				{ name: 'Project', key: 'project', class: 'break-all min-w-40' },
+				{ name: 'Connector', key: 'connector', class: 'break-all min-w-40' },
+				{ name: 'Requested', key: 'requested', class: 'break-all min-w-40' },
+				{ name: 'Status', key: 'status' },
+				{ name: 'User', key: 'user' },
+				{ name: 'Client Computer', key: 'clientComputer' }
 			]}
 			data={Connections.connections}
 		>
-			{#snippet children({ row, def })}
+			{#snippet children({ row: { contextName }, def })}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="min-w-16 w-full"
@@ -195,10 +195,10 @@
 										await modalDelete.open({
 											event,
 											title: 'Delete context',
-											message: `${row['@_contextName']}?`
+											message: `${contextName}?`
 										})
 									) {
-										Connections.deleteSession(row['@_sessionID']);
+										Connections.deleteContext(contextName);
 									}
 								}
 							}

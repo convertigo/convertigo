@@ -1,6 +1,5 @@
 <script>
 	import { page } from '$app/stores';
-	import CardD from '$lib/dashboard/components/Card-D.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { onMount } from 'svelte';
@@ -10,19 +9,20 @@
 	import { call, copyObj, getQuery, getUrl } from '$lib/utils/service';
 	import Ico from '$lib/utils/Ico.svelte';
 	import QrCode from '$lib/common/components/QrCode.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 
 	let app;
 
 	let data = $state([
-		{ Name: 'Mobile Project Name', Attr: '@_mobileProjectName' },
-		{ Name: 'Endpoint', Attr: '@_endpoint' },
-		{ Name: 'Application Id', Attr: '@_applicationID' },
-		{ Name: 'Version', Attr: '@_applicationVersion' }
+		{ Name: 'Mobile Project Name', Attr: 'mobileProjectName' },
+		{ Name: 'Endpoint', Attr: 'endpoint' },
+		{ Name: 'Application Id', Attr: 'applicationID' },
+		{ Name: 'Version', Attr: 'applicationVersion' }
 	]);
 
 	const dataPlatform = [
-		{ Name: 'Display Name', Attr: '@_displayName' },
-		{ Name: 'Package Type', Attr: '@_packageType' },
+		{ Name: 'Display Name', Attr: 'displayName' },
+		{ Name: 'Package Type', Attr: 'packageType' },
 		{ Name: 'Local Revision' },
 		{ Name: 'Built Revision' },
 		{ Name: 'Built Application Version' },
@@ -47,7 +47,7 @@
 					platforms.push(platform);
 					call('mobiles.GetLocalRevision', {
 						project: projectName,
-						platform: platform['@_name']
+						platform: platform.name
 					}).then((res) => {
 						platform.data[2].Value = res.admin?.revision;
 						platforms = platforms;
@@ -63,12 +63,12 @@
 	async function getBuildStatus(platform) {
 		const res = await call('mobiles.GetBuildStatus', {
 			project: $page.params.project,
-			platform: platform['@_name']
+			platform: platform.name
 		});
-		platform.data[3].Value = res.admin?.build?.['@_revision'];
-		platform.data[4].Value = res.admin?.build?.['@_version'];
-		platform.data[5].Value = res.admin?.build?.['@_phonegap_version'];
-		platform.status = res.admin?.build?.['@_status'];
+		platform.data[3].Value = res.admin?.build?.revision;
+		platform.data[4].Value = res.admin?.build?.version;
+		platform.data[5].Value = res.admin?.build?.phonegap_version;
+		platform.status = res.admin?.build?.status;
 		if (platform.status == 'pending') {
 			setTimeout(() => getBuildStatus(platform), 2500);
 		}
@@ -79,13 +79,13 @@
 		delete platform.status;
 		const res = await call('mobiles.LaunchBuild', {
 			project: $page.params.project,
-			platform: platform['@_name']
+			platform: platform.name
 		});
 		getBuildStatus(platform);
 	}
 </script>
 
-<CardD>
+<Card>
 	<TableAutoCard
 		showHeaders={false}
 		definition={[
@@ -102,14 +102,14 @@
 			{/if}
 		{/snippet}
 	</TableAutoCard>
-</CardD>
+</Card>
 
-<CardD>
+<Card>
 	<Accordion>
 		{#each platforms as platform, i}
 			<!-- open={i == 0} -->
 			<Accordion.Item classes="preset-ghost-surface rounded" value="ok">
-				{#snippet control()}{platform['@_displayName']}
+				{#snippet control()}{platform.displayName}
 					<AutoPlaceholder loading={!platform.status}
 						><span
 							class:text-success-500={platform.status}
@@ -146,7 +146,7 @@
 										class="max-w-48"
 										href={getUrl() +
 											'mobiles.GetPackage' +
-											getQuery({ project: $page.params.project, platform: platform['@_name'] })}
+											getQuery({ project: $page.params.project, platform: platform.name })}
 									/>
 								{:else if platform.status == 'pending'}
 									<div class="text-warning-500 animate-pulse">Building...</div>
@@ -165,7 +165,7 @@
 						<a
 							href="{getUrl()}mobiles.GetSourcePackage?project={window.encodeURIComponent(
 								$page.params.project
-							)}&platform={window.encodeURIComponent(platform['@_name'])}"
+							)}&platform={window.encodeURIComponent(platform.name)}"
 							class="btn preset-filled-tertiary"
 							><span><Ico icon="mdi:file-download-outline" /></span><span>Get Source Package</span
 							></a
@@ -175,7 +175,4 @@
 			</Accordion.Item>
 		{/each}
 	</Accordion>
-</CardD>
-
-<style lang="postcss">
-</style>
+</Card>

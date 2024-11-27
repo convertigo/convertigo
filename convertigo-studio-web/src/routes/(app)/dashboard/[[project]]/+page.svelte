@@ -9,28 +9,24 @@
 	import { resolveRoute } from '$app/paths';
 
 	let searchQuery = $state('');
-	let rootProject = $derived(
-		Projects.projects.find((project) => project['@_name'] == $page.params.project)
-	);
+	let rootProject = $derived(Projects.projects.find(({ name }) => name == $page.params.project));
 	let prefix = $derived($page.params.project ? '../' : '');
 
 	let filters = $state([
-		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
+		{ icon: 'ph:video-thin', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
 		{
 			icon: 'ph:books-thin',
 			count: 0,
-			filter: (project) => project['@_name'].startsWith('lib')
+			filter: ({ name }) => name.startsWith('lib')
 		}
 	]);
 
 	let filteredProjects = $derived(
 		Projects.projects.filter((project) => {
 			if (rootProject) {
-				return (
-					project['@_name'] == rootProject['@_name'] || rootProject.ref?.includes(project['@_name'])
-				);
+				return project.name == rootProject.name || rootProject.ref?.includes(project.name);
 			}
-			let ok = project['@_name']?.toLowerCase().includes(searchQuery.toLowerCase()) ?? true;
+			let ok = project.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? true;
 			if (ok) {
 				for (let { count, filter } of filters) {
 					if ((count == 1 && !filter(project)) || (count == 2 && filter(project))) {
@@ -82,10 +78,10 @@
 		</span>
 	</div>
 	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each filteredProjects as project, i (project['@_name'] ?? i)}
-			{@const name = project['@_name'] ? project['@_name'] : '_'}
-			{@const params = { project: name }}
-			{@const loading = project['@_name'] == null}
+		{#each filteredProjects as project, i (project.name ?? i)}
+			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
+			{@const loading = name == null}
+			{@const params = { project: name ? name : '_' }}
 			<div
 				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"
 				animate:flip={{ duration: 500 }}
@@ -96,7 +92,7 @@
 						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
 					>
 					<span class="text-sm truncate opacity-50"
-						><AutoPlaceholder {loading}>{project['@_version']}</AutoPlaceholder></span
+						><AutoPlaceholder {loading}>{version}</AutoPlaceholder></span
 					>
 				</div>
 				<div class="relative">
@@ -116,7 +112,7 @@
 								<Ico icon="ph:gear-six-thin" size="nav" />
 							</a>
 						</div>
-						{#if project['@_hasFrontend'] == 'true'}
+						{#if hasFrontend == 'true'}
 							<div class="grow flex justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
@@ -128,7 +124,7 @@
 						{/if}
 					</div>
 					<div class="absolute inset-x-0 bottom-0 flex">
-						{#if project.ref?.length > 0}
+						{#if ref?.length > 0}
 							<div class="grow flex">
 								<a
 									href={resolveRoute(
@@ -143,10 +139,10 @@
 								</a>
 							</div>
 						{/if}
-						{#if project['@_hasPlatform'] == 'true'}
+						{#if hasPlatform == 'true'}
 							<div class="grow flex justify-end">
 								<a
-									href="{prefix}{name}/platforms/"
+									href={resolveRoute('/(app)/dashboard/[[project]]/platforms', params)}
 									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-tl-lg"
 								>
 									<Ico icon="ph:package-thin" size="nav" />
@@ -162,9 +158,7 @@
 						e?.target?.['classList']?.toggle('opacity-70');
 					}}
 				>
-					<AutoPlaceholder loading={project['@_comment'] == null}
-						>{project['@_comment']}</AutoPlaceholder
-					>
+					<AutoPlaceholder {loading}>{comment}</AutoPlaceholder>
 				</button>
 			</div>
 		{/each}

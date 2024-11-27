@@ -1,7 +1,7 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
-	import Logs from '$lib/common/Logs.svelte';
+	import Logs from '$lib/admin/Logs.svelte';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -150,9 +150,16 @@
 		return result;
 	});
 
-	function addFilter(category, value = '', mode, ts = new Date().getTime(), not = false) {
+	function addFilter({
+		event,
+		category,
+		value = '',
+		mode = false,
+		ts = new Date().getTime(),
+		not = false
+	}) {
 		modalFilterParams = { category, value, mode, ts, not };
-		modalFilter.open();
+		modalFilter.open({ event });
 	}
 
 	function removeFilter(category, index) {
@@ -413,7 +420,9 @@
 									bind:delta={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
 								>
-								<button class="cursor-cell" onclick={() => addFilter(conf.name)}
+								<button
+									class="cursor-cell"
+									onclick={(event) => addFilter({ event, category: name })}
 									><Ico icon="mdi:filter" /></button
 								>
 								<button class="cursor-grab"><Ico icon="mdi:dots-vertical" /></button>
@@ -470,8 +479,12 @@
 				<span>Message</span>
 				<button
 					class="cursor-cell"
-					onmousedown={() => addFilter('Message', window?.getSelection()?.toString() ?? '')}
-					><Ico icon="mdi:filter" /></button
+					onclick={(event) =>
+						addFilter({
+							event,
+							category: 'Message',
+							value: window?.getSelection()?.toString() ?? ''
+						})}><Ico icon="mdi:filter" /></button
 				>
 			</div>
 			{#each filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
@@ -492,7 +505,7 @@
 						>
 						<button
 							class="cursor-pointer"
-							onclick={() => addFilter(category, value, mode, ts, not)}
+							onclick={(event) => addFilter({ event, category, value, mode, ts, not })}
 						>
 							<Ico icon="mdi:edit-outline" />
 						</button>
@@ -561,7 +574,7 @@
 								{style}
 								class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
 								animate:grabFlip={{ duration }}
-								onclick={() => addFilter(name, value)}
+								onclick={(event) => addFilter({ event, category: name, value })}
 							>
 								{value}
 							</button>

@@ -2,7 +2,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import Logs from '$lib/common/Logs.svelte';
+	import Logs from '$lib/admin/Logs.svelte';
 	import { onMount, untrack } from 'svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -20,7 +20,7 @@
 	let rangeVal = $state([15]);
 	let max = 25;
 
-	let logsCategory = $derived(Configuration.categories.find((c) => c['@_name'] == 'Logs'));
+	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
@@ -220,7 +220,7 @@
 				{:else if tabs[tabSet].name == 'Log Levels'}
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
 						{#each logsCategory?.property as property}
-							{#if property['@_description'] && property['@_description'].startsWith('Log4J')}
+							{#if property.description?.startsWith('Log4J')}
 								<PropertyType {property} />
 							{/if}
 						{/each}

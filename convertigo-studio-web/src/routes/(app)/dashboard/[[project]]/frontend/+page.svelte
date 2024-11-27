@@ -58,7 +58,7 @@
 				_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
 				for (let connector of Object.values(project.connector || {})) {
 					_parts.push({
-						name: connector['@_name'],
+						name: connector.name,
 						requestables: Object.values(connector.transaction || {})
 					});
 				}

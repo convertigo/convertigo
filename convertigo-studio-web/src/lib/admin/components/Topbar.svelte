@@ -1,5 +1,5 @@
 <script>
-	import PagesRailToggle from '../components/PagesRailToggle.svelte';
+	import PagesRailToggle from './PagesRailToggle.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';

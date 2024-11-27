@@ -45,7 +45,7 @@
 				_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
 				for (let connector of Object.values(project.connector || {})) {
 					_parts.push({
-						name: connector['@_name'],
+						name: connector.name,
 						requestables: Object.values(connector.transaction || {})
 					});
 				}
@@ -65,7 +65,7 @@
 		requestable.loading = true;
 		requestable.response = 'Loading …';
 		_parts = _parts;
-		const data = await callRequestable(mode, project['@_name'], new FormData(event.target));
+		const data = await callRequestable(mode, project.name, new FormData(event.target));
 		requestable.response = await data.text();
 		requestable.language = data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml';
 		requestable.loading = false;
@@ -76,11 +76,11 @@
 	 * @param {{ variables: { [s: string]: any; } | ArrayLike<any>; }} testcase
 	 */
 	function copyToInputs(testcase) {
-		Object.values(testcase.variables).forEach((variable) => {
-			const inputElement = document.querySelector(`input[name="${variable['@_name']}"]`);
+		Object.values(testcase.variables).forEach(({ name, value }) => {
+			const inputElement = document.querySelector(`input[name="${name}"]`);
 			if (inputElement) {
 				//@ts-ignore
-				inputElement.value = variable['@_value'];
+				inputElement.value = value;
 			}
 		});
 	}
@@ -90,9 +90,8 @@
 		_parts
 			.map((part) => ({
 				...part,
-				requestables: part.requestables.filter(
-					(/** @type {{ [x: string]: string; }} */ requestable) =>
-						requestable['@_name'].toLowerCase().includes(searchQuery.toLowerCase())
+				requestables: part.requestables.filter(({ name }) =>
+					name?.toLowerCase().includes(searchQuery.toLowerCase())
 				)
 			}))
 			.filter((part) => part.requestables.length > 0)
@@ -101,7 +100,7 @@
 	const [duration, y, opacity] = [200, -50, 1];
 </script>
 
-<Card title={project?.['@_name'] ?? null} class="!items-stretch">
+<Card title={project?.name ?? null} class="!items-stretch">
 	{#snippet cornerOption()}
 		<div
 			class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
@@ -111,9 +110,10 @@
 		</div>
 	{/snippet}
 	<AutoPlaceholder loading={!project}>
-		{@html convertMarkdownToHtml(project['@_comment'])}
+		{@html convertMarkdownToHtml(project.comment)}
 	</AutoPlaceholder>
-	{#each parts as { name, requestables }, index (name)}
+	{#each parts as part, index (part.name)}
+		{@const { name, requestables } = part}
 		<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 			<Accordion collapsible value={['n0']}>
 				<Accordion.Item value="n{index}">
@@ -122,7 +122,8 @@
 						<p class="text-lg font-semibold pb-2 border-b-[0.5px]">{name}</p>
 					{/snippet}
 					{#snippet panel()}
-						{#each requestables as requestable, index (requestable['@_name'])}
+						{#each requestables as requestable, index (requestable.name)}
+							{@const { name, comment } = requestable}
 							<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 								<Accordion
 									collapsible
@@ -136,12 +137,12 @@
 										> -->
 										{#snippet control()}
 											<div class="flex items-center justify-between relative">
-												<span class="text-[14px] text font-bold">{requestable['@_name']}</span>
+												<span class="text-[14px] text font-bold">{name}</span>
 												{#if !requestable.open}
 													<span
 														transition:fly={{ duration, y: 20 }}
 														class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
-														>{requestable['@_comment']}</span
+														>{comment}</span
 													>
 												{/if}
 											</div>
@@ -153,37 +154,37 @@
 												}}
 												class="flex flex-col gap-3"
 											>
-												{#if name == 'Sequences'}
-													<input type="hidden" name="__sequence" value={requestable['@_name']} />
-													<a href={requestable['@_name']} class="yellow-button">View flow</a>
+												{#if part.name == 'Sequences'}
+													<input type="hidden" name="__sequence" value={name} />
+													<a href={name} class="yellow-button">View flow</a>
 												{:else}
 													<input type="hidden" name="__connector" value={name} />
-													<input type="hidden" name="__transaction" value={requestable['@_name']} />
+													<input type="hidden" name="__transaction" value={name} />
 												{/if}
-												<span>{requestable['@_comment']}</span>
+												<span>{comment}</span>
 												<div class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800">
 													<p>Parameters</p>
 												</div>
 												<div class="grid grid-cols-2 p-5 gap-10">
 													<div class="col-span-1">
 														{#each Object.values(requestable.variable ?? {}) as variable}
-															{@const { checked } = variable}
+															{@const { checked, name, required, value } = variable}
 															<label class="label-common">
-																<p class="font-semibold mb-2">{variable['@_name']}</p>
+																<p class="font-semibold mb-2">{name}</p>
 																<div class="flex items-center gap-3">
 																	{#if checked}
 																		<input
 																			class="input-common"
-																			required={variable['@_required']}
-																			name={variable['@_name']}
-																			value={variable['@_value']}
+																			{required}
+																			{name}
+																			{value}
 																			in:blur={{ duration, opacity }}
 																		/>
 																	{:else}
 																		<input
 																			class="input-common"
 																			style="color: grey;"
-																			value={variable['@_value']}
+																			{value}
 																			readonly={true}
 																			in:blur={{ duration, opacity }}
 																			onclick={() => {
@@ -214,14 +215,11 @@
 													<div class="col-span-1">
 														{#if requestable.testcases && Object.keys(requestable.testcases).length > 0}
 															{#each Object.values(requestable.testcases) as testcase}
-																<p class="font-semibold mb-4">{testcase['@_name']}</p>
+																<p class="font-semibold mb-4">{testcase.name}</p>
 
 																{#if testcase.variables && Object.keys(testcase.variables).length > 0}
 																	{@const data = Object.values(testcase.variables).map(
-																		(variable) => [
-																			variable['@_name'],
-																			convertMarkdownToHtml(variable['@_value'])
-																		]
+																		({ name, value }) => [name, convertMarkdownToHtml(value)]
 																	)}
 																	<div class="table-container flex flex-col mb-5">
 																		<Table {columns} {data} />

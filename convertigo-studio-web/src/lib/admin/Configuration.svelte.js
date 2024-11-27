@@ -4,12 +4,12 @@ import { call } from '$lib/utils/service';
 /** @type {any} */
 let categories = $state(
 	new Array(15).fill({
-		'@_name': '',
-		'@_displayName': null,
+		name: '',
+		displayName: null,
 		property: new Array(10).fill({
-			'@_type': 'Text',
-			'@_description': null,
-			'@_value': ''
+			type: 'Text',
+			description: null,
+			value: ''
 		})
 	})
 );

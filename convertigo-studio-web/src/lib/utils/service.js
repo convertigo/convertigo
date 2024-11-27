@@ -70,7 +70,9 @@ export async function call(service, data = {}) {
 	let dataContent;
 
 	if (contentType?.includes('xml')) {
-		dataContent = new XMLParser({ ignoreAttributes: false }).parse(await res.text());
+		dataContent = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' }).parse(
+			await res.text()
+		);
 	} else {
 		dataContent = await res.json();
 	}

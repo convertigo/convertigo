@@ -10,9 +10,7 @@
 	let reject;
 
 	export async function open(p) {
-		if ('event' in p) {
-			p.event.currentTarget?.blur?.();
-		}
+		p?.event?.currentTarget?.blur?.();
 		params = p;
 		opened = true;
 		return await new Promise((ok) => {

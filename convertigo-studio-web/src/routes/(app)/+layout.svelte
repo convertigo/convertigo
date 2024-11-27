@@ -1,6 +1,6 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
-	import Topbar from '$lib/admin/sidebars/Topbar.svelte';
+	import Topbar from '$lib/admin/components/Topbar.svelte';
 	import PagesRail from '$lib/common/components/PagesRail.svelte';
 	import partsAdmin from '$lib/admin/PagesRail.json';
 	import partsDashboard from '$lib/dashboard/PagesRail.svelte.js';

@@ -5,7 +5,6 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 	import Ico from '$lib/utils/Ico.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let selectRow = $state(false);
