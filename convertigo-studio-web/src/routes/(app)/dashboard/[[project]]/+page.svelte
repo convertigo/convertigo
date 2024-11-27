@@ -6,12 +6,13 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { page } from '$app/stores';
+	import { resolveRoute } from '$app/paths';
 
 	let searchQuery = $state('');
 	let rootProject = $derived(
 		Projects.projects.find((project) => project['@_name'] == $page.params.project)
 	);
-	let prefix = $derived(rootProject ? '../' : '');
+	let prefix = $derived($page.params.project ? '../' : '');
 
 	let filters = $state([
 		{ icon: 'ph:video-thin', count: 0, filter: (project) => project['@_hasFrontend'] == 'true' },
@@ -82,8 +83,9 @@
 	</div>
 	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project['@_name'] ?? i)}
-			{@const name = project['@_name']}
-			{@const loading = name == null}
+			{@const name = project['@_name'] ? project['@_name'] : '_'}
+			{@const params = { project: name }}
+			{@const loading = project['@_name'] == null}
 			<div
 				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"
 				animate:flip={{ duration: 500 }}
@@ -108,7 +110,7 @@
 					<div class="absolute top-0 w-full flex">
 						<div class="grow flex">
 							<a
-								href="{prefix}{name}/backend/"
+								href={resolveRoute('/(app)/dashboard/[[project]]/backend', params)}
 								class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-br-lg"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
@@ -117,7 +119,7 @@
 						{#if project['@_hasFrontend'] == 'true'}
 							<div class="grow flex justify-end">
 								<a
-									href="{prefix}{name}/frontend/"
+									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
 									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-bl-lg"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
@@ -129,7 +131,10 @@
 						{#if project.ref?.length > 0}
 							<div class="grow flex">
 								<a
-									href="{prefix}{rootProject == project ? '' : `${name}/`}"
+									href={resolveRoute(
+										`/(app)/dashboard/${rootProject == project ? '' : '[[project]]'}`,
+										params
+									)}
 									class="p-3 hover:bg-secondary-500 h-fit rounded-tr-lg"
 									class:bg-secondary-300={rootProject != project}
 									class:bg-secondary-500={rootProject == project}

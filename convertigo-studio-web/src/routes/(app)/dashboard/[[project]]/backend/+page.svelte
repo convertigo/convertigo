@@ -1,6 +1,4 @@
 <script>
-	import { preventDefault } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 	import Table from '$lib/dashboard/components/Table.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
@@ -58,6 +56,7 @@
 	});
 
 	async function run(requestable, event) {
+		event.preventDefault();
 		if (event.submitter.textContent == 'Clear') {
 			requestable.response = '';
 			_parts = _parts;
@@ -149,13 +148,14 @@
 										{/snippet}
 										{#snippet panel()}
 											<form
-												onsubmit={preventDefault(async (e) => {
+												onsubmit={async (e) => {
 													run(requestable, e);
-												})}
+												}}
 												class="flex flex-col gap-3"
 											>
 												{#if name == 'Sequences'}
 													<input type="hidden" name="__sequence" value={requestable['@_name']} />
+													<a href={requestable['@_name']} class="yellow-button">View flow</a>
 												{:else}
 													<input type="hidden" name="__connector" value={name} />
 													<input type="hidden" name="__transaction" value={requestable['@_name']} />

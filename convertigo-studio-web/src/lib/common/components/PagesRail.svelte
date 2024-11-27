@@ -2,23 +2,17 @@
 	import { page } from '$app/stores';
 	import { fade, fly, slide } from 'svelte/transition';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolveRoute } from '$app/paths';
 
-	/** @type {{path: any, parts: any}} */
-	let { path, parts } = $props();
-	let isRoot = $derived($page.route.id == path);
-	let relativePath = $derived(
-		new Array(($page?.route?.id?.substring(path.length).split('/').length ?? 1) - 1)
-			.fill('../')
-			.join('')
-	);
+	/** @type {{parts: any}} */
+	let { parts } = $props();
 	let activeIndex = $derived.by(() => {
-		const i = parts[0].findIndex((part) =>
-			part.url == ''
-				? isRoot
-				: $page.url.pathname.endsWith(`${part.url}`) || $page.route.id == part.id
+		const i = parts[0].findIndex(
+			(part) => $page.route.id == part.page || $page.route.id == part.id
 		);
 		return i == -1 ? 0 : i;
 	});
+
 	let activeIndexLast = $state(0);
 	$effect(() => {
 		activeIndexLast = activeIndex;
@@ -27,10 +21,10 @@
 
 <nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
 	{#each parts as tiles, i}
-		{#each tiles as tile, j}
-			{@const url = tile.url.length ? `${tile.url}` : ''}
+		{#each tiles as { title, icon, url, page, params }, j}
+			{@const href = page ? resolveRoute(page, params) : url}
 			<a
-				href="{url.startsWith('http') ? '' : relativePath}{url}"
+				{href}
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
 				transition:slide={{ axis: 'y' }}
 			>
@@ -41,9 +35,9 @@
 						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
 					></span>
 				{/if}
-				<Ico size="nav" icon={tile.icon} class="z-10" />
+				<Ico size="5" {icon} class="z-10" />
 				<span class="text-[13px] z-10 font-{i == 0 && j == activeIndex ? 'medium' : 'light'}"
-					>{tile.title}</span
+					>{title}</span
 				>
 			</a>
 		{/each}

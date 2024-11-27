@@ -3,90 +3,90 @@
 		{
 			"title": "Home",
 			"icon": "material-symbols-light:home-outline",
-			"url": ""
+			"page": "/(app)/admin"
 		},
 		{
 			"title": "Config",
 			"icon": "ph:gear-thin",
-			"url": "config/",
-			"id": "/(app)/admin/config/[category]"
+			"id": "/(app)/admin/config/[category]",
+			"page": "/(app)/admin/config"
 		},
 		{
 			"title": "Connections",
 			"icon": "ph:plugs-connected-thin",
-			"url": "connections/"
+			"page": "/(app)/admin/connections"
 		},
 		{
 			"title": "Projects",
 			"icon": "ph:folder-thin",
-			"url": "projects/"
+			"page": "/(app)/admin/projects"
 		},
 		{
 			"title": "Certificate",
 			"icon": "ph:certificate-thin",
-			"url": "certificate/"
+			"page": "/(app)/admin/certificate"
 		},
 		{
 			"title": "Logs",
 			"icon": "lets-icons:search-light",
-			"url": "logs/"
+			"page": "/(app)/admin/logs"
 		},
 		{
 			"title": "Cache",
 			"icon": "material-symbols-light:update",
-			"url": "cache/"
+			"page": "/(app)/admin/cache"
 		},
 		{
 			"title": "Scheduler",
 			"icon": "material-symbols-light:schedule-outline",
-			"url": "scheduler/"
+			"page": "/(app)/admin/scheduler"
 		},
 		{
 			"title": "Keys",
 			"icon": "material-symbols-light:key-outline",
-			"url": "keys/"
+			"page": "/(app)/admin/keys"
 		},
 		{
 			"title": "Roles",
 			"icon": "lets-icons:user-alt-light",
-			"url": "roles/"
+			"page": "/(app)/admin/roles"
 		},
 		{
 			"title": "Symbols",
 			"icon": "et:tools-2",
-			"url": "symbols/"
+			"page": "/(app)/admin/symbols"
 		},
 		{
 			"title": "Full Sync",
 			"icon": "material-symbols-light:sync-outline",
-			"url": "fullsync/"
+			"page": "/(app)/admin/fullsync"
 		}
 	],
 	[
 		{
 			"title": "Dashboard",
 			"icon": "file-icons:test-ruby",
-			"url": "../dashboard/"
+			"page": "/(app)/dashboard"
 		},
 		{
 			"title": "Swagger",
 			"icon": "codicon:json",
-			"url": "swagger"
+			"url": "https://swagger.io"
 		},
 		{
 			"title": "Convertigo",
 			"icon": "material-symbols-light:cloud-outline",
-			"url": "convertigo"
+			"url": "https://www.convertigo.com"
 		},
 		{
 			"title": "Dev Network",
 			"icon": "material-symbols-light:sync-outline",
-			"url": "dev-network"
+			"url": "https://convertigo.atlassian.net/wiki/spaces/CK/"
 		},
 		{
 			"title": "Documentation",
 			"icon": "arcticons:doc-scanner",
-			"url": "documentation"
+			"url": "https://doc.convertigo.com"
 		}
 	]
 ]

@@ -10,11 +10,9 @@
 	import RightPart from './admin/RightPart.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
-
-	let path = $derived(
-		$page.route?.id?.startsWith('/(app)/dashboard') ? '/(app)/dashboard' : '/(app)/admin'
+	let parts = $derived(
+		$page.route?.id?.startsWith('/(app)/admin') ? partsAdmin : partsDashboard.parts
 	);
-	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard.parts);
 	let showLeft = $state(true);
 	let showDrawer = $state(false);
 </script>
@@ -31,7 +29,7 @@
 >
 	{#snippet content()}
 		<PagesRailToggle bind:state={showDrawer} />
-		<PagesRail {path} {parts} />
+		<PagesRail {parts} />
 	{/snippet}
 </Modal>
 
@@ -41,7 +39,7 @@
 	<div class="layout-y md:layout-x !gap-0 !items-stretch grow">
 		{#if showLeft}
 			<aside class="hide-md" transition:slide={{ axis: 'x' }}>
-				<PagesRail {path} {parts} />
+				<PagesRail {parts} />
 			</aside>
 		{/if}
 		{#key $page.route.id}

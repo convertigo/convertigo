@@ -11,6 +11,11 @@ export default {
 		'./src/**/*.{html,js,svelte,ts}',
 		join(require.resolve('@skeletonlabs/skeleton-svelte'), '../**/*.{html,js,svelte,ts}')
 	],
+	safelist: [
+		{
+			pattern: /(size|w|h)-.+/
+		}
+	],
 	theme: {
 		extend: {
 			colors: {

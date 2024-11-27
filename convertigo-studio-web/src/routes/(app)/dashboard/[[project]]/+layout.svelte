@@ -11,32 +11,37 @@
 
 	$effect(() => {
 		const extras = [];
-		const name = $page.params?.project;
-		if (name) {
+		const project = $page.params?.project;
+		if (project) {
 			if (Project.hasRef) {
 				extras.push({
 					title: 'References',
 					icon: 'ph:plugs-connected-thin',
-					url: `${name}/`
+					page: '/(app)/dashboard/[[project]]',
+					params: { project }
 				});
 			}
 			extras.push({
 				title: 'Backend',
 				icon: 'ph:gear-six-thin',
-				url: `${name}/backend/`
+				page: '/(app)/dashboard/[[project]]/backend',
+				id: '/(app)/dashboard/[[project]]/backend/[sequence]',
+				params: { project }
 			});
 			if (Project.hasFrontend) {
 				extras.push({
 					title: 'Frontend',
 					icon: 'ph:video-thin',
-					url: `${name}/frontend/`
+					page: '/(app)/dashboard/[[project]]/frontend',
+					params: { project }
 				});
 			}
 			if (Project.hasPlatforms) {
 				extras.push({
 					title: 'Platforms',
 					icon: 'ph:package-thin',
-					url: `${name}/platforms/`
+					page: '/(app)/dashboard/[[project]]/platforms',
+					params: { project }
 				});
 			}
 		}

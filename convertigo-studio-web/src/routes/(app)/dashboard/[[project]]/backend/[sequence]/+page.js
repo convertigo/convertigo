@@ -1,3 +1,3 @@
 export function entries() {
-	return [{ sequence: '_' }];
+	return [{ project: '_', sequence: '_' }];
 }

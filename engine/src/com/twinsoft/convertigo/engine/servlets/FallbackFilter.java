@@ -41,30 +41,36 @@ public class FallbackFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain filterChain) throws IOException, ServletException {
-		HttpServletRequest request = (HttpServletRequest) _request;
-		HttpServletResponse response = (HttpServletResponse) _response;
-		var servletPath = request.getServletPath();
-		if (servletPath.endsWith("/")) {
-			servletPath += "index.html";
-		}
-		if (servletPath.endsWith("/index.html")) {
-			var f = new File(Engine.WEBAPP_PATH, servletPath);
-			if (!f.exists()) {
-				var path = !File.separator.equals("/") ? f.getAbsolutePath().replace(File.separator, "/") : f.getAbsolutePath();
-				var split = path.split("/");
-				for (var i = split.length - 2; i >= 0; i--) {
-					var part = split[i];
-					split[i] = "_";
-					var fallback = new File(String.join("/", split));
-					split[i] = part;
-					if (fallback.exists()) {
-						request.getRequestDispatcher(fallback.getPath().substring(Engine.WEBAPP_PATH.length())).forward(request, response);
-						return;
-					}
-				}
-			}
-		}
-		filterChain.doFilter(request, response);
+	    HttpServletRequest request = (HttpServletRequest) _request;
+	    HttpServletResponse response = (HttpServletResponse) _response;
+	    var servletPath = request.getServletPath();
+	    if (servletPath.endsWith("/")) {
+	        servletPath += "index.html";
+	    }
+	    if (servletPath.endsWith("/index.html") && !new File(Engine.WEBAPP_PATH, servletPath).exists()) {
+	        var segments = servletPath.split("/");
+	        var currentPath = new StringBuilder();
+
+	        for (var i = 1; i < segments.length; i++) { // skip the first empty "/"
+	            currentPath.append("/");
+	            
+	            if (new File(Engine.WEBAPP_PATH, currentPath.toString() + segments[i]).exists()) {
+	            	currentPath.append(segments[i]);
+	            } else if (new File(Engine.WEBAPP_PATH, currentPath.toString() + "_").exists()) {
+					currentPath.append("_");
+				} else {
+					currentPath = null;
+					break;
+	            }
+	        }
+	        
+	        if (currentPath != null && new File(Engine.WEBAPP_PATH, currentPath.toString()).exists()) {
+	            request.getRequestDispatcher(currentPath.toString()).forward(request, response);
+	            return;
+	        }
+	    }
+	    
+	    filterChain.doFilter(request, response);
 	}
 
 	@Override

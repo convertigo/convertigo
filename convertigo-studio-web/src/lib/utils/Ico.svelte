@@ -227,7 +227,9 @@
 </script>
 
 {#if icon.includes(':')}
-	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
+	<svg class="size-{size} ico {cls}" viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}>
+		{@html ico[icon].match(/>(.*)</)?.[1]}
+	</svg>
 {:else}
 	<img src="{assets}/{icon}" class="w-{size} {cls}" {...props} />
 {/if}

@@ -4,7 +4,7 @@ const parts = $derived([
 		{
 			title: 'Projects',
 			icon: 'lucide:layout-panel-top',
-			url: ''
+			page: '/(app)/dashboard'
 		},
 		...extras
 	],
@@ -12,7 +12,7 @@ const parts = $derived([
 		{
 			title: 'Admin',
 			icon: 'carbon:panel-expansion',
-			url: '../admin/'
+			page: '/(app)/admin'
 		},
 		{
 			title: 'Documentation',

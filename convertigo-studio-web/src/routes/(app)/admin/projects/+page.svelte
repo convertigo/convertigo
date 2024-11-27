@@ -87,7 +87,7 @@
 		class="rounded"
 	>
 		{#snippet children({ row, def })}
-			{@const project = row['@_name']}
+			{@const project = row['@_name'] ? row['@_name'] : '_'}
 			{#if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[
