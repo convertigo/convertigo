@@ -101,7 +101,7 @@
 
 	const [duration, y, opacity] = [200, -50, 1];
 </script>
-
+<a href="_/">link</a>
 <Card title={project?.['@_name'] ?? null} class="!items-stretch">
 	{#snippet cornerOption()}
 		<div

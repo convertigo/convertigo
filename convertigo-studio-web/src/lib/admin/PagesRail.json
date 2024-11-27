@@ -71,22 +71,22 @@
 		{
 			"title": "Swagger",
 			"icon": "codicon:json",
-			"url": "swagger"
+			"url": "https://swagger.io"
 		},
 		{
 			"title": "Convertigo",
 			"icon": "material-symbols-light:cloud-outline",
-			"url": "convertigo"
+			"url": "https://www.convertigo.com"
 		},
 		{
 			"title": "Dev Network",
 			"icon": "material-symbols-light:sync-outline",
-			"url": "dev-network"
+			"url": "https://convertigo.atlassian.net/wiki/spaces/CK/"
 		},
 		{
 			"title": "Documentation",
 			"icon": "arcticons:doc-scanner",
-			"url": "documentation"
+			"url": "https://doc.convertigo.com"
 		}
 	]
 ]

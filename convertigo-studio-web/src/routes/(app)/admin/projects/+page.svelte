@@ -87,13 +87,15 @@
 		class="rounded"
 	>
 		{#snippet children({ row, def })}
-			{@const project = row['@_name']}
+			{@const disabled = row['@_name'] == null}
+			{@const project = disabled ? '_' : row['@_name']}
 			{#if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[
 						{
 							icon: 'mingcute:delete-line',
 							cls: 'delete-button',
+							disabled,
 							onclick: async (event) => {
 								if (
 									await modalDelete.open({
@@ -109,6 +111,7 @@
 						{
 							icon: 'simple-line-icons:reload',
 							cls: 'green-button',
+							disabled,
 							onclick: () => {
 								Projects.reload(project);
 							}
@@ -116,6 +119,7 @@
 						{
 							icon: 'bytesize:export',
 							cls: 'basic-button',
+							disabled,
 							onclick: async (event) => {
 								event.currentTarget?.blur();
 								const options = await Projects.exportOptions(project);
@@ -129,7 +133,8 @@
 						{
 							icon: 'file-icons:test-ruby',
 							cls: 'yellow-button',
-							href: `${base}/dashboard/${project}/backend/`
+							disabled,
+							[disabled ? '_' : 'href']: `${base}/dashboard/${project}/backend/`
 						}
 					]}
 					size="4"

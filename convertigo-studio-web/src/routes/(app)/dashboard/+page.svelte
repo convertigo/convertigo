@@ -6,6 +6,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 
 	let searchQuery = $state('');
 	let rootProject = $derived(
@@ -40,6 +41,9 @@
 			return ok;
 		})
 	);
+	onMount(() => {
+		console.log('mount');
+	});
 </script>
 
 <Card>
@@ -81,8 +85,8 @@
 		</span>
 	</div>
 	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each filteredProjects as project, i (project['@_name'] ?? i)}
-			{@const name = project['@_name']}
+		{#each filteredProjects as project, i (project['@_name'])}
+			{@const name = project['@_name'] ? project['@_name'] : '_' }
 			{@const loading = name == null}
 			<div
 				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"

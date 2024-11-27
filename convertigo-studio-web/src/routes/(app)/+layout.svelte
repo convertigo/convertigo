@@ -17,6 +17,9 @@
 	let parts = $derived(path == '/(app)/admin' ? partsAdmin : partsDashboard.parts);
 	let showLeft = $state(true);
 	let showDrawer = $state(false);
+
+	let doFade = $derived($page.route.id?.replace(/\/\[project\]$/, ''));
+	$inspect('doFade', doFade);
 </script>
 
 <Modal
@@ -44,7 +47,7 @@
 				<PagesRail {path} {parts} />
 			</aside>
 		{/if}
-		{#key $page.route.id}
+		{#key doFade}
 			<main class="px py w-full min-h-full grow" in:fade>
 				{@render children?.()}
 			</main>

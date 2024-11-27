@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import PagesRail from '$lib/dashboard/PagesRail.svelte';
 	import Project from '$lib/dashboard/Project.svelte';
+	import Dashboard from './+page.svelte';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
 	$effect(() => {
@@ -48,5 +50,8 @@
 		}
 	});
 </script>
-
-{@render children?.()}
+{#if $page.route.id?.endsWith('dashboard') || $page.route.id?.endsWith('[project]')}
+	<Dashboard />
+{:else}
+	{@render children?.()}
+{/if}

@@ -81,7 +81,7 @@
 	>
 		{#each Configuration.categories as category, i}
 			<a
-				href="../{category['@_name']}/"
+				href="../{category['@_name'] ? category['@_name'] : '_'}/"
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
 			>
 				{#if i == selectedIndex}
