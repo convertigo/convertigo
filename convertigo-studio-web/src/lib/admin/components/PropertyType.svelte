@@ -8,7 +8,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	/** @type {{property: any}} */
 	let { property = $bindable() } = $props();
-	let { type, description, value } = $derived(property);
+	let { type, description } = $derived(property);
 	let id = `property-input-${cpt++}`;
 
 	const buttons = [

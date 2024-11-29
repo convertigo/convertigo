@@ -1,37 +1,12 @@
 <script>
-	import AutoGrid from '$lib/admin/components/AutoGrid.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import { call, copyObj, equalsObj } from '$lib/utils/service';
+	import { call } from '$lib/utils/service';
 	import { Segment } from '@skeletonlabs/skeleton-svelte';
-	import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
 	import CacheInput from '$lib/admin/components/CacheInput.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-
-	/** @type {import('svelte/store').Writable<any>}*/
-	let conf = writable({});
-	let oriConf = $state(null);
-
-	async function update() {
-		const response = await call('cache.ShowProperties');
-		$conf = {
-			databaseType: 'mariadb',
-			serverName: 'dbhost',
-			port: 3306,
-			databaseName: 'c8ocache',
-			userName: 'cache_user',
-			userPassword: '',
-			cacheTableName: 'c8ocache',
-			...response.admin
-		};
-		oriConf = copyObj($conf);
-	}
-
-	onMount(() => {
-		update();
-	});
+	import Cache from '$lib/admin/Cache.svelte';
+	import { slide } from 'svelte/transition';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 
 	/** @param {any} e */
 	async function handlesubmit(e) {
@@ -40,31 +15,18 @@
 		if (e.submitter.textContent == 'Create Table and Apply') {
 			formData.append('create', '');
 		}
-		try {
-			// @ts-ignore
-			const response = await call('cache.Configure', formData);
-			// @ts-ignore
-			modalStoreCache.trigger({
-				title: 'Applied with success'
-			});
-		} catch (error) {
-			// @ts-ignore
-			modalStoreCache.trigger({
-				title: 'Error'
-			});
-		}
-		update();
-	}
-
-	async function cacheClear() {
-		await call('cache.Clear');
+		await call('cache.Configure', formData);
+		await Cache.refresh();
 	}
 </script>
 
-{#if oriConf}
-	{@const disabled = equalsObj($conf, oriConf)}
-	<form onsubmit={handlesubmit}>
-		<Card title="Cache Type">
+<form onsubmit={handlesubmit}>
+	<fieldset
+		disabled={Cache.loading}
+		class="layout-y !items-stretch"
+		class:animate-pulse={Cache.loading}
+	>
+		<Card title="Cache Type" class="!items-start">
 			{#snippet cornerOption()}
 				<ResponsiveButtons
 					buttons={[
@@ -72,46 +34,49 @@
 							label: 'Clear entries',
 							icon: 'mingcute:delete-line',
 							cls: 'delete-button',
-							onclick: cacheClear
+							onclick: Cache.clear
 						}
 					]}
 				/>
 			{/snippet}
-
-			<p class="mt-5 mb-2 font-normal">Choose the desired cache type</p>
-			<div class="flex items-center justify-between gap-5">
-				<Segment bind:value={$conf.cacheType}>
+			<p>Choose the desired cache type</p>
+			<div class="layout-x flex-wrap !justify-around w-full">
+				<Segment name="cacheType" bind:value={Cache.conf.cacheType}>
 					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
 						<Segment.Item {value} stateFocused="preset-filled-surface text-white">
 							{text}
 						</Segment.Item>
 					{/each}
 				</Segment>
-				<ButtonsContainer>
-					<button type="submit" class="green-button" {disabled}>
-						<Ico icon="solar:mask-happly-line-duotone" />
-						<p>Apply</p></button
-					>
-					<button type="submit" class="basic-button" {disabled}
-						><Ico icon="lets-icons:table-light" />
-						<p>Create Table and Apply</p></button
-					>
-					<button class="delete-button" {disabled} onclick={() => ($conf = copyObj(oriConf))}>
-						<Ico icon="material-symbols-light:cancel-outline" />
-						<p>Cancel</p></button
-					>
-				</ButtonsContainer>
+				<ResponsiveButtons
+					class="grow h-full"
+					buttons={[
+						{
+							label: 'Apply',
+							icon: 'solar:mask-happly-line-duotone',
+							cls: 'green-button'
+						},
+						{
+							label: 'Create Table and Apply',
+							icon: 'lets-icons:table-light',
+							cls: 'basic-button',
+							hidden: !Cache.conf?.cacheType.endsWith('DatabaseCacheManager')
+						},
+						{
+							label: 'Cancel',
+							icon: 'material-symbols-light:cancel-outline',
+							cls: 'cancel-button',
+							onclick: Cache.cancel
+						}
+					]}
+				/>
 			</div>
 		</Card>
 
-		{#if $conf.cacheType === 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager'}
-			<AutoGrid class="mt-5">
-				<Card title="Database Used">
-					<Segment
-						classes="flex flex-col p-5 preset-filled-success text"
-						bind:value={$conf.databaseType}
-					>
-						<!-- active="bg-secondary-400-500" -->
+		{#if Cache.conf?.cacheType.endsWith('DatabaseCacheManager')}
+			<div class="grid gap grid-cols-1 md:grid-cols-2" transition:slide>
+				<Card title="Database Used" class="!items-stretch">
+					<Segment name="databaseType" bind:value={Cache.conf.databaseType} orientation="vertical">
 						{@const data = [
 							{ value: 'sqlserver', text: 'SQLServer' },
 							{ value: 'mysql', text: 'MySQL' },
@@ -125,40 +90,42 @@
 					</Segment>
 				</Card>
 
-				{@const sections = [
-					{
-						title: 'Access Configuration',
-						fields: [
-							{ label: 'Server Name', name: 'serverName' },
-							{ label: 'Access Port', name: 'port' }
-						]
-					},
-					{
-						title: 'Configuration of the Identification',
-						fields: [
-							{ label: 'User Name', name: 'userName' },
-							{ label: 'User Password', name: 'userPassword', type: 'password' }
-						]
-					},
-					{
-						title: 'Cache Table',
-						fields: [
-							{ label: 'Database / Service Name', name: 'databaseName' },
-							{ label: 'Table Name', name: 'cacheTableName' }
-						]
-					}
-				]}
-
-				{#each sections as { title, fields }}
-					<Card {title}>
-						{#each fields as { label, name, type }}
-							<CacheInput {label} {name} {type} bind:value={$conf[name]} />
-						{/each}
-					</Card>
-				{/each}
-			</AutoGrid>
+				{#if true}
+					{@const sections = [
+						{
+							title: 'Access Configuration',
+							fields: [
+								{ label: 'Server Name', name: 'serverName' },
+								{ label: 'Access Port', name: 'port' }
+							]
+						},
+						{
+							title: 'Configuration of the Identification',
+							fields: [
+								{ label: 'User Name', name: 'userName' },
+								{ label: 'User Password', name: 'userPassword', type: 'password' }
+							]
+						},
+						{
+							title: 'Cache Table',
+							fields: [
+								{ label: 'Database / Service Name', name: 'databaseName' },
+								{ label: 'Table Name', name: 'cacheTableName' }
+							]
+						}
+					]}
+					{#each sections as { title, fields }}
+						<Card {title} class="!items-stretch">
+							{#each fields as { label, name, type = 'Text' }}
+								<!-- <CacheInput {label} {name} {type} bind:value={Cache.conf[name]} /> -->
+								<PropertyType
+									property={{ name, type, description: label, value: Cache.conf[name] }}
+								/>
+							{/each}
+						</Card>
+					{/each}
+				{/if}
+			</div>
 		{/if}
-	</form>
-{:else}
-	Loading
-{/if}
+	</fieldset>
+</form>

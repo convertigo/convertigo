@@ -13,40 +13,6 @@ let projects = $state(
 		})
 	})
 );
-async function refresh() {
-	calling = true;
-	try {
-		let res = await call('projects.List');
-		if (res?.admin?.projects) {
-			const prjs = checkArray(res?.admin?.projects?.project);
-			for (const project of prjs) {
-				project.comment = decode(project.comment);
-				project.ref = checkArray(project.ref);
-			}
-			projects = prjs;
-			needRefresh = false;
-		}
-	} catch (error) {
-		needRefresh = true;
-		console.error(error);
-	}
-	calling = false;
-}
-
-async function remove(projectName) {
-	await call('projects.Delete', { projectName });
-	await refresh();
-}
-
-async function reload(projectName) {
-	await call('projects.Reload', { projectName });
-	await refresh();
-}
-
-async function exportOptions(projectName) {
-	const res = await call('projects.ExportOptions', { projectName });
-	return checkArray(res?.admin?.options?.option);
-}
 
 let needRefresh = true;
 let calling = false;
@@ -54,12 +20,46 @@ let calling = false;
 export default {
 	get projects() {
 		if (browser && needRefresh && !calling) {
-			refresh();
+			this.refresh();
 		}
 		return projects;
 	},
-	refresh,
-	remove,
-	reload,
-	exportOptions
+	async refresh() {
+		calling = true;
+		try {
+			let res = await call('projects.List');
+			if (res?.admin?.projects) {
+				const prjs = checkArray(res?.admin?.projects?.project);
+				for (const project of prjs) {
+					project.comment = decode(project.comment);
+					project.ref = checkArray(project.ref);
+				}
+				projects = prjs;
+				needRefresh = false;
+			}
+		} catch (error) {
+			needRefresh = true;
+			console.error(error);
+		}
+		calling = false;
+	},
+	async remove(projectName) {
+		await call('projects.Delete', { projectName });
+		await this.refresh();
+	},
+	async reload(projectName) {
+		await call('projects.Reload', { projectName });
+		await this.refresh();
+	},
+	async exportOptions(projectName) {
+		const res = await call('projects.ExportOptions', { projectName });
+		return checkArray(res?.admin?.options?.option);
+	},
+	async undefinedSymbols(projectName) {
+		const res = await call('projects.GetUndefinedSymbols', { projectName });
+		return checkArray(res?.admin?.undefined_symbols?.symbol);
+	},
+	async createSymbols(projectName) {
+		return await call('global_symbols.Create', { projectName });
+	}
 };

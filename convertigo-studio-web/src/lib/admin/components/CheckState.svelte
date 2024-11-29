@@ -21,7 +21,7 @@
 	});
 </script>
 
-<Switch {classes} {name} {value} controlClasses="min-w-10" bind:checked>
+<Switch {classes} {name} value={values[1]} controlClasses="min-w-10" bind:checked>
 	<span class="block cursor-pointer break-words">{@render children?.()}</span>
 	{#if !checked && Array.isArray(values)}
 		<input type="hidden" {name} value={values[0]} />

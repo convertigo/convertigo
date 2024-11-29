@@ -58,9 +58,9 @@ public class Deploy extends UploadService {
 
 	@Override
 	protected void doUpload(HttpServletRequest request, Document document, FileItem item) throws Exception {
-		if (!item.getName().endsWith(".car")) {
+		if (!item.getName().endsWith(".car") && !item.getName().endsWith(".zip")) {
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "The deployment of the project "
-					+ item.getName() + " has failed. The archive file is not valid (.car required).", "error", false);
+					+ item.getName() + " has failed. The archive file is not valid (.car or .zip required).", "error", false);
 		}
 
 		super.doUpload(request, document, item);

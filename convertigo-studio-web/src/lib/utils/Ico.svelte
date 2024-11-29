@@ -68,6 +68,7 @@
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
 	import MdiSearch from '~icons/mdi/search?raw';
+	import MdiWarningOutline from '~icons/mdi/warning-outline?raw';
 	import MdiWeatherSunny from '~icons/mdi/weather-sunny?raw';
 	import MingcuteDeleteLine from '~icons/mingcute/delete-line?raw';
 	import OcticonLogoGithub16 from '~icons/octicon/logo-github-16?raw';
@@ -157,6 +158,7 @@
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:search': MdiSearch,
+		'mdi:warning-outline': MdiWarningOutline,
 		'mdi:weather-sunny': MdiWeatherSunny,
 		'mingcute:delete-line': MingcuteDeleteLine,
 		'octicon:logo-github-16': OcticonLogoGithub16,

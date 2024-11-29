@@ -10,6 +10,7 @@
 	let reject;
 
 	export async function open(p) {
+		p?.currentTarget?.blur?.();
 		p?.event?.currentTarget?.blur?.();
 		params = p;
 		opened = true;
