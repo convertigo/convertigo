@@ -134,7 +134,11 @@
 			<div class="w-full layout-cols-2">
 				{#each category.property as property}
 					{#if property.isAdvanced != 'true'}
-						<PropertyType {property} />
+						<PropertyType
+							{...property}
+							bind:value={property.value}
+							loading={property.description == null}
+						/>
 					{/if}
 				{/each}
 			</div>
@@ -150,7 +154,11 @@
 							<div class="w-full layout-cols-2">
 								{#each category.property as property}
 									{#if property.isAdvanced == 'true'}
-										<PropertyType {property} />
+										<PropertyType
+											{...property}
+											bind:value={property.value}
+											loading={property.description == null}
+										/>
 									{/if}
 								{/each}
 							</div>

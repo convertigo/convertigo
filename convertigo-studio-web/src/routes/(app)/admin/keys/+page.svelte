@@ -5,7 +5,6 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Icon from '@iconify/svelte';
 
 	let newKey = $state('');

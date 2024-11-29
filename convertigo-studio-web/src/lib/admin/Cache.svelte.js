@@ -1,8 +1,7 @@
 import { browser } from '$app/environment';
 import { call } from '$lib/utils/service';
 
-/** @type {any} */
-let conf = $state({
+const confDefault = {
 	cacheType: 'com.twinsoft.convertigo.engine.cache.FileCacheManager',
 	databaseType: 'mariadb',
 	serverName: 'dbhost',
@@ -11,8 +10,17 @@ let conf = $state({
 	userName: 'cache_user',
 	userPassword: '',
 	cacheTableName: 'c8ocache'
+};
+
+/** @type {any} */
+let conf = $state({
+	...confDefault
 });
-let oriConf = $state({});
+
+/** @type {any} */
+let confOriginal = $state({});
+
+let hasChanges = $derived(Object.entries(conf).some(([k, v]) => v != confOriginal[k]));
 
 let needRefresh = $state(true);
 let calling = $state(false);
@@ -27,6 +35,15 @@ export default {
 		}
 		return conf;
 	},
+	get confOriginal() {
+		return confOriginal;
+	},
+	get confDefault() {
+		return confDefault;
+	},
+	get hasChanged() {
+		return hasChanges;
+	},
 	async refresh() {
 		calling = true;
 		try {
@@ -37,7 +54,7 @@ export default {
 					...conf,
 					...res.admin
 				};
-				oriConf = { ...conf };
+				confOriginal = { ...conf };
 			}
 		} catch (error) {
 			needRefresh = true;
@@ -50,6 +67,6 @@ export default {
 	},
 	cancel(event) {
 		event?.preventDefault();
-		conf = { ...oriConf };
+		conf = { ...confOriginal };
 	}
 };

@@ -1,20 +1,13 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { call, createFormDataFromParent } from '$lib/utils/service';
+	import { call } from '$lib/utils/service';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import { onMount } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import {
-		certificatesList,
-		candidates,
-		certificates,
-		anonymousBinding,
-		cariocaBinding
-	} from '$lib/admin/stores/certificatesStore';
-	import { projectsStore, projectsCheck } from '$lib/admin/stores/projectsStore';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
+	import { Accordion, FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Certificates from '$lib/admin/Certificates.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 
 	const custom = true;
 
@@ -27,56 +20,137 @@
 		mappings: 'A note for Mappings'
 	};
 
-	onMount(async () => {
-		await projectsCheck();
-		await certificatesList();
-		candidatesState = $candidates;
+	// onMount(async () => {
+	// 	await projectsCheck();
+	// 	await certificatesList();
+	// 	candidatesState = $candidates;
+	// });
+
+	// async function removeCertificates(certificateName_1) {
+	// 	await call('certificates.Delete', { certificateName_1 });
+	// 	await certificatesList();
+	// }
+
+	// async function updateCertificate(e) {
+	// 	const tr = e.target.closest('tr');
+	// 	const fd = createFormDataFromParent(tr);
+	// 	await call('certificates.Configure', fd);
+	// 	await certificatesList();
+	// }
+
+	// async function updateMapping(e) {
+	// 	const tr = e.target.closest('tr');
+	// 	const fd = createFormDataFromParent(tr);
+	// 	if (fd.has('link')) {
+	// 		await call('certificates.mappings.Delete', { link_1: fd.get('link') });
+	// 		fd.delete('link');
+	// 	}
+	// 	if (fd.has('virtualServer_0')) {
+	// 		fd.append('targettedObject_0', 'tas');
+	// 		fd.append('project_0', fd.get('convProject_0') ?? '');
+	// 		fd.delete('convProject_0');
+	// 	} else {
+	// 		fd.append('targettedObject_0', 'projects');
+	// 	}
+	// 	await call('certificates.mappings.Configure', fd);
+	// 	await certificatesList();
+	// }
+
+	// async function deleteMapping(link_1) {
+	// 	await call('certificates.mappings.Delete', { link_1 });
+	// 	await certificatesList();
+	// }
+	let modalCertInstall = $state();
+	let modalCertRemove = $state();
+	/** @type {any} */
+	let bag = $state({
+		toRemove: ''
 	});
-
-	function openModalCertificates(mode) {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalCertificates',
-		// 	meta: { mode }
-		// });
-	}
-
-	async function removeCertificates(certificateName_1) {
-		await call('certificates.Delete', { certificateName_1 });
-		await certificatesList();
-	}
-
-	async function updateCertificate(e) {
-		const tr = e.target.closest('tr');
-		const fd = createFormDataFromParent(tr);
-		await call('certificates.Configure', fd);
-		await certificatesList();
-	}
-
-	async function updateMapping(e) {
-		const tr = e.target.closest('tr');
-		const fd = createFormDataFromParent(tr);
-		if (fd.has('link')) {
-			await call('certificates.mappings.Delete', { link_1: fd.get('link') });
-			fd.delete('link');
-		}
-		if (fd.has('virtualServer_0')) {
-			fd.append('targettedObject_0', 'tas');
-			fd.append('project_0', fd.get('convProject_0') ?? '');
-			fd.delete('convProject_0');
-		} else {
-			fd.append('targettedObject_0', 'projects');
-		}
-		await call('certificates.mappings.Configure', fd);
-		await certificatesList();
-	}
-
-	async function deleteMapping(link_1) {
-		await call('certificates.mappings.Delete', { link_1 });
-		await certificatesList();
-	}
 </script>
 
+{JSON.stringify(Certificates.candidates)}
+<ModalDynamic bind:this={modalCertInstall}>
+	<Card title="Install a new certificate">
+		<form
+			onsubmit={async (event) => {
+				event.preventDefault();
+				bag.uploading = true;
+				// @ts-ignore
+				await call('certificates.Install', new FormData(event?.target));
+				bag.uploading = false;
+				Certificates.refresh();
+				modalCertInstall.close();
+			}}
+		>
+			<fieldset disabled={bag.uploading}>
+				<FileUpload
+					name="userfile"
+					accept={{ 'application/x-pkcs12': ['.pfx', '.p12'], 'application/pkix-cert': ['.cer'] }}
+					maxFiles={1}
+					subtext="then press Install"
+					classes="w-full"
+					required
+					allowDrop
+				>
+					{#snippet iconInterface()}<Ico icon="fluent-mdl2:certificate" size="8" />{/snippet}
+					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
+					{#snippet iconFileRemove()}<Ico
+							icon="material-symbols-light:delete-outline"
+							size="8"
+						/>{/snippet}
+				</FileUpload>
+				<div class="w-full layout-x justify-end">
+					<button type="submit" class="basic-button"
+						><span><Ico icon="fluent-mdl2:certificate" size="btn" /></span><span>Install</span
+						></button
+					>
+					<button type="button" onclick={modalCertInstall.close} class="cancel-button"
+						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
+							>Cancel</span
+						></button
+					>
+				</div>
+			</fieldset>
+		</form>
+	</Card>
+</ModalDynamic>
+<ModalDynamic bind:this={modalCertRemove}>
+	<Card title="Remove a certificate">
+		<form
+			onsubmit={async (event) => {
+				event.preventDefault();
+				bag.uploading = true;
+				// @ts-ignore
+				await call('certificates.Remove', new FormData(event?.target));
+				bag.uploading = false;
+				Certificates.refresh();
+				modalCertInstall.close();
+			}}
+		>
+			<fieldset disabled={bag.uploading}>
+				<PropertyType
+					type="segment"
+					orientation="vertical"
+					name="certificateName"
+					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
+					bind:value={bag.toRemove}
+				/>
+				<div class="w-full layout-x justify-end">
+					<button type="submit" class="basic-button"
+						><span><Ico icon="fluent-mdl2:certificate" size="btn" /></span><span>Remove</span
+						></button
+					>
+					<button type="button" onclick={modalCertRemove.close} class="cancel-button"
+						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
+							>Cancel</span
+						></button
+					>
+				</div>
+			</fieldset>
+		</form>
+	</Card>
+</ModalDynamic>
+<!-- {JSON.stringify(Certificates.candidates)} -->
 <Card title="Certificates">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
@@ -86,13 +160,13 @@
 					label: 'Install a new certificate',
 					icon: 'fluent-mdl2:certificate',
 					cls: 'basic-button',
-					onclick: () => openModalCertificates('Install')
+					onclick: modalCertInstall?.open
 				},
 				{
 					label: 'Remove a certificate',
 					icon: 'mingcute:delete-line',
 					cls: 'delete-button',
-					onclick: () => openModalCertificates('Remove')
+					onclick: modalCertRemove?.open
 				}
 			]}
 		/>
@@ -157,8 +231,9 @@
 				{ name: 'Update', custom },
 				{ name: 'Delete', custom }
 			]}
-			data={$candidates.length ? [...$certificates, 'new'] : $certificates}
+			data={[]}
 		>
+			<!-- data={$candidates.length ? [...$certificates, 'new'] : $certificates} -->
 			{#snippet children({ row, def })}
 				{#if def.name === 'Certificate / Store'}
 					{#if row == 'new'}
@@ -193,18 +268,18 @@
 						value={row['@_group'] ?? ''}
 					/>
 				{:else if def.name === 'Update'}
-					<button class="green-button" onclick={updateCertificate}>
+					<!-- <button class="green-button" onclick={updateCertificate}>
 						<Ico icon="dashicons:update" />
-					</button>
+					</button> -->
 				{:else if def.name === 'Delete'}
 					{#if row != 'new'}
-						<button
+						<!-- <button
 							class="delete-button"
 							type="button"
 							onclick={() => removeCertificates(row['@_name'])}
 						>
 							<Ico icon="mingcute:delete-line" />
-						</button>
+						</button> -->
 					{/if}
 				{/if}
 			{/snippet}
@@ -219,8 +294,8 @@
 						{ name: 'Certificate / Store', custom },
 						{ name: 'Update', custom },
 						{ name: 'Delete', custom }
-					],
-					store: $anonymousBinding
+					]
+					// store: $anonymousBinding
 				},
 				{
 					title: 'Mappings for carioca users',
@@ -232,8 +307,8 @@
 						{ name: 'Certificate / Store', custom },
 						{ name: 'Update', custom },
 						{ name: 'Delete', custom }
-					],
-					store: $cariocaBinding
+					]
+					// store: $cariocaBinding
 				}
 			]}
 			<div class="flex w-[30%]">
@@ -259,19 +334,15 @@
 			</div>
 			<p class="font-bold text-surface-300 p-3"></p>
 			{#each conf as { title, definition, store }}
-				<TableAutoCard
-					class="mt-5"
-					{title}
-					{definition}
-					data={$certificates.length ? [...store, 'new'] : []}
-				>
+				<TableAutoCard class="mt-5" {title} {definition} data={[]}>
+					<!-- data={$certificates.length ? [...store, 'new'] : []} -->
 					{#snippet children({ row, def })}
 						{#if def.name === 'Project Name'}
 							{#if row == 'new'}
 								<select class="input-common" name="convProject_0">
-									{#each $projectsStore as project}
+									<!-- {#each $projectsStore as project}
 										<option value={project['@_name']}>{project['@_name']}</option>
-									{/each}
+									{/each} -->
 								</select>
 							{:else}
 								<input type="hidden" name="convProject_0" value={row['@_projectName']} />
@@ -300,7 +371,7 @@
 								placeholder="Enter Value ..."
 							/>
 						{:else if def.name === 'Certificate / Store'}
-							<select
+							<!-- <select
 								class="input-common"
 								name="cert_0"
 								value={row['@_certificateName'] ?? $certificates[0]['@_name']}
@@ -310,16 +381,16 @@
 										{certificate['@_name']}
 									</option>
 								{/each}
-							</select>
+							</select> -->
 						{:else if def.name === 'Update'}
-							<button class="green-button" onclick={updateMapping}>
+							<!-- <button class="green-button" onclick={updateMapping}>
 								<Ico icon="dashicons:update" />
-							</button>
+							</button> -->
 						{:else if def.name === 'Delete'}
 							{#if row !== 'new'}
-								<button class="delete-button" onclick={() => deleteMapping(row['@_link'])}>
+								<!-- <button class="delete-button" onclick={() => deleteMapping(row['@_link'])}>
 									<Ico icon="mingcute:delete-line" />
-								</button>
+								</button> -->
 							{/if}
 						{/if}
 					{/snippet}

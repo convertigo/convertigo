@@ -1,13 +1,13 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 
-	/** @type {{ buttons: {label?: string, icon?: string, cls?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, onclick?: () => void}[], size?: string, class?: string }} */
-	let { buttons, size = 'btn', class: cls = 'max-w-sm' } = $props();
+	/** @type {{ buttons: {label?: string, icon?: string, cls?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, onclick?: () => void}[], size?: string, class?: string, disabled?: boolean }} */
+	let { buttons, size = 'btn', class: cls = 'max-w-sm', disabled = false } = $props();
 	let onlyIcons = buttons.every(({ label }) => !label);
 </script>
 
 <div class="ml-auto {cls}">
-	<div class:layout-grid-low-5={onlyIcons} class:layout-grid-low-24={!onlyIcons}>
+	<fieldset class:layout-grid-low-5={onlyIcons} class:layout-grid-low-24={!onlyIcons} {disabled}>
 		{#each buttons as { label, icon, cls, disabled, value, hidden, href, onclick }}
 			{#if !hidden}
 				{#if href}
@@ -22,5 +22,5 @@
 				{/if}
 			{/if}
 		{/each}
-	</div>
+	</fieldset>
 </div>

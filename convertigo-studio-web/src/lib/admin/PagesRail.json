@@ -22,9 +22,9 @@
 			"page": "/(app)/admin/projects"
 		},
 		{
-			"title": "Certificate",
+			"title": "Certificates",
 			"icon": "ph:certificate-thin",
-			"page": "/(app)/admin/certificate"
+			"page": "/(app)/admin/certificates"
 		},
 		{
 			"title": "Logs",

@@ -1,8 +1,6 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
-	import { Segment } from '@skeletonlabs/skeleton-svelte';
-	import CacheInput from '$lib/admin/components/CacheInput.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Cache from '$lib/admin/Cache.svelte';
 	import { slide } from 'svelte/transition';
@@ -41,13 +39,18 @@
 			{/snippet}
 			<p>Choose the desired cache type</p>
 			<div class="layout-x flex-wrap !justify-around w-full">
-				<Segment name="cacheType" bind:value={Cache.conf.cacheType}>
-					{#each [{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' }, { text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }] as { text, value }}
-						<Segment.Item {value} stateFocused="preset-filled-surface text-white">
-							{text}
-						</Segment.Item>
-					{/each}
-				</Segment>
+				<PropertyType
+					name="cacheType"
+					item={[
+						{ text: 'File', value: 'com.twinsoft.convertigo.engine.cache.FileCacheManager' },
+						{ text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }
+					]}
+					type="segment"
+					bind:value={Cache.conf.cacheType}
+					loading={Cache.loading}
+					defaultValue={Cache.confDefault?.cacheType}
+					originalValue={Cache.confOriginal?.cacheType}
+				/>
 				<ResponsiveButtons
 					class="grow h-full"
 					buttons={[
@@ -66,6 +69,7 @@
 							label: 'Cancel',
 							icon: 'material-symbols-light:cancel-outline',
 							cls: 'cancel-button',
+							disabled: !Cache.hasChanged,
 							onclick: Cache.cancel
 						}
 					]}
@@ -74,20 +78,25 @@
 		</Card>
 
 		{#if Cache.conf?.cacheType.endsWith('DatabaseCacheManager')}
+			{@const item = [
+				{ value: 'sqlserver', text: 'SQLServer' },
+				{ value: 'mysql', text: 'MySQL' },
+				{ value: 'mariadb', text: 'MariaDB' },
+				{ value: 'postgresql', text: 'PostgreSQL' },
+				{ value: 'oracle', text: 'Oracle' }
+			]}
 			<div class="grid gap grid-cols-1 md:grid-cols-2" transition:slide>
 				<Card title="Database Used" class="!items-stretch">
-					<Segment name="databaseType" bind:value={Cache.conf.databaseType} orientation="vertical">
-						{@const data = [
-							{ value: 'sqlserver', text: 'SQLServer' },
-							{ value: 'mysql', text: 'MySQL' },
-							{ value: 'mariadb', text: 'MariaDB' },
-							{ value: 'postgresql', text: 'PostgreSQL' },
-							{ value: 'oracle', text: 'Oracle' }
-						]}
-						{#each data as { value, text }}
-							<Segment.Item {value}>{text}</Segment.Item>
-						{/each}
-					</Segment>
+					<PropertyType
+						name="databaseType"
+						{item}
+						type="segment"
+						bind:value={Cache.conf.databaseType}
+						orientation="vertical"
+						loading={Cache.loading}
+						defaultValue={Cache.confDefault?.databaseType}
+						originalValue={Cache.confOriginal?.databaseType}
+					/>
 				</Card>
 
 				{#if true}
@@ -116,10 +125,13 @@
 					]}
 					{#each sections as { title, fields }}
 						<Card {title} class="!items-stretch">
-							{#each fields as { label, name, type = 'Text' }}
-								<!-- <CacheInput {label} {name} {type} bind:value={Cache.conf[name]} /> -->
+							{#each fields as field}
 								<PropertyType
-									property={{ name, type, description: label, value: Cache.conf[name] }}
+									{...field}
+									loading={Cache.loading}
+									defaultValue={Cache.confDefault[field.name]}
+									originalValue={Cache.confOriginal[field.name]}
+									bind:value={Cache.conf[field.name]}
 								/>
 							{/each}
 						</Card>

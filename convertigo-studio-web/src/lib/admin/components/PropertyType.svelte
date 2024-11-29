@@ -6,70 +6,102 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import CheckState from './CheckState.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	/** @type {{property: any}} */
-	let { property = $bindable() } = $props();
-	let { type, description } = $derived(property);
-	let id = `property-input-${cpt++}`;
+	import { Segment } from '@skeletonlabs/skeleton-svelte';
 
-	const buttons = [
-		{ icon: 'mdi:arrow-u-left-top', type: 'originalValue', title: 'restore' },
-		{ icon: 'mdi:backup-restore', type: 'defaultValue', title: 'reset' }
-	];
+	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean}|any} */
+	let {
+		value = $bindable(),
+		label: _label,
+		description,
+		name,
+		item,
+		type: _type = 'text',
+		defaultValue,
+		originalValue,
+		loading = false,
+		...rest
+	} = $props();
+	let label = $derived(description ?? _label);
+	let restores = $derived.by(() => {
+		const r = [];
+		if (originalValue != null) {
+			r.push({ icon: 'mdi:arrow-u-left-top', val: originalValue, title: 'reset' });
+		}
+		if (defaultValue != null) {
+			r.push({ icon: 'mdi:backup-restore', val: defaultValue, title: 'restore' });
+		}
+		return r;
+	});
+	let type = $derived(_type?.toLocaleLowerCase());
+	let id = `property-input-${cpt++}`;
 </script>
 
 <div class="layout-y-low sm:layout-x-low">
 	<div class="max-sm:self-stretch sm:grow">
-		{#if type == 'Boolean'}
-			<CheckState name={id} bind:value={property.value}>{description}</CheckState>
+		{#if type == 'boolean'}
+			<CheckState {name} bind:value>{label}</CheckState>
 		{:else}
-			{@const loading = description == null}
 			{@const autocomplete = 'one-time-code'}
 			{@const placeholder = 'Enter value ...'}
 			<div class="flex-1 flex flex-col justify-center border-common">
-				<AutoPlaceholder {loading}>
-					<label class="label-common" for={id}>{description}</label>
-				</AutoPlaceholder>
-				{#if type == 'Combo'}
-					<select class="input-common" {id} bind:value={property.value}>
-						{#each property.item as option}
-							<option value={option.value}>{option['#text']}</option>
+				{#if label}
+					<AutoPlaceholder {loading}>
+						<label class="label-common" for={id}>{label}</label>
+					</AutoPlaceholder>
+				{/if}
+				{#if type == 'segment'}
+					<Segment {...rest} {name} bind:value>
+						{#each item as option}
+							<Segment.Item value={option.value} stateFocused="preset-filled-surface text-white">
+								{option.text ?? option['#text']}
+							</Segment.Item>
+						{/each}
+					</Segment>
+				{:else if type == 'combo'}
+					<select {name} class="input-common" {id} bind:value>
+						{#each item as option}
+							<option value={option.value}>{option.text ?? option['#text']}</option>
 						{/each}
 					</select>
-				{:else if type == 'Array'}
+				{:else if type == 'array'}
 					<textarea
 						{id}
+						{name}
 						{autocomplete}
 						{placeholder}
 						class="input-common input-text placeholder:pl-1"
-						bind:value={property.value}
+						bind:value
 					></textarea>
 				{:else}
 					<input
 						{id}
+						{name}
 						{autocomplete}
 						{placeholder}
-						type={type == 'Text' ? 'text' : 'password'}
+						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
 						class="input-common input-text placeholder:pl-1"
-						bind:value={property.value}
+						bind:value
 					/>
 				{/if}
 			</div>
 		{/if}
 	</div>
-	<div class="layout-x-low sm:layout-y-low">
-		{#each buttons as { icon, type, title }}
-			<button
-				disabled={property.value == property[type]}
-				onclick={() => {
-					property.value = property[type];
-				}}
-				title="{title}:{property[type]}"
-				class="btn btn-sm bg-surface-200-800"
-			>
-				<Ico {icon} />
-			</button>
-		{/each}
-	</div>
+	{#if restores.length > 0}
+		<div class="layout-x-low sm:layout-y-low">
+			{#each restores as { icon, val, title }}
+				<button
+					disabled={value == val}
+					onclick={() => {
+						value = val;
+					}}
+					title="{title}:{val}"
+					class="btn btn-sm bg-surface-200-800"
+				>
+					<Ico {icon} />
+				</button>
+			{/each}
+		</div>
+	{/if}
 </div>

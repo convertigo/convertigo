@@ -1,7 +1,7 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
 	import { call } from '$lib/utils/service';
-	import { onMount } from 'svelte';
+	// import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -10,9 +10,9 @@
 	let selectRow = $state(false);
 	let selectedUsers = new Set();
 	let allSelected = false;
-	onMount(() => {
-		usersList();
-	});
+	// onMount(() => {
+	// 	usersList();
+	// });
 
 	function DisplaySelectRow() {
 		selectRow = !selectRow;
@@ -51,7 +51,7 @@
 			const res = await call('roles.Delete', formData);
 			if (res?.admin?.response?.['@_state'] == 'success') {
 				usersList();
-				modalStore.close();
+				// modalStore.close();
 			}
 		} catch (error) {
 			console.error('Error deleting user role:', error);
@@ -63,7 +63,7 @@
 			const res = await call('roles.DeleteAll');
 			if (res?.admin?.response?.['@_state'] == 'success') {
 				usersList();
-				modalStore.close();
+				// modalStore.close();
 			}
 		} catch (err) {
 			console.error(err);
@@ -71,42 +71,42 @@
 	}
 
 	function openModals(mode, row) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalRoles',
-			meta: { mode, row },
-			title: row ? `Edit roles` : `New roles`
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalRoles',
+		// 	meta: { mode, row },
+		// 	title: row ? `Edit roles` : `New roles`
+		// });
 	}
 
 	function openDeleteAllModal() {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalWarning',
-			title: 'You are going to delete All Roles',
-			body: 'Are you sure you want to ?',
-			meta: { mode: 'Confirm' },
-			response: async (confirmed) => {
-				if (confirmed) {
-					deleteAllRoles();
-				}
-			}
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalWarning',
+		// 	title: 'You are going to delete All Roles',
+		// 	body: 'Are you sure you want to ?',
+		// 	meta: { mode: 'Confirm' },
+		// 	response: async (confirmed) => {
+		// 		if (confirmed) {
+		// 			deleteAllRoles();
+		// 		}
+		// 	}
+		// });
 	}
 
 	function openDeleteModal(row) {
-		modalStore.trigger({
-			type: 'component',
-			component: 'modalWarning',
-			title: 'Please Confirm',
-			body: 'Are you sure you want to delete the role ?',
-			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
-				if (confirmed) {
-					deleteUsersRoles(row);
-				}
-			}
-		});
+		// modalStore.trigger({
+		// 	type: 'component',
+		// 	component: 'modalWarning',
+		// 	title: 'Please Confirm',
+		// 	body: 'Are you sure you want to delete the role ?',
+		// 	meta: { mode: 'Confirm' },
+		// 	response: (confirmed) => {
+		// 		if (confirmed) {
+		// 			deleteUsersRoles(row);
+		// 		}
+		// 	}
+		// });
 	}
 
 	function exportUserFile() {
@@ -246,7 +246,7 @@
 			{/snippet}
 		</TableAutoCard>
 	{:else}
-		<div class="table-container">
+		<!-- <div class="table-container">
 			<table class="rounded table">
 				<thead class="rounded">
 					<tr>
@@ -269,11 +269,11 @@
 					{/each}
 				</tbody>
 			</table>
-		</div>
+		</div> -->
 	{/if}
 </Card>
 
-<style lang="postcss">
+<!-- <style lang="postcss">
 	.role-view {
 		@apply mr-1 px-2 dark:bg-secondary-500 bg-secondary-400 font-light gap-2 rounded dark:bg-opacity-80;
 	}
@@ -283,4 +283,4 @@
 	.role-other {
 		@apply mr-1 px-2 dark:bg-tertiary-600 bg-tertiary-400 gap-2 font-light rounded dark:bg-opacity-80;
 	}
-</style>
+</style> -->

@@ -1,5 +1,5 @@
 <script>
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -60,10 +60,10 @@
 		{/snippet}
 		<TableAutoCard
 			definition={[
-				{ name: 'Contexts In Use', key: 'contexts' },
-				{ name: 'Threads In Use', key: 'threads' },
-				{ name: 'Sessions In Use', key: 'sessions' },
-				{ name: 'Max http session inactivity', key: 'timeout' }
+				{ name: 'Contexts In Use', key: 'contexts', class: 'max-w-10' },
+				{ name: 'Threads In Use', key: 'threads', class: 'max-w-10' },
+				{ name: 'Sessions In Use', key: 'sessions', class: 'max-w-10' },
+				{ name: 'Max http session inactivity', key: 'timeout', class: 'max-w-10' }
 			]}
 			{data}
 		/>

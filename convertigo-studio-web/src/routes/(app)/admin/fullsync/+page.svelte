@@ -1,6 +1,5 @@
 <script>
 	import { browser } from '$app/environment';
-	import Card from '$lib/admin/components/Card.svelte';
 	import MaxHeight from '$lib/admin/components/MaxHeight.svelte';
 	import { getUrl } from '$lib/utils/service';
 
