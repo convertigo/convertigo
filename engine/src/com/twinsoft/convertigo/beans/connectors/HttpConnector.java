@@ -862,7 +862,7 @@ public class HttpConnector extends Connector {
 
 			Engine.logBeans.debug("(HttpConnector) Https: " + https);
 			
-			URL url = new URL(sUrl);
+			URL url = java.net.URI.create(sUrl).toURL();
 			String host = url.getHost();
 			int port = url.getPort();
 			
@@ -1537,7 +1537,7 @@ public class HttpConnector extends Connector {
 							certificateManager.collectStoreInformation(context);
 						}
 
-						url = new URL(absoluteUrl);
+						url = java.net.URI.create(absoluteUrl).toURL();
 						host = url.getHost();
 						port = url.getPort();
 						if (port == -1)
@@ -1564,7 +1564,7 @@ public class HttpConnector extends Connector {
 						// absoluteUrl = url.getFile();
 						Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + absoluteUrl);
 					} else {
-						url = new URL(absoluteUrl);
+						url = java.net.URI.create(absoluteUrl).toURL();
 						host = url.getHost();
 						port = url.getPort();
 
