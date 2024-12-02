@@ -39,10 +39,10 @@
 
 <div bind:this={container} class="table-container {cls}" class:autocard={isCardView}>
 	{#if title.length > 0}
-		<h1 class="tableTitle">{title}</h1>
+		<h1 class="text-[16px] font-normal text-surface-800-200">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="font-bold text-surface-300 p-3">{comment}</h1>
+		<h1 class="font-bold text-surface-700-300 p-3">{comment}</h1>
 	{/if}
 
 	<table>
@@ -63,7 +63,7 @@
 		{/if}
 		{#if data && data.length > 0}
 			<tbody>
-				{#each data as row}
+				{#each data as row, rowIdx}
 					<tr>
 						{#each definition as def}
 							<td
@@ -76,7 +76,7 @@
 							>
 								{#if def.custom}
 									{#if children}
-										{@render children({ row, def })}
+										{@render children({ row, def, rowIdx })}
 									{:else}
 										{row[def.key] ?? ''}
 									{/if}
@@ -106,10 +106,6 @@
 </div>
 
 <style lang="postcss">
-	.tableTitle {
-		@apply text-[16px] font-normal text-surface-200 mb-3 mt-5;
-	}
-
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;

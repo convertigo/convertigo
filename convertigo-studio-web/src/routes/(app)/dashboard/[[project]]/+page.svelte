@@ -7,10 +7,11 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { page } from '$app/stores';
 	import { resolveRoute } from '$app/paths';
+	import { onDestroy } from 'svelte';
 
+	let { projects } = $derived(Projects);
 	let searchQuery = $state('');
-	let rootProject = $derived(Projects.projects.find(({ name }) => name == $page.params.project));
-	let prefix = $derived($page.params.project ? '../' : '');
+	let rootProject = $derived(projects.find(({ name }) => name == $page.params.project));
 
 	let filters = $state([
 		{ icon: 'ph:video-thin', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
@@ -22,7 +23,7 @@
 	]);
 
 	let filteredProjects = $derived(
-		Projects.projects.filter((project) => {
+		projects.filter((project) => {
 			if (rootProject) {
 				return project.name == rootProject.name || rootProject.ref?.includes(project.name);
 			}
@@ -37,6 +38,8 @@
 			return ok;
 		})
 	);
+
+	onDestroy(Projects.stop);
 </script>
 
 <Card>

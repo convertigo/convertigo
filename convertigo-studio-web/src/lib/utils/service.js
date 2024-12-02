@@ -10,7 +10,6 @@ export function setToastStore(toastStore) {
 export function setModalStore(modalStore) {
 	modalLoading = modalStore;
 }
-
 let cpt = 0;
 loading.subscribe((n) => (cpt = n));
 
@@ -224,8 +223,8 @@ function handleStateMessage(dataContent, service) {
 }
 
 export function getUrl(path = '/admin/services/') {
-	const m = window.location.pathname.match('^(.+?)/studio/');
-	return `${window.location.origin}${m ? m[1] : '/convertigo'}${path}`;
+	const m = location?.pathname?.match('^(.+?)/studio/');
+	return `${location?.origin}${m ? m[1] : '/convertigo'}${path}`;
 }
 
 export function getQuery(query) {
@@ -374,6 +373,26 @@ export function createFormDataFromParent(parent) {
  */
 export function checkArray(array) {
 	return Array.isArray(array) ? array : (array ?? false) ? [array] : [];
+}
+
+export function getNestedProperty(obj, path) {
+	return path.split('.').reduce((acc, key) => acc?.[key], obj);
+}
+
+export function setNestedProperty(obj, path, value) {
+	const keys = path.split('.');
+	let current = obj;
+
+	for (let i = 0; i < keys.length - 1; i++) {
+		const key = keys[i];
+
+		if (!current[key] || typeof current[key] !== 'object') {
+			current[key] = {};
+		}
+		current = current[key];
+	}
+
+	current[keys[keys.length - 1]] = value;
 }
 
 export function deepObject(obj) {

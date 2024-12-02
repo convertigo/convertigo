@@ -14,18 +14,21 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import Last from '../Last.svelte';
 
+	let { categories, refresh, updateConfigurations } = $derived(Configuration);
+
 	let selectedIndex = $derived(
 		Math.max(
 			0,
-			Configuration.categories.findIndex(({ name }) => name == $page.params.category)
+			categories.findIndex(({ name }) => name == $page.params.category)
 		)
 	);
 	let selectedIndexLast = $state(-1);
-	let category = $derived(Configuration.categories[selectedIndex] ?? {});
+	let category = $derived(categories[selectedIndex] ?? {});
 
 	RightPart.snippet = rightPart;
 	onDestroy(() => {
 		RightPart.snippet = undefined;
+		Configuration.stop();
 	});
 
 	beforeNavigate(async (nav) => {
@@ -35,7 +38,7 @@
 		if (hasChanges) {
 			nav.cancel();
 			if (await modalUnsaved.open()) {
-				Configuration.refresh();
+				refresh();
 				goto(nav.to?.url ?? '');
 			} else {
 				return;
@@ -49,7 +52,7 @@
 	});
 
 	async function saveChanges(event) {
-		const toSave = Configuration.categories[selectedIndex]?.property
+		const toSave = categories[selectedIndex]?.property
 			?.filter(({ value, originalValue }) => value != originalValue)
 			.map(({ name, value }) => ({
 				'@_key': name,
@@ -60,14 +63,12 @@
 			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
 		});
 		if (confirmed) {
-			Configuration.updateConfigurations(toSave);
+			updateConfigurations(toSave);
 		}
 	}
 
 	let hasChanges = $derived(
-		Configuration.categories[selectedIndex]?.property?.some(
-			({ value, originalValue }) => value != originalValue
-		)
+		categories[selectedIndex]?.property?.some(({ value, originalValue }) => value != originalValue)
 	);
 
 	let modalSave;
@@ -78,7 +79,7 @@
 	<nav
 		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
 	>
-		{#each Configuration.categories as { name, displayName }, i}
+		{#each categories as { name, displayName }, i}
 			<a
 				href="../{name ? name : '_'}/"
 				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
@@ -125,7 +126,7 @@
 							icon: 'material-symbols-light:cancel-outline',
 							cls: 'yellow-button',
 							disabled: !hasChanges,
-							onclick: Configuration.refresh
+							onclick: refresh
 						}
 					]}
 				/>

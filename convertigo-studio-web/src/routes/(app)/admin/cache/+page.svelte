@@ -1,29 +1,19 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { call } from '$lib/utils/service';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Cache from '$lib/admin/Cache.svelte';
 	import { slide } from 'svelte/transition';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import { onDestroy } from 'svelte';
 
-	/** @param {any} e */
-	async function handlesubmit(e) {
-		e.preventDefault();
-		let formData = new FormData(e.target);
-		if (e.submitter.textContent == 'Create Table and Apply') {
-			formData.append('create', '');
-		}
-		await call('cache.Configure', formData);
-		await Cache.refresh();
-	}
+	let { clear, cancel, configure, conf, confDefault, confOriginal, loading, hasChanged } =
+		$derived(Cache);
+
+	onDestroy(Cache.stop);
 </script>
 
-<form onsubmit={handlesubmit}>
-	<fieldset
-		disabled={Cache.loading}
-		class="layout-y !items-stretch"
-		class:animate-pulse={Cache.loading}
-	>
+<form onsubmit={configure}>
+	<fieldset disabled={loading} class="layout-y !items-stretch" class:animate-pulse={loading}>
 		<Card title="Cache Type" class="!items-start">
 			{#snippet cornerOption()}
 				<ResponsiveButtons
@@ -32,7 +22,7 @@
 							label: 'Clear entries',
 							icon: 'mingcute:delete-line',
 							cls: 'delete-button',
-							onclick: Cache.clear
+							onclick: clear
 						}
 					]}
 				/>
@@ -46,10 +36,10 @@
 						{ text: 'Database', value: 'com.twinsoft.convertigo.engine.cache.DatabaseCacheManager' }
 					]}
 					type="segment"
-					bind:value={Cache.conf.cacheType}
-					loading={Cache.loading}
-					defaultValue={Cache.confDefault?.cacheType}
-					originalValue={Cache.confOriginal?.cacheType}
+					bind:value={conf.cacheType}
+					{loading}
+					defaultValue={confDefault?.cacheType}
+					originalValue={confOriginal?.cacheType}
 				/>
 				<ResponsiveButtons
 					class="grow h-full"
@@ -63,21 +53,21 @@
 							label: 'Create Table and Apply',
 							icon: 'lets-icons:table-light',
 							cls: 'basic-button',
-							hidden: !Cache.conf?.cacheType.endsWith('DatabaseCacheManager')
+							hidden: !conf?.cacheType.endsWith('DatabaseCacheManager')
 						},
 						{
 							label: 'Cancel',
 							icon: 'material-symbols-light:cancel-outline',
 							cls: 'cancel-button',
-							disabled: !Cache.hasChanged,
-							onclick: Cache.cancel
+							disabled: !hasChanged,
+							onclick: cancel
 						}
 					]}
 				/>
 			</div>
 		</Card>
 
-		{#if Cache.conf?.cacheType.endsWith('DatabaseCacheManager')}
+		{#if conf?.cacheType.endsWith('DatabaseCacheManager')}
 			{@const item = [
 				{ value: 'sqlserver', text: 'SQLServer' },
 				{ value: 'mysql', text: 'MySQL' },
@@ -91,11 +81,11 @@
 						name="databaseType"
 						{item}
 						type="segment"
-						bind:value={Cache.conf.databaseType}
+						bind:value={conf.databaseType}
 						orientation="vertical"
-						loading={Cache.loading}
-						defaultValue={Cache.confDefault?.databaseType}
-						originalValue={Cache.confOriginal?.databaseType}
+						{loading}
+						defaultValue={confDefault?.databaseType}
+						originalValue={confOriginal?.databaseType}
 					/>
 				</Card>
 
@@ -128,10 +118,10 @@
 							{#each fields as field}
 								<PropertyType
 									{...field}
-									loading={Cache.loading}
-									defaultValue={Cache.confDefault[field.name]}
-									originalValue={Cache.confOriginal[field.name]}
-									bind:value={Cache.conf[field.name]}
+									{loading}
+									defaultValue={confDefault[field.name]}
+									originalValue={confOriginal[field.name]}
+									bind:value={conf[field.name]}
 								/>
 							{/each}
 						</Card>

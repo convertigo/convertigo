@@ -1,5 +1,5 @@
 <script>
-	import { onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -7,27 +7,38 @@
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
+	let {
+		contextsInUse,
+		contextsNumber,
+		threadsInUse,
+		threadsNumber,
+		sessionsInUse,
+		sessionsNumber,
+		httpTimeout,
+		deleteAll,
+		sessions,
+		selectedSession,
+		deleteSession,
+		connections,
+		deleteContext,
+		stop
+	} = $derived(Connections);
+
 	let data = $derived([
 		{
-			contexts:
-				Connections.contextsInUse == null
-					? null
-					: `${Connections.contextsInUse} / ${Connections.contextsNumber}`,
-			threads:
-				Connections.threadsInUse == null
-					? null
-					: `${Connections.threadsInUse} / ${Connections.threadsNumber}`,
-			sessions:
-				Connections.sessionsInUse == null
-					? null
-					: `${Connections.sessionsInUse} / ${Connections.sessionsNumber}`,
-			timeout: Connections.httpTimeout
+			contexts: contextsInUse == null ? null : `${contextsInUse} / ${contextsNumber}`,
+			threads: threadsInUse == null ? null : `${threadsInUse} / ${threadsNumber}`,
+			sessions: sessionsInUse == null ? null : `${sessionsInUse} / ${sessionsNumber}`,
+			timeout: httpTimeout
 		}
 	]);
 
-	onDestroy(Connections.stop);
+	onMount(() => {
+		httpTimeout;
+		return stop;
+	});
 
-	let disabled = $derived(Connections.sessionsInUse == null);
+	let disabled = $derived(sessionsInUse == null);
 	let modalDelete;
 </script>
 
@@ -48,10 +59,10 @@
 								await modalDelete.open({
 									event,
 									title: 'Do you confirm to delete',
-									message: `${Connections.sessionsInUse} sessions and ${Connections.contextsInUse} contexts?`
+									message: `${sessionsInUse} sessions and ${contextsInUse} contexts?`
 								})
 							) {
-								Connections.deleteAll();
+								deleteAll();
 							}
 						}
 					}
@@ -84,7 +95,7 @@
 				{ name: 'Client IP', key: 'clientIP' }
 			]}
 			class="session-table"
-			data={Connections.sessions}
+			data={sessions}
 		>
 			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
 				{#if def.name === 'Actions'}
@@ -120,7 +131,7 @@
 											message: `${sessionID}?`
 										})
 									) {
-										Connections.deleteSession(sessionID);
+										deleteSession(sessionID);
 									}
 								}
 							}
@@ -146,11 +157,11 @@
 
 	<Card title="Contexts">
 		{#snippet cornerOption()}
-			{#if Connections.selectedSession != ''}
+			{#if selectedSession != ''}
 				<ResponsiveButtons
 					buttons={[
 						{
-							label: `Remove filter of ${Connections.selectedSession}`,
+							label: `Remove filter of ${selectedSession}`,
 							icon: 'mdi:broom',
 							cls: 'basic-button',
 							onclick: () => {
@@ -172,7 +183,7 @@
 				{ name: 'User', key: 'user' },
 				{ name: 'Client Computer', key: 'clientComputer' }
 			]}
-			data={Connections.connections}
+			data={connections}
 		>
 			{#snippet children({ row: { contextName }, def })}
 				{#if def.name == 'Actions'}
@@ -198,7 +209,7 @@
 											message: `${contextName}?`
 										})
 									) {
-										Connections.deleteContext(contextName);
+										deleteContext(contextName);
 									}
 								}
 							}

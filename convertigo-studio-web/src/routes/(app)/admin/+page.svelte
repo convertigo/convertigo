@@ -10,6 +10,41 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import { onDestroy } from 'svelte';
+
+	let {
+		product,
+		licenceType,
+		licenceNumber,
+		licenceExpired,
+		endpoint,
+		hostName,
+		osArchitecture,
+		osAvailableProcessors,
+		osName,
+		osVersion,
+		javaVendor,
+		javaVersion,
+		javaClassVersion,
+		browser
+	} = $derived(Status);
+
+	let {
+		engineState,
+		startTime,
+		memoryUsed,
+		memoryTotal,
+		memoryMaximal,
+		threads,
+		contexts,
+		requests,
+		sessionMaxCV,
+		sessions,
+		availableSessions,
+		labels
+	} = $derived(Monitor);
+
+	onDestroy(Status.stop);
 
 	const tables = $derived([
 		{
@@ -31,23 +66,21 @@
 			data: [
 				{
 					Name: 'Engine State',
-					Value: Monitor.engineState ? 'Running' : Monitor.engineState == null ? null : 'Stopped'
+					Value: engineState ? 'Running' : engineState == null ? null : 'Stopped'
 				},
-				{ Name: 'Convertigo Version', Value: Status.product },
+				{ Name: 'Convertigo Version', Value: product },
 				{
 					Name: 'Last Startup',
-					Value: Monitor.startTime ? new Date(Monitor.startTime).toLocaleString() : null
+					Value: startTime ? new Date(startTime).toLocaleString() : null
 				},
 				{
 					Name: 'Uptime',
-					Value: Monitor.startTime
-						? new Date(Time.server.getTime() - Monitor.startTime).toLocaleTimeString()
-						: null
+					Value: startTime ? new Date(Time.server.getTime() - startTime).toLocaleTimeString() : null
 				},
-				{ Name: 'License Type', Value: Status.licenceType },
-				{ Name: 'License N°', Value: Status.licenceNumber },
-				{ Name: 'License Expiration Date', Value: Status.licenceExpired },
-				{ Name: 'Endpoint', Value: Status.endpoint }
+				{ Name: 'License Type', Value: licenceType },
+				{ Name: 'License N°', Value: licenceNumber },
+				{ Name: 'License Expiration Date', Value: licenceExpired },
+				{ Name: 'Endpoint', Value: endpoint }
 			]
 		},
 		{
@@ -61,40 +94,32 @@
 				}
 			],
 			data: [
-				{ Name: 'Host Name', Value: Status.hostName },
+				{ Name: 'Host Name', Value: hostName },
 				{
 					Name: 'CPU',
-					Value: Status.osArchitecture
-						? `${Status.osArchitecture} architecture ${Status.osAvailableProcessors} processors`
+					Value: osArchitecture
+						? `${osArchitecture} architecture ${osAvailableProcessors} processors`
 						: null
 				},
-				{ Name: 'OS', Value: Status.osName ? `${Status.osName} ${Status.osVersion}` : null },
-				{ Name: 'Java Vendor', Value: Status.javaVendor },
+				{ Name: 'OS', Value: osName ? `${osName} ${osVersion}` : null },
+				{ Name: 'Java Vendor', Value: javaVendor },
 				{
 					Name: 'Java',
-					Value: Status.javaVersion
-						? `${Status.javaVersion} (classes version: ${Status.javaClassVersion})`
-						: null
+					Value: javaVersion ? `${javaVersion} (classes version: ${javaClassVersion})` : null
 				},
 				{
 					Name: 'Used Memory',
-					Value: Monitor.memoryUsed.length
-						? `${Monitor.memoryUsed[Monitor.memoryUsed.length - 1]} MB`
-						: null
+					Value: memoryUsed.length ? `${memoryUsed[memoryUsed.length - 1]} MB` : null
 				},
 				{
 					Name: 'Total Memory',
-					Value: Monitor.memoryTotal.length
-						? `${Monitor.memoryTotal[Monitor.memoryTotal.length - 1]} MB`
-						: null
+					Value: memoryTotal.length ? `${memoryTotal[memoryTotal.length - 1]} MB` : null
 				},
 				{
 					Name: 'Maximum Memory',
-					Value: Monitor.memoryMaximal.length
-						? `${Monitor.memoryMaximal[Monitor.memoryMaximal.length - 1]} MB`
-						: null
+					Value: memoryMaximal.length ? `${memoryMaximal[memoryMaximal.length - 1]} MB` : null
 				},
-				{ Name: 'Your Browser', Value: Status.browser }
+				{ Name: 'Your Browser', Value: browser }
 			]
 		}
 	]);
@@ -103,30 +128,30 @@
 		{
 			title: 'Memory',
 			series: [
-				{ name: 'Max', data: Monitor.memoryMaximal },
-				{ name: 'Total', data: Monitor.memoryTotal },
-				{ name: 'Used', data: Monitor.memoryUsed }
+				{ name: 'Max', data: memoryMaximal },
+				{ name: 'Total', data: memoryTotal },
+				{ name: 'Used', data: memoryUsed }
 			]
 		},
-		{ title: 'Threads', series: [{ name: 'Threads', data: Monitor.threads }] },
-		{ title: 'Contexts', series: [{ name: 'Contexts', data: Monitor.contexts }] },
+		{ title: 'Threads', series: [{ name: 'Threads', data: threads }] },
+		{ title: 'Contexts', series: [{ name: 'Contexts', data: contexts }] },
 		{
 			title: 'Requests Duration',
-			series: [{ name: 'Requests Duration', data: Monitor.requests }]
+			series: [{ name: 'Requests Duration', data: requests }]
 		},
 		{
 			title: 'Sessions',
 			series: [
-				{ name: 'Max', data: Monitor.sessionMaxCV },
-				{ name: 'Current', data: Monitor.sessions },
-				{ name: 'Available', data: Monitor.availableSessions }
+				{ name: 'Max', data: sessionMaxCV },
+				{ name: 'Current', data: sessions },
+				{ name: 'Available', data: availableSessions }
 			]
 		}
 	]);
 	/**
 	 * @type {never[]}
 	 */
-	let categories = $derived(Monitor.labels);
+	let categories = $derived(labels);
 
 	/**
 	 * @param {string} mode

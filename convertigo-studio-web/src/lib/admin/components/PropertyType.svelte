@@ -8,7 +8,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { Segment } from '@skeletonlabs/skeleton-svelte';
 
-	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean}|any} */
+	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string}|any} */
 	let {
 		value = $bindable(),
 		label: _label,
@@ -19,6 +19,7 @@
 		defaultValue,
 		originalValue,
 		loading = false,
+		placeholder = 'Enter value …',
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
@@ -42,8 +43,7 @@
 			<CheckState {name} bind:value>{label}</CheckState>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
-			{@const placeholder = 'Enter value ...'}
-			<div class="flex-1 flex flex-col justify-center border-common">
+			<div class="layout-y-none !items-stretch" class:border-common={type != 'segment'}>
 				{#if label}
 					<AutoPlaceholder {loading}>
 						<label class="label-common" for={id}>{label}</label>

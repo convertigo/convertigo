@@ -1,23 +1,7 @@
-import { call } from '$lib/utils/service';
+import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 
-let variables = $state(Array(10).fill({ name: null, value: null }));
-let init = false;
-
-async function check() {
-	if (!init) {
-		init = true;
-		try {
-			const res = await call('engine.GetEnvironmentVariablesJson');
-			variables = res?.variables ?? [];
-		} catch (e) {
-			init = false;
-		}
-	}
-}
-
-export default {
-	get variables() {
-		check();
-		return variables;
-	}
+const defValues = {
+	variables: Array(10).fill({ name: null, value: null })
 };
+
+export default ServiceHelper({ defValues, service: 'engine.GetEnvironmentVariablesJson' });

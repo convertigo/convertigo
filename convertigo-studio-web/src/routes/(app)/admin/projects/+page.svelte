@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -11,12 +10,13 @@
 	import { call, getUrl } from '$lib/utils/service';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { onDestroy } from 'svelte';
 
-	onMount(() => {
-		Projects.refresh();
-	});
-
+	let { projects, remove, refresh, reload, exportOptions, undefinedSymbols, createSymbols } =
+		$derived(Projects);
 	let exportChoices = $state({});
+
+	onDestroy(Projects.stop);
 
 	let modalDelete = $state();
 	let modalExport = $state();
@@ -43,7 +43,7 @@
 						label: 'Export',
 						cls: 'green-button',
 						onclick: () => {
-							location.href = `${getUrl()}projects.Export?__xsrfToken=${encodeURIComponent(localStorage.getItem('x-xsrf') ?? '')}&projectName=${encodeURIComponent(project)}&exportOptions=${encodeURIComponent(JSON.stringify(exportChoices))}`;
+							location.href = `${getUrl()}Export?__xsrfToken=${encodeURIComponent(localStorage.getItem('x-xsrf') ?? '')}&projectName=${encodeURIComponent(project)}&exportOptions=${encodeURIComponent(JSON.stringify(exportChoices))}`;
 							close();
 						}
 					},
@@ -65,9 +65,9 @@
 				event.preventDefault();
 				bag.uploading = true;
 				// @ts-ignore
-				await call('projects.Deploy', new FormData(event?.target));
+				await call('Deploy', new FormData(event?.target));
 				bag.uploading = false;
-				Projects.refresh();
+				refresh();
 				modalDeployUpload.close();
 			}}
 		>
@@ -112,9 +112,9 @@
 				event.preventDefault();
 				bag.uploading = true;
 				// @ts-ignore
-				await call('projects.ImportURL', new FormData(event?.target));
+				await call('ImportURL', new FormData(event?.target));
 				bag.uploading = false;
-				Projects.refresh();
+				refresh();
 				modalDeployURL.close();
 			}}
 		>
@@ -192,7 +192,7 @@
 			{ name: 'Exported', key: 'exported', class: 'text-sm min-w-32' },
 			{ name: 'Deployment', key: 'deployDate', class: 'text-sm min-w-32' }
 		]}
-		data={Projects.projects}
+		data={projects}
 		class="rounded"
 	>
 		{#snippet children({ row: { name, undefined_symbols }, def })}
@@ -211,7 +211,7 @@
 										message: `${project}?`
 									})
 								) {
-									Projects.remove(project);
+									remove(project);
 								}
 							}
 						},
@@ -219,7 +219,7 @@
 							icon: 'simple-line-icons:reload',
 							cls: 'green-button',
 							onclick: () => {
-								Projects.reload(project);
+								reload(project);
 							}
 						},
 						{
@@ -227,7 +227,7 @@
 							cls: 'basic-button',
 							onclick: async (event) => {
 								event.currentTarget?.blur();
-								const options = await Projects.exportOptions(project);
+								const options = await exportOptions(project);
 								exportChoices = options.reduce((acc, option) => {
 									acc[option.name] = 'true';
 									return acc;
@@ -246,10 +246,10 @@
 							hidden: !undefined_symbols,
 							onclick: async (event) => {
 								event.currentTarget?.blur();
-								const symbols = await Projects.undefinedSymbols(project);
+								const symbols = await undefinedSymbols(project);
 								if (await modalSymbols.open({ project, symbols })) {
-									await Projects.createSymbols(project);
-									Projects.refresh();
+									await createSymbols(project);
+									refresh();
 								}
 							}
 						}
