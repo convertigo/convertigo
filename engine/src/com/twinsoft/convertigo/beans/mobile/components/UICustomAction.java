@@ -467,7 +467,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							}
 							
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
-							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+							smartValue = smartValue.replaceAll("this(\\??)\\.", "c8oPage$1.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
 								smartValue = "scope."+ smartValue;
 							}

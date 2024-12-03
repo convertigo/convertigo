@@ -302,6 +302,10 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						String smartValue = property.getSmartValue();
 						smartValue = sub.replace(smartValue);
 						
+						if (name.equals("DoubleBinding")) {
+							smartValue = smartValue.replaceAll("\\?\\.\\[", "[").replaceAll("\\?\\.", ".");
+						}
+						
 						if (!isComposite) {
 							attributes.append(" ");
 							if (attr.isEmpty()) {
