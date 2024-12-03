@@ -9,7 +9,7 @@
 </script>
 
 <header
-	class="bg-surface-200-800 sticky top-0 z-20 flex justify-between border-b-[0.5px] border-color"
+	class="bg-surface-100-900 sticky top-0 z-20 flex justify-between"
 >
 	<section class="layout-x pl-1">
 		<PagesRailToggle class="show-md" bind:state={showDrawer} />

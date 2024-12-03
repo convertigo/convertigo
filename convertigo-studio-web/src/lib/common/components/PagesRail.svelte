@@ -19,7 +19,7 @@
 	});
 </script>
 
-<nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
+<nav class="bg-surface-100-900 !px-5 p-low h-full">
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params }, j}
 			{@const href = page ? resolveRoute(page, params) : url}
@@ -36,7 +36,7 @@
 					></span>
 				{/if}
 				<Ico size="5" {icon} class="z-10" />
-				<span class="text-[13px] z-10 font-{i == 0 && j == activeIndex ? 'medium' : 'light'}"
+				<span class="text-[14px] z-10 font-{i == 0 && j == activeIndex ? 'semibold' : 'medium'}"
 					>{title}</span
 				>
 			</a>

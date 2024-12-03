@@ -195,12 +195,11 @@
 	{/snippet}
 </ModalDynamic>
 
-<div class="layout-y md:layout-x !items-start">
-	<div
-		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
-	>
+<div
+	class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
+>
 		{#each tables as { title, buttons, data }}
-			<Card {title} class="max-w-[600px] statusTable">
+			<Card {title} class="statusTable">
 				{#snippet cornerOption()}
 					<ResponsiveButtons {buttons} />
 				{/snippet}
@@ -228,6 +227,8 @@
 			</Card>
 		{/each}
 	</div>
+	
+<div class="layout-y md:layout-x !items-start mt-5">
 	<div class="layout-grid-[350px] w-full">
 		{#each charts as chart}
 			<Card class="!items-stretch">
@@ -239,7 +240,7 @@
 
 <style lang="postcss">
 	:global(.statusTable td:has(> .on)) {
-		@apply bg-success-500;
+		@apply bg-success-500 font-normal;
 	}
 	:global(.statusTable td:has(> .off)) {
 		@apply bg-error-500;

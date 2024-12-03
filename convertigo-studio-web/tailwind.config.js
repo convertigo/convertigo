@@ -24,6 +24,12 @@ export default {
 				'pale-blue': '#b5c7d6',
 				'pale-green': '#b5d6c7',
 				'pale-pink': '#d6b5b5'
+			},
+			padding: {
+				'sm': '0.5rem',  
+				'md': '1rem',    
+				'lg': '2rem', 
+				'xl': '4rem', 
 			}
 		}
 	},
