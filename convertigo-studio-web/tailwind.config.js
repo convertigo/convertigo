@@ -1,5 +1,6 @@
 import { join } from 'path';
 import * as themes from '@skeletonlabs/skeleton/themes';
+import newTheme from './src/themes/newTheme';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/skeleton/plugin';
@@ -30,7 +31,7 @@ export default {
 		forms,
 		typography,
 		skeleton({
-			themes: [themes.mona]
+			themes: [newTheme]
 		}),
 		convertigoPlugin
 	]
