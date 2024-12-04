@@ -2,90 +2,90 @@
 	[
 		{
 			"title": "Home",
-			"icon": "material-symbols-light:home-outline",
+			"icon": "material-symbols:home-outline-rounded",
 			"page": "/(app)/admin"
 		},
 		{
 			"title": "Config",
-			"icon": "ph:gear-thin",
+			"icon": "material-symbols:settings-outline-rounded",
 			"id": "/(app)/admin/config/[category]",
 			"page": "/(app)/admin/config"
 		},
 		{
 			"title": "Connections",
-			"icon": "ph:plugs-connected-thin",
+			"icon": "material-symbols:online-prediction-rounded",
 			"page": "/(app)/admin/connections"
 		},
 		{
 			"title": "Projects",
-			"icon": "ph:folder-thin",
+			"icon": "material-symbols:folder-outline",
 			"page": "/(app)/admin/projects"
 		},
 		{
 			"title": "Certificates",
-			"icon": "ph:certificate-thin",
+			"icon": "material-symbols:bookmark-added-outline-sharp",
 			"page": "/(app)/admin/certificates"
 		},
 		{
 			"title": "Logs",
-			"icon": "lets-icons:search-light",
+			"icon": "material-symbols:search-rounded",
 			"page": "/(app)/admin/logs"
 		},
 		{
 			"title": "Cache",
-			"icon": "material-symbols-light:update",
+			"icon": "material-symbols:cached-rounded",
 			"page": "/(app)/admin/cache"
 		},
 		{
 			"title": "Scheduler",
-			"icon": "material-symbols-light:schedule-outline",
+			"icon": "material-symbols:schedule-outline-rounded",
 			"page": "/(app)/admin/scheduler"
 		},
 		{
 			"title": "Keys",
-			"icon": "material-symbols-light:key-outline",
+			"icon": "material-symbols:key-outline-rounded",
 			"page": "/(app)/admin/keys"
 		},
 		{
 			"title": "Roles",
-			"icon": "lets-icons:user-alt-light",
+			"icon": "material-symbols:supervised-user-circle-outline",
 			"page": "/(app)/admin/roles"
 		},
 		{
 			"title": "Symbols",
-			"icon": "et:tools-2",
+			"icon": "material-symbols:hotel-class-outline",
 			"page": "/(app)/admin/symbols"
 		},
 		{
 			"title": "Full Sync",
-			"icon": "material-symbols-light:sync-outline",
+			"icon": "material-symbols:sync-arrow-up-rounded",
 			"page": "/(app)/admin/fullsync"
 		}
 	],
 	[
 		{
 			"title": "Dashboard",
-			"icon": "file-icons:test-ruby",
+			"icon": "material-symbols:dashboard-outline-rounded",
 			"page": "/(app)/dashboard"
 		},
 		{
 			"title": "Swagger",
-			"icon": "codicon:json",
+			"icon": "material-symbols:data-object",
 			"url": "https://swagger.io"
 		},
 		{
 			"title": "Convertigo",
-			"icon": "material-symbols-light:cloud-outline",
+			"icon": "material-symbols:cloud-outline",
 			"url": "https://www.convertigo.com"
 		},
 		{
 			"title": "Dev Network",
-			"icon": "material-symbols-light:sync-outline",
+			"icon": "material-symbols:device-hub",
 			"url": "https://convertigo.atlassian.net/wiki/spaces/CK/"
 		},
 		{
 			"title": "Documentation",
-			"icon": "arcticons:doc-scanner",
+			"icon": "material-symbols:unknown-document-outline",
 			"url": "https://doc.convertigo.com"
 		}
 	]

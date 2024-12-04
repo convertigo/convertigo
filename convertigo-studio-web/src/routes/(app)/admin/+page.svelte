@@ -228,15 +228,15 @@
 		{/each}
 	</div>
 	
-<div class="layout-y md:layout-x !items-start mt-5">
-	<div class="layout-grid-[350px] w-full">
-		{#each charts as chart}
-			<Card class="!items-stretch">
-				<ApexChartLineAdmin {...chart} {categories} />
-			</Card>
-		{/each}
+	<div class="layout-y md:layout-x !items-start mt-5">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+			{#each charts as chart}
+				<Card class="!items-stretch">
+					<ApexChartLineAdmin {...chart} {categories} />
+				</Card>
+			{/each}
+		</div>
 	</div>
-</div>
 
 <style lang="postcss">
 	:global(.statusTable td:has(> .on)) {
