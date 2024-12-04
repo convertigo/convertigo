@@ -152,7 +152,7 @@
 				<button onclick={() => close(true)} class="basic-button"
 					><span><Ico icon="et:tools-2" size="btn" /></span><span>Create symbols</span></button
 				>
-				<button onclick={close} class="cancel-button"
+				<button onclick={() => close(false)} class="cancel-button"
 					><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
 						>Cancel</span
 					></button
