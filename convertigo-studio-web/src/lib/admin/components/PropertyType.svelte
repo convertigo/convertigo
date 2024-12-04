@@ -37,7 +37,7 @@
 	let id = `property-input-${cpt++}`;
 </script>
 
-<div class="layout-y-low sm:layout-x-low">
+<div class="layout-y-low sm:layout-x-low w-full">
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
 			<CheckState {name} bind:value>{label}</CheckState>

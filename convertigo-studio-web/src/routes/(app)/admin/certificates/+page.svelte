@@ -34,10 +34,6 @@
 
 	let modalCertInstall = $state();
 	let modalCertRemove = $state();
-	/** @type {any} */
-	let bag = $state({
-		toRemove: ''
-	});
 </script>
 
 <ModalDynamic bind:this={modalCertInstall}>
@@ -89,7 +85,7 @@
 		<form
 			onsubmit={async (event) => {
 				await remove(event);
-				modalCertInstall.close();
+				modalCertRemove.close();
 			}}
 		>
 			<fieldset disabled={calling} class="layout-y">
@@ -98,7 +94,7 @@
 					orientation="vertical"
 					name="certificateName"
 					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
-					bind:value={bag.toRemove}
+					value=""
 				/>
 				<div class="w-full layout-x justify-end">
 					<button type="submit" class="basic-button"
@@ -195,7 +191,7 @@
 			originalValue={type}
 		/>
 	{:else if def.name == 'Password'}
-		<form>
+		<form class="w-full">
 			{#if validPass == 'false'}
 				<p class="text-red-500">Invalid password</p>
 			{/if}
@@ -261,8 +257,15 @@
 			servers.
 		</div>
 		<TableAutoCard
-			definition={['Certificate / Store', 'Type', 'Password', 'Group', 'Actions'].map((name) => ({
+			definition={[
+				['Certificate / Store', 'min-w-52'],
+				['Type', 'min-w-48'],
+				['Password', 'min-w-60'],
+				['Group', 'min-w-60'],
+				['Actions']
+			].map(([name, cls]) => ({
 				name,
+				class: cls,
 				custom: true
 			}))}
 			data={candidates.length ? [...certificates, { last: true, setup: true }] : certificates}
@@ -310,13 +313,13 @@
 		<TableAutoCard
 			title="Mappings for carioca users"
 			definition={[
-				'Project Name',
-				'Virtual Server',
-				'Authorization Group',
-				'User',
-				'Certificate / Store',
-				'Actions'
-			].map((name) => ({ name, custom: true }))}
+				['Project Name', 'min-w-52'],
+				['Virtual Server', 'min-w-60'],
+				['Authorization Group', 'min-w-60'],
+				['User', 'min-w-60'],
+				['Certificate / Store', 'min-w-52'],
+				['Actions']
+			].map(([name, cls]) => ({ name, class: cls, custom: true }))}
 			data={certificates.length && projects.length ? [...carioca, { last: true }] : carioca}
 		>
 			{#snippet children({ row, def })}
