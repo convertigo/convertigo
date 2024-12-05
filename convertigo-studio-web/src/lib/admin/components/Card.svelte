@@ -15,7 +15,7 @@
 	let { title = '', class: cls = '', bg = 'bg-surface-100-900', cornerOption, children } = $props();
 </script>
 
-<div class="layout-y-p {bg} rounded-container {cls} !p-lg">
+<div class="layout-y-p {bg} border-[0.5px] border-color rounded-container {cls}">
 	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x flex-wrap w-full">
 			{#if title == null}

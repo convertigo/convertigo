@@ -195,9 +195,10 @@
 	{/snippet}
 </ModalDynamic>
 
-<div
-	class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
->
+<div class="layout-y md:layout-x !items-start">
+	<div
+		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
+	>
 		{#each tables as { title, buttons, data }}
 			<Card {title} class="statusTable">
 				{#snippet cornerOption()}
@@ -227,16 +228,15 @@
 			</Card>
 		{/each}
 	</div>
-	
-	<div class="layout-y md:layout-x !items-start mt-5">
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-			{#each charts as chart}
-				<Card class="!items-stretch">
-					<ApexChartLineAdmin {...chart} {categories} />
-				</Card>
-			{/each}
-		</div>
+
+	<div class="layout-grid-[350px] w-full">
+		{#each charts as chart}
+			<Card class="!items-stretch">
+				<ApexChartLineAdmin {...chart} {categories} />
+			</Card>
+		{/each}
 	</div>
+</div>
 
 <style lang="postcss">
 	:global(.statusTable td:has(> .on)) {

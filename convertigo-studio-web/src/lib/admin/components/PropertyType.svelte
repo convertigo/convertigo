@@ -43,7 +43,7 @@
 			<CheckState {name} bind:value>{label}</CheckState>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
-			<div class="layout-y-none !items-stretch">
+			<div class="layout-y-none !items-stretch" class:border-common={type != 'segment'}>
 				{#if label}
 					<AutoPlaceholder {loading}>
 						<label class="label-common" for={id}>{label}</label>

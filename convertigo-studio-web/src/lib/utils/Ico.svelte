@@ -41,6 +41,23 @@
 	import MaterialSymbolsLightScheduleOutline from '~icons/material-symbols-light/schedule-outline?raw';
 	import MaterialSymbolsLightSyncOutline from '~icons/material-symbols-light/sync-outline?raw';
 	import MaterialSymbolsLightUpdate from '~icons/material-symbols-light/update?raw';
+	import MaterialSymbolsHomeOutlineRounded from '~icons/material-symbols/home-outline-rounded?raw';
+	import MaterialSymbolsSettingsOutlineRounded from '~icons/material-symbols/settings-outline-rounded?raw';
+	import MaterialSymbolsOnlinePredictionRounded from '~icons/material-symbols/online-prediction-rounded?raw';
+	import MaterialSymbolsFolderOutlineRounded from '~icons/material-symbols/folder-outline?raw';
+	import MaterialSymbolsBookmarkAddedOutlineSharp from '~icons/material-symbols/bookmark-added-outline-sharp?raw';
+	import MaterialSymbolsSearchRounded from '~icons/material-symbols/search-rounded?raw';
+	import MaterialSymbolsCachedRounded from '~icons/material-symbols/cached-rounded?raw';
+	import MaterialSymbolsScheduleOutlineRounded from '~icons/material-symbols/schedule-outline-rounded?raw';
+	import MaterialSymbolsKeyOutlineRounded from '~icons/material-symbols/key-outline-rounded?raw';
+	import MaterialSymbolsSupervisedUserCircleOutline from '~icons/material-symbols/supervised-user-circle-outline?raw';
+	import MaterialSymbolsHotelClassOutline from '~icons/material-symbols/hotel-class-outline?raw';
+	import MaterialSymbolsSyncArrowUpRounded from '~icons/material-symbols/sync-arrow-up-rounded?raw';
+	import MaterialSymbolsDashboardOutlineRounded from '~icons/material-symbols/dashboard-outline-rounded?raw';
+	import MaterialSymbolsDataObject from '~icons/material-symbols/data-object?raw';
+	import MaterialSymbolsCloudOutline from '~icons/material-symbols/cloud-outline?raw';
+	import MaterialSymbolsDeviceHub from '~icons/material-symbols/device-hub?raw';
+	import MaterialSymbolsUnknownDocumentOutline from '~icons/material-symbols/unknown-document-outline?raw';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
@@ -87,24 +104,7 @@
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
 	import Return from '~icons/ion/return-down-back-sharp?raw';
 	import RightArrow from '~icons/gg/arrow-right?raw';
-	import Home from '~icons/material-symbols/home-outline-rounded?raw';
-	import Settings from '~icons/material-symbols/settings-outline-rounded?raw';
-	import Connections from '~icons/material-symbols/online-prediction-rounded?raw';
-	import Projects from '~icons/material-symbols/folder-outline?raw';
-	import Certificates from '~icons/material-symbols/bookmark-added-outline-sharp?raw';
-	import Logs from '~icons/material-symbols/search-rounded?raw';
-	import Cache from '~icons/material-symbols/cached-rounded?raw';
-	import Scheduler from '~icons/material-symbols/schedule-outline-rounded?raw';
-	import Keys from '~icons/material-symbols/key-outline-rounded?raw';
-	import Roles from '~icons/material-symbols/supervised-user-circle-outline?raw';
-	import Symbols from '~icons/material-symbols/hotel-class-outline?raw';
-	import FullSync from '~icons/material-symbols/sync-arrow-up-rounded?raw';
-	import Dashboard from '~icons/material-symbols/dashboard-outline-rounded?raw';
-	import Swagger from '~icons/material-symbols/data-object?raw';
-	import Cloud from '~icons/material-symbols/cloud-outline?raw';
-	import DevNetwork from '~icons/material-symbols/device-hub?raw';
-	import Documentation from '~icons/material-symbols/unknown-document-outline?raw';
-	
+
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,
@@ -148,6 +148,23 @@
 		'material-symbols-light:schedule-outline': MaterialSymbolsLightScheduleOutline,
 		'material-symbols-light:sync-outline': MaterialSymbolsLightSyncOutline,
 		'material-symbols-light:update': MaterialSymbolsLightUpdate,
+		'material-symbols:home-outline-rounded': MaterialSymbolsHomeOutlineRounded,
+		'material-symbols:settings-outline-rounded': MaterialSymbolsSettingsOutlineRounded,
+		'material-symbols:online-prediction-rounded': MaterialSymbolsOnlinePredictionRounded,
+		'material-symbols:folder-outline': MaterialSymbolsFolderOutlineRounded,
+		'material-symbols:bookmark-added-outline-sharp': MaterialSymbolsBookmarkAddedOutlineSharp,
+		'material-symbols:search-rounded': MaterialSymbolsSearchRounded,
+		'material-symbols:cached-rounded': MaterialSymbolsCachedRounded,
+		'material-symbols:schedule-outline-rounded': MaterialSymbolsScheduleOutlineRounded,
+		'material-symbols:key-outline-rounded': MaterialSymbolsKeyOutlineRounded,
+		'material-symbols:supervised-user-circle-outline': MaterialSymbolsSupervisedUserCircleOutline,
+		'material-symbols:hotel-class-outline': MaterialSymbolsHotelClassOutline,
+		'material-symbols:sync-arrow-up-rounded': MaterialSymbolsSyncArrowUpRounded,
+		'material-symbols:dashboard-outline-rounded': MaterialSymbolsDashboardOutlineRounded,
+		'material-symbols:data-object': MaterialSymbolsDataObject,
+		'material-symbols:cloud-outline': MaterialSymbolsCloudOutline,
+		'material-symbols:device-hub': MaterialSymbolsDeviceHub,
+		'material-symbols:unknown-document-outline': MaterialSymbolsUnknownDocumentOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
@@ -193,24 +210,7 @@
 		'uim:layer-group': UimLayerGroup,
 		'vaadin:key-o': VaadinKeyO,
 		'ion:return-down-back-sharp': Return,
-		'gg:arrow-right': RightArrow,
-		'material-symbols:home-outline-rounded': Home,
-		'material-symbols:settings-outline-rounded': Settings,
-		'material-symbols:online-prediction-rounded': Connections,
-		'material-symbols:folder-outline': Projects,
-		'material-symbols:bookmark-added-outline-sharp': Certificates,
-		'material-symbols:search-rounded': Logs,
-		'material-symbols:cached-rounded': Cache,
-		'material-symbols:schedule-outline-rounded': Scheduler,
-		'material-symbols:key-outline-rounded': Keys,
-		'material-symbols:supervised-user-circle-outline': Roles,
-		'material-symbols:hotel-class-outline': Symbols,
-		'material-symbols:sync-arrow-up-rounded': FullSync,
-		'material-symbols:dashboard-outline-rounded': Dashboard,
-		'material-symbols:data-object': Swagger,
-		'material-symbols:cloud-outline': Cloud,
-		'material-symbols:device-hub': DevNetwork,
-		'material-symbols:unknown-document-outline': Documentation,
+		'gg:arrow-right': RightArrow
 	};
 </script>
 

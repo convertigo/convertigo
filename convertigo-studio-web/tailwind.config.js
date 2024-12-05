@@ -26,10 +26,10 @@ export default {
 				'pale-pink': '#d6b5b5'
 			},
 			padding: {
-				'sm': '0.5rem',  
-				'md': '1rem',    
-				'lg': '2rem', 
-				'xl': '4rem', 
+				sm: '0.5rem',
+				md: '1rem',
+				lg: '2rem',
+				xl: '4rem'
 			}
 		}
 	},

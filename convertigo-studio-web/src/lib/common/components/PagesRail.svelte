@@ -19,7 +19,7 @@
 	});
 </script>
 
-<nav class="bg-surface-100-900 !px-5 p-low h-full">
+<nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params }, j}
 			{@const href = page ? resolveRoute(page, params) : url}

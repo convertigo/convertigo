@@ -9,9 +9,9 @@
 </script>
 
 <header
-	class="bg-surface-100-900 sticky top-0 z-20 flex justify-between"
+	class="bg-surface-200-800 sticky top-0 z-20 flex justify-between border-b-[0.5px] border-color"
 >
-	<section class="layout-x pl-1">
+	<section class="layout-x pl-5">
 		<PagesRailToggle class="show-md" bind:state={showDrawer} />
 		<PagesRailToggle class="hide-md" bind:state={showLeft} />
 		{#if Time.isSameTime}
@@ -23,8 +23,8 @@
 	</section>
 
 	<section class="layout-x">
-		<Ico icon="logo.png" alt="logo convertigo" size={10} />
-		<h1 class="hide-md">
+		<Ico icon="logo.png" alt="logo convertigo" size={7} />
+		<h1 class="hide-md font-bold">
 			Convertigo {$page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}
 		</h1>
 	</section>

@@ -2,7 +2,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{ buttons: {label?: string, icon?: string, cls?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, onclick?: () => void}[], size?: string, class?: string, disabled?: boolean }} */
-	let { buttons, size = 'btn', class: cls = 'max-w-sm', disabled = false } = $props();
+	let { buttons, size = 'btn', class: cls = 'max-w-md', disabled = false } = $props();
 	let onlyIcons = buttons.every(({ label }) => !label);
 </script>
 
