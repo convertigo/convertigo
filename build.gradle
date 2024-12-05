@@ -35,7 +35,7 @@ ext.swaggerUiVersion = '5.11.10'
 ext.tomcatVersion = '9.0.97'
 ext.eclipseVersion = '2024-12'
 ext.eclipseBase = '4.34'
-ext.studioWebNodeVersion = '20'
+ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
