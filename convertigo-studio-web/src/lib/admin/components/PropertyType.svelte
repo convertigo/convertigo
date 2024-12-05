@@ -10,7 +10,7 @@
 
 	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string}|any} */
 	let {
-		value = $bindable(),
+		value = $bindable(''),
 		label: _label,
 		description,
 		name,
@@ -40,7 +40,7 @@
 <div class="layout-y-low sm:layout-x-low w-full">
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
-			<CheckState {name} bind:value>{label}</CheckState>
+			<CheckState {name} {...rest} bind:value>{label}</CheckState>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-none !items-stretch" class:border-common={type != 'segment'}>
@@ -58,7 +58,7 @@
 						{/each}
 					</Segment>
 				{:else if type == 'combo'}
-					<select {name} class="input-common" {id} bind:value>
+					<select {name} class="input-common" {id} {...rest} bind:value>
 						{#each item as option}
 							<option value={option.value}>{option.text ?? option['#text']}</option>
 						{/each}
@@ -69,6 +69,7 @@
 						{name}
 						{autocomplete}
 						{placeholder}
+						{...rest}
 						class="input-common input-text placeholder:pl-1"
 						bind:value
 					></textarea>
@@ -82,6 +83,7 @@
 						disabled={loading}
 						class:animate-pulse={loading}
 						class="input-common input-text placeholder:pl-1"
+						{...rest}
 						bind:value
 					/>
 				{/if}
@@ -93,7 +95,8 @@
 			{#each restores as { icon, val, title }}
 				<button
 					disabled={value == val}
-					onclick={() => {
+					onclick={(e) => {
+						e.preventDefault();
 						value = val;
 					}}
 					title="{title}:{val}"

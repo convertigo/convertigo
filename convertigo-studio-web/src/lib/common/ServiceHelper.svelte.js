@@ -3,12 +3,13 @@ import { call, checkArray, getNestedProperty, setNestedProperty } from '$lib/uti
 import { untrack } from 'svelte';
 
 /**
- * @param {{values?: any, defValues?: any, service?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any}} param0
+ * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any}} param0
  */
 export default function ({
 	values = {},
 	defValues = {},
 	service = false,
+	params = {},
 	delay = -1,
 	arrays = [],
 	mapping = {},
@@ -39,7 +40,7 @@ export default function ({
 		}
 		_calling = true;
 		try {
-			const res = await (typeof service == 'string' ? call(service) : service());
+			const res = await (typeof service == 'string' ? call(service, params) : service(params));
 			if (res) {
 				for (const array of arrays) {
 					let prop = getNestedProperty(res, array);

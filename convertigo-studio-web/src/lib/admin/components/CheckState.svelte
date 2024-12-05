@@ -1,19 +1,24 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	/** @type {{name?: string, values?: any[], value: string, class?: string, children: import('svelte').Snippet}}*/
+	/** @type {{name?: string, values?: any[], value: string, class?: string, onchange?: any, children?: import('svelte').Snippet}}*/
 	let {
 		name = '',
 		values = ['false', 'true'],
 		value = $bindable(values[0]),
 		class: classes = '',
+		onchange,
 		children
 	} = $props();
 
 	let checked = $state(value == values[1]);
 	let last;
 	$effect(() => {
-		if (value && checked != last) {
+		value;
+		if (checked != last) {
 			value = checked ? values[1] : values[0];
+			if (typeof last != 'undefined') {
+				onchange?.({ target: { name, value } });
+			}
 			last = checked;
 		} else {
 			checked = value == values[1];
