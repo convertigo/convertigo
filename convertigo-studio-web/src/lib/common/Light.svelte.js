@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { tick } from 'svelte';
 
 let light = $state(false);
 let init = false;
@@ -7,12 +8,15 @@ function checkInit() {
 	if (!init) {
 		if (browser) {
 			init = true;
-			setLight(
-				!(
-					localStorage.theme === 'dark' ||
-					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-				)
-			);
+			tick().then(() => {
+				setLight(
+					!(
+						localStorage.theme == 'dark' ||
+						(!('theme' in localStorage) &&
+							window.matchMedia('(prefers-color-scheme: dark)').matches)
+					)
+				);
+			});
 		}
 	}
 }

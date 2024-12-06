@@ -4,7 +4,6 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { onDestroy } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
@@ -13,7 +12,7 @@
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	// import CronWizard from '$lib/admin/components/CronWizard.svelte';
+	import CronWizard from '$lib/admin/components/CronWizard.svelte';
 
 	let { jobs, schedules, scheduled, configure, remove } = $derived(Scheduler);
 	let { projects } = $derived(Project);
@@ -34,12 +33,14 @@
 
 	function open({ event, mode, row = undefined }) {
 		rowSelected = {
+			name: '',
 			project: '',
 			sequence: '',
 			connector: '',
 			transaction: '',
 			jobName: '…',
 			scheduleName: '…',
+			cron: '0 * * * * ?',
 			...(row ?? {})
 		};
 		modal.open({ event, mode, row });
@@ -106,7 +107,16 @@
 <ModalYesNo bind:this={yesNo} />
 <ModalDynamic bind:this={modal}>
 	{#snippet children({ close, params: { mode, row } })}
-		{@const { name, description, enabled, writeOutput, context, parallelJob = 1 } = row ?? {}}
+		{@const {
+			name,
+			description,
+			enabled,
+			writeOutput,
+			context,
+			parallelJob = 1,
+			jobsname,
+			cron
+		} = row ?? {}}
 		<Card title="{row ? 'Edit' : 'New'} {jobTypes[mode].name}" class="max-w-full">
 			<form {onsubmit} class="layout-y">
 				<input type="hidden" name="type" value="schedulerNew{mode}" />
@@ -114,8 +124,8 @@
 					<input type="hidden" name="exname" value={name} />
 					<input type="hidden" name="edit" value={true} />
 				{/if}
-				<div class="layout-x">
-					<div class="layout-y">
+				<div class="layout-x max-md:flex-wrap">
+					<div class="layout-y max-md:w-full">
 						{#if mode == 'ScheduledJob'}
 							<PropertyType
 								name="name"
@@ -124,7 +134,12 @@
 								readonly={true}
 							/>
 						{:else}
-							<PropertyType name="name" description="Name" value={name} originalValue={name} />
+							<PropertyType
+								name="name"
+								description="Name"
+								bind:value={rowSelected.name}
+								originalValue={name}
+							/>
 						{/if}
 						<PropertyType
 							name="description"
@@ -149,7 +164,7 @@
 							/>
 						{/if}
 					</div>
-					<div class="layout-y !items-stretch">
+					<div class="layout-y max-md:w-full !items-stretch">
 						{#if mode.endsWith('ConvertigoJob')}
 							{@const types = [
 								{
@@ -204,24 +219,25 @@
 								name="jobsname"
 								description="Select jobs"
 								orientation="vertical"
-								value={row?.[name]}
-								originalValue={row?.[name]}
-								multiple="multiple"
+								value={jobsname}
+								originalValue={jobsname}
+								multiple
 								size="6"
 								item={jobs.map(({ name }) => ({ value: name, text: name }))}
 							/>
 						{:else if mode == 'ScheduleCron'}
-							<label class="border-common">
-								<p class="label-common">Cron Expression</p>
-								<input name="cron" bind:value={row.cron} class="input-common" />
-							</label>
-							<!-- <CronWizard bind:cronExpression={row.cron} /> -->
+							<PropertyType
+								name="cron"
+								description="Cron Expression"
+								bind:value={rowSelected.cron}
+								originalValue={cron}
+							/>
+							<CronWizard bind:cronExpression={rowSelected.cron} />
 						{:else if mode == 'ScheduledJob'}
 							{@const def = [
 								{ label: 'Job', name: 'jobName', store: jobs },
 								{ label: 'Schedule', name: 'scheduleName', store: schedules }
 							]}
-							<!-- <p class="label-common">Association</p> -->
 							<div class="layout-x flew-wrap">
 								{#each def as { label, name, store }}
 									<PropertyType
@@ -230,7 +246,7 @@
 										description={label}
 										orientation="vertical"
 										bind:value={rowSelected[name]}
-										originalValue={row[name]}
+										originalValue={row?.[name]}
 										item={store.map(({ name }) => ({ value: name, text: name }))}
 									/>
 								{/each}
@@ -258,7 +274,7 @@
 					{/if}
 				</div>
 				<div class="w-full layout-x justify-end">
-					<button class="basic-button"
+					<button class="basic-button" disabled={!rowSelected.name}
 						><span><Ico icon={jobTypes[mode].icon} size="btn" /></span><span>Save</span></button
 					>
 					<button type="button" onclick={close} class="cancel-button"

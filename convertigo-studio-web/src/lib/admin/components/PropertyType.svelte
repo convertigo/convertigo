@@ -7,8 +7,9 @@
 	import CheckState from './CheckState.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { Segment } from '@skeletonlabs/skeleton-svelte';
+	import { checkArray } from '$lib/utils/service';
 
-	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string}|any} */
+	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
 	let {
 		value = $bindable(''),
 		label: _label,
@@ -35,6 +36,22 @@
 	});
 	let type = $derived(_type?.toLocaleLowerCase());
 	let id = `property-input-${cpt++}`;
+
+	function handleMultiple(e) {
+		e.preventDefault();
+		const select = e.target.parentElement;
+		value = checkArray(value);
+		if (e.target?.selected) {
+			value = value.filter((v) => v != e.target?.value);
+		} else {
+			value.push(e.target?.value);
+		}
+		const scroll = select.scrollTop;
+		setTimeout(() => {
+			select.scrollTop = scroll;
+		}, 1);
+		rest.onchange?.({ target: select });
+	}
 </script>
 
 <div class="layout-y-low sm:layout-x-low w-full">
@@ -58,9 +75,15 @@
 						{/each}
 					</Segment>
 				{:else if type == 'combo'}
-					<select {name} class="input-common" {id} {...rest} bind:value>
+					<select {name} class="select input-common overflow-auto" {id} {...rest} bind:value>
 						{#each item as option}
-							<option value={option.value}>{option.text ?? option['#text']}</option>
+							{@const val = option.value ?? option}
+							{@const txt = option.text ?? option['#text'] ?? val}
+							{#if rest.multiple ?? true}
+								<option value={val} onmousedown={handleMultiple}>{txt}</option>
+							{:else}
+								<option value={val}>{txt}</option>
+							{/if}
 						{/each}
 					</select>
 				{:else if type == 'array'}
