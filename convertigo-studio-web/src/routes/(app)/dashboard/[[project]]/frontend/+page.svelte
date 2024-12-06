@@ -214,10 +214,7 @@
 		</button>
 	</div>
 
-	<div
-		class="bezel-container"
-		style="transform: scale({scale}); transform-origin: center;"
-	>
+	<div class="bezel-container" style="transform: scale({scale}); transform-origin: center;">
 		{#if orientation === 'vertical' && selectedDevice.bezelVertical}
 			<img
 				src="{assets}/{selectedDevice.bezelVertical}"
@@ -244,85 +241,85 @@
 </div>
 
 <style>
-.container {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	margin: 20px auto;
-	gap: 20px;
-	max-width: 100%;
-}
+	.container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin: 20px auto;
+		gap: 20px;
+		max-width: 100%;
+	}
 
-.controls {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	flex-wrap: wrap;
-	justify-content: center;
-	margin-bottom: 10px;
-}
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+		justify-content: center;
+		margin-bottom: 10px;
+	}
 
-#device-select {
-	padding: 6px 12px;
-	font-size: 1rem;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	background-color: #f9f9f9;
-	cursor: pointer;
-	transition: all 0.2s ease-in-out;
-}
+	#device-select {
+		padding: 6px 12px;
+		font-size: 1rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		background-color: #f9f9f9;
+		cursor: pointer;
+		transition: all 0.2s ease-in-out;
+	}
 
-#device-select:hover {
-	background-color: #f0f0f0;
-	border-color: #bbb;
-}
+	#device-select:hover {
+		background-color: #f0f0f0;
+		border-color: #bbb;
+	}
 
-.toggle-button {
-	padding: 8px 15px;
-	font-size: 0.9rem;
-	background-color: #0078d4;
-	color: white;
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
-	transition: all 0.3s ease-in-out;
-}
+	.toggle-button {
+		padding: 8px 15px;
+		font-size: 0.9rem;
+		background-color: #0078d4;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		transition: all 0.3s ease-in-out;
+	}
 
-.toggle-button:hover {
-	background-color: #005bb5;
-}
+	.toggle-button:hover {
+		background-color: #005bb5;
+	}
 
-.bezel-container {
-	position: relative;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-}
+	.bezel-container {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+	}
 
-.bezel-image {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	z-index: 99;
-	pointer-events: none;
-	transition: transform 0.3s ease-in-out; /* Smooth rotation */
-}
+	.bezel-image {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		z-index: 99;
+		pointer-events: none;
+		transition: transform 0.3s ease-in-out; /* Smooth rotation */
+	}
 
-.device-iframe {
-	position: relative;
-	border: none;
-	z-index: 1;
-	border-radius: 50px;
-	-ms-overflow-style: none; /* For Internet Explorer and Edge */
-	scrollbar-width: none; /* For Firefox */
-}
+	.device-iframe {
+		position: relative;
+		border: none;
+		z-index: 1;
+		border-radius: 60px;
+		-ms-overflow-style: none; /* For Internet Explorer and Edge */
+		scrollbar-width: none; /* For Firefox */
+	}
 
-/* For Webkit browsers like Chrome, Safari, and Opera */
-.device-iframe::-webkit-scrollbar {
-	display: none;
-}
+	/* For Webkit browsers like Chrome, Safari, and Opera */
+	.device-iframe::-webkit-scrollbar {
+		display: none;
+	}
 </style>

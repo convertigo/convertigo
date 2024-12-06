@@ -13,7 +13,7 @@ export const emulatedDevices = [
 		userAgent:
 			'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
 		type: 'phone',
-        bezel: null
+		bezel: null
 	},
 	{
 		order: 12,
@@ -28,7 +28,7 @@ export const emulatedDevices = [
 		userAgent:
 			'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
 		type: 'phone',
-        bezel: null
+		bezel: null
 	},
 	{
 		order: 14,
@@ -43,8 +43,8 @@ export const emulatedDevices = [
 		userAgent:
 			'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
 		type: 'phone',
-        bezelVertical: 'vertical-iphone-12-pro.png',
-        bezelHorizontal: 'horizontal-iphone-12-pro.png',
+		bezelVertical: 'vertical-iphone-12-pro.png',
+		bezelHorizontal: 'horizontal-iphone-12-pro.png'
 	},
 	{
 		order: 15,
