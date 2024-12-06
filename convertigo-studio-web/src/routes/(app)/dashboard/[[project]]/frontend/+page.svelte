@@ -1,4 +1,4 @@
-<script>
+<!-- <script>
 	import { page } from '$app/stores';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { onMount } from 'svelte';
@@ -112,8 +112,8 @@
 			</select>
 		{/if}
 	</div>
-	<div class="flex flex-col items-center justify-start">
-		<!-- {#if deviceVal >= 0 && deviceVal < devices.length}
+	<div class="flex flex-col items-center justify-start"> -->
+<!-- {#if deviceVal >= 0 && deviceVal < devices.length}
 			<DeviceMockup
 				device={deviceVal == 2 ? selectedPhone.name : devices[deviceVal].name}
 				scale={deviceVal == 2 ? selectedPhone.scale : devices[deviceVal].scale}
@@ -122,11 +122,11 @@
 				src={getFrontendUrl(project['@_name'])}
 			/>
 		{/if} -->
-	</div>
+<!-- </div>
 {:else}
 	Loading ...
-{/if}
-
+{/if} -->
+<!-- 
 <style lang="postcss">
 	:global(.accordion-summary) {
 		@apply overflow-hidden;
@@ -146,4 +146,217 @@
 	.marked-p-class {
 		color: aqua;
 	}
+</style> -->
+
+<script>
+	import { onMount } from 'svelte';
+	import { emulatedDevices } from '$lib/dashboard/bezels/emulatedDevices';
+	import { assets } from '$app/paths';
+
+	// Find default device
+	let selectedDevice = emulatedDevices.find((device) => device.title === 'iPhone 12 Pro') ?? {
+		title: 'Default Device',
+		screen: {
+			vertical: { width: 390, height: 844 },
+			horizontal: { width: 844, height: 390 }
+		},
+		bezel: `${assets}/default-bezel.png` // Default bezel
+	};
+
+	let projectUrl = 'https://www.convertigo.com';
+	let orientation = 'vertical';
+	let scale = 1;
+
+	function selectDevice(event) {
+		const deviceTitle = event.target.value;
+		selectedDevice =
+			emulatedDevices.find((device) => device.title === deviceTitle) ?? selectedDevice;
+		calculateScale();
+	}
+
+	function toggleOrientation() {
+		orientation = orientation === 'vertical' ? 'horizontal' : 'vertical';
+		calculateScale();
+	}
+
+	function calculateScale() {
+		if (typeof window !== 'undefined') {
+			const viewportWidth = window.innerWidth * 0.9;
+			const viewportHeight = window.innerHeight * 0.9;
+
+			const deviceWidth = selectedDevice.screen[orientation].width;
+			const deviceHeight = selectedDevice.screen[orientation].height;
+
+			scale = Math.min(viewportWidth / deviceWidth, viewportHeight / deviceHeight, 1);
+		}
+	}
+
+	onMount(() => {
+		calculateScale();
+		window.addEventListener('resize', calculateScale);
+		return () => window.removeEventListener('resize', calculateScale);
+	});
+</script>
+
+<div class="container">
+	<div class="controls">
+		<label for="device-select">Choose a device:</label>
+		<select id="device-select" on:change={selectDevice}>
+			{#each emulatedDevices as device}
+				<option value={device.title} selected={selectedDevice.title === device.title}>
+					{device.title}
+				</option>
+			{/each}
+		</select>
+
+		<button class="toggle-button" on:click={toggleOrientation}>
+			Toggle Orientation ({orientation === 'vertical' ? 'Portrait' : 'Landscape'})
+		</button>
+	</div>
+
+	<div
+		class="bezel-container"
+		style="transform: scale({scale}); transform-origin: center;"
+	>
+		{#if selectedDevice.bezel}
+			<img
+				src="{assets}/{selectedDevice.bezel}"
+				alt={`${selectedDevice.title} Bezel`}
+				class="bezel-image"
+				style="
+				width: {selectedDevice.screen[orientation].width}px;
+				height: {selectedDevice.screen[orientation].height}px;"
+			/>
+		{/if}		
+		<iframe
+			src={projectUrl}
+			title={`${selectedDevice.title} Preview`}
+			class="device-iframe"
+			style="
+				width: {selectedDevice.screen[orientation].width}px;
+				height: {selectedDevice.screen[orientation].height}px;
+				padding: 10px"
+		></iframe>
+	</div>
+</div>
+
+<style>
+.container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 20px auto;
+	gap: 20px;
+	max-width: 100%;
+}
+
+.controls {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-bottom: 10px;
+}
+
+#device-select {
+	padding: 6px 12px;
+	font-size: 1rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background-color: #f9f9f9;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+}
+
+#device-select:hover {
+	background-color: #f0f0f0;
+	border-color: #bbb;
+}
+
+.toggle-button {
+	padding: 8px 15px;
+	font-size: 0.9rem;
+	background-color: #0078d4;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: all 0.3s ease-in-out;
+}
+
+.toggle-button:hover {
+	background-color: #005bb5;
+}
+
+.screen-size {
+	font-size: 0.9rem;
+	color: #555;
+	font-family: Arial, sans-serif;
+}
+
+.preview-container {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid #ccc;
+	overflow: hidden;
+	border-radius: 12px;
+	background-color: #000;
+	transition: transform 0.2s ease-in-out;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.bezel-container {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+.bezel-image {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	z-index: 99;
+	pointer-events: none;
+}
+
+.device-iframe {
+	position: relative;
+	border: none;
+	z-index: 1;
+	border-radius: 50px;
+}
+
+.iframe-wrapper {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	-webkit-overflow-scrolling: touch; 
+}
+
+
+.iframe-wrapper::-webkit-scrollbar {
+	width: 6px; 
+	height: 6px;
+}
+
+.iframe-wrapper::-webkit-scrollbar-thumb {
+	background: #888; 
+	border-radius: 10px;
+}
+
+.iframe-wrapper::-webkit-scrollbar-thumb:hover {
+	background: #555; 
+}
+
+.iframe-wrapper::-webkit-scrollbar-track {
+	background: #f1f1f1; 
+}
 </style>
