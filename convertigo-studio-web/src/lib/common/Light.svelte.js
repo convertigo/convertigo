@@ -5,20 +5,20 @@ let light = $state(false);
 let init = false;
 
 function checkInit() {
-    if (!init) {
-        if (browser) {
-            init = true;
-            tick().then(() => {
-                setLight(
-                    !(
-                        localStorage.theme == 'dark' ||
-                        (!('theme' in localStorage) &&
-                            window.matchMedia('(prefers-color-scheme: dark)').matches)
-                    )
-                );
-            });
-        }
-    }
+	if (!init) {
+		if (browser) {
+			init = true;
+			tick().then(() => {
+				setLight(
+					!(
+						localStorage.theme == 'dark' ||
+						(!('theme' in localStorage) &&
+							window.matchMedia('(prefers-color-scheme: dark)').matches)
+					)
+				);
+			});
+		}
+	}
 }
 
 function setLight(value) {

@@ -147,7 +147,6 @@
 		color: aqua;
 	}
 </style> -->
-
 <script>
 	import { onMount } from 'svelte';
 	import { emulatedDevices } from '$lib/dashboard/bezels/emulatedDevices';
@@ -160,7 +159,8 @@
 			vertical: { width: 390, height: 844 },
 			horizontal: { width: 844, height: 390 }
 		},
-		bezel: `${assets}/default-bezel.png` // Default bezel
+		bezelVertical: `${assets}/default-bezel-vertical.png`,
+		bezelHorizontal: `${assets}/default-bezel-horizontal.png`
 	};
 
 	let projectUrl = 'https://www.convertigo.com';
@@ -218,24 +218,27 @@
 		class="bezel-container"
 		style="transform: scale({scale}); transform-origin: center;"
 	>
-		{#if selectedDevice.bezel}
+		{#if orientation === 'vertical' && selectedDevice.bezelVertical}
 			<img
-				src="{assets}/{selectedDevice.bezel}"
+				src="{assets}/{selectedDevice.bezelVertical}"
 				alt={`${selectedDevice.title} Bezel`}
 				class="bezel-image"
-				style="
-				width: {selectedDevice.screen[orientation].width}px;
-				height: {selectedDevice.screen[orientation].height}px;"
 			/>
-		{/if}		
+		{:else if selectedDevice.bezelHorizontal}
+			<img
+				src="{assets}/{selectedDevice.bezelHorizontal}"
+				alt={`${selectedDevice.title} Bezel`}
+				class="bezel-image"
+			/>
+		{/if}
 		<iframe
 			src={projectUrl}
 			title={`${selectedDevice.title} Preview`}
-			class="device-iframe"
+			class="device-iframe no-scrollbar"
 			style="
 				width: {selectedDevice.screen[orientation].width}px;
 				height: {selectedDevice.screen[orientation].height}px;
-				padding: 10px"
+				padding: 15px"
 		></iframe>
 	</div>
 </div>
@@ -289,25 +292,6 @@
 	background-color: #005bb5;
 }
 
-.screen-size {
-	font-size: 0.9rem;
-	color: #555;
-	font-family: Arial, sans-serif;
-}
-
-.preview-container {
-	position: relative;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	border: 1px solid #ccc;
-	overflow: hidden;
-	border-radius: 12px;
-	background-color: #000;
-	transition: transform 0.2s ease-in-out;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
 .bezel-container {
 	position: relative;
 	display: flex;
@@ -325,6 +309,7 @@
 	object-fit: contain;
 	z-index: 99;
 	pointer-events: none;
+	transition: transform 0.3s ease-in-out; /* Smooth rotation */
 }
 
 .device-iframe {
@@ -332,31 +317,12 @@
 	border: none;
 	z-index: 1;
 	border-radius: 50px;
+	-ms-overflow-style: none; /* For Internet Explorer and Edge */
+	scrollbar-width: none; /* For Firefox */
 }
 
-.iframe-wrapper {
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-	-webkit-overflow-scrolling: touch; 
-}
-
-
-.iframe-wrapper::-webkit-scrollbar {
-	width: 6px; 
-	height: 6px;
-}
-
-.iframe-wrapper::-webkit-scrollbar-thumb {
-	background: #888; 
-	border-radius: 10px;
-}
-
-.iframe-wrapper::-webkit-scrollbar-thumb:hover {
-	background: #555; 
-}
-
-.iframe-wrapper::-webkit-scrollbar-track {
-	background: #f1f1f1; 
+/* For Webkit browsers like Chrome, Safari, and Opera */
+.device-iframe::-webkit-scrollbar {
+	display: none;
 }
 </style>

@@ -1,6 +1,5 @@
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { call, checkArray, deepObject } from '$lib/utils/service';
-import { writable } from 'svelte/store';
+import { call, checkArray } from '$lib/utils/service';
 
 const defValues = {
 	jobs: Array(5).fill({
@@ -59,6 +58,10 @@ export default ServiceHelper({
 	service: 'scheduler.List',
 	mapping: { element: 'admin.element' },
 	beforeUpdate: ({ element }) => {
+		for (const job of element.filter(({ type }) => type == 'JobGroupJob')) {
+			job.jobsname = checkArray(job.job_group_member);
+			delete job.job_group_member;
+		}
 		return {
 			jobs: element.filter(({ category }) => category == 'jobs'),
 			scheduled: element.filter(({ category }) => category == 'scheduledJobs'),

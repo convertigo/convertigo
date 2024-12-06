@@ -1,24 +1,7 @@
 <script>
-	import { browser } from '$app/environment';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	import { onMount } from 'svelte';
 	import Light from '../Light.svelte';
-	// let mode = $state(false);
-
-	// $effect(() => {
-	//     document.documentElement.classList.toggle('dark', !mode);
-	//     if (browser) {
-	//         localStorage.theme = mode ? 'light' : 'dark';
-	//     }
-	// });
-
-	// onMount(() => {
-	//     console.log('localStorage.theme', localStorage.theme);
-	//     console.log('mode', mode);
-	//     mode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-	//     console.log('on', (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches));
-	// });
 </script>
 
 <Switch

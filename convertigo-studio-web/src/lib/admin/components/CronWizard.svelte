@@ -1,7 +1,5 @@
 <script>
-	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
-	import { writable } from 'svelte/store';
-	import Container from '$lib/common/components/Container.svelte';
+	import PropertyType from './PropertyType.svelte';
 	/** @type {{cronExpression?: string}} */
 	let { cronExpression = $bindable('0 0 0 * * ?') } = $props();
 
@@ -47,6 +45,15 @@
 		];
 	}
 
+	function onchange(index) {
+		selection[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
+		let exp = '0';
+		for (let sel of selection) {
+			exp += ` ${createRange(sel)}`;
+		}
+		cronExpression = exp;
+	}
+
 	const def = [
 		{
 			title: 'Minutes',
@@ -89,43 +96,26 @@
 		}
 	];
 
-	const binds = new Array(def.length).fill(null);
-
 	let selection = $derived(
-		writable(
-			cronExpression
-				.split(' ')
-				.slice(1, 6)
-				.map((v) => parseRange(v))
-		)
+		cronExpression
+			.split(' ')
+			.slice(1, 6)
+			.map((v) => parseRange(v))
 	);
-
-	function changed(event, index) {
-		$selection[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
-		let exp = '0';
-		for (let sel of $selection) {
-			exp += ` ${createRange(sel)}`;
-		}
-		cronExpression = exp;
-	}
 </script>
 
-<div class="flex flex-row flex-wrap">
+<div class="layout-x-low flex-wrap">
 	{#each def as { title, values, labels }, i}
-		<Container flex flexCol gap="5">
-			<p class="font-bold text-start pr-5">{title}</p>
-			<ListBox rounded="rounded" class="h-52 overflow-y-auto p-1" multiple={true}>
-				{#each values as value, j}
-					<ListBoxItem
-						class="font-extralight"
-						active="bg-tertiary-100-800"
-						{value}
-						name={labels[j]}
-						bind:group={$selection[i]}
-						on:change={(e) => changed(e, i)}>{labels[j]}</ListBoxItem
-					>
-				{/each}
-			</ListBox>
-		</Container>
+		<div class="w-fit">
+			<PropertyType
+				type="combo"
+				description={title}
+				size="8"
+				bind:value={selection[i]}
+				onchange={() => onchange(i)}
+				multiple
+				item={values.map((value, j) => ({ value, text: labels[j] }))}
+			/>
+		</div>
 	{/each}
 </div>
