@@ -62,10 +62,25 @@ export default ServiceHelper({
 			job.jobsname = checkArray(job.job_group_member);
 			delete job.job_group_member;
 		}
+		const schedules = element.filter(({ category }) => category == 'schedules');
+		schedules.forEach((schedule, i) => {
+			if (schedule.cron) {
+				schedule.next = null;
+				call('scheduler.CronCalculator', {
+					name: schedule.name,
+					input: schedule.info,
+					iteration: 20
+				}).then((res) => {
+					values.schedules[i].next = checkArray(res?.admin?.crons?.nextTime);
+				});
+			} else {
+				schedule.next = ['n/a'];
+			}
+		});
 		return {
 			jobs: element.filter(({ category }) => category == 'jobs'),
 			scheduled: element.filter(({ category }) => category == 'scheduledJobs'),
-			schedules: element.filter(({ category }) => category == 'schedules')
+			schedules
 		};
 	}
 });

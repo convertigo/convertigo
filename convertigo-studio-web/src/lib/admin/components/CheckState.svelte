@@ -15,8 +15,9 @@
 	$effect(() => {
 		value;
 		if (checked != last) {
+			const changed = value != (checked ? values[1] : values[0]);
 			value = checked ? values[1] : values[0];
-			if (typeof last != 'undefined') {
+			if (typeof last != 'undefined' && changed) {
 				onchange?.({ target: { name, value } });
 			}
 			last = checked;
@@ -26,7 +27,17 @@
 	});
 </script>
 
-<Switch {classes} {name} value={values[1]} controlClasses="min-w-10" bind:checked>
+<Switch
+	{classes}
+	{name}
+	value={values[1]}
+	controlClasses="min-w-10"
+	thumbInactive="bg-white"
+	thumbActive="bg-white"
+	controlActive="preset-filled-success-500"
+	controlInactive="preset-filled-warning-500"
+	bind:checked
+>
 	<span class="block cursor-pointer break-words">{@render children?.()}</span>
 	{#if !checked && Array.isArray(values)}
 		<input type="hidden" {name} value={values[0]} />

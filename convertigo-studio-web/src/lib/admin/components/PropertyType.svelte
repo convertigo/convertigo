@@ -67,9 +67,15 @@
 					</AutoPlaceholder>
 				{/if}
 				{#if type == 'segment'}
-					<Segment {...rest} {name} bind:value>
+					<Segment
+						{...rest}
+						{name}
+						bind:value
+						indicatorBg="preset-filled-primary-500"
+						indicatorText="text-white"
+					>
 						{#each item as option}
-							<Segment.Item value={option.value} stateFocused="preset-filled-surface text-white">
+							<Segment.Item value={option.value}>
 								{option.text ?? option['#text']}
 							</Segment.Item>
 						{/each}
@@ -114,7 +120,7 @@
 		{/if}
 	</div>
 	{#if restores.length > 0}
-		<div class="layout-x-low sm:layout-y-low">
+		<div class="layout-x-low sm:layout-y-low sm:h-full !justify-around">
 			{#each restores as { icon, val, title }}
 				<button
 					disabled={value == val}

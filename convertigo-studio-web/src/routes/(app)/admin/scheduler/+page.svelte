@@ -13,6 +13,8 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import CronWizard from '$lib/admin/components/CronWizard.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Time from '$lib/common/Time.svelte';
 
 	let { jobs, schedules, scheduled, configure, remove } = $derived(Scheduler);
 	let { projects } = $derived(Project);
@@ -38,9 +40,8 @@
 			sequence: '',
 			connector: '',
 			transaction: '',
-			jobName: '…',
-			scheduleName: '…',
 			cron: '0 * * * * ?',
+			...(mode == 'ScheduledJob' ? { jobName: '…', scheduleName: '…' } : {}),
 			...(row ?? {})
 		};
 		modal.open({ event, mode, row });
@@ -65,7 +66,7 @@
 		}
 	]);
 
-	let modal, yesNo;
+	let modal, yesNo, nextCron;
 	/*** @type {any} */
 	let selected = $state({});
 	/*** @type {any} */
@@ -90,6 +91,9 @@
 		if (rowSelected) {
 			const prj = projects?.find((p) => p.name == rowSelected.project) || projects?.[0];
 			project = prj?.name ? TestPlatform(prj?.name) : {};
+			if (rowSelected?.jobName || rowSelected?.scheduleName) {
+				rowSelected.name = `${rowSelected.jobName}@${rowSelected.scheduleName}`;
+			}
 		}
 		for (const k of Object.keys(requestable)) {
 			if (requestable[k]?.name) {
@@ -126,21 +130,13 @@
 				{/if}
 				<div class="layout-x max-md:flex-wrap">
 					<div class="layout-y max-md:w-full">
-						{#if mode == 'ScheduledJob'}
-							<PropertyType
-								name="name"
-								description="Name"
-								value="{rowSelected.jobName ?? '…'}@{rowSelected.scheduleName ?? '…'}"
-								readonly={true}
-							/>
-						{:else}
-							<PropertyType
-								name="name"
-								description="Name"
-								bind:value={rowSelected.name}
-								originalValue={name}
-							/>
-						{/if}
+						<PropertyType
+							name="name"
+							description="Name"
+							bind:value={rowSelected.name}
+							originalValue={mode == 'ScheduledJob' ? undefined : name}
+							readonly={mode == 'ScheduledJob'}
+						/>
 						<PropertyType
 							name="description"
 							description="Description"
@@ -274,7 +270,11 @@
 					{/if}
 				</div>
 				<div class="w-full layout-x justify-end">
-					<button class="basic-button" disabled={!rowSelected.name}
+					<button
+						class="basic-button"
+						disabled={!rowSelected.name ||
+							(mode == 'ScheduledJob' &&
+								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
 						><span><Ico icon={jobTypes[mode].icon} size="btn" /></span><span>Save</span></button
 					>
 					<button type="button" onclick={close} class="cancel-button"
@@ -287,7 +287,26 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
-
+<ModalDynamic bind:this={nextCron}>
+	{#snippet children({
+		close,
+		params: {
+			row: { next }
+		}
+	})}
+		<Card title="Next Schedules" class="max-w-xs">
+			<p class="break-words"><b>Now</b> {Time.server}</p>
+			<ul>
+				{#each next as n}
+					<li>{n}</li>
+				{/each}
+			</ul>
+			<div class="w-full layout-x justify-end">
+				<button onclick={close} class="cancel-button">Close</button>
+			</div>
+		</Card>
+	{/snippet}
+</ModalDynamic>
 <div class="layout-y !items-stretch">
 	{#each cards as { title, range, next, data }}
 		<Card {title}>
@@ -306,12 +325,16 @@
 				definition={[
 					{
 						name: 'Actions',
-						class: 'max-w-32',
+						class: 'w-32',
 						custom: true
 					},
 					{ name: 'Name', key: 'name' },
-					{ name: 'Description', key: 'description' },
-					{ name: 'Info', key: 'info', class: 'max-w-40 break-all' }
+					{ name: 'Description', key: 'description', class: 'min-w-32 break-all' },
+					{
+						name: 'Next',
+						custom: true
+					},
+					{ name: 'Info', key: 'info', class: 'min-w-32 break-all' }
 				].filter((elt) => next || elt.name != 'Next')}
 				{data}
 			>
@@ -353,20 +376,16 @@
 							>
 								<Ico icon="mingcute:delete-line" />
 							</button>
-							<!-- {#if next}
-								<AutoPlaceholder {loading}
-									><button
-										class="violet-button"
-										onclick={() => /*modalStore.trigger({
-										title: 'Next triggers',
-										body: `<div class="overflow-y-auto max-h-[30vh]">${row.next.join('</br>')}</div>`,
-										type: 'alert',
-										modalClasses: 'text-center overflow-y-scroll'
-									})*/ {}}>{row.next[0]}</button
-									></AutoPlaceholder
-								>
-							{/if} -->
 						</div>
+					{:else if row.next?.length > 1}
+						<button
+							class="yellow-button"
+							onclick={(event) => {
+								nextCron.open({ event, row });
+							}}>{row.next?.[0]}</button
+						>
+					{:else}
+						<AutoPlaceholder loading={row.next == null}>{row.next?.[0]}</AutoPlaceholder>
 					{/if}
 				{/snippet}
 			</TableAutoCard>

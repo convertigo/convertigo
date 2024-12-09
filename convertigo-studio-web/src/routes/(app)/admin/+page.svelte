@@ -229,7 +229,7 @@
 		{/each}
 	</div>
 
-	<div class="layout-grid-[350px] w-full">
+	<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart}
 			<Card class="!items-stretch">
 				<ApexChartLineAdmin {...chart} {categories} />
