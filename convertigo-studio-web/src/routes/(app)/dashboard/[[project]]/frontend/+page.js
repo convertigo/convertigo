@@ -9,9 +9,7 @@ export function load({ params }) {
 		302,
 		resolveRoute('/(app)/dashboard/[[project]]/frontend/[model]', {
 			...params,
-			model: building
-				? '_'
-				: `${Last.model.replaceAll(' ', '-')}_${Last.orientation.substring(0, 1)}`
+			model: building ? '_' : `${Last.model}_${Last.orientation}`
 		})
 	);
 }

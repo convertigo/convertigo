@@ -82,18 +82,17 @@
 		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.6.12",
 		"@svelte-plugins/datepicker": "^1.0.9",
+		"@xyflow/svelte": "^0.1.25",
 		"apexcharts": "^4.2.0",
 		"chart.js": "^4.4.7",
+		"elkjs": "^0.9.3",
 		"fast-xml-parser": "^4.5.0",
 		"html-entities": "^2.5.2",
 		"marked": "^15.0.3",
 		"monaco-editor": "^0.52.2",
-		"react-device-frameset": "^1.3.4",
 		"svelte-device-mockups": "^0.1.4",
 		"svelte-markdown": "^0.4.1",
 		"svelte-persisted-store": "^0.12.0",
-		"svelte-tiny-virtual-list": "^2.1.2",
-		"@xyflow/svelte": "^0.1.25",
-		"elkjs": "^0.9.3"
+		"svelte-tiny-virtual-list": "^2.1.2"
 	}
 }

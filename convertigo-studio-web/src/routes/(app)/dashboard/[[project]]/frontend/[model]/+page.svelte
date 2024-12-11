@@ -12,7 +12,9 @@
 	import { Spring } from 'svelte/motion';
 
 	let orientation = $derived($page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
-	let selectedDevice = $derived(Bezels[$page.params.model.split('_')[0]]);
+	let selectedDevice = $derived(
+		Bezels[$page.params.model.split('_')[0]] ?? Object.values(Bezels)[0]
+	);
 	let selectedIndex = $derived(selectedDevice.index);
 	let selectedIndexLast = $state(-1);
 	let projectUrl = $derived(getFrontendUrl($page.params.project));
@@ -20,8 +22,8 @@
 	let angle = Spring.of(() => (orientation == 'horizontal' ? 1 : 0));
 
 	$effect(() => {
-		Last.model = selectedDevice.title;
-		Last.orientation = orientation;
+		Last.model = selectedDevice.id;
+		Last.orientation = orientation.substring(0, 1);
 		angle.target = orientation == 'horizontal' ? 1 : 0;
 	});
 
@@ -118,6 +120,7 @@
 			src={projectUrl}
 			title={`${selectedDevice.title} Preview`}
 			class="absolute overflow-hidden"
+			data-sveltekit-preload-data="false"
 		></iframe>
 		<img
 			bind:this={bezel}

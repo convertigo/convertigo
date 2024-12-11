@@ -11,7 +11,6 @@
 	import { flip } from 'svelte/animate';
 	import { callRequestable } from '$lib/utils/service';
 	import Editor from '$lib/studio/editor/Editor.svelte';
-	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import Card from '$lib/admin/components/Card.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 

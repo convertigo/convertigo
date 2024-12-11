@@ -3,7 +3,6 @@
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { onMount } from 'svelte';
-	import 'react-device-frameset/styles/marvel-devices.min.css';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { call, copyObj, getQuery, getUrl } from '$lib/utils/service';
