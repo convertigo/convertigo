@@ -33,6 +33,7 @@
 					title: 'Frontend',
 					icon: 'ph:video-thin',
 					page: '/(app)/dashboard/[[project]]/frontend',
+					id: '/(app)/dashboard/[[project]]/frontend/[model]',
 					params: { project }
 				});
 			}

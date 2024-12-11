@@ -75,8 +75,10 @@
 						indicatorText="text-white"
 					>
 						{#each item as option}
-							<Segment.Item value={option.value}>
-								{option.text ?? option['#text']}
+							{@const val = option.value ?? option}
+							{@const txt = option.text ?? option['#text'] ?? val}
+							<Segment.Item value={val}>
+								{txt}
 							</Segment.Item>
 						{/each}
 					</Segment>

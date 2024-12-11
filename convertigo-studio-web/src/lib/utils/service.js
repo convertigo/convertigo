@@ -1,5 +1,6 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { loading } from '$lib/utils/loadingStore';
+import { resolveRoute } from '$app/paths';
 
 let toastNotif = null;
 let modalLoading = null;
@@ -223,8 +224,9 @@ function handleStateMessage(dataContent, service) {
 }
 
 export function getUrl(path = '/admin/services/') {
-	const m = location?.pathname?.match('^(.+?)/studio/');
-	return `${location?.origin}${m ? m[1] : '/convertigo'}${path}`;
+	let prefix = resolveRoute('/', {});
+	prefix = prefix.endsWith('/studio/') ? prefix.replace(/\/studio\/$/, '') : prefix + 'convertigo';
+	return `${prefix}${path}`;
 }
 
 export function getQuery(query) {
