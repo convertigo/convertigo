@@ -10,6 +10,8 @@
 	import Last from '../Last.svelte';
 	import { goto } from '$app/navigation';
 	import { Spring } from 'svelte/motion';
+	import MaxHeight from '$lib/admin/components/MaxHeight.svelte';
+	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 
 	let orientation = $derived($page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
 	let selectedDevice = $derived(
@@ -37,6 +39,7 @@
 	let bezel = $state();
 
 	$effect(() => {
+		if (!bezel || !iframe) return;
 		const scale = bezel.style.scale;
 		for (const elt of [iframe, bezel]) {
 			elt.attributeStyleMap.clear();
@@ -71,6 +74,7 @@
 	let clientWidth = $state(0);
 
 	$effect(() => {
+		if (!bezel || !iframe) return;
 		if (selectedDevice.id != 'none') {
 			const { height, width } = selectedDevice.bezel;
 			const scaleHeight = clientHeight / (angle.target == 1 ? width : height);
@@ -128,27 +132,32 @@
 		</a>
 	</nav>
 {/snippet}
-<div class="h-full layout-x justify-center" bind:clientHeight bind:clientWidth>
-	<div bind:this={bezel} class="relative">
-		<iframe
-			bind:this={iframe}
-			src={projectUrl}
-			title={`${selectedDevice.title} Preview`}
-			class="absolute overflow-hidden"
-			class:hidden={!iframe}
-		></iframe>
-		{#if selectedDevice.id != 'none'}
-			{#key selectedDevice.id}
-				<img
-					src="{assets}/bezels/{selectedDevice.id}.png"
-					alt={`${selectedDevice.title} Bezel`}
-					class="absolute pointer-events-none min-h-full min-w-full"
-					transition:blur
-				/>
-			{/key}
-		{/if}
+<MaxRectangle bind:clientHeight bind:clientWidth>
+	<div
+		class="layout-x justify-center"
+		style="max-height: {clientHeight}px; max-width: {clientWidth}px; height: {clientHeight}px; width: {clientWidth}px;"
+	>
+		<div bind:this={bezel} class="relative">
+			<iframe
+				bind:this={iframe}
+				src={projectUrl}
+				title={`${selectedDevice.title} Preview`}
+				class="absolute overflow-hidden"
+				class:hidden={!iframe}
+			></iframe>
+			{#if selectedDevice.id != 'none'}
+				{#key selectedDevice.id}
+					<img
+						src="{assets}/bezels/{selectedDevice.id}.png"
+						alt={`${selectedDevice.title} Bezel`}
+						class="absolute pointer-events-none min-h-full min-w-full"
+						transition:blur
+					/>
+				{/key}
+			{/if}
+		</div>
 	</div>
-</div>
+</MaxRectangle>
 
 <style>
 	.device-iframe {
