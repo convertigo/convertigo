@@ -10,6 +10,12 @@ const devices = {
 		iframe: { width: 430, height: 932, marginTop: 23, marginLeft: 24, borderRadius: 20 },
 		bezel: { width: 487, height: 983 },
 		type: 'phone'
+	},
+	none: {
+		title: 'None',
+		iframe: { width: '100%', height: '100%', position: 'relative' },
+		bezel: { width: '100%', height: '100%', position: 'relative' },
+		type: 'desktop'
 	}
 };
 

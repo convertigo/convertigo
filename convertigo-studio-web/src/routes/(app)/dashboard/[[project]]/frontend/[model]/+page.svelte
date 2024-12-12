@@ -5,7 +5,7 @@
 	import { getFrontendUrl } from '$lib/utils/service';
 	import { page } from '$app/stores';
 	import RightPart from '../../../../admin/RightPart.svelte';
-	import { fade, fly } from 'svelte/transition';
+	import { blur, fade, fly, slide } from 'svelte/transition';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Last from '../Last.svelte';
 	import { goto } from '$app/navigation';
@@ -18,7 +18,6 @@
 	let selectedIndex = $derived(selectedDevice.index);
 	let selectedIndexLast = $state(-1);
 	let projectUrl = $derived(getFrontendUrl($page.params.project));
-	let scale = 1;
 	let angle = Spring.of(() => (orientation == 'horizontal' ? 1 : 0));
 
 	$effect(() => {
@@ -34,41 +33,51 @@
 		});
 	});
 
-	// function calculateScale() {
-	// 	if (typeof window !== 'undefined') {
-	// 		const viewportWidth = window.innerWidth * 0.9;
-	// 		const viewportHeight = window.innerHeight * 0.9;
-
-	// 		const deviceWidth = selectedDevice.screen[orientation].width;
-	// 		const deviceHeight = selectedDevice.screen[orientation].height;
-
-	// 		scale = Math.min(viewportWidth / deviceWidth, viewportHeight / deviceHeight, 1);
-	// 	}
-	// }
-
-	// onMount(() => {
-	// 	calculateScale();
-	// 	window.addEventListener('resize', calculateScale);
-	// 	return () => window.removeEventListener('resize', calculateScale);
-	// });
-
-	let iframe;
-	let bezel;
+	let iframe = $state();
+	let bezel = $state();
 
 	$effect(() => {
-		for (const [key, value] of Object.entries(selectedDevice.bezel)) {
-			bezel.style[key] = `${value}px`;
+		const scale = bezel.style.scale;
+		for (const elt of [iframe, bezel]) {
+			elt.attributeStyleMap.clear();
+			for (let [key, value] of Object.entries(
+				elt == iframe ? selectedDevice.iframe : selectedDevice.bezel
+			)) {
+				if (Number.isFinite(value)) {
+					value = `${value}px`;
+				}
+				if (elt == bezel && (key == 'height' || key == 'width')) {
+					elt.style[`min-${key}`] = value;
+				}
+				elt.style[key] = value;
+			}
 		}
-		for (const [key, value] of Object.entries(selectedDevice.iframe)) {
-			iframe.style[key] = `${value}px`;
+		bezel.style.scale = scale;
+
+		if (selectedDevice.type == 'phone') {
+			bezel.style.transform = `rotate(${angle.current * -90}deg)`;
+			iframe.style.transform = `rotate(${angle.target * 90}deg)`;
+			if (angle.target == 1) {
+				const w = iframe.style.height;
+				iframe.style.height = iframe.style.width;
+				iframe.style.width = w;
+				iframe.style.transformOrigin = '0 0';
+				iframe.style.transform += ' translate(0, -100%)';
+			}
 		}
-		iframe.style.transform = `rotate(${angle.target * 90}deg)`;
-		if (angle.target == 1) {
-			const w = iframe.style.height;
-			iframe.style.height = iframe.style.width;
-			iframe.style.width = w;
-			iframe.style.transformOrigin = '0 0';
-			iframe.style.transform += ' translate(0, -100%)';
+	});
+
+	let clientHeight = $state(0);
+	let clientWidth = $state(0);
+
+	$effect(() => {
+		if (selectedDevice.id != 'none') {
+			const { height, width } = selectedDevice.bezel;
+			const scaleHeight = clientHeight / (angle.target == 1 ? width : height);
+			const scaleWidth = clientWidth / (angle.target == 1 ? height : width);
+			bezel.style.scale = Math.min(scaleHeight, scaleWidth);
+		} else {
+			bezel.style.scale = 1;
 		}
 	});
 
@@ -82,20 +91,22 @@
 	<nav
 		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
 	>
-		<PropertyType
-			type="segment"
-			bind:value={() => orientation,
-			(v) => {
-				goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
-			}}
-			item={['horizontal', 'vertical']}
-			orientation="vertical"
-		/>
-		{#each Object.values(Bezels) as { id, title }, i}
-			<a
-				href="../{id}_{orientation.substring(0, 1)}/"
-				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
-			>
+		{#if selectedDevice.type == 'phone'}
+			<div transition:slide>
+				<PropertyType
+					type="segment"
+					bind:value={() => orientation,
+					(v) => {
+						goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
+					}}
+					item={['horizontal', 'vertical']}
+					orientation="vertical"
+				/>
+			</div>
+		{/if}
+		{#each Object.values(Bezels) as { id, title, type, iframe: { height, width } }, i}
+			{@const href = type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
+			<a {href} class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36">
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
@@ -103,31 +114,39 @@
 						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
 					></span>
 				{/if}
-				<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}">{title}</span>
+				<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
+					>{title}<br /><small>{width} x {height}</small></span
+				>
 			</a>
 		{/each}
+		<a
+			href={projectUrl}
+			target="_blank"
+			class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
+		>
+			<span class="text-[13px] z-10 font-light">New Tab</span>
+		</a>
 	</nav>
 {/snippet}
-
-<div class="h-full layout-x justify-center">
-	<div
-		class="relative"
-		style="transform: rotate({angle.current * -90}deg); width: {selectedDevice.bezel
-			.width}px; height: {selectedDevice.bezel.height}px;"
-	>
+<div class="h-full layout-x justify-center" bind:clientHeight bind:clientWidth>
+	<div bind:this={bezel} class="relative">
 		<iframe
 			bind:this={iframe}
 			src={projectUrl}
 			title={`${selectedDevice.title} Preview`}
 			class="absolute overflow-hidden"
-			data-sveltekit-preload-data="false"
+			class:hidden={!iframe}
 		></iframe>
-		<img
-			bind:this={bezel}
-			src="{assets}/bezels/{selectedDevice.id}.png"
-			alt={`${selectedDevice.title} Bezel`}
-			class="absolute pointer-events-none"
-		/>
+		{#if selectedDevice.id != 'none'}
+			{#key selectedDevice.id}
+				<img
+					src="{assets}/bezels/{selectedDevice.id}.png"
+					alt={`${selectedDevice.title} Bezel`}
+					class="absolute pointer-events-none min-h-full min-w-full"
+					transition:blur
+				/>
+			{/key}
+		{/if}
 	</div>
 </div>
 
