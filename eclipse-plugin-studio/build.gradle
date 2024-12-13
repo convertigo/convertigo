@@ -127,6 +127,8 @@ task catlClasses(type: Copy) {
     	exclude 'com/twinsoft/convertigo/**/*BeanInfo.class'
     	
     	//beans
+    	include 'com/twinsoft/convertigo/beans/core/RequestableObject*.class'
+    	
     	include 'com/twinsoft/convertigo/beans/connectors/SqlConnector*.class'
     	
     	include 'com/twinsoft/convertigo/beans/rest/AbstractRestOperation*.class'

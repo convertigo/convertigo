@@ -1,6 +1,6 @@
 buildscript {
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	
 	dependencies {
@@ -66,7 +66,7 @@ allprojects {
 		maven {
 			url "https://europe-maven.pkg.dev/jxbrowser/releases"
 		}
-		jcenter()
+		mavenCentral()
 	}
 	
 	if (project.name.startsWith('eclipse')) {

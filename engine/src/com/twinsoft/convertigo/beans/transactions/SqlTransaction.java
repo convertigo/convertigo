@@ -517,6 +517,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				}
 				query = prepareQuery(logHiddenValues, sqlQueryInfos);
 				try {
+					connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
 					// We execute the query
 					preparedStatement.execute();
 					
