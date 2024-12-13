@@ -26,7 +26,7 @@
 				}}
 				class="flex items-center gap-2 w-1/2"
 			>
-				<input id="newKey" type="text" class="text-surface-200-800" bind:value={newKey} placeholder="Enter a new key" />
+				<input id="newKey" type="text" class="search-input" bind:value={newKey} placeholder="Enter a new key" />
 				<button
 				type="submit"
 				class="basic-button"
@@ -41,11 +41,11 @@
 			buttons={[
 				{
 					label: `Total Valid Keys: ${nbValidKeys}`,
-					cls: 'basic-button'
+					cls: 'gray-button'
 				},
 				{
 					label: `First Start Date: ${new Date(parseInt(firstStartDate)).toDateString()}`,
-					cls: 'basic-button'
+					cls: 'gray-button'
 				}
 			]}
 		/>
@@ -68,27 +68,22 @@
 			>
 				{#snippet children({ row, def })}
 					{#if def.name === 'Expiration Date'}
-						<td>
 							<div
-								class="rounded py-1 px-1 text"
 								class:bg-success-400-500={row.expiration === '0'}
 								class:bg-tertiary-400-500={row.expiration !== '0'}
 							>
 								{formatExpiration(row.expiration)}
 							</div>
-						</td>
+						
 					{:else if def.name === 'Expired'}
-						<td>
-							<div
-								class="rounded py-1 px-1 text"
-								class:bg-success-200-800={!row.expired}
-								class:bg-red-600={row.expired}
+							<button
+								class:green-button={!row.expired}
+								class:yellow-button={row.expired}
 							>
 								{row.expired ? 'Yes' : 'No'}
-							</div>
-						</td>
+							</button>
+						
 					{:else if def.name === 'Actions'}
-						<td>
 							<ResponsiveButtons
 								buttons={[
 									{
@@ -102,16 +97,16 @@
 													message: `Are you sure you want to delete key ${row.text}?`,
 												})
 											) {
-												deleteKey(row.text); // Use deleteKey method from KeysService
+												deleteKey(row.text); 
 											}
 										},
 									},
 								]}
-								class="min-w-32"
+								
 							/>
-						</td>
+						
 					{:else}
-						<td>{row[def.key]}</td>
+						{row[def.key]}
 					{/if}
 				{/snippet}
 			</TableAutoCard>
