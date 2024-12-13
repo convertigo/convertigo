@@ -1,192 +1,127 @@
 <script>
-	import { keysCheck, categoryStore } from '$lib/admin/stores/keysStore';
-	import { call } from '$lib/utils/service';
-	import { onMount } from 'svelte';
+	import KeysService from '$lib/admin/Keys.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Icon from '@iconify/svelte';
 
 	let newKey = $state('');
+	let modalDelete = $state();
 
-	onMount(() => {
-		keysCheck();
-	});
-
-	function formatExpiration(expirationCode) {
-		if (expirationCode === '0') {
-			return 'Unlimited';
-		} else {
-			let year = parseInt(expirationCode.substring(0, 2), 10);
-			let dayOfYear = parseInt(expirationCode.substring(2), 10);
-			year += year < 70 ? 2000 : 1900;
-			let date = new Date(year, 0);
-
-			date.setDate(date.getDate() + dayOfYear - 1);
-			return date.toDateString();
-		}
-	}
-
-	/**
-	 * @param {any} keyText
-	 */
-	async function deleteKey(keyText) {
-		try {
-			// @ts-ignore
-			const response = await call('keys.Remove', {
-				'@_xml': true,
-				admin: {
-					'@_service': 'keys.Remove',
-					keys: {
-						key: {
-							'@_text': keyText
-						}
-					}
-				}
-			});
-			keysCheck();
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	function openModalDeleteKey(keyText) {
-		// @ts-ignore
-		keyModalStore.trigger({
-			type: 'component',
-			component: 'modalWarning',
-			title: 'Please Confirm',
-			body: 'Are you sure you want to delete the key ?',
-			meta: { mode: 'Confirm' },
-			response: (confirmed) => {
-				if (confirmed) {
-					deleteKey(keyText);
-				}
-			}
-		});
-	}
-
-	async function keysUpdate(keyText) {
-		try {
-			const resUpdate = await call('keys.Update', {
-				'@_xml': true,
-				admin: {
-					'@_service': 'keys.Update',
-					keys: {
-						key: {
-							'@_text': keyText
-						}
-					}
-				}
-			});
-			const errorMessage = resUpdate?.admin?.keys?.key['@_errorMessage'];
-			keysCheck();
-		} catch (err) {
-			console.error(err);
-		}
-	}
-
-	async function handleFormSubmit() {
-		try {
-			const res = await keysUpdate(newKey);
-			newKey = '';
-		} catch (err) {
-			console.error(err);
-		}
-	}
+	let { categories, nbValidKeys, firstStartDate, deleteKey, addKey, formatExpiration } =
+		$derived(KeysService);
 </script>
 
-<Card title="Keys">
-	<form onsubmit={handleFormSubmit} class="space-x-0 flex gap-2 items-center">
-		<input type="text" bind:value={newKey} class="input-new-key" placeholder="Enter a new key" />
-		<button type="submit" class="basic-button">
-			<Ico icon="vaadin:key-o" />
-			<p>Add Key</p>
-		</button>
-	</form>
+<Card title="Keys Management">
+	{#snippet cornerOption()}
+		<div class="flex items-center gap-4 justify-end">
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					if (newKey.trim()) {
+						KeysService.addKey(newKey.trim());
+						newKey = '';
+					}
+				}}
+				class="flex items-center gap-2 w-1/2"
+			>
+				<input id="newKey" type="text" class="text-surface-200-800" bind:value={newKey} placeholder="Enter a new key" />
+				<button
+				type="submit"
+				class="basic-button"
+			>
+				<Icon icon="vaadin:key-o" />
+				Add Key
+			</button>
+			</form>
+
+			<ResponsiveButtons
+			class="max-w-4xl"
+			buttons={[
+				{
+					label: `Total Valid Keys: ${nbValidKeys}`,
+					cls: 'basic-button'
+				},
+				{
+					label: `First Start Date: ${new Date(parseInt(firstStartDate)).toDateString()}`,
+					cls: 'basic-button'
+				}
+			]}
+		/>
+		</div>
+	{/snippet}
 </Card>
 
-{#if $categoryStore.length >= 0}
-	{#each $categoryStore as category}
-		<div class="mt-5">
-			<Card title={category['@_name']}>
-				<TableAutoCard
-					definition={[
-						{ name: 'Key', key: '@_text' },
-						{
-							name: 'In use',
-							key: '@_total',
-							custom: true
-						},
-						{
-							name: 'Remaining',
-							key: '@_remaining',
-							custom: true
-						},
-						{
-							name: 'Expiration Date',
-							key: '@_expiration',
-							custom: true
-							/*class: (row) =>
-								row['@_expiration'] === '0'
-									? 'bg-success-400-500 border-r-[1px] border-surface-100-800'
-									: 'bg-tertiary-400-500 border-r-[1px] border-surface-100-800'*/
-						},
-						{
-							name: 'Expired',
-							key: '@_expired',
-							custom: true
-							/* class: (row) =>
-								row['@_expired'] === 'false'
-									? 'bg-success-400-500'
-									: 'bg-tertiary-400-500'*/
-						},
-						{ name: 'Delete', custom: true }
-					]}
-					data={category.keys}
-				>
-					{#snippet children({ row, def })}
-						{#if def.custom}
-							{#if def.name == 'Expiration Date'}
-								{#if row[def.key] === '0'}
-									<div class="bg-success-400-500 rounded py-1 px-1 text">
-										{formatExpiration(row[def.key])}
-									</div>
-								{:else}
-									<div class="bg-tertiary-400-500 rounded py-1 px-1 text">
-										{formatExpiration(row[def.key])}
-									</div>
-								{/if}
-							{:else if def.name === 'In use'}
-								<span class="">{category['@_total']}</span>
-							{:else if def.name === 'Remaining'}
-								<span class="">{category['@_remaining']}</span>
-							{:else if def.name === 'Expired'}
-								{#if row[def.key] === 'false'}
-									<div class="bg-success-400-500 rounded py-1 px-1 text">
-										{row[def.key]}
-									</div>
-								{:else}
-									<div class="bg-red-400">{row[def.key]}</div>
-								{/if}
-							{:else if def.name === 'Delete'}
-								<button class="delete-button" onclick={() => openModalDeleteKey(row['@_text'])}>
-									<Icon icon="mingcute:delete-line" class="h-4 w-4 " />
-								</button>
-							{/if}
-						{:else}
-							<td>{row[def.key]}</td>
-						{/if}
-					{/snippet}
-				</TableAutoCard>
-			</Card>
-		</div>
+{#if categories?.length > 0}
+	{#each categories as category}
+		<Card title={category.name} class="mt-5">
+			<TableAutoCard
+				definition={[
+					{ name: 'Key', key: 'text' },
+					{ name: 'Value', key: 'value' },
+					{ name: 'Expiration Date', key: 'expiration', custom: true },
+					{ name: 'Expired', key: 'expired', custom: true },
+					{ name: 'Actions', custom: true }
+				]}
+				data={category.keys.key}
+			>
+				{#snippet children({ row, def })}
+					{#if def.name === 'Expiration Date'}
+						<td>
+							<div
+								class="rounded py-1 px-1 text"
+								class:bg-success-400-500={row.expiration === '0'}
+								class:bg-tertiary-400-500={row.expiration !== '0'}
+							>
+								{formatExpiration(row.expiration)}
+							</div>
+						</td>
+					{:else if def.name === 'Expired'}
+						<td>
+							<div
+								class="rounded py-1 px-1 text"
+								class:bg-success-200-800={!row.expired}
+								class:bg-red-600={row.expired}
+							>
+								{row.expired ? 'Yes' : 'No'}
+							</div>
+						</td>
+					{:else if def.name === 'Actions'}
+						<td>
+							<ResponsiveButtons
+								buttons={[
+									{
+										icon: 'mingcute:delete-line',
+										label: 'Delete',
+										cls: 'delete-button',
+										onclick: async () => {
+											if (
+												await modalDelete.open({
+													title: 'Delete Key',
+													message: `Are you sure you want to delete key ${row.text}?`,
+												})
+											) {
+												deleteKey(row.text); // Use deleteKey method from KeysService
+											}
+										},
+									},
+								]}
+								class="min-w-32"
+							/>
+						</td>
+					{:else}
+						<td>{row[def.key]}</td>
+					{/if}
+				{/snippet}
+			</TableAutoCard>
+		</Card>
 	{/each}
+{:else}
+	<p>No categories found.</p>
 {/if}
 
+<ModalYesNo bind:this={modalDelete} />
+
 <style lang="postcss">
-	.input-new-key {
-		@apply dark:text-white w-80 placeholder:text-surface-300 rounded w-[60%] dark:bg-surface-500 bg-white dark:border-surface-400 border-surface-200;
-		max-width: 400px;
-	}
 </style>
