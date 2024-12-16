@@ -1,286 +1,303 @@
 <script>
 	import Card from '$lib/admin/components/Card.svelte';
-	import { call } from '$lib/utils/service';
-	// import { onMount } from 'svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import { usersList, usersStore } from '$lib/admin/stores/rolesStore';
-	import Ico from '$lib/utils/Ico.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Roles from '$lib/admin/Roles.svelte';
+	import { rolesStore } from '$lib/admin/stores/rolesStore';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { call } from '$lib/utils/service';
 
-	let selectRow = $state(false);
-	let selectedUsers = new Set();
-	let allSelected = false;
-	// onMount(() => {
-	// 	usersList();
-	// });
+	let { users, roles, deleteRoles, importRoles, exportRoles } = $derived(Roles);
 
-	function DisplaySelectRow() {
-		selectRow = !selectRow;
+	let modalAddUser = $state();
+	let modalDelete = $state();
+	let modalImport = $state();
+	let modalWatchRoles = $state();
+	let modalEditUser = $state();
+
+	let importMode = 'clear';
+	let nameConflict = 'server';
+
+	let showExportColumn = $state(false);
+
+	let file = $state(null);
+
+	/*** @type {any} */
+	let rowSelected = $state(null);
+	let modalRole = $state();
+
+	function openRoleModal({ mode, row = undefined }) {
+		rowSelected = {
+			name: '',
+			password: '',
+			...(row ?? {})
+		};
+		modalRole.open({ mode, row });
 	}
 
-	function toggleUserSelection(user) {
-		if (selectedUsers.has(user)) {
-			selectedUsers.delete(user);
+	let tableDefinition = $state([
+		{ name: 'Name', key: 'name' },
+		{ name: 'Roles', custom: true },
+		{ name: 'Actions', custom: true }
+	]);
+
+	let viewRoles = $derived(roles.filter((role) => role.name.endsWith('_VIEW')));
+	let configRoles = $derived(roles.filter((role) => role.name.endsWith('_CONFIG')));
+	let otherRoles = $derived(
+		roles.filter((role) => !role.name.endsWith('_VIEW') && !role.name.endsWith('_CONFIG'))
+	);
+
+	function toggleExportColumn() {
+		showExportColumn = !showExportColumn;
+		if (showExportColumn) {
+			tableDefinition = [{ name: 'Export', custom: true }, ...tableDefinition];
 		} else {
-			selectedUsers.add(user);
+			tableDefinition = tableDefinition.filter((col) => col.name !== 'Export');
 		}
 	}
 
-	function selectAllRoles() {
-		if (allSelected) {
-			selectedUsers.clear();
-			document
-				.querySelectorAll('input[type="checkbox"]')
-				//@ts-ignore
-				.forEach((checkbox) => (checkbox.checked = false));
-		} else {
-			$usersStore.forEach((user) => selectedUsers.add(user));
-			document
-				.querySelectorAll('input[type="checkbox"]')
-				//@ts-ignore
-				.forEach((checkbox) => (checkbox.checked = true));
-		}
-		allSelected = !allSelected; // Toggle the selection state
+	function openEditModal(row) {
+		rowSelected = {
+			username: row.username,
+			roles: [...row.roles]
+		};
+		modalEditUser.open();
 	}
 
-	async function deleteUsersRoles(username) {
-		const formData = new FormData();
-		formData.append('username', username);
-		try {
-			//@ts-ignore
-			const res = await call('roles.Delete', formData);
-			if (res?.admin?.response?.['@_state'] == 'success') {
-				usersList();
-				// modalStore.close();
-			}
-		} catch (error) {
-			console.error('Error deleting user role:', error);
-		}
+	async function saveChanges() {
+		console.log('Saving changes for:', rowSelected);
+		modalEditUser.close();
 	}
 
-	async function deleteAllRoles() {
-		try {
-			const res = await call('roles.DeleteAll');
-			if (res?.admin?.response?.['@_state'] == 'success') {
-				usersList();
-				// modalStore.close();
-			}
-		} catch (err) {
-			console.error(err);
-		}
-	}
-
-	function openModals(mode, row) {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalRoles',
-		// 	meta: { mode, row },
-		// 	title: row ? `Edit roles` : `New roles`
-		// });
-	}
-
-	function openDeleteAllModal() {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalWarning',
-		// 	title: 'You are going to delete All Roles',
-		// 	body: 'Are you sure you want to ?',
-		// 	meta: { mode: 'Confirm' },
-		// 	response: async (confirmed) => {
-		// 		if (confirmed) {
-		// 			deleteAllRoles();
-		// 		}
-		// 	}
-		// });
-	}
-
-	function openDeleteModal(row) {
-		// modalStore.trigger({
-		// 	type: 'component',
-		// 	component: 'modalWarning',
-		// 	title: 'Please Confirm',
-		// 	body: 'Are you sure you want to delete the role ?',
-		// 	meta: { mode: 'Confirm' },
-		// 	response: (confirmed) => {
-		// 		if (confirmed) {
-		// 			deleteUsersRoles(row);
-		// 		}
-		// 	}
-		// });
-	}
-
-	function exportUserFile() {
-		const usersArray = Array.from(selectedUsers);
-		const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-			JSON.stringify(usersArray)
-		)}`;
-		const link = document.createElement('a');
-		link.href = jsonString;
-		link.download = 'users_export.json';
-
-		link.click();
-	}
-
-	const userActions = {
-		add: {
-			name: 'Add User',
-			icon: 'grommet-icons:add'
-		},
-		import: {
-			name: 'Import Users',
-			icon: 'bytesize:import'
-		}
-		// export: {
-		// 	name: 'Export Users',
-		// 	icon: 'bytesize:export'
-		// }
-	};
-
-	const sortRoles = (a, b) =>
-		['_VIEW', '_CONFIG', ''].reduce((res, suffix) => {
-			return res || (a.endsWith(suffix) ? 1 : 0) - (b.endsWith(suffix) ? 1 : 0);
-		}, 0) || a.localeCompare(b);
+	let modal, calling, yesNo;
 </script>
 
-<Card title="Roles">
+<ModalDynamic bind:this={modalRole}>
+	{#snippet children({ close, params: { mode, row } })}
+		{@const { name, password } = row ?? {}}
+		<Card title="{row ? 'Edit' : 'Add'} {roles.name}">
+			<form
+				onsubmit={async (event) => {
+					event.preventDefault();
+				}}
+				class="layout-y"
+			>
+				<div>
+					<PropertyType
+						name="username"
+						label="Username"
+						bind:value={rowSelected.name}
+						placeholder="Enter role name"
+					/>
+					<PropertyType
+						name="password"
+						label="Password"
+						bind:value={rowSelected.password}
+						placeholder="Enter password"
+					/>
+				</div>
+
+				<div class="w-full layout-x justify-end">
+					<button type="submit" class="basic-button" disabled={calling}>
+						<span><Ico icon="bytesize:export" size="btn" /></span>
+						<span>{modalRole.params?.mode === 'add' ? 'Add' : 'Save'}</span>
+					</button>
+					<button type="button" onclick={modalRole.close} class="cancel-button">
+						<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
+						<span>Cancel</span>
+					</button>
+				</div>
+			</form>
+		</Card>
+	{/snippet}
+</ModalDynamic>
+
+<ModalDynamic bind:this={modalAddUser}>
+	<Card title="Add Users">
+		<form
+			onsubmit={async (event) => {
+				event.preventDefault();
+				calling = true;
+				const formData = new FormData(event.target);
+				function collectRoles(roles) {
+					roles.forEach((role) => {
+						if (formData.get(role.name) === 'true') {
+							formData.append('roles', role.name);
+						}
+						formData.delete(role.name);
+					});
+				}
+
+				collectRoles(viewRoles);
+				collectRoles(configRoles);
+				collectRoles(otherRoles);
+
+				await call('roles.Add', formData);
+				calling = false;
+				modalAddUser.close();
+			}}
+			class="layout-y-low"
+		>
+			<div class="w-full layout-x justify-start">
+				<PropertyType name="username" label="Username" placeholder="Username" />
+				<PropertyType name="password" label="Password" placeholder="Password" type="password" />
+			</div>
+
+			<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
+				{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
+					<div class="col-span-1 flex flex-col gap-2">
+						<p class="font-bold">{title}</p>
+						{#each roles as role}
+							<PropertyType name={role.name} type="boolean" description={role.name} />
+						{/each}
+					</div>
+				{/each}
+			</div>
+
+			<div class="w-full layout-x justify-end">
+				<button type="submit" class="basic-button">
+					<span><Ico icon="bytesize:import" size="btn" /></span>
+					<span>Add user</span>
+				</button>
+				<button type="button" onclick={modalAddUser.close} class="cancel-button">
+					<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
+					<span>Cancel</span>
+				</button>
+			</div>
+		</form>
+	</Card>
+</ModalDynamic>
+
+<ModalDynamic bind:this={modalWatchRoles}>
+	<Card title="All roles">
+		<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
+			{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
+				<div class="col-span-1 flex flex-col gap-2">
+					<p class="font-bold">{title}</p>
+					{#each roles as role}
+						<PropertyType name={role.name} type="boolean" description={role.name} />
+					{/each}
+				</div>
+			{/each}
+		</div></Card
+	>
+</ModalDynamic>
+
+<Card title="Roles Management">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
 			class="max-w-4xl"
 			buttons={[
 				{
-					label: 'Add User',
+					label: 'Add Role',
 					icon: 'grommet-icons:add',
 					cls: 'green-button',
-					onclick: () => openModals('add', { role: '' })
+					onclick: modalAddUser?.open
 				},
 				{
 					label: 'Import Users',
 					icon: 'bytesize:import',
 					cls: 'basic-button',
-					onclick: () => openModals('import', { role: '' })
+					onclick: modalImport?.open
 				},
 				{
-					label: 'Export Users',
+					label: showExportColumn ? 'Hide Export Column' : 'Show Export Column',
 					icon: 'bytesize:export',
 					cls: 'basic-button',
-					onclick: () => openModals('export', { role: '' })
+					onclick: toggleExportColumn
 				},
 				{
 					label: 'Delete All Users',
 					icon: 'mingcute:delete-line',
 					cls: 'delete-button',
-					onclick: openDeleteAllModal
+					onclick: async () => {
+						if (
+							await modalDelete.open({
+								title: 'Delete all users',
+								message: `Are you sure you want to delete all users?`
+							})
+						) {
+							deleteRoles('');
+						}
+					}
 				}
 			]}
+			size="4"
 		/>
 	{/snippet}
-	<!-- <ButtonsContainer class="mb-10">
-		{#each Object.entries(userActions) as [type, { name, icon }]}
-			<button class="basic-button" onclick={() => openModals(type)}>
-				<p>{name}</p>
-				<Ico {icon} />
-			</button>
-		{/each}
+</Card>
 
-		<button class={selectRow ? 'delete-button' : 'basic-button'} onclick={DisplaySelectRow}>
-			<p>{selectRow ? 'Cancel Export' : 'Export Users'}</p>
-			<Ico icon={selectRow ? 'material-symbols-light:cancel-outline' : 'bytesize:export'} />
-		</button>
-
-		{#if selectRow}
-			<button class="yellow-button" onclick={exportUserFile}>
-				<p>Validate export</p>
-				<Ico icon="bytesize:export" />
-			</button>
-			<button class="green-button" onclick={selectAllRoles}>
-				<p>Select all users</p>
-				<Ico icon="bytesize:export" />
-			</button>
+<Card title="Roles and Permissions" class="mt-5">
+	{#snippet cornerOption()}
+		{#if showExportColumn}
+			<ResponsiveButtons
+				buttons={[
+					{
+						label: 'Select all users',
+						icon: 'bytesize:export',
+						cls: 'yellow-button',
+						onclick: toggleExportColumn
+					}
+				]}
+				size="4"
+			/>
 		{/if}
-	</ButtonsContainer> -->
-
-	{#if $usersStore.length >= 0}
-		<TableAutoCard
-			class="rounded"
-			definition={[
-				{ name: 'Export', custom: true },
-				{ name: 'Name', key: 'name' },
-				{ name: 'Role', key: 'role', custom: true },
-				{ name: 'Edit', custom: true },
-				{ name: 'Delete', custom: true }
-			].filter((elt) => selectRow || elt.name != 'Export')}
-			data={$usersStore}
-		>
+	{/snippet}
+	{#if roles?.length > 0 && users?.length > 0}
+		<TableAutoCard definition={tableDefinition} data={users}>
 			{#snippet children({ row, def })}
-				{#if def.name === 'Role'}
-					{#each row.role.split(', ').sort(sortRoles) as role}
-						<span
-							class={role.endsWith('_VIEW')
-								? 'role-view'
-								: role.endsWith('_CONFIG')
-									? 'role-config'
-									: 'role-other'}
+				{#if def.name === 'Roles'}
+					{#if row.roles.length > 5}
+						<ResponsiveButtons
+							buttons={[
+								{
+									label: `${row.roles
+										.slice(0, 5)
+										.map((role) => role.name)
+										.join(', ')} +${row.roles.length - 5} more`,
+									cls: 'yellow-button',
+									onclick: () => modalWatchRoles?.open()
+								}
+							]}
+							size="6"
+							class="w-full"
+						/>
+					{:else}
+						{#each row.roles as role}
+							{role.name}
+						{/each}
+					{/if}
+				{:else if def.name === 'Actions'}
+					<div class="layout-x-low">
+						<button class="basic-button" onclick={() => openRoleModal({ mode: 'edit', row })}>
+							<Ico icon="mdi:edit-outline" />
+						</button>
+						<button
+							class="delete-button"
+							onclick={async () => {
+								if (
+									await modalDelete.open({
+										title: 'Delete user',
+										message: `Are you sure you want to delete ${row.name}?`
+									})
+								) {
+									deleteRoles(row.name);
+								}
+							}}
 						>
-							{role.replace(/_/g, '-').charAt(0).toUpperCase() +
-								role.replace(/_/g, ' ').slice(1).toLowerCase()}
-						</span>
-					{/each}
-				{:else if def.name === 'Edit'}
-					<button class="yellow-button" onclick={() => openModals('add', row)}>
-						<Ico icon="mdi:edit-outline" />
-					</button>
-				{:else if def.name === 'Delete'}
-					<button class="delete-button" onclick={() => openDeleteModal(row.name)}>
-						<Ico icon="mingcute:delete-line" />
-					</button>
+							<Ico icon="mingcute:delete-line" />
+						</button>
+					</div>
 				{:else if def.name === 'Export'}
-					<!-- <SlideToggle
-					active="min-w-12 bg-success-400 dark:bg-success-700"
-					background="min-w-12 bg-error-400 dark:bg-error-700"
-					name="slide"
-					bind:checked={value}
-					size="sm"
-				/> -->
-					<input type="checkbox" onchange={() => toggleUserSelection(row)} />
+					<PropertyType type="boolean" name="export" bind:this={row.export} />
 				{/if}
 			{/snippet}
 		</TableAutoCard>
 	{:else}
-		<!-- <div class="table-container">
-			<table class="rounded table">
-				<thead class="rounded">
-					<tr>
-						{#each Array(5) as _}
-							<th class="header dark:bg-surface-800">
-								<div class="my-2 h-8 placeholder animate-pulse"></div>
-							</th>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each Array(5) as _}
-						<tr>
-							{#each Array(5) as _}
-								<td>
-									<div class="my-2 h-8 placeholder animate-pulse"></div>
-								</td>
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div> -->
+		<p>Loading roles and users...</p>
 	{/if}
 </Card>
-
-<!-- <style lang="postcss">
-	.role-view {
-		@apply mr-1 px-2 dark:bg-secondary-500 bg-secondary-400 font-light gap-2 rounded dark:bg-opacity-80;
-	}
-	.role-config {
-		@apply mr-1 px-2 dark:bg-primary-500 bg-primary-400 gap-2 font-light rounded dark:bg-opacity-80;
-	}
-	.role-other {
-		@apply mr-1 px-2 dark:bg-tertiary-600 bg-tertiary-400 gap-2 font-light rounded dark:bg-opacity-80;
-	}
-</style> -->
+<ModalYesNo bind:this={modalDelete} />
