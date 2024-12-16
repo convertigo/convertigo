@@ -10,6 +10,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import { onDestroy } from 'svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 
 	let {
 		certificates,
@@ -66,15 +67,19 @@
 						/>{/snippet}
 				</FileUpload>
 				<div class="w-full layout-x justify-end">
-					<button type="submit" class="basic-button"
-						><span><Ico icon="fluent-mdl2:certificate" size="btn" /></span><span>Install</span
-						></button
-					>
-					<button type="button" onclick={modalCertInstall.close} class="cancel-button"
-						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-							>Cancel</span
-						></button
-					>
+					<Button
+						label="Install"
+						icon="fluent-mdl2:certificate"
+						type="submit"
+						class="!w-fit basic-button"
+					/>
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						type="button"
+						class="!w-fit cancel-button"
+						onclick={modalCertInstall.close}
+					/>
 				</div>
 			</fieldset>
 		</form>
@@ -97,15 +102,19 @@
 					value=""
 				/>
 				<div class="w-full layout-x justify-end">
-					<button type="submit" class="basic-button"
-						><span><Ico icon="fluent-mdl2:certificate" size="btn" /></span><span>Remove</span
-						></button
-					>
-					<button type="button" onclick={modalCertRemove.close} class="cancel-button"
-						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-							>Cancel</span
-						></button
-					>
+					<Button
+						label="Remove"
+						icon="fluent-mdl2:certificate"
+						type="submit"
+						class="!w-fit basic-button"
+					/>
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						type="button"
+						class="!w-fit cancel-button"
+						onclick={modalCertRemove.close}
+					/>
 				</div>
 			</fieldset>
 		</form>
@@ -230,7 +239,7 @@
 		/>
 	{/if}
 {/snippet}
-<div class="layout-y !items-stretch">
+<div class="layout-y-stretch">
 	<Card title="Certificates">
 		{#snippet cornerOption()}
 			<ResponsiveButtons

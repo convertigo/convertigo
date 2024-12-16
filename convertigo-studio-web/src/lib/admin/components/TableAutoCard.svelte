@@ -132,7 +132,7 @@
 			display: none;
 		}
 		td {
-			@apply layout-y-low !items-start overflow-x-auto;
+			@apply layout-y-start-low overflow-x-auto;
 		}
 		td[data-label]:not([data-label='']):before {
 			content: attr(data-label);

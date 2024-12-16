@@ -44,7 +44,7 @@
 
 <ModalYesNo bind:this={modalDelete} />
 
-<div class="layout-y !items-stretch">
+<div class="layout-y-stretch">
 	<Card title="Connections">
 		{#snippet cornerOption()}
 			<ResponsiveButtons

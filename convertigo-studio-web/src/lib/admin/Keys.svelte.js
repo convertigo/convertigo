@@ -1,11 +1,10 @@
 import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 
-
 const defValues = {
 	categories: [],
 	nbValidKeys: 0,
-	firstStartDate: null,
+	firstStartDate: null
 };
 
 let calling = $state(false);
@@ -18,7 +17,7 @@ async function doCall(service, payload) {
 	calling = true;
 	try {
 		const res = await call(service, payload);
-		await values.refresh(); 
+		await values.refresh();
 		return res;
 	} finally {
 		calling = false;
@@ -36,9 +35,9 @@ let values = {
 			admin: {
 				'@_service': 'keys.Remove',
 				keys: {
-					key: { '@_text': keyText },
-				},
-			},
+					key: { '@_text': keyText }
+				}
+			}
 		};
 		return await doCall('keys.Remove', payload);
 	},
@@ -49,9 +48,9 @@ let values = {
 			admin: {
 				'@_service': 'keys.Update',
 				keys: {
-					key: { '@_text': newKey },
-				},
-			},
+					key: { '@_text': newKey }
+				}
+			}
 		};
 		return await doCall('keys.Update', payload);
 	},
@@ -67,23 +66,23 @@ let values = {
 		date.setDate(date.getDate() + dayOfYear - 1);
 
 		return date.toDateString();
-	},
+	}
 };
 
 export default ServiceHelper({
-	defValues, 
-	values, 
-	service: 'keys.List', 
-	arrays: ['admin.category'], 
+	defValues,
+	values,
+	service: 'keys.List',
+	arrays: ['admin.category'],
 	mapping: {
-		categories: 'admin.category', 
+		categories: 'admin.category',
 		nbValidKeys: 'admin.nb_valid_key',
-		firstStartDate: 'admin.firstStartDate',
+		firstStartDate: 'admin.firstStartDate'
 	},
 	beforeUpdate: (res) => {
 		res.categories = checkArray(res.categories).map((category) => ({
 			...category,
-			keys: { key: checkArray(category.keys?.key) },
+			keys: { key: checkArray(category.keys?.key) }
 		}));
-	},
+	}
 });

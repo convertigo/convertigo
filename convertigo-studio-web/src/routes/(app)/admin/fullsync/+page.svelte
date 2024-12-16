@@ -1,10 +1,10 @@
 <script>
 	import { browser } from '$app/environment';
-	import MaxHeight from '$lib/admin/components/MaxHeight.svelte';
+	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import { getUrl } from '$lib/utils/service';
 
-	let iframe;
-	let height;
+	let iframe = $state();
+
 	function onload() {
 		const iframeDoc = iframe.contentWindow.document;
 		const observer = new MutationObserver((mutations) => {
@@ -76,14 +76,13 @@
 </script>
 
 {#if browser}
-	<MaxHeight bind:height>
+	<MaxRectangle>
 		<iframe
 			bind:this={iframe}
 			src={getUrl().replace('/services/', '/_utils/')}
 			title="fullsync"
-			class="w-full rounded-xl"
-			style="height: {height}px"
+			class="h-full w-full rounded-xl"
 			{onload}
 		></iframe>
-	</MaxHeight>
+	</MaxRectangle>
 {/if}

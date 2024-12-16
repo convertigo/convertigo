@@ -5,13 +5,13 @@
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolveRoute } from '$app/paths';
 	import { onDestroy } from 'svelte';
 
 	let { projects } = $derived(Projects);
 	let searchQuery = $state('');
-	let rootProject = $derived(projects.find(({ name }) => name == $page.params.project));
+	let rootProject = $derived(projects.find(({ name }) => name == page.params.project));
 
 	let filters = $state([
 		{ icon: 'ph:video-thin', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
@@ -86,7 +86,7 @@
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-none !items-stretch bg-surface-200-800 preset-outlined-surface-700-300 rounded"
+				class="layout-y-stretch-none bg-surface-200-800 preset-outlined-surface-700-300 rounded"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>

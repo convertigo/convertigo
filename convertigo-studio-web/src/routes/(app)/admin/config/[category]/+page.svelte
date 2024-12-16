@@ -10,7 +10,7 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import Last from '../Last.svelte';
 
@@ -19,7 +19,7 @@
 	let selectedIndex = $derived(
 		Math.max(
 			0,
-			categories.findIndex(({ name }) => name == $page.params.category)
+			categories.findIndex(({ name }) => name == page.params.category)
 		)
 	);
 	let selectedIndexLast = $state(-1);
@@ -48,7 +48,7 @@
 	});
 
 	$effect(() => {
-		Last.category = $page.params.category;
+		Last.category = page.params.category;
 	});
 
 	async function saveChanges(event) {
@@ -109,7 +109,7 @@
 />
 
 {#key selectedIndex}
-	<div class="layout-y !items-stretch" in:fade>
+	<div class="layout-y-stretch" in:fade>
 		<Card title={category.displayName}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons

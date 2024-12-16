@@ -1,5 +1,5 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Table from '$lib/dashboard/components/Table.svelte';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { decode } from 'html-entities';
@@ -36,22 +36,19 @@
 		return marked(cleanedMarkdown);
 	}
 
-	onMount(() => {
-		const unsubscribe = page.subscribe(($page) => {
-			const projectName = $page.params.project;
-			checkTestPlatform(projectName).then(() => {
-				project = $testPlatformStore[projectName];
-				_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
-				for (let connector of Object.values(project.connector || {})) {
-					_parts.push({
-						name: connector.name,
-						requestables: Object.values(connector.transaction || {})
-					});
-				}
-				_parts = _parts.filter((part) => part.requestables.length > 0);
-			});
+	$effect(() => {
+		const projectName = page.params.project;
+		checkTestPlatform(projectName).then(() => {
+			project = $testPlatformStore[projectName];
+			_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
+			for (let connector of Object.values(project.connector || {})) {
+				_parts.push({
+					name: connector.name,
+					requestables: Object.values(connector.transaction || {})
+				});
+			}
+			_parts = _parts.filter((part) => part.requestables.length > 0);
 		});
-		return () => unsubscribe();
 	});
 
 	async function run(requestable, event) {
@@ -99,7 +96,7 @@
 	const [duration, y, opacity] = [200, -50, 1];
 </script>
 
-<Card title={project?.name ?? null} class="!items-stretch">
+<Card title={project?.name ?? null}>
 	{#snippet cornerOption()}
 		<div
 			class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"

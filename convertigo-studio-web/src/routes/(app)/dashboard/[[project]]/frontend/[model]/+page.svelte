@@ -1,25 +1,24 @@
 <script>
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import { assets } from '$app/paths';
 	import { getFrontendUrl } from '$lib/utils/service';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import { blur, fade, fly, slide } from 'svelte/transition';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Last from '../Last.svelte';
 	import { goto } from '$app/navigation';
 	import { Spring } from 'svelte/motion';
-	import MaxHeight from '$lib/admin/components/MaxHeight.svelte';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 
-	let orientation = $derived($page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
+	let orientation = $derived(page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
 	let selectedDevice = $derived(
-		Bezels[$page.params.model.split('_')[0]] ?? Object.values(Bezels)[0]
+		Bezels[page.params.model.split('_')[0]] ?? Object.values(Bezels)[0]
 	);
 	let selectedIndex = $derived(selectedDevice.index);
 	let selectedIndexLast = $state(-1);
-	let projectUrl = $derived(getFrontendUrl($page.params.project));
+	let projectUrl = $derived(getFrontendUrl(page.params.project));
 	let angle = Spring.of(() => (orientation == 'horizontal' ? 1 : 0));
 
 	$effect(() => {
@@ -133,6 +132,9 @@
 	</nav>
 {/snippet}
 <MaxRectangle bind:clientHeight bind:clientWidth>
+	<!-- <div>
+		<div class="grow">bar<button>clic</button></div>
+		<div class="h-full w-full"> -->
 	<div
 		class="layout-x justify-center"
 		style="max-height: {clientHeight}px; max-width: {clientWidth}px; height: {clientHeight}px; width: {clientWidth}px;"
@@ -157,6 +159,8 @@
 			{/if}
 		</div>
 	</div>
+	<!-- </div>
+	</div> -->
 </MaxRectangle>
 
 <style>

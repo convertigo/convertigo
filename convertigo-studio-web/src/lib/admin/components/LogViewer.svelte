@@ -7,13 +7,14 @@
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import { slide } from 'svelte/transition';
 	import { persisted } from 'svelte-persisted-store';
-	import MaxHeight from './MaxHeight.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
 	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
 	import Card from './Card.svelte';
 	import { browser } from '$app/environment';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { onMount } from 'svelte';
+	import MaxRectangle from './MaxRectangle.svelte';
+	import Button from './Button.svelte';
 
 	const duration = 400;
 
@@ -69,7 +70,7 @@
 	let pulsedCategory = $state();
 	let pulsedCategoryTimeout;
 	let showedLines = $state({ start: 0, end: 0 });
-	let height = $state(200);
+	let clientHeight = $state(200);
 	let fullscreen = $state(false);
 
 	function doPulse(e) {
@@ -341,6 +342,7 @@
 		scrollbarHeight = Math.max(container.offsetHeight - inner.clientHeight, 4);
 		document.body.removeChild(container);
 	});
+	const size = '4';
 </script>
 
 <svelte:window
@@ -397,8 +399,8 @@
 		</form>
 	</Card>
 </ModalDynamic>
-<div class="text-xs w-full" class:fullscreen>
-	<div class="layout-y-low !items-stretch">
+<div class="text-xs w-full h-full layout-y-stretch-low" class:fullscreen>
+	<div class="layout-y-stretch-low">
 		{#if $showFilters}
 			<div class="row-wrap" transition:slide={{ axis: 'y' }}>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -412,20 +414,23 @@
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
-								<button onclick={() => (conf.show = !show)}
-									><Ico icon={show ? 'mdi:eye' : 'mdi:eye-off'} /></button
-								>
+								<Button
+									{size}
+									icon={show ? 'mdi:eye' : 'mdi:eye-off'}
+									onclick={() => (conf.show = !show)}
+								/>
 								<DraggableValue
 									class="cursor-col-resize"
 									bind:delta={conf.width}
 									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
 								>
-								<button
+								<Button
+									{size}
+									icon="mdi:filter"
 									class="cursor-cell"
 									onclick={(event) => addFilter({ event, category: name })}
-									><Ico icon="mdi:filter" /></button
-								>
-								<button class="cursor-grab"><Ico icon="mdi:dots-vertical" /></button>
+								/>
+								<Button {size} icon="mdi:dots-vertical" class="cursor-grab" />
 							</div>
 						</MovableContent>
 					</div>
@@ -434,14 +439,18 @@
 		{/if}
 		<div class="row-wrap">
 			<div class="mini-card preset-filled-primary-500">
-				<button onmousedown={() => (fullscreen = !fullscreen)}
-					><Ico icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}" /></button
-				>
+				<Button
+					{size}
+					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
+					onmousedown={() => (fullscreen = !fullscreen)}
+				/>
 			</div>
 			<div class="mini-card preset-filled-primary-500">
-				<button onmousedown={() => ($showFilters = !$showFilters)}
-					><Ico icon="mdi:filter-cog{!browser && $showFilters ? '' : '-outline'}" /></button
-				>
+				<Button
+					{size}
+					icon="mdi:filter-cog{!browser && $showFilters ? '' : '-outline'}"
+					onmousedown={() => ($showFilters = !$showFilters)}
+				/>
 			</div>
 			<div class="mini-card preset-filled-primary-500">
 				<Popover
@@ -453,7 +462,7 @@
 					{#snippet trigger()}<Ico icon="mdi:search" />{/snippet}
 					{#snippet content()}
 						<Card bg="bg-surface-50-950 text-black dark:text-white" class="!p-low">
-							<div class="layout-x-low !items-stretch">
+							<div class="layout-x-stretch-low">
 								<input
 									type="text"
 									class="rounded-md border-none bg-transparent"
@@ -477,15 +486,17 @@
 			</div>
 			<div class="mini-card preset-filled-tertiary-500">
 				<span>Message</span>
-				<button
+				<Button
+					{size}
+					icon="mdi:filter"
 					class="cursor-cell"
 					onclick={(event) =>
 						addFilter({
 							event,
 							category: 'Message',
 							value: window?.getSelection()?.toString() ?? ''
-						})}><Ico icon="mdi:filter" /></button
-				>
+						})}
+				/>
 			</div>
 			{#each filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
 				<div
@@ -503,34 +514,27 @@
 						<span class="overflow-hidden max-w-xs"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
-						<button
-							class="cursor-pointer"
+						<Button
+							{size}
+							icon="mdi:edit-outline"
+							class="!w-fit"
 							onclick={(event) => addFilter({ event, category, value, mode, ts, not })}
-						>
-							<Ico icon="mdi:edit-outline" />
-						</button>
-						<button class="cursor-pointer" onclick={() => removeFilter(category, index)}>
-							<Ico icon="mingcute:delete-line" />
-						</button>
+						/>
+						<Button
+							{size}
+							icon="mingcute:delete-line"
+							class="!w-fit"
+							onclick={() => removeFilter(category, index)}
+						/>
 					</div>
 				</div>
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low p-1 card bg-primary-500">
-				<button
-					class="block"
-					onclick={() => {
-						addExtraLines(1);
-					}}><Ico icon="grommet-icons:add" /></button
-				>
+			<div class="absolute left-[-25px] layout-y-low p-1 rounded bg-primary-500">
+				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
 				{#if extraLines > 0}
-					<button
-						class="block"
-						onclick={() => {
-							addExtraLines(-1);
-						}}><Ico icon="grommet-icons:form-subtract" /></button
-					>
+					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
 				{/if}
 			</div>
 			<div
@@ -551,65 +555,67 @@
 			</div>
 		</div>
 	</div>
-	<MaxHeight bind:height>
-		<VirtualList
-			{height}
-			width="auto"
-			itemCount={logs.length}
-			estimatedItemSize={100}
-			{scrollToIndex}
-			{itemSize}
-			scrollToAlignment="center"
-			scrollToBehaviour="smooth"
-			on:itemsUpdated={itemsUpdated}
-			bind:this={virtualList}
-		>
-			<div slot="item" let:index let:style {style}>
-				{@const log = logs[index]}
-				<div class="{log[2]} rounded">
-					<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
-						{#each columns as { name, cls, style } (name)}
-							{@const value = getValue(name, log, index)}
-							<button
-								{style}
-								class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
-								animate:grabFlip={{ duration }}
-								onclick={(event) => addFilter({ event, category: name, value })}
-							>
-								{value}
-							</button>
-						{/each}
-					</div>
-					<div
-						class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined border-b-none"
-						style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
-					>
-						{#if founds.length > 0}
-							{@const _founds = founds.filter((f) => f.index == index)}
-							{#if _founds.length > 0}
-								{#each _founds as found, index}
-									{@const { start, end } = found}
-									{#if index == 0}
-										{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-											use:scrollIntoView
-											class="searchedCurrent">{log[4].substring(start, end)}</span
-										>{:else}<span class="searched">{log[4].substring(start, end)}</span
-										>{/if}{#if index < _founds.length - 1}{log[4].substring(
-											end,
-											_founds[index + 1].start
-										)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+	<div class="grow">
+		<MaxRectangle bind:clientHeight>
+			<VirtualList
+				height={clientHeight}
+				width="auto"
+				itemCount={logs.length}
+				estimatedItemSize={100}
+				{scrollToIndex}
+				{itemSize}
+				scrollToAlignment="center"
+				scrollToBehaviour="smooth"
+				on:itemsUpdated={itemsUpdated}
+				bind:this={virtualList}
+			>
+				<div slot="item" let:index let:style {style}>
+					{@const log = logs[index]}
+					<div class="{log[2]} rounded">
+						<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
+							{#each columns as { name, cls, style } (name)}
+								{@const value = getValue(name, log, index)}
+								<button
+									{style}
+									class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
+									animate:grabFlip={{ duration }}
+									onclick={(event) => addFilter({ event, category: name, value })}
+								>
+									{value}
+								</button>
+							{/each}
+						</div>
+						<div
+							class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined border-b-none"
+							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
+						>
+							{#if founds.length > 0}
+								{@const _founds = founds.filter((f) => f.index == index)}
+								{#if _founds.length > 0}
+									{#each _founds as found, index}
+										{@const { start, end } = found}
+										{#if index == 0}
+											{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+												use:scrollIntoView
+												class="searchedCurrent">{log[4].substring(start, end)}</span
+											>{:else}<span class="searched">{log[4].substring(start, end)}</span
+											>{/if}{#if index < _founds.length - 1}{log[4].substring(
+												end,
+												_founds[index + 1].start
+											)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+									{log[4]}
+								{/if}
+							{:else}
 								{log[4]}
 							{/if}
-						{:else}
-							{log[4]}
-						{/if}
+						</div>
 					</div>
 				</div>
-			</div>
-		</VirtualList>
-	</MaxHeight>
+			</VirtualList>
+		</MaxRectangle>
+	</div>
 	<div
-		class="layout-x-p-low rounded rounded-t-none bg-surface-200-800 justify-between items-center"
+		class="layout-x-p-none !px -mx -mb rounded rounded-t-none bg-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
@@ -618,8 +624,8 @@
 		>
 		<button
 			class="mini-card preset-filled"
-			class:preset-filled-success={!autoScroll}
-			class:preset-filled-warning={autoScroll}
+			class:preset-filled-success-500={!autoScroll}
+			class:preset-filled-warning-500={autoScroll}
 			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();

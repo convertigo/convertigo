@@ -13,8 +13,8 @@
 </script>
 
 <form onsubmit={configure}>
-	<fieldset disabled={loading} class="layout-y !items-stretch" class:animate-pulse={loading}>
-		<Card title="Cache Type" class="!items-start">
+	<fieldset disabled={loading} class="layout-y-stretch" class:animate-pulse={loading}>
+		<Card title="Cache Type">
 			{#snippet cornerOption()}
 				<ResponsiveButtons
 					buttons={[
@@ -76,7 +76,7 @@
 				{ value: 'oracle', text: 'Oracle' }
 			]}
 			<div class="grid gap grid-cols-1 md:grid-cols-2" transition:slide>
-				<Card title="Database Used" class="!items-stretch">
+				<Card title="Database Used">
 					<PropertyType
 						name="databaseType"
 						{item}
@@ -114,7 +114,7 @@
 						}
 					]}
 					{#each sections as { title, fields }}
-						<Card {title} class="!items-stretch">
+						<Card {title}>
 							{#each fields as field}
 								<PropertyType
 									{...field}

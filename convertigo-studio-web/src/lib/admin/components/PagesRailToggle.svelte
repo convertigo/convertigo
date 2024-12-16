@@ -1,9 +1,12 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Button from './Button.svelte';
 
 	let { state = $bindable(), class: cls = '' } = $props();
 </script>
 
-<button class={cls} onclick={() => (state = !state)}
-	><Ico icon="iconamoon:menu-burger-horizontal-thin" size={8} /></button
->
+<Button
+	size={8}
+	class={cls}
+	icon="iconamoon:menu-burger-horizontal-thin"
+	onclick={() => (state = !state)}
+/>

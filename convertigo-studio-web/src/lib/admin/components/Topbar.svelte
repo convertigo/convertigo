@@ -3,7 +3,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	let { showLeft = $bindable(), showDrawer = $bindable() } = $props();
 </script>
@@ -25,7 +25,7 @@
 	<section class="layout-x">
 		<Ico icon="logo.png" alt="logo convertigo" size={7} />
 		<h1 class="hide-md font-bold">
-			Convertigo {$page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}
+			Convertigo {page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}
 		</h1>
 	</section>
 

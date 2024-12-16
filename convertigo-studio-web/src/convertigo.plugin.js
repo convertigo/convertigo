@@ -33,50 +33,63 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 
 	const props = {
 		gap: (v) => ({ gap: v }),
+		pl: (v) => ({ paddingLeft: v }),
+		pr: (v) => ({ paddingRight: v }),
+		pt: (v) => ({ paddingTop: v }),
+		pb: (v) => ({ paddingBottom: v }),
 		px: (v) => ({ paddingLeft: v, paddingRight: v }),
 		py: (v) => ({ paddingTop: v, paddingBottom: v }),
 		p: (v) => ({ paddingLeft: v, paddingRight: v, paddingTop: v, paddingBottom: v }),
+		ml: (v) => ({ marginLeft: v }),
+		mr: (v) => ({ marginRight: v }),
+		mt: (v) => ({ marginTop: v }),
+		mb: (v) => ({ marginBottom: v }),
 		mx: (v) => ({ marginLeft: v, marginRight: v }),
 		my: (v) => ({ marginTop: v, marginBottom: v }),
 		m: (v) => ({ marginLeft: v, marginRight: v, marginTop: v, marginBottom: v })
 	};
 
-	const getVersion = (property, value) => {
-		if (!versions[value]) {
+	const getVersion = (property, version, prefix = '', suffix = '') => {
+		if (!versions[version]) {
 			return {};
 		}
 		return {
-			...props[property](versions[value].base),
+			...props[property](`${prefix}${versions[version].base}${suffix}`),
 			'@screen md': {
-				...props[property](versions[value].md)
+				...props[property](`${prefix}${versions[version].md}${suffix}`)
 			}
 		};
 	};
 	Object.keys(props).forEach((property) => {
-		Object.keys(versions).forEach((version) =>
+		Object.keys(versions).forEach((version) => {
 			addUtilities({
 				[`.${property}${dash(version)}`]: getVersion(property, version)
-			})
-		);
+			});
+			addUtilities({
+				[`.-${property}${dash(version)}`]: getVersion(property, version, 'calc(-1 * ', ')')
+			});
+		});
 	});
 
 	['x', 'y'].forEach((axis) => {
-		Object.keys(versions).forEach((version) => {
-			const rule = {
-				[`.layout-${axis}${dash(version)}`]: {
-					display: 'flex',
-					'flex-direction': axis == 'y' ? 'column' : 'row',
-					'align-items': 'center',
-					...getVersion('gap', version)
-				}
-			};
-			addUtilities(rule);
-			['m', 'p'].forEach((prop) => {
-				addUtilities({
-					[`.layout-${axis}-${prop}${dash(version)}`]: merge(
-						rule[`.layout-${axis}${dash(version)}`],
-						getVersion(prop, version)
-					)
+		['', 'start', 'end', 'center', 'baseline', 'stretch'].forEach((align) => {
+			Object.keys(versions).forEach((version) => {
+				const rule = {
+					[`.layout-${axis}${dash(align)}${dash(version)}`]: {
+						display: 'flex',
+						'flex-direction': axis == 'y' ? 'column' : 'row',
+						'align-items': align == '' ? 'center' : align,
+						...getVersion('gap', version)
+					}
+				};
+				addUtilities(rule);
+				['m', 'p'].forEach((prop) => {
+					addUtilities({
+						[`.layout-${axis}-${prop}${dash(align)}${dash(version)}`]: merge(
+							rule[`.layout-${axis}${dash(align)}${dash(version)}`],
+							getVersion(prop, version)
+						)
+					});
 				});
 			});
 		});

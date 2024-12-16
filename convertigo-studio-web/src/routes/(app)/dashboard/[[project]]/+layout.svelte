@@ -1,17 +1,17 @@
 <script>
 	import { beforeNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import PagesRail from '$lib/dashboard/PagesRail.svelte';
 	import Project from '$lib/dashboard/Project.svelte';
 
 	let { children } = $props();
 	$effect(() => {
-		Project.page = $page;
+		Project.page = page;
 	});
 
 	$effect(() => {
 		const extras = [];
-		const project = $page.params?.project;
+		const project = page.params?.project;
 		if (project) {
 			if (Project.hasRef) {
 				extras.push({

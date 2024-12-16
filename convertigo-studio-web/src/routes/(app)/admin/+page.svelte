@@ -11,6 +11,7 @@
 	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { onDestroy } from 'svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 
 	let {
 		product,
@@ -189,13 +190,13 @@
 			></TableAutoCard>
 
 			<div class="w-full layout-x justify-end">
-				<button onclick={close} class="cancel-button">Close</button>
+				<Button label="Close" onclick={close} class="!w-fit cancel-button" />
 			</div>
 		</Card>
 	{/snippet}
 </ModalDynamic>
 
-<div class="layout-y md:layout-x !items-start">
+<div class="layout-y-start md:layout-x-start">
 	<div
 		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
 	>
@@ -231,7 +232,7 @@
 
 	<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart}
-			<Card class="!items-stretch">
+			<Card>
 				<ApexChartLineAdmin {...chart} {categories} />
 			</Card>
 		{/each}

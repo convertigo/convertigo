@@ -17,16 +17,16 @@ const devices = {
 		bezel: { width: 452, height: 950 },
 		type: 'phone'
 	},
-	none: {
-		title: 'None',
-		iframe: { width: '100%', height: '100%', position: 'relative' },
-		bezel: { width: '100%', height: '100%', position: 'relative' },
-		type: 'desktop'
-	},
 	'Desktop-HIDPI': {
 		title: 'Desktop HIPDI',
 		iframe: { width: 1920, height: 1080, marginTop: 63, marginLeft: 63 },
 		bezel: { width: 2046, height: 1361 },
+		type: 'desktop'
+	},
+	none: {
+		title: 'None',
+		iframe: { width: '100%', height: '100%', position: 'relative' },
+		bezel: { width: '100%', height: '100%', position: 'relative' },
 		type: 'desktop'
 	}
 };

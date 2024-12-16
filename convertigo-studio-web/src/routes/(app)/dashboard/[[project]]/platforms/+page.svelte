@@ -1,8 +1,7 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { onMount } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { call, copyObj, getQuery, getUrl } from '$lib/utils/service';
@@ -30,38 +29,35 @@
 
 	let platforms = $state([]);
 
-	onMount(() => {
-		const unsubscribe = page.subscribe(($page) => {
-			const projectName = $page.params.project;
-			checkTestPlatform(projectName).then(() => {
-				app = Object.values($testPlatformStore[projectName].mobileapplication)[0];
-				for (let i = 0; i < data.length; i++) {
-					data[i].Value = app[data[i].Attr];
+	$effect(() => {
+		const projectName = page.params.project;
+		checkTestPlatform(projectName).then(() => {
+			app = Object.values($testPlatformStore[projectName].mobileapplication)[0];
+			for (let i = 0; i < data.length; i++) {
+				data[i].Value = app[data[i].Attr];
+			}
+			for (let platform of Object.values(app.mobileplatform)) {
+				platform.data = copyObj(dataPlatform);
+				for (let i = 0; i < dataPlatform.length; i++) {
+					platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
 				}
-				for (let platform of Object.values(app.mobileplatform)) {
-					platform.data = copyObj(dataPlatform);
-					for (let i = 0; i < dataPlatform.length; i++) {
-						platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
-					}
-					platforms.push(platform);
-					call('mobiles.GetLocalRevision', {
-						project: projectName,
-						platform: platform.name
-					}).then((res) => {
-						platform.data[2].Value = res.admin?.revision;
-						platforms = platforms;
-					});
-					getBuildStatus(platform);
-				}
-				platforms = platforms;
-			});
+				platforms.push(platform);
+				call('mobiles.GetLocalRevision', {
+					project: projectName,
+					platform: platform.name
+				}).then((res) => {
+					platform.data[2].Value = res.admin?.revision;
+					platforms = platforms;
+				});
+				getBuildStatus(platform);
+			}
+			platforms = platforms;
 		});
-		return () => unsubscribe();
 	});
 
 	async function getBuildStatus(platform) {
 		const res = await call('mobiles.GetBuildStatus', {
-			project: $page.params.project,
+			project: page.params.project,
 			platform: platform.name
 		});
 		platform.data[3].Value = res.admin?.build?.revision;
@@ -77,7 +73,7 @@
 	async function build(platform) {
 		delete platform.status;
 		const res = await call('mobiles.LaunchBuild', {
-			project: $page.params.project,
+			project: page.params.project,
 			platform: platform.name
 		});
 		getBuildStatus(platform);
@@ -139,20 +135,20 @@
 							{/snippet}
 						</TableAutoCard>
 						{#if (platform.status ?? 'none') != 'none'}
-							<CardD class="flex min-w-48 justify-center">
+							<Card class="flex min-w-48 justify-center">
 								{#if platform.status == 'complete'}
 									<QrCode
 										class="max-w-48"
 										href={getUrl() +
 											'mobiles.GetPackage' +
-											getQuery({ project: $page.params.project, platform: platform.name })}
+											getQuery({ project: page.params.project, platform: platform.name })}
 									/>
 								{:else if platform.status == 'pending'}
 									<div class="text-warning-500 animate-pulse">Building...</div>
 								{:else if platform.status == 'error'}
 									<div class="text-error">Error</div>
 								{/if}
-							</CardD>
+							</Card>
 						{/if}
 					</div>
 					<div class="flex flex-wrap justify-center gap-2">
@@ -163,7 +159,7 @@
 						>
 						<a
 							href="{getUrl()}mobiles.GetSourcePackage?project={window.encodeURIComponent(
-								$page.params.project
+								page.params.project
 							)}&platform={window.encodeURIComponent(platform.name)}"
 							class="btn preset-filled-tertiary"
 							><span><Ico icon="mdi:file-download-outline" /></span><span>Get Source Package</span

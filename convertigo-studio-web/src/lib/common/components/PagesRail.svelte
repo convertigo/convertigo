@@ -1,5 +1,5 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { fade, fly, slide } from 'svelte/transition';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolveRoute } from '$app/paths';
@@ -7,9 +7,7 @@
 	/** @type {{parts: any}} */
 	let { parts } = $props();
 	let activeIndex = $derived.by(() => {
-		const i = parts[0].findIndex(
-			(part) => $page.route.id == part.page || $page.route.id == part.id
-		);
+		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
 		return i == -1 ? 0 : i;
 	});
 

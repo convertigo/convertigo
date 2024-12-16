@@ -10,12 +10,19 @@
 	 * 	cardBorder?: string,
 	 * 	cornerOption?: import('svelte').Snippet,
 	 * 	children?: import('svelte').Snippet
-	 * }}
+	 * }|any}
 	 */
-	let { title = '', class: cls = '', bg = 'bg-surface-100-900', cornerOption, children } = $props();
+	let {
+		title = '',
+		class: cls = '',
+		bg = 'bg-surface-100-900',
+		cornerOption,
+		children,
+		...rest
+	} = $props();
 </script>
 
-<div class="layout-y-p {bg} border-[0.5px] border-color rounded-container {cls}">
+<div class="layout-y-p-stretch {bg} border-[0.5px] border-color rounded-container {cls}" {...rest}>
 	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x flex-wrap w-full">
 			{#if title == null}

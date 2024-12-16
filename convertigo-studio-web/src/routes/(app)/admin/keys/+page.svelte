@@ -26,29 +26,32 @@
 				}}
 				class="flex items-center gap-2 w-1/2"
 			>
-				<input id="newKey" type="text" class="search-input" bind:value={newKey} placeholder="Enter a new key" />
-				<button
-				type="submit"
-				class="basic-button"
-			>
-				<Icon icon="vaadin:key-o" />
-				Add Key
-			</button>
+				<input
+					id="newKey"
+					type="text"
+					class="search-input"
+					bind:value={newKey}
+					placeholder="Enter a new key"
+				/>
+				<button type="submit" class="basic-button">
+					<Icon icon="vaadin:key-o" />
+					Add Key
+				</button>
 			</form>
 
 			<ResponsiveButtons
-			class="max-w-4xl"
-			buttons={[
-				{
-					label: `Total Valid Keys: ${nbValidKeys}`,
-					cls: 'gray-button'
-				},
-				{
-					label: `First Start Date: ${new Date(parseInt(firstStartDate)).toDateString()}`,
-					cls: 'gray-button'
-				}
-			]}
-		/>
+				class="max-w-4xl"
+				buttons={[
+					{
+						label: `Total Valid Keys: ${nbValidKeys}`,
+						cls: 'gray-button'
+					},
+					{
+						label: `First Start Date: ${new Date(parseInt(firstStartDate)).toDateString()}`,
+						cls: 'gray-button'
+					}
+				]}
+			/>
 		</div>
 	{/snippet}
 </Card>
@@ -68,43 +71,36 @@
 			>
 				{#snippet children({ row, def })}
 					{#if def.name === 'Expiration Date'}
-							<div
-								class:bg-success-400-500={row.expiration === '0'}
-								class:bg-tertiary-400-500={row.expiration !== '0'}
-							>
-								{formatExpiration(row.expiration)}
-							</div>
-						
+						<div
+							class:bg-success-400-500={row.expiration === '0'}
+							class:bg-tertiary-400-500={row.expiration !== '0'}
+						>
+							{formatExpiration(row.expiration)}
+						</div>
 					{:else if def.name === 'Expired'}
-							<button
-								class:green-button={!row.expired}
-								class:yellow-button={row.expired}
-							>
-								{row.expired ? 'Yes' : 'No'}
-							</button>
-						
+						<button class:green-button={!row.expired} class:yellow-button={row.expired}>
+							{row.expired ? 'Yes' : 'No'}
+						</button>
 					{:else if def.name === 'Actions'}
-							<ResponsiveButtons
-								buttons={[
-									{
-										icon: 'mingcute:delete-line',
-										label: 'Delete',
-										cls: 'delete-button',
-										onclick: async () => {
-											if (
-												await modalDelete.open({
-													title: 'Delete Key',
-													message: `Are you sure you want to delete key ${row.text}?`,
-												})
-											) {
-												deleteKey(row.text); 
-											}
-										},
-									},
-								]}
-								
-							/>
-						
+						<ResponsiveButtons
+							buttons={[
+								{
+									icon: 'mingcute:delete-line',
+									label: 'Delete',
+									cls: 'delete-button',
+									onclick: async () => {
+										if (
+											await modalDelete.open({
+												title: 'Delete Key',
+												message: `Are you sure you want to delete key ${row.text}?`
+											})
+										) {
+											deleteKey(row.text);
+										}
+									}
+								}
+							]}
+						/>
 					{:else}
 						{row[def.key]}
 					{/if}

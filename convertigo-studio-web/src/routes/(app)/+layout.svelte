@@ -6,12 +6,12 @@
 	import partsDashboard from '$lib/dashboard/PagesRail.svelte.js';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { fade, slide } from 'svelte/transition';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import RightPart from './admin/RightPart.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 	let parts = $derived(
-		$page.route?.id?.startsWith('/(app)/admin') ? partsAdmin : partsDashboard.parts
+		page.route?.id?.startsWith('/(app)/admin') ? partsAdmin : partsDashboard.parts
 	);
 	let showLeft = $state(true);
 	let showDrawer = $state(false);
@@ -36,13 +36,13 @@
 <div class="flex flex-col min-h-screen">
 	<Topbar bind:showLeft bind:showDrawer />
 
-	<div class="layout-y md:layout-x !gap-0 !items-stretch grow">
+	<div class="layout-y-stretch md:layout-x-stretch !gap-0 grow">
 		{#if showLeft}
 			<aside class="hide-md" transition:slide={{ axis: 'x' }}>
 				<PagesRail {parts} />
 			</aside>
 		{/if}
-		{#key $page.route.id}
+		{#key page.route.id}
 			<main class="px py w-full min-h-full grow" in:fade>
 				{@render children?.()}
 			</main>

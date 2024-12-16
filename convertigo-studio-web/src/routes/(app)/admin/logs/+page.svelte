@@ -11,6 +11,8 @@
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
+	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 
 	onMount(() => {
 		Logs.list();
@@ -97,8 +99,8 @@
 	});
 </script>
 
-<div class="layout-y !items-stretch">
-	<Card title="Logs" class="!gap-low">
+<MaxRectangle>
+	<Card title="Logs" class="!gap-low h-full">
 		{#snippet cornerOption()}
 			{#if tabs[tabSet].name == 'Purge'}
 				<ResponsiveButtons
@@ -130,7 +132,12 @@
 				/>
 			{/if}
 		{/snippet}
-		<Tabs bind:value={tabSet} listClasses="flex-wrap">
+		<Tabs
+			bind:value={tabSet}
+			listClasses="flex-wrap"
+			classes="h-full layout-y-stretch-none"
+			contentClasses="grow"
+		>
 			{#snippet list()}
 				{#each tabs as { name, icon }, i}
 					<Tabs.Control
@@ -146,7 +153,7 @@
 			{/snippet}
 			{#snippet content()}
 				{#if ['Viewer', 'Real Time'].includes(tabs[tabSet].name)}
-					<div class="layout-y-low !items-start" transition:slide={{ axis: 'y' }}>
+					<div class="h-full layout-y-start-low" transition:slide={{ axis: 'y' }}>
 						{#if tabs[tabSet].name == 'Viewer'}
 							<div class="w-full" transition:slide={{ axis: 'y' }}>
 								<DatePicker
@@ -160,26 +167,25 @@
 									startOfWeek={1}
 									{onDayClick}
 								>
-									<div class="layout-x flex-wrap !items-stretch">
+									<div class="layout-x-stretch flex-wrap">
 										{#each ['From', 'To'] as way, i}
-											<div class="layout-x-low flex-wrap !items-baseline">
+											<div class="layout-x-baseline-low flex-wrap">
 												<Popover triggerBase="basic-button" arrow arrowBackground="">
 													{#snippet trigger()}{way}<Ico
 															icon="mdi:clock-star-four-points-outline"
 														/>{/snippet}
 													{#snippet content()}
 														<Card bg="bg-surface-50-950" class="!p-low">
-															<div class="layout-y-low !items-stretch">
+															<div class="layout-y-stretch-low">
 																{#each presets[i] as { name, fn }}
-																	<button
+																	<Button
+																		label={name}
 																		class="basic-button"
 																		onclick={() => {
 																			dates[i] = fn();
 																			times[i] = Logs.formatTime(dates[i]);
 																		}}
-																	>
-																		{name}
-																	</button>
+																	/>
 																{/each}
 															</div>
 														</Card>
@@ -198,17 +204,22 @@
 												<TimePicker bind:inputValue={times[i]} />
 											</div>
 										{/each}
-										<button class="basic-button h-auto grow" onclick={refreshLogs}
-											>Search<Ico icon="mdi:receipt-text-send-outline" /></button
-										>
+										<Button
+											label="Search"
+											icon="mdi:receipt-text-send-outline"
+											class="basic-button !w-fit !h-auto grow"
+											onclick={refreshLogs}
+										/>
 									</div>
 								</DatePicker>
 							</div>
 						{/if}
-						<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
+						<div class="grow">
+							<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
+						</div>
 					</div>
 				{:else if tabs[tabSet].name == 'Purge'}
-					<div class="layout-y !items-stretch" transition:slide={{ axis: 'y' }}>
+					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded">
 							<Slider name="range-slider" bind:value={rangeVal} max={25} step={1} />
 						</div>
@@ -229,4 +240,4 @@
 			{/snippet}
 		</Tabs>
 	</Card>
-</div>
+</MaxRectangle>

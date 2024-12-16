@@ -11,6 +11,7 @@
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy } from 'svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 
 	let { projects, remove, refresh, reload, exportOptions, undefinedSymbols, createSymbols } =
 		$derived(Projects);
@@ -31,7 +32,7 @@
 <ModalYesNo bind:this={modalDelete} />
 <ModalDynamic bind:this={modalExport}>
 	{#snippet children({ close, params: { options, project } })}
-		<Card title="Exporting {project}" class="!items-stretch">
+		<Card title="Exporting {project}">
 			{#each options as { name, display }}
 				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
 			{/each}
@@ -92,14 +93,19 @@
 					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
 				<div class="w-full layout-x justify-end">
-					<button type="submit" class="basic-button"
-						><span><Ico icon="carbon:application" size="btn" /></span><span>Deploy</span></button
-					>
-					<button type="button" onclick={modalDeployUpload.close} class="cancel-button"
-						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-							>Cancel</span
-						></button
-					>
+					<Button
+						label="Deploy"
+						icon="carbon:application"
+						type="submit"
+						class="!w-fit basic-button"
+					/>
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						type="button"
+						class="!w-fit cancel-button"
+						onclick={modalDeployUpload.close}
+					/>
 				</div>
 			</fieldset>
 		</form>
@@ -118,7 +124,7 @@
 				modalDeployURL.close();
 			}}
 		>
-			<fieldset disabled={bag.uploading} class="layout-y !items-start">
+			<fieldset disabled={bag.uploading} class="layout-y-start">
 				<p>Import a project from url like:</p>
 				<p class="font-bold">
 					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}
@@ -126,14 +132,14 @@
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<input name="url" type="text" class="input w-full" required />
 				<div class="w-full layout-x justify-end">
-					<button type="submit" class="basic-button"
-						><span><Ico icon="bytesize:import" size="btn" /></span><span>Import</span></button
-					>
-					<button type="button" onclick={modalDeployURL.close} class="cancel-button"
-						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-							>Cancel</span
-						></button
-					>
+					<Button label="Import" icon="bytesize:import" type="submit" class="!w-fit basic-button" />
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						type="button"
+						class="!w-fit cancel-button"
+						onclick={modalDeployURL.close}
+					/>
 				</div>
 			</fieldset>
 		</form>
@@ -141,7 +147,7 @@
 </ModalDynamic>
 <ModalDynamic bind:this={modalSymbols} class="w-[800px]">
 	{#snippet children({ close, params: { symbols, project } })}
-		<Card title="Undefined Global Symbols" class="!items-start w-full">
+		<Card title="Undefined Global Symbols" class="w-full">
 			<p>Find here the undefined Global Symbols for the project <b>{project}</b>:</p>
 			<div class="layout-x flex-wrap w-full">
 				{#each symbols as symbol}
@@ -149,14 +155,18 @@
 				{/each}
 			</div>
 			<div class="w-full layout-x justify-end">
-				<button onclick={() => close(true)} class="basic-button"
-					><span><Ico icon="et:tools-2" size="btn" /></span><span>Create symbols</span></button
-				>
-				<button onclick={() => close(false)} class="cancel-button"
-					><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-						>Cancel</span
-					></button
-				>
+				<Button
+					label="Create symbols"
+					icon="et:tools-2"
+					class="basic-button"
+					onclick={() => close(true)}
+				/>
+				<Button
+					label="Cancel"
+					icon="material-symbols-light:cancel-outline"
+					class="cancel-button"
+					onclick={() => close(false)}
+				/>
 			</div>
 		</Card>
 	{/snippet}

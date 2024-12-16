@@ -4,8 +4,6 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import { onDestroy } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ButtonsContainer from '$lib/admin/components/ButtonsContainer.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { capitalize } from '$lib/utils/service';
@@ -15,6 +13,8 @@
 	import CronWizard from '$lib/admin/components/CronWizard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let { jobs, schedules, scheduled, configure, remove } = $derived(Scheduler);
 	let { projects } = $derived(Project);
@@ -160,7 +160,7 @@
 							/>
 						{/if}
 					</div>
-					<div class="layout-y max-md:w-full !items-stretch">
+					<div class="layout-y-stretch max-md:w-full">
 						{#if mode.endsWith('ConvertigoJob')}
 							{@const types = [
 								{
@@ -270,18 +270,20 @@
 					{/if}
 				</div>
 				<div class="w-full layout-x justify-end">
-					<button
+					<Button
+						label="Save"
+						icon={jobTypes[mode].icon}
 						class="basic-button"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
-						><span><Ico icon={jobTypes[mode].icon} size="btn" /></span><span>Save</span></button
-					>
-					<button type="button" onclick={close} class="cancel-button"
-						><span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span><span
-							>Cancel</span
-						></button
-					>
+					/>
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						class="cancel-button"
+						onclick={close}
+					/>
 				</div>
 			</form>
 		</Card>
@@ -302,23 +304,31 @@
 				{/each}
 			</ul>
 			<div class="w-full layout-x justify-end">
-				<button onclick={close} class="cancel-button">Close</button>
+				<Button
+					label="Close"
+					icon="material-symbols-light:cancel-outline"
+					class="cancel-button"
+					onclick={close}
+				/>
 			</div>
 		</Card>
 	{/snippet}
 </ModalDynamic>
-<div class="layout-y !items-stretch">
-	{#each cards as { title, range, next, data }}
+<div class="layout-y-stretch">
+	{#each cards as { title, range, next, data, size = "4" }}
 		<Card {title}>
 			{#snippet cornerOption()}
-				<ButtonsContainer>
-					{#each Object.entries(jobTypes).slice(...range) as [mode, { name, icon }]}
-						<button class="basic-button" onclick={(event) => open({ event, mode })}>
-							<Ico {icon} />
-							<p>New {name}</p>
-						</button>
-					{/each}
-				</ButtonsContainer>
+				<ResponsiveButtons
+					class="max-w-2xl"
+					buttons={Object.entries(jobTypes)
+						.slice(...range)
+						.map(([mode, { name, icon }]) => ({
+							label: `New ${name}`,
+							icon,
+							cls: 'basic-button',
+							onclick: (event) => open({ event, mode })
+						}))}
+				/>
 			{/snippet}
 
 			<TableAutoCard
@@ -354,14 +364,16 @@
 									});
 								}}
 							/>
-							<button
+							<Button
 								class="basic-button"
+								{size}
+								icon="mdi:edit-outline"
 								onclick={(event) => open({ event, mode: row.type, row })}
-							>
-								<Ico icon="mdi:edit-outline" />
-							</button>
-							<button
+							/>
+							<Button
 								class="delete-button"
+								{size}
+								icon="mingcute:delete-line"
 								onclick={async (event) => {
 									if (
 										await yesNo.open({
@@ -373,17 +385,15 @@
 										remove(row.name, row.type);
 									}
 								}}
-							>
-								<Ico icon="mingcute:delete-line" />
-							</button>
+							/>
 						</div>
 					{:else if row.next?.length > 1}
-						<button
+						<Button
+							label={row.next?.length}
 							class="yellow-button"
-							onclick={(event) => {
-								nextCron.open({ event, row });
-							}}>{row.next?.[0]}</button
-						>
+							{size}
+							onclick={(event) => nextCron.open({ event, row })}
+						/>
 					{:else}
 						<AutoPlaceholder loading={row.next == null}>{row.next?.[0]}</AutoPlaceholder>
 					{/if}
