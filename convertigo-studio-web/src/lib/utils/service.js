@@ -424,9 +424,13 @@ export function capitalize(str) {
 export function debounce(fn, delay) {
 	let timeout;
 	return (...args) => {
-		clearTimeout(timeout);
-		timeout = setTimeout(() => {
+		if (delay >= 0) {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => {
+				fn(...args);
+			}, delay);
+		} else {
 			fn(...args);
-		}, delay);
+		}
 	};
 }

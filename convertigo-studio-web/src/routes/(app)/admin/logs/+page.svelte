@@ -99,58 +99,63 @@
 	});
 </script>
 
-<MaxRectangle>
-	<Card title="Logs" class="!gap-low h-full">
+<MaxRectangle delay={200} enabled={['0', '1'].includes(tabSet)}>
+	<Card title="Logs" class="!gap-low !pt-low h-full">
 		{#snippet cornerOption()}
-			{#if tabs[tabSet].name == 'Purge'}
-				<ResponsiveButtons
-					buttons={[
-						{
-							label: 'Purge',
-							icon: 'material-symbols-light:save-as-outline',
-							cls: 'basic-button',
-							onclick: () => {}
-						}
-					]}
-				/>
-			{:else if tabs[tabSet].name == 'Log Levels'}
-				<ResponsiveButtons
-					buttons={[
-						{
-							label: 'Save changes',
-							icon: 'material-symbols-light:save-as-outline',
-							cls: 'basic-button',
-							onclick: () => {}
-						},
-						{
-							label: 'Cancel changes',
-							icon: 'material-symbols-light:cancel-outline',
-							cls: 'yellow-button',
-							onclick: Configuration.refresh
-						}
-					]}
-				/>
-			{/if}
+			<div class="layout-x-low w-full">
+				<Tabs bind:value={tabSet} listClasses="!mb-0 flex-wrap" classes="!w-fit">
+					{#snippet list()}
+						{#each tabs as { name, icon }, i}
+							<Tabs.Control
+								value={'' + i}
+								stateLabelActive="dark:bg-surface-500 bg-surface-50"
+								padding=""
+							>
+								{#snippet lead()}{name}{/snippet}
+								<Ico {icon} />
+							</Tabs.Control>
+						{/each}
+					{/snippet}
+				</Tabs>
+				<div class="grow">
+					{#if tabs[tabSet].name == 'Purge'}
+						<ResponsiveButtons
+							buttons={[
+								{
+									label: 'Purge',
+									icon: 'material-symbols-light:save-as-outline',
+									cls: 'basic-button',
+									onclick: () => {}
+								}
+							]}
+						/>
+					{:else if tabs[tabSet].name == 'Log Levels'}
+						<ResponsiveButtons
+							buttons={[
+								{
+									label: 'Save changes',
+									icon: 'material-symbols-light:save-as-outline',
+									cls: 'basic-button',
+									onclick: () => {}
+								},
+								{
+									label: 'Cancel changes',
+									icon: 'material-symbols-light:cancel-outline',
+									cls: 'yellow-button',
+									onclick: Configuration.refresh
+								}
+							]}
+						/>
+					{/if}
+				</div>
+			</div>
 		{/snippet}
 		<Tabs
 			bind:value={tabSet}
-			listClasses="flex-wrap"
+			listClasses="hidden"
 			classes="h-full layout-y-stretch-none"
 			contentClasses="grow"
 		>
-			{#snippet list()}
-				{#each tabs as { name, icon }, i}
-					<Tabs.Control
-						value={'' + i}
-						stateLabelActive="dark:bg-surface-500 bg-surface-50"
-						padding=""
-					>
-						<!-- onchange={tabChanged} -->
-						{#snippet lead()}{name}{/snippet}
-						<Ico {icon} />
-					</Tabs.Control>
-				{/each}
-			{/snippet}
 			{#snippet content()}
 				{#if ['Viewer', 'Real Time'].includes(tabs[tabSet].name)}
 					<div class="h-full layout-y-start-low" transition:slide={{ axis: 'y' }}>
@@ -214,7 +219,7 @@
 								</DatePicker>
 							</div>
 						{/if}
-						<div class="grow">
+						<div class="grow -mx -mb">
 							<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
 						</div>
 					</div>
@@ -232,7 +237,7 @@
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
 						{#each logsCategory?.property as property}
 							{#if property.description?.startsWith('Log4J')}
-								<PropertyType {property} />
+								<PropertyType {...property} bind:value={property.value} />
 							{/if}
 						{/each}
 					</div>

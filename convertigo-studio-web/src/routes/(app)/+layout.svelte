@@ -28,7 +28,7 @@
 	transitionsPositionerOut={{ x: -480, duration: 200 }}
 >
 	{#snippet content()}
-		<PagesRailToggle bind:state={showDrawer} />
+		<PagesRailToggle bind:state={showDrawer} class="pl-5 !w-fit !h-fit" />
 		<PagesRail {parts} />
 	{/snippet}
 </Modal>

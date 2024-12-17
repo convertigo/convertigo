@@ -556,7 +556,7 @@
 		</div>
 	</div>
 	<div class="grow">
-		<MaxRectangle bind:clientHeight>
+		<MaxRectangle bind:clientHeight delay={300}>
 			<VirtualList
 				height={clientHeight}
 				width="auto"
@@ -615,7 +615,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none !px -mx -mb rounded rounded-t-none bg-surface-200-800 justify-between items-center"
+		class="layout-x-p-none !px rounded rounded-t-none bg-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
