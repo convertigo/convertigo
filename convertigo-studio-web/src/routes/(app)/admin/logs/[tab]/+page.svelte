@@ -3,7 +3,8 @@
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
-	import { onMount, untrack } from 'svelte';
+	import LogsPurge from '$lib/admin/LogsPurge.svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { slide } from 'svelte/transition';
@@ -13,25 +14,51 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import { page } from '$app/state';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 
 	onMount(() => {
 		Logs.list();
+		return () => {
+			Configuration.stop();
+			LogsPurge.stop();
+		};
 	});
 
-	let tabSet = $state('0');
-	let rangeVal = $state([15]);
-	let max = 25;
+	let skip = false;
+	beforeNavigate(async (nav) => {
+		if (skip) {
+			skip = false;
+			return;
+		}
+		if (hasChanges) {
+			nav.cancel();
+			if (await modalUnsaved.open()) {
+				Configuration.refresh();
+				skip = true;
+				await goto(nav.to?.url ?? '');
+			} else {
+				tabSet = 'view';
+				tabSet = 'config';
+				return;
+			}
+		}
+	});
 
 	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
-	const tabs = [
-		{ name: 'Viewer', icon: 'grommet-icons:add' },
-		{ name: 'Real Time', icon: 'grommet-icons:add' },
-		{ name: 'Purge', icon: 'grommet-icons:add' },
-		{ name: 'Log Levels', icon: 'grommet-icons:add' }
-	];
+	const tabs = {
+		view: { name: 'Viewer', icon: 'grommet-icons:add', viewer: true },
+		realtime: { name: 'Real Time', icon: 'grommet-icons:add', viewer: true },
+		purge: { name: 'Purge', icon: 'grommet-icons:add' },
+		config: { name: 'Log Levels', icon: 'grommet-icons:add' }
+	};
+
+	let tabSet = $derived(Object.keys(tabs).includes(page.params.tab) ? page.params.tab : 'view');
 
 	/** @type {Array<number|null>}*/
 	let datesEdited = $state([
@@ -57,7 +84,7 @@
 	async function refreshLogs() {
 		Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
 		Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
-		Logs.realtime = tabs[tabSet].name == 'Real Time';
+		Logs.realtime = tabSet == 'realtime';
 		await Logs.list(true);
 	}
 
@@ -93,24 +120,63 @@
 	];
 
 	$effect(() => {
-		if (['Viewer', 'Real Time'].includes(tabs[tabSet].name)) {
+		if (tabs[tabSet].viewer) {
 			untrack(refreshLogs);
 		}
 	});
+
+	$effect(() => {
+		if (tabSet != 'purge') {
+			LogsPurge.stop();
+		}
+	});
+
+	async function saveChanges(event) {
+		const toSave = logsCategory.property
+			?.filter(({ value, originalValue }) => value != originalValue)
+			.map(({ name, value }) => ({
+				'@_key': name,
+				'@_value': value
+			}));
+		const confirmed = await modalSave.open({
+			event,
+			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
+		});
+		if (confirmed) {
+			Configuration.updateConfigurations(toSave);
+		}
+	}
+
+	let hasChanges = $derived(
+		tabSet == 'config' &&
+			logsCategory?.property?.some(({ value, originalValue }) => value != originalValue)
+	);
+
+	let modalPurge;
+	let modalSave;
+	let modalUnsaved;
 </script>
 
-<MaxRectangle delay={200} enabled={['0', '1'].includes(tabSet)}>
+<ModalYesNo bind:this={modalPurge} title="Delete logs files older than" />
+<ModalYesNo bind:this={modalSave} />
+<ModalYesNo
+	bind:this={modalUnsaved}
+	title="You have unsaved changes!"
+	message="Are you sure you want to continue?"
+/>
+
+<MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
 	<Card title="Logs" class="!gap-low !pt-low h-full">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
-				<Tabs bind:value={tabSet} listClasses="!mb-0 flex-wrap" classes="!w-fit">
+				<Tabs
+					bind:value={() => tabSet, (v) => goto(`../${v}/`)}
+					listClasses="!mb-0 flex-wrap"
+					classes="!w-fit"
+				>
 					{#snippet list()}
-						{#each tabs as { name, icon }, i}
-							<Tabs.Control
-								value={'' + i}
-								stateLabelActive="dark:bg-surface-500 bg-surface-50"
-								padding=""
-							>
+						{#each Object.entries(tabs) as [value, { name, icon }]}
+							<Tabs.Control {value} stateLabelActive="dark:bg-surface-500 bg-surface-50" padding="">
 								{#snippet lead()}{name}{/snippet}
 								<Ico {icon} />
 							</Tabs.Control>
@@ -118,30 +184,42 @@
 					{/snippet}
 				</Tabs>
 				<div class="grow">
-					{#if tabs[tabSet].name == 'Purge'}
+					{#if tabSet == 'purge'}
 						<ResponsiveButtons
 							buttons={[
 								{
 									label: 'Purge',
 									icon: 'material-symbols-light:save-as-outline',
 									cls: 'basic-button',
-									onclick: () => {}
+									disabled: LogsPurge.value[0] == -1,
+									onclick: async (event) => {
+										if (
+											await modalPurge.open({
+												event,
+												message: `${LogsPurge.date} ?`
+											})
+										) {
+											LogsPurge.purge();
+										}
+									}
 								}
 							]}
 						/>
-					{:else if tabs[tabSet].name == 'Log Levels'}
+					{:else if tabSet == 'config'}
 						<ResponsiveButtons
 							buttons={[
 								{
 									label: 'Save changes',
 									icon: 'material-symbols-light:save-as-outline',
 									cls: 'basic-button',
-									onclick: () => {}
+									disabled: !hasChanges,
+									onclick: saveChanges
 								},
 								{
 									label: 'Cancel changes',
 									icon: 'material-symbols-light:cancel-outline',
 									cls: 'yellow-button',
+									disabled: !hasChanges,
 									onclick: Configuration.refresh
 								}
 							]}
@@ -151,15 +229,15 @@
 			</div>
 		{/snippet}
 		<Tabs
-			bind:value={tabSet}
+			value={tabSet}
 			listClasses="hidden"
 			classes="h-full layout-y-stretch-none"
 			contentClasses="grow"
 		>
 			{#snippet content()}
-				{#if ['Viewer', 'Real Time'].includes(tabs[tabSet].name)}
+				{#if tabs[tabSet].viewer}
 					<div class="h-full layout-y-start-low" transition:slide={{ axis: 'y' }}>
-						{#if tabs[tabSet].name == 'Viewer'}
+						{#if tabSet == 'view'}
 							<div class="w-full" transition:slide={{ axis: 'y' }}>
 								<DatePicker
 									bind:isOpen
@@ -220,20 +298,41 @@
 							</div>
 						{/if}
 						<div class="grow -mx -mb">
-							<LogViewer autoScroll={tabs[tabSet].name == 'Real Time'} />
+							<LogViewer autoScroll={tabSet == 'realtime'} />
 						</div>
 					</div>
-				{:else if tabs[tabSet].name == 'Purge'}
+				{:else if tabSet == 'purge'}
+					{@const {
+						loading,
+						dates,
+						date,
+						value: [idx]
+					} = LogsPurge}
 					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
+						<div class="mt">Logs are split into multiple files, each step is a file.</div>
 						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded">
-							<Slider name="range-slider" bind:value={rangeVal} max={25} step={1} />
+							<AutoPlaceholder {loading}>
+								<Slider
+									name="range-slider"
+									bind:value={LogsPurge.value}
+									min={-1}
+									max={dates.length - 1}
+									step={1}
+								/>
+							</AutoPlaceholder>
 						</div>
-						<div class="flex justify-between items-center">
-							<div class="font-bold">Delete logs files older than 24/05/2024, 13:03:07</div>
-							<div class="text-xs">{rangeVal} / {max}</div>
-						</div>
+						<AutoPlaceholder {loading}>
+							<div class="layout-x justify-between">
+								{#if idx >= 0}
+									<div class="font-bold">Delete logs files older than {date}</div>
+								{:else}
+									<div class="font-bold">No selected date</div>
+								{/if}
+								<div class="text-xs">{idx + 1} / {dates.length}</div>
+							</div>
+						</AutoPlaceholder>
 					</div>
-				{:else if tabs[tabSet].name == 'Log Levels'}
+				{:else if tabSet == 'config'}
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
 						{#each logsCategory?.property as property}
 							{#if property.description?.startsWith('Log4J')}

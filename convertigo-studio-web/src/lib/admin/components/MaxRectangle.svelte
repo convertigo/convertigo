@@ -18,6 +18,9 @@
 	}
 
 	const doCalc = debounce(() => {
+		if (!div) {
+			return;
+		}
 		div.style.display = 'none';
 		tick().then(() => {
 			const { paddingTop, paddingBottom, paddingLeft, paddingRight, height, width } =
@@ -31,6 +34,9 @@
 	}, delay);
 
 	$effect(() => {
+		if (!div) {
+			return;
+		}
 		if (!enabled) {
 			div.style.height = div.style.maxHeight = div.style.width = div.style.maxWidth = null;
 			return;

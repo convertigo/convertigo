@@ -1,18 +1,14 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import { loading } from '$lib/utils/loadingStore';
 import { resolveRoute } from '$app/paths';
 
-let toastNotif = null;
-let modalLoading = null;
-export function setToastStore(toastStore) {
-	toastNotif = toastStore;
-}
+let currentCalls = 0;
 
-export function setModalStore(modalStore) {
-	modalLoading = modalStore;
+/** @type { import('@skeletonlabs/skeleton-svelte').ToastContext } */
+let toast;
+
+export function setToastContext(toastContext) {
+	toast = toastContext;
 }
-let cpt = 0;
-loading.subscribe((n) => (cpt = n));
 
 /**
  * @param {string} service
@@ -53,14 +49,14 @@ export async function call(service, data = {}) {
 		headers['Content-Type'] = 'application/x-www-form-urlencoded';
 	}
 
-	loading.set(cpt + 1);
+	currentCalls++;
 	let res = await fetch(url, {
 		method: 'POST',
 		headers,
 		body,
 		credentials: 'include'
 	});
-	loading.set(cpt - 1);
+	currentCalls--;
 	var xsrf = res.headers.get('x-xsrf');
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf', xsrf);
@@ -132,92 +128,132 @@ export async function callRequestable(mode, project, data = {}) {
  * @param {string} serviceName - Optional. The name of the service being called, if exclusion is needed.
  */
 function handleServiceLoading(isLoading, serviceName = '') {
-	if (serviceName === 'engine.JsonMonitor') {
-		return;
-	}
-	if (isLoading) {
-		loading.set(cpt + 1);
-		if (modalLoading) {
-			modalLoading.trigger({
-				type: 'component',
-				component: 'modalLoading',
-				meta: { mode: 'Loading' }
-			});
-		}
-	} else {
-		loading.set(cpt - 1);
-		if (modalLoading) {
-			modalLoading.close();
-		}
-	}
+	// if (serviceName === 'engine.JsonMonitor') {
+	// 	return;
+	// }
+	// if (isLoading) {
+	// 	loading.set(cpt + 1);
+	// 	if (modalLoading) {
+	// 		modalLoading.trigger({
+	// 			type: 'component',
+	// 			component: 'modalLoading',
+	// 			meta: { mode: 'Loading' }
+	// 		});
+	// 	}
+	// } else {
+	// 	loading.set(cpt - 1);
+	// 	if (modalLoading) {
+	// 		modalLoading.close();
+	// 	}
+	// }
 }
 
-function handleStateMessage(dataContent, service) {
+function findDeepKey(obj, key, depth = 3) {
+	if (depth < 0) {
+		return null;
+	}
+	if (obj[key]) {
+		return obj[key];
+	}
+	for (let k in obj) {
+		if (typeof obj[k] == 'object') {
+			let res = findDeepKey(obj[k], key, depth - 1);
+			if (res) {
+				return res;
+			}
+		}
+	}
+	return null;
+}
+
+function handleStateMessage(res, service) {
 	try {
-		if (!toastNotif) {
+		if (!toast) {
 			return;
 		}
 
-		let stateMessage =
-			dataContent?.admin?.response ||
-			dataContent?.admin?.keys?.key ||
-			dataContent?.admin ||
-			dataContent?.error?.message ||
-			dataContent?.error;
-
-		let toastStateBody =
-			stateMessage?.['@_message'] ||
-			stateMessage?.['@_errorMessage'] ||
-			stateMessage?.message ||
-			stateMessage?.problem ||
-			stateMessage?.error ||
-			(service.endsWith('.List') || service.endsWith('Authentication')
-				? false
-				: typeof stateMessage == 'string'
-					? stateMessage
-					: !toastNotif);
-
-		if (!toastStateBody) {
-			if (service == 'engine.PerformGC') {
-				toastStateBody = 'GC performed successfully';
-			}
-		}
-		if (toastStateBody) {
-			let isError =
-				stateMessage?.['@_state'] === 'error' ||
-				!!stateMessage?.['@_errorMessage'] ||
-				stateMessage?.error ||
-				dataContent?.error;
-			let problem = stateMessage?.problem;
-
-			let background;
-			let timeout = 2000;
-			if (problem) {
-				background = 'bg-tertiary-400-500';
-				timeout = 5000;
-			} else if (isError) {
-				background = 'bg-error-400-500';
-				timeout = 10000;
-			} else {
-				background = 'bg-success-400-500';
-			}
-			toastNotif.trigger({
-				message: toastStateBody,
-				timeout,
-				background: background
+		let error = findDeepKey(res, 'error');
+		if (error) {
+			toast.create({
+				description: '' + error,
+				duration: 1000,
+				type: 'error'
 			});
-		} else if (
-			[
-				'engine.JsonMonitor',
-				'engine.JsonStatus',
-				'engine.CheckAuthentication',
-				'engine.Authenticate'
-			].includes(service)
-		) {
-			// ignore
-		} else {
-			console.warn(`No valid message found in the response data: ${service}`);
+			return;
 		}
+		return;
+
+		// let message;
+		// ['message', 'status'].find((key) => (message = findDeepKey(res, key)));
+		// console.log('message', message);
+		// if (message) {
+		// 	toast.create({
+		// 		description: '' + message,
+		// 		duration: 1000,
+		// 		type: 'success'
+		// 	});
+		// }
+		// return;
+
+		// let stateMessage =
+		// 	res?.admin?.response ||
+		// 	res?.admin?.keys?.key ||
+		// 	res?.admin ||
+		// 	res?.error?.message ||
+		// 	res?.error;
+
+		// let toastStateBody =
+		// 	stateMessage?.message ||
+		// 	stateMessage?.errorMessage ||
+		// 	stateMessage?.message ||
+		// 	stateMessage?.problem ||
+		// 	stateMessage?.error ||
+		// 	(service.endsWith('.List') || service.endsWith('Authentication')
+		// 		? false
+		// 		: typeof stateMessage == 'string'
+		// 			? stateMessage
+		// 			: false);
+
+		// if (!toastStateBody) {
+		// 	if (service == 'engine.PerformGC') {
+		// 		toastStateBody = 'GC performed successfully';
+		// 	}
+		// }
+		// if (toastStateBody) {
+		// 	let isError =
+		// 		stateMessage?.['@_state'] === 'error' ||
+		// 		!!stateMessage?.['@_errorMessage'] ||
+		// 		stateMessage?.error ||
+		// 		res?.error;
+		// 	let problem = stateMessage?.problem;
+
+		// 	/** @type {"error" | "success" | "info" | undefined} */
+		// 	let type = 'success';
+		// 	let duration = 2000;
+		// 	if (problem) {
+		// 		type = 'info';
+		// 		duration = 5000;
+		// 	} else if (isError) {
+		// 		type = 'error';
+		// 		duration = 10000;
+		// 	}
+		// 	toast.create({
+		// 		description: toastStateBody,
+		// 		duration,
+		// 		type
+		// 	});
+		// } else if (
+		// 	[
+		// 		'engine.JsonMonitor',
+		// 		'engine.JsonStatus',
+		// 		'engine.CheckAuthentication',
+		// 		'engine.Authenticate'
+		// 	].includes(service)
+		// ) {
+		// 	// ignore
+		// } else {
+		// 	console.warn(`No valid message found in the response data: ${service}`);
+		// }
 	} catch (err) {
 		console.error('Error handling state message:', err);
 	}

@@ -140,13 +140,13 @@
 })}
 	{#if loading}
 		<AutoPlaceholder {loading} />
-	{:else if def.name == 'Certificate / Store' && setup}
+	{:else if def.name == 'Certificate / Store' && def.setup}
 		{#if last}
 			<PropertyType
 				name="name_0"
 				type="combo"
 				item={candidates.map(({ name }) => ({ value: name, text: name }))}
-				value={type}
+				value={candidates[0]?.name}
 			/>
 		{:else}
 			<input type="hidden" name="name_0" value={name} />
@@ -158,7 +158,7 @@
 				name="convProject_0"
 				type="combo"
 				item={projects.map(({ name }) => ({ value: name, text: name }))}
-				value={projectName}
+				value={projects[0]?.name}
 			/>
 		{:else}
 			<input type="hidden" name="convProject_0" value={projectName} />
@@ -186,7 +186,7 @@
 			name="cert_0"
 			type="combo"
 			item={certificates.map(({ name }) => ({ value: name, text: name }))}
-			value={certificateName}
+			value={certificateName ?? certificates[0]?.name}
 		/>
 	{:else if def.name == 'Type'}
 		<PropertyType
@@ -196,7 +196,7 @@
 				{ value: 'server', text: 'Server' },
 				{ value: 'client', text: 'Client' }
 			]}
-			value={type}
+			value={type ?? 'server'}
 			originalValue={type}
 		/>
 	{:else if def.name == 'Password'}
@@ -275,7 +275,8 @@
 			].map(([name, cls]) => ({
 				name,
 				class: cls,
-				custom: true
+				custom: true,
+				setup: true
 			}))}
 			data={candidates.length ? [...certificates, { last: true, setup: true }] : certificates}
 		>

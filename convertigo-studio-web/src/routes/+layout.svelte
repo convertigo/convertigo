@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import Light from '$lib/common/Light.svelte';
+	import ToastSetter from '$lib/utils/ToastSetter.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 
@@ -24,6 +25,7 @@
 	Light.light;
 </script>
 
-<ToastProvider>
+<ToastProvider groupClasses="w-full !items-center !right-0">
+	<ToastSetter />
 	{@render children?.()}
 </ToastProvider>

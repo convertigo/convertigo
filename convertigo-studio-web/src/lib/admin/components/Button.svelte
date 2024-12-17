@@ -18,7 +18,7 @@
 </script>
 
 {#if !hidden}
-	{#if href}
+	{#if href && !disabled}
 		<a {href} class="{cls} text-wrap min-h-fit w-full h-full" {...rest}>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</a
 		>
