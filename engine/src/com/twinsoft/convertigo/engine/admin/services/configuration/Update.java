@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.servlets.SecurityFilter;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -96,5 +97,6 @@ public class Update extends XmlService {
 		Element update = document.createElement("update");
 		update.setAttribute("status", "ok");
 		rootElement.appendChild(update);
+		ServiceUtils.addMessage(document, "Configuration updated and saved", "success");
 	}
 }

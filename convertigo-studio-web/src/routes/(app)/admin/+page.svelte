@@ -232,7 +232,7 @@
 
 	<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart}
-			<Card>
+			<Card class="!p-none">
 				<ApexChartLineAdmin {...chart} {categories} />
 			</Card>
 		{/each}

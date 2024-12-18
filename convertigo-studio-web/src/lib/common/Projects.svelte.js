@@ -17,14 +17,31 @@ const defValues = {
 	})
 };
 
+let waiting = $state(false);
+
+async function doCall(action, param) {
+	try {
+		waiting = true;
+		param?.preventDefault?.();
+		await call(`projects.${action}`, param?.target ? new FormData(param?.target) : param);
+		await values.refresh();
+	} finally {
+		waiting = false;
+	}
+}
+
 let values = {
+	async deploy(event) {
+		await doCall('Deploy', event);
+	},
+	async importURL(event) {
+		await doCall('ImportURL', event);
+	},
 	async remove(projectName) {
-		await call('projects.Delete', { projectName });
-		await this.refresh();
+		await doCall('Delete', { projectName });
 	},
 	async reload(projectName) {
-		await call('projects.Reload', { projectName });
-		await this.refresh();
+		await doCall('Reload', { projectName });
 	},
 	async exportOptions(projectName) {
 		const res = await call('projects.ExportOptions', { projectName });
@@ -36,6 +53,9 @@ let values = {
 	},
 	async createSymbols(projectName) {
 		return await call('global_symbols.Create', { projectName });
+	},
+	get waiting() {
+		return waiting;
 	}
 };
 

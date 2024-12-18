@@ -41,6 +41,7 @@ public class ImportURL extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String error = null;
+		String projectName = null;
 		try {
 			String url = request.getParameter("url");
 			ProjectUrlParser parser = new ProjectUrlParser(url);
@@ -49,7 +50,7 @@ public class ImportURL extends XmlService {
 				if ((project = Engine.theApp.referencedProjectManager.importProject(parser, true)) == null) {
 					error = "No project loaded with: " + url;
 				} else {
-					String projectName = project.getName();
+					projectName = project.getName();
 					Engine.theApp.schemaManager.clearCache(projectName);
 					Project.executeAutoStartSequences(projectName);
 				}
@@ -65,7 +66,7 @@ public class ImportURL extends XmlService {
 		Element elt;
 		if (error == null) {
 			elt = document.createElement("success");
-			elt.setTextContent("true");
+			elt.setTextContent("The project '" + projectName + "' has been successfully imported.");
 		} else {
 			elt = document.createElement("error");
 			elt.setTextContent(error);

@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Purge",
@@ -82,6 +83,7 @@ public class Purge extends XmlService {
 						}
 					}
 				}
+				ServiceUtils.addMessage(document, "Successfully delete " + e_dates.getChildNodes().getLength() + " log files", "success");
 			} catch (Exception e) {
 				throw new InvalidParameterException("Need parsable 'date' parameter");
 			}

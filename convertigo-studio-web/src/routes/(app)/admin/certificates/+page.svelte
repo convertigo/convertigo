@@ -133,8 +133,7 @@
 		password,
 		type,
 		validPass,
-		last,
-		setup
+		last
 	},
 	def
 })}
@@ -227,12 +226,12 @@
 					icon: 'mingcute:delete-line',
 					cls: 'delete-button',
 					hidden: last,
-					onclick: setup ? del : mappingsDel
+					onclick: def.setup ? del : mappingsDel
 				},
 				{
 					icon: 'dashicons:update',
 					cls: 'green-button',
-					onclick: setup ? configure : mappingsConfigure
+					onclick: def.setup ? configure : mappingsConfigure
 				}
 			]}
 			class="min-w-32 w-full"

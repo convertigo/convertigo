@@ -52,7 +52,7 @@ public class Install extends UploadService {
 		String certifNameExtension=fullFile.getName().replaceFirst(".*\\.", ".");
 		if(CertificateManager.isCertificateExtension(certifNameExtension)){
 			File savedFile = new File(getRepository(), fullFile.getName());
-			item.write(savedFile);			
+			item.write(savedFile);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "The certificate \""+fullFile.getName()+"\" has been successfully uploaded", "message", false);
 		}
 		else{

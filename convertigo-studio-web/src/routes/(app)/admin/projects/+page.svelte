@@ -7,14 +7,24 @@
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
-	import { call, getUrl } from '$lib/utils/service';
+	import { getQuery, getUrl } from '$lib/utils/service';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 
-	let { projects, remove, refresh, reload, exportOptions, undefinedSymbols, createSymbols } =
-		$derived(Projects);
+	let {
+		projects,
+		deploy,
+		importURL,
+		remove,
+		refresh,
+		reload,
+		exportOptions,
+		undefinedSymbols,
+		createSymbols,
+		waiting
+	} = $derived(Projects);
 	let exportChoices = $state({});
 
 	onDestroy(Projects.stop);
@@ -24,14 +34,16 @@
 	let modalDeployUpload = $state();
 	let modalDeployURL = $state();
 	let modalSymbols;
-
-	/** @type {any} */
-	let bag = $state({});
 </script>
 
 <ModalYesNo bind:this={modalDelete} />
 <ModalDynamic bind:this={modalExport}>
 	{#snippet children({ close, params: { options, project } })}
+		{@const query = getQuery({
+			__xsrfToken: localStorage.getItem('x-xsrf') ?? '',
+			projectName: project,
+			exportOptions: JSON.stringify(exportChoices)
+		})}
 		<Card title="Exporting {project}">
 			{#each options as { name, display }}
 				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
@@ -43,10 +55,9 @@
 						icon: 'bytesize:export',
 						label: 'Export',
 						cls: 'green-button',
-						onclick: () => {
-							location.href = `${getUrl()}Export?__xsrfToken=${encodeURIComponent(localStorage.getItem('x-xsrf') ?? '')}&projectName=${encodeURIComponent(project)}&exportOptions=${encodeURIComponent(JSON.stringify(exportChoices))}`;
-							close();
-						}
+						href: `${getUrl()}projects.Export${query}`,
+						target: '_blank',
+						onclick: close
 					},
 					{
 						icon: 'material-symbols-light:cancel-outline',
@@ -63,16 +74,11 @@
 	<Card title="Drop or choose a .car/.zip file and Deploy">
 		<form
 			onsubmit={async (event) => {
-				event.preventDefault();
-				bag.uploading = true;
-				// @ts-ignore
-				await call('Deploy', new FormData(event?.target));
-				bag.uploading = false;
-				refresh();
+				await deploy(event);
 				modalDeployUpload.close();
 			}}
 		>
-			<fieldset disabled={bag.uploading}>
+			<fieldset disabled={waiting}>
 				<FileUpload
 					name="file"
 					accept={{ 'application/zip': ['.car', '.zip'] }}
@@ -115,16 +121,11 @@
 	<Card title="Import from a Remote Project URL">
 		<form
 			onsubmit={async (event) => {
-				event.preventDefault();
-				bag.uploading = true;
-				// @ts-ignore
-				await call('ImportURL', new FormData(event?.target));
-				bag.uploading = false;
-				refresh();
+				await importURL(event);
 				modalDeployURL.close();
 			}}
 		>
-			<fieldset disabled={bag.uploading} class="layout-y-start">
+			<fieldset disabled={waiting} class="layout-y-start">
 				<p>Import a project from url like:</p>
 				<p class="font-bold">
 					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}

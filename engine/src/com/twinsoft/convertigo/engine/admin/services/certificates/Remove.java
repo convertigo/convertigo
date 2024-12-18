@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
@@ -48,6 +49,7 @@ public class Remove extends XmlService {
 		String certificateName = request.getParameter("certificateName");		
 		File toRemove=new File(Engine.CERTIFICATES_PATH+"/"+certificateName);
 		toRemove.delete();
+		ServiceUtils.addMessage(document, "The certificate \""+certificateName+"\" has been successfully removed", "message");
 	}
 		
 }	

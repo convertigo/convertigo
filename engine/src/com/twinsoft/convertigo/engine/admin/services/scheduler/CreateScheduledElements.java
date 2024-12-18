@@ -202,6 +202,7 @@ public class CreateScheduledElements extends XmlService {
 			
 			schedulerManager.save();
 			schedulerManager.refreshJobs();
+			ServiceUtils.addMessage(document, "Scheduler successfully updated", "success");
 		} catch (Exception e) {
 			schedulerManager.load();
 			if (e != eProb) {

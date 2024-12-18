@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 
 @ServiceDefinition(
@@ -41,11 +42,14 @@ public class Delete extends XmlService {
 		String contextName, sessionId;
         if ((contextName = request.getParameter("contextName")) != null) {
         	Engine.theApp.contextManager.remove(contextName);
+    		ServiceUtils.addMessage(document, "Context '" + contextName + "' removed", "success");
         } else if ((sessionId = request.getParameter("sessionId")) != null) {
         	HttpSessionListener.terminateSession(sessionId);
+    		ServiceUtils.addMessage(document, "Session '" + sessionId + "' removed", "success");
         } else if ("true".equals(request.getParameter("removeAll"))) {
         	HttpSessionListener.removeAllSession();
         	Engine.theApp.contextManager.removeAll();
+    		ServiceUtils.addMessage(document, "All contexts and sessions removed", "success");
         } else {
         	throw new IllegalArgumentException();
         }

@@ -66,6 +66,10 @@ public class ServiceUtils {
 		return rep;
 	}
 
+	public static void addMessage(Document document, String message, String tagName) {
+		addMessage(document, document.getDocumentElement(), message, tagName, false);
+	}
+
 	public static void addMessage(Document document, Element root, String message, String tagName) {
 		addMessage(document, root, message, tagName, true);
 	}

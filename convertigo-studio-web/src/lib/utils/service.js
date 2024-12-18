@@ -1,5 +1,6 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { resolveRoute } from '$app/paths';
+import { browser } from '$app/environment';
 
 let currentCalls = 0;
 
@@ -15,62 +16,69 @@ export function setToastContext(toastContext) {
  * @param {any} data
  */
 export async function call(service, data = {}) {
-	let url = getUrl() + service;
-	let body;
-	let headers = {
-		'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
-	};
-	if (data instanceof FormData) {
-		let files = new FormData();
-		for (let [key, value] of data.entries()) {
-			key = /** @type {string} */ (key);
-			if (value instanceof File) {
-				files.append(key, value);
-				data.delete(key);
-			}
-		}
-		if (!files.keys().next().done) {
-			body = files;
-			// @ts-ignore
-			let query = new URLSearchParams(data).toString();
-			if (query.length) {
-				url += `${url.includes('?') ? '&' : '?'}${query}`;
-			}
-		}
-	} else if (data?.['@_xml']) {
-		body = new XMLBuilder({ ignoreAttributes: false, suppressBooleanAttributes: false }).build(
-			data
-		);
-		headers['Content-Type'] = 'application/xml';
+	if (!browser) {
+		return {};
 	}
-
-	if (!body) {
-		body = new URLSearchParams(data);
-		headers['Content-Type'] = 'application/x-www-form-urlencoded';
-	}
-
-	currentCalls++;
-	let res = await fetch(url, {
-		method: 'POST',
-		headers,
-		body,
-		credentials: 'include'
-	});
-	currentCalls--;
-	var xsrf = res.headers.get('x-xsrf');
-	if (xsrf != null) {
-		localStorage.setItem('x-xsrf', xsrf);
-	}
-
-	const contentType = res.headers.get('content-type');
 	let dataContent;
+	try {
+		let url = getUrl() + service;
+		let body;
+		let headers = {
+			'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
+		};
+		if (data instanceof FormData) {
+			let files = new FormData();
+			for (let [key, value] of data.entries()) {
+				key = /** @type {string} */ (key);
+				if (value instanceof File) {
+					files.append(key, value);
+					data.delete(key);
+				}
+			}
+			if (!files.keys().next().done) {
+				body = files;
+				// @ts-ignore
+				let query = new URLSearchParams(data).toString();
+				if (query.length) {
+					url += `${url.includes('?') ? '&' : '?'}${query}`;
+				}
+			}
+		} else if (data?.['@_xml']) {
+			body = new XMLBuilder({ ignoreAttributes: false, suppressBooleanAttributes: false }).build(
+				data
+			);
+			headers['Content-Type'] = 'application/xml';
+		}
 
-	if (contentType?.includes('xml')) {
-		dataContent = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' }).parse(
-			await res.text()
-		);
-	} else {
-		dataContent = await res.json();
+		if (!body) {
+			body = new URLSearchParams(data);
+			headers['Content-Type'] = 'application/x-www-form-urlencoded';
+		}
+
+		currentCalls++;
+		let res = await fetch(url, {
+			method: 'POST',
+			headers,
+			body,
+			credentials: 'include'
+		});
+		currentCalls--;
+		var xsrf = res.headers.get('x-xsrf');
+		if (xsrf != null) {
+			localStorage.setItem('x-xsrf', xsrf);
+		}
+
+		const contentType = res.headers.get('content-type');
+
+		if (contentType?.includes('xml')) {
+			dataContent = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' }).parse(
+				await res.text()
+			);
+		} else {
+			dataContent = await res.json();
+		}
+	} catch (err) {
+		dataContent = { error: err?.['message'] ?? err };
 	}
 
 	handleStateMessage(dataContent, service);
@@ -174,86 +182,47 @@ function handleStateMessage(res, service) {
 
 		let error = findDeepKey(res, 'error');
 		if (error) {
+			error =
+				typeof error == 'object' ? JSON.stringify(error).replace(/(^\W+)|(\W+$)/g, '') : error;
 			toast.create({
-				description: '' + error,
-				duration: 1000,
+				description: error,
+				duration: 10000,
 				type: 'error'
 			});
 			return;
 		}
+
+		if (/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|\.Get.*)$/.exec(service)) {
+			return;
+		}
+
+		let message =
+			findDeepKey(res, 'success') || findDeepKey(res, 'message') || findDeepKey(res, 'status');
+
+		if (message) {
+			if (message == 'ok' && service == 'configuration.Update') {
+				message = 'GC performed successfully';
+			}
+		}
+		if (message) {
+			message =
+				typeof message == 'object'
+					? JSON.stringify(message).replace(/(^\W+)|(\W+$)/g, '')
+					: message;
+			toast.create({
+				description: message,
+				duration: 3000,
+				type: 'success'
+			});
+			return;
+		}
+
+		if (/(logs.Purge)$/.exec(service)) {
+			return;
+		}
+
+		console.log('service without toast message', service);
 		return;
-
-		// let message;
-		// ['message', 'status'].find((key) => (message = findDeepKey(res, key)));
-		// console.log('message', message);
-		// if (message) {
-		// 	toast.create({
-		// 		description: '' + message,
-		// 		duration: 1000,
-		// 		type: 'success'
-		// 	});
-		// }
-		// return;
-
-		// let stateMessage =
-		// 	res?.admin?.response ||
-		// 	res?.admin?.keys?.key ||
-		// 	res?.admin ||
-		// 	res?.error?.message ||
-		// 	res?.error;
-
-		// let toastStateBody =
-		// 	stateMessage?.message ||
-		// 	stateMessage?.errorMessage ||
-		// 	stateMessage?.message ||
-		// 	stateMessage?.problem ||
-		// 	stateMessage?.error ||
-		// 	(service.endsWith('.List') || service.endsWith('Authentication')
-		// 		? false
-		// 		: typeof stateMessage == 'string'
-		// 			? stateMessage
-		// 			: false);
-
-		// if (!toastStateBody) {
-		// 	if (service == 'engine.PerformGC') {
-		// 		toastStateBody = 'GC performed successfully';
-		// 	}
-		// }
-		// if (toastStateBody) {
-		// 	let isError =
-		// 		stateMessage?.['@_state'] === 'error' ||
-		// 		!!stateMessage?.['@_errorMessage'] ||
-		// 		stateMessage?.error ||
-		// 		res?.error;
-		// 	let problem = stateMessage?.problem;
-
-		// 	/** @type {"error" | "success" | "info" | undefined} */
-		// 	let type = 'success';
-		// 	let duration = 2000;
-		// 	if (problem) {
-		// 		type = 'info';
-		// 		duration = 5000;
-		// 	} else if (isError) {
-		// 		type = 'error';
-		// 		duration = 10000;
-		// 	}
-		// 	toast.create({
-		// 		description: toastStateBody,
-		// 		duration,
-		// 		type
-		// 	});
-		// } else if (
-		// 	[
-		// 		'engine.JsonMonitor',
-		// 		'engine.JsonStatus',
-		// 		'engine.CheckAuthentication',
-		// 		'engine.Authenticate'
-		// 	].includes(service)
-		// ) {
-		// 	// ignore
-		// } else {
-		// 	console.warn(`No valid message found in the response data: ${service}`);
-		// }
 	} catch (err) {
 		console.error('Error handling state message:', err);
 	}

@@ -26,6 +26,7 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
@@ -42,6 +43,7 @@ public class Reload extends XmlService{
     	Engine.theApp.databaseObjectsManager.clearCache(projectName);
     	Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 		Engine.logAdmin.info("The project '" + projectName + "' has been reloaded");
+		ServiceUtils.addMessage(document, "The project '" + projectName + "' has been reloaded", "success");
 	}
 	
 }

@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "PerformGC",
@@ -40,7 +41,8 @@ public class PerformGC extends XmlService{
 		Engine.logEngine.info("Performing GC from an admin request ...");
 		long now = System.currentTimeMillis();
 		System.gc();
-		Engine.logEngine.info("GC done in " + (System.currentTimeMillis() - now) + " ms");
+		now = System.currentTimeMillis() - now;
+		Engine.logEngine.info("GC done in " + now + " ms");
+		ServiceUtils.addMessage(document, "GC done in " + now + " ms", "success");
 	}
-
 }
