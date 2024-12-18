@@ -1,5 +1,5 @@
 <script>
-	import KeysService from '$lib/admin/Keys.svelte';
+	import Keys from '$lib/admin/Keys.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -11,10 +11,11 @@
 	let modalDelete = $state();
 
 	let { categories, nbValidKeys, firstStartDate, deleteKey, addKey, formatExpiration } =
-		$derived(KeysService);
+		$derived(Keys);
 </script>
 
-<div class="layout-y-low !items-stretch">
+<ModalYesNo bind:this={modalDelete} />
+<div class="layout-y-stretch">
 	<Card title="Keys Management">
 		{#snippet cornerOption()}
 			<div class="flex items-center gap-4 justify-end">
@@ -22,7 +23,7 @@
 					onsubmit={(e) => {
 						e.preventDefault();
 						if (newKey.trim()) {
-							KeysService.addKey(newKey.trim());
+							addKey(newKey.trim());
 							newKey = '';
 						}
 					}}
@@ -57,8 +58,7 @@
 			</div>
 		{/snippet}
 	</Card>
-
-	{#if categories?.length > 0}
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap">
 		{#each categories as category}
 			<Card title={category.name} class="">
 				<TableAutoCard
@@ -69,7 +69,7 @@
 						{ name: 'Expired', key: 'expired', custom: true },
 						{ name: 'Delete', custom: true }
 					]}
-					data={category.keys.key}
+					data={category.keys}
 				>
 					{#snippet children({ row, def })}
 						{#if def.name === 'Expiration Date'}
@@ -106,12 +106,5 @@
 				</TableAutoCard>
 			</Card>
 		{/each}
-	{:else}
-		<p>No categories found.</p>
-	{/if}
-
-	<ModalYesNo bind:this={modalDelete} />
+	</div>
 </div>
-
-<style lang="postcss">
-</style>

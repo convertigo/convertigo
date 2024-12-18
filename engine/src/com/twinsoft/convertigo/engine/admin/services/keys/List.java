@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.keys;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,16 +28,18 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.jxpath.JXPathContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -149,6 +152,14 @@ public class List extends XmlService{
         		emulatorNameElement.appendChild(keysElement);
         		rootElement.appendChild(emulatorNameElement);
         	}    		
+    	}
+    	
+    	var xpath = JXPathContext.newContext(rootElement);
+    	for (var name: Arrays.asList("Convertigo SDK", "Mobile Builder", "Standard Edition")) {
+	    	var cat = (Node) xpath.selectSingleNode("category[@name='" + name + "']");
+	    	if (cat != null && rootElement.getFirstChild() != cat) {
+	    		rootElement.insertBefore(cat, rootElement.getFirstChild());
+	    	}
     	}
     	
     	//We add the number of valid into the XML response

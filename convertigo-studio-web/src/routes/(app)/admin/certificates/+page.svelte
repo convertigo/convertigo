@@ -234,7 +234,8 @@
 					onclick: def.setup ? configure : mappingsConfigure
 				}
 			]}
-			class="min-w-32 w-full"
+			size="4"
+			class="min-w-16 w-full"
 		/>
 	{/if}
 {/snippet}
@@ -266,11 +267,11 @@
 		</div>
 		<TableAutoCard
 			definition={[
+				['Actions'],
 				['Certificate / Store', 'min-w-52'],
 				['Type', 'min-w-48'],
 				['Password', 'min-w-60'],
-				['Group', 'min-w-60'],
-				['Actions']
+				['Group', 'min-w-60']
 			].map(([name, cls]) => ({
 				name,
 				class: cls,
@@ -297,7 +298,7 @@
 
 		<TableAutoCard
 			title="Mappings for anonymous users"
-			definition={['Project Name', 'Certificate / Store', 'Actions'].map((name) => ({
+			definition={['Actions', 'Project Name', 'Certificate / Store'].map((name) => ({
 				name,
 				custom: true
 			}))}
@@ -322,12 +323,12 @@
 		<TableAutoCard
 			title="Mappings for carioca users"
 			definition={[
+				['Actions'],
 				['Project Name', 'min-w-52'],
 				['Virtual Server', 'min-w-60'],
 				['Authorization Group', 'min-w-60'],
 				['User', 'min-w-60'],
-				['Certificate / Store', 'min-w-52'],
-				['Actions']
+				['Certificate / Store', 'min-w-52']
 			].map(([name, cls]) => ({ name, class: cls, custom: true }))}
 			data={certificates.length && projects.length ? [...carioca, { last: true }] : carioca}
 		>

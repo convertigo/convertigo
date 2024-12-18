@@ -19,7 +19,7 @@
 	let selectedIndex = $derived(selectedDevice.index);
 	let selectedIndexLast = $state(-1);
 	let projectUrl = $derived(
-		(page.params.project ?? '_' == '_') ? '#' : getFrontendUrl(page.params.project)
+		(page.params.project ?? '_') == '_' ? '#' : getFrontendUrl(page.params.project)
 	);
 	let angle = Spring.of(() => (orientation == 'horizontal' ? 1 : 0));
 

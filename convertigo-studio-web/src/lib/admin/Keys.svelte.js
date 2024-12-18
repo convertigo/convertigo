@@ -80,9 +80,8 @@ export default ServiceHelper({
 		firstStartDate: 'admin.firstStartDate'
 	},
 	beforeUpdate: (res) => {
-		res.categories = checkArray(res.categories).map((category) => ({
-			...category,
-			keys: { key: checkArray(category.keys?.key) }
-		}));
+		for (const category of res.categories) {
+			category.keys = checkArray(category.keys?.key);
+		}
 	}
 });
