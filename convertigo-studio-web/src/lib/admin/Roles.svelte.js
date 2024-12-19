@@ -15,6 +15,17 @@ const defValues = {
 let calling = $state(false);
 
 /**
+ * @param {string} roleName - The role name to format.
+ * @returns {string} - The formatted role name.
+ */
+function formatRoleName(roleName) {
+	return roleName
+		.toLowerCase() // Convert to lowercase
+		.replace(/_/g, ' ') // Replace underscores with spaces
+		.replace(/(?:^|\s)\S/g, (match) => match.toUpperCase()); // Capitalize each word
+}
+
+/**
  * @param {string} service - The service name to call.
  * @param {Object} eventOrPayload - The payload data for the service call.
  */
@@ -103,7 +114,7 @@ export default ServiceHelper({
 		res.users = checkArray(res.users).map((user) => ({
 			name: user.name || 'Unknown User',
 			roles: checkArray(user.role).map((role) => ({
-				name: role.name || 'Unknown Role'
+				name: formatRoleName(role.name || 'Unknown Role')
 			}))
 		}));
 
@@ -111,7 +122,6 @@ export default ServiceHelper({
 			name: role.name || 'Unknown Role',
 			description: role.description || 'No Description'
 		}));
-		console.log('Processed roles:', res.roles);
 
 		return res;
 	}

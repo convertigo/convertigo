@@ -12,11 +12,8 @@
 
 	let { users, roles, deleteRoles, importRoles, exportRoles } = $derived(Roles);
 
-	let modalAddUser = $state();
 	let modalDelete = $state();
 	let modalImport = $state();
-	let modalWatchRoles = $state();
-	let modalEditUser = $state();
 
 	let importMode = 'clear';
 	let nameConflict = 'server';
@@ -27,7 +24,7 @@
 
 	/*** @type {any} */
 	let rowSelected = $state(null);
-	let modalRole = $state();
+	let modal = $state();
 
 	function openRoleModal({ mode, row = undefined }) {
 		rowSelected = {
@@ -35,7 +32,7 @@
 			password: '',
 			...(row ?? {})
 		};
-		modalRole.open({ mode, row });
+		modal.open({ mode, row });
 	}
 
 	let tableDefinition = $state([
@@ -59,131 +56,112 @@
 		}
 	}
 
-	function openEditModal(row) {
-		rowSelected = {
-			username: row.username,
-			roles: [...row.roles]
-		};
-		modalEditUser.open();
-	}
-
-	async function saveChanges() {
-		console.log('Saving changes for:', rowSelected);
-		modalEditUser.close();
-	}
-
-	let modal, calling, yesNo;
+	let calling, yesNo;
 </script>
 
-<ModalDynamic bind:this={modalRole}>
+<ModalDynamic bind:this={modal}>
 	{#snippet children({ close, params: { mode, row } })}
 		{@const { name, password } = row ?? {}}
-		<Card title="{row ? 'Edit' : 'Add'} {roles.name}">
-			<form
-				onsubmit={async (event) => {
-					event.preventDefault();
-				}}
-				class="layout-y"
-			>
-				<div>
-					<PropertyType
-						name="username"
-						label="Username"
-						bind:value={rowSelected.name}
-						placeholder="Enter role name"
-					/>
-					<PropertyType
-						name="password"
-						label="Password"
-						bind:value={rowSelected.password}
-						placeholder="Enter password"
-					/>
-				</div>
+		<Card title={mode === 'edit' ? 'Edit Role' : mode === 'addRoles' ? 'Add Role' : 'All Roles'}>
+			{#if mode === 'edit'}
+				<form
+					onsubmit={async (event) => {
+						event.preventDefault();
+					}}
+					class="layout-y"
+				>
+					<div>
+						<PropertyType
+							name="username"
+							label="Username"
+							bind:value={rowSelected.name}
+							placeholder="Enter role name"
+						/>
+						<PropertyType
+							name="password"
+							label="Password"
+							bind:value={rowSelected.password}
+							placeholder="Enter password"
+						/>
+					</div>
 
-				<div class="w-full layout-x justify-end">
-					<button type="submit" class="basic-button" disabled={calling}>
-						<span><Ico icon="bytesize:export" size="btn" /></span>
-						<span>{modalRole.params?.mode === 'add' ? 'Add' : 'Save'}</span>
-					</button>
-					<button type="button" onclick={modalRole.close} class="cancel-button">
-						<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
-						<span>Cancel</span>
-					</button>
-				</div>
-			</form>
-		</Card>
-	{/snippet}
-</ModalDynamic>
-
-<ModalDynamic bind:this={modalAddUser}>
-	<Card title="Add Users">
-		<form
-			onsubmit={async (event) => {
-				event.preventDefault();
-				calling = true;
-				const formData = new FormData(event.target);
-				function collectRoles(roles) {
-					roles.forEach((role) => {
-						if (formData.get(role.name) === 'true') {
-							formData.append('roles', role.name);
+					<div class="w-full layout-x justify-end">
+						<button type="submit" class="basic-button" disabled={calling}>
+							<span><Ico icon="bytesize:export" size="btn" /></span>
+							<span>{modal.params?.mode === 'add' ? 'Add' : 'Save'}</span>
+						</button>
+						<button type="button" onclick={modal.close} class="cancel-button">
+							<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
+							<span>Cancel</span>
+						</button>
+					</div>
+				</form>
+			{:else if mode === 'addRoles'}
+				<form
+					onsubmit={async (event) => {
+						event.preventDefault();
+						calling = true;
+						const formData = new FormData(event.target);
+						function collectRoles(roles) {
+							roles.forEach((role) => {
+								if (formData.get(role.name) === 'true') {
+									formData.append('roles', role.name);
+								}
+								formData.delete(role.name);
+							});
 						}
-						formData.delete(role.name);
-					});
-				}
 
-				collectRoles(viewRoles);
-				collectRoles(configRoles);
-				collectRoles(otherRoles);
+						collectRoles(viewRoles);
+						collectRoles(configRoles);
+						collectRoles(otherRoles);
 
-				await call('roles.Add', formData);
-				calling = false;
-				modalAddUser.close();
-			}}
-			class="layout-y-low"
-		>
-			<div class="w-full layout-x justify-start">
-				<PropertyType name="username" label="Username" placeholder="Username" />
-				<PropertyType name="password" label="Password" placeholder="Password" type="password" />
-			</div>
+						await call('roles.Add', formData);
+						calling = false;
+						modal.close();
+					}}
+					class="layout-y-low"
+				>
+					<div class="w-full layout-x justify-start">
+						<PropertyType name="username" label="Username" placeholder="Username" />
+						<PropertyType name="password" label="Password" placeholder="Password" type="password" />
+					</div>
 
-			<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
-				{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
-					<div class="col-span-1 flex flex-col gap-2">
-						<p class="font-bold">{title}</p>
-						{#each roles as role}
-							<PropertyType name={role.name} type="boolean" description={role.name} />
+					<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
+						{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
+							<div class="col-span-1 flex flex-col gap-2">
+								<p class="font-bold">{title}</p>
+								{#each roles as role}
+									<PropertyType name={role.name} type="boolean" description={role.name} />
+								{/each}
+							</div>
 						{/each}
 					</div>
-				{/each}
-			</div>
 
-			<div class="w-full layout-x justify-end">
-				<button type="submit" class="basic-button">
-					<span><Ico icon="bytesize:import" size="btn" /></span>
-					<span>Add user</span>
-				</button>
-				<button type="button" onclick={modalAddUser.close} class="cancel-button">
-					<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
-					<span>Cancel</span>
-				</button>
-			</div>
-		</form>
-	</Card>
-</ModalDynamic>
-
-<ModalDynamic bind:this={modalWatchRoles}>
-	<Card title="All roles">
-		<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
-			{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
-				<div class="col-span-1 flex flex-col gap-2">
-					<p class="font-bold">{title}</p>
-					{#each roles as role}
-						<PropertyType name={role.name} type="boolean" description={role.name} />
+					<div class="w-full layout-x justify-end">
+						<button type="submit" class="basic-button">
+							<span><Ico icon="bytesize:import" size="btn" /></span>
+							<span>Add user</span>
+						</button>
+						<button type="button" onclick={() => modal.close()} class="cancel-button">
+							<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
+							<span>Cancel</span>
+						</button>
+					</div>
+				</form>
+			{:else if mode === 'watchAllRoles'}
+				<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
+					{#each [{ title: 'VIEW Roles', roles: viewRoles }, { title: 'CONFIG Roles', roles: configRoles }, { title: 'Other Roles', roles: otherRoles }] as { title, roles }}
+						<div class="col-span-1 flex flex-col gap-2">
+							<p class="font-bold">{title}</p>
+							{#each roles as role}
+								<span class="chip">{role.name}</span>
+							{/each}
+						</div>
 					{/each}
 				</div>
-			{/each}
-		</div></Card
-	>
+			{/if}
+		</Card>
+	{/snippet}
 </ModalDynamic>
 
 <Card title="Roles Management">
@@ -195,7 +173,7 @@
 					label: 'Add Role',
 					icon: 'grommet-icons:add',
 					cls: 'green-button',
-					onclick: modalAddUser?.open
+					onclick: () => openRoleModal({ mode: 'addRoles' })
 				},
 				{
 					label: 'Import Users',
@@ -251,24 +229,23 @@
 			{#snippet children({ row, def })}
 				{#if def.name === 'Roles'}
 					{#if row.roles.length > 5}
-						<ResponsiveButtons
-							buttons={[
-								{
-									label: `${row.roles
-										.slice(0, 5)
-										.map((role) => role.name)
-										.join(', ')} +${row.roles.length - 5} more`,
-									cls: 'yellow-button',
-									onclick: () => modalWatchRoles?.open()
-								}
-							]}
-							size="6"
-							class="w-full"
-						/>
+						<div class="chips-container">
+							{#each row.roles.slice(0, 5) as role}
+								<span class="chip">{role.name}</span>
+							{/each}
+							<button
+								class="yellow-button"
+								onclick={() => openRoleModal({ mode: 'watchAllRoles', row })}
+							>
+								+{row.roles.length - 5} more
+							</button>
+						</div>
 					{:else}
-						{#each row.roles as role}
-							{role.name}
-						{/each}
+						<div class="chips-container">
+							{#each row.roles as role}
+								<span class="chip">{role.name}</span>
+							{/each}
+						</div>
 					{/if}
 				{:else if def.name === 'Actions'}
 					<div class="layout-x-low">
@@ -301,3 +278,11 @@
 	{/if}
 </Card>
 <ModalYesNo bind:this={modalDelete} />
+
+<style>
+	.chips-container {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem; /* Spacing between chips */
+	}
+</style>
