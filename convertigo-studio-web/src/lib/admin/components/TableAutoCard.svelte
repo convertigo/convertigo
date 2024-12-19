@@ -4,7 +4,7 @@
 	import Icon from '@iconify/svelte';
 	import { onMount, tick } from 'svelte';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
 	let {
 		definition,
 		data,
@@ -12,7 +12,8 @@
 		title = '',
 		comment = '',
 		class: cls = '',
-		children
+		children,
+		tr
 	} = $props();
 
 	let isCardView = $state(false);
@@ -64,30 +65,37 @@
 		{#if data && data.length > 0}
 			<tbody>
 				{#each data as row, rowIdx}
-					<tr>
-						{#each definition as def}
-							<td
-								class={def.class
-									? typeof def.class == 'function'
-										? def.class(row)
-										: def.class
-									: ''}
-								data-label={def.name ?? ''}
-							>
-								{#if def.custom}
-									{#if children}
-										{@render children({ row, def, rowIdx })}
+					{#snippet _tr({ row, rowIdx })}
+						<tr>
+							{#each definition as def}
+								<td
+									class={def.class
+										? typeof def.class == 'function'
+											? def.class(row)
+											: def.class
+										: ''}
+									data-label={showHeaders ? (def.name ?? '') : ''}
+								>
+									{#if def.custom}
+										{#if children}
+											{@render children({ row, def, rowIdx })}
+										{:else}
+											{row[def.key] ?? ''}
+										{/if}
 									{:else}
-										{row[def.key] ?? ''}
+										<AutoPlaceholder loading={row[def.key] == null}
+											>{row[def.key] ?? ''}</AutoPlaceholder
+										>
 									{/if}
-								{:else}
-									<AutoPlaceholder loading={row[def.key] == null}
-										>{row[def.key] ?? ''}</AutoPlaceholder
-									>
-								{/if}
-							</td>
-						{/each}
-					</tr>
+								</td>
+							{/each}
+						</tr>
+					{/snippet}
+					{#if tr}
+						{@render tr({ row, rowIdx, tr: _tr, definition })}
+					{:else}
+						{@render _tr({ row, rowIdx })}
+					{/if}
 				{/each}
 			</tbody>
 		{:else}

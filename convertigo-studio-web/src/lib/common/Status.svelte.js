@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import ServiceHelper from './ServiceHelper.svelte';
 
 const defValues = {
@@ -17,9 +18,13 @@ const defValues = {
 	osArchitecture: null,
 	osAvailableProcessors: null,
 	browser: null,
-	cloud: null,
+	/** @type {null | boolean} */ cloud: null,
 	id: null,
 	endpoint: null
 };
+
+if (browser) {
+	defValues.cloud = location.hostname.endsWith('convertigo.net');
+}
 
 export default ServiceHelper({ service: 'engine.JsonStatus', defValues });

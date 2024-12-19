@@ -4,7 +4,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
-	import { onMount, tick, untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { slide } from 'svelte/transition';

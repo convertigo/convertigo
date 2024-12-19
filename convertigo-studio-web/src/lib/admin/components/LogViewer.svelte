@@ -268,7 +268,6 @@
 		e.parentElement.scrollTo({ left, behavior: 'smooth' });
 	}
 
-	let searchBox = $state();
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
 
@@ -359,7 +358,7 @@
 					}
 				}
 			} else {
-				searchBox.click();
+				searchBoxOpened = true;
 			}
 		}
 	}}
@@ -402,7 +401,7 @@
 <div class="text-xs w-full h-full layout-y-stretch-low" class:fullscreen>
 	<div class="layout-y-stretch-low">
 		{#if $showFilters}
-			<div class="row-wrap" transition:slide={{ axis: 'y' }}>
+			<div class="row-wrap mx-low preset-filled-surface-200-800" transition:slide={{ axis: 'y' }}>
 				{#each columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
 					<div animate:flip={{ duration }}>
@@ -437,7 +436,7 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="row-wrap">
+		<div class="row-wrap mx-low preset-filled-surface-200-800">
 			<div class="mini-card preset-filled-primary-500">
 				<Button
 					{size}
@@ -454,6 +453,7 @@
 			</div>
 			<div class="mini-card preset-filled-primary-500">
 				<Popover
+					bind:open={searchBoxOpened}
 					arrow
 					arrowBackground="bg-surface-50-950"
 					triggerBase="block"
@@ -510,7 +510,11 @@
 					{#if index > 0}
 						<div class="mini-card preset-ghost-500">OR</div>
 					{/if}
-					<div class="mini-card preset-filled" class:preset-filled-error={not}>
+					<div
+						class="mini-card"
+						class:preset-filled-surface-500={!not}
+						class:preset-filled-error-500={not}
+					>
 						<span class="overflow-hidden max-w-xs"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
@@ -577,7 +581,7 @@
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} text-nowrap overflow-hidden cursor-cell"
+									class="px-1 {cls} text-left text-nowrap overflow-hidden cursor-cell"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -615,7 +619,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none !px rounded rounded-t-none bg-surface-200-800 justify-between items-center"
+		class="layout-x-p-none !px rounded rounded-t-none preset-filled-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
@@ -623,7 +627,7 @@
 			{#if Logs.calling}Calling ...{/if}</span
 		>
 		<button
-			class="mini-card preset-filled"
+			class="mini-card"
 			class:preset-filled-success-500={!autoScroll}
 			class:preset-filled-warning-500={autoScroll}
 			onclick={() => {
@@ -655,15 +659,11 @@
 	}
 
 	.row-wrap {
-		@apply flex flex-wrap rounded bg-surface-800-200;
+		@apply flex flex-wrap rounded;
 	}
 
 	.mini-card {
 		@apply rounded m-1 p-1 flex gap-2 text-nowrap select-none;
-	}
-
-	.btn-search {
-		@apply btn btn-sm text-black bg-surface-500 dark:text-white;
 	}
 
 	.searchedCurrent {

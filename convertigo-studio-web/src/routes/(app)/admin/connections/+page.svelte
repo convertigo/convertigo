@@ -98,7 +98,7 @@
 			data={sessions}
 		>
 			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
-				{#if def.name === 'Actions'}
+				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="min-w-24 w-full"
 						size="4"
@@ -140,7 +140,7 @@
 					{#if isCurrentSession == 'true'}
 						<span class="current"></span>
 					{/if}
-				{:else if def.name === 'FS'}
+				{:else if def.name == 'FS'}
 					<Ico
 						icon="material-symbols-light:sync-outline"
 						class={disabled

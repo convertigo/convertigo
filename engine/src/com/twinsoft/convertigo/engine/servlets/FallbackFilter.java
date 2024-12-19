@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class FallbackFilter implements Filter {
 	
@@ -43,6 +44,7 @@ public class FallbackFilter implements Filter {
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain filterChain) throws IOException, ServletException {
 	    HttpServletRequest request = (HttpServletRequest) _request;
 	    HttpServletResponse response = (HttpServletResponse) _response;
+		Log4jHelper.mdcClear();
 	    var servletPath = request.getServletPath();
 	    if (servletPath.endsWith("/")) {
 	        servletPath += "index.html";

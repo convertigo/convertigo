@@ -2,16 +2,17 @@
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
 	import Topbar from '$lib/admin/components/Topbar.svelte';
 	import PagesRail from '$lib/common/components/PagesRail.svelte';
-	import partsAdmin from '$lib/admin/PagesRail.json';
-	import partsDashboard from '$lib/dashboard/PagesRail.svelte.js';
+	import partsAdmin from '$lib/admin/PagesRail.svelte';
+	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/state';
 	import RightPart from './admin/RightPart.svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
+
 	let parts = $derived(
-		page.route?.id?.startsWith('/(app)/admin') ? partsAdmin : partsDashboard.parts
+		page.route?.id?.startsWith('/(app)/admin') ? partsAdmin.parts : partsDashboard.parts
 	);
 	let showLeft = $state(true);
 	let showDrawer = $state(false);

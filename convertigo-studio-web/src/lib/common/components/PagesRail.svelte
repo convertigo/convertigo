@@ -19,11 +19,13 @@
 
 <nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
 	{#each parts as tiles, i}
-		{#each tiles as { title, icon, url, page, params }, j}
-			{@const href = page ? resolveRoute(page, params) : url}
+		{#each tiles as { title, icon, url, page, params, loading }, j}
+			{@const href = loading ? undefined : page ? resolveRoute(page, params) : url}
 			<a
 				{href}
-				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
+				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36 {loading
+					? 'blur'
+					: ''}"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#if i == 0 && j == activeIndex}

@@ -119,6 +119,7 @@ public class Update extends XmlService {
 									KeyManager.addKey(newKey, keyInfos);
 									keyElement.setAttribute("valid", "true");
 									keyElement.setAttribute("text", newKey);
+									keyElement.setAttribute("success", "The key '" + newKey + "' has been added");
 									keysListElement.appendChild(keyElement);
 									/* The keys have been updated */
 									Engine.logAdmin.info("The key '" + newKey + "' has been added");

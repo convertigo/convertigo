@@ -216,6 +216,7 @@
 
 <script>
 	import { assets } from '$app/paths';
+	import { browser } from '$app/environment';
 
 	/** @type {{icon: string, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any} | any} */
 	let {
@@ -260,11 +261,16 @@
 	// 		return acc;
 	// 	}, {});
 	// }
+	let html = $derived(icon.includes(':') ? ico[icon].match(/>(.*)</)?.[1] : undefined);
 </script>
 
-{#if icon.includes(':')}
+{#if html}
 	<svg class="size-{size} ico {cls}" viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}>
-		{@html ico[icon].match(/>(.*)</)?.[1]}
+		{#if browser}
+			{@html html}
+		{:else}
+			{@html html}
+		{/if}
 	</svg>
 {:else}
 	<img src="{assets}/{icon}" class="w-{size} {cls}" {...props} />

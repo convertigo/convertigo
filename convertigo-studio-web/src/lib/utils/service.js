@@ -180,7 +180,7 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
-		let error = findDeepKey(res, 'error');
+		let error = findDeepKey(res, 'error') || findDeepKey(res, 'errorMessage');
 		if (error) {
 			error =
 				typeof error == 'object' ? JSON.stringify(error).replace(/(^\W+)|(\W+$)/g, '') : error;

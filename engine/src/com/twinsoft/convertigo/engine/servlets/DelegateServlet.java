@@ -68,7 +68,7 @@ public class DelegateServlet extends HttpServlet {
 			String token;
 			synchronized (map) {
 				do {
-					token = RandomStringUtils.randomAlphanumeric(32);
+					token = RandomStringUtils.secure().nextAlphabetic(32);
 				} while (map.containsKey(token));
 				map.put(token, instruction.toString());
 			}

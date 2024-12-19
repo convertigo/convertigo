@@ -2,8 +2,16 @@ import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 
 const defValues = {
-	categories: [],
+	categories: Array(6).fill({
+		name: ' ',
+		keys: Array(6).fill({
+			text: null,
+			value: null,
+			expiration: null
+		})
+	}),
 	nbValidKeys: 0,
+	nbInvalidKeys: 0,
 	firstStartDate: null
 };
 
@@ -30,42 +38,17 @@ let values = {
 	},
 
 	async deleteKey(keyText) {
-		const payload = {
+		return await doCall('keys.Remove', {
 			'@_xml': true,
-			admin: {
-				'@_service': 'keys.Remove',
-				keys: {
-					key: { '@_text': keyText }
-				}
-			}
-		};
-		return await doCall('keys.Remove', payload);
+			key: { '@_text': keyText.trim() }
+		});
 	},
 
 	async addKey(newKey) {
-		const payload = {
+		return await doCall('keys.Update', {
 			'@_xml': true,
-			admin: {
-				'@_service': 'keys.Update',
-				keys: {
-					key: { '@_text': newKey }
-				}
-			}
-		};
-		return await doCall('keys.Update', payload);
-	},
-
-	formatExpiration(expirationCode) {
-		if (expirationCode === '0') return 'Unlimited';
-
-		let year = parseInt(expirationCode.substring(0, 2), 10);
-		let dayOfYear = parseInt(expirationCode.substring(2), 10);
-		year += year < 70 ? 2000 : 1900;
-
-		let date = new Date(year, 0);
-		date.setDate(date.getDate() + dayOfYear - 1);
-
-		return date.toDateString();
+			key: { '@_text': newKey.trim() }
+		});
 	}
 };
 
@@ -80,8 +63,21 @@ export default ServiceHelper({
 		firstStartDate: 'admin.firstStartDate'
 	},
 	beforeUpdate: (res) => {
+		let invalid = 0;
 		for (const category of res.categories) {
 			category.keys = checkArray(category.keys?.key);
+			for (const key of category.keys) {
+				if (key.expired == 'true') {
+					invalid++;
+				}
+				if (key.expiration == 0) {
+					key.expiration = 'Unlimited';
+				} else {
+					key.expiration = `Until ${new Date(key.expiration * 1000 * 3600 * 24).toISOString().split('T')[0]}`;
+				}
+				key.value = `${key.value} ${category.name == 'Standard Edition' ? ' session' : 'connection'}${key.value > 1 ? 's' : ''}`;
+			}
 		}
+		res.nbInvalidKeys = invalid;
 	}
 });

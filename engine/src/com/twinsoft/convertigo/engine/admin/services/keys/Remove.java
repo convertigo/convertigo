@@ -96,6 +96,7 @@ public class Remove extends XmlService{
 				
 				keyElement.setAttribute("valid", "true");
 				keyElement.setAttribute("text", oldKey);
+				keyElement.setAttribute("success", "The key '" + oldKey + "' has been successfully removed!");
 				keysListElement.appendChild(keyElement);
 				/* The keys have been updated */
 				Engine.logAdmin.info("The key '" + oldKey + "' has been successfully removed!");
