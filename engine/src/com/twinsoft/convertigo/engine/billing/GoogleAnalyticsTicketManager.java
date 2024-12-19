@@ -127,7 +127,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 			}
 			event.put("params", params);
 
-			Engine.logEngine.info(json.toString());
+			log.info(json.toString());
 
 			post.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 
