@@ -321,7 +321,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			                Engine.logContext.trace("(RequestableObject) End of wait(), runningThread.bContinue=" + runningThread.bContinue);
     			                
     			                if (runningThread.bContinue) {
-    			                	if (System.currentTimeMillis() - lTime > haveToWait) {
+    			                	if (System.currentTimeMillis() - lTime >= haveToWait) {
     			        				long t1 = System.currentTimeMillis();
     			        				Engine.theApp.pluginsManager.fireRequestableTimeoutException(context, t1);
 
