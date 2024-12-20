@@ -14,25 +14,30 @@ const parts = $derived([
 			page: '/(app)/admin/config'
 		},
 		{
-			title: 'Connections',
-			icon: 'material-symbols:online-prediction-rounded',
-			page: '/(app)/admin/connections'
-		},
-		{
 			title: 'Projects',
 			icon: 'material-symbols:folder-outline',
 			page: '/(app)/admin/projects'
 		},
 		{
-			title: 'Certificates',
-			icon: 'material-symbols:bookmark-added-outline-sharp',
-			page: '/(app)/admin/certificates'
+			title: 'Symbols',
+			icon: 'material-symbols:hotel-class-outline',
+			page: '/(app)/admin/symbols'
+		},
+		{
+			title: 'Connections',
+			icon: 'material-symbols:online-prediction-rounded',
+			page: '/(app)/admin/connections'
 		},
 		{
 			title: 'Logs',
 			icon: 'material-symbols:search-rounded',
 			id: '/(app)/admin/logs/[tab]',
 			page: '/(app)/admin/logs'
+		},
+		{
+			title: 'Full Sync',
+			icon: 'material-symbols:sync-arrow-up-rounded',
+			page: '/(app)/admin/fullsync'
 		},
 		{
 			title: 'Cache',
@@ -45,25 +50,20 @@ const parts = $derived([
 			page: '/(app)/admin/scheduler'
 		},
 		{
-			title: 'Keys',
-			icon: 'material-symbols:key-outline-rounded',
-			page: '/(app)/admin/keys',
-			loading: Status.cloud == null
-		},
-		{
 			title: 'Roles',
 			icon: 'material-symbols:supervised-user-circle-outline',
 			page: '/(app)/admin/roles'
 		},
 		{
-			title: 'Symbols',
-			icon: 'material-symbols:hotel-class-outline',
-			page: '/(app)/admin/symbols'
+			title: 'Certificates',
+			icon: 'material-symbols:bookmark-added-outline-sharp',
+			page: '/(app)/admin/certificates'
 		},
 		{
-			title: 'Full Sync',
-			icon: 'material-symbols:sync-arrow-up-rounded',
-			page: '/(app)/admin/fullsync'
+			title: 'Keys',
+			icon: 'material-symbols:key-outline-rounded',
+			page: '/(app)/admin/keys',
+			loading: Status.cloud == null
 		}
 	].filter(({ title }) => title != 'Keys' || Status.cloud != true),
 	[

@@ -156,6 +156,17 @@ function handleServiceLoading(isLoading, serviceName = '') {
 	// }
 }
 
+function findDeepKeys(obj, keys, depth = 3) {
+	let res = null;
+	for (const key of keys) {
+		res = findDeepKey(obj, key, depth);
+		if (res != null) {
+			break;
+		}
+	}
+	return res;
+}
+
 function findDeepKey(obj, key, depth = 3) {
 	if (depth < 0) {
 		return null;
@@ -174,16 +185,20 @@ function findDeepKey(obj, key, depth = 3) {
 	return null;
 }
 
+function stringilight(obj) {
+	return typeof obj == 'object' ? JSON.stringify(obj).replace(/(^\W+)|(\W+$)/g, '') : obj;
+}
+
 function handleStateMessage(res, service) {
 	try {
 		if (!toast) {
 			return;
 		}
 
-		let error = findDeepKey(res, 'error') || findDeepKey(res, 'errorMessage');
+		let error = findDeepKeys(res, ['error', 'errorMessage']);
 		if (error) {
-			error =
-				typeof error == 'object' ? JSON.stringify(error).replace(/(^\W+)|(\W+$)/g, '') : error;
+			error = stringilight(error);
+			res.isError = true;
 			toast.create({
 				description: error,
 				duration: 10000,
@@ -196,8 +211,7 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
-		let message =
-			findDeepKey(res, 'success') || findDeepKey(res, 'message') || findDeepKey(res, 'status');
+		let message = findDeepKeys(res, ['success', 'message', 'status']);
 
 		if (message) {
 			if (message == 'ok' && service == 'configuration.Update') {
@@ -205,10 +219,7 @@ function handleStateMessage(res, service) {
 			}
 		}
 		if (message) {
-			message =
-				typeof message == 'object'
-					? JSON.stringify(message).replace(/(^\W+)|(\W+$)/g, '')
-					: message;
+			message = stringilight(message);
 			toast.create({
 				description: message,
 				duration: 3000,
@@ -438,4 +449,13 @@ export function debounce(fn, delay) {
 			fn(...args);
 		}
 	};
+}
+
+export function addInArray(array, value) {
+	if (!array.includes(value)) array.push(value);
+}
+
+export function removeInArray(array, value) {
+	const index = array.indexOf(value);
+	if (index !== -1) array.splice(index, 1);
 }

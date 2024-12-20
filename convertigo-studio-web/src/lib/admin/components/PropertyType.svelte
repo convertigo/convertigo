@@ -6,12 +6,13 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import CheckState from './CheckState.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { Segment } from '@skeletonlabs/skeleton-svelte';
+	import { Segment, Switch } from '@skeletonlabs/skeleton-svelte';
 	import { checkArray } from '$lib/utils/service';
 
-	/** @type {{value: string,  label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
+	/** @type {{value: string, checked?: boolean, label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
 	let {
 		value = $bindable(''),
+		checked = $bindable(false),
 		label: _label,
 		description,
 		name,
@@ -58,6 +59,18 @@
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
 			<CheckState {name} {...rest} bind:value>{label}</CheckState>
+		{:else if type == 'check'}
+			<Switch
+				{...rest}
+				{name}
+				{value}
+				controlClasses="min-w-10"
+				thumbInactive="bg-white"
+				thumbActive="bg-white"
+				controlActive="preset-filled-success-500"
+				controlInactive="preset-filled-warning-500"
+				bind:checked
+			/>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-stretch-none" class:border-common={type != 'segment'}>

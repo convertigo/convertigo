@@ -42,27 +42,32 @@ export default function ({
 		try {
 			const res = await (typeof service == 'string' ? call(service, params) : service(params));
 			if (res) {
-				for (const array of arrays) {
-					let prop = getNestedProperty(res, array);
-					prop = checkArray(prop);
-					setNestedProperty(res, array, prop);
-				}
-				if (Object.keys(mapping).length) {
-					let _res = {};
-					for (const key in mapping) {
-						if (key == '') {
-							_res = getNestedProperty(res, mapping[key]);
-						} else {
-							_res[key] = getNestedProperty(res, mapping[key]);
-						}
-					}
-					_values = beforeUpdate(_res) ?? _res;
+				if (res.isError) {
+					Object.assign(_values, { ...defValues, res });
+					_needRefresh = true;
 				} else {
-					_values = beforeUpdate(res) ?? res;
-				}
-				if (_needRefresh) {
-					values.delay = delay;
-					_needRefresh = false;
+					for (const array of arrays) {
+						let prop = getNestedProperty(res, array);
+						prop = checkArray(prop);
+						setNestedProperty(res, array, prop);
+					}
+					if (Object.keys(mapping).length) {
+						let _res = {};
+						for (const key in mapping) {
+							if (key == '') {
+								_res = getNestedProperty(res, mapping[key]);
+							} else {
+								_res[key] = getNestedProperty(res, mapping[key]);
+							}
+						}
+						_values = beforeUpdate(_res) ?? _res;
+					} else {
+						_values = beforeUpdate(res) ?? res;
+					}
+					if (_needRefresh) {
+						values.delay = delay;
+						_needRefresh = false;
+					}
 				}
 			}
 		} catch (error) {

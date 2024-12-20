@@ -401,7 +401,10 @@
 <div class="text-xs w-full h-full layout-y-stretch-low" class:fullscreen>
 	<div class="layout-y-stretch-low">
 		{#if $showFilters}
-			<div class="row-wrap mx-low preset-filled-surface-200-800" transition:slide={{ axis: 'y' }}>
+			<div
+				class="layout-x-low p-1 flex-wrap mx-low rounded preset-filled-surface-200-800"
+				transition:slide={{ axis: 'y' }}
+			>
 				{#each columnsOrder as conf, index (conf.name)}
 					{@const { name, show } = conf}
 					<div animate:flip={{ duration }}>
@@ -436,7 +439,7 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="row-wrap mx-low preset-filled-surface-200-800">
+		<div class="layout-x-low p-1 flex-wrap mx-low rounded preset-filled-surface-200-800">
 			<div class="mini-card preset-filled-primary-500">
 				<Button
 					{size}
@@ -619,7 +622,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none !px rounded rounded-t-none preset-filled-surface-200-800 justify-between items-center"
+		class="layout-x-p-none !px !py-1 rounded rounded-t-none preset-filled-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
@@ -628,15 +631,15 @@
 		>
 		<button
 			class="mini-card"
-			class:preset-filled-success-500={!autoScroll}
-			class:preset-filled-warning-500={autoScroll}
+			class:preset-filled-success-500={autoScroll}
+			class:preset-filled-warning-500={!autoScroll}
 			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();
 			}}
 		>
-			{autoScroll ? 'Disable' : 'Enable'} auto scroll
-			<Ico icon="mdi:download-{autoScroll ? 'off' : 'lock'}-outline" />
+			{autoScroll ? 'Enabled' : 'Disabled'} auto scroll
+			<Ico icon="mdi:download-{autoScroll ? 'lock' : 'off'}-outline" />
 		</button>
 	</div>
 </div>
@@ -656,14 +659,6 @@
 		left: 0px;
 		height: 100%;
 		@apply z-50 bg-surface-950-50 min-w-full;
-	}
-
-	.row-wrap {
-		@apply flex flex-wrap rounded;
-	}
-
-	.mini-card {
-		@apply rounded m-1 p-1 flex gap-2 text-nowrap select-none;
 	}
 
 	.searchedCurrent {

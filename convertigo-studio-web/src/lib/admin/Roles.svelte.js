@@ -2,13 +2,12 @@ import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 
 const defValues = {
-	users: new Array(1).fill({
-		name: 'Loading...',
+	users: new Array(5).fill({
+		name: null,
 		roles: []
 	}),
-	roles: new Array(1).fill({
-		name: 'Loading...',
-		description: 'Loading...'
+	roles: new Array(10).fill({
+		name: null
 	})
 };
 
@@ -63,18 +62,10 @@ let values = {
 		return calling;
 	},
 
-	async addRole(roleName, roleDescription) {
-		const payload = {
-			'@_xml': true,
-			admin: {
-				'@_service': 'roles.Add',
-				role: {
-					'@_name': roleName,
-					description: roleDescription
-				}
-			}
-		};
-		return await doCall('roles.Add', payload);
+	async addUser(event, row) {
+		event.preventDefault();
+		await call(`roles.${row ? 'Edit' : 'Add'}`, new FormData(event.target));
+		values.refresh();
 	},
 
 	async deleteRoles(username) {
@@ -96,8 +87,13 @@ let values = {
 		}
 	},
 	async exportRoles() {
-		console.log('Exporting roles...');
 		return await doCall('roles.Export', {});
+	},
+	formatRoleName(roleName) {
+		return roleName
+			.toLowerCase()
+			.replace(/_/g, ' ')
+			.replace(/(?:^|\s)\S/g, (match) => match.toUpperCase());
 	}
 };
 
@@ -111,18 +107,13 @@ export default ServiceHelper({
 		roles: 'admin.roles.role'
 	},
 	beforeUpdate: (res) => {
-		res.users = checkArray(res.users).map((user) => ({
-			name: user.name || 'Unknown User',
-			roles: checkArray(user.role).map((role) => ({
-				name: formatRoleName(role.name || 'Unknown Role')
-			}))
-		}));
-
-		res.roles = checkArray(res.roles).map((role) => ({
-			name: role.name || 'Unknown Role',
-			description: role.description || 'No Description'
-		}));
-
+		for (const user of res.users) {
+			user.roles = checkArray(user.role).map(({ name }) => name);
+			// .map((role) => ({
+			// 	name: formatRoleName(role.name || 'Unknown Role')
+			// }));
+		}
+		res.roles = res.roles.map(({ name }) => name);
 		return res;
 	}
 });

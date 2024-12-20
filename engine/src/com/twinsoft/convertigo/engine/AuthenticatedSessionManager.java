@@ -77,8 +77,6 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		PROJECTS_CONFIG("Configure the projects part"),
 		SCHEDULER_VIEW("Consult the scheduler part"),
 		SCHEDULER_CONFIG("Configure the scheduler part"),
-		STORE_VIEW("Consult the store part"),
-		STORE_CONFIG("Configure the store part"),
 		SYMBOLS_VIEW("Consult the symbols part"),
 		SYMBOLS_CONFIG("Configure the symbols part"),
 		TRACE_VIEW("Consult the trace player part"),

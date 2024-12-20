@@ -59,7 +59,10 @@ public class Edit extends XmlService {
 		try {
 			Set<Role> set = new HashSet<Role>(roles.length);
 			for (String role: roles) {
-				set.add(Role.valueOf(role));
+				try {
+					set.add(Role.valueOf(role));
+				} catch (Exception e) {
+				}
 			}
 			
 			if (StringUtils.isBlank(password)) {

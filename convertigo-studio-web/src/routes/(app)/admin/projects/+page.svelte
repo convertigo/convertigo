@@ -197,7 +197,7 @@
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true },
-			{ name: 'Name', key: 'name', class: 'font-medium' },
+			{ name: 'Project', key: 'name', class: 'font-medium' },
 			{ name: 'Comment', key: 'comment' },
 			{ name: 'Version', key: 'version', class: 'break-words opacity-80 min-w-32' },
 			{ name: 'Exported', key: 'exported', class: 'text-sm min-w-32' },
