@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 	import { onDestroy, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 

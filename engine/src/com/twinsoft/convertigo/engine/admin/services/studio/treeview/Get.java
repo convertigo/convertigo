@@ -31,8 +31,11 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.LoopStep;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -49,28 +52,29 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 public class Get extends JSonService {
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		var flow = "true".equals(request.getParameter("flow"));
+		
 		var ids = request.getParameter("ids");
 		if (ids != null) {
 			var jids = new JSONArray(ids);
 			for (int i = 0; i < jids.length(); i++) {
 				var id = jids.getString(i);
-				response.put(id, getChildren(id));
+				response.put(id, getChildren(id, flow));
 			}
 			return;
 		}
+		
 		var id = request.getParameter("id");
-
-		response.put("children", getChildren(id));
-
+		response.put("children", getChildren(id, flow));
 		response.put("id", id);
 	}
 
-	private JSONArray getChildren(String id) throws Exception {
+	private JSONArray getChildren(String id, boolean flow) throws Exception {
 		var children = new JSONArray();
 		if (id == null) {
 			for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
 				var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
-				children.put(getNode(dbo, true));
+				children.put(getNode(dbo, true, flow));
 			}
 		} else if (id.contains("/")) {
 			children = getFileChildren(id);
@@ -80,21 +84,27 @@ public class Get extends JSonService {
 			var ft = FolderType.parse(reg.group(2));
 			var qname = ft == null ? id : reg.group(1);
 			var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-			children = getChildren(dbo, ft, true);
+			children = getChildren(dbo, ft, true, flow);
 		}
 		return children;
 	}
 
-	private JSONObject getNode(DatabaseObject dbo, boolean full) throws Exception {
+	private JSONObject getNode(DatabaseObject dbo, boolean full, boolean flow) throws Exception {
 		var qname = dbo.getFullQName();
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32));
 		obj.put("id", qname);
+		if (flow) {
+			obj.put("classname", dbo.getClass().getSimpleName());
+			obj.put("isLoop", dbo instanceof LoopStep);
+			obj.put("isXml", dbo instanceof Step step && step.isXml());
+			obj.put("isSourceContainer", dbo instanceof IStepSourceContainer);
+		}
 		if (!full) {
 			obj.put("children", dbo.hasDatabaseObjectChildren());
 		} else {
-			var jChildren = getChildren(dbo, null, false);
+			var jChildren = getChildren(dbo, null, false, flow);
 			obj.put("children", jChildren);
 			if (dbo instanceof Project) {
 				var o = new JSONObject();
@@ -108,7 +118,7 @@ public class Get extends JSonService {
 		return obj;
 	}
 
-	private JSONArray getChildren(DatabaseObject dbo, FolderType ft, boolean full) throws Exception {
+	private JSONArray getChildren(DatabaseObject dbo, FolderType ft, boolean full, boolean flow) throws Exception {
 		var qname = dbo.getFullQName();
 		var children = dbo.getDatabaseObjectChildren();
 		var jChildren = new JSONArray();
@@ -139,7 +149,7 @@ public class Get extends JSonService {
 					continue;
 				}
 			}
-			var node = getNode(child, ft != null);
+			var node = getNode(child, ft != null, flow);
 			jChild.put(node);
 		}
 		return jChildren;
