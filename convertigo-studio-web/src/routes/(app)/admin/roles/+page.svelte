@@ -10,14 +10,17 @@
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { addInArray, removeInArray } from '$lib/utils/service';
+	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import { slide } from 'svelte/transition';
 
-	let { users, roles, deleteRoles, addUser, importRoles, exportRoles, formatRoleName } =
+	let { users, roles, deleteRoles, addUser, importRoles, exportURL, formatRoleName, waiting } =
 		$derived(Roles);
 
 	let modalDelete = $state();
 	let modalImport = $state();
+	let actionImport = $state('on');
 
-	let showExportColumn = $state(false);
+	let exporting = $state(false);
 
 	/*** @type {any} */
 	let rowSelected = $state({});
@@ -52,6 +55,8 @@
 		}
 		return lastFound ?? ' ';
 	});
+
+	let exportHref = $derived(exporting ? exportURL : '#');
 </script>
 
 {#snippet roleCard({ roles, role })}
@@ -118,10 +123,11 @@
 		<Card title={`${row ? 'Edit' : 'Add'} Role`}>
 			<form
 				onsubmit={async (event) => {
-					addUser(event, row);
-					close();
+					if (await addUser(event, row)) {
+						close();
+					}
 				}}
-				class="layout-y"
+				class="layout-y-stretch"
 			>
 				<div class="layout-y sm:layout-x">
 					{#if row}
@@ -142,13 +148,32 @@
 						{ name: 'View', custom: true, class: '!py-0' },
 						{ name: 'Config', custom: true, class: '!py-0' }
 					]}
-					data={roles.filter((role) => role.endsWith('VIEW'))}
+					data={['All', ...roles.filter((role) => role.endsWith('VIEW'))]}
 				>
 					{#snippet children({ row: role, def })}
 						{#if def.name == 'Role'}
 							<div class="layout-x">
-								{@render roleCard({ roles: rowSelected.roles, role })}
+								{#if role == 'All'}
+									<strong>For all roles</strong>
+								{:else}
+									{@render roleCard({ roles: rowSelected.roles, role })}
+								{/if}
 							</div>
+						{:else if role == 'All'}
+							{@const subRoles = roles.filter((r) =>
+								r.endsWith(def.name == 'View' ? '_VIEW' : '_CONFIG')
+							)}
+							<PropertyType
+								type="check"
+								size="sm"
+								bind:checked={() => subRoles.every((r) => rowSelected.roles.includes(r)),
+								(v) => {
+									for (const value of subRoles) {
+										if (v) addInArray(rowSelected.roles, value);
+										else removeInArray(rowSelected.roles, value);
+									}
+								}}
+							/>
 						{:else}
 							{@const value = def.name == 'View' ? role : role.replace('_VIEW', '_CONFIG')}
 							<PropertyType
@@ -186,7 +211,7 @@
 					/>
 				</div>
 
-				<div class="w-full layout-x justify-end">
+				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
 					<button type="submit" class="basic-button" disabled={calling}>
 						<span><Ico icon="bytesize:export" size="btn" /></span>
 						<span>{row ? 'Edit' : 'Add'}</span>
@@ -195,12 +220,88 @@
 						<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
 						<span>Cancel</span>
 					</button>
-				</div>
+				</fieldset>
 			</form>
 		</Card>
 	{/snippet}
 </ModalDynamic>
-
+<ModalDynamic bind:this={modalImport}>
+	<Card title="Drop or choose a .json file and Import">
+		<form
+			onsubmit={async (event) => {
+				await importRoles(event);
+				modalImport.close();
+			}}
+		>
+			<fieldset class="layout-y-stretch" disabled={waiting}>
+				<FileUpload
+					name="file"
+					accept={{ 'application/json': ['.json'] }}
+					maxFiles={1}
+					subtext="then press Import"
+					classes="w-full"
+					required
+					allowDrop
+				>
+					{#snippet iconInterface()}<Ico
+							icon="material-symbols:supervised-user-circle-outline"
+							size="8"
+						/>{/snippet}
+					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
+					{#snippet iconFileRemove()}<Ico
+							icon="material-symbols-light:delete-outline"
+							size="8"
+						/>{/snippet}
+				</FileUpload>
+				<div>
+					Import policy:
+					<PropertyType
+						type="segment"
+						name="action-import"
+						item={[
+							{ text: 'Clear & Import', value: 'clear-import' },
+							{ text: 'Merge users', value: 'on' }
+						]}
+						bind:value={actionImport}
+						orientation="vertical"
+					/>
+				</div>
+				{#if actionImport == 'on'}
+					<div transition:slide>
+						In case of name conflict, priority:
+						<PropertyType
+							type="segment"
+							name="priority"
+							item={[
+								{ text: 'Server', value: 'priority-server' },
+								{ text: 'Import', value: 'priority-import' }
+							]}
+							value="priority-import"
+							orientation="vertical"
+						/>
+					</div>
+					<div>Current users will be kept.</div>
+				{/if}
+				<div>Actual users list will be saved aside in a backup file.</div>
+				<div class="w-full layout-x justify-end">
+					<Button
+						label="Import"
+						icon="material-symbols:supervised-user-circle-outline"
+						type="submit"
+						class="!w-fit basic-button"
+					/>
+					<Button
+						label="Cancel"
+						icon="material-symbols-light:cancel-outline"
+						type="button"
+						class="!w-fit cancel-button"
+						onclick={modalImport.close}
+					/>
+				</div>
+			</fieldset>
+		</form>
+	</Card>
+</ModalDynamic>
 <Card title="Roles">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
@@ -210,26 +311,62 @@
 					label: 'Add User',
 					icon: 'grommet-icons:add',
 					cls: 'green-button',
+					hidden: exporting,
 					onclick: (event) => openRoleModal({ event, mode: 'addRoles' })
 				},
 				{
 					label: 'Import',
 					icon: 'bytesize:import',
 					cls: 'basic-button',
+					hidden: exporting,
 					onclick: modalImport?.open
+				},
+				{
+					label: 'Select All',
+					icon: 'mdi:check-all',
+					cls: 'green-button',
+					hidden: !exporting || users.every((user) => user.export),
+					onclick: () => users.forEach((user) => (user.export = true))
+				},
+				{
+					label: 'Unselect All',
+					icon: 'mdi:check-all',
+					cls: 'yellow-button',
+					hidden: !exporting || users.every((user) => !user.export),
+					onclick: () => users.forEach((user) => (user.export = false))
 				},
 				{
 					label: 'Export',
 					icon: 'bytesize:export',
 					cls: 'basic-button',
+					hidden: exporting,
 					onclick: () => {
-						showExportColumn = !showExportColumn;
+						exporting = true;
+					}
+				},
+				{
+					label: `Export [${users.filter((user) => user.export).length}]`,
+					icon: 'bytesize:export',
+					cls: 'green-button',
+					hidden: !exporting,
+					disabled: users.every((user) => !user.export),
+					href: exportHref,
+					target: '_blank'
+				},
+				{
+					label: 'Cancel',
+					icon: 'material-symbols-light:cancel-outline',
+					cls: 'delete-button',
+					hidden: !exporting,
+					onclick: () => {
+						exporting = false;
 					}
 				},
 				{
 					label: 'Delete All',
 					icon: 'mingcute:delete-line',
 					cls: 'delete-button',
+					hidden: exporting,
 					onclick: async () => {
 						if (
 							await modalDelete.open({
@@ -256,30 +393,36 @@
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
 				<div class="layout-x-low">
-					{#if showExportColumn}
-						<PropertyType type="boolean" name="export" bind:this={row.export} />
+					{#if exporting}
+						<PropertyType
+							values={[false, true]}
+							type="boolean"
+							name="export"
+							bind:value={row.export}
+						/>
+					{:else}
+						<Button
+							class="basic-button"
+							size={4}
+							icon="mdi:edit-outline"
+							onclick={(event) => openRoleModal({ event, row })}
+						/>
+						<Button
+							class="delete-button"
+							size={4}
+							icon="mingcute:delete-line"
+							onclick={async () => {
+								if (
+									await modalDelete.open({
+										title: 'Delete user',
+										message: `Are you sure you want to delete ${row.name}?`
+									})
+								) {
+									deleteRoles(row.name);
+								}
+							}}
+						/>
 					{/if}
-					<Button
-						class="basic-button"
-						size={4}
-						icon="mdi:edit-outline"
-						onclick={(event) => openRoleModal({ event, row })}
-					/>
-					<Button
-						class="delete-button"
-						size={4}
-						icon="mingcute:delete-line"
-						onclick={async () => {
-							if (
-								await modalDelete.open({
-									title: 'Delete user',
-									message: `Are you sure you want to delete ${row.name}?`
-								})
-							) {
-								deleteRoles(row.name);
-							}
-						}}
-					/>
 				</div>
 			{:else}
 				<div class="layout-x-low flex-wrap text-xs">

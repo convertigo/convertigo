@@ -76,7 +76,7 @@ const devices = {
 		iframe: { width: '100%', height: '100%', position: 'relative' },
 		bezel: { width: '100%', height: '100%', position: 'relative' },
 		type: 'desktop'
-	},
+	}
 };
 
 let index = 0;

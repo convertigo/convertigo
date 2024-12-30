@@ -389,7 +389,7 @@
 						</div>
 					{:else if row.next?.length > 1}
 						<Button
-							label={row.next?.length}
+							label={`${row.next?.[0]} …`}
 							class="yellow-button"
 							{size}
 							onclick={(event) => nextCron.open({ event, row })}

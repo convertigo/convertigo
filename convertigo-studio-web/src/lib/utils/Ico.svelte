@@ -62,6 +62,7 @@
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
 	import MdiBroom from '~icons/mdi/broom?raw';
+	import MdiCheckAll from '~icons/mdi/check-all?raw';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
 	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
@@ -169,6 +170,7 @@
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
 		'mdi:broom': MdiBroom,
+		'mdi:check-all': MdiCheckAll,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:code-block-braces': MdiCodeBlockBraces,
 		'mdi:dots-vertical': MdiDotsVertical,

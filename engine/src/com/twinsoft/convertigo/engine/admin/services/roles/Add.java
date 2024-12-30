@@ -71,7 +71,10 @@ public class Add extends XmlService {
 			} else {
 				set = new HashSet<Role>(roles.length);
 				for (String role: roles) {
-					set.add(Role.valueOf(role));
+					try {
+						set.add(Role.valueOf(role));
+					} catch (Exception e) {
+					}
 				}
 			}
 			AuthenticatedSessionManager.validatePassword(password);

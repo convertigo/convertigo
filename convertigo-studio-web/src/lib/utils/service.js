@@ -71,9 +71,13 @@ export async function call(service, data = {}) {
 		const contentType = res.headers.get('content-type');
 
 		if (contentType?.includes('xml')) {
-			dataContent = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' }).parse(
-				await res.text()
-			);
+			const parser = new XMLParser({
+				ignoreAttributes: false,
+				attributeNamePrefix: '',
+				processEntities: true
+			});
+			parser.addEntity('#10', '\n');
+			dataContent = parser.parse(await res.text());
 		} else {
 			dataContent = await res.json();
 		}
@@ -196,6 +200,9 @@ function handleStateMessage(res, service) {
 		}
 
 		let error = findDeepKeys(res, ['error', 'errorMessage']);
+		if (!error && findDeepKeys(res, ['state']) == 'error') {
+			error = findDeepKeys(res, ['message']);
+		}
 		if (error) {
 			error = stringilight(error);
 			res.isError = true;
