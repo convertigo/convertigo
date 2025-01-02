@@ -107,7 +107,7 @@
 							{/if}
 						{/each}
 					</select>
-				{:else if type == 'array'}
+				{:else if type == 'array' || type == 'textarea'}
 					<textarea
 						{id}
 						{name}

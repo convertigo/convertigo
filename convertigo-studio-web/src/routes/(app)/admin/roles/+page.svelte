@@ -120,7 +120,7 @@
 <ModalYesNo bind:this={modalDelete} />
 <ModalDynamic bind:this={modal}>
 	{#snippet children({ close, params: { row } })}
-		<Card title={`${row ? 'Edit' : 'Add'} Role`}>
+		<Card title={`${row ? 'Edit' : 'Add'} User`}>
 			<form
 				onsubmit={async (event) => {
 					if (await addUser(event, row)) {
@@ -212,14 +212,21 @@
 				</div>
 
 				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
-					<button type="submit" class="basic-button" disabled={calling}>
-						<span><Ico icon="bytesize:export" size="btn" /></span>
-						<span>{row ? 'Edit' : 'Add'}</span>
-					</button>
-					<button type="button" onclick={close} class="cancel-button">
-						<span><Ico icon="material-symbols-light:cancel-outline" size="btn" /></span>
-						<span>Cancel</span>
-					</button>
+					<Button
+						type="submit"
+						class="!w-fit  basic-button"
+						disabled={calling}
+						icon="bytesize:export"
+						size="btn"
+						label={row ? 'Edit' : 'Add'}
+					/>
+					<Button
+						type="button"
+						onclick={close}
+						class="!w-fit cancel-button"
+						icon="material-symbols-light:cancel-outline"
+						label="Cancel"
+					/>
 				</fieldset>
 			</form>
 		</Card>
