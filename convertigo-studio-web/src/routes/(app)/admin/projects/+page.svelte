@@ -4,18 +4,17 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import { base } from '$app/paths';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
-	import { getQuery, getUrl } from '$lib/utils/service';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { onDestroy } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 
 	let {
 		projects,
 		deploy,
+		exportProject,
 		importURL,
 		remove,
 		refresh,
@@ -29,21 +28,15 @@
 
 	onDestroy(Projects.stop);
 
-	let modalDelete = $state();
+	let modalYesNo = getContext('modalYesNo');
 	let modalExport = $state();
 	let modalDeployUpload = $state();
 	let modalDeployURL = $state();
 	let modalSymbols;
 </script>
 
-<ModalYesNo bind:this={modalDelete} />
 <ModalDynamic bind:this={modalExport}>
 	{#snippet children({ close, params: { options, project } })}
-		{@const query = getQuery({
-			__xsrfToken: localStorage.getItem('x-xsrf') ?? '',
-			projectName: project,
-			exportOptions: JSON.stringify(exportChoices)
-		})}
 		<Card title="Exporting {project}">
 			{#each options as { name, display }}
 				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
@@ -55,9 +48,16 @@
 						icon: 'bytesize:export',
 						label: 'Export',
 						cls: 'green-button',
-						href: `${getUrl()}projects.Export${query}`,
-						target: '_blank',
-						onclick: close
+						onclick: async () => {
+							if (
+								await exportProject({
+									projectName: project,
+									exportOptions: JSON.stringify(exportChoices)
+								})
+							) {
+								close();
+							}
+						}
 					},
 					{
 						icon: 'material-symbols-light:cancel-outline',
@@ -216,7 +216,7 @@
 							cls: 'delete-button',
 							onclick: async (event) => {
 								if (
-									await modalDelete.open({
+									await modalYesNo.open({
 										event,
 										title: 'Delete project',
 										message: `${project}?`

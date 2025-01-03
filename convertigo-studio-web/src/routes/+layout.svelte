@@ -7,8 +7,18 @@
 	import Authentication from '$lib/common/Authentication.svelte';
 	import Light from '$lib/common/Light.svelte';
 	import ToastSetter from '$lib/utils/ToastSetter.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
+	import { setContext } from 'svelte';
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
+
+	let modalYesNo = $state();
+
+	setContext('modalYesNo', {
+		async open(...props) {
+			return await modalYesNo.open(...props);
+		}
+	});
 
 	afterNavigate(async () => {
 		await Authentication.checkAuthentication();
@@ -25,6 +35,7 @@
 	Light.light;
 </script>
 
+<ModalYesNo bind:this={modalYesNo} />
 <ToastProvider groupClasses="w-full !items-center !right-0 z-[1000]">
 	<ToastSetter />
 	{@render children?.()}

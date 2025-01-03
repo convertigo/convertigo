@@ -1,10 +1,9 @@
 <script>
-	import { onMount } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Connections from '$lib/admin/Connections.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	let {
@@ -39,10 +38,8 @@
 	});
 
 	let disabled = $derived(sessionsInUse == null);
-	let modalDelete;
+	let modalYesNo = getContext('modalYesNo');
 </script>
-
-<ModalYesNo bind:this={modalDelete} />
 
 <div class="layout-y-stretch">
 	<Card title="Connections">
@@ -56,7 +53,7 @@
 						disabled,
 						onclick: async (event) => {
 							if (
-								await modalDelete.open({
+								await modalYesNo.open({
 									event,
 									title: 'Do you confirm to delete',
 									message: `${sessionsInUse} sessions and ${contextsInUse} contexts?`
@@ -125,7 +122,7 @@
 								disabled,
 								onclick: async (event) => {
 									if (
-										await modalDelete.open({
+										await modalYesNo.open({
 											event,
 											title: 'Delete session',
 											message: `${sessionID}?`
@@ -203,7 +200,7 @@
 								disabled,
 								onclick: async (event) => {
 									if (
-										await modalDelete.open({
+										await modalYesNo.open({
 											event,
 											title: 'Delete context',
 											message: `${contextName}?`

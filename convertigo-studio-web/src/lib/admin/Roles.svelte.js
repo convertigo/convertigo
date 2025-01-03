@@ -1,6 +1,5 @@
-import { call, checkArray, getQuery, getUrl } from '$lib/utils/service';
+import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { browser } from '$app/environment';
 
 const defValues = {
 	users: new Array(5).fill({
@@ -33,17 +32,6 @@ let values = {
 		return waiting;
 	},
 
-	get exportURL() {
-		return browser
-			? `${getUrl()}roles.Export${getQuery({
-					__xsrfToken: localStorage.getItem('x-xsrf') ?? '',
-					users: JSON.stringify(
-						values.users.filter((user) => user.export).map((user) => ({ name: user.name }))
-					).replace(/(^\[)|(\]$)/g, '')
-				})}`
-			: '';
-	},
-
 	async addUser(event, row) {
 		const res = await doCall(row ? 'Edit' : 'Add', event);
 		return !res.isError;
@@ -53,8 +41,21 @@ let values = {
 		return await doCall('Delete', { username });
 	},
 
+	async deleteAllRoles() {
+		return await doCall('DeleteAll');
+	},
+
 	async importRoles(event) {
 		const res = await doCall('Import', event);
+		return !res.isError;
+	},
+
+	async exportRoles() {
+		const res = await doCall('Export', {
+			users: JSON.stringify(
+				values.users.filter((user) => user.export).map((user) => ({ name: user.name }))
+			).replace(/(^\[)|(\]$)/g, '')
+		});
 		return !res.isError;
 	},
 

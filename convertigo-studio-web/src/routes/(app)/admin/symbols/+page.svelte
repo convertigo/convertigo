@@ -10,52 +10,42 @@
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
+	import { getContext } from 'svelte';
 
-	let { symbols, importSymbols, addSymbol, waiting } = $derived(Symbols);
+	let {
+		symbols,
+		importSymbols,
+		exportSymbols,
+		addSymbol,
+		deleteSymbol,
+		deleteAllSymbols,
+		waiting
+	} = $derived(Symbols);
 
-	let selectRow = $state(false);
-	let allSelected = false;
+	let modalYesNo = getContext('modalYesNo');
+	let filter = $state('');
+	let secretName = $state('');
 	let exporting = $state(false);
 	let modalImport = $state();
 	let modal = $state();
-	let actionImport = $state('clear-import');
+	let actionImport = $state('on');
 	/*** @type {any} */
-	let rowSelected = $state({});
 
-	// const symbolsActions = {
-	// 	add: {
-	// 		name: 'Add Symbols',
-	// 		icon: 'grommet-icons:add'
-	// 	},
-	// 	secret: {
-	// 		name: 'Add secret symbol',
-	// 		icon: 'vaadin:key-o'
-	// 	},
-	// 	import: {
-	// 		name: 'Import Symbols',
-	// 		icon: 'bytesize:import'
-	// 	}
-	// 	// export: {
-	// 	// 	name: 'Export Symbols',
-	// 	// 	icon: 'bytesize:export'
-	// 	// }
-	// };
+	let fsymbols = $derived(
+		symbols.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
+	);
 
-	// function exportUserFile() {
-	// 	const usersArray = Array.from(selectedUsers);
-	// 	const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-	// 		JSON.stringify(usersArray)
-	// 	)}`;
-	// 	const link = document.createElement('a');
-	// 	link.href = jsonString;
-	// 	link.download = 'symbols_export.json';
-	// 	link.click();
-	// }
+	function modalOpen(params) {
+		secretName = '';
+		modal.open(params);
+	}
 </script>
 
 <ModalDynamic bind:this={modal}>
-	{#snippet children({ close, params: { row } })}
-		<Card title={`${row ? 'Edit' : 'Add'} Symbol`}>
+	{#snippet children({ close, params: { row, secret = false } })}
+		{@const edit = row && !row.project}
+		{@const sec = secret || row?.name?.endsWith('.secret')}
+		<Card title={`${edit ? 'Edit' : 'Add'} ${sec ? 'Secret ' : ''}Symbol`}>
 			<form
 				onsubmit={async (event) => {
 					if (await addSymbol(event, row)) {
@@ -64,27 +54,29 @@
 				}}
 				class="layout-y-stretch min-w-72 md:min-w-96"
 			>
-				<!-- <div class="layout-y sm:layout-x"> -->
-				{#if row}
+				{#if edit}
 					<input type="hidden" name="oldSymbolName" value={row?.name} />
 				{/if}
-				<PropertyType name="symbolName" label="Name" value={row?.name} />
-				<PropertyType type="textarea" name="symbolValue" label="Value" value={row?.value} />
-				<!-- <PropertyType
-						name={rowSelected.password.length > 0 ? 'password' : ''}
-						label="Password"
-						type="password"
-						value={rowSelected.password}
-					/> -->
-				<!-- </div> -->
-
+				{#if sec && !row}
+					<input type="hidden" name="symbolName" value="{secretName}.secret" />
+					<div class="layout-x-end-low">
+						<PropertyType label="Name" bind:value={secretName} /><span>.secret</span>
+					</div>
+				{:else}
+					<PropertyType name="symbolName" label="Name" value={row?.name} />
+				{/if}
+				{#if sec}
+					<PropertyType type="password" name="symbolValue" label="Value" value={row?.value} />
+				{:else}
+					<PropertyType type="textarea" name="symbolValue" label="Value" value={row?.value} />
+				{/if}
 				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
 						class="!w-fit  basic-button"
-						icon="bytesize:export"
+						icon={edit ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
-						label={row ? 'Edit' : 'Add'}
+						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						type="button"
@@ -99,7 +91,7 @@
 	{/snippet}
 </ModalDynamic>
 <ModalDynamic bind:this={modalImport}>
-	<Card title="Drop or choose a .json file and Import">
+	<Card title="Drop or choose a .properties file and Import">
 		<form
 			onsubmit={async (event) => {
 				await importSymbols(event);
@@ -109,7 +101,7 @@
 			<fieldset class="layout-y-stretch" disabled={waiting}>
 				<FileUpload
 					name="file"
-					accept={{ 'application/json': ['.json'] }}
+					accept={{ 'application/text': ['.properties'] }}
 					maxFiles={1}
 					subtext="then press Import"
 					classes="w-full"
@@ -117,7 +109,7 @@
 					allowDrop
 				>
 					{#snippet iconInterface()}<Ico
-							icon="material-symbols:supervised-user-circle-outline"
+							icon="material-symbols:hotel-class-outline"
 							size="8"
 						/>{/snippet}
 					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
@@ -153,13 +145,13 @@
 							orientation="vertical"
 						/>
 					</div>
-					<div>Current users will be kept.</div>
+					<div>Current symbols will be kept.</div>
 				{/if}
-				<div>Actual users list will be saved aside in a backup file.</div>
+				<div>Actual symbols list will be saved aside in a backup file.</div>
 				<div class="w-full layout-x justify-end">
 					<Button
 						label="Import"
-						icon="material-symbols:supervised-user-circle-outline"
+						icon="material-symbols:hotel-class-outline"
 						type="submit"
 						class="!w-fit basic-button"
 					/>
@@ -185,14 +177,14 @@
 					icon: 'grommet-icons:add',
 					cls: 'green-button',
 					hidden: exporting,
-					onclick: modal?.open
+					onclick: (event) => modalOpen({ event })
 				},
 				{
 					label: 'Add Secret',
 					icon: 'vaadin:key-o',
 					cls: 'yellow-button',
 					hidden: exporting,
-					onclick: modal?.open
+					onclick: (event) => modalOpen({ event, secret: true })
 				},
 				{
 					label: 'Import',
@@ -205,15 +197,15 @@
 					label: 'Select All',
 					icon: 'mdi:check-all',
 					cls: 'green-button',
-					hidden: !exporting || symbols.every((user) => user.export),
-					onclick: () => symbols.forEach((user) => (user.export = true))
+					hidden: !exporting || fsymbols.every((user) => user.export),
+					onclick: () => fsymbols.forEach((user) => (user.export = true))
 				},
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
 					cls: 'yellow-button',
-					hidden: !exporting || symbols.every((user) => !user.export),
-					onclick: () => symbols.forEach((user) => (user.export = false))
+					hidden: !exporting || fsymbols.every((user) => !user.export),
+					onclick: () => fsymbols.forEach((user) => (user.export = false))
 				},
 				{
 					label: 'Export',
@@ -225,13 +217,12 @@
 					}
 				},
 				{
-					label: `Export [${symbols.filter((user) => user.export).length}]`,
+					label: `Export [${fsymbols.filter((user) => user.export).length}]`,
 					icon: 'bytesize:export',
 					cls: 'green-button',
 					hidden: !exporting,
-					disabled: symbols.every((user) => !user.export),
-					href: '#',
-					target: '_blank'
+					disabled: fsymbols.every((user) => !user.export),
+					onclick: exportSymbols
 				},
 				{
 					label: 'Cancel',
@@ -247,33 +238,55 @@
 					icon: 'mingcute:delete-line',
 					cls: 'delete-button',
 					hidden: exporting,
-					onclick: async () => {}
+					onclick: async () => {
+						if (
+							await modalYesNo.open({
+								title: 'Delete all symbols',
+								message: `Are you sure you want to delete all symbols?`
+							})
+						) {
+							deleteAllSymbols();
+						}
+					}
 				}
 			]}
 		/>
 	{/snippet}
 
+	<p>
+		Symbols are defined here. Their values can be used in Convertigo objects using the <strong
+			>{'${symbolName}'}</strong
+		>
+		or <strong class="text-nowrap">{'${symbolName=default value}'}</strong> syntax.
+	</p>
+	<p>
+		The value can be a fixed string, another Symbol (using <strong>{'{symb\\}'}</strong>) or an
+		Environment Variable (see below).
+	</p>
+	<div
+		class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
+	>
+		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
+		<input type="search" placeholder="Filter symbols..." bind:value={filter} />
+	</div>
 	<TableAutoCard
-		comment="Global Symbols values can be fixed string, another Global Symbols or Environment Variables. If a
-			symbol is defined for the Default value or if it contains a closing curly braces it must be
-			escaped with a backslash."
 		definition={[
 			{ name: 'Actions', custom: true, class: 'max-w-28' },
 			{ name: 'Name', key: 'name' },
-			{ name: 'Value', key: 'value', class: 'truncate max-w-80' }
+			{ name: 'Value', key: 'value', class: 'truncate max-w-xl text-xs' }
 		]}
-		data={symbols.filter((s) => !exporting || !s.project)}
+		data={fsymbols.filter((s) => !exporting || !s.project)}
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
 				<div class="layout-x-low">
 					{#if row.project}
 						<Button
-							label={`from ${row.project}`}
-							class="green-button !truncate"
+							label={row.project}
+							class="green-button text-xs overflow-hidden justify-start gap-1 px-1"
 							size={4}
 							icon="grommet-icons:add"
-							onclick={(event) => {}}
+							onclick={(event) => modalOpen({ event, row })}
 						/>
 					{:else if exporting}
 						<PropertyType
@@ -288,45 +301,39 @@
 							size={4}
 							icon="mdi:edit-outline"
 							onclick={(event) => {
-								modal.open({ event, row });
+								modalOpen({ event, row });
 							}}
 						/>
 						<Button
 							class="delete-button"
 							size={4}
 							icon="mingcute:delete-line"
-							onclick={async () => {}}
+							onclick={async () => {
+								if (
+									await modalYesNo.open({
+										title: 'Delete symbol',
+										message: `Are you sure you want to delete ${row.name}?`
+									})
+								) {
+									deleteSymbol(row.name);
+								}
+							}}
 						/>
 					{/if}
 				</div>
 			{/if}
 		{/snippet}
 	</TableAutoCard>
-
-	<!-- <TableAutoCard
-		comment="These symbols are defined in projects with default values. You can modify these values by adding them to the symbols list"
-		definition={[
-			{ name: 'Actions', custom: true },
-			{ name: 'Project', key: 'project' },
-			{ name: 'Name', key: 'name' },
-			{ name: 'Value', key: 'value' }
-		]}
-		data={Symbols.defaults}
-	>
-		{#snippet children({ row, def })}
-			{#if def.name == 'Actions'}
-				<button class="green-button" onclick={() => {}}>
-					<Ico icon="grommet-icons:add" />
-				</button>
-			{/if}
-		{/snippet}
-	</TableAutoCard> -->
-
+	<p>
+		These environment variables can be used in Symbols values, using the following syntax: <strong
+			>{'%variable_name[=default_value]%'}</strong
+		>, default_value is optional.
+	</p>
 	<TableAutoCard
-		comment="These environment variables can be used in Global Symbols values, using the following syntax: %variable_name[=default_value]%, default_value is optional."
+		comment=""
 		definition={[
 			{ name: 'Name', key: 'name' },
-			{ name: 'Value', key: 'value' }
+			{ name: 'Value', key: 'value', class: 'max-w-xl' }
 		]}
 		data={EnvironmentVariables.variables}
 	></TableAutoCard>

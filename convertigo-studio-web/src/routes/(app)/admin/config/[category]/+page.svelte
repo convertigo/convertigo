@@ -1,6 +1,6 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { onDestroy } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -9,7 +9,6 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import { page } from '$app/state';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import Last from '../Last.svelte';
@@ -37,7 +36,12 @@
 		}
 		if (hasChanges) {
 			nav.cancel();
-			if (await modalUnsaved.open()) {
+			if (
+				await modalYesNo.open({
+					title: 'You have unsaved changes!',
+					message: 'Are you sure you want to continue?'
+				})
+			) {
 				refresh();
 				goto(nav.to?.url ?? '');
 			} else {
@@ -58,7 +62,7 @@
 				'@_key': name,
 				'@_value': value
 			}));
-		const confirmed = await modalSave.open({
+		const confirmed = await modalYesNo.open({
 			event,
 			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
 		});
@@ -71,8 +75,7 @@
 		categories[selectedIndex]?.property?.some(({ value, originalValue }) => value != originalValue)
 	);
 
-	let modalSave;
-	let modalUnsaved;
+	let modalYesNo = getContext('modalYesNo');
 </script>
 
 {#snippet rightPart()}
@@ -100,13 +103,6 @@
 		{/each}
 	</nav>
 {/snippet}
-
-<ModalYesNo bind:this={modalSave} />
-<ModalYesNo
-	bind:this={modalUnsaved}
-	title="You have unsaved changes!"
-	message="Are you sure you want to continue?"
-/>
 
 {#key selectedIndex}
 	<div class="layout-y-stretch" in:fade>

@@ -63,7 +63,9 @@ public class Export extends DownloadService {
 				JSONObject jo = symbolsNames.getJSONObject(i);
 				String name = jo.getString("name");
 				String symbolValue = Engine.theApp.databaseObjectsManager.symbolsGetValueStore(name);
-				properties.setProperty(name, symbolValue);
+				if (symbolValue != null) {
+					properties.setProperty(name, symbolValue);
+				}
 			}
 
 			HeaderName.ContentDisposition.setHeader(response,

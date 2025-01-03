@@ -7,16 +7,25 @@
 	import PagesRail from '$lib/admin/PagesRail.svelte';
 	import Roles from '$lib/admin/Roles.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { addInArray, removeInArray } from '$lib/utils/service';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import { getContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 
-	let { users, roles, deleteRoles, addUser, importRoles, exportURL, formatRoleName, waiting } =
-		$derived(Roles);
+	let {
+		users,
+		roles,
+		deleteRoles,
+		deleteAllRoles,
+		addUser,
+		importRoles,
+		exportRoles,
+		formatRoleName,
+		waiting
+	} = $derived(Roles);
 
-	let modalDelete = $state();
+	let modalYesNo = getContext('modalYesNo');
 	let modalImport = $state();
 	let actionImport = $state('on');
 
@@ -37,8 +46,6 @@
 		modal.open({ event, row });
 	}
 
-	let calling = $state(false);
-
 	const tpItems = [
 		{ text: 'No', value: ' ' },
 		{ text: 'View', value: 'TEST_PLATFORM' },
@@ -55,8 +62,6 @@
 		}
 		return lastFound ?? ' ';
 	});
-
-	let exportHref = $derived(exporting ? exportURL : '#');
 </script>
 
 {#snippet roleCard({ roles, role })}
@@ -117,7 +122,6 @@
 	{/if}
 {/snippet}
 
-<ModalYesNo bind:this={modalDelete} />
 <ModalDynamic bind:this={modal}>
 	{#snippet children({ close, params: { row } })}
 		<Card title={`${row ? 'Edit' : 'Add'} User`}>
@@ -215,8 +219,7 @@
 					<Button
 						type="submit"
 						class="!w-fit  basic-button"
-						disabled={calling}
-						icon="bytesize:export"
+						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
@@ -357,8 +360,7 @@
 					cls: 'green-button',
 					hidden: !exporting,
 					disabled: users.every((user) => !user.export),
-					href: exportHref,
-					target: '_blank'
+					onclick: exportRoles
 				},
 				{
 					label: 'Cancel',
@@ -376,12 +378,12 @@
 					hidden: exporting,
 					onclick: async () => {
 						if (
-							await modalDelete.open({
+							await modalYesNo.open({
 								title: 'Delete all users',
 								message: `Are you sure you want to delete all users?`
 							})
 						) {
-							deleteRoles('');
+							deleteAllRoles();
 						}
 					}
 				}
@@ -420,7 +422,7 @@
 							icon="mingcute:delete-line"
 							onclick={async () => {
 								if (
-									await modalDelete.open({
+									await modalYesNo.open({
 										title: 'Delete user',
 										message: `Are you sure you want to delete ${row.name}?`
 									})

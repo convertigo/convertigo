@@ -2,12 +2,12 @@
 	import Keys from '$lib/admin/Keys.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import { getContext } from 'svelte';
 
-	let modalDelete = $state();
+	let modalYesNo = getContext('modalYesNo');
 
 	let {
 		categories,
@@ -25,7 +25,6 @@
 	}
 </script>
 
-<ModalYesNo bind:this={modalDelete} />
 <Card title="Keys">
 	{#snippet cornerOption()}
 		<form
@@ -94,7 +93,7 @@
 						class="delete-button"
 						onclick={async (event) => {
 							if (
-								await modalDelete.open({
+								await modalYesNo.open({
 									event,
 									title: 'Delete Key',
 									message: 'Are you sure you want to delete this key?',

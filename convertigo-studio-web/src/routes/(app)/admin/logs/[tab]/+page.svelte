@@ -4,7 +4,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
-	import { onMount, untrack } from 'svelte';
+	import { getContext, onMount, untrack } from 'svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import { slide } from 'svelte/transition';
@@ -17,7 +17,6 @@
 	import { page } from '$app/state';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 
 	onMount(() => {
 		Logs.list();
@@ -35,7 +34,12 @@
 		}
 		if (hasChanges) {
 			nav.cancel();
-			if (await modalUnsaved.open()) {
+			if (
+				await modalYesNo.open({
+					title: 'You have unsaved changes!',
+					message: 'Are you sure you want to continue?'
+				})
+			) {
 				Configuration.refresh();
 				skip = true;
 				await goto(nav.to?.url ?? '');
@@ -138,7 +142,7 @@
 				'@_key': name,
 				'@_value': value
 			}));
-		const confirmed = await modalSave.open({
+		const confirmed = await modalYesNo.open({
 			event,
 			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
 		});
@@ -152,18 +156,8 @@
 			logsCategory?.property?.some(({ value, originalValue }) => value != originalValue)
 	);
 
-	let modalPurge;
-	let modalSave;
-	let modalUnsaved;
+	let modalYesNo = getContext('modalYesNo');
 </script>
-
-<ModalYesNo bind:this={modalPurge} title="Delete logs files older than" />
-<ModalYesNo bind:this={modalSave} />
-<ModalYesNo
-	bind:this={modalUnsaved}
-	title="You have unsaved changes!"
-	message="Are you sure you want to continue?"
-/>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
 	<Card title="Logs" class="!gap-low !pt-low h-full">
@@ -176,7 +170,7 @@
 				>
 					{#snippet list()}
 						{#each Object.entries(tabs) as [value, { name, icon }]}
-							<Tabs.Control {value} stateLabelActive="dark:bg-surface-500 bg-surface-50" padding="">
+							<Tabs.Control {value} stateLabelActive="dark:bg-primary-500 bg-primary-50" padding="">
 								{#snippet lead()}{name}{/snippet}
 								<Ico {icon} />
 							</Tabs.Control>
@@ -194,8 +188,9 @@
 									disabled: LogsPurge.value[0] == -1,
 									onclick: async (event) => {
 										if (
-											await modalPurge.open({
+											await modalYesNo.open({
 												event,
+												title: 'Delete logs files older than',
 												message: `${LogsPurge.date} ?`
 											})
 										) {

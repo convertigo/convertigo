@@ -34,6 +34,9 @@ let values = {
 	async deploy(event) {
 		await doCall('Deploy', event);
 	},
+	async exportProject(event) {
+		await doCall('Export', event);
+	},
 	async importURL(event) {
 		await doCall('ImportURL', event);
 	},

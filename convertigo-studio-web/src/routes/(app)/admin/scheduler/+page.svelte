@@ -2,19 +2,19 @@
 	import Scheduler from '$lib/admin/Scheduler.svelte';
 	import Project from '$lib/common/Projects.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import { onDestroy } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { capitalize } from '$lib/utils/service';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import CronWizard from '$lib/admin/components/CronWizard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import { get } from 'http';
 
 	let { jobs, schedules, scheduled, configure, remove } = $derived(Scheduler);
 	let { projects } = $derived(Project);
@@ -66,13 +66,15 @@
 		}
 	]);
 
-	let modal, yesNo, nextCron;
+	let modal, nextCron;
 	/*** @type {any} */
 	let selected = $state({});
 	/*** @type {any} */
 	let rowSelected = $state(null);
 	/*** @type {any} */
 	let project = $state({});
+
+	let modalYesNo = getContext('modalYesNo');
 
 	let sequence = $derived(
 		project?.sequence?.find((s) => s.name == rowSelected.sequence) || project?.sequence?.[0]
@@ -108,7 +110,6 @@
 	}
 </script>
 
-<ModalYesNo bind:this={yesNo} />
 <ModalDynamic bind:this={modal}>
 	{#snippet children({ close, params: { mode, row } })}
 		{@const {
@@ -376,7 +377,7 @@
 								icon="mingcute:delete-line"
 								onclick={async (event) => {
 									if (
-										await yesNo.open({
+										await modalYesNo.open({
 											event,
 											title: 'Please Confirm',
 											message: `Are you sure you want to delete this ${title.slice(0, -1)} ?`

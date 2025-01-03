@@ -1,17 +1,11 @@
-import { call, getQuery, getUrl } from '$lib/utils/service';
+import { call } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { browser } from '$app/environment';
 
 const defValues = {
 	symbols: new Array(5).fill({
 		name: null,
 		value: null
 	})
-	// defaults: new Array(10).fill({
-	// 	project: null,
-	// 	name: null,
-	// 	value: null
-	// })
 };
 
 let waiting = $state(false);
@@ -38,18 +32,7 @@ let values = {
 		return waiting;
 	},
 
-	get exportURL() {
-		return browser
-			? `${getUrl()}roles.Export${getQuery({
-					__xsrfToken: localStorage.getItem('x-xsrf') ?? '',
-					users: JSON.stringify(
-						values.users.filter((user) => user.export).map((user) => ({ name: user.name }))
-					).replace(/(^\[)|(\]$)/g, '')
-				})}`
-			: '';
-	},
-
-	async addUser(event, row) {
+	async addSymbol(event, row) {
 		const res = await doCall(row ? 'Edit' : 'Add', event);
 		return !res.isError;
 	},
@@ -58,16 +41,19 @@ let values = {
 		return await doCall('Delete', { symbolName });
 	},
 
-	async importRoles(event) {
+	async deleteAllSymbols() {
+		return await doCall('DeleteAll');
+	},
+
+	async importSymbols(event) {
 		const res = await doCall('Import', event);
 		return !res.isError;
 	},
 
-	formatRoleName(roleName) {
-		return roleName
-			.toLowerCase()
-			.replace(/_/g, ' ')
-			.replace(/(?:^|\s)\S/g, (match) => match.toUpperCase());
+	async exportSymbols() {
+		const data = values.symbols.filter((s) => s.export).map(({ name }) => ({ name }));
+		const res = await doCall('Export', { symbols: JSON.stringify(data) });
+		return !res.isError;
 	}
 };
 
@@ -89,6 +75,5 @@ export default ServiceHelper({
 			s.export = false;
 		}
 		delete res.defaults;
-		// defaults.sort((a, b) => a.name.localeCompare(b.name));
 	}
 });

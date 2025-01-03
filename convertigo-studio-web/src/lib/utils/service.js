@@ -68,8 +68,17 @@ export async function call(service, data = {}) {
 			localStorage.setItem('x-xsrf', xsrf);
 		}
 
-		const contentType = res.headers.get('content-type');
+		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
+		if (disposition) {
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(await res.blob());
+			link.download = disposition[2];
+			link.click();
+			URL.revokeObjectURL(link.href);
+			return {};
+		}
 
+		const contentType = res.headers.get('content-type');
 		if (contentType?.includes('xml')) {
 			const parser = new XMLParser({
 				ignoreAttributes: false,
