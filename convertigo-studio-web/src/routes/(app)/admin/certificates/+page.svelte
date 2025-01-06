@@ -24,7 +24,8 @@
 		configure,
 		del,
 		mappingsConfigure,
-		mappingsDel
+		mappingsDel,
+		init
 	} = $derived(Certificates);
 	let { projects } = $derived(Projects);
 
@@ -85,6 +86,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalCertRemove}>
 	<Card title="Remove a certificate">
 		<form
@@ -120,6 +122,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 {#snippet cell({
 	row: {
 		name,
@@ -239,6 +242,7 @@
 		/>
 	{/if}
 {/snippet}
+
 <div class="layout-y-stretch">
 	<Card title="Certificates">
 		{#snippet cornerOption()}
@@ -259,6 +263,7 @@
 						onclick: modalCertRemove?.open
 					}
 				]}
+				disabled={!init}
 			/>
 		{/snippet}
 		<div class="w-full">

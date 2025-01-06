@@ -2,9 +2,9 @@ import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 
 const defValues = {
-	categories: Array(6).fill({
+	categories: Array(12).fill({
 		name: ' ',
-		keys: Array(6).fill({
+		keys: Array(2).fill({
 			text: null,
 			value: null,
 			expiration: null
@@ -17,10 +17,6 @@ const defValues = {
 
 let calling = $state(false);
 
-/**
- * @param {string} service - The service name to call.
- * @param {Object} payload - The payload data for the service call.
- */
 async function doCall(service, payload) {
 	calling = true;
 	try {

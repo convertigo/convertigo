@@ -19,7 +19,8 @@
 		addSymbol,
 		deleteSymbol,
 		deleteAllSymbols,
-		waiting
+		waiting,
+		init
 	} = $derived(Symbols);
 
 	let modalYesNo = getContext('modalYesNo');
@@ -90,6 +91,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalImport}>
 	<Card title="Drop or choose a .properties file and Import">
 		<form
@@ -167,6 +169,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 <Card title="Global Symbols">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
@@ -250,6 +253,7 @@
 					}
 				}
 			]}
+			disabled={!init}
 		/>
 	{/snippet}
 
@@ -279,7 +283,7 @@
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
-				<div class="layout-x-low">
+				<fieldset class="layout-grid-low-5 w-full" disabled={!init}>
 					{#if row.project}
 						<Button
 							label={row.project}
@@ -320,7 +324,7 @@
 							}}
 						/>
 					{/if}
-				</div>
+				</fieldset>
 			{/if}
 		{/snippet}
 	</TableAutoCard>

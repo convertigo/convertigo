@@ -13,7 +13,7 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import Last from '../Last.svelte';
 
-	let { categories, refresh, updateConfigurations } = $derived(Configuration);
+	let { categories, refresh, updateConfigurations, init } = $derived(Configuration);
 
 	let selectedIndex = $derived(
 		Math.max(
@@ -94,7 +94,7 @@
 						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
 					></span>
 				{/if}
-				<AutoPlaceholder loading={name == null}>
+				<AutoPlaceholder loading={displayName == null}>
 					<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
 						>{displayName}</span
 					>
@@ -125,6 +125,7 @@
 							onclick: refresh
 						}
 					]}
+					disabled={!init}
 				/>
 			{/snippet}
 

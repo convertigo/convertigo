@@ -14,9 +14,8 @@
 	import Time from '$lib/common/Time.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import { get } from 'http';
 
-	let { jobs, schedules, scheduled, configure, remove } = $derived(Scheduler);
+	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
 	let { projects } = $derived(Project);
 
 	onDestroy(() => {
@@ -123,7 +122,7 @@
 			cron
 		} = row ?? {}}
 		<Card title="{row ? 'Edit' : 'New'} {jobTypes[mode].name}" class="max-w-full">
-			<form {onsubmit} class="layout-y">
+			<form {onsubmit} class="layout-y-stretch">
 				<input type="hidden" name="type" value="schedulerNew{mode}" />
 				{#if row}
 					<input type="hidden" name="exname" value={name} />
@@ -270,19 +269,20 @@
 						{/if}
 					{/if}
 				</div>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x justify-end">
 					<Button
 						label="Save"
 						icon={jobTypes[mode].icon}
-						class="basic-button"
+						class="!w-fit basic-button"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
 					/>
 					<Button
 						label="Cancel"
+						type="button"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button"
+						class="!w-fit cancel-button"
 						onclick={close}
 					/>
 				</div>
@@ -290,6 +290,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <ModalDynamic bind:this={nextCron}>
 	{#snippet children({
 		close,
@@ -315,6 +316,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <div class="layout-y-stretch">
 	{#each cards as { title, range, next, data, size = "4" }}
 		<Card {title}>
@@ -329,6 +331,7 @@
 							cls: 'basic-button',
 							onclick: (event) => open({ event, mode })
 						}))}
+					disabled={!init}
 				/>
 			{/snippet}
 
@@ -351,7 +354,7 @@
 			>
 				{#snippet children({ row, def })}
 					{#if def.name == 'Actions'}
-						<div class="layout-x-low">
+						<fieldset class="layout-x-low" disabled={!init}>
 							<CheckState
 								name={row.name}
 								value={row.enabled}
@@ -364,6 +367,7 @@
 										type: `schedulerNew${row.type}`
 									});
 								}}
+								disabled={!init}
 							/>
 							<Button
 								class="basic-button"
@@ -387,7 +391,7 @@
 									}
 								}}
 							/>
-						</div>
+						</fieldset>
 					{:else if row.next?.length > 1}
 						<Button
 							label={`${row.next?.[0]} …`}

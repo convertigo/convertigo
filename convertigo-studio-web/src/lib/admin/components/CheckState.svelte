@@ -1,11 +1,12 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	/** @type {{name?: string, values?: any[], value: string, class?: string, onchange?: any, children?: import('svelte').Snippet}}*/
+	/** @type {{name?: string, values?: any[], value: string, class?: string, disabled?: boolean, onchange?: any, children?: import('svelte').Snippet}}*/
 	let {
 		name = '',
 		values = ['false', 'true'],
 		value = $bindable(values[0]),
 		class: classes = '',
+		disabled = false,
 		onchange,
 		children
 	} = $props();
@@ -30,6 +31,7 @@
 <Switch
 	{classes}
 	{name}
+	{disabled}
 	value={values[1]}
 	controlClasses="min-w-10"
 	thumbInactive="bg-white"

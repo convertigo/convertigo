@@ -13,7 +13,7 @@
 </script>
 
 <form onsubmit={configure}>
-	<fieldset disabled={loading} class="layout-y-stretch" class:animate-pulse={loading}>
+	<fieldset disabled={loading} class="layout-y-stretch">
 		<Card title="Cache Type">
 			{#snippet cornerOption()}
 				<ResponsiveButtons

@@ -22,7 +22,8 @@
 		importRoles,
 		exportRoles,
 		formatRoleName,
-		waiting
+		waiting,
+		init
 	} = $derived(Roles);
 
 	let modalYesNo = getContext('modalYesNo');
@@ -195,7 +196,7 @@
 					{/snippet}
 				</TableAutoCard>
 
-				<div class="layout-x max-sm:flex-wrap w-full">
+				<div class="layout-x max-sm:flex-wrap">
 					{@render roleCard({
 						roles: rowSelected.roles,
 						role: tpSelected == ' ' ? 'TEST_PLATFORM' : tpSelected
@@ -215,7 +216,7 @@
 					/>
 				</div>
 
-				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
+				<fieldset class="layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
 						class="!w-fit  basic-button"
@@ -235,6 +236,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalImport}>
 	<Card title="Drop or choose a .json file and Import">
 		<form
@@ -312,6 +314,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 <Card title="Roles">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
@@ -388,6 +391,7 @@
 					}
 				}
 			]}
+			disabled={!init}
 			size="4"
 		/>
 	{/snippet}
@@ -395,13 +399,13 @@
 		definition={[
 			{ name: 'Actions', custom: true },
 			{ name: 'User', key: 'name', class: 'font-medium' },
-			{ name: 'Roles', custom: true }
+			{ name: 'Roles', custom: true, class: 'w-full' }
 		]}
 		data={users}
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
-				<div class="layout-x-low">
+				<fieldset class="layout-x-low" disabled={!init}>
 					{#if exporting}
 						<PropertyType
 							values={[false, true]}
@@ -432,7 +436,7 @@
 							}}
 						/>
 					{/if}
-				</div>
+				</fieldset>
 			{:else}
 				<div class="layout-x-low flex-wrap text-xs">
 					{#each row.roles as role}

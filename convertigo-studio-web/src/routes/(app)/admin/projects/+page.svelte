@@ -22,7 +22,8 @@
 		exportOptions,
 		undefinedSymbols,
 		createSymbols,
-		waiting
+		waiting,
+		init
 	} = $derived(Projects);
 	let exportChoices = $state({});
 
@@ -70,6 +71,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalDeployUpload}>
 	<Card title="Drop or choose a .car/.zip file and Deploy">
 		<form
@@ -78,7 +80,7 @@
 				modalDeployUpload.close();
 			}}
 		>
-			<fieldset disabled={waiting}>
+			<fieldset disabled={waiting} class="layout-y-stretch">
 				<FileUpload
 					name="file"
 					accept={{ 'application/zip': ['.car', '.zip'] }}
@@ -98,7 +100,7 @@
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x justify-end">
 					<Button
 						label="Deploy"
 						icon="carbon:application"
@@ -117,6 +119,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalDeployURL}>
 	<Card title="Import from a Remote Project URL">
 		<form
@@ -125,14 +128,14 @@
 				modalDeployURL.close();
 			}}
 		>
-			<fieldset disabled={waiting} class="layout-y-start">
+			<fieldset disabled={waiting} class="layout-y-stretch">
 				<p>Import a project from url like:</p>
 				<p class="font-bold">
 					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<input name="url" type="text" class="input w-full" required />
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x justify-end">
 					<Button label="Import" icon="bytesize:import" type="submit" class="!w-fit basic-button" />
 					<Button
 						label="Cancel"
@@ -146,6 +149,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
+
 <ModalDynamic bind:this={modalSymbols} class="w-[800px]">
 	{#snippet children({ close, params: { symbols, project } })}
 		<Card title="Undefined Global Symbols" class="w-full">
@@ -172,6 +176,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
+
 <Card title="Projects">
 	{#snippet cornerOption()}
 		<ResponsiveButtons
@@ -192,6 +197,7 @@
 				}
 			]}
 			class="max-w-4xl"
+			disabled={!init}
 		/>
 	{/snippet}
 	<TableAutoCard
@@ -249,7 +255,8 @@
 						{
 							icon: 'file-icons:test-ruby',
 							cls: 'yellow-button',
-							href: `${base}/dashboard/${project}/backend/`
+							href: `${base}/dashboard/${project}/backend/`,
+							disabled: false
 						},
 						{
 							icon: 'mdi:warning-outline',
@@ -267,6 +274,7 @@
 					]}
 					size="4"
 					class="min-w-32 w-full"
+					disabled={!init}
 				/>
 			{/if}
 		{/snippet}

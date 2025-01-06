@@ -9,7 +9,7 @@
 <div class="ml-auto {cls}">
 	<fieldset class:layout-grid-low-5={onlyIcons} class:layout-grid-low-24={!onlyIcons} {disabled}>
 		{#each buttons as button}
-			<Button {...button} {size} icon={button.icon} />
+			<Button {disabled} {...button} {size} icon={button.icon} />
 		{/each}
 	</fieldset>
 </div>

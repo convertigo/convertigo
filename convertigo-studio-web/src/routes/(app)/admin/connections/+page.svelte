@@ -20,7 +20,8 @@
 		deleteSession,
 		connections,
 		deleteContext,
-		stop
+		stop,
+		init
 	} = $derived(Connections);
 
 	let data = $derived([
@@ -37,7 +38,6 @@
 		return stop;
 	});
 
-	let disabled = $derived(sessionsInUse == null);
 	let modalYesNo = getContext('modalYesNo');
 </script>
 
@@ -50,7 +50,6 @@
 						label: 'Delete all Sessions and Contexts',
 						icon: 'mingcute:delete-line',
 						cls: 'delete-button',
-						disabled,
 						onclick: async (event) => {
 							if (
 								await modalYesNo.open({
@@ -64,6 +63,7 @@
 						}
 					}
 				]}
+				disabled={!init}
 			/>
 		{/snippet}
 		<TableAutoCard
@@ -103,7 +103,6 @@
 							{
 								icon: 'lets-icons:search-light',
 								cls: 'basic-button',
-								disabled,
 								onclick: () => {
 									alert('TODO: filter in log viewer');
 								}
@@ -111,7 +110,6 @@
 							{
 								icon: 'mdi:filter',
 								cls: 'yellow-button',
-								disabled,
 								onclick: () => {
 									Connections.selectedSession = sessionID;
 								}
@@ -119,7 +117,6 @@
 							{
 								icon: 'mingcute:delete-line',
 								cls: 'delete-button',
-								disabled,
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -133,6 +130,7 @@
 								}
 							}
 						]}
+						disabled={!init}
 					/>
 					{#if isCurrentSession == 'true'}
 						<span class="current"></span>
@@ -140,7 +138,7 @@
 				{:else if def.name == 'FS'}
 					<Ico
 						icon="material-symbols-light:sync-outline"
-						class={disabled
+						class={!init
 							? 'animate-pulse'
 							: isFullSyncActive == 'true'
 								? 'text-green-500'
@@ -166,6 +164,7 @@
 							}
 						}
 					]}
+					disabled={!init}
 				/>
 			{/if}
 		{/snippet}
@@ -191,13 +190,11 @@
 							{
 								icon: 'lets-icons:search-light',
 								cls: 'basic-button',
-								disabled,
 								onclick: () => {}
 							},
 							{
 								icon: 'mingcute:delete-line',
 								cls: 'delete-button',
-								disabled,
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -211,6 +208,7 @@
 								}
 							}
 						]}
+						disabled={!init}
 					/>
 				{/if}
 			{/snippet}

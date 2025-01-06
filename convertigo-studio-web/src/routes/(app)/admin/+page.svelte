@@ -27,7 +27,8 @@
 		javaVendor,
 		javaVersion,
 		javaClassVersion,
-		browser
+		browser,
+		init
 	} = $derived(Status);
 
 	let {
@@ -149,14 +150,9 @@
 			]
 		}
 	]);
-	/**
-	 * @type {never[]}
-	 */
+
 	let categories = $derived(labels);
 
-	/**
-	 * @param {string} mode
-	 */
 	async function modal(event, mode) {
 		let data = $state();
 		if (mode == 'props') {
@@ -203,7 +199,7 @@
 		{#each tables as { title, buttons, data }}
 			<Card {title} class="statusTable">
 				{#snippet cornerOption()}
-					<ResponsiveButtons {buttons} />
+					<ResponsiveButtons {buttons} disabled={!init} />
 				{/snippet}
 				<TableAutoCard
 					showHeaders={false}
