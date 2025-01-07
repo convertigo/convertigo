@@ -80,6 +80,8 @@
 	import MdiGithub from '~icons/mdi/github?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
 	import MdiLanguageJava from '~icons/mdi/language-java?raw';
+	import MdiLock from '~icons/mdi/lock?raw';
+	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant?raw';
 	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars?raw';
@@ -188,6 +190,8 @@
 		'mdi:github': MdiGithub,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:language-java': MdiLanguageJava,
+		'mdi:lock': MdiLock,
+		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:magnify': MdiMagnigy,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:moon-and-stars': MdiMoonAndStars,

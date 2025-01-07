@@ -22,6 +22,7 @@
 		originalValue,
 		loading = false,
 		placeholder = 'Enter value …',
+		fit = false,
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
@@ -55,7 +56,7 @@
 	}
 </script>
 
-<div class="layout-y-low sm:layout-x-low w-full">
+<div class="layout-y-low sm:layout-x-low" class:w-fit={fit} class:w-full={!fit}>
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
 			<CheckState {name} {...rest} bind:value>{label}</CheckState>

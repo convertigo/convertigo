@@ -1,15 +1,15 @@
 <script>
 	import { page } from '$app/state';
-	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { call, copyObj, getQuery, getUrl } from '$lib/utils/service';
+	import { call, getQuery, getUrl } from '$lib/utils/service';
 	import Ico from '$lib/utils/Ico.svelte';
 	import QrCode from '$lib/common/components/QrCode.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
 
-	let app;
+	let app = $state();
 
 	let data = $state([
 		{ Name: 'Mobile Project Name', Attr: 'mobileProjectName' },
@@ -29,30 +29,30 @@
 
 	let platforms = $state([]);
 
+	let project = $state(TestPlatform(page.params.project));
+
 	$effect(() => {
-		const projectName = page.params.project;
-		checkTestPlatform(projectName).then(() => {
-			app = Object.values($testPlatformStore[projectName].mobileapplication)[0];
-			for (let i = 0; i < data.length; i++) {
-				data[i].Value = app[data[i].Attr];
-			}
-			for (let platform of Object.values(app.mobileplatform)) {
-				platform.data = copyObj(dataPlatform);
-				for (let i = 0; i < dataPlatform.length; i++) {
-					platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
-				}
-				platforms.push(platform);
-				call('mobiles.GetLocalRevision', {
-					project: projectName,
-					platform: platform.name
-				}).then((res) => {
-					platform.data[2].Value = res.admin?.revision;
-					platforms = platforms;
-				});
-				getBuildStatus(platform);
-			}
-			platforms = platforms;
-		});
+		if (!project.mobileapplication) return;
+		app = project.mobileapplication;
+		for (let i = 0; i < data.length; i++) {
+			data[i].Value = app[data[i].Attr];
+		}
+		// for (let platform of app.mobileplatform) {
+		// 	platform.data = copyObj(dataPlatform);
+		// 	for (let i = 0; i < dataPlatform.length; i++) {
+		// 		platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
+		// 	}
+		// 	platforms.push(platform);
+		// 	call('mobiles.GetLocalRevision', {
+		// 		project: project.name,
+		// 		platform: platform.name
+		// 	}).then((res) => {
+		// 		platform.data[2].Value = res.admin?.revision;
+		// 		platforms = platforms;
+		// 	});
+		// 	getBuildStatus(platform);
+		// }
+		// platforms = platforms;
 	});
 
 	async function getBuildStatus(platform) {

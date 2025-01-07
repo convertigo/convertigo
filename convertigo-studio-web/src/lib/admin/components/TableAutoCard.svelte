@@ -51,7 +51,7 @@
 			<thead>
 				<tr>
 					{#each definition as def}
-						<th>
+						<th class={def.th}>
 							{#if def.icon}
 								<Icon icon={def.icon} class="h-7 w-7" />
 							{:else}

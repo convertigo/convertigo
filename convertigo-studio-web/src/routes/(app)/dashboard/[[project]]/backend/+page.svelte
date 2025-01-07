@@ -1,9 +1,7 @@
 <script>
 	import { page } from '$app/state';
 	import Table from '$lib/dashboard/components/Table.svelte';
-	import { checkTestPlatform, testPlatformStore } from '$lib/common/stores/testPlatform';
 	import { decode } from 'html-entities';
-	import { onMount } from 'svelte';
 	import { marked } from 'marked';
 	import { Switch, Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -13,20 +11,35 @@
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
+	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 
-	let project = $state();
-	let _parts = $state([]);
+	let project = $state(TestPlatform(page.params.project));
 	let searchQuery = $state('');
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
 	let mode = $state(modes[0]);
 
-	const bgColors = [
-		'bg-pale-violet border-[1px] border-pale-violet',
-		'bg-pale-blue border-[1px] border-pale-blue',
-		'bg-pale-green border-[1px] border-pale-green',
-		'bg-pale-pink border-[1px] border-pale-pink'
-	];
+	const accessibilities = $state({
+		Private: {
+			bg: 'preset-filled-success-200-800',
+			icon: 'mdi:lock',
+			enabled: true
+		},
+		Hidden: {
+			bg: 'preset-filled-warning-200-800',
+			icon: 'mdi:eye-off',
+			enabled: true
+		},
+		Public: {
+			bg: 'preset-filled-error-200-800',
+			icon: 'mdi:lock-open-variant',
+			enabled: true
+		}
+	});
 
 	/**
 	 * @param {string} markdown
@@ -36,63 +49,48 @@
 		return marked(cleanedMarkdown);
 	}
 
-	$effect(() => {
-		const projectName = page.params.project;
-		checkTestPlatform(projectName).then(() => {
-			project = $testPlatformStore[projectName];
-			_parts = [{ name: 'Sequences', requestables: Object.values(project.sequence || {}) }];
-			for (let connector of Object.values(project.connector || {})) {
-				_parts.push({
-					name: connector.name,
-					requestables: Object.values(connector.transaction || {})
-				});
-			}
-			_parts = _parts.filter((part) => part.requestables.length > 0);
-		});
-	});
-
 	async function run(requestable, event) {
 		event.preventDefault();
 		if (event.submitter.textContent == 'Clear') {
 			requestable.response = '';
-			_parts = _parts;
 			return;
 		}
 		requestable.loading = true;
 		requestable.response = 'Loading …';
-		_parts = _parts;
-		const data = await callRequestable(mode, project.name, new FormData(event.target));
+		const fd = new FormData(event.target);
+		for (const variable of requestable.variable) {
+			if (variable.send == 'false') {
+				fd.delete(variable.name);
+			}
+		}
+		const data = await callRequestable(mode, project.name, fd);
 		requestable.response = await data.text();
 		requestable.language = data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml';
 		requestable.loading = false;
-		_parts = _parts;
 	}
 
-	/**
-	 * @param {{ variables: { [s: string]: any; } | ArrayLike<any>; }} testcase
-	 */
-	function copyToInputs(testcase) {
-		Object.values(testcase.variables).forEach(({ name, value }) => {
-			const inputElement = document.querySelector(`input[name="${name}"]`);
-			if (inputElement) {
-				//@ts-ignore
-				inputElement.value = value;
-			}
-		});
-	}
-	let columns = ['Name', 'Value'];
-
-	let parts = $derived(
-		_parts
+	let parts = $derived.by(() => {
+		const parts = [
+			{ name: 'Sequences', requestables: project.sequence, comment: 'high level requestables' }
+		];
+		for (let connector of project.connector) {
+			parts.push({
+				name: connector.name,
+				comment: connector.comment,
+				requestables: connector.transaction
+			});
+		}
+		return parts
 			.map((part) => ({
 				...part,
-				requestables: part.requestables.filter(({ name }) =>
-					name?.toLowerCase().includes(searchQuery.toLowerCase())
+				requestables: part.requestables.filter(
+					({ accessibility, name }) =>
+						accessibilities[accessibility].enabled &&
+						name?.toLowerCase().includes(searchQuery.toLowerCase())
 				)
 			}))
-			.filter((part) => part.requestables.length > 0)
-	);
-
+			.filter((part) => part.requestables.length > 0);
+	});
 	const [duration, y, opacity] = [200, -50, 1];
 </script>
 
@@ -103,37 +101,62 @@
 		>
 			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
+			<span class="layout-x-none !gap-[1px] pr-[1px]">
+				{#each Object.values(accessibilities) as accessibility}
+					<button
+						class="btn rounded-none p-1 {accessibility.bg}"
+						class:opacity-50={!accessibility.enabled}
+						onclick={() => {
+							accessibility.enabled = !accessibility.enabled;
+						}}
+					>
+						<Ico icon={accessibility.icon} size="nav" />
+					</button>
+				{/each}
+			</span>
 		</div>
 	{/snippet}
 	<AutoPlaceholder loading={!project}>
 		{@html convertMarkdownToHtml(project.comment)}
 	</AutoPlaceholder>
-	{#each parts as part, index (part.name)}
-		{@const { name, requestables } = part}
-		<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
-			<Accordion collapsible value={['n0']}>
-				<Accordion.Item value="n{index}">
+
+	<Accordion multiple classes="-mx" width="" value={['n0']}>
+		{#each parts as part, index (part.name)}
+			{@const { name, requestables, comment } = part}
+			<div>
+				<!-- <div animate:flip={{ duration }} transition:fly={{ duration, y }}> -->
+				<Accordion.Item value="n{index}" controlPadding="py-1 px-2" panelPadding="p-1">
 					<!-- <Accordion.Item open={index == 0 || searchQuery.length > 0}> -->
 					{#snippet control()}
-						<p class="text-lg font-semibold pb-2 border-b-[0.5px]">{name}</p>
+						<div class="border-b-[0.5px] layout-x justify-between">
+							<span class="text-lg font-semibold">{name}</span><span class="text-xs truncate"
+								>{comment}</span
+							>
+						</div>
 					{/snippet}
 					{#snippet panel()}
-						{#each requestables as requestable, index (requestable.name)}
-							{@const { name, comment } = requestable}
-							<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
-								<Accordion
-									collapsible
-									padding="p-low"
-									classes="rounded bg-opacity-20 {bgColors[index % bgColors.length]}"
-								>
-									<Accordion.Item value="ok">
+						<Accordion multiple>
+							{#each requestables as requestable, index (requestable.name)}
+								{@const { name, accessibility, comment } = requestable}
+								<!-- <div animate:flip={{ duration }} transition:fly={{ duration, y }}> -->
+								<div animate:flip={{ duration }}>
+									<Accordion.Item
+										value={`${index}`}
+										classes="rounded {accessibilities[accessibility].bg}"
+										controlPadding="py-1 px-2"
+										panelPadding="p-1"
+									>
 										<!-- <Accordion.Item
 											ontoggle={(e) => (requestable.open = e.detail?.open)}
 											open={requestable.open}
 										> -->
 										{#snippet control()}
-											<div class="flex items-center justify-between relative">
-												<span class="text-[14px] text font-bold">{name}</span>
+											<div class="layout-x justify-between">
+												<div class="layout-x">
+													<Ico icon={accessibilities[accessibility].icon} /><span
+														class="text-[14px] text font-bold">{name}</span
+													>
+												</div>
 												{#if !requestable.open}
 													<span
 														transition:fly={{ duration, y: 20 }}
@@ -148,118 +171,39 @@
 												onsubmit={async (e) => {
 													run(requestable, e);
 												}}
-												class="flex flex-col gap-3"
+												class="layout-y-stretch-low preset-filled-surface-100-900"
 											>
 												{#if part.name == 'Sequences'}
 													<input type="hidden" name="__sequence" value={name} />
-													<a href={name} class="yellow-button">View flow</a>
 												{:else}
 													<input type="hidden" name="__connector" value={name} />
 													<input type="hidden" name="__transaction" value={name} />
 												{/if}
-												<span>{comment}</span>
-												<div class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800">
-													<p>Parameters</p>
-												</div>
-												<div class="grid grid-cols-2 p-5 gap-10">
-													<div class="col-span-1">
-														{#each Object.values(requestable.variable ?? {}) as variable}
-															{@const { checked, name, required, value } = variable}
-															<label class="label-common">
-																<p class="font-semibold mb-2">{name}</p>
-																<div class="flex items-center gap-3">
-																	{#if checked}
-																		<input
-																			class="input-common"
-																			{required}
-																			{name}
-																			{value}
-																			in:blur={{ duration, opacity }}
-																		/>
-																	{:else}
-																		<input
-																			class="input-common"
-																			style="color: grey;"
-																			{value}
-																			readonly={true}
-																			in:blur={{ duration, opacity }}
-																			onclick={() => {
-																				variable.checked = true;
-																			}}
-																		/>
-																	{/if}
-																	<Switch
-																		controlActive="activeSlideToggle"
-																		controlInactive="unActiveSlideToggle"
-																		name=""
-																		{checked}
-																	/>
-																	<!-- <Switch
-																			controlActive="activeSlideToggle"
-																			controlInactive="unActiveSlideToggle"
-																			size="sm"
-																			name=""
-																			{checked}
-																			onchange={() => {
-																				variable.checked = !checked;
-																			}}
-																		/> -->
-																</div>
-															</label>
-														{/each}
-													</div>
-													<div class="col-span-1">
-														{#if requestable.testcases && Object.keys(requestable.testcases).length > 0}
-															{#each Object.values(requestable.testcases) as testcase}
-																<p class="font-semibold mb-4">{testcase.name}</p>
-
-																{#if testcase.variables && Object.keys(testcase.variables).length > 0}
-																	{@const data = Object.values(testcase.variables).map(
-																		({ name, value }) => [name, convertMarkdownToHtml(value)]
-																	)}
-																	<div class="table-container flex flex-col mb-5">
-																		<Table {columns} {data} />
-																		<button
-																			class="basic-button mt-5"
-																			onclick={() => copyToInputs(testcase)}>Copy</button
-																		>
-																	</div>
-																{:else}
-																	<p>No variables available in this testcase</p>
-																{/if}
-															{/each}
-														{:else}
-															<p>No test cases available in this sequence</p>
-														{/if}
-													</div>
-												</div>
-												<div class="flex flex-row gap-5">
-													<button class="basic-button flex-1">Execute</button>
+												{#if comment.length}
+													<p class="p">{comment}</p>
+												{/if}
+												<!-- {JSON.stringify(requestable.variable)} -->
+												{#if requestable.variable?.length > 0}
+													<RequestableVariables {requestable} />
+												{/if}
+												<div class="layout-y md:layout-x m-low">
+													<PropertyType
+														type="segment"
+														bind:value={mode}
+														item={modes}
+														border="p-0"
+														fit={true}
+													/>
+													<Button label="Execute" class="basic-button" />
+													{#if part.name == 'Sequences'}
+														<Button label="View flow" class="yellow-button max-w-24" href={name} />
+													{/if}
 													{#if requestable.response?.length > 0}
-														<button class="cancel-button flex-1" in:fly={{ duration, x: -50 }}
-															>Clear</button
-														>
+														<Button label="Clear" class="cancel-button" />
 													{/if}
 												</div>
-												<div
-													class="p-3 font-semiBold bg-surface-100 dark:bg-surface-800 flex items-center justify-between"
-												>
-													<strong>Response</strong>
-													<span
-														>Response type&nbsp;
-														<select class="select w-fit" bind:value={mode}>
-															{#each modes as mode}
-																<option>{mode}</option>
-															{/each}
-														</select></span
-													>
-												</div>
-												{#if 'loading' in requestable}
-													<div
-														class="h-[480px]"
-														class:animate-pulse={requestable.loading}
-														transition:fly={{ duration, y: -100 }}
-													>
+												{#if requestable.response?.length > 0}
+													<div class="h-[480px]" class:animate-pulse={requestable.loading}>
 														<Editor
 															content={requestable.response}
 															language={requestable.language}
@@ -270,14 +214,14 @@
 											</form>
 										{/snippet}
 									</Accordion.Item>
-								</Accordion>
-							</div>
-						{/each}
+								</div>
+							{/each}
+						</Accordion>
 					{/snippet}
 				</Accordion.Item>
-			</Accordion>
-		</div>
-	{/each}
+			</div>
+		{/each}
+	</Accordion>
 </Card>
 
 <style lang="postcss">
