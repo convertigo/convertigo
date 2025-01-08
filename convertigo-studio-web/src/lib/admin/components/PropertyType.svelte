@@ -83,10 +83,11 @@
 				{#if type == 'segment'}
 					<Segment
 						{...rest}
-						{name}
+						name={name ?? []}
 						bind:value
 						indicatorBg="preset-filled-primary-500"
 						indicatorText="text-white"
+						border="p-0"
 					>
 						{#each item as option}
 							{@const val = option.value ?? option}
@@ -140,10 +141,8 @@
 			{#each restores as { icon, val, title }}
 				<button
 					disabled={value == val}
-					onclick={(e) => {
-						e.preventDefault();
-						value = val;
-					}}
+					type="button"
+					onclick={() => (value = val)}
 					title="{title}:{val}"
 					class="btn btn-sm bg-surface-200-800"
 				>

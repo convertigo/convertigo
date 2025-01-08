@@ -77,7 +77,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalCertInstall.close}
 					/>
@@ -113,7 +112,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalCertRemove.close}
 					/>

@@ -52,6 +52,6 @@
 			<p class="preset-filled-error p-low rounded">{error}</p>
 		{/if}
 
-		<Button label="Enter" class="basic-button" />
+		<Button label="Enter" class="basic-button" type="submit" />
 	</form>
 </div>

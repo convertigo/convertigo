@@ -65,15 +65,15 @@
 	});
 </script>
 
-{#snippet roleCard({ roles, role })}
+{#snippet roleCard({ roles, role, cls = '' })}
 	{#if role.startsWith('TEST_PLATFORM')}
-		{@render tpCard({ roles, role })}
+		{@render tpCard({ roles, role, cls })}
 	{:else}
-		{@render catCard({ roles, role })}
+		{@render catCard({ roles, role, cls })}
 	{/if}
 {/snippet}
 
-{#snippet catCard({ roles, role })}
+{#snippet catCard({ roles, role, cls })}
 	{@const isView = role.endsWith('_VIEW')}
 	{@const isConfig = role.endsWith('_CONFIG')}
 	{@const n = role.replace('_VIEW', '').replace('_CONFIG', '')}
@@ -86,7 +86,7 @@
 
 	{#if draw}
 		<div
-			class="mini-card text-xs"
+			class="mini-card text-xs {cls}"
 			class:preset-filled-success-500={hasView && hasConfig}
 			class:preset-filled-primary-500={hasView && !hasConfig}
 			class:preset-filled-warning-500={!hasView && hasConfig}
@@ -100,7 +100,7 @@
 	{/if}
 {/snippet}
 
-{#snippet tpCard({ roles, role })}
+{#snippet tpCard({ roles, role, cls })}
 	{@const isTp = role == 'TEST_PLATFORM'}
 	{@const isTpHidden = role == 'TEST_PLATFORM_HIDDEN'}
 	{@const isTpPrivate = role == 'TEST_PLATFORM_PRIVATE'}
@@ -112,7 +112,7 @@
 
 	{#if draw}
 		<div
-			class="mini-card text-xs"
+			class="mini-card text-xs {cls}"
 			class:preset-filled-warning-500={hasTp && !hasTpHidden}
 			class:preset-filled-primary-500={hasTpHidden && !hasTpPrivate}
 			class:preset-filled-success-500={hasTpPrivate}
@@ -161,7 +161,7 @@
 								{#if role == 'All'}
 									<strong>For all roles</strong>
 								{:else}
-									{@render roleCard({ roles: rowSelected.roles, role })}
+									{@render roleCard({ roles: rowSelected.roles, role, cls: 'min-w-40' })}
 								{/if}
 							</div>
 						{:else if role == 'All'}
@@ -225,7 +225,6 @@
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
-						type="button"
 						onclick={close}
 						class="!w-fit cancel-button"
 						icon="material-symbols-light:cancel-outline"
@@ -305,7 +304,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalImport.close}
 					/>

@@ -272,6 +272,7 @@
 				<div class="layout-x justify-end">
 					<Button
 						label="Save"
+						type="submit"
 						icon={jobTypes[mode].icon}
 						class="!w-fit basic-button"
 						disabled={!rowSelected.name ||
@@ -280,7 +281,6 @@
 					/>
 					<Button
 						label="Cancel"
-						type="button"
 						icon="material-symbols-light:cancel-outline"
 						class="!w-fit cancel-button"
 						onclick={close}

@@ -1,21 +1,21 @@
 <script>
 	import { page } from '$app/state';
-	import Table from '$lib/dashboard/components/Table.svelte';
 	import { decode } from 'html-entities';
 	import { marked } from 'marked';
-	import { Switch, Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { blur, fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import { callRequestable } from '$lib/utils/service';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 
 	let project = $state(TestPlatform(page.params.project));
 	let searchQuery = $state('');
@@ -25,17 +25,17 @@
 
 	const accessibilities = $state({
 		Private: {
-			bg: 'preset-filled-success-200-800',
+			bg: '!bg-success-200 dark:!bg-success-600',
 			icon: 'mdi:lock',
 			enabled: true
 		},
 		Hidden: {
-			bg: 'preset-filled-warning-200-800',
+			bg: '!bg-warning-200 dark:!bg-warning-600',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
 		Public: {
-			bg: 'preset-filled-error-200-800',
+			bg: '!bg-error-200 dark:!bg-error-600',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}
@@ -50,7 +50,8 @@
 	}
 
 	async function run(requestable, event) {
-		event.preventDefault();
+		event.preventDefault?.();
+
 		if (event.submitter.textContent == 'Clear') {
 			requestable.response = '';
 			return;
@@ -58,9 +59,18 @@
 		requestable.loading = true;
 		requestable.response = 'Loading …';
 		const fd = new FormData(event.target);
-		for (const variable of requestable.variable) {
-			if (variable.send == 'false') {
-				fd.delete(variable.name);
+		if (event.submitter.value) {
+			fd.append('__testcase', event.submitter.value);
+			for (const key of [...fd.keys()]) {
+				if (!key.startsWith('__')) {
+					fd.delete(key);
+				}
+			}
+		} else {
+			for (const variable of requestable.variable) {
+				if (variable.send == 'false') {
+					fd.delete(variable.name);
+				}
 			}
 		}
 		const data = await callRequestable(mode, project.name, fd);
@@ -171,37 +181,82 @@
 												onsubmit={async (e) => {
 													run(requestable, e);
 												}}
-												class="layout-y-stretch-low preset-filled-surface-100-900"
+												class="layout-y-stretch-low"
 											>
 												{#if part.name == 'Sequences'}
 													<input type="hidden" name="__sequence" value={name} />
 												{:else}
-													<input type="hidden" name="__connector" value={name} />
+													<input type="hidden" name="__connector" value={part.name} />
 													<input type="hidden" name="__transaction" value={name} />
 												{/if}
 												{#if comment.length}
 													<p class="p">{comment}</p>
 												{/if}
-												<!-- {JSON.stringify(requestable.variable)} -->
 												{#if requestable.variable?.length > 0}
 													<RequestableVariables {requestable} />
 												{/if}
-												<div class="layout-y md:layout-x m-low">
-													<PropertyType
-														type="segment"
-														bind:value={mode}
-														item={modes}
-														border="p-0"
-														fit={true}
-													/>
-													<Button label="Execute" class="basic-button" />
+												{#if requestable.testcase.length > 0}
+													<Accordion collapsible>
+														<Accordion.Item
+															value={`${index}`}
+															classes={accessibilities[accessibility].bg}
+															controlPadding="py-1 px-2"
+															panelPadding="px-0"
+														>
+															{#snippet control()}
+																<div>
+																	{requestable.testcase.length} Test Case{requestable.testcase
+																		.length > 1
+																		? 's'
+																		: ''} available
+																</div>
+															{/snippet}
+															{#snippet panel()}
+																<div class="layout-y-stretch-low">
+																	{#each requestable.testcase as testcase}
+																		<Card title={testcase.name}>
+																			{#snippet cornerOption()}
+																				<ResponsiveButtons
+																					buttons={[
+																						{
+																							label: 'Execute',
+																							type: 'submit',
+																							value: testcase.name,
+																							class: 'basic-button'
+																						},
+																						{
+																							label: 'Edit',
+																							class: 'yellow-button',
+																							onclick: () => {}
+																						}
+																					]}
+																				/>
+																			{/snippet}
+																			<TableAutoCard
+																				showHeaders={false}
+																				definition={[
+																					{ key: 'name', class: 'font-bold' },
+																					{ key: 'value' }
+																				]}
+																				data={testcase.variable}
+																			/>
+																		</Card>
+																	{/each}
+																</div>
+															{/snippet}
+														</Accordion.Item>
+													</Accordion>
+												{/if}
+												<Card class="layout-y md:layout-x !p-low">
+													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
+													<Button label="Execute" type="submit" class="basic-button" />
 													{#if part.name == 'Sequences'}
 														<Button label="View flow" class="yellow-button max-w-24" href={name} />
 													{/if}
 													{#if requestable.response?.length > 0}
-														<Button label="Clear" class="cancel-button" />
+														<Button label="Clear" type="submit" class="cancel-button" />
 													{/if}
-												</div>
+												</Card>
 												{#if requestable.response?.length > 0}
 													<div class="h-[480px]" class:animate-pulse={requestable.loading}>
 														<Editor

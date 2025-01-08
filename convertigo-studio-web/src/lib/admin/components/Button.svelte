@@ -1,7 +1,7 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 
-	/** @type {{ label?: string, icon?: string, size?: string, cls?: string, class?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string } | any} */
+	/** @type {{ label?: string, icon?: string, size?: string, cls?: string, class?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, type?: string } | any} */
 	let {
 		label,
 		icon,
@@ -12,6 +12,7 @@
 		value,
 		hidden,
 		href,
+		type = 'button',
 		...rest
 	} = $props();
 	cls ??= _cls;
@@ -23,7 +24,7 @@
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</a
 		>
 	{:else}
-		<button {disabled} class="{cls} text-wrap min-h-fit w-full h-full" {value} {...rest}>
+		<button {disabled} class="{cls} text-wrap min-h-fit w-full h-full" {type} {value} {...rest}>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</button
 		>
 	{/if}

@@ -80,7 +80,6 @@
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
-						type="button"
 						onclick={close}
 						class="!w-fit cancel-button"
 						icon="material-symbols-light:cancel-outline"
@@ -121,7 +120,7 @@
 						/>{/snippet}
 				</FileUpload>
 				<div>
-					Import policy:
+					Import policy
 					<PropertyType
 						type="segment"
 						name="action-import"
@@ -135,7 +134,7 @@
 				</div>
 				{#if actionImport == 'on'}
 					<div transition:slide>
-						In case of name conflict, priority:
+						In case of name conflict, priority
 						<PropertyType
 							type="segment"
 							name="priority"
@@ -160,7 +159,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalImport.close}
 					/>
@@ -222,7 +220,7 @@
 				{
 					label: `Export [${fsymbols.filter((user) => user.export).length}]`,
 					icon: 'bytesize:export',
-					cls: 'green-button',
+					cls: 'basic-button',
 					hidden: !exporting,
 					disabled: fsymbols.every((user) => !user.export),
 					onclick: exportSymbols

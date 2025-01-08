@@ -1,6 +1,18 @@
 import { checkArray } from '$lib/utils/service';
-import { check } from 'prettier';
 import ServiceHelper from './ServiceHelper.svelte';
+
+function checkRequestables(parent, key) {
+	parent[key] = checkArray(parent[key]);
+	for (const requestable of parent[key]) {
+		requestable.variable = checkArray(requestable.variable);
+		for (const variable of requestable.variable) {
+			variable.send = false;
+		}
+		if (key != 'testcase') {
+			checkRequestables(requestable, 'testcase');
+		}
+	}
+}
 
 const defValues = {
 	name: null,
@@ -45,21 +57,9 @@ export default function (projectName) {
 			beforeUpdate: (res) => {
 				res.connector = checkArray(res.connector);
 				for (const connector of res.connector) {
-					connector.transaction = checkArray(connector.transaction);
-					for (const transaction of connector.transaction) {
-						transaction.variable = checkArray(transaction.variable);
-						for (const variable of transaction.variable) {
-							variable.send = false;
-						}
-					}
+					checkRequestables(connector, 'transaction');
 				}
-				res.sequence = checkArray(res.sequence);
-				for (const sequence of res.sequence) {
-					sequence.variable = checkArray(sequence.variable);
-					for (const variable of sequence.variable) {
-						variable.send = false;
-					}
-				}
+				checkRequestables(res, 'sequence');
 				if (res.mobileapplication) {
 					res.mobileapplication.mobileplatform = checkArray(res.mobileapplication.mobileplatform);
 				}

@@ -40,17 +40,20 @@
 					{loading}
 					defaultValue={confDefault?.cacheType}
 					originalValue={confOriginal?.cacheType}
+					fit={true}
 				/>
 				<ResponsiveButtons
 					class="grow h-full"
 					buttons={[
 						{
 							label: 'Apply',
+							type: 'submit',
 							icon: 'solar:mask-happly-line-duotone',
 							cls: 'green-button'
 						},
 						{
 							label: 'Create Table and Apply',
+							type: 'submit',
 							icon: 'lets-icons:table-light',
 							cls: 'basic-button',
 							hidden: !conf?.cacheType.endsWith('DatabaseCacheManager')

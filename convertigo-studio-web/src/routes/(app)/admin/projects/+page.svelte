@@ -110,7 +110,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalDeployUpload.close}
 					/>
@@ -140,7 +139,6 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						type="button"
 						class="!w-fit cancel-button"
 						onclick={modalDeployURL.close}
 					/>

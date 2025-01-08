@@ -21,12 +21,10 @@ let values = {
 	get hasChanged() {
 		return hasChanged;
 	},
-	async clear(event) {
-		event?.preventDefault();
+	async clear() {
 		return await call('cache.Clear');
 	},
-	cancel(event) {
-		event?.preventDefault();
+	cancel() {
 		values.conf = { ...values.confOriginal };
 	},
 	async configure(event) {
