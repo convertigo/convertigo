@@ -209,7 +209,7 @@ if [ "$1" = "convertigo" ]; then
     
     
     if [ $(id -u) = "0" ]; then
-        exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
+        exec sudo -u convertigo $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run
     fi
