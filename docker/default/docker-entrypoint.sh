@@ -192,7 +192,7 @@ if [ "$1" = "convertigo" ]; then
     
     
     if [ $(id -u) = "0" ]; then
-        exec sudo -u convertigo $CATALINA_HOME/bin/catalina.sh run
+        exec sudo -n -E -u convertigo $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run
     fi
