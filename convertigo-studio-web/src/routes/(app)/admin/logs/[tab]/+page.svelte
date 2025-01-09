@@ -231,9 +231,9 @@
 		>
 			{#snippet content()}
 				{#if tabs[tabSet].viewer}
-					<div class="h-full layout-y-start-low" transition:slide={{ axis: 'y' }}>
+					<div class="h-full layout-y-stretch-low" transition:slide={{ axis: 'y' }}>
 						{#if tabSet == 'view'}
-							<div class="w-full" transition:slide={{ axis: 'y' }}>
+							<div transition:slide={{ axis: 'y' }}>
 								<DatePicker
 									bind:isOpen
 									alwaysShow={false}
@@ -292,7 +292,7 @@
 								</DatePicker>
 							</div>
 						{/if}
-						<div class="grow -mx -mb">
+						<div class="h-full -mx -mb">
 							<LogViewer autoScroll={tabSet == 'realtime'} />
 						</div>
 					</div>

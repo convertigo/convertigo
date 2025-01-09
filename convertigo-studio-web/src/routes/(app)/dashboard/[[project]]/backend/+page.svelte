@@ -79,18 +79,19 @@
 		requestable.loading = false;
 	}
 
-	let parts = $derived.by(() => {
-		const parts = [
+	let parts = $state([]);
+	$effect(() => {
+		const _parts = [
 			{ name: 'Sequences', requestables: project.sequence, comment: 'high level requestables' }
 		];
 		for (let connector of project.connector) {
-			parts.push({
+			_parts.push({
 				name: connector.name,
 				comment: connector.comment,
 				requestables: connector.transaction
 			});
 		}
-		return parts
+		parts = _parts
 			.map((part) => ({
 				...part,
 				requestables: part.requestables.filter(
@@ -130,13 +131,16 @@
 		{@html convertMarkdownToHtml(project.comment)}
 	</AutoPlaceholder>
 
-	<Accordion multiple classes="-mx" width="" value={['n0']}>
-		{#each parts as part, index (part.name)}
+	<Accordion
+		multiple
+		classes="-mx"
+		width=""
+		value={searchQuery.length ? parts.map(({ name }) => name) : ['Sequences']}
+	>
+		{#each parts as part, partIdx (part.name)}
 			{@const { name, requestables, comment } = part}
-			<div>
-				<!-- <div animate:flip={{ duration }} transition:fly={{ duration, y }}> -->
-				<Accordion.Item value="n{index}" controlPadding="py-1 px-2" panelPadding="p-1">
-					<!-- <Accordion.Item open={index == 0 || searchQuery.length > 0}> -->
+			<div transition:fly={{ duration, y }}>
+				<Accordion.Item value={part.name} controlPadding="py-1 px-2" panelPadding="p-1">
 					{#snippet control()}
 						<div class="border-b-[0.5px] layout-x justify-between">
 							<span class="text-lg font-semibold">{name}</span><span class="text-xs truncate"
@@ -146,20 +150,15 @@
 					{/snippet}
 					{#snippet panel()}
 						<Accordion multiple>
-							{#each requestables as requestable, index (requestable.name)}
+							{#each requestables as requestable, requestableIdx (requestable.name)}
 								{@const { name, accessibility, comment } = requestable}
-								<!-- <div animate:flip={{ duration }} transition:fly={{ duration, y }}> -->
-								<div animate:flip={{ duration }}>
+								<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 									<Accordion.Item
-										value={`${index}`}
+										value="{parts[partIdx]}.{name}"
 										classes="rounded {accessibilities[accessibility].bg}"
 										controlPadding="py-1 px-2"
 										panelPadding="p-1"
 									>
-										<!-- <Accordion.Item
-											ontoggle={(e) => (requestable.open = e.detail?.open)}
-											open={requestable.open}
-										> -->
 										{#snippet control()}
 											<div class="layout-x justify-between">
 												<div class="layout-x">
@@ -193,12 +192,14 @@
 													<p class="p">{comment}</p>
 												{/if}
 												{#if requestable.variable?.length > 0}
-													<RequestableVariables {requestable} />
+													<RequestableVariables
+														bind:requestable={parts[partIdx].requestables[requestableIdx]}
+													/>
 												{/if}
 												{#if requestable.testcase.length > 0}
 													<Accordion collapsible>
 														<Accordion.Item
-															value={`${index}`}
+															value={`${requestableIdx}`}
 															classes={accessibilities[accessibility].bg}
 															controlPadding="py-1 px-2"
 															panelPadding="px-0"
@@ -212,7 +213,7 @@
 																</div>
 															{/snippet}
 															{#snippet panel()}
-																<div class="layout-y-stretch-low">
+																<div class="layout-grid-low-60">
 																	{#each requestable.testcase as testcase}
 																		<Card title={testcase.name}>
 																			{#snippet cornerOption()}
@@ -227,7 +228,9 @@
 																						{
 																							label: 'Edit',
 																							class: 'yellow-button',
-																							onclick: () => {}
+																							onclick: () => {
+																								requestable.tc = { ...testcase };
+																							}
 																						}
 																					]}
 																				/>
@@ -258,7 +261,11 @@
 													{/if}
 												</Card>
 												{#if requestable.response?.length > 0}
-													<div class="h-[480px]" class:animate-pulse={requestable.loading}>
+													<div
+														class="h-[480px]"
+														class:animate-pulse={requestable.loading}
+														transition:fly={{ duration, y }}
+													>
 														<Editor
 															content={requestable.response}
 															language={requestable.language}
@@ -278,24 +285,3 @@
 		{/each}
 	</Accordion>
 </Card>
-
-<style lang="postcss">
-	:global(.accordion-summary) {
-		@apply overflow-hidden;
-	}
-	.sticky {
-		position: -webkit-sticky; /* For Safari */
-		position: sticky;
-		top: 40px;
-		height: calc(100vh - 40px); /* Adjust height to account for the top offset */
-		overflow-y: auto; /* Allow scrolling if content overflows */
-	}
-	.qr-code {
-		width: 200px; /* Adjust the size as needed */
-		height: 200px; /* Adjust the size as needed */
-	}
-
-	.marked-p-class {
-		color: aqua;
-	}
-</style>

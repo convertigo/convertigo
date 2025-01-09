@@ -223,7 +223,11 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
-		if (/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|\.Get.*)$/.exec(service)) {
+		if (
+			/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|ShowProperties|\.Get.*)$/.exec(
+				service
+			)
+		) {
 			return;
 		}
 

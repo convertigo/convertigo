@@ -9,14 +9,9 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 
-	let app = $state();
-
-	let data = $state([
-		{ Name: 'Mobile Project Name', Attr: 'mobileProjectName' },
-		{ Name: 'Endpoint', Attr: 'endpoint' },
-		{ Name: 'Application Id', Attr: 'applicationID' },
-		{ Name: 'Version', Attr: 'applicationVersion' }
-	]);
+	let project = $state(TestPlatform(page.params.project));
+	let app = $derived(project?.mobileapplication);
+	let platforms = $derived(app?.mobileplatform ?? []);
 
 	const dataPlatform = [
 		{ Name: 'Display Name', Attr: 'displayName' },
@@ -27,33 +22,24 @@
 		{ Name: 'Cordova Version' }
 	];
 
-	let platforms = $state([]);
-
-	let project = $state(TestPlatform(page.params.project));
-
-	$effect(() => {
-		if (!project.mobileapplication) return;
-		app = project.mobileapplication;
-		for (let i = 0; i < data.length; i++) {
-			data[i].Value = app[data[i].Attr];
-		}
-		// for (let platform of app.mobileplatform) {
-		// 	platform.data = copyObj(dataPlatform);
-		// 	for (let i = 0; i < dataPlatform.length; i++) {
-		// 		platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
-		// 	}
-		// 	platforms.push(platform);
-		// 	call('mobiles.GetLocalRevision', {
-		// 		project: project.name,
-		// 		platform: platform.name
-		// 	}).then((res) => {
-		// 		platform.data[2].Value = res.admin?.revision;
-		// 		platforms = platforms;
-		// 	});
-		// 	getBuildStatus(platform);
-		// }
-		// platforms = platforms;
-	});
+	// $effect(() => {
+	// for (let platform of app.mobileplatform) {
+	// 	platform.data = copyObj(dataPlatform);
+	// 	for (let i = 0; i < dataPlatform.length; i++) {
+	// 		platform.data[i].Value = platform[dataPlatform[i].Attr ?? 0];
+	// 	}
+	// 	platforms.push(platform);
+	// 	call('mobiles.GetLocalRevision', {
+	// 		project: project.name,
+	// 		platform: platform.name
+	// 	}).then((res) => {
+	// 		platform.data[2].Value = res.admin?.revision;
+	// 		platforms = platforms;
+	// 	});
+	// 	getBuildStatus(platform);
+	// }
+	// platforms = platforms;
+	// });
 
 	async function getBuildStatus(platform) {
 		const res = await call('mobiles.GetBuildStatus', {
@@ -67,7 +53,6 @@
 		if (platform.status == 'pending') {
 			setTimeout(() => getBuildStatus(platform), 2500);
 		}
-		platforms = platforms;
 	}
 
 	async function build(platform) {
@@ -83,58 +68,42 @@
 <Card>
 	<TableAutoCard
 		showHeaders={false}
-		definition={[
-			{ key: 'Name', custom: true },
-			{ key: 'Value', custom: true }
+		definition={[{ key: 'key', class: 'font-bold w-0 text-nowrap' }, { key: 'val' }]}
+		data={[
+			{ key: 'Mobile Project Name', val: app?.mobileProjectName },
+			{ key: 'Endpoint', val: app?.endpoint },
+			{ key: 'Application Id', val: app?.applicationID },
+			{ key: 'Version', val: app?.applicationVersion }
 		]}
-		{data}
-	>
-		{#snippet children({ row, def })}
-			{#if def.key === 'Name'}
-				<span class="font-normal">{row.Name}</span>
-			{:else}
-				<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
-			{/if}
-		{/snippet}
-	</TableAutoCard>
-</Card>
-
-<Card>
-	<Accordion>
+	/>
+	<Accordion value={[platforms[0]?.name ?? '']}>
 		{#each platforms as platform, i}
-			<!-- open={i == 0} -->
-			<Accordion.Item classes="preset-ghost-surface rounded" value="ok">
+			<Accordion.Item classes="preset-ghost-surface rounded" value={platform.name}>
 				{#snippet control()}{platform.displayName}
-					<AutoPlaceholder loading={!platform.status}
+					<!-- <AutoPlaceholder loading={!platform.status}
 						><span
 							class:text-success-500={platform.status}
 							class:text-error-500={platform.status != 'complete'}
 							class:text-warning-500={platform.status == 'pending'}
 							class:animate-pulse={platform.status == 'pending'}>⬤</span
-						></AutoPlaceholder
-					>{/snippet}
+						></AutoPlaceholder> -->
+				{/snippet}
 				{#snippet panel()}
-					<div class="flex flex-wrap justify-center gap-2">
+					<div class="layout-y-stretch">
 						<TableAutoCard
-							class="max-w-fit"
 							showHeaders={false}
-							definition={[
-								{ key: 'Name', custom: true },
-								{ key: 'Value', custom: true }
+							definition={[{ key: 'key', class: 'font-bold w-0 text-nowrap' }, { key: 'val' }]}
+							data={[
+								{ key: 'Comment', val: platform.comment },
+								{ key: 'Package Type', val: platform.packageType },
+								{ key: 'Version', val: platform.version },
+								{ key: 'Local Revision', val: platform.revision },
+								{ key: 'Built Revision', val: platform.built },
+								{ key: 'Built Application Version', val: platform.built },
+								{ key: 'Cordova Version', val: platform.cordova }
 							]}
-							data={platform.data}
-						>
-							{#snippet children({ row, def })}
-								{#if def.key === 'Name'}
-									<span class="font-normal">{row.Name}</span>
-								{:else}
-									<AutoPlaceholder loading={row[def.key] == null}
-										>{row[def.key] ?? ''}</AutoPlaceholder
-									>
-								{/if}
-							{/snippet}
-						</TableAutoCard>
-						{#if (platform.status ?? 'none') != 'none'}
+						/>
+						<!-- {#if (platform.status ?? 'none') != 'none'}
 							<Card class="flex min-w-48 justify-center">
 								{#if platform.status == 'complete'}
 									<QrCode
@@ -149,9 +118,9 @@
 									<div class="text-error">Error</div>
 								{/if}
 							</Card>
-						{/if}
+						{/if} -->
 					</div>
-					<div class="flex flex-wrap justify-center gap-2">
+					<!-- <div class="flex flex-wrap justify-center gap-2">
 						<button onclick={() => build(platform)} class="btn preset-filled-primary"
 							><span><Ico icon="mdi:briefcase-upload-outline" /></span><span
 								>Build Mobile Platform</span
@@ -165,7 +134,7 @@
 							><span><Ico icon="mdi:file-download-outline" /></span><span>Get Source Package</span
 							></a
 						>
-					</div>
+					</div> -->
 				{/snippet}
 			</Accordion.Item>
 		{/each}

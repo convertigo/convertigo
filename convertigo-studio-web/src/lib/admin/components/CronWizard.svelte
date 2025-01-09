@@ -96,12 +96,13 @@
 		}
 	];
 
-	let selection = $derived(
-		cronExpression
+	let selection = $state(Array(def.length).fill([]));
+	$effect(() => {
+		selection = cronExpression
 			.split(' ')
 			.slice(1, 6)
-			.map((v) => parseRange(v))
-	);
+			.map((v) => parseRange(v));
+	});
 </script>
 
 <div class="layout-x-low flex-wrap">
@@ -112,7 +113,7 @@
 				description={title}
 				size="8"
 				bind:value={selection[i]}
-				onchange={() => onchange(i)}
+				onchange={(e) => onchange(i)}
 				multiple
 				item={values.map((value, j) => ({ value, text: labels[j] }))}
 			/>

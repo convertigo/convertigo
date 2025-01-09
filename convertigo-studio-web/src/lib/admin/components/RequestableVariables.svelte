@@ -1,32 +1,50 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
+	import { untrack } from 'svelte';
 	import PropertyType from './PropertyType.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
+	import { flip } from 'svelte/animate';
+	import { fly } from 'svelte/transition';
 
 	let { requestable = $bindable() } = $props();
 	let multiples = $state({});
+	let testcase = $derived(
+		requestable.tc
+			? requestable.tc.variable.reduce((acc, val) => {
+					acc[val.name] = val.value;
+					return acc;
+				}, {})
+			: {}
+	);
 
-	function parse(row) {
+	function parse(row, key = 'value') {
 		try {
-			multiples[row.name] = JSON.parse(row.value);
+			multiples[row.name] = JSON.parse(row[key]).map((val) => ({ val }));
 		} catch (e) {
 			multiples[row.name] = [];
 		}
 	}
 
 	$effect(() => {
-		for (const row of requestable.variable) {
-			if (row.isMultivalued == 'true') {
-				parse(row);
+		multiples = {};
+		for (const variable of requestable.variable) {
+			if (variable.name in testcase) {
+				variable.val = testcase[variable.name];
+				variable.send = 'true';
+			} else {
+				variable.val = variable.value;
+			}
+			if (variable.isMultivalued == 'true') {
+				untrack(() => parse(variable, 'val'));
 			}
 		}
 	});
 </script>
 
-{#snippet property({ row, value, defaultValue = undefined })}
+{#snippet property({ row, obj, defaultValue = undefined })}
 	<PropertyType
 		type={row.isFileUpload == 'true' ? 'file' : row.isMasked == 'true' ? 'password' : 'text'}
-		{value}
+		bind:value={() => obj.val ?? '', (v) => (obj.val = v)}
 		{defaultValue}
 		name={row.name}
 		onfocus={() => (row.send = 'true')}
@@ -34,17 +52,23 @@
 {/snippet}
 
 <TableAutoCard
+	showHeaders={false}
 	definition={[
-		{ name: 'Name', key: 'name', class: 'font-bold', th: 'w-0' },
-		{ name: 'Send', custom: true, th: 'w-0' },
-		{ name: 'Value', custom: true, th: 'min-w-40' },
+		{ name: 'Variable', custom: true, class: 'w-0' },
+		{ name: 'Value', custom: true, class: 'min-w-40' },
 		{ name: 'Comment', custom: true, class: 'max-w-40' }
 	]}
 	data={requestable.variable}
 >
 	{#snippet children({ row, def })}
-		{#if def.name == 'Send'}
-			<PropertyType type="boolean" bind:value={row.send} fit={true} />
+		{#if def.name == 'Variable'}
+			<PropertyType
+				type="boolean"
+				bind:value={row.send}
+				fit={true}
+				label={row.name}
+				class="font-bold"
+			/>
 		{:else if def.name == 'Value'}
 			<div class:opacity-50={row.send == 'false'}>
 				{#if row.isMultivalued == 'true'}
@@ -52,14 +76,19 @@
 						<button
 							type="button"
 							class="btn btn-sm bg-surface-200-800 !w-fit"
-							onclick={() => multiples[row.name].push('')}><Ico icon="grommet-icons:add" /></button
+							onclick={() => multiples[row.name].push({ val: '' })}
+							><Ico icon="grommet-icons:add" /></button
 						><button type="button" onclick={() => parse(row)} class="btn btn-sm bg-surface-200-800">
 							<Ico icon="mdi:backup-restore" />
 						</button>
 					</div>
-					{#each multiples[row.name] as value, i}
-						<div class="layout-x-low">
-							{@render property({ row, value })}
+					{#each multiples[row.name] as obj, i (obj)}
+						<div
+							class="layout-x-low"
+							animate:flip={{ duration: 200 }}
+							transition:fly={{ duration: 200, y: -50 }}
+						>
+							{@render property({ row, obj })}
 							<button
 								type="button"
 								class="btn btn-sm bg-surface-200-800 !w-fit"
@@ -69,7 +98,7 @@
 						</div>
 					{/each}
 				{:else}
-					{@render property({ row, value: row.value, defaultValue: row.value })}
+					{@render property({ row, obj: row, defaultValue: row.value })}
 				{/if}
 			</div>
 		{:else if def.name == 'Comment'}
