@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { resolveRoute } from '$app/paths';
 import { browser } from '$app/environment';
+import Authentication from '$lib/common/Authentication.svelte';
 
 let currentCalls = 0;
 
@@ -9,6 +10,11 @@ let toast;
 
 export function setToastContext(toastContext) {
 	toast = toastContext;
+}
+
+let modalAlert;
+export function setModalAlert(alert) {
+	modalAlert = alert;
 }
 
 /**
@@ -213,13 +219,26 @@ function handleStateMessage(res, service) {
 			error = findDeepKeys(res, ['message']);
 		}
 		if (error) {
-			error = stringilight(error);
+			if (service == 'mobiles.GetBuildStatus' && res.admin?.build?.error) {
+				return;
+			}
 			res.isError = true;
-			toast.create({
-				description: error,
-				duration: 10000,
-				type: 'error'
-			});
+
+			if (!Authentication.authenticated) {
+				return;
+			}
+
+			const { message, stacktrace, exception } = error;
+			if (stacktrace || exception) {
+				modalAlert.open({ message, exception, stacktrace });
+			} else {
+				error = stringilight(error);
+				toast.create({
+					description: error,
+					duration: 10000,
+					type: 'error'
+				});
+			}
 			return;
 		}
 

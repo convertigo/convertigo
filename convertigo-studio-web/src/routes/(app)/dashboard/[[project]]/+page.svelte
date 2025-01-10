@@ -58,8 +58,8 @@
 				<span class="layout-x-none !gap-[1px]">
 					<button
 						class="btn rounded-none preset-filled p-1"
-						class:!bg-secondary-100={count != 1}
-						class:!bg-secondary-500={count == 1}
+						class:!bg-success-100={count != 1}
+						class:!bg-success-600={count == 1}
 						onclick={() => {
 							filters[i].count = count == 1 ? 0 : 1;
 						}}
@@ -69,7 +69,7 @@
 					<button
 						class="btn rounded-none preset-filled p-1"
 						class:!bg-warning-100={count != 2}
-						class:!bg-warning-500={count == 2}
+						class:!bg-warning-600={count == 2}
 						onclick={() => {
 							filters[i].count = count == 2 ? 0 : 2;
 						}}
@@ -110,7 +110,7 @@
 						<div class="grow flex">
 							<a
 								href={resolveRoute('/(app)/dashboard/[[project]]/backend', params)}
-								class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-br-lg"
+								class="p-3 preset-filled-warning-300-700 hover:preset-filled-warning-500 h-fit rounded-br-lg"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
 							</a>
@@ -119,7 +119,7 @@
 							<div class="grow flex justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
-									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-bl-lg"
+									class="p-3 preset-filled-success-300-700 hover:preset-filled-success-500 h-fit rounded-bl-lg"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
 								</a>
@@ -134,9 +134,9 @@
 										`/(app)/dashboard/${rootProject == project ? '' : '[[project]]'}`,
 										params
 									)}
-									class="p-3 hover:bg-secondary-500 h-fit rounded-tr-lg"
-									class:bg-secondary-300={rootProject != project}
-									class:bg-secondary-500={rootProject == project}
+									class="p-3 hover:preset-filled-secondary-500 h-fit rounded-tr-lg"
+									class:preset-filled-secondary-300-700={rootProject != project}
+									class:preset-filled-secondary-500={rootProject == project}
 								>
 									<Ico icon="ph:plugs-connected-thin" size="nav" />
 								</a>
@@ -146,7 +146,7 @@
 							<div class="grow flex justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/platforms', params)}
-									class="p-3 bg-secondary-300 hover:bg-secondary-500 h-fit rounded-tl-lg"
+									class="p-3 preset-filled-primary-300-700 hover:preset-filled-primary-500 h-fit rounded-tl-lg"
 								>
 									<Ico icon="ph:package-thin" size="nav" />
 								</a>

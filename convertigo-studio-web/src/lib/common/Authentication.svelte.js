@@ -25,9 +25,15 @@ export default {
 			Time.serverTimezone = result.tz;
 		}
 	},
-	authenticate: async (formData) => {
-		result = (await call('engine.Authenticate', formData)).admin ?? {
+	authenticate: async (event) => {
+		event.preventDefault?.();
+		result = (await call('engine.Authenticate', new FormData(event.target))).admin ?? {
 			error: 'Error authenticating'
+		};
+	},
+	logout: async () => {
+		result = (await call('engine.Authenticate', { authType: 'logout' })).admin ?? {
+			error: 'Error logging out'
 		};
 	}
 };

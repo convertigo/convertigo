@@ -1,8 +1,10 @@
 <script>
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import PagesRail from '$lib/dashboard/PagesRail.svelte';
 	import Project from '$lib/dashboard/Project.svelte';
+	import { onDestroy } from 'svelte';
 
 	let { children } = $props();
 	$effect(() => {
@@ -52,6 +54,9 @@
 		if (!to?.params?.project) {
 			PagesRail.extras = [];
 		}
+	});
+	onDestroy(() => {
+		TestPlatform(page.params?.project).stop();
 	});
 </script>
 

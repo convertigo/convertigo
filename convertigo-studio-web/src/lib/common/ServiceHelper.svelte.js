@@ -43,6 +43,7 @@ export default function ({
 			const res = await (typeof service == 'string' ? call(service, params) : service(params));
 			if (res) {
 				if (res.isError) {
+					values.stop();
 					Object.assign(_values, { ...defValues, res });
 					_needRefresh = true;
 				} else {

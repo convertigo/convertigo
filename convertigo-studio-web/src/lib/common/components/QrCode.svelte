@@ -24,7 +24,7 @@
 </script>
 
 {#if link}
-	<a {href} {target}> <img class={cls} {src} /></a>
+	<a rel="external" class={cls} {href} {target}> <img class={cls} {src} /></a>
 {:else}
 	<img class={cls} {src} />
 {/if}

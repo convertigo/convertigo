@@ -95,11 +95,11 @@ public class List extends XmlService{
 
 				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, request.getLocale());
 				String exported = project.getInfoForProperty("exported", df, request.getLocale());
-				
+
 				var hasPlatform = false;
 				if (project.getMobileApplication() != null) {
-                    hasPlatform = project.getMobileApplication().getMobilePlatformList().size() > 0;
-                }
+					hasPlatform = project.getMobileApplication().getMobilePlatformList().size() > 0;
+				}
 
 				Element projectElement = document.createElement("project");
 				projectElement.setAttribute("name", projectName);

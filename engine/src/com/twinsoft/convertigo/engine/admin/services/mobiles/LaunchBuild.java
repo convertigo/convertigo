@@ -76,6 +76,7 @@ public class LaunchBuild extends XmlService {
 			JSONObject jsonObject = new JSONObject(sResult);
 			Element statusElement = document.createElement("application");
 			statusElement.setAttribute("id", jsonObject.getString("id"));
+			statusElement.setAttribute("message", "build launched with id: " + jsonObject.getString("id"));
 			document.getDocumentElement().appendChild(statusElement);
 		}
 	}

@@ -5,7 +5,11 @@
 	import { resolveRoute } from '$app/paths';
 
 	/** @type {{parts: any}} */
-	let { parts } = $props();
+	let { parts: _parts } = $props();
+	let parts = $derived([
+		..._parts,
+		[{ title: 'Logout', icon: 'material-symbols-light:cancel-outline', page: '/(app)/logout' }]
+	]);
 	let activeIndex = $derived.by(() => {
 		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
 		return i == -1 ? 0 : i;
@@ -17,13 +21,13 @@
 	});
 </script>
 
-<nav class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full">
+<nav class="bg-surface-200-800 border-r-[0.5px] border-color layout-y-none h-full">
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params, loading }, j}
 			{@const href = loading ? undefined : page ? resolveRoute(page, params) : url}
 			<a
 				{href}
-				class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36 {loading
+				class="relative layout-x-p-low !gap hover:bg-surface-200-800 rounded min-w-36 {loading
 					? 'blur'
 					: ''}"
 				transition:slide={{ axis: 'y' }}

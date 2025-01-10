@@ -9,11 +9,9 @@
 	/** @type {string|null} */
 	let error = $state(null);
 
-	async function handleSubmit(/** @type {SubmitEvent} */ e) {
-		e.preventDefault();
+	async function handleSubmit(e) {
 		try {
-			// @ts-ignore
-			await Authentication.authenticate(new FormData(e.target));
+			await Authentication.authenticate(e);
 			if (Authentication.authenticated) {
 				goto(`${data.redirect ?? '/admin'}`);
 			} else {
