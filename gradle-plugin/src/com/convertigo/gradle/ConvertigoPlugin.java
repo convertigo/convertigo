@@ -36,6 +36,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	RemoteBuildLaunch launchRemoteBuild;
 	RemoteBuildDownload downloadRemoteBuild;
 	LocalBuild localBuild;
+	ExportDependencies exportDependencies;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -111,6 +112,13 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setGroup("build");
 			task.dependsOn(export);
 			task.setDescription("Build native package for selected platforms.");
+		});
+		
+		exportDependencies = tasks.create("exportDependencies", ExportDependencies.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Export all dependencies in the build directory.");
 		});
 	}
 }

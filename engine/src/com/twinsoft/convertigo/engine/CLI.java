@@ -368,7 +368,7 @@ public class CLI {
 				}
 			}
 			
-			String endPointUrl = project.getMobileApplication().getComputedEndpoint();			
+			String endPointUrl = project.getMobileApplication().getComputedEndpoint();
 			String appBaseHref = "/convertigo/projects/" + project.getName() + "/DisplayObjects/mobile/";
 			try {
 				appBaseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.replaceFirst("https?://.*?/", "/").replaceFirst("(/.*)/.*?$", "$1")) + 
@@ -603,6 +603,22 @@ public class CLI {
 	public void configureSignAndroid(Map<String, BuildLocally> localBuilders, File keystore, String keystorePassword, String alias, String password) {
 		for (BuildLocally builder: localBuilders.values()) {
 			builder.configureSignAndroid(keystore, keystorePassword, alias, password);
+		}
+	}
+	
+	public void exportDependencies(Project project, File dest, boolean includeTestCases, boolean includeStubs,
+			boolean includeMobileApp, boolean includeMobileAppAssets, boolean includeMobileDataset,
+			boolean includeMobilePlatformsAssets) throws Exception {
+		for (var prjName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+			if (prjName.equals(project.getName())) {
+				continue;
+			}
+			var prj = Engine.theApp.databaseObjectsManager.getCachedProject(prjName);
+			if (prj != null) {
+				export(prj);
+				exportToCar(prj, dest, includeTestCases, includeStubs, includeMobileApp, includeMobileAppAssets,
+						includeMobileDataset, includeMobilePlatformsAssets);
+			}
 		}
 	}
 	
