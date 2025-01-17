@@ -4,11 +4,11 @@ dependencies {
 }
 
 task writeManifest(dependsOn: syncLib) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	doLast {
 		def manifest = file 'META-INF/MANIFEST.MF'
-		project.java.manifest {
+		java.manifest {
 			from sharedManifest
 			attributes(
 				'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.mac.arm',

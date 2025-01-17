@@ -1,11 +1,11 @@
 import groovy.xml.XmlUtil
 
 task writeManifest(dependsOn: syncLib) {
-	group 'convertigo'
-	
+	group = 'convertigo'
+
 	doLast {
 		def manifest = file 'META-INF/MANIFEST.MF'
-		project.java.manifest {
+		java.manifest {
 			from sharedManifest
 			attributes(
 				'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.product',
@@ -29,7 +29,7 @@ task writeManifest(dependsOn: syncLib) {
 }
 
 task writePluginXml(type: Copy) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def aboutTextFile = file('aboutText.txt')
 	
@@ -56,7 +56,7 @@ task writePluginXml(type: Copy) {
 }
 
 task writeAboutIni(type: Copy, dependsOn: writePluginXml) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	inputs.properties(
 		'currentYear': currentYear

@@ -18,7 +18,7 @@ if not, see <http://www.gnu.org/licenses/>.
 '''
 
 task updateJavaHeaders {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def files = fileTree(dir: 'engine/src', include: '**/*.java')
 		.plus(fileTree(dir: 'eclipse-plugin-studio/src', include: '**/*.java'))
@@ -35,7 +35,7 @@ task updateJavaHeaders {
 }
 
 task updatePropertiesHeaders {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def files = fileTree(dir: 'engine/src', include: '**/*.properties')
 	
@@ -49,7 +49,7 @@ task updatePropertiesHeaders {
 }
 
 task updateHtmlHeaders {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: ['admin/**/*.html', '*.html'])
 	def htmlHeader = licenseText.replaceAll('(.*)\r?\n', '$1' + System.lineSeparator());
@@ -62,7 +62,7 @@ task updateHtmlHeaders {
 }
 
 task updateJavascriptHeaders {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: [
 		'admin/widgets/*.js',
@@ -81,7 +81,7 @@ task updateJavascriptHeaders {
 }
 
 task updateCssHeaders {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: '**/*.css',
 	exclude: [
@@ -104,5 +104,5 @@ task updateCssHeaders {
 }
 
 task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders, updateCssHeaders]) {
-	group 'convertigo'
+	group = 'convertigo'
 }

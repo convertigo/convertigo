@@ -49,8 +49,8 @@ apply from: 'changelog.gradle'
 apply from: 'installers/windows.gradle'
 
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 'generateDockerfile']) {
-	group 'convertigo'
-	description 'Run this task after a Convertigo version change.'
+	group = 'convertigo'
+	description = 'Run this task after a Convertigo version change.'
 }
 
 configurations.all {
@@ -65,17 +65,20 @@ eclipse {
 }
 
 allprojects {
-	version convertigoVersionFull
+	version = convertigoVersionFull
 	
 	repositories {
 		mavenLocal()
 		maven {
-			url "https://m2.convertigo.com"
+			url = "https://m2.convertigo.com"
 		}
 		maven {
-			url "https://europe-maven.pkg.dev/jxbrowser/releases"
+			url = "https://europe-maven.pkg.dev/jxbrowser/releases"
 		}
 		mavenCentral()
+		maven {
+			url = "https://oss.sonatype.org/content/repositories/snapshots"
+		}
 	}
 	
 	if (project.name.startsWith('eclipse')) {
@@ -134,7 +137,7 @@ allprojects {
 		}
 		
 		task syncLib(type: Sync) {
-			group 'convertigo'
+			group = 'convertigo'
 			
 			into 'lib'
 			from configurations.toSync
@@ -151,7 +154,7 @@ allprojects {
 		}
 		
 		task cleanBin(type: Delete) {
-			group 'convertigo'
+			group = 'convertigo'
 			
 			def f = project.file('bin')
 			if (f.exists()) {
@@ -170,10 +173,10 @@ allprojects {
 			publishing {
 				repositories {
 					maven {
-						url project.properties['c8o.m2.url']
+						url = project.properties['c8o.m2.url']
 						credentials(AwsCredentials) {
-							accessKey project.properties['c8o.m2.ak']
-							secretKey project.properties['c8o.m2.sk']
+							accessKey = project.properties['c8o.m2.ak']
+							secretKey = project.properties['c8o.m2.sk']
 						}
 					}
 				}
@@ -185,9 +188,9 @@ allprojects {
 publishing {
 	publications {
 		engineApi (MavenPublication) {
-			groupId 'com.convertigo.lib'
-			artifactId 'convertigo-engine-api'
-			version convertigoEngineAPI
+			groupId = 'com.convertigo.lib'
+			artifactId = 'convertigo-engine-api'
+			version = convertigoEngineAPI
 			afterEvaluate {
 				artifact project(':engine').engineApiJar
 				pom.withXml {
@@ -264,6 +267,13 @@ publishing {
 			version '2.6.0'
 			artifact 'resources/xmlbeans-2.6.0.jar'
 		}
+		
+		rhinoTools (MavenPublication) {
+			groupId 'org.mozilla'
+			artifactId 'rhino-tools'
+			version '1.8.0'
+			artifact 'resources/rhino-tools-1.8.0.jar'
+		}
 */
 	}
 }
@@ -280,7 +290,7 @@ afterEvaluate {
 }
 
 task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def wm = getTasksByName 'writeManifest', true
 	wm.remove tasks['writeManifest']
@@ -289,7 +299,7 @@ task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 }
 
 task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibraries']) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }
 	
@@ -303,7 +313,7 @@ task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibrari
 }
 
 task updateEclipseProduct(type: Copy, dependsOn: [':checkLicenseDate', 'updateEclipseCategory', ':eclipse-plugin-product:writePluginXml', ':eclipse-plugin-product:writeAboutIni']) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
 	def licenseTextFile = file('license.txt')
@@ -342,7 +352,7 @@ task updateEclipseProduct(type: Copy, dependsOn: [':checkLicenseDate', 'updateEc
 }
 
 task updateEclipseCategory(type: Copy) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	inputs.properties(
 		'convertigoVersion': convertigoVersion
@@ -355,7 +365,7 @@ task updateEclipseCategory(type: Copy) {
 }
 
 task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
-	group 'convertigo'
+	group = 'convertigo'
 	doFirst {
 		fileTree(dir: '.', include: '*/pom.xml').files.plus(file('pom.xml')).each {
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
@@ -366,25 +376,25 @@ task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-
 }
 
 task buildStudioClean(type: Delete) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	delete 'eclipse-repository/target/products'
 }
 
 task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true), getTasksByName('cleanBin', true)]) {
-	group 'convertigo'
+	group = 'convertigo'
 }
 
 task generateEclipseConfigurationWithManifest(dependsOn: ['writeManifest', 'generateEclipseConfiguration']) {
-	group 'convertigo'
+	group = 'convertigo'
 }
 
 task makeSplash(dependsOn: 'convertigo-splash:run') {
-	group 'convertigo'
+	group = 'convertigo'
 }
 
 task buildStudioWebNvmInstall(type: Exec) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'
@@ -392,7 +402,7 @@ task buildStudioWebNvmInstall(type: Exec) {
 }
 
 task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'
@@ -400,7 +410,7 @@ task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall'
 }
 
 task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
-	group 'convertigo'
+	group = 'convertigo'
 	mustRunAfter ':buildStudioWebNpmInstall'
 	
 	workingDir 'convertigo-studio-web'
@@ -409,11 +419,11 @@ task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 }
 
 task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish', ':buildStudioWebNpmInstall', ':buildStudioWebBuild']) {
-	group 'convertigo'
+	group = 'convertigo'
 }
 
 task generateDockerfile {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	doLast {
 		def base = file('docker/Dockerfile.tpl').text
@@ -430,7 +440,7 @@ task generateDockerfile {
 }
 
 task downloadSystemLibFlowViewer(type: Sync) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def car = file 'lib_FlowViewer.car'
 	ext.dir = file 'eclipse-plugin-studio/tomcat/webapps/convertigo/system/projects/'
@@ -451,11 +461,11 @@ task downloadSystemLibFlowViewer(type: Sync) {
 }
 
 task downloadSystemLibraries(/*dependsOn: downloadSystemLibFlowViewer*/) {
-	group 'convertigo'
+	group = 'convertigo'
 }
 
 task checkLicenseDate {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def licenseTextFile = file('license.txt')
 	
@@ -471,14 +481,14 @@ task checkLicenseDate {
 }
 
 wrapper {
-    group 'convertigo'
-    
-    gradleVersion = 'latest'
+	group = 'convertigo'
+	
+	gradleVersion = 'latest'
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
 tasks.named("dependencyUpdates").configure {
-  rejectVersionIf {
-    it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
-  }
+	rejectVersionIf {
+		it.candidate.version.matches('.*(alpha|beta|rc|-b).*')
+	}
 }

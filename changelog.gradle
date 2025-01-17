@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 task makeChangelog {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	doLast {
 		def jsonSlurper = new JsonSlurper()

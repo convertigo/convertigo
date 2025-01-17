@@ -23,7 +23,7 @@ def myManifest = java.manifest {
 }
 
 task db2jccJar(type: Jar) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	archiveFileName = 'db2jcc.jar'
 	manifest = myManifest
@@ -36,7 +36,7 @@ task db2jccJar(type: Jar) {
 }
 
 task db2jccLicenceJar(type: Jar) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	archiveFileName = 'db2jcc-licence.jar'
 	manifest = myManifest
@@ -46,7 +46,7 @@ task db2jccLicenceJar(type: Jar) {
 }
 
 task mysqlJar(type: Jar) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	archiveFileName = 'mysql-connector.jar'
 	manifest = myManifest
@@ -59,7 +59,7 @@ task mysqlJar(type: Jar) {
 }
 
 task oracleJar(type: Jar) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	archiveFileName = 'ojdbc.jar'
 	manifest = myManifest

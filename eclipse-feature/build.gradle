@@ -1,7 +1,7 @@
 import groovy.xml.XmlUtil
 
 task updateFeature(type: Copy, dependsOn: [':checkLicenseDate']) {
-	group 'convertigo'
+	group = 'convertigo'
 	
 	def licenseTextFile = file('../license.txt')
 	
