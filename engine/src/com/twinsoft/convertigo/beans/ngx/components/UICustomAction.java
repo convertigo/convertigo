@@ -567,7 +567,7 @@ public class UICustomAction extends UIComponent implements IAction {
 
 				    String name = v.get(0).trim();
 				    String path = v.get(1).trim();
-				    String defaultSyntax = v.get(2).trim(); // "false" or "true"
+				    String defaultSyntax = v.size() > 2 ? v.get(2).trim() : "false"; // "false" or "true"
 				    
 				    if (main.addImport(name, path)) {
 					    if ("true".equalsIgnoreCase(defaultSyntax)) {
