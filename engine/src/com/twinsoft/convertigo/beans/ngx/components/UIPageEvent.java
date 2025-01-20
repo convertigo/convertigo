@@ -285,7 +285,8 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = "C8oPageBase";
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
 			String functionName = getEventFunctionName();
 			
 			computed += System.lineSeparator();
@@ -297,8 +298,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
-			computed += "\t\t" + System.lineSeparator();
+			if(tplIsLowerThan8043) {
+				computed += computeInnerGet("c8oPage",functionName);
+				computed += "\t\t" + System.lineSeparator();
+			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();

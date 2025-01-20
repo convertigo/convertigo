@@ -126,7 +126,7 @@ public class UIDynamicAnimate extends UIDynamicAction {
 		if (forTemplate) {
 			sbProps.append(isEmpty ? "null": animatableId);
 		} else {
-			sbProps.append(isEmpty ? "null": "scope."+ animatableId + " ? scope."+ animatableId + " : get('animatable',`c8oPage."+ animatableId+"`)");
+			sbProps.append(isEmpty ? "null": "scope."+ animatableId + " ? scope."+ animatableId + (this.compareToTplVersion("8.4.0.3") < 0 ? " : get('animatable',`c8oPage."+ animatableId+"`)" : " : c8oPage."+ animatableId+")"));
 		}
 		
 		// animatables property (viewChildren identifier)
@@ -135,7 +135,7 @@ public class UIDynamicAnimate extends UIDynamicAction {
 		if (forTemplate) {
 			sbProps.append(isEmpty ? "null": "all_"+animatableId);
 		} else {
-			sbProps.append(isEmpty ? "null": "get('animatables', `c8oPage.all_"+animatableId+"`)");
+			sbProps.append(isEmpty ? "null": (this.compareToTplVersion("8.4.0.3") < 0 ? "get('animatables', `c8oPage.all_"+animatableId+"`)" :"c8oPage.all_"+animatableId+")"));
 		}
 		
 		return sbProps;

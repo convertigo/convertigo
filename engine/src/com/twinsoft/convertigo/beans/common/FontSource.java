@@ -175,7 +175,7 @@ public class FontSource implements XMLizable, Serializable, Cloneable {
 		return new FormatedContent(formated);
 	}
 	
-	public String getStyleCssImport() {
+	public String getStyleCssImport(boolean withTilde) {
 		JSONObject jsonFont = toJSONObject();
 		try {
 			String csspath = "";
@@ -185,7 +185,7 @@ public class FontSource implements XMLizable, Serializable, Cloneable {
 			csspath += "-" + jsonFont.getString("fontStyle");
 			
 			csspath = csspath.replace("-normal", "");
-			return "@import \"~@fontsource/"+ csspath +".css\";";
+			return "@import "+(withTilde ? "~" : "")+"\"@fontsource/"+ csspath +".css\";";
 		} catch (Exception e) {}
 		return "";
 	}

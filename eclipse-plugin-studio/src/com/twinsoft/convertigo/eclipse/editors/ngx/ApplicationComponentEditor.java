@@ -313,6 +313,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private ToolItem buildItem;
 
 	private static Pattern pIsBrowserOpenable = Pattern.compile(".*?open your browser on (http\\S*).*");
+	private static Pattern pIsBrowserOpenable84 = Pattern.compile(".*?Local:   (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
@@ -1550,6 +1551,21 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			build(path, buildCount, mb);
 		});
 	}
+	
+	public int compareToTplVersion(String version, MobileBuilder mb) {
+		int result = -1;
+		if (version != null) {
+			String tplVersion = mb.getTplVersion();
+			if (tplVersion != null) {
+				if (tplVersion.trim().toLowerCase().equals("latest")) {
+					result = 1;
+				} else {
+					result = MobileBuilder.compareVersions(tplVersion, version);
+				}
+			}
+		}
+		return result;
+	}
 
 	private void build(final String path, final int buildCount, final MobileBuilder mb) {
 		Object mutex = new Object();
@@ -1618,48 +1634,96 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			String line;
 
 			StringBuilder sb = null;
+			if(this.compareToTplVersion("8.4.0.3", mb) < 0) {
+				while ((line = br.readLine()) != null) {
+					line = pRemoveEchap.matcher(line).replaceAll("");
+					if (StringUtils.isNotBlank(line)) {
+						Engine.logStudio.info(line);
+						if (line.startsWith("Error: ")) {
+							sb = new StringBuilder();
+						}
+						if (sb != null) {
+							if (line.contains("Failed to compile.")) {
+								sb.append(line);
+								error(sb.toString());
+								sb = null;
+							} else {
+								sb.append(line + "\n");
+							}
+						}
 
-			while ((line = br.readLine()) != null) {
-				line = pRemoveEchap.matcher(line).replaceAll("");
-				if (StringUtils.isNotBlank(line)) {
-					Engine.logStudio.info(line);
-					if (line.startsWith("Error: ")) {
-						sb = new StringBuilder();
-					}
-					if (sb != null) {
-						if (line.contains("Failed to compile.")) {
-							sb.append(line);
-							error(sb.toString());
-							sb = null;
+						matcher.reset(line);
+						if (matcher.find()) {
+							progress(Integer.parseInt(matcher.group(1)));
+							appendOutput(matcher.group(2));
 						} else {
-							sb.append(line + "\n");
+							appendOutput(line);
 						}
-					}
-
-					matcher.reset(line);
-					if (matcher.find()) {
-						progress(Integer.parseInt(matcher.group(1)));
-						appendOutput(matcher.group(2));
-					} else {
-						appendOutput(line);
-					}
-					if (line.matches(".*Compiled .*successfully.*")) {
-						progress(100);
-						error(null);
-						synchronized (mutex) {
-							mutex.notify();
+						if (line.matches(".*Compiled .*successfully.*")) {
+							progress(100);
+							error(null);
+							synchronized (mutex) {
+								mutex.notify();
+							}
+							mb.buildFinished();
 						}
-						mb.buildFinished();
-					}
 
-					Matcher m = pIsBrowserOpenable.matcher(line);
-					if (m.matches()) {
-						String sGroup = m.group(1);
-						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
-						doLoad();
+						Matcher m = pIsBrowserOpenable.matcher(line);
+						if (m.matches()) {
+							String sGroup = m.group(1);
+							baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
+							doLoad();
+						}
 					}
 				}
 			}
+			else {
+				while ((line = br.readLine()) != null) {
+					line = pRemoveEchap.matcher(line).replaceAll("");
+					if (StringUtils.isNotBlank(line)) {
+						Engine.logStudio.info(line);
+						if (line.startsWith("✘ [41;31m[[41;97mERROR[41;31m]")) {
+							sb = new StringBuilder();
+						}
+						if (sb != null) {
+//							if (line.contains("Application bundle generation failed")) {
+//								sb.append(line);
+//								error(sb.toString());
+//								sb = null;
+//							} else {
+//								sb.append(line + "\n");
+//							}
+							sb.append(line);
+							error(sb.toString());
+							sb = null;
+						}
+
+						matcher.reset(line);
+						if (matcher.find()) {
+							progress(Integer.parseInt(matcher.group(1)));
+							appendOutput(matcher.group(2));
+						} else {
+							appendOutput(line);
+						}
+						if (line.contains("Application bundle generation complete")) {
+							progress(100);
+							error(null);
+							synchronized (mutex) {
+								mutex.notify();
+							}
+							mb.buildFinished();
+						}
+
+						Matcher m = pIsBrowserOpenable84.matcher(line);
+						if (m.matches()) {
+							String sGroup = m.group(1);
+							baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
+							doLoad();
+						}
+					}
+				}
+			}
+			
 
 			if (buildCount == this.buildCount) {
 				appendOutput("\\o/");

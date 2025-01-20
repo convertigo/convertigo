@@ -306,7 +306,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 				sbFinally.append(this.finallyEvent.computeEvent());
 			}
 			
-			String cafPageType = "C8oPageBase";
+			String cafPageType = this.compareToTplVersion("8.4.0.3") < 0 ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			
 			StringBuilder cartridge = new StringBuilder();
@@ -331,8 +331,10 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\tlet stack = {root: {scope: data.scope ? data.scope : {}, in:{}, out:data}};" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
-			computed += "\t\t" + System.lineSeparator();
+			if(this.compareToTplVersion("8.4.0.3") < 0) {
+				computed += computeInnerGet("c8oPage",functionName);
+				computed += "\t\t" + System.lineSeparator();
+			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();

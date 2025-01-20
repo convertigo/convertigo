@@ -66,7 +66,7 @@ public class UIActionLoopEvent extends UIActionEvent {
 			String index = varIndexName.isEmpty() ? "index" : varIndexName;
 			
 			String tsCode = "";
-			tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
+			tsCode += "\t\tconst doLoop = (c8oPage : " + (this.compareToTplVersion("8.4.0.3") < 0 ? "C8oPageBase":"any") + ", "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
 			tsCode += computeInnerGet("c8oPage", "doLoop");
 			tsCode += loopIn;
 			tsCode += "\t\t}" + System.lineSeparator();

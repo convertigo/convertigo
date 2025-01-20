@@ -409,7 +409,7 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 	protected String computeEventFunction() {
 		String computed = "";
 		if (isEnabled()) {
-			
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 			StringBuilder sbCatch = new StringBuilder();
 			if (handleError()) {
 				sbCatch.append(this.errorEvent.computeEvent());
@@ -420,7 +420,7 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 			}
 			
 			String eventName = appEvent.name();
-			String cafPageType = "C8oPageBase";
+			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			
 			StringBuilder cartridge = new StringBuilder();
@@ -445,8 +445,10 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\tlet stack = {root: {scope:{}, in:{}, out:data}};" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
-			computed += "\t\t" + System.lineSeparator();
+			if(tplIsLowerThan8043) {
+				computed += computeInnerGet("c8oPage",functionName);
+				computed += "\t\t" + System.lineSeparator();
+			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();

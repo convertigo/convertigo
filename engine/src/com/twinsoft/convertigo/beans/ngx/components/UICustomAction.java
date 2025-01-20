@@ -122,11 +122,31 @@ public class UICustomAction extends UIComponent implements IAction {
 	private XMLVector<XMLVector<String>> page_ts_imports = new XMLVector<XMLVector<String>>();
 	
 	public XMLVector<XMLVector<String>> getPageTsImports() {
-		return page_ts_imports;
+		if(this.compareToTplVersion("8.4.0.3") >= 0) {
+			for (XMLVector<String> row : page_ts_imports) {
+		        if (row.size() == 2) {
+		            row.add("false");
+		        }
+		        while (row.size() > 3) {
+		            row.remove(row.size() - 1);
+		        }
+		    }
+		}	    
+	    return page_ts_imports;
 	}
-	
+
 	public void setPageTsImports(XMLVector<XMLVector<String>> page_ts_imports) {
-		this.page_ts_imports = page_ts_imports;
+		if(this.compareToTplVersion("8.4.0.3") >= 0) {
+		    for (XMLVector<String> row : page_ts_imports) {
+		        if (row.size() == 2) {
+		            row.add("false");
+		        }
+		        while (row.size() > 3) {
+		            row.remove(row.size() - 1);
+		        }
+		    }
+		}
+	    this.page_ts_imports = page_ts_imports;
 	}
 	
 	/*
@@ -276,10 +296,15 @@ public class UICustomAction extends UIComponent implements IAction {
 		return true;
 	}
 	
+	
 	protected String getScope() {
+		return this.getScope(false, false);
+	}
+	protected String getScope(boolean justStr, boolean withType) {
 		UICustomAction original = (UICustomAction) getOriginal();
 		UISharedComponent sharedComponent = original.getSharedComponent();
 		boolean isInSharedComponent = sharedComponent  != null;
+		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 		
 		String scope = "";
 		
@@ -299,17 +324,31 @@ public class UICustomAction extends UIComponent implements IAction {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.isForDirective(uicd.getDirectiveName())) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
-					
+					if(tplIsLowerThan8043) {
+						scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					}
+					else {
+						scope += "item"+uicd.priority + (justStr ? (withType ? " : any": "") : ": "+ "item"+uicd.priority);
+					}	
 					String item = uicd.getDirectiveItemName();
 					if (!item.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						scope += item + ": "+ item;
+						if(tplIsLowerThan8043) {
+							scope += item + ": "+ item;
+						}
+						else {
+							scope += item + (justStr ? (withType ? " : any": "") : ": "+ item);
+						}
 					}
 					String index = uicd.getDirectiveIndexName();
 					if (!index.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						scope += index + ":" + index;
+						if(tplIsLowerThan8043) {
+							scope += index + ":" + index;
+						}
+						else {
+							scope += index + (justStr ? (withType ? " : any": "") : ": "+ index);
+						}
 					}
 				}
 			}
@@ -317,7 +356,12 @@ public class UICustomAction extends UIComponent implements IAction {
 				String identifier = ((UIElement)parent).getIdentifier();
 				if (!identifier.isEmpty()) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += identifier+ ": "+ identifier;
+					if(tplIsLowerThan8043) {
+						scope += identifier+ ": "+ identifier;
+					}
+					else {
+						scope += identifier + (justStr ? (withType ? " : any": "") : ": "+ identifier);
+					}
 				}			
 			}
 			parent = parent.getParent();
@@ -401,6 +445,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		
 		if (isEnabled()) {
 			StringBuilder sbProps = initProps(forTemplate);
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 			
 			StringBuilder sbVars = new StringBuilder();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -424,7 +469,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							String smartValue = msst.getValue(extended);
 							if (Mode.PLAIN.equals(msst.getMode())) {
-								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
+								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsLowerThan8043) + "\'";
 							}
 							
 							smartValue = smartValue.replaceAll("this(\\??)\\.", "c8oPage$1.");
@@ -435,7 +480,12 @@ public class UICustomAction extends UIComponent implements IAction {
 							if (!smartValue.isEmpty()) {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");
 								sbVars.append(uicv.getVarName()).append(": ");
-								sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+								if(tplIsLowerThan8043) {
+									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+								}
+								else {
+									sbVars.append(smartValue);
+								}								
 							}
 						}
 					}
@@ -499,22 +549,38 @@ public class UICustomAction extends UIComponent implements IAction {
 		
 		try {
 			String imports = jsonScripts.getString("imports");
-			for (XMLVector<String> v : page_ts_imports) {
-				String name = v.get(0).trim();
-				String path = v.get(1).trim();
-				if (main.addImport(name, path)) {
-					if (name.indexOf(" as ") != -1) {
-						imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
-					} else {
-						imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
+			if(this.compareToTplVersion("8.4.0.3") < 0) {
+				for (XMLVector<String> v : page_ts_imports) {
+					String name = v.get(0).trim();
+					String path = v.get(1).trim();
+					if (main.addImport(name, path)) {
+						if (name.indexOf(" as ") != -1) {
+							imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
+						} else {
+							imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
+						}
 					}
 				}
 			}
-			
-			if (main.addImport("* as ts", "typescript")) {
-				imports += "import * as ts from 'typescript';" + System.lineSeparator();
-			}
-			
+			else {
+				for (XMLVector<String> v : page_ts_imports) {
+
+				    String name = v.get(0).trim();
+				    String path = v.get(1).trim();
+				    String defaultSyntax = v.get(2).trim(); // "false" or "true"
+				    
+				    if (main.addImport(name, path)) {
+					    if ("true".equalsIgnoreCase(defaultSyntax)) {
+					        imports += "import " + name + " from '" + path + "';" + System.lineSeparator();
+					    } else if (name.indexOf(" as ") != -1) {
+							imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
+						} else {
+							imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
+						}
+				    }
+				    
+				}
+			}			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -565,8 +631,9 @@ public class UICustomAction extends UIComponent implements IAction {
 			cartridge.append("\t * ").append(System.lineSeparator());
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 			
-			String cafPageType = "C8oPageBase";
+			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
@@ -579,8 +646,10 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
-			computed += "\t\t" + System.lineSeparator();
+			if(tplIsLowerThan8043) {
+				computed += computeInnerGet("c8oPage",functionName);
+				computed += "\t\t" + System.lineSeparator();
+			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
@@ -753,6 +822,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected Contributor getContributor() {
+		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 		return new Contributor() {
 			
 			private boolean accept() {
@@ -793,8 +863,15 @@ public class UICustomAction extends UIComponent implements IAction {
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
-					for (XMLVector<String> v : page_ts_imports) {
-						imports.put(v.get(0).trim(), v.get(1).trim());
+					if(tplIsLowerThan8043) {
+						for (XMLVector<String> v : page_ts_imports) {
+							imports.put(v.get(0).trim(), v.get(1).trim());
+						}
+					}
+					else {
+						for (XMLVector<String> v : page_ts_imports) {
+							imports.put(v.get(0).trim(), v.get(1).trim() + "__c8o_separator__" +v.get(2).trim());
+						}	
 					}
 				}
 				return imports;

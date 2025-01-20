@@ -37,7 +37,12 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		Switch("[ngSwitch]"),
 		SwitchCase("*ngSwitchCase"),
 		SwitchDefault("*ngSwitchDefault"),
-		;
+		NewFor("@for"),
+		NewIf("@if"),
+		NewElseIf("@else if"),
+		NewElse("@else"),
+		NewSwitch("@switch"),
+		NewSwitchCase("@case");
 		
 		String directive;
 		AttrDirective(String directive) {
@@ -64,7 +69,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		public static boolean isForDirective(String directiveName) {
 			AttrDirective bindDirective = getDirective(directiveName);
 			return bindDirective != null && 
-					(bindDirective.equals(AttrDirective.CdkVirtualFor) || bindDirective.equals(AttrDirective.ForEach));
+					(bindDirective.equals(AttrDirective.CdkVirtualFor) || bindDirective.equals(AttrDirective.ForEach) || bindDirective.equals(AttrDirective.NewFor));
 		}
 	}
 	
@@ -223,5 +228,88 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 			updated = this.hasChanged = true;
 		}
 		return updated;
+	}
+	@Override
+	public String computeTemplate() {
+		if (isEnabled()) {
+			if (AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewFor) {
+				return computeTemplateForNewFor();
+			}
+			else if(AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewIf || AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewElseIf || AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewElse){
+				return computeTemplateForNewIf(AttrDirective.getDirective(getDirectiveName()));
+			}
+			else {
+				return super.computeTemplate();
+			}
+		}
+		return "";
+	}
+	private String computeTemplateForNewFor() {
+		StringBuilder sb = new StringBuilder();
+		String signature = getNewForSignature();
+		String childrenHtml = computeChildrenTemplate();
+		sb.append(AttrDirective.NewFor.directive()).append(signature).append(" {\n")
+		  .append(childrenHtml)
+		  .append("\n}\n");
+		
+		return sb.toString();
+	}
+	private String computeTemplateForNewIf(AttrDirective directive) {
+		StringBuilder sb = new StringBuilder();
+		String signature = getNewIfSignature();
+		String childrenHtml = computeChildrenTemplate();
+		sb.append(directive.directive()).append(directive != AttrDirective.NewElse ? " " + signature : "").append(" {\n")
+		  .append(childrenHtml)
+		  .append("\n}\n");
+		
+		return sb.toString();
+	}
+	private String getNewForSignature() {
+		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName();
+		String src      = getSourceSmartType().getValue(); // ex : "items"
+		String expr     = getDirectiveExpression();        // ex : "track item.name"
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("(")
+		  .append(itemName).append(" of ").append(src);
+		
+		if (!expr.trim().isEmpty()) {
+			if (!expr.trim().startsWith(";")) {
+				sb.append("; ");
+			}
+			sb.append(expr.trim());
+		}
+		sb.append(")");
+		
+		return sb.toString();
+	}
+	private String getNewIfSignature() {
+		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName();
+		String src      = getSourceSmartType().getValue(); // ex : "items"
+		String expr     = getDirectiveExpression();        // ex : "track item.name"
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("(")
+		  .append(src);
+		
+		if (!expr.trim().isEmpty()) {
+			if (!expr.trim().startsWith(";")) {
+				sb.append("; ");
+			}
+			sb.append(expr.trim());
+		}
+		sb.append(")");
+		
+		return sb.toString();
+	}
+	private String computeChildrenTemplate() {
+		StringBuilder sb = new StringBuilder();
+		if(!getDirectiveItemName().isEmpty() && AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewFor) {
+			sb.append("@let item"+ priority + " = "+getDirectiveItemName()+";\n");
+		}
+		for (UIComponent child : getUIComponentList()) {
+			sb.append(child.computeTemplate());
+		}
+		return sb.toString();
 	}
 }

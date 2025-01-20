@@ -234,11 +234,16 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		}
 		return escaped;
 	}
-	static public String escapeStringForTs(String s) {
+	static public String escapeStringForTs(String s, boolean tplIsLowerThan8043) {
 		String escaped = s;
 		if (escaped.indexOf("'") != -1) {
 			escaped = escaped.replaceAll("([\\\\])++'", "'");
-			escaped = escaped.replaceAll("([^\\\\])'", "$1\\\\\\\\'");
+			if(tplIsLowerThan8043) {
+				escaped = escaped.replaceAll("([^\\\\])'", "$1\\\\\\\\'");
+			}
+			else {
+				escaped = escaped.replaceAll("([^\\\\])'", "$1\\\\'");
+			}			
 		}
 		return escaped;
 	}

@@ -280,7 +280,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	protected String computeEventFunction() {
 		String computed = "";
 		if (isEnabled()) {
-			
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 			StringBuilder sbCatch = new StringBuilder();
 			if (handleError()) {
 				sbCatch.append(this.errorEvent.computeEvent());
@@ -292,6 +292,11 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
+			if(!tplIsLowerThan8043) {
+				String scopeBis = getScope(true, true);
+				scopeBis = scopeBis.replaceAll("$", "");
+				parameters.append(scopeBis != "" ? (", " + scopeBis) : "");
+			}
 			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
@@ -303,7 +308,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = "C8oPageBase";
+			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
 			String functionName = getEventFunctionName();
 			
 			computed += System.lineSeparator();
@@ -315,8 +320,10 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
-			computed += "\t\t" + System.lineSeparator();
+			if(tplIsLowerThan8043) {
+				computed += computeInnerGet("c8oPage",functionName);
+				computed += "\t\t" + System.lineSeparator();
+			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
@@ -505,6 +512,9 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	}
 
 	protected String getScope() {
+		return this.getScope(false, false);
+	}
+	protected String getScope(boolean justStr, boolean withType) {
 		
 		UIControlEvent original = (UIControlEvent) getOriginal();
 		UISharedComponent sharedComponent = original.getSharedComponent();
@@ -536,17 +546,20 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.isForDirective(uicd.getDirectiveName())) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+//					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					scope += "item"+uicd.priority + (justStr ? (withType ? " : any": "") : ": "+ "item"+uicd.priority);
 					
 					String item = uicd.getDirectiveItemName();
 					if (!item.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						scope += item + ": "+ item;
+//						scope += item + ": "+ item;
+						scope += item + (justStr ? (withType ? " : any": "") : ": "+ item);
 					}
 					String index = uicd.getDirectiveIndexName();
 					if (!index.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						scope += index + ":" + index;
+//						scope += index + ":" + index;
+						scope += index + (justStr ? (withType ? " : any": "") : ": "+ index);
 					}
 				}
 			}
@@ -554,14 +567,17 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				String identifier = ((UIElement)parent).getIdentifier();
 				if (!identifier.isEmpty()) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += identifier+ ": "+ identifier;
+//					scope += identifier+ ": "+ identifier;
+					scope += identifier + (justStr ? (withType ? " : any": "") : ": "+ identifier);
 				}			
 			}
 			
 			parent = parent.getParent();
 		}
-		
-		if (!scope.isEmpty()) {
+		if(justStr) {
+			return scope;
+		}
+		else if (!scope.isEmpty()) {
 			if (isInSharedComponent) {
 				//scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
 				scope = "merge({}, {"+ scope +"})";
@@ -589,10 +605,19 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				}
 			}
 		}
+		String attrValue;
+		if(this.compareToTplVersion("8.4.0.3") < 0) {
+			String scope = getScope();
+			String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
+			attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;
+		}
+		else {
+			String scope = getScope();
+			String scopeBis = getScope(true, false);
+			String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
+			attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}}" + (scopeBis != "" ? ", " + scopeBis : "") + ")";
+		}
 		
-		String scope = getScope();
-		String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
-		String attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;
 		return attrValue;
 	}
 

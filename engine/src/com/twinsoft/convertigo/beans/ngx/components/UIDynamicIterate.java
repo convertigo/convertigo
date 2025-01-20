@@ -157,7 +157,7 @@ public class UIDynamicIterate extends UIDynamicAction {
 				if (sbLoop.length() > 0) {
 					tsCode += sbLoop.toString();
 				} else {
-					tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, item : any, index : number) : Promise<any> => {" + System.lineSeparator();
+					tsCode += "\t\tconst doLoop = (c8oPage : any, item : any, index : number) : Promise<any> => {" + System.lineSeparator();
 					tsCode += "\t\treturn Promise.reject('no loop handler');" + System.lineSeparator();
 					tsCode += "\t\t}" + System.lineSeparator();
 				}

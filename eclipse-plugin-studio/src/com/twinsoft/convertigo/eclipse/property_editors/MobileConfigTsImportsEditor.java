@@ -19,7 +19,10 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.swt.widgets.Composite;
+
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
 
 public class MobileConfigTsImportsEditor extends TableEditor {
 
@@ -27,8 +30,18 @@ public class MobileConfigTsImportsEditor extends TableEditor {
 		super(parent);
 		
         dialogTitle = "Class imports";
-        columnNames = new String[] { "Class", "Package" };
+        columnNames = new String[] { "Class", "Package"};
         templateData = new Object[] { "Component", "@angular/core" };
 	}
-
+	
+	@Override
+	public void setValidator(ICellEditorValidator validator) {
+		super.setValidator(validator);
+		if(this.databaseObjectTreeObject instanceof NgxUIComponentTreeObject tree) {
+			if(tree.getObject().compareToTplVersion("8.4.0.3") >= 0) {
+				 columnNames = new String[] { "Class", "Package", "Use default import syntax" };
+			     templateData = new Object[] { "Component", "@angular/core", "false" };
+			}
+		}
+	}
 }
