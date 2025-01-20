@@ -155,10 +155,30 @@ public class UICustomAction extends UIComponent implements IAction {
 	private XMLVector<XMLVector<String>> module_ts_imports = new XMLVector<XMLVector<String>>();
 	
 	public XMLVector<XMLVector<String>> getModuleTsImports() {
+		if(this.compareToTplVersion("8.4.0.3") >= 0) {
+			for (XMLVector<String> row : module_ts_imports) {
+		        if (row.size() == 2) {
+		            row.add("false");
+		        }
+		        while (row.size() > 3) {
+		            row.remove(row.size() - 1);
+		        }
+		    }
+		}	
 		return module_ts_imports;
 	}
 	
 	public void setModuleTsImports(XMLVector<XMLVector<String>> module_ts_imports) {
+		if(this.compareToTplVersion("8.4.0.3") >= 0) {
+		    for (XMLVector<String> row : module_ts_imports) {
+		        if (row.size() == 2) {
+		            row.add("false");
+		        }
+		        while (row.size() > 3) {
+		            row.remove(row.size() - 1);
+		        }
+		    }
+		}
 		this.module_ts_imports = module_ts_imports;
 	}
 
@@ -888,9 +908,16 @@ public class UICustomAction extends UIComponent implements IAction {
 				for (XMLVector<String> v : module_ts_imports) {
 					String name = v.get(0).trim();
 					String path = v.get(1).trim();
+					String syntax = v.size() > 2 ? v.get(1).trim() : "false";
 					if (!name.isEmpty() && !path.isEmpty()) {
 						if (!imports.containsKey(name)) {
 							imports.put(name, path);
+							if(tplIsLowerThan8043) {
+								imports.put(name, path);
+							}
+							else {
+								imports.put(name, path + "__c8o_separator__" +syntax);	
+							}
 						}
 					}
 				}

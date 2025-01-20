@@ -1753,7 +1753,10 @@ public class NgxBuilder extends MobileBuilder {
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        
 						if (!matcher2.find() && !matcher.find()) {
-							if (comp.indexOf(" as ") != -1) {
+							String[] parted = fromM.split("__c8o_separator__");
+				        	fromM = parted[0];
+							String directImport = parted.length > 1 ? parted[1] : "false";
+							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
 								c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 							} else {
 								fromM = (fromM.startsWith("../components/") ? "../":"") + fromM;
@@ -1893,7 +1896,10 @@ public class NgxBuilder extends MobileBuilder {
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        
 						if (!matcher.find() && !matcher2.find()) {
-							if (comps.indexOf(" as ") != -1) {
+							String[] parted = fromM.split("__c8o_separator__");
+				        	fromM = parted[0];
+							String directImport = parted.length > 1 ? parted[1] : "false";
+							if (comps.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
 								c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 							} else {
 								//from = (from.startsWith("../components/") ? "../":"") + from;
@@ -2782,7 +2788,11 @@ public class NgxBuilder extends MobileBuilder {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
 							String from = module_ts_imports.get(comp);
-							if (comp.indexOf(" as ") != -1) {
+							String[] parted = from.split("__c8o_separator__");
+							from = parted[0];
+							String directImport = parted.length > 1 ? parted[1] : "false";
+													
+							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
 								c8o_ModuleTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
 							} else {
 								from = from.startsWith("../components/") ? "."+ from.substring(2) : from;
@@ -3078,7 +3088,10 @@ public class NgxBuilder extends MobileBuilder {
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        Matcher matcher3 = compiledPattern.matcher(c8o_AppImports);
 				        if (!matcher.find() && !matcher2.find() && !matcher3.find()) {
-							if (comp.indexOf(" as ") != -1) {
+				        	String[] parted = fromM.split("__c8o_separator__");
+				        	fromM = parted[0];
+							String directImport = parted.length > 1 ? parted[1] : "false";
+							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
 								c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 							} else {
 								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
