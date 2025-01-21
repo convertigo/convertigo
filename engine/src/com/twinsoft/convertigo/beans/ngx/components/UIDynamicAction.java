@@ -359,7 +359,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 									smartValue = "scope."+ smartValue;
 								}
 								
-								smartValue = "get('"+ p_name +"', "+smartValue+")";
+								smartValue = "get('"+ p_name +"', `"+smartValue+"`)";
 							}
 
 						}
