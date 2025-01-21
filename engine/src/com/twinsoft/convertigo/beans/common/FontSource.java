@@ -185,7 +185,7 @@ public class FontSource implements XMLizable, Serializable, Cloneable {
 			csspath += "-" + jsonFont.getString("fontStyle");
 			
 			csspath = csspath.replace("-normal", "");
-			return "@import "+(withTilde ? "~" : "")+"\"@fontsource/"+ csspath +".css\";";
+			return "@import \"" + (withTilde ? "~" : "") + "@fontsource/" + csspath + ".css\";";
 		} catch (Exception e) {}
 		return "";
 	}
