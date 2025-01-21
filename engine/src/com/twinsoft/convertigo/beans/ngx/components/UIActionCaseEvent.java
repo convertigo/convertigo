@@ -73,10 +73,13 @@ public class UIActionCaseEvent extends UIActionEvent {
 		if (isEnabled()) {
 			String caseFn = getCaseFn();
 			String caseIn = super.computeEvent();
+			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;	
 			
 			String tsCode = "";
-			tsCode += "\t\tconst "+caseFn+" = (c8oPage : C8oPageBase) : Promise<any> => {" + System.lineSeparator();
-			tsCode += computeInnerGet("c8oPage", "doCase");
+			tsCode += "\t\tconst "+caseFn+" = (c8oPage : " + (tplIsLowerThan8043 ? "C8oPageBase":"any") + ") : Promise<any> => {" + System.lineSeparator();
+			if(tplIsLowerThan8043) {
+				tsCode += computeInnerGet("c8oPage", "doCase");
+			}
 			tsCode += caseIn.isEmpty() ? "\t\t\treturn Promise.resolve()"+ System.lineSeparator() : caseIn;
 			tsCode += "\t\t}" + System.lineSeparator();
 			return tsCode;
