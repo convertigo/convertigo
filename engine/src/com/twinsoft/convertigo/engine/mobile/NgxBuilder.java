@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NgxBuilder extends MobileBuilder {
 	private Map<String,String> tpl_appCompTsImports = null;
+	private Map<String,String> tpl_MainTsImports = null;
 	private Map<String,String> tpl_pageTsImports = null;
 	private Map<String,String> tpl_compTsImports = null;
 
@@ -591,6 +592,12 @@ public class NgxBuilder extends MobileBuilder {
 				tpl_appCompTsImports.clear();
 				tpl_appCompTsImports = null;
 			}
+			
+			if (tpl_MainTsImports != null) {
+				tpl_MainTsImports.clear();
+				tpl_MainTsImports = null;
+			}
+			
 			if (tpl_pageTsImports != null) {
 				tpl_pageTsImports.clear();
 				tpl_pageTsImports = null;
@@ -1415,6 +1422,13 @@ public class NgxBuilder extends MobileBuilder {
 	protected Map<String,String> getTplAppCompTsImports() {
 		if (tpl_appCompTsImports == null) {
 			tpl_appCompTsImports = initTplImports(new File(ionicTplDir, "src/app/app.component.ts"));
+		}
+		return tpl_appCompTsImports;
+	}
+	
+	protected Map<String,String> getTplMainTsImports() {
+		if (tpl_appCompTsImports == null) {
+			tpl_appCompTsImports = initTplImports(new File(ionicTplDir, "src/main.ts"));
 		}
 		return tpl_appCompTsImports;
 	}
@@ -2935,16 +2949,39 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			String c8o_ModuleNgImports = "";
-			String tpl_ng_imports = getTplAppNgImports("src/main");
-			if (!module_ng_imports.isEmpty()) {
-				for (String module: module_ng_imports) {
-					if (!tpl_ng_imports.contains(module)) {
-						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
+			module_ts_imports.remove("BrowserAnimationsModule");
+			HashMap<String, String> mapRemovedModule = new HashMap<>();
+			String c8o_ModuleTsImports = "";
+			Map<String, String> tpl_ts_imports = getTplMainTsImports();
+			if (!module_ts_imports.isEmpty()) {
+				for (String comp : module_ts_imports.keySet()) {
+					if (!tpl_ts_imports.containsKey(comp)) {
+						String from = module_ts_imports.get(comp);
+						String compM = comp;
+						String fromM = from;
+						if(from.contains("components/") || from.contains("pages/")) {
+							compM = comp.replaceAll("Module", "");
+							fromM = from.replaceAll("Module", "").replaceAll(".module", "");
+							mapRemovedModule.put(comp, compM);
+						}
+						String pattern = "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
+						Pattern compiledPattern = Pattern.compile(pattern);
+//						Matcher matcher = compiledPattern.matcher(c8o_PagesImport);
+				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
+//				        Matcher matcher3 = compiledPattern.matcher(c8o_AppImports);
+				        if (/*!matcher.find() && */!matcher2.find() /*&& !matcher3.find()*/) {
+				        	String[] parted = fromM.split("__c8o_separator__");
+				        	fromM = parted[0];
+							String directImport = parted.length > 1 ? parted[1] : "false";
+							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
+								c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
+							} else {
+								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
+								fromM = (fromM.startsWith("components/") ? "./" : "") + fromM;
+								c8o_ModuleTsImports += "import { "+compM+" } from '"+ fromM +"';"+ System.lineSeparator();
+							}
+				        }
 					}
-				}
-				if (!c8o_ModuleNgImports.isEmpty()) {
-					c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();;
 				}
 			}
 			
@@ -2965,8 +3002,8 @@ public class NgxBuilder extends MobileBuilder {
 			File mainTsFile = new File(ionicTplDir, "src/main.ts");
 			String mainContent = FileUtils.readFileToString(mainTsFile, "UTF-8");
 			mainContent = mainContent.replaceAll("/\\*\\=c8o_ServiceWorkerEnabled\\*/",c8o_ServiceWorkerEnabled);
-			mainContent = mainContent.replaceAll("/\\*\\=Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-			mainContent = mainContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport + c8o_ModuleNgImports);
+			mainContent = mainContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+			mainContent = mainContent.replaceAll("/\\*c8o_PagesImport\\*/",c8o_PagesImport + c8o_ModuleTsImports);
 		
 			File appMainTsFile = new File(srcDir, "main.ts");
 			writeFile(appMainTsFile, mainContent, "UTF-8");

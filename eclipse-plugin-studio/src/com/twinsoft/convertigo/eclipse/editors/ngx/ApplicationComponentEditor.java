@@ -1682,30 +1682,23 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					if (StringUtils.isNotBlank(line)) {
 						Engine.logStudio.info(line);
-						if (line.startsWith("✘ [41;31m[[41;97mERROR[41;31m]")) {
+						if (line.startsWith("✘")) {
 							sb = new StringBuilder();
 						}
 						if (sb != null) {
-//							if (line.contains("Application bundle generation failed")) {
-//								sb.append(line);
-//								error(sb.toString());
-//								sb = null;
-//							} else {
-//								sb.append(line + "\n");
-//							}
 							sb.append(line);
 							error(sb.toString());
 							sb = null;
 						}
 
 						matcher.reset(line);
-						if (matcher.find()) {
-							progress(Integer.parseInt(matcher.group(1)));
-							appendOutput(matcher.group(2));
+						if (line.startsWith("❯")) {
+							progress(0);
+							appendOutput(line);
 						} else {
 							appendOutput(line);
 						}
-						if (line.contains("Application bundle generation complete")) {
+						if (line.startsWith("✔")) {
 							progress(100);
 							error(null);
 							synchronized (mutex) {
@@ -2084,8 +2077,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 				List<String> cmd = pb.command();
 				cmd.add("--");
-				// #183 add useless option to help terminateNode method to find the current path
-				cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
+				
+				if(applicationEditorInput.application.compareToTplVersion("8.4.0.3") < 0) {
+					// #183 add useless option to help terminateNode method to find the current path
+					cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
+				}
+				else {
+					// #183 add useless option to help terminateNode method to find the current path
+					cmd.add("--external-dependencies=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
+				}
+				
 				// #393 add base href for project's web app
 				cmd.add("--base-href="+ appBaseHref);
 
