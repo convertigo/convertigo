@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -171,6 +172,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	transient private DirClassLoader loader;
 
 	transient private String minVersion;
+	
+	transient private String remoteReadmeUrl = null;
 
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -1047,5 +1050,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	static public String formatNameWithHash(Project project) {
 		return project != null ? project.getName() + " (" + project.hashCode() + ")" : "unknow";
+	}
+
+	public String getRemoteReadmeUrl() {
+		if (remoteReadmeUrl == null) {
+			remoteReadmeUrl = ProjectUrlParser.getReadmeUrl(this);
+		}
+		return remoteReadmeUrl;
 	}
 }

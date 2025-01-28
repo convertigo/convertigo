@@ -116,7 +116,6 @@ import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -1076,11 +1075,11 @@ public class ComponentManager {
 						continue;
 					}
 					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
-					String readmeUrl = ProjectUrlParser.getReadmeUrl(project);
 					if (project.getMobileApplication() != null) {
 						IApplicationComponent ac = project.getMobileApplication().getApplicationComponent();
 						if (ac != null && ac instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)ac;
+							String readmeUrl = project.getRemoteReadmeUrl();
 							for (UIActionStack action: app.getSharedActionList()) {
 								if (action.isEnabled() && action.isExposed()) {
 									components.add(new Component() {

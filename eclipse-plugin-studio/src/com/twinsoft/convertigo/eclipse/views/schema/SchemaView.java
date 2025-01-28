@@ -417,7 +417,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 			if (firstElement instanceof DatabaseObjectTreeObject) {
 				DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject) firstElement;
 				String currentProjectName = dboTreeObject.getObject().getProject().getName();
-				if (needRefresh || projectName == null || projectName.equals(currentProjectName)) {
+				if (needRefresh || projectName == null || !projectName.equals(currentProjectName)) {
 					needRefresh = false;
 					projectName = currentProjectName;
 
