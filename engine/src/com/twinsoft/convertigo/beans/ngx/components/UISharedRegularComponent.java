@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.ngx.components;
 import java.beans.BeanInfo;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -836,8 +836,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 					MobileComponent container = getContainer();
 					String c8o_CompModulePath;
 					try {
-						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(UISharedRegularComponent.this)
-												+ "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module").getCanonicalPath());
+						Path modulePath = new File(container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(UISharedRegularComponent.this)
+												+ "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module").toPath();
 						c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
 					} catch (Exception e) {
 						c8o_CompModulePath = "../components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";

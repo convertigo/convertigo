@@ -41,10 +41,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -66,7 +66,7 @@ import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class SchemaView extends ViewPart implements IPartListener, ISelectionListener, TreeObjectListener {
+public class SchemaView extends ViewPart implements IPartListener2, ISelectionListener, TreeObjectListener {
 	private Composite content;
 	private TreeViewer schemaTreeViewer;
 	private ISelection schemaTreeViewerSelection;
@@ -84,6 +84,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private boolean needRefresh;
 	private boolean needValidate;
 	private String projectName;
+	
+	private boolean isVisible;
 
 	private Thread workingThread;
 	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
@@ -171,8 +173,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		makeUI(content = new Composite(parent, SWT.NONE));
 
 		getSite().getPage().addSelectionListener(this);
-
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
+		getSite().getPage().addPartListener(this);
+		isVisible = getSite().getPage().isPartVisible(this);
 
 		ConvertigoPlugin.runAtStartup(() -> {
 			Engine.theApp.addEngineListener(engineListener);
@@ -291,8 +293,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		workingThread = null;
 		try {
 			getSite().getPage().removeSelectionListener(this);
+			getSite().getPage().removePartListener(this);
 			Engine.theApp.removeEngineListener(engineListener);
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
+			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev != null) {
+				pev.removeTreeObjectListener(this);
+			}
 		}
 		catch (Exception e) {};
 		content.dispose();
@@ -304,46 +310,74 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		schemaTreeViewer.getControl().setFocus();
 	}
 
+    @Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection && part instanceof ProjectExplorerView) {
-			if (autoRefresh.getSelection()) {
+			if (isVisible && autoRefresh.getSelection()) {
 				updateSchema((IStructuredSelection) selection);
 			}
 		}
 	}
 
-	public void partOpened(IWorkbenchPart part) {
-		if (part instanceof ProjectExplorerView) {
-			((ProjectExplorerView) part).addTreeObjectListener(this);
+    @Override
+	public void partOpened(IWorkbenchPartReference part) {
+		if (part.getPart(false) instanceof ProjectExplorerView pev) {
+			pev.addTreeObjectListener(this);
 		}
 	}
 
-	public void partClosed(IWorkbenchPart part) {
-		if (part instanceof ProjectExplorerView) {
-			((ProjectExplorerView) part).removeTreeObjectListener(this);
+    @Override
+	public void partClosed(IWorkbenchPartReference part) {
+    	if (part.getPart(false) instanceof ProjectExplorerView pev) {
+			pev.removeTreeObjectListener(this);
 		}
 	}
 
-	public void partBroughtToTop(IWorkbenchPart part) {
+    @Override
+	public void partBroughtToTop(IWorkbenchPartReference part) {
 	}
 
-	public void partActivated(IWorkbenchPart part) {
-		if (part instanceof ProjectExplorerView) {
-			((ProjectExplorerView) part).addTreeObjectListener(this);
+    @Override
+	public void partActivated(IWorkbenchPartReference part) {
+    	if (part.getPart(false) instanceof ProjectExplorerView pev) {
+			pev.addTreeObjectListener(this);
 		}
 	}
+	
+    @Override
+    public void partVisible(IWorkbenchPartReference partRef) {
+        if (partRef.getId().equals(getViewSite().getId())) {
+        	if (!isVisible) {
+                isVisible = true;
+                ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				if (pev != null) {
+					updateSchema(pev.viewer.getStructuredSelection());
+				}
+        	}
+        }
+    }
 
+    @Override
+    public void partHidden(IWorkbenchPartReference partRef) {
+        if (partRef.getId().equals(getViewSite().getId())) {
+            isVisible = false;
+        }
+    }
+    
 	public void partDeactivated(IWorkbenchPart part) {
 	}
 
+    @Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		needRefresh = true;
 	}
 
+    @Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		needRefresh = true;
 	}
 
+    @Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		needRefresh = true;
 	}

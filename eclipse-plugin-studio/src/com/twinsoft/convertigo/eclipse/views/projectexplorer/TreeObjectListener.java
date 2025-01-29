@@ -19,9 +19,23 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.util.EventListener;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
 
-public interface TreeObjectListener extends EventListener {
+public interface TreeObjectListener extends BaseEventListener {
+	default public void onEvent(TreeObjectEvent treeObjectEvent) {
+		switch (treeObjectEvent.type) {
+		case TreeObjectEvent.TYPE_ADDED:
+			treeObjectAdded(treeObjectEvent);
+			break;
+		case TreeObjectEvent.TYPE_PROPERTY_CHANGED:
+			treeObjectPropertyChanged(treeObjectEvent);
+			break;
+		case TreeObjectEvent.TYPE_REMOVED:
+			treeObjectRemoved(treeObjectEvent);
+			break;
+		}
+	}
+	
 	
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent);
 	
