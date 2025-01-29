@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 
 import org.eclipse.core.commands.Command;
@@ -113,7 +112,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
@@ -397,14 +395,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void packColumns() {
-		ConvertigoPlugin.asyncExec(() -> {
-			for (TreeColumn tc : viewer.getTree().getColumns()) {
-				try {
-					tc.pack();
-				} catch (Exception e) {
+		Engine.execute(() -> {
+			ConvertigoPlugin.asyncExec(() -> {
+				for (var tc : viewer.getTree().getColumns()) {
+					try {
+						tc.pack();
+					} catch (Exception e) {
+					}
 				}
-			}
-		});
+			});
+		}, 500);
 	}
 
 	/**
@@ -838,50 +838,24 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		showStepInPickerAction = new ShowStepInPickerAction();
 	}
 
-	private EventListenerList treeObjectListeners = new EventListenerList();
-
 	public void addTreeObjectListener(TreeObjectListener treeObjectListener) {
-		treeObjectListeners.add(TreeObjectListener.class, treeObjectListener);
+		Engine.theApp.eventManager.add(TreeObjectListener.class, treeObjectListener);
 	}
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
-		treeObjectListeners.remove(TreeObjectListener.class, treeObjectListener);
+		Engine.theApp.eventManager.remove(TreeObjectListener.class, treeObjectListener);
 	}
 
 	public void fireTreeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-		// Guaranteed to return a non-null array
-		Object[] listeners = treeObjectListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-			if (listeners[i] == TreeObjectListener.class) {
-				try {
-					((TreeObjectListener) listeners[i+1]).treeObjectPropertyChanged(treeObjectEvent);
-				} catch (Exception e){
-					String message = "fireTreeObjectPropertyChanged failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
-					ConvertigoPlugin.logException(e, message, false);
-				};
-			}
-		}
+		treeObjectEvent.type = TreeObjectEvent.TYPE_PROPERTY_CHANGED;
+		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
 
 	void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
-		// Guaranteed to return a non-null array
-		Object[] listeners = treeObjectListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-			if (listeners[i] == TreeObjectListener.class) {
-				try {
-					((TreeObjectListener) listeners[i+1]).treeObjectAdded(treeObjectEvent);
-				} catch (Exception e){
-					String message = "fireTreeObjectAdded failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
-					ConvertigoPlugin.logException(e, message, false);
-				};
-			}
-		}
+		treeObjectEvent.type = TreeObjectEvent.TYPE_ADDED;
+		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
 
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
@@ -946,21 +920,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (treeObjectEvent.getSource() instanceof TreeObjectListener) {
 			removeTreeObjectListener((TreeObjectListener) treeObjectEvent.getSource());
 		}
-
-		// Guaranteed to return a non-null array
-		Object[] listeners = treeObjectListeners.getListenerList();
-		// Process the listeners last to first, notifying
-		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-			if (listeners[i] == TreeObjectListener.class) {
-				try {
-					((TreeObjectListener) listeners[i + 1]).treeObjectRemoved(treeObjectEvent);
-				} catch (Exception e){
-					String message = "fireTreeObjectRemoved failed for treeObject: " + ((TreeObject)listeners[i + 1]).getName();
-					ConvertigoPlugin.logException(e, message);
-				};
-			}
-		}
+		
+		treeObjectEvent.type = TreeObjectEvent.TYPE_REMOVED;
+		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
 	}
 
 	

@@ -29,10 +29,18 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class EventManager implements AbstractManager {
 	private EventHelper eventHelper;
 	
+	synchronized public void add(Class<? extends BaseEventListener> cl, BaseEventListener listener) {
+		addListener(listener, cl);
+	}
+	
 	synchronized public void addListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {
 		eventHelper.addListener(GenericUtils.<Class<BaseEventListener>>cast(cl), listener);
 	}
 
+	synchronized public void dispatch(Class<? extends BaseEventListener> cl, BaseEvent event) {
+		dispatchEvent(event, cl);
+	}
+	
 	synchronized public void dispatchEvent(BaseEvent event, Class<? extends BaseEventListener> cl) {
 		for (BaseEventListener listener : eventHelper.getListeners(cl)) {
 			try {
@@ -42,6 +50,10 @@ public class EventManager implements AbstractManager {
 				Engine.logEngine.error("(EventManager) Unexpected exception", e);
 			}
 		}
+	}
+
+	synchronized public void remove(Class<? extends BaseEventListener> cl, BaseEventListener listener) {
+		removeListener(listener, cl);
 	}
 
 	synchronized public void removeListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {

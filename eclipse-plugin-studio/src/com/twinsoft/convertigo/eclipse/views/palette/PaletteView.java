@@ -39,7 +39,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
@@ -80,8 +82,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.BeansUtils;
@@ -118,7 +121,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
-public class PaletteView extends ViewPart {
+public class PaletteView extends ViewPart implements IPartListener2, ISelectionListener, TreeObjectListener {
 	private static final int MAX_USED_HISTORY = 50;
 	private static final int MAX_USED_VISIBLE = 8;
 
@@ -129,6 +132,8 @@ public class PaletteView extends ViewPart {
 	private HashMap<String, Item> all = new HashMap<>();
 	private HashMap<String, Item> commons = new HashMap<>();
 	private Project selectedProject = null;
+	private boolean isVisible = true;
+	private ISelectionChangedListener selectionListener;
 
 	private abstract class Item implements Comparable<Item> {
 		private String shortDescription;
@@ -157,11 +162,14 @@ public class PaletteView extends ViewPart {
 
 		@Override
 		public int compareTo(Item i) {
+			if (i == null) {
+				return -1;
+			}
 			var r = Boolean.compare(!builtIn(), !i.builtIn());
 			if (r == 0) {
 				r = category().compareToIgnoreCase(i.category());
 				if (r == 0) {
-					r = name().compareToIgnoreCase(i.name());
+					return name().compareToIgnoreCase(i.name());
 				}
 			}
 			if (r == 0) {
@@ -209,6 +217,13 @@ public class PaletteView extends ViewPart {
 
 	@Override
 	public void dispose() {
+		getSite().getPage().removeSelectionListener(this);
+		getSite().getPage().removePartListener(this);
+		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (pev != null) {
+			pev.removeTreeObjectListener(this);
+		}
+		
 		handCursor.dispose();
 		for (Image image: imageCache.values()) {
 			image.dispose();
@@ -244,6 +259,9 @@ public class PaletteView extends ViewPart {
 		this.parent = parent;
 		parent.setLayout(new GridLayout(1, true));
 		ConvertigoPlugin.runAtStartup(() -> refresh(1));
+		getSite().getPage().addSelectionListener(this);
+		getSite().getPage().addPartListener(this);
+		isVisible = getSite().getPage().isPartVisible(this);
 	}
 
 	private void init() {
@@ -414,7 +432,76 @@ public class PaletteView extends ViewPart {
 		C8oBrowser browser = new C8oBrowser(right, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);
-
+		
+		Runnable updateDoc = () -> {
+			var latestSelected = (Control) bag.getData("LatestSelected");
+			if (latestSelected == null || latestSelected.isDisposed()) {
+				return;
+			}
+			var item = (Item) latestSelected.getData("Item");
+			if (item == null) {
+				return;
+			}
+			
+			var lastItem = (Item) bag.getData("LatestDoc");
+			
+			if (sash.getWeights()[1] < 100) {
+				if (lastItem != null) {
+					browser.setText("<html>" +
+							"<head>" +
+							"<script type=\"text/javascript\">" +
+							"document.oncontextmenu = new Function(\"return false\");" +
+							"</script>" +
+							"<style type=\"text/css\">" +
+							"html {" +
+							"padding: 0px; margin: 0px;" + 
+							"border-left: lightgrey solid 2px;" +
+							"}\n" + 
+							"body {" +
+							"font-family: Courrier new, sans-serif;" +
+							"font-size: 14px;" +
+							"padding-left: 5px;" +
+							"color: $foreground$;" +
+							"background-color: $background$ } \n" +
+							"a { color: $link$; }" +
+							"</style>" +
+							"</head><body></body></html>");
+					bag.setData("LatestDoc", null);
+				}
+			} else {
+				if (item.compareTo(lastItem) != 0) {
+					var propertiesDescription = item.propertiesDescription();
+					browser.setText("<html>" +
+							"<head>" +
+							"<script type=\"text/javascript\">" +
+							"document.oncontextmenu = new Function(\"return false\");" +
+							"</script>" +
+							"<style type=\"text/css\">" +
+							"@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');\n" +
+							"html {" +
+							"padding: 0px; margin: 0px;" + 
+							"border-left: lightgrey solid 2px;" +
+							"}\n" + 
+							"body {" +
+							"font-family: 'Inter', sans-serif;" +
+							"padding-left: 0.3em;" +
+							"color: $foreground$;" +
+							"background-color: $background$ } \n" +
+							"a { color: $link$; }" +
+							"li { margin-bottom: 10px }" +
+							"</style>" +
+							"</head><body><p>"
+							+ "<b style=\"font-size: 24pt\">" + item.name() + "</b>" + "<br><br>"
+							+ "<i>" + item.shortDescription() + "</i>" + "<br><br>"
+							+ item.longDescription() + "<br>"
+							+ (propertiesDescription.isEmpty() ? "" : "<h4><b>Properties:</b></h4>")
+							+ propertiesDescription
+							+ "</p></body></html>");
+					bag.setData("LatestDoc", item);
+				}
+			}
+		};
+		
 		MouseListener mouseListener = new MouseAdapter() {
 
 			@Override
@@ -428,34 +515,13 @@ public class PaletteView extends ViewPart {
 				Control latestSelected = (Control) bag.getData("LatestSelected");
 				if (latestSelected != null && !latestSelected.isDisposed()) {
 					latestSelected.setData("style", "color: inherit; background-color: inherit");
+					CompositeElement.getEngine(latestSelected).applyStyles(latestSelected, false);
 				}
 				bag.setData("LatestSelected", c);
 				c.setData("style", "color: blue; background-color: lightcyan");
-				CompositeElement.getEngine(sash).applyStyles(sash, true);
-
-				String propertiesDescription = item.propertiesDescription();
-				browser.setText("<html>" +
-						"<head>" +
-						"<script type=\"text/javascript\">" +
-						"document.oncontextmenu = new Function(\"return false\");" +
-						"</script>" +
-						"<style type=\"text/css\">" +
-						"@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');" +
-						"body {" +
-						"font-family: 'Inter', sans-serif;" +
-						"padding-left: 0.3em;" +
-						"color: $foreground$;" +
-						"background-color: $background$ } \n" +
-						"a { color: $link$; }" +
-						"li { margin-bottom: 10px }" +
-						"</style>" +
-						"</head><body><p>"
-						+ "<b style=\"font-size: 24pt\">" + item.name() + "</b>" + "<br><br>"
-						+ "<i>" + item.shortDescription() + "</i>" + "<br><br>"
-						+ item.longDescription() + "<br>"
-						+ (propertiesDescription.isEmpty() ? "" : "<h4><b>Properties:</b></h4>")
-						+ propertiesDescription
-						+ "</p></body></html>");
+				CompositeElement.getEngine(c).applyStyles(c, false);
+				
+				updateDoc.run();
 				updateFav.run();
 			}
 
@@ -887,12 +953,16 @@ public class PaletteView extends ViewPart {
 					DatabaseObject parent = (DatabaseObject) PaletteView.this.parent.getData("Parent");
 					Integer folderType = (Integer) PaletteView.this.parent.getData("FolderType");
 
-					var skipKey = text + ":" + (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":" + (selectedProject != null ? selectedProject.getName() : "null");
-					var lastSkipKey = (String) PaletteView.this.parent.getData("LastSkipKey");
+					var skipKey = text + ":"
+							+ (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":"
+							+ (selectedProject != null ? selectedProject.getName() : "null") + ":"
+							+ hiddenCategories + ":"
+							+ favorites.size();
+					var lastSkipKey = (String) bag.getData("LastSkipKey");
 					if (skipKey.equals(lastSkipKey)) {
 						return;
 					} else {
-						PaletteView.this.parent.setData("LastSkipKey", skipKey);
+						bag.setData("LastSkipKey", skipKey);
 					}
 
 					favoriteslabel.setEnabled(text.isEmpty());
@@ -1050,165 +1120,101 @@ public class PaletteView extends ViewPart {
 				}
 			});
 
-			Runnable initPev = () -> {
-				ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				if (pev == null) {
-					return;
-				}
-				ISelectionChangedListener selectionListener = new ISelectionChangedListener() {
-					@Override
-					public void selectionChanged(SelectionChangedEvent e) {
-						if (bag.isDisposed()) {
-							pev.removeSelectionChangedListener(this);
-							return;
-						}
-
-						if (!tiLink.getSelection()) {
-							return;
-						}
-
-						TreeSelection selection = (TreeSelection) e.getSelection();
-						if (selection.getFirstElement() instanceof TreeObject) {
-							TreeObject to = (TreeObject) selection.getFirstElement();
-							while (to != null) {
-								Integer folderType = null;
-								DatabaseObject selected = null;
-								Object parent = null;
-								Boolean clear = null;
-
-								if (isType[0]) {
-									TreeObject ttype = to;
-									while (ttype != null) {
-										if (ttype instanceof SequenceTreeObject ||
-												ttype instanceof NgxApplicationComponentTreeObject ||
-												ttype instanceof MobileApplicationComponentTreeObject) {
-											to = ttype;
-											break;
-										}
-										ttype = ttype.getParent();
-									}
-								}
-
-								if (to instanceof ObjectsFolderTreeObject) {
-									ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
-									Integer last = (Integer) PaletteView.this.parent.getData("FolderType");
-									try  {
-										folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
-									} catch (Exception e2) {
-										folderType = 0;
-									}
-									parent = folder.getParent() == null ? null : folder.getParent().getObject();
-									clear = last == null || last != folderType;
-								} else if (to instanceof DatabaseObjectTreeObject) {
-									DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
-									DatabaseObject last = (DatabaseObject) PaletteView.this.parent.getData("Selected");
-									selected = dbot.getObject();
-									parent = selected.getParent();
-									clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
-								}
-								if (clear != null) {
-									PaletteView.this.parent.setData("FolderType", folderType);
-									PaletteView.this.parent.setData("Selected", selected);
-									PaletteView.this.parent.setData("Parent", parent);
-									if (selected != null || parent instanceof DatabaseObject) {
-										var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
-										if (project != selectedProject) {
-											selectedProject = project;
-											refresh();
-											break;
-										}
-									} else {
-										selectedProject = null;
-									}
-									if (clear == true) {
-										searchText.setText("");
-									} else {
-										searchText.notifyListeners(SWT.Modify, new Event());
-									}
-									break;
-								}
-								to = to.getParent();
-							}
-						}
-					}
-				};
-				pev.addSelectionChangedListener(selectionListener);
-				selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
-
-				tiLink.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						String val;
-						if (!tiLink.getSelection() && "on".equals(ConvertigoPlugin.getProperty("palette.link"))) {
-							tiLink.setSelection(true);
-							tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-							val = "type";
-							isType[0] = true;
-						} else {
-							tiLink.setBackground(null);
-							val = tiLink.getSelection() ? "on" : "off";
-							isType[0] = false;
-						}
-						ConvertigoPlugin.setProperty("palette.link", val);
-						selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
-					}
-				});
-
-				TreeObjectListener tol = new TreeObjectListener() {
-					@Override
-					public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
-						if (bag.isDisposed()) {
-							pev.removeTreeObjectListener(this);
-							return;
-						}
-						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
-						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
-							selectedProject = null;
-							refresh();
-						}
-					}
-
-					@Override
-					public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-						if (bag.isDisposed()) {
-							pev.removeTreeObjectListener(this);
-							return;
-						}
-						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
-						if (treeObject.getObject() instanceof IExposeAble && "exposed".equals(treeObjectEvent.propertyName)) {
-							refresh();
-						}
-					}
-
-					@Override
-					public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
-						if (bag.isDisposed()) {
-							pev.removeTreeObjectListener(this);
-							return;
-						}
-						TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
-						if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
-							selectedProject = null;
-							refresh();
-						}
-					}
-				};
-				pev.addTreeObjectListener(tol);
-			};
-
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener2() {
+			selectionListener = new ISelectionChangedListener() {
 				@Override
-				public void partOpened(IWorkbenchPartReference partRef) {
-					if (bag.isDisposed()) {
-						partRef.getPage().removePartListener(this);
+				public void selectionChanged(SelectionChangedEvent e) {
+					if (!tiLink.getSelection() || !isVisible) {
 						return;
 					}
-					if (partRef.getPart(false) instanceof ProjectExplorerView) {
-						ConvertigoPlugin.asyncExec(initPev);
+
+					TreeSelection selection = (TreeSelection) e.getSelection();
+					if (selection.getFirstElement() instanceof TreeObject to) {
+						while (to != null) {
+							Integer folderType = null;
+							DatabaseObject selected = null;
+							Object parent = null;
+							Boolean clear = null;
+
+							if (isType[0]) {
+								TreeObject ttype = to;
+								while (ttype != null) {
+									if (ttype instanceof SequenceTreeObject ||
+											ttype instanceof NgxApplicationComponentTreeObject ||
+											ttype instanceof MobileApplicationComponentTreeObject) {
+										to = ttype;
+										break;
+									}
+									ttype = ttype.getParent();
+								}
+							}
+
+							if (to instanceof ObjectsFolderTreeObject) {
+								ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
+								Integer last = (Integer) PaletteView.this.parent.getData("FolderType");
+								try  {
+									folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
+								} catch (Exception e2) {
+									folderType = 0;
+								}
+								parent = folder.getParent() == null ? null : folder.getParent().getObject();
+								clear = last == null || last != folderType;
+							} else if (to instanceof DatabaseObjectTreeObject) {
+								DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
+								DatabaseObject last = (DatabaseObject) PaletteView.this.parent.getData("Selected");
+								selected = dbot.getObject();
+								parent = selected.getParent();
+								clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
+							}
+							if (clear != null) {
+								PaletteView.this.parent.setData("FolderType", folderType);
+								PaletteView.this.parent.setData("Selected", selected);
+								PaletteView.this.parent.setData("Parent", parent);
+								if (selected != null || parent instanceof DatabaseObject) {
+									var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
+									if (project != selectedProject) {
+										selectedProject = project;
+										refresh();
+										break;
+									}
+								} else {
+									selectedProject = null;
+								}
+								if (clear == true) {
+									searchText.setText("");
+								} else {
+									searchText.notifyListeners(SWT.Modify, new Event());
+								}
+								break;
+							}
+							to = to.getParent();
+						}
 					}
+				}
+			};
+
+			tiLink.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					String val;
+					if (!tiLink.getSelection() && "on".equals(ConvertigoPlugin.getProperty("palette.link"))) {
+						tiLink.setSelection(true);
+						tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+						val = "type";
+						isType[0] = true;
+					} else {
+						tiLink.setBackground(null);
+						val = tiLink.getSelection() ? "on" : "off";
+						isType[0] = false;
+					}
+					ConvertigoPlugin.setProperty("palette.link", val);
+					update();
 				}
 			});
 
+			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev != null) {
+				pev.addTreeObjectListener(this);
+			}
 
 			pref = ConvertigoPlugin.getProperty("palette.sash");
 			try {
@@ -1222,11 +1228,12 @@ public class PaletteView extends ViewPart {
 				public void controlResized(ControlEvent e) {
 					int w[] = sash.getWeights();
 					ConvertigoPlugin.setProperty("palette.sash", w[0] + ";" + w[1]);
+					updateDoc.run();
 				}
 			});
+			CompositeElement.getEngine(top).applyStyles(top, true);
 			parent.layout(true);
-
-			ConvertigoPlugin.asyncExec(initPev);
+			update();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1240,7 +1247,9 @@ public class PaletteView extends ViewPart {
 	}
 
 	public void refresh() {
-		refresh(500);
+		if (isVisible) {
+			refresh(500);
+		}
 	}
 
 	private void refresh(long threshold) {
@@ -1249,7 +1258,7 @@ public class PaletteView extends ViewPart {
 				ComponentManager.of(selectedProject).reloadComponents();
 			}
 			parent.getDisplay().asyncExec(() -> {
-				String txt = searchText != null ? searchText.getText() : null;
+				String txt = searchText != null ? searchText.getText() : "";
 				for (Control c: parent.getChildren()) {
 					c.dispose();
 				}
@@ -1259,5 +1268,79 @@ public class PaletteView extends ViewPart {
 				}
 			});
 		}, threshold);
+	}
+
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (selection instanceof IStructuredSelection) {
+			if (part instanceof ProjectExplorerView) {
+				update();
+			}
+		}
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPartReference partRef) {
+		if (partRef.getPart(false) instanceof ProjectExplorerView pev) {
+			pev.addTreeObjectListener(this);
+			update();
+		}
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPartReference partRef) {
+		if (partRef.getPart(false) instanceof ProjectExplorerView pev) {
+			pev.removeTreeObjectListener(this);
+		}
+	}
+
+	@Override
+	public void partVisible(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId())) {
+			if (!isVisible) {
+				isVisible = true;
+				update();
+			}
+		}
+	}
+
+	@Override
+	public void partHidden(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId())) {
+			isVisible = false;
+		}
+	}
+
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			selectedProject = null;
+			refresh();
+		}
+	}
+
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
+		if (treeObject.getObject() instanceof IExposeAble && "exposed".equals(treeObjectEvent.propertyName)) {
+			refresh();
+		}
+	}
+
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			selectedProject = null;
+			refresh();
+		}
+	}
+
+	private void update() {
+		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (selectionListener != null && pev != null) {
+			selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
+		}
 	}
 }

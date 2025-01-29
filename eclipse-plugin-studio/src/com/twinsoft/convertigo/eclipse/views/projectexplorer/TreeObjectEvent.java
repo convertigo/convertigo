@@ -19,17 +19,20 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.util.EventObject;
 import java.util.Set;
 
-public class TreeObjectEvent extends EventObject {
+import com.twinsoft.convertigo.engine.events.BaseEvent;
 
-	private static final long serialVersionUID = 8653860381743808101L;
-
+public class TreeObjectEvent implements BaseEvent {
 	public static final int UPDATE_NONE = 0;
 	public static final int UPDATE_ALL = 1;
 	public static final int UPDATE_LOCAL = 2;
+	public static final int TYPE_ADDED = 3;
+	public static final int TYPE_PROPERTY_CHANGED = 4;
+	public static final int TYPE_REMOVED = 5;
 	
+	public int type = 0;
+	public Object source = null;
 	public String propertyName = null;
 	public Object oldValue = null;
 	public Object newValue = null;
@@ -55,7 +58,7 @@ public class TreeObjectEvent extends EventObject {
 	}
 	
 	private TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update, Set<Object> done, Set<Object> reset) {
-		super(source);
+		this.source = source;
 		this.propertyName = propertyName;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
@@ -64,6 +67,10 @@ public class TreeObjectEvent extends EventObject {
 		this.reset = reset;
 	}
 
+	public Object getSource() {
+		return source;
+	}
+	
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + 

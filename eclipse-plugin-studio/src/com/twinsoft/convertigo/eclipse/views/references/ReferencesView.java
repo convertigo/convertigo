@@ -27,8 +27,10 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
@@ -99,9 +101,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class ReferencesView extends ViewPart implements CompositeListener,
-ISelectionListener {
+ISelectionListener, IPartListener2 {
 
 	private TreeViewer treeViewer;
+	private boolean isVisible = true;
 
 	public void objectSelected(CompositeEvent compositeEvent) {
 
@@ -121,12 +124,14 @@ ISelectionListener {
 
 		getSite().setSelectionProvider(treeViewer);
 		getSite().getPage().addSelectionListener(this);
-
+		getSite().getPage().addPartListener(this);
+		isVisible = getSite().getPage().isPartVisible(this);
 	}
 
 	@Override
 	public void dispose() {
 		getSite().getPage().removeSelectionListener(this);
+		getSite().getPage().removePartListener(this);
 		super.dispose();
 	}
 
@@ -136,6 +141,9 @@ ISelectionListener {
 	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (!isVisible) {
+			return;
+		}
 		if (selection instanceof IStructuredSelection) {
 			if (part instanceof ProjectExplorerView) {
 				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
@@ -1132,6 +1140,24 @@ ISelectionListener {
 			}
 			if (requiresProjectNode.hasChildren()) {
 				requiresNode.addChild(requiresProjectNode);
+			}
+		}
+	}
+
+	@Override
+	public void partHidden(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId())) {
+			isVisible = false;
+		}
+	}
+
+	@Override
+	public void partVisible(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId()) && !isVisible) {
+			isVisible = true;
+			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev != null) {
+				selectionChanged(pev, pev.viewer.getSelection());
 			}
 		}
 	}

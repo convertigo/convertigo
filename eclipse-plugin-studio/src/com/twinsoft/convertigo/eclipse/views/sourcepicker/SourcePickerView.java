@@ -30,8 +30,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -46,14 +48,15 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
-public class SourcePickerView extends ViewPart implements StepSourceListener, ISelectionListener {
-	
+public class SourcePickerView extends ViewPart implements StepSourceListener, ISelectionListener, IPartListener2 {
+
 	private StackLayout stack;
 	private SourcePickerComposite spc;
 	private NgxPickerComposite npc;
 	private MobilePickerComposite mpc;
 	private ISelection lastSelection;
-	
+	private boolean isVisible = true;
+
 	public SourcePickerView() {
 	}
 
@@ -63,7 +66,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 		spc = new SourcePickerComposite(parent, SWT.NONE);
 		npc = new NgxPickerComposite(parent, false);
 		mpc = new MobilePickerComposite(parent, false);
-		
+
 		SelectionAdapter selectionListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -74,7 +77,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 				}
 			}
 		};
-		
+
 		for (ToolItem tiLink: Arrays.asList(spc.getTiLink(), npc.getTiLink(), mpc.getTiLink())) {
 			tiLink.setToolTipText("Link with the 'Projects tree' selection");
 			try {
@@ -86,11 +89,13 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 			tiLink.addSelectionListener(selectionListener);
 			ConvertigoPlugin.asyncExec(() -> tiLink.setBackground(null));
 		}
-		
+
 		stack.topControl = spc;
 		stack.topControl.getParent().layout(true);
 		getSite().getPage().addSelectionListener(this);
-		
+		getSite().getPage().addPartListener(this);
+		isVisible = getSite().getPage().isPartVisible(this);
+
 		ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (pev != null) {
 			ITreeSelection selection = pev.viewer.getStructuredSelection();
@@ -99,16 +104,16 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	@Override
 	public void setFocus() {
 		stack.topControl.setFocus();
 	}
-	
-	
-	
+
+
+
 	public void close() {
 		spc.close();
 	}
@@ -121,11 +126,12 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 	public Object getObject() {
 		return spc.getObject();
 	}
-	
+
 	@Override
 	public void dispose() {
 		try {
 			getSite().getPage().removeSelectionListener(this);
+			getSite().getPage().removePartListener(this);
 		}
 		catch (Exception e) {};
 		if (spc == null) {
@@ -142,12 +148,12 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (selection instanceof IStructuredSelection && (part == null || part instanceof ProjectExplorerView)) {
+		if (isVisible && selection instanceof IStructuredSelection && (part == null || part instanceof ProjectExplorerView)) {
 			if("off".equals(ConvertigoPlugin.getProperty("sourcepicker.link"))) {
 				lastSelection = selection;
 				return;
 			}
-			
+
 			TreeObject selected = (TreeObject) ((IStructuredSelection) selection).getFirstElement();
 			if (selected == stack.topControl.getParent().getData("LastSelected")) {
 				return;
@@ -183,6 +189,24 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 				mpc.getTiLink().setSelection(true);
 				mpc.setCurrentInput(selected, null);
 			}
+		}
+	}
+
+	@Override
+	public void partVisible(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId()) && !isVisible) {
+			isVisible = true;
+			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev != null) {
+				selectionChanged(pev, pev.viewer.getStructuredSelection());
+			}
+		}
+	}
+
+	@Override
+	public void partHidden(IWorkbenchPartReference partRef) {
+		if (partRef.getId().equals(getViewSite().getId())) {
+			isVisible = false;
 		}
 	}
 }

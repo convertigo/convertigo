@@ -19,12 +19,11 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class Contributor {
 	private MobileComponent container = null;
@@ -77,7 +76,7 @@ public abstract class Contributor {
 		else if (container instanceof UISharedComponent && ((UISharedComponent)container).isRegular()) {
 			containerDir = new File(appDir, "/components/"+ UISharedComponent.getNsCompDirName((UISharedComponent)container));
 		}
-		return Paths.get(containerDir.getCanonicalPath());
+		return containerDir.toPath();
 	}
 	
 	@Override
