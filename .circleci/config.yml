@@ -667,7 +667,10 @@ jobs:
           #tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
           #find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
           
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
+          echo "prepare s3 upload, aws client version"
+          aws --version
+          
+          aws s3 sync --debug --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
           
   release:
     docker:
