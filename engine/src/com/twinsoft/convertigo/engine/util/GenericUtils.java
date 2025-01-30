@@ -214,7 +214,7 @@ public class GenericUtils {
 			E item = i.next().get();
 			if (item == null) {
 				i.remove();
-			} else if (item.equals(object)) {
+			} else if (item == object) {
 				i.remove();
 				if (!removeAll) {
 					return;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2025 Convertigo SA.
+ * Copyright (c) 2001-2024 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -36,15 +36,12 @@ public class EventHelper {
 			collection = new LinkedList<WeakReference<E>>();
 			listeners.put(key, GenericUtils.<Collection<WeakReference<?>>>cast(collection));
 		}
-		if (!GenericUtils.contains(collection, listener)) {
-			collection.add(new WeakReference<E>(listener));	
-		}
 	}
 	
 	public synchronized <E> void removeListener(Class<E> key, E listener) {
 		Collection<WeakReference<E>> collection = GenericUtils.cast(listeners.get(key));
 		if (collection != null) {
-			GenericUtils.remove(collection, listener, false);
+			GenericUtils.remove(collection, listener, true);
 		}
 	}
 	
