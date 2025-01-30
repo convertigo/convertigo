@@ -174,6 +174,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	transient private String minVersion;
 	
 	transient private String remoteReadmeUrl = null;
+	
+	transient private String dirPath = null;
 
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -719,11 +721,14 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	public String getDirPath() {
-		return Engine.projectDir(getName());
+		if (dirPath == null) {
+			dirPath = Engine.projectDir(getName());
+		}
+		return dirPath;
 	}
 
 	public File getDirFile() {
-		return Engine.projectFile(getName()).getParentFile();
+		return new File(getDirPath());
 	}
 
 	public String getXsdDirPath() {

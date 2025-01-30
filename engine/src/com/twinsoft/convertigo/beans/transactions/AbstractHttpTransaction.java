@@ -194,15 +194,17 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		}
 
 
-		try {
-			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
-			if (node != null) {
-				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
-				hasChanged = true;
-				Engine.logBeans.warn("[HttpTransaction] The object \"" + getName() + "\" has been updated to use the new 'httpVerb' format");
+		if (VersionUtils.compare(version, "7.6.0") < 0) {
+			try {
+				Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
+				if (node != null) {
+					httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
+					hasChanged = true;
+					Engine.logBeans.warn("[HttpTransaction] The object \"" + getName() + "\" has been updated to use the new 'httpVerb' format");
+				}
+			} catch (Throwable t) {
+				// ignore migration errors
 			}
-		} catch (Throwable t) {
-			// ignore migration errors
 		}
 	}
 

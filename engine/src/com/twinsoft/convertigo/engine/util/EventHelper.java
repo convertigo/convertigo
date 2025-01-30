@@ -36,15 +36,12 @@ public class EventHelper {
 			collection = new LinkedList<WeakReference<E>>();
 			listeners.put(key, GenericUtils.<Collection<WeakReference<?>>>cast(collection));
 		}
-		if (!GenericUtils.contains(collection, listener)) {
-			collection.add(new WeakReference<E>(listener));	
-		}
 	}
 	
 	public synchronized <E> void removeListener(Class<E> key, E listener) {
 		Collection<WeakReference<E>> collection = GenericUtils.cast(listeners.get(key));
 		if (collection != null) {
-			GenericUtils.remove(collection, listener, false);
+			GenericUtils.remove(collection, listener, true);
 		}
 	}
 	

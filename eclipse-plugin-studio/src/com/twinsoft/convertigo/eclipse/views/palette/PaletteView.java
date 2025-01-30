@@ -957,7 +957,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							+ (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":"
 							+ (selectedProject != null ? selectedProject.getName() : "null") + ":"
 							+ hiddenCategories + ":"
-							+ favorites.size();
+							+ favorites.stream().map(i -> i.name()).collect( Collectors.joining( "," )) + ":"
+							+ lastUsed.stream().map(i -> i.name()).collect( Collectors.joining( "," ));
 					var lastSkipKey = (String) bag.getData("LastSkipKey");
 					if (skipKey.equals(lastSkipKey)) {
 						return;
