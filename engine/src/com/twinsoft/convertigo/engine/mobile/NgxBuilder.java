@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.mobile;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,6 +101,8 @@ public class NgxBuilder extends MobileBuilder {
 	private File appDir, pagesDir, servicesDir, componentsDir;
 	private File themeDir;
 	private File srcDir;
+	
+	private Set<File> existingFiles = null;
 
 	private static String FakeDeleted = "fake_deleted.ts";
 	
@@ -355,8 +359,10 @@ public class NgxBuilder extends MobileBuilder {
 
 			setNeedPkgUpdate(false);
 
-			// Clean directories 
-			cleanDirectories();
+			// Clean directories
+			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+			
+			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/src"));
 
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -389,7 +395,10 @@ public class NgxBuilder extends MobileBuilder {
 				updateConsumer();
 				updateConsumers();
 			}
-
+			
+			FileUtils.deleteFiles(existingFiles);
+			existingFiles= null;
+			
 			initDone = true;
 			Engine.logEngine.debug("("+ builderType +") End initializing builder for ionic project "+ projectID);
 		}
@@ -484,7 +493,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		};
 		try {
-			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir, ff, true);
+			FileUtils.copyDirectoryOptimized(ionicTplDir, ionicWorkDir, ff, existingFiles);
 			Engine.logEngine.trace("("+ builderType +") Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
@@ -508,7 +517,7 @@ public class NgxBuilder extends MobileBuilder {
 			envJSON.put("appTemplateVersion", appTemplateVersion);
 			envJSON.put("appGenerationTime", appGenerationTime);
 			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
-			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
+			write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4));
 			Engine.logEngine.trace("("+ builderType +") Initialized env.json for ionic project "+ project.getName());
 
 		} catch (Exception e) {
@@ -523,7 +532,7 @@ public class NgxBuilder extends MobileBuilder {
 			envJSON.put("appTemplateVersion", getTplVersion() != null ? this.tplVersion : "");
 			envJSON.put("appGenerationTime", System.currentTimeMillis());
 			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
-			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
+			write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4));
 			Engine.logEngine.trace("("+ builderType +") Updated env.json for ionic project "+ project.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1149,7 +1158,7 @@ public class NgxBuilder extends MobileBuilder {
 				// Write file (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(tempTsDir, tempTsFileName);
-				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				write(tempTsFile, tsContent);
 			}
 		}
 		catch (Exception e) {
@@ -1204,9 +1213,7 @@ public class NgxBuilder extends MobileBuilder {
 				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
-					FileUtils.write(tempTsFile, tsContent, "UTF-8");
-				}
+				write(tempTsFile, tsContent);
 			}
 		}
 		catch (Exception e) {
@@ -1261,9 +1268,7 @@ public class NgxBuilder extends MobileBuilder {
 				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(compDir, compFileName(comp) + ".temp.ts");
-				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
-					FileUtils.write(tempTsFile, tsContent, "UTF-8");
-				}
+				write(tempTsFile, tsContent);
 			}
 		}
 		catch (Exception e) {
@@ -2783,14 +2788,10 @@ public class NgxBuilder extends MobileBuilder {
 						}
 					}
 				}
-
-				String tsContent = FileUtils.readFileToString(appTsFile, "UTF-8");
 				
 				// Write file if needed (do not need delay)
 				File tempTsFile = new File(appDir, "app.component.temp.ts");
-				if (!tempTsFile.exists() || !tsContent.equals(FileUtils.readFileToString(tempTsFile, "UTF-8"))) {
-					FileUtils.copyFile(appTsFile, tempTsFile);
-				}
+				FileUtils.copyFileIfNeeded(appTsFile, tempTsFile, existingFiles);
 			}
 		}
 		catch (Exception e) {
@@ -3062,25 +3063,26 @@ public class NgxBuilder extends MobileBuilder {
 	@Override
 	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
-		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		var str = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		var charset = Charset.forName(encoding);
+		if (existingFiles != null) {
+			existingFiles.remove(file);
+		}
 		
 		if (initDone && Engine.isStudioMode()) {
 			synchronized (writtenFiles) {
 				// Checks for content changes
 				if (file.exists()) {
-					String excontent = null;
+					boolean same = false;
 					if (writtenFiles.contains(file)) {
 						File nFile = toTmpFile(file);
-						if (nFile.exists()) {
-							excontent = FileUtils.readFileToString(nFile, encoding);
-						} else {
-							excontent = FileUtils.readFileToString(file, encoding);
-						}
+						same = FileUtils.areFilesIdentical(nFile.exists() ? nFile : file, str, charset);
+						
 					} else {
-						excontent = FileUtils.readFileToString(file, encoding);
+						same = FileUtils.areFilesIdentical(file, encoding, charset);
 					}
 					
-					if (content.equals(excontent)) {
+					if (same) {
 						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
@@ -3095,7 +3097,7 @@ public class NgxBuilder extends MobileBuilder {
 							Engine.logEngine.debug("("+ builderType +") Deleted dir " + dir.getPath());
 						} catch (Exception e) {}
 					} else {
-						FileUtils.write(file, content, encoding);
+						FileUtils.writeFile(file, str, charset);
 						Engine.logEngine.debug("("+ builderType +") Wrote file " + file.getPath());
 					}
 				}
@@ -3105,17 +3107,17 @@ public class NgxBuilder extends MobileBuilder {
 					writtenFiles.add(file);
 					File nFile = toTmpFile(file);
 					nFile.getParentFile().mkdirs();
-					FileUtils.write(nFile, content, encoding);
+					FileUtils.writeFile(file, str, charset);
 					
 					// store files modifications
 					if (file.getPath().endsWith(FakeDeleted)) {
 						Engine.logEngine.trace("("+ builderType +") Defers the deletion of " + nFile.getParentFile().getPath());
 					} else {
-						Engine.logEngine.trace("("+ builderType +") Defers the write of " + content.length() + " chars to " + nFile.getPath());
+						Engine.logEngine.trace("("+ builderType +") Defers the write of " + str.length() + " chars to " + nFile.getPath());
 					}
 					if (pushedFiles != null) {
 						synchronized (pushedFiles) {
-							pushedFiles.put(file.getPath(), content);
+							pushedFiles.put(file.getPath(), str);
 						}
 					}
 				}
@@ -3127,7 +3129,7 @@ public class NgxBuilder extends MobileBuilder {
 					FileUtils.deleteDirectory(dir);
 				} catch (Exception e) {}
 			} else {
-				FileUtils.write(file, content, encoding);
+				FileUtils.writeFile(file, str, charset);
 			}
 		}
 		
@@ -3146,7 +3148,7 @@ public class NgxBuilder extends MobileBuilder {
 				int size = pushedFiles.size();
 				if (size > 0) {
 					Engine.logEngine.debug("("+ builderType +") >>> moveFilesForce : "+ size +" files");
-					Map<String, CharSequence> map = new HashMap<String, CharSequence>();
+					var map = new HashMap<String, CharSequence>();
 					map.putAll(Collections.unmodifiableMap(pushedFiles));
 					pushedFiles.clear();
 					
@@ -3169,7 +3171,7 @@ public class NgxBuilder extends MobileBuilder {
 							}
 						} else {
 							try {
-								FileUtils.write(file, map.get(path), "UTF-8");
+								write(file, map.get(path).toString());
 								Engine.logEngine.debug("("+ builderType +") Wrote file " + file.getPath());
 								hasMovedFiles = true;
 								if (path.endsWith("package.json") || path.endsWith("angular.json")) {
@@ -3200,5 +3202,12 @@ public class NgxBuilder extends MobileBuilder {
 		if (initDone && buildMutex == null && Engine.isStudioMode()) {
 			updateEnvFile();
 		}
+	}
+	
+	protected void write(File file, String str) throws IOException {
+		if (existingFiles != null) {
+			existingFiles.remove(file);
+		}
+		FileUtils.writeFile(file, str, StandardCharsets.UTF_8);
 	}
 }

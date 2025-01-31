@@ -169,7 +169,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			if (r == 0) {
 				r = category().compareToIgnoreCase(i.category());
 				if (r == 0) {
-					return name().compareToIgnoreCase(i.name());
+					r = name().compareToIgnoreCase(i.name());
+					if (r == 0) {
+						r = id().compareToIgnoreCase(i.id());
+					}
+					return r;
 				}
 			}
 			if (r == 0) {

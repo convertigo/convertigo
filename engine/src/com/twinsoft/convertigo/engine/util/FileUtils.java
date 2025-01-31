@@ -19,19 +19,30 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +51,8 @@ import com.twinsoft.convertigo.engine.Engine;
 
 @SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
+	private static final int BUFFER_SIZE = 4096;
+	
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 	public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
 
@@ -255,5 +268,105 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 		fis = new FileInputStream(file);
 		return fis;
+	}
+	
+	public static boolean areFilesIdentical(File file, String newContent, Charset charset) throws IOException {
+		if (file == null || !file.exists()) {
+			return false;
+		}
+        try (var fileStream = new BufferedInputStream(new FileInputStream(file));
+             InputStream contentStream = new ByteArrayInputStream(newContent.getBytes(charset))) {
+
+            byte[] fileBuffer = new byte[BUFFER_SIZE];
+            byte[] contentBuffer = new byte[BUFFER_SIZE];
+
+            int fileRead, contentRead;
+            while ((fileRead = fileStream.read(fileBuffer)) != -1) {
+                contentRead = contentStream.read(contentBuffer);
+
+                if (contentRead != fileRead || Arrays.compare(fileBuffer, 0, fileRead, contentBuffer, 0, contentRead) != 0) {
+                    return false;
+                }
+            }
+            return contentStream.read() == -1;
+        }
+    }
+	
+    public static void writeFile(File file, String content, Charset charset) throws IOException {
+        if (areFilesIdentical(file, content, charset)) {
+            return;
+        }
+        Files.writeString(file.toPath(), content, charset);
+    }
+	
+	public static Set<File> indexExistingFiles(File rootDir) {
+		if (rootDir == null) {
+			return null;
+		}
+	    var files = new HashSet<File>();
+	    if (rootDir.exists() && rootDir.isDirectory()) {
+	        try (var paths = Files.walk(rootDir.toPath())) {
+	            paths.filter(Files::isRegularFile).map(Path::toFile).forEach(files::add);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    return files;
+	}
+	
+	public static void copyFileIfNeeded(File srcFile, File destFile, Set<File> existingFiles) throws IOException {
+		if (existingFiles != null) {
+    		existingFiles.remove(destFile);
+    	}
+	    if (destFile.exists()) {
+	        if (Files.mismatch(srcFile.toPath(), destFile.toPath()) == -1) {
+	            return;
+	        }
+	    }
+	    
+	    Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+	}
+	
+
+	public static void copyDirectoryOptimized(File srcDir, File destDir, Set<File> existingFiles) throws IOException {
+		copyDirectoryOptimized(srcDir, destDir, p -> true, existingFiles);
+	}
+	
+	public static void copyDirectoryOptimized(File srcDir, File destDir, FileFilter filter, Set<File> existingFiles) throws IOException {
+	    if (!srcDir.exists()) {
+	    	return;
+	    }
+
+	    if (!destDir.exists()) {
+	    	destDir.mkdirs();
+	    }
+	    
+	    var files = srcDir.listFiles(filter);
+	    if (files == null) {
+	    	return;
+	    }
+
+	    for (var srcFile : files) {
+	        var destFile = new File(destDir, srcFile.getName());
+
+	        if (srcFile.isDirectory()) {
+	            copyDirectoryOptimized(srcFile, destFile, filter, existingFiles);
+	        } else {
+	            copyFileIfNeeded(srcFile, destFile, existingFiles);
+	        }
+	    }
+	}
+	
+	public static boolean deleteWithParents(File file) {
+		if (file.delete()) {
+			return deleteWithParents(file.getParentFile());
+		}
+		return false;
+	}
+	
+	public static void deleteFiles(Set<File> existingFiles) {
+		for (var file : existingFiles) {
+			deleteWithParents(file);
+	    }
 	}
 }

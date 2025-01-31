@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -81,7 +80,11 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 			if (isUseExpression()) {
 				expression = self.getTextContent();
 			} else {
-				sourceDefinition.readXml(XPathAPI.selectSingleNode(self, "*"));
+				var firstElement = self.getFirstChild();
+				while (firstElement != null && !(firstElement instanceof Element)) {
+					firstElement = firstElement.getNextSibling();
+				}
+				sourceDefinition.readXml(firstElement);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
