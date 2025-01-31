@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,7 +95,7 @@ public class YamlConverter {
 		}
 	}
 	
-	private void writeYamlElement(String indent, Element element, boolean inArray) throws IOException {
+	private void writeYamlElement(String indent, Element element, boolean inArray, Set<File> existingFiles) throws IOException {
 		String nextIndent = indent + inc;
 		String txtIndent = nextIndent;
 		StringBuilder sbSaved = this.sb;
@@ -145,7 +147,7 @@ public class YamlConverter {
 				Element eChild = (Element) child;
 				sb.append(endLine);
 				asChild = true;
-				writeYamlElement(nextIndent, eChild, !isBean);
+				writeYamlElement(nextIndent, eChild, !isBean, existingFiles);
 			} else if (child instanceof CDATASection) {
 				CDATASection cdata = (CDATASection) child;
 				String txt = cdata.getData();
@@ -165,7 +167,10 @@ public class YamlConverter {
 		
 		if (subfile != null) {
 			String content = asChild ? sb.substring(endLine.length()) : sb.toString();
-			FileUtils.write(subfile, content, "UTF-8");
+			FileUtils.writeFile(subfile, content, StandardCharsets.UTF_8);
+			if (existingFiles != null) {
+				existingFiles.remove(subfile);
+			}
 			sb = sbSaved;
 			sb.append("🗏 " + yamlFile);
 		}
@@ -316,27 +321,37 @@ public class YamlConverter {
 		YamlConverter y = new YamlConverter();
 		y.sb = new StringBuilder();
 		y.subdir = subdir;
-		if (subdir != null && subdir.exists()) {
-			FileUtils.cleanDirectory(subdir);
-		}
+		var existingFiles = FileUtils.indexExistingFiles(subdir);
 		Node node = document.getDocumentElement().getFirstChild();
 		while (node != null) {
 			if (node instanceof Element) {
 				if (node.getPreviousSibling() != null) {
 					y.sb.append(endLine);
 				}
-				y.writeYamlElement("", (Element) node, false);
+				y.writeYamlElement("", (Element) node, false, existingFiles);
 			}
 			node = node.getNextSibling();
 		}
-		FileUtils.write(yaml, y.sb.toString(), "UTF-8");
+		FileUtils.writeFile(yaml, y.sb.toString(), StandardCharsets.UTF_8);
+		existingFiles.remove(yaml);
+		FileUtils.deleteFiles(existingFiles);
+	}
+	
+	public static String toYaml(Element element, Set<File> existingFiles) throws IOException {
+		if (element != null) {
+			YamlConverter y = new YamlConverter();
+			y.sb = new StringBuilder();
+			y.writeYamlElement("", element, false, existingFiles);
+			return y.sb.toString();
+		}
+		return null;
 	}
 	
 	public static String toYaml(Element element) throws IOException {
 		if (element != null) {
 			YamlConverter y = new YamlConverter();
 			y.sb = new StringBuilder();
-			y.writeYamlElement("", element, false);
+			y.writeYamlElement("", element, false, null);
 			return y.sb.toString();
 		}
 		return null;

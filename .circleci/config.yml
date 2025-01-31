@@ -685,7 +685,7 @@ jobs:
           echo "prepare s3 upload, aws client version"
           aws --version
           
-          aws s3 sync --debug --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
           
   release:
     docker:
