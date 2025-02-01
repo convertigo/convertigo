@@ -450,28 +450,26 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			var lastItem = (Item) bag.getData("LatestDoc");
 			
 			if (sash.getWeights()[1] < 100) {
-				if (lastItem != null) {
-					browser.setText("<html>" +
-							"<head>" +
-							"<script type=\"text/javascript\">" +
-							"document.oncontextmenu = new Function(\"return false\");" +
-							"</script>" +
-							"<style type=\"text/css\">" +
-							"html {" +
-							"padding: 0px; margin: 0px;" + 
-							"border-left: lightgrey solid 2px;" +
-							"}\n" + 
-							"body {" +
-							"font-family: Courrier new, sans-serif;" +
-							"font-size: 14px;" +
-							"padding-left: 5px;" +
-							"color: $foreground$;" +
-							"background-color: $background$ } \n" +
-							"a { color: $link$; }" +
-							"</style>" +
-							"</head><body></body></html>");
-					bag.setData("LatestDoc", null);
-				}
+				browser.setText("<html>" +
+						"<head>" +
+						"<script type=\"text/javascript\">" +
+						"document.oncontextmenu = new Function(\"return false\");" +
+						"</script>" +
+						"<style type=\"text/css\">" +
+						"html {" +
+						"padding: 0px; margin: 0px;" + 
+						"border-left: lightgrey solid 2px;" +
+						"}\n" + 
+						"body {" +
+						"font-family: Courrier new, sans-serif;" +
+						"font-size: 14px;" +
+						"padding-left: 5px;" +
+						"color: $foreground$;" +
+						"background-color: $background$ } \n" +
+						"a { color: $link$; }" +
+						"</style>" +
+						"</head><body></body></html>");
+				bag.setData("LatestDoc", null);
 			} else {
 				if (item.compareTo(lastItem) != 0) {
 					var propertiesDescription = item.propertiesDescription();
@@ -1128,6 +1126,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			selectionListener = new ISelectionChangedListener() {
 				@Override
 				public void selectionChanged(SelectionChangedEvent e) {
+					if (tiLink.isDisposed()) {
+						selectionListener = null;
+						refresh();
+						return;
+					}
+					
 					if (!tiLink.getSelection() || !isVisible) {
 						return;
 					}
