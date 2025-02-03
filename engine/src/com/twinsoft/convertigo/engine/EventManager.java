@@ -19,52 +19,49 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.twinsoft.convertigo.engine.events.BaseEvent;
 import com.twinsoft.convertigo.engine.events.BaseEventListener;
 import com.twinsoft.convertigo.engine.util.EventHelper;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class EventManager implements AbstractManager {
-	private EventHelper eventHelper;
-	
-	synchronized public void add(Class<? extends BaseEventListener> cl, BaseEventListener listener) {
-		addListener(listener, cl);
-	}
-	
-	synchronized public void addListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {
-		eventHelper.addListener(GenericUtils.<Class<BaseEventListener>>cast(cl), listener);
+	private final Map<Class<?>, EventHelper<?, ?>> eventHelpers = new ConcurrentHashMap<>();
+
+	public <T extends BaseEventListener<E>, E extends BaseEvent> void addListener(T listener, Class<T> listenerClass) {
+		EventHelper<T, E> helper = getOrCreateHelper(listenerClass);
+		helper.addListener(listener);
 	}
 
-	synchronized public void dispatch(Class<? extends BaseEventListener> cl, BaseEvent event) {
-		dispatchEvent(event, cl);
-	}
-	
-	synchronized public void dispatchEvent(BaseEvent event, Class<? extends BaseEventListener> cl) {
-		for (BaseEventListener listener : eventHelper.getListeners(cl)) {
-			try {
-				Method m = listener.getClass().getMethod("onEvent", event.getClass());
-				m.invoke(listener, event);
-			} catch (Exception e) {
-				Engine.logEngine.error("(EventManager) Unexpected exception", e);
-			}
+	public <T extends BaseEventListener<E>, E extends BaseEvent> void removeListener(T listener, Class<T> listenerClass) {
+		EventHelper<T, E> helper = getHelper(listenerClass);
+		if (helper != null) {
+			helper.removeListener(listener);
 		}
 	}
 
-	synchronized public void remove(Class<? extends BaseEventListener> cl, BaseEventListener listener) {
-		removeListener(listener, cl);
+	public <T extends BaseEventListener<E>, E extends BaseEvent> void dispatchEvent(E event, Class<T> listenerClass) {
+		EventHelper<T, E> helper = getHelper(listenerClass);
+		if (helper != null) {
+			helper.fireEvent(event);
+		}
 	}
 
-	synchronized public void removeListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {
-		eventHelper.removeListener(GenericUtils.<Class<BaseEventListener>>cast(cl), listener);
+	@SuppressWarnings("unchecked")
+	private <T extends BaseEventListener<E>, E extends BaseEvent> EventHelper<T, E> getHelper(Class<T> listenerClass) {
+		return (EventHelper<T, E>) eventHelpers.get(listenerClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends BaseEventListener<E>, E extends BaseEvent> EventHelper<T, E> getOrCreateHelper(Class<T> listenerClass) {
+		return (EventHelper<T, E>) eventHelpers.computeIfAbsent(listenerClass, k -> new EventHelper<T, E>());
 	}
 
 	synchronized public void destroy() throws EngineException {
-		eventHelper = null;
+		eventHelpers.clear();
 	}
 
 	synchronized public void init() throws EngineException {
-		eventHelper = new EventHelper();
 	}
 }

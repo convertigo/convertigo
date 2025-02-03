@@ -839,23 +839,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void addTreeObjectListener(TreeObjectListener treeObjectListener) {
-		Engine.theApp.eventManager.add(TreeObjectListener.class, treeObjectListener);
+		Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
 	}
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
-		Engine.theApp.eventManager.remove(TreeObjectListener.class, treeObjectListener);
+		Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
 	}
 
 	public void fireTreeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		treeObjectEvent.type = TreeObjectEvent.TYPE_PROPERTY_CHANGED;
-		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
+		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
 
 	void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		treeObjectEvent.type = TreeObjectEvent.TYPE_ADDED;
-		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
+		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
@@ -922,7 +922,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		
 		treeObjectEvent.type = TreeObjectEvent.TYPE_REMOVED;
-		Engine.theApp.eventManager.dispatch(TreeObjectListener.class, treeObjectEvent);
+		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 	}
 
 	

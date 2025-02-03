@@ -19,8 +19,15 @@
 
 package com.twinsoft.convertigo.engine.mobile;
 
-import java.util.EventListener;
+import com.twinsoft.convertigo.engine.events.BaseEvent;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
 
-public interface MobileEventListener extends EventListener {
+public interface MobileEventListener extends BaseEventListener<BaseEvent> {
+	
+	@Override
+	default void onEvent(BaseEvent event) {
+		onPackageUpdated();
+	}
+
 	public void onPackageUpdated();
 }

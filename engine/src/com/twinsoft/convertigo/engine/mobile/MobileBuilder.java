@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.events.BaseEvent;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
@@ -246,25 +247,23 @@ public abstract class MobileBuilder {
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
 	
-	protected EventHelper eventHelper;
+	protected EventHelper<MobileEventListener, BaseEvent> eventHelper;
 	
 	public synchronized void addMobileEventListener(MobileEventListener mobileEventListener) {
 		if (eventHelper != null) {
-			eventHelper.addListener(MobileEventListener.class, mobileEventListener);
+			eventHelper.addListener(mobileEventListener);
 		}
 	}
 	
 	public synchronized void removeMobileEventListener(MobileEventListener mobileEventListener) {
 		if (eventHelper != null) {
-			eventHelper.removeListener(MobileEventListener.class, mobileEventListener);
+			eventHelper.removeListener(mobileEventListener);
 		}
 	}
 
 	synchronized void firePackageUpdated() {
 		if (eventHelper != null) {
-			for (MobileEventListener mobileEventListener: eventHelper.getListeners(MobileEventListener.class)) {
-				mobileEventListener.onPackageUpdated();
-			}
+			eventHelper.fireEvent(null);
 		}
 	}
 

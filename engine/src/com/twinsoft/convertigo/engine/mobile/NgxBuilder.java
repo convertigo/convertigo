@@ -360,7 +360,7 @@ public class NgxBuilder extends MobileBuilder {
 			Engine.logEngine.debug("("+ builderType +") Start initializing builder for ionic project "+ projectID);
 			
 			if (eventHelper == null) {
-				eventHelper = new EventHelper();
+				eventHelper = new EventHelper<>();
 			}
 
 			setNeedPkgUpdate(false);
@@ -3564,7 +3564,7 @@ public class NgxBuilder extends MobileBuilder {
 					writtenFiles.add(file);
 					File nFile = toTmpFile(file);
 					nFile.getParentFile().mkdirs();
-					FileUtils.writeFile(file, str, charset);
+					FileUtils.writeFile(nFile, str, charset);
 					
 					// store files modifications
 					if (file.getPath().endsWith(FakeDeleted)) {

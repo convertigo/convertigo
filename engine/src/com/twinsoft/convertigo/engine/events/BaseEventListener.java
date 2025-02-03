@@ -19,5 +19,6 @@
 
 package com.twinsoft.convertigo.engine.events;
 
-public interface BaseEventListener {
+public interface BaseEventListener<E extends BaseEvent> {
+	void onEvent(E event);
 }

@@ -19,6 +19,5 @@
 
 package com.twinsoft.convertigo.engine.events;
 
-public interface ProgressEventListener extends BaseEventListener {
-	public void onEvent(ProgressEvent event);
+public interface ProgressEventListener extends BaseEventListener<ProgressEvent> {
 }
