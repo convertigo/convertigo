@@ -44,7 +44,7 @@
          </property>
          <property
                name="cssTheme"
-               value="org.eclipse.e4.ui.css.theme.e4_dark">
+               value="org.eclipse.e4.ui.css.theme.e4_default">
          </property>
          <property
                name="applicationCSSResources"
