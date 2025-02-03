@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2024 Convertigo SA.
+ * Copyright (c) 2001-2025 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,39 +19,27 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.twinsoft.convertigo.engine.events.BaseEvent;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
 
 
-public class EventHelper {
-	private Map<Class<?>, Collection<WeakReference<?>>> listeners = new HashMap<Class<?>, Collection<WeakReference<?>>>();
-	
-	public synchronized <E> void addListener(Class<E> key, E listener) {
-		Collection<WeakReference<E>> collection = GenericUtils.cast(listeners.get(key));
-		if (collection == null) {
-			collection = new LinkedList<WeakReference<E>>();
-			listeners.put(key, GenericUtils.<Collection<WeakReference<?>>>cast(collection));
-		}
-		collection.add(new WeakReference<E>(listener));
-	}
-	
-	public synchronized <E> void removeListener(Class<E> key, E listener) {
-		Collection<WeakReference<E>> collection = GenericUtils.cast(listeners.get(key));
-		if (collection != null) {
-			GenericUtils.remove(collection, listener, true);
-		}
-	}
-	
-	public synchronized <E> Collection<E> getListeners(Class<E> key) {
-		Collection<E> result = Collections.emptyList();
-		Collection<WeakReference<E>> collection = GenericUtils.cast(listeners.get(key));
-		if (collection != null) {
-			result = GenericUtils.unWeak(collection);
-		}
-		return result;
-	}
+public class EventHelper<T extends BaseEventListener<E>, E extends BaseEvent> {    
+    private final Map<T, Boolean> listeners = new ConcurrentHashMap<>();
+
+    public void addListener(T listener) {
+        listeners.put(listener, true);
+    }
+
+    public void removeListener(T listener) {
+        listeners.remove(listener);
+    }
+
+    public void fireEvent(E event) {
+        for (T listener : listeners.keySet()) {
+            listener.onEvent(event);
+        }
+    }
 }

@@ -38,13 +38,13 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.events.BaseEventListener;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class CacheManager extends AbstractRunnableManager implements BaseEventListener {
+public abstract class CacheManager extends AbstractRunnableManager implements PropertyChangeEventListener {
 	private WeakReference<Map<String, Document>> weakCache;
 	protected boolean useWeakCache = false;
 	

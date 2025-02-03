@@ -575,7 +575,7 @@ public class Ionic3Builder extends MobileBuilder {
 			Engine.logEngine.debug("(Ionic3Builder) Start initializing builder for ionic project "+ projectID);
 			
 			if (eventHelper == null) {
-				eventHelper = new EventHelper();
+				eventHelper = new EventHelper<>();
 			}
 			
 			setNeedPkgUpdate(false);
