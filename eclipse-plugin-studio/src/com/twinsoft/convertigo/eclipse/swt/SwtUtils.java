@@ -43,6 +43,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolItem;
@@ -206,5 +207,14 @@ public class SwtUtils {
 			toolItem.setText(text);
 		}
 		toolItem.setToolTipText(tooltip);
+	}
+
+	public static void disposeAllChildren(Composite parent) {
+		for (Control control : parent.getChildren()) {
+			if (control instanceof Composite composite) {
+				disposeAllChildren(composite);
+			}
+			control.dispose();
+		}
 	}
 }

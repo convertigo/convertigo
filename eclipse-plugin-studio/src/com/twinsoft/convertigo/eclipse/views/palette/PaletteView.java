@@ -1267,13 +1267,16 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				ComponentManager.of(selectedProject).reloadComponents();
 			}
 			parent.getDisplay().asyncExec(() -> {
+				try {
 				String txt = searchText != null ? searchText.getText() : "";
-				for (Control c: parent.getChildren()) {
-					c.dispose();
-				}
-				init();
-				if (txt != null) {
-					searchText.setText(txt);
+				SwtUtils.disposeAllChildren(parent);
+					init();
+					if (txt != null) {
+						searchText.setText(txt);
+					}
+				} catch (Exception e) {
+					Engine.logStudio.debug("(PaletteView) Palette init failed, retrying [" + e.getClass() + ": " + e.getMessage() + "]");
+					refresh(1000);
 				}
 			});
 		}, threshold);
