@@ -272,7 +272,7 @@ public class ReferencedProjectManager {
 		for (int i = 0; i < nl.getLength();) {
 			var n = (Element) nl.item(i);
 			var key = n.getAttribute("yaml_key");
-			if (key == null || !(key.contains("[core.Project]") || key.contains("[references.ProjectSchemaReference]"))) {
+			if (key == null || !(key.contains("[core.Project]") || key.contains("[references.ProjectSchemaReference"))) {
 				n.getParentNode().removeChild(n);
 			} else {
 				i++;
