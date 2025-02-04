@@ -92,8 +92,7 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 		String label = "";
 		try {
 			// Check for project
-			Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName());
-			if (p == null) {
+			if (!Engine.theApp.databaseObjectsManager.existsProject(parser.getProjectName())) {
 				label = "! broken project !";
 			}
 		}
