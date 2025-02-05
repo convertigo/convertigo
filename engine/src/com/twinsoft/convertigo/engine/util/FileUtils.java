@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.engine.Engine;
 @SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static final int BUFFER_SIZE = 4096;
-	
+
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 	public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
 
@@ -179,7 +179,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 					code = pb.inheritIO().start().waitFor();
 				} catch (Exception e) {
 				}
-				
+
 				if (code == -1) {
 					try {
 						Thread.sleep(500);
@@ -190,7 +190,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 					} catch (Exception e) {
 					}
 				}
-				
+
 				if (code != 0 || dir.exists()) {
 					org.apache.commons.io.FileUtils.deleteDirectory(dir);
 				}
@@ -212,7 +212,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		return org.apache.commons.io.FileUtils.deleteQuietly(f);
 	}
 
-	
+
 	private static final Pattern incrementFilenamePattern = Pattern.compile("(.*?)(?:(_)(\\d+))?(?:(\\.\\w*?)(\\d+)?)?$");
 	public static File incrementFilename(File file) {
 		while (file.exists()) {
@@ -240,12 +240,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			} else {
 				break;
 			}
-			
+
 			file = new File(file.getParentFile(), filename);
 		}
 		return file;
 	}
-	
+
 	public static String removeBOM(String str) {
 		if (str != null && str.startsWith(UTF8_BOM)) {
 			str = str.substring(1);
@@ -269,104 +269,103 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		fis = new FileInputStream(file);
 		return fis;
 	}
-	
+
 	public static boolean areFilesIdentical(File file, String newContent, Charset charset) throws IOException {
 		if (file == null || !file.exists()) {
 			return false;
 		}
-        try (var fileStream = new BufferedInputStream(new FileInputStream(file));
-             InputStream contentStream = new ByteArrayInputStream(newContent.getBytes(charset))) {
+		try (var fileStream = new BufferedInputStream(new FileInputStream(file));
+				InputStream contentStream = new ByteArrayInputStream(newContent.getBytes(charset))) {
 
-            byte[] fileBuffer = new byte[BUFFER_SIZE];
-            byte[] contentBuffer = new byte[BUFFER_SIZE];
+			byte[] fileBuffer = new byte[BUFFER_SIZE];
+			byte[] contentBuffer = new byte[BUFFER_SIZE];
 
-            int fileRead, contentRead;
-            while ((fileRead = fileStream.read(fileBuffer)) != -1) {
-                contentRead = contentStream.read(contentBuffer);
+			int fileRead, contentRead;
+			while ((fileRead = fileStream.read(fileBuffer)) != -1) {
+				contentRead = contentStream.read(contentBuffer);
 
-                if (contentRead != fileRead || Arrays.compare(fileBuffer, 0, fileRead, contentBuffer, 0, contentRead) != 0) {
-                    return false;
-                }
-            }
-            return contentStream.read() == -1;
-        }
-    }
-	
-    public static void writeFile(File file, String content, Charset charset) throws IOException {
-        if (areFilesIdentical(file, content, charset)) {
-            return;
-        }
-        Files.writeString(file.toPath(), content, charset);
-    }
-	
+				if (contentRead != fileRead || Arrays.compare(fileBuffer, 0, fileRead, contentBuffer, 0, contentRead) != 0) {
+					return false;
+				}
+			}
+			return contentStream.read() == -1;
+		}
+	}
+
+	public static void writeFile(File file, String content, Charset charset) throws IOException {
+		if (areFilesIdentical(file, content, charset)) {
+			return;
+		}
+		Files.createDirectories(file.toPath().getParent());
+		Files.writeString(file.toPath(), content, charset);
+	}
+
 	public static Set<File> indexExistingFiles(File rootDir) {
 		if (rootDir == null) {
 			return null;
 		}
-	    var files = new HashSet<File>();
-	    if (rootDir.exists() && rootDir.isDirectory()) {
-	        try (var paths = Files.walk(rootDir.toPath())) {
-	            paths.filter(Files::isRegularFile).map(Path::toFile).forEach(files::add);
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    return files;
+		var files = new HashSet<File>();
+		if (rootDir.exists() && rootDir.isDirectory()) {
+			try (var paths = Files.walk(rootDir.toPath())) {
+				paths.filter(Files::isRegularFile).map(Path::toFile).forEach(files::add);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return files;
 	}
-	
+
 	public static void copyFileIfNeeded(File srcFile, File destFile, Set<File> existingFiles) throws IOException {
 		if (existingFiles != null) {
-    		existingFiles.remove(destFile);
-    	}
-	    if (destFile.exists()) {
-	        if (Files.mismatch(srcFile.toPath(), destFile.toPath()) == -1) {
-	            return;
-	        }
-	    }
-	    
-	    Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+			existingFiles.remove(destFile);
+		}
+		if (destFile.exists()) {
+			if (Files.mismatch(srcFile.toPath(), destFile.toPath()) == -1) {
+				return;
+			}
+		}
+
+		Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
 	}
-	
+
 
 	public static void copyDirectoryOptimized(File srcDir, File destDir, Set<File> existingFiles) throws IOException {
 		copyDirectoryOptimized(srcDir, destDir, p -> true, existingFiles);
 	}
-	
+
 	public static void copyDirectoryOptimized(File srcDir, File destDir, FileFilter filter, Set<File> existingFiles) throws IOException {
-	    if (!srcDir.exists()) {
-	    	return;
-	    }
+		if (!srcDir.exists()) {
+			return;
+		}
 
-	    if (!destDir.exists()) {
-	    	destDir.mkdirs();
-	    }
-	    
-	    var files = srcDir.listFiles(filter);
-	    if (files == null) {
-	    	return;
-	    }
+		destDir.mkdirs();
 
-	    for (var srcFile : files) {
-	        var destFile = new File(destDir, srcFile.getName());
+		var files = srcDir.listFiles(filter);
+		if (files == null) {
+			return;
+		}
 
-	        if (srcFile.isDirectory()) {
-	            copyDirectoryOptimized(srcFile, destFile, filter, existingFiles);
-	        } else {
-	            copyFileIfNeeded(srcFile, destFile, existingFiles);
-	        }
-	    }
+		for (var srcFile : files) {
+			var destFile = new File(destDir, srcFile.getName());
+
+			if (srcFile.isDirectory()) {
+				copyDirectoryOptimized(srcFile, destFile, filter, existingFiles);
+			} else {
+				copyFileIfNeeded(srcFile, destFile, existingFiles);
+			}
+		}
 	}
-	
+
 	public static boolean deleteWithParents(File file) {
 		if (file.delete()) {
 			return deleteWithParents(file.getParentFile());
 		}
 		return false;
 	}
-	
+
 	public static void deleteFiles(Set<File> existingFiles) {
 		for (var file : existingFiles) {
 			deleteWithParents(file);
-	    }
+		}
 	}
 }

@@ -362,7 +362,7 @@ public class NgxBuilder extends MobileBuilder {
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			
-			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/src"));
+			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src"));
 
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -396,7 +396,7 @@ public class NgxBuilder extends MobileBuilder {
 				updateConsumers();
 			}
 			
-			FileUtils.deleteFiles(existingFiles);
+			//FileUtils.deleteFiles(existingFiles); // TODO: use ThreadLocal to store existing files
 			existingFiles= null;
 			
 			initDone = true;
@@ -451,7 +451,7 @@ public class NgxBuilder extends MobileBuilder {
 					}
 					Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" taking into account " + compQName + " modifications");
 					Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
-					FileUtils.copyDirectory(src, dest, ComponentRefManager.copyFileFilter, true);
+					FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles);
 
 					if (isDestMobileBuilderInitialized) {
 						dest_project.getMobileBuilder().updateEnvFile();
@@ -1928,17 +1928,17 @@ public class NgxBuilder extends MobileBuilder {
 		Set<String> module_ng_components =  new HashSet<String>();
 
 		if (comp.isEnabled()) {
-		List<Contributor> contributors = comp.getContributors();
-		for (Contributor contributor : contributors) {
-			contributor.forContainer(comp, () -> {
-				comp_beans_dirs.putAll(contributor.getCompBeanDir());
-				module_ts_imports.putAll(contributor.getModuleTsImports());
-				module_ng_imports.addAll(contributor.getModuleNgImports());
-				module_ng_providers.addAll(contributor.getModuleNgProviders());
-				module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-				module_ng_components.addAll(contributor.getModuleNgComponents());
-			});
-		}
+			List<Contributor> contributors = comp.getContributors();
+			for (Contributor contributor : contributors) {
+				contributor.forContainer(comp, () -> {
+					comp_beans_dirs.putAll(contributor.getCompBeanDir());
+					module_ts_imports.putAll(contributor.getModuleTsImports());
+					module_ng_imports.addAll(contributor.getModuleNgImports());
+					module_ng_providers.addAll(contributor.getModuleNgProviders());
+					module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+					module_ng_components.addAll(contributor.getModuleNgComponents());
+				});
+			}
 		}
 		
 		// fix for BrowserAnimationsModule until it will be handled in config
