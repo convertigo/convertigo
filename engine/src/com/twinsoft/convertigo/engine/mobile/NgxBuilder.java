@@ -368,7 +368,7 @@ public class NgxBuilder extends MobileBuilder {
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			
-			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/src"));
+			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src"));
 
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -402,7 +402,7 @@ public class NgxBuilder extends MobileBuilder {
 				updateConsumers();
 			}
 			
-			FileUtils.deleteFiles(existingFiles);
+			//FileUtils.deleteFiles(existingFiles); // TODO: use ThreadLocal to store existing files
 			existingFiles= null;
 			
 			initDone = true;
@@ -457,7 +457,7 @@ public class NgxBuilder extends MobileBuilder {
 					}
 					Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" taking into account " + compQName + " modifications");
 					Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
-					FileUtils.copyDirectory(src, dest, ComponentRefManager.copyFileFilter, true);
+					FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles);
 
 					if (isDestMobileBuilderInitialized) {
 						dest_project.getMobileBuilder().updateEnvFile();
@@ -2130,7 +2130,7 @@ public class NgxBuilder extends MobileBuilder {
 				Engine.logEngine.warn("("+ builderType +") Missing component folder for pseudo-bean '"+ compbean +"' !");
 			}
 		}
-		return tsContent;		
+		return tsContent;
 	}
 
 	private String getCompModuleTsContent(UISharedComponent comp) throws IOException {
