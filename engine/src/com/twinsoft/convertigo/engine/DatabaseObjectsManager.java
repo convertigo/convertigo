@@ -480,7 +480,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void clearCache(String projectName) {
-		Project  project = lockAndRun(projectName, (lock) -> {			
+		Project  project = lockAndRun(projectName, (lock) -> {
 			Project prj = null;
 			synchronized (projects) {
 				prj = projects.remove(projectName);

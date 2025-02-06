@@ -668,7 +668,7 @@ public class NgxBuilder extends MobileBuilder {
 		};
 	}
 	
-	private static void invokeAll(ExecutorService executor, List<Callable<String>> list) {
+	private static void invokeAll(List<Callable<String>> list) {
 		if (list != null) {
 			for (var c : list) {
 				try {
@@ -774,9 +774,9 @@ public class NgxBuilder extends MobileBuilder {
 						}
 						
 						executor = null;
-						invokeAll(executor, cList);
-						invokeAll(executor, pList);
-						invokeAll(executor, aList);
+						invokeAll(cList);
+						invokeAll(pList);
+						invokeAll(aList);
 						
 						if (initDone && autoBuild && buildMutex != null) {
 							Engine.logEngine.trace("(NgxBuilder@"+ project.getName()+") start moveFilesForce for consumer update");
