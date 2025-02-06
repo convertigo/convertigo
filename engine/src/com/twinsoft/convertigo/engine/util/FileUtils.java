@@ -364,8 +364,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	public static void deleteFiles(Set<File> existingFiles) {
-		for (var file : existingFiles) {
-			deleteWithParents(file);
+		if (existingFiles != null) {
+			for (var file : existingFiles) {
+				deleteWithParents(file);
+			}
 		}
 	}
 }

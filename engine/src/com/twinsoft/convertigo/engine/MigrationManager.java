@@ -28,13 +28,15 @@ import java.util.Map;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MigrationManager {
-	private static Map<String, MigrationJob> jobs = new HashMap<String, MigrationJob>(256);
+	private static Map<String, MigrationJob> jobs = new HashMap<String, MigrationJob>();
 	private static boolean jobsAdded = false;
 	
 	protected static void performProjectsMigration() {
 		final File projectsDirFile = new File(Engine.PROJECTS_PATH);
-		if (!projectsDirFile.exists())
+		if (!projectsDirFile.exists() || Engine.isStudioMode() || Engine.isCliMode()) {
+			jobsAdded = true;
 			return; // no need to perform migration
+		}
 		
 		Thread t = new Thread(new Runnable(){
 			public void run() {
@@ -47,6 +49,7 @@ public class MigrationManager {
 				}
 				
 				long t0 = Calendar.getInstance().getTime().getTime();
+				long cpus = Runtime.getRuntime().availableProcessors();
 				Engine.logEngine.info("Migration starting...");
 				try {
 					//Added by julienda
@@ -54,6 +57,9 @@ public class MigrationManager {
 					
 					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 						if (!jobs.containsKey(projectName)) {
+							while(countRunning() >= cpus) {
+								Thread.sleep(100);
+							}
 							MigrationJob job = new MigrationJob(projectName);
 							jobs.put(projectName, job);
 							job.start();
@@ -79,6 +85,9 @@ public class MigrationManager {
 						
 						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
+							while(countRunning() >= cpus) {
+								Thread.sleep(100);
+							}
 							jobs.put(projectName, job);
 							job.start();
 						}
@@ -115,7 +124,7 @@ public class MigrationManager {
 	public static boolean isProjectMigrated(String projectName) {
 		MigrationJob job = jobs.get(projectName);
 		if (job != null) return job.isFinished;
-		return jobsAdded || Engine.isCliMode();
+		return jobsAdded;
 	}
 	
 	static boolean isMigrationFinished() {
@@ -123,5 +132,9 @@ public class MigrationManager {
 			if (!job.isFinished) return false;
 		}
 		return true;
+	}
+	
+	static long countRunning() {
+		return jobs.values().stream().filter(j -> !j.isFinished).count();
 	}
 }

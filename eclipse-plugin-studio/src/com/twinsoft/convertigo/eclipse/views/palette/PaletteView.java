@@ -328,6 +328,115 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			}
 		});
 
+		selectionListener = new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent e) {
+				if (tiLink.isDisposed()) {
+					selectionListener = null;
+					refresh();
+					return;
+				}
+				
+				if (!tiLink.getSelection() || !isVisible) {
+					return;
+				}
+
+				TreeSelection selection = (TreeSelection) e.getSelection();
+				if (selection.getFirstElement() instanceof TreeObject to) {
+					while (to != null) {
+						Integer folderType = null;
+						DatabaseObject selected = null;
+						Object parent = null;
+						Boolean clear = null;
+
+						if (isType[0]) {
+							TreeObject ttype = to;
+							while (ttype != null) {
+								if (ttype instanceof SequenceTreeObject ||
+										ttype instanceof NgxApplicationComponentTreeObject ||
+										ttype instanceof MobileApplicationComponentTreeObject) {
+									to = ttype;
+									break;
+								}
+								ttype = ttype.getParent();
+							}
+						}
+
+						if (to instanceof ObjectsFolderTreeObject) {
+							ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
+							Integer last = (Integer) PaletteView.this.parent.getData("FolderType");
+							try  {
+								folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
+							} catch (Exception e2) {
+								folderType = 0;
+							}
+							parent = folder.getParent() == null ? null : folder.getParent().getObject();
+							clear = last == null || last != folderType;
+						} else if (to instanceof DatabaseObjectTreeObject) {
+							DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
+							DatabaseObject last = (DatabaseObject) PaletteView.this.parent.getData("Selected");
+							selected = dbot.getObject();
+							parent = selected.getParent();
+							clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
+						}
+						if (clear != null) {
+							PaletteView.this.parent.setData("FolderType", folderType);
+							PaletteView.this.parent.setData("Selected", selected);
+							PaletteView.this.parent.setData("Parent", parent);
+							if (selected != null || parent instanceof DatabaseObject) {
+								var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
+								if (project != selectedProject) {
+									selectedProject = project;
+									refresh();
+									break;
+								}
+							} else {
+								selectedProject = null;
+							}
+							if (clear == true) {
+								searchText.setText("");
+							} else {
+								searchText.notifyListeners(SWT.Modify, new Event());
+							}
+							break;
+						}
+						to = to.getParent();
+					}
+				}
+			}
+		};
+
+		tiLink.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String val;
+				if (!tiLink.getSelection() && "on".equals(ConvertigoPlugin.getProperty("palette.link"))) {
+					tiLink.setSelection(true);
+					tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					val = "type";
+					isType[0] = true;
+				} else {
+					tiLink.setBackground(null);
+					val = tiLink.getSelection() ? "on" : "off";
+					isType[0] = false;
+				}
+				ConvertigoPlugin.setProperty("palette.link", val);
+				update();
+			}
+		});
+
+		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (pev != null) {
+			pev.addTreeObjectListener(this);
+		}
+		
+		if (selectedProject == null) {
+			CompositeElement.getEngine(top).applyStyles(top, true);
+			parent.layout(true);
+			update();
+			return;
+		}
+		
 		SelectionListener tiListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -695,65 +804,67 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			};
+			
+			if (selectedProject != null) {
+				ComponentManager cm = ComponentManager.of(selectedProject);
+				for (Component comp: cm.getComponentsByGroup()) {
+					String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
+					all.put(id, new Item() {
 
-			ComponentManager cm = ComponentManager.of(selectedProject);
-			for (Component comp: cm.getComponentsByGroup()) {
-				String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
-				all.put(id, new Item() {
+						@Override
+						public String category() {
+							return comp.getGroup();
+						}
 
-					@Override
-					public String category() {
-						return comp.getGroup();
-					}
+						@Override
+						public String name() {
+							return comp.getLabel();
+						}
 
-					@Override
-					public String name() {
-						return comp.getLabel();
-					}
+						@Override
+						String description() {
+							return comp.getDescription();
+						}
 
-					@Override
-					String description() {
-						return comp.getDescription();
-					}
+						@Override
+						Image image() {
+							return getImage(comp.getImagePath());
+						}
 
-					@Override
-					Image image() {
-						return getImage(comp.getImagePath());
-					}
+						@Override
+						DatabaseObject newDatabaseObject() {
+							DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
+							return dbo;
+						}
 
-					@Override
-					DatabaseObject newDatabaseObject() {
-						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
-						return dbo;
-					}
-
-					@Override
-					boolean allowedIn(DatabaseObject parent) {
-						/*if (!cm.equals(ComponentManager.of(parent))) {
+						@Override
+						boolean allowedIn(DatabaseObject parent) {
+							/*if (!cm.equals(ComponentManager.of(parent))) {
 							return false;
 						}*/
 
-						if (isType[0]) {
-							return parent instanceof ApplicationComponent;
+							if (isType[0]) {
+								return parent instanceof ApplicationComponent;
+							}
+							return comp.isAllowedIn(parent);
 						}
-						return comp.isAllowedIn(parent);
-					}
 
-					@Override
-					String propertiesDescription() {
-						return comp.getPropertiesDescription();
-					}
+						@Override
+						String propertiesDescription() {
+							return comp.getPropertiesDescription();
+						}
 
-					@Override
-					String id() {
-						return id;
-					}
+						@Override
+						String id() {
+							return id;
+						}
 
-					@Override
-					protected boolean builtIn() {
-						return comp.isBuiltIn();
-					}
-				});
+						@Override
+						protected boolean builtIn() {
+							return comp.isBuiltIn();
+						}
+					});
+				}
 			}
 
 			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
@@ -1123,108 +1234,6 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 			});
 
-			selectionListener = new ISelectionChangedListener() {
-				@Override
-				public void selectionChanged(SelectionChangedEvent e) {
-					if (tiLink.isDisposed()) {
-						selectionListener = null;
-						refresh();
-						return;
-					}
-					
-					if (!tiLink.getSelection() || !isVisible) {
-						return;
-					}
-
-					TreeSelection selection = (TreeSelection) e.getSelection();
-					if (selection.getFirstElement() instanceof TreeObject to) {
-						while (to != null) {
-							Integer folderType = null;
-							DatabaseObject selected = null;
-							Object parent = null;
-							Boolean clear = null;
-
-							if (isType[0]) {
-								TreeObject ttype = to;
-								while (ttype != null) {
-									if (ttype instanceof SequenceTreeObject ||
-											ttype instanceof NgxApplicationComponentTreeObject ||
-											ttype instanceof MobileApplicationComponentTreeObject) {
-										to = ttype;
-										break;
-									}
-									ttype = ttype.getParent();
-								}
-							}
-
-							if (to instanceof ObjectsFolderTreeObject) {
-								ObjectsFolderTreeObject folder = (ObjectsFolderTreeObject) to;
-								Integer last = (Integer) PaletteView.this.parent.getData("FolderType");
-								try  {
-									folderType = ProjectExplorerView.getDatabaseObjectType((DatabaseObject) folder.getFirstChild().getObject());
-								} catch (Exception e2) {
-									folderType = 0;
-								}
-								parent = folder.getParent() == null ? null : folder.getParent().getObject();
-								clear = last == null || last != folderType;
-							} else if (to instanceof DatabaseObjectTreeObject) {
-								DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
-								DatabaseObject last = (DatabaseObject) PaletteView.this.parent.getData("Selected");
-								selected = dbot.getObject();
-								parent = selected.getParent();
-								clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
-							}
-							if (clear != null) {
-								PaletteView.this.parent.setData("FolderType", folderType);
-								PaletteView.this.parent.setData("Selected", selected);
-								PaletteView.this.parent.setData("Parent", parent);
-								if (selected != null || parent instanceof DatabaseObject) {
-									var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
-									if (project != selectedProject) {
-										selectedProject = project;
-										refresh();
-										break;
-									}
-								} else {
-									selectedProject = null;
-								}
-								if (clear == true) {
-									searchText.setText("");
-								} else {
-									searchText.notifyListeners(SWT.Modify, new Event());
-								}
-								break;
-							}
-							to = to.getParent();
-						}
-					}
-				}
-			};
-
-			tiLink.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					String val;
-					if (!tiLink.getSelection() && "on".equals(ConvertigoPlugin.getProperty("palette.link"))) {
-						tiLink.setSelection(true);
-						tiLink.setBackground(tiLink.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-						val = "type";
-						isType[0] = true;
-					} else {
-						tiLink.setBackground(null);
-						val = tiLink.getSelection() ? "on" : "off";
-						isType[0] = false;
-					}
-					ConvertigoPlugin.setProperty("palette.link", val);
-					update();
-				}
-			});
-
-			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-			if (pev != null) {
-				pev.addTreeObjectListener(this);
-			}
-
 			pref = ConvertigoPlugin.getProperty("palette.sash");
 			try {
 				String[] prefs = pref.split(";");
@@ -1268,10 +1277,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			}
 			parent.getDisplay().asyncExec(() -> {
 				try {
-				String txt = searchText != null ? searchText.getText() : "";
-				SwtUtils.disposeAllChildren(parent);
+					String txt = searchText != null ? searchText.getText() : "";
+					SwtUtils.disposeAllChildren(parent);
 					init();
-					if (txt != null) {
+					if (txt != null && searchText != null) {
 						searchText.setText(txt);
 					}
 				} catch (Exception e) {
@@ -1285,7 +1294,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
-			if (part instanceof ProjectExplorerView) {
+			if (part instanceof ProjectExplorerView && !selection.isEmpty()) {
 				update();
 			}
 		}
