@@ -31,7 +31,6 @@ RUN apt-get update -y \
     curl \
     dirmngr \
     gnupg \
-    gosu \
     sudo \
     tini \
     unzip \
