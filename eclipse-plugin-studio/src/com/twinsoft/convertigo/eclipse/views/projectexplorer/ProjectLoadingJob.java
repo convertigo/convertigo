@@ -62,18 +62,20 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 	private IProgressMonitor monitor;
 	private Viewer viewer;
 	private boolean isCopy;
+	private boolean select;
 	private String originalName;
 	
-	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject) {
-		this(viewer, unloadedProjectTreeObject, false, null);
+	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean select) {
+		this(viewer, unloadedProjectTreeObject, select, false, null);
 	}
 
-	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
+	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean select, boolean isCopy, String originalName) {
 		super("Opening project " + unloadedProjectTreeObject.toString());
 		this.unloadedProjectTreeObject = unloadedProjectTreeObject;
 		this.originalName = originalName;
 		this.viewer = viewer;
 		this.isCopy = isCopy;
+		this.select = select;
 		projectName = unloadedProjectTreeObject.toString();
 	}
 
@@ -204,8 +206,10 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					public void run() {
 						if (projectTreeObject != null) {
 							viewer.refresh();
-							ISelection selection = new StructuredSelection(projectTreeObject);
-							viewer.setSelection(selection, true);
+							if (select) {
+								ISelection selection = new StructuredSelection(projectTreeObject);
+								viewer.setSelection(selection, true);
+							}
 							
 							if (defaultConnectorTreeObject != null && ConvertigoPlugin.getAutoOpenDefaultConnector())
 								defaultConnectorTreeObject.launchEditor();

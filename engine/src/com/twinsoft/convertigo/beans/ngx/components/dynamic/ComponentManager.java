@@ -206,8 +206,8 @@ public class ComponentManager {
 					DatabaseObject dbo = (DatabaseObject) object;
 					if (dbo.getProject() != null) {
 						MobileApplication mobileApplication = dbo.getProject().getMobileApplication();
-						if (mobileApplication != null) {
-							templateProjectName = mobileApplication.getApplicationComponent().getTplProjectName();
+						if (mobileApplication != null && mobileApplication.getApplicationComponent() instanceof ApplicationComponent appComp) {
+							templateProjectName = appComp.getTplProjectName();
 						}
 					}
 				} else if (object instanceof String) {
@@ -1075,7 +1075,7 @@ public class ComponentManager {
 						continue;
 					}
 					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
-					if (project.getMobileApplication() != null) {
+					if (project != null && project.getMobileApplication() != null) {
 						IApplicationComponent ac = project.getMobileApplication().getApplicationComponent();
 						if (ac != null && ac instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)ac;
@@ -1331,7 +1331,7 @@ public class ComponentManager {
 			@Override
 			public int compare(Component c1, Component c2) {
 				return c1.getLabel().compareTo(c2.getLabel());
-			}				
+			}
 		} );
 		
 		for (Component component : components) {

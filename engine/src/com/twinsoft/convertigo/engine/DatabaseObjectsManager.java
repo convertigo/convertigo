@@ -347,6 +347,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project == null) {
 			long t0 = Calendar.getInstance().getTime().getTime();
 			try {
+				if (Engine.isStudioMode()) {
+					var name = Thread.currentThread().getName();
+					if ("main".equals(name)) {
+						throw new RuntimeException("Cannot load project in the UI Thread");
+					}
+				}
 				checkForEngineMigrationProcess(projectName);
 				File projectPath = getStudioProjects().getProjects(checkOpenable).get(projectName);
 				if (projectPath == null) {

@@ -207,14 +207,14 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 			else {
 				try {
 					if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-						ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, (UnloadedProjectTreeObject) projectTreeObject);
+						ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, (UnloadedProjectTreeObject) projectTreeObject, true);
 						job.setUser(true);
 						job.schedule();
 					}
 					else {
 						UnloadedProjectTreeObject treeObject = projectExplorerView.unloadProjectTreeObject((ProjectTreeObject) projectTreeObject);
 						if (treeObject != null) {
-							ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, treeObject, isCopy, originalName);
+							ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, treeObject, true, isCopy, originalName);
 							job.setUser(true);
 							job.schedule();
 						}

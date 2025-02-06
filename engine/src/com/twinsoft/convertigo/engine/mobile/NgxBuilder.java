@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,7 +100,7 @@ public class NgxBuilder extends MobileBuilder {
 	private File themeDir;
 	private File srcDir;
 	
-	private Set<File> existingFiles = null;
+	private static final ThreadLocal<Set<File>> existingFiles = ThreadLocal.withInitial(() -> null);
 
 	private static String FakeDeleted = "fake_deleted.ts";
 	
@@ -110,10 +108,10 @@ public class NgxBuilder extends MobileBuilder {
 		public int compare(String path1, String path2) {
 			String pound1 = isCompFile(path1) ? "0" : isPageFile(path1) ? "1" : "2";
 			String pound2 = isCompFile(path2) ? "0" : isPageFile(path2) ? "1" : "2";
-	    	return pound1.compareTo(pound2);
-	    }
+			return pound1.compareTo(pound2);
+		}
 	}
-	
+
 	static private boolean isPageFile(String path) {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "pages" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
@@ -123,45 +121,45 @@ public class NgxBuilder extends MobileBuilder {
 		String search = File.separator + "src" + File.separator + "app" + File.separator + "components" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
-	
+
 	private static boolean existTargetComp(String compDirName) {
-	   return compQName(compDirName) != null;
+		return compQName(compDirName) != null;
 	}
-	    
-    static private String compQName(String compDirName) {
-    	if (compDirName != null && !compDirName.isEmpty()) {
-	    	String pname = compDirName.substring(0, compDirName.indexOf('.'));
-	    	
-	    	String projectName = null;
-	    	List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-	    	for (String s : projectNames) {
-	    		if (s.toLowerCase().equals(pname)) {
-	    			projectName = s;
-	    			break;
-	    		}
-	    	}
-	    	
-	    	if (projectName != null) {
-		    	Project project = null;
-		    	try {
+
+	static private String compQName(String compDirName) {
+		if (compDirName != null && !compDirName.isEmpty()) {
+			String pname = compDirName.substring(0, compDirName.indexOf('.'));
+
+			String projectName = null;
+			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+			for (String s : projectNames) {
+				if (s.toLowerCase().equals(pname)) {
+					projectName = s;
+					break;
+				}
+			}
+
+			if (projectName != null) {
+				Project project = null;
+				try {
 					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 				} catch (EngineException e) {
 					e.printStackTrace();
 				}
-		    	if (project != null) {
-			    	MobileApplication mobileApplication = project.getMobileApplication();
-			    	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
-			    	for (UISharedComponent uisc: app.getSharedComponentList()) {
-			    		if (compDirName.equals(UISharedComponent.getNsCompDirName(uisc))) {
-			    			return uisc.getQName();
-			    		}
-			    	}
-		    	}
-	    	}
-    	}
-    	return null;
-    }
-	    
+				if (project != null) {
+					MobileApplication mobileApplication = project.getMobileApplication();
+					ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
+					for (UISharedComponent uisc: app.getSharedComponentList()) {
+						if (compDirName.equals(UISharedComponent.getNsCompDirName(uisc))) {
+							return uisc.getQName();
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	protected NgxBuilder(Project project) {
 		super(project);
 		initDirs("src");
@@ -361,8 +359,8 @@ public class NgxBuilder extends MobileBuilder {
 
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-			
-			existingFiles = FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src"));
+
+			existingFiles.set(FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src")));
 
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -396,8 +394,8 @@ public class NgxBuilder extends MobileBuilder {
 				updateConsumers();
 			}
 			
-			//FileUtils.deleteFiles(existingFiles); // TODO: use ThreadLocal to store existing files
-			existingFiles= null;
+			FileUtils.deleteFiles(existingFiles.get());
+			existingFiles.set(null);
 			
 			initDone = true;
 			Engine.logEngine.debug("("+ builderType +") End initializing builder for ionic project "+ projectID);
@@ -440,7 +438,7 @@ public class NgxBuilder extends MobileBuilder {
 				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
 				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
 
-				if (src.exists() && shouldUpdate(src, dest)) {
+				if (src.exists()) {
 					Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
 					boolean isDestMobileBuilderInitialized = dest_project != null && dest_project.isMobileBuilderInitialized();
 					if (initDone && isDestMobileBuilderInitialized) {
@@ -451,7 +449,7 @@ public class NgxBuilder extends MobileBuilder {
 					}
 					Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" taking into account " + compQName + " modifications");
 					Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
-					FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles);
+					FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles.get());
 
 					if (isDestMobileBuilderInitialized) {
 						dest_project.getMobileBuilder().updateEnvFile();
@@ -460,29 +458,9 @@ public class NgxBuilder extends MobileBuilder {
 			} catch (Exception e) {
 				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
 			}
-    	}
-	}
-
-	static private boolean shouldUpdate(File dirSrc, File dirDest) {
-		for (final File src : dirSrc.listFiles()) {
-			if (src.isFile()) {
-				if (src.getName().endsWith(".temp.ts")) {
-					continue;
-				}
-				File dest = new File(dirDest, src.getName());
-				if (dest.exists()) {
-					if (src.lastModified() != dest.lastModified()) {
-						return true;
-					}
-				} else {
-					return true;
-				}
-			}
 		}
-		return false;
 	}
 
-	
 	@Override
 	protected void copyTemplateFiles() throws EngineException {
 		FileFilter ff = new FileFilter() {
@@ -493,7 +471,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		};
 		try {
-			FileUtils.copyDirectoryOptimized(ionicTplDir, ionicWorkDir, ff, existingFiles);
+			FileUtils.copyDirectoryOptimized(ionicTplDir, ionicWorkDir, ff, existingFiles.get());
 			Engine.logEngine.trace("("+ builderType +") Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
@@ -691,33 +669,15 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	private static void invokeAll(ExecutorService executor, List<Callable<String>> list) {
-		if (executor != null && list != null) {
-			if (list.size() > 0) {
-			    List<Future<String>> resultList = null;
-			    try {
-			      resultList = executor.invokeAll(list);
-			    } catch (InterruptedException e) {
-			      e.printStackTrace();
-			    }
-			 
-			    if (resultList != null) {
-			    	if (Engine.logEngine.isTraceEnabled()) {
-				        for (int i = 0; i < resultList.size(); i++) {
-				            Future<String> future = resultList.get(i);
-				            try {
-				              String result = future.get();
-				              Engine.logEngine.trace(result);
-				            } catch (Exception e) {
-				              e.printStackTrace();
-				            }
-				        }
-			    	}
-			        resultList.clear();
-				    resultList = null;
-			    }
+		if (list != null) {
+			for (var c : list) {
+				try {
+					var out = c.call();
+					Engine.logEngine.trace(out);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
-		    list.clear();
-		    list = null;
 		}
 	}
 	
@@ -813,7 +773,7 @@ public class NgxBuilder extends MobileBuilder {
 							}
 						}
 						
-						executor = Executors.newCachedThreadPool();
+						executor = null;
 						invokeAll(executor, cList);
 						invokeAll(executor, pList);
 						invokeAll(executor, aList);
@@ -2791,7 +2751,7 @@ public class NgxBuilder extends MobileBuilder {
 				
 				// Write file if needed (do not need delay)
 				File tempTsFile = new File(appDir, "app.component.temp.ts");
-				FileUtils.copyFileIfNeeded(appTsFile, tempTsFile, existingFiles);
+				FileUtils.copyFileIfNeeded(appTsFile, tempTsFile, existingFiles.get());
 			}
 		}
 		catch (Exception e) {
@@ -3065,6 +3025,7 @@ public class NgxBuilder extends MobileBuilder {
 		// Replace eol characters with system line separators
 		var str = LsPattern.matcher(content).replaceAll(System.lineSeparator());
 		var charset = Charset.forName(encoding);
+		var existingFiles = NgxBuilder.existingFiles.get();
 		if (existingFiles != null) {
 			existingFiles.remove(file);
 		}
@@ -3205,6 +3166,7 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	protected void write(File file, String str) throws IOException {
+		var existingFiles = NgxBuilder.existingFiles.get();
 		if (existingFiles != null) {
 			existingFiles.remove(file);
 		}

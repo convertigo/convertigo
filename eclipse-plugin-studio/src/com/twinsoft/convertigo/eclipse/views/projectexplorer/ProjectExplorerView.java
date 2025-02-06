@@ -1066,10 +1066,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject) {
-		loadProject(unloadedProjectTreeObject, false, null);
+		loadProject(unloadedProjectTreeObject, false, false, null);
 	}
 
-	private synchronized void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject, boolean isCopy, String originalName) {
+	public void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject, boolean select) {
+		loadProject(unloadedProjectTreeObject, select, false, null);
+	}
+
+	private synchronized void loadProject(UnloadedProjectTreeObject unloadedProjectTreeObject, boolean select, boolean isCopy, String originalName) {
 		String projectName = unloadedProjectTreeObject.toString();
 		if (!MigrationManager.isProjectMigrated(projectName)) {
 			String message = "Could not load the project \"" + projectName + "\" while it is still migrating.";
@@ -1077,7 +1081,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			ConvertigoPlugin.logError(message, Boolean.TRUE);
 		} else {
 			try {
-				ProjectLoadingJob job = new ProjectLoadingJob(viewer, unloadedProjectTreeObject, isCopy, originalName);
+				ProjectLoadingJob job = new ProjectLoadingJob(viewer, unloadedProjectTreeObject, select, isCopy, originalName);
 				job.setUser(true);
 				job.schedule();
 			} catch(Exception e) {
@@ -2060,7 +2064,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							if (projectLoadingJob == null) {
 								if (MigrationManager.isProjectMigrated(projectName)) {
 									UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(databaseObjectTreeObject.viewer, projectName);
-									this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject);
+									this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject, false);
 									this.projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.projectDir(projectName) + "/Traces/" + connector.getName()));
 								}
 							}
@@ -2279,8 +2283,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeObject[] treeObjects = getSelectedTreeObjects();
 		if ((treeObjects != null)) {
 			for (TreeObject treeObject :treeObjects) {
-				if (treeObject instanceof UnloadedProjectTreeObject) {
-					loadProject((UnloadedProjectTreeObject)treeObject);
+				if (treeObject instanceof UnloadedProjectTreeObject unloaded) {
+					loadProject(unloaded, false);
 				}
 			}
 		}
@@ -2385,7 +2389,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeParent invisibleRoot = ((ViewContentProvider)viewer.getContentProvider()).getTreeRoot();
 		UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(viewer, projectName);
 		invisibleRoot.addChild(unloadedProjectTreeObject);
-		loadProject(unloadedProjectTreeObject, isCopy, originalName);
+		loadProject(unloadedProjectTreeObject, true, isCopy, originalName);
 	}
 
 	public boolean isProjectLoaded(String projectName) {

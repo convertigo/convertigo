@@ -695,65 +695,67 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			};
+			
+			if (selectedProject != null) {
+				ComponentManager cm = ComponentManager.of(selectedProject);
+				for (Component comp: cm.getComponentsByGroup()) {
+					String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
+					all.put(id, new Item() {
 
-			ComponentManager cm = ComponentManager.of(selectedProject);
-			for (Component comp: cm.getComponentsByGroup()) {
-				String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
-				all.put(id, new Item() {
+						@Override
+						public String category() {
+							return comp.getGroup();
+						}
 
-					@Override
-					public String category() {
-						return comp.getGroup();
-					}
+						@Override
+						public String name() {
+							return comp.getLabel();
+						}
 
-					@Override
-					public String name() {
-						return comp.getLabel();
-					}
+						@Override
+						String description() {
+							return comp.getDescription();
+						}
 
-					@Override
-					String description() {
-						return comp.getDescription();
-					}
+						@Override
+						Image image() {
+							return getImage(comp.getImagePath());
+						}
 
-					@Override
-					Image image() {
-						return getImage(comp.getImagePath());
-					}
+						@Override
+						DatabaseObject newDatabaseObject() {
+							DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
+							return dbo;
+						}
 
-					@Override
-					DatabaseObject newDatabaseObject() {
-						DatabaseObject dbo = isCtrl[0] ? cm.createBean(comp) : cm.createBeanFromHint(comp);
-						return dbo;
-					}
-
-					@Override
-					boolean allowedIn(DatabaseObject parent) {
-						/*if (!cm.equals(ComponentManager.of(parent))) {
+						@Override
+						boolean allowedIn(DatabaseObject parent) {
+							/*if (!cm.equals(ComponentManager.of(parent))) {
 							return false;
 						}*/
 
-						if (isType[0]) {
-							return parent instanceof ApplicationComponent;
+							if (isType[0]) {
+								return parent instanceof ApplicationComponent;
+							}
+							return comp.isAllowedIn(parent);
 						}
-						return comp.isAllowedIn(parent);
-					}
 
-					@Override
-					String propertiesDescription() {
-						return comp.getPropertiesDescription();
-					}
+						@Override
+						String propertiesDescription() {
+							return comp.getPropertiesDescription();
+						}
 
-					@Override
-					String id() {
-						return id;
-					}
+						@Override
+						String id() {
+							return id;
+						}
 
-					@Override
-					protected boolean builtIn() {
-						return comp.isBuiltIn();
-					}
-				});
+						@Override
+						protected boolean builtIn() {
+							return comp.isBuiltIn();
+						}
+					});
+				}
 			}
 
 			for (com.twinsoft.convertigo.beans.mobile.components.dynamic.Component comp: com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentsByGroup()) {
@@ -1268,10 +1270,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			}
 			parent.getDisplay().asyncExec(() -> {
 				try {
-				String txt = searchText != null ? searchText.getText() : "";
-				SwtUtils.disposeAllChildren(parent);
+					String txt = searchText != null ? searchText.getText() : "";
+					SwtUtils.disposeAllChildren(parent);
 					init();
-					if (txt != null) {
+					if (txt != null && searchText != null) {
 						searchText.setText(txt);
 					}
 				} catch (Exception e) {
@@ -1285,7 +1287,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
-			if (part instanceof ProjectExplorerView) {
+			if (part instanceof ProjectExplorerView && !selection.isEmpty()) {
 				update();
 			}
 		}
