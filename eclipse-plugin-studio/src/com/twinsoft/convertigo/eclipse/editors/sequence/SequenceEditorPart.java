@@ -398,7 +398,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemStopSequence.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				try {
-					context.abortRequestable();
+					if (context != null) {
+						context.abortRequestable();
+					}
 				}
 				catch(NullPointerException npe) {
 					// Silently ignore: means the runningTransaction pointer has been set to null
@@ -657,8 +659,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			return;
 		
 		clearEditor(engineEvent);
-		if (engineEvent.getSource() instanceof Sequence) {
-			RequestAttribute.debug.set(((Sequence) engineEvent.getSource()).context.httpServletRequest, bDebug);
+		if (engineEvent.getSource() instanceof Sequence seq) {
+			RequestAttribute.debug.set(seq.context.httpServletRequest, bDebug);
+			context = seq.context;
 		}
 		getDisplay().syncExec(() -> {
 			toolItemStopSequence.setEnabled(true);
@@ -672,7 +675,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 		
-		lastParameters = new HashMap<>(context.httpServletRequest.getParameterMap());
+		if (context != null) {
+			lastParameters = new HashMap<>(context.httpServletRequest.getParameterMap());
+		}
+		context = null;
 		
 		getDisplay().syncExec(() -> {
 			toolItemRenderJson.setEnabled(true);
