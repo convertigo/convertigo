@@ -240,7 +240,7 @@ public class ReferencedProjectManager {
 			}
 			if (project == null) {
 				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"), false);
-				if (!projectName.equals(project.getName())) {
+				if (project != null && !projectName.equals(project.getName())) {
 					throw new EngineException("Referenced name is '" + projectName + "' but loaded project is '" + project.getName() + "'");
 				}
 				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
