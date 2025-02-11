@@ -13,22 +13,38 @@ if [ "$1" = "convertigo" ]; then
     ## if needed, force the admin and testplatform accounts
     
     if [ "$CONVERTIGO_ADMIN_USER" != "" ]; then
-        export JAVA_OPTS="-Dconvertigo.engine.admin.username=$CONVERTIGO_ADMIN_USER $JAVA_OPTS"
+        if ! grep -q '^admin\.username=' /workspace/configuration/engine.properties 2>/dev/null; then
+            export JAVA_OPTS="-Dconvertigo.engine.admin.username=$CONVERTIGO_ADMIN_USER $JAVA_OPTS"
+        else
+            echo 'Ignore $CONVERTIGO_ADMIN_USER because /workspace/configuration/engine.properties defines admin.username' 
+        fi
         unset CONVERTIGO_ADMIN_USER
     fi
     
     if [ "$CONVERTIGO_ADMIN_PASSWORD" != "" ]; then
-        export JAVA_OPTS="-Dconvertigo.engine.admin.password=$(toHash $CONVERTIGO_ADMIN_PASSWORD) $JAVA_OPTS"
+        if ! grep -q '^admin\.password=' /workspace/configuration/engine.properties 2>/dev/null; then
+            export JAVA_OPTS="-Dconvertigo.engine.admin.password=$(toHash $CONVERTIGO_ADMIN_PASSWORD) $JAVA_OPTS"
+        else
+            echo 'Ignore $CONVERTIGO_ADMIN_PASSWORD because /workspace/configuration/engine.properties defines admin.password' 
+        fi
         unset CONVERTIGO_ADMIN_PASSWORD
     fi
     
     if [ "$CONVERTIGO_TESTPLATFORM_USER" != "" ]; then
-        export JAVA_OPTS="-Dconvertigo.engine.testplatform.username=$CONVERTIGO_TESTPLATFORM_USER $JAVA_OPTS"
+        if ! grep -q '^testplatform\.username=' /workspace/configuration/engine.properties 2>/dev/null; then
+            export JAVA_OPTS="-Dconvertigo.engine.testplatform.username=$ChtONVERTIGO_TESTPLATFORM_USER $JAVA_OPTS"
+        else
+            echo 'Ignore $CONVERTIGO_TESTPLATFORM_USER because /workspace/configuration/engine.properties defines testplatform.username' 
+        fi
         unset CONVERTIGO_TESTPLATFORM_USER
     fi
     
     if [ "$CONVERTIGO_TESTPLATFORM_PASSWORD" != "" ]; then
-        export JAVA_OPTS="-Dconvertigo.engine.testplatform.password=$(toHash $CONVERTIGO_TESTPLATFORM_PASSWORD) $JAVA_OPTS"
+        if ! grep -q '^testplatform\.password=' /workspace/configuration/engine.properties 2>/dev/null; then
+            export JAVA_OPTS="-Dconvertigo.engine.testplatform.password=$(toHash $CONVERTIGO_TESTPLATFORM_PASSWORD) $JAVA_OPTS"
+        else
+            echo 'Ignore $CONVERTIGO_TESTPLATFORM_PASSWORD because /workspace/configuration/engine.properties define testplatform.password' 
+        fi
         unset CONVERTIGO_TESTPLATFORM_PASSWORD
     fi
     
@@ -209,6 +225,7 @@ if [ "$1" = "convertigo" ]; then
     
     
     if [ $(id -u) = "0" ]; then
+        chown -Lf convertigo:convertigo /workspace
         exec sudo -n -E -u convertigo $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run

@@ -20,7 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.SchemaManager.Option;
 
 public class XmlSchemaBuilderExecutor {
 	
-	private Set<XmlSchemaBuilder> builders = new HashSet<XmlSchemaBuilder>();
+	private Set<XmlSchemaBuilder> builders = new LinkedHashSet<XmlSchemaBuilder>();/*new HashSet<XmlSchemaBuilder>();*/
 	private XmlSchemaBuilder mainBuilder = null;
 	
 	protected XmlSchemaBuilderExecutor() {
@@ -67,15 +67,15 @@ public class XmlSchemaBuilderExecutor {
 			SchemaManager.getProjectReferences(refs, projectName);
 			for (String ref: refs) {
 				if (projectName.equals(ref)) {
-					list.add(0, createBuilder(ref, forFull));
-					list.add(1, createBuilder(ref, !forFull));
+					list.add(0, createBuilder(ref, true));
+					list.add(1, createBuilder(ref, false));
 				} else {
 					list.add(createBuilder(ref, false));
 				}
 			}
 			
 			for (XmlSchemaBuilder builder: list) {
-				if (mainBuilder == null) {
+				if (mainBuilder == null && builder.getProjectName().equals(projectName) && builder.isFull == forFull) {
 					mainBuilder = builder;
 				}
 				if (!builders.add(builder)) {
@@ -83,6 +83,7 @@ public class XmlSchemaBuilderExecutor {
 				}
 			}
 			
+			boolean first = false;
 			int size = builders.size();
 		    executor = Executors.newFixedThreadPool(size);
 		    CompletionService<String> completion = new ExecutorCompletionService<String>(executor);
@@ -94,6 +95,10 @@ public class XmlSchemaBuilderExecutor {
 						return builder.toString();
 					}
 				});
+		    	if (!first) {
+		    		first = true;
+		    		Thread.sleep(20);
+		    	}
 		    }
 		    for (int i = 0; i < size; i++) {
 		    	try {
