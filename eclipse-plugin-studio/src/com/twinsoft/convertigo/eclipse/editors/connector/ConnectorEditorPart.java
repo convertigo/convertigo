@@ -174,6 +174,10 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private ConnectorEditorInput inputJSON = null;
 	private ConnectorEditorInput inputTXT = null;
 
+
+	private boolean useType;
+	private JsonRoot jsonRoot;
+
 	ConnectorEditorPart(ConnectorEditor editor, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
@@ -1205,6 +1209,8 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		if (engineEvent.getSource() instanceof Transaction tr) {
 			context = tr.context;
 			RequestAttribute.debug.set(tr.context.httpServletRequest, bDebug);
+			useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
+			jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 		}
 		getDisplay().syncExec(() -> {
 			toolItemStopTransaction.setEnabled(true);
@@ -1329,8 +1335,6 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		
 		ConnectorEditorInput input = getInput();
 		if (isJsonMode[0]) {
-			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
-			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 			try {
 				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");

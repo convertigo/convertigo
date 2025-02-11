@@ -90,9 +90,12 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
 	private Map<String, String[]> lastParameters = null;
 	
-	SequenceEditorInput inputXML = null;
-	SequenceEditorInput inputJSON = null;
-	SequenceEditorInput inputTXT = null;
+	private SequenceEditorInput inputXML = null;
+	private SequenceEditorInput inputJSON = null;
+	private SequenceEditorInput inputTXT = null;
+	
+	private boolean useType;
+	private JsonRoot jsonRoot;
 
 	public SequenceEditorPart(SequenceEditor editor, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
@@ -592,8 +595,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		SequenceEditorInput input = getInput();
 		if (isJsonMode[0]) {
-			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
-			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 			try {
 				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");
@@ -662,6 +663,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (engineEvent.getSource() instanceof Sequence seq) {
 			RequestAttribute.debug.set(seq.context.httpServletRequest, bDebug);
 			context = seq.context;
+			useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
+			jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 		}
 		getDisplay().syncExec(() -> {
 			toolItemStopSequence.setEnabled(true);
@@ -738,8 +741,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		SequenceEditorInput input;
 		if (isJsonMode[0]) {
-			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
-			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 			try {
 				str =  XMLUtils.XmlToJson(context.outputDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");
