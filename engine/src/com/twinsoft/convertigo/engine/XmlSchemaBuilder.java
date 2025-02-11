@@ -109,7 +109,7 @@ public class XmlSchemaBuilder {
 	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "@" + this.projectName + "@" + Boolean.valueOf(this.isFull).toString();
+		return this.getClass().getSimpleName() + "@" + super.hashCode()+ "/"+ this.projectName + "/" + Boolean.valueOf(this.isFull).toString();
 	}
 
 	@Override
@@ -715,6 +715,9 @@ public class XmlSchemaBuilder {
 										final XmlSchemaBuilder fullBuilder = builderExecutor.getBuilder(projectName, true);
 										if (fullBuilder != null) {
 											xmlSchema = fullBuilder.getXmlSchema();
+											if (xmlSchema == null) {
+												Engine.logEngine.warn("(XmlSchemaBuilder) XmlSchemaBuilderExecutor@"+ builderExecutor.hashCode() + "/"+ XmlSchemaBuilder.this.toString() + ": FULL Schema is Null");
+											}
 											XmlSchemaCollection xmlCollection = SchemaMeta.getCollection(xmlSchema);
 											object = step.getXmlSchemaObject(xmlCollection, xmlSchema);
 										} else {
