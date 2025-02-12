@@ -1217,6 +1217,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								if (theTreeObject instanceof DatabaseObjectTreeObject) {
 									DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject) theTreeObject;
 									if (dbObjectTreeObject.rename(newName, Boolean.TRUE)) {
+										newName = dbObjectTreeObject.getName();
 										item.setText(newName);
 										needRefresh = true;
 										if (theTreeObject instanceof ProjectTreeObject) {
