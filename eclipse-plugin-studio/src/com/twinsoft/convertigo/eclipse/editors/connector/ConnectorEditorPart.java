@@ -1264,6 +1264,10 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private ScreenClass lastDetectedScreenClass = null;
 
 	private boolean checkEventSource(EventObject event) {
+		if (isDisposed()) {
+			Engine.theApp.removeEngineListener(this);
+			return false;
+		}
 		boolean isSourceFromConnector = false;
 		if (event instanceof RequestableEngineEvent) {
 			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;
