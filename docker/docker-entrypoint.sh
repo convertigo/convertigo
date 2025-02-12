@@ -32,7 +32,7 @@ if [ "$1" = "convertigo" ]; then
     
     if [ "$CONVERTIGO_TESTPLATFORM_USER" != "" ]; then
         if ! grep -q '^testplatform\.username=' /workspace/configuration/engine.properties 2>/dev/null; then
-            export JAVA_OPTS="-Dconvertigo.engine.testplatform.username=$ChtONVERTIGO_TESTPLATFORM_USER $JAVA_OPTS"
+            export JAVA_OPTS="-Dconvertigo.engine.testplatform.username=$CONVERTIGO_TESTPLATFORM_USER $JAVA_OPTS"
         else
             echo 'Ignore $CONVERTIGO_TESTPLATFORM_USER because /workspace/configuration/engine.properties defines testplatform.username' 
         fi
