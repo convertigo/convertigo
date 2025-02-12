@@ -549,7 +549,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	private void createDeviceBar(Composite parent) {
 		deviceBar = new Composite(parent, SWT.NONE);
-		deviceBar.setData("style", "background-color: #4c525d");
+		if (SwtUtils.isDark()) {
+			deviceBar.setData("style", "background-color: #4c525d");
+		}
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
 		deviceBar.setLayoutData(gd);
 
@@ -757,7 +759,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private void createToolbar(Composite parent) {
 		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		toolbar = new ToolBar(parent, SWT.VERTICAL);
-		toolbar.setData("style", "background-color: #4c525d");
+		if (SwtUtils.isDark()) {
+			toolbar.setData("style", "background-color: #4c525d");
+		}
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
 		gd.verticalSpan = 2;
 		toolbar.setLayoutData(gd);
