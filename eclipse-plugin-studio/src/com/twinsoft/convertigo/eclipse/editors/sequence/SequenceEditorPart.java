@@ -548,8 +548,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	public void blocksChanged(EngineEvent engineEvent) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void documentGenerated(EngineEvent engineEvent) {
@@ -638,7 +636,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	public void clearEditor(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
-
+		
 		getDisplay().syncExec(() -> {
 			if (!inputTXT.fileExists()) {
 				inputTXT.fileWrite("Please wait during the Sequence execution.");
@@ -650,9 +648,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	public void objectDetected(EngineEvent engineEvent) {
-		if (!checkEventSource(engineEvent)) {
-			return;
-		}
 	}
 
 	public void sequenceStarted(EngineEvent engineEvent) {
@@ -699,6 +694,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	private boolean checkEventSource(EventObject event) {
+		if (isDisposed()) {
+			Engine.theApp.removeEngineListener(this);
+			return false;
+		}
 		boolean isSourceFromSequence = false;
 		if (event instanceof RequestableEngineEvent) {
 			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;

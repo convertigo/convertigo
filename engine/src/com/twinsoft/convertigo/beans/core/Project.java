@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -242,6 +243,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		name = name.trim();
 		Project.checkName(name);
 		oldName = ((oldName == null) ? name : this.getName());
+		dirPath = null;
 		super.setName(name);
 	}
 
@@ -257,6 +259,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				|| (name.indexOf('<') != -1) || (name.indexOf('>') != -1) || (name.indexOf('|') != -1))
 			throw new EngineException("The project name (\"" + name
 					+ "\") cannot contain one of the following character(s):\n\\/:*?\"<>|");
+		else if (!StringUtils.isNormalized(name)) {
+			throw new EngineException("The project name (\"" + name
+					+ "\") isn't normalized");
+		}
 	}
 
 	public String getQName() {

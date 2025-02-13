@@ -202,6 +202,17 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	 */
 	@Override
 	public boolean rename(String newName, boolean bDialog) {
+		try {
+			Project.checkName(newName);
+		} catch (Exception e) {
+			Engine.logStudio.error("Failed to rename to \"" + newName + "\": " + e.getMessage());
+			if (bDialog) {
+				MessageBox messageBox = new MessageBox(Display.getDefault().getActiveShell(), SWT.ICON_ERROR | SWT.OK);
+				messageBox.setMessage(e.getMessage());
+				messageBox.open();
+			}
+			return false;
+		}
 		closeAllEditors();
 		MobileBuilder.releaseBuilder(getObject());
 		boolean renamed = super.rename(newName, bDialog);
