@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -444,7 +445,7 @@ public class NgxBuilder extends MobileBuilder {
 				File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
 				File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
 
-				if (src.exists()) {
+				if (src.exists() && shouldUpdate(src, dest)) {
 					Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
 					boolean isDestMobileBuilderInitialized = dest_project != null && dest_project.isMobileBuilderInitialized();
 					if (initDone && isDestMobileBuilderInitialized) {
@@ -465,6 +466,25 @@ public class NgxBuilder extends MobileBuilder {
 				Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
 			}
 		}
+	}
+
+	static private boolean shouldUpdate(File dirSrc, File dirDest) {
+		for (final File src : dirSrc.listFiles()) {
+			if (src.isFile()) {
+				if (src.getName().endsWith(".temp.ts")) {
+					continue;
+				}
+				File dest = new File(dirDest, src.getName());
+				if (dest.exists()) {
+					if (src.lastModified() != dest.lastModified()) {
+						return true;
+					}
+				} else {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -680,13 +700,31 @@ public class NgxBuilder extends MobileBuilder {
 		};
 	}
 	
-	private static void invokeAll(List<Callable<String>> list) {
-		if (list != null) {
-			for (var c : list) {
+	private static void invokeAll(ExecutorService executor, List<Callable<String>> list) {
+		if (list != null && !list.isEmpty()) {
+			if (executor == null || list.size() < 2) {
+				for (var c : list) {
+					try {
+						var out = c.call();
+						Engine.logEngine.trace(out);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			} else {
 				try {
-					var out = c.call();
-					Engine.logEngine.trace(out);
-				} catch (Exception e) {
+					var resultList = executor.invokeAll(list);
+					if (resultList != null && Engine.logEngine.isTraceEnabled()) {
+						for (var future: resultList) {
+							try {
+								var result = future.get();
+								Engine.logEngine.trace(result);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
@@ -785,10 +823,10 @@ public class NgxBuilder extends MobileBuilder {
 							}
 						}
 						
-						executor = null;
-						invokeAll(cList);
-						invokeAll(pList);
-						invokeAll(aList);
+						executor = Math.max(Math.max(cList.size(), pList.size()), aList.size()) > 2 ? Executors.newWorkStealingPool() : null;
+						invokeAll(executor, cList);
+						invokeAll(executor, pList);
+						invokeAll(executor, aList);
 						
 						if (initDone && autoBuild && buildMutex != null) {
 							Engine.logEngine.trace("(NgxBuilder@"+ project.getName()+") start moveFilesForce for consumer update");
@@ -3497,7 +3535,7 @@ public class NgxBuilder extends MobileBuilder {
 						same = FileUtils.areFilesIdentical(nFile.exists() ? nFile : file, str, charset);
 						
 					} else {
-						same = FileUtils.areFilesIdentical(file, encoding, charset);
+						same = FileUtils.areFilesIdentical(file, str, charset);
 					}
 					
 					if (same) {
