@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -395,6 +393,12 @@ public class NgxBuilder extends MobileBuilder {
 				updateConsumers();
 			}
 			
+			var files = existingFiles.get();
+			if (files != null) {
+				for (var file: files) {
+					Engine.logEngine.info("(" + builderType + ") Delete not generated file: " + file);
+				}
+			}
 			FileUtils.deleteFiles(existingFiles.get());
 			existingFiles.set(null);
 			
@@ -454,6 +458,16 @@ public class NgxBuilder extends MobileBuilder {
 
 					if (isDestMobileBuilderInitialized) {
 						dest_project.getMobileBuilder().updateEnvFile();
+					}
+				} else {
+					var files = existingFiles.get();
+					if (files != null && !files.isEmpty()) {
+						for (var i = files.iterator(); i.hasNext();) {
+							var file = i.next();
+							if (file.getPath().startsWith(dest.getPath())) {
+								i.remove();
+							}
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -688,31 +702,13 @@ public class NgxBuilder extends MobileBuilder {
 		};
 	}
 	
-	private static void invokeAll(ExecutorService executor, List<Callable<String>> list) {
-		if (list != null && !list.isEmpty()) {
-			if (executor == null || list.size() < 2) {
-				for (var c : list) {
-					try {
-						var out = c.call();
-						Engine.logEngine.trace(out);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			} else {
+	private static void invokeAll(List<Callable<String>> list) {
+		if (list != null) {
+			for (var c : list) {
 				try {
-					var resultList = executor.invokeAll(list);
-					if (resultList != null && Engine.logEngine.isTraceEnabled()) {
-						for (var future: resultList) {
-							try {
-								var result = future.get();
-								Engine.logEngine.trace(result);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				} catch (InterruptedException e) {
+					var out = c.call();
+					Engine.logEngine.trace(out);
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -738,7 +734,6 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	private void call_updateSourceFiles() throws EngineException {
-		ExecutorService executor = null;
 		try {
 			final MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
@@ -811,10 +806,9 @@ public class NgxBuilder extends MobileBuilder {
 							}
 						}
 						
-						executor = Math.max(Math.max(cList.size(), pList.size()), aList.size()) > 2 ? Executors.newWorkStealingPool() : null;
-						invokeAll(executor, cList);
-						invokeAll(executor, pList);
-						invokeAll(executor, aList);
+						invokeAll(cList);
+						invokeAll(pList);
+						invokeAll(aList);
 						
 						if (initDone && autoBuild && buildMutex != null) {
 							Engine.logEngine.trace("(NgxBuilder@"+ project.getName()+") start moveFilesForce for consumer update");
@@ -838,10 +832,6 @@ public class NgxBuilder extends MobileBuilder {
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
-		} finally {
-			if (executor != null) {
-				executor.shutdown();
-			}
 		}
 	}
 
