@@ -1122,10 +1122,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								String oldName = (String)oldValue;
 								String newName = (String)newValue;
 								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("'"+oldName+"\\.", "'"+newName+".")) {
-										sourcesUpdated = true;
-									}
-									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+									if (getObject().updateSmartSource("([\\\"\\'\\/]{1}?)"+oldName+"\\.", "$1"+newName+".")) {
 										sourcesUpdated = true;
 									}
 								}
@@ -1135,7 +1132,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								String newName = (String)newValue;
 								String projectName = dbo.getProject().getName();
 								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("'"+projectName+"\\."+oldName, "'"+projectName+"."+newName)) {
+									if (getObject().updateSmartSource("([\\\"\\']{1}?)"+projectName+"\\."+oldName, "$1"+projectName+"."+newName)) {
 										sourcesUpdated = true;
 									}
 								}
