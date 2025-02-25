@@ -133,6 +133,8 @@ public class CLI {
 		
 		Engine.logEngine.info("Using Properties: " + System.getProperties());
 		
+		MigrationManager.performProjectsMigration();
+		
 		Engine.isStarted = true;
 	}
 	
