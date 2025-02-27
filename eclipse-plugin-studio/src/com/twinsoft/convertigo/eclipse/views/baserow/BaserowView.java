@@ -968,7 +968,7 @@ public class BaserowView extends ViewPart {
 							st.setMode(Mode.SOURCE);
 							XMLVector<String> source = new XMLVector<String>();
 							source.add(Long.toString(transactionStep.priority));
-							source.add("document/HttpInfo/status[@code=200]");
+							source.add("starts-with(./document/HttpInfo/status/@code, \"20\")");
 							st.setSourceDefinition(source);
 							jsonFieldStep.setValue(st);
 							sequence.add(jsonFieldStep);
