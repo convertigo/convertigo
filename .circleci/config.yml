@@ -284,6 +284,9 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+          echo "Install latest qemu"
+          docker run --rm --privileged tonistiigi/binfmt --install all
+          echo "Launch buildx"
           docker buildx create --use
           docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
@@ -322,6 +325,9 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+          echo "Install latest qemu"
+          docker run --rm --privileged tonistiigi/binfmt --install all
+          echo "Launch buildx"
           docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
