@@ -858,7 +858,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (isCheckMissingProjects) {
 				return;
 			}
-			isCheckMissingProjects = true;	
+			isCheckMissingProjects = true;
 		}
 
 		final Project project = getObject();
@@ -868,7 +868,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
 
 				if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
-					List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
+					List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true);
 					for (Iterator<String> i = missingProjects.iterator() ; i.hasNext(); ) {
 						String targetProjectName = i.next();
 						if (allProjects.contains(targetProjectName)) {
