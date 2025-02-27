@@ -55,6 +55,7 @@ import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.HttpResponseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -797,6 +798,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (projectArchiveFilename.matches("https?://.+")) {
 			try {
 				return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
+			} catch (HttpResponseException e) {
+				throw new EngineException(e.getMessage(), e);
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename
 						+ "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());

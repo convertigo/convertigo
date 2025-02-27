@@ -1428,7 +1428,10 @@ public class ComponentManager {
 					!UIDynamicAttr.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
 					!UIActionEvent.class.isAssignableFrom(dboClass) &&
-					!IAction.class.isAssignableFrom(dboClass)) {
+					!IAction.class.isAssignableFrom(dboClass) &&
+					!UIStackVariable.class.isAssignableFrom(dboClass) &&
+					!UICompVariable.class.isAssignableFrom(dboClass) &&
+					!UISharedComponentEvent.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			} else if (dboParent instanceof UIComponent) {
@@ -1463,7 +1466,7 @@ public class ComponentManager {
 							!UIAppGuard.class.isAssignableFrom(dboClass)) {
 							return true;
 						}
-					}					
+					}
 				}
 				else if (dboParent instanceof UIAppEvent ||
 						dboParent instanceof UIPageEvent || 
@@ -1542,7 +1545,9 @@ public class ComponentManager {
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
 						!UITheme.class.isAssignableFrom(dboClass) &&
-						!IAction.class.isAssignableFrom(dboClass)) {
+						!IAction.class.isAssignableFrom(dboClass) &&
+						!UIActionStack.class.isAssignableFrom(dboClass) &&
+						!UICompEvent.class.isAssignableFrom(dboClass)) {
 							return true;
 					}
 				} else if (dboParent instanceof UICustom) {
@@ -1550,7 +1555,7 @@ public class ComponentManager {
 						UICustom.class.isAssignableFrom(dboClass) ||
 						UIElement.class.isAssignableFrom(dboClass)) {
 						return true;
-					}					
+					}
 				}
 			}
 			return false;
