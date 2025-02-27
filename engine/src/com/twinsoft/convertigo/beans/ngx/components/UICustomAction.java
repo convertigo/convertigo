@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -38,6 +39,8 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class UICustomAction extends UIComponent implements IAction {
 
@@ -54,6 +57,37 @@ public class UICustomAction extends UIComponent implements IAction {
 		UICustomAction cloned = (UICustomAction) super.clone();
 		cloned.failureEvent = null;
 		return cloned;
+	}
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+
+		String version = element.getAttribute("version");
+
+		if (version == null) {
+			String s = XMLUtils.prettyPrintDOM(element);
+			EngineException ee = new EngineException(
+					"Unable to find version number for the database object \"" + getName() + "\".\nXML data: " + s);
+			throw ee;
+		}
+
+		try {
+			if (VersionUtils.compare(version, "8.4.0") < 0) {
+				if (this.local_module_ts_imports.isEmpty() && !this.module_ts_imports.isEmpty()) {
+					this.local_module_ts_imports = new XMLVector<XMLVector<String>>(this.module_ts_imports);
+				}
+				if (this.local_module_ng_imports.isEmpty() && !this.module_ng_imports.isEmpty()) {
+					this.local_module_ng_imports = new XMLVector<XMLVector<String>>(this.module_ng_imports);
+				}
+				if (this.local_module_ng_providers.isEmpty() && !this.module_ng_providers.isEmpty()) {
+					this.local_module_ng_providers = new XMLVector<XMLVector<String>>(this.module_ng_providers);
+				}
+				this.hasChanged = true;
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to migrate the UICustomAction \"" + getName() + "\".", e);
+		}
 	}
 	
 	@Override
@@ -117,7 +151,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	/*
-	 * The needed page imports
+	 * The needed local page|sharedcomp component.ts imports
 	 */
 	private XMLVector<XMLVector<String>> page_ts_imports = new XMLVector<XMLVector<String>>();
 	
@@ -150,7 +184,46 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	/*
-	 * The needed module imports
+	 * The needed local module imports
+	 */
+	private XMLVector<XMLVector<String>> local_module_ts_imports = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getLocalModuleTsImports() {
+		return local_module_ts_imports;
+	}
+	
+	public void setLocalModuleTsImports(XMLVector<XMLVector<String>> local_module_ts_imports) {
+		this.local_module_ts_imports = local_module_ts_imports;
+	}
+
+	/*
+	 * The needed local ngModule imports
+	 */
+	private XMLVector<XMLVector<String>> local_module_ng_imports = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getLocalModuleNgImports() {
+		return local_module_ng_imports;
+	}
+	
+	public void setLocalModuleNgImports(XMLVector<XMLVector<String>> local_module_ng_imports) {
+		this.local_module_ng_imports = local_module_ng_imports;
+	}
+
+	/*
+	 * The needed local ngModule providers
+	 */
+	private XMLVector<XMLVector<String>> local_module_ng_providers = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getLocalModuleNgProviders() {
+		return local_module_ng_providers;
+	}
+	
+	public void setLocalModuleNgProviders(XMLVector<XMLVector<String>> local_module_ng_providers) {
+		this.local_module_ng_providers = local_module_ng_providers;
+	}
+
+	/*
+	 * The needed app module imports
 	 */
 	private XMLVector<XMLVector<String>> module_ts_imports = new XMLVector<XMLVector<String>>();
 	
@@ -183,7 +256,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	/*
-	 * The needed ngModule imports
+	 * The needed app ngModule imports
 	 */
 	private XMLVector<XMLVector<String>> module_ng_imports = new XMLVector<XMLVector<String>>();
 	
@@ -196,7 +269,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	/*
-	 * The needed ngModule providers
+	 * The needed app ngModule providers
 	 */
 	private XMLVector<XMLVector<String>> module_ng_providers = new XMLVector<XMLVector<String>>();
 	
@@ -209,7 +282,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	/*
-	 * The needed package dependencies
+	 * The needed app package dependencies
 	 */
 	private XMLVector<XMLVector<String>> package_dependencies = new XMLVector<XMLVector<String>>();
 	
@@ -261,7 +334,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	/*
-	 * The needed cordova plugins
+	 * The needed app cordova plugins
 	 */
 	private XMLVector<XMLVector<String>> cordova_plugins = new XMLVector<XMLVector<String>>();
 	
@@ -860,6 +933,15 @@ public class UICustomAction extends UIComponent implements IAction {
 				return false;
 			}
 			
+			private boolean doit() {
+				try {
+					return isAppContainer() || isContainer((MobileComponent)getMainScriptComponent());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+			
 			@Override
 			public boolean isNgModuleForApp() {
 				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
@@ -905,18 +987,20 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				for (XMLVector<String> v : module_ts_imports) {
-					String name = v.get(0).trim();
-					String path = v.get(1).trim();
-					String syntax = v.size() > 2 ? v.get(1).trim() : "false";
-					if (!name.isEmpty() && !path.isEmpty()) {
-						if (!imports.containsKey(name)) {
-							imports.put(name, path);
-							if(tplIsLowerThan8043) {
+				if (doit()) {
+					for (XMLVector<String> v : isAppContainer() ? module_ts_imports : local_module_ts_imports) {
+						String name = v.get(0).trim();
+						String path = v.get(1).trim();
+						String syntax = v.size() > 2 ? v.get(1).trim() : "false";
+						if (!name.isEmpty() && !path.isEmpty()) {
+							if (!imports.containsKey(name)) {
 								imports.put(name, path);
-							}
-							else {
-								imports.put(name, path + "__c8o_separator__" +syntax);	
+								if(tplIsLowerThan8043) {
+									imports.put(name, path);
+								}
+								else {
+									imports.put(name, path + "__c8o_separator__" +syntax);	
+								}
 							}
 						}
 					}
@@ -927,11 +1011,13 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Set<String> getModuleNgImports() {
 				Set<String> modules = new HashSet<String>();
-				for (XMLVector<String> v : module_ng_imports) {
-					String module = v.get(0).trim();
-					if (!module.isEmpty()) {
-						if (!modules.contains(module)) {
-							modules.add(module);
+				if (doit()) {
+					for (XMLVector<String> v : isAppContainer() ? module_ng_imports : local_module_ng_imports) {
+						String module = v.get(0).trim();
+						if (!module.isEmpty()) {
+							if (!modules.contains(module)) {
+								modules.add(module);
+							}
 						}
 					}
 				}
@@ -941,11 +1027,13 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Set<String> getModuleNgProviders() {
 				Set<String> providers = new HashSet<String>();
-				for (XMLVector<String> v : module_ng_providers) {
-					String provider = v.get(0).trim();
-					if (!provider.isEmpty()) {
-						if (!providers.contains(provider)) {
-							providers.add(provider);
+				if (doit()) {
+					for (XMLVector<String> v : isAppContainer() ? module_ng_providers : local_module_ng_providers) {
+						String provider = v.get(0).trim();
+						if (!provider.isEmpty()) {
+							if (!providers.contains(provider)) {
+								providers.add(provider);
+							}
 						}
 					}
 				}

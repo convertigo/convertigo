@@ -38,7 +38,7 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[13];
 			
 			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
 			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
@@ -98,6 +98,24 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			properties[9].setShortDescription(getExternalizedString("property.build_styles.short_description"));
 			properties[9].setPropertyEditorClass(getEditorClass("MobileBuildStylesEditor"));
 			properties[9].setExpert(true);
+
+			properties[10] = new PropertyDescriptor("local_module_ts_imports", beanClass, "getLocalModuleTsImports", "setLocalModuleTsImports");
+			properties[10].setDisplayName(getExternalizedString("property.local_module_ts_imports.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.local_module_ts_imports.short_description"));
+			properties[10].setPropertyEditorClass(getEditorClass("MobileConfigTsImportsEditor"));
+			properties[10].setExpert(true);
+
+			properties[11] = new PropertyDescriptor("local_module_ng_imports", beanClass, "getLocalModuleNgImports", "setLocalModuleNgImports");
+			properties[11].setDisplayName(getExternalizedString("property.local_module_ng_imports.display_name"));
+			properties[11].setShortDescription(getExternalizedString("property.local_module_ng_imports.short_description"));
+			properties[11].setPropertyEditorClass(getEditorClass("MobileConfigNgImportsEditor"));
+			properties[11].setExpert(true);
+
+			properties[12] = new PropertyDescriptor("local_module_ng_providers", beanClass, "getLocalModuleNgProviders", "setLocalModuleNgProviders");
+			properties[12].setDisplayName(getExternalizedString("property.local_module_ng_providers.display_name"));
+			properties[12].setShortDescription(getExternalizedString("property.local_module_ng_providers.short_description"));
+			properties[12].setPropertyEditorClass(getEditorClass("MobileConfigNgProvidersEditor"));
+			properties[12].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -2769,7 +2769,7 @@ public class NgxBuilder extends MobileBuilder {
 						} else {
 							List<Contributor> contributors = page.getContributors();
 							for (Contributor contributor : contributors) {
-								contributor.forContainer(page, () -> {
+								contributor.forContainer(app, () -> {
 									if (contributor.isNgModuleForApp()) {
 										comp_beans_dirs.putAll(contributor.getCompBeanDir());
 										module_ts_imports.putAll(contributor.getModuleTsImports());
@@ -2926,7 +2926,7 @@ public class NgxBuilder extends MobileBuilder {
 				synchronized (page) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
-						contributor.forContainer(page, () -> {
+						contributor.forContainer(app, () -> {
 							if (contributor.isNgModuleForApp()) {
 								comp_beans_dirs.putAll(contributor.getCompBeanDir());
 								module_ts_imports.putAll(contributor.getModuleTsImports());
@@ -3080,7 +3080,7 @@ public class NgxBuilder extends MobileBuilder {
 				if(!tplIsLowerThan8043) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
-						contributor.forContainer(page, () -> {
+						contributor.forContainer(app, () -> {
 							if (contributor.isNgModuleForApp()) {
 								module_ng_imports.addAll(contributor.getModuleNgImports());
 								module_ts_imports.putAll(contributor.getModuleTsImports());
