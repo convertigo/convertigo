@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.http.client.HttpResponseException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
@@ -253,10 +254,14 @@ public class ReferencedProjectManager {
 		try {
 			for (var ref: references(projectFile)) {
 				try {
-					importProject(ref.getParser()); //importProject(ref.getParser(), true);
-			    } catch (Exception e) {
-			        Engine.logEngine.error("Failed to load " + ref.getProjectName(), e);
-			    }
+					importProject(ref.getParser());
+				} catch (Exception e) {
+					if (e.getCause() instanceof HttpResponseException) {
+						Engine.logEngine.error("Failed to load " + ref.getProjectName() + "\n" + e.getCause().getMessage());
+					} else {
+						Engine.logEngine.error("Failed to load " + ref.getProjectName(), e);
+					}
+				}
 			}
 		} catch (Exception e) {
 			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check " + projectFile + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());

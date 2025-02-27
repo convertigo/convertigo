@@ -52,6 +52,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -504,7 +505,13 @@ public class HttpUtils {
 	
 	public static void downloadFile(String url, File file) throws ClientProtocolException, IOException {
 		var client = Engine.theApp != null ? Engine.theApp.httpClient4 : makeHttpClient(false);
-		try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
+		var get = new HttpGet(url);
+		get.setConfig(RequestConfig.custom().setRedirectsEnabled(true).build());
+		try (CloseableHttpResponse response = client.execute(get)) {
+			var code = response.getStatusLine().getStatusCode();
+			if (code < 200 || code >= 300) {
+				throw new HttpResponseException(code, "(HttpUtils) downloadFile '" + url + "' failed, http status: " + code);
+			}
 			FileUtils.deleteQuietly(file);
 			file.getParentFile().mkdirs();
 			long length = response.getEntity().getContentLength();
