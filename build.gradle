@@ -14,7 +14,7 @@ buildscript {
 //}
 
 plugins {
-  id 'com.github.ben-manes.versions' version '0.51.0'
+  id 'com.github.ben-manes.versions' version '0.52.0'
 }
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
@@ -30,9 +30,9 @@ ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '8.2.1'
+ext.jxBrowserVersion = '8.4.0'
 ext.swaggerUiVersion = '5.11.10'
-ext.tomcatVersion = '9.0.98'
+ext.tomcatVersion = '9.0.100'
 ext.eclipseVersion = '2024-12'
 ext.eclipseBase = '4.34'
 ext.studioWebNodeVersion = '22'
