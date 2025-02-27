@@ -839,11 +839,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void addTreeObjectListener(TreeObjectListener treeObjectListener) {
-		Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
+		if (Engine.isStarted) {
+			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
+		} else {
+			ConvertigoPlugin.runAtStartup(() -> 
+				Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class)
+			);
+		}
 	}
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
-		Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+		if (Engine.isStarted) {
+			Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+		}
 	}
 
 	public void fireTreeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
@@ -857,7 +865,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		treeObjectEvent.type = TreeObjectEvent.TYPE_ADDED;
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
+		var treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 
 		// Case of Project added
@@ -2365,6 +2373,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(viewer, projectName);
 			invisibleRoot.addChild(unloadedProjectTreeObject);
 			invisibleRoot.removeChild(projectTreeObject);
+
+			var treeObjectEvent = new TreeObjectEvent(projectTreeObject);
+			ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectRemoved(treeObjectEvent);
 			viewer.refresh();
 
 			try {
