@@ -209,7 +209,7 @@ public class BaserowView extends ViewPart {
 				try {
 					updateNames();
 				} catch (Exception ex) {
-					Engine.logStudio.warn("failed to update names", ex);
+					Engine.logStudio.warn("(NoCode Databases) failed to update names", ex);
 				}
 				ConvertigoPlugin.asyncExec(() -> {
 					Dialog dialog = new Dialog(parent.getShell()) {
@@ -348,7 +348,7 @@ public class BaserowView extends ViewPart {
 								+ "return await res.text();}");
 					}
 				} catch (Exception e) {
-					Engine.logStudio.info("failure", e);
+					Engine.logStudio.info("(NoCode Databases) failure", e);
 				}
 				return Response.proceed();
 			});
@@ -368,7 +368,7 @@ public class BaserowView extends ViewPart {
 				Engine.execute(() -> {
 					try {
 						String u = event.url();
-						Engine.logStudio.warn("NavigationStarted " + u);
+						Engine.logStudio.debug("(NoCode Databases) NavigationStarted " + u);
 						Matcher matcher = Pattern.compile("table/(\\w+)(?:/(\\w+))?").matcher(u);
 						if (!matcher.find() ) {
 							return;
@@ -396,7 +396,7 @@ public class BaserowView extends ViewPart {
 					for (HttpHeader header: params.httpHeaders()) {
 						if (header.name().equals("Authorization")) {
 							authHeader = header.value();
-							Engine.logStudio.warn("Authorization " + authHeader);
+							Engine.logStudio.warn("(NoCode Databases) Authorization " + authHeader);
 							backendApi = params.urlRequest().url().substring(0, idx + 5);
 							if (wait_reload != null) {
 								wait_reload.complete(null);
@@ -409,7 +409,7 @@ public class BaserowView extends ViewPart {
 			});
 
 			browser.setUrl(url);
-			Engine.logStudio.debug("Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
+			Engine.logStudio.debug("(NoCode Databases) Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
 			main.layout(true);
 		});
 
@@ -495,9 +495,9 @@ public class BaserowView extends ViewPart {
 									pew.refreshProjects();
 								}
 							}
-							Engine.logStudio.debug("Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
+							Engine.logStudio.debug("(NoCode Databases) Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
 						} catch (Exception e) {
-							Engine.logStudio.warn("failure", e);
+							Engine.logStudio.warn("(NoCode Databases) failure", e);
 						}
 					});
 				});
@@ -532,17 +532,17 @@ public class BaserowView extends ViewPart {
 				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
 				prom.then(txt -> {
 					try {
-						Engine.logStudio.warn(txt[0].toString());
+						Engine.logStudio.warn("(NoCode Databases) " + txt[0].toString());
 						future.complete(new JSONObject(txt[0].toString()));
 					} catch (Exception e) {
-						Engine.logStudio.warn("callObject failed", e);
+						Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
 						future.completeExceptionally(e);
 					}
 					return null;
 				});
 			});
 		} catch (Exception e) {
-			Engine.logStudio.warn("callObject failed", e);
+			Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
 			future.completeExceptionally(e);
 		}
 		return future;
@@ -557,14 +557,14 @@ public class BaserowView extends ViewPart {
 					try {
 						future.complete(new JSONArray(txt[0].toString()));
 					} catch (Exception e) {
-						Engine.logStudio.warn("callObject failed", e);
+						Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
 						future.completeExceptionally(e);
 					}
 					return null;
 				});
 			});
 		} catch (Exception e) {
-			Engine.logStudio.warn("callObject failed", e);
+			Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
 			future.completeExceptionally(e);
 		}
 		return future;
@@ -590,7 +590,7 @@ public class BaserowView extends ViewPart {
 		JSONObject res = callObject(view_id != null ?
 				"database/views/" + view_id + "/" :
 					"database/tables/" + table_id + "/").get();
-		Engine.logStudio.warn("DatabaseDefinition " + res);
+		Engine.logStudio.debug("(NoCode Databases) DatabaseDefinition " + res);
 		JSONObject table = view_id != null ? getObject(res, "table") : res;
 		view_name = view_id != null ? get(res, "name") : "";
 		table_name = get(table, "name");
