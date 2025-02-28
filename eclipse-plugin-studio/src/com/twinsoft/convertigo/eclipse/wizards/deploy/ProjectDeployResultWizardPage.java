@@ -183,7 +183,7 @@ class ProjectDeployResultWizardPage extends WizardPage {
 				
 				setDeployDone(true);
 				ConvertigoPlugin.logDebug("Deployment successfull!");
-				Engine.theApp.eventManager.dispatchEvent(new StudioEvent("deployment", project.getName()), StudioEventListener.class);
+				Engine.theApp.eventManager.dispatchEvent(new StudioEvent(StudioEvent.DEPLOYMENT, project.getName()), StudioEventListener.class);
 				
 	    	} catch (Throwable e) {
 				setDeployDone(false);

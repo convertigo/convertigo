@@ -57,10 +57,12 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -137,8 +139,9 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.events.ProgressEvent;
 import com.twinsoft.convertigo.engine.events.ProgressEventListener;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
@@ -154,7 +157,7 @@ import com.twinsoft.util.Log;
 /**
  * The main plugin class to be used in the desktop.
  */
-public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects, ProgressEventListener {
+public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects {
 
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 
@@ -191,7 +194,30 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
-
+	
+	private StudioEventListener studioEventListener = (var event) -> {
+		if (StudioEvent.ERROR_MESSAGE.equals(event.type())) {
+			getDisplay().asyncExec(() -> {
+				ErrorDialog.openError(null, null, null, new Status(IStatus.ERROR, PLUGIN_UNIQUE_ID, event.payload()));
+			});
+		}
+	};
+	
+	private ProgressEventListener progressEventListener = (var event) -> {
+		try {
+			Job job = Job.create(event.getName(), monitor -> {
+				monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
+				while (event.waitNextStatus()) {
+					monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
+				}
+				monitor.done();
+			});
+			job.schedule();
+		} catch (IllegalStateException e) {
+			// job manager is probably stopped
+		}
+	};
+	
 	private static Display display = null;
 	public static synchronized Display getDisplay() {
 		if (display == null) {
@@ -625,7 +651,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		addListeners();
 		
 		runAtStartup(() -> {
-			Engine.theApp.eventManager.addListener(this, ProgressEventListener.class);
+			Engine.theApp.eventManager.addListener(progressEventListener, ProgressEventListener.class);
+			Engine.theApp.eventManager.addListener(studioEventListener, StudioEventListener.class);
 			Engine.execute(() -> Engine.theApp.couchDbManager.getFullSyncClient());
 			try {
 				if (needPalette[0] == Boolean.TRUE) {
@@ -986,6 +1013,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 		}
 		catch (IllegalStateException e) {}
+		try {
+			Engine.theApp.eventManager.removeListener(progressEventListener, ProgressEventListener.class);
+			Engine.theApp.eventManager.removeListener(studioEventListener, StudioEventListener.class);
+		} catch (Exception e) {
+		}
 
 		if (embeddedTomcat != null) {
 			Engine.isStarted = false;
@@ -1885,23 +1917,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			e.printStackTrace();
 		}
 	}
-
-	@Override
-	public void onEvent(ProgressEvent event) {
-		try {
-			Job job = Job.create(event.getName(), monitor -> {
-				monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
-				while (event.waitNextStatus()) {
-					monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
-				}
-				monitor.done();
-			});
-			job.schedule();
-		} catch (IllegalStateException e) {
-			// job manager is probably stopped
-		}
-	}
-
+	
 	@Override
 	public void reloadProject(String name) throws EngineException {
 		EngineException[] ex = {null};

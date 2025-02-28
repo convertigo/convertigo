@@ -22,6 +22,10 @@ package com.twinsoft.convertigo.engine.events;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class StudioEvent implements BaseEvent {
+	public final static String DEPLOYMENT = "deployment";
+	public final static String LINK_OPEN = "linkOpen";
+	public final static String ERROR_MESSAGE = "errorMessage";
+	
 	private String type;
 	private Object payload;
 	

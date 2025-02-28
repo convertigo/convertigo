@@ -63,6 +63,8 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -1636,6 +1638,10 @@ public class Engine {
 
 	public SystemDatabaseObjectsManager getSystemDatabaseObjectsManager() {
 		return systemDatabaseObjectsManager;
+	}
+	
+	public void showErrorMessage(String message) {
+		eventManager.dispatchEvent(new StudioEvent(StudioEvent.ERROR_MESSAGE, message), StudioEventListener.class);
 	}
 
 	public static boolean isCloudMode() {
