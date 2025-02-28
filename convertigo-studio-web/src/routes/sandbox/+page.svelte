@@ -43,6 +43,7 @@
 	<button class="basic-button" onclick={() => reset()}>reset</button> -->
 	<div class="layout-x-p">
 		<div class="w-12 h-6 bg-red-500"></div>
+		<div class="w-12 h-6 bg-success-500"></div>
 
 		<div class="w-36 h-4 bg-green-500"></div>
 	</div>

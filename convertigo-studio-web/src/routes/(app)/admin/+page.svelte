@@ -235,11 +235,11 @@
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
 	:global(.statusTable td:has(> .on)) {
-		@apply bg-success-500 font-normal;
+		/* @apply bg-success-500 font-normal; */
 	}
 	:global(.statusTable td:has(> .off)) {
-		@apply bg-error-500;
+		/* @apply bg-error-500; */
 	}
 </style>

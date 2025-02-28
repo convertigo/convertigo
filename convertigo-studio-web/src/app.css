@@ -1,7 +1,11 @@
 @import 'tailwindcss';
-
-@config '../tailwind.config.js';
-
+@plugin '@tailwindcss/forms';
+@plugin './convertigo.plugin.js';
+/* @config '../tailwind.config.js'; */
+@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/optional/presets';
+@import '@skeletonlabs/skeleton/themes/cerberus';
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -51,7 +55,8 @@
 }
 
 @utility violet-button {
-  @apply button bg-pale-violet bg-opacity-50;
+  /* @apply button bg-pale-violet bg-opacity-50; */
+  @apply button bg-black/50;
   /*END FORM STYLE*/
 }
 
@@ -158,9 +163,9 @@
   /*END FORM STYLE*/
 }
 
-@utility align {
+/* @utility align {
   @apply align-middle;
-}
+} */
 
 @utility activeSlideToggle {
   /**SLIDE TOGGLE */
@@ -190,7 +195,7 @@
 }
 
 @utility layout-cols-2 {
-  @apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap;
+  @apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap-2;
 }
 
 @layer utilities {
@@ -229,11 +234,11 @@
 	}
 
 	tr:nth-child(even) {
-		@apply bg-surface-200-800 hover:bg-opacity-40;
+		@apply bg-surface-200-800 hover:bg-black/40;
 	}
 
 	tr:nth-child(odd) {
-		@apply bg-surface-300-700 hover:bg-opacity-40;
+		@apply bg-surface-300-700 hover:bg-black/40;
 	}
 	/* END TABLES STYLE*/
 }

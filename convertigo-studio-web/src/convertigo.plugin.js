@@ -1,11 +1,9 @@
-const plugin = require('tailwindcss/plugin');
+import plugin from 'tailwindcss/plugin'
 
-exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
+export default plugin(({ addUtilities, matchUtilities, theme }) => {
 	const dash = (value) => (value.length ? `-${value}` : '');
 
-	/** @return {import('tailwindcss/types/config').CSSRuleObject} */
 	const merge = (...sources) => {
-		/** @type {import('tailwindcss/types/config').CSSRuleObject} */
 		const output = {};
 
 		for (const source of sources) {
