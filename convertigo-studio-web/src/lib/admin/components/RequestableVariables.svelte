@@ -75,7 +75,7 @@
 					<div class="layout-x-low">
 						<button
 							type="button"
-							class="btn btn-sm bg-surface-200-800 !w-fit"
+							class="btn btn-sm bg-surface-200-800 w-fit!"
 							onclick={() => multiples[row.name].push({ val: '' })}
 							><Ico icon="grommet-icons:add" /></button
 						><button type="button" onclick={() => parse(row)} class="btn btn-sm bg-surface-200-800">
@@ -91,7 +91,7 @@
 							{@render property({ row, obj })}
 							<button
 								type="button"
-								class="btn btn-sm bg-surface-200-800 !w-fit"
+								class="btn btn-sm bg-surface-200-800 w-fit!"
 								onclick={() => multiples[row.name].splice(i, 1)}
 								><Ico icon="mingcute:delete-line" /></button
 							>

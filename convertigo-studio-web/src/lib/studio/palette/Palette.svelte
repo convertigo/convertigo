@@ -156,7 +156,7 @@
 		>
 			<button
 				type="button"
-				class="btn [&>*]:pointer-events-none"
+				class="btn *:pointer-events-none"
 				onclick={handleLink}
 				use:popup={tooltip('tooltip-link')}
 			>
@@ -173,7 +173,7 @@
 
 			<button
 				type="button"
-				class="btn [&>*]:pointer-events-none"
+				class="btn *:pointer-events-none"
 				onclick={handleBuiltin}
 				use:popup={tooltip('tooltip-builtin')}
 			>
@@ -190,7 +190,7 @@
 
 			<button
 				type="button"
-				class="btn [&>*]:pointer-events-none"
+				class="btn *:pointer-events-none"
 				onclick={handleAdditional}
 				use:popup={tooltip('tooltip-additional')}
 			>
@@ -207,7 +207,7 @@
 
 			<button
 				type="button"
-				class="btn [&>*]:pointer-events-none"
+				class="btn *:pointer-events-none"
 				onclick={handleFavorite}
 				use:popup={tooltip('tooltip-favorite')}
 			>

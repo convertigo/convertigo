@@ -402,7 +402,7 @@
 	<div class="layout-y-stretch-low">
 		{#if $showFilters}
 			<div
-				class="layout-x-low p-1 flex-wrap mx-low rounded preset-filled-surface-200-800"
+				class="layout-x-low p-1 flex-wrap mx-low rounded-sm preset-filled-surface-200-800"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -439,7 +439,7 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="layout-x-low p-1 flex-wrap mx-low rounded preset-filled-surface-200-800">
+		<div class="layout-x-low p-1 flex-wrap mx-low rounded-sm preset-filled-surface-200-800">
 			<div class="mini-card preset-filled-primary-500">
 				<Button
 					{size}
@@ -464,7 +464,7 @@
 				>
 					{#snippet trigger()}<Ico icon="mdi:search" />{/snippet}
 					{#snippet content()}
-						<Card bg="bg-surface-50-950 text-black dark:text-white" class="!p-low">
+						<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
 							<div class="layout-x-stretch-low">
 								<input
 									type="text"
@@ -524,13 +524,13 @@
 						<Button
 							{size}
 							icon="mdi:edit-outline"
-							class="!w-fit"
+							class="w-fit!"
 							onclick={(event) => addFilter({ event, category, value, mode, ts, not })}
 						/>
 						<Button
 							{size}
 							icon="mingcute:delete-line"
-							class="!w-fit"
+							class="w-fit!"
 							onclick={() => removeFilter(category, index)}
 						/>
 					</div>
@@ -538,14 +538,14 @@
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low p-1 rounded bg-primary-500">
+			<div class="absolute left-[-25px] layout-y-low p-1 rounded-sm bg-primary-500">
 				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
 				{#if extraLines > 0}
 					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
 				{/if}
 			</div>
 			<div
-				class="flex flex-wrap overflow-y-hidden bg-surface-200-800 rounded rounded-b-none"
+				class="flex flex-wrap overflow-y-hidden bg-surface-200-800 rounded-sm rounded-b-none"
 				style="height: {2 + extraLines * 20}px"
 			>
 				{#each columns as { name, cls, style } (name)}
@@ -578,7 +578,7 @@
 			>
 				<div slot="item" let:index let:style {style}>
 					{@const log = logs[index]}
-					<div class="{log[2]} rounded">
+					<div class="{log[2]} rounded-sm">
 						<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
 							{#each columns as { name, cls, style } (name)}
 								{@const value = getValue(name, log, index)}
@@ -593,7 +593,7 @@
 							{/each}
 						</div>
 						<div
-							class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded preset-outlined border-b-none"
+							class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-sm preset-outlined border-b-none"
 							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
 						>
 							{#if founds.length > 0}
@@ -622,7 +622,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none !px !py-1 rounded rounded-t-none preset-filled-surface-200-800 justify-between items-center"
+		class="layout-x-p-none px! py-1! rounded-sm rounded-t-none preset-filled-surface-200-800 justify-between items-center"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}

@@ -29,7 +29,7 @@
 	transitionsPositionerOut={{ x: -480, duration: 200 }}
 >
 	{#snippet content()}
-		<PagesRailToggle bind:state={showDrawer} class="pl-5 !w-fit !h-fit" />
+		<PagesRailToggle bind:state={showDrawer} class="pl-5 w-fit! h-fit!" />
 		<PagesRail {parts} />
 	{/snippet}
 </Modal>
@@ -37,7 +37,7 @@
 <div class="flex flex-col min-h-screen">
 	<Topbar bind:showLeft bind:showDrawer />
 
-	<div class="layout-y-stretch md:layout-x-stretch !gap-0 grow">
+	<div class="layout-y-stretch md:layout-x-stretch gap-0! grow">
 		{#if showLeft}
 			<aside class="hide-md" transition:slide={{ axis: 'x' }}>
 				<PagesRail {parts} />

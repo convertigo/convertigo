@@ -186,7 +186,7 @@
 			></TableAutoCard>
 
 			<div class="w-full layout-x justify-end">
-				<Button label="Close" onclick={close} class="!w-fit cancel-button" />
+				<Button label="Close" onclick={close} class="w-fit! cancel-button" />
 			</div>
 		</Card>
 	{/snippet}
@@ -228,7 +228,7 @@
 
 	<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart}
-			<Card class="!p-none">
+			<Card class="p-none!">
 				<ApexChartLineAdmin {...chart} {categories} />
 			</Card>
 		{/each}

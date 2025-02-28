@@ -72,12 +72,12 @@
 						label="Install"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalCertInstall.close}
 					/>
 				</div>
@@ -107,12 +107,12 @@
 						label="Remove"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalCertRemove.close}
 					/>
 				</div>

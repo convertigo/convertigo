@@ -8,7 +8,7 @@
 	name="mode"
 	controlActive="bg-surface-300"
 	controlInactive="bg-surface-700"
-	classes="!gap-0"
+	classes="gap-0!"
 	bind:checked={Light.light}
 >
 	{#snippet inactiveChild()}<Ico icon="mdi:moon-and-stars" />{/snippet}

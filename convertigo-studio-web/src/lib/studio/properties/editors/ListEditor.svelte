@@ -47,7 +47,7 @@
 			type="text"
 			autocomplete="off"
 			aria-autocomplete="none"
-			class="rounded select form-select w-full text-[11.5px] py-0 border-[0.5px]"
+			class="rounded-sm select form-select w-full text-[11.5px] py-0 border-[0.5px]"
 			id={name + '-input'}
 			{value}
 			onchange={onChange}

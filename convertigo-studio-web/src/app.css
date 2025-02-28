@@ -1,13 +1,208 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind variants;
+@import 'tailwindcss';
 
-html {
-	@apply h-full bg-surface-50-950;
+@config '../tailwind.config.js';
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
 }
-body {
-	@apply h-full;
+
+@utility button {
+  @apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-sm text-white;
+  /*END FORM STYLE*/
+}
+
+@utility basic-button {
+  @apply button dark:bg-primary-500 bg-primary-500;
+  /*END FORM STYLE*/
+}
+
+@utility cancel-button {
+  @apply button dark:bg-error-500 bg-error-400;
+  /*END FORM STYLE*/
+}
+
+@utility delete-button {
+  @apply button dark:bg-error-500 bg-error-600;
+  /*END FORM STYLE*/
+}
+
+@utility yellow-button {
+  @apply button dark:bg-tertiary-600 bg-tertiary-500;
+  /*END FORM STYLE*/
+}
+
+@utility green-button {
+  @apply button bg-success-500 dark:bg-success-600;
+  /*END FORM STYLE*/
+}
+
+@utility violet-button {
+  @apply button bg-pale-violet bg-opacity-50;
+  /*END FORM STYLE*/
+}
+
+@utility btnStyle {
+  @apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-sm;
+  /*END FORM STYLE*/
+}
+
+@utility input-button {
+  @apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded-sm text-white dark:bg-primary-500 bg-primary-500;
+  /*END FORM STYLE*/
+}
+
+@utility search-input {
+  @apply flex-1 py-2 px-4 text-base text-surface-800 dark:text-surface-200 
+			bg-white dark:bg-surface-700 border border-gray-300 dark:border-surface-600 
+			rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+			placeholder-gray-400 dark:placeholder-gray-200;
+  /*END FORM STYLE*/
+}
+
+@utility mini-card {
+  @apply rounded-sm p-1 flex gap-2 text-nowrap select-none;
+  /*END FORM STYLE*/
+}
+
+@utility chip {
+  @apply button bg-gray-200 dark:bg-gray-700 dark:text-surface-200 shadow-xs;
+
+  &:hover {
+    @apply bg-gray-300 dark:bg-gray-600;
+  }
+  /*END FORM STYLE*/
+}
+
+@utility more-chip {
+  @apply chip cursor-pointer bg-yellow-400 dark:bg-yellow-500 text-surface-900;
+
+  &:hover {
+    @apply bg-yellow-300 dark:bg-yellow-400;
+  }
+  /*END FORM STYLE*/
+}
+
+@utility label-common {
+  /*INPUT STYLES !!*/
+
+  /**style for label*/
+  @apply text-[14px] cursor-pointer;
+  /*END FORM STYLE*/
+}
+
+@utility input-common {
+  /**Style for Input*/
+  @apply placeholder:text-[16px] w-full dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-sm;
+  /*END FORM STYLE*/
+}
+
+@utility select-common {
+  @apply placeholder:text-[12px] dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-sm;
+  /*END FORM STYLE*/
+}
+
+@utility input-common-dash {
+  @apply placeholder:text-[16px] dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded-sm;
+  /*END FORM STYLE*/
+}
+
+@utility input-text {
+  @apply mt-1 pl-4 text-[16px] text-surface-800-200;
+  /*END FORM STYLE*/
+}
+
+@utility checkbox-common {
+  /**Style for checkbox*/
+  @apply cursor-pointer;
+  /*END FORM STYLE*/
+}
+
+@utility border-common {
+  @apply border-b-[1px] dark:border-surface-600 border-surface-50;
+  /*END FORM STYLE*/
+}
+
+@utility input-name {
+  @apply font-light text-[14px] mb-3;
+  /*END FORM STYLE*/
+}
+
+@utility gray-button {
+  @apply button bg-surface-300-700 text-surface-900-100;
+  /*END FORM STYLE*/
+}
+
+@utility confirm-button {
+  @apply bg-primary-400-600;
+  /*END FORM STYLE*/
+}
+
+@utility select {
+  & option:checked {
+    color: white;
+  }
+  /*END FORM STYLE*/
+}
+
+@utility align {
+  @apply align-middle;
+}
+
+@utility activeSlideToggle {
+  /**SLIDE TOGGLE */
+  @apply min-w-12 bg-success-400 dark:bg-success-600;
+}
+
+@utility unActiveSlideToggle {
+  @apply min-w-12 bg-error-400 dark:bg-error-600;
+}
+
+@utility hide-md {
+  /*RESPONSIVE*/
+  @apply max-md:hidden;
+}
+
+@utility show-md {
+  @apply md:hidden;
+}
+
+@utility border-color {
+  /*END RESPONSIVE*/
+  @apply border-surface-300-700;
+}
+
+@utility preset-filled-error {
+  @apply preset-filled-error-500;
+}
+
+@utility layout-cols-2 {
+  @apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap;
+}
+
+@layer utilities {
+}
+
+@layer utilities {
+  html {
+    @apply h-full bg-surface-50-950;
+  }
+  body {
+    @apply h-full;
+  }
 }
 
 @layer base {
@@ -17,14 +212,14 @@ body {
 		width: 100%;
 		border-collapse: collapse;
 		border: 4px;
-		@apply rounded overflow-hidden;
+		@apply rounded-sm overflow-hidden;
 	}
 	th,
 	td {
 		text-align: left;
 		font-weight: 300;
 		font-size: 15px;
-		@apply align-middle p-2 !important;
+		@apply align-middle! p-2!;
 	}
 	th {
 		@apply preset-filled-surface-200-800 font-bold;
@@ -44,154 +239,10 @@ body {
 }
 
 @layer components {
-	.button {
-		@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded text-white;
-	}
-
-	.basic-button {
-		@apply button dark:bg-primary-500 bg-primary-500;
-	}
-
-	.cancel-button {
-		@apply button dark:bg-error-500 bg-error-400;
-	}
-
-	.delete-button {
-		@apply button dark:bg-error-500 bg-error-600;
-	}
-
-	.yellow-button {
-		@apply button dark:bg-tertiary-600 bg-tertiary-500;
-	}
-
-	.green-button {
-		@apply button bg-success-500 dark:bg-success-600;
-	}
-
-	.violet-button {
-		@apply button bg-pale-violet bg-opacity-50;
-	}
-
-	.btnStyle {
-		@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded;
-	}
-
-	.input-button {
-		@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded text-white dark:bg-primary-500 bg-primary-500;
-	}
-
-	.search-input {
-		@apply flex-1 py-2 px-4 text-base text-surface-800 dark:text-surface-200 
-			bg-white dark:bg-surface-700 border border-gray-300 dark:border-surface-600 
-			rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-			placeholder-gray-400 dark:placeholder-gray-200;
-	}
-
-	.mini-card {
-		@apply rounded p-1 flex gap-2 text-nowrap select-none;
-	}
-
-	.chip {
-		@apply button bg-gray-200 dark:bg-gray-700 dark:text-surface-200 shadow-sm;
-	}
-
-	.chip:hover {
-		@apply bg-gray-300 dark:bg-gray-600;
-	}
-
-	.more-chip {
-		@apply chip cursor-pointer bg-yellow-400 dark:bg-yellow-500 text-surface-900;
-	}
-
-	.more-chip:hover {
-		@apply bg-yellow-300 dark:bg-yellow-400;
-	}
-
-	/*INPUT STYLES !!*/
-
-	/**style for label*/
-	.label-common {
-		@apply text-[14px] cursor-pointer;
-	}
-	/**Style for Input*/
-	.input-common {
-		@apply placeholder:text-[16px] w-full placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
-	}
-
-	.select-common {
-		@apply placeholder:text-[12px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded;
-	}
-	.input-common-dash {
-		@apply placeholder:text-[16px] placeholder:dark:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded;
-	}
-	.input-text {
-		@apply mt-1 pl-4 text-[16px] text-surface-800-200;
-	}
-	/**Style for checkbox*/
-	.checkbox-common {
-		@apply cursor-pointer;
-	}
-	.border-common {
-		@apply border-b-[1px] dark:border-surface-600 border-surface-50;
-	}
-	.input-name {
-		@apply font-light text-[14px] mb-3;
-	}
 	/* END INOUT STYLES */
 
 	/*FORM STYLE*/
 	form {
-		@apply rounded;
-	}
-
-	.gray-button {
-		@apply button bg-surface-300-700 text-surface-900-100;
-	}
-
-	.confirm-button {
-		@apply bg-primary-400-600;
-	}
-
-	.select option:checked {
-		color: white;
-	}
-	/*END FORM STYLE*/
-}
-
-@layer utilities {
-	.align {
-		@apply align-middle;
-	}
-
-	/**SLIDE TOGGLE */
-
-	.activeSlideToggle {
-		@apply min-w-12 bg-success-400 dark:bg-success-600;
-	}
-
-	.unActiveSlideToggle {
-		@apply min-w-12 bg-error-400 dark:bg-error-600;
-	}
-
-	/*RESPONSIVE*/
-	.hide-md {
-		@apply max-md:hidden;
-	}
-
-	.show-md {
-		@apply md:hidden;
-	}
-	/*END RESPONSIVE*/
-
-	.border-color {
-		@apply border-surface-300-700;
-	}
-
-	.preset-filled-error {
-		@apply preset-filled-error-500;
-	}
-
-	.layout-cols-2 {
-		@apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap;
+		@apply rounded-sm;
 	}
 }

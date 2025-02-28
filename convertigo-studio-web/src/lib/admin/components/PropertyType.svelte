@@ -137,7 +137,7 @@
 		{/if}
 	</div>
 	{#if restores.length > 0}
-		<div class="layout-x-low sm:layout-y-low sm:h-full !justify-around">
+		<div class="layout-x-low sm:layout-y-low sm:h-full justify-around!">
 			{#each restores as { icon, val, title }}
 				<button
 					disabled={value == val}

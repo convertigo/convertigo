@@ -111,12 +111,12 @@
 		{/if}
 		{#each Object.values(Bezels) as { id, title, type, iframe: { height, width } }, i}
 			{@const href = type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
-			<a {href} class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36">
+			<a {href} class="relative layout-x-p-low gap! py-2 hover:bg-surface-200-800 rounded-sm min-w-36">
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
+						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded-sm"
 					></span>
 				{/if}
 				<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
@@ -127,7 +127,7 @@
 		<a
 			href={projectUrl}
 			target="_blank"
-			class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
+			class="relative layout-x-p-low gap! py-2 hover:bg-surface-200-800 rounded-sm min-w-36"
 		>
 			<span class="text-[13px] z-10 font-light">New Tab</span>
 		</a>

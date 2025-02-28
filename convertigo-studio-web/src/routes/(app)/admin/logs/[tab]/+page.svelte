@@ -160,13 +160,13 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs" class="!gap-low !pt-low h-full">
+	<Card title="Logs" class="gap-low! pt-low! h-full">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
 					bind:value={() => tabSet, (v) => goto(`../${v}/`)}
-					listClasses="!mb-0 flex-wrap"
-					classes="!w-fit"
+					listClasses="mb-0! flex-wrap"
+					classes="w-fit!"
 				>
 					{#snippet list()}
 						{#each Object.entries(tabs) as [value, { name, icon }]}
@@ -253,7 +253,7 @@
 															icon="mdi:clock-star-four-points-outline"
 														/>{/snippet}
 													{#snippet content()}
-														<Card bg="bg-surface-50-950" class="!p-low">
+														<Card bg="bg-surface-50-950" class="p-low!">
 															<div class="layout-y-stretch-low">
 																{#each presets[i] as { name, fn }}
 																	<Button
@@ -285,7 +285,7 @@
 										<Button
 											label="Search"
 											icon="mdi:receipt-text-send-outline"
-											class="basic-button !w-fit !h-auto grow"
+											class="basic-button w-fit! h-auto! grow"
 											onclick={refreshLogs}
 										/>
 									</div>
@@ -305,7 +305,7 @@
 					} = LogsPurge}
 					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 						<div class="mt">Logs are split into multiple files, each step is a file.</div>
-						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded">
+						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded-sm">
 							<AutoPlaceholder {loading}>
 								<Slider
 									name="range-slider"

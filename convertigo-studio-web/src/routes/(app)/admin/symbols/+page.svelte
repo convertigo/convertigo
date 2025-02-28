@@ -74,14 +74,14 @@
 				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="!w-fit  basic-button"
+						class="w-fit!  basic-button"
 						icon={edit ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -154,12 +154,12 @@
 						label="Import"
 						icon="material-symbols:hotel-class-outline"
 						type="submit"
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalImport.close}
 					/>
 				</div>

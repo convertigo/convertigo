@@ -28,7 +28,7 @@
 			<a
 				{href}
 				class="relative layout-x-p-low !gap hover:bg-surface-200-800 rounded min-w-36 {loading
-					? 'blur'
+					? 'blur-sm'
 					: ''}"
 				transition:slide={{ axis: 'y' }}
 			>
@@ -36,7 +36,7 @@
 					<span
 						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
+						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded-sm"
 					></span>
 				{/if}
 				<Ico size="5" {icon} class="z-10" />

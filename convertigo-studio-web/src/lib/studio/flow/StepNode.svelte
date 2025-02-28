@@ -153,7 +153,7 @@
 	<div class="w-full">
 		<button
 			type="button"
-			class="w-full h-full px-2 py-3 inline-flex text-nowrap justify-center gap-x-1.5 rounded-md bg-white text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+			class="w-full h-full px-2 py-3 inline-flex text-nowrap justify-center gap-x-1.5 rounded-md bg-white text-xs font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
 			id="menu-button"
 		>
 			<AutoSvg class="w-4 h-4" fill="currentColor" src="{getUrl()}{data.icon}" alt="ico" />
@@ -198,6 +198,6 @@
 		</button>
 	</div>
 	{#if data.hasChildren && expanded && !isXControl}
-		<div class="grow w-full bg-white shadow-sm rounded-md ring-1 ring-inset ring-gray-300"></div>
+		<div class="grow w-full bg-white shadow-xs rounded-md ring-1 ring-inset ring-gray-300"></div>
 	{/if}
 </div>

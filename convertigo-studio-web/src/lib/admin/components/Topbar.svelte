@@ -29,7 +29,7 @@
 		</h1>
 	</section>
 
-	<section class="layout-x-p !py-low">
+	<section class="layout-x-p py-low!">
 		<a href="https://github.com/convertigo/convertigo" target="_blank" class="layout-x-low hide-md">
 			<p class="font-extrabold">Star us on</p>
 			<Ico icon="mdi:github" size={8} />

@@ -25,17 +25,17 @@
 
 	const accessibilities = $state({
 		Private: {
-			bg: '!bg-success-200 dark:!bg-success-600',
+			bg: 'bg-success-200! dark:bg-success-600!',
 			icon: 'mdi:lock',
 			enabled: true
 		},
 		Hidden: {
-			bg: '!bg-warning-200 dark:!bg-warning-600',
+			bg: 'bg-warning-200! dark:bg-warning-600!',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
 		Public: {
-			bg: '!bg-error-200 dark:!bg-error-600',
+			bg: 'bg-error-200! dark:bg-error-600!',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}
@@ -112,7 +112,7 @@
 		>
 			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
-			<span class="layout-x-none !gap-[1px] pr-[1px]">
+			<span class="layout-x-none gap-[1px]! pr-[1px]">
 				{#each Object.values(accessibilities) as accessibility}
 					<button
 						class="btn rounded-none p-1 {accessibility.bg}"
@@ -155,7 +155,7 @@
 								<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 									<Accordion.Item
 										value="{parts[partIdx]}.{name}"
-										classes="rounded {accessibilities[accessibility].bg}"
+										classes="rounded-sm {accessibilities[accessibility].bg}"
 										controlPadding="py-1 px-2"
 										panelPadding="p-1"
 									>
@@ -250,7 +250,7 @@
 														</Accordion.Item>
 													</Accordion>
 												{/if}
-												<Card class="layout-y md:layout-x !p-low">
+												<Card class="layout-y md:layout-x p-low!">
 													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
 													<Button label="Execute" type="submit" class="basic-button" />
 													{#if part.name == 'Sequences'}

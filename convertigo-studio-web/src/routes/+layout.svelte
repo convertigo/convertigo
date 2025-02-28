@@ -72,7 +72,7 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
-<ToastProvider groupClasses="w-full !items-center !right-0 z-[1000]">
+<ToastProvider groupClasses="w-full items-center! right-0! z-1000">
 	<ToastSetter />
 	{@render children?.()}
 </ToastProvider>

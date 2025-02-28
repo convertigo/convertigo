@@ -149,9 +149,9 @@
 
 				<TableAutoCard
 					definition={[
-						{ name: 'Role', custom: true, class: '!py-0' },
-						{ name: 'View', custom: true, class: '!py-0' },
-						{ name: 'Config', custom: true, class: '!py-0' }
+						{ name: 'Role', custom: true, class: 'py-0!' },
+						{ name: 'View', custom: true, class: 'py-0!' },
+						{ name: 'Config', custom: true, class: 'py-0!' }
 					]}
 					data={['All', ...roles.filter((role) => role.endsWith('VIEW'))]}
 				>
@@ -219,14 +219,14 @@
 				<fieldset class="layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="!w-fit  basic-button"
+						class="w-fit!  basic-button"
 						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -299,12 +299,12 @@
 						label="Import"
 						icon="material-symbols:supervised-user-circle-outline"
 						type="submit"
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalImport.close}
 					/>
 				</div>

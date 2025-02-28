@@ -53,9 +53,9 @@
 			bind:value={searchQuery}
 			disabled={rootProject}
 		/>
-		<span class="layout-y-none !gap-[1px]">
+		<span class="layout-y-none gap-[1px]!">
 			{#each filters as { icon, count }, i}
-				<span class="layout-x-none !gap-[1px]">
+				<span class="layout-x-none gap-[1px]!">
 					<button
 						class="btn rounded-none preset-filled p-1"
 						class:!bg-success-100={count != 1}
@@ -86,11 +86,11 @@
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-stretch-none bg-surface-200-800 preset-outlined-surface-700-300 rounded"
+				class="layout-y-stretch-none bg-surface-200-800 preset-outlined-surface-700-300 rounded-sm"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>
-				<div class="layout-x-p-low !py-1 !justify-between">
+				<div class="layout-x-p-low py-1! justify-between!">
 					<span class="text-md font-semibold truncate"
 						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
 					>

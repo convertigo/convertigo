@@ -38,7 +38,7 @@
 				<PropertyType type="text" name="key" placeholder="Enter a new key" />
 				<Button
 					label="Add"
-					class="basic-button sm:!w-fit"
+					class="basic-button sm:w-fit!"
 					icon="material-symbols:key-outline-rounded"
 				/>
 			</fieldset>

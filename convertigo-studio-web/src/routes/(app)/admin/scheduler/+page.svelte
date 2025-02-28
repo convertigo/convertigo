@@ -274,7 +274,7 @@
 						label="Save"
 						type="submit"
 						icon={jobTypes[mode].icon}
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
@@ -282,7 +282,7 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={close}
 					/>
 				</div>

@@ -105,12 +105,12 @@
 						label="Deploy"
 						icon="carbon:application"
 						type="submit"
-						class="!w-fit basic-button"
+						class="w-fit! basic-button"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalDeployUpload.close}
 					/>
 				</div>
@@ -135,11 +135,11 @@
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<input name="url" type="text" class="input w-full" required />
 				<div class="layout-x justify-end">
-					<Button label="Import" icon="bytesize:import" type="submit" class="!w-fit basic-button" />
+					<Button label="Import" icon="bytesize:import" type="submit" class="w-fit! basic-button" />
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="w-fit! cancel-button"
 						onclick={modalDeployURL.close}
 					/>
 				</div>
@@ -154,7 +154,7 @@
 			<p>Find here the undefined Global Symbols for the project <b>{project}</b>:</p>
 			<div class="layout-x flex-wrap w-full">
 				{#each symbols as symbol}
-					<div class="rounded preset-filled-secondary-200-800 px-low">{symbol}</div>
+					<div class="rounded-sm preset-filled-secondary-200-800 px-low">{symbol}</div>
 				{/each}
 			</div>
 			<div class="w-full layout-x justify-end">
@@ -208,7 +208,7 @@
 			{ name: 'Deployment', key: 'deployDate', class: 'text-sm min-w-32' }
 		]}
 		data={projects}
-		class="rounded"
+		class="rounded-sm"
 	>
 		{#snippet children({ row: { name, undefined_symbols }, def })}
 			{@const project = name ? name : '_'}
