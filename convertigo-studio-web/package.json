@@ -78,7 +78,6 @@
 		"unplugin-icons": "^22.1.0",
 		"vite": "^6.2.0",
 		"vite-plugin-iso-import": "^1.2.0",
-		"vite-plugin-tailwind-purgecss": "0.3.5",
 		"vitest": "^3.0.7"
 	},
 	"type": "module",

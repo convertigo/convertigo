@@ -65,9 +65,9 @@ exports.convertigoPlugin = plugin(({ addUtilities, matchUtilities, theme }) => {
 			addUtilities({
 				[`.${property}${dash(version)}`]: getVersion(property, version)
 			});
-			addUtilities({
-				[`.-${property}${dash(version)}`]: getVersion(property, version, 'calc(-1 * ', ')')
-			});
+			// addUtilities({
+			// 	[`.-${property}${dash(version)}`]: getVersion(property, version, 'calc(-1 * ', ')')
+			// });
 		});
 	});
 

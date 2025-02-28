@@ -36,9 +36,6 @@ export default {
 	plugins: [
 		forms,
 		typography,
-		skeleton({
-			themes: [newTheme]
-		}),
 		convertigoPlugin
 	]
 };
