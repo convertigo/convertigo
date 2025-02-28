@@ -288,6 +288,9 @@ jobs:
           docker run --rm --privileged tonistiigi/binfmt --install all
           echo "Launch buildx"
           docker buildx create --use
+          docker pull tonistiigi/binfmt:latest
+          docker run --privileged --rm tonistiigi/binfmt --uninstall qemu-*
+          docker run --privileged --rm tonistiigi/binfmt --install all
           docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
             docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
