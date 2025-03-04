@@ -110,7 +110,7 @@ import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
-	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/archive/refs/heads/8.3.X.zip";
+	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/1.1.11/lib_BaseRow.car";
 	
 	private Cursor handCursor;
 	private Composite main;
@@ -358,7 +358,19 @@ public class BaserowView extends ViewPart {
 					Frame frame = event.frame();
 					Document doc = frame.document().get();
 					Element style = doc.createElement("style");
-					style.innerText(".dashboard__help, .sidebar__logo { display: none}");
+					style.innerText("""
+.auth__logo,
+.dashboard__footer,
+.dashboard__help,
+.sidebar__user,
+.sidebar__foot,
+.context__menu-item:has(.iconoir-settings),
+.tree__item:has(.baserow-icon-application, .iconoir-lock),
+.dashboard__sidebar-group:has(.fa-sign-out-alt),
+.dashboard__resources,
+.context__menu-item:has(.baserow-icon-application),
+.alert:has(.baserow-icon-gitlab)
+{ display: none}""");
 					doc.findElementByTagName("head").get().appendChild(style);
 				} catch (Exception e) {
 					e.printStackTrace();
