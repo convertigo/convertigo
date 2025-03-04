@@ -483,28 +483,25 @@ public class BaserowView extends ViewPart {
 					if (StringUtils.isBlank(val)) {
 						dbom.symbolsAdd("lib_baserow.apikey.secret", key);
 					}
+					ProjectUrlParser parser = new ProjectUrlParser(LIB_BASEROW_URL);
+					String projectName = parser.getProjectName();
+					if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+						try {
+							Engine.theApp.referencedProjectManager.importProject(parser, true);
+						} catch (Exception e) {
+							Engine.logStudio.warn("(NoCode Databases) failure", e);
+							return;
+						}
+					}
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
-							ProjectUrlParser parser = new ProjectUrlParser(LIB_BASEROW_URL);
-							String projectName = parser.getProjectName();
 							ProjectExplorerView pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
-							if (Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-								if (!ConvertigoPlugin.getDefault().isProjectOpened(projectName)) {
-									TreeObject root = pew.getProjectRootObject(projectName);
-									if (root == null) {
-										pew.importProjectTreeObject(projectName);
-									} else if (root instanceof UnloadedProjectTreeObject) {
-										pew.loadProject((UnloadedProjectTreeObject) root);
-									}
-								}
-							} else {
-								Project project = Engine.theApp.referencedProjectManager.importProject(parser, true); 
-								if (project != null) {
-									TreeObject tree = pew.getProjectRootObject(project.getName());
-									if (tree != null) {
-										pew.reloadProject(tree);
-									}
-									pew.refreshProjects();
+							if (!pew.isProjectLoaded(projectName)) {
+								TreeObject root = pew.getProjectRootObject(projectName);
+								if (root == null) {
+									pew.importProjectTreeObject(projectName);
+								} else if (root instanceof UnloadedProjectTreeObject) {
+									pew.loadProject((UnloadedProjectTreeObject) root);
 								}
 							}
 							Engine.logStudio.debug("(NoCode Databases) Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");

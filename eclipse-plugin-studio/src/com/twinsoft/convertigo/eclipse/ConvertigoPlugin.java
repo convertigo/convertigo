@@ -1888,7 +1888,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 			try {
 				TreeObject treeProject = pew.getProjectRootObject(project.getName());
-				if (treeProject != null && !project.equals(treeProject.getObject())) {
+				if (treeProject == null) {
+					pew.importProjectTreeObject(project.getName());
+				} else if (!project.equals(treeProject.getObject())) {
 					if (treeProject instanceof ProjectTreeObject) {
 						// should not happened
 						Engine.logStudio.warn("[projectLoaded] Project '" + project.getName() + "' loaded and project in ProjectTree is different: reloading the ProjectTree!");
