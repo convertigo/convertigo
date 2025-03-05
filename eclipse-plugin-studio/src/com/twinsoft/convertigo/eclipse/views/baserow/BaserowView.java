@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.baserow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -413,6 +414,7 @@ public class BaserowView extends ViewPart {
 							if (wait_reload != null) {
 								wait_reload.complete(null);
 							}
+							browser.getBrowser().mainFrame().get().executeJavaScript("clearTimeout(window._reload); window._reload = setTimeout(() => location.reload(), 120000)");
 							break;
 						}
 					}
@@ -566,14 +568,14 @@ public class BaserowView extends ViewPart {
 					try {
 						future.complete(new JSONArray(txt[0].toString()));
 					} catch (Exception e) {
-						Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
+						Engine.logStudio.warn("(NoCode Databases) callArray failed", e);
 						future.completeExceptionally(e);
 					}
 					return null;
 				});
 			});
 		} catch (Exception e) {
-			Engine.logStudio.warn("(NoCode Databases) callObject failed", e);
+			Engine.logStudio.warn("(NoCode Databases) callArray failed", e);
 			future.completeExceptionally(e);
 		}
 		return future;
@@ -718,7 +720,8 @@ public class BaserowView extends ViewPart {
 
 						var simpleStep = new SimpleStep();
 						simpleStep.setName("table_id");
-						simpleStep.setExpression("table_id = \"${" + project.getName() + ".crud." + database_name + "." + table_name + "=" + table_id + "}\";");
+						simpleStep.setCompilablePropertySourceValue("expression", "table_id = '${" + project.getName() + ".crud." + database_name + "." + table_name + "=" + table_id + "}';");
+						simpleStep.updateSymbols();
 						sequence.add(simpleStep);
 						simpleStep = new SimpleStep();
 						simpleStep.setName("apiKey");
@@ -1022,17 +1025,11 @@ public class BaserowView extends ViewPart {
 
 							JSONObject fieldOptions = null;
 							if (view_id != null) {
-								String filterExpression = "var filterExpression = '';\n";
 								JSONArray filters = callArray("database/views/" + view_id + "/filters/").get();
 								int ln = filters.length();
 								if (ln > 0) {
+									var groups = new HashMap<Integer, JSONObject>();
 									String filter_type = null;
-									String ft = "";
-									if (ln > 1) {
-										JSONObject res = callObject("database/views/" + view_id + "/").get();
-										filter_type = res.has("filter_type") ? get(res, "filter_type") : "AND";
-										ft = StringUtils.capitalize(filter_type.toLowerCase());
-									}
 									for (int j = 0; j < ln; j++) {
 										JSONObject filter = filters.getJSONObject(j);
 										int id = filter.getInt("field");
@@ -1041,25 +1038,54 @@ public class BaserowView extends ViewPart {
 											if (field.getInt("id") == id) {
 												String name = field.getString("name");
 												String typ = filter.getString("type");
-												RequestableVariable var = new RequestableVariable();
-												var.setName("filter" + ft + StringUtils.capitalize(name) + StringUtils.capitalize(typ));
-												var.setComment("Filter rows with '" + name + "' " + typ + " the provided value" + (filter_type == null ? "." : " " + filter_type + " other filter* variables."));
-												String value = filter.getString("value");
-												var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
-												sequence.add(var);
-												filterExpression += "if (typeof " + var.getName() + " != 'undefined' && " + var.getName() + " != null) filterExpression += 'filter__field_" + id + "__" + typ + "=' + encodeURIComponent(" + var.getName() + ") + '&';\n";
+												var grpKey = (Integer) (filter.isNull("group") ? null : filter.getInt("group"));
+												JSONObject grp = groups.get(grpKey);
+												if (grp == null) {
+													groups.put(grpKey, grp = new JSONObject());
+													JSONObject res = callObject("database/views/" + (grpKey == null ? view_id : ("filter-group/" + grpKey))+ "/").get();
+													filter_type = res.has("filter_type") ? get(res, "filter_type") : "AND";
+													var parent = !res.has("parent_group") ? null : groups.get(res.isNull("parent_group") ? null : res.getInt("parent_group")); 
+													var prefix = parent == null ? "" : parent.get("prefix");
+													prefix += StringUtils.capitalize(filter_type.toLowerCase());
+													grp.put("prefix", prefix);
+													grp.put("filter_type", filter_type);
+													grp.put("filters", new JSONArray());
+													if (parent != null) {
+														if (!parent.has("groups")) {
+															parent.put("groups", new JSONArray());
+														}
+														parent.getJSONArray("groups").put(grp);
+													}
+												}
+												RequestableVariable var = null;
+												if (!typ.contains("empty")) {
+													var = new RequestableVariable();
+													var.setName("filter" + grp.getString("prefix") + StringUtils.capitalize(name) + StringUtils.capitalize(typ));
+													var.setComment("Filter rows with '" + name + "' " + typ + " the provided value" + (filter_type == null ? "." : " " + filter_type + " other filter* variables."));
+													String value = filter.getString("value");
+													var.setValueOrNull(StringUtils.isEmpty(value) ? null : value);
+													sequence.add(var);
+												}
+
+												var grpFilters = grp.getJSONArray("filters");
+												var flt = new JSONObject();
+												flt.put("field", name);
+												flt.put("type", typ);
+												flt.put("value", var == null ? "" : var.getName());
+												grpFilters.put(flt);
 												break;
 											}
 										}
 									}
-									filterExpression += "filterExpression = filterExpression.replace(new RegExp('&$'), '');";
+									var json = groups.get(null).toString(2);
+									json = json.replaceAll("\"value\": \"(.+)\"", "value: check($1)");
+									json = json.replaceAll(".*\"prefix\".*\n", "");
+									var filterExpression = "var check = t => typeof t == 'undefined' || t == null ? '' : t;\n"
+											+ "filterExpression = JSON.stringify(" + json + ");\n"
+											+ "filterExpression = 'filters=' + encodeURIComponent(filterExpression);\n";
 									filterStep.setExpression(filterExpression);
 									stepVariable = new StepVariable();
 									stepVariable.setName("filterExpression");
-									transactionStep.add(stepVariable);
-									stepVariable = new StepVariable();
-									stepVariable.setName("filter_type");
-									stepVariable.setValueOrNull(filter_type);
 									transactionStep.add(stepVariable);
 								} else {
 									sequence.remove(filterStep);
