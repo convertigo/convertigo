@@ -215,6 +215,20 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 
 	@Override
+	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
+		boolean updated = false;
+		MobileSmartSource mss = directiveSource.getSmartSource();
+		if (mss != null) {
+			MobileSmartSource newMss = mss.from(oldSource, newPath);
+			if (newMss != null) {
+				directiveSource.setSmartValue(newMss.toJsonString());
+				updated = this.hasChanged = true;
+			}
+		}
+		return updated;
+	}
+
+	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = directiveSource.getSmartValue();
