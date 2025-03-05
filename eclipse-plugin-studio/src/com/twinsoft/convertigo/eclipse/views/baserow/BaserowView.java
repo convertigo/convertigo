@@ -103,7 +103,6 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
@@ -495,22 +494,6 @@ public class BaserowView extends ViewPart {
 							return;
 						}
 					}
-					ConvertigoPlugin.asyncExec(() -> {
-						try {
-							ProjectExplorerView pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
-							if (!pew.isProjectLoaded(projectName)) {
-								TreeObject root = pew.getProjectRootObject(projectName);
-								if (root == null) {
-									pew.importProjectTreeObject(projectName);
-								} else if (root instanceof UnloadedProjectTreeObject) {
-									pew.loadProject((UnloadedProjectTreeObject) root);
-								}
-							}
-							Engine.logStudio.debug("(NoCode Databases) Debug the NoCodeDB view: " + browser.getDebugUrl() + "/json");
-						} catch (Exception e) {
-							Engine.logStudio.warn("(NoCode Databases) failure", e);
-						}
-					});
 				});
 
 			}

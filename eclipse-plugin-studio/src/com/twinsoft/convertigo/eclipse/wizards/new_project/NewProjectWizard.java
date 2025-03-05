@@ -57,7 +57,6 @@ import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
@@ -201,22 +200,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 		}
 		return true;
 	}
-
-	private void updateProjectTreeView() {
-		ConvertigoPlugin.getDisplay().asyncExec(() -> {
-			// refresh the project explorer treeview
-			ProjectExplorerView view = (ProjectExplorerView) ConvertigoPlugin.getDefault().getProjectExplorerView();
-
-			try {
-				if (projectName != null) {
-					view.importProjectTreeObject(projectName);
-				}
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "An error occured while refreshing the tree view");
-			}
-			view.viewer.refresh();
-		});
-	}
+	
 	/**
 	 * The worker method. We create the project here according to the templateId
 	 * variable
@@ -231,7 +215,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			if (page10 != null) {
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
-				project = createFromBlankProject(monitor, false);
+				project = createFromBlankProject(monitor);
 
 				boolean needAuth = page10.useAuthentication();
 				String wsURL = page10.getWsdlURL().toString();
@@ -264,8 +248,6 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 					defaultConnector.delete();
 					project.hasChanged = true;
 				}
-				
-				updateProjectTreeView();
 			}
 			
 			else if (page1 != null) {
@@ -317,10 +299,6 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	}
 	
 	private Project createFromBlankProject(IProgressMonitor monitor) throws Exception {
-		return createFromBlankProject(monitor, true);
-	}
-	
-	private Project createFromBlankProject(IProgressMonitor monitor, boolean updateTreeView) throws Exception {
 		String newProjectName = projectName;
 		String oldProjectName = projectUrlParser.getProjectName();
 		
@@ -555,10 +533,6 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				
 				monitor.setTaskName("Schemas updated");
 				monitor.worked(1);
-				
-				if (updateTreeView) {
-					updateProjectTreeView();
-				}
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
 			}
@@ -605,8 +579,6 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 					// User will be able to remove it from the Studio
 					ConvertigoPlugin.logException(e, "Unable to import project '" + projectName + "'!");
 				}
-
-				updateProjectTreeView();
 			} catch (Exception e) {
 				// Delete everything
 				try {

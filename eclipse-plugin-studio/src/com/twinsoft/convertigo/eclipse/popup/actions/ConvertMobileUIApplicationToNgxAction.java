@@ -187,13 +187,6 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 							Engine.logStudio.error("Error while "+ taskName, e);
 						}
 						monitor.beginTask("Open the converted project..." , IProgressMonitor.UNKNOWN);
-						display.syncExec(() -> {
-							try {
-								explorerView.importProjectTreeObject(projectName);
-							} catch (Exception e) {
-								ConvertigoPlugin.errorMessageBox("Failed to get the '" + projectName + "' project: " + e.getMessage());
-							}
-						});
 					}).schedule();
 				}
 			}
