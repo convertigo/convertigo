@@ -128,7 +128,7 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 								    					
 								    					UIControlVariable uiVariable = new UIControlVariable();
 								    					uiVariable.setName(variableName);
-								    					uiVariable.setComment(variable.getDescription());
+								    					uiVariable.setComment(variable.getComment());
 								    					uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
 								    					dynAction.addUIComponent(uiVariable);
 		
