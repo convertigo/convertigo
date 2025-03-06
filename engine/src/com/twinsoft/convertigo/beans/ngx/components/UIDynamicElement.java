@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
@@ -347,6 +348,35 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return attributes;
 	}
 
+	@Override
+	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
+		boolean updated = false;
+		if (beanData != null) {
+			IonBean ionbean = null;
+			try {
+				ionbean = new IonBean(beanData);
+				if (ionbean != null) {
+					for (IonProperty property : ionbean.getProperties().values()) {
+						MobileSmartSource mss = property.getSmartType().getSmartSource();
+						if (mss != null) {
+							MobileSmartSource newMss = mss.from(oldSource, newPath);
+							if (newMss != null) {
+								String oldVal = StringEscapeUtils.escapeJson(mss.toJsonString());
+								String newVal = StringEscapeUtils.escapeJson(newMss.toJsonString());
+								beanData = beanData.replace(oldVal, newVal);
+								ionBean = null;
+								updated = this.hasChanged = true;							
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return updated;
+	}
+	
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;

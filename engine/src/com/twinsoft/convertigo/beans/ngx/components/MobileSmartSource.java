@@ -1721,4 +1721,73 @@ public class MobileSmartSource {
 		return map;
 	}
 	
+	private String getPathMatchingPattern(Filter filter) {
+		// currently handled: Filter.Action, Filter.Shared
+		if (filter != null) {
+			if (filter.equals(Filter.Action)) {
+				return "in\\??\\.vars";
+			}
+			if (filter.equals(Filter.Shared)) {
+				return "this";
+			}
+		}
+		return null;
+	}
+	
+	private boolean isPathMatchingWith(MobileSmartSource oldMss) {
+		try {
+			if (oldMss != null && oldMss.hasModel() && this.hasModel()) {
+				if (getFilter().equals(oldMss.getFilter())) {
+					if (getProjectName().equals(oldMss.getProjectName())) {
+						if (getSources().containsAll(oldMss.getSources())) {
+							String pmp = getPathMatchingPattern(getFilter());
+							if (pmp != null) {
+								String oldPath = oldMss.getModelPath();
+								String oldName = oldPath.substring(oldPath.lastIndexOf('.')+1);
+								if (Pattern.compile(("((?:\"|"+ pmp +")\\??\\.)"+oldName+"\\b")).matcher(getModel().getValue(true)).find()) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public MobileSmartSource from(MobileSmartSource oldMss, String newPath) {
+		MobileSmartSource mss = null;
+		try {
+			if (isPathMatchingWith(oldMss)) {
+				String pmp = getPathMatchingPattern(getFilter());
+				SourceModel model = getModel();
+				String path = model.getPath();
+				if (path.isEmpty()) {
+					JSONObject jsonModel = model.toJson();
+					String oldPath = oldMss.getModelPath();
+					String oldName = oldPath.substring(oldPath.lastIndexOf('.')+1);
+					String newName = newPath.substring(newPath.lastIndexOf('.')+1);
+					if (getModel().getUseCustom()) {
+						String custom = model.getCustom().replaceAll("((?:\"|"+ pmp +")\\??\\.)"+oldName+"\\b", "$1"+newName);
+						jsonModel.put("custom", custom);
+					} else {
+						String suffix = "_that_"+ model.getSuffix();
+						suffix = suffix.replaceAll("((?:\"|\\_that\\_|"+ pmp +")\\??\\.)"+oldName+"\\b", "$1"+newName);
+						suffix = suffix.replaceFirst("_that_", "");
+						jsonModel.put("suffix", suffix);					
+					}
+					mss = new MobileSmartSource(getFilter(), getProjectName(), "", jsonModel);
+				} else {
+					JSONObject jsonModel = model.toJson().put("path", newPath);
+					mss = new MobileSmartSource(getFilter(), getProjectName(), "", jsonModel);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mss;
+	}
 }

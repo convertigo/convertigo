@@ -3233,37 +3233,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 
 		Engine.execute(() -> {
-			Exception[] exception = {null};
 			try {
-				Project importedProject = doImport ?
-						Engine.theApp.databaseObjectsManager.importProject(filePath, true) :
-							Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
-				ConvertigoPlugin.syncExec(() -> {
-					try {
-						// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
-						String projectName = importedProject.getName();
-
-						// loads project into tree view
-						if (projectTreeObject[0] == null) {
-							importProjectTreeObject(projectName);
-						} else {
-							//							// recreate project resource
-							ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-							reloadProject(projectTreeObject[0]);
-						}
-
-						refreshTree();
-					} catch (Exception e) {
-						exception[0] = e;
-					}
-				});
+				if (doImport) {
+					Engine.theApp.databaseObjectsManager.importProject(filePath, true);
+				} else {
+					Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
+				}
 			} catch (Exception e) {
-				exception[0] = e;
-			}
-			if (exception[0] != null) {
 				ConvertigoPlugin.syncExec(() -> {
-					Engine.logStudio.error("Failed to import project", exception[0]);
-					ConvertigoPlugin.errorMessageBox("Failed to import project [" + exception[0].getClass().getSimpleName() + "]: " + exception[0].getMessage());
+					Engine.logStudio.error("Failed to import project", e);
+					ConvertigoPlugin.errorMessageBox("Failed to import project [" + e.getClass().getSimpleName() + "]: " + e.getMessage());
 				});
 			}
 		});

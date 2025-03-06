@@ -94,6 +94,20 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 	}
 	
 	@Override
+	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
+		boolean updated = false;
+		MobileSmartSource mss = varValue.getSmartSource();
+		if (mss != null) {
+			MobileSmartSource newMss = mss.from(oldSource, newPath);
+			if (newMss != null) {
+				varValue.setSmartValue(newMss.toJsonString());
+				updated = this.hasChanged = true;
+			}
+		}
+		return updated;
+	}
+	
+	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = varValue.getSmartValue();

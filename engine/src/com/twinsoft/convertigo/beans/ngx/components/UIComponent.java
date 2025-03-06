@@ -588,6 +588,10 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return updated;
 	}
 	
+	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
+		return false;
+	}
+	
 	public boolean updateSmartSource(String oldString, String newString) {
 		return false;
 	}

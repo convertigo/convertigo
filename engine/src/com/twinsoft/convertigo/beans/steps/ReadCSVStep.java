@@ -221,6 +221,7 @@ public class ReadCSVStep extends ReadFileStep {
 			//construction of the DOM's root
 			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element root = csvDoc.createElement("document");
+			root.setAttribute("type", "array");
 			csvDoc.appendChild(root);
 
 
@@ -247,6 +248,7 @@ public class ReadCSVStep extends ReadFileStep {
 				while (j < cols) {
 					i = 0;
 					col = csvDoc.createElement(getTagColName());
+					col.setAttribute("type", "object");
 
 					while (i < lines) {
 						if (titleLine) {
@@ -273,6 +275,7 @@ public class ReadCSVStep extends ReadFileStep {
 				while ((i < lines && !schema) || (i < 2 && schema)) {
 					j = 0;
 					line = csvDoc.createElement(getTagLineName());
+					line.setAttribute("type", "object");
 					while (j < cols) {
 						if (titleLine) {
 							col = csvDoc.createElement(StringUtils.normalize(vLines.get(0)[j]));
@@ -321,6 +324,12 @@ public class ReadCSVStep extends ReadFileStep {
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		elt.setType(cType);
 
+		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attribute.setName("type");
+		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		attribute.setDefaultValue("array");
+		cType.getAttributes().add(attribute);
+
 		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
 
@@ -332,9 +341,15 @@ public class ReadCSVStep extends ReadFileStep {
 		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		subElt.setType(cType);
 
+		attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attribute.setName("type");
+		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		attribute.setDefaultValue("object");
+		cType.getAttributes().add(attribute);
+
 		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
-		
+
 		boolean done = false;
 		if (titleLine) {
 			try {
@@ -368,7 +383,7 @@ public class ReadCSVStep extends ReadFileStep {
 
 								simpleContentExtension.setBaseTypeName(Constants.XSD_STRING);
 
-								XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+								attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 								attribute.setName("type");
 								attribute.setSchemaTypeName(Constants.XSD_STRING);
 								attribute.setDefaultValue("string");
@@ -402,7 +417,7 @@ public class ReadCSVStep extends ReadFileStep {
 
 								simpleContentExtension.setBaseTypeName(Constants.XSD_STRING);
 
-								XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+								attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 								attribute.setName("type");
 								attribute.setSchemaTypeName(Constants.XSD_STRING);
 								attribute.setDefaultValue("string");

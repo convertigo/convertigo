@@ -393,9 +393,9 @@ public class TutoView extends ViewPart implements StudioEventListener {
 
 	@Override
 	public void onEvent(StudioEvent event) {
-		if ("deployment".equals(event.type())) {
+		if (StudioEvent.DEPLOYMENT.equals(event.type())) {
 			lastDeployment = event.payload();
-		} else if ("linkOpen".equals(event.type())) {
+		} else if (StudioEvent.LINK_OPEN.equals(event.type())) {
 			lastLink = event.payload();
 		}
 	}

@@ -115,6 +115,20 @@ public class UIText extends UIComponent implements ITagsProperty {
 	}
 
 	@Override
+	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
+		boolean updated = false;
+		MobileSmartSource mss = textValue.getSmartSource();
+		if (mss != null) {
+			MobileSmartSource newMss = mss.from(oldSource, newPath);
+			if (newMss != null) {
+				textValue.setSmartValue(newMss.toJsonString());
+				updated = this.hasChanged = true;
+			}
+		}
+		return updated;
+	}
+
+	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = textValue.getSmartValue();

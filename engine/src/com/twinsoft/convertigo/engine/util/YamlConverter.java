@@ -65,6 +65,7 @@ public class YamlConverter {
 	private String line = "";
 	private String lastLine = null;
 	private File subdir = null;
+	private StringBuilder errors = new StringBuilder();
 	
 	private YamlConverter() {
 		
@@ -167,7 +168,11 @@ public class YamlConverter {
 		
 		if (subfile != null) {
 			String content = asChild ? sb.substring(endLine.length()) : sb.toString();
-			FileUtils.writeFile(subfile, content, StandardCharsets.UTF_8);
+			try {
+				FileUtils.writeFile(subfile, content, StandardCharsets.UTF_8);
+			} catch (Exception e) {
+				errors.append(yamlFile + ": " +  e.getClass().getName() + "\n");
+			}
 			if (existingFiles != null) {
 				existingFiles.remove(subfile);
 			}
@@ -332,7 +337,14 @@ public class YamlConverter {
 			}
 			node = node.getNextSibling();
 		}
-		FileUtils.writeFile(yaml, y.sb.toString(), StandardCharsets.UTF_8);
+		try {
+			FileUtils.writeFile(yaml, y.sb.toString(), StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			y.errors.append(yaml.getName() + ": " + e.getClass().getName() + "\n");
+		}
+		if (!y.errors.isEmpty()) {
+			throw new IOException("Failed to write some files:\n" + y.errors.toString());
+		}
 		existingFiles.remove(yaml);
 		FileUtils.deleteFiles(existingFiles);
 	}
