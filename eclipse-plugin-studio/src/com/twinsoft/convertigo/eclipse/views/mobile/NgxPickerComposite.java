@@ -1682,7 +1682,7 @@ public class NgxPickerComposite extends Composite {
 					JSONObject jsonObject = new JSONObject(jsonString);
 
 					String searchPath = "document."+ responseEltName +".response";
-					searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
+					searchPath += isDocumentNode || !dataPath.startsWith(".document.")? dataPath : dataPath.replaceFirst("\\.document\\.", ".");
 
 					JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
 

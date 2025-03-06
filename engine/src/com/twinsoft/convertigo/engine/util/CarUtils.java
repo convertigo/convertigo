@@ -156,7 +156,7 @@ public class CarUtils {
 				if (filename.equals(".svn") || filename.equals(".git") || filename.equals(".gradle") || filename.equals("CVS") || filename.equals("node_modules")) {
 					undeployedFiles.add(file);
 				} else {
-					super.walk(file);					
+					super.walk(file);
 				}
 			}
 			
@@ -174,27 +174,24 @@ public class CarUtils {
 		try {
 			exportYAMLProject(project, fileName, document);
 		} catch (Exception e) {
-			Engine.logEngine.error("(CarUtils) Failed to export the project as YAML to '" + fileName + "', export XML instead.", e);
-			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
+			var xmlFilename = project.getName() + ".xml";
+			Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
+			Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
+			exportXMLProject(new File(new File(fileName).getParentFile(), xmlFilename).getAbsolutePath(), document);
 		}
 	}
 	
-	private static void exportYAMLProject(Project project, String fileName, Document document) throws EngineException {
+	private static void exportYAMLProject(Project project, String fileName, Document document) throws Exception {
+		Document shrink = BeansDefaultValues.shrinkProject(document);
 		try {
-			Document shrink = BeansDefaultValues.shrinkProject(document);
-			try {
-				NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
-				String minVersion = ((Element) nl.item(0)).getTextContent();
-				project.setMinVersion(minVersion);
-			} catch (Exception e) {}
-			File projectDir = new File(fileName).getParentFile();
-			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
-			if (fileName.endsWith(".xml")) {
-				new File(fileName).delete();
-			}
-		} catch (Exception e) {
-			Engine.logEngine.error("(CarUtils) exportProject in YAML failed (" + e.getMessage() + ")");
-			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
+			NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
+			String minVersion = ((Element) nl.item(0)).getTextContent();
+			project.setMinVersion(minVersion);
+		} catch (Exception e) {}
+		File projectDir = new File(fileName).getParentFile();
+		YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+		if (fileName.endsWith(".xml")) {
+			new File(fileName).delete();
 		}
 	}
 	

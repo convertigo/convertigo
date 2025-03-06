@@ -53,7 +53,7 @@ class ProjectDeployResultComposite extends Composite {
 		link.setText("");
 		link.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
-				Engine.theApp.eventManager.dispatchEvent(new StudioEvent("linkOpen", event.text), StudioEventListener.class);
+				Engine.theApp.eventManager.dispatchEvent(new StudioEvent(StudioEvent.LINK_OPEN, event.text), StudioEventListener.class);
 				org.eclipse.swt.program.Program.launch(event.text);
 			}
 		});

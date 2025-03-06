@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -58,6 +59,8 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceModel;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
@@ -1122,7 +1125,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								String oldName = (String)oldValue;
 								String newName = (String)newValue;
 								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("([\\\"\\'\\/]{1}?)"+oldName+"\\.", "$1"+newName+".")) {
+									if (getObject().updateSmartSource("([\\\"\\'\\/]{1}?)"+oldName+"\\b", "$1"+newName)) {
 										sourcesUpdated = true;
 									}
 								}
@@ -1132,7 +1135,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								String newName = (String)newValue;
 								String projectName = dbo.getProject().getName();
 								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("([\\\"\\']{1}?)"+projectName+"\\."+oldName, "$1"+projectName+"."+newName)) {
+									if (getObject().updateSmartSource("([\\\"\\']{1}?)"+projectName+"\\."+oldName+"\\b", "$1"+projectName+"."+newName)) {
 										sourcesUpdated = true;
 									}
 								}
@@ -1161,33 +1164,67 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							} else if (dbo instanceof UIStackVariable || dbo instanceof UICompVariable) {
 								if (!newValue.equals(oldValue)) {
 									UIComponent obj = getObject();
-									DatabaseObject d = obj;
+									DatabaseObject d = dbo;
+									MobileSmartSource oldMss = null;
+									String newPath = null;
+									
 									while (d != null) {
 										if (dbo instanceof UIStackVariable) {
 											if (d instanceof UIActionStack) {
+												Filter filter = Filter.Action;
+												SourceModel model = MobileSmartSource.emptyModel(filter);
+												model.addSourceData(filter.toSourceData(new JSONObject().put("priority", d.priority)));
+												oldMss = new MobileSmartSource(filter, d.getProject().getName(), "", model.toJson().put("path", "?.in?.vars?."+ (String)oldValue));
+												newPath = "?.in?.vars?."+ (String)newValue;
 												break;
-											} else if (d instanceof UIDynamicInvoke) {
-												String pqname = dbo.getParent().getQName();
-												String qname = ((UIDynamicInvoke) d).getSharedActionQName();
-												if (pqname.equals(qname)) {
-													break;
-												}
 											}
 										} else if (dbo instanceof UICompVariable) {
 											if (d instanceof UISharedComponent) {
+												Filter filter = Filter.Shared;
+												SourceModel model = MobileSmartSource.emptyModel(filter);
+												model.addSourceData(filter.toSourceData(new JSONObject().put("priority", d.priority).put("regular", true)));
+												oldMss = new MobileSmartSource(filter, d.getProject().getName(), "", model.toJson().put("path", "?."+ (String)oldValue));
+												newPath = "?."+ (String)newValue;
 												break;
 											}
 										}
 										d = d.getParent();
 									}
 									if (d != null) {
-										String oldName = (String)oldValue;
-										String newName = (String)newValue;
 										try {
-											if (obj.updateSmartSource("((?:\"|vars)\\??\\.)"+oldName+"\\b", "$1"+newName)) {
-												sourcesUpdated = true;
+											if (oldMss != null && newPath != null) {
+												if (obj.updateSmartSourceModelPath(oldMss, newPath)) {
+													sourcesUpdated = true;
+												}
 											}
-										} catch (Exception e) {}
+											
+											if (d instanceof UIActionStack) {
+												oldMss = null; newPath = null;
+												d = obj;
+												while (d != null) {
+													if (d instanceof UIDynamicInvoke) {
+														String pqname = dbo.getParent().getQName();
+														String qname = ((UIDynamicInvoke) d).getSharedActionQName();
+														if (pqname.equals(qname)) {
+															Filter filter = Filter.Action;
+															SourceModel model = MobileSmartSource.emptyModel(filter);
+															model.addSourceData(filter.toSourceData(new JSONObject().put("priority", d.priority)));
+															oldMss = new MobileSmartSource(filter, d.getProject().getName(), "", model.toJson().put("path", "?.in?.vars?."+ (String)oldValue));
+															newPath = "?.in?.vars?."+ (String)newValue;
+															break;
+														}
+													}
+													d = d.getParent();
+												}
+												if (oldMss != null && newPath != null) {
+													if (obj.updateSmartSourceModelPath(oldMss, newPath)) {
+														sourcesUpdated = true;
+													}
+												}
+											}
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
 									}
 								}
 							}
