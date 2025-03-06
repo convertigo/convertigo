@@ -217,10 +217,12 @@
 </div>
 
 <style>
+	@reference "../../../../app.css";
+
 	:global(.session-table tr:has(.current)) {
-		/* @apply bg-success-300; */
+		@apply bg-success-300;
 	}
 	:global(.dark .session-table tr:has(.current)) {
-		/* @apply bg-success-900; */
+		@apply bg-success-900;
 	}
 </style>

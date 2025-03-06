@@ -645,6 +645,8 @@
 </div>
 
 <style>
+	@reference "../../../app.css";
+
 	:global([data-part='arrow-tip']:is(.dark *)) {
 		--arrow-background: rgb(var(--color-surface-950));
 	}
@@ -658,7 +660,7 @@
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		/* @apply z-50 bg-surface-950-50 min-w-full; */
+		@apply z-50 bg-surface-950-50 min-w-full;
 	}
 
 	.searchedCurrent {
@@ -674,32 +676,32 @@
 	}
 
 	.FATAL {
-		/* @apply bg-surface-800-200; */
+		@apply bg-surface-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-surface-500) / 0.6);
 	}
 
 	.ERROR {
-		/* @apply bg-error-800-200; */
+		@apply bg-error-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-error-500) / 0.6);
 	}
 
 	.WARN {
-		/* @apply bg-warning-800-200; */
+		@apply bg-warning-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-warning-500) / 0.6);
 	}
 
 	.INFO {
-		/* @apply bg-secondary-800-200; */
+		@apply bg-secondary-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-secondary-500) / 0.6);
 	}
 
 	.DEBUG {
-		/* @apply bg-primary-800-200; */
+		@apply bg-primary-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-primary-500) / 0.6);
 	}
 
 	.TRACE {
-		/* @apply bg-tertiary-800-200; */
+		@apply bg-tertiary-800-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-tertiary-500) / 0.6);
 	}
 </style>

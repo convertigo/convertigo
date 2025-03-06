@@ -38,8 +38,10 @@
 	</section>
 </header>
 
-<!-- <style lang="postcss">
+<style>
+	@reference "../../../app.css";
+	
 	.monitor-time {
 		@apply p-1 border rounded font-mono text-xs text-nowrap;
 	}
-</style> -->
+</style>

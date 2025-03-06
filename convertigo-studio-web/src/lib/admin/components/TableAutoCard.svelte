@@ -114,6 +114,8 @@
 </div>
 
 <style>
+	@reference "../../../app.css";
+
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
@@ -124,7 +126,7 @@
 	.autocard {
 		th,
 		td {
-			/* @apply text-sm text-wrap; */
+			@apply text-sm text-wrap;
 		}
 
 		table {
@@ -140,7 +142,7 @@
 			display: none;
 		}
 		td {
-			/* @apply layout-y-start-low overflow-x-auto; */
+			@apply layout-y-start-low overflow-x-auto;
 		}
 		td[data-label]:not([data-label='']):before {
 			content: attr(data-label);

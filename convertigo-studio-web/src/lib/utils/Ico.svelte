@@ -270,6 +270,7 @@
 	let html = $derived(icon.includes(':') ? ico[icon].match(/>(.*)</)?.[1] : undefined);
 </script>
 
+<!-- size-4 size-5 size-6 -->
 {#if html}
 	<svg class="size-{size} ico {cls}" viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}>
 		{#if browser}
