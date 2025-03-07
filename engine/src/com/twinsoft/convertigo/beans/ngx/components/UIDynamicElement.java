@@ -482,6 +482,24 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	protected Contributor getContributor() {
 		return new Contributor() {
+			
+			private boolean doit() {
+				try {
+					return isAppContainer() || isContainer((MobileComponent)getMainScriptComponent());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean isNgModuleForApp() {
+				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
+					return true;
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				return new HashMap<String, String>();
@@ -502,11 +520,22 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				Map<String, String> imports = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null && !isDeprecated()) {
-					Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
-					if (map.size() > 0) {
-						for (String from : map.keySet()) {
-							for (String component: map.get(from)) {
-								imports.put(component.trim(), from);
+					if (doit()) {
+						Map<String, List<String>> map = new HashMap<String, List<String>>();
+						if (isAppContainer()) {
+							map.putAll(ionBean.getConfig().getModuleTsImports());
+						}
+						if (isContainer((MobileComponent)getMainScriptComponent())) {
+							map.putAll(ionBean.getConfig().getLocalModuleTsImports());
+						}
+						if (map.size() > 0) {
+							for (String from : map.keySet()) {
+								for (String component: map.get(from)) {
+									String name = component.trim();
+									if (!imports.containsKey(name)) {
+										imports.put(name, from);
+									}
+								}
 							}
 						}
 					}
@@ -518,7 +547,16 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			public Set<String> getModuleNgImports() {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null && !isDeprecated()) {
-					return ionBean.getConfig().getModuleNgImports();
+					if (doit()) {
+						Set<String> set = new HashSet<String>();
+						if (isAppContainer()) {
+							set.addAll(ionBean.getConfig().getModuleNgImports());
+						}
+						if (isContainer((MobileComponent)getMainScriptComponent())) {
+							set.addAll(ionBean.getConfig().getLocalModuleNgImports());
+						}
+						return set;
+					}
 				}
 				return new HashSet<String>();
 			}
@@ -527,7 +565,16 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			public Set<String> getModuleNgProviders() {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null && !isDeprecated()) {
-					return ionBean.getConfig().getModuleNgProviders();
+					if (doit()) {
+						Set<String> set = new HashSet<String>();
+						if (isAppContainer()) {
+							set.addAll(ionBean.getConfig().getModuleNgProviders());
+						}
+						if (isContainer((MobileComponent)getMainScriptComponent())) {
+							set.addAll(ionBean.getConfig().getLocalModuleNgProviders());
+						}
+						return set;
+					}
 				}
 				return new HashSet<String>();
 			}

@@ -165,6 +165,17 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 		return new Contributor() {
 
 			@Override
+			protected void setContainer(MobileComponent container) {
+				super.setContainer(container);
+				contributor.setContainer(container);
+			}
+			
+			@Override
+			public boolean isNgModuleForApp() {
+				return contributor.isNgModuleForApp();
+			}
+			
+			@Override
 			public Map<String, String> getActionTsFunctions() {
 				return contributor.getActionTsFunctions();
 			}

@@ -988,7 +988,14 @@ public class UICustomAction extends UIComponent implements IAction {
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (doit()) {
-					for (XMLVector<String> v : isAppContainer() ? module_ts_imports : local_module_ts_imports) {
+					XMLVector<XMLVector<String>> xmlv = new XMLVector<XMLVector<String>>();
+					if (isAppContainer()) {
+						xmlv.addAll(module_ts_imports);
+					}
+					if (isContainer((MobileComponent)getMainScriptComponent())) {
+						xmlv.addAll(local_module_ts_imports);
+					}
+					for (XMLVector<String> v : xmlv) {
 						String name = v.get(0).trim();
 						String path = v.get(1).trim();
 						String syntax = v.size() > 2 ? v.get(1).trim() : "false";
@@ -1012,7 +1019,14 @@ public class UICustomAction extends UIComponent implements IAction {
 			public Set<String> getModuleNgImports() {
 				Set<String> modules = new HashSet<String>();
 				if (doit()) {
-					for (XMLVector<String> v : isAppContainer() ? module_ng_imports : local_module_ng_imports) {
+					XMLVector<XMLVector<String>> xmlv = new XMLVector<XMLVector<String>>();
+					if (isAppContainer()) {
+						xmlv.addAll(module_ng_imports);
+					}
+					if (isContainer((MobileComponent)getMainScriptComponent())) {
+						xmlv.addAll(local_module_ng_imports);
+					}
+					for (XMLVector<String> v : xmlv) {
 						String module = v.get(0).trim();
 						if (!module.isEmpty()) {
 							if (!modules.contains(module)) {
@@ -1028,7 +1042,14 @@ public class UICustomAction extends UIComponent implements IAction {
 			public Set<String> getModuleNgProviders() {
 				Set<String> providers = new HashSet<String>();
 				if (doit()) {
-					for (XMLVector<String> v : isAppContainer() ? module_ng_providers : local_module_ng_providers) {
+					XMLVector<XMLVector<String>> xmlv = new XMLVector<XMLVector<String>>();
+					if (isAppContainer()) {
+						xmlv.addAll(module_ng_providers);
+					}
+					if (isContainer((MobileComponent)getMainScriptComponent())) {
+						xmlv.addAll(local_module_ng_providers);
+					}
+					for (XMLVector<String> v : xmlv) {
 						String provider = v.get(0).trim();
 						if (!provider.isEmpty()) {
 							if (!providers.contains(provider)) {
