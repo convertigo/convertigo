@@ -2169,9 +2169,6 @@ public class NgxBuilder extends MobileBuilder {
 		if (!module_ng_imports.isEmpty()) {
 			for (String module: module_ng_imports) {
 				if (!tpl_ng_imports.contains(module)) {
-					try {
-						module = module.substring(0, module.indexOf("."));
-					} catch (Exception e) {}
 					c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 				}
 			}
@@ -2180,7 +2177,21 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		String c8o_ModuleNgExports = c8o_ModuleNgImports.isEmpty() ? "" : c8o_ModuleNgImports;
+		String c8o_ModuleNgExports = "";
+		String tpl_ng_exports = getTplCompModuleNgImports();
+		if (!module_ng_imports.isEmpty()) {
+			for (String module: module_ng_imports) {
+				if (!tpl_ng_exports.contains(module)) {
+					try {
+						module = module.substring(0, module.indexOf("."));
+					} catch (Exception e) {}
+					c8o_ModuleNgExports += "\t" + module + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgExports.isEmpty()) {
+				c8o_ModuleNgExports = System.lineSeparator() + c8o_ModuleNgExports + System.lineSeparator();
+			}
+		}
 
 		String c8o_ModuleNgProviders = "";
 		String tpl_ng_providers = getTplCompModuleNgProviders();
