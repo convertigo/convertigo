@@ -2,7 +2,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import Icons from 'unplugin-icons/vite';
 import { isoImport } from 'vite-plugin-iso-import';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
+import convertigo from './src/convertigo.plugin.js';
 
 function determineProxy() {
 	const c8oPort =
@@ -20,6 +21,7 @@ function determineProxy() {
 
 export default defineConfig({
 	plugins: [
+		convertigo(),
 		tailwindcss(),
 		sveltekit(),
 		Icons({

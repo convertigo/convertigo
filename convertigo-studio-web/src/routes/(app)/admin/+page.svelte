@@ -237,7 +237,7 @@
 
 <style>
 	@reference "../../../app.css";
-	
+
 	:global(.statusTable td:has(> .on)) {
 		@apply bg-success-500 font-normal;
 	}

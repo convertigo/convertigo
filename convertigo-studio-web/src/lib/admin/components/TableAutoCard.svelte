@@ -135,7 +135,7 @@
 
 		tr {
 			display: block;
-			/* @apply rounded layout-grid-low-48; */
+			@apply rounded layout-grid-low-48;
 		}
 
 		thead {

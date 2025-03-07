@@ -100,10 +100,12 @@
 			<div transition:slide>
 				<PropertyType
 					type="segment"
-					bind:value={() => orientation,
-					(v) => {
-						goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
-					}}
+					bind:value={
+						() => orientation,
+						(v) => {
+							goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
+						}
+					}
 					item={['horizontal', 'vertical']}
 					orientation="vertical"
 				/>
@@ -111,7 +113,10 @@
 		{/if}
 		{#each Object.values(Bezels) as { id, title, type, iframe: { height, width } }, i}
 			{@const href = type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
-			<a {href} class="relative layout-x-p-low gap! py-2 hover:bg-surface-200-800 rounded-sm min-w-36">
+			<a
+				{href}
+				class="relative layout-x-p-low gap! py-2 hover:bg-surface-200-800 rounded-sm min-w-36"
+			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}

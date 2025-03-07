@@ -171,13 +171,15 @@
 							<PropertyType
 								type="check"
 								size="sm"
-								bind:checked={() => subRoles.every((r) => rowSelected.roles.includes(r)),
-								(v) => {
-									for (const value of subRoles) {
-										if (v) addInArray(rowSelected.roles, value);
-										else removeInArray(rowSelected.roles, value);
+								bind:checked={
+									() => subRoles.every((r) => rowSelected.roles.includes(r)),
+									(v) => {
+										for (const value of subRoles) {
+											if (v) addInArray(rowSelected.roles, value);
+											else removeInArray(rowSelected.roles, value);
+										}
 									}
-								}}
+								}
 							/>
 						{:else}
 							{@const value = def.name == 'View' ? role : role.replace('_VIEW', '_CONFIG')}
@@ -186,11 +188,13 @@
 								type="check"
 								size="sm"
 								{value}
-								bind:checked={() => rowSelected.roles.includes(value),
-								(v) => {
-									if (v) addInArray(rowSelected.roles, value);
-									else removeInArray(rowSelected.roles, value);
-								}}
+								bind:checked={
+									() => rowSelected.roles.includes(value),
+									(v) => {
+										if (v) addInArray(rowSelected.roles, value);
+										else removeInArray(rowSelected.roles, value);
+									}
+								}
 							/>
 						{/if}
 					{/snippet}
@@ -205,14 +209,16 @@
 						type="segment"
 						name="roles"
 						item={tpItems}
-						bind:value={() => tpSelected,
-						(v) => {
-							const other = rowSelected.roles.filter((r) => !r.startsWith('TEST_PLATFORM'));
-							if (v != ' ') {
-								other.push(v);
+						bind:value={
+							() => tpSelected,
+							(v) => {
+								const other = rowSelected.roles.filter((r) => !r.startsWith('TEST_PLATFORM'));
+								if (v != ' ') {
+									other.push(v);
+								}
+								rowSelected.roles = other;
 							}
-							rowSelected.roles = other;
-						}}
+						}
 					/>
 				</div>
 
