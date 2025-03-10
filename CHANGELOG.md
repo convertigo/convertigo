@@ -1,5 +1,41 @@
 # Changelog
 
+## 8.3.3
+
+
+#### Improvements:
+
+- [#870](https://github.com/convertigo/convertigo/issues/870) [Studio] The Palette documentation pane has been restyled
+- [#885](https://github.com/convertigo/convertigo/issues/885) [Studio] FlatLaf swing theme restored for the Rhino JS Backend debugger
+- [#886](https://github.com/convertigo/convertigo/issues/886) [Studio] Multiple optimizations have been made to improve responsiveness
+- [#888](https://github.com/convertigo/convertigo/issues/888) [Docker] Admin user/password set in `engine.properties` now take priority over environment variables
+- [#895](https://github.com/convertigo/convertigo/issues/895) [Studio] NPE no longer occurs when building multiple schemas for a project
+- [#901](https://github.com/convertigo/convertigo/issues/901) [Studio] Removed the warning message logs when opening the NoCode Databases view
+- [#905](https://github.com/convertigo/convertigo/issues/905) [Studio] Stub from Baserow now generates symbols for tables' IDs
+- [#912](https://github.com/convertigo/convertigo/issues/912) [Studio] Importing variables from a target sequence in an NGX Call_Sequence action component now also imports comments
+- [#913](https://github.com/convertigo/convertigo/issues/913) [Studio] Stub from Baserow now generates JSON filters from views and supports composed filters
+
+#### Bug Fixes:
+
+- [#871](https://github.com/convertigo/convertigo/issues/871) [HTTP] Fixed, `__header_` variables now properly use `HttpName` to override the real header name
+- [#874](https://github.com/convertigo/convertigo/issues/874) [Engine] Fixed, the requestable timeout is no longer doubled on fast machines
+- [#875](https://github.com/convertigo/convertigo/issues/875) [SQL] Fixed, retrying a SQL query now respects the autocommit policy
+- [#876](https://github.com/convertigo/convertigo/issues/876) [Docker] Fixed, `gosu` setup no longer adds critical CVEs
+- [#887](https://github.com/convertigo/convertigo/issues/887) [Engine] Fixed, random deadlock on project migration no longer occurs
+- [#889](https://github.com/convertigo/convertigo/issues/889) [Studio] Fixed, the default Dark theme is now automatically adapted for Light Windows environment
+- [#890](https://github.com/convertigo/convertigo/issues/890) [Studio] Fixed, no more NPE for scheduled FS sequences when the Connector Editor Part is opened
+- [#892](https://github.com/convertigo/convertigo/issues/892) [Baserow lib] Fixed, the filter generator now properly checks for variables that can be null
+- [#896](https://github.com/convertigo/convertigo/issues/896) [Studio] Fixed, renaming a project containing “-” no longer leads to unexpected behavior
+- [#897](https://github.com/convertigo/convertigo/issues/897) [Studio] Fixed, “Widget is disposed” error no longer occurs when executing sequences
+- [#900](https://github.com/convertigo/convertigo/issues/900) [Studio] Fixed, renaming a project now updates the listen Directive Source name
+- [#903](https://github.com/convertigo/convertigo/issues/903) [Studio] Fixed, the Baserow CRUD Delete sequence now correctly returns `success : false`
+- [#904](https://github.com/convertigo/convertigo/issues/904) [Studio] Fixed, renaming a shared component’s variable no longer updates all inputs sharing the same substring in source mode
+- [#906](https://github.com/convertigo/convertigo/issues/906) [Engine] Fixed, the Reference Manager now reports a 404 error for missing resources
+- [#908](https://github.com/convertigo/convertigo/issues/908) [Studio] Fixed, a warning is now displayed if the project saving fails
+- [#909](https://github.com/convertigo/convertigo/issues/909) [Studio] Fixed, in the NGX Source wizard, the schema is now correct in the Iterator Source for a Sequence using a Read CSV step
+
+---
+
 ## 8.3.2
 
 #### Improvements:
