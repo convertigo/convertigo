@@ -33,6 +33,7 @@
 - [#906](https://github.com/convertigo/convertigo/issues/906) [Engine] Fixed, the Reference Manager now reports a 404 error for missing resources
 - [#908](https://github.com/convertigo/convertigo/issues/908) [Studio] Fixed, a warning is now displayed if the project saving fails
 - [#909](https://github.com/convertigo/convertigo/issues/909) [Studio] Fixed, in the NGX Source wizard, the schema is now correct in the Iterator Source for a Sequence using a Read CSV step
+- [#916](https://github.com/convertigo/convertigo/issues/916) [Studio] Fixed, the "Convertigo Server Endpoint" wizard now manage starting Studio port
 
 ---
 
