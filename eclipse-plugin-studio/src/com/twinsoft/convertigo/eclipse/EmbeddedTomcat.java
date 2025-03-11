@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.util.Log;
 
-class EmbeddedTomcat implements Runnable {
+public class EmbeddedTomcat implements Runnable {
 
 	private Tomcat embedded;
 	private String tomcatHome;
