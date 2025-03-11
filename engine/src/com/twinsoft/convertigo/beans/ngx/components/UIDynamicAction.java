@@ -728,6 +728,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return new Contributor() {
 			
 			@Override
+			protected void setContainer(MobileComponent container) {
+				super.setContainer(container);
+				contributor.setContainer(container);
+			}
+			
+			@Override
 			public boolean isNgModuleForApp() {
 				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
 					if (isPageAction()) {
