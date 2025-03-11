@@ -138,6 +138,12 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 	}
 	
 	public static LinkedHashSet<Pair<String, String>> getEndpoints(String projectName) {
+		int port = 18080;
+		try {
+			port = ConvertigoPlugin.getDefault().getEmbeddedTomcat().getHttpPort();
+		} catch (Exception e) {
+		}
+		
 		LinkedHashSet<Pair<String, String>> endpoints = new LinkedHashSet<>();
 		try {
 			DeploymentConfiguration defaultDeploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.getDefault(projectName);
@@ -157,7 +163,7 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		HeaderName.UserAgent.addHeader(http, "curl");
 		try (InputStream is = Engine.theApp.httpClient4.execute(http).getEntity().getContent()) {
 			String ip = IOUtils.toString(is, StandardCharsets.US_ASCII).trim();
-			endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from public IP (please check your port forwarding)"));
+			endpoints.add(Pair.of("http://" + ip + ":" + port + "/convertigo", "from public IP (please check your port forwarding)"));
 		} catch (Exception e) {
 		}
 		
@@ -166,7 +172,7 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 				for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
 					String ip = addr.getHostAddress();
 					if (!ip.contains(":")) {
-						endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from " + netint.getDisplayName()));
+						endpoints.add(Pair.of("http://" + ip + ":" + port + "/convertigo", "from " + netint.getDisplayName()));
 					}
 				}
 			}

@@ -905,6 +905,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			searchText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
+					if (favoriteslabel == null || favoriteslabel.isDisposed()) {
+						return;
+					}
 					String text = searchText.getText().toLowerCase();
 
 					DatabaseObject selected = (DatabaseObject) PaletteView.this.parent.getData("Selected");

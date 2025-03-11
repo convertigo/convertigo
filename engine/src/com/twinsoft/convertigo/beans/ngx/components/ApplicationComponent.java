@@ -66,7 +66,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
-	public static final String defaultTplProjectName = "mobilebuilder_tpl_8_0_0_ngx";
+	public static final String defaultTplProjectName = "mobilebuilder_tpl_8_3_0_ngx";
 
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();

@@ -568,7 +568,7 @@ public class MobileResourceHelper {
 	private void fixMobileBuilderTimes() {
 		try {
 			Path resourcePath = mobileApplication.getResourceFolder().toPath();
-			if (!Files.exists(resourcePath.resolve("build"))) {
+			if (!Files.exists(resourcePath.resolve("build")) && !Files.exists(resourcePath.resolve("main.js"))) {
 				return;
 			}
 			MobileBuilder mb = mobileApplication.getProject().getMobileBuilder();
@@ -593,7 +593,9 @@ public class MobileResourceHelper {
 			
 			long[] latest = {0};
 			
-			Files.walk(resourcePath).filter(p -> !p.equals(pathMD5)).forEach(p -> {
+			Files.walk(resourcePath).filter(p ->
+				!p.endsWith("md5.json"))
+			.forEach(p -> {
 				if (Files.isDirectory(p)) {
 					return;
 				}

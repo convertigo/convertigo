@@ -408,7 +408,7 @@ public class BaserowView extends ViewPart {
 					for (HttpHeader header: params.httpHeaders()) {
 						if (header.name().equals("Authorization")) {
 							authHeader = header.value();
-							Engine.logStudio.warn("(NoCode Databases) Authorization " + authHeader);
+							Engine.logStudio.debug("(NoCode Databases) Authorization " + authHeader);
 							backendApi = params.urlRequest().url().substring(0, idx + 5);
 							if (wait_reload != null) {
 								wait_reload.complete(null);
@@ -526,7 +526,7 @@ public class BaserowView extends ViewPart {
 				JsPromise prom = jsCall.invoke(null, backendApi + api, authHeader);
 				prom.then(txt -> {
 					try {
-						Engine.logStudio.warn("(NoCode Databases) " + txt[0].toString());
+						Engine.logStudio.debug("(NoCode Databases) " + txt[0].toString());
 						future.complete(new JSONObject(txt[0].toString()));
 					} catch (Exception e) {
 						Engine.logStudio.warn("(NoCode Databases) callObject failed", e);

@@ -1881,22 +1881,27 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	public void projectLoaded(Project project) {
+		var projectName = project.getName();
+		if (projectName.startsWith("mobilebuilder_tpl_")) {
+			ConvertigoPlugin.logDebug("Skip loading of the mobilebuilder template project '" + projectName +"'.");
+			return;
+		}
 		asyncExec(() -> {
 			ProjectExplorerView pew = getProjectExplorerView();
 			if (pew == null) {
 				return;
 			}
 			try {
-				TreeObject treeProject = pew.getProjectRootObject(project.getName());
+				TreeObject treeProject = pew.getProjectRootObject(projectName);
 				if (treeProject == null) {
-					pew.importProjectTreeObject(project.getName());
+					pew.importProjectTreeObject(projectName);
 				} else if (!project.equals(treeProject.getObject())) {
 					if (treeProject instanceof ProjectTreeObject) {
 						// should not happened
-						Engine.logStudio.warn("[projectLoaded] Project '" + project.getName() + "' loaded and project in ProjectTree is different: reloading the ProjectTree!");
+						Engine.logStudio.warn("[projectLoaded] Project '" + projectName + "' loaded and project in ProjectTree is different: reloading the ProjectTree!");
 					} else if (treeProject instanceof UnloadedProjectTreeObject) {
 						// case of standard ProjectLoadingJob in progress or case of unloaded project which part of another project dependencies
-						Engine.logStudio.info("[projectLoaded] Unloaded project '" + project.getName() + "' needs to be loaded or reloaded in TreeView");
+						Engine.logStudio.info("[projectLoaded] Unloaded project '" + projectName + "' needs to be loaded or reloaded in TreeView");
 					}
 					pew.reloadProject(treeProject);
 				}
