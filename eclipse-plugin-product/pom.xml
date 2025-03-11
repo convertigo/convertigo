@@ -17,7 +17,7 @@ Contributors:
 	<name>Convertigo Studio product</name>
 
 	<parent>
-<!-- SET-VERSION --><version>8.3.3-SNAPSHOT</version>
+<!-- SET-VERSION --><version>8.3.4-SNAPSHOT</version>
 		<groupId>com.convertigo.studio</groupId>
 		<artifactId>root</artifactId>
 	</parent>
