@@ -209,7 +209,7 @@ if [ "$1" = "convertigo" ]; then
     
     if [ $(id -u) = "0" ]; then
         chown -Lf convertigo:convertigo /workspace
-        exec sudo -n -E -u convertigo $CATALINA_HOME/bin/catalina.sh run
+        exec setpriv --reuid=convertigo --regid=convertigo --init-groups $CATALINA_HOME/bin/catalina.sh run
     else
         exec $CATALINA_HOME/bin/catalina.sh run
     fi
