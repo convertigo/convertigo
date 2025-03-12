@@ -32,9 +32,9 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.4.0'
 ext.swaggerUiVersion = '5.11.10'
-ext.tomcatVersion = '9.0.100'
-ext.eclipseVersion = '2024-12'
-ext.eclipseBase = '4.34'
+ext.tomcatVersion = '9.0.102'
+ext.eclipseVersion = '2025-03'
+ext.eclipseBase = '4.35'
 ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
@@ -284,7 +284,7 @@ afterEvaluate {
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
 			'Bundle-Version': "${convertigoVersion}.qualifier",
-			'Bundle-RequiredExecutionEnvironment': 'JavaSE-17',
+			'Bundle-RequiredExecutionEnvironment': 'JavaSE-21',
 		)
 	}
 }
