@@ -91,7 +91,7 @@
 		"caniuse-lite": "^1.0.30001699",
 		"chart.js": "^4.4.7",
 		"elkjs": "^0.9.3",
-		"fast-xml-parser": "^4.5.1",
+		"fast-xml-parser": "^4.5.2",
 		"html-entities": "^2.5.2",
 		"marked": "^15.0.7",
 		"monaco-editor": "^0.52.2",
