@@ -88,7 +88,7 @@
 		"@svelte-plugins/datepicker": "^1.0.11",
 		"@xyflow/svelte": "^0.1.30",
 		"apexcharts": "^4.4.0",
-		"caniuse-lite": "^1.0.30001699",
+		"caniuse-lite": "^1.0.30001700",
 		"chart.js": "^4.4.7",
 		"elkjs": "^0.9.3",
 		"fast-xml-parser": "^4.5.1",
