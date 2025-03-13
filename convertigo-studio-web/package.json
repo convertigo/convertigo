@@ -87,7 +87,7 @@
 		"@floating-ui/dom": "^1.6.13",
 		"@svelte-plugins/datepicker": "^1.0.11",
 		"@xyflow/svelte": "^0.1.30",
-		"apexcharts": "^4.4.0",
+		"apexcharts": "^4.5.0",
 		"caniuse-lite": "^1.0.30001699",
 		"chart.js": "^4.4.7",
 		"elkjs": "^0.9.3",
