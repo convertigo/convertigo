@@ -154,7 +154,7 @@ export default function GenerateLayoutCssPlugin(options = {}) {
 	return {
 		name: 'convertigo-utilities-css-plugin',
 		configResolved(config) {
-			generate = !config.build.ssr;
+			generate = config.build.ssr || config.env.DEV;
 		},
 		buildStart() {
 			if (!generate) {
