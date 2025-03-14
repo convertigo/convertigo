@@ -1,13 +1,13 @@
 <script>
-	import { page } from '$app/state';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import QrCode from '$lib/common/components/QrCode.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getQuery, getUrl } from '$lib/utils/service';
-	import QrCode from '$lib/common/components/QrCode.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
 	import { getContext } from 'svelte';
 
 	let modalAlert = getContext('modalAlert');
@@ -31,8 +31,8 @@
 		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build }}
 			<Accordion.Item value={name}>
 				{#snippet control()}
-					<div class="border-b-[0.5px] layout-x justify-between">
-						<span class="text-lg font-semibold layout-x-low"
+					<div class="layout-x justify-between border-b-[0.5px]">
+						<span class="layout-x-low text-lg font-semibold"
 							><span
 								class:text-success-500={status == 'complete'}
 								class:text-error-500={status == 'error'}
@@ -40,7 +40,7 @@
 								class:animate-pulse={!status || status == 'pending'}>⬤</span
 							>
 							{displayName}</span
-						><span class="text-xs truncate">{comment}</span>
+						><span class="truncate text-xs">{comment}</span>
 					</div>
 				{/snippet}
 				{#snippet panel()}
@@ -58,7 +58,7 @@
 							]}
 						/>
 						<div class="layout-x md:layout-y">
-							<div class="w-full h-full layout-y justify-center">
+							<div class="layout-y h-full w-full justify-center">
 								{#if status == 'complete'}
 									<QrCode
 										class="w-full max-w-96"
@@ -67,7 +67,7 @@
 											getQuery({ project: page.params.project, platform: name })}
 									/>
 								{:else if status == 'pending'}
-									<div class="text-warning-500 animate-pulse">Building...</div>
+									<div class="animate-pulse text-warning-500">Building...</div>
 								{:else if status == 'error'}
 									<div class="text-error-500">
 										<strong>Build Error</strong>

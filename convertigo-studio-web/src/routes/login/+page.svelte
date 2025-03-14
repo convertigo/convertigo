@@ -23,12 +23,12 @@
 	}
 </script>
 
-<div class="h-full layout-y-m !gap-5 justify-center">
-	<h1 class="text-4xl text-center">
+<div class="layout-y-m h-full justify-center gap-5!">
+	<h1 class="text-center text-4xl">
 		<p>Welcome to Convertigo</p>
 		<p>Administration Console</p>
 	</h1>
-	<form onsubmit={handleSubmit} class="layout-y-m-stretch !gap-5 w-[300px] max-w-full">
+	<form onsubmit={handleSubmit} class="layout-y-m-stretch w-[300px] max-w-full gap-5!">
 		<input type="hidden" name="authType" value="login" />
 		<input
 			name="authUserName"
@@ -47,7 +47,7 @@
 		/>
 
 		{#if error}
-			<p class="preset-filled-error p-low rounded">{error}</p>
+			<p class="rounded-sm preset-filled-error p-low">{error}</p>
 		{/if}
 
 		<Button label="Enter" class="basic-button" type="submit" />

@@ -1,13 +1,14 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
-	import Topbar from '$lib/admin/components/Topbar.svelte';
-	import PagesRail from '$lib/common/components/PagesRail.svelte';
-	import partsAdmin from '$lib/admin/PagesRail.svelte';
-	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
-	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/state';
+	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
+	import Topbar from '$lib/admin/components/Topbar.svelte';
+	import partsAdmin from '$lib/admin/PagesRail.svelte';
+	import PagesRail from '$lib/common/components/PagesRail.svelte';
+	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
+	import { fade, slide } from 'svelte/transition';
 	import RightPart from './admin/RightPart.svelte';
+
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 
@@ -19,7 +20,7 @@
 </script>
 
 <Modal
-	bind:open={showDrawer}
+	open={showDrawer}
 	contentBase="shadow-xl w-fit h-screen"
 	triggerBase="hidden"
 	positionerJustify="justify-start"
@@ -27,24 +28,25 @@
 	positionerPadding=""
 	transitionsPositionerIn={{ x: -480, duration: 200 }}
 	transitionsPositionerOut={{ x: -480, duration: 200 }}
+	onInteractOutside={() => (showDrawer = false)}
 >
 	{#snippet content()}
-		<PagesRailToggle bind:state={showDrawer} class="pl-5 !w-fit !h-fit" />
+		<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! pl-5" />
 		<PagesRail {parts} />
 	{/snippet}
 </Modal>
 
-<div class="flex flex-col min-h-screen">
+<div class="flex min-h-screen flex-col">
 	<Topbar bind:showLeft bind:showDrawer />
 
-	<div class="layout-y-stretch md:layout-x-stretch !gap-0 grow">
+	<div class="layout-y-stretch grow gap-0! md:layout-x-stretch">
 		{#if showLeft}
-			<aside class="hide-md" transition:slide={{ axis: 'x' }}>
+			<aside class="max-md:hidden" transition:slide={{ axis: 'x' }}>
 				<PagesRail {parts} />
 			</aside>
 		{/if}
 		{#key page.route.id}
-			<main class="px py w-full min-h-full grow" in:fade>
+			<main class="min-h-full w-full grow py px" in:fade>
 				{@render children?.()}
 			</main>
 		{/key}

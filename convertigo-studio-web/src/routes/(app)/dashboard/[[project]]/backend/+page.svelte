@@ -1,21 +1,21 @@
 <script>
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import Editor from '$lib/studio/editor/Editor.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { callRequestable } from '$lib/utils/service';
 	import { decode } from 'html-entities';
 	import { marked } from 'marked';
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { callRequestable } from '$lib/utils/service';
-	import Editor from '$lib/studio/editor/Editor.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import { fly } from 'svelte/transition';
 
 	let project = $state(TestPlatform(page.params.project));
 	let searchQuery = $state('');
@@ -25,17 +25,17 @@
 
 	const accessibilities = $state({
 		Private: {
-			bg: '!bg-success-200 dark:!bg-success-600',
+			bg: 'bg-success-200! dark:bg-success-600!',
 			icon: 'mdi:lock',
 			enabled: true
 		},
 		Hidden: {
-			bg: '!bg-warning-200 dark:!bg-warning-600',
+			bg: 'bg-warning-200! dark:bg-warning-600!',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
 		Public: {
-			bg: '!bg-error-200 dark:!bg-error-600',
+			bg: 'bg-error-200! dark:bg-error-600!',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}
@@ -108,14 +108,20 @@
 <Card title={project?.name ?? null}>
 	{#snippet cornerOption()}
 		<div
-			class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
+			class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 		>
-			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
-			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
-			<span class="layout-x-none !gap-[1px] pr-[1px]">
+			<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
+			<input
+				id="search"
+				class="ig-input placeholder:text-surface-500"
+				type="search"
+				placeholder="Search requestable..."
+				bind:value={searchQuery}
+			/>
+			<span class="layout-x-none gap-[1px]! pr-[1px]">
 				{#each Object.values(accessibilities) as accessibility}
 					<button
-						class="btn rounded-none p-1 {accessibility.bg}"
+						class="btn h-full rounded-none p-1 {accessibility.bg}"
 						class:opacity-50={!accessibility.enabled}
 						onclick={() => {
 							accessibility.enabled = !accessibility.enabled;
@@ -142,8 +148,8 @@
 			<div transition:fly={{ duration, y }}>
 				<Accordion.Item value={part.name} controlPadding="py-1 px-2" panelPadding="p-1">
 					{#snippet control()}
-						<div class="border-b-[0.5px] layout-x justify-between">
-							<span class="text-lg font-semibold">{name}</span><span class="text-xs truncate"
+						<div class="layout-x justify-between border-b-[0.5px]">
+							<span class="text-lg font-semibold">{name}</span><span class="truncate text-xs"
 								>{comment}</span
 							>
 						</div>
@@ -155,7 +161,7 @@
 								<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 									<Accordion.Item
 										value="{parts[partIdx]}.{name}"
-										classes="rounded {accessibilities[accessibility].bg}"
+										classes="rounded-sm {accessibilities[accessibility].bg}"
 										controlPadding="py-1 px-2"
 										panelPadding="p-1"
 									>
@@ -163,13 +169,13 @@
 											<div class="layout-x justify-between">
 												<div class="layout-x">
 													<Ico icon={accessibilities[accessibility].icon} /><span
-														class="text-[14px] text font-bold">{name}</span
+														class="text text-[14px] font-bold">{name}</span
 													>
 												</div>
 												{#if !requestable.open}
 													<span
 														transition:fly={{ duration, y: 20 }}
-														class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
+														class="color-grey absolute left-[50%] w-[50%] truncate text-xs"
 														>{comment}</span
 													>
 												{/if}
@@ -250,7 +256,7 @@
 														</Accordion.Item>
 													</Accordion>
 												{/if}
-												<Card class="layout-y md:layout-x !p-low">
+												<Card class="layout-y p-low! md:layout-x">
 													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
 													<Button label="Execute" type="submit" class="basic-button" />
 													{#if part.name == 'Sequences'}

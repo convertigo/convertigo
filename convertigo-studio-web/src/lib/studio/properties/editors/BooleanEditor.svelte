@@ -21,7 +21,7 @@
 
 <select
 	bind:this={select}
-	class="select dark:bginput text-[11.5px] rounded-[4px] border-[0.5px] py-0"
+	class="dark:bginput select rounded-[4px] border-[0.5px] py-0 text-[11.5px]"
 	id={name + '-select'}
 	{value}
 	onchange={onChange}

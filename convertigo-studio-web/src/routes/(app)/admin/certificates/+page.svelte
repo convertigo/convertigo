@@ -1,16 +1,16 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Certificates from '$lib/admin/Certificates.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import { onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Projects from '$lib/common/Projects.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { onDestroy } from 'svelte';
 
 	let {
 		certificates,
@@ -67,17 +67,17 @@
 							size="8"
 						/>{/snippet}
 				</FileUpload>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Install"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="!w-fit basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalCertInstall.close}
 					/>
 				</div>
@@ -102,17 +102,17 @@
 					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
 					value=""
 				/>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Remove"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="!w-fit basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalCertRemove.close}
 					/>
 				</div>
@@ -236,7 +236,7 @@
 				}
 			]}
 			size="4"
-			class="min-w-16 w-full"
+			class="w-full min-w-16"
 		/>
 	{/if}
 {/snippet}

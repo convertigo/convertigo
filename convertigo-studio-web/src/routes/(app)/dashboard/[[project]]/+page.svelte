@@ -1,13 +1,13 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { flip } from 'svelte/animate';
-	import { fade } from 'svelte/transition';
+	import { resolveRoute } from '$app/paths';
+	import { page } from '$app/state';
+	import Card from '$lib/admin/components/Card.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { page } from '$app/state';
-	import { resolveRoute } from '$app/paths';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { fade } from 'svelte/transition';
 
 	let { projects } = $derived(Projects);
 	let searchQuery = $state('');
@@ -44,18 +44,20 @@
 
 <Card>
 	<div
-		class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
+		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 	>
-		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
+		<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
+			id="search"
 			type="search"
+			class="ig-input placeholder-surface-500"
 			placeholder="Search projects..."
 			bind:value={searchQuery}
 			disabled={rootProject}
 		/>
-		<span class="layout-y-none !gap-[1px]">
+		<span class="layout-y-none gap-[1px]!">
 			{#each filters as { icon, count }, i}
-				<span class="layout-x-none !gap-[1px]">
+				<span class="layout-x-none gap-[1px]!">
 					<button
 						class="btn rounded-none preset-filled p-1"
 						class:!bg-success-100={count != 1}
@@ -80,21 +82,21 @@
 			{/each}
 		</span>
 	</div>
-	<div class="grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+	<div class="grid grid-cols-1 gap sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project.name ?? i)}
 			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-stretch-none bg-surface-200-800 preset-outlined-surface-700-300 rounded"
+				class="layout-y-stretch-none rounded-sm preset-outlined-surface-700-300 bg-surface-200-800"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>
-				<div class="layout-x-p-low !py-1 !justify-between">
-					<span class="text-md font-semibold truncate"
+				<div class="layout-x-p-low justify-between! py-1!">
+					<span class="text-md truncate font-semibold"
 						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
 					>
-					<span class="text-sm truncate opacity-50"
+					<span class="truncate text-sm opacity-50"
 						><AutoPlaceholder {loading}>{version}</AutoPlaceholder></span
 					>
 				</div>
@@ -106,20 +108,20 @@
 							alt="project"
 						/>
 					</div>
-					<div class="absolute top-0 w-full flex">
-						<div class="grow flex">
+					<div class="absolute top-0 flex w-full">
+						<div class="flex grow">
 							<a
 								href={resolveRoute('/(app)/dashboard/[[project]]/backend', params)}
-								class="p-3 preset-filled-warning-300-700 hover:preset-filled-warning-500 h-fit rounded-br-lg"
+								class="h-fit rounded-br-lg preset-filled-warning-300-700 p-3 hover:preset-filled-warning-500"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
 							</a>
 						</div>
 						{#if hasFrontend == 'true'}
-							<div class="grow flex justify-end">
+							<div class="flex grow justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
-									class="p-3 preset-filled-success-300-700 hover:preset-filled-success-500 h-fit rounded-bl-lg"
+									class="h-fit rounded-bl-lg preset-filled-success-300-700 p-3 hover:preset-filled-success-500"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
 								</a>
@@ -128,13 +130,13 @@
 					</div>
 					<div class="absolute inset-x-0 bottom-0 flex">
 						{#if ref?.length > 0}
-							<div class="grow flex">
+							<div class="flex grow">
 								<a
 									href={resolveRoute(
 										`/(app)/dashboard/${rootProject == project ? '' : '[[project]]'}`,
 										params
 									)}
-									class="p-3 hover:preset-filled-secondary-500 h-fit rounded-tr-lg"
+									class="h-fit rounded-tr-lg p-3 hover:preset-filled-secondary-500"
 									class:preset-filled-secondary-300-700={rootProject != project}
 									class:preset-filled-secondary-500={rootProject == project}
 								>
@@ -143,10 +145,10 @@
 							</div>
 						{/if}
 						{#if hasPlatform == 'true'}
-							<div class="grow flex justify-end">
+							<div class="flex grow justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/platforms', params)}
-									class="p-3 preset-filled-primary-300-700 hover:preset-filled-primary-500 h-fit rounded-tl-lg"
+									class="h-fit rounded-tl-lg preset-filled-primary-300-700 p-3 hover:preset-filled-primary-500"
 								>
 									<Ico icon="ph:package-thin" size="nav" />
 								</a>
@@ -155,7 +157,7 @@
 					</div>
 				</div>
 				<button
-					class="px-2 truncate cursor-help text-start opacity-70"
+					class="cursor-help truncate px-2 text-start opacity-70"
 					onclick={(e) => {
 						e?.target?.['classList']?.toggle('truncate');
 						e?.target?.['classList']?.toggle('opacity-70');
@@ -168,7 +170,7 @@
 	</div>
 </Card>
 
-<style lang="postcss">
+<style>
 	.img-hover-zoom {
 		height: 200px;
 		overflow: hidden;

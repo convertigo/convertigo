@@ -1,16 +1,16 @@
 <script>
-	import { onDestroy, tick } from 'svelte';
-	import Bezels from '$lib/dashboard/Bezels';
-	import { assets } from '$app/paths';
-	import { getFrontendUrl } from '$lib/utils/service';
-	import { page } from '$app/state';
-	import RightPart from '../../../../admin/RightPart.svelte';
-	import { blur, fade, fly, slide } from 'svelte/transition';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Last from '../Last.svelte';
 	import { goto } from '$app/navigation';
-	import { Spring } from 'svelte/motion';
+	import { assets } from '$app/paths';
+	import { page } from '$app/state';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import Bezels from '$lib/dashboard/Bezels';
+	import { getFrontendUrl } from '$lib/utils/service';
+	import { onDestroy, tick } from 'svelte';
+	import { Spring } from 'svelte/motion';
+	import { blur, fade, fly, slide } from 'svelte/transition';
+	import RightPart from '../../../../admin/RightPart.svelte';
+	import Last from '../Last.svelte';
 
 	let orientation = $derived(page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
 	let selectedDevice = $derived(
@@ -94,16 +94,18 @@
 
 {#snippet rightPart()}
 	<nav
-		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color bg-surface-200-800 p-low max-md:layout-grid-[100px]"
 	>
 		{#if selectedDevice.type == 'phone'}
 			<div transition:slide>
 				<PropertyType
 					type="segment"
-					bind:value={() => orientation,
-					(v) => {
-						goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
-					}}
+					bind:value={
+						() => orientation,
+						(v) => {
+							goto(`../${selectedDevice.id}_${v.substring(0, 1)}/`);
+						}
+					}
 					item={['horizontal', 'vertical']}
 					orientation="vertical"
 				/>
@@ -111,15 +113,18 @@
 		{/if}
 		{#each Object.values(Bezels) as { id, title, type, iframe: { height, width } }, i}
 			{@const href = type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
-			<a {href} class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36">
+			<a
+				{href}
+				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
+			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40"
 					></span>
 				{/if}
-				<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
+				<span class="z-10 text-[13px] font-{i == selectedIndex ? 'medium' : 'light'}"
 					>{title}<br /><small>{width} x {height}</small></span
 				>
 			</a>
@@ -127,9 +132,9 @@
 		<a
 			href={projectUrl}
 			target="_blank"
-			class="relative layout-x-p-low !gap py-2 hover:bg-surface-200-800 rounded min-w-36"
+			class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
 		>
-			<span class="text-[13px] z-10 font-light">New Tab</span>
+			<span class="z-10 text-[13px] font-light">New Tab</span>
 		</a>
 	</nav>
 {/snippet}
@@ -154,7 +159,7 @@
 					<img
 						src="{assets}/bezels/{selectedDevice.id}.png"
 						alt={`${selectedDevice.title} Bezel`}
-						class="absolute pointer-events-none min-h-full min-w-full"
+						class="pointer-events-none absolute min-h-full min-w-full"
 						transition:blur
 					/>
 				{/key}

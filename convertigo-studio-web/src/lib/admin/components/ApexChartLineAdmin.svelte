@@ -1,8 +1,9 @@
 <script>
-	import { onMount, untrack } from 'svelte';
+	import Light from '$lib/common/Light.svelte';
 	// @ts-ignore
 	import ApexCharts from 'apexcharts?client';
-	import Light from '$lib/common/Light.svelte';
+	import { onMount, untrack } from 'svelte';
+
 	/** @type {{categories: any, series: any, title: any}} */
 	let { categories, series, title } = $props();
 	let chart = $state();
@@ -93,7 +94,7 @@
 	class="h-[315px]"
 ></div>
 
-<style lang="postcss">
+<style>
 	:global(.apexcharts-svg) {
 		background-color: transparent !important;
 	}

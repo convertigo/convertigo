@@ -1,22 +1,22 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import { DatePicker } from '@svelte-plugins/datepicker';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import LogViewer from '$lib/admin/components/LogViewer.svelte';
+	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TimePicker from '$lib/admin/components/TimePicker.svelte';
+	import Configuration from '$lib/admin/Configuration.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
-	import { getContext, onMount, untrack } from 'svelte';
-	import TimePicker from '$lib/admin/components/TimePicker.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import { slide } from 'svelte/transition';
-	import { DatePicker } from '@svelte-plugins/datepicker';
-	import LogViewer from '$lib/admin/components/LogViewer.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
-	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import { page } from '$app/state';
-	import { beforeNavigate, goto } from '$app/navigation';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { getContext, onMount, untrack } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	onMount(() => {
 		Logs.list();
@@ -160,13 +160,13 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs" class="!gap-low !pt-low h-full">
+	<Card title="Logs" class="h-full gap-low! pt-low!">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
 					bind:value={() => tabSet, (v) => goto(`../${v}/`)}
-					listClasses="!mb-0 flex-wrap"
-					classes="!w-fit"
+					listClasses="mb-0! flex-wrap"
+					classes="w-fit!"
 				>
 					{#snippet list()}
 						{#each Object.entries(tabs) as [value, { name, icon }]}
@@ -231,7 +231,7 @@
 		>
 			{#snippet content()}
 				{#if tabs[tabSet].viewer}
-					<div class="h-full layout-y-stretch-low" transition:slide={{ axis: 'y' }}>
+					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 						{#if tabSet == 'view'}
 							<div transition:slide={{ axis: 'y' }}>
 								<DatePicker
@@ -253,7 +253,7 @@
 															icon="mdi:clock-star-four-points-outline"
 														/>{/snippet}
 													{#snippet content()}
-														<Card bg="bg-surface-50-950" class="!p-low">
+														<Card bg="bg-surface-50-950" class="p-low!">
 															<div class="layout-y-stretch-low">
 																{#each presets[i] as { name, fn }}
 																	<Button
@@ -271,7 +271,7 @@
 												</Popover>
 												<input
 													type="text"
-													class="input-common input-text max-w-fit w-[12ch]"
+													class="input-text input-common w-[12ch] max-w-fit"
 													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
@@ -285,14 +285,14 @@
 										<Button
 											label="Search"
 											icon="mdi:receipt-text-send-outline"
-											class="basic-button !w-fit !h-auto grow"
+											class="basic-button h-auto! w-fit! grow"
 											onclick={refreshLogs}
 										/>
 									</div>
 								</DatePicker>
 							</div>
 						{/if}
-						<div class="h-full -mx -mb">
+						<div class="-mx -mb h-full">
 							<LogViewer autoScroll={tabSet == 'realtime'} />
 						</div>
 					</div>
@@ -305,7 +305,7 @@
 					} = LogsPurge}
 					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 						<div class="mt">Logs are split into multiple files, each step is a file.</div>
-						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded">
+						<div class="rounded-sm bg-surface-50 p-5 dark:bg-surface-700">
 							<AutoPlaceholder {loading}>
 								<Slider
 									name="range-slider"

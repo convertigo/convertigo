@@ -1,17 +1,17 @@
 <script>
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { call } from '$lib/utils/service';
-	import Status from '$lib/common/Status.svelte';
-	import Monitor from '$lib/admin/Monitor.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Time from '$lib/common/Time.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import Monitor from '$lib/admin/Monitor.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Status from '$lib/common/Status.svelte';
+	import Time from '$lib/common/Time.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { call } from '$lib/utils/service';
+	import { onDestroy } from 'svelte';
 
 	let {
 		product,
@@ -185,8 +185,8 @@
 				class="max-h-[80vh]"
 			></TableAutoCard>
 
-			<div class="w-full layout-x justify-end">
-				<Button label="Close" onclick={close} class="!w-fit cancel-button" />
+			<div class="layout-x w-full justify-end">
+				<Button label="Close" onclick={close} class="cancel-button w-fit!" />
 			</div>
 		</Card>
 	{/snippet}
@@ -194,7 +194,7 @@
 
 <div class="layout-y-start md:layout-x-start">
 	<div
-		class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap md:auto-rows-min w-full md:min-w-[350px] md:max-w-[400px]"
+		class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:max-w-[400px] md:min-w-[350px] md:auto-rows-min md:grid-cols-1"
 	>
 		{#each tables as { title, buttons, data }}
 			<Card {title} class="statusTable">
@@ -226,16 +226,18 @@
 		{/each}
 	</div>
 
-	<div class="w-full grid gap grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
+	<div class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart}
-			<Card class="!p-none">
+			<Card class="p-none!">
 				<ApexChartLineAdmin {...chart} {categories} />
 			</Card>
 		{/each}
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
+	@reference "../../../app.css";
+
 	:global(.statusTable td:has(> .on)) {
 		@apply bg-success-500 font-normal;
 	}

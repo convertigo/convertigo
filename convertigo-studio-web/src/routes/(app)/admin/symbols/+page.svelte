@@ -1,16 +1,16 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Symbols from '$lib/admin/Symbols.svelte';
-	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import Symbols from '$lib/admin/Symbols.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { slide } from 'svelte/transition';
 	import { getContext } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	let {
 		symbols,
@@ -71,17 +71,17 @@
 				{:else}
 					<PropertyType type="textarea" name="symbolValue" label="Value" value={row?.value} />
 				{/if}
-				<fieldset class="w-full layout-x justify-end" disabled={waiting}>
+				<fieldset class="layout-x w-full justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="!w-fit  basic-button"
+						class="basic-button  w-fit!"
 						icon={edit ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -149,17 +149,17 @@
 					<div>Current symbols will be kept.</div>
 				{/if}
 				<div>Actual symbols list will be saved aside in a backup file.</div>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Import"
 						icon="material-symbols:hotel-class-outline"
 						type="submit"
-						class="!w-fit basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalImport.close}
 					/>
 				</div>
@@ -266,10 +266,15 @@
 		Environment Variable (see below).
 	</p>
 	<div
-		class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
+		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 	>
-		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
-		<input type="search" placeholder="Filter symbols..." bind:value={filter} />
+		<label id="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
+		<input
+			class="ig-input placeholder:text-surface-500"
+			type="search"
+			placeholder="Filter symbols..."
+			bind:value={filter}
+		/>
 	</div>
 	<TableAutoCard
 		definition={[
@@ -285,7 +290,7 @@
 					{#if row.project}
 						<Button
 							label={row.project}
-							class="green-button text-xs overflow-hidden justify-start gap-1 px-1"
+							class="green-button justify-start gap-1 overflow-hidden px-1 text-xs"
 							size={4}
 							icon="grommet-icons:add"
 							onclick={(event) => modalOpen({ event, row })}

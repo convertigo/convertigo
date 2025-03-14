@@ -1,8 +1,9 @@
-import { purgeCss } from 'vite-plugin-tailwind-purgecss';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import Icons from 'unplugin-icons/vite';
+import { defineConfig } from 'vite';
 import { isoImport } from 'vite-plugin-iso-import';
+import convertigo from './src/convertigo.plugin.js';
 
 function determineProxy() {
 	const c8oPort =
@@ -18,23 +19,29 @@ function determineProxy() {
 	return convertigoUrl;
 }
 
-export default defineConfig({
-	plugins: [
-		sveltekit(),
-		purgeCss(),
-		Icons({
-			compiler: 'svelte',
-			autoInstall: true,
-			defaultClass: 'ico'
-		}),
-		isoImport()
-	],
-	server: {
-		proxy: {
-			'/convertigo': {
-				target: determineProxy(),
-				ws: true
+export default defineConfig(({ command }) => {
+	const conf = {
+		plugins: [
+			convertigo(),
+			tailwindcss(),
+			sveltekit(),
+			Icons({
+				compiler: 'svelte',
+				autoInstall: true,
+				defaultClass: 'ico'
+			}),
+			isoImport()
+		]
+	};
+	if (command === 'serve') {
+		conf.server = {
+			proxy: {
+				'/convertigo': {
+					target: determineProxy(),
+					ws: true
+				}
 			}
-		}
+		};
 	}
+	return conf;
 });

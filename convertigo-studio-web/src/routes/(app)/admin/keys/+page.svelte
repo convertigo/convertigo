@@ -1,10 +1,10 @@
 <script>
-	import Keys from '$lib/admin/Keys.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Keys from '$lib/admin/Keys.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getContext } from 'svelte';
 
 	let modalYesNo = getContext('modalYesNo');
@@ -38,7 +38,7 @@
 				<PropertyType type="text" name="key" placeholder="Enter a new key" />
 				<Button
 					label="Add"
-					class="basic-button sm:!w-fit"
+					class="basic-button sm:w-fit!"
 					icon="material-symbols:key-outline-rounded"
 				/>
 			</fieldset>
@@ -62,10 +62,10 @@
 		>
 			{#snippet tr({ row, rowIdx, tr, definition: { length: colspan } })}
 				{#if rowIdx == 0}
-					<tr class="border-surface-900-100 border-b-[0.5px]">
+					<tr class="border-b-[0.5px] border-surface-900-100">
 						<th {colspan}>
 							<AutoPlaceholder {loading}>
-								<div class="layout-x justify-between flex-wrap">
+								<div class="layout-x flex-wrap justify-between">
 									<div>
 										{name}
 										{#if row.overflow == 'true'}

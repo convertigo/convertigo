@@ -1,8 +1,8 @@
 <script>
-	import { linear } from 'svelte/easing';
-	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import { localStorageStore, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { authenticated } from '$lib/utils/loadingStore';
-	import { ProgressRadial } from '@skeletonlabs/skeleton';
+	import { linear } from 'svelte/easing';
+
 	/** @type {{name: any, children?: import('svelte').Snippet}} */
 	let { name, children } = $props();
 	let dragDiv = $state();
@@ -46,16 +46,16 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="preset-soft-primary overflow-hidden widthTransition border-[0.5] border-r dark:border-surface-800 border-surface-300"
+	class="preset-soft-primary widthTransition overflow-hidden border-r border-[0.5] border-surface-300 dark:border-surface-800"
 	style:width="{$width}px"
 	style:min-width="100px"
 	ondrag={widthDrag}
 	ondragstart={noDragImage}
 	transition:withTransition={{ duration: 50 }}
 >
-	<div class="flex flex-row items-stretch h-full dark:bg-surface-800 bg-surface-500">
+	<div class="flex h-full flex-row items-stretch bg-surface-500 dark:bg-surface-800">
 		<div
-			class="flex-col flex bg-surface-900 items-stretch grow scroll-smooth overflow-y-auto snap-y scroll-px-4 snap-mandatory"
+			class="flex grow snap-y snap-mandatory scroll-px-4 flex-col items-stretch overflow-y-auto scroll-smooth bg-surface-900"
 		>
 			{#if $authenticated}
 				{@render children?.()}
@@ -67,7 +67,7 @@
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
 	.draggable {
 		width: 4px;
 		cursor: grab;

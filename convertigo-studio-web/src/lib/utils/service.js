@@ -1,7 +1,7 @@
-import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import { resolveRoute } from '$app/paths';
 import { browser } from '$app/environment';
+import { resolveRoute } from '$app/paths';
 import Authentication from '$lib/common/Authentication.svelte';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 let currentCalls = 0;
 

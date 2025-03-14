@@ -1,5 +1,6 @@
 <script>
 	import { createBubbler } from 'svelte/legacy';
+
 	const bubble = createBubbler();
 
 	/** @type {{disabled?: boolean, children?: import('svelte').Snippet}} */
@@ -12,7 +13,7 @@
 	{@render children?.()}
 </div>
 
-<style lang="postcss">
+<style>
 	.disabledItem {
 		pointer-events: none;
 		opacity: 0.4;

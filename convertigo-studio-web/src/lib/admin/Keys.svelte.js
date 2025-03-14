@@ -1,5 +1,5 @@
-import { call, checkArray } from '$lib/utils/service';
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
+import { call, checkArray } from '$lib/utils/service';
 
 const defValues = {
 	categories: Array(12).fill({

@@ -1,4 +1,5 @@
 <script>
+	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -9,7 +10,6 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { addInArray, removeInArray } from '$lib/utils/service';
-	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import { getContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 
@@ -149,9 +149,9 @@
 
 				<TableAutoCard
 					definition={[
-						{ name: 'Role', custom: true, class: '!py-0' },
-						{ name: 'View', custom: true, class: '!py-0' },
-						{ name: 'Config', custom: true, class: '!py-0' }
+						{ name: 'Role', custom: true, class: 'py-0!' },
+						{ name: 'View', custom: true, class: 'py-0!' },
+						{ name: 'Config', custom: true, class: 'py-0!' }
 					]}
 					data={['All', ...roles.filter((role) => role.endsWith('VIEW'))]}
 				>
@@ -171,13 +171,15 @@
 							<PropertyType
 								type="check"
 								size="sm"
-								bind:checked={() => subRoles.every((r) => rowSelected.roles.includes(r)),
-								(v) => {
-									for (const value of subRoles) {
-										if (v) addInArray(rowSelected.roles, value);
-										else removeInArray(rowSelected.roles, value);
+								bind:checked={
+									() => subRoles.every((r) => rowSelected.roles.includes(r)),
+									(v) => {
+										for (const value of subRoles) {
+											if (v) addInArray(rowSelected.roles, value);
+											else removeInArray(rowSelected.roles, value);
+										}
 									}
-								}}
+								}
 							/>
 						{:else}
 							{@const value = def.name == 'View' ? role : role.replace('_VIEW', '_CONFIG')}
@@ -186,11 +188,13 @@
 								type="check"
 								size="sm"
 								{value}
-								bind:checked={() => rowSelected.roles.includes(value),
-								(v) => {
-									if (v) addInArray(rowSelected.roles, value);
-									else removeInArray(rowSelected.roles, value);
-								}}
+								bind:checked={
+									() => rowSelected.roles.includes(value),
+									(v) => {
+										if (v) addInArray(rowSelected.roles, value);
+										else removeInArray(rowSelected.roles, value);
+									}
+								}
 							/>
 						{/if}
 					{/snippet}
@@ -205,28 +209,30 @@
 						type="segment"
 						name="roles"
 						item={tpItems}
-						bind:value={() => tpSelected,
-						(v) => {
-							const other = rowSelected.roles.filter((r) => !r.startsWith('TEST_PLATFORM'));
-							if (v != ' ') {
-								other.push(v);
+						bind:value={
+							() => tpSelected,
+							(v) => {
+								const other = rowSelected.roles.filter((r) => !r.startsWith('TEST_PLATFORM'));
+								if (v != ' ') {
+									other.push(v);
+								}
+								rowSelected.roles = other;
 							}
-							rowSelected.roles = other;
-						}}
+						}
 					/>
 				</div>
 
 				<fieldset class="layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="!w-fit  basic-button"
+						class="basic-button  w-fit!"
 						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -294,17 +300,17 @@
 					<div>Current users will be kept.</div>
 				{/if}
 				<div>Actual users list will be saved aside in a backup file.</div>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Import"
 						icon="material-symbols:supervised-user-circle-outline"
 						type="submit"
-						class="!w-fit basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalImport.close}
 					/>
 				</div>

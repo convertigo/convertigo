@@ -1,8 +1,8 @@
 <script>
-	import { onMount } from 'svelte';
-	import { call, getUrl } from '$lib/utils/service';
+	import { Handle, Position, useEdges, useNodes, useSvelteFlow } from '@xyflow/svelte';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import { Position, Handle, useSvelteFlow, useNodes, useEdges } from '@xyflow/svelte';
+	import { call, getUrl } from '$lib/utils/service';
+	import { onMount } from 'svelte';
 	import {
 		createEdge,
 		createNodesAndEdges,
@@ -149,14 +149,14 @@
 {/if}
 <Handle id="out" type="source" position={sourcePosition ?? Position.Bottom} />
 
-<div class="flex flex-col w-full h-full">
+<div class="flex h-full w-full flex-col">
 	<div class="w-full">
 		<button
 			type="button"
-			class="w-full h-full px-2 py-3 inline-flex text-nowrap justify-center gap-x-1.5 rounded-md bg-white text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+			class="inline-flex h-full w-full justify-center gap-x-1.5 rounded-md bg-white px-2 py-3 text-xs font-semibold text-nowrap text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
 			id="menu-button"
 		>
-			<AutoSvg class="w-4 h-4" fill="currentColor" src="{getUrl()}{data.icon}" alt="ico" />
+			<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{data.icon}" alt="ico" />
 			<span>{data.label.substring(0, 15)}</span>
 			{#if data.hasChildren}
 				{#if expanded}
@@ -198,6 +198,6 @@
 		</button>
 	</div>
 	{#if data.hasChildren && expanded && !isXControl}
-		<div class="grow w-full bg-white shadow-sm rounded-md ring-1 ring-inset ring-gray-300"></div>
+		<div class="w-full grow rounded-md bg-white shadow-xs ring-1 ring-gray-300 ring-inset"></div>
 	{/if}
 </div>

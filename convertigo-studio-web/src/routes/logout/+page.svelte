@@ -12,7 +12,7 @@
 </script>
 
 <div class="h-full justify-center">
-	<h1 class="text-4xl text-center">
+	<h1 class="text-center text-4xl">
 		<p>Disconnecting from Convertigo</p>
 	</h1>
 </div>

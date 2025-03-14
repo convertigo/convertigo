@@ -19,44 +19,46 @@
 	import FluentNote48Filled from '~icons/fluent/note-48-filled?raw';
 	import FluentOpen24Filled from '~icons/fluent/open-24-filled?raw';
 	import GameIconsLevelThreeAdvanced from '~icons/game-icons/level-three-advanced?raw';
+	import RightArrow from '~icons/gg/arrow-right?raw';
 	import GrommetIconsAdd from '~icons/grommet-icons/add?raw';
 	import GrommetIconsFormSubtract from '~icons/grommet-icons/form-subtract?raw';
 	import GrommetIconsResources from '~icons/grommet-icons/resources?raw';
+	import IconParkApplicationOne from '~icons/icon-park/application-one?raw';
 	import IconamoonCloudFill from '~icons/iconamoon/cloud-fill?raw';
 	import IconamoonMenuBurgerHorizontalThin from '~icons/iconamoon/menu-burger-horizontal-thin?raw';
-	import IconParkApplicationOne from '~icons/icon-park/application-one?raw';
+	import Return from '~icons/ion/return-down-back-sharp?raw';
 	import LetsIconsSearchLight from '~icons/lets-icons/search-light?raw';
 	import LetsIconsTableLight from '~icons/lets-icons/table-light?raw';
 	import LetsIconsUserAltLight from '~icons/lets-icons/user-alt-light?raw';
 	import LineMdCoffeeLoop from '~icons/line-md/coffee-loop?raw';
 	import LucideLayoutPanelTop from '~icons/lucide/layout-panel-top?raw';
-	import MaterialSymbolsApiRounded from '~icons/material-symbols/api-rounded?raw';
 	import MaterialSymbolsLightCancelOutline from '~icons/material-symbols-light/cancel-outline?raw';
 	import MaterialSymbolsLightCloudOutline from '~icons/material-symbols-light/cloud-outline?raw';
-	import MaterialSymbolsLightDeleteOutline from '~icons/material-symbols-light/delete-outline?raw';
 	import MaterialSymbolsLightDateRangeRounded from '~icons/material-symbols-light/date-range-rounded?raw';
+	import MaterialSymbolsLightDeleteOutline from '~icons/material-symbols-light/delete-outline?raw';
 	import MaterialSymbolsLightHomeOutline from '~icons/material-symbols-light/home-outline?raw';
 	import MaterialSymbolsLightKeyOutline from '~icons/material-symbols-light/key-outline?raw';
 	import MaterialSymbolsLightSaveAsOutline from '~icons/material-symbols-light/save-as-outline?raw';
 	import MaterialSymbolsLightScheduleOutline from '~icons/material-symbols-light/schedule-outline?raw';
 	import MaterialSymbolsLightSyncOutline from '~icons/material-symbols-light/sync-outline?raw';
 	import MaterialSymbolsLightUpdate from '~icons/material-symbols-light/update?raw';
-	import MaterialSymbolsHomeOutlineRounded from '~icons/material-symbols/home-outline-rounded?raw';
-	import MaterialSymbolsSettingsOutlineRounded from '~icons/material-symbols/settings-outline-rounded?raw';
-	import MaterialSymbolsOnlinePredictionRounded from '~icons/material-symbols/online-prediction-rounded?raw';
-	import MaterialSymbolsFolderOutlineRounded from '~icons/material-symbols/folder-outline?raw';
+	import MaterialSymbolsApiRounded from '~icons/material-symbols/api-rounded?raw';
 	import MaterialSymbolsBookmarkAddedOutlineSharp from '~icons/material-symbols/bookmark-added-outline-sharp?raw';
-	import MaterialSymbolsSearchRounded from '~icons/material-symbols/search-rounded?raw';
 	import MaterialSymbolsCachedRounded from '~icons/material-symbols/cached-rounded?raw';
-	import MaterialSymbolsScheduleOutlineRounded from '~icons/material-symbols/schedule-outline-rounded?raw';
-	import MaterialSymbolsKeyOutlineRounded from '~icons/material-symbols/key-outline-rounded?raw';
-	import MaterialSymbolsSupervisedUserCircleOutline from '~icons/material-symbols/supervised-user-circle-outline?raw';
-	import MaterialSymbolsHotelClassOutline from '~icons/material-symbols/hotel-class-outline?raw';
-	import MaterialSymbolsSyncArrowUpRounded from '~icons/material-symbols/sync-arrow-up-rounded?raw';
+	import MaterialSymbolsCloudOutline from '~icons/material-symbols/cloud-outline?raw';
 	import MaterialSymbolsDashboardOutlineRounded from '~icons/material-symbols/dashboard-outline-rounded?raw';
 	import MaterialSymbolsDataObject from '~icons/material-symbols/data-object?raw';
-	import MaterialSymbolsCloudOutline from '~icons/material-symbols/cloud-outline?raw';
 	import MaterialSymbolsDeviceHub from '~icons/material-symbols/device-hub?raw';
+	import MaterialSymbolsFolderOutlineRounded from '~icons/material-symbols/folder-outline?raw';
+	import MaterialSymbolsHomeOutlineRounded from '~icons/material-symbols/home-outline-rounded?raw';
+	import MaterialSymbolsHotelClassOutline from '~icons/material-symbols/hotel-class-outline?raw';
+	import MaterialSymbolsKeyOutlineRounded from '~icons/material-symbols/key-outline-rounded?raw';
+	import MaterialSymbolsOnlinePredictionRounded from '~icons/material-symbols/online-prediction-rounded?raw';
+	import MaterialSymbolsScheduleOutlineRounded from '~icons/material-symbols/schedule-outline-rounded?raw';
+	import MaterialSymbolsSearchRounded from '~icons/material-symbols/search-rounded?raw';
+	import MaterialSymbolsSettingsOutlineRounded from '~icons/material-symbols/settings-outline-rounded?raw';
+	import MaterialSymbolsSupervisedUserCircleOutline from '~icons/material-symbols/supervised-user-circle-outline?raw';
+	import MaterialSymbolsSyncArrowUpRounded from '~icons/material-symbols/sync-arrow-up-rounded?raw';
 	import MaterialSymbolsUnknownDocumentOutline from '~icons/material-symbols/unknown-document-outline?raw';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
@@ -66,22 +68,22 @@
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
 	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
-	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
-	import MdiEye from '~icons/mdi/eye?raw';
-	import MdiEyeOff from '~icons/mdi/eye-off?raw';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
+	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
+	import MdiEyeOff from '~icons/mdi/eye-off?raw';
+	import MdiEye from '~icons/mdi/eye?raw';
 	import MdiFileDownloadOutline from '~icons/mdi/file-download-outline?raw';
-	import MdiFilter from '~icons/mdi/filter?raw';
-	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
-	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
+	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
+	import MdiFilter from '~icons/mdi/filter?raw';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit?raw';
+	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
 	import MdiGithub from '~icons/mdi/github?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
 	import MdiLanguageJava from '~icons/mdi/language-java?raw';
-	import MdiLock from '~icons/mdi/lock?raw';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant?raw';
+	import MdiLock from '~icons/mdi/lock?raw';
 	import MdiMagnigy from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars?raw';
@@ -105,8 +107,6 @@
 	import SolarMaskHapplyLineDuotone from '~icons/solar/mask-happly-line-duotone?raw';
 	import UimLayerGroup from '~icons/uim/layer-group?raw';
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
-	import Return from '~icons/ion/return-down-back-sharp?raw';
-	import RightArrow from '~icons/gg/arrow-right?raw';
 
 	export const ico = {
 		'arcticons:doc-scanner': ArcticonsDocScanner,
@@ -221,8 +221,8 @@
 </script>
 
 <script>
-	import { assets } from '$app/paths';
 	import { browser } from '$app/environment';
+	import { assets } from '$app/paths';
 
 	/** @type {{icon: string, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any} | any} */
 	let {
@@ -271,7 +271,11 @@
 </script>
 
 {#if html}
-	<svg class="size-{size} ico {cls}" viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}>
+	<svg
+		class="ico {cls}"
+		style="width: calc(var(--spacing)*{size});height: calc(var(--spacing)*{size});"
+		viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}
+	>
 		{#if browser}
 			{@html html}
 		{:else}
@@ -279,7 +283,7 @@
 		{/if}
 	</svg>
 {:else}
-	<img src="{assets}/{icon}" class="w-{size} {cls}" {...props} />
+	<img src="{assets}/{icon}" class={cls} style="width: calc(var(--spacing)*{size});" {...props} />
 {/if}
 
 <!-- {#if !svg || !animate}

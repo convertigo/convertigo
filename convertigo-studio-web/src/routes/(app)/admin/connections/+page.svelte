@@ -1,10 +1,10 @@
 <script>
-	import { getContext, onMount } from 'svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Connections from '$lib/admin/Connections.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { getContext, onMount } from 'svelte';
 
 	let {
 		contextsInUse,
@@ -97,7 +97,7 @@
 			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
-						class="min-w-24 w-full"
+						class="w-full min-w-24"
 						size="4"
 						buttons={[
 							{
@@ -184,7 +184,7 @@
 			{#snippet children({ row: { contextName }, def })}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
-						class="min-w-16 w-full"
+						class="w-full min-w-16"
 						size="4"
 						buttons={[
 							{
@@ -216,7 +216,9 @@
 	</Card>
 </div>
 
-<style lang="postcss">
+<style>
+	@reference "../../../../app.css";
+
 	:global(.session-table tr:has(.current)) {
 		@apply bg-success-300;
 	}

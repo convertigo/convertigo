@@ -1,7 +1,7 @@
 <script>
+	import Icon from '@iconify/svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import Icon from '@iconify/svelte';
 	import { onMount, tick } from 'svelte';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
@@ -43,7 +43,7 @@
 		<h1 class="text-[16px] font-normal text-surface-800-200">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="font-bold text-surface-700-300 p-3">{comment}</h1>
+		<h1 class="p-3 font-bold text-surface-700-300">{comment}</h1>
 	{/if}
 
 	<table>
@@ -113,7 +113,9 @@
 	</table>
 </div>
 
-<style lang="postcss">
+<style>
+	@reference "../../../app.css";
+
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
@@ -133,7 +135,7 @@
 
 		tr {
 			display: block;
-			@apply rounded layout-grid-low-48;
+			@apply layout-grid-low-48 rounded;
 		}
 
 		thead {

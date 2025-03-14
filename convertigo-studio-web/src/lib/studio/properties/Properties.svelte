@@ -1,13 +1,13 @@
 <script>
-	import { properties, dboProp, ionProp, setDboProp } from './propertiesStore';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { selectedId } from '$lib/studio/treeview/treeStore';
 	import { onDestroy } from 'svelte';
-
-	import StringEditor from './editors/StringEditor.svelte';
 	import BooleanEditor from './editors/BooleanEditor.svelte';
 	import ListEditor from './editors/ListEditor.svelte';
 	import StaticEditor from './editors/StaticEditor.svelte';
+	import StringEditor from './editors/StringEditor.svelte';
+	import { dboProp, ionProp, properties, setDboProp } from './propertiesStore';
+
 	//import IonSmartEditor from './editors/IonSmartEditor.svelte.disable';
 
 	let categories = $state({});
@@ -128,22 +128,22 @@
 	</table>
 </div>-->
 
-<div class="flex dark:bg-surface-800 bg-surface-50">
+<div class="flex bg-surface-50 dark:bg-surface-800">
 	<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" regionControl="preset-soft-primary">
 		<div>
 			{#each Object.entries(categories) as [category, items] (category)}
 				<AccordionItem open rounded="none">
 					<svelte:fragment slot="summary"
-						><b class="text-[11.5px] dark:text-surface-200 font-light mt-5">{category}</b
+						><b class="mt-5 text-[11.5px] font-light dark:text-surface-200">{category}</b
 						></svelte:fragment
 					>
 					<svelte:fragment slot="content">
 						{#each items as item (JSON.stringify(item[1]))}
 							{@const Editor = getEditor(item[1])}
 							<div
-								class="flex flex-row flex-nowrap text-[11.5px] dark:font-light dark:text-surface-200 text-surface-900"
+								class="flex flex-row flex-nowrap text-[11.5px] text-surface-900 dark:font-light dark:text-surface-200"
 							>
-								<div class="basis-1/3 ml-2.5">{item[0]}</div>
+								<div class="ml-2.5 basis-1/3">{item[0]}</div>
 								<div class="basis-2/3 pl-1">
 									<Editor {...item[1]} onvalueChanged={valueChanged} />
 								</div>

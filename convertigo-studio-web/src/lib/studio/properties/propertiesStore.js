@@ -1,6 +1,6 @@
-import { writable } from 'svelte/store';
 import { selectedId } from '$lib/studio/treeview/treeStore';
 import { call } from '$lib/utils/service';
+import { writable } from 'svelte/store';
 
 export const ionProp = {
 	category: '@Properties',

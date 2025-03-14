@@ -1,19 +1,19 @@
 <script>
-	import Scheduler from '$lib/admin/Scheduler.svelte';
-	import Project from '$lib/common/Projects.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { getContext, onDestroy } from 'svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import CheckState from '$lib/admin/components/CheckState.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { capitalize } from '$lib/utils/service';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import CronWizard from '$lib/admin/components/CronWizard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Time from '$lib/common/Time.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import CheckState from '$lib/admin/components/CheckState.svelte';
+	import CronWizard from '$lib/admin/components/CronWizard.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Scheduler from '$lib/admin/Scheduler.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Project from '$lib/common/Projects.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import Time from '$lib/common/Time.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { capitalize } from '$lib/utils/service';
+	import { getContext, onDestroy } from 'svelte';
 
 	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
 	let { projects } = $derived(Project);
@@ -234,7 +234,7 @@
 								{ label: 'Job', name: 'jobName', store: jobs },
 								{ label: 'Schedule', name: 'scheduleName', store: schedules }
 							]}
-							<div class="layout-x flew-wrap">
+							<div class="flew-wrap layout-x">
 								{#each def as { label, name, store }}
 									<PropertyType
 										type="segment"
@@ -274,7 +274,7 @@
 						label="Save"
 						type="submit"
 						icon={jobTypes[mode].icon}
-						class="!w-fit basic-button"
+						class="basic-button w-fit!"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
@@ -282,7 +282,7 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="!w-fit cancel-button"
+						class="cancel-button w-fit!"
 						onclick={close}
 					/>
 				</div>
@@ -305,7 +305,7 @@
 					<li>{n}</li>
 				{/each}
 			</ul>
-			<div class="w-full layout-x justify-end">
+			<div class="layout-x w-full justify-end">
 				<Button
 					label="Close"
 					icon="material-symbols-light:cancel-outline"
@@ -357,16 +357,17 @@
 						<fieldset class="layout-x-low" disabled={!init}>
 							<CheckState
 								name={row.name}
-								value={row.enabled}
-								onchange={(e) => {
-									configure({
-										...row,
-										enabled: e.target.value,
-										edit: true,
-										exname: row.name,
-										type: `schedulerNew${row.type}`
-									});
-								}}
+								bind:value={
+									() => row.enabled,
+									(enabled) =>
+										configure({
+											...row,
+											enabled,
+											edit: true,
+											exname: row.name,
+											type: `schedulerNew${row.type}`
+										})
+								}
 								disabled={!init}
 							/>
 							<Button
