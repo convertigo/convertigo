@@ -149,10 +149,10 @@
 	let value = 0;
 </script>
 
-<div class="palette dark:bg-surface-800 bg-surface-50">
+<div class="palette bg-surface-50 dark:bg-surface-800">
 	<div class="header">
 		<div
-			class="flex flex-row dark:bg-surface-900 bg-surface-50 border-[0.5px] border-surface-500 rounded-[4px] w-[100%] justify-center"
+			class="flex w-[100%] flex-row justify-center rounded-[4px] border-[0.5px] border-surface-500 bg-surface-50 dark:bg-surface-900"
 		>
 			<button
 				type="button"
@@ -161,7 +161,7 @@
 				use:popup={tooltip('tooltip-link')}
 			>
 				<div class="card p-1" data-popup="tooltip-link">
-					<p class="text-[11.5px] px-2">Link with the project's tree selection 2</p>
+					<p class="px-2 text-[11.5px]">Link with the project's tree selection 2</p>
 					<div class="arrow"></div>
 				</div>
 				{#if linkOn}
@@ -178,7 +178,7 @@
 				use:popup={tooltip('tooltip-builtin')}
 			>
 				<div class="card p-4" data-popup="tooltip-builtin">
-					<p class="text-[11.5px] px-2">Built-in objects visibility</p>
+					<p class="px-2 text-[11.5px]">Built-in objects visibility</p>
 					<div class="arrow"></div>
 				</div>
 				{#if builtinOn}
@@ -195,7 +195,7 @@
 				use:popup={tooltip('tooltip-additional')}
 			>
 				<div class="card p-1" data-popup="tooltip-additional">
-					<p class="text-[11.5px] px-2">Shared objects visibility</p>
+					<p class="px-2 text-[11.5px]">Shared objects visibility</p>
 					<div class="arrow"></div>
 				</div>
 				{#if additionalOn}
@@ -225,10 +225,10 @@
 			</button>
 		</div>
 
-		<div class="mt-2 w-[100%] border-[0.5px] border-surface-500 rounded-[4px]">
+		<div class="mt-2 w-[100%] rounded-[4px] border-[0.5px] border-surface-500">
 			<input
 				id="inputSearch"
-				class="input dark:searchbar"
+				class="dark:searchbar input"
 				type="search"
 				placeholder="Search..."
 				bind:value={search}
@@ -237,7 +237,7 @@
 		</div>
 	</div>
 
-	<div class="border-[1px] border-surface-600 mt-2"></div>
+	<div class="mt-2 border-[1px] border-surface-600"></div>
 
 	<div class="content">
 		<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
@@ -247,7 +247,7 @@
 						<span class="font-extralight">Favorites</span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container dark:bg-surface-900 bg-surface-50">
+						<div class="items-container bg-surface-50 dark:bg-surface-900">
 							{#each favoritesItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -259,7 +259,7 @@
 						<span class="font-extralight"> Last used </span>
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<div class="items-container dark:bg-surface-900 bg-surface-50">
+						<div class="items-container bg-surface-50 dark:bg-surface-900">
 							{#each usedItems as item}
 								<PaletteItem {item} on:itemClicked={itemClicked} />
 							{/each}
@@ -276,7 +276,7 @@
 							</span>
 						</svelte:fragment>
 						<svelte:fragment slot="content">
-							<div class="items-container dark:bg-surface-900 bg-surface-50 p-4">
+							<div class="items-container bg-surface-50 p-4 dark:bg-surface-900">
 								{#each category.items as item}
 									<PaletteItem {item} on:itemClicked={itemClicked} />
 								{/each}

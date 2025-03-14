@@ -4,6 +4,8 @@
 	import DynamicModal from '../../lib/common/components/ModalDynamic.svelte';
 	// import val from './mytest.svelte';
 	import Monitor from '$lib/admin/Monitor.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 
 	// let { name, age, reset, rules } = $derived(val);
 	// const n = $derived({
@@ -32,8 +34,8 @@
 {#if rules.length}
 <p>{JSON.stringify(rules)}</p>
 {/if} -->
-<div class="min-h-screen flex flex-col">
-	<h1 class="text-red-500 dark:text-green-500 dark:hover:text-blue-500 hover:text-green-500">
+<div class="flex min-h-screen flex-col">
+	<h1 class="text-red-500 hover:text-green-500 dark:text-green-500 dark:hover:text-blue-500">
 		sandbox !
 	</h1>
 	<MyComp bind:this={comp} />
@@ -42,11 +44,16 @@
 	<!-- <button class="basic-button" onclick={() => val.age++}>{name}: {age}</button>
 	<button class="basic-button" onclick={() => reset()}>reset</button> -->
 	<div class="layout-x-p">
-		<div class="w-12 h-6 bg-red-500"></div>
-		<div class="w-12 h-6 bg-success-500"></div>
+		<div class="h-6 w-12 bg-red-500"></div>
+		<div class="h-6 w-12 bg-success-500"></div>
 
-		<div class="w-36 h-4 bg-green-500"></div>
+		<div class="h-4 w-36 bg-green-500"></div>
 	</div>
+	<!-- <div><span class="bg-surface-700 p-1">700</span><span class="bg-surface-300 p-1">300</span></div> -->
+	<!-- <Card class="md:hidden">md hidden</Card>
+	<PagesRailToggle class="md:hidden"/>
+	<Card class="max-md:hidden">max-md hidden</Card>
+	<PagesRailToggle class="max-md:hidden"/> -->
 	<form bind:this={form}>
 		<input type="hidden" name="hidden" value="hidden" />
 		<Switch name="switch" value="true" checked>

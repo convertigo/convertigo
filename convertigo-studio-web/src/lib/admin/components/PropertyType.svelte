@@ -70,7 +70,8 @@
 				thumbActive="bg-white"
 				controlActive="preset-filled-success-500"
 				controlInactive="preset-filled-warning-500"
-				bind:checked
+				{checked}
+				onCheckedChange={(e) => (checked = e.checked)}
 			/>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
@@ -84,7 +85,8 @@
 					<Segment
 						{...rest}
 						name={name ?? []}
-						bind:value
+						{value}
+						onValueChange={(e) => (value = e.value ?? '')}
 						indicatorBg="preset-filled-primary-500"
 						indicatorText="text-white"
 						border="p-0"
@@ -116,7 +118,7 @@
 						{autocomplete}
 						{placeholder}
 						{...rest}
-						class="input-common input-text placeholder:pl-1"
+						class="input-text input-common placeholder:pl-1"
 						bind:value
 					></textarea>
 				{:else}
@@ -128,7 +130,7 @@
 						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
-						class="input-common input-text placeholder:pl-1"
+						class="input-text input-common placeholder:pl-1"
 						{...rest}
 						bind:value
 					/>
@@ -137,14 +139,14 @@
 		{/if}
 	</div>
 	{#if restores.length > 0}
-		<div class="layout-x-low sm:layout-y-low sm:h-full justify-around!">
+		<div class="layout-x-low justify-around! sm:layout-y-low sm:h-full">
 			{#each restores as { icon, val, title }}
 				<button
 					disabled={value == val}
 					type="button"
 					onclick={() => (value = val)}
 					title="{title}:{val}"
-					class="btn btn-sm bg-surface-200-800"
+					class="btn bg-surface-200-800 btn-sm"
 				>
 					<Ico {icon} />
 				</button>

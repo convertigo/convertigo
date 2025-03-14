@@ -17,7 +17,7 @@
 		{#if message}
 			<span>{message}</span>
 		{/if}
-		<div class="w-full layout-x justify-end">
+		<div class="layout-x w-full justify-end">
 			<button onclick={() => modal.close(true)} class="basic-button">Yes</button>
 			<button onclick={() => modal.close(false)} class="cancel-button">No</button>
 		</div>

@@ -225,14 +225,14 @@
 				<fieldset class="layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="w-fit!  basic-button"
+						class="basic-button  w-fit!"
 						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -300,17 +300,17 @@
 					<div>Current users will be kept.</div>
 				{/if}
 				<div>Actual users list will be saved aside in a backup file.</div>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Import"
 						icon="material-symbols:supervised-user-circle-outline"
 						type="submit"
-						class="w-fit! basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalImport.close}
 					/>
 				</div>

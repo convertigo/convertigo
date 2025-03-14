@@ -57,7 +57,7 @@
 		><AppRail
 			width="w-[35px]"
 			background="dark:bg-surface-900 bg-surface-200"
-			class="border-1 border-r dark:border-surface-500 border-surface-300"
+			class="border-1 border-r border-surface-300 dark:border-surface-500"
 			gap="gap-10"
 			spacing="mb-"
 		>

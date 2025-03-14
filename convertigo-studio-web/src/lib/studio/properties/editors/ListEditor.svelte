@@ -47,14 +47,14 @@
 			type="text"
 			autocomplete="off"
 			aria-autocomplete="none"
-			class="rounded-sm select form-select w-full text-[11.5px] py-0 border-[0.5px]"
+			class="select w-full form-select rounded-sm border-[0.5px] py-0 text-[11.5px]"
 			id={name + '-input'}
 			{value}
 			onchange={onChange}
 			use:popup={combo(name + '-popup')}
 		/>
 		<div
-			class="card w-48 shadow-xl py-2 dark:bg-surface-700 bg-surface-200"
+			class="w-48 card bg-surface-200 py-2 shadow-xl dark:bg-surface-700"
 			data-popup={name + '-popup'}
 		>
 			<ListBox
@@ -66,7 +66,7 @@
 						name="medium"
 						on:change={groupChange}
 						value={v}
-						class="border-b dark:border-surface-800 border-surface-300"
+						class="border-b border-surface-300 dark:border-surface-800"
 						active="dark:text-secondary-300">{v}</ListBoxItem
 					>
 				{/each}
@@ -75,7 +75,7 @@
 	{:else}
 		<select
 			bind:this={select}
-			class="select w-full text-[11.5px] py-0 border-[0.5px] dark:bginput rounded-[4px]"
+			class="dark:bginput select w-full rounded-[4px] border-[0.5px] py-0 text-[11.5px]"
 			id={name + '-select'}
 			{value}
 			onchange={onChange}

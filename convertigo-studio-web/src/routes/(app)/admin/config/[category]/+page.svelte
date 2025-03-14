@@ -80,22 +80,22 @@
 
 {#snippet rightPart()}
 	<nav
-		class="bg-surface-200-800 border-r-[0.5px] border-color p-low h-full max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color bg-surface-200-800 p-low max-md:layout-grid-[100px]"
 	>
 		{#each categories as { name, displayName }, i}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative layout-x-p-low gap! py-2 hover:bg-surface-200-800 rounded-sm min-w-36"
+				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
 			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded-sm"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40"
 					></span>
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>
-					<span class="text-[13px] z-10 font-{i == selectedIndex ? 'medium' : 'light'}"
+					<span class="z-10 text-[13px] font-{i == selectedIndex ? 'medium' : 'light'}"
 						>{displayName}</span
 					>
 				</AutoPlaceholder>
@@ -129,7 +129,7 @@
 				/>
 			{/snippet}
 
-			<div class="w-full layout-cols-2">
+			<div class="layout-cols-2 w-full">
 				{#each category.property as property}
 					{#if property.isAdvanced != 'true'}
 						<PropertyType
@@ -144,12 +144,16 @@
 
 		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
 			<Card>
-				<Accordion collapsible bind:value={Last.advanced}>
+				<Accordion
+					collapsible
+					value={Last.advanced}
+					onValueChange={(e) => (Last.advanced = e.value)}
+				>
 					<Accordion.Item value="" panelPadding="py" controlPadding="">
 						{#snippet lead()}<Ico icon="game-icons:level-three-advanced" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}
 						{#snippet panel()}
-							<div class="w-full layout-cols-2">
+							<div class="layout-cols-2 w-full">
 								{#each category.property as property}
 									{#if property.isAdvanced == 'true'}
 										<PropertyType

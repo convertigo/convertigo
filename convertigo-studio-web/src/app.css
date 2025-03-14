@@ -2,6 +2,7 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@source './';
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
 @import './convertigo.theme.css';
@@ -45,27 +46,27 @@
 }
 
 @utility button {
-	@apply btn text-[13px] font-normal py-1 px-3 flex items-center rounded-sm text-white;
+	@apply btn flex items-center rounded-sm px-3 py-1 text-[13px] font-normal text-white;
 	/*END FORM STYLE*/
 }
 
 @utility basic-button {
-	@apply button dark:bg-primary-500 bg-primary-500;
+	@apply button bg-primary-500 dark:bg-primary-500;
 	/*END FORM STYLE*/
 }
 
 @utility cancel-button {
-	@apply button dark:bg-error-500 bg-error-400;
+	@apply button bg-error-400 dark:bg-error-500;
 	/*END FORM STYLE*/
 }
 
 @utility delete-button {
-	@apply button dark:bg-error-500 bg-error-600;
+	@apply button bg-error-600 dark:bg-error-500;
 	/*END FORM STYLE*/
 }
 
 @utility yellow-button {
-	@apply button dark:bg-tertiary-600 bg-tertiary-500;
+	@apply button bg-tertiary-500 dark:bg-tertiary-600;
 	/*END FORM STYLE*/
 }
 
@@ -81,30 +82,27 @@
 }
 
 @utility btnStyle {
-	@apply btn text-[13px] font-normal py-1 px-3 gap-3 flex items-center rounded-sm;
+	@apply btn flex items-center gap-3 rounded-sm px-3 py-1 text-[13px] font-normal;
 	/*END FORM STYLE*/
 }
 
 @utility input-button {
-	@apply text-[13px] font-normal py-1 px-3 text-center flex items-center justify-center rounded-sm text-white dark:bg-primary-500 bg-primary-500;
+	@apply flex items-center justify-center rounded-sm bg-primary-500 px-3 py-1 text-center text-[13px] font-normal text-white dark:bg-primary-500;
 	/*END FORM STYLE*/
 }
 
 @utility search-input {
-	@apply flex-1 py-2 px-4 text-base text-surface-800 dark:text-surface-200 
-			bg-white dark:bg-surface-700 border border-gray-300 dark:border-surface-600 
-			rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-			placeholder-gray-400 dark:placeholder-gray-200;
+	@apply flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-surface-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-hidden dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:placeholder-gray-200;
 	/*END FORM STYLE*/
 }
 
 @utility mini-card {
-	@apply rounded-sm p-1 flex gap-2 text-nowrap select-none;
+	@apply flex gap-2 rounded-sm p-1 text-nowrap select-none;
 	/*END FORM STYLE*/
 }
 
 @utility chip {
-	@apply button bg-gray-200 dark:bg-gray-700 dark:text-surface-200 shadow-xs;
+	@apply button bg-gray-200 shadow-xs dark:bg-gray-700 dark:text-surface-200;
 
 	&:hover {
 		@apply bg-gray-300 dark:bg-gray-600;
@@ -113,7 +111,7 @@
 }
 
 @utility more-chip {
-	@apply chip cursor-pointer bg-yellow-400 dark:bg-yellow-500 text-surface-900;
+	@apply chip cursor-pointer bg-yellow-400 text-surface-900 dark:bg-yellow-500;
 
 	&:hover {
 		@apply bg-yellow-300 dark:bg-yellow-400;
@@ -125,23 +123,23 @@
 	/*INPUT STYLES !!*/
 
 	/**style for label*/
-	@apply text-[14px] cursor-pointer;
+	@apply cursor-pointer text-[14px];
 	/*END FORM STYLE*/
 }
 
 @utility input-common {
 	/**Style for Input*/
-	@apply placeholder:text-[16px] w-full dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-sm;
+	@apply w-full rounded-sm border-none font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
 	/*END FORM STYLE*/
 }
 
 @utility select-common {
-	@apply placeholder:text-[12px] dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-none dark:bg-surface-800 rounded-sm;
+	@apply rounded-sm border-none font-normal placeholder:text-[12px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
 	/*END FORM STYLE*/
 }
 
 @utility input-common-dash {
-	@apply placeholder:text-[16px] dark:placeholder:text-surface-500 placeholder:text-surface-200 placeholder:font-light font-normal border-[0.5px] dark:border-surface-600 border-surface-200 dark:bg-surface-800 rounded-sm;
+	@apply rounded-sm border-[0.5px] border-surface-200 font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:border-surface-600 dark:bg-surface-800 dark:placeholder:text-surface-500;
 	/*END FORM STYLE*/
 }
 
@@ -157,12 +155,12 @@
 }
 
 @utility border-common {
-	@apply border-b-[1px] dark:border-surface-600 border-surface-50;
+	@apply border-b-[1px] border-surface-50 dark:border-surface-600;
 	/*END FORM STYLE*/
 }
 
 @utility input-name {
-	@apply font-light text-[14px] mb-3;
+	@apply mb-3 text-[14px] font-light;
 	/*END FORM STYLE*/
 }
 
@@ -196,15 +194,6 @@
 	@apply min-w-12 bg-error-400 dark:bg-error-600;
 }
 
-@utility hide-md {
-	/*RESPONSIVE*/
-	@apply max-md:hidden;
-}
-
-@utility show-md {
-	@apply md:hidden;
-}
-
 @utility border-color {
 	/*END RESPONSIVE*/
 	@apply border-surface-300-700;
@@ -215,7 +204,7 @@
 }
 
 @utility layout-cols-2 {
-	@apply grid grid-cols-1 lg:grid-cols-2 justify-items-stretch gap-2;
+	@apply grid grid-cols-1 justify-items-stretch gap-2 lg:grid-cols-2;
 }
 
 @layer utilities {
@@ -237,20 +226,20 @@
 		width: 100%;
 		border-collapse: collapse;
 		border: 4px;
-		@apply rounded-sm overflow-hidden;
+		@apply overflow-hidden rounded-sm;
 	}
 	th,
 	td {
 		text-align: left;
 		font-weight: 300;
 		font-size: 15px;
-		@apply align-middle! p-2!;
+		@apply p-2! align-middle!;
 	}
 	th {
 		@apply preset-filled-surface-200-800 font-bold;
 	}
 	thead {
-		@apply border-surface-900-100 border-b-[0.5px];
+		@apply border-b-[0.5px] border-surface-900-100;
 	}
 
 	tr:nth-child(even) {

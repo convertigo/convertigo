@@ -46,7 +46,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <span
-	class="chip text-left flex flex-col m-1 w-24 h-18 justify-center item-center hover:shadow-lg hover:preset-filled-surface border-b border-surface-500 {item ===
+	class="item-center hover:preset-filled-surface m-1 chip flex h-18 w-24 flex-col justify-center border-b border-surface-500 text-left hover:shadow-lg {item ===
 	selected
 		? 'preset-filled-primary'
 		: ''}"
@@ -65,8 +65,8 @@
 			/>
 		</span>
 	{/if}
-	<span class="whitespace-normal mt-3 text-center">
-		<span class="font-extralight text-center text-[11.5px] dark:text-gray-100 text-surface-900">
+	<span class="mt-3 text-center whitespace-normal">
+		<span class="text-center text-[11.5px] font-extralight text-surface-900 dark:text-gray-100">
 			{item.name}
 		</span>
 	</span>

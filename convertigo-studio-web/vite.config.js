@@ -19,24 +19,29 @@ function determineProxy() {
 	return convertigoUrl;
 }
 
-export default defineConfig({
-	plugins: [
-		convertigo(),
-		tailwindcss(),
-		sveltekit(),
-		Icons({
-			compiler: 'svelte',
-			autoInstall: true,
-			defaultClass: 'ico'
-		}),
-		isoImport()
-	],
-	server: {
-		proxy: {
-			'/convertigo': {
-				target: determineProxy(),
-				ws: true
+export default defineConfig(({ command }) => {
+	const conf = {
+		plugins: [
+			convertigo(),
+			tailwindcss(),
+			sveltekit(),
+			Icons({
+				compiler: 'svelte',
+				autoInstall: true,
+				defaultClass: 'ico'
+			}),
+			isoImport()
+		]
+	};
+	if (command === 'serve') {
+		conf.server = {
+			proxy: {
+				'/convertigo': {
+					target: determineProxy(),
+					ws: true
+				}
 			}
-		}
+		};
 	}
+	return conf;
 });

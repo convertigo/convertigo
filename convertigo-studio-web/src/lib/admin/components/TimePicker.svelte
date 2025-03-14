@@ -218,7 +218,7 @@
 <div class="relative h-full" bind:this={root}>
 	<input
 		type="text"
-		class="input-common input-text max-w-fit w-[14ch]"
+		class="input-text input-common w-[14ch] max-w-fit"
 		maxlength="12"
 		size="11"
 		bind:this={input}

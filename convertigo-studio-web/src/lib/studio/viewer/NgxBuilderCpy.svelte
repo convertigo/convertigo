@@ -124,12 +124,12 @@
 					<button
 						onclick={() => runAction('build_dev')}
 						type="button"
-						class="p-2 rounded-xl bg-surface-700">Run</button
+						class="rounded-xl bg-surface-700 p-2">Run</button
 					>
 					<button
 						onclick={() => runAction('kill')}
 						type="button"
-						class="p-2 rounded-xl bg-surface-700">Kill</button
+						class="rounded-xl bg-surface-700 p-2">Kill</button
 					>
 				</svelte:fragment>
 			</AppBar>
@@ -148,19 +148,19 @@
 			</AppRail>
 		</svelte:fragment> -->
 		{#if iframeUrl == null}
-			<div class="flex flex-col justify-around items-center h-full w-full">
+			<div class="flex h-full w-full flex-col items-center justify-around">
 				<ProgressRadial value={progress}>{progress}%</ProgressRadial>
-				<div class="card preset-ghost w-3/4 py-1 text-center">{output}</div>
+				<div class="preset-ghost w-3/4 card py-1 text-center">{output}</div>
 			</div>
 		{:else}
 			<iframe bind:this={iframe} class="h-full w-full" title="test" src={iframeUrl} />
 		{/if}
 		<svelte:fragment slot="footer">
-			<div class="draggable border-4 w-full" onmousedown={onDrag} />
+			<div class="draggable w-full border-4" onmousedown={onDrag} />
 			<textarea
 				bind:this={textarea}
 				readonly={true}
-				class="bg-white dark:bg-gray-100 h-full w-full resize-none">{message}</textarea
+				class="h-full w-full resize-none bg-white dark:bg-gray-100">{message}</textarea
 			>
 		</svelte:fragment>
 	</AppShell>

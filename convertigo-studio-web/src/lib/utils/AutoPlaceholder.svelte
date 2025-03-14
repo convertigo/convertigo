@@ -4,7 +4,7 @@
 </script>
 
 {#if loading}
-	<div class={`placeholder animate-pulse w-full min-w-32 ${cls}`}></div>
+	<div class={`placeholder w-full min-w-32 animate-pulse ${cls}`}></div>
 {:else}
 	{@render children?.()}
 {/if}

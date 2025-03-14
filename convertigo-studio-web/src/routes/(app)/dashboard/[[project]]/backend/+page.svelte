@@ -108,7 +108,7 @@
 <Card title={project?.name ?? null}>
 	{#snippet cornerOption()}
 		<div
-			class="w-full input-group bg-surface-200-800 divide-surface-700-300 preset-outlined-surface-700-300 divide-x grid-cols-[auto_1fr_auto]"
+			class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 		>
 			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
 			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
@@ -142,8 +142,8 @@
 			<div transition:fly={{ duration, y }}>
 				<Accordion.Item value={part.name} controlPadding="py-1 px-2" panelPadding="p-1">
 					{#snippet control()}
-						<div class="border-b-[0.5px] layout-x justify-between">
-							<span class="text-lg font-semibold">{name}</span><span class="text-xs truncate"
+						<div class="layout-x justify-between border-b-[0.5px]">
+							<span class="text-lg font-semibold">{name}</span><span class="truncate text-xs"
 								>{comment}</span
 							>
 						</div>
@@ -163,13 +163,13 @@
 											<div class="layout-x justify-between">
 												<div class="layout-x">
 													<Ico icon={accessibilities[accessibility].icon} /><span
-														class="text-[14px] text font-bold">{name}</span
+														class="text text-[14px] font-bold">{name}</span
 													>
 												</div>
 												{#if !requestable.open}
 													<span
 														transition:fly={{ duration, y: 20 }}
-														class="absolute left-[50%] w-[50%] text-xs color-grey truncate"
+														class="color-grey absolute left-[50%] w-[50%] truncate text-xs"
 														>{comment}</span
 													>
 												{/if}
@@ -250,7 +250,7 @@
 														</Accordion.Item>
 													</Accordion>
 												{/if}
-												<Card class="layout-y md:layout-x p-low!">
+												<Card class="layout-y p-low! md:layout-x">
 													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
 													<Button label="Execute" type="submit" class="basic-button" />
 													{#if part.name == 'Sequences'}

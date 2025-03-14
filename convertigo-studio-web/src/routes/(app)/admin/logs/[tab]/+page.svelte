@@ -160,7 +160,7 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs" class="gap-low! pt-low! h-full">
+	<Card title="Logs" class="h-full gap-low! pt-low!">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
@@ -231,7 +231,7 @@
 		>
 			{#snippet content()}
 				{#if tabs[tabSet].viewer}
-					<div class="h-full layout-y-stretch-low" transition:slide={{ axis: 'y' }}>
+					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 						{#if tabSet == 'view'}
 							<div transition:slide={{ axis: 'y' }}>
 								<DatePicker
@@ -271,7 +271,7 @@
 												</Popover>
 												<input
 													type="text"
-													class="input-common input-text max-w-fit w-[12ch]"
+													class="input-text input-common w-[12ch] max-w-fit"
 													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
@@ -285,14 +285,14 @@
 										<Button
 											label="Search"
 											icon="mdi:receipt-text-send-outline"
-											class="basic-button w-fit! h-auto! grow"
+											class="basic-button h-auto! w-fit! grow"
 											onclick={refreshLogs}
 										/>
 									</div>
 								</DatePicker>
 							</div>
 						{/if}
-						<div class="h-full -mx -mb">
+						<div class="-mx -mb h-full">
 							<LogViewer autoScroll={tabSet == 'realtime'} />
 						</div>
 					</div>
@@ -305,7 +305,7 @@
 					} = LogsPurge}
 					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 						<div class="mt">Logs are split into multiple files, each step is a file.</div>
-						<div class="bg-surface-50 dark:bg-surface-700 p-5 rounded-sm">
+						<div class="rounded-sm bg-surface-50 p-5 dark:bg-surface-700">
 							<AutoPlaceholder {loading}>
 								<Slider
 									name="range-slider"

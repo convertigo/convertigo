@@ -22,7 +22,7 @@
 <div class="text-[11.5px]">
 	<input
 		bind:this={input}
-		class="input text-[11.5px] border-[0.5px] rounded-[4px] dark:bg-surface-900 text-surface-300"
+		class="input rounded-[4px] border-[0.5px] text-[11.5px] text-surface-300 dark:bg-surface-900"
 		type="text"
 		autocomplete="off"
 		aria-autocomplete="none"

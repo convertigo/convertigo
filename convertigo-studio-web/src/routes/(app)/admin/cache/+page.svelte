@@ -28,7 +28,7 @@
 				/>
 			{/snippet}
 			<p>Choose the desired cache type</p>
-			<div class="layout-x flex-wrap justify-around! w-full">
+			<div class="layout-x w-full flex-wrap justify-around!">
 				<PropertyType
 					name="cacheType"
 					item={[
@@ -43,7 +43,7 @@
 					fit={true}
 				/>
 				<ResponsiveButtons
-					class="grow h-full"
+					class="h-full grow"
 					buttons={[
 						{
 							label: 'Apply',
@@ -78,7 +78,7 @@
 				{ value: 'postgresql', text: 'PostgreSQL' },
 				{ value: 'oracle', text: 'Oracle' }
 			]}
-			<div class="grid gap grid-cols-1 md:grid-cols-2" transition:slide>
+			<div class="grid grid-cols-1 gap md:grid-cols-2" transition:slide>
 				<Card title="Database Used">
 					<PropertyType
 						name="databaseType"

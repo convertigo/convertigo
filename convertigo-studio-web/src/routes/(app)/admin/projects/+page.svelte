@@ -105,12 +105,12 @@
 						label="Deploy"
 						icon="carbon:application"
 						type="submit"
-						class="w-fit! basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalDeployUpload.close}
 					/>
 				</div>
@@ -135,11 +135,11 @@
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<input name="url" type="text" class="input w-full" required />
 				<div class="layout-x justify-end">
-					<Button label="Import" icon="bytesize:import" type="submit" class="w-fit! basic-button" />
+					<Button label="Import" icon="bytesize:import" type="submit" class="basic-button w-fit!" />
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalDeployURL.close}
 					/>
 				</div>
@@ -152,12 +152,12 @@
 	{#snippet children({ close, params: { symbols, project } })}
 		<Card title="Undefined Global Symbols" class="w-full">
 			<p>Find here the undefined Global Symbols for the project <b>{project}</b>:</p>
-			<div class="layout-x flex-wrap w-full">
+			<div class="layout-x w-full flex-wrap">
 				{#each symbols as symbol}
 					<div class="rounded-sm preset-filled-secondary-200-800 px-low">{symbol}</div>
 				{/each}
 			</div>
-			<div class="w-full layout-x justify-end">
+			<div class="layout-x w-full justify-end">
 				<Button
 					label="Create symbols"
 					icon="et:tools-2"
@@ -271,7 +271,7 @@
 						}
 					]}
 					size="4"
-					class="min-w-32 w-full"
+					class="w-full min-w-32"
 					disabled={!init}
 				/>
 			{/if}

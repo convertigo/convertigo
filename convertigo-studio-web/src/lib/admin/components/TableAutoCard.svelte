@@ -43,7 +43,7 @@
 		<h1 class="text-[16px] font-normal text-surface-800-200">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="font-bold text-surface-700-300 p-3">{comment}</h1>
+		<h1 class="p-3 font-bold text-surface-700-300">{comment}</h1>
 	{/if}
 
 	<table>
@@ -135,7 +135,7 @@
 
 		tr {
 			display: block;
-			@apply rounded layout-grid-low-48;
+			@apply layout-grid-low-48 rounded;
 		}
 
 		thead {

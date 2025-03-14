@@ -270,9 +270,12 @@
 	let html = $derived(icon.includes(':') ? ico[icon].match(/>(.*)</)?.[1] : undefined);
 </script>
 
-<!-- size-4 size-5 size-6 -->
 {#if html}
-	<svg class="size-{size} ico {cls}" viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}>
+	<svg
+		class="ico {cls}"
+		style="width: calc(var(--spacing)*{size});height: calc(var(--spacing)*{size});"
+		viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}
+	>
 		{#if browser}
 			{@html html}
 		{:else}
@@ -280,7 +283,7 @@
 		{/if}
 	</svg>
 {:else}
-	<img src="{assets}/{icon}" class="w-{size} {cls}" {...props} />
+	<img src="{assets}/{icon}" class={cls} style="width: calc(var(--spacing)*{size});" {...props} />
 {/if}
 
 <!-- {#if !svg || !animate}

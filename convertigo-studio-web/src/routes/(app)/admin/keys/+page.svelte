@@ -62,10 +62,10 @@
 		>
 			{#snippet tr({ row, rowIdx, tr, definition: { length: colspan } })}
 				{#if rowIdx == 0}
-					<tr class="border-surface-900-100 border-b-[0.5px]">
+					<tr class="border-b-[0.5px] border-surface-900-100">
 						<th {colspan}>
 							<AutoPlaceholder {loading}>
-								<div class="layout-x justify-between flex-wrap">
+								<div class="layout-x flex-wrap justify-between">
 									<div>
 										{name}
 										{#if row.overflow == 'true'}

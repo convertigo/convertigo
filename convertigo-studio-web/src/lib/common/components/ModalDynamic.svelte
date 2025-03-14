@@ -45,7 +45,12 @@
 	}
 </script>
 
-<Modal bind:open={opened} triggerBase="hidden" contentBase={`max-h-full overflow-auto ${cls}`}>
+<Modal
+	open={opened}
+	onInteractOutside={() => (opened = false)}
+	triggerBase="hidden"
+	contentBase={`max-h-full overflow-auto ${cls}`}
+>
 	{#snippet content()}
 		{@render children?.({ setResult, close, params })}
 	{/snippet}

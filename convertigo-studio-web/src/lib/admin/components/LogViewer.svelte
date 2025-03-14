@@ -379,7 +379,8 @@
 			{/if}
 			<Switch
 				name="negate"
-				bind:checked={modalFilterParams.not}
+				checked={modalFilterParams.not}
+				onCheckedChange={(e) => (modalFilterParams.not = e.checked)}
 				controlActive="bg-error-400 dark:bg-error-700">{not ? 'not' : 'is'}</Switch
 			>
 			<div class="flex flex-wrap gap-2">
@@ -398,11 +399,11 @@
 		</form>
 	</Card>
 </ModalDynamic>
-<div class="text-xs w-full h-full layout-y-stretch-low" class:fullscreen>
+<div class="layout-y-stretch-low h-full w-full text-xs" class:fullscreen>
 	<div class="layout-y-stretch-low">
 		{#if $showFilters}
 			<div
-				class="layout-x-low p-1 flex-wrap mx-low rounded-sm preset-filled-surface-200-800"
+				class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -439,7 +440,7 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="layout-x-low p-1 flex-wrap mx-low rounded-sm preset-filled-surface-200-800">
+		<div class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1">
 			<div class="mini-card preset-filled-primary-500">
 				<Button
 					{size}
@@ -456,7 +457,8 @@
 			</div>
 			<div class="mini-card preset-filled-primary-500">
 				<Popover
-					bind:open={searchBoxOpened}
+					open={searchBoxOpened}
+					onInteractOutside={() => (searchBoxOpened = false)}
 					arrow
 					arrowBackground="bg-surface-50-950"
 					triggerBase="block"
@@ -508,17 +510,17 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="mini-card preset-ghost-500">AND</div>
+						<div class="preset-ghost-500 mini-card">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="mini-card preset-ghost-500">OR</div>
+						<div class="preset-ghost-500 mini-card">OR</div>
 					{/if}
 					<div
 						class="mini-card"
 						class:preset-filled-surface-500={!not}
 						class:preset-filled-error-500={not}
 					>
-						<span class="overflow-hidden max-w-xs"
+						<span class="max-w-xs overflow-hidden"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
 						>
 						<Button
@@ -538,23 +540,23 @@
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low p-1 rounded-sm bg-primary-500">
+			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-500 p-1">
 				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
 				{#if extraLines > 0}
 					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
 				{/if}
 			</div>
 			<div
-				class="flex flex-wrap overflow-y-hidden bg-surface-200-800 rounded-sm rounded-b-none"
+				class="flex flex-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
 				style="height: {2 + extraLines * 20}px"
 			>
 				{#each columns as { name, cls, style } (name)}
 					<div
 						{style}
-						class="p-1 {cls} text-nowrap overflow-hidden max-h-[20px]"
+						class="p-1 {cls} max-h-[20px] overflow-hidden text-nowrap"
 						animate:grabFlip={{ duration }}
 					>
-						<button class="font-semibold cursor-help" onclick={doPulse} onmouseover={doPulse}>
+						<button class="cursor-help font-semibold" onclick={doPulse} onmouseover={doPulse}>
 							{name}
 						</button>
 					</div>
@@ -584,7 +586,7 @@
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} text-left text-nowrap overflow-hidden cursor-cell"
+									class="px-1 {cls} cursor-cell overflow-hidden text-left text-nowrap"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -593,7 +595,7 @@
 							{/each}
 						</div>
 						<div
-							class="p-1 whitespace-pre leading-4 font-mono overflow-x-scroll rounded-sm preset-outlined border-b-none"
+							class="border-b-none overflow-x-scroll rounded-sm preset-outlined p-1 font-mono leading-4 whitespace-pre"
 							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
 						>
 							{#if founds.length > 0}
@@ -622,7 +624,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none px! py-1! rounded-sm rounded-t-none preset-filled-surface-200-800 justify-between items-center"
+		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-200-800 py-1! px!"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
@@ -660,7 +662,7 @@
 		top: 0px;
 		left: 0px;
 		height: 100%;
-		@apply z-50 bg-surface-950-50 min-w-full;
+		@apply z-50 min-w-full bg-surface-950-50;
 	}
 
 	.searchedCurrent {

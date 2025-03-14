@@ -97,7 +97,7 @@
 			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
-						class="min-w-24 w-full"
+						class="w-full min-w-24"
 						size="4"
 						buttons={[
 							{
@@ -184,7 +184,7 @@
 			{#snippet children({ row: { contextName }, def })}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
-						class="min-w-16 w-full"
+						class="w-full min-w-16"
 						size="4"
 						buttons={[
 							{

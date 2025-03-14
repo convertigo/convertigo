@@ -67,17 +67,17 @@
 							size="8"
 						/>{/snippet}
 				</FileUpload>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Install"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="w-fit! basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalCertInstall.close}
 					/>
 				</div>
@@ -102,17 +102,17 @@
 					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
 					value=""
 				/>
-				<div class="w-full layout-x justify-end">
+				<div class="layout-x w-full justify-end">
 					<Button
 						label="Remove"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="w-fit! basic-button"
+						class="basic-button w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={modalCertRemove.close}
 					/>
 				</div>
@@ -236,7 +236,7 @@
 				}
 			]}
 			size="4"
-			class="min-w-16 w-full"
+			class="w-full min-w-16"
 		/>
 	{/if}
 {/snippet}

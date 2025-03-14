@@ -21,13 +21,13 @@
 	});
 </script>
 
-<nav class="bg-surface-200-800 border-r-[0.5px] border-color layout-y-none h-full">
+<nav class="layout-y-none h-full border-r-[0.5px] border-color bg-surface-200-800">
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params, loading }, j}
 			{@const href = loading ? undefined : page ? resolveRoute(page, params) : url}
 			<a
 				{href}
-				class="relative layout-x-p-low !gap hover:bg-surface-200-800 rounded min-w-36 {loading
+				class="relative layout-x-p-low min-w-36 !gap rounded hover:bg-surface-200-800 {loading
 					? 'blur-sm'
 					: ''}"
 				transition:slide={{ axis: 'y' }}
@@ -36,11 +36,11 @@
 					<span
 						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 preset-filled-primary-500 opacity-40 rounded-sm"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40"
 					></span>
 				{/if}
 				<Ico size="5" {icon} class="z-10" />
-				<span class="text-[14px] z-10 font-{i == 0 && j == activeIndex ? 'semibold' : 'medium'}"
+				<span class="z-10 text-[14px] font-{i == 0 && j == activeIndex ? 'semibold' : 'medium'}"
 					>{title}</span
 				>
 			</a>

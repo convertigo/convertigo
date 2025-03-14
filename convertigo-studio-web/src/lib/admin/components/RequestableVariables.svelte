@@ -75,10 +75,10 @@
 					<div class="layout-x-low">
 						<button
 							type="button"
-							class="btn btn-sm bg-surface-200-800 w-fit!"
+							class="btn w-fit! bg-surface-200-800 btn-sm"
 							onclick={() => multiples[row.name].push({ val: '' })}
 							><Ico icon="grommet-icons:add" /></button
-						><button type="button" onclick={() => parse(row)} class="btn btn-sm bg-surface-200-800">
+						><button type="button" onclick={() => parse(row)} class="btn bg-surface-200-800 btn-sm">
 							<Ico icon="mdi:backup-restore" />
 						</button>
 					</div>
@@ -91,7 +91,7 @@
 							{@render property({ row, obj })}
 							<button
 								type="button"
-								class="btn btn-sm bg-surface-200-800 w-fit!"
+								class="btn w-fit! bg-surface-200-800 btn-sm"
 								onclick={() => multiples[row.name].splice(i, 1)}
 								><Ico icon="mingcute:delete-line" /></button
 							>
@@ -102,7 +102,7 @@
 				{/if}
 			</div>
 		{:else if def.name == 'Comment'}
-			<div class="overflow-hidden max-h-12">{row.comment}</div>
+			<div class="max-h-12 overflow-hidden">{row.comment}</div>
 		{/if}
 	{/snippet}
 </TableAutoCard>

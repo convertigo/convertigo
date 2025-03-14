@@ -14,4 +14,4 @@
 	});
 </script>
 
-<iframe title="viewer" {src} class="w-full h-full"></iframe>
+<iframe title="viewer" {src} class="h-full w-full"></iframe>

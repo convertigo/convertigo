@@ -234,7 +234,7 @@
 								{ label: 'Job', name: 'jobName', store: jobs },
 								{ label: 'Schedule', name: 'scheduleName', store: schedules }
 							]}
-							<div class="layout-x flew-wrap">
+							<div class="flew-wrap layout-x">
 								{#each def as { label, name, store }}
 									<PropertyType
 										type="segment"
@@ -274,7 +274,7 @@
 						label="Save"
 						type="submit"
 						icon={jobTypes[mode].icon}
-						class="w-fit! basic-button"
+						class="basic-button w-fit!"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
@@ -282,7 +282,7 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="w-fit! cancel-button"
+						class="cancel-button w-fit!"
 						onclick={close}
 					/>
 				</div>
@@ -305,7 +305,7 @@
 					<li>{n}</li>
 				{/each}
 			</ul>
-			<div class="w-full layout-x justify-end">
+			<div class="layout-x w-full justify-end">
 				<Button
 					label="Close"
 					icon="material-symbols-light:cancel-outline"
@@ -357,16 +357,17 @@
 						<fieldset class="layout-x-low" disabled={!init}>
 							<CheckState
 								name={row.name}
-								value={row.enabled}
-								onchange={(e) => {
-									configure({
-										...row,
-										enabled: e.target.value,
-										edit: true,
-										exname: row.name,
-										type: `schedulerNew${row.type}`
-									});
-								}}
+								bind:value={
+									() => row.enabled,
+									(enabled) =>
+										configure({
+											...row,
+											enabled,
+											edit: true,
+											exname: row.name,
+											type: `schedulerNew${row.type}`
+										})
+								}
 								disabled={!init}
 							/>
 							<Button

@@ -31,7 +31,7 @@ function getVersion(property, version, prefix = '', suffix = '') {
 	}
 	return {
 		...props[property](`${prefix}--spacing(${versions[version].base})${suffix}`),
-		'@media (width >= var(--breakpoint-md))': {
+		'@variant md': {
 			...props[property](`${prefix}--spacing(${versions[version].md})${suffix}`)
 		}
 	};
@@ -65,7 +65,10 @@ function toCSS(value, indent = '') {
 	if (typeof value == 'object') {
 		return `{
 ${Object.entries(value)
-	.map(([key, value]) => `${indent}    ${key.trim()}: ${toCSS(value, `${indent}    `)}`)
+	.map(
+		([key, value]) =>
+			`${indent}    ${key.trim()}${typeof value == 'object' ? '' : ':'} ${toCSS(value, `${indent}    `)}`
+	)
 	.join('\n')}
 ${indent}}`;
 	}
@@ -78,10 +81,6 @@ function addUtilities(utilities) {
 @utility ${selector} ${toCSS(rules)}
 `;
 	}
-}
-
-function matchUtilities(utilities, options) {
-	console.log(utilities, options);
 }
 
 let css;
@@ -150,9 +149,17 @@ function generateLayoutCss() {
 }
 
 export default function GenerateLayoutCssPlugin(options = {}) {
+	let generate = true;
+
 	return {
 		name: 'convertigo-utilities-css-plugin',
+		configResolved(config) {
+			generate = !config.build.ssr;
+		},
 		buildStart() {
+			if (!generate) {
+				return;
+			}
 			const css = generateLayoutCss();
 			const outPath = path.resolve(process.cwd(), 'src/convertigo.utilities.css');
 			fs.writeFileSync(outPath, css, 'utf-8');
