@@ -1,8 +1,8 @@
 <script>
-	import { onMount } from 'svelte';
-	import { call, getUrl } from '$lib/utils/service';
+	import { Handle, Position, useEdges, useNodes, useSvelteFlow } from '@xyflow/svelte';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import { Position, Handle, useSvelteFlow, useNodes, useEdges } from '@xyflow/svelte';
+	import { call, getUrl } from '$lib/utils/service';
+	import { onMount } from 'svelte';
 	import {
 		createEdge,
 		createNodesAndEdges,

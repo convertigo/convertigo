@@ -1,20 +1,20 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
+	import { browser } from '$app/environment';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
+	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { checkArray, debounce } from '$lib/utils/service';
+	import { onMount } from 'svelte';
+	import { persisted } from 'svelte-persisted-store';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
-	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import { slide } from 'svelte/transition';
-	import { persisted } from 'svelte-persisted-store';
-	import { checkArray, debounce } from '$lib/utils/service';
-	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
-	import Card from './Card.svelte';
-	import { browser } from '$app/environment';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { onMount } from 'svelte';
-	import MaxRectangle from './MaxRectangle.svelte';
 	import Button from './Button.svelte';
+	import Card from './Card.svelte';
+	import MaxRectangle from './MaxRectangle.svelte';
 
 	const duration = 400;
 

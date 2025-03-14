@@ -1,11 +1,11 @@
 <!-- <svelte:options accessors /> -->
 
 <script>
-	import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';
-	import { mountedBlocks } from './treeStore';
 	import { reusables } from '$lib/studio/palette/paletteStore';
-	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
-	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
+	import { draggedBlock, draggedData } from '$lib/utils/dndStore';
+	import { acceptDbo, addDbo, moveDbo } from '$lib/utils/service';
+	import { createEventDispatcher, onDestroy, onMount, tick } from 'svelte';
+	import { mountedBlocks } from './treeStore';
 
 	const dispatch = createEventDispatcher();
 

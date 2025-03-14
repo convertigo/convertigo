@@ -1,11 +1,11 @@
 <script>
+	import { Background, Controls, MiniMap, SvelteFlow, useSvelteFlow } from '@xyflow/svelte';
 	import { page } from '$app/state';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { SvelteFlow, Background, Controls, MiniMap, useSvelteFlow } from '@xyflow/svelte';
 	import { writable } from 'svelte/store';
-	import { createNodesAndEdges, getLayoutedElements } from './FlowUtils.js';
 	import ContextMenu from './ContextMenu.svelte';
+	import { createNodesAndEdges, getLayoutedElements } from './FlowUtils.js';
 	import StepNode from './StepNode.svelte';
 	import '@xyflow/svelte/dist/style.css';
 

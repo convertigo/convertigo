@@ -1,13 +1,13 @@
 <script>
-	import { properties, dboProp, ionProp, setDboProp } from './propertiesStore';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { selectedId } from '$lib/studio/treeview/treeStore';
 	import { onDestroy } from 'svelte';
-
-	import StringEditor from './editors/StringEditor.svelte';
 	import BooleanEditor from './editors/BooleanEditor.svelte';
 	import ListEditor from './editors/ListEditor.svelte';
 	import StaticEditor from './editors/StaticEditor.svelte';
+	import StringEditor from './editors/StringEditor.svelte';
+	import { dboProp, ionProp, properties, setDboProp } from './propertiesStore';
+
 	//import IonSmartEditor from './editors/IonSmartEditor.svelte.disable';
 
 	let categories = $state({});

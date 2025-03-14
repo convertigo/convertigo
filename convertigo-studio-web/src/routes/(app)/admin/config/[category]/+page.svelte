@@ -1,16 +1,16 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { getContext, onDestroy } from 'svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { fade, fly } from 'svelte/transition';
-	import RightPart from '../../RightPart.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { page } from '$app/state';
-	import { beforeNavigate, goto } from '$app/navigation';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { getContext, onDestroy } from 'svelte';
+	import { fade, fly } from 'svelte/transition';
+	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
 
 	let { categories, refresh, updateConfigurations, init } = $derived(Configuration);

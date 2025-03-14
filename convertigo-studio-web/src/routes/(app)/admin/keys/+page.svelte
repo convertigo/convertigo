@@ -1,10 +1,10 @@
 <script>
-	import Keys from '$lib/admin/Keys.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Keys from '$lib/admin/Keys.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getContext } from 'svelte';
 
 	let modalYesNo = getContext('modalYesNo');

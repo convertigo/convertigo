@@ -1,16 +1,16 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Certificates from '$lib/admin/Certificates.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import { onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Projects from '$lib/common/Projects.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { onDestroy } from 'svelte';
 
 	let {
 		certificates,

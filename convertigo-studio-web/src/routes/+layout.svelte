@@ -4,15 +4,16 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import Light from '$lib/common/Light.svelte';
-	import ToastSetter from '$lib/utils/ToastSetter.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	import { getContext, setContext } from 'svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { setModalAlert } from '$lib/utils/service';
 	import Card from '$lib/admin/components/Card.svelte';
+	import Authentication from '$lib/common/Authentication.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
+	import Light from '$lib/common/Light.svelte';
+	import { setModalAlert } from '$lib/utils/service';
+	import ToastSetter from '$lib/utils/ToastSetter.svelte';
+	import { getContext, setContext } from 'svelte';
 	import { slide } from 'svelte/transition';
+
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 

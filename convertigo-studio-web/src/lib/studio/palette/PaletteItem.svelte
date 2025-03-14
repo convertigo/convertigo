@@ -4,11 +4,10 @@
 </script>
 
 <script>
-	import { createEventDispatcher } from 'svelte';
-	import { onMount, onDestroy } from 'svelte';
-	import { getUrl } from '$lib/utils/service';
-	import { draggedData } from '$lib/utils/dndStore';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
+	import { draggedData } from '$lib/utils/dndStore';
+	import { getUrl } from '$lib/utils/service';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 

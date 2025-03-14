@@ -1,5 +1,5 @@
-import ELK from 'elkjs/lib/elk.bundled.js';
 import { Position } from '@xyflow/svelte';
+import ELK from 'elkjs/lib/elk.bundled.js';
 
 function handleOutsides() {
 	return true;

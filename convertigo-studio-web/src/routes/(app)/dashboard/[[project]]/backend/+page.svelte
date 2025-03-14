@@ -1,21 +1,21 @@
 <script>
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import Editor from '$lib/studio/editor/Editor.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { callRequestable } from '$lib/utils/service';
 	import { decode } from 'html-entities';
 	import { marked } from 'marked';
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { callRequestable } from '$lib/utils/service';
-	import Editor from '$lib/studio/editor/Editor.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import { fly } from 'svelte/transition';
 
 	let project = $state(TestPlatform(page.params.project));
 	let searchQuery = $state('');

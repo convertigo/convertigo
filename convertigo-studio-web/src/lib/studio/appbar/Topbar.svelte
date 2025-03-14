@@ -1,9 +1,9 @@
 <script>
-	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
-	import { loading } from '$lib/utils/loadingStore';
 	// @ts-ignore
 	import Icon from '@iconify/svelte';
+	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
 	import { base } from '$app/paths';
+	import { loading } from '$lib/utils/loadingStore';
 </script>
 
 <AppShell>

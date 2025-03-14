@@ -1,16 +1,16 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Symbols from '$lib/admin/Symbols.svelte';
-	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import Symbols from '$lib/admin/Symbols.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { slide } from 'svelte/transition';
 	import { getContext } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	let {
 		symbols,

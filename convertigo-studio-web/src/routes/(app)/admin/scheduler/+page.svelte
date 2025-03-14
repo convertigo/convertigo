@@ -1,19 +1,19 @@
 <script>
-	import Scheduler from '$lib/admin/Scheduler.svelte';
-	import Project from '$lib/common/Projects.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { getContext, onDestroy } from 'svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import CheckState from '$lib/admin/components/CheckState.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { capitalize } from '$lib/utils/service';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import CronWizard from '$lib/admin/components/CronWizard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Time from '$lib/common/Time.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import CheckState from '$lib/admin/components/CheckState.svelte';
+	import CronWizard from '$lib/admin/components/CronWizard.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import Scheduler from '$lib/admin/Scheduler.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Project from '$lib/common/Projects.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import Time from '$lib/common/Time.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { capitalize } from '$lib/utils/service';
+	import { getContext, onDestroy } from 'svelte';
 
 	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
 	let { projects } = $derived(Project);

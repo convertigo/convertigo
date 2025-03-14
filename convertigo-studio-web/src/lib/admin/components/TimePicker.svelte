@@ -1,8 +1,8 @@
 <script>
-	import { tweened } from 'svelte/motion';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
 	import { onMount, tick, untrack } from 'svelte';
+	import { cubicOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
+	import { fly } from 'svelte/transition';
 
 	/** @type {{inputValue?: string}} */
 	let { inputValue = $bindable('00:00:00,000') } = $props();

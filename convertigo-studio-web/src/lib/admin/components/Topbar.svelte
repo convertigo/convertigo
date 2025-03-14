@@ -1,9 +1,9 @@
 <script>
-	import PagesRailToggle from './PagesRailToggle.svelte';
+	import { page } from '$app/state';
+	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
-	import { page } from '$app/state';
+	import PagesRailToggle from './PagesRailToggle.svelte';
 
 	let { showLeft = $bindable(), showDrawer = $bindable() } = $props();
 </script>

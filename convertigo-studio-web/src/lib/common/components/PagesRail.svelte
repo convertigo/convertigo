@@ -1,8 +1,8 @@
 <script>
-	import { page } from '$app/state';
-	import { fade, fly, slide } from 'svelte/transition';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { resolveRoute } from '$app/paths';
+	import { page } from '$app/state';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { fade, fly, slide } from 'svelte/transition';
 
 	/** @type {{parts: any}} */
 	let { parts: _parts } = $props();

@@ -1,13 +1,13 @@
 <script>
-	import { page } from '$app/state';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import QrCode from '$lib/common/components/QrCode.svelte';
+	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getQuery, getUrl } from '$lib/utils/service';
-	import QrCode from '$lib/common/components/QrCode.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
 	import { getContext } from 'svelte';
 
 	let modalAlert = getContext('modalAlert');

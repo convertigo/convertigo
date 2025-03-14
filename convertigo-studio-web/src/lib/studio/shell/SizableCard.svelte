@@ -1,8 +1,8 @@
 <script>
-	import { linear } from 'svelte/easing';
-	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import { localStorageStore, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { authenticated } from '$lib/utils/loadingStore';
-	import { ProgressRadial } from '@skeletonlabs/skeleton';
+	import { linear } from 'svelte/easing';
+
 	/** @type {{name: any, children?: import('svelte').Snippet}} */
 	let { name, children } = $props();
 	let dragDiv = $state();

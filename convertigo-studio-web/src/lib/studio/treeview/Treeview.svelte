@@ -1,20 +1,17 @@
 <script>
-	import { onMount, tick, createEventDispatcher } from 'svelte';
-	import { TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
-	import { localStorageStore, getModalStore } from '@skeletonlabs/skeleton';
-
-	import { call, getUrl, removeDbo, copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
-	import { treeData, selectedId, cutBlocks } from './treeStore';
-	import DndBlock from './DndBlock.svelte';
-	import DropDivider from './DropDivider.svelte';
-	import Toolbar from '../toolbar/Toolbar.svelte';
-	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
-	import Treeview from './Treeview.svelte';
-
+	import Icon from '@iconify/svelte';
+	import { getModalStore, localStorageStore, TreeView, TreeViewItem } from '@skeletonlabs/skeleton';
 	// @ts-ignore
 	import IconFile from '~icons/mdi/file';
-	import Icon from '@iconify/svelte';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
+	import { call, copyDbo, cutDbo, getUrl, pasteDbo, removeDbo } from '$lib/utils/service';
+	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import Toolbar from '../toolbar/Toolbar.svelte';
+	import ToolbarItem from '../toolbar/ToolbarItem.svelte';
+	import DndBlock from './DndBlock.svelte';
+	import DropDivider from './DropDivider.svelte';
+	import { cutBlocks, selectedId, treeData } from './treeStore';
+	import Treeview from './Treeview.svelte';
 
 	const modalStore = getModalStore();
 

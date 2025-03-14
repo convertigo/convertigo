@@ -1,22 +1,22 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import { DatePicker } from '@svelte-plugins/datepicker';
+	import { beforeNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import LogViewer from '$lib/admin/components/LogViewer.svelte';
+	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TimePicker from '$lib/admin/components/TimePicker.svelte';
+	import Configuration from '$lib/admin/Configuration.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
-	import { getContext, onMount, untrack } from 'svelte';
-	import TimePicker from '$lib/admin/components/TimePicker.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import { slide } from 'svelte/transition';
-	import { DatePicker } from '@svelte-plugins/datepicker';
-	import LogViewer from '$lib/admin/components/LogViewer.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
-	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import { page } from '$app/state';
-	import { beforeNavigate, goto } from '$app/navigation';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { getContext, onMount, untrack } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	onMount(() => {
 		Logs.list();

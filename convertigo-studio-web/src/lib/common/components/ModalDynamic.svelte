@@ -1,6 +1,7 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
 	import { onDestroy } from 'svelte';
+
 	/** @type {{class?: string, children?: import('svelte').Snippet<[any]>}} */
 	let { class: cls = '', children } = $props();
 	let opened = $state(false);

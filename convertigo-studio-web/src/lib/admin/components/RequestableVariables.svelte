@@ -1,10 +1,10 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { untrack } from 'svelte';
-	import PropertyType from './PropertyType.svelte';
-	import TableAutoCard from './TableAutoCard.svelte';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
+	import PropertyType from './PropertyType.svelte';
+	import TableAutoCard from './TableAutoCard.svelte';
 
 	let { requestable = $bindable() } = $props();
 	let multiples = $state({});

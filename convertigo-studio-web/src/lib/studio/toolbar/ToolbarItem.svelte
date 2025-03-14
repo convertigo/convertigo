@@ -1,5 +1,6 @@
 <script>
 	import { createBubbler } from 'svelte/legacy';
+
 	const bubble = createBubbler();
 
 	/** @type {{disabled?: boolean, children?: import('svelte').Snippet}} */

@@ -1,25 +1,23 @@
 <script>
-	import { Accordion, AccordionItem, popup, localStorageStore } from '@skeletonlabs/skeleton';
-	import { onMount, onDestroy } from 'svelte';
-	import { categories } from '$lib/studio/palette/paletteStore';
-	import { reusables } from '$lib/studio/palette/paletteStore';
-	import PaletteItem from './PaletteItem.svelte';
-
-	// @ts-ignore
-	import IconLinkOn from '~icons/mdi/arrow-left-right-bold';
-	// @ts-ignore
-	import IconLinkOff from '~icons/mdi/arrow-left-right-bold-outline';
+	import Icon from '@iconify/svelte';
+	import { Accordion, AccordionItem, localStorageStore, popup } from '@skeletonlabs/skeleton';
 	// @ts-ignore
 	import IconArrangeOn from '~icons/mdi/arrange-bring-forward';
 	// @ts-ignore
 	import IconArrangeOff from '~icons/mdi/arrange-send-backward';
+	// @ts-ignore
+	import IconLinkOn from '~icons/mdi/arrow-left-right-bold';
+	// @ts-ignore
+	import IconLinkOff from '~icons/mdi/arrow-left-right-bold-outline';
 	// @ts-ignore
 	import IconDownOn from '~icons/mdi/chevron-down-box';
 	// @ts-ignore
 	import IconDownOff from '~icons/mdi/chevron-down-box-outline';
 	// @ts-ignore
 	import IconStarOff from '~icons/mdi/star-outline';
-	import Icon from '@iconify/svelte';
+	import { categories, reusables } from '$lib/studio/palette/paletteStore';
+	import { onDestroy, onMount } from 'svelte';
+	import PaletteItem from './PaletteItem.svelte';
 
 	let favorites = localStorageStore('palette.favorites', {});
 	let storeCategories = [];

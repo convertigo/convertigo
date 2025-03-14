@@ -1,11 +1,11 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	import MyComp from './MyComp.svelte';
-	import DynamicModal from '../../lib/common/components/ModalDynamic.svelte';
-	// import val from './mytest.svelte';
-	import Monitor from '$lib/admin/Monitor.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
+	// import val from './mytest.svelte';
+	import Monitor from '$lib/admin/Monitor.svelte';
+	import DynamicModal from '../../lib/common/components/ModalDynamic.svelte';
+	import MyComp from './MyComp.svelte';
 
 	// let { name, age, reset, rules } = $derived(val);
 	// const n = $derived({

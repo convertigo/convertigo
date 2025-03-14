@@ -1,7 +1,7 @@
 <script>
-	import { ico } from '$lib/utils/Ico.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico, { ico } from '$lib/utils/Ico.svelte';
 	import { checkArray } from '$lib/utils/service';
+
 	// import { clipboard } from '@skeletonlabs/skeleton';
 	// import { draw } from 'svelte/transition';
 

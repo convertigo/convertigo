@@ -3,11 +3,11 @@
 </script>
 
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import CheckState from './CheckState.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { Segment, Switch } from '@skeletonlabs/skeleton-svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray } from '$lib/utils/service';
+	import CheckState from './CheckState.svelte';
 
 	/** @type {{value: string, checked?: boolean, label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
 	let {

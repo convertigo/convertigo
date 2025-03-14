@@ -1,5 +1,6 @@
 <script>
 	import PropertyType from './PropertyType.svelte';
+
 	/** @type {{cronExpression?: string}} */
 	let { cronExpression = $bindable('0 0 0 * * ?') } = $props();
 

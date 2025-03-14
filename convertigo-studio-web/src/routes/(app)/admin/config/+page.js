@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
-import Last from './Last.svelte';
-import { resolveRoute } from '$app/paths';
 import { building } from '$app/environment';
+import { resolveRoute } from '$app/paths';
+import Last from './Last.svelte';
 
 export function load() {
 	redirect(

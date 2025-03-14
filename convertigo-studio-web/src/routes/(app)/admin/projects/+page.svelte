@@ -1,15 +1,15 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import { base } from '$app/paths';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import { base } from '$app/paths';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import CheckState from '$lib/admin/components/CheckState.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Projects from '$lib/common/Projects.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onDestroy } from 'svelte';
-	import Button from '$lib/admin/components/Button.svelte';
 
 	let {
 		projects,

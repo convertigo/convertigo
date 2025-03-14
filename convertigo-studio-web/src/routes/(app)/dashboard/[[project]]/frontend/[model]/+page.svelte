@@ -1,16 +1,16 @@
 <script>
-	import { onDestroy, tick } from 'svelte';
-	import Bezels from '$lib/dashboard/Bezels';
-	import { assets } from '$app/paths';
-	import { getFrontendUrl } from '$lib/utils/service';
-	import { page } from '$app/state';
-	import RightPart from '../../../../admin/RightPart.svelte';
-	import { blur, fade, fly, slide } from 'svelte/transition';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Last from '../Last.svelte';
 	import { goto } from '$app/navigation';
-	import { Spring } from 'svelte/motion';
+	import { assets } from '$app/paths';
+	import { page } from '$app/state';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import Bezels from '$lib/dashboard/Bezels';
+	import { getFrontendUrl } from '$lib/utils/service';
+	import { onDestroy, tick } from 'svelte';
+	import { Spring } from 'svelte/motion';
+	import { blur, fade, fly, slide } from 'svelte/transition';
+	import RightPart from '../../../../admin/RightPart.svelte';
+	import Last from '../Last.svelte';
 
 	let orientation = $derived(page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
 	let selectedDevice = $derived(

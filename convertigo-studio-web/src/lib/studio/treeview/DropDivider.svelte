@@ -1,8 +1,8 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
 	import { reusables } from '$lib/studio/palette/paletteStore';
-	import { draggedData, draggedBlock } from '$lib/utils/dndStore';
-	import { addDbo, moveDbo, acceptDbo } from '$lib/utils/service';
+	import { draggedBlock, draggedData } from '$lib/utils/dndStore';
+	import { acceptDbo, addDbo, moveDbo } from '$lib/utils/service';
+	import { createEventDispatcher } from 'svelte';
 
 	/** @type {{position: any, nodeData: any}} */
 	let { position, nodeData } = $props();

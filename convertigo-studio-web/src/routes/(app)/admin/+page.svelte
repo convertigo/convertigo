@@ -1,17 +1,17 @@
 <script>
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { call } from '$lib/utils/service';
-	import Status from '$lib/common/Status.svelte';
-	import Monitor from '$lib/admin/Monitor.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Time from '$lib/common/Time.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import { onDestroy } from 'svelte';
 	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import Monitor from '$lib/admin/Monitor.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import Status from '$lib/common/Status.svelte';
+	import Time from '$lib/common/Time.svelte';
+	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { call } from '$lib/utils/service';
+	import { onDestroy } from 'svelte';
 
 	let {
 		product,

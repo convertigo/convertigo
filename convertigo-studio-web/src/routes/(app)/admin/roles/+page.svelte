@@ -1,4 +1,5 @@
 <script>
+	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -9,7 +10,6 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { addInArray, removeInArray } from '$lib/utils/service';
-	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import { getContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 

@@ -1,14 +1,12 @@
 <script>
-	import { AppRail, AppRailAnchor, AppShell } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
-	import { linear } from 'svelte/easing';
-	import { call } from '$lib/utils/service';
-	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import { authenticated } from '$lib/utils/loadingStore';
 	import Icon from '@iconify/svelte';
-
+	import { AppRail, AppRailAnchor, AppShell, localStorageStore } from '@skeletonlabs/skeleton';
 	// @ts-ignore
 	import IconLogout from '~icons/mdi/logout';
+	import { authenticated } from '$lib/utils/loadingStore';
+	import { call } from '$lib/utils/service';
+	import { onMount } from 'svelte';
+	import { linear } from 'svelte/easing';
 
 	let treeSelected = localStorageStore('studio.treeSelected', false);
 	let propertiesSelected = localStorageStore('studio.propertiesSelected', false);

@@ -1,10 +1,9 @@
 <script>
-	import { run } from 'svelte/legacy';
-
+	import { AppBar, AppRail, AppRailAnchor, AppShell, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { selectedId } from '$lib/studio/treeview/treeStore';
 	import { getUrl } from '$lib/utils/service';
-	import { AppBar, AppRail, AppRailAnchor, AppShell, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import { run } from 'svelte/legacy';
 
 	let project = $state('');
 	let message = $state('');

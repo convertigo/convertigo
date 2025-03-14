@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import Light from '../Light.svelte';
 </script>
 

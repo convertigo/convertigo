@@ -1,13 +1,13 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { flip } from 'svelte/animate';
-	import { fade } from 'svelte/transition';
+	import { resolveRoute } from '$app/paths';
+	import { page } from '$app/state';
+	import Card from '$lib/admin/components/Card.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import { page } from '$app/state';
-	import { resolveRoute } from '$app/paths';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { fade } from 'svelte/transition';
 
 	let { projects } = $derived(Projects);
 	let searchQuery = $state('');

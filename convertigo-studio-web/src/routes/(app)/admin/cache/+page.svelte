@@ -1,10 +1,10 @@
 <script>
-	import Card from '$lib/admin/components/Card.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Cache from '$lib/admin/Cache.svelte';
-	import { slide } from 'svelte/transition';
+	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import { onDestroy } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	let { clear, cancel, configure, conf, confDefault, confOriginal, loading, hasChanged } =
 		$derived(Cache);

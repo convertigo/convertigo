@@ -1,5 +1,6 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
+
 	/** @type {{name?: string, values?: any[], value: string, class?: string, disabled?: boolean, onchange?: any, children?: import('svelte').Snippet}}*/
 	let {
 		name = '',

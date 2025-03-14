@@ -1,13 +1,14 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
-	import Topbar from '$lib/admin/components/Topbar.svelte';
-	import PagesRail from '$lib/common/components/PagesRail.svelte';
-	import partsAdmin from '$lib/admin/PagesRail.svelte';
-	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
-	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import { fade, slide } from 'svelte/transition';
 	import { page } from '$app/state';
+	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
+	import Topbar from '$lib/admin/components/Topbar.svelte';
+	import partsAdmin from '$lib/admin/PagesRail.svelte';
+	import PagesRail from '$lib/common/components/PagesRail.svelte';
+	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
+	import { fade, slide } from 'svelte/transition';
 	import RightPart from './admin/RightPart.svelte';
+
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 

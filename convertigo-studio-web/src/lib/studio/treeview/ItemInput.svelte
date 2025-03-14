@@ -1,8 +1,7 @@
 <script>
-	import { tick } from 'svelte';
-	import { createEventDispatcher } from 'svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import ModalWithButtonOptions from '$lib/components/modals/ModalWithButtonOptions.svelte';
+	import { createEventDispatcher, tick } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 	const modalStore = getModalStore();
