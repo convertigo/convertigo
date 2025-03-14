@@ -13,7 +13,7 @@
 	{@render children?.()}
 </div>
 
-<style lang="postcss">
+<style>
 	.disabledItem {
 		pointer-events: none;
 		opacity: 0.4;

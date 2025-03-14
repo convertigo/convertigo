@@ -268,8 +268,13 @@
 	<div
 		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 	>
-		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
-		<input type="search" placeholder="Filter symbols..." bind:value={filter} />
+		<label id="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
+		<input
+			class="ig-input placeholder:text-surface-500"
+			type="search"
+			placeholder="Filter symbols..."
+			bind:value={filter}
+		/>
 	</div>
 	<TableAutoCard
 		definition={[

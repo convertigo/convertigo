@@ -165,7 +165,7 @@
 	</AppShell>
 {/if}
 
-<style lang="postcss">
+<style>
 	.draggable {
 		cursor: grab;
 	}

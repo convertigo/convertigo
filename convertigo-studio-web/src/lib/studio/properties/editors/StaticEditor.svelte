@@ -14,7 +14,7 @@
 	{value}
 />
 
-<style lang="postcss">
+<style>
 	input[type='text'][disabled] {
 		cursor: auto !important;
 	}

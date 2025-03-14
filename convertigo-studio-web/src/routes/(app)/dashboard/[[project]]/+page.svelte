@@ -46,9 +46,11 @@
 	<div
 		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 	>
-		<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
+		<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
+			id="search"
 			type="search"
+			class="ig-input placeholder-surface-500"
 			placeholder="Search projects..."
 			bind:value={searchQuery}
 			disabled={rootProject}
@@ -168,7 +170,7 @@
 	</div>
 </Card>
 
-<style lang="postcss">
+<style>
 	.img-hover-zoom {
 		height: 200px;
 		overflow: hidden;

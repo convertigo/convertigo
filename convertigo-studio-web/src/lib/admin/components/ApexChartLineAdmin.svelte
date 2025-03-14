@@ -94,7 +94,7 @@
 	class="h-[315px]"
 ></div>
 
-<style lang="postcss">
+<style>
 	:global(.apexcharts-svg) {
 		background-color: transparent !important;
 	}

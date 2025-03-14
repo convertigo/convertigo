@@ -114,7 +114,7 @@
 	{/if}
 </div>
 
-<style lang="postcss">
+<style>
 	@keyframes rotate {
 		from {
 			transform: rotateY(0deg);

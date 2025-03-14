@@ -110,12 +110,18 @@
 		<div
 			class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 		>
-			<div class="input-group-cell"><Ico icon="mdi:magnify" /></div>
-			<input type="search" placeholder="Search requestable..." bind:value={searchQuery} />
+			<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
+			<input
+				id="search"
+				class="ig-input placeholder:text-surface-500"
+				type="search"
+				placeholder="Search requestable..."
+				bind:value={searchQuery}
+			/>
 			<span class="layout-x-none gap-[1px]! pr-[1px]">
 				{#each Object.values(accessibilities) as accessibility}
 					<button
-						class="btn rounded-none p-1 {accessibility.bg}"
+						class="btn h-full rounded-none p-1 {accessibility.bg}"
 						class:opacity-50={!accessibility.enabled}
 						onclick={() => {
 							accessibility.enabled = !accessibility.enabled;

@@ -67,7 +67,7 @@
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
 	.draggable {
 		width: 4px;
 		cursor: grab;

@@ -139,7 +139,7 @@
 	<span></span>
 </div>
 
-<style lang="postcss">
+<style>
 	.drop-divider {
 		min-height: 5px;
 	}

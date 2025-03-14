@@ -287,7 +287,7 @@
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
 	.palette {
 		display: flex;
 		flex-direction: column;
