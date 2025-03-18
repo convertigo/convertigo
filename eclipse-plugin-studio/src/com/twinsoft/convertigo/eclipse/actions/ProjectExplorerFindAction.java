@@ -19,17 +19,13 @@
 
 package com.twinsoft.convertigo.eclipse.actions;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.search.ui.NewSearchUI;
+import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.DatabaseObjectFindDialog;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectExplorerFindAction extends MyAbstractAction {
-	
+
 	public ProjectExplorerFindAction() {
 		super();
 	}
@@ -39,22 +35,9 @@ public class ProjectExplorerFindAction extends MyAbstractAction {
 		if (!Engine.isStarted) {
 			return;
 		}
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
-		
-		Shell shell = getParentShell();
-		shell.setCursor(waitCursor);
-
-		try {
-			DatabaseObjectFindDialog dofd = new DatabaseObjectFindDialog(shell);
-			dofd.open();
-		}
-		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to find objects in projects treeview!");
-		}
-		finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
-		}
+		NewSearchUI.openSearchDialog(
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow(),
+				"com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchPage"
+				);
 	}
 }

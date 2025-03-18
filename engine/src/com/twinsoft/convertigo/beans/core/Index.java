@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -37,7 +38,7 @@ public abstract class Index extends DatabaseObject {
 	
 	public Index() {
 		super();
-		databaseType = "Index";
+		databaseType = DatabaseObjectTypes.Index.name();
 	}
 
 	@Override

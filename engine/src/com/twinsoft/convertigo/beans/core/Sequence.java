@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -157,7 +158,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		orderedVariables = new XMLVector<XMLVector<Long>>();
 		orderedVariables.add(new XMLVector<Long>());
 
-		databaseType = "Sequence";
+		databaseType = DatabaseObjectTypes.Sequence.name();
 	}
 
 	@Override

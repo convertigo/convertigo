@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
@@ -119,7 +120,7 @@ public class MobileApplication extends DatabaseObject {
 	
 	public MobileApplication() {
 		super();
-		databaseType = "MobileApplication";
+		databaseType = DatabaseObjectTypes.MobileApplication.name();
 	}
 
 	public boolean getEnableFlashUpdate() {

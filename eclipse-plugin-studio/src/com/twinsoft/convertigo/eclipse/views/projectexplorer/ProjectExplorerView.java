@@ -2546,10 +2546,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return (DatabaseObjectTreeObject) selection;
 	}
 
-	/*public DatabaseObjectTreeObject getFirstSelectedDatabaseObjectTreeObject(){
+	public DatabaseObjectTreeObject getFirstSelectedDatabaseObjectTreeObject(){
 		TreeObject selection = getFirstSelectedTreeObject();
 		return getFirstSelectedDatabaseObjectTreeObject(selection);
-	}*/
+	}
 
 	public void setSelectedTreeObject(TreeObject object) {
 		StructuredSelection structuredSelection = new StructuredSelection(object);

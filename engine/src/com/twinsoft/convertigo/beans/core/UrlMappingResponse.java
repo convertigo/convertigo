@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -35,7 +36,7 @@ public abstract class UrlMappingResponse extends DatabaseObject {
 
 	public UrlMappingResponse() {
 		super();
-		databaseType = "UrlMappingResponse";
+		databaseType = DatabaseObjectTypes.UrlMappingResponse.name();
 	}
 	
 	@Override

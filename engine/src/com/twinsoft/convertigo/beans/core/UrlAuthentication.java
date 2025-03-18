@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboFolderType(type = FolderType.AUTHENTICATION)
@@ -42,7 +43,7 @@ public abstract class UrlAuthentication extends DatabaseObject {
 		
 	public UrlAuthentication() {
 		super();
-		databaseType = "UrlAuthentication";
+		databaseType = DatabaseObjectTypes.UrlAuthentication.name();
 	}
 
 	@Override

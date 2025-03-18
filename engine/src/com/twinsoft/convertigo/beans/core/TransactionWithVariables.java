@@ -75,8 +75,6 @@ public abstract class TransactionWithVariables extends Transaction implements IV
         
 		orderedVariables = new XMLVector<XMLVector<Long>>();
 		orderedVariables.add(new XMLVector<Long>());
-        
-        databaseType = "Transaction";
     }
     
     @Override

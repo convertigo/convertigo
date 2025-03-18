@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
@@ -50,7 +51,7 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
 	 */
 	public Sheet() {
         super();
-		databaseType = "Sheet";
+		databaseType = DatabaseObjectTypes.Sheet.name();
 	}
     
     /** Getter for property browser.

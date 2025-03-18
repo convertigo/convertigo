@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -132,7 +133,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public Step() {
         super();
-		databaseType = "Step";
+		databaseType = DatabaseObjectTypes.Step.name();
 		
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();

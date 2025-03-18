@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -68,7 +69,7 @@ public class Pool extends DatabaseObject implements ITagsProperty{
      */
     public Pool() {
         super();
-        databaseType = "Pool";
+        databaseType =DatabaseObjectTypes.Pool.name();
     }
     
 	public String getInitialScreenClass() {
