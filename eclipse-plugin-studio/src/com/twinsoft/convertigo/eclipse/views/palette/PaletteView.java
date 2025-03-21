@@ -435,13 +435,6 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			pev.addTreeObjectListener(this);
 		}
 
-		//		if (selectedProject == null) {
-		//			CompositeElement.getEngine(top).applyStyles(top, true);
-		//			parent.layout(true);
-		//			update();
-		//			return;
-		//		}
-
 		SelectionListener tiListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -653,10 +646,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							for (DboBean b: bs.getBeans()) {
 								String cn = b.getClassName();
 								if (cn.startsWith("com.twinsoft.convertigo.beans.mobile.components.")
-										&& !cn.endsWith("PageComponent")) {
+										&& !cn.endsWith(".PageComponent") && !cn.endsWith(".ApplicationComponent")) {
 									continue;
 								}
-								if (cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")) {
+								if (cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
+										&& !cn.endsWith(".ApplicationComponent")) {
 									continue;
 								}
 								String category = beansName;
@@ -1295,6 +1289,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			}
 			parent.getDisplay().asyncExec(() -> {
 				try {
+					if (bag != null) {
+						bag.setData("LastSkipKey", null); 
+					}
 					String txt = searchText != null ? searchText.getText() : "";
 					if (needUpdate[0]) {
 						updateBags();

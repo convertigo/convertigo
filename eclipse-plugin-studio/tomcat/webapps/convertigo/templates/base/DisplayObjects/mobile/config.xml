@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
-<!-- Placeholder config.xml -->
-<!-- This file will never be used to build a mobile application. -->
-<!-- At build or flashupdate time, the resources of this directory will be merged with resources of the specified platform, including the specific config.xml. -->
-<!-- Specific platform resources are in the DisplayObjects/platforms/<platform name> folder -->
-</widget>

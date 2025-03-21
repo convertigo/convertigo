@@ -27,12 +27,14 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 	
@@ -62,6 +64,22 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 		}
 	}
 
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectAdded(treeObjectEvent);
+		
+		if (treeObjectEvent.getSource() instanceof DatabaseObjectTreeObject doto) {
+			try {
+				if (doto.getObject() instanceof IApplicationComponent app && app instanceof DatabaseObject dbo) {
+					MobileBuilder.initBuilder(dbo.getProject());
+					var palette = ConvertigoPlugin.getDefault().getPaletteView();
+					if (palette != null) {
+						palette.refresh();
+					}
+				}
+			} catch (Exception e) {}
+		}
+	}
 	
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {

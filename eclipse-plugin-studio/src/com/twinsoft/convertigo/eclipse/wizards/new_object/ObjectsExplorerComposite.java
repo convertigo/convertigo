@@ -292,7 +292,10 @@ public class ObjectsExplorerComposite extends Composite {
 
 				// We select by default the first item if no default dbo found.
 				if (!defaultDboFound && currentSelectedObject == null) {
-					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
+					var children = composites[0].getChildren();
+					if (children.length > 0) {
+						currentSelectedObject = (CLabel) composites[0].getChildren()[0];
+					}
 				}
 
 				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {

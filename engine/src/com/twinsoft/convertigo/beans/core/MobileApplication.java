@@ -388,10 +388,7 @@ public class MobileApplication extends DatabaseObject {
 		File folder = getResourceFolder();
 		if (!folder.exists()) {
 			try {
-				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/mobile");
-				/* Since 7.5.x do not copy jquery template anymore
-				FileUtils.copyDirectory(templateFolder, folder); */
-				templateFolder.mkdirs();
+				folder.mkdirs();
 			} catch (Exception e) {
 				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
