@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -34,6 +35,6 @@ public abstract class Reference extends DatabaseObject {
 	
 	public Reference() {
 		super();
-		databaseType = "Reference";
+		databaseType = DatabaseObjectTypes.Reference.name();
 	}
 }

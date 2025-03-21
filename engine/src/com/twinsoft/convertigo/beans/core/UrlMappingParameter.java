@@ -32,6 +32,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
@@ -101,7 +102,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		super();
 		setValueOrNull(null);
 		
-		databaseType = "UrlMappingParameter";
+		databaseType = DatabaseObjectTypes.UrlMappingParameter.name();
 		
 		this.priority = getNewOrderValue();
 	}

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
@@ -33,7 +34,7 @@ public abstract class MobileComponent extends MobileObject {
 	
 	public MobileComponent() {
 		super();
-		databaseType = "MobileComponent";
+		databaseType = DatabaseObjectTypes.MobileComponent.name();
 	}
 	
 	@Override

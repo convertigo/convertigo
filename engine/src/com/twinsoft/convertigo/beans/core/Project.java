@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -222,7 +223,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 */
 	public Project() {
 		super();
-		databaseType = "Project";
+		databaseType = DatabaseObjectTypes.Project.name();
 	}
 
 	/**

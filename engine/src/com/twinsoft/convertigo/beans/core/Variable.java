@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
@@ -49,7 +50,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 	
 	public Variable() {
 		super();
-		databaseType = "Variable";
+		databaseType = DatabaseObjectTypes.Variable.name();
 		setValueOrNull(null);
 		
 		// Set priority to creation time since version 4.0.1

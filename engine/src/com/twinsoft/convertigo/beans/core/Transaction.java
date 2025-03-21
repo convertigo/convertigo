@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
@@ -114,7 +115,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	 */
 	public Transaction() {
 		super();
-		databaseType = "Transaction";
+		databaseType = DatabaseObjectTypes.Transaction.name();
 		setAccessibility(Accessibility.Private);
 	}
 

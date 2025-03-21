@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -47,7 +48,7 @@ public abstract class UrlMappingOperation extends DatabaseObject implements ICon
 	
 	public UrlMappingOperation() {
 		super();
-		databaseType = "UrlMappingOperation";
+		databaseType = DatabaseObjectTypes.UrlMappingOperation.name();
 		
 		orderedParameters = new XMLVector<XMLVector<Long>>();
 		orderedParameters.add(new XMLVector<Long>());

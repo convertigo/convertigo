@@ -194,11 +194,6 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.core.MobileApplication" />
 				</bean>
-				<bean enable="true" documented="true"
-					classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent">
-					<parent allowInheritance="true"
-						classname="com.twinsoft.convertigo.beans.core.MobileApplication" />
-				</bean>
 			</beans>
 			<beans groupname="Route Components">
 				<bean enable="true" documented="true"

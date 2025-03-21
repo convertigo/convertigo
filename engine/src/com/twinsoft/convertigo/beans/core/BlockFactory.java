@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.twinj.iJavelin;
 
@@ -40,7 +41,7 @@ public abstract class BlockFactory extends DatabaseObject {
     
     public BlockFactory() {
         super();
-        databaseType = "BlockFactory";
+        databaseType = DatabaseObjectTypes.BlockFactory.name();
     }
     
     /**

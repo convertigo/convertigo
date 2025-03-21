@@ -4160,4 +4160,27 @@
 			class="com.twinsoft.convertigo.eclipse.ConvertigoPlugin">
 		</startup>
 	</extension>
+	
+	<extension
+		point="org.eclipse.search.searchPages">
+		<page 
+			id="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchPage"
+			class="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchPage"
+			label="Convertigo Search"
+			sizeHint="460,160"
+			icon="icons/studio/convertigo_logo_16x16.png"
+			tabPosition="1">
+		</page>
+	</extension>
+	
+	<extension
+		point="org.eclipse.search.searchResultViewPages">
+		<viewPage
+			id="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchResultViewPage"
+			searchResultClass="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchResult"
+			class="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchResultViewPage"
+			icon="icons/studio/convertigo_logo_16x16.png">
+		</viewPage>
+	</extension>
+	
 </plugin>

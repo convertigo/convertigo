@@ -58,7 +58,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProje
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 
-class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorProvider {
+public class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorProvider {
 
 	private Font fontSystem;
 	private Font fontModifiedDatabaseObject;
@@ -138,7 +138,10 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			String iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
 			Image image = null;
 			
-			if (obj instanceof UnloadedProjectTreeObject) {
+			if (obj instanceof DatabaseObject dbo) {
+				iconName = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+				image = ViewImageProvider.getImageFromCache(iconName, dbo);
+			} else if (obj instanceof UnloadedProjectTreeObject) {
 				String imageKey = org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED;
 				image = PlatformUI.getWorkbench().getSharedImages().getImage(imageKey);
 			}

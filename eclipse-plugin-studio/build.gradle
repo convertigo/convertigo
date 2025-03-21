@@ -90,6 +90,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.egit.ui',
 					'org.eclipse.jface.text',
 					'org.eclipse.jgit',
+					'org.eclipse.search',
 					'org.eclipse.swt',
 					'org.eclipse.ui',
 					'org.eclipse.ui.console',

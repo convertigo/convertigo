@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
@@ -80,7 +81,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 
 	public Connector() {
 		super();
-		databaseType = "Connector";
+		databaseType = DatabaseObjectTypes.Connector.name();
 	}
 
 	private transient EventListenerList connectorListeners = new EventListenerList();

@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
@@ -49,7 +50,7 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	public MobilePlatform() {
         super();
-		databaseType = "MobilePlatform";
+		databaseType = DatabaseObjectTypes.MobilePlatform.name();
 	}
 	
 	@Override

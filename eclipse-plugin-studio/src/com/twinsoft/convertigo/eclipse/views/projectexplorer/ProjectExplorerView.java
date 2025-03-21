@@ -820,7 +820,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 		};
-		
+
 		copyAction = new ClipboardCopyAction();
 		cutAction = new ClipboardCutAction();
 		pasteAction = new ClipboardPasteAction();
@@ -843,8 +843,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
 		} else {
 			ConvertigoPlugin.runAtStartup(() -> 
-				Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class)
-			);
+			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class)
+					);
 		}
 	}
 
@@ -928,12 +928,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (treeObjectEvent.getSource() instanceof TreeObjectListener) {
 			removeTreeObjectListener((TreeObjectListener) treeObjectEvent.getSource());
 		}
-		
+
 		treeObjectEvent.type = TreeObjectEvent.TYPE_REMOVED;
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 	}
 
-	
+
 
 	//private TreeObject oldSelection = null;
 	private TreeItem lastItem[] = new TreeItem[0];
@@ -995,16 +995,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						while (res.isEmpty()) {
 							if (current instanceof ProjectTreeObject) {
 								res.add(0, prj);
-							} else if (current instanceof SequenceTreeObject || current instanceof TransactionTreeObject) {
-								if (prj.findMember("stubs") != null) {
-									res.add(0, prj.findMember("stubs"));
+							} else {
+								Object member = null;
+								if (current instanceof SequenceTreeObject || current instanceof TransactionTreeObject) {
+									member = prj.findMember("stubs");
+								} else if (current instanceof MobileApplicationTreeObject) {
+									member = prj.findMember("DisplayObjects");
+								} else if (current instanceof MobilePlatformTreeObject) {
+									member = prj.findMember("DisplayObjects/platforms/" + ((MobilePlatformTreeObject) current).getName() + "/");
+								} else if (current instanceof NgxApplicationComponentTreeObject || current instanceof MobileApplicationComponentTreeObject) {
+									member = prj.findMember("DisplayObjects/mobile/");
 								}
-							} else if (current instanceof MobileApplicationTreeObject) {
-								res.add(0, prj.findMember("DisplayObjects"));
-							} else if (current instanceof MobilePlatformTreeObject) {
-								res.add(0, prj.findMember("DisplayObjects/platforms/" + ((MobilePlatformTreeObject) current).getName() + "/"));
-							} else if (current instanceof NgxApplicationComponentTreeObject || current instanceof MobileApplicationComponentTreeObject) {
-								res.add(0, prj.findMember("DisplayObjects/mobile/"));
+								if (member != null) {
+									res.add(0, member);
+								}
 							}
 							current = current.getParent();
 						}
@@ -2430,7 +2434,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		reloadTreeObject(treeObject);
 	}
 
-	
+
 
 	public void reloadTreeObject(TreeObject object) throws EngineException, IOException {
 		if (object != null) {
@@ -2455,7 +2459,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void reloadProjectAndDeleteNodeModules(ProjectTreeObject projectTreeObject) {
 		// reload project
 		((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
-		
+
 		// delete node modules and alert user
 		final File nodeModules = new File(projectTreeObject.getObject().getProject().getDirPath(), "/_private/ionic/node_modules");
 		if (nodeModules.exists()) {
@@ -2479,7 +2483,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} catch (Exception e) {}
 		}
 	}
-	
+
 	public void refreshTree() {
 		viewer.refresh();
 	}
@@ -2531,8 +2535,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		updateTreeObject(treeObject);
 	}
 
-	
-
 	public TreeObject getFirstSelectedTreeObject() {
 		ISelection selection = viewer.getSelection();
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
@@ -2546,10 +2548,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return (DatabaseObjectTreeObject) selection;
 	}
 
-	/*public DatabaseObjectTreeObject getFirstSelectedDatabaseObjectTreeObject(){
+	public DatabaseObjectTreeObject getFirstSelectedDatabaseObjectTreeObject(){
 		TreeObject selection = getFirstSelectedTreeObject();
 		return getFirstSelectedDatabaseObjectTreeObject(selection);
-	}*/
+	}
 
 	public void setSelectedTreeObject(TreeObject object) {
 		StructuredSelection structuredSelection = new StructuredSelection(object);

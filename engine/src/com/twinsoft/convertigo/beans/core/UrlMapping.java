@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
@@ -46,7 +47,7 @@ public abstract class UrlMapping extends DatabaseObject {
 
 	public UrlMapping() {
 		super();
-		databaseType = "UrlMapping";
+		databaseType = DatabaseObjectTypes.UrlMapping.name();
 	}
 	
 	@Override

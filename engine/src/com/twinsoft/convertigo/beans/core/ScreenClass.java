@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -83,7 +84,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
      */
     public ScreenClass() {
         super();
-        databaseType = "ScreenClass";
+        databaseType = DatabaseObjectTypes.ScreenClass.name();
         
         orderedCriterias = new XMLVector<XMLVector<Long>>();
         orderedCriterias.add(new XMLVector<Long>());

@@ -456,6 +456,13 @@ public class NewObjectWizard extends Wizard {
 				application.setRootPage((PageComponent)newBean);
 		}
 
+		if (newBean instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent page
+				&& parentObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent application) {
+			if (application.getRootPage() == null) {
+				application.setRootPage(page);
+			}
+		}
+
 		if (newBean instanceof SequenceStep) {
 			Project project = newBean.getProject();
 

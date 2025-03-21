@@ -999,6 +999,7 @@ public class HttpConnector extends Connector {
 			
 			// Setting HTTP parameters
 			boolean hasUserAgent = false;
+			var hasConnection = false;
 
 			for (List<String> httpParameter : httpParameters) {
 				String key = httpParameter.get(0);
@@ -1012,12 +1013,18 @@ public class HttpConnector extends Connector {
 				}
 				if (HeaderName.UserAgent.is(key)) {
 					hasUserAgent = true;
+				} else if (HeaderName.Connection.is(key)) {
+					hasConnection = true;
 				}
 			}
 
 			// set user-agent header if not found
 			if (!hasUserAgent) {
 				HeaderName.UserAgent.setRequestHeader(method, getUserAgent(context));
+			}
+			
+			if (!hasConnection && ((AbstractHttpTransaction) context.transaction).getHttpPool() == HttpPool.no) {
+				HeaderName.Connection.setRequestHeader(method, "close");
 			}
 
 			// Setting POST or PUT parameters if any

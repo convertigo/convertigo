@@ -390,6 +390,10 @@ function toggleColumnVisibility(columnName) {
 }
 
 function resetOptions() {
+	if (typeof serverDate == "undefined") {
+		window.setTimeout(resetOptions, 50);
+		return;
+	}
 	$(".log-reset-to-checked").prop("checked", true);
 	$(".log-reset-to-unchecked").prop("checked", false);
 	

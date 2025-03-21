@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 
 @DboCategoryInfo(
 		getCategoryId = "UrlMapper",
@@ -41,7 +42,7 @@ public class UrlMapper extends DatabaseObject {
 
 	public UrlMapper() {
 		super();
-		databaseType = "UrlMapper";
+		databaseType = DatabaseObjectTypes.UrlMapper.name();
 	}
 	
 	@Override

@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.beans.BeanInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -59,7 +60,9 @@ public class ViewImageProvider {
 	 */
 	private static String getImageName(Object object) {
 		String imageName = null;
-		if (object instanceof DatabaseObjectTreeObject) {
+		if (object instanceof DatabaseObject dbo) {
+			imageName = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+		} else if (object instanceof DatabaseObjectTreeObject) {
 			imageName = ((DatabaseObjectTreeObject)object).getImageName();
 		} else if (object instanceof AbstractNodeWithDatabaseObjectReference) {
 			DatabaseObject dbo = ((AbstractNodeWithDatabaseObjectReference) object).getRefDatabaseObject();

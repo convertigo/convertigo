@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
@@ -119,7 +120,7 @@ public class MobileApplication extends DatabaseObject {
 	
 	public MobileApplication() {
 		super();
-		databaseType = "MobileApplication";
+		databaseType = DatabaseObjectTypes.MobileApplication.name();
 	}
 
 	public boolean getEnableFlashUpdate() {
@@ -387,10 +388,7 @@ public class MobileApplication extends DatabaseObject {
 		File folder = getResourceFolder();
 		if (!folder.exists()) {
 			try {
-				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/mobile");
-				/* Since 7.5.x do not copy jquery template anymore
-				FileUtils.copyDirectory(templateFolder, folder); */
-				templateFolder.mkdirs();
+				folder.mkdirs();
 			} catch (Exception e) {
 				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
