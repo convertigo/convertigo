@@ -72,15 +72,15 @@ public class MakeSplash {
 				RenderingHints.VALUE_RENDER_QUALITY);
 
 		g.drawImage(background, 0, 0, null);
-		g.drawImage(convertigo, 45, 20, null);
+		g.drawImage(convertigo, 45, 56, null);
 		g.drawImage(logo, 347, 240, 132, 48, null);
 		
 		try (FileInputStream fis = new FileInputStream("Interstate Light.ttf")) {
 			font = Font.createFont(Font.TRUETYPE_FONT, fis);
 		}
 		
-		int dx = -15;
-		int dy = -5;
+		int dx = -55;
+		int dy = 58;
 		write(codename, 80 + dx, 175 + dy, 42f, true);
 		write(code, 90 + dx, 225 + dy, 25f, true);
 		write(version, 150 + dx, 230 + dy, 16f, false);
