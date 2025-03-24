@@ -41,7 +41,7 @@ public class DatabaseObjectSearchResult extends AbstractTextSearchResult {
 
 	@Override
 	public String getLabel() {
-		return "Search: " + query.getLabel();
+		return (query.isSearching() ? "Searching: " :  "Results: ") + query.getLabel() + " [" + results.size() + " found]";
 	}
 
 	@Override
