@@ -37,10 +37,21 @@ public abstract class Contributor {
 	protected void setContainer(MobileComponent container) {
 		this.container = container;
 	}
+	
 	protected MobileComponent getContainer() {
 		return container;
 	}
+		
+	private UIComponent link = null;
 	
+	protected UIComponent getLink() {
+		return link;
+	}
+
+	protected void setLink(UIComponent link) {
+		this.link = link;
+	}
+
 	public boolean isNullContainer() {
 		return container == null ? true : false;
 	}

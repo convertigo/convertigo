@@ -369,7 +369,9 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				imports.put("* as ts", "typescript");
+				if (isNullContainer() || isAppContainer()) {
+					imports.put("* as ts", "typescript");
+				}
 				return imports;
 			}
 

@@ -12,6 +12,11 @@
 ]]></com.twinsoft.convertigo.beans.common.FormatedContent>
             </xmlizable>
         </property>
+        <property name="app_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
         <property name="build_assets">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -90,6 +95,11 @@
 ]]></com.twinsoft.convertigo.beans.common.FormatedContent>
             </xmlizable>
         </property>
+        <property name="app_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
         <property name="build_assets">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -160,6 +170,8 @@
             </xmlizable>
         </property>
     </mobilecomponent>
+    
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIFontStyle" priority="0" version="   8   1   0">
         <property name="comment">
             <java.lang.String value=""/>

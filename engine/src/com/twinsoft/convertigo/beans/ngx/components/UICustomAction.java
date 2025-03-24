@@ -47,6 +47,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	private static final long serialVersionUID = 4203444295012733219L;
 
 	private transient UIActionFailureEvent failureEvent = null;
+	private transient boolean clearPageTsImportAfterMigration = false;
 	
 	public UICustomAction() {
 		super();
@@ -56,6 +57,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	public UICustomAction clone() throws CloneNotSupportedException {
 		UICustomAction cloned = (UICustomAction) super.clone();
 		cloned.failureEvent = null;
+		cloned.clearPageTsImportAfterMigration = false;
 		return cloned;
 	}
 	
@@ -74,22 +76,93 @@ public class UICustomAction extends UIComponent implements IAction {
 
 		try {
 			if (VersionUtils.compare(version, "8.4.0") < 0) {
+				if (!this.page_ts_imports.isEmpty()) {
+					this.page_ts_imports = migrateTsImports(this.page_ts_imports);
+				}
+				if (!this.module_ts_imports.isEmpty()) {
+					this.module_ts_imports = migrateTsImports(this.module_ts_imports);
+				}
+				
+				if (this.app_ts_imports.isEmpty() && !this.page_ts_imports.isEmpty()) {
+					this.app_ts_imports = new XMLVector<XMLVector<String>>(this.page_ts_imports);
+					this.hasChanged = true;
+				}
 				if (this.local_module_ts_imports.isEmpty() && !this.module_ts_imports.isEmpty()) {
 					this.local_module_ts_imports = new XMLVector<XMLVector<String>>(this.module_ts_imports);
+					this.hasChanged = true;
 				}
 				if (this.local_module_ng_imports.isEmpty() && !this.module_ng_imports.isEmpty()) {
 					this.local_module_ng_imports = new XMLVector<XMLVector<String>>(this.module_ng_imports);
+					this.hasChanged = true;
 				}
 				if (this.local_module_ng_providers.isEmpty() && !this.module_ng_providers.isEmpty()) {
 					this.local_module_ng_providers = new XMLVector<XMLVector<String>>(this.module_ng_providers);
+					this.hasChanged = true;
 				}
-				this.hasChanged = true;
+				this.clearPageTsImportAfterMigration = true;
 			}
+
+//TODO: TO REMOVE BEFORE RELEASE 8.4.0
+			if (VersionUtils.compare(version, "8.4.0.m006") == 0) {
+				if (!this.page_ts_imports.isEmpty()) {
+					this.page_ts_imports = migrateTsImports(this.page_ts_imports);
+				}
+				if (!this.module_ts_imports.isEmpty()) {
+					this.module_ts_imports = migrateTsImports(this.module_ts_imports);
+				}
+				if (!this.local_module_ts_imports.isEmpty()) {
+					this.local_module_ts_imports = migrateTsImports(this.local_module_ts_imports);
+				}
+				
+				if (this.app_ts_imports.isEmpty() && !this.page_ts_imports.isEmpty()) {
+					this.app_ts_imports = new XMLVector<XMLVector<String>>(this.page_ts_imports);
+					this.hasChanged = true;
+				}
+				clearPageTsImportAfterMigration = true;				
+			}
+//TODO: END
 		} catch (Exception e) {
 			throw new EngineException("Unable to migrate the UICustomAction \"" + getName() + "\".", e);
 		}
 	}
 	
+	private XMLVector<XMLVector<String>> migrateTsImports(XMLVector<XMLVector<String>> xmlv) {
+		for (XMLVector<String> v : xmlv) {
+			try {
+				String entry = v.get(0).trim();
+				boolean isDirectImport = v.size() < 3 ? false : "true".equals(v.get(2).trim());
+				if (!isDirectImport && !entry.isEmpty() && !entry.startsWith("{") && (entry.indexOf(" as ") == -1)) {
+					v.set(0, "{ "+ entry + " }");
+					this.hasChanged = true;
+				}
+		        while (v.size() > 2) {
+		            v.remove(v.size() - 1);
+		            this.hasChanged = true;
+		        }
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return xmlv;
+	}
+
+	
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		
+		if (this.clearPageTsImportAfterMigration) {
+			if (!this.page_ts_imports.isEmpty()) {
+				// clear only if this custom action is in a shared action
+				if (parent != null && getSharedAction() != null) {
+					this.page_ts_imports.clear();
+					this.hasChanged = true;
+				}
+			}
+			this.clearPageTsImportAfterMigration = false;
+		}
+	}
+
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
@@ -156,30 +229,10 @@ public class UICustomAction extends UIComponent implements IAction {
 	private XMLVector<XMLVector<String>> page_ts_imports = new XMLVector<XMLVector<String>>();
 	
 	public XMLVector<XMLVector<String>> getPageTsImports() {
-		if(this.compareToTplVersion("8.4.0.3") >= 0) {
-			for (XMLVector<String> row : page_ts_imports) {
-		        if (row.size() == 2) {
-		            row.add("false");
-		        }
-		        while (row.size() > 3) {
-		            row.remove(row.size() - 1);
-		        }
-		    }
-		}	    
 	    return page_ts_imports;
 	}
 
 	public void setPageTsImports(XMLVector<XMLVector<String>> page_ts_imports) {
-		if(this.compareToTplVersion("8.4.0.3") >= 0) {
-		    for (XMLVector<String> row : page_ts_imports) {
-		        if (row.size() == 2) {
-		            row.add("false");
-		        }
-		        while (row.size() > 3) {
-		            row.remove(row.size() - 1);
-		        }
-		    }
-		}
 	    this.page_ts_imports = page_ts_imports;
 	}
 	
@@ -223,35 +276,29 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	/*
+	 * The needed app service.ts imports
+	 */
+	private XMLVector<XMLVector<String>> app_ts_imports = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getAppTsImports() {
+	    return app_ts_imports;
+	}
+
+	public void setAppTsImports(XMLVector<XMLVector<String>> app_ts_imports) {
+	    this.app_ts_imports = app_ts_imports;
+	}
+	
+
+	/*
 	 * The needed app module imports
 	 */
 	private XMLVector<XMLVector<String>> module_ts_imports = new XMLVector<XMLVector<String>>();
 	
 	public XMLVector<XMLVector<String>> getModuleTsImports() {
-		if(this.compareToTplVersion("8.4.0.3") >= 0) {
-			for (XMLVector<String> row : module_ts_imports) {
-		        if (row.size() == 2) {
-		            row.add("false");
-		        }
-		        while (row.size() > 3) {
-		            row.remove(row.size() - 1);
-		        }
-		    }
-		}	
 		return module_ts_imports;
 	}
 	
 	public void setModuleTsImports(XMLVector<XMLVector<String>> module_ts_imports) {
-		if(this.compareToTplVersion("8.4.0.3") >= 0) {
-		    for (XMLVector<String> row : module_ts_imports) {
-		        if (row.size() == 2) {
-		            row.add("false");
-		        }
-		        while (row.size() > 3) {
-		            row.remove(row.size() - 1);
-		        }
-		    }
-		}
 		this.module_ts_imports = module_ts_imports;
 	}
 
@@ -642,7 +689,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		
 		try {
 			String imports = jsonScripts.getString("imports");
-			if(this.compareToTplVersion("8.4.0.3") < 0) {
+			/*if(this.compareToTplVersion("8.4.0.3") < 0) {
 				for (XMLVector<String> v : page_ts_imports) {
 					String name = v.get(0).trim();
 					String path = v.get(1).trim();
@@ -673,7 +720,18 @@ public class UICustomAction extends UIComponent implements IAction {
 				    }
 				    
 				}
-			}			
+			}*/
+			
+			/*for (XMLVector<String> v : page_ts_imports) {
+				String name = v.get(0).trim();
+				String from = v.get(1).trim();
+				
+				String cname = UIComponent.getImportClassname(name);
+				if (main.addImport(cname, from)) {
+					imports += "import "+ name +" from '"+ from +"';" + System.lineSeparator();
+				}
+			}*/
+			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -915,7 +973,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected Contributor getContributor() {
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		//boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 		return new Contributor() {
 			
 			private boolean accept() {
@@ -925,8 +983,18 @@ public class UICustomAction extends UIComponent implements IAction {
 					} else if (isAppContainer()) {
 						return getSharedAction() != null;
 					} else {
-						isContainer((MobileComponent)getMainScriptComponent());
+						return isMainScriptContainer(); //isContainer((MobileComponent)getMainScriptComponent());
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+			
+			private boolean isMainScriptContainer() {
+				try {
+					IScriptComponent isc = getLink() != null ? getLink().getMainScriptComponent() : getMainScriptComponent();
+					return isContainer((MobileComponent)isc);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -935,7 +1003,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			private boolean doit() {
 				try {
-					return isAppContainer() || isContainer((MobileComponent)getMainScriptComponent());
+					return isAppContainer() || isMainScriptContainer();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -965,15 +1033,21 @@ public class UICustomAction extends UIComponent implements IAction {
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
-					if(tplIsLowerThan8043) {
-						for (XMLVector<String> v : page_ts_imports) {
-							imports.put(v.get(0).trim(), v.get(1).trim());
-						}
+					XMLVector<XMLVector<String>> xmlv = new XMLVector<XMLVector<String>>();
+					if (isNullContainer() || isAppContainer()) {
+						xmlv.addAll(app_ts_imports);
+					} else if (isMainScriptContainer()/*isContainer((MobileComponent)getMainScriptComponent())*/) {
+						xmlv.addAll(page_ts_imports);
 					}
-					else {
-						for (XMLVector<String> v : page_ts_imports) {
-							imports.put(v.get(0).trim(), v.get(1).trim() + "__c8o_separator__" +v.get(2).trim());
-						}	
+					for (XMLVector<String> v : xmlv) {
+						String name = v.get(0).trim();
+						String from = v.get(1).trim();
+						if (!name.isEmpty() && !from.isEmpty()) {
+							String cname = UIComponent.getImportClassname(name);
+							if (!imports.containsKey(cname)) {
+								imports.put(name, from);
+							}
+						}
 					}
 				}
 				return imports;
@@ -992,22 +1066,16 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ts_imports);
 					}
-					if (isContainer((MobileComponent)getMainScriptComponent())) {
+					if (isMainScriptContainer()) {
 						xmlv.addAll(local_module_ts_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
 						String name = v.get(0).trim();
-						String path = v.get(1).trim();
-						String syntax = v.size() > 2 ? v.get(1).trim() : "false";
-						if (!name.isEmpty() && !path.isEmpty()) {
-							if (!imports.containsKey(name)) {
-								imports.put(name, path);
-								if(tplIsLowerThan8043) {
-									imports.put(name, path);
-								}
-								else {
-									imports.put(name, path + "__c8o_separator__" +syntax);	
-								}
+						String from = v.get(1).trim();
+						if (!name.isEmpty() && !from.isEmpty()) {
+							String cname = UIComponent.getImportClassname(name);
+							if (!imports.containsKey(cname)) {
+								imports.put(name, from);
 							}
 						}
 					}
@@ -1023,7 +1091,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ng_imports);
 					}
-					if (isContainer((MobileComponent)getMainScriptComponent())) {
+					if (isMainScriptContainer()) {
 						xmlv.addAll(local_module_ng_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
@@ -1046,7 +1114,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ng_providers);
 					}
-					if (isContainer((MobileComponent)getMainScriptComponent())) {
+					if (isMainScriptContainer()) {
 						xmlv.addAll(local_module_ng_providers);
 					}
 					for (XMLVector<String> v : xmlv) {

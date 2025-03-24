@@ -842,7 +842,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 					} catch (Exception e) {
 						c8o_CompModulePath = "../components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
 					}
-					imports.put(c8o_CompModuleName, c8o_CompModulePath);
+					imports.put("{ "+ c8o_CompModuleName+" }", c8o_CompModulePath);
 				}
 				return imports;
 			}

@@ -719,4 +719,11 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 			return false;
 		}
 	}
+	
+	static public String getImportClassname(String entry) {
+		if (entry != null) {
+			return entry.replace("{","").replace("}","").trim();
+		}
+		return entry;
+	}
 }

@@ -38,7 +38,7 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[13];
+			properties = new PropertyDescriptor[14];
 			
 			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
 			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
@@ -116,6 +116,12 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			properties[12].setShortDescription(getExternalizedString("property.local_module_ng_providers.short_description"));
 			properties[12].setPropertyEditorClass(getEditorClass("MobileConfigNgProvidersEditor"));
 			properties[12].setExpert(true);
+
+			properties[13] = new PropertyDescriptor("app_ts_imports", beanClass, "getAppTsImports", "setAppTsImports");
+			properties[13].setDisplayName(getExternalizedString("property.app_ts_imports.display_name"));
+			properties[13].setShortDescription(getExternalizedString("property.app_ts_imports.short_description"));
+			properties[13].setPropertyEditorClass(getEditorClass("MobileConfigTsImportsEditor"));
+			properties[13].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

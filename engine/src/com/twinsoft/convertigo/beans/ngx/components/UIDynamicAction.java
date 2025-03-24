@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirec
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonConfig;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -490,7 +491,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
 							String pagePath = getRelativePagePath((MobileComponent)main, pageName);
 							if (main.addImport(pageName, pagePath)) {
-								imports += "import {"+ pageName +"} from '"+ pagePath +"';" + System.lineSeparator();
+								imports += "import { "+ pageName +" } from '"+ pagePath +"';" + System.lineSeparator();
 							}
 						}
 					} catch (Exception e) {
@@ -724,6 +725,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	protected Contributor getContributor() {
+		final boolean isTplLowerThan8400 = this.compareToTplVersion("8.4.0.0") < 0;
+		
 		Contributor contributor = super.getContributor();
 		return new Contributor() {
 			
@@ -759,13 +762,26 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, List<String>> map = ionBean.getConfig().getActionTsImports();
+				IonConfig ionConfig = getBeanConfig();
+				if (ionConfig != null) {
+					Map<String, List<String>> map = new HashMap<String, List<String>>();
+					if (isNullContainer() || isAppContainer()) {
+						map.putAll(ionConfig.getActionTsImports());
+					}
+					if (isContainer((MobileComponent)getMainScriptComponent())) {
+						map.putAll(ionConfig.getLocalTsImports());
+					}
 					if (map.size() > 0) {
 						for (String from : map.keySet()) {
 							for (String component: map.get(from)) {
-								imports.put(component.trim(), from);
+								String name = component.trim();
+								if (isTplLowerThan8400) {
+									name = "{ "+ name + " }";
+								}
+								String cname = UIComponent.getImportClassname(name);
+								if (!imports.containsKey(cname)) {
+									imports.put(name, from);
+								}
 							}
 						}
 					}
@@ -775,7 +791,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
 								String pagePath = getRelativePagePath(getContainer(), pageName);
-								imports.put(pageName, pagePath);
+								if (!imports.containsKey(pageName)) {
+									imports.put("{ "+ pageName + " }", pagePath);
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -802,7 +820,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
 								String pageModuleName = pageName + "Module";
 								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ ".module";
-								map.put(pageModuleName, pageModulepath);
+								if (!map.containsKey(pageModuleName)) {
+									map.put("{ "+ pageModuleName + " }", pageModulepath);
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -823,7 +843,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
 								String pageModuleName = pageName + "Module";
-								imports.add(pageModuleName);
+								if (!imports.contains(pageModuleName)) {
+									imports.add(pageModuleName);
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();

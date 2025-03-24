@@ -1713,6 +1713,27 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_PageConstructors = page.getComputedConstructors();
 		String c8o_PageFunctions = page.getComputedFunctions();
 		
+		// import local ts imports from page contributors
+		String c8o_PageTsImports = "";
+		Map<String, String> page_ts_imports = new HashMap<>();
+		for (Contributor contributor : page.getContributors()) {
+			contributor.forContainer(page, () -> {
+				page_ts_imports.putAll(contributor.getActionTsImports());
+			});
+		}
+		Map<String, String> tpl_page_ts_imports = getTplPageTsImports();
+		if (!page_ts_imports.isEmpty()) {
+			for (String comp : page_ts_imports.keySet()) {
+				String cname = UIComponent.getImportClassname(comp);
+				if (!tpl_page_ts_imports.containsKey(cname)) {
+					String from = page_ts_imports.get(comp);
+					if (c8o_PageImports.indexOf("import "+ comp ) == -1) {
+						c8o_PageTsImports += "import "+ comp +" from '"+ from +"';" + System.lineSeparator();
+					}
+				}
+			}
+		}
+		
 		boolean tplIsLowerThan8043 = page.compareToTplVersion("8.4.0.3") < 0;
 		
 		String c8o_ModuleTsImports = "";
@@ -1754,13 +1775,14 @@ public class NgxBuilder extends MobileBuilder {
 							fromM = from.replaceAll("Module", "").replaceAll(".module", "");
 							mapRemovedModule.put(comp, compM);
 						}
-						String pattern = "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
+						String pattern = Pattern.quote(compM); // "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
 						Pattern compiledPattern = Pattern.compile(pattern);
 				        Matcher matcher = compiledPattern.matcher(c8o_PageImports);
+				        Matcher matcher1 = compiledPattern.matcher(c8o_PageTsImports);
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        
-						if (!matcher2.find() && !matcher.find()) {
-							String[] parted = fromM.split("__c8o_separator__");
+						if (!matcher2.find() && !matcher1.find() && !matcher.find()) {
+							/*String[] parted = fromM.split("__c8o_separator__");
 				        	fromM = parted[0];
 							String directImport = parted.length > 1 ? parted[1] : "false";
 							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
@@ -1768,7 +1790,11 @@ public class NgxBuilder extends MobileBuilder {
 							} else {
 								fromM = (fromM.startsWith("../components/") ? "../":"") + fromM;
 								c8o_ModuleTsImports += "import { "+compM+" } from '"+ fromM +"';"+ System.lineSeparator();
+							}*/
+							if (comp.indexOf(" as ") == -1) {
+								fromM = (fromM.startsWith("../components/") ? "../":"") + fromM;
 							}
+							c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 						}
 					}
 				}
@@ -1814,7 +1840,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageStyleUrls\\*/","'"+c8o_PageStyleUrls+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+//		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports + c8o_PageTsImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
 		if(!tplIsLowerThan8043) {
@@ -1897,13 +1924,13 @@ public class NgxBuilder extends MobileBuilder {
 							fromM = from.replaceAll("Module", "").replaceAll(".module", "").replaceAll("../components", "..");
 							mapRemovedModule.put(comps, compM);
 						}
-						String pattern = "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
+						String pattern = Pattern.quote(compM); // "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
 						Pattern compiledPattern = Pattern.compile(pattern);
 						Matcher matcher = compiledPattern.matcher(c8o_CompImports);
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        
 						if (!matcher.find() && !matcher2.find()) {
-							String[] parted = fromM.split("__c8o_separator__");
+							/*String[] parted = fromM.split("__c8o_separator__");
 				        	fromM = parted[0];
 							String directImport = parted.length > 1 ? parted[1] : "false";
 							if (comps.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
@@ -1911,7 +1938,8 @@ public class NgxBuilder extends MobileBuilder {
 							} else {
 								//from = (from.startsWith("../components/") ? "../":"") + from;
 								c8o_ModuleTsImports += "import { "+compM+" } from '"+ fromM +"';"+ System.lineSeparator();
-							}
+							}*/
+							c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 						}
 					}
 				}
@@ -2011,7 +2039,7 @@ public class NgxBuilder extends MobileBuilder {
 		Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
 		if (!module_ts_imports.isEmpty()) {
 			for (String comp : module_ts_imports.keySet()) {
-				if (!tpl_ts_imports.containsKey(comp)) {
+				/*if (!tpl_ts_imports.containsKey(comp)) {
 					String from = module_ts_imports.get(comp);
 					if (comp.indexOf(" as ") != -1) {
 						c8o_ModuleTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
@@ -2019,6 +2047,14 @@ public class NgxBuilder extends MobileBuilder {
 						from = (from.startsWith("../components/") ? "../":"") + from;
 						c8o_ModuleTsImports += "import { "+comp+" } from '"+ from +"';"+ System.lineSeparator();
 					}
+				}*/
+				String cname = UIComponent.getImportClassname(comp);
+				if (!tpl_ts_imports.containsKey(cname)) {
+					String from = module_ts_imports.get(comp);
+					if (comp.indexOf(" as ") == -1) {
+						from = (from.startsWith("../components/") ? "../":"") + from;
+					}
+					c8o_ModuleTsImports += "import "+ comp +" from '"+ from +"';"+ System.lineSeparator();
 				}
 			}
 		}
@@ -2152,7 +2188,7 @@ public class NgxBuilder extends MobileBuilder {
 		Map<String, String> tpl_ts_imports = getTplCompModuleTsImports();
 		if (!module_ts_imports.isEmpty()) {
 			for (String compo : module_ts_imports.keySet()) {
-				if (!tpl_ts_imports.containsKey(compo)) {
+				/*if (!tpl_ts_imports.containsKey(compo)) {
 					String from = module_ts_imports.get(compo);
 					if (compo.indexOf(" as ") != -1) {
 						c8o_ModuleTsImports += "import "+compo+" from '"+ from +"';"+ System.lineSeparator();
@@ -2160,6 +2196,14 @@ public class NgxBuilder extends MobileBuilder {
 						from = (from.startsWith("../components/") ? "../":"") + from;
 						c8o_ModuleTsImports += "import { "+compo+" } from '"+ from +"';"+ System.lineSeparator();
 					}
+				}*/
+				String cname = UIComponent.getImportClassname(compo);
+				if (!tpl_ts_imports.containsKey(cname)) {
+					String from = module_ts_imports.get(compo);
+					if (compo.indexOf(" as ") == -1) {
+						from = (from.startsWith("../components/") ? "../":"") + from;
+					}
+					c8o_ModuleTsImports += "import "+ compo +" from '"+ from +"';"+ System.lineSeparator();
 				}
 			}
 		}
@@ -2637,8 +2681,7 @@ public class NgxBuilder extends MobileBuilder {
 
 				String c8o_ActionTsImports = "";
 				for (String comp : action_ts_imports.keySet()) {
-					if (!getTplServiceActionTsImports().containsKey(comp)) {
-//
+					/*if (!getTplServiceActionTsImports().containsKey(comp)) {
 						String from = action_ts_imports.get(comp);
 						String[] parted = from.split("__c8o_separator__");
 						from = parted[0];
@@ -2652,6 +2695,14 @@ public class NgxBuilder extends MobileBuilder {
 						} else {
 							c8o_ActionTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
 						}
+					}*/
+					String cname = UIComponent.getImportClassname(comp);
+					if (!getTplServiceActionTsImports().containsKey(cname)) {
+						String from = action_ts_imports.get(comp);
+						if (cname.indexOf(" as ") == -1) {
+							from = from.replace("./pages", "../pages");
+						}
+						c8o_ActionTsImports += "import "+ comp +" from '"+ from +"';"+ System.lineSeparator();
 					}
 				}
 
@@ -2804,7 +2855,8 @@ public class NgxBuilder extends MobileBuilder {
 				Map<String, String> tpl_ts_imports = getTplAppModuleTsImports();
 				if (!module_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
-						if (!tpl_ts_imports.containsKey(comp)) {
+						String cname = UIComponent.getImportClassname(comp);
+						/*if (!tpl_ts_imports.containsKey(comp)) {
 							String from = module_ts_imports.get(comp);
 							String[] parted = from.split("__c8o_separator__");
 							from = parted[0];
@@ -2817,6 +2869,14 @@ public class NgxBuilder extends MobileBuilder {
 								from = (from.startsWith("components/") ? "./" : "") + from;
 								c8o_ModuleTsImports += "import { "+comp+" } from '"+ from +"';"+ System.lineSeparator();
 							}
+						}*/
+						if (!tpl_ts_imports.containsKey(cname)) {
+							String from = module_ts_imports.get(comp);
+							if (comp.indexOf(" as ") == -1) {
+								from = from.startsWith("../components/") ? "."+ from.substring(2) : from;
+								from = (from.startsWith("components/") ? "./" : "") + from;
+							}
+							c8o_ModuleTsImports += "import "+ comp +" from '"+ from +"';"+ System.lineSeparator();
 						}
 					}
 				}
@@ -2968,13 +3028,13 @@ public class NgxBuilder extends MobileBuilder {
 							fromM = from.replaceAll("Module", "").replaceAll(".module", "");
 							mapRemovedModule.put(comp, compM);
 						}
-						String pattern = "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
+						String pattern = Pattern.quote(compM); // "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
 						Pattern compiledPattern = Pattern.compile(pattern);
 //						Matcher matcher = compiledPattern.matcher(c8o_PagesImport);
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 //				        Matcher matcher3 = compiledPattern.matcher(c8o_AppImports);
 				        if (/*!matcher.find() && */!matcher2.find() /*&& !matcher3.find()*/) {
-				        	String[] parted = fromM.split("__c8o_separator__");
+				        	/*String[] parted = fromM.split("__c8o_separator__");
 				        	fromM = parted[0];
 							String directImport = parted.length > 1 ? parted[1] : "false";
 							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
@@ -2983,7 +3043,12 @@ public class NgxBuilder extends MobileBuilder {
 								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
 								fromM = (fromM.startsWith("components/") ? "./" : "") + fromM;
 								c8o_ModuleTsImports += "import { "+compM+" } from '"+ fromM +"';"+ System.lineSeparator();
+							}*/
+							if (comp.indexOf(" as ") == -1) {
+								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
+								fromM = (fromM.startsWith("components/") ? "./" : "") + fromM;
 							}
+							c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 				        }
 					}
 				}
@@ -3045,8 +3110,8 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_AppFunctions = app.getComputedFunctions();
 		Set<String> module_ng_imports =  new HashSet<String>();
 		Map<String, String> module_ts_imports = new HashMap<>();
-		boolean tplIsLowerThan8043 = app.compareToTplVersion("8.4.0.3") < 0;
 		
+		boolean tplIsLowerThan8043 = app.compareToTplVersion("8.4.0.3") < 0;
 		if(!tplIsLowerThan8043) {
 			//App contributors
 			for (Contributor contributor : app.getContributors()) {
@@ -3123,13 +3188,13 @@ public class NgxBuilder extends MobileBuilder {
 							fromM = from.replaceAll("Module", "").replaceAll(".module", "");
 							mapRemovedModule.put(comp, compM);
 						}
-						String pattern = "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
+						String pattern = Pattern.quote(compM); // "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
 						Pattern compiledPattern = Pattern.compile(pattern);
 						Matcher matcher = compiledPattern.matcher(c8o_PagesImport);
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        Matcher matcher3 = compiledPattern.matcher(c8o_AppImports);
 				        if (!matcher.find() && !matcher2.find() && !matcher3.find()) {
-				        	String[] parted = fromM.split("__c8o_separator__");
+				        	/*String[] parted = fromM.split("__c8o_separator__");
 				        	fromM = parted[0];
 							String directImport = parted.length > 1 ? parted[1] : "false";
 							if (comp.indexOf(" as ") != -1 || "true".equalsIgnoreCase(directImport)) {
@@ -3138,7 +3203,12 @@ public class NgxBuilder extends MobileBuilder {
 								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
 								fromM = (fromM.startsWith("components/") ? "./" : "") + fromM;
 								c8o_ModuleTsImports += "import { "+compM+" } from '"+ fromM +"';"+ System.lineSeparator();
-							}
+							}*/
+				        	if (comp.indexOf(" as ") == -1) {
+								fromM = fromM.startsWith("../components/") ? "."+ fromM.substring(2) : fromM;
+								fromM = (fromM.startsWith("components/") ? "./" : "") + fromM;
+				        	}
+							c8o_ModuleTsImports += "import "+compM+" from '"+ fromM +"';"+ System.lineSeparator();
 				        }
 					}
 				}

@@ -34,10 +34,11 @@ public class IonConfig implements Cloneable {
 	private static final IonConfig emptyConfig = new IonConfig();
 
 	enum Key {
-		action_ts_imports,
+		local_ts_imports,
 		local_module_ts_imports,
 		local_module_ng_imports,
 		local_module_ng_providers,
+		action_ts_imports,
 		module_ts_imports,
 		module_ng_imports,
 		module_ng_providers,
@@ -74,47 +75,36 @@ public class IonConfig implements Cloneable {
 		return jsonConfig;
 	}
 
+	public Map<String, List<String>> getLocalTsImports() {
+		return getTsImports(Key.local_ts_imports);
+	}
+
+	public Map<String, List<String>> getLocalModuleTsImports() {
+		return getTsImports(Key.local_module_ts_imports);
+	}
+
+	public Set<String> getLocalModuleNgImports() {
+		return getNgSet(Key.local_module_ng_imports);
+	}
+
+	public Set<String> getLocalModuleNgProviders() {
+		return getNgSet(Key.local_module_ng_providers);
+	}
+	
 	public Map<String, List<String>> getActionTsImports() {
 		return getTsImports(Key.action_ts_imports);
 	}
 
-	public Map<String, List<String>> getLocalModuleTsImports() {
-		return jsonConfig.has(Key.local_module_ts_imports.name()) ? 
-				getTsImports(Key.local_module_ts_imports) : 
-					getTsImports(Key.module_ts_imports);
-	}
-
-	public Set<String> getLocalModuleNgImports() {
-		return jsonConfig.has(Key.local_module_ng_imports.name()) ? 
-				getNgSet(Key.local_module_ng_imports) :
-					getNgSet(Key.module_ng_imports);
-	}
-
-	public Set<String> getLocalModuleNgProviders() {
-		return jsonConfig.has(Key.local_module_ng_providers.name()) ? 
-				getNgSet(Key.local_module_ng_providers) :
-					getNgSet(Key.module_ng_providers);
-	}
-	
 	public Map<String, List<String>> getModuleTsImports() {
-		//return getTsImports(Key.module_ts_imports);
-		return jsonConfig.has(Key.local_module_ts_imports.name()) ? 
-				getTsImports(Key.module_ts_imports) : 
-					new HashMap<String, List<String>>();
+		return getTsImports(Key.module_ts_imports);
 	}
 
 	public Set<String> getModuleNgImports() {
-		//return getNgSet(Key.module_ng_imports);
-		return jsonConfig.has(Key.local_module_ng_imports.name()) ? 
-				getNgSet(Key.module_ng_imports) :
-					new HashSet<String>();
+		return getNgSet(Key.module_ng_imports);
 	}
 
 	public Set<String> getModuleNgProviders() {
-		//return getNgSet(Key.module_ng_providers);
-		return jsonConfig.has(Key.local_module_ng_providers.name()) ? 
-				getNgSet(Key.module_ng_providers) :
-					new HashSet<String>();
+		return getNgSet(Key.module_ng_providers);
 	}
 
 	public Set<String> getModuleNgDeclarations() {

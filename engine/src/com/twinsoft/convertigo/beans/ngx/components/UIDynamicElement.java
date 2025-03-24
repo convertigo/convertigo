@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.core.IDynamicBean;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonConfig;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.Engine;
@@ -479,8 +480,34 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return "";
 	}
 	
+	protected IonConfig getBeanConfig() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null && !isDeprecated()) {
+			if (this.compareToTplVersion("8.4.0.0") < 0) { // treats here ion config migration of TPL < 8.4.0.0
+				try {
+					JSONObject jsonObject = ionBean.getConfig().getJSONObject();
+					if (!jsonObject.has("action_ts_imports")) { // not ion UIDynamicAction
+						if (jsonObject.has("module_ts_imports")) {
+							jsonObject.put("local_module_ts_imports", jsonObject.remove("module_ts_imports"));
+						}
+						if (jsonObject.has("module_ng_imports")) {
+							jsonObject.put("local_module_ng_imports", jsonObject.remove("module_ng_imports"));
+						}
+						if (jsonObject.has("module_ng_providers")) {
+							jsonObject.put("local_module_ts_providers", jsonObject.remove("module_ts_providers"));
+						}
+						return IonConfig.get(jsonObject);
+					}
+				} catch (Exception e) {}
+			}
+			return ionBean.getConfig();
+		}
+		return null;
+	}
+	
 	@Override
 	protected Contributor getContributor() {
+		final boolean isTplLowerThan8400 = this.compareToTplVersion("8.4.0.0") < 0;
 		return new Contributor() {
 			
 			private boolean doit() {
@@ -518,42 +545,46 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null && !isDeprecated()) {
+				IonConfig ionConfig = getBeanConfig();
+				if (ionConfig != null) {
 					if (doit()) {
 						Map<String, List<String>> map = new HashMap<String, List<String>>();
 						if (isAppContainer()) {
-							map.putAll(ionBean.getConfig().getModuleTsImports());
+							map.putAll(ionConfig.getModuleTsImports());
 						}
 						if (isContainer((MobileComponent)getMainScriptComponent())) {
-							map.putAll(ionBean.getConfig().getLocalModuleTsImports());
+							map.putAll(ionConfig.getLocalModuleTsImports());
 						}
 						if (map.size() > 0) {
 							for (String from : map.keySet()) {
 								for (String component: map.get(from)) {
 									String name = component.trim();
-									if (!imports.containsKey(name)) {
+									if (isTplLowerThan8400) {
+										name = "{ "+ name + " }";
+									}
+									String cname = UIComponent.getImportClassname(name);
+									if (!imports.containsKey(cname)) {
 										imports.put(name, from);
 									}
 								}
 							}
 						}
 					}
-				}
+				}				
 				return imports;
 			}
 
 			@Override
 			public Set<String> getModuleNgImports() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null && !isDeprecated()) {
+				IonConfig ionConfig = getBeanConfig();
+				if (ionConfig != null) {
 					if (doit()) {
 						Set<String> set = new HashSet<String>();
 						if (isAppContainer()) {
-							set.addAll(ionBean.getConfig().getModuleNgImports());
+							set.addAll(ionConfig.getModuleNgImports());
 						}
 						if (isContainer((MobileComponent)getMainScriptComponent())) {
-							set.addAll(ionBean.getConfig().getLocalModuleNgImports());
+							set.addAll(ionConfig.getLocalModuleNgImports());
 						}
 						return set;
 					}
@@ -563,15 +594,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 			@Override
 			public Set<String> getModuleNgProviders() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null && !isDeprecated()) {
+				IonConfig ionConfig = getBeanConfig();
+				if (ionConfig != null) {
 					if (doit()) {
 						Set<String> set = new HashSet<String>();
 						if (isAppContainer()) {
-							set.addAll(ionBean.getConfig().getModuleNgProviders());
+							set.addAll(ionConfig.getModuleNgProviders());
 						}
 						if (isContainer((MobileComponent)getMainScriptComponent())) {
-							set.addAll(ionBean.getConfig().getLocalModuleNgProviders());
+							set.addAll(ionConfig.getLocalModuleNgProviders());
 						}
 						return set;
 					}

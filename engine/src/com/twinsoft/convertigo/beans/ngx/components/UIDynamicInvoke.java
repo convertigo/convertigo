@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,7 +162,12 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		
 		// Now, add target stack contributors
 		if (!isBroken()) {
-			getTargetSharedAction().addContributors(done, contributors);
+			List<Contributor> _contributors = new ArrayList<Contributor>();
+			getTargetSharedAction().addContributors(done, _contributors);
+			for (Contributor contributor: _contributors) {
+				contributor.setLink(this);
+				contributors.add(contributor);
+			}
 		}
 	}
 
