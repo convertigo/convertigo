@@ -1761,7 +1761,8 @@ public class NgxBuilder extends MobileBuilder {
 			Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
 			if (!module_ts_imports.isEmpty()) {
 				for (String comp : module_ts_imports.keySet()) {
-					if (!tpl_ts_imports.containsKey(comp)) {
+					String cname = UISharedComponent.getImportClassname(comp);
+					if (!tpl_ts_imports.containsKey(cname)) {
 						String from = module_ts_imports.get(comp);
 						String compM = comp;
 						String fromM = from;
@@ -1888,6 +1889,27 @@ public class NgxBuilder extends MobileBuilder {
 		String scriptcontentstring = comp.getScriptContent().getString();
 		String c8o_UserCustoms = checkEnable ? (comp.isEnabled() ? scriptcontentstring : "") : scriptcontentstring;
 		
+		// import local ts imports from comp contributors
+		String c8o_CompTsImports = "";
+		Map<String, String> comp_ts_imports = new HashMap<>();
+		for (Contributor contributor : comp.getContributors()) {
+			contributor.forContainer(comp, () -> {
+				comp_ts_imports.putAll(contributor.getActionTsImports());
+			});
+		}
+		Map<String, String> tpl_comp_ts_imports = getTplCompTsImports();
+		if (!comp_ts_imports.isEmpty()) {
+			for (String compo : comp_ts_imports.keySet()) {
+				String cname = UIComponent.getImportClassname(compo);
+				if (!tpl_comp_ts_imports.containsKey(cname)) {
+					String from = comp_ts_imports.get(compo);
+					if (c8o_CompTsImports.indexOf("import "+ compo ) == -1) {
+						c8o_CompTsImports += "import "+ compo +" from '"+ from +"';" + System.lineSeparator();
+					}
+				}
+			}
+		}
+		
 		boolean tplIsLowerThan8043 = comp.compareToTplVersion("8.4.0.3") < 0;
 		String c8o_ModuleTsImports = "";
 		String c8o_ModuleNgImports = "";
@@ -1900,6 +1922,7 @@ public class NgxBuilder extends MobileBuilder {
 			List<Contributor> contributors = comp.getContributors();
 			for (Contributor contributor : contributors) {
 				contributor.forContainer(comp, () -> {
+					module_ts_imports.putAll(contributor.getActionTsImports());
 					module_ts_imports.putAll(contributor.getModuleTsImports());
 					module_ng_imports.addAll(contributor.getModuleNgImports());
 					module_ng_providers.addAll(contributor.getModuleNgProviders());
@@ -1915,7 +1938,8 @@ public class NgxBuilder extends MobileBuilder {
 			Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
 			if (!module_ts_imports.isEmpty()) {
 				for (String comps : module_ts_imports.keySet()) {
-					if (!tpl_ts_imports.containsKey(comps)) {
+					String cname = UISharedComponent.getImportClassname(comps);
+					if (!tpl_ts_imports.containsKey(cname)) {
 						String from = module_ts_imports.get(comps);
 						String compM = comps;
 						String fromM = from;
@@ -1927,9 +1951,10 @@ public class NgxBuilder extends MobileBuilder {
 						String pattern = Pattern.quote(compM); // "\\{\\s*" + Pattern.quote(compM) + "\\s*\\}";
 						Pattern compiledPattern = Pattern.compile(pattern);
 						Matcher matcher = compiledPattern.matcher(c8o_CompImports);
+						Matcher matcher1 = compiledPattern.matcher(c8o_CompTsImports);
 				        Matcher matcher2 = compiledPattern.matcher(c8o_ModuleTsImports);
 				        
-						if (!matcher.find() && !matcher2.find()) {
+						if (!matcher.find() && !matcher1.find() && !matcher2.find()) {
 							/*String[] parted = fromM.split("__c8o_separator__");
 				        	fromM = parted[0];
 							String directImport = parted.length > 1 ? parted[1] : "false";
@@ -1979,7 +2004,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompStyleUrls\\*/","'"+c8o_CompStyleUrls+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompChangeDetection\\*/",c8o_CompChangeDetection);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImports\\*/",c8o_CompImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+//		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImports\\*/",c8o_CompImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImports\\*/",c8o_CompImports + c8o_CompTsImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
