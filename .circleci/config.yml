@@ -629,7 +629,6 @@ jobs:
     macos:
       xcode: 15.0.0
     steps:
-    - aws-cli/setup
     - attach_workspace:
         at: for_mac
     - run:
@@ -671,10 +670,22 @@ jobs:
           #find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
           
           echo "prepare s3 upload, aws client version"
-          aws --version
+          curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+          sudo installer -pkg AWSCLIV2.pkg -target /
           
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
+          n=0
+          until [ $n -ge 5 ]
+          do
+            aws s3 sync DIST s3://convertigo-ci/ --storage-class REDUCED_REDUNDANCY --acl public-read --multipart-chunk-size-mb 100 && break
+            echo "Retrying upload in 10s..."
+            n=$((n+1))
+            sleep 10
+          done
           
+          if [ $n -ge 5 ]; then
+            echo "Upload failed after retries"
+            exit 1
+          fi
   release:
     docker:
     - image: cibuilds/github:latest
