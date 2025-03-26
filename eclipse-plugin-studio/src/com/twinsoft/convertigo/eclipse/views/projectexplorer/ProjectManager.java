@@ -75,4 +75,10 @@ public class ProjectManager {
 	int getNumberOfObjects(String projectName) {
 		return 100;
 	}
+	
+	public void clear() {
+		currentProject = null;
+		currentProjectName = null;
+		currentProjectTreeObject = null;
+	}
 }

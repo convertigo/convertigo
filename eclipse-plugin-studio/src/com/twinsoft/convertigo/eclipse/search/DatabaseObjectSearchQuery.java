@@ -24,6 +24,7 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 	private DatabaseObjectSearchResult searchResult;
 	private DatabaseObject root;
 	private String rootQName;
+	private boolean searching = true;
 
 
 	public DatabaseObjectSearchQuery(DatabaseObject root, String searchString, boolean matchCase, boolean useRegExp, String objectType) {
@@ -38,7 +39,7 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 
 	@Override
 	public String getLabel() {
-		return "Searching for: '" + searchString + "' from " + rootQName;
+		return (useRegExp ? "regular expression" : "substring") + " '" + searchString + "' from " + rootQName;
 	}
 
 	@Override
@@ -56,12 +57,13 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 		IStatus[] status = {Status.OK_STATUS};
 		try {
 			searchResult.clear();
+			searching = true;
 			
 			var substring = new String[]{searchString};
 			var matcher = useRegExp ? 
 					(matchCase ? Pattern.compile(searchString) : Pattern.compile(searchString, Pattern.CASE_INSENSITIVE)).matcher("") 
 					: null;
-			if (matchCase) {
+			if (!matchCase) {
 				substring[0] = substring[0].toLowerCase();
 			}
 			
@@ -113,7 +115,7 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 			ConvertigoPlugin.errorMessageBox(e.getClass().getName() + ":\n" + e.getMessage());
 			status[0] = Status.CANCEL_STATUS;
 		}
-
+		searching = false;
 		return status[0];
 	}
 
@@ -127,5 +129,9 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 			return txt;
 		}
 		return "…" + txt.substring(rootQName.length());
+	}
+	
+	public boolean isSearching() {
+		return searching;
 	}
 }

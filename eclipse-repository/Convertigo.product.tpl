@@ -23,8 +23,11 @@
 --add-opens=java.base/java.lang=ALL-UNNAMED
 --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
 --add-opens=java.base/java.io=ALL-UNNAMED
+-Xms2048m
+-Xms4096m
+      </vmArgs>
+      <vmArgs>
          <argsX86>-Xms256m -Xmx1024m</argsX86>
-         <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>
       <vmArgsMac>-Djxbrowser.ipc.external=true
       </vmArgsMac>
