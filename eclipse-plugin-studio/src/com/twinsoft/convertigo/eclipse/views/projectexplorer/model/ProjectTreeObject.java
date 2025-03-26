@@ -82,6 +82,7 @@ import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -998,5 +999,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 		
 		return obj;
+	}
+
+	@Override
+	public void setParent(TreeParent parent) {
+		super.setParent(parent);
+		if (parent == null) {
+			setObject(null);
+		}
 	}
 }

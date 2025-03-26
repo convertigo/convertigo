@@ -682,7 +682,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	@Override
 	public String getName() {
-		return getObject().getName();
+		var o = getObject();
+		return o == null ? null : o.getName();
 	}
 
 	public void markAsChanged(boolean hasChanged) {

@@ -2391,7 +2391,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 
 			ConvertigoPlugin.getDefault().refreshPaletteView();
-
+			ConvertigoPlugin.projectManager.clear();
 			return unloadedProjectTreeObject;
 		}
 		return null;
