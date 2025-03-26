@@ -904,14 +904,6 @@
 				menubarPath="convertigo.menu.new/content">
 			</action>
 			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxPageComponentAction"
-				enablesFor="1"
-				icon="icons/studio/menu/pagecomponent_color_16x16.png"
-				id="convertigo.action.newNgxPageComponent"
-				label="Page"
-				menubarPath="convertigo.menu.new/content">
-			</action>
-			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
 				enablesFor="1"
 				id="convertigo.action.editNgxAppComponentClass"
@@ -2338,26 +2330,6 @@
 						<objectState
 							name="parentPackageName"
 							value="com.twinsoft.convertigo.beans.mobile.components">
-						</objectState>
-					</and>
-				</enablement>
-			</action>
-			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxPageComponentAction"
-				enablesFor="1"
-				icon="icons/studio/menu/pagecomponent_color_16x16.png"
-				id="convertigo.action.newNgxPageComponent"
-				label="Ngx Page"
-				menubarPath="convertigo.menu.new/content">
-				<enablement>
-					<and>
-						<objectState
-							name="folderType"
-							value="24">
-						</objectState>
-						<objectState
-							name="parentPackageName"
-							value="com.twinsoft.convertigo.beans.ngx.components">
 						</objectState>
 					</and>
 				</enablement>

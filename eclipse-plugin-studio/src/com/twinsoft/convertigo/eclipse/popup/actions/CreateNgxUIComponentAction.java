@@ -43,14 +43,9 @@ public class CreateNgxUIComponentAction extends NgxComponentCreateAction {
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			if (treeObject instanceof ObjectsFolderTreeObject) {
-				ObjectsFolderTreeObject oft = (ObjectsFolderTreeObject)treeObject;
-				if (oft.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
-					enable = false;
-				} else {
-					TreeParent treeParent = oft.getParent();
-					enable = treeParent != null && treeParent instanceof NgxComponentTreeObject;
-				}
+			if (treeObject instanceof ObjectsFolderTreeObject oft) {
+				TreeParent treeParent = oft.getParent();
+				enable = treeParent != null && treeParent instanceof NgxComponentTreeObject;
 			} else if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
