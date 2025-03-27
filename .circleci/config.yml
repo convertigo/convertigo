@@ -11,7 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@5.0.0
+  aws-cli: circleci/aws-cli@5.2.0
 jobs:
   build_engine_jar:
     <<: *defaults
@@ -636,11 +636,6 @@ jobs:
         command: |
           source for_mac/build.env
           
-          echo "setup rosetta + aws"
-          sudo softwareupdate --install-rosetta
-          curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-          sudo installer -pkg AWSCLIV2.pkg -target /
-          
           security create-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
           security default-keychain -s ~/Library/Keychains/MyKeychain.keychain
           security unlock-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
@@ -675,7 +670,8 @@ jobs:
           #tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
           #find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
           
-          echo "prepare s3 upload"
+          echo "prepare s3 upload, aws client version"
+          aws --version
           
           n=0
           until [ $n -ge 5 ]
