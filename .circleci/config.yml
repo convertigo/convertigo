@@ -629,6 +629,7 @@ jobs:
     macos:
       xcode: 15.0.0
     steps:
+    - aws-cli/setup
     - attach_workspace:
         at: for_mac
     - run:
