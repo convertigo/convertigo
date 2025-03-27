@@ -117,7 +117,6 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -910,7 +909,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setText(mode.label());
 			menuItem.setToolTipText(mode.description());
 			menuItem.setData(mode);
-			menuItem.setImage(ViewImageProvider.getImageFromCache(mode.icon()));
+			try {
+				menuItem.setImage(plugin.getStudioIcon(mode.icon()));
+			} catch (Exception e) {
+			}
 			menuItem.addSelectionListener(buildModeListener);
 			if (mode.equals(buildMode)) {
 				item.setImage(menuItem.getImage());

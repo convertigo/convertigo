@@ -34,7 +34,7 @@ public enum MobileBuilderBuildMode {
 		this.label = label;
 		this.description = description;
 		this.command = command;
-		icon = "/studio/build_prod_" + code + ".png";
+		icon = "icons/studio/build_prod_" + code + ".png";
 	}
 	
 	public String label() {
