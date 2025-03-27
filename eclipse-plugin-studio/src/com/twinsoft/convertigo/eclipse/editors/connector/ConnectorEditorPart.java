@@ -91,76 +91,40 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private Action createScreenClassFromSelectionZoneAction = null;
 	private Action createTagNameFromSelectionZoneAction = null;
 
-	private Image imageRenew = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/renew.png"));
-	private Image imageConnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/connect.png"));
-	private Image imageDisableConnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/connect.d.png"));
-	private Image imageDisconnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.png"));
-	private Image imageDisableDisconnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.d.png"));
-	private Image imageReset = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/reset.png"));
-	private Image imageRefresh = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/refresh.png"));
-	private Image imageDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/debug.png"));
-	private Image imageDisableDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/debug.d.png"));
-	private Image imageRun = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/run.png"));
-	private Image imageDisableRun = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/run.d.png"));
-	private Image imagePause = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/pause.png"));
-	private Image imageDisablePause = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/pause.d.png"));
-	private Image imageStep = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png"));
-	private Image imageDisableStep = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png"));
-	private Image imageGenerate = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png"));
-	private Image imageRenderXml = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/xml.png"));
-	private Image imageRenderJson = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/json.png"));
-	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
-	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
-	private Image imageShowScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/goto_screen_class.png"));
-	private Image imageLink = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.png"));
-	private Image imageDisableLink = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.d.png"));
-	private Image imageAddFromSelection = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_line.png"));
-	private Image imageDisableAddFromSelection = new Image(Display.getCurrent(), getClass()
-			.getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.png"));
-	private Image imageTestConnection = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/test_connection.png"));
-	private Image imageShowBlocks = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/show_blocks.png"));
-	private Image imageNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.png"));
-	private Image imageDisableNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.d.png"));
-	private Image imageNewTagName = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/beans/common/images/tagname_color_16x16.png"));
-	private Image imageRecord = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/record.png"));
-	private Image imageLearn = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.png"));
-	private Image imageAccumulate = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.png"));
-	private Image imageNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.png"));
-	private Image imageDisableNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png"));
+	private Image imageRenew = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/renew.png");
+	private Image imageConnect = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/connect.png");
+	private Image imageDisableConnect = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/connect.d.png");
+	private Image imageDisconnect = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/disconnect.png");
+	private Image imageDisableDisconnect = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/disconnect.d.png");
+	private Image imageReset = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/reset.png");
+	private Image imageRefresh = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/refresh.png");
+	private Image imageDebug = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/debug.png");
+	private Image imageDisableDebug = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/debug.d.png");
+	private Image imageRun = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/run.png");
+	private Image imageDisableRun = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/run.d.png");
+	private Image imagePause = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/pause.png");
+	private Image imageDisablePause = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/pause.d.png");
+	private Image imageStep = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png");
+	private Image imageDisableStep = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png");
+	private Image imageGenerate = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png");
+	private Image imageRenderXml = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/xml.png");
+	private Image imageRenderJson = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/json.png");
+	private Image imageStop = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png");
+	private Image imageDisableStop = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/stop.png");
+	private Image imageShowScreenclass = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/goto_screen_class.png");
+	private Image imageLink = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/bound_property.png");
+	private Image imageAddFromSelection = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/new_line.png");
+	private Image imageDisableAddFromSelection = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.png");
+	private Image imageTestConnection = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/test_connection.png");
+	private Image imageShowBlocks = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/show_blocks.png");
+	private Image imageNewScreenclass = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.png");
+	private Image imageDisableNewScreenclass = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.d.png");
+	private Image imageNewTagName = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/beans/common/images/tagname_color_16x16.png");
+	private Image imageRecord = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/record.png");
+	private Image imageLearn = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/next_node.png");
+	private Image imageAccumulate = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/next_node.png");
+	private Image imageNewWaitAt = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.png");
+	private Image imageDisableNewWaitAt = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png");
 	private Image imageDisabledFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png");
 	private Image imageFullResult = ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png");
 	
@@ -1101,6 +1065,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			compositeDesign = new Composite(tabFolderOutputDesign, SWT.NONE);
 			labelNoDesign = new Label(compositeDesign, SWT.NONE | SWT.WRAP);
 			labelNoDesign.setFont(new Font(null, "Tahoma", 10, 0));
+			labelNoDesign.addDisposeListener(e -> labelNoDesign.getFont().dispose());
 			labelNoDesign.setBounds(new org.eclipse.swt.graphics.Rectangle(10, 10, 300, 200));
 			labelNoDesign.setText("This connector does not provide any design tool");
 		}
@@ -1120,48 +1085,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 
 		// Deregister as Engine listener
 		Engine.theApp.removeEngineListener(this);
-
-	}
-
-	@Override
-	public void dispose() {
-		imageRenew.dispose();
-		imageConnect.dispose();
-		imageDisableConnect.dispose();
-		imageDisconnect.dispose();
-		imageDisableDisconnect.dispose();
-		imageRefresh.dispose();
-		imageDebug.dispose();
-		imageDisableDebug.dispose();
-		imageRun.dispose();
-		imageDisableRun.dispose();
-		imagePause.dispose();
-		imageDisablePause.dispose();
-		imageStep.dispose();
-		imageDisableStep.dispose();
-		imageGenerate.dispose();
-		imageRenderXml.dispose();
-		imageRenderJson.dispose();
-		imageStop.dispose();
-		imageDisableStop.dispose();
-		imageShowScreenclass.dispose();
-		imageLink.dispose();
-		imageDisableLink.dispose();
-		imageAddFromSelection.dispose();
-		imageDisableAddFromSelection.dispose();
-		imageShowBlocks.dispose();
-		imageNewScreenclass.dispose();
-		imageDisableNewScreenclass.dispose();
-		imageNewTagName.dispose();
-		imageRecord.dispose();
-		imageLearn.dispose();
-		imageAccumulate.dispose();
-		imageNewWaitAt.dispose();
-		imageDisableNewWaitAt.dispose();
-		imageDisabledFullResult.dispose();
-		imageFullResult.dispose();
-		
-		super.dispose();
+		dispose();
 	}
 
 	private void getDocument() {
@@ -1513,15 +1437,18 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		gridLayout4.numColumns = 2;
 		compositeOutputFooter = new Composite(compositeOutput, SWT.NONE);
 		compositeOutputFooter.setBackground(new Color(Display.getCurrent(), 162, 194, 250));
+		compositeOutputFooter.addDisposeListener(e -> compositeOutputFooter.getBackground().dispose());
 		compositeOutputFooter.setLayout(gridLayout4);
 		compositeOutputFooter.setLayoutData(gridData4);
 		label1 = new Label(compositeOutputFooter, SWT.NONE);
 		label1.setBackground(new Color(Display.getCurrent(), 162, 194, 250));
+		label1.addDisposeListener(e -> label1.getBackground().dispose());
 		label1.setText("Last detected screen class:");
 		label1.setToolTipText("Displays the current screen class name");
 
 		labelLastDetectedScreenClass = new Label(compositeOutputFooter, SWT.NONE);
 		labelLastDetectedScreenClass.setBackground(new Color(Display.getCurrent(), 162, 194, 250));
+		labelLastDetectedScreenClass.addDisposeListener(e -> labelLastDetectedScreenClass.getBackground().dispose());
 		labelLastDetectedScreenClass.setText("(unknown)");
 		labelLastDetectedScreenClass.setLayoutData(gridData7);
 		labelLastDetectedScreenClass.setToolTipText("Displays the current screen class name");

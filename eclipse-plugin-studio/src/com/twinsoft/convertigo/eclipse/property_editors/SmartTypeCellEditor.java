@@ -75,6 +75,7 @@ public class SmartTypeCellEditor extends TextGenericCellEditor {
 		fontDefaultData.setStyle(SWT.BOLD);
 		fontDefaultData.setHeight(Math.round(fontDefaultData.getHeight() * 0.7f));
 		Font fontTitle = new Font(parent.getDisplay(), fontDefaultData);
+		control.addDisposeListener(e -> fontTitle.dispose());
 		
 		text.addFocusListener(new FocusAdapter() {
 

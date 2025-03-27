@@ -60,6 +60,7 @@ public class UrlMappingWizardPage extends WizardPage {
 		
 		mappingPath = new Text(container, SWT.BORDER | SWT.SINGLE);
 		mappingPath.setFont(new Font(container.getDisplay(), "Tahoma", 10, 0));
+		mappingPath.addDisposeListener(e -> mappingPath.getFont().dispose());
 		mappingPath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		mappingPath.setText("/");
 		mappingPath.addModifyListener(new ModifyListener() {

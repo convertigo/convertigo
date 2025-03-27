@@ -135,6 +135,7 @@ class PscKeyValidationPage extends WizardPage implements SummaryGenerator {
 			public void widgetSelected(SelectionEvent e) {
 				Clipboard clipboard = new Clipboard(container.getDisplay());
 				String data = (String) clipboard.getContents(TextTransfer.getInstance());
+				clipboard.dispose();
 				if (data != null && data.length() > 0) {
 					pscKey.setText(data.trim());
 				}

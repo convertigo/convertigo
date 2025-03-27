@@ -107,6 +107,7 @@ class ComponentExplorerComposite extends Composite {
 
 		objectsMap = new HashMap<CLabel, Object>(32);
 		initialize();
+		parent.addDisposeListener(e -> dispose());
 	}
 
 	private boolean isAllowed(Component c) {

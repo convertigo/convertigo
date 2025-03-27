@@ -84,7 +84,9 @@ class CicsConnectorComposite extends AbstractConnectorComposite implements Conne
 		cicsData = new Text(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		cicsData.setEditable(false);
 		cicsData.setBackground(new Color(null,253,253,244));
+		cicsData.addDisposeListener(e -> cicsData.getBackground().dispose());
 		cicsData.setFont(new Font(null,"Courier New",10,1));
+		cicsData.addDisposeListener(e -> cicsData.getFont().dispose());
 		cicsData.setLayoutData(gridData);
 		cicsData.setText("");
 		this.setLayout(new GridLayout());

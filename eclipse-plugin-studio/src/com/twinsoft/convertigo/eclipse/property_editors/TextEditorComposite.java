@@ -54,6 +54,7 @@ public class TextEditorComposite extends AbstractDialogComposite {
 		this.setLayout(gridLayout);
 		textArea = new Text(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		textArea.setFont(new Font(null,"Tahoma",10,0));
+		textArea.addDisposeListener(e -> textArea.getFont().dispose());
 		textArea.setLayoutData(gridData);
 	}
 

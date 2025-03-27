@@ -47,7 +47,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	
 	private StyledText labelProperty, labelObjectType, labelProject = null;
 	private StyledText textFailure = null;
-	private Image image = null;
 	private Button buttonDoThis = null;	
 	private Button buttonOk, buttonIgnore = null;
 	private boolean doThisForAllCurrentProjectSymbols = false;
@@ -112,9 +111,10 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		gridData.verticalSpan = 4;
 		
-		image = new Image(parent.getDisplay(), parent.getDisplay().getSystemImage(SWT.ICON_WARNING), 0);
+		var image = new Image(parent.getDisplay(), parent.getDisplay().getSystemImage(SWT.ICON_WARNING), 0);
 		Label labelImage = new Label(container, SWT.NONE);
 		labelImage.setImage(image);
+		labelImage.addDisposeListener(e -> image.dispose());
 		labelImage.setLayoutData(gridData);
 		
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
@@ -140,9 +140,10 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		FontData[] fD = textFailure.getFont().getFontData();
 		fD[0].setHeight(10);
-		textFailure.setFont( new Font(display, fD[0]));
+		textFailure.setFont(new Font(display, fD[0]));
 		textFailure.setLayoutData(gridData);
 		textFailure.setBackground(back);
+		textFailure.addDisposeListener(e -> textFailure.getFont().dispose());
 		
 		if (undefinedSymbols.size() == 1) {
 			styleBold = new StyleRange();
@@ -217,6 +218,10 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		Label labelInfo = new Label(container, SWT.WRAP );
 		labelInfo.setText("\nNote: You can also create all global symbols for one project by right-clicking on the Project and choose \"Create global symbols\"");
 		labelInfo.setForeground(new Color(display, 0, 164, 200));
+
+		
+		labelInfo.addDisposeListener(e -> labelInfo.getForeground().dispose());
+		
 		labelInfo.setLayoutData(gridData);
 		
 		if (showCheckBox) {

@@ -76,20 +76,22 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		
 		
 		String level = logLine.getLevel();
-		Color color = null;
+		Color color;
 		if (level.equals(Level.ERROR.toString())) {
 			color = new Color(Display.getCurrent(), 255, 158, 147);
 		} else if (level.equals(Level.INFO.toString())) {
 			color = new Color(Display.getCurrent(), 225, 242, 228);
 		} else if (level.equals(Level.DEBUG.toString())) {
 			color = new Color(Display.getCurrent(), 249, 249, 177);
-		} else if (level.equals(Level.WARN.toString())) {
+		} else {
 			color = new Color(Display.getCurrent(), 242, 196, 208);
 		}
 		
 		logTime.setText(logLine.getTime());
 		logLevel.setText(logLine.getLevel());
 		logLevel.setBackground(color);
+		logLevel.addDisposeListener(e -> color.dispose());
+		
 		logCategory.setText(logLine.getCategory());
 		logThread.setText(logLine.getThread());
 		textMessage.setText(logLine.getFullMessage());

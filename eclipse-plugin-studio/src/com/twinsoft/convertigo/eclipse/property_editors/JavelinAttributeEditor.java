@@ -161,6 +161,7 @@ public class JavelinAttributeEditor extends AbstractDialogCellEditor {
             }
             Font previousFont = label.getFont();
             label.setFont(f);
+            label.addDisposeListener(e -> label.getFont().dispose());
             if (!previousFont.equals(defaultFont)) {
             	previousFont.dispose();
             }

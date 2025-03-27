@@ -282,7 +282,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (c8oBrowser != null) {
 			c8oBrowser.dispose();
 		}
-
+		
+		if (devicesMenu != null) {
+			devicesMenu.dispose();
+		}
+		
 		for (Process p: processes) {
 			p.destroyForcibly();
 			p.destroy();
@@ -538,6 +542,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 		});
+		deviceOsToolItem.addDisposeListener(e -> mOS.dispose());
 
 		new Label(deviceBar, SWT.NONE).setText(" ");
 
@@ -929,6 +934,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 		});
+		item.addDisposeListener(e -> buildModeMenu.dispose());
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
@@ -988,7 +994,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 
 			});
-
+			item.addDisposeListener(e -> mDataset.dispose());
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);

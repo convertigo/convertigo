@@ -1005,7 +1005,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public void setParent(TreeParent parent) {
 		super.setParent(parent);
 		if (parent == null) {
-			setObject(null);
+			Engine.execute(() -> {
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+				}
+				setObject(null);
+			});
 		}
 	}
 }

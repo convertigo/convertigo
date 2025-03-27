@@ -153,7 +153,7 @@ class EngineLogViewLabelProvider extends CellLabelProvider implements
 	public void update(ViewerCell cell) {}
 
 	@Override
-	public void dispose(ColumnViewer viewer, ViewerColumn column) {
+	public void dispose() {
 		error.dispose();
 		error_bis.dispose();
 		warn.dispose();
@@ -164,6 +164,12 @@ class EngineLogViewLabelProvider extends CellLabelProvider implements
 		debug_bis.dispose();
 		trace.dispose();
 		trace_bis.dispose();
+		super.dispose();
+	}
+
+	@Override
+	public void dispose(ColumnViewer viewer, ViewerColumn column) {
+		dispose();
 		super.dispose(viewer, column);
 	}
 	

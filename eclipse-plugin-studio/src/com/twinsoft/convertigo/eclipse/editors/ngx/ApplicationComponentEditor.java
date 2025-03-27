@@ -373,7 +373,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (c8oBrowser != null) {
 			c8oBrowser.dispose();
 		}
-
+		
+		if (devicesMenu != null) {
+			devicesMenu.dispose();
+		}
+		
 		for (Process p: processes) {
 			p.destroyForcibly();
 			p.destroy();
@@ -624,6 +628,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			mOS.setLocation(pt);
 			mOS.setVisible(true);
 		});
+		deviceOsToolItem.addDisposeListener(e -> mOS.dispose());
 
 		new Label(deviceBar, SWT.NONE).setText(" ");
 
@@ -1061,8 +1066,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 														QRCode qrcode = QRCode.getMinimumQRCode(href, 0);
 														BufferedImage bufferedImage = qrcode.createImage(8, 8);
 														ImageData imageData = SwtUtils.convertToSWT(bufferedImage).scaledTo(250, 250);
-														img[0] = new Image(parent.getDisplay(), imageData);
+														var i = img[0] = new Image(parent.getDisplay(), imageData);
 														image[0].setImage(img[0]);
+														image[0].addDisposeListener(ev -> i.dispose());
 														image[0].addMouseListener(new MouseAdapter() {
 
 															@Override
@@ -1120,6 +1126,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setToolTipText(mode.description());
 			menuItem.setData(mode);
 			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
+			menuItem.addDisposeListener(e -> menuItem.getImage().dispose());
 			menuItem.addSelectionListener((SelectionListener) e -> {
 				buildItem.setSelection(true);
 				buildMode = (NgxBuilderBuildMode) e.widget.getData();
@@ -1143,6 +1150,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				buildItem.setSelection(false);
 			}
 		});
+		item.addDisposeListener(e -> mBuild.dispose());
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
@@ -1215,7 +1223,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				mDataset.setLocation(pt);
 				mDataset.setVisible(true);
 			});
-
+			item.addDisposeListener(e -> mDataset.dispose());
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);

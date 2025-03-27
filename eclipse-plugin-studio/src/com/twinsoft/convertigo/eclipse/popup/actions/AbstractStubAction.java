@@ -53,7 +53,7 @@ abstract class AbstractStubAction extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);

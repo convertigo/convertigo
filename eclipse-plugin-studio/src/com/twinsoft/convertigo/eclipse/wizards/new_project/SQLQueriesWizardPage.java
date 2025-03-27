@@ -63,10 +63,12 @@ public class SQLQueriesWizardPage extends WizardPage {
 		Font font = new Font(container.getDisplay(), new FontData(fontData.getName(), fontData
 		    .getHeight(), SWT.BOLD));
 		label.setFont(font);
+		label.addDisposeListener(e -> font.dispose());
 		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		
 		sqlQueries = new Text(container, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		sqlQueries.setFont(new Font(container.getDisplay(), "Tahoma", 10, 0));
+		sqlQueries.addDisposeListener(e -> sqlQueries.getFont().dispose());
 		sqlQueries.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		setControl(container);

@@ -51,7 +51,6 @@ public class StatisticsDialog extends Dialog {
 	private Display display;
 	private CLabel topLabel, topLabelComment;
 	private Label labelImage;
-	private Image imageLeft;
 	private Composite descriptifRight;
 	private String projectName, comment, version;
 	private int nWidth = 800;
@@ -139,7 +138,7 @@ public class StatisticsDialog extends Dialog {
 		gridLayout.numColumns = 2;
 		gridLayout.makeColumnsEqualWidth = false;
 
-		Color white = new Color(display, 255, 255, 255);
+		Color white = parent.getDisplay().getSystemColor(SWT.COLOR_WHITE);
 		container.setLayout(gridLayout);
 
 		GridData gridData = new GridData(GridData.FILL_BOTH);
@@ -156,6 +155,7 @@ public class StatisticsDialog extends Dialog {
 		FontData[] fd = topLabel.getFont().getFontData();
 		fd[0].setHeight(fd[0].getHeight() + 1);
 		topLabel.setFont(new Font(topLabel.getFont().getDevice(), fd));
+		topLabel.addDisposeListener(e -> topLabel.getFont().dispose());
 
 		topLabelComment = new CLabel(cLeft, SWT.NONE);
 		topLabelComment.setText(comment);
@@ -164,8 +164,8 @@ public class StatisticsDialog extends Dialog {
 		fd = topLabelComment.getFont().getFontData();
 		fd[0].setHeight(fd[0].getHeight());
 		fd[0].setStyle(SWT.ITALIC);
-		topLabelComment.setFont(new Font(topLabelComment.getFont().getDevice(),
-				fd));
+		topLabelComment.setFont(new Font(topLabelComment.getFont().getDevice(), fd));
+		topLabelComment.addDisposeListener(e -> topLabel.getFont().dispose());
 
 		gridData = new GridData(GridData.FILL_BOTH);
 
@@ -182,15 +182,16 @@ public class StatisticsDialog extends Dialog {
 		
 		fd = projectSubInfo.getFont().getFontData();
 		fd[0].setHeight(10);
-		projectSubInfo.setFont(new Font(projectSubInfo.getFont().getDevice(),
-				fd));
+		projectSubInfo.setFont(new Font(projectSubInfo.getFont().getDevice(), fd));
+		projectSubInfo.addDisposeListener(e -> projectSubInfo.getFont().dispose());
 		
 		gridData = new GridData(GridData.FILL_VERTICAL);
 		
-		imageLeft = new Image(display, getClass().getResourceAsStream(
+		var imageLeft = new Image(display, getClass().getResourceAsStream(
 				"images/dialog_statistic.jpg"));
 		labelImage = new Label(container, SWT.NONE);
 		labelImage.setImage(imageLeft);
+		labelImage.addDisposeListener(e -> imageLeft.dispose());
 		labelImage.setBackground(white);
 		labelImage.setLayoutData(gridData);
 		labelImage.setSize(250, 300);
@@ -216,7 +217,7 @@ public class StatisticsDialog extends Dialog {
 	}
 
 	private void addStats() {
-
+		Color white = display.getSystemColor(SWT.COLOR_WHITE);
 		for (String key : statsProject.keySet()) {
 			if (key != project.getName()) {
 				CLabel title = new CLabel(descriptifRight, SWT.BOLD);
@@ -226,17 +227,19 @@ public class StatisticsDialog extends Dialog {
 								"images/stats_"
 										+ key.replaceAll(" ", "_")
 												.toLowerCase() + "_16x16.png")));
-				title.setBackground(new Color(display, 255, 255, 255));
+				title.addDisposeListener(e -> title.getImage().dispose());
+				title.setBackground(white);
 				title.setMargins(10, 10, 0, 0);
 
 				FontData[] fd = title.getFont().getFontData();
 				fd[0].setStyle(SWT.BOLD);
 				title.setFont(new Font(title.getFont().getDevice(), fd));
+				title.addDisposeListener(e -> title.getFont().dispose());
 
 				CLabel subText = new CLabel(descriptifRight, SWT.NONE);
 				subText.setText(statsProject.get(key)
 						.replaceAll("<br/>", "\r\n").replaceAll("&nbsp;", " "));
-				subText.setBackground(new Color(display, 255, 255, 255));
+				subText.setBackground(white);
 				subText.setMargins(30, 0, 0, 0);
 			}
 		}

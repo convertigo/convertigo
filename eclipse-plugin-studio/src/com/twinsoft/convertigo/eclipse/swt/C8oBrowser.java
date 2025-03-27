@@ -62,6 +62,7 @@ public class C8oBrowser extends Composite {
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
 	private Function<Event, Boolean> onClick = null;
+	private boolean closed = false;
 
 	private void init(Engine browserContext) {
 		setLayout(new FillLayout());
@@ -122,6 +123,14 @@ public class C8oBrowser extends Composite {
 	
 	private C8oBrowser(Composite parent, int style, Project project, String browserId) {
 		super(parent, style);
+		addDisposeListener(e -> {
+			if (!closed) {
+				closed = true;
+				run(() -> {
+					getBrowser().close();
+				});
+			}
+		});
 		boolean retry = false;
 		do {
 			File browserIdFile = null;
@@ -200,14 +209,6 @@ public class C8oBrowser extends Composite {
 				}
 			}
 		} while (retry);
-	}
-	
-	@Override
-	public void dispose() {
-		run(() -> {
-			getBrowser().close();
-		});
-		super.dispose();
 	}
 
 	public BrowserView getBrowserView() {
