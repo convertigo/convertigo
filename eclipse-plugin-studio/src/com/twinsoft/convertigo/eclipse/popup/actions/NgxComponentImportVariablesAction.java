@@ -73,8 +73,8 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 						enable = beanName.equals("CallSequenceAction") || beanName.equals("InvokeAction");
 						if (enable) {
 							String text = beanName.equals("CallSequenceAction") ? 
-											"Import variables from the targeted sequence" : 
-												"Import variables from the targeted shared action";
+									"Import variables from the targeted sequence" : 
+										"Import variables from the targeted shared action";
 							action.setText(text);
 						}
 					}
@@ -87,22 +87,22 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 		}
 		catch (Exception e) {}
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
-    			if (databaseObject != null) {
-	    			if (databaseObject instanceof UIDynamicAction) {
-	    				UIDynamicAction dynAction = (UIDynamicAction)databaseObject;
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				Object databaseObject = treeObject.getObject();
+				if (databaseObject != null) {
+					if (databaseObject instanceof UIDynamicAction) {
+						UIDynamicAction dynAction = (UIDynamicAction)databaseObject;
 						IonBean ionBean = ((UIDynamicAction)dynAction).getIonBean();
 						if (ionBean != null) {
 							// Case of CallSequenceAction
@@ -111,35 +111,35 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 								if (!value.equals(false)) {
 									String target = value.toString();
 									if (!target.isEmpty()) {
-								    	try {
-								    		String projectName = target.substring(0, target.indexOf('.'));
-								    		String sequenceName = target.substring(target.indexOf('.')+1);
-								    		Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-								    		Sequence sequence = p.getSequenceByName(sequenceName);
-								    		
-								    		int size = sequence.numberOfVariables();
-								    		for (int i=0; i<size; i++) {
-								    			RequestableVariable variable = (RequestableVariable) sequence.getVariable(i);
-								    			if (variable != null) {
-								    				String variableName = variable.getName();
-								    				if (dynAction.getVariable(variableName) == null) {
-								    					if (!StringUtils.isNormalized(variableName))
-								    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
-								    					
-								    					UIControlVariable uiVariable = new UIControlVariable();
-								    					uiVariable.setName(variableName);
-								    					uiVariable.setComment(variable.getComment());
-								    					uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
-								    					dynAction.addUIComponent(uiVariable);
-		
-								    					uiVariable.bNew = true;
-								    					uiVariable.hasChanged = true;
-								    					dynAction.hasChanged = true;
-								    				}
-								    			}
-								    		}
-								    		
-								    	} catch (Exception e) {}
+										try {
+											String projectName = target.substring(0, target.indexOf('.'));
+											String sequenceName = target.substring(target.indexOf('.')+1);
+											Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+											Sequence sequence = p.getSequenceByName(sequenceName);
+
+											int size = sequence.numberOfVariables();
+											for (int i=0; i<size; i++) {
+												RequestableVariable variable = (RequestableVariable) sequence.getVariable(i);
+												if (variable != null) {
+													String variableName = variable.getName();
+													if (dynAction.getVariable(variableName) == null) {
+														if (!StringUtils.isNormalized(variableName))
+															throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+
+														UIControlVariable uiVariable = new UIControlVariable();
+														uiVariable.setName(variableName);
+														uiVariable.setComment(variable.getComment());
+														uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
+														dynAction.addUIComponent(uiVariable);
+
+														uiVariable.bNew = true;
+														uiVariable.hasChanged = true;
+														dynAction.hasChanged = true;
+													}
+												}
+											}
+
+										} catch (Exception e) {}
 									}
 								}
 							}
@@ -149,77 +149,82 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 								UIActionStack stack = dynInvoke.getTargetSharedAction();
 								if (stack != null) {
 									for (UIStackVariable variable: stack.getVariables()) {
-					    				String variableName = variable.getName();
-					    				if (dynAction.getVariable(variableName) == null) {
-					    					if (!StringUtils.isNormalized(variableName))
-					    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
-					    					
-					    					UIControlVariable uiVariable = new UIControlVariable();
-					    					uiVariable.setName(variableName);
-					    					uiVariable.setComment(variable.getComment());
-					    					
-					    					MobileSmartSourceType msst = new MobileSmartSourceType();
-					    					msst.setMode(MobileSmartSourceType.Mode.SCRIPT);
-					    					msst.setSmartValue(variable.getVariableValue());
-					    					uiVariable.setVarSmartType(msst);
-					    					dynAction.addUIComponent(uiVariable);
-	
-					    					uiVariable.bNew = true;
-					    					uiVariable.hasChanged = true;
-					    					dynAction.hasChanged = true;
-					    				}
+										String variableName = variable.getName();
+										if (dynAction.getVariable(variableName) == null) {
+											if (!StringUtils.isNormalized(variableName))
+												throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+
+											UIControlVariable uiVariable = new UIControlVariable();
+											uiVariable.setName(variableName);
+											uiVariable.setComment(variable.getComment());
+
+											MobileSmartSourceType msst = new MobileSmartSourceType();
+											msst.setMode(MobileSmartSourceType.Mode.SCRIPT);
+											msst.setSmartValue(variable.getVariableValue());
+											uiVariable.setVarSmartType(msst);
+											dynAction.addUIComponent(uiVariable);
+
+											uiVariable.bNew = true;
+											uiVariable.hasChanged = true;
+											dynAction.hasChanged = true;
+										}
 									}
 								}
 							}
-							
-		    				if (dynAction.hasChanged) {
-		    					explorerView.reloadTreeObject(treeObject);
-								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
-								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
-		    				}
-						}
-	    			} else if (databaseObject instanceof UIUseShared) {
-	    				UIUseShared useShared = (UIUseShared)databaseObject;
-	    				UISharedComponent sharedComp = useShared.getTargetSharedComponent();
-	    				if (sharedComp != null) {
-							for (UICompVariable variable: sharedComp.getVariables()) {
-			    				String variableName = variable.getName();
-			    				if (useShared.getVariable(variableName) == null) {
-			    					if (!StringUtils.isNormalized(variableName))
-			    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
-			    					
-			    					UIUseVariable uiVariable = new UIUseVariable();
-			    					uiVariable.setName(variableName);
-			    					uiVariable.setComment(variable.getComment());
-			    					
-			    					MobileSmartSourceType msst = new MobileSmartSourceType();
-			    					msst.setMode(MobileSmartSourceType.Mode.SCRIPT);
-			    					msst.setSmartValue(variable.getVariableValue());
-			    					uiVariable.setVarSmartType(msst);
-			    					useShared.addUIComponent(uiVariable);
 
-			    					uiVariable.bNew = true;
-			    					uiVariable.hasChanged = true;
-			    					useShared.hasChanged = true;
-			    				}
-							}
-							
-		    				if (useShared.hasChanged) {
-		    					explorerView.reloadTreeObject(treeObject);
+							if (dynAction.hasChanged) {
+								explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
-		    				}
-	    				}
-	    			}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to add variables to action !");
-        }
-        finally {
+							}
+						}
+					} else if (databaseObject instanceof UIUseShared) {
+						UIUseShared useShared = (UIUseShared)databaseObject;
+						UISharedComponent sharedComp = useShared.getTargetSharedComponent();
+						if (sharedComp != null) {
+							for (UICompVariable variable: sharedComp.getVariables()) {
+								String variableName = variable.getName();
+								if (useShared.getVariable(variableName) == null) {
+									if (!StringUtils.isNormalized(variableName))
+										throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+
+									UIUseVariable uiVariable = new UIUseVariable();
+									uiVariable.setName(variableName);
+									uiVariable.setComment(variable.getComment());
+
+									MobileSmartSourceType msst = new MobileSmartSourceType();
+									msst.setMode(MobileSmartSourceType.Mode.SCRIPT);
+									msst.setSmartValue(variable.getVariableValue());
+									uiVariable.setVarSmartType(msst);
+									useShared.addUIComponent(uiVariable);
+
+									uiVariable.bNew = true;
+									uiVariable.hasChanged = true;
+									useShared.hasChanged = true;
+								}
+							}
+
+							if (useShared.hasChanged) {
+								explorerView.reloadTreeObject(treeObject);
+								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
+								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
+							}
+						}
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to add variables to action !");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

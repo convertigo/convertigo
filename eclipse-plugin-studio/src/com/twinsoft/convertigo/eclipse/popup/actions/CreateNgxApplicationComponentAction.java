@@ -47,5 +47,9 @@ public class CreateNgxApplicationComponentAction extends DatabaseObjectCreateAct
 		}
 		catch (Exception e) {}
 	}
-	
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

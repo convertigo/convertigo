@@ -97,4 +97,8 @@ public class MobileComponentCreateAction extends MyAbstractAction {
 		explorerView.objectSelected(new CompositeEvent(createdDatabaseObject));
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

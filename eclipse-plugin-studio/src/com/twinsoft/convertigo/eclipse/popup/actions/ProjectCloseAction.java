@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ProjectCloseAction extends MyAbstractAction {
 
@@ -35,23 +36,27 @@ public class ProjectCloseAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-        
+
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null)
-    			explorerView.unloadSelectedProjectTreeObject();
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null)
+				explorerView.unloadSelectedProjectTreeObject();
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to close the project!");
 		}
-        finally {
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

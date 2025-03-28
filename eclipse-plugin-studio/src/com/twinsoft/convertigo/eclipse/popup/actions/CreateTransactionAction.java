@@ -19,9 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
 public class CreateTransactionAction extends DatabaseObjectCreateAction {
 
 	public CreateTransactionAction() {
 		super("com.twinsoft.convertigo.beans.core.Transaction");
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

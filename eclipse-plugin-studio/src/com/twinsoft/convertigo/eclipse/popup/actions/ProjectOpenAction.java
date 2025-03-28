@@ -26,31 +26,37 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ProjectOpenAction extends MyAbstractAction {
-	
+
 	public ProjectOpenAction() {
 		super();
 	}
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null)
-    			explorerView.loadSelectedUnloadedProjectTreeObject();
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to open the project!");
-        }
-        finally {
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null)
+				explorerView.loadSelectedUnloadedProjectTreeObject();
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to open the project!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

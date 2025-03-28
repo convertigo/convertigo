@@ -314,46 +314,63 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 		return files;
 	}
+	
+	public static boolean checkSameFiles(File srcFile, File destFile, boolean lazy) throws IOException {
+		if (srcFile.exists() && destFile.exists()) {
+			var last = srcFile.lastModified();
+			if (lazy && last == destFile.lastModified() && srcFile.length() == destFile.length()) {
+				return true;
+			}
+			if (Files.mismatch(srcFile.toPath(), destFile.toPath()) == -1) {
+				if (destFile.lastModified() != last) {
+					destFile.setLastModified(last);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 
-	public static void copyFileIfNeeded(File srcFile, File destFile, Set<File> existingFiles) throws IOException {
+	public static boolean copyFileIfNeeded(File srcFile, File destFile, Set<File> existingFiles) throws IOException {
 		if (existingFiles != null) {
 			existingFiles.remove(destFile);
 		}
-		if (destFile.exists()) {
-			if (Files.mismatch(srcFile.toPath(), destFile.toPath()) == -1) {
-				return;
-			}
+		if (checkSameFiles(srcFile, destFile, false)) {
+			return false;
 		}
 
 		Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+		return true;
 	}
 
 
-	public static void copyDirectoryOptimized(File srcDir, File destDir, Set<File> existingFiles) throws IOException {
-		copyDirectoryOptimized(srcDir, destDir, p -> true, existingFiles);
+	public static boolean copyDirectoryOptimized(File srcDir, File destDir, Set<File> existingFiles) throws IOException {
+		return copyDirectoryOptimized(srcDir, destDir, p -> true, existingFiles);
 	}
 
-	public static void copyDirectoryOptimized(File srcDir, File destDir, FileFilter filter, Set<File> existingFiles) throws IOException {
+	public static boolean copyDirectoryOptimized(File srcDir, File destDir, FileFilter filter, Set<File> existingFiles) throws IOException {
 		if (!srcDir.exists()) {
-			return;
+			return false;
 		}
 
 		destDir.mkdirs();
 
 		var files = srcDir.listFiles(filter);
-		if (files == null) {
-			return;
+		if (files == null || files.length == 0) {
+			return false;
 		}
-
+		
+		var copied = false;
 		for (var srcFile : files) {
 			var destFile = new File(destDir, srcFile.getName());
 
 			if (srcFile.isDirectory()) {
-				copyDirectoryOptimized(srcFile, destFile, filter, existingFiles);
+				copied |= copyDirectoryOptimized(srcFile, destFile, filter, existingFiles);
 			} else {
-				copyFileIfNeeded(srcFile, destFile, existingFiles);
+				copied |= copyFileIfNeeded(srcFile, destFile, existingFiles);
 			}
 		}
+		return copied;
 	}
 
 	public static boolean deleteWithParents(File file) {

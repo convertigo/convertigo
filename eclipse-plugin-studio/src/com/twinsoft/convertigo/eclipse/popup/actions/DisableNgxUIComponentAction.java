@@ -92,4 +92,8 @@ public class DisableNgxUIComponentAction extends MyAbstractAction {
 		}
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

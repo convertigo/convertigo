@@ -55,5 +55,10 @@ public class CreateMobileRouteActionComponentAction extends DatabaseObjectCreate
 			action.setEnabled(enable);
 		}
 		catch (Exception e) {}
-	}	
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

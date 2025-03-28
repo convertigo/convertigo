@@ -48,7 +48,7 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 	public MobileSharedComponentExtractAction() {
 		super();
 	}
-	
+
 	public void selectionChanged(IAction action, ISelection selection) {
 		boolean enable = false;
 		try {
@@ -64,7 +64,7 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 						doIt = false;
 						break;
 					}
-					
+
 					if (previous != null) {
 						if (!to.getPreviousSibling().equals(previous)) {
 							doIt = false;
@@ -73,7 +73,7 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 					}
 					previous = to;
 				}
-				
+
 				if (doIt) {
 					enable = true;
 				}
@@ -82,7 +82,7 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 		catch (Exception e) {}
 		action.setEnabled(enable);
 	}
-	
+
 	private boolean isAllowed(TreeObject treeObject) {
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject) treeObject;
@@ -92,7 +92,7 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 					UIElement uie = (UIElement)dbo;
 					boolean isUIDynamicAction = uie instanceof UIDynamicAction;
 					boolean isInForm = uie.getUIForm() != null && !uie.equals(uie.getUIForm());
-					
+
 					if (!isUIDynamicAction && !isInForm) {
 						return true;
 					}
@@ -101,50 +101,50 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 		}
 		return false;
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			DatabaseObjectTreeObject firstSelectedDoTo = GenericUtils.cast(explorerView.getFirstSelectedTreeObject());
-    			DatabaseObjectTreeObject parentTreeObject = firstSelectedDoTo.getParentDatabaseObjectTreeObject();
-   				
-    			TreeObject appTo = getAppTreeObject(firstSelectedDoTo);
-    			if (appTo == null) {
-    				throw new Exception("Unable to retrieve target application");
-    			}
-    			
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
-    			List<DatabaseObject> objectList = GenericUtils.cast(Arrays.asList(explorerView.getSelectedDatabaseObjects()));
-    			SharedComponentWizard newObjectWizard = new SharedComponentWizard(objectList);
-        		WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
-        		wzdlg.setPageSize(850, 650);
-        		wzdlg.open();
-        		int result = wzdlg.getReturnCode();
-        		if ((result != Window.CANCEL) && (newObjectWizard.newBean != null)) {
-        			for (TreeObject to: treeObjects) {
-        				if (((DatabaseObject)to.getObject()).getParent() == null) {
-        					parentTreeObject.removeChild(firstSelectedDoTo);
-        				}
-        			}
-        			explorerView.reloadTreeObject(appTo);
-        			explorerView.objectSelected(new CompositeEvent(newObjectWizard.newBean));
-        		}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to create a new shared component!");
-        }
-        finally {
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				DatabaseObjectTreeObject firstSelectedDoTo = GenericUtils.cast(explorerView.getFirstSelectedTreeObject());
+				DatabaseObjectTreeObject parentTreeObject = firstSelectedDoTo.getParentDatabaseObjectTreeObject();
+
+				TreeObject appTo = getAppTreeObject(firstSelectedDoTo);
+				if (appTo == null) {
+					throw new Exception("Unable to retrieve target application");
+				}
+
+				TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+				List<DatabaseObject> objectList = GenericUtils.cast(Arrays.asList(explorerView.getSelectedDatabaseObjects()));
+				SharedComponentWizard newObjectWizard = new SharedComponentWizard(objectList);
+				WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
+				wzdlg.setPageSize(850, 650);
+				wzdlg.open();
+				int result = wzdlg.getReturnCode();
+				if ((result != Window.CANCEL) && (newObjectWizard.newBean != null)) {
+					for (TreeObject to: treeObjects) {
+						if (((DatabaseObject)to.getObject()).getParent() == null) {
+							parentTreeObject.removeChild(firstSelectedDoTo);
+						}
+					}
+					explorerView.reloadTreeObject(appTo);
+					explorerView.objectSelected(new CompositeEvent(newObjectWizard.newBean));
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to create a new shared component!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 	private TreeObject getAppTreeObject(TreeObject parentTreeObject) {
@@ -156,5 +156,10 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 			parentTreeObject = parentTreeObject.getParent();
 		}
 		return null;
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

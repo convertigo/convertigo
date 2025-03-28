@@ -36,5 +36,9 @@ public class CreateConnectorAction extends DatabaseObjectCreateAction {
 		ProjectTreeObject projectTreeObject = (ProjectTreeObject) parentTreeObject;
 		projectTreeObject.openConnectorEditor((Connector) createdDatabaseObject);
 	}
-	
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

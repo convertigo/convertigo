@@ -46,10 +46,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction implements IViewActionDelegate {
-	
+
 	private List<TreeParent> treeNodesToUpdate;
 	private int counter = 1;
-	
+
 	public DatabaseObjectIncreasePriorityAction() {
 		super();
 	}
@@ -61,57 +61,57 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-        	treeNodesToUpdate = new ArrayList<TreeParent>();
-        	
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
-    			String[] selectedPaths = new String[treeObjects.length];
-    			if (treeObjects != null) {
-    				// Increase priority
-    				TreeObject treeObject = null;
-    				for (int i = 0 ; i < treeObjects.length ; i++) {
-    					treeObject = treeObjects[i];
-    					selectedPaths[i] = treeObject.getPath();
-   						increasePriority(treeObject);
-    				}
-    				
-    				// Updating the tree and the properties panel
-    				Enumeration<TreeParent> enumeration = Collections.enumeration(treeNodesToUpdate);
-    				TreeParent parentTreeObject = null;
-    				while (enumeration.hasMoreElements()) {
-    					parentTreeObject = enumeration.nextElement();
-    					explorerView.reloadTreeObject(parentTreeObject);
-    				}
-    				
-    				// Restore selection
-    	    		TreeObjectEvent treeObjectEvent;
-    	        	for (int i=0; i<selectedPaths.length; i++) {
-    	        		String previousPath = selectedPaths[i];
-    	        		treeObject = explorerView.findTreeObjectByPath(parentTreeObject, previousPath);
-    	        		if (treeObject != null) {
-    	        			treeObjects[i] = treeObject;
-    		                treeObjectEvent = new TreeObjectEvent(treeObject);
-    		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
-    	        		}
-    	        	}
-    				explorerView.setSelectedTreeObjects(treeObjects);
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to increase priority!");
-        }
-        finally {
+
+		try {
+			treeNodesToUpdate = new ArrayList<TreeParent>();
+
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+				String[] selectedPaths = new String[treeObjects.length];
+				if (treeObjects != null) {
+					// Increase priority
+					TreeObject treeObject = null;
+					for (int i = 0 ; i < treeObjects.length ; i++) {
+						treeObject = treeObjects[i];
+						selectedPaths[i] = treeObject.getPath();
+						increasePriority(treeObject);
+					}
+
+					// Updating the tree and the properties panel
+					Enumeration<TreeParent> enumeration = Collections.enumeration(treeNodesToUpdate);
+					TreeParent parentTreeObject = null;
+					while (enumeration.hasMoreElements()) {
+						parentTreeObject = enumeration.nextElement();
+						explorerView.reloadTreeObject(parentTreeObject);
+					}
+
+					// Restore selection
+					TreeObjectEvent treeObjectEvent;
+					for (int i=0; i<selectedPaths.length; i++) {
+						String previousPath = selectedPaths[i];
+						treeObject = explorerView.findTreeObjectByPath(parentTreeObject, previousPath);
+						if (treeObject != null) {
+							treeObjects[i] = treeObject;
+							treeObjectEvent = new TreeObjectEvent(treeObject);
+							explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+						}
+					}
+					explorerView.setSelectedTreeObjects(treeObjects);
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to increase priority!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 	private void increasePriority(TreeObject treeObject) throws EngineException {
@@ -119,24 +119,24 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 			DatabaseObject parent = databaseObject.getParent();
-			
+
 			if (parent != null && parent instanceof IContainerOrdered) {
 				IContainerOrdered containerOrdered = (IContainerOrdered) parent;
-				
+
 				while (count-- > 0) {
 					containerOrdered.increasePriority(databaseObject);
 				}
-				
+
 				if (parent.hasChanged) {
 					TreeParent parentTreeObject = null;
 					TreeParent treeParent = treeObject.getParent();
-					
+
 					if (treeParent instanceof FolderTreeObject) {
 						parentTreeObject = treeObject.getParent().getParent();
 					} else {
 						parentTreeObject = treeParent;
 					}
-					
+
 					if (!treeNodesToUpdate.contains(parentTreeObject)) {
 						treeNodesToUpdate.add(parentTreeObject);
 					}
@@ -162,7 +162,7 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 					}
 				}
 			}
-			
+
 			if (databaseObjectTreeObject != null) {
 				if (databaseObjectTreeObject.hasChanged()) {
 					DatabaseObjectTreeObject parentTreeObject = null;
@@ -171,16 +171,21 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
 					else
 						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
-					
+
 					if (!treeNodesToUpdate.contains(parentTreeObject)) {
 						treeNodesToUpdate.add(parentTreeObject);
 					}
 				}
 			}
-			
+
 		}
 	}
 
 	public void init(IViewPart view) {
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

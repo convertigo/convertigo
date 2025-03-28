@@ -19,10 +19,17 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
 public class DatabaseObjectRenameAction extends TreeObjectRenameAction {
 
 	public DatabaseObjectRenameAction() {
 		super();
 		this.type = "database object";
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

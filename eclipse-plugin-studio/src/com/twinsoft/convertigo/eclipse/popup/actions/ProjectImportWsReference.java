@@ -155,4 +155,9 @@ public class ProjectImportWsReference extends MyAbstractAction {
 			waitCursor.dispose();
 		}
 	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

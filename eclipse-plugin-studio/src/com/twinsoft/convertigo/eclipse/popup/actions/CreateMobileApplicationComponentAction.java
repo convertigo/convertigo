@@ -47,5 +47,9 @@ public class CreateMobileApplicationComponentAction extends DatabaseObjectCreate
 		}
 		catch (Exception e) {}
 	}
-	
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

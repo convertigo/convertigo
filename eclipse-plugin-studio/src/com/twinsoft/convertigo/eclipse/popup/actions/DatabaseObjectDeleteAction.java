@@ -410,4 +410,9 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	}
 
 	//TODO : add DeleteEdit class
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

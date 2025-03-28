@@ -55,5 +55,4 @@ public class CreateNgxUIComponentAction extends NgxComponentCreateAction {
 		}
 		catch (Exception e) {}
 	}
-	
 }
