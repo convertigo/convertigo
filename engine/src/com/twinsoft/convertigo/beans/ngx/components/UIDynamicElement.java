@@ -558,13 +558,14 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						if (map.size() > 0) {
 							for (String from : map.keySet()) {
 								for (String component: map.get(from)) {
-									String name = component.trim();
-									if (isTplLowerThan8400) {
-										name = "{ "+ name + " }";
-									}
-									String cname = UIComponent.getImportClassname(name);
-									if (!imports.containsKey(cname)) {
-										imports.put(name, from);
+									String entry = component.trim();
+									if (!entry.isEmpty() && !from.isEmpty()) {
+										if (isTplLowerThan8400) {
+											entry = "{ "+ entry + " }";
+										}
+										if (!imports.containsKey(entry)) {
+											imports.put(entry, from);
+										}
 									}
 								}
 							}

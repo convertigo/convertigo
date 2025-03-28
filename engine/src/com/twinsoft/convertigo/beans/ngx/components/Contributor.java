@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,21 +72,6 @@ public abstract class Contributor {
 	}
 	public boolean isNgModuleForApp() {
 		return false;
-	}
-	
-	public Path getContainerPath(MobileComponent container) throws Exception {
-		File containerDir = null;
-		File appDir = new File (container.getProject().getDirFile(), "_private/ionic/src/app");
-		if (container instanceof ApplicationComponent) {
-			containerDir = appDir;
-		}
-		else if (container instanceof PageComponent) {
-			containerDir = new File(appDir, "/pages/"+container.getName().toLowerCase());
-		}
-		else if (container instanceof UISharedComponent && ((UISharedComponent)container).isRegular()) {
-			containerDir = new File(appDir, "/components/"+ UISharedComponent.getNsCompDirName((UISharedComponent)container));
-		}
-		return containerDir.toPath();
 	}
 	
 	@Override

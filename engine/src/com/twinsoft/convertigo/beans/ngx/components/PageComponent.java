@@ -513,6 +513,13 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	}
 	
 	@Override
+	public boolean containsImport(String name) {
+		synchronized (pageImports) {
+			return hasImport(name) || hasCustomImport(name);
+		}
+	}
+	
+	@Override
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (pageImports) {

@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.beans.BeanInfo;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -124,16 +123,23 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasTplPageTsImport(name);
+				getProject().getMobileBuilder().hasTplCompTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {
 		synchronized (scriptContent) {
 			String c8o_UserCustoms = scriptContent.getString();
-			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "PageImport");
+			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "CompImport");
 			Map<String, String> map = new HashMap<String, String>(10);
 			MobileBuilder.initMapImports(map, importMarker);
 			return map.containsKey(name);
+		}
+	}
+
+	@Override
+	public boolean containsImport(String name) {
+		synchronized (pageImports) {
+			return hasImport(name) || hasCustomImport(name);
 		}
 	}
 	
@@ -831,17 +837,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				
 				if (accept()) {
-					MobileComponent container = getContainer();
-					String c8o_CompModulePath;
-					try {
-						Path modulePath = new File(container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(UISharedRegularComponent.this)
-												+ "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module").toPath();
-						c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
-					} catch (Exception e) {
-						c8o_CompModulePath = "../components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
-					}
+					String c8o_CompModulePath = "/components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
 					imports.put("{ "+ c8o_CompModuleName+" }", c8o_CompModulePath);
 				}
 				return imports;

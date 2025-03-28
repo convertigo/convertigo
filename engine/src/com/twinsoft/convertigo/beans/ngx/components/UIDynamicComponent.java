@@ -131,7 +131,16 @@ public class UIDynamicComponent extends UIDynamicElement {
 
 			@Override
 			public Map<String, String> getModuleTsImports() {
-				return isValid() ? contributor.getModuleTsImports() : new HashMap<String, String>();
+				Map<String, String> map = new HashMap<String, String>();
+				if (isValid()) {
+					Map<String, String> module_ts_imports = contributor.getModuleTsImports();
+					for (String comp: module_ts_imports.keySet()) {
+						String from = module_ts_imports.get(comp);
+						from = from.substring(from.indexOf("/components"));
+						map.put(comp, from);
+					}
+				}
+				return map;				
 			}
 
 			@Override

@@ -905,6 +905,13 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			return map.containsKey(name);
 		}
 	}
+
+	@Override
+	public boolean containsImport(String name) {
+		synchronized (appImports) {
+			return hasImport(name) || hasCustomImport(name);
+		}
+	}
 	
 	
 	public boolean addImport(String name, String path) {

@@ -1040,12 +1040,11 @@ public class UICustomAction extends UIComponent implements IAction {
 						xmlv.addAll(page_ts_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
-						String name = v.get(0).trim();
+						String entry = v.get(0).trim();
 						String from = v.get(1).trim();
-						if (!name.isEmpty() && !from.isEmpty()) {
-							String cname = UIComponent.getImportClassname(name);
-							if (!imports.containsKey(cname)) {
-								imports.put(name, from);
+						if (!entry.isEmpty() && !from.isEmpty()) {
+							if (!imports.containsKey(entry)) {
+								imports.put(entry, from);
 							}
 						}
 					}
@@ -1070,12 +1069,11 @@ public class UICustomAction extends UIComponent implements IAction {
 						xmlv.addAll(local_module_ts_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
-						String name = v.get(0).trim();
+						String entry = v.get(0).trim();
 						String from = v.get(1).trim();
-						if (!name.isEmpty() && !from.isEmpty()) {
-							String cname = UIComponent.getImportClassname(name);
-							if (!imports.containsKey(cname)) {
-								imports.put(name, from);
+						if (!entry.isEmpty() && !from.isEmpty()) {
+							if (!imports.containsKey(entry)) {
+								imports.put(entry, from);
 							}
 						}
 					}

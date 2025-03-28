@@ -474,56 +474,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		IScriptComponent main = getMainScriptComponent();
-		if (main == null) {
-			return;
-		}
-		
-		try {
-			String imports = jsonScripts.getString("imports");
-			
-			IonBean ionBean = getIonBean();
-			if (ionBean != null) {
-				if (isPageAction()) {
-					try {
-						String pageQName = ionBean.getProperty("page").getSmartValue();
-						if (!pageQName.isBlank()) {
-							String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-							String pagePath = getRelativePagePath((MobileComponent)main, pageName);
-							if (main.addImport(pageName, pagePath)) {
-								imports += "import { "+ pageName +" } from '"+ pagePath +"';" + System.lineSeparator();
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			
-//			if (main.addImport("* as ts", "typescript")) {
-//				imports += "import * as ts from 'typescript';" + System.lineSeparator();
-//			}
-			
-			jsonScripts.put("imports", imports);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-//		DatabaseObject parent = getParent();
-//		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
-//			try {
-//				String functions = jsonScripts.getString("functions");
-//				String fname = getFunctionName();
-//				String fcode = computeActionFunction();
-//				if (main.addFunction(fname, fcode)) {
-//					functions += System.lineSeparator() + fcode;
-//				}
-//				jsonScripts.put("functions", functions);
-//			} catch (JSONException e) {
-//				e.printStackTrace();
-//			}
-//		}
-		
 		super.computeScripts(jsonScripts);
 	}
 	
@@ -708,19 +658,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	private String getRelativePagePath(MobileComponent mc, String pageName) {
 		String pageLower = pageName.toLowerCase();
-		String pagePath = null;
-		try {
-			if (mc instanceof UISharedRegularComponent) {
-				pagePath = "../../pages/" + pageLower + "/" + pageLower;
-			} else if (mc instanceof ApplicationComponent) {
-				pagePath = "./pages/" + pageLower + "/" + pageLower;
-			} else if (mc instanceof PageComponent) {
-				pagePath = "../" + pageLower + "/" + pageLower;
-			}
-		} catch (Exception e) {
-			pagePath = "../pages/" + pageLower + "/" + pageLower;
-		}
-		return pagePath;
+		return "/pages/" + pageLower + "/" + pageLower;
 	}
 	
 	@Override
@@ -774,13 +712,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (map.size() > 0) {
 						for (String from : map.keySet()) {
 							for (String component: map.get(from)) {
-								String name = component.trim();
-								if (isTplLowerThan8400) {
-									name = "{ "+ name + " }";
-								}
-								String cname = UIComponent.getImportClassname(name);
-								if (!imports.containsKey(cname)) {
-									imports.put(name, from);
+								String entry = component.trim();
+								if (!entry.isEmpty() && !from.isEmpty()) {
+									if (isTplLowerThan8400) {
+										entry = "{ "+ entry + " }";
+									}
+									if (!imports.containsKey(entry)) {
+										imports.put(entry, from);
+									}
 								}
 							}
 						}

@@ -720,10 +720,17 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		}
 	}
 	
-	static public String getImportClassname(String entry) {
-		if (entry != null) {
-			return entry.replace("{","").replace("}","").trim();
+	static public List<String> getImports(String entry) {
+		List<String> list = new ArrayList<String>();
+		if (entry != null && !entry.isBlank()) {
+			String input = entry.replace("{","").replace("}","").trim();
+			for (String s: input.split(",")) {
+				String in = s.trim();
+				if (!in.isEmpty() && !list.contains(in)) {
+					list.add(in);
+				}
+			}
 		}
-		return entry;
+		return list;
 	}
 }

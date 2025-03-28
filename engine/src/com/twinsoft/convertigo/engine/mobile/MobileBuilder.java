@@ -415,6 +415,10 @@ public abstract class MobileBuilder {
 		return getTplPageTsImports().containsKey(name);
 	}
 
+	public boolean hasTplCompTsImport(String name) {
+		return getTplCompTsImports().containsKey(name);
+	}
+
 	protected void writeWorker(File file) throws IOException {
 		writeWorker(file, false);
 	}
