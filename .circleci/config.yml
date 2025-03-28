@@ -677,7 +677,7 @@ jobs:
           n=0
           until [ $n -ge 5 ]
           do
-            aws s3 sync DIST s3://convertigo-ci/ --storage-class REDUCED_REDUNDANCY --acl public-read --multipart-chunk-size-mb 100 && break
+            aws s3 sync DIST s3://convertigo-ci/ --storage-class REDUCED_REDUNDANCY --acl public-read && break
             echo "Retrying upload in 10s..."
             n=$((n+1))
             sleep 10
