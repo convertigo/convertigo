@@ -109,6 +109,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 			FontData fontData = labelName.getFont().getFontData()[0];
 			Font font = new Font(parent.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
 			labelName.setFont(font);
+			labelName.addDisposeListener(e -> labelName.getFont().dispose());
 			labelName.setText(v.display());
 			C8oBrowser browserDescription = new C8oBrowser(composite, SWT.MULTI | SWT.WRAP);
 			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -151,6 +152,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 			FontData fontData = labelName.getFont().getFontData()[0];
 			Font font = new Font(parent.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
 			labelName.setFont(font);
+			labelName.addDisposeListener(e -> labelName.getFont().dispose());
 			labelName.setText(v.display());
 			C8oBrowser browserDescription = new C8oBrowser(composite, SWT.MULTI | SWT.WRAP);
 			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);

@@ -37,6 +37,8 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Display;
@@ -1385,6 +1387,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							itemCheck.setData(propertyDescriptor);
 							itemCheck.addSelectionListener(selectionListener);
 						}
+						dropMenu.addMenuListener(new MenuAdapter() {
+							@Override
+							public void menuHidden(MenuEvent e) {
+								if (!dropMenu.isDisposed()) {
+									dropMenu.dispose();
+								}
+							}
+						});
 						dropMenu.setVisible(true);
 					}
 				}
@@ -1492,6 +1502,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 						}
 					}
+					dropMenu.addMenuListener(new MenuAdapter() {
+						@Override
+						public void menuHidden(MenuEvent e) {
+							if (!dropMenu.isDisposed()) {
+								dropMenu.dispose();
+							}
+						}
+					});
 					dropMenu.setVisible(true);
 				}
 				if (targetTreeObject instanceof NgxUIComponentTreeObject) {
@@ -1526,6 +1544,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 						}
 					}
+					dropMenu.addMenuListener(new MenuAdapter() {
+						@Override
+						public void menuHidden(MenuEvent e) {
+							if (!dropMenu.isDisposed()) {
+								dropMenu.dispose();
+							}
+						}
+					});
 					dropMenu.setVisible(true);
 
 				}

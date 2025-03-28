@@ -34,6 +34,7 @@ public class DatabaseObjectSearchResultViewPage extends AbstractTextSearchViewPa
 			}
 
 		});
+		viewer.getControl().addDisposeListener(e -> viewer.getLabelProvider().dispose());
 	}
 
 	@Override

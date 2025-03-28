@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
 	private IWorkbenchPart targetPart = null;
 	protected IAction action = null;
-	
+
 	public MyAbstractAction() {
 		super();
 		this.action = this;
@@ -76,7 +76,7 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 		}
 		return id;
 	}
-	
+
 	public String getActionId() {
 		String id = action.getId();
 		return id;
@@ -90,20 +90,22 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 	@Override
 	public void run(IAction action) {
 		this.action = action;
-		
+
 		Set<MobileBuilder> mbSet = new HashSet<MobileBuilder>();
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
-    			for (TreeObject ob: treeObjects) {
-					MobileBuilder mb = MobileBuilder.getBuilderOf(((TreeObject)ob).getObject());
-					if (mb != null) {
-						mbSet.add(mb);
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+				for (TreeObject ob: treeObjects) {
+					if (canImpactMobileBuilder(ob)) {
+						MobileBuilder mb = MobileBuilder.getBuilderOf(((TreeObject)ob).getObject());
+						if (mb != null) {
+							mbSet.add(mb);
+						}
 					}
-    			}
-    		}
-			
+				}
+			}
+
 			Engine.logStudio.info("---------------------- Action started: "+ action.getId() + "----------------------");
 			for (MobileBuilder mb: mbSet) {
 				if (mb != null) {
@@ -111,9 +113,9 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 				}
 			}
 			BatchOperationHelper.start();
-			
+
 			run();
-			
+
 			BatchOperationHelper.stop();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -123,45 +125,45 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
+
 		MessageDialog.openInformation(
-			shell,
-			"Convertigo Plug-in",
-			"The choosen operation is not yet implemented : '"+ action.getId() + "'.");
-		
+				shell,
+				"Convertigo Plug-in",
+				"The choosen operation is not yet implemented : '"+ action.getId() + "'.");
+
 		shell.setCursor(null);
 		waitCursor.dispose();
 	}
-	
+
 	public Shell getParentShell() {
 		return targetPart == null ? ConvertigoPlugin.getMainShell() : targetPart.getSite().getShell();
 	}
-	
+
 	public IWorkbenchPage getActivePage() {
 		return PlatformUI
 				.getWorkbench()
 				.getActiveWorkbenchWindow()
 				.getActivePage();
 	}
-	
+
 	public IWorkbenchPart getActivePart() {
 		if (targetPart == null)
 			return getActivePage().getActivePart();
 		else
 			return targetPart;
 	}
-	
+
 	public ProjectExplorerView getProjectExplorerView() {
 		ProjectExplorerView projectExplorerView = null;
-		
+
 		if ((targetPart != null) && (targetPart instanceof ProjectExplorerView)) {
 			projectExplorerView = (ProjectExplorerView)targetPart;
 		}
@@ -170,7 +172,7 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 		}
 		return projectExplorerView;
 	}
-	
+
 	IEditorPart getConnectorEditor(Connector connector) {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = getActivePage();
@@ -197,5 +199,7 @@ abstract class MyAbstractAction extends Action implements IObjectActionDelegate 
 		return editorPart;
 	}
 
-	
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return false;
+	};
 }

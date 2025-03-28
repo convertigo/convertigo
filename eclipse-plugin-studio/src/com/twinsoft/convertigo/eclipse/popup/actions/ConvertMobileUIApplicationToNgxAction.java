@@ -62,7 +62,7 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 		try {
 			boolean enable = false;
 			super.selectionChanged(action, selection);
-			
+
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof ProjectTreeObject) {
@@ -82,11 +82,12 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 			action.setEnabled(enable);
 		} catch (Exception e) {}
 	}
-	
+
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
-		
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
 
@@ -102,45 +103,45 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 				Project project = projectTreeObject.getObject();
 				boolean isMobileApplicationProject = project.testAttribute("isMobileApplicationProject", null);
 				String dialogTitle = isMobileApplicationProject ? "Converting Mobile Application to NGX" : "Upgrading NGX Application";
-				
+
 				InputDialog dlg = new InputDialog(shell, dialogTitle,
 						"Your project '" + project.getName() + "' will be converted to use the new version of the Mobile Builder.\n"
-							+ "Please enter a new project name for a converted copy.\n"
-							+ "Or convert the current project.",
-						project.getName(),
-						new IInputValidator() {
-							
-							@Override
-							public String isValid(String newText) {
-								if (newText.isBlank()) {
-									return "cannot be blank";
-								}
-								if (!StringUtils.isNormalized(newText)) {
-									return "don't use special character";
-								}
-								if (newText.equals(project.getName())) {
-									return null;
-								}
-								if (Engine.theApp.databaseObjectsManager.existsProject(newText)) {
-									return "a project with that name already exists";
-								}
-								return null;
-							}
-						});
+								+ "Please enter a new project name for a converted copy.\n"
+								+ "Or convert the current project.",
+								project.getName(),
+								new IInputValidator() {
+
+					@Override
+					public String isValid(String newText) {
+						if (newText.isBlank()) {
+							return "cannot be blank";
+						}
+						if (!StringUtils.isNormalized(newText)) {
+							return "don't use special character";
+						}
+						if (newText.equals(project.getName())) {
+							return null;
+						}
+						if (Engine.theApp.databaseObjectsManager.existsProject(newText)) {
+							return "a project with that name already exists";
+						}
+						return null;
+					}
+				});
 				if (dlg.open() == Window.CANCEL) {
 					return;
 				}
 				String projectName = dlg.getValue();
 				String taskName = isMobileApplicationProject ? "Converting to NGX" : "Upgrading";
-				
+
 				if (projectName.equals(project.getName())) {
 					PlainMessageDialog msg = PlainMessageDialog.getBuilder(shell, "Confirmation")
 							.buttonLabels(Arrays.asList("Yes", "No"))
 							.image(IconAndMessageDialog.getImage(IconAndMessageDialog.DLG_IMG_MESSAGE_WARNING))
 							.message("You are about to modify the current project.\n"
-							+ "The operation cannot be undone.\n"
-							+ "Please make a backup of your current version before continuing.\n"
-							+ "Are you sure you want to convert now?")
+									+ "The operation cannot be undone.\n"
+									+ "Please make a backup of your current version before continuing.\n"
+									+ "Are you sure you want to convert now?")
 							.build();
 					int response = msg.open();
 					if (response == 0) {
@@ -170,7 +171,7 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 						}).schedule();
 					}
 				} else {
-					
+
 					Job.create("Project '" + projectName + "' " + taskName, monitor -> {
 						try {
 							monitor.beginTask("Exporting '" + project.getName() + "'", IProgressMonitor.UNKNOWN);
@@ -198,5 +199,10 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 			shell.setCursor(null);
 			waitCursor.dispose();
 		}
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

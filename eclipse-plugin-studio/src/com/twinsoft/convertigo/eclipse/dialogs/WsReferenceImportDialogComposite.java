@@ -32,7 +32,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -111,7 +110,8 @@ class WsReferenceImportDialogComposite extends MyAbstractDialogComposite impleme
 		FontData fontData = labelInformation.getFont().getFontData()[0];
 		Font font = new Font(labelInformation.getDisplay(), new FontData(fontData.getName(), fontData
 		    .getHeight(), SWT.BOLD));
-		labelInformation.setFont(font);  
+		labelInformation.setFont(font);
+		labelInformation.addDisposeListener(e -> labelInformation.getFont().dispose());
 		labelInformation.setLayoutData(data1);
 		
 		data1 = new GridData ();
@@ -310,7 +310,7 @@ class WsReferenceImportDialogComposite extends MyAbstractDialogComposite impleme
 	@Override
 	public void setTextStatus(String message) {
 		//Set text color to red
-		labelInformation.setForeground(new Color(labelInformation.getDisplay(), 255, 0, 0));
+		labelInformation.setForeground(labelInformation.getDisplay().getSystemColor(SWT.COLOR_RED));
 		
 		Button OKButton = ((WsReferenceImportDialog) parentDialog).getButtonOK();
 		

@@ -224,8 +224,9 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			
 			Label labelName = new Label(choosenGroup, SWT.NONE);
 			FontData fontData = labelName.getFont().getFontData()[0];
-			Font font = new Font(this.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
+			Font font = new Font(getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
 			labelName.setFont(font);
+			labelName.addDisposeListener(e -> labelName.getFont().dispose());
 			
 			String label = name;
 			if (label.startsWith("p_") || label.startsWith("q_")) {

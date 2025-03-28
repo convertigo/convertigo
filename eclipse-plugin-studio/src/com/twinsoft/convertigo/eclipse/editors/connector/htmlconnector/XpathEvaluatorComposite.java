@@ -173,6 +173,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 				imageURL = imageURL.substring(0, index) + ".d" + imageURL.substring(index);
 			}
 			button.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream(imageURL)));
+			button.addDisposeListener(e -> button.getImage().dispose());
 			button.setToolTipText(tooltip);
 			button.setData("enable", b);
 		}

@@ -34,37 +34,43 @@ public class ClipboardPasteAction extends ClipboardAction {
 	public ClipboardPasteAction() {
 		super(ConvertigoPlugin.clipboardManagerSystem);
 	}
-	
+
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-        
+
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		TreeObject selectedTreeObject = explorerView.getFirstSelectedTreeObject();
-    		
-    		String source = null;
-    		if (!clipboardManager.isCut) {
-	        	Clipboard clipboard = new Clipboard(display);
-	        	TextTransfer textTransfer = TextTransfer.getInstance();
-	        	source = (String)clipboard.getContents(textTransfer);
-	        	clipboard.dispose();
-    		}
-    		
-    		if (explorerView.isEditing()) {
-    			explorerView.setEditingText(source);
-    		}
-    		else paste(source, shell, explorerView, selectedTreeObject);
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			TreeObject selectedTreeObject = explorerView.getFirstSelectedTreeObject();
+
+			String source = null;
+			if (!clipboardManager.isCut) {
+				Clipboard clipboard = new Clipboard(display);
+				TextTransfer textTransfer = TextTransfer.getInstance();
+				source = (String)clipboard.getContents(textTransfer);
+				clipboard.dispose();
+			}
+
+			if (explorerView.isEditing()) {
+				explorerView.setEditingText(source);
+			}
+			else paste(source, shell, explorerView, selectedTreeObject);
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to paste!");
 		}
-        finally {
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	};
 }

@@ -1181,6 +1181,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				try {
 					Clipboard cb = new Clipboard(Display.getCurrent());
 					String content = (String) cb.getContents(TextTransfer.getInstance());
+					cb.dispose();
 					List<Object> dbos = ConvertigoPlugin.clipboardManagerSystem.read(content);
 					canPaste = !dbos.isEmpty();
 				} catch (Exception e) {

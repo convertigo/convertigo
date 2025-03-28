@@ -32,12 +32,17 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.IUIComponent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.MobileObject;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
@@ -54,32 +59,32 @@ public abstract class MobileBuilder {
 
 	protected Project project = null;
 	protected Object buildMutex = null;
-	
+
 	// Until we can delete page folder again, we need to retrieve contributors of
 	// all pages for action.beans.service, otherwise we get compilation errors in
 	// page.ts files for (deleted/disabled) pages containing pseudo-actions
 	protected boolean forceEnable = true;
-	
+
 	private boolean needPkgUpdate = false;
 	protected boolean initDone = false;
 	protected boolean isReleasing = false;
 	protected boolean autoBuild = true;
 	protected boolean isPWA = false;
-	
+
 	protected File projectDir, ionicTplDir, ionicWorkDir;
 	protected Set<File> writtenFiles = new HashSet<File>();
 	protected Map<String, CharSequence> pushedFiles = null;
 	protected BlockingQueue<Map<String, CharSequence>> queue = null;
 	protected String tplVersion = null;
-	
+
 	private boolean[] isBuilding = {false};
 
 	protected MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
-	
+
 	static public void initBuilder(Project project) {
 		initBuilder(project, false);
 	}
-	
+
 	static public void initBuilder(Project project, boolean force) {
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
@@ -98,7 +103,7 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	static public void releaseBuilder(Project project) {
 		releaseBuilder(project, false);
 	}
@@ -112,24 +117,30 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	static public MobileBuilder getBuilderOf(Object object) {
 		try {
-			if (object != null && object instanceof DatabaseObject) {
-				return ((DatabaseObject)object).getProject().getMobileBuilder();
+			if (object != null && object instanceof DatabaseObject dbo) {
+				if (dbo instanceof Connector
+						|| dbo instanceof MobileApplication
+						|| dbo instanceof MobileObject
+						|| dbo instanceof MobilePlatform
+						|| dbo instanceof Project
+						|| dbo instanceof RequestableObject)
+					return dbo.getProject().getMobileBuilder();
 			}
 		} catch (Exception e) {}
 		return null;
 	}
-	
-    static String projectName(String qname) {
-    	return ComponentRefManager.projectName(qname);
-    }
-    
+
+	static String projectName(String qname) {
+		return ComponentRefManager.projectName(qname);
+	}
+
 	static public int compareVersions(String v1, String v2) {
 		return VersionUtils.compare(v1, v2);
 	}
-	
+
 	static public String getMarkers(String content) {
 		String markers = "";
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -143,7 +154,7 @@ public abstract class MobileBuilder {
 		}
 		return markers;
 	}
-	
+
 	static public String getMarker(String s, String markerId) {
 		String beginMarker = "/*Begin_c8o_" + markerId + "*/";
 		String endMarker = "/*End_c8o_" + markerId + "*/";
@@ -160,7 +171,7 @@ public abstract class MobileBuilder {
 		}
 		return "";
 	}
-	
+
 	static public String getFormatedContent(String marker, String markerId) {
 		String content = "";
 		if (!marker.isEmpty()) {
@@ -175,7 +186,7 @@ public abstract class MobileBuilder {
 		}
 		return content;
 	}
-	
+
 	static public void initMapImports(Map<String,String> map, String tsContent) {
 		if (map != null && tsContent != null) {
 			// case : import {...} from '...'
@@ -191,7 +202,7 @@ public abstract class MobileBuilder {
 					}
 				}
 			}
-			
+
 			// case : import ... as ... from '...'
 			Pattern pattern1 = Pattern.compile("[\\s\\t]*import[\\s\\t]*([^\\{\\}]*?)[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
 			Matcher matcher1 = pattern1.matcher(tsContent);
@@ -207,7 +218,7 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	static protected Map<String,String> initTplImports(File file) {
 		Map<String, String> map = new HashMap<String, String>(10);
 		try {
@@ -218,7 +229,7 @@ public abstract class MobileBuilder {
 		}
 		return map;
 	}
-	
+
 	static public MobileBuilder getInstance(Project project) throws EngineException {
 		IApplicationComponent app;
 		try {
@@ -237,24 +248,24 @@ public abstract class MobileBuilder {
 		}
 		throw new EngineException("Builder for "+ app.getClass().getName() + " isn't implemented yet");
 	}
-	
+
 	protected String builderType = "MobileBuilder";
-	
+
 	protected MobileBuilder(Project project) {
 		this.project = project;
 		builderType = this.getClass().getSimpleName() + "@" + project.hashCode();
 		projectDir = new File(project.getDirPath());
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
-	
+
 	protected EventHelper<MobileEventListener, BaseEvent> eventHelper;
-	
+
 	public synchronized void addMobileEventListener(MobileEventListener mobileEventListener) {
 		if (eventHelper != null) {
 			eventHelper.addListener(mobileEventListener);
 		}
 	}
-	
+
 	public synchronized void removeMobileEventListener(MobileEventListener mobileEventListener) {
 		if (eventHelper != null) {
 			eventHelper.removeListener(mobileEventListener);
@@ -268,43 +279,43 @@ public abstract class MobileBuilder {
 	}
 
 	protected void updateEnvFile() {
-		
+
 	}
-	
+
 	public boolean isInitialized() {
 		return initDone;
 	}
-	
+
 	protected boolean isAppPwaAble() {
 		return isPWA;
 	}
-	
+
 	public boolean isAutoBuild() {
 		return autoBuild;
 	}
-	
+
 	public void setAutoBuild(boolean autoBuild) {
 		Engine.logEngine.debug("("+ builderType +") AutoBuild mode set to "+ (autoBuild ? "ON":"OFF"));
 		this.autoBuild = autoBuild;
 		if (autoBuild) {
 			moveFilesForce();
 		}
-		
+
 	}
-	
+
 	public void startBuild() {
 		synchronized (isBuilding) {
 			isBuilding[0] = true;
 		}
 	}
-	
+
 	public void buildFinished() {
 		synchronized (isBuilding) {
 			isBuilding[0] = false;
 			isBuilding.notify();
 		}
 	}
-	
+
 	public void waitBuildFinished() {
 		synchronized (isBuilding) {
 			if (isBuilding[0]) {
@@ -319,31 +330,31 @@ public abstract class MobileBuilder {
 	public boolean isIonicTemplateBased() {
 		return ionicTplDir.exists();
 	}
-	
+
 	public void setAppBuildMode(MobileBuilderBuildMode buildMode) {
 		this.buildMode = buildMode;
 	}
-	
+
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 	}
-	
+
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
 	}
-	
+
 	public boolean getNeedPkgUpdate() {
 		return this.needPkgUpdate;
 	}
-		
+
 	protected void cleanDirectories() {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 		Engine.logEngine.trace("("+ builderType +") Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
-	
+
 	protected void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
@@ -353,15 +364,15 @@ public abstract class MobileBuilder {
 			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
 		}
 	}
-	
+
 	protected void copyAssetsToBuildDir() throws EngineException {
-		
+
 	}
-	
+
 	protected void updateConfigurationFiles() throws EngineException {
-		
+
 	}
-	
+
 	protected void updateTplVersion() {
 		if (tplVersion == null) {
 			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
@@ -390,32 +401,32 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	public String getTplVersion() {
 		updateTplVersion();
 		return tplVersion;
 	}
-	
+
 	public boolean hasTplAppCompTsImport(String name) {
 		return getTplAppCompTsImports().containsKey(name);
 	}
-	
+
 	public boolean hasTplPageTsImport(String name) {
 		return getTplPageTsImports().containsKey(name);
 	}
-	
+
 	protected void writeWorker(File file) throws IOException {
 		writeWorker(file, false);
 	}
-	
+
 	protected static File toTmpFile(File file) {
 		return new File(file.getAbsolutePath().replaceFirst("_private(/|\\\\)ionic", "_private$1ionic_tmp"));
 	}
-		
+
 	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
 		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
-		
+
 		if (initDone && Engine.isStudioMode()) {
 			synchronized (writtenFiles) {
 				// Checks for content changes
@@ -431,13 +442,13 @@ public abstract class MobileBuilder {
 					} else {
 						excontent = FileUtils.readFileToString(file, encoding);
 					}
-					
+
 					if (content.equals(excontent)) {
 						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
 				}
-				
+
 				// write file
 				if (buildMutex == null) {
 					FileUtils.write(file, content, encoding);
@@ -450,7 +461,7 @@ public abstract class MobileBuilder {
 					File nFile = toTmpFile(file);
 					nFile.getParentFile().mkdirs();
 					FileUtils.write(nFile, content, encoding);
-					
+
 					// store files modifications
 					Engine.logEngine.debug("("+ builderType +") Defers the write of " + content.length() + " chars to " + nFile.getPath());
 					if (pushedFiles != null) {
@@ -463,10 +474,10 @@ public abstract class MobileBuilder {
 		} else {
 			FileUtils.write(file, content, encoding);
 		}
-		
+
 		writeWorker(file);
 	}
-	
+
 	protected void moveFiles() {
 		if (autoBuild) {
 			StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
@@ -479,7 +490,7 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	protected synchronized void moveFilesForce() {
 		// push files modifications to queue
 		if (pushedFiles != null && queue != null) {
@@ -496,7 +507,7 @@ public abstract class MobileBuilder {
 			}
 		}
 	}
-	
+
 	public void prepareBatchBuild() {
 		if (isAutoBuild()) {
 			setAutoBuild(false);
@@ -508,12 +519,12 @@ public abstract class MobileBuilder {
 
 	protected abstract void init() throws EngineException;
 	protected abstract void release() throws EngineException;
-	
+
 	protected abstract void writeWorker(File file, boolean bForce) throws IOException;
 	protected abstract Map<String, String> getTplAppCompTsImports();
 	protected abstract Map<String, String> getTplPageTsImports();
 	protected abstract Map<String, String> getTplCompTsImports();
-	
+
 	public abstract void pageAdded(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageRemoved(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageRenamed(final IPageComponent object, String oldName) throws EngineException;
@@ -523,7 +534,7 @@ public abstract class MobileBuilder {
 	public abstract void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageStyleChanged(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageTemplateChanged(final IPageComponent pageComponent) throws EngineException;
-	
+
 	public abstract void compAdded(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compRemoved(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compRenamed(final ISharedComponent sharedComponent, String oldName) throws EngineException;
@@ -531,7 +542,7 @@ public abstract class MobileBuilder {
 	public abstract void compModuleTsChanged(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compStyleChanged(final ISharedComponent sharedComponent) throws EngineException;
-	
+
 	public abstract void appContributorsChanged(final IApplicationComponent applicationComponent) throws EngineException;
 	public abstract void appTsChanged(final IApplicationComponent applicationComponent, boolean b) throws EngineException;
 	public abstract void appStyleChanged(final IApplicationComponent applicationComponent) throws EngineException;
@@ -554,6 +565,6 @@ public abstract class MobileBuilder {
 	public abstract void writeCompTempTs(final ISharedComponent sharedComponent) throws EngineException;
 
 	public void appChanged() throws EngineException {
-		
+
 	}
 }

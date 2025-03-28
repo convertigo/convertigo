@@ -130,7 +130,7 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (visible) {
-			container.setPerformActionEnabled(root != null && !tSearch.getText().isEmpty());
+			container.setPerformActionEnabled(!tSearch.getText().isEmpty());
 		}
 	}
 }

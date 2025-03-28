@@ -53,49 +53,53 @@ public class SetMobileRootPageAction extends MyAbstractAction {
 			action.setChecked(actionModel.isChecked);
 		}
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			MobilePageComponentTreeObject pageTreeObject = (MobilePageComponentTreeObject)explorerView.getFirstSelectedTreeObject();
-    			PageComponent page = (PageComponent)pageTreeObject.getObject();
 
-    			ApplicationComponent application = (ApplicationComponent) page.getParent();
-                
-                MobilePageComponentTreeObject rootPageTreeObject = null;
-                PageComponent rootPage = application.getRootPage();
-                if (rootPage != null) {
-                	rootPageTreeObject = (MobilePageComponentTreeObject)explorerView.findTreeObjectByUserObject(rootPage);
-                }
-                
-                application.setRootPage(page);
-                application.markRootAsDirty();
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				MobilePageComponentTreeObject pageTreeObject = (MobilePageComponentTreeObject)explorerView.getFirstSelectedTreeObject();
+				PageComponent page = (PageComponent)pageTreeObject.getObject();
 
-                if (rootPageTreeObject != null) {
-                	rootPageTreeObject.isDefault = false;
-                	rootPageTreeObject.hasBeenModified(true);
-                }
-                pageTreeObject.isDefault = true;
-                pageTreeObject.hasBeenModified(true);
-                
-                // Updating the tree
-    			explorerView.refreshTreeObject(pageTreeObject.getParentDatabaseObjectTreeObject());
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to set page to root one!");
-        }
-        finally {
+				ApplicationComponent application = (ApplicationComponent) page.getParent();
+
+				MobilePageComponentTreeObject rootPageTreeObject = null;
+				PageComponent rootPage = application.getRootPage();
+				if (rootPage != null) {
+					rootPageTreeObject = (MobilePageComponentTreeObject)explorerView.findTreeObjectByUserObject(rootPage);
+				}
+
+				application.setRootPage(page);
+				application.markRootAsDirty();
+
+				if (rootPageTreeObject != null) {
+					rootPageTreeObject.isDefault = false;
+					rootPageTreeObject.hasBeenModified(true);
+				}
+				pageTreeObject.isDefault = true;
+				pageTreeObject.hasBeenModified(true);
+
+				// Updating the tree
+				explorerView.refreshTreeObject(pageTreeObject.getParentDatabaseObjectTreeObject());
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to set page to root one!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

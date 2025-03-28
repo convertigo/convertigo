@@ -31,6 +31,8 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
@@ -68,6 +70,11 @@ public class TwsDomTree extends TreeWrapper {
 
 	public TwsDomTree(Composite parent, int style) {
 		super(parent, style|SWT.VIRTUAL);
+		getTree().addDisposeListener(e -> {
+			imageAttrib.dispose();
+			imageNode.dispose();
+			imageText.dispose();
+		});
 		addMouseListener(new MouseAdapter() {
 
 			@Override
@@ -302,6 +309,14 @@ public class TwsDomTree extends TreeWrapper {
 			}
 		}
 		if (menu.getItemCount() > 0) {
+			menu.addMenuListener(new MenuAdapter() {
+				@Override
+				public void menuHidden(MenuEvent e) {
+					if (!menu.isDisposed()) {
+						menu.dispose();
+					}
+				}
+			});
 			menu.setVisible(true);
 		} else {
 			menu.dispose();

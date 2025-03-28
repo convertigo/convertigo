@@ -40,43 +40,47 @@ public class DisableMobileRouteActionComponentAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			DatabaseObjectTreeObject treeObject = null;
-    			RouteActionComponent component = null;
-    			
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				DatabaseObjectTreeObject treeObject = null;
+				RouteActionComponent component = null;
+
+				TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
 				for (int i = treeObjects.length-1 ; i>=0  ; i--) {
 					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
 					if (treeObject instanceof MobileRouteActionComponentTreeObject) {
 						MobileRouteActionComponentTreeObject componentTreeObject = (MobileRouteActionComponentTreeObject)treeObject;
 						component = (RouteActionComponent)componentTreeObject.getObject();
 						component.setEnabled(false);
-						
+
 						componentTreeObject.setEnabled(false);
 						componentTreeObject.hasBeenModified(true);
-		                
-		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", true, false);
-		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+
+						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", true, false);
+						explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
-				
+
 				explorerView.refreshSelectedTreeObjects();
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to disable action!");
-        }
-        finally {
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to disable action!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
-	
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

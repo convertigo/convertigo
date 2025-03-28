@@ -19,9 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
 public class CreateMobilePageComponentAction extends DatabaseObjectCreateAction {
 	
 	public CreateMobilePageComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.PageComponent");
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

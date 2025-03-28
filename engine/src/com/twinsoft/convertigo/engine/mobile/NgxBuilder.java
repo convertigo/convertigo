@@ -460,9 +460,9 @@ public class NgxBuilder extends MobileBuilder {
 					}
 					Engine.logEngine.trace("["+project.getName()+"] For "+useQName+" taking into account " + compQName + " modifications");
 					Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
-					FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles.get());
+					var copied = FileUtils.copyDirectoryOptimized(src, dest, ComponentRefManager.copyFileFilter, existingFiles.get());
 
-					if (isDestMobileBuilderInitialized) {
+					if (isDestMobileBuilderInitialized && copied) {
 						dest_project.getMobileBuilder().updateEnvFile();
 					}
 				} else {
@@ -489,11 +489,11 @@ public class NgxBuilder extends MobileBuilder {
 					continue;
 				}
 				File dest = new File(dirDest, src.getName());
-				if (dest.exists()) {
-					if (src.lastModified() != dest.lastModified()) {
+				try {
+					if (!FileUtils.checkSameFiles(src, dest, true)) {
 						return true;
 					}
-				} else {
+				} catch (IOException e) {
 					return true;
 				}
 			}

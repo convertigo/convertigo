@@ -104,4 +104,8 @@ public class NgxComponentCreateAction extends MyAbstractAction {
 		}
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

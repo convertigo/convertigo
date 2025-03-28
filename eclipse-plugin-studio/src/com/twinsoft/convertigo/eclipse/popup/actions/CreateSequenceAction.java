@@ -19,9 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
 public class CreateSequenceAction extends DatabaseObjectCreateAction {
 
 	public CreateSequenceAction() {
 		super("com.twinsoft.convertigo.beans.core.Sequence");
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

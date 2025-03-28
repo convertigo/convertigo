@@ -55,120 +55,126 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
 	public CreateMobileApplicationTranslationsFileAction() {
 		super();
 	}
-	
+
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
 
-    			List<String> textList = new ArrayList<String>();
-    			if ((databaseObject != null) && (databaseObject instanceof ApplicationComponent)) {
-    				ApplicationComponent application = (ApplicationComponent) databaseObject;
-    				
-    				new WalkHelper() {
-    					@Override
-    					protected void walk(DatabaseObject databaseObject) throws Exception {
-    						String text = null;
-    						if (databaseObject instanceof PageComponent) {
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				Object databaseObject = treeObject.getObject();
+
+				List<String> textList = new ArrayList<String>();
+				if ((databaseObject != null) && (databaseObject instanceof ApplicationComponent)) {
+					ApplicationComponent application = (ApplicationComponent) databaseObject;
+
+					new WalkHelper() {
+						@Override
+						protected void walk(DatabaseObject databaseObject) throws Exception {
+							String text = null;
+							if (databaseObject instanceof PageComponent) {
 								PageComponent page = (PageComponent)databaseObject;
 								text = page.getTitle();
-    						} else if (databaseObject instanceof UIUseShared) {
-    							UIUseShared uius = (UIUseShared)databaseObject;
-    							UISharedComponent uisc = uius.getTargetSharedComponent();
-    							if (uisc != null && ! uius.isRecursive()) {
-    								super.walk(uisc);
-    							}
-    						} else if (databaseObject instanceof UIText) {
-    							UIText uiText = (UIText)databaseObject;
-    							MobileSmartSourceType msst = uiText.getTextSmartType();
-    							if (Mode.PLAIN.equals(msst.getMode())) {
-    								text = msst.getValue();
-    							}
-    						}
-    						
-    						if (text != null && !textList.contains(text)) {
-    							textList.add(text);
-    						}
-    						
-    						super.walk(databaseObject);
-    					}
-    				}.init(application);
-    				
-    				MobileApplicationTranslationsDialog dlg = new MobileApplicationTranslationsDialog(shell);
-    				int ret = dlg.open();
-                	if (ret != Window.OK) {
-                		return;
-                	}
-    				
-                	Locale from = dlg.getLocaleFrom();
-                	Locale to = dlg.getLocaleTo();
-                	boolean auto = dlg.isAuto();
-                	
-    				File i18nDir = new File(application.getProject().getDirPath(), "DisplayObjects/mobile/assets/i18n");
-    				
-                	// store source file
-    				File source = new File(i18nDir, from.getLanguage() + ".json");
-    				TranslateUtils.storeTranslations(textList, source);
-    				ConvertigoPlugin.logDebug(source.getName() + " file successfully created or updated.");
-    				
-                	// store target file
-    				if (!to.equals(from)) {
-	    				File target = new File(i18nDir, to.getLanguage() + ".json");
-	    				// translate with google api
-	    				if (auto) {
-	    					ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
-	    					dialog.run(true, false, new IRunnableWithProgress() {
-	    						@Override
-	    						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-	    							monitor.beginTask("translating", IProgressMonitor.UNKNOWN);
-	    	    					Translator translator = TranslateUtils.newTranslator();
-	    	    					try {
-	    	    						translator.translate(from, source, to, target);
-	    	    						ConvertigoPlugin.logDebug(target.getName() + " file successfully translated.");
-	    	    					} catch (Exception e) {
-	    	    						ConvertigoPlugin.logError(e.getMessage(), false);
-	    	    						try {
+							} else if (databaseObject instanceof UIUseShared) {
+								UIUseShared uius = (UIUseShared)databaseObject;
+								UISharedComponent uisc = uius.getTargetSharedComponent();
+								if (uisc != null && ! uius.isRecursive()) {
+									super.walk(uisc);
+								}
+							} else if (databaseObject instanceof UIText) {
+								UIText uiText = (UIText)databaseObject;
+								MobileSmartSourceType msst = uiText.getTextSmartType();
+								if (Mode.PLAIN.equals(msst.getMode())) {
+									text = msst.getValue();
+								}
+							}
+
+							if (text != null && !textList.contains(text)) {
+								textList.add(text);
+							}
+
+							super.walk(databaseObject);
+						}
+					}.init(application);
+
+					MobileApplicationTranslationsDialog dlg = new MobileApplicationTranslationsDialog(shell);
+					int ret = dlg.open();
+					if (ret != Window.OK) {
+						return;
+					}
+
+					Locale from = dlg.getLocaleFrom();
+					Locale to = dlg.getLocaleTo();
+					boolean auto = dlg.isAuto();
+
+					File i18nDir = new File(application.getProject().getDirPath(), "DisplayObjects/mobile/assets/i18n");
+
+					// store source file
+					File source = new File(i18nDir, from.getLanguage() + ".json");
+					TranslateUtils.storeTranslations(textList, source);
+					ConvertigoPlugin.logDebug(source.getName() + " file successfully created or updated.");
+
+					// store target file
+					if (!to.equals(from)) {
+						File target = new File(i18nDir, to.getLanguage() + ".json");
+						// translate with google api
+						if (auto) {
+							ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
+							dialog.run(true, false, new IRunnableWithProgress() {
+								@Override
+								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+									monitor.beginTask("translating", IProgressMonitor.UNKNOWN);
+									Translator translator = TranslateUtils.newTranslator();
+									try {
+										translator.translate(from, source, to, target);
+										ConvertigoPlugin.logDebug(target.getName() + " file successfully translated.");
+									} catch (Exception e) {
+										ConvertigoPlugin.logError(e.getMessage(), false);
+										try {
 											TranslateUtils.storeTranslations(textList, target);
 										} catch (Exception ex) {}
-	    	    					}
-	    							monitor.done();
-	    						}
-	    					});
-	    				}
-	    				// do not translate
-	    				else {
-	        				TranslateUtils.storeTranslations(textList, target);
-	    				}
-	    				ConvertigoPlugin.logDebug(target.getName() + " file successfully created or updated.");
-    				}
-    				
-    				// regenerate app templates
-    				try {
-    					application.markApplicationAsDirty();
-    					for (PageComponent page : application.getPageComponentList()) {
-    						if (page.isEnabled()) {
-    							page.markPageAsDirty();
-    						}
-    					}
-    				} catch (Throwable t) {}
+									}
+									monitor.done();
+								}
+							});
+						}
+						// do not translate
+						else {
+							TranslateUtils.storeTranslations(textList, target);
+						}
+						ConvertigoPlugin.logDebug(target.getName() + " file successfully created or updated.");
+					}
 
-    				ConvertigoPlugin.logInfo("Translations file(s) successfully created or updated.", true);
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to create the Mobile application translations file(s)!");
-        }
-        finally {
+					// regenerate app templates
+					try {
+						application.markApplicationAsDirty();
+						for (PageComponent page : application.getPageComponentList()) {
+							if (page.isEnabled()) {
+								page.markPageAsDirty();
+							}
+						}
+					} catch (Throwable t) {}
+
+					ConvertigoPlugin.logInfo("Translations file(s) successfully created or updated.", true);
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to create the Mobile application translations file(s)!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ProjectSaveAction extends MyAbstractAction {
 
@@ -36,19 +37,19 @@ public class ProjectSaveAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
 
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
-    			projectTreeObject.save(false);
-    			
-   				explorerView.refreshTree();
-    		}
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+				projectTreeObject.save(false);
+
+				explorerView.refreshTree();
+			}
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to save project");
@@ -56,8 +57,12 @@ public class ProjectSaveAction extends MyAbstractAction {
 		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
-        
+		}
+
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

@@ -11,7 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@5.0.0
+  aws-cli: circleci/aws-cli@5.2.0
 jobs:
   build_engine_jar:
     <<: *defaults
@@ -657,6 +657,7 @@ jobs:
         name: Sign Studio
         command: |
           source for_mac/build.env
+          
           security create-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
           security default-keychain -s ~/Library/Keychains/MyKeychain.keychain
           security unlock-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
@@ -694,8 +695,19 @@ jobs:
           echo "prepare s3 upload, aws client version"
           aws --version
           
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read DIST s3://convertigo-ci/
+          n=0
+          until [ $n -ge 5 ]
+          do
+            aws s3 sync DIST s3://convertigo-ci/ --storage-class REDUCED_REDUNDANCY --acl public-read && break
+            echo "Retrying upload in 10s..."
+            n=$((n+1))
+            sleep 10
+          done
           
+          if [ $n -ge 5 ]; then
+            echo "Upload failed after retries"
+            exit 1
+          fi
   release:
     docker:
     - image: cibuilds/github:latest

@@ -98,5 +98,4 @@ public class DatabaseObjectCreateAction extends MyAbstractAction {
 		if ((selectedTreeObject != null) && (selectedTreeObject.getObject().equals(createdDatabaseObject)))
 			explorerView.fireTreeObjectAdded(new TreeObjectEvent(selectedTreeObject));*/
 	}
-
 }

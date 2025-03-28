@@ -64,58 +64,63 @@ public class NgxComponentImportEventsAction extends MyAbstractAction {
 		}
 		catch (Exception e) {}
 	}
-	
+
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
-    			if (databaseObject != null) {
-	    			if (databaseObject instanceof UIUseShared) {
-	    				UIUseShared useShared = (UIUseShared)databaseObject;
-	    				UISharedComponent sharedComp = useShared.getTargetSharedComponent();
-	    				if (sharedComp != null) {
-							for (UICompEvent event: sharedComp.getUICompEventList()) {
-			    				String eventName = event.getName();
-			    				if (useShared.getEvent(eventName) == null) {
-			    					if (!StringUtils.isNormalized(eventName))
-			    						throw new EngineException("event name is not normalized : \""+eventName+"\".");
-			    					
-			    					UIControlEvent uiEvent = new UIControlEvent();
-			    					uiEvent.setEventName(eventName);
-			    					uiEvent.setComment(event.getComment());
-			    					
-			    					useShared.addUIComponent(uiEvent);
 
-			    					uiEvent.bNew = true;
-			    					uiEvent.hasChanged = true;
-			    					useShared.hasChanged = true;
-			    				}
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				Object databaseObject = treeObject.getObject();
+				if (databaseObject != null) {
+					if (databaseObject instanceof UIUseShared) {
+						UIUseShared useShared = (UIUseShared)databaseObject;
+						UISharedComponent sharedComp = useShared.getTargetSharedComponent();
+						if (sharedComp != null) {
+							for (UICompEvent event: sharedComp.getUICompEventList()) {
+								String eventName = event.getName();
+								if (useShared.getEvent(eventName) == null) {
+									if (!StringUtils.isNormalized(eventName))
+										throw new EngineException("event name is not normalized : \""+eventName+"\".");
+
+									UIControlEvent uiEvent = new UIControlEvent();
+									uiEvent.setEventName(eventName);
+									uiEvent.setComment(event.getComment());
+
+									useShared.addUIComponent(uiEvent);
+
+									uiEvent.bNew = true;
+									uiEvent.hasChanged = true;
+									useShared.hasChanged = true;
+								}
 							}
-							
-		    				if (useShared.hasChanged) {
-		    					explorerView.reloadTreeObject(treeObject);
+
+							if (useShared.hasChanged) {
+								explorerView.reloadTreeObject(treeObject);
 								StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
-		    				}
-	    				}
-	    			}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to add event to action !");
-        }
-        finally {
+							}
+						}
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to add event to action !");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
+	}
+
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
 	}
 }

@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ClipboardCutAction extends ClipboardAction {
 
@@ -36,42 +37,47 @@ public class ClipboardCutAction extends ClipboardAction {
 		super(ConvertigoPlugin.clipboardManagerSystem);
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-        
+
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			String sXml;
-    			if (explorerView.isEditing()) {
-    				sXml = explorerView.getEditingText();
-    				explorerView.setEditingText("");
-    			}
-    			else {
-	    			// copy to clipboard manager
-	   				sXml = cut(explorerView);
-    			}
-    			
-   				// copy to system clipboard
-    			if (sXml != null) {
-       				Clipboard clipboard = new Clipboard(display);
-       				TextTransfer textTransfer = TextTransfer.getInstance();
-       				clipboard.setContents(new String[]{sXml}, new Transfer[]{textTransfer});
-       				clipboard.dispose();
-    			}
-    		}
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				String sXml;
+				if (explorerView.isEditing()) {
+					sXml = explorerView.getEditingText();
+					explorerView.setEditingText("");
+				}
+				else {
+					// copy to clipboard manager
+					sXml = cut(explorerView);
+				}
+
+				// copy to system clipboard
+				if (sXml != null) {
+					Clipboard clipboard = new Clipboard(display);
+					TextTransfer textTransfer = TextTransfer.getInstance();
+					clipboard.setContents(new String[]{sXml}, new Transfer[]{textTransfer});
+					clipboard.dispose();
+				}
+			}
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to cut!");
 		}
-        finally {
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	};
 }

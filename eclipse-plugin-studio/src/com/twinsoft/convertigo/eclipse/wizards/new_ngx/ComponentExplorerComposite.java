@@ -241,6 +241,7 @@ class ComponentExplorerComposite extends Composite {
 				image = ConvertigoPlugin.getDefault().getIconFromPath(imagePath, BeanInfo.ICON_COLOR_32x32);
 			} else {
 				image = new Image(getDisplay(), imagePath);
+				label.addDisposeListener(e -> label.getImage().dispose());
 			}
 		} catch (Exception e) {}
 		label.setImage(image);

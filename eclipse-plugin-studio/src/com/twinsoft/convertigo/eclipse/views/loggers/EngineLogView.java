@@ -53,8 +53,10 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -172,6 +174,7 @@ public class EngineLogView extends ViewPart {
 	@Override
 	public void dispose() {
 		Engine.logConvertigo.removeAppender(appender);
+		labelProvider.dispose();
 		logViewThread = null;
 		try {
 			logManager.close();
@@ -183,6 +186,8 @@ public class EngineLogView extends ViewPart {
 			waiting = 0;
 			appender.notifyAll();
 		}
+		
+		tableMenu.dispose();
 
 		super.dispose();
 	}
@@ -640,10 +645,11 @@ public class EngineLogView extends ViewPart {
 				mainComposite.layout(true);
 			}
 		};
-		optionsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
-				getClass().getResourceAsStream("images/options.png"))));
+		var img1 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/options.png"));
+		optionsAction.setImageDescriptor(ImageDescriptor.createFromImage(img1));
 		optionsAction.setEnabled(true);
 		optionsAction.setChecked(false);
+		this.
 
 		searchAction = new RetargetAction("Toggle", "Search", IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
@@ -653,8 +659,8 @@ public class EngineLogView extends ViewPart {
 				mainComposite.layout(true);
 			}
 		};
-		searchAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
-				getClass().getResourceAsStream("images/search.png"))));
+		var img2 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/search.png"));
+		searchAction.setImageDescriptor(ImageDescriptor.createFromImage(img2));
 		searchAction.setEnabled(true);
 		searchAction.setChecked(false);
 
@@ -679,8 +685,8 @@ public class EngineLogView extends ViewPart {
 				dialog.open();
 			}
 		};
-		settingsEngine.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display
-				.getDefault(), getClass().getResourceAsStream("images/configure_log_level.png"))));
+		var img3 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/configure_log_level.png"));
+		settingsEngine.setImageDescriptor(ImageDescriptor.createFromImage(img3));
 		settingsEngine.setEnabled(true);
 		
 		restoreDefaultsAction = new Action("Restore to default parameters") {
@@ -706,8 +712,8 @@ public class EngineLogView extends ViewPart {
 				createLogViewThread();
 			}
 		};
-		restoreDefaultsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display
-				.getDefault(), getClass().getResourceAsStream("images/restore_defaults.png"))));
+		var img4 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/restore_defaults.png"));
+		restoreDefaultsAction.setImageDescriptor(ImageDescriptor.createFromImage(img4));
 		restoreDefaultsAction.setEnabled(true);
 
 		clearLogsAction = new Action("Clear log viewer") {
@@ -716,8 +722,8 @@ public class EngineLogView extends ViewPart {
 				clearLogs();
 			}
 		};
-		clearLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
-				getClass().getResourceAsStream("images/clear_logs.png"))));
+		var img5 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/clear_logs.png"));
+		clearLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(img5));
 
 		selectColumnsAction = new Action("Select columns") {
 			public void run() {
@@ -749,12 +755,20 @@ public class EngineLogView extends ViewPart {
 					});
 					i++;
 				}
+				selectColumnsMenu.addMenuListener(new MenuAdapter() {
 
+					@Override
+					public void menuHidden(MenuEvent e) {
+						super.menuHidden(e);
+						selectColumnsMenu.dispose();
+					}
+					
+				});
 				selectColumnsMenu.setVisible(true);
 			}
 		};
-		selectColumnsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(
-				Display.getDefault(), getClass().getResourceAsStream("images/select_columns.png"))));
+		var img6 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/select_columns.png"));
+		selectColumnsAction.setImageDescriptor(ImageDescriptor.createFromImage(img6));
 
 		activateOnNewEventsAction = new RetargetAction("Toggle", "Activate on new events",
 				IAction.AS_CHECK_BOX) {
@@ -770,10 +784,20 @@ public class EngineLogView extends ViewPart {
 				scrollLock = !scrollLock;
 			}
 		};
-		scrollLockAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
-				getClass().getResourceAsStream("images/scroll_lock.png"))));
+		var img7 = new Image(Display.getDefault(), getClass().getResourceAsStream("images/scroll_lock.png"));
+		scrollLockAction.setImageDescriptor(ImageDescriptor.createFromImage(img7));
 		scrollLockAction.setChecked(scrollLock);
 		scrollLockAction.setEnabled(true);
+
+		compositeTableViewer.addDisposeListener(e -> {
+			img1.dispose();
+			img2.dispose();
+			img3.dispose();
+			img4.dispose();
+			img5.dispose();
+			img6.dispose();
+			img7.dispose();
+		});
 	}
 
 	private void clearLogs() {
@@ -827,6 +851,7 @@ public class EngineLogView extends ViewPart {
 		item.setText("Add \"equals\" command");
 		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/log_ctx_menu_add_equals.png")));
+		item.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				handleContextualTableViewerMenuSelection(0);
@@ -838,6 +863,7 @@ public class EngineLogView extends ViewPart {
 		item.setText("Add \"contains\" command");
 		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/log_ctx_menu_add_contains.png")));
+		item.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				handleContextualTableViewerMenuSelection(1);
@@ -850,6 +876,7 @@ public class EngineLogView extends ViewPart {
 		item.setText("Add \"starts with\" command");
 		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/log_ctx_menu_add_startswith.png")));
+		item.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				handleContextualTableViewerMenuSelection(2);
@@ -861,6 +888,7 @@ public class EngineLogView extends ViewPart {
 		item.setText("Add \"ends with\" command");
 		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/log_ctx_menu_add_endswith.png")));
+		item.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				handleContextualTableViewerMenuSelection(3);
@@ -873,6 +901,7 @@ public class EngineLogView extends ViewPart {
 		addVariableItem.setText("Add variable");
 		addVariableItem.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/log_ctx_menu_add_variable.png")));
+		addVariableItem.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		addVariableItem.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				handleContextualTableViewerMenuSelection(4);
@@ -886,6 +915,7 @@ public class EngineLogView extends ViewPart {
 		item.setText("Clear logs");
 		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
 				"images/clear_logs.png")));
+		item.addDisposeListener(e -> ((MenuItem) e.widget).getImage().dispose());
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				clearLogsAction.run();

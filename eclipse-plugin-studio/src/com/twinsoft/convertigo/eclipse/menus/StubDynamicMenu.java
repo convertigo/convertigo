@@ -96,7 +96,7 @@ public class StubDynamicMenu extends ContributionItem {
 							menuItem.setText("Execute from stub");
 							menuItem.setImage(image);
 
-							Menu submenu = new Menu(menu.getParent(), SWT.DROP_DOWN);
+							Menu submenu = new Menu(menu);
 							menuItem.setMenu(submenu);
 
 							// add action for each stub file

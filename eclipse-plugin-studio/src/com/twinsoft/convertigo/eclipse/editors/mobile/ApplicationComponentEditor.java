@@ -117,7 +117,6 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -282,7 +281,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (c8oBrowser != null) {
 			c8oBrowser.dispose();
 		}
-
+		
+		if (devicesMenu != null) {
+			devicesMenu.dispose();
+		}
+		
 		for (Process p: processes) {
 			p.destroyForcibly();
 			p.destroy();
@@ -538,6 +541,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 		});
+		deviceOsToolItem.addDisposeListener(e -> mOS.dispose());
 
 		new Label(deviceBar, SWT.NONE).setText(" ");
 
@@ -905,7 +909,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setText(mode.label());
 			menuItem.setToolTipText(mode.description());
 			menuItem.setData(mode);
-			menuItem.setImage(ViewImageProvider.getImageFromCache(mode.icon()));
+			try {
+				menuItem.setImage(plugin.getStudioIcon(mode.icon()));
+			} catch (Exception e) {
+			}
 			menuItem.addSelectionListener(buildModeListener);
 			if (mode.equals(buildMode)) {
 				item.setImage(menuItem.getImage());
@@ -929,6 +936,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 		});
+		item.addDisposeListener(e -> buildModeMenu.dispose());
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
@@ -988,7 +996,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 
 			});
-
+			item.addDisposeListener(e -> mDataset.dispose());
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);

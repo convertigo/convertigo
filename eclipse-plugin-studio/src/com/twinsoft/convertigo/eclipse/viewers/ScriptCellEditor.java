@@ -38,7 +38,8 @@ public class ScriptCellEditor extends TextCellEditor {
 	 */
 	@Override
 	protected Control createControl(Composite parent) {
-		super.createControl(parent);
+		var control = super.createControl(parent);
+		control.addDisposeListener(e -> dispose()); 
 		parent.getDisplay().asyncExec(() -> {
 			text.setFont(getFont());
 			text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));

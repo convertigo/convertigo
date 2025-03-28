@@ -19,10 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
 public class CreateMobileRouteComponentAction extends DatabaseObjectCreateAction {
 	
 	public CreateMobileRouteComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.RouteComponent");
 	}
 
+	@Override
+	protected boolean canImpactMobileBuilder(TreeObject ob) {
+		return true;
+	}
 }

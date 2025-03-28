@@ -124,6 +124,7 @@ public class ViewImageProvider {
 				}
 				
 				ImageData imageData = getImageData(image, object);
+				image.dispose();
 				image = new Image(device, imageData);
 				imagesCache.put(imageName, image);
 			} catch (Throwable e) {
