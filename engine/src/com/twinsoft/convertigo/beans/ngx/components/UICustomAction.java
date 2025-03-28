@@ -101,26 +101,6 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 				this.clearPageTsImportAfterMigration = true;
 			}
-
-//TODO: TO REMOVE BEFORE RELEASE 8.4.0
-			if (VersionUtils.compare(version, "8.4.0.m006") == 0) {
-				if (!this.page_ts_imports.isEmpty()) {
-					this.page_ts_imports = migrateTsImports(this.page_ts_imports);
-				}
-				if (!this.module_ts_imports.isEmpty()) {
-					this.module_ts_imports = migrateTsImports(this.module_ts_imports);
-				}
-				if (!this.local_module_ts_imports.isEmpty()) {
-					this.local_module_ts_imports = migrateTsImports(this.local_module_ts_imports);
-				}
-				
-				if (this.app_ts_imports.isEmpty() && !this.page_ts_imports.isEmpty()) {
-					this.app_ts_imports = new XMLVector<XMLVector<String>>(this.page_ts_imports);
-					this.hasChanged = true;
-				}
-				clearPageTsImportAfterMigration = true;				
-			}
-//TODO: END
 		} catch (Exception e) {
 			throw new EngineException("Unable to migrate the UICustomAction \"" + getName() + "\".", e);
 		}
