@@ -20,13 +20,12 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.http.client.HttpResponseException;
@@ -48,11 +47,12 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ReferencedProjectManager {
 	private Map<File, Object> dirLock = new HashMap<>();
-	
+	private Map<String, Long> lastFetch = Collections.synchronizedMap(new HashMap<>());
+
 	static public String getTemplateUrl(String projectName) {
-        return "https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + projectName + ".zip";
+		return "https://github.com/convertigo/c8oprj-mobilebuilder-tpl/archive/" + projectName + ".zip";
 	}
-	
+
 	private Object getLock(File dir) {
 		synchronized (dirLock) {
 			Object lock = dirLock.get(dir);
@@ -62,74 +62,55 @@ public class ReferencedProjectManager {
 			return lock;
 		}
 	}
-	
+
 	public boolean check() {
-		List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-		boolean loaded = check(names);
-		if (loaded) {
-			Engine.theApp.fireMigrationFinished(new EngineEvent(""));
-		}
-		return loaded;
-	}
-	
-	boolean check(Project project) {
-		Map<String, ProjectUrlParser> refs = new HashMap<>();
-		check(project, refs);
-		return check(refs);
-	}
-	
-	private boolean check(Project project, Map<String, ProjectUrlParser> refs) {
-		project.getReferenceList().forEach(r -> {
-			if (r instanceof ProjectSchemaReference) {
-				ProjectSchemaReference ref = (ProjectSchemaReference) r;
-				String url = ref.getProjectName();
-				ProjectUrlParser parser = new ProjectUrlParser(url);
-				if (parser.isValid()) {
-					refs.put(parser.getProjectName(), parser);
-				}
-			}
-		});
-		return check(refs);
-	}
-	
-	private boolean check(Map<String, ProjectUrlParser> refs) {
-		List<String> loaded = new LinkedList<>();
-		for (Entry<String, ProjectUrlParser> entry: refs.entrySet()) {
-			String projectName = entry.getKey();
+		var todo = new LinkedList<ProjectUrlParser>();
+		var done = new HashSet<String>();
+		var loaded = false;
+		for (var projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
-				ProjectUrlParser parser = entry.getValue();
-				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), false);
-				Project nProject = importProject(parser); 
+				todo.addAll(parsers(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false)));
+			} catch (Exception e) {
+				Engine.logEngine.debug("(ReferencedProjectManager) " + projectName + " failed to load for check: " + e);
+			}
+		}
+		while (!todo.isEmpty()) {
+			var parser = todo.poll();
+			var projectName = parser.getProjectName();
+			if (!done.add(projectName)) {
+				continue;
+			}
+
+			try {
+				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), false);
+				Project nProject = importProject(parser);
 				if (nProject != null && nProject != project) {
-					loaded.add(projectName);
+					todo.addAll(parsers(nProject));
+					loaded = true;
 				}
 			} catch (Exception e) {
-				Engine.logEngine.warn("(ReferencedProjectManager) Failed to load '" + projectName + "'", e);
+				Engine.logEngine.debug("(ReferencedProjectManager) " + parser.getProjectUrl() + " failed to load for check: " + e);
 			}
 		}
-		if (!loaded.isEmpty()) {
-			check(loaded);
-			return true;
-		}
-		return false;
-	}
-	
-	private boolean check(List<String> names) {
-		boolean loaded = false;
-		Map<String, ProjectUrlParser> refs = new HashMap<>();
-		for (String name: names) {
-			try {
-				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
-				if (project != null) {
-					loaded |= check(project, refs);
-				}
-			} catch (Exception e) {
-				Engine.logEngine.error("Failed to load " + name, e);
-			}
-		}
+
 		return loaded;
 	}
-	
+
+	private Collection<ProjectUrlParser> parsers(Project project) {
+		var parsers = new LinkedList<ProjectUrlParser>();
+		if (project != null) {
+			for (var ref: project.getReferenceList()) {
+				if (ref instanceof ProjectSchemaReference pref) {
+					var parser = pref.getParser();
+					if (parser.getGitUrl() != null) {
+						parsers.add(parser);
+					}
+				}
+			}
+		}
+		return parsers;
+	}
+
 	public ProjectSchemaReference getReferenceFromProject(Project project, String projectName) throws EngineException {
 		ProjectSchemaReference prjRef = null;
 		for (Reference ref: project.getReferenceList()) {
@@ -142,7 +123,7 @@ public class ReferencedProjectManager {
 				}
 			}
 		}
-		
+
 		if (prjRef == null) {
 			prjRef = new ProjectSchemaReference();
 			if (projectName.startsWith("mobilebuilder_tpl_")) {
@@ -154,10 +135,10 @@ public class ReferencedProjectManager {
 			project.changed();
 			project.hasChanged = true;
 		}
-		
+
 		return prjRef;
 	}
-	
+
 	public Project importProjectFrom(Project project, String projectName) throws Exception {
 		Project targetProject = project.getName().equals(projectName) ? project : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		if (targetProject == null) {
@@ -172,7 +153,7 @@ public class ReferencedProjectManager {
 	public Project importProject(ProjectUrlParser parser) throws Exception {
 		return importProject(parser, false);
 	}
-	
+
 	public Project importProject(ProjectUrlParser parser, boolean force) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
@@ -217,6 +198,7 @@ public class ReferencedProjectManager {
 				if (!dir.exists()) {
 					GitUtils.clone(parser.getGitUrl(), parser.getGitBranch(), dir);
 					cloneDone = true;
+					lastFetch.put(parser.getProjectName(), System.currentTimeMillis() + 20000);
 				} else {
 					Engine.logEngine.info("(ReferencedProjectManager) Use repo " + dir);
 				}
@@ -230,6 +212,12 @@ public class ReferencedProjectManager {
 		if (dir != null) {
 			if (!cloneDone && (force || (parser.isAutoPull() && !Engine.isStudioMode()))) {
 				synchronized (getLock(dir)) {
+					var lf = lastFetch.get(parser.getProjectName());
+					var now = System.currentTimeMillis();
+					if (!force && lf != null && now < lf && project != null) {
+						Engine.logEngine.info("(ReferencedProjectManager) Referenced project fetch skip: " + project);
+						return project;
+					}
 					String exRev = GitUtils.getRev(dir);
 					GitUtils.fetch(dir);
 					GitUtils.reset(dir, parser.getGitBranch());
@@ -237,6 +225,7 @@ public class ReferencedProjectManager {
 					if (!exRev.equals(newRev)) {
 						project = null;
 					}
+					lastFetch.put(parser.getProjectName(), now + 20000);
 				}
 			}
 			if (project == null) {
@@ -251,6 +240,7 @@ public class ReferencedProjectManager {
 	}
 
 	public void check(File projectFile) {
+		System.out.println("### Check " + projectFile + " [" + Thread.currentThread() + "]");
 		try {
 			for (var ref: references(projectFile)) {
 				try {
@@ -267,7 +257,7 @@ public class ReferencedProjectManager {
 			Engine.logEngine.warn("(ReferencedProjectManager) Failed to check " + projectFile + " [" + e.getClass().getSimpleName() + "] " + e.getMessage());
 		}
 	}
-	
+
 	public static Set<ProjectSchemaReference> references(File file) throws Exception {
 		if (!file.getName().endsWith(".yaml")) {
 			return Collections.emptySet();
@@ -293,7 +283,7 @@ public class ReferencedProjectManager {
 		}
 		return refs;
 	}
-	
+
 	protected void checkForIonicTemplate(String projectName, File projectFile) {
 		try {
 			if (projectFile != null && projectFile.exists()) {
@@ -303,7 +293,7 @@ public class ReferencedProjectManager {
 				if (ionicTplDir.exists() && ionicTplDir.isDirectory()) {
 					// this is a ngx ionic builder template
 					if (new File(ionicTplDir,"angular.json").exists()) {
-						
+
 						// if template's ion folder does not exist: get and copy default one
 						File versionJson = new File(ionicTplDir,"version.json");
 						if (versionJson.exists()) {
@@ -315,7 +305,7 @@ public class ReferencedProjectManager {
 							} catch (Exception e) {
 								Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve template's version for " + projectName);
 							}
-							
+
 							File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
 							if (tplVersion != null && !ngxIonObjects.exists()) {
 								String v = tplVersion;
@@ -337,7 +327,7 @@ public class ReferencedProjectManager {
 									} else {
 										Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
 									}
-								} catch( Exception e) {
+								} catch(Exception e) {
 									Engine.logEngine.warn("(ReferencedProjectManager) Could not retrieve default "+ v +" ionic objects for " + projectName);
 								} finally {
 									if (delete && ionZipFile != null) {
@@ -346,13 +336,13 @@ public class ReferencedProjectManager {
 								}
 							}
 						}
-						
+
 						// this template has its own ion_objects.json file
 						File ngxIonObjects = new File(ionicTplDir,"ion/ion_objects.json");
 						if (ngxIonObjects.exists()) {
 							Engine.logEngine.info("(ReferencedProjectManager) Found ionic objects in template for " + projectName);
 							com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager
-								.addIonicTemplateProject(projectName, projectDir);
+							.addIonicTemplateProject(projectName, projectDir);
 							Engine.execute(() -> {
 								var dbom = Engine.theApp.databaseObjectsManager;
 								for (var name: dbom.getAllProjectNamesList(true)) {
