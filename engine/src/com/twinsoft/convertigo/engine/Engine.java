@@ -733,13 +733,10 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
-							boolean newProjectLoaded = Engine.theApp.referencedProjectManager.check();
-
-							if (!newProjectLoaded && Thread.currentThread().getName().equalsIgnoreCase("Migration")) {
-								Engine.logEngine.info("Convertigo will run auto start Sequences.");
-								for (String name: names) {
-									Project.executeAutoStartSequences(name);
-								}
+							
+							Engine.logEngine.info("Convertigo will run auto start Sequences.");
+							for (String name: names) {
+								Project.executeAutoStartSequences(name);
 							}
 						}
 					});
