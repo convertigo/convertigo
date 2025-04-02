@@ -1,5 +1,25 @@
 # Changelog
 
+## 8.3.4
+
+#### Improvements:
+
+- [#924](https://github.com/convertigo/convertigo/issues/924) [Studio] The Convertigo object search is now integrated with the Eclipse search wizard and view
+- [#926](https://github.com/convertigo/convertigo/issues/926) [HTTP Connector] The "no Pool" mode now automatically adds a "Connection: close" header
+- [#929](https://github.com/convertigo/convertigo/issues/929) [Studio] Memory usage has been optimized for better performance
+- [#931](https://github.com/convertigo/convertigo/issues/931) [Studio] The NGXComponent Source picker now sorts Local and Global variables by name
+
+#### Bug Fixes:
+
+- [#921](https://github.com/convertigo/convertigo/issues/921) [Studio] Fixed, adding a Mobile Application to a Convertigo project no longer triggers errors
+- [#922](https://github.com/convertigo/convertigo/issues/922) [Studio] Fixed, Page Hints are now applied when adding a new Page via the Contextual Menu
+- [#925](https://github.com/convertigo/convertigo/issues/925) [Admin] Fixed, the Logs page now displays correctly after refreshing the page
+- [#928](https://github.com/convertigo/convertigo/issues/928) Fixed, copying elements in the Treeview no longer triggers an application rebuild
+- [#930](https://github.com/convertigo/convertigo/issues/930) [Engine] Fixed, the server no longer performs excessive GIT fetch/reset operations on startup
+- [#932](https://github.com/convertigo/convertigo/issues/932) Fixed, Convertigo now returns a proper error structure when a file variable exceeds the maximum permitted size
+
+---
+
 ## 8.3.3
 
 
