@@ -783,7 +783,7 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 		if (object != null) {
 			Map<String, UIDynamicAction> locals = null;
 			if (object instanceof ApplicationComponent) {
-				locals = new TreeMap<>();
+				locals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 				getLocalActions(object, locals);
 			}
 			
@@ -843,7 +843,7 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 		if (object != null) {
 			Map<String, UIDynamicAction> globals = null;
 			if (object instanceof ApplicationComponent) {
-				globals = new TreeMap<>();
+				globals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 				getGlobalActions(object, globals);
 			}
 			
