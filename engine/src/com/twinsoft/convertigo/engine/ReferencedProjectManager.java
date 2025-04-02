@@ -240,7 +240,6 @@ public class ReferencedProjectManager {
 	}
 
 	public void check(File projectFile) {
-		System.out.println("### Check " + projectFile + " [" + Thread.currentThread() + "]");
 		try {
 			for (var ref: references(projectFile)) {
 				try {
