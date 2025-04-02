@@ -36,9 +36,12 @@ import javax.servlet.http.HttpSession;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException;
+import org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
@@ -50,6 +53,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.requesters.GenericRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -155,7 +159,7 @@ public abstract class GenericServlet extends HttpServlet {
 
 		String baseUrl = getServletBaseUrl(request);
 		boolean isProject;
-		
+
 		if ((isProject = baseUrl.contains("/projects/") || baseUrl.contains("/system/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
 			try {
@@ -168,31 +172,31 @@ public abstract class GenericServlet extends HttpServlet {
 					wrapped_request.clearParameters();
 					wrapped_request.addQuery(query);
 				}
-				
+
 				if (isProject && request.getMethod().equalsIgnoreCase("OPTIONS") && Engine.isStarted) {
 					Project project = null;
 					String projectName = request.getParameter(Parameter.Project.getName());
 					if (projectName == null) {
 						projectName = request.getRequestURI().replaceFirst(".*/projects/(.*?)/.*", "$1");
 					}
-					
+
 					if (!projectName.contains("/")) {
 						try {
 							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 						} catch (Exception e) { }
 					}
-					
+
 					if (project == null) {
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 						return;
 					}
-					
+
 					HttpUtils.applyFilterCorsHeaders(request, response, project.getCorsOrigin());
-					
+
 					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 					return;
 				}
-				
+
 				Object result = processRequest(request);
 
 				response.addHeader("Expires", "-1");
@@ -201,9 +205,9 @@ public abstract class GenericServlet extends HttpServlet {
 					HeaderName.CacheControl.addHeader(response,
 							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
 				}
-				
+
 				HttpUtils.applyCorsHeaders(request, response);
-				
+
 				/**
 				 * Disabled since #253 : Too much HTML Connector cookies in
 				 * response header make a tomcat exception
@@ -223,7 +227,7 @@ public abstract class GenericServlet extends HttpServlet {
 				if ((trSessionId != null) && (!trSessionId.equals(""))) {
 					response.setHeader("Transaction-JSessionId", trSessionId);
 				}
-				
+
 				String requested_content_type = request.getParameter(Parameter.ContentType.getName());
 				String content_type = getContentType(request);
 				if (requested_content_type != null && !requested_content_type.equals(content_type)) {
@@ -232,7 +236,7 @@ public abstract class GenericServlet extends HttpServlet {
 				} else {
 					requested_content_type = null;
 				}
-				
+
 				response.setContentType(content_type);
 				if (content_type.startsWith("text")) {
 					String charset = (String) request.getAttribute("convertigo.charset");
@@ -240,7 +244,7 @@ public abstract class GenericServlet extends HttpServlet {
 						response.setCharacterEncoding(charset);
 					}
 				}
-				
+
 				try {
 
 					if (result != null) {
@@ -249,7 +253,7 @@ public abstract class GenericServlet extends HttpServlet {
 						if (b.booleanValue()) {
 							Requester requester = getRequester();
 							boolean bThrowHTTP500 = false;
-							
+
 							if (requester instanceof WebServiceServletRequester) {
 								bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
 										.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500_SOAP_FAULT));
@@ -272,19 +276,19 @@ public abstract class GenericServlet extends HttpServlet {
 							AttachmentDetails attachment = (AttachmentDetails) result;
 							byte[] data = attachment.getData();
 							String contentType = attachment.getContentType();
-							
+
 							if (requested_content_type != null) {
 								contentType = requested_content_type;
 							}
-							
+
 							String name = attachment.getName();
 
 							HeaderName.ContentType.setHeader(response, contentType);
 							HeaderName.ContentLength.setHeader(response, "" + data.length);
 							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
-							
+
 							applyCustomHeaders(request, response);
-							
+
 							OutputStream out = response.getOutputStream();
 							out.write(data);
 							out.flush();
@@ -296,7 +300,7 @@ public abstract class GenericServlet extends HttpServlet {
 								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 							}
 							HeaderName.ContentLength.addHeader(response, "" + ((byte[]) result).length);
-							
+
 							applyCustomHeaders(request, response);
 
 							OutputStream out = response.getOutputStream();
@@ -311,7 +315,7 @@ public abstract class GenericServlet extends HttpServlet {
 							} else if (result instanceof SOAPMessage){
 								sResult = SOAPUtils.toString((SOAPMessage) result, (String) request.getAttribute("convertigo.charset"));
 							}
-							
+
 							applyCustomHeaders(request, response);
 
 							Writer writer = response.getWriter();
@@ -320,14 +324,14 @@ public abstract class GenericServlet extends HttpServlet {
 						}
 					} else {
 						applyCustomHeaders(request, response);
-						
+
 						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 					}
 				} catch (IOException e) {
 					// The connection has probably been reset by peer
 					Engine.logContext
-							.warn("[GenericServlet] The connection has probably been reset by peer (IOException): "
-									+ e.getMessage());
+					.warn("[GenericServlet] The connection has probably been reset by peer (IOException): "
+							+ e.getMessage());
 				} finally {
 					onFinally(request);
 				}
@@ -352,7 +356,7 @@ public abstract class GenericServlet extends HttpServlet {
 		String supervision = request.getParameter(Parameter.Supervision.getName());
 		if (supervision != null) {
 			Engine.logContext
-					.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
+			.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
 			removeSession(request, 30);
 		}
 
@@ -397,7 +401,7 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 	}
-	
+
 	private void removeContext(HttpServletRequest request) {
 		if (Engine.isEngineMode()) {
 			Context context = (Context) request.getAttribute("convertigo.context");
@@ -418,8 +422,8 @@ public abstract class GenericServlet extends HttpServlet {
 				boolean isAdminSession = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
 				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession)) {
 					Engine.logContext
-							.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
-									+ interval + "s.");
+					.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
+							+ interval + "s.");
 					httpSession.setMaxInactiveInterval(interval);
 				}
 			} catch (Exception e) {
@@ -466,30 +470,30 @@ public abstract class GenericServlet extends HttpServlet {
 			// Check multipart request
 			if (ServletFileUpload.isMultipartContent(request)) {
 				Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
-	
+
 				// Create a factory for disk-based file items
 				DiskFileItemFactory factory = new DiskFileItemFactory();
-	
+
 				// Set factory constraints
 				factory.setSizeThreshold(1000);
-	
+
 				temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
 				int cptFile = 0;
 				temporaryFile.delete();
 				temporaryFile.mkdirs();
 				factory.setRepository(temporaryFile);
 				Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
-	
+
 				// Create a new file upload handler
 				ServletFileUpload upload = new ServletFileUpload(factory);
-				
+
 				// Set overall request size constraint
 				upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
 				upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
-	
+
 				// Parse the request
 				List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
-	
+
 				for (FileItem fileItem : items) {
 					String parameterName = fileItem.getFieldName();
 					String parameterValue;
@@ -512,21 +516,37 @@ public abstract class GenericServlet extends HttpServlet {
 							parameterValue = "";
 						}
 					}
-	
+
 					if (twsRequest != null) {
 						twsRequest.addParameter(parameterName, parameterValue);
 					}
 				}
 			}
-			
+
 			Requester requester = getRequester();
 			request.setAttribute("convertigo.requester", requester);
-	
+
 			Object result = requester.processRequest(request);
-	
+
 			processRequestEnd(request, requester);
-			
+
 			return result;
+		} catch (Exception e) {
+			request.setAttribute("convertigo.isErrorDocument", true);
+			var requester = getRequester();
+			requester.context = new Context("");
+			var error = Engine.buildErrorDocument(e, requester, requester.context);
+			if ((e instanceof FileSizeLimitExceededException || e instanceof SizeLimitExceededException) && request.getAttribute("response") instanceof HttpServletResponse resp) {
+				resp.setStatus(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+				if (requester.context.getXpathApi().selectSingleNode(error, "/document/error/code") instanceof Element elt) {
+					elt.setTextContent(Integer.toString(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE));
+				}
+			}
+			Object response = error;
+			if (requester instanceof GenericRequester grec) {
+				response = grec.postGetDocument(error);
+			}
+			return response;
 		} finally {
 			if (temporaryFile != null) {
 				try {
@@ -538,17 +558,17 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 	}
-	
+
 	void processRequestEnd(HttpServletRequest request, Requester requester) {
 		Context context = requester.context;
-		
+
 		request.setAttribute("convertigo.cookies", context.getCookieStrings());
-		
+
 		String trSessionId = context.getSequenceTransactionSessionId();
 		if (trSessionId != null) {
 			request.setAttribute("sequence.transaction.sessionid", trSessionId);
 		}
-		
+
 		boolean isNew = true;
 		HttpSession session = request.getSession(false);
 		if (session != null) {
@@ -558,7 +578,7 @@ public abstract class GenericServlet extends HttpServlet {
 				SessionAttribute.isNew.set(session, true);
 			}
 		}
-		
+
 		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
@@ -573,7 +593,7 @@ public abstract class GenericServlet extends HttpServlet {
 			// (#320)
 			request.setAttribute("convertigo.contentType", context.contentType);
 		}
-		
+
 		request.setAttribute("convertigo.cacheControl", context.cacheControl);
 		request.setAttribute("convertigo.context", context);
 		request.setAttribute("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
@@ -582,7 +602,7 @@ public abstract class GenericServlet extends HttpServlet {
 			request.setAttribute("convertigo.charset", "UTF-8");
 		}
 	}
-	
+
 	public abstract Requester getRequester();
 
 	public String getContentType(HttpServletRequest request) {
@@ -604,7 +624,7 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	public abstract String getDocumentExtension();
-	
+
 	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
 		ServletUtils.applyCustomHeaders(request, response);
 	}
