@@ -754,11 +754,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
+							boolean tplIsLowerThan8043 = UIDynamicAction.this.compareToTplVersion("8.4.0.3") < 0;
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + "Module";
-								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ ".module";
+								String pageModuleName = pageName + (tplIsLowerThan8043 ? "Module" : "");
+								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ (tplIsLowerThan8043 ? ".module" : "");
 								if (!map.containsKey(pageModuleName)) {
 									map.put("{ "+ pageModuleName + " }", pageModulepath);
 								}
@@ -778,10 +779,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
+							boolean tplIsLowerThan8043 = UIDynamicAction.this.compareToTplVersion("8.4.0.3") < 0;
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + "Module";
+								String pageModuleName = pageName + (tplIsLowerThan8043 ? "Module" : "");
 								if (!imports.contains(pageModuleName)) {
 									imports.add(pageModuleName);
 								}

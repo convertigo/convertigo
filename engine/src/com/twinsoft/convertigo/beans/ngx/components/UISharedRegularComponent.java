@@ -793,13 +793,26 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 		}
 	}
 	
+	protected String getModuleName() {
+		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		String moduleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this);
+		return moduleName + (tplIsLowerThan8043 ? "Module" : "");
+	}
+	
+	protected String getModulePath() {
+		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		String modulePath = "/components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this);
+		return modulePath + (tplIsLowerThan8043 ? ".module" : "");
+	}
+	
 	@Override
 	protected Contributor getContributor() {
 		return getContributor(null);
 	}
 	
 	protected Contributor getContributor(UIUseShared uiUse) {
-		final String c8o_CompModuleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this) + "Module";
+		final String c8o_CompModuleName = getModuleName();
+		final String c8o_CompModulePath = getModulePath();
 		final UIUseShared use = uiUse;
 		
 		return new Contributor() {
@@ -838,7 +851,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
-					String c8o_CompModulePath = "/components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
 					imports.put("{ "+ c8o_CompModuleName+" }", c8o_CompModulePath);
 				}
 				return imports;
