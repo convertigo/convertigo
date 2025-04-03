@@ -240,6 +240,21 @@ public class GenericUtils {
 		return iterator.hasNext() ? iterator.next() : null;
 	}
 	
+	public static Comparator<Object> CASE_INSENSITIVE_ORDER = (o1, o2) -> {
+		if (o1 == null || o2 == null) {
+			return o2 == null ? -1 : 1;
+		}
+		var s1 = o1.toString();
+		var s2 = o2.toString();
+		var res = s1.compareToIgnoreCase(s2);
+		if (res == 0) {
+			res = s1.compareTo(s2);
+			return res == 0 ? -1 : res;
+		} else {
+			return res;
+		}
+	};
+	
 	public static <E> void merge(List<E> first, List<E> second, List<E> result, List<Boolean> minor, Comparator<E> comparator) {
 		int iFirst = 0;
 		int iSecond = 0;
