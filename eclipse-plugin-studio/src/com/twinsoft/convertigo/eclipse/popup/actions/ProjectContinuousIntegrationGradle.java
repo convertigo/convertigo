@@ -51,9 +51,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ProductVersion;
 
 public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
-	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/8.3.0/";
+	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/" + ProductVersion.majorProductVersion + "." + ProductVersion.minorProductVersion + ".0/";
 
 	private Set<String> backupFiles = new TreeSet<String>();
 	private File dest;
