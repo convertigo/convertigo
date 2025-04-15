@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
@@ -205,6 +206,14 @@ public abstract class TreeObject implements IAdaptable {
 	}
 	
 	public TreeObject check() {
+		if (parent == null) {
+			if (getObject() instanceof DatabaseObject dbo) {
+				var dbot = getProjectExplorerView().findTreeObjectByUserObject(dbo);
+				if (dbot != null) {
+					return dbot;
+				}
+			}
+		}
 		return this;
 	}
 	

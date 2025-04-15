@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.util.Set;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.events.BaseEvent;
 
 public class TreeObjectEvent implements BaseEvent {
@@ -58,7 +59,7 @@ public class TreeObjectEvent implements BaseEvent {
 	}
 	
 	private TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update, Set<Object> done, Set<Object> reset) {
-		this.source = source;
+		this.source = source instanceof TreeObject to ? to.check() : source;
 		this.propertyName = propertyName;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
