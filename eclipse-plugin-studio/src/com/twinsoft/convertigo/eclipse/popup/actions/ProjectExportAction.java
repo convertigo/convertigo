@@ -77,14 +77,12 @@ public class ProjectExportAction extends MyAbstractAction {
 
 				explorerView.refreshTreeObject(projectTreeObject);
 
-				String projectArchive = projectName + ".car";
-
 				FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
 				fileDialog.setText("Export a project");
 				fileDialog.setFilterExtensions(new String[]{"*.car","*.zip"});
 				fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo archives as zip"});
 				fileDialog.setFilterPath(Engine.PROJECTS_PATH);
-				fileDialog.setFileName(projectArchive);
+				fileDialog.setFileName(projectName);
 
 				String filePath = fileDialog.open();
 				if (filePath != null) {
