@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
-	import { ToastProvider } from '@skeletonlabs/skeleton-svelte';
+	import { Toaster } from '@skeletonlabs/skeleton-svelte';
+	import { toaster } from '$lib/utils/service';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
@@ -10,7 +11,6 @@
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Light from '$lib/common/Light.svelte';
 	import { setModalAlert } from '$lib/utils/service';
-	import ToastSetter from '$lib/utils/ToastSetter.svelte';
 	import { getContext, setContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 
@@ -73,7 +73,5 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
-<ToastProvider groupClasses="w-full items-center! right-0! z-1000">
-	<ToastSetter />
-	{@render children?.()}
-</ToastProvider>
+<Toaster {toaster}></Toaster>
+{@render children?.()}

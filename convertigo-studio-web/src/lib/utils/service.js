@@ -2,15 +2,11 @@ import { browser } from '$app/environment';
 import { resolveRoute } from '$app/paths';
 import Authentication from '$lib/common/Authentication.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import { createToaster } from '@skeletonlabs/skeleton-svelte';
+
+export const toaster = createToaster();
 
 let currentCalls = 0;
-
-/** @type { import('@skeletonlabs/skeleton-svelte').ToastContext } */
-let toast;
-
-export function setToastContext(toastContext) {
-	toast = toastContext;
-}
 
 let modalAlert;
 export function setModalAlert(alert) {
@@ -210,7 +206,7 @@ function stringilight(obj) {
 
 function handleStateMessage(res, service) {
 	try {
-		if (!toast) {
+		if (!toaster) {
 			return;
 		}
 
@@ -233,10 +229,9 @@ function handleStateMessage(res, service) {
 				modalAlert.open({ message, exception, stacktrace });
 			} else {
 				error = stringilight(error);
-				toast.create({
+				toaster.error({
 					description: error,
 					duration: 10000,
-					type: 'error'
 				});
 			}
 			return;
@@ -259,10 +254,9 @@ function handleStateMessage(res, service) {
 		}
 		if (message) {
 			message = stringilight(message);
-			toast.create({
+			toaster.success({
 				description: message,
-				duration: 3000,
-				type: 'success'
+				duration: 3000
 			});
 			return;
 		}
