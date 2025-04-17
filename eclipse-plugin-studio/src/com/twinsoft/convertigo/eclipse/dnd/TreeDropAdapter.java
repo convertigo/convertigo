@@ -1379,7 +1379,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					} else {
 						Shell shell = ConvertigoPlugin.getMainShell();
 						Menu dropMenu = new Menu(shell, SWT.POP_UP);
-						shell.setMenu(dropMenu);
 
 						for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
 							MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
@@ -1390,9 +1389,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						dropMenu.addMenuListener(new MenuAdapter() {
 							@Override
 							public void menuHidden(MenuEvent e) {
-								if (!dropMenu.isDisposed()) {
-									dropMenu.dispose();
-								}
+								e.display.asyncExec(() -> {
+									if (!dropMenu.isDisposed()) {
+										dropMenu.dispose();
+									}
+								});
 							}
 						});
 						dropMenu.setVisible(true);
@@ -1473,7 +1474,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				if (targetTreeObject instanceof MobileUIComponentTreeObject) {
 					Shell shell = ConvertigoPlugin.getMainShell();
 					Menu dropMenu = new Menu(shell, SWT.POP_UP);
-					shell.setMenu(dropMenu);
 
 					MobileUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
@@ -1505,9 +1505,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					dropMenu.addMenuListener(new MenuAdapter() {
 						@Override
 						public void menuHidden(MenuEvent e) {
-							if (!dropMenu.isDisposed()) {
-								dropMenu.dispose();
-							}
+							e.display.asyncExec(() -> {
+								if (!dropMenu.isDisposed()) {
+									dropMenu.dispose();
+								}
+							});
 						}
 					});
 					dropMenu.setVisible(true);
@@ -1515,7 +1517,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				if (targetTreeObject instanceof NgxUIComponentTreeObject) {
 					Shell shell = ConvertigoPlugin.getMainShell();
 					Menu dropMenu = new Menu(shell, SWT.POP_UP);
-					shell.setMenu(dropMenu);
 
 					NgxUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
@@ -1547,9 +1548,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					dropMenu.addMenuListener(new MenuAdapter() {
 						@Override
 						public void menuHidden(MenuEvent e) {
-							if (!dropMenu.isDisposed()) {
-								dropMenu.dispose();
-							}
+							e.display.asyncExec(() -> {
+								if (!dropMenu.isDisposed()) {
+									dropMenu.dispose();
+								}
+							});
 						}
 					});
 					dropMenu.setVisible(true);

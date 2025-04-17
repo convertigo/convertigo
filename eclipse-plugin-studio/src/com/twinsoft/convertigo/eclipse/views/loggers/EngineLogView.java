@@ -759,8 +759,10 @@ public class EngineLogView extends ViewPart {
 
 					@Override
 					public void menuHidden(MenuEvent e) {
-						super.menuHidden(e);
-						selectColumnsMenu.dispose();
+						e.display.asyncExec(() -> {
+							super.menuHidden(e);
+							selectColumnsMenu.dispose();
+						});
 					}
 					
 				});
