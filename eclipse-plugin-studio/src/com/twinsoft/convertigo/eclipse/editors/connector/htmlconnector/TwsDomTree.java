@@ -312,9 +312,11 @@ public class TwsDomTree extends TreeWrapper {
 			menu.addMenuListener(new MenuAdapter() {
 				@Override
 				public void menuHidden(MenuEvent e) {
-					if (!menu.isDisposed()) {
-						menu.dispose();
-					}
+					e.display.asyncExec(() -> {
+						if (!menu.isDisposed()) {
+							menu.dispose();
+						}
+					});
 				}
 			});
 			menu.setVisible(true);
