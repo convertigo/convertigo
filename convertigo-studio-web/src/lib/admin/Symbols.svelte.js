@@ -33,7 +33,8 @@ let values = {
 	},
 
 	async addSymbol(event, row) {
-		const res = await doCall(row ? 'Edit' : 'Add', event);
+		const edit = row && !row.project;
+		const res = await doCall(edit ? 'Edit' : 'Add', event);
 		return !res.isError;
 	},
 
