@@ -36,7 +36,6 @@ ext.swaggerUiVersion = '5.11.10'
 ext.tomcatVersion = '9.0.94'
 ext.eclipseVersion = '2023-12'
 ext.eclipseBase = '4.30'
-ext.studioWebNodeVersion = '18'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -384,32 +383,7 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }
 
-task buildStudioWebNvmInstall(type: Exec) {
-	group 'convertigo'
-	
-	workingDir 'convertigo-studio-web'
-	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm install ${studioWebNodeVersion}"
-}
-
-task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
-	group 'convertigo'
-	
-	workingDir 'convertigo-studio-web'
-	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci --force"
-}
-
-task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
-	group 'convertigo'
-	mustRunAfter ':buildStudioWebNpmInstall'
-	
-	workingDir 'convertigo-studio-web'
-	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm run build"
-}
-
-task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish' /*, ':buildStudioWebNpmInstall', ':buildStudioWebBuild'*/]) {
+task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish']) {
 	group 'convertigo'
 }
 
