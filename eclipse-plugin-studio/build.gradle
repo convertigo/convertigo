@@ -55,7 +55,7 @@ dependencies {
 	toSync 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	toSync project.property('sapjco3Version')
-	toSync 'com.convertigo.lib:jxbrowser-license:2024.04.15'
+	toSync 'com.convertigo.lib:jxbrowser-license:2025.04.17'
 	toSync 'com.formdev:flatlaf:3.5.4:no-natives'
 	implementation fileTree(dir: 'lib', include: '*.jar')
 }
