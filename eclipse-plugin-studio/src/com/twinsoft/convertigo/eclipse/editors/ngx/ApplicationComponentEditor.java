@@ -1173,7 +1173,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							new String[] {"Update", "Re-install", "Cancel"}, 0
 					);
 			int result = dialog.open();
-			if (result < 2) {
+			if (result == 0 || result == 1) {
 				launchBuilder(true, result == 1);
 			}
 		});
