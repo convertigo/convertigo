@@ -1,8 +1,8 @@
+import { createToaster } from '@skeletonlabs/skeleton-svelte';
 import { browser } from '$app/environment';
 import { resolveRoute } from '$app/paths';
 import Authentication from '$lib/common/Authentication.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import { createToaster } from '@skeletonlabs/skeleton-svelte';
 
 export const toaster = createToaster();
 
@@ -231,7 +231,7 @@ function handleStateMessage(res, service) {
 				error = stringilight(error);
 				toaster.error({
 					description: error,
-					duration: 10000,
+					duration: 10000
 				});
 			}
 			return;

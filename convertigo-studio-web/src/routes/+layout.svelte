@@ -1,7 +1,6 @@
 <script>
 	import '../app.css';
 	import { Toaster } from '@skeletonlabs/skeleton-svelte';
-	import { toaster } from '$lib/utils/service';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
@@ -10,7 +9,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Light from '$lib/common/Light.svelte';
-	import { setModalAlert } from '$lib/utils/service';
+	import { setModalAlert, toaster } from '$lib/utils/service';
 	import { getContext, setContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 
