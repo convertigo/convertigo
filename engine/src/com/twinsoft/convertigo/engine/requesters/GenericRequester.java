@@ -322,9 +322,6 @@ public abstract class GenericRequester extends Requester {
     				// Requestable data statistics
     				addStatisticsAsData(result);
     			}
-    			if (result instanceof Document) {
-    				Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent((Document) result, context.projectName, context.sequenceName, context.connectorName));
-    			}
     			context.waitingRequests--;
         		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
     		}
@@ -630,9 +627,7 @@ public abstract class GenericRequester extends Requester {
             if (context.sequenceName != null) Engine.logContext.info("Starting sequence");
             preGetDocument();
             document = getDocument();
-//            if (!document.getDocumentElement().hasChildNodes()) {
-//            	Engine.log2_warning("The returned document does not contain any data");
-//            }
+            Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
             result = postGetDocument(document);
 		}
 		catch(Throwable e) {
@@ -642,6 +637,7 @@ public abstract class GenericRequester extends Requester {
 			
 			try {
 				document = Engine.theApp.getErrorDocument(e, this, context);
+				Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
 				context.isErrorDocument = true;
 
 				if (context.isXsltRequest) {
