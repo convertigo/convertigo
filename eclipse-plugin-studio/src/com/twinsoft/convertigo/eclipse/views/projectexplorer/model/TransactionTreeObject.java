@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PartInitException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -47,6 +48,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.eclipse.property_editors.SqlQueryCellEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -374,6 +376,18 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 
 	public void launchEditor(String editorType) {
 		try {
+			if (editorType == null && getObject() instanceof SqlTransaction tr) {
+				var pd = getPropertyDescriptor("sqlQuery");
+				var shell = new Shell(ConvertigoPlugin.getDisplay());
+				var cell = new SqlQueryCellEditor(shell, this, pd);
+				try {
+					cell.setValue(pd.getReadMethod().invoke(tr));
+					cell.open();
+				} catch (Exception e) {
+				}
+				shell.dispose();
+				return;
+			}
 			// Open editor
 			if (editorType == null || (editorType != null && editorType.equals("JscriptTransactionEditor"))) {
 				JScriptEditorInput.openJScriptEditor(this, getObject());

@@ -52,10 +52,10 @@ import com.twinsoft.convertigo.eclipse.ColorEnum;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class SmartTypeCellEditor extends TextGenericCellEditor {
+public class SmartTypeCellEditor extends TextMultiGenericCellEditor {
 
 	public SmartTypeCellEditor(Composite parent, DatabaseObjectTreeObject databaseObjectTreeObject, PropertyDescriptor propertyDescriptor) {
-		super(parent, SWT.MULTI, databaseObjectTreeObject, propertyDescriptor);
+		super(parent, databaseObjectTreeObject, propertyDescriptor);
 	}
 
 	private SmartType value;

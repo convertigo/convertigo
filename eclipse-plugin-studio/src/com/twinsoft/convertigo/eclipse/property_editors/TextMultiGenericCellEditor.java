@@ -19,14 +19,18 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import java.beans.PropertyDescriptor;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-public class SqlQueryEditor extends AbstractDialogCellEditor {
-    
-	public SqlQueryEditor(Composite parent) {
-        super(parent);
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
-        dialogTitle = "SQL Query";
-        dialogCompositeClass = SqlQueryEditorComposite.class;
-    }
+
+public class TextMultiGenericCellEditor extends TextGenericCellEditor {
+
+	public TextMultiGenericCellEditor(Composite parent, DatabaseObjectTreeObject databaseObjectTreeObject, PropertyDescriptor propertyDescriptor) {
+		super(parent, SWT.MULTI, databaseObjectTreeObject, propertyDescriptor);
+	}
+	
 }
