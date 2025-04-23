@@ -42,7 +42,7 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("sqlQuery", beanClass, "getSqlQuery", "setSqlQuery");
 			properties[0].setDisplayName(getExternalizedString("property.sqlQuery.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.sqlQuery.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("SqlQueryEditor"));
+			properties[0].setPropertyEditorClass(getEditorClass("SqlQueryCellEditor"));
 			
 			properties[1] = new PropertyDescriptor("xmlOutput", beanClass, "getXmlOutput", "setXmlOutput");
 			properties[1].setExpert(true);

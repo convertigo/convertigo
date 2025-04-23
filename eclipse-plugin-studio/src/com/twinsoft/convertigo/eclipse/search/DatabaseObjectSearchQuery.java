@@ -103,7 +103,7 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 							}
 
 							if (found) {
-								searchResult.addResult(databaseObject);
+								searchResult.addResult(databaseObject.getFullQName());
 							}
 						}
 						monitor.worked(1);

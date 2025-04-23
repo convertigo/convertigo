@@ -312,7 +312,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			$possibleValues = $("#projectEditTemplate .projectEditInputTrueFalse");
 		}
 		
-		if (propertyEditor == "SqlQueryEditor") {
+		if (propertyEditor == "SqlQueryCellEditor") {
 			$responseField=getInputCopyOf("projectEditTextArea");
 			$responseField
 			.attr("cols", "80")

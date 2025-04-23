@@ -6,11 +6,11 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.search.ui.text.AbstractTextSearchViewPage;
 import org.eclipse.search.ui.text.Match;
+import org.eclipse.swt.graphics.Image;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelProvider;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class DatabaseObjectSearchResultViewPage extends AbstractTextSearchViewPage {
 	private ColumnViewer viewer;
@@ -23,8 +23,7 @@ public class DatabaseObjectSearchResultViewPage extends AbstractTextSearchViewPa
 			@Override
 			public String getText(Object obj) {
 				var txt = super.getText(obj);
-				if (obj instanceof DatabaseObject dbo) {
-					var qname = dbo.getFullQName(); 
+				if (obj instanceof String qname) { 
 					if (getInput() instanceof DatabaseObjectSearchResult r && r.getQuery() instanceof DatabaseObjectSearchQuery q) {
 						qname = q.doSubstring(qname);
 					}
@@ -33,6 +32,17 @@ public class DatabaseObjectSearchResultViewPage extends AbstractTextSearchViewPa
 				return txt;
 			}
 
+			@Override
+			public Image getImage(Object obj) {
+				if (obj instanceof String qname) { 
+					try {
+						obj = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+					} catch (Exception e) {
+					}
+				}
+				return super.getImage(obj);
+			}
+			
 		});
 		viewer.getControl().addDisposeListener(e -> viewer.getLabelProvider().dispose());
 	}
@@ -62,13 +72,23 @@ public class DatabaseObjectSearchResultViewPage extends AbstractTextSearchViewPa
 
 	@Override
 	public void showMatch(Match match, int currentOffset, int currentLength, boolean activate) {
-		if (match.getElement() instanceof DatabaseObject dbObject) {
-			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-			pev.objectChanged(new CompositeEvent(dbObject));
-			var node = pev.findTreeObjectByUserObject(dbObject);
-			pev.setSelectedTreeObject(node);
-			var structuredSelection = new StructuredSelection(node);
-			ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged(getViewPart(), structuredSelection);
+		if (match.getElement() instanceof String qname) {
+			try {
+				var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+
+				var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				if (pev == null) {
+					return;
+				}
+				var node = pev.findTreeObjectByUserObject(dbo);
+				if (node == null) {
+					return;
+				}
+				pev.setSelectedTreeObject(node);
+				var structuredSelection = new StructuredSelection(node);
+				ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged(getViewPart(), structuredSelection);
+			} catch (Exception e) {
+			}
 		}
 	}
 }

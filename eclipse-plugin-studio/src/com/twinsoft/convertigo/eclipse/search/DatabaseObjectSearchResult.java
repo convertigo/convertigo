@@ -10,11 +10,9 @@ import org.eclipse.search.ui.text.IEditorMatchAdapter;
 import org.eclipse.search.ui.text.IFileMatchAdapter;
 import org.eclipse.search.ui.text.Match;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-
 public class DatabaseObjectSearchResult extends AbstractTextSearchResult {
 	private DatabaseObjectSearchQuery query;
-	private List<DatabaseObject> results = new ArrayList<>();
+	private List<String> results = new ArrayList<>();
 
 	public DatabaseObjectSearchResult(DatabaseObjectSearchQuery query) {
 		this.query = query;
@@ -24,7 +22,7 @@ public class DatabaseObjectSearchResult extends AbstractTextSearchResult {
 		results.clear();
 	}
 	
-	public void addResult(DatabaseObject result) {
+	public void addResult(String result) {
 		results.add(result);
 		addMatch(new Match(result, 0, 0));
 	}

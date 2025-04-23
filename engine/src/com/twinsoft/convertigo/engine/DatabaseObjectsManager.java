@@ -1890,7 +1890,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void symbolsCheck() {
-		for (Project project : projects.values()) {
+		for (Project project : new ArrayList<>(projects.values())) {
 			ProjectLoadingData data = getProjectLoadingData();
 			data.projectName = project.getName();
 			data.undefinedGlobalSymbol = false;

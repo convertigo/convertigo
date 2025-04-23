@@ -89,10 +89,10 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsE
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
-import com.twinsoft.convertigo.eclipse.property_editors.SmartTypeCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.TextGenericCellEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.TextMultiGenericCellEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -504,7 +504,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
 			}
-			else if (SmartTypeCellEditor.class.isAssignableFrom(pec)) {
+			else if (TextMultiGenericCellEditor.class.isAssignableFrom(pec)) {
 				propertyDescriptor = new PropertyDescriptor(name, displayName) {
 					@Override
 					public CellEditor createPropertyEditor(Composite parent) {
@@ -513,7 +513,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 							Constructor<?> constructor = pec.getConstructor(new Class[] {
 									Composite.class, DatabaseObjectTreeObject.class, java.beans.PropertyDescriptor.class
 							});
-							SmartTypeCellEditor editor = (SmartTypeCellEditor) constructor.newInstance(new Object[] {
+							var editor = (TextMultiGenericCellEditor) constructor.newInstance(new Object[] {
 									parent, DatabaseObjectTreeObject.this, databaseObjectPropertyDescriptor
 							});
 							if (getValidator() != null) {
