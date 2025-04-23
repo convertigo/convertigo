@@ -57,6 +57,7 @@ function updateConnectionsList(xml) {
 			$("#" + $(this).attr("sessionID") + ">td").css("background-color", "lightgreen");
 		};
 	});
+	$("#sessionsList").trigger("reloadGrid");
 	
 	$("#connectionsList").jqGrid('clearGridData');
 
@@ -79,6 +80,7 @@ function updateConnectionsList(xml) {
 			}
 		);
 	});
+	$("#connectionsList").trigger("reloadGrid");
 }
 
 function filterSession(sessionId) {
