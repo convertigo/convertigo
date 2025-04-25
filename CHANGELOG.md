@@ -1,5 +1,24 @@
 # Changelog
 
+## 8.3.5
+
+#### Improvements:
+
+- [#939](https://github.com/convertigo/convertigo/issues/939) [Studio] SQL Transaction queries now open directly in the editor when you double-click the transaction in the treeview
+
+#### Bug Fixes:
+
+- [#859](https://github.com/convertigo/convertigo/issues/859) [NGX] Fixed, binding a Form control value to a Call_Sequence variable now preserves safe operators and generates correct code
+- [#933](https://github.com/convertigo/convertigo/issues/933) [Studio] Fixed, exporting a project as a `.car` on macOS now proposes the correct file name (single `.car` extension)
+- [#936](https://github.com/convertigo/convertigo/issues/936) [Studio] Fixed, saving code in the MobileBuilder editor now regenerates the code when the parent tree object has changed
+- [#937](https://github.com/convertigo/convertigo/issues/937) [Studio] Fixed, drag-and-drop from the Source picker onto beans with multiple JsonField properties works again (regression introduced in 8.3.4)
+- [#938](https://github.com/convertigo/convertigo/issues/938) [FullSync] Fixed, fail-safe startup now renews the `fsclient` after a port change, restoring PouchDB connectivity
+- [#940](https://github.com/convertigo/convertigo/issues/940) [Admin] Fixed, column sorting is now preserved after data refresh
+- [#942](https://github.com/convertigo/convertigo/issues/942) [Studio] Fixed, closing the “Manage Modules” window with the X button no longer triggers an unnecessary rebuild
+- [#943](https://github.com/convertigo/convertigo/issues/943) [Studio] Fixed, focusing a design document from search results no longer breaks the treeview
+
+---
+
 ## 8.3.4
 
 #### Improvements:
@@ -21,7 +40,6 @@
 ---
 
 ## 8.3.3
-
 
 #### Improvements:
 
