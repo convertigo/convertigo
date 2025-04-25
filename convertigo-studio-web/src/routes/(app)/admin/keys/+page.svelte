@@ -46,8 +46,8 @@
 	{/snippet}
 	<AutoPlaceholder {loading}>
 		You have {nbValidKeys} valid key{nbValidKeys > 1 ? 's' : ''}{#if nbInvalidKeys > 0}
-			{' and'} {nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. The first key was
-		created the {new Date(firstStartDate).toISOString().split('T')[0]}.
+			{' and'} {nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
+			The first key was created the {new Date(firstStartDate).toISOString().split('T')[0]}.{/if}
 	</AutoPlaceholder>
 	{#each categories as { keys: data, name, total, remaining }}
 		<TableAutoCard

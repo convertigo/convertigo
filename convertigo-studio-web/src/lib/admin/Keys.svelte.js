@@ -8,7 +8,9 @@ const defValues = {
 			text: null,
 			value: null,
 			expiration: null
-		})
+		}),
+		remaining: 0,
+		total: 0
 	}),
 	nbValidKeys: 0,
 	nbInvalidKeys: 0,

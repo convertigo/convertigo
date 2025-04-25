@@ -39,13 +39,12 @@ export default function ({
 			return;
 		}
 		_calling = true;
+		let res = {};
 		try {
-			const res = await (typeof service == 'string' ? call(service, params) : service(params));
+			res = await (typeof service == 'string' ? call(service, params) : service(params));
 			if (res) {
 				if (res.isError) {
-					values.stop();
-					Object.assign(_values, { ...defValues, res });
-					_needRefresh = true;
+					throw res;
 				} else {
 					for (const array of arrays) {
 						let prop = getNestedProperty(res, array);
@@ -72,7 +71,13 @@ export default function ({
 				}
 			}
 		} catch (error) {
-			_needRefresh = true;
+			if (error != res) {
+				console.error('ServiceHelper error', error);
+			}
+			values.stop();
+			Object.assign(_values, { ...defValues, res });
+			_needRefresh = false;
+			window.setTimeout(() => (_needRefresh = true), 10000);
 		}
 		_calling = false;
 	};
