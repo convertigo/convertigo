@@ -30,10 +30,8 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -61,19 +59,13 @@ public class ImportWizard extends Wizard implements IImportWizard {
 			Job.create("Import project " + parser.getProjectName(), (mon) -> {
 				try {
 					mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
-					Project project = Engine.theApp.referencedProjectManager.importProject(parser, true); 
-					if (project != null) {
-						TreeObject tree = explorerView.getProjectRootObject(project.getName());
-						if (tree != null) {
-							explorerView.reloadProject(tree);
-						}
-						explorerView.refreshProjects();
-					}
+					Engine.theApp.referencedProjectManager.importProject(parser, true); 
 				} catch (Exception e) {
 					Engine.logStudio.debug("Loading from remote URL failed", e);
 				}
 				mon.done();
 			}).schedule();
+			return true;
 		}
 		
 		try {

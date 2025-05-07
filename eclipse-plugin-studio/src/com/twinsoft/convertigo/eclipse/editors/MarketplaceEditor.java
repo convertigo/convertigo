@@ -19,7 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.editors;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -38,9 +40,11 @@ import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class MarketplaceEditor extends EditorPart {
 
@@ -128,6 +132,51 @@ public class MarketplaceEditor extends EditorPart {
 			
 		});
 		String url = STARTUP_URL;
+		
+		var handler = new C8oBrowserPostMessageHelper(browser);
+		handler.onMessage(json -> {
+			Engine.logStudio.debug("Marketplace onMessage: " + json);
+			try {
+				if ("install".equals(json.getString("type"))) {
+					var importUrl = json.getString("url");
+					var parser = new ProjectUrlParser(importUrl);
+					if (parser.isValid()) {
+						Job.create("Import project " + parser.getProjectName(), (mon) -> {
+							try {
+								mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
+								var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
+								try {
+									var msg = new JSONObject();
+									json.put("type", "postInstall");
+									json.put("installed", project != null);
+									if (project != null) {
+										json.put("project", project.getName());
+										json.put("version", project.getVersion());
+									}
+									handler.postMessage(msg);
+								} catch (Exception e1) {
+									e1.printStackTrace();
+								}
+							} catch (Exception e) {
+								Engine.logStudio.debug("Loading from remote URL failed", e);
+							}
+							mon.done();
+						}).schedule();
+					}
+				}
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		handler.onLoad(event -> {
+			try {
+				var json = new JSONObject();
+				json.put("type", "init");
+				handler.postMessage(json);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
 
 		browser.setUrl(url);
 	}
