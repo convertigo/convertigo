@@ -38,6 +38,13 @@
 			id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
 			name="Convertigo Startup">
 		</editor>
+		<editor
+			class="com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor"
+			default="false"
+			icon="icons/convertigo_doc_16x16.gif"
+			id="com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor"
+			name="Convertigo Marketplace">
+		</editor>
 	</extension>
 	<extension
 		point="org.eclipse.ui.actionSets">
@@ -63,6 +70,13 @@
 				icon="icons/studio/menu/statement_color_16x16.png"
 				id="com.twinsoft.convertigo.OpenStartupPage"
 				label="&amp;Open the Startup page"
+				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.actions.OpenMarketplace"
+				icon="icons/studio/menu/statement_color_16x16.png"
+				id="com.twinsoft.convertigo.OpenMarketplace"
+				label="&amp;Open the Marketplace"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
 			</action>
 			<action

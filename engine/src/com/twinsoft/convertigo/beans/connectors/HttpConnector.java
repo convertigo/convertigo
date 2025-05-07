@@ -1659,10 +1659,20 @@ public class HttpConnector extends Connector {
 			if (file.exists()) {
 				String charset = httpVariable.getDoFileUploadCharset();
 				String type = httpVariable.getDoFileUploadContentType();
+				var filename = file.getName();
 				if (org.apache.commons.lang3.StringUtils.isBlank(type)) {
-					type = Engine.getServletContext().getMimeType(file.getName());
+					type = Engine.getServletContext().getMimeType(filename);
 				}
-				parts.add(new FilePart(httpVariable.getHttpName(), file.getName(), file, type, charset));
+				parts.add(new FilePart(httpVariable.getHttpName(), filename, file, type, charset) {
+					@Override
+					protected void sendDispositionHeader(OutputStream out) throws IOException {
+						// Replace by an UTF-8 compatible header (RFC 5987 style)
+						String encodedFileName = java.net.URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
+						out.write(("Content-Disposition: form-data; name=\"" + getName() + "\"; " +
+								"filename=\"encodedFileName\"; " + 
+								"filename*=UTF-8''" + encodedFileName + "\r\n").getBytes("US-ASCII"));
+					}
+				});
 			} else {
 				throw new FileNotFoundException(filepath);
 			}
