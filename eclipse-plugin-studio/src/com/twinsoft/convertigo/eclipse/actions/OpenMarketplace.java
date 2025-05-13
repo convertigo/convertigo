@@ -20,17 +20,11 @@
 package com.twinsoft.convertigo.eclipse.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-
-import com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor;
 
 public class OpenMarketplace implements IWorkbenchWindowActionDelegate {
 	
@@ -41,49 +35,10 @@ public class OpenMarketplace implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
-			activePage.openEditor(new IEditorInput() {
-				
-				@Override
-				public <T> T getAdapter(Class<T> adapter) {
-					// TODO Auto-generated method stub
-					return null;
-				}
-				
-				@Override
-				public String getToolTipText() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-				
-				@Override
-				public IPersistableElement getPersistable() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-				
-				@Override
-				public String getName() {
-					// TODO Auto-generated method stub
-					return "Convertigo Marketplace";
-				}
-				
-				@Override
-				public ImageDescriptor getImageDescriptor() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-				
-				@Override
-				public boolean exists() {
-					// TODO Auto-generated method stub
-					return false;
-				}
-			} , MarketplaceEditor.ID);
-		} catch (PartInitException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			activePage.showView("com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView");
+		} catch (Exception e) {
 		}
 	}
 

@@ -17,7 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.eclipse.editors;
+package com.twinsoft.convertigo.eclipse.views.marketplace;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,10 +31,7 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -46,43 +43,19 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
-public class MarketplaceEditor extends EditorPart {
+public class MarketplaceView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor";
 	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
-	
-	@Override
-	public void doSave(IProgressMonitor monitor) {
-	}
-
-	@Override
-	public void doSaveAs() {
-	}
-
-	@Override
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		setSite(site);
-		setInput(input);
-	}
-	
+		
 	@Override
 	public void dispose() {
 		if (browser != null) {
 			browser.dispose();
 		}
 		super.dispose();
-	}
-
-	@Override
-	public boolean isDirty() {
-		return false;
-	}
-
-	@Override
-	public boolean isSaveAsAllowed() {
-		return false;
 	}
 
 	@Override

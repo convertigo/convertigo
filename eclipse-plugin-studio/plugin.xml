@@ -38,13 +38,6 @@
 			id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
 			name="Convertigo Startup">
 		</editor>
-		<editor
-			class="com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor"
-			default="false"
-			icon="icons/convertigo_doc_16x16.gif"
-			id="com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor"
-			name="Convertigo Marketplace">
-		</editor>
 	</extension>
 	<extension
 		point="org.eclipse.ui.actionSets">
@@ -74,7 +67,7 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenMarketplace"
-				icon="icons/studio/menu/statement_color_16x16.png"
+				icon="icons/studio/retail_store_color_16x16.png"
 				id="com.twinsoft.convertigo.OpenMarketplace"
 				label="&amp;Open the Marketplace"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
@@ -695,6 +688,11 @@
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 				relationship="right"
+				relative="org.eclipse.ui.editorss" />
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
+				visible="false"
+				relationship="stack"
 				relative="org.eclipse.ui.editorss" />
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.baserow.BaserowView"
@@ -3807,6 +3805,14 @@
 			icon="icons/studio/br_16x16.png"
 			id="com.twinsoft.convertigo.eclipse.views.baserow.BaserowView"
 			name="NoCode Databases"
+			restorable="true">
+		</view>
+		<view
+			category="convertigo"
+			class="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
+			icon="icons/studio/retail_store_color_16x16.png"
+			id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
+			name="Convertigo Marketplace"
 			restorable="true">
 		</view>
 		<view
