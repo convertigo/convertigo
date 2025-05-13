@@ -26,10 +26,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 import com.teamdev.jxbrowser.browser.Browser;
 import com.teamdev.jxbrowser.dom.Element;
@@ -49,6 +54,7 @@ import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 
@@ -321,5 +327,94 @@ public class C8oBrowser extends Composite {
 	
 	public void onClick(Function<Event, Boolean> onClick) {
 		this.onClick = onClick;
+	}
+
+	public void addToolItemNavigation(ToolBar toolbar) {
+		addToolItemBack(toolbar);
+		addToolItemStop(toolbar);
+		addToolItemRefresh(toolbar);
+		addToolItemForward(toolbar);
+	}
+	
+	public void addToolItemBack(ToolBar toolbar) {
+		var ti = new ToolItem(toolbar, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_exit.gif"));
+		} catch (IOException e) {
+			ti.setText("←");
+		}
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getBrowser().navigation().goBack();
+			}
+			
+		});
+	}
+	
+	public void addToolItemStop(ToolBar toolbar) {
+		var ti = new ToolItem(toolbar, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/stop_transaction.gif"));
+		} catch (IOException e) {
+			ti.setText("X");
+		}
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getBrowser().navigation().stop();
+			}
+			
+		});
+	}
+	
+	public void addToolItemRefresh(ToolBar toolbar) {
+		var ti = new ToolItem(toolbar, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
+		} catch (IOException e) {
+			ti.setText("R");
+		}
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getBrowser().navigation().reload();
+			}
+			
+		});
+	}
+	
+	public void addToolItemForward(ToolBar toolbar) {
+		var ti = new ToolItem(toolbar, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_entry.gif"));
+		} catch (IOException e) {
+			ti.setText("→");
+		}
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getBrowser().navigation().goForward();
+			}
+			
+		});
+	}
+	
+	public void addToolItemOpenExternal(ToolBar toolbar) {
+		var ti = new ToolItem(toolbar, SWT.NONE);
+		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
+		ti.setText("View with your external browser");
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Program.launch(getURL());
+			}
+			
+		});
 	}
 }

@@ -19,32 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.actions;
 
-import java.security.InvalidParameterException;
-import java.util.UUID;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.program.Program;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 
 public class AdministrationAction implements IWorkbenchWindowActionDelegate {
-	
-	private static String lastAuthToken;
-	private static long lastAuthTokenExpiration;
-	
-	public static void checkAuthToken(String authToken) throws InvalidParameterException {
-		boolean isAuth = authToken != null && authToken.equals(lastAuthToken) && System.currentTimeMillis() < lastAuthTokenExpiration;
-		lastAuthToken = null;
-		lastAuthTokenExpiration = 0;
-		if (!isAuth) {
-			throw new InvalidParameterException("authToken not valid");
-		}
-	}
 	
 	public void dispose() {
 	}
@@ -54,17 +38,13 @@ public class AdministrationAction implements IWorkbenchWindowActionDelegate {
 
 	public void run(IAction action) {
 		try {
-			lastAuthToken = UUID.randomUUID().toString();
-			lastAuthTokenExpiration = System.currentTimeMillis() + 30000;
-			
-			Program.launch(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/admin/login.html#authToken=" + lastAuthToken);
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			activePage.showView(AdminView.ID);
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-
 	}
 	
 }

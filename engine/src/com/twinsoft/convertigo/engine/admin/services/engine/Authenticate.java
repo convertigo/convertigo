@@ -105,7 +105,7 @@ public class Authenticate extends XmlService {
 			
 			if (authToken != null) {
 				try {
-					Class.forName("com.twinsoft.convertigo.eclipse.actions.AdministrationAction").getMethod("checkAuthToken", String.class).invoke(null, authToken);
+					Class.forName("com.twinsoft.convertigo.eclipse.views.admin.AdminView").getMethod("checkAuthToken", String.class).invoke(null, authToken);
 					user = EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME);
 				} catch (Throwable t) {
 					authToken = null;

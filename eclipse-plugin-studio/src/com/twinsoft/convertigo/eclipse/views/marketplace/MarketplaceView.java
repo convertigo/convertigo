@@ -17,24 +17,18 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.eclipse.editors;
+package com.twinsoft.convertigo.eclipse.views.marketplace;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -42,30 +36,15 @@ import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
-public class MarketplaceEditor extends EditorPart {
+public class MarketplaceView extends ViewPart {
 
-	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.MarketplaceEditor";
+	public static final String ID = "com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView";
 	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
-	
-	@Override
-	public void doSave(IProgressMonitor monitor) {
-	}
-
-	@Override
-	public void doSaveAs() {
-	}
-
-	@Override
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		setSite(site);
-		setInput(input);
-	}
 	
 	@Override
 	public void dispose() {
@@ -76,29 +55,22 @@ public class MarketplaceEditor extends EditorPart {
 	}
 
 	@Override
-	public boolean isDirty() {
-		return false;
-	}
-
-	@Override
-	public boolean isSaveAsAllowed() {
-		return false;
-	}
-
-	@Override
 	public void createPartControl(Composite parent) {
 		SwtUtils.refreshTheme();
 		
 		parent.setLayout(new GridLayout(1, true));
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		tb.setVisible(false);
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
+		
+		browser.addToolItemNavigation(tb);
+		new ToolItem(tb, SWT.SEPARATOR);
+		browser.addToolItemOpenExternal(tb);
+		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.setUseExternalBrowser(true);
-		Engine.logStudio.debug("Marketplace debug : "+ browser.getDebugUrl()); 
-		browser.getDebugUrl();
+		browser.setUseExternalBrowser(false);
+		Engine.logStudio.debug("Marketplace debug : "+ browser.getDebugUrl());
 		browser.onClick(ev -> {
 			try {
 				Element elt = (Element) ev.target().get();
@@ -120,17 +92,6 @@ public class MarketplaceEditor extends EditorPart {
 			return false;
 		});
 		
-		ToolItem ti = new ToolItem(tb, SWT.NONE);
-		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
-		ti.setText("View with your external browser");
-		ti.addSelectionListener(new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Program.launch(browser.getURL().replaceFirst("\\?user=.*", ""));
-			}
-			
-		});
 		String url = STARTUP_URL;
 		
 		var handler = new C8oBrowserPostMessageHelper(browser);

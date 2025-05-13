@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.LockRegistry;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
 
@@ -194,31 +195,38 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
 		HttpSession httpSession = request.getSession(true);
-		SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
-		SessionAttribute.userAgent.set(httpSession, HeaderName.UserAgent.getHeader(request));
-		String uuid = request.getParameter(Parameter.DeviceUUID.getName());
-		if (StringUtils.isNotBlank(uuid)) {
-			SessionAttribute.deviceUUID.set(httpSession, uuid);
-			if (Engine.isCloudMode() && !uuid.startsWith("web-")) {
-				devices.add(httpSession.getId());
-			}
-		}
-		if (!SessionAttribute.sessionListener.has(httpSession)) {
-			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
-			SessionAttribute.sessionListener.set(httpSession, new HttpSessionListener());
-			Object t;
-			if ((t = SessionAttribute.exception.get(httpSession)) != null) {
-				if (t instanceof Throwable) {
-					((Throwable) t).setStackTrace(new StackTraceElement[0]);
-					if (t instanceof TASException) {
-						throw (TASException) t;
-					}
-					throw new RuntimeException((Throwable) t);
+
+		var lock = LockRegistry.lock(httpSession.getId());
+		try {
+			lock.lock();
+			SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
+			SessionAttribute.userAgent.set(httpSession, HeaderName.UserAgent.getHeader(request));
+			String uuid = request.getParameter(Parameter.DeviceUUID.getName());
+			if (StringUtils.isNotBlank(uuid)) {
+				SessionAttribute.deviceUUID.set(httpSession, uuid);
+				if (Engine.isCloudMode() && !uuid.startsWith("web-")) {
+					devices.add(httpSession.getId());
 				}
 			}
-		} else {
-			HttpSessionListener listener = SessionAttribute.sessionListener.get(httpSession);
-			listener.authenticatedUser = SessionAttribute.authenticatedUser.get(httpSession, "");
+			if (!SessionAttribute.sessionListener.has(httpSession)) {
+				Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
+				SessionAttribute.sessionListener.set(httpSession, new HttpSessionListener());
+				Object t;
+				if ((t = SessionAttribute.exception.get(httpSession)) != null) {
+					if (t instanceof Throwable) {
+						((Throwable) t).setStackTrace(new StackTraceElement[0]);
+						if (t instanceof TASException) {
+							throw (TASException) t;
+						}
+						throw new RuntimeException((Throwable) t);
+					}
+				}
+			} else {
+				HttpSessionListener listener = SessionAttribute.sessionListener.get(httpSession);
+				listener.authenticatedUser = SessionAttribute.authenticatedUser.get(httpSession, "");
+			}
+		} finally {
+			lock.release();
 		}
 	}
 
