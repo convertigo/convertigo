@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class MarketplaceView extends ViewPart {
 
-	public static final String ID = "com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceEditor";
+	public static final String ID = "com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView";
 	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
