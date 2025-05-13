@@ -26,6 +26,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
 
+import com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView;
+
 public class OpenMarketplace implements IWorkbenchWindowActionDelegate {
 	
 	public void dispose() {
@@ -37,7 +39,7 @@ public class OpenMarketplace implements IWorkbenchWindowActionDelegate {
 	public void run(IAction action) {
 		try {
 			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			activePage.showView("com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView");
+			activePage.showView(MarketplaceView.ID);
 		} catch (Exception e) {
 		}
 	}
