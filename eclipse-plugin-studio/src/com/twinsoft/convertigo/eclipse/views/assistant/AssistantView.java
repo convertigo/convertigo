@@ -28,10 +28,15 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class AssistantView extends ViewPart {
@@ -69,18 +74,37 @@ public class AssistantView extends ViewPart {
 		Engine.logStudio.debug("Assistant debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
-		//url = "http://localhost:42733/path-to-xfirst";
+		//url = "http://localhost:49582/path-to-xfirst";
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
-			Engine.logStudio.debug("Assistant onMessage: " + json);
+			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
 				if ("create".equals(json.getString("type"))) {
 					var response = json.getString("clipboard");
-					Engine.logStudio.info("Assistant clipboard: " + response);
+					Engine.logStudio.info("[Assistant] received clipboard: " + response);
 					ConvertigoPlugin.asyncExec(() -> {
-						
+						try {
+							ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+							if (pev != null) {
+								DatabaseObjectTreeObject doto = pev.getFirstSelectedDatabaseObjectTreeObject();
+								if (doto != null) {
+									ApplicationComponent app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
+									if (app != null) {
+										ConvertigoPlugin.clipboardManagerSystem.paste(response, app, true);
+										TreeObject tto = pev.findTreeObjectByUserObject(app);
+										pev.objectChanged(new CompositeEvent(app, tto.getPath()));
+										Engine.logStudio.info("[Assistant] clipboard succesfully added");
+									}
+								}
+							}
+						} catch (Exception e) {
+							Engine.logStudio.error("[Assistant] unable to handle clipboard", e);
+						}
 					});
+				}
+				else if ("edit".equals(json.getString("type"))) {
+					
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
