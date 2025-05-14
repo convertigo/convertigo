@@ -20,8 +20,6 @@
 package com.twinsoft.convertigo.eclipse.views.assistant;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -30,11 +28,11 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class AssistantView extends ViewPart {
 
@@ -42,6 +40,7 @@ public class AssistantView extends ViewPart {
 	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
+	private C8oBrowserPostMessageHelper handler = null;
 		
 	@Override
 	public void dispose() {
@@ -70,37 +69,18 @@ public class AssistantView extends ViewPart {
 		Engine.logStudio.debug("Assistant debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
+		//url = "http://localhost:42733/path-to-xfirst";
 		
-		var handler = new C8oBrowserPostMessageHelper(browser);
+		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("Assistant onMessage: " + json);
 			try {
-				if ("install".equals(json.getString("type"))) {
-					var importUrl = json.getString("url");
-					var parser = new ProjectUrlParser(importUrl);
-					if (parser.isValid()) {
-						Job.create("Import project " + parser.getProjectName(), (mon) -> {
-							try {
-								mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
-								var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
-								try {
-									var msg = new JSONObject();
-									json.put("type", "postInstall");
-									json.put("installed", project != null);
-									if (project != null) {
-										json.put("project", project.getName());
-										json.put("version", project.getVersion());
-									}
-									handler.postMessage(msg);
-								} catch (Exception e1) {
-									e1.printStackTrace();
-								}
-							} catch (Exception e) {
-								Engine.logStudio.debug("Loading from remote URL failed", e);
-							}
-							mon.done();
-						}).schedule();
-					}
+				if ("create".equals(json.getString("type"))) {
+					var response = json.getString("clipboard");
+					Engine.logStudio.info("Assistant clipboard: " + response);
+					ConvertigoPlugin.asyncExec(() -> {
+						
+					});
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
