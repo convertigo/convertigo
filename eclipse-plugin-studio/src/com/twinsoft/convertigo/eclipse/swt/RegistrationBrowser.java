@@ -84,11 +84,11 @@ public class RegistrationBrowser extends Composite {
 		
 		stack.topControl = browser = new C8oBrowser(this, SWT.NONE);
 		
-		browser.setUseExternalBrowser(true);
+		browser.setUseExternalBrowser(false);
 		browser.getBrowser().set(InjectJsCallback.class, params -> {
 			String url = params.frame().browser().url();
 			if (url != null) {
-				browser.setUseExternalBrowser(!url.contains("convertigo.com/startprivatecloud"));
+				browser.setUseExternalBrowser(!url.contains("c8ocloud.convertigo.net"));
 				try {
 					JsObject window = params.frame().executeJavaScript("window"); 
 					window.putProperty("studio", new StudioAPI());
