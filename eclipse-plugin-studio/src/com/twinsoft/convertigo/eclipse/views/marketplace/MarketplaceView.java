@@ -19,14 +19,19 @@
 
 package com.twinsoft.convertigo.eclipse.views.marketplace;
 
+import java.io.IOException;
+
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
@@ -65,6 +70,23 @@ public class MarketplaceView extends ViewPart {
 		browser = new C8oBrowser(parent, SWT.NONE);
 		
 		browser.addToolItemOpenExternal(tb);
+		
+		new ToolItem(tb, SWT.SEPARATOR);
+		
+		var ti = new ToolItem(tb, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/retail_store_color_16x16.png"));
+		} catch (IOException e1) {
+		}
+		ti.setText("Home");
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.setUrl(STARTUP_URL);
+			}
+			
+		});
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
