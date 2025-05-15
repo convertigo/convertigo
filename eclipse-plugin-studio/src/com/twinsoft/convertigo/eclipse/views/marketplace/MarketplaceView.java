@@ -19,10 +19,14 @@
 
 package com.twinsoft.convertigo.eclipse.views.marketplace;
 
+import java.io.IOException;
+
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +37,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
+import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -64,9 +69,24 @@ public class MarketplaceView extends ViewPart {
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
 		
-		browser.addToolItemNavigation(tb);
-		new ToolItem(tb, SWT.SEPARATOR);
 		browser.addToolItemOpenExternal(tb);
+		
+		new ToolItem(tb, SWT.SEPARATOR);
+		
+		var ti = new ToolItem(tb, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/retail_store_color_16x16.png"));
+		} catch (IOException e1) {
+		}
+		ti.setText("Home");
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.setUrl(STARTUP_URL);
+			}
+			
+		});
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
@@ -118,6 +138,14 @@ public class MarketplaceView extends ViewPart {
 								} catch (Exception e1) {
 									e1.printStackTrace();
 								}
+								Thread.sleep(1000);
+								ConvertigoPlugin.asyncExec(() -> {
+									try {
+										var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										pev.objectSelected(new CompositeEvent(project));
+									} catch (Exception e) {
+									}
+								});
 							} catch (Exception e) {
 								Engine.logStudio.debug("Loading from remote URL failed", e);
 							}

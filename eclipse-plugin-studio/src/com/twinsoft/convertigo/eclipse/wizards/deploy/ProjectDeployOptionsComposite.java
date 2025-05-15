@@ -160,10 +160,11 @@ public class ProjectDeployOptionsComposite extends Composite {
 	
 	private void initialize() {
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.numColumns = 2;
+		gridLayout.numColumns = 1;
 		setLayout(gridLayout);
 
 		if (ConvertigoPlugin.deploymentConfigurationManager.isTrial()) {
+			gridLayout.numColumns = 2;
 			try {
 				Properties pscProps = ConvertigoPlugin.decodePsc();
 				String user = pscProps.getProperty("owner.email");
@@ -208,26 +209,33 @@ public class ProjectDeployOptionsComposite extends Composite {
 					}).goTrial();
 					
 					GridData gd = new GridData();
-					gd.horizontalSpan = 2;
 					gd.horizontalAlignment = GridData.FILL;
+					gd.verticalAlignment = GridData.FILL;
 					gd.grabExcessHorizontalSpace = true;
-					gd.heightHint = 330;
-					gd.widthHint = 700;
+					gd.grabExcessVerticalSpace = true;
+					gd.heightHint = 450;
+					gd.widthHint = 450;
 					browser.setLayoutData(gd);
 				}
 			} catch (PscException e1) {
 				Engine.logStudio.info("PSC parsing error, cannot do account upgrade: " + e1.getMessage());
 			}
 		}
-
-		label = new Label(this, SWT.NONE);
+		
+		var parent = new Composite(this, SWT.NONE);
+		gridLayout = new GridLayout();
+		gridLayout.numColumns = 2;
+		parent.setLayout(gridLayout);
+		parent.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		label = new Label(parent, SWT.NONE);
 		label.setText("Convertigo Environment");
 
 		GridData gridData1 = new GridData();
 		gridData1.horizontalSpan = 2;
 		gridData1.horizontalAlignment = GridData.FILL;
 		gridData1.grabExcessHorizontalSpace = true;
-		convertigoServer = new Text(this, SWT.BORDER);
+		convertigoServer = new Text(parent, SWT.BORDER);
 		convertigoServer.setLayoutData(gridData1);
 
 		convertigoServer.addModifyListener(new ModifyListener() {
@@ -237,25 +245,25 @@ public class ProjectDeployOptionsComposite extends Composite {
 			}
 		});
 
-		createList();
-		createConvertigoGroup();
-		createSSLGroup();
+		createList(parent);
+		createConvertigoGroup(parent);
+		createSSLGroup(parent);
 
 		GridData gridData3 = new GridData();
 		gridData3.horizontalSpan = 2;
 		gridData3.horizontalAlignment = GridData.FILL;
 		gridData3.grabExcessHorizontalSpace = true;
 		gridData3.verticalIndent = 15;
-		assembleXsl = new Button(this, SWT.CHECK);
+		assembleXsl = new Button(parent, SWT.CHECK);
 		assembleXsl.setText("Assemble xsl files included in stylesheets");
 		assembleXsl.setLayoutData(gridData3);
 
 		fillList();
 	}
 
-	private void createList() {
+	private void createList(Composite parent) {
 
-		Composite composite = new Composite(this, SWT.NONE);
+		Composite composite = new Composite(parent, SWT.NONE);
 
 		GridData gridData = new GridData();
 		gridData.horizontalSpan = 2;
@@ -336,8 +344,8 @@ public class ProjectDeployOptionsComposite extends Composite {
 		});
 	}
 
-	private void createSSLGroup() {
-		SSLGroup = new Group(this, SWT.FILL);
+	private void createSSLGroup(Composite parent) {
+		SSLGroup = new Group(parent, SWT.FILL);
 		SSLGroup.setLayout(new GridLayout());
 		SSLGroup.setText("SSL options");
 
@@ -366,8 +374,8 @@ public class ProjectDeployOptionsComposite extends Composite {
 		checkTrustAllCertificates.setLayoutData(gridData);
 	}
 
-	private void createConvertigoGroup() {
-		convertigoGroup = new Group(this, SWT.FILL);
+	private void createConvertigoGroup(Composite parent) {
+		convertigoGroup = new Group(parent, SWT.FILL);
 		convertigoGroup.setLayout(new GridLayout());
 		convertigoGroup.setText("Convertigo Environment login");
 

@@ -66,4 +66,13 @@ $(document).ready(function () {
 		
 		$("#swaggerLink").attr("href", "swagger/dist/index.html?url="+getEncodedYamlUri());
 	});
+	if (window.java) {
+		console.log("in studio!");
+		$("thead .table_row").css({whiteSpace: "nowrap"});
+		var content = $(".content_bottom>table").detach();
+		var menu = $("<div/>").css({display: "flex", alignItems: "end"});
+		menu.append($(".menu a:first").detach());
+		menu.append($(".container_info").removeClass("container_info").detach());
+		$("body").empty().css({margin: "0px"}).append(menu).append(content);
+	}
 });

@@ -1028,5 +1028,15 @@ $(document).ready(function() {
 				}
 			}
 		});
-	});		
+	});
+	
+	if (window.java) {
+		console.log("in studio!");
+		var tphead = $("<div/>").css({display: "flex", justifyContent: "center"});
+		tphead.append($("#tpcontent a").slice(0, 2).detach());
+		$("#tpcontent>div:first").remove();
+		var tpcontent = $("#tpcontent").detach();
+		$("#main").empty().append(tphead).append(tpcontent);
+		$("body").css({margin: "2px"});
+	}
 });

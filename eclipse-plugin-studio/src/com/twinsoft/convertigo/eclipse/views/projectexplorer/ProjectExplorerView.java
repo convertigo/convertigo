@@ -3147,9 +3147,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			ConvertigoPlugin.syncExec(() -> {
 				DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
 				if (databaseTreeObject != null) {
+					setFocus();
 					viewer.expandToLevel(databaseTreeObject, 0);
 					setSelectedTreeObject(databaseTreeObject);
-
 					StructuredSelection structuredSelection = new StructuredSelection(databaseTreeObject);
 					ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
 				}
