@@ -126,6 +126,20 @@ $(window).ready(function() {
 	}
 
 	checkAuthentication();
+	
+	if (window.java) {
+		console.log("in studio!");
+		$("#mainheader").children().not("#mainDate").remove();
+		var menu = $("<div/>");
+		$("#mainheader").prepend(menu);
+		menu.append($(".mainmenu_tab tr:first a").detach());
+		menu.append($(".navigatemenu_tab a:first").detach()); 
+		$("#maincontent").css({width: "100%"});
+		$("#mainglobal, #maincontainer, #mainheader, #maincontent").removeAttr("id");
+		$("#mainDate").css({float:"none"});
+		$("#mainfooter").remove();
+		$("#mainmenu").parent().remove();
+	}
 });
 
 function checkAuthentication(){

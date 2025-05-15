@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.admin;
 
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.UUID;
 
@@ -35,7 +36,10 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
+import com.teamdev.jxbrowser.dom.Element;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Engine;
@@ -70,14 +74,11 @@ public class AdminView extends ViewPart {
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
 		
-		browser.addToolItemNavigation(tb);
-		new ToolItem(tb, SWT.SEPARATOR);
-		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
 		Engine.logStudio.debug("Admin debug : "+ browser.getDebugUrl());
 		
-		ToolItem ti = new ToolItem(tb, SWT.NONE);
+		var ti = new ToolItem(tb, SWT.NONE);
 		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
 		ti.setText("View with your external browser");
 		ti.addSelectionListener(new SelectionAdapter() {
@@ -88,6 +89,43 @@ public class AdminView extends ViewPart {
 			}
 			
 		});
+		
+		new ToolItem(tb, SWT.SEPARATOR);
+		
+		ti = new ToolItem(tb, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/administration_16x16.gif"));
+		} catch (IOException e1) {
+		}
+		ti.setText("Home");
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.setUrl(getUrl());
+			}
+			
+		});
+		
+		browser.onClick(ev -> {
+			try {
+				Element elt = (Element) ev.target().get();
+				while (!elt.nodeName().equalsIgnoreCase("a")) {
+					elt = (Element) elt.parent().get();
+				}
+				String href = elt.attributes().get("href");
+				if (href.startsWith("http")) {
+					ev.preventDefault();
+					Program.launch(href);
+					return false;
+				}
+			} catch (Exception e) {
+			}
+			return true;
+		});
+		
+		new C8oBrowserPostMessageHelper(browser);
+		
 		String url = getUrl();
 
 		browser.setUrl(url);

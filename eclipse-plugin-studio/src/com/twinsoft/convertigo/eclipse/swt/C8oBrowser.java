@@ -50,6 +50,7 @@ import com.teamdev.jxbrowser.event.Observer;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.navigation.event.LoadFinished;
+import com.teamdev.jxbrowser.navigation.event.NavigationFinished;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -351,6 +352,10 @@ public class C8oBrowser extends Composite {
 			}
 			
 		});
+		ti.setEnabled(false);
+		getBrowser().navigation().on(NavigationFinished.class, event -> ConvertigoPlugin.asyncExec(() ->
+			ti.setEnabled(event.navigation().canGoBack())
+		));
 	}
 	
 	public void addToolItemStop(ToolBar toolbar) {
@@ -400,10 +405,14 @@ public class C8oBrowser extends Composite {
 			public void widgetSelected(SelectionEvent e) {
 				getBrowser().navigation().goForward();
 			}
-			
+
 		});
+		ti.setEnabled(false);
+		getBrowser().navigation().on(NavigationFinished.class, event -> ConvertigoPlugin.asyncExec(() ->
+			ti.setEnabled(event.navigation().canGoForward())
+		));
 	}
-	
+
 	public void addToolItemOpenExternal(ToolBar toolbar) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
