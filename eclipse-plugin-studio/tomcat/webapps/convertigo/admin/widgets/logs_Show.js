@@ -409,14 +409,34 @@ function resetOptions() {
 	var currentDate = new Date();
 	var diff = currentDate.getTime() - startDate.getTime();
 	var utc = serverDate + diff + initialDiffClientServer;
-	var now = new Date(utc - 600000); // - 10 min
-	var re = new RegExp("(..)/(..)/(....) (..):(..):(..)").exec(now.toLocaleString("fr-FR", {timeZone: serverTimeZone}))
-	$("#logOptionsStartDate").val(re[3] + '-' + re[2] + '-' + re[1]);
-	$("#logOptionsEndDate").val(re[3] + '-' + re[2] + '-' + re[1]);
+	var now = new Date(utc - 600000); // -10 min
 	
-	$("#logOptionsStartHour").val(re[4]);
-	$("#logOptionsStartMinute").val(re[5]);
-	$("#logOptionsStartSecond").val(re[6]);
+	var formatter = new Intl.DateTimeFormat("fr-FR", {
+		timeZone: serverTimeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: false
+	});
+	var parts = formatter.formatToParts(now);
+	
+	var dateParts = {};
+	for (const part of parts) {
+		if (part.type !== 'literal') {
+			dateParts[part.type] = part.value;
+		}
+	}
+	
+	$("#logOptionsStartDate").val(`${dateParts.year}-${dateParts.month}-${dateParts.day}`);
+	$("#logOptionsEndDate").val(`${dateParts.year}-${dateParts.month}-${dateParts.day}`);
+	
+	$("#logOptionsStartHour").val(dateParts.hour);
+	$("#logOptionsStartMinute").val(dateParts.minute);
+	$("#logOptionsStartSecond").val(dateParts.second);
+	
 	$("#logOptionsEndHour").val("23");
 	$("#logOptionsEndMinute").val("59");
 	$("#logOptionsEndSecond").val("59");
