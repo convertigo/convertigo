@@ -693,14 +693,15 @@
 				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
 			</view>
 			<view
+				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
+				minimized="false"
+				visible="false"
+				relationship="stack"
+				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"/>
+			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 				relationship="right"
 				relative="org.eclipse.ui.editorss" />
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-				visible="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.tuto.TutoView" />
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
 				visible="false"

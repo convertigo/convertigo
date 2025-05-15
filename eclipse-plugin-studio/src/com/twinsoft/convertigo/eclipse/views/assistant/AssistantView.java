@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
+import com.teamdev.jxbrowser.engine.Theme;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -64,6 +65,8 @@ public class AssistantView extends ViewPart {
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
+		
+		browser.getBrowser().engine().setTheme(Theme.LIGHT);
 		
 		browser.addToolItemNavigation(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
