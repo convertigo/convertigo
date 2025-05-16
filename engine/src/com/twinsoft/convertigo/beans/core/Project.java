@@ -661,10 +661,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private transient MobileApplication mobileApplication = null;
 
 	public MobileApplication getMobileApplication() {
+		checkSubLoaded();
 		return mobileApplication;
 	}
 
 	public void addMobileApplication(MobileApplication mobileApplication) throws EngineException {
+		checkSubLoaded();
 		if (this.mobileApplication != null) {
 			throw new EngineException(
 					"The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
@@ -674,6 +676,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	public void removeMobileApplication(MobileApplication mobileApplication) {
+		checkSubLoaded();
 		if (mobileApplication != null && mobileApplication.equals(this.mobileApplication)) {
 			this.mobileApplication = null;
 		}

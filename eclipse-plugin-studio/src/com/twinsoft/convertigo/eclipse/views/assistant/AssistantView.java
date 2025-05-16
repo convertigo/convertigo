@@ -78,14 +78,15 @@ public class AssistantView extends ViewPart {
 		
 		String url = STARTUP_URL;
 		//url = "http://localhost:49582/path-to-xfirst";
+		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
 				if ("create".equals(json.getString("type"))) {
-					var response = json.getString("clipboard");
-					Engine.logStudio.info("[Assistant] received clipboard: " + response);
+					var clipboard = json.getString("clipboard");
+					Engine.logStudio.debug("[Assistant] received clipboard: " + clipboard);
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
 							ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -94,7 +95,7 @@ public class AssistantView extends ViewPart {
 								if (doto != null) {
 									ApplicationComponent app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
 									if (app != null) {
-										ConvertigoPlugin.clipboardManagerSystem.paste(response, app, true);
+										ConvertigoPlugin.clipboardManagerSystem.paste(clipboard, app, true);
 										TreeObject tto = pev.findTreeObjectByUserObject(app);
 										pev.objectChanged(new CompositeEvent(app, tto.getPath()));
 										Engine.logStudio.info("[Assistant] clipboard succesfully added");
@@ -102,12 +103,11 @@ public class AssistantView extends ViewPart {
 								}
 							}
 						} catch (Exception e) {
-							Engine.logStudio.error("[Assistant] unable to handle clipboard", e);
+							Engine.logStudio.error("[Assistant] unable to create component from clipboard", e);
 						}
 					});
 				}
 				else if ("edit".equals(json.getString("type"))) {
-					
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
