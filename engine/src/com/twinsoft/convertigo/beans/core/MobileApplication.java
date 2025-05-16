@@ -246,10 +246,12 @@ public class MobileApplication extends DatabaseObject {
 	private transient DatabaseObject applicationComponent = null;
 
 	public IApplicationComponent getApplicationComponent() {
+		checkSubLoaded();
 		return (IApplicationComponent) applicationComponent;
 	}
 
 	public void addApplicationComponent(DatabaseObject applicationComponent) throws EngineException {
+		checkSubLoaded();
 		if (this.applicationComponent != null) {
 			throw new EngineException("The mobile application \"" + getName() + "\" already contains an application component! Please delete it first.");
 		}
@@ -258,6 +260,7 @@ public class MobileApplication extends DatabaseObject {
 	}
 
 	public void removeApplicationComponent(DatabaseObject applicationComponent) {
+		checkSubLoaded();
 		if (applicationComponent != null && applicationComponent.equals(this.applicationComponent)) {
 			this.applicationComponent = null;
 		}
