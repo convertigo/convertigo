@@ -29,16 +29,24 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.engine.Theme;
+import com.twinsoft.convertigo.beans.common.FormatedContent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.Clipboard;
 
 public class AssistantView extends ViewPart {
 
@@ -84,9 +92,11 @@ public class AssistantView extends ViewPart {
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
+				var sXml = json.getString("clipboard");
+				var threadid = json.getString("threadid");
+				
 				if ("create".equals(json.getString("type"))) {
-					var clipboard = json.getString("clipboard");
-					Engine.logStudio.debug("[Assistant] received clipboard: " + clipboard);
+					Engine.logStudio.debug("[Assistant] received clipboard: " + sXml);
 					ConvertigoPlugin.asyncExec(() -> {
 						try {
 							ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -95,10 +105,10 @@ public class AssistantView extends ViewPart {
 								if (doto != null) {
 									ApplicationComponent app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
 									if (app != null) {
-										ConvertigoPlugin.clipboardManagerSystem.paste(clipboard, app, true);
+										ConvertigoPlugin.clipboardManagerSystem.paste(sXml, app, true);
 										TreeObject tto = pev.findTreeObjectByUserObject(app);
 										pev.objectChanged(new CompositeEvent(app, tto.getPath()));
-										Engine.logStudio.info("[Assistant] clipboard succesfully added");
+										Engine.logStudio.info("[Assistant] create component: clipboard succesfully added");
 									}
 								}
 							}
@@ -108,6 +118,62 @@ public class AssistantView extends ViewPart {
 					});
 				}
 				else if ("edit".equals(json.getString("type"))) {
+					ConvertigoPlugin.asyncExec(() -> {
+						try {
+							ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+							if (pev != null) {
+								UISharedComponent found = null;
+								for (ProjectTreeObject pto: pev.getOpenedProjects()) {
+									if (found != null) break;
+									Project project = pto.getObject();
+									MobileApplication ma = project.getMobileApplication();
+									if (ma != null) {
+										ApplicationComponent app = (ApplicationComponent) ma.getApplicationComponent();
+										if (app != null) {
+											for (UISharedComponent uisc: app.getSharedComponentList()) {
+												if (uisc.getComment().indexOf(threadid) != -1) {
+													found = uisc;
+													break;
+												}
+											}
+										}
+									}
+								}
+								
+								if (found != null) {
+									FormatedContent oldScriptContent = found.getScriptContent();
+									FormatedContent newScriptContent = found.getScriptContent();
+									Clipboard clipboard = new Clipboard();
+									for (Object ob: clipboard.fromXml(sXml)) {
+										if (ob instanceof UISharedComponent) {
+											UISharedComponent uisc = (UISharedComponent)ob;
+											if (found.getComment().equals(uisc.getComment())) {
+												newScriptContent = uisc.getScriptContent();
+												found.setScriptContent(newScriptContent);
+												for (UIComponent uic: found.getUIComponentList()) {
+													found.remove(uic);
+												}
+												for (UIComponent uic: uisc.getUIComponentList()) {
+													found.add(uic);
+												}
+												found.hasChanged = true;
+												break;
+											}
+										}
+									}
+									TreeObject tto = pev.findTreeObjectByUserObject(found);
+									pev.objectChanged(new CompositeEvent(found, tto.getPath()));
+									TreeObjectEvent treeObjectEvent = new TreeObjectEvent(tto, "scriptContent", oldScriptContent, newScriptContent);
+									pev.fireTreeObjectPropertyChanged(treeObjectEvent);
+									Engine.logStudio.info("[Assistant] edit component: clipboard succesfully added");
+								} else {
+									Engine.logStudio.warn("[Assistant] component with threadid '"+threadid+"' not found");
+								}
+							}
+						} catch (Exception e) {
+							Engine.logStudio.error("[Assistant] unable to edit component", e);
+						}
+					});
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
