@@ -31,6 +31,7 @@ import org.apache.xml.utils.PrefixResolver;
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.objects.XObject;
+import org.apache.commons.jxpath.FunctionLibrary;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -76,7 +77,9 @@ public class TwsCachedXPathAPI implements EventListener {
 		@SuppressWarnings("rawtypes")
 		List nodes;
 		try {
-			nodes = JXPathContext.newContext(contextNode).selectNodes(xpath);
+			JXPathContext context = JXPathContext.newContext(contextNode);
+			context.setFunctions(new FunctionLibrary());
+			nodes = context.selectNodes(xpath);
 			int i = 0;
 			for (Object node: nodes) {
 				if (node instanceof Number) {
@@ -106,7 +109,9 @@ public class TwsCachedXPathAPI implements EventListener {
 	public Node selectNode(Node contextNode, String xpath) {
 		Node node;
 		try {
-			node = (Node) JXPathContext.newContext(contextNode).selectSingleNode(xpath);
+			JXPathContext context = JXPathContext.newContext(contextNode);
+			context.setFunctions(new FunctionLibrary());
+			node = (Node) context.selectSingleNode(xpath);
 		} catch (Exception e) {
 			node = null;
 		}
