@@ -581,12 +581,12 @@
 				<div slot="item" let:index let:style {style}>
 					{@const log = logs[index]}
 					<div class="{log[2]} rounded-sm">
-						<div class="flex flex-wrap overflow-y-hidden" style="height: {extraLines * 16}px">
+						<div class="flex flex-wrap overflow-y-hidden preset-outlined items-baseline {log[2]} opacity-80 sticky top-0" style="height: {extraLines * 16}px">
 							{#each columns as { name, cls, style } (name)}
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden text-left text-nowrap"
+									class="px-1 {cls} cursor-cell overflow-hidden text-left text-nowrap leading-none"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -595,7 +595,7 @@
 							{/each}
 						</div>
 						<div
-							class="border-b-none overflow-x-scroll rounded-sm preset-outlined p-1 font-mono leading-4 whitespace-pre"
+							class="border-b-none overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre"
 							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
 						>
 							{#if founds.length > 0}
