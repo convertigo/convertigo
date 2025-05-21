@@ -43,7 +43,11 @@ async function list(clear = false) {
 		});
 		if (currentCall == lastCall) {
 			moreResults = res?.hasMoreResults ?? false;
-			logs.push(...checkArray(res?.lines));
+			const lines = checkArray(res?.lines);
+			for (const line of lines) {
+				line.push(line[4].trim().split('\n').length);
+			}
+			logs.push(...lines);
 		}
 	} finally {
 		if (currentCall == lastCall) {

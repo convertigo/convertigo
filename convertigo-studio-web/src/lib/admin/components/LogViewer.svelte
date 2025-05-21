@@ -107,7 +107,7 @@
 			9 +
 			scrollbarHeight +
 			extraLines * 16 +
-			Math.max(16, logs[index][4].trim().split('\n').length * 16);
+			Math.max(16, logs[index][logs[index].length - 1] * 16);
 		return height;
 	}
 
@@ -128,7 +128,7 @@
 			name in columnsConfiguration
 				? log[columnsConfiguration[name].idx]
 				: // @ts-ignore
-					(log.find((v) => v.startsWith(`${name}=`))?.substring(name.length + 1) ?? '');
+					(log.find((v) => v.startsWith?.(`${name}=`))?.substring(name.length + 1) ?? '');
 		return columnsConfiguration[name]?.fn
 			? columnsConfiguration[name].fn(logValue, index)
 			: logValue;
@@ -323,25 +323,93 @@
 		modalFilter.close();
 	};
 	let scrollbarHeight = $state(0);
-	onMount(() => {
-		const container = document.createElement('div');
-		container.style.visibility = 'hidden';
-		container.style.overflow = 'scroll';
-		container.style.width = '100px';
-		container.style.height = '100px';
-		container.style.position = 'absolute';
+	// onMount(() => {
+	// 	const container = document.createElement('div');
+	// 	container.style.visibility = 'hidden';
+	// 	container.style.overflow = 'scroll';
+	// 	container.style.width = '100px';
+	// 	container.style.height = '100px';
+	// 	container.style.position = 'absolute';
 
-		const inner = document.createElement('div');
-		inner.style.width = '100%';
-		inner.style.height = '100%';
+	// 	const inner = document.createElement('div');
+	// 	inner.style.width = '100%';
+	// 	inner.style.height = '100%';
 
-		container.appendChild(inner);
-		document.body.appendChild(container);
+	// 	container.appendChild(inner);
+	// 	document.body.appendChild(container);
 
-		scrollbarHeight = Math.max(container.offsetHeight - inner.clientHeight, 4);
-		document.body.removeChild(container);
-	});
+	// 	scrollbarHeight = Math.max(container.offsetHeight - inner.clientHeight, 4);
+	// 	document.body.removeChild(container);
+	// });
 	const size = '4';
+
+	function dragscroll(node) {
+		let lastClickTime = 0;
+		let startX = 0;
+		let scrollLeft = 0;
+		let isDown = false;
+		let isDragging = false;
+		let allowDrag = false;
+
+		function setDraggingState(active) {
+			document.body.classList.toggle('select-none', active);
+		}
+
+		function onMouseDown(e) {
+			const now = Date.now();
+
+			if (now - lastClickTime < 400) {
+				allowDrag = true;
+				startX = e.pageX - node.offsetLeft;
+				scrollLeft = node.scrollLeft;
+				node.style.cursor = 'grabbing';
+				isDown = true;
+				isDragging = false;
+			} else {
+				allowDrag = false;
+				lastClickTime = now;
+			}
+		}
+
+		function onMouseMove(e) {
+			if (!isDown || !allowDrag) return;
+
+			const x = e.pageX - node.offsetLeft;
+			const rawDistance = x - startX;
+
+			if (Math.abs(rawDistance) > 5) {
+				isDragging = true;
+				setDraggingState(true);
+			}
+
+			if (isDragging) {
+				const speedFactor = Math.pow(Math.abs(rawDistance) / 10, 1.3);
+				const direction = rawDistance < 0 ? -1 : 1;
+				const adjustedWalk = direction * speedFactor * 10;
+				node.scrollLeft = scrollLeft - adjustedWalk;
+				e.preventDefault();
+			}
+		}
+
+		function stop() {
+			isDown = false;
+			node.style.cursor = 'default';
+			setDraggingState(false);
+		}
+
+		node.addEventListener('mousedown', onMouseDown);
+		node.addEventListener('mousemove', onMouseMove);
+		node.addEventListener('mouseup', stop);
+		node.addEventListener('mouseleave', stop);
+
+		return () => {
+			node.removeEventListener('mousedown', onMouseDown);
+			node.removeEventListener('mousemove', onMouseMove);
+			node.removeEventListener('mouseup', stop);
+			node.removeEventListener('mouseleave', stop);
+			document.body.classList.remove('select-none');
+		};
+	}
 </script>
 
 <svelte:window
@@ -399,7 +467,7 @@
 		</form>
 	</Card>
 </ModalDynamic>
-<div class="layout-y-stretch-low h-full w-full text-xs" class:fullscreen>
+<div class="layout-y-stretch-none h-full w-full text-xs" class:fullscreen>
 	<div class="layout-y-stretch-low">
 		{#if $showFilters}
 			<div
@@ -540,7 +608,7 @@
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-500 p-1">
+			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-500 p-1 text-white">
 				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
 				{#if extraLines > 0}
 					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
@@ -548,12 +616,12 @@
 			</div>
 			<div
 				class="flex flex-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
-				style="height: {2 + extraLines * 20}px"
+				style="height: {2 + extraLines * 18}px"
 			>
 				{#each columns as { name, cls, style } (name)}
 					<div
 						{style}
-						class="p-1 {cls} max-h-[20px] overflow-hidden text-nowrap"
+						class="px-1 py-0 {cls} max-h-[18px] overflow-hidden text-nowrap"
 						animate:grabFlip={{ duration }}
 					>
 						<button class="cursor-help font-semibold" onclick={doPulse} onmouseover={doPulse}>
@@ -581,12 +649,27 @@
 				<div slot="item" let:index let:style {style}>
 					{@const log = logs[index]}
 					<div class="{log[2]} rounded-sm">
-						<div class="flex flex-wrap overflow-y-hidden preset-outlined items-baseline {log[2]} opacity-80 sticky top-0" style="height: {extraLines * 16}px">
+						<div
+							class={[
+								'flex',
+								'flex-wrap',
+								'overflow-y-hidden',
+								'preset-outlined',
+								'border-white',
+								'items-baseline',
+								log[2],
+								'opacity-90',
+								log[log.length - 1] > 1 && 'sticky',
+								'top-0',
+								'text-gray-600'
+							]}
+							style="height: {extraLines * 16}px"
+						>
 							{#each columns as { name, cls, style } (name)}
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden text-left text-nowrap leading-none"
+									class="px-1 {cls} cursor-cell overflow-hidden text-left leading-none text-nowrap"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -595,8 +678,9 @@
 							{/each}
 						</div>
 						<div
-							class="border-b-none overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre"
+							class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black"
 							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
+							{@attach dragscroll}
 						>
 							{#if founds.length > 0}
 								{@const _founds = founds.filter((f) => f.index == index)}
@@ -629,7 +713,7 @@
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
 			{#if !Logs.realtime}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
-			{#if Logs.calling}Calling ...{/if}</span
+			{#if Logs.calling}Calling…{/if}</span
 		>
 		<button
 			class="mini-card"
@@ -657,14 +741,6 @@
 		--arrow-background: rgb(var(--color-surface-50));
 	}
 
-	.fullscreen {
-		position: fixed;
-		top: 0px;
-		left: 0px;
-		height: 100%;
-		@apply z-50 min-w-full bg-surface-950-50;
-	}
-
 	.searchedCurrent {
 		color: black;
 		background-color: orange;
@@ -678,32 +754,32 @@
 	}
 
 	.FATAL {
-		@apply bg-surface-800-200;
+		@apply bg-surface-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-surface-500) / 0.6);
 	}
 
 	.ERROR {
-		@apply bg-error-800-200;
+		@apply bg-error-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-error-500) / 0.6);
 	}
 
 	.WARN {
-		@apply bg-warning-800-200;
+		@apply bg-warning-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-warning-500) / 0.6);
 	}
 
 	.INFO {
-		@apply bg-secondary-800-200;
+		@apply bg-secondary-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-secondary-500) / 0.6);
 	}
 
 	.DEBUG {
-		@apply bg-primary-800-200;
+		@apply bg-primary-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-primary-500) / 0.6);
 	}
 
 	.TRACE {
-		@apply bg-tertiary-800-200;
+		@apply bg-tertiary-200;
 		box-shadow: 2px 2px 5px 0px rgb(var(--color-tertiary-500) / 0.6);
 	}
 </style>

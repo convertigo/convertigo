@@ -164,7 +164,8 @@
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
-					bind:value={() => tabSet, (v) => goto(`../${v}/`)}
+					value={tabSet}
+					onValueChange={(e) => goto(`../${e.value}/`)}
 					listClasses="mb-0! flex-wrap"
 					classes="w-fit!"
 				>
@@ -245,7 +246,7 @@
 									startOfWeek={1}
 									{onDayClick}
 								>
-									<div class="layout-x-stretch flex-wrap">
+									<div class="layout-x-end flex-wrap">
 										{#each ['From', 'To'] as way, i}
 											<div class="layout-x-baseline-low flex-wrap">
 												<Popover triggerBase="basic-button" arrow arrowBackground="">
@@ -271,7 +272,7 @@
 												</Popover>
 												<input
 													type="text"
-													class="input-text input-common w-[12ch] max-w-fit"
+													class="input-text basic-button input-common w-[12ch] max-w-fit"
 													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
@@ -284,8 +285,9 @@
 										{/each}
 										<Button
 											label="Search"
+											size={4}
 											icon="mdi:receipt-text-send-outline"
-											class="basic-button h-auto! w-fit! grow"
+											class="basic-button w-fit! grow"
 											onclick={refreshLogs}
 										/>
 									</div>
@@ -309,7 +311,8 @@
 							<AutoPlaceholder {loading}>
 								<Slider
 									name="range-slider"
-									bind:value={LogsPurge.value}
+									value={LogsPurge.value}
+									onValueChange={(e) => (LogsPurge.value = e.value)}
 									min={-1}
 									max={dates.length - 1}
 									step={1}

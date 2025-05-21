@@ -45,60 +45,53 @@
 	}
 }
 
+@utility fullscreen {
+	@apply fixed top-0 left-0 z-50 h-full min-w-full bg-surface-50-950;
+}
+
 @utility button {
 	@apply btn flex items-center rounded-sm px-3 py-1 text-[13px] font-normal text-white;
-	/*END FORM STYLE*/
 }
 
 @utility basic-button {
 	@apply button bg-primary-500 dark:bg-primary-500;
-	/*END FORM STYLE*/
 }
 
 @utility cancel-button {
 	@apply button bg-error-400 dark:bg-error-500;
-	/*END FORM STYLE*/
 }
 
 @utility delete-button {
 	@apply button bg-error-600 dark:bg-error-500;
-	/*END FORM STYLE*/
 }
 
 @utility yellow-button {
 	@apply button bg-tertiary-500 dark:bg-tertiary-600;
-	/*END FORM STYLE*/
 }
 
 @utility green-button {
 	@apply button bg-success-500 dark:bg-success-600;
-	/*END FORM STYLE*/
 }
 
 @utility violet-button {
 	/* @apply button bg-pale-violet bg-opacity-50; */
 	@apply button bg-black/50;
-	/*END FORM STYLE*/
 }
 
 @utility btnStyle {
 	@apply btn flex items-center gap-3 rounded-sm px-3 py-1 text-[13px] font-normal;
-	/*END FORM STYLE*/
 }
 
 @utility input-button {
 	@apply flex items-center justify-center rounded-sm bg-primary-500 px-3 py-1 text-center text-[13px] font-normal text-white dark:bg-primary-500;
-	/*END FORM STYLE*/
 }
 
 @utility search-input {
 	@apply flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-surface-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-hidden dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:placeholder-gray-200;
-	/*END FORM STYLE*/
 }
 
 @utility mini-card {
 	@apply flex gap-2 rounded-sm p-1 text-nowrap select-none;
-	/*END FORM STYLE*/
 }
 
 @utility chip {
@@ -107,7 +100,6 @@
 	&:hover {
 		@apply bg-gray-300 dark:bg-gray-600;
 	}
-	/*END FORM STYLE*/
 }
 
 @utility more-chip {
@@ -116,77 +108,55 @@
 	&:hover {
 		@apply bg-yellow-300 dark:bg-yellow-400;
 	}
-	/*END FORM STYLE*/
 }
 
 @utility label-common {
-	/*INPUT STYLES !!*/
-
-	/**style for label*/
 	@apply cursor-pointer text-[14px];
-	/*END FORM STYLE*/
 }
 
 @utility input-common {
-	/**Style for Input*/
 	@apply w-full rounded-sm border-none font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
-	/*END FORM STYLE*/
 }
 
 @utility select-common {
 	@apply rounded-sm border-none font-normal placeholder:text-[12px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
-	/*END FORM STYLE*/
 }
 
 @utility input-common-dash {
 	@apply rounded-sm border-[0.5px] border-surface-200 font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:border-surface-600 dark:bg-surface-800 dark:placeholder:text-surface-500;
-	/*END FORM STYLE*/
 }
 
 @utility input-text {
 	@apply mt-1 pl-4 text-[16px] text-surface-800-200;
-	/*END FORM STYLE*/
 }
 
 @utility checkbox-common {
-	/**Style for checkbox*/
 	@apply cursor-pointer;
-	/*END FORM STYLE*/
 }
 
 @utility border-common {
 	@apply border-b-[1px] border-surface-50 dark:border-surface-600;
-	/*END FORM STYLE*/
 }
 
 @utility input-name {
 	@apply mb-3 text-[14px] font-light;
-	/*END FORM STYLE*/
 }
 
 @utility gray-button {
 	@apply button bg-surface-300-700 text-surface-900-100;
-	/*END FORM STYLE*/
 }
 
 @utility confirm-button {
 	@apply bg-primary-400-600;
-	/*END FORM STYLE*/
 }
 
 @utility select {
 	& option:checked {
 		color: white;
 	}
-	/*END FORM STYLE*/
 }
 
-/* @utility align {
-  @apply align-middle;
-} */
-
 @utility activeSlideToggle {
-	/**SLIDE TOGGLE */
 	@apply min-w-12 bg-success-400 dark:bg-success-600;
 }
 
@@ -195,7 +165,6 @@
 }
 
 @utility border-color {
-	/*END RESPONSIVE*/
 	@apply border-surface-300-700;
 }
 
@@ -220,8 +189,6 @@
 }
 
 @layer base {
-	/*TABLES STYLE*/
-
 	table {
 		width: 100%;
 		border-collapse: collapse;
@@ -249,13 +216,9 @@
 	tr:nth-child(odd) {
 		@apply bg-surface-300-700 hover:bg-black/40;
 	}
-	/* END TABLES STYLE*/
 }
 
 @layer components {
-	/* END INOUT STYLES */
-
-	/*FORM STYLE*/
 	form {
 		@apply rounded-sm;
 	}
