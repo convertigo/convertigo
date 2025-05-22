@@ -1,5 +1,39 @@
 # Changelog
 
+## 8.3.6
+
+#### Improvements:
+
+- [#949](https://github.com/convertigo/convertigo/issues/949) [Studio] A new Administration View now embeds the Administration console directly inside Studio, so it no longer opens in an external browser
+
+#### Bug Fixes:
+
+- [#688](https://github.com/convertigo/convertigo/issues/688) [Studio] Fixed, you can now select the target server on small screens—the advertising banner no longer blocks the list
+- [#946](https://github.com/convertigo/convertigo/issues/946) [HTTP Connector] Fixed, multipart file names are now correctly encoded in the `Content-Disposition` header
+- [#947](https://github.com/convertigo/convertigo/issues/947) [Engine] Fixed, parallel requestables initializing the same HTTP session no longer create ghost sessions, session handling is now thread-safe
+- [#950](https://github.com/convertigo/convertigo/issues/950) [Admin] Fixed, the Administration UI now uses local fonts, eliminating slowdowns when the browser has no Internet access
+- [#951](https://github.com/convertigo/convertigo/issues/951) [Admin] Fixed, the log viewer now refresh correctly in Microsoft Edge
+- [#953](https://github.com/convertigo/convertigo/issues/953) [Admin] Fixed, the Symbols page no longer throws an error when a project fails to load (for example, if it was created with a newer Convertigo version)
+- [#954](https://github.com/convertigo/convertigo/issues/954) [NGX] Fixed, using a ‘$’ sign in Smart type “TS” properties and class code no longer breaks the code generator
+
+
+## 8.3.6
+
+#### Improvements:
+
+- * [#949](https://github.com/convertigo/convertigo/issues/949) [Studio] Add an AdminView with integrated admin instead of opening in the external browser
+
+#### Bug Fixes:
+
+- * [#688](https://github.com/convertigo/convertigo/issues/688) Deploy: advertisin prevents to select the server in the list on small screens
+- * [#946](https://github.com/convertigo/convertigo/issues/946) [HTTP Connector] Multipart filename not well encoded in Content-Disposition
+- * [#947](https://github.com/convertigo/convertigo/issues/947) [Engine] Ghost session can occur if parallel requestables initialize the same HTTP session
+- * [#950](https://github.com/convertigo/convertigo/issues/950) [Admin] Reference external fonts can slowdown administration loading if browser hasn't Internet access
+- * [#951](https://github.com/convertigo/convertigo/issues/951) [Admin] Log viewer can fail on Edge
+- * [#953](https://github.com/convertigo/convertigo/issues/953) [Admin] NPE error on Symbols page if a project cannot load (caused by a superior version for example)
+
+---
+
 ## 8.3.5
 
 #### Improvements:
