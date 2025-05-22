@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,11 +267,12 @@ public class TracePlayerManager implements AbstractManager {
 			if(tracedir.exists()&&tracedir.isDirectory()){
 				File[] listconnectors = tracedir.listFiles();
 				for(File s2 : listconnectors){
-					res.addAll(Arrays.asList(s2.listFiles(new FilenameFilter(){
-						public boolean accept(File arg0, String arg1) {
-							return arg1.endsWith(".etr");
+					if (s2.isDirectory()) {
+						var files = s2.listFiles((File arg0, String arg1) -> arg1.endsWith(".etr"));
+						if (files != null) {
+							res.addAll(Arrays.asList(files));
 						}
-					})));
+					}
 				}
 			}
 		}

@@ -1223,7 +1223,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				return prj;
 			});
 			
-			if (version[0] == null) {
+			if (project == null || version[0] == null) {
 				return project;
 			}
 
