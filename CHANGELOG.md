@@ -14,7 +14,7 @@
 - [#950](https://github.com/convertigo/convertigo/issues/950) [Admin] Fixed, the Administration UI now uses local fonts, eliminating slowdowns when the browser has no Internet access
 - [#951](https://github.com/convertigo/convertigo/issues/951) [Admin] Fixed, the log viewer now refresh correctly in Microsoft Edge
 - [#953](https://github.com/convertigo/convertigo/issues/953) [Admin] Fixed, the Symbols page no longer throws an error when a project fails to load (for example, if it was created with a newer Convertigo version)
-- [#954](https://github.com/convertigo/convertigo/issues/954) [NGX] Fixed, using a ‘$’ sign in Smart type “TS” properties no longer breaks the code generator
+- [#954](https://github.com/convertigo/convertigo/issues/954) [NGX] Fixed, using a ‘$’ sign in Smart type “TS” properties and class code no longer breaks the code generator
 
 
 ## 8.3.6
