@@ -159,6 +159,13 @@ public class NgxBuilder extends MobileBuilder {
 		return null;
 	}
 
+	static private String replaceAll(String source, String regex, String replacement) {
+		if (source != null && regex != null && replacement != null) {
+			return source.replaceAll(regex, Matcher.quoteReplacement(replacement));
+		}
+		return source;
+	}
+	
 	protected NgxBuilder(Project project) {
 		super(project);
 		initDirs("src");
@@ -1341,9 +1348,9 @@ public class NgxBuilder extends MobileBuilder {
 
 				File pageRoutingTpl = new File(ionicTplDir, "src/page-routing.module.tpl");
 				String mContent = FileUtils.readFileToString(pageRoutingTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_PageImport\\*/", c8o_PageImport);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PageRoutes\\*/", c8o_PageRoutes);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/", c8o_PageRoutingModuleName);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PageImport\\*/", c8o_PageImport);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PageRoutes\\*/", c8o_PageRoutes);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PageRoutingModuleName\\*/", c8o_PageRoutingModuleName);
 
 				File pageRoutingTsFile = new File(pageDir, pageName.toLowerCase() + "-routing.module.ts");
 				writeFile(pageRoutingTsFile, mContent, "UTF-8");
@@ -1687,18 +1694,18 @@ public class NgxBuilder extends MobileBuilder {
 
 		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PagePriority\\*/","'"+c8o_PagePriority+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSegment\\*/","'"+c8o_PageSegment+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageHistory\\*/",c8o_PageHistory);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PagePriority\\*/","'"+c8o_PagePriority+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageSegment\\*/","'"+c8o_PageSegment+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageHistory\\*/",c8o_PageHistory);
 
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageStyleUrls\\*/","'"+c8o_PageStyleUrls+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageStyleUrls\\*/","'"+c8o_PageStyleUrls+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageName\\*/",c8o_PageName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
 
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 		Matcher matcher = pattern.matcher(tsContent);
@@ -1711,7 +1718,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/", Matcher.quoteReplacement(c8o_PageFunctions));
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageFunctions\\*/", c8o_PageFunctions);
 
 		return tsContent;
 	}
@@ -1739,17 +1746,17 @@ public class NgxBuilder extends MobileBuilder {
 
 		File compTplTs = new File(ionicTplDir, "src/comp.tpl");
 		String tsContent = FileUtils.readFileToString(compTplTs, "UTF-8");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompSelector\\*/","'"+c8o_CompSelector+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompTplUrl\\*/","'"+c8o_CompTplUrl+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompStyleUrls\\*/","'"+c8o_CompStyleUrls+"'");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompChangeDetection\\*/",c8o_CompChangeDetection);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImports\\*/",c8o_CompImports);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInitializations\\*/",c8o_CompInitializations);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompSelector\\*/","'"+c8o_CompSelector+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompTplUrl\\*/","'"+c8o_CompTplUrl+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompStyleUrls\\*/","'"+c8o_CompStyleUrls+"'");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompChangeDetection\\*/",c8o_CompChangeDetection);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompName\\*/",c8o_CompName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompImports\\*/",c8o_CompImports);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompInitializations\\*/",c8o_CompInitializations);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
 		
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 		Matcher matcher = pattern.matcher(tsContent);
@@ -1762,7 +1769,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFunctions\\*/", Matcher.quoteReplacement(c8o_CompFunctions));
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompFunctions\\*/", Matcher.quoteReplacement(c8o_CompFunctions));
 		
 		return tsContent;
 	}
@@ -1870,19 +1877,19 @@ public class NgxBuilder extends MobileBuilder {
 
 		File pageTplTs = new File(ionicTplDir, "src/page.module.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/",c8o_PageRoutingModuleName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageName\\*/",c8o_PageName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageRoutingModuleName\\*/",c8o_PageRoutingModuleName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgModules\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgDeclarations\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgComponents\\*/","");
 
 		for (String compbean : comp_beans_dirs.keySet()) {
 			try {
@@ -2014,19 +2021,19 @@ public class NgxBuilder extends MobileBuilder {
 
 		File pageTplTs = new File(ionicTplDir, "src/comp.module.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompModuleName\\*/",c8o_CompModuleName);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImport\\*/",c8o_CompImport);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
-		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleNgExports\\*/", c8o_ModuleNgExports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompName\\*/",c8o_CompName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompModuleName\\*/",c8o_CompModuleName);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompImport\\*/",c8o_CompImport);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgModules\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_ModuleNgExports\\*/", c8o_ModuleNgExports);
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgDeclarations\\*/","");
+		tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+		tsContent = replaceAll(tsContent, "/\\*End_c8o_NgComponents\\*/","");
 
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcCompDir = comp_beans_dirs.get(compbean);
@@ -2409,8 +2416,8 @@ public class NgxBuilder extends MobileBuilder {
 
 				File appServiceTpl = new File(ionicTplDir, "src/app/services/actionbeans.service.ts");
 				String mContent = FileUtils.readFileToString(appServiceTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",Matcher.quoteReplacement(c8o_ActionTsImports));
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",Matcher.quoteReplacement(c8o_ActionTsFunctions));
+				mContent = replaceAll(mContent, "/\\*\\=c8o_ActionTsImports\\*/",c8o_ActionTsImports);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_ActionTsFunctions\\*/",c8o_ActionTsFunctions);
 				File appServiceTsFile = new File(servicesDir, "actionbeans.service.ts");
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 
@@ -2454,7 +2461,7 @@ public class NgxBuilder extends MobileBuilder {
 
 				File appRoutingTpl = new File(ionicTplDir, "src/app-routing.module.tpl");
 				String mContent = FileUtils.readFileToString(appRoutingTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_AppRoutes\\*/", c8o_AppRoutes);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_AppRoutes\\*/", c8o_AppRoutes);
 
 				File appRoutingTsFile = new File(appDir, "app-routing.module.ts");
 				writeFile(appRoutingTsFile, mContent, "UTF-8");
@@ -2617,19 +2624,19 @@ public class NgxBuilder extends MobileBuilder {
 
 				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
 				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
-				mContent = mContent.replaceAll("/\\*\\=c8o_ServiceWorkerEnabled\\*/",c8o_ServiceWorkerEnabled);
-				mContent = mContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
-				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
-				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-				mContent = mContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
-				mContent = mContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
-				mContent = mContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
-				mContent = mContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
-				mContent = mContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+				mContent = replaceAll(mContent, "/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
+				mContent = replaceAll(mContent, "/\\*\\=c8o_ServiceWorkerEnabled\\*/",c8o_ServiceWorkerEnabled);
+				mContent = replaceAll(mContent, "/\\*Begin_c8o_NgModules\\*/","");
+				mContent = replaceAll(mContent, "/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
+				mContent = replaceAll(mContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+				mContent = replaceAll(mContent, "/\\*End_c8o_NgProviders\\*/","");
+				mContent = replaceAll(mContent, "/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+				mContent = replaceAll(mContent, "/\\*End_c8o_NgDeclarations\\*/","");
+				mContent = replaceAll(mContent, "/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+				mContent = replaceAll(mContent, "/\\*End_c8o_NgComponents\\*/","");
 
 				File appModuleTsFile = new File(appDir, "app.module.ts");
 				writeFile(appModuleTsFile, mContent, "UTF-8");
@@ -2710,16 +2717,16 @@ public class NgxBuilder extends MobileBuilder {
 			c8o_AppProdMode = MobileBuilderBuildMode.production.equals(buildMode) ? "enableProdMode();":"";			
 		}
 
-		cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
-		cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
-		cContent = cContent.replaceAll("/\\*\\=c8o_PageArrayDef\\*/",c8o_PageArrayDef);
-		cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
-		cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
-		cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
-		cContent = cContent.replaceAll("/\\*\\=c8o_AppImports\\*/",c8o_AppImports);
-		cContent = cContent.replaceAll("/\\*\\=c8o_AppDeclarations\\*/",c8o_AppDeclarations);
-		cContent = cContent.replaceAll("/\\*\\=c8o_AppConstructors\\*/",c8o_AppConstructors);
-		cContent = cContent.replaceAll("/\\*\\=c8o_AppProdMode\\*/",c8o_AppProdMode);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_PageArrayDef\\*/",c8o_PageArrayDef);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_RoutingTable\\*/",computedRoute);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppImports\\*/",c8o_AppImports);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppDeclarations\\*/",c8o_AppDeclarations);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppConstructors\\*/",c8o_AppConstructors);
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppProdMode\\*/",c8o_AppProdMode);
 
 		String c8oInit = "settings.addHeader(\"x-convertigo-mb\", \""+c8o_Version+"\");\n\t\tthis.c8o.init(";
 		cContent = cContent.replaceFirst("this\\.c8o\\.init\\(", c8oInit);
@@ -2735,7 +2742,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		cContent = cContent.replaceAll("/\\*\\=c8o_AppFunctions\\*/", Matcher.quoteReplacement(c8o_AppFunctions));
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppFunctions\\*/", c8o_AppFunctions);
 
 		return cContent;
 	}
