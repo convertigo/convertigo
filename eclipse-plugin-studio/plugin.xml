@@ -65,20 +65,20 @@
 				label="&amp;Open the Startup page"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
 			</action>
-			<action
-				class="com.twinsoft.convertigo.eclipse.actions.OpenMarketplace"
-				icon="icons/studio/retail_store_color_16x16.png"
-				id="com.twinsoft.convertigo.OpenMarketplace"
-				label="&amp;Open the Marketplace"
-				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
-			</action>
-			<action
-				class="com.twinsoft.convertigo.eclipse.actions.OpenAssistant"
-				icon="icons/setupwizard_16x16.gif"
-				id="com.twinsoft.convertigo.OpenAssistant"
-				label="&amp;Open the Convertigo Assistant"
-				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
-			</action>
+<!--			<action-->
+<!--				class="com.twinsoft.convertigo.eclipse.actions.OpenMarketplace"-->
+<!--				icon="icons/studio/retail_store_color_16x16.png"-->
+<!--				id="com.twinsoft.convertigo.OpenMarketplace"-->
+<!--				label="&amp;Open the Marketplace"-->
+<!--				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">-->
+<!--			</action>-->
+<!--			<action-->
+<!--				class="com.twinsoft.convertigo.eclipse.actions.OpenAssistant"-->
+<!--				icon="icons/setupwizard_16x16.gif"-->
+<!--				id="com.twinsoft.convertigo.OpenAssistant"-->
+<!--				label="&amp;Open the Convertigo Assistant"-->
+<!--				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">-->
+<!--			</action>-->
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenTutorialView"
 				icon="icons/studio/information_16x16.gif"
@@ -692,21 +692,21 @@
 				relationship="stack"
 				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
 			</view>
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-				minimized="false"
-				visible="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"/>
+<!--			<view-->
+<!--				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
+<!--				minimized="false"-->
+<!--				visible="false"-->
+<!--				relationship="stack"-->
+<!--				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"/>-->
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 				relationship="right"
 				relative="org.eclipse.ui.editorss" />
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
-				visible="false"
-				relationship="stack"
-				relative="org.eclipse.ui.editorss" />
+<!--			<view-->
+<!--				id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"-->
+<!--				visible="false"-->
+<!--				relationship="stack"-->
+<!--				relative="org.eclipse.ui.editorss" />-->
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.admin.AdminView"
 				visible="false"
@@ -3825,14 +3825,14 @@
 			name="NoCode Databases"
 			restorable="true">
 		</view>
-		<view
-			category="convertigo"
-			class="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
-			icon="icons/studio/retail_store_color_16x16.png"
-			id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"
-			name="Convertigo Marketplace"
-			restorable="true">
-		</view>
+<!--		<view-->
+<!--			category="convertigo"-->
+<!--			class="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"-->
+<!--			icon="icons/studio/retail_store_color_16x16.png"-->
+<!--			id="com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView"-->
+<!--			name="Convertigo Marketplace"-->
+<!--			restorable="true">-->
+<!--		</view>-->
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.admin.AdminView"
@@ -3841,14 +3841,14 @@
 			name="Convertigo Administration"
 			restorable="true">
 		</view>
-		<view
-			category="convertigo"
-			class="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-			icon="icons/setupwizard_16x16.gif"
-			id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-			name="Convertigo Assistant"
-			restorable="true">
-		</view>
+<!--		<view-->
+<!--			category="convertigo"-->
+<!--			class="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
+<!--			icon="icons/setupwizard_16x16.gif"-->
+<!--			id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
+<!--			name="Convertigo Assistant"-->
+<!--			restorable="true">-->
+<!--		</view>-->
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
