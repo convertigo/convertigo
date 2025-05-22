@@ -128,7 +128,10 @@ public class AssistantView extends ViewPart {
 									Project project = pto.getObject();
 									MobileApplication ma = project.getMobileApplication();
 									if (ma != null) {
-										ApplicationComponent app = (ApplicationComponent) ma.getApplicationComponent();
+										ApplicationComponent app = null;
+										try {
+											app = (ApplicationComponent) ma.getApplicationComponent();
+										} catch (Exception e) {}
 										if (app != null) {
 											for (UISharedComponent uisc: app.getSharedComponentList()) {
 												if (uisc.getComment().indexOf(threadid) != -1) {
