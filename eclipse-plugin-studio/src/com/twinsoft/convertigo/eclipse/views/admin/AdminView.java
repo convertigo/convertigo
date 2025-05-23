@@ -42,7 +42,6 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
@@ -76,7 +75,7 @@ public class AdminView extends ViewPart {
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
-		Engine.logStudio.debug("Admin debug : "+ browser.getDebugUrl());
+		ConvertigoPlugin.logDebug("Admin debug : "+ browser.getDebugUrl());
 		
 		var ti = new ToolItem(tb, SWT.NONE);
 		ti.setImage(ViewImageProvider.getImageFromCache("/com/twinsoft/convertigo/eclipse/editors/images/statement.png"));
