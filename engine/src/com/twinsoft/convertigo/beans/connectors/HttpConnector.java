@@ -1670,7 +1670,7 @@ public class HttpConnector extends Connector {
 						String encodedFileName = java.net.URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
 						out.write(("Content-Disposition: form-data; name=\"" + getName() + "\"; " +
 								"filename=\"encodedFileName\"; " + 
-								"filename*=UTF-8''" + encodedFileName + "\r\n").getBytes("US-ASCII"));
+								"filename*=UTF-8''" + encodedFileName).getBytes("US-ASCII"));
 					}
 				});
 			} else {
