@@ -1338,6 +1338,19 @@
 				menubarPath="import">
 			</action>
 			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.NgxComponentEditWithAssistant"
+				enablesFor="1"
+				id="convertigo.action.editNgxAppComponentWithAssistant"
+				label="Edit component with Convertigo AI Assistant"
+				menubarPath="default">
+				<enablement>
+					<objectState
+						name="objectClassName"
+						value="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent">
+					</objectState>
+				</enablement>
+			</action>
+			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
 				enablesFor="1"
 				id="convertigo.action.editNgxAppComponentClass"
