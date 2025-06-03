@@ -55,7 +55,7 @@ public class AssistantView extends ViewPart {
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
-		
+	
 	@Override
 	public void dispose() {
 		if (browser != null) {
@@ -82,10 +82,10 @@ public class AssistantView extends ViewPart {
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
-		Engine.logStudio.debug("Assistant debug : "+ browser.getDebugUrl());
+		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
-		//url = "http://localhost:49582/path-to-xfirst";
+		//url = "http://localhost:49678/path-to-xfirst";
 		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
@@ -103,12 +103,17 @@ public class AssistantView extends ViewPart {
 							if (pev != null) {
 								DatabaseObjectTreeObject doto = pev.getFirstSelectedDatabaseObjectTreeObject();
 								if (doto != null) {
-									ApplicationComponent app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
+									ApplicationComponent app = null;
+									try {
+										app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
+									} catch (Exception e) {}
 									if (app != null) {
 										ConvertigoPlugin.clipboardManagerSystem.paste(sXml, app, true);
 										TreeObject tto = pev.findTreeObjectByUserObject(app);
 										pev.objectChanged(new CompositeEvent(app, tto.getPath()));
 										Engine.logStudio.info("[Assistant] create component: clipboard succesfully added");
+									} else {
+										Engine.logStudio.info("[Assistant] unable to create component for non ngx application");
 									}
 								}
 							}
@@ -199,4 +204,13 @@ public class AssistantView extends ViewPart {
 	public void setFocus() {
 	}
 
+	public void changeThread(String threadId) {
+		if (threadId != null && !threadId.isBlank()) {
+			String burl = browser.getURL();
+			int idx = burl.indexOf("thread_");
+			String url = (idx != -1 ? burl.substring(0, idx-1): burl) + "/"+ threadId;
+			Engine.logStudio.info("[Assistant] url: "+ url);
+			browser.setUrl(url);
+		}
+	}	
 }
