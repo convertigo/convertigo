@@ -129,11 +129,11 @@ public class MarketplaceView extends ViewPart {
 								var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
 								try {
 									var msg = new JSONObject();
-									json.put("type", "postInstall");
-									json.put("installed", project != null);
+									msg.put("type", "postInstall");
+									msg.put("installed", project != null);
 									if (project != null) {
-										json.put("project", project.getName());
-										json.put("version", project.getVersion());
+										msg.put("project", project.getName());
+										msg.put("version", project.getVersion());
 									}
 									handler.postMessage(msg);
 								} catch (Exception e1) {
@@ -159,12 +159,12 @@ public class MarketplaceView extends ViewPart {
 					
 					try {
 						var msg = new JSONObject();
-						json.put("type", "postGet");
-						json.put("project", projectName);
-						json.put("installed", project != null);
+						msg.put("type", "postGet");
+						msg.put("project", projectName);
+						msg.put("installed", project != null);
 						if (project != null) {
-							json.put("project", project.getName());
-							json.put("version", project.getVersion());
+							msg.put("project", project.getName());
+							msg.put("version", project.getVersion());
 						}
 						handler.postMessage(msg);
 					} catch (Exception e1) {
