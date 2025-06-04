@@ -229,11 +229,11 @@
 																							label: 'Execute',
 																							type: 'submit',
 																							value: testcase.name,
-																							class: 'basic-button'
+																							class: 'button-primary'
 																						},
 																						{
 																							label: 'Edit',
-																							class: 'yellow-button',
+																							class: 'button-tertiary',
 																							onclick: () => {
 																								requestable.tc = { ...testcase };
 																							}
@@ -258,12 +258,16 @@
 												{/if}
 												<Card class="layout-y p-low! md:layout-x">
 													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
-													<Button label="Execute" type="submit" class="basic-button" />
+													<Button label="Execute" type="submit" class="button-primary" />
 													{#if part.name == 'Sequences'}
-														<Button label="View flow" class="yellow-button max-w-24" href={name} />
+														<Button
+															label="View flow"
+															class="button-tertiary max-w-24"
+															href={name}
+														/>
 													{/if}
 													{#if requestable.response?.length > 0}
-														<Button label="Clear" type="submit" class="cancel-button" />
+														<Button label="Clear" type="submit" class="button-error" />
 													{/if}
 												</Card>
 												{#if requestable.response?.length > 0}

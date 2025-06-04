@@ -5,7 +5,8 @@
 	let { title = '', message = '', class: cls = 'max-w-md' } = $props();
 
 	export async function open(props) {
-		({ title = title, message = message, class: cls = cls } = props ?? {});
+		props ??= {};
+		[title, message, cls] = [props.title ?? title, props.message ?? message, props.class ?? cls];
 		return await modal.open(props);
 	}
 
@@ -18,8 +19,8 @@
 			<span>{message}</span>
 		{/if}
 		<div class="layout-x w-full justify-end">
-			<button onclick={() => modal.close(true)} class="basic-button">Yes</button>
-			<button onclick={() => modal.close(false)} class="cancel-button">No</button>
+			<button onclick={() => modal.close(true)} class="button-success">Yes</button>
+			<button onclick={() => modal.close(false)} class="button-error">No</button>
 		</div>
 	</Card>
 </ModalDynamic>

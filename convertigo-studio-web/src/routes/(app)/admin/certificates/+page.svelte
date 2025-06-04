@@ -56,7 +56,7 @@
 					accept={{ 'application/x-pkcs12': ['.pfx', '.p12'], 'application/pkix-cert': ['.cer'] }}
 					maxFiles={1}
 					subtext="then press Install"
-					classes="w-full"
+					classes="w-full preset-filled-surface-300-700"
 					required
 					allowDrop
 				>
@@ -72,12 +72,12 @@
 						label="Install"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="basic-button w-fit!"
+						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalCertInstall.close}
 					/>
 				</div>
@@ -107,12 +107,12 @@
 						label="Remove"
 						icon="fluent-mdl2:certificate"
 						type="submit"
-						class="basic-button w-fit!"
+						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalCertRemove.close}
 					/>
 				</div>
@@ -202,7 +202,7 @@
 	{:else if def.name == 'Password'}
 		<form class="w-full">
 			{#if validPass == 'false'}
-				<p class="text-red-500">Invalid password</p>
+				<p class="font-bold text-error-700-300">Invalid password</p>
 			{/if}
 			<PropertyType
 				name="pwd_0"
@@ -225,13 +225,13 @@
 			buttons={[
 				{
 					icon: 'mingcute:delete-line',
-					cls: 'delete-button',
+					cls: 'button-error',
 					hidden: last,
 					onclick: def.setup ? del : mappingsDel
 				},
 				{
 					icon: 'dashicons:update',
-					cls: 'green-button',
+					cls: 'button-success',
 					onclick: def.setup ? configure : mappingsConfigure
 				}
 			]}
@@ -250,13 +250,13 @@
 					{
 						label: 'Install a new certificate',
 						icon: 'fluent-mdl2:certificate',
-						cls: 'basic-button',
+						cls: 'button-primary',
 						onclick: modalCertInstall?.open
 					},
 					{
 						label: 'Remove a certificate',
 						icon: 'mingcute:delete-line',
-						cls: 'delete-button',
+						cls: 'button-error',
 						disabled: !candidates.length,
 						onclick: modalCertRemove?.open
 					}

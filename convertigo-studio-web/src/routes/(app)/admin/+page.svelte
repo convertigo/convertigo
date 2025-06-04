@@ -55,13 +55,13 @@
 				{
 					label: 'Java Properties',
 					icon: 'mdi:language-java',
-					cls: 'basic-button',
+					cls: 'button-primary',
 					onclick: (e) => modal(e, 'props')
 				},
 				{
 					label: 'Environment Variables',
 					icon: 'mdi:code-block-braces',
-					cls: 'basic-button',
+					cls: 'button-secondary',
 					onclick: (e) => modal(e, 'env')
 				}
 			],
@@ -91,7 +91,7 @@
 				{
 					label: 'Perform GC',
 					icon: 'mdi:broom',
-					cls: 'green-button',
+					cls: 'button-tertiary',
 					onclick: () => call('engine.PerformGC')
 				}
 			],
@@ -186,7 +186,7 @@
 			></TableAutoCard>
 
 			<div class="layout-x w-full justify-end">
-				<Button label="Close" onclick={close} class="cancel-button w-fit!" />
+				<Button label="Close" onclick={close} class="button-error w-fit!" />
 			</div>
 		</Card>
 	{/snippet}
@@ -239,9 +239,9 @@
 	@reference "../../../app.css";
 
 	:global(.statusTable td:has(> .on)) {
-		@apply bg-success-500 font-normal;
+		@apply preset-filled-success-500;
 	}
 	:global(.statusTable td:has(> .off)) {
-		@apply bg-error-500;
+		@apply preset-filled-error-500;
 	}
 </style>

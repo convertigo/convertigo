@@ -1,12 +1,37 @@
 <script>
 	import { browser } from '$app/environment';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import Light from '$lib/common/Light.svelte';
 	import { getUrl } from '$lib/utils/service';
+	import { blur } from 'svelte/transition';
 
 	let iframe = $state();
 
+	$effect(() => {
+		iframe?.contentWindow?.document?.documentElement?.classList.toggle('transition', true);
+		iframe?.contentWindow?.document?.documentElement?.classList.toggle('dark', Light.dark);
+	});
+
 	function onload() {
 		const iframeDoc = iframe.contentWindow.document;
+
+		iframeDoc.documentElement.classList.toggle('dark', Light.dark);
+		const style = iframeDoc.createElement('style');
+		style.textContent = `
+			.transition {
+				transition: filter 250ms ease;	
+			}
+			html {
+				filter: invert(0) hue-rotate(0deg);
+			}
+			html.dark {
+				filter: invert(1) hue-rotate(180deg);
+			}
+			.dark img, .dark video {
+				filter: invert(1) hue-rotate(180deg);
+			}
+		`;
+		iframeDoc.head.appendChild(style);
 		const observer = new MutationObserver((mutations) => {
 			mutations.forEach((mutation) => {
 				mutation.addedNodes.forEach((node) => {
@@ -72,6 +97,7 @@
 
 		const config = { childList: true, subtree: true };
 		observer.observe(iframeDoc.body, config);
+		iframe.classList.toggle('opacity-0', false);
 	}
 </script>
 
@@ -81,7 +107,7 @@
 			bind:this={iframe}
 			src={getUrl().replace('/services/', '/_utils/')}
 			title="fullsync"
-			class="h-full w-full rounded-xl"
+			class="h-full w-full rounded-xl opacity-0 transition-opacity duration-200"
 			{onload}
 		></iframe>
 	</MaxRectangle>

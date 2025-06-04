@@ -157,6 +157,8 @@
 	);
 
 	let modalYesNo = getContext('modalYesNo');
+
+	let showFilters = $state(false);
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
@@ -171,7 +173,7 @@
 				>
 					{#snippet list()}
 						{#each Object.entries(tabs) as [value, { name, icon }]}
-							<Tabs.Control {value} stateLabelActive="dark:bg-primary-500 bg-primary-50" padding="">
+							<Tabs.Control {value} stateLabelActive="preset-filled-primary-100-900" padding="">
 								{#snippet lead()}{name}{/snippet}
 								<Ico {icon} />
 							</Tabs.Control>
@@ -185,7 +187,7 @@
 								{
 									label: 'Purge',
 									icon: 'material-symbols-light:save-as-outline',
-									cls: 'basic-button',
+									cls: 'button-error',
 									disabled: LogsPurge.value[0] == -1,
 									onclick: async (event) => {
 										if (
@@ -207,14 +209,14 @@
 								{
 									label: 'Save changes',
 									icon: 'material-symbols-light:save-as-outline',
-									cls: 'basic-button',
+									cls: 'button-success',
 									disabled: !hasChanges,
 									onclick: saveChanges
 								},
 								{
 									label: 'Cancel changes',
 									icon: 'material-symbols-light:cancel-outline',
-									cls: 'yellow-button',
+									cls: 'button-error',
 									disabled: !hasChanges,
 									onclick: Configuration.refresh
 								}
@@ -246,10 +248,10 @@
 									startOfWeek={1}
 									{onDayClick}
 								>
-									<div class="layout-x-end flex-wrap">
+									<div class="layout-x-end-low flex-wrap">
 										{#each ['From', 'To'] as way, i}
 											<div class="layout-x-baseline-low flex-wrap">
-												<Popover triggerBase="basic-button" arrow arrowBackground="">
+												<Popover triggerBase="button-primary" arrow arrowBackground="">
 													{#snippet trigger()}{way}<Ico
 															icon="mdi:clock-star-four-points-outline"
 														/>{/snippet}
@@ -259,7 +261,7 @@
 																{#each presets[i] as { name, fn }}
 																	<Button
 																		label={name}
-																		class="basic-button"
+																		class="button-primary"
 																		onclick={() => {
 																			dates[i] = fn();
 																			times[i] = Logs.formatTime(dates[i]);
@@ -272,7 +274,7 @@
 												</Popover>
 												<input
 													type="text"
-													class="input-text basic-button input-common w-[12ch] max-w-fit"
+													class="input-text button input-common w-[12ch] max-w-fit preset-filled-primary-50-950 px-low"
 													value={Logs.formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
@@ -284,10 +286,19 @@
 											</div>
 										{/each}
 										<Button
+											size={4}
+											icon="mdi:filter-cog{showFilters ? '' : '-outline'}"
+											onmousedown={() => (showFilters = !showFilters)}
+											class="button-secondary h-7! w-fit!"
+										/>
+										{#if showFilters}
+											<PropertyType placeholder="Server filter…" />
+										{/if}
+										<Button
 											label="Search"
 											size={4}
 											icon="mdi:receipt-text-send-outline"
-											class="basic-button w-fit! grow"
+											class="button-success w-fit! grow"
 											onclick={refreshLogs}
 										/>
 									</div>
@@ -307,7 +318,7 @@
 					} = LogsPurge}
 					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 						<div class="mt">Logs are split into multiple files, each step is a file.</div>
-						<div class="rounded-sm bg-surface-50 p-5 dark:bg-surface-700">
+						<div class="rounded-sm preset-filled-surface-300-700 p-5">
 							<AutoPlaceholder {loading}>
 								<Slider
 									name="range-slider"

@@ -10,6 +10,7 @@
 	let isLoading = $derived(!series?.[0]?.data?.length);
 
 	let chartEl;
+	const colors = { light: [], dark: [] };
 	/** @type {any} */
 	let options = $state({
 		theme: {
@@ -71,6 +72,7 @@
 			options.theme.mode = Light.mode;
 			options.xaxis.categories = categories;
 			options.series = series;
+			options.colors = colors[Light.mode];
 			untrack(() => {
 				chart.updateOptions(options);
 			});
@@ -78,6 +80,16 @@
 	});
 
 	onMount(() => {
+		let styles = window.getComputedStyle(chartEl);
+		for (let m of [
+			['light', 200],
+			['dark', 600]
+		]) {
+			colors[m[0]] = [];
+			['warning', 'primary', 'success'].forEach((color) => {
+				colors[m[0]].push(styles.getPropertyValue(`--color-${color}-${m[1]}`));
+			});
+		}
 		chart = new ApexCharts(chartEl, options);
 		chart.render();
 		return () => {

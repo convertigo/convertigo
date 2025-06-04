@@ -4,6 +4,7 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
@@ -34,6 +35,11 @@
 	let modalDeployUpload = $state();
 	let modalDeployURL = $state();
 	let modalSymbols;
+
+	let filter = $state('');
+	let fprojects = $derived(
+		projects.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
+	);
 </script>
 
 <ModalDynamic bind:this={modalExport}>
@@ -48,7 +54,7 @@
 					{
 						icon: 'bytesize:export',
 						label: 'Export',
-						cls: 'green-button',
+						cls: 'button-primary',
 						onclick: async () => {
 							if (
 								await exportProject({
@@ -63,7 +69,7 @@
 					{
 						icon: 'material-symbols-light:cancel-outline',
 						label: 'Cancel',
-						cls: 'cancel-button',
+						cls: 'button-error',
 						onclick: close
 					}
 				]}
@@ -86,7 +92,7 @@
 					accept={{ 'application/zip': ['.car', '.zip'] }}
 					maxFiles={1}
 					subtext="then press Deploy"
-					classes="w-full"
+					classes="w-full preset-filled-surface-300-700"
 					required
 					allowDrop
 				>
@@ -105,12 +111,12 @@
 						label="Deploy"
 						icon="carbon:application"
 						type="submit"
-						class="basic-button w-fit!"
+						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalDeployUpload.close}
 					/>
 				</div>
@@ -133,13 +139,22 @@
 					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
-				<input name="url" type="text" class="input w-full" required />
+				<PropertyType
+					name="url"
+					placeholder="<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]"
+					required
+				/>
 				<div class="layout-x justify-end">
-					<Button label="Import" icon="bytesize:import" type="submit" class="basic-button w-fit!" />
+					<Button
+						label="Import"
+						icon="bytesize:import"
+						type="submit"
+						class="button-secondary w-fit!"
+					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalDeployURL.close}
 					/>
 				</div>
@@ -161,13 +176,13 @@
 				<Button
 					label="Create symbols"
 					icon="et:tools-2"
-					class="basic-button"
+					class="button-primary"
 					onclick={() => close(true)}
 				/>
 				<Button
 					label="Cancel"
 					icon="material-symbols-light:cancel-outline"
-					class="cancel-button"
+					class="button-error"
 					onclick={() => close(false)}
 				/>
 			</div>
@@ -182,14 +197,14 @@
 				{
 					icon: 'carbon:application',
 					value: 'deploy',
-					cls: 'basic-button',
+					cls: 'button-primary',
 					label: 'Deploy project',
 					onclick: modalDeployUpload?.open
 				},
 				{
 					icon: 'bytesize:import',
 					value: 'export',
-					cls: 'basic-button',
+					cls: 'button-secondary',
 					label: 'Import a Remote Project URL',
 					onclick: modalDeployURL?.open
 				}
@@ -198,6 +213,18 @@
 			disabled={!init}
 		/>
 	{/snippet}
+	<div
+		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
+	>
+		<label for="projectsFilter" class="ig-cell"><Ico icon="mdi:magnify" /> </label>
+		<input
+			class="ig-input placeholder:text-surface-500"
+			type="search"
+			id="projectsFilter"
+			placeholder="Filter projects..."
+			bind:value={filter}
+		/>
+	</div>
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true },
@@ -207,7 +234,7 @@
 			{ name: 'Exported', key: 'exported', class: 'text-sm min-w-32' },
 			{ name: 'Deployment', key: 'deployDate', class: 'text-sm min-w-32' }
 		]}
-		data={projects}
+		data={fprojects}
 		class="rounded-sm"
 	>
 		{#snippet children({ row: { name, undefined_symbols }, def })}
@@ -217,7 +244,7 @@
 					buttons={[
 						{
 							icon: 'mingcute:delete-line',
-							cls: 'delete-button',
+							cls: 'button-error',
 							onclick: async (event) => {
 								if (
 									await modalYesNo.open({
@@ -232,14 +259,14 @@
 						},
 						{
 							icon: 'simple-line-icons:reload',
-							cls: 'green-button',
+							cls: 'button-success',
 							onclick: () => {
 								reload(project);
 							}
 						},
 						{
 							icon: 'bytesize:export',
-							cls: 'basic-button',
+							cls: 'button-primary',
 							onclick: async (event) => {
 								event.currentTarget?.blur();
 								const options = await exportOptions(project);
@@ -252,7 +279,7 @@
 						},
 						{
 							icon: 'file-icons:test-ruby',
-							cls: 'yellow-button',
+							cls: 'button-tertiary',
 							href: `${base}/dashboard/${project}/backend/`,
 							disabled: false
 						},

@@ -274,7 +274,7 @@
 						label="Save"
 						type="submit"
 						icon={jobTypes[mode].icon}
-						class="basic-button w-fit!"
+						class="button-success w-fit!"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
@@ -282,7 +282,7 @@
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={close}
 					/>
 				</div>
@@ -309,7 +309,7 @@
 				<Button
 					label="Close"
 					icon="material-symbols-light:cancel-outline"
-					class="cancel-button"
+					class="button-error"
 					onclick={close}
 				/>
 			</div>
@@ -328,7 +328,7 @@
 						.map(([mode, { name, icon }]) => ({
 							label: `New ${name}`,
 							icon,
-							cls: 'basic-button',
+							cls: 'button-primary',
 							onclick: (event) => open({ event, mode })
 						}))}
 					disabled={!init}
@@ -371,13 +371,13 @@
 								disabled={!init}
 							/>
 							<Button
-								class="basic-button"
+								class="button-primary"
 								{size}
 								icon="mdi:edit-outline"
 								onclick={(event) => open({ event, mode: row.type, row })}
 							/>
 							<Button
-								class="delete-button"
+								class="button-error"
 								{size}
 								icon="mingcute:delete-line"
 								onclick={async (event) => {
@@ -396,7 +396,7 @@
 					{:else if row.next?.length > 1}
 						<Button
 							label={`${row.next?.[0]} …`}
-							class="yellow-button"
+							class="button-tertiary"
 							{size}
 							onclick={(event) => nextCron.open({ event, row })}
 						/>

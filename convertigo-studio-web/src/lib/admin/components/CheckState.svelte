@@ -20,8 +20,8 @@
 	controlClasses="min-w-10"
 	thumbInactive="bg-white"
 	thumbActive="bg-white"
-	controlActive="preset-filled-success-500"
-	controlInactive="preset-filled-warning-500"
+	controlActive="preset-filled-success-200-800"
+	controlInactive="preset-filled-error-200-800"
 	checked={value == values[1]}
 	onCheckedChange={(e) => (value = e.checked ? values[1] : values[0])}
 >

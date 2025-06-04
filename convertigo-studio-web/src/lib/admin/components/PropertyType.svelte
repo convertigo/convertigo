@@ -68,11 +68,11 @@
 				controlClasses="min-w-10"
 				thumbInactive="bg-white"
 				thumbActive="bg-white"
-				controlActive="preset-filled-success-500"
-				controlInactive="preset-filled-warning-500"
+				controlActive="preset-filled-success-200-800"
+				controlInactive="preset-filled-error-200-800"
 				{checked}
-				onCheckedChange={(e) => (checked = e.checked)}
-			/>
+				onCheckedChange={(e) => (checked = e.checked)}>{label}</Switch
+			>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-stretch-none" class:border-common={type != 'segment'}>
@@ -87,7 +87,7 @@
 						name={name ?? []}
 						{value}
 						onValueChange={(e) => (value = e.value ?? '')}
-						indicatorBg="preset-filled-primary-500"
+						indicatorBg="preset-filled-primary-200-800"
 						indicatorText="text-white"
 						border="p-0"
 					>
@@ -105,9 +105,9 @@
 							{@const val = option.value ?? option}
 							{@const txt = option.text ?? option['#text'] ?? val}
 							{#if rest.multiple ?? true}
-								<option value={val} onmousedown={handleMultiple}>{txt}</option>
+								<option class="ig-select" value={val} onmousedown={handleMultiple}>{txt}</option>
 							{:else}
-								<option value={val}>{txt}</option>
+								<option class="ig-select" value={val}>{txt}</option>
 							{/if}
 						{/each}
 					</select>

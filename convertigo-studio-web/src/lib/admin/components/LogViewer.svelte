@@ -1,5 +1,5 @@
 <script>
-	import { Popover, Switch } from '@skeletonlabs/skeleton-svelte';
+	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -7,7 +7,6 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
-	import { onMount } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
@@ -15,8 +14,10 @@
 	import Button from './Button.svelte';
 	import Card from './Card.svelte';
 	import MaxRectangle from './MaxRectangle.svelte';
+	import PropertyType from './PropertyType.svelte';
 
 	const duration = 400;
+	const lineHeight = 16; // px
 
 	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
@@ -41,8 +42,8 @@
 	//let columnsOrder = fromStore(persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false }));
 
 	const columnsConfiguration = {
-		Date: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[0] },
-		Time: { idx: 1, cls: 'font-bold', fn: (v) => v.split(' ')[1] },
+		Date: { idx: 1, cls: '', fn: (v) => v.split(' ')[0] }, //'font-bold'
+		Time: { idx: 1, cls: '', fn: (v) => v.split(' ')[1] }, //'font-bold'
 		Delta: {
 			idx: 1,
 			fn: (v, i) => {
@@ -51,7 +52,7 @@
 					i > 0 ? new Date(v.replace(',', '.')) - new Date(logs[i - 1][1].replace(',', '.')) : 0;
 				return diff < 1000
 					? diff + 'ms'
-					: diff < 3600
+					: diff < 3600000
 						? (diff / 1000).toFixed(2) + 's'
 						: new Date(diff).toISOString().substring(11, 19);
 			}
@@ -104,10 +105,9 @@
 
 	function itemSize(index) {
 		let height =
-			9 +
-			scrollbarHeight +
-			extraLines * 16 +
-			Math.max(16, logs[index][logs[index].length - 1] * 16);
+			7 +
+			extraLines * lineHeight +
+			Math.max(lineHeight, logs[index][logs[index].length - 1] * lineHeight);
 		return height;
 	}
 
@@ -216,7 +216,7 @@
 	}
 
 	function doSearch(e) {
-		if (e.key == 'Enter') {
+		if (e?.key == 'Enter') {
 			doSearchNext();
 		} else if (searched) {
 			const centerLine = getCenterLine();
@@ -262,6 +262,11 @@
 		}
 	}
 
+	function doSearchClear() {
+		searched = '';
+		doSearch();
+	}
+
 	function scrollIntoView(e) {
 		let { left, width } = e.getBoundingClientRect();
 		left = Math.max(0, left - (e.parentElement.getBoundingClientRect().width + width) / 2);
@@ -270,21 +275,6 @@
 
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
-
-	// const searchBoxSetting = {
-	// 	event: 'click',
-	// 	target: 'searchBox',
-	// 	placement: 'top',
-	// 	closeQuery: '.close-popup',
-	// 	state: async ({ state }) => {
-	// 		searchBoxOpened = state;
-	// 		if (state) {
-	// 			await tick();
-	// 			searchInput.focus();
-	// 			autoScroll = false;
-	// 		}
-	// 	}
-	// };
 
 	let recenter;
 
@@ -322,25 +312,6 @@
 		});
 		modalFilter.close();
 	};
-	let scrollbarHeight = $state(0);
-	// onMount(() => {
-	// 	const container = document.createElement('div');
-	// 	container.style.visibility = 'hidden';
-	// 	container.style.overflow = 'scroll';
-	// 	container.style.width = '100px';
-	// 	container.style.height = '100px';
-	// 	container.style.position = 'absolute';
-
-	// 	const inner = document.createElement('div');
-	// 	inner.style.width = '100%';
-	// 	inner.style.height = '100%';
-
-	// 	container.appendChild(inner);
-	// 	document.body.appendChild(container);
-
-	// 	scrollbarHeight = Math.max(container.offsetHeight - inner.clientHeight, 4);
-	// 	document.body.removeChild(container);
-	// });
 	const size = '4';
 
 	function dragscroll(node) {
@@ -445,19 +416,19 @@
 			{:else}
 				<input class="input" bind:value={modalFilterParams.value} />
 			{/if}
-			<Switch
+			<PropertyType
 				name="negate"
-				checked={modalFilterParams.not}
-				onCheckedChange={(e) => (modalFilterParams.not = e.checked)}
-				controlActive="bg-error-400 dark:bg-error-700">{not ? 'not' : 'is'}</Switch
-			>
+				type="check"
+				label={not ? 'not' : 'is'}
+				bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
+			/>
 			<div class="flex flex-wrap gap-2">
 				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
 					<button
 						type="submit"
 						class="btn"
-						class:preset-filled-primary-500={mode != _mode}
-						class:preset-filled-success-500={mode == _mode}
+						class:preset-filled-primary-100-900={mode != _mode}
+						class:preset-filled-success-100-900={mode == _mode}
 						value={_mode}
 					>
 						{_mode}
@@ -480,8 +451,8 @@
 						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
 							<div
 								class="mini-card"
-								class:preset-filled-success-500={show}
-								class:preset-filled-warning-500={!show}
+								class:preset-filled-success-100-900={show}
+								class:preset-filled-warning-100-900={!show}
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
@@ -509,28 +480,36 @@
 			</div>
 		{/if}
 		<div class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1">
-			<div class="mini-card preset-filled-primary-500">
+			<div class="mini-card preset-filled-primary-100-900">
 				<Button
 					{size}
 					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
 			</div>
-			<div class="mini-card preset-filled-primary-500">
+			<div
+				class={{
+					'mini-card': true,
+					'preset-filled-secondary-100-900': !$showFilters,
+					'preset-filled-warning-200-800': $showFilters
+				}}
+			>
 				<Button
 					{size}
-					icon="mdi:filter-cog{!browser && $showFilters ? '' : '-outline'}"
+					icon="mdi:filter-cog{$showFilters ? '' : '-outline'}"
 					onmousedown={() => ($showFilters = !$showFilters)}
 				/>
 			</div>
-			<div class="mini-card preset-filled-primary-500">
+			<div class="mini-card preset-filled-success-100-900">
 				<Popover
 					open={searchBoxOpened}
+					onclick={() => (searchBoxOpened = !searchBoxOpened)}
 					onInteractOutside={() => (searchBoxOpened = false)}
 					arrow
 					arrowBackground="bg-surface-50-950"
 					triggerBase="block"
 					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
+					zIndex="51"
 				>
 					{#snippet trigger()}<Ico icon="mdi:search" />{/snippet}
 					{#snippet content()}
@@ -550,14 +529,17 @@
 									readonly={true}
 									value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
 								/>
-								<button class="basic-button" onclick={doSearchPrev}>↑</button>
-								<button class="basic-button" onclick={doSearchNext}>↓</button>
+								<button class="button-primary" onclick={doSearchPrev}>↑</button>
+								<button class="button-primary" onclick={doSearchNext}>↓</button>
+								<button class="button-error p-2" onclick={doSearchClear}
+									><Ico icon="mingcute:delete-line" /></button
+								>
 							</div>
 						</Card>
 					{/snippet}
 				</Popover>
 			</div>
-			<div class="mini-card preset-filled-tertiary-500">
+			<div class="mini-card preset-filled-tertiary-100-900">
 				<span>Message</span>
 				<Button
 					{size}
@@ -578,15 +560,15 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="preset-ghost-500 mini-card">AND</div>
+						<div class="mini-card preset-filled-surface-200-800">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="preset-ghost-500 mini-card">OR</div>
+						<div class="mini-card preset-filled-surface-200-800">OR</div>
 					{/if}
 					<div
 						class="mini-card"
-						class:preset-filled-surface-500={!not}
-						class:preset-filled-error-500={not}
+						class:preset-filled-secondary-100-900={!not}
+						class:preset-filled-error-100-900={not}
 					>
 						<span class="max-w-xs overflow-hidden"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
@@ -608,7 +590,7 @@
 			{/each}
 		</div>
 		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-500 p-1 text-white">
+			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-100-900 p-1 text-white">
 				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
 				{#if extraLines > 0}
 					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
@@ -654,22 +636,19 @@
 								'flex',
 								'flex-wrap',
 								'overflow-y-hidden',
-								'preset-outlined',
-								'border-white',
 								'items-baseline',
 								log[2],
 								'opacity-90',
 								log[log.length - 1] > 1 && 'sticky',
-								'top-0',
-								'text-gray-600'
+								'top-0'
 							]}
-							style="height: {extraLines * 16}px"
+							style="height: {extraLines * lineHeight - 1}px"
 						>
 							{#each columns as { name, cls, style } (name)}
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden text-left leading-none text-nowrap"
+									class="px-1 {cls} cursor-cell overflow-hidden pt-[2px] text-left leading-none text-nowrap"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -678,7 +657,7 @@
 							{/each}
 						</div>
 						<div
-							class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black"
+							class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black dark:text-white"
 							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
 							{@attach dragscroll}
 						>
@@ -717,8 +696,8 @@
 		>
 		<button
 			class="mini-card"
-			class:preset-filled-success-500={autoScroll}
-			class:preset-filled-warning-500={!autoScroll}
+			class:preset-filled-success-100-900={autoScroll}
+			class:preset-filled-warning-100-900={!autoScroll}
 			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();
@@ -754,32 +733,26 @@
 	}
 
 	.FATAL {
-		@apply bg-surface-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-surface-500) / 0.6);
+		@apply preset-filled-secondary-100-900;
 	}
 
 	.ERROR {
-		@apply bg-error-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-error-500) / 0.6);
+		@apply preset-filled-error-100-900;
 	}
 
 	.WARN {
-		@apply bg-warning-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-warning-500) / 0.6);
+		@apply preset-filled-warning-100-900;
 	}
 
 	.INFO {
-		@apply bg-secondary-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-secondary-500) / 0.6);
+		@apply preset-filled-success-100-900;
 	}
 
 	.DEBUG {
-		@apply bg-primary-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-primary-500) / 0.6);
+		@apply preset-filled-primary-100-900;
 	}
 
 	.TRACE {
-		@apply bg-tertiary-200;
-		box-shadow: 2px 2px 5px 0px rgb(var(--color-tertiary-500) / 0.6);
+		@apply preset-filled-tertiary-100-900;
 	}
 </style>

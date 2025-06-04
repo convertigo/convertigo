@@ -74,14 +74,14 @@
 				<fieldset class="layout-x w-full justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="basic-button  w-fit!"
-						icon={edit ? 'mdi:edit-outline' : 'grommet-icons:add'}
+						class="{sec ? 'button-tertiary' : 'button-success'} w-fit!"
+						icon={edit ? 'mdi:edit-outline' : sec ? 'vaadin:key-o' : 'grommet-icons:add'}
 						size="btn"
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -105,7 +105,7 @@
 					accept={{ 'application/text': ['.properties'] }}
 					maxFiles={1}
 					subtext="then press Import"
-					classes="w-full"
+					classes="w-full preset-filled-surface-300-700"
 					required
 					allowDrop
 				>
@@ -154,12 +154,12 @@
 						label="Import"
 						icon="material-symbols:hotel-class-outline"
 						type="submit"
-						class="basic-button w-fit!"
+						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalImport.close}
 					/>
 				</div>
@@ -176,42 +176,42 @@
 				{
 					label: 'Add',
 					icon: 'grommet-icons:add',
-					cls: 'green-button',
+					cls: 'button-success',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event })
 				},
 				{
 					label: 'Add Secret',
 					icon: 'vaadin:key-o',
-					cls: 'yellow-button',
+					cls: 'button-tertiary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event, secret: true })
 				},
 				{
 					label: 'Import',
 					icon: 'bytesize:import',
-					cls: 'basic-button',
+					cls: 'button-primary',
 					hidden: exporting,
 					onclick: modalImport?.open
 				},
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
-					cls: 'green-button',
+					cls: 'button-success',
 					hidden: !exporting || fsymbols.every((user) => user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = true))
 				},
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
-					cls: 'yellow-button',
+					cls: 'button-tertiary',
 					hidden: !exporting || fsymbols.every((user) => !user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = false))
 				},
 				{
 					label: 'Export',
 					icon: 'bytesize:export',
-					cls: 'basic-button',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
 						exporting = true;
@@ -220,7 +220,7 @@
 				{
 					label: `Export [${fsymbols.filter((user) => user.export).length}]`,
 					icon: 'bytesize:export',
-					cls: 'basic-button',
+					cls: 'button-primary',
 					hidden: !exporting,
 					disabled: fsymbols.every((user) => !user.export),
 					onclick: exportSymbols
@@ -228,7 +228,7 @@
 				{
 					label: 'Cancel',
 					icon: 'material-symbols-light:cancel-outline',
-					cls: 'delete-button',
+					cls: 'button-error',
 					hidden: !exporting,
 					onclick: () => {
 						exporting = false;
@@ -237,7 +237,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mingcute:delete-line',
-					cls: 'delete-button',
+					cls: 'button-error',
 					hidden: exporting,
 					onclick: async () => {
 						if (
@@ -268,8 +268,9 @@
 	<div
 		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
 	>
-		<label id="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
+		<label for="symbolsFilter" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
+			id="symbolsFilter"
 			class="ig-input placeholder:text-surface-500"
 			type="search"
 			placeholder="Filter symbols..."
@@ -290,7 +291,7 @@
 					{#if row.project}
 						<Button
 							label={row.project}
-							class="green-button justify-start gap-1 overflow-hidden px-1 text-xs"
+							class="button-success justify-start gap-1 overflow-hidden px-1 text-xs"
 							size={4}
 							icon="grommet-icons:add"
 							onclick={(event) => modalOpen({ event, row })}
@@ -304,7 +305,7 @@
 						/>
 					{:else}
 						<Button
-							class="basic-button"
+							class="button-primary"
 							size={4}
 							icon="mdi:edit-outline"
 							onclick={(event) => {
@@ -312,7 +313,7 @@
 							}}
 						/>
 						<Button
-							class="delete-button"
+							class="button-error"
 							size={4}
 							icon="mingcute:delete-line"
 							onclick={async () => {

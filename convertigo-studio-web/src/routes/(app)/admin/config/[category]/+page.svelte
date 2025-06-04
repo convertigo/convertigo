@@ -113,14 +113,14 @@
 						{
 							label: 'Save changes',
 							icon: 'material-symbols-light:save-as-outline',
-							cls: 'basic-button',
+							cls: 'button-success',
 							disabled: !hasChanges,
 							onclick: saveChanges
 						},
 						{
 							label: 'Cancel changes',
 							icon: 'material-symbols-light:cancel-outline',
-							cls: 'yellow-button',
+							cls: 'button-error',
 							disabled: !hasChanges,
 							onclick: refresh
 						}

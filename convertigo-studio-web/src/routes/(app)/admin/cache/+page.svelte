@@ -21,7 +21,7 @@
 						{
 							label: 'Clear entries',
 							icon: 'mingcute:delete-line',
-							cls: 'delete-button',
+							cls: 'button-error',
 							onclick: clear
 						}
 					]}
@@ -49,19 +49,19 @@
 							label: 'Apply',
 							type: 'submit',
 							icon: 'solar:mask-happly-line-duotone',
-							cls: 'green-button'
+							cls: 'button-success'
 						},
 						{
 							label: 'Create Table and Apply',
 							type: 'submit',
 							icon: 'lets-icons:table-light',
-							cls: 'basic-button',
+							cls: 'button-secondary',
 							hidden: !conf?.cacheType.endsWith('DatabaseCacheManager')
 						},
 						{
 							label: 'Cancel',
 							icon: 'material-symbols-light:cancel-outline',
-							cls: 'cancel-button',
+							cls: 'button-error',
 							disabled: !hasChanged,
 							onclick: cancel
 						}

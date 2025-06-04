@@ -64,10 +64,10 @@
 				{#if stacktrace}
 					<button
 						onclick={() => (modalAlert.showStack = !modalAlert.showStack)}
-						class="yellow-button">Show Details</button
+						class="button-tertiary">Show Details</button
 					>
 				{/if}
-				<button onclick={close} class="cancel-button">Close</button>
+				<button onclick={close} class="button-error">Close</button>
 			</div>
 		</Card>
 	{/snippet}

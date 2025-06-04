@@ -218,7 +218,7 @@
 <div class="relative h-full" bind:this={root}>
 	<input
 		type="text"
-		class="input-text basic-button input-common w-[14ch] max-w-fit"
+		class="input-text button input-common w-[14ch] max-w-fit preset-filled-tertiary-100-900"
 		maxlength="12"
 		size="11"
 		bind:this={input}

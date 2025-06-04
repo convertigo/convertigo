@@ -87,9 +87,9 @@
 	{#if draw}
 		<div
 			class="mini-card text-xs {cls}"
-			class:preset-filled-success-500={hasView && hasConfig}
-			class:preset-filled-primary-500={hasView && !hasConfig}
-			class:preset-filled-warning-500={!hasView && hasConfig}
+			class:preset-filled-success-100-900={hasView && hasConfig}
+			class:preset-filled-primary-100-900={hasView && !hasConfig}
+			class:preset-filled-warning-100-900={!hasView && hasConfig}
 			class:preset-filled-surface-800-200={!hasView && !hasConfig}
 		>
 			{#if part}<Ico icon={part.icon} />{/if}
@@ -113,10 +113,10 @@
 	{#if draw}
 		<div
 			class="mini-card text-xs {cls}"
-			class:preset-filled-warning-500={hasTp && !hasTpHidden}
-			class:preset-filled-primary-500={hasTpHidden && !hasTpPrivate}
-			class:preset-filled-success-500={hasTpPrivate}
-			class:preset-filled-surface-500={!hasTp}
+			class:preset-filled-warning-100-900={hasTp && !hasTpHidden}
+			class:preset-filled-primary-100-900={hasTpHidden && !hasTpPrivate}
+			class:preset-filled-success-100-900={hasTpPrivate}
+			class:preset-filled-surface-100-900={!hasTp}
 		>
 			<Ico {icon} />{formatRoleName(role)}
 		</div>
@@ -225,14 +225,14 @@
 				<fieldset class="layout-x justify-end" disabled={waiting}>
 					<Button
 						type="submit"
-						class="basic-button  w-fit!"
+						class="button-success w-fit!"
 						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						icon="material-symbols-light:cancel-outline"
 						label="Cancel"
 					/>
@@ -256,7 +256,7 @@
 					accept={{ 'application/json': ['.json'] }}
 					maxFiles={1}
 					subtext="then press Import"
-					classes="w-full"
+					classes="w-full preset-filled-surface-300-700"
 					required
 					allowDrop
 				>
@@ -305,12 +305,12 @@
 						label="Import"
 						icon="material-symbols:supervised-user-circle-outline"
 						type="submit"
-						class="basic-button w-fit!"
+						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
 						icon="material-symbols-light:cancel-outline"
-						class="cancel-button w-fit!"
+						class="button-error w-fit!"
 						onclick={modalImport.close}
 					/>
 				</div>
@@ -327,35 +327,35 @@
 				{
 					label: 'Add User',
 					icon: 'grommet-icons:add',
-					cls: 'green-button',
+					cls: 'button-success',
 					hidden: exporting,
 					onclick: (event) => openRoleModal({ event, mode: 'addRoles' })
 				},
 				{
 					label: 'Import',
 					icon: 'bytesize:import',
-					cls: 'basic-button',
+					cls: 'button-primary',
 					hidden: exporting,
 					onclick: modalImport?.open
 				},
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
-					cls: 'green-button',
+					cls: 'button-success',
 					hidden: !exporting || users.every((user) => user.export),
 					onclick: () => users.forEach((user) => (user.export = true))
 				},
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
-					cls: 'yellow-button',
+					cls: 'button-tertiary',
 					hidden: !exporting || users.every((user) => !user.export),
 					onclick: () => users.forEach((user) => (user.export = false))
 				},
 				{
 					label: 'Export',
 					icon: 'bytesize:export',
-					cls: 'basic-button',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
 						exporting = true;
@@ -364,7 +364,7 @@
 				{
 					label: `Export [${users.filter((user) => user.export).length}]`,
 					icon: 'bytesize:export',
-					cls: 'green-button',
+					cls: 'button-success',
 					hidden: !exporting,
 					disabled: users.every((user) => !user.export),
 					onclick: exportRoles
@@ -372,7 +372,7 @@
 				{
 					label: 'Cancel',
 					icon: 'material-symbols-light:cancel-outline',
-					cls: 'delete-button',
+					cls: 'button-error',
 					hidden: !exporting,
 					onclick: () => {
 						exporting = false;
@@ -381,7 +381,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mingcute:delete-line',
-					cls: 'delete-button',
+					cls: 'button-error',
 					hidden: exporting,
 					onclick: async () => {
 						if (
@@ -419,13 +419,13 @@
 						/>
 					{:else}
 						<Button
-							class="basic-button"
+							class="button-primary"
 							size={4}
 							icon="mdi:edit-outline"
 							onclick={(event) => openRoleModal({ event, row })}
 						/>
 						<Button
-							class="delete-button"
+							class="button-error"
 							size={4}
 							icon="mingcute:delete-line"
 							onclick={async () => {

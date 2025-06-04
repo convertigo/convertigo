@@ -53,24 +53,28 @@
 	@apply btn flex items-center rounded-sm px-3 py-1 text-[13px] font-normal text-white;
 }
 
-@utility basic-button {
-	@apply button bg-primary-500 dark:bg-primary-500;
+@utility button-primary {
+	@apply button preset-filled-primary-200-800;
 }
 
-@utility cancel-button {
-	@apply button bg-error-400 dark:bg-error-500;
+@utility button-secondary {
+	@apply button preset-filled-secondary-200-800;
 }
 
-@utility delete-button {
-	@apply button bg-error-600 dark:bg-error-500;
+@utility button-tertiary {
+	@apply button preset-filled-tertiary-200-800;
 }
 
-@utility yellow-button {
-	@apply button bg-tertiary-500 dark:bg-tertiary-600;
+@utility button-success {
+	@apply button preset-filled-success-200-800;
 }
 
-@utility green-button {
-	@apply button bg-success-500 dark:bg-success-600;
+@utility button-warning {
+	@apply button preset-filled-warning-200-800;
+}
+
+@utility button-error {
+	@apply button preset-filled-error-200-800;
 }
 
 @utility violet-button {
@@ -151,8 +155,9 @@
 }
 
 @utility select {
+	& option:focus:checked,
 	& option:checked {
-		color: white;
+		@apply preset-filled-primary-50-950 dark:preset-filled-primary-950-50;
 	}
 }
 

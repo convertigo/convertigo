@@ -49,7 +49,7 @@
 					{
 						label: 'Delete all Sessions and Contexts',
 						icon: 'mingcute:delete-line',
-						cls: 'delete-button',
+						cls: 'button-error',
 						onclick: async (event) => {
 							if (
 								await modalYesNo.open({
@@ -102,21 +102,21 @@
 						buttons={[
 							{
 								icon: 'lets-icons:search-light',
-								cls: 'basic-button',
+								cls: 'button-primary',
 								onclick: () => {
 									alert('TODO: filter in log viewer');
 								}
 							},
 							{
 								icon: 'mdi:filter',
-								cls: 'yellow-button',
+								cls: 'button-tertiary',
 								onclick: () => {
 									Connections.selectedSession = sessionID;
 								}
 							},
 							{
 								icon: 'mingcute:delete-line',
-								cls: 'delete-button',
+								cls: 'button-error',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -158,7 +158,7 @@
 						{
 							label: `Remove filter of ${selectedSession}`,
 							icon: 'mdi:broom',
-							cls: 'basic-button',
+							cls: 'button-primary',
 							onclick: () => {
 								Connections.selectedSession = '';
 							}
@@ -189,12 +189,12 @@
 						buttons={[
 							{
 								icon: 'lets-icons:search-light',
-								cls: 'basic-button',
+								cls: 'button-primary',
 								onclick: () => {}
 							},
 							{
 								icon: 'mingcute:delete-line',
-								cls: 'delete-button',
+								cls: 'button-error',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -220,9 +220,6 @@
 	@reference "../../../../app.css";
 
 	:global(.session-table tr:has(.current)) {
-		@apply bg-success-300;
-	}
-	:global(.dark .session-table tr:has(.current)) {
-		@apply bg-success-900;
+		@apply preset-filled-success-100-900;
 	}
 </style>

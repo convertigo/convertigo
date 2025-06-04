@@ -28,9 +28,12 @@
 <Card title="Keys">
 	{#snippet cornerOption()}
 		<form
-			onsubmit={(/** @type {any} */ e) => {
+			onsubmit={async (/** @type {any} */ e) => {
 				e.preventDefault();
-				addKey(e.target.key.value);
+				const res = await addKey(e.target.key.value);
+				if (res?.isError) {
+					return;
+				}
 				e.target.reset();
 			}}
 		>
@@ -38,8 +41,9 @@
 				<PropertyType type="text" name="key" placeholder="Enter a new key" />
 				<Button
 					label="Add"
-					class="basic-button sm:w-fit!"
+					class="button-primary sm:w-fit!"
 					icon="material-symbols:key-outline-rounded"
+					type="submit"
 				/>
 			</fieldset>
 		</form>
@@ -90,7 +94,7 @@
 					<Button
 						size="4"
 						icon="mingcute:delete-line"
-						class="delete-button"
+						class="button-error"
 						onclick={async (event) => {
 							if (
 								await modalYesNo.open({

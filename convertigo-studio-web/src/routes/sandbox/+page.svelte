@@ -41,8 +41,8 @@
 	<MyComp bind:this={comp} />
 	<MyComp />
 
-	<!-- <button class="basic-button" onclick={() => val.age++}>{name}: {age}</button>
-	<button class="basic-button" onclick={() => reset()}>reset</button> -->
+	<!-- <button class="button-primary" onclick={() => val.age++}>{name}: {age}</button>
+	<button class="button-primary" onclick={() => reset()}>reset</button> -->
 	<div class="layout-x-p">
 		<div class="h-6 w-12 bg-red-500"></div>
 		<div class="h-6 w-12 bg-success-500"></div>
@@ -74,4 +74,9 @@
 			<button onclick={close}>close</button>
 		{/snippet}
 	</DynamicModal>
+	<select class="select select-common" multiple>
+		<option value="1">Option 1</option>
+		<option value="2">Option 2</option>
+		<option value="3">Option 3</option>
+	</select>
 </div>

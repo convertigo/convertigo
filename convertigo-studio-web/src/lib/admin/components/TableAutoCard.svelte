@@ -3,6 +3,7 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { onMount, tick } from 'svelte';
+	import { fly } from 'svelte/transition';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
 	let {
@@ -16,6 +17,7 @@
 		tr
 	} = $props();
 
+	const [duration, y, opacity] = [200, -50, 1];
 	let isCardView = $state(false);
 	let container;
 
@@ -64,9 +66,9 @@
 		{/if}
 		{#if data && data.length > 0}
 			<tbody>
-				{#each data as row, rowIdx}
+				{#each data as row, rowIdx (row.name ?? rowIdx)}
 					{#snippet _tr({ row, rowIdx })}
-						<tr>
+						<tr data-custom={row.name} transition:fly={{ duration, y, opacity }}>
 							{#each definition as def}
 								<td
 									class={def.class
