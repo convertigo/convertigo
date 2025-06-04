@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class MarketplaceView extends ViewPart {
@@ -152,6 +153,23 @@ public class MarketplaceView extends ViewPart {
 							mon.done();
 						}).schedule();
 					}
+				} else if ("get".equals(json.getString("type"))) {
+					var projectName = json.getString("project");
+					var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					
+					try {
+						var msg = new JSONObject();
+						json.put("type", "postGet");
+						json.put("project", projectName);
+						json.put("installed", project != null);
+						if (project != null) {
+							json.put("project", project.getName());
+							json.put("version", project.getVersion());
+						}
+						handler.postMessage(msg);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -161,6 +179,7 @@ public class MarketplaceView extends ViewPart {
 			try {
 				var json = new JSONObject();
 				json.put("type", "init");
+				json.put("version", ProductVersion.productVersion);
 				handler.postMessage(json);
 			} catch (Exception e1) {
 				e1.printStackTrace();
