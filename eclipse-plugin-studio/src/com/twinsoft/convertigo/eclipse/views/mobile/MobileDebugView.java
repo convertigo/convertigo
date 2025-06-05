@@ -31,17 +31,19 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
-	
+
 	private C8oBrowser c8oBrowser;
 	private String currentUrl = null;
-	
+
 	public MobileDebugView() {
-		
+
 	}
 
 	@Override
@@ -56,7 +58,71 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		c8oBrowser = new C8oBrowser(parent, SWT.MULTI | SWT.WRAP);
 		c8oBrowser.setLayout(new FillLayout());
 		c8oBrowser.setZoomEnabled(false);
-		
+		c8oBrowser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+			((FrameLoadFinished)event).frame().executeJavaScript("""
+window.setTimeout(function() {
+    // Recursively traverse shadow roots to find the screencast toggle button
+    function findToggleButton(root) {
+        if (!root) return null;
+
+        const devtoolsButton = root.querySelector('devtools-button[aria-label="Toggle screencast"]');
+        if (devtoolsButton && devtoolsButton.shadowRoot) {
+            const button = devtoolsButton.shadowRoot.querySelector('button[title="Toggle screencast"]');
+            if (button) return button;
+        }
+
+        // Try children recursively if not found directly
+        const allShadowHosts = root.querySelectorAll('*');
+        for (const el of allShadowHosts) {
+            if (el.shadowRoot) {
+                const result = findToggleButton(el.shadowRoot);
+                if (result) return result;
+            }
+        }
+
+        return null;
+    }
+
+    const button = findToggleButton(document.body);
+    if (button) {
+        if (button.getAttribute('aria-pressed') === 'true') {
+            button.click();
+            console.log("Screencast turned off");
+        } else {
+            console.log("Screencast already off");
+        }
+    } else {
+        console.warn("Screencast toggle button not found");
+    }
+
+    // Additional: click "Don't show again" infobar button
+    function clickDontShowAgain(root) {
+        if (!root) return;
+
+        const infobarButton = root.querySelector('devtools-button.infobar-button');
+        if (infobarButton && infobarButton.shadowRoot) {
+            const button = infobarButton.shadowRoot.querySelector('button.outlined');
+            if (button) {
+                button.click();
+                console.log("'Don't show again' clicked");
+                return;
+            }
+        }
+
+        // Traverse deeper if not directly found
+        const allShadowHosts = root.querySelectorAll('*');
+        for (const el of allShadowHosts) {
+            if (el.shadowRoot) {
+                clickDontShowAgain(el.shadowRoot);
+            }
+        }
+    }
+
+    clickDontShowAgain(document.body);
+}, 100);
+					""");
+		});
+
 		if (!onActivated(getSite().getPage().getActiveEditor())) {
 			parent.getDisplay().asyncExec(() -> {
 				c8oBrowser.setText("<html><head><style>html {color: $foreground$; background-color: $background$; font-family: sans-serif }</style></head>"
@@ -69,7 +135,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 						+ "</html>");
 			});
 		}
-		
+
 		getSite().getPage().addPartListener(this);
 	}
 
@@ -88,7 +154,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		}
 		return null;
 	}
-	
+
 	public boolean onActivated(IWorkbenchPart part) {
 		String url = getDebugUrl(part);
 		if (url != null) {
@@ -99,7 +165,10 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 					String u = url;
 					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(u + "/json"))) {
 						JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
-						u += json.getJSONObject(0).getString("devtoolsFrontendUrl");
+						var frontendurl = json.getJSONObject(0).getString("devtoolsFrontendUrl");
+						ConvertigoPlugin.logDebug("RAW debug frontend url: " + frontendurl);
+						u += frontendurl.replaceFirst(".*?/(inspector)", "/devtools/$1");
+						ConvertigoPlugin.logDebug("Fixed debug frontend url: " + u);
 					} catch (Exception e) {
 					}
 					c8oBrowser.loadURL(u);
@@ -109,7 +178,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void partActivated(IWorkbenchPartReference partRef) {
 		IWorkbenchPart part = partRef.getPart(false);
@@ -119,31 +188,31 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void partBroughtToTop(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void partClosed(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void partDeactivated(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void partHidden(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -154,7 +223,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void partInputChanged(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
