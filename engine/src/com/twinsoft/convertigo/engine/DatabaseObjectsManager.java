@@ -274,8 +274,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 							if (projectName.equals(DatabaseObjectsManager.getProjectName(pFile))) {
 								if (!checkOpenable || canOpenProject(projectName)) {
 									projectNames.add(projectName);
-								} else {
-									clearCache(projectName);
 								}
 							}
 						} catch (EngineException e) {
