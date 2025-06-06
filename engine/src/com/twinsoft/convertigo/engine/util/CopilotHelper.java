@@ -42,7 +42,7 @@ public class CopilotHelper {
             var bundles = (Object[]) bundleContext.getClass().getMethod("getBundles").invoke(bundleContext);
             for (var b : bundles) {
                 var symbolicName = b.getClass().getMethod("getSymbolicName").invoke(b);
-                if ("com.genuitec.copilot4eclipse".equals(symbolicName)) {
+                if ("com.microsoft.copilot.eclipse.core".equals(symbolicName) || "com.genuitec.copilot4eclipse".equals(symbolicName)) {
                 	found = true;
                 	break;
                 }
