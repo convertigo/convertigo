@@ -91,7 +91,7 @@
 				{
 					label: 'Perform GC',
 					icon: 'mdi:broom',
-					cls: 'button-tertiary',
+					cls: 'button-warning',
 					onclick: () => call('engine.PerformGC')
 				}
 			],
@@ -239,9 +239,9 @@
 	@reference "../../../app.css";
 
 	:global(.statusTable td:has(> .on)) {
-		@apply preset-filled-success-500;
+		@apply preset-filled-success-200-800;
 	}
 	:global(.statusTable td:has(> .off)) {
-		@apply preset-filled-error-500;
+		@apply preset-filled-error-200-800;
 	}
 </style>

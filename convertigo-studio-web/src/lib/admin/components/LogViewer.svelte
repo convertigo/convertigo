@@ -703,7 +703,7 @@
 				doAutoScroll();
 			}}
 		>
-			{autoScroll ? 'Enabled' : 'Disabled'} auto scroll
+			{autoScroll ? 'Enabled' : 'Disabled'} auto tail
 			<Ico icon="mdi:download-{autoScroll ? 'lock' : 'off'}-outline" />
 		</button>
 	</div>
