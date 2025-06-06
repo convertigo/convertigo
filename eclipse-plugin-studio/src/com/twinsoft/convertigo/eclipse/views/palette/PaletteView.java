@@ -267,8 +267,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		this.parent = parent;
 		parent.setLayout(new GridLayout(1, true));
-		init();
-		//		ConvertigoPlugin.runAtStartup(() -> refresh(1));
+		ConvertigoPlugin.runAtStartup(() -> init());
 		getSite().getPage().addSelectionListener(this);
 		getSite().getPage().addPartListener(this);
 		isVisible = getSite().getPage().isPartVisible(this);
