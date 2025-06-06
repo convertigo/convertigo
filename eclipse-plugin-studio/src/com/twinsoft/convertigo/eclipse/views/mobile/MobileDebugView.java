@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -55,72 +58,17 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		var script = new String[]{""};
+		try (var is = getClass().getResourceAsStream("MobileDebugView.js")) {
+			script[0] = IOUtils.toString(is, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			ConvertigoPlugin.logError("(MobileDebugView) " + e.getClass() + ": " + e.getMessage());
+		}
 		c8oBrowser = new C8oBrowser(parent, SWT.MULTI | SWT.WRAP);
 		c8oBrowser.setLayout(new FillLayout());
 		c8oBrowser.setZoomEnabled(false);
 		c8oBrowser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
-			((FrameLoadFinished)event).frame().executeJavaScript("""
-window.setTimeout(function() {
-    // Recursively traverse shadow roots to find the screencast toggle button
-    function findToggleButton(root) {
-        if (!root) return null;
-
-        const devtoolsButton = root.querySelector('devtools-button[aria-label="Toggle screencast"]');
-        if (devtoolsButton && devtoolsButton.shadowRoot) {
-            const button = devtoolsButton.shadowRoot.querySelector('button[title="Toggle screencast"]');
-            if (button) return button;
-        }
-
-        // Try children recursively if not found directly
-        const allShadowHosts = root.querySelectorAll('*');
-        for (const el of allShadowHosts) {
-            if (el.shadowRoot) {
-                const result = findToggleButton(el.shadowRoot);
-                if (result) return result;
-            }
-        }
-
-        return null;
-    }
-
-    const button = findToggleButton(document.body);
-    if (button) {
-        if (button.getAttribute('aria-pressed') === 'true') {
-            button.click();
-            console.log("Screencast turned off");
-        } else {
-            console.log("Screencast already off");
-        }
-    } else {
-        console.warn("Screencast toggle button not found");
-    }
-
-    // Additional: click "Don't show again" infobar button
-    function clickDontShowAgain(root) {
-        if (!root) return;
-
-        const infobarButton = root.querySelector('devtools-button.infobar-button');
-        if (infobarButton && infobarButton.shadowRoot) {
-            const button = infobarButton.shadowRoot.querySelector('button.outlined');
-            if (button) {
-                button.click();
-                console.log("'Don't show again' clicked");
-                return;
-            }
-        }
-
-        // Traverse deeper if not directly found
-        const allShadowHosts = root.querySelectorAll('*');
-        for (const el of allShadowHosts) {
-            if (el.shadowRoot) {
-                clickDontShowAgain(el.shadowRoot);
-            }
-        }
-    }
-
-    clickDontShowAgain(document.body);
-}, 100);
-					""");
+			((FrameLoadFinished)event).frame().executeJavaScript(script[0]);
 		});
 
 		if (!onActivated(getSite().getPage().getActiveEditor())) {
