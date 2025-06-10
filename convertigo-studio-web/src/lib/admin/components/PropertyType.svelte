@@ -69,7 +69,7 @@
 				thumbInactive="bg-white"
 				thumbActive="bg-white"
 				controlActive="preset-filled-success-200-800"
-				controlInactive="preset-filled-error-200-800"
+				controlInactive="preset-filled-error-200-800 motif-error"
 				{checked}
 				onCheckedChange={(e) => (checked = e.checked)}>{label}</Switch
 			>

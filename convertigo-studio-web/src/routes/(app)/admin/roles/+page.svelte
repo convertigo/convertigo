@@ -89,8 +89,11 @@
 			class="mini-card text-xs {cls}"
 			class:preset-filled-success-100-900={hasView && hasConfig}
 			class:preset-filled-primary-100-900={hasView && !hasConfig}
+			class:motif-primary={hasView && !hasConfig}
 			class:preset-filled-warning-100-900={!hasView && hasConfig}
+			class:motif-warning={!hasView && hasConfig}
 			class:preset-filled-surface-800-200={!hasView && !hasConfig}
+			class:motif-surface={!hasView && !hasConfig}
 		>
 			{#if part}<Ico icon={part.icon} />{/if}
 			{formatRoleName(n)}
@@ -114,9 +117,12 @@
 		<div
 			class="mini-card text-xs {cls}"
 			class:preset-filled-warning-100-900={hasTp && !hasTpHidden}
+			class:motif-warning={hasTp && !hasTpHidden}
 			class:preset-filled-primary-100-900={hasTpHidden && !hasTpPrivate}
+			class:motif-primary={hasTpHidden && !hasTpPrivate}
 			class:preset-filled-success-100-900={hasTpPrivate}
 			class:preset-filled-surface-100-900={!hasTp}
+			class:motif-surface={!hasTp}
 		>
 			<Ico {icon} />{formatRoleName(role)}
 		</div>

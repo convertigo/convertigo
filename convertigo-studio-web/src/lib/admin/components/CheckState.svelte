@@ -21,7 +21,7 @@
 	thumbInactive="bg-white"
 	thumbActive="bg-white"
 	controlActive="preset-filled-success-200-800"
-	controlInactive="preset-filled-error-200-800"
+	controlInactive="preset-filled-error-200-800 motif-error"
 	checked={value == values[1]}
 	onCheckedChange={(e) => (value = e.checked ? values[1] : values[0])}
 >

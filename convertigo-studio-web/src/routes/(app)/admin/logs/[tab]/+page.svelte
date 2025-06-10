@@ -16,6 +16,8 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount, untrack } from 'svelte';
+	import { persisted } from 'svelte-persisted-store';
+	import { fromStore } from 'svelte/store';
 	import { slide } from 'svelte/transition';
 
 	onMount(() => {
@@ -52,6 +54,8 @@
 	});
 
 	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
+	let serverFilter = $state('');
+	let filters = $state({}); //fromStore(persisted('adminLogsFilters', {}, { syncTabs: false })).current;
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
@@ -89,6 +93,7 @@
 		Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
 		Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
 		Logs.realtime = tabSet == 'realtime';
+		Logs.filter = serverFilter;
 		await Logs.list(true);
 	}
 
@@ -149,6 +154,22 @@
 		if (confirmed) {
 			Configuration.updateConfigurations(toSave);
 		}
+	}
+
+	function copyFilters() {
+		let filterString = Object.entries(filters)
+			.filter(([_, array]) => array.length > 0)
+			.map(([name, array]) =>
+				array
+					.map(({ mode, value, not }) =>
+						mode == 'equals'
+							? `${name.toLowerCase()} ${not ? '!' : '='}= '${value}'`
+							: `${not ? '!' : ''}${name.toLowerCase()}.${mode}('${value}')`
+					)
+					.join(' or ')
+			)
+			.join(' and ');
+		serverFilter = filterString;
 	}
 
 	let hasChanges = $derived(
@@ -292,7 +313,28 @@
 											class="button-secondary h-7! w-fit!"
 										/>
 										{#if showFilters}
-											<PropertyType placeholder="Server filter…" />
+											<Button
+												size={4}
+												icon="mingcute:delete-line"
+												onmousedown={() => (serverFilter = '')}
+												class="button-error h-7! w-fit!"
+												label="Clear"
+											/>
+											<Button
+												size={4}
+												icon="material-symbols:sync-arrow-up-rounded"
+												onmousedown={copyFilters}
+												class="button-tertiary h-7! w-fit!"
+												label="Copy filters"
+											/>
+											<PropertyType
+												placeholder="Server filter…"
+												bind:value={serverFilter}
+												onkeyup={(e) => {
+													if (e?.key == 'Enter') refreshLogs();
+												}}
+												class="preset-filled-secondary-50-950 motif-secondary"
+											/>
 										{/if}
 										<Button
 											label="Search"
@@ -306,7 +348,7 @@
 							</div>
 						{/if}
 						<div class="-mx -mb h-full">
-							<LogViewer autoScroll={tabSet == 'realtime'} />
+							<LogViewer autoScroll={tabSet == 'realtime'} bind:filters />
 						</div>
 					</div>
 				{:else if tabSet == 'purge'}

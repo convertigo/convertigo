@@ -3,6 +3,7 @@ import { call, checkArray } from '$lib/utils/service';
 let logs = $state([]);
 let startDate = $state('');
 let endDate = $state('');
+let filter = $state('');
 let realtime = $state(false);
 let nbLines = $state(100);
 let moreResults = $state(false);
@@ -38,6 +39,7 @@ async function list(clear = false) {
 			moreResults,
 			startDate,
 			endDate,
+			filter,
 			realtime,
 			nbLines
 		});
@@ -71,6 +73,12 @@ export default {
 	},
 	set endDate(value) {
 		endDate = value;
+	},
+	get filter() {
+		return filter;
+	},
+	set filter(value) {
+		filter = value;
 	},
 	get realtime() {
 		return realtime;

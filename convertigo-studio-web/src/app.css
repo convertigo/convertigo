@@ -53,16 +53,51 @@
 	@apply btn flex items-center rounded-sm px-3 py-1 text-[13px] font-normal text-white;
 }
 
+@utility motif-primary {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+	@variant dark {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	}
+}
+
+@utility motif-secondary {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='black' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+	@variant dark {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='white' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	}
+}
+
+@utility motif-tertiary {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+	@variant dark {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	}
+}
+
+@utility motif-warning {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='black'/%3E%3C/svg%3E");
+	@variant dark {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='white'/%3E%3C/svg%3E");
+	}
+}
+
+@utility motif-error {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+	@variant dark {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	}
+}
+
 @utility button-primary {
-	@apply button preset-filled-primary-200-800;
+	@apply button preset-filled-primary-200-800 motif-primary;
 }
 
 @utility button-secondary {
-	@apply button preset-filled-secondary-200-800;
+	@apply button preset-filled-secondary-200-800 motif-secondary;
 }
 
 @utility button-tertiary {
-	@apply button preset-filled-tertiary-200-800;
+	@apply button preset-filled-tertiary-200-800 motif-tertiary;
 }
 
 @utility button-success {
@@ -70,11 +105,11 @@
 }
 
 @utility button-warning {
-	@apply button preset-filled-warning-200-800;
+	@apply button preset-filled-warning-200-800 motif-warning;
 }
 
 @utility button-error {
-	@apply button preset-filled-error-200-800;
+	@apply button preset-filled-error-200-800 motif-error;
 }
 
 @utility violet-button {
@@ -101,7 +136,7 @@
 @utility chip {
 	@apply button bg-gray-200 shadow-xs dark:bg-gray-700 dark:text-surface-200;
 
-	&:hover {
+	& :hover {
 		@apply bg-gray-300 dark:bg-gray-600;
 	}
 }

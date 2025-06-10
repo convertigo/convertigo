@@ -63,8 +63,8 @@
 		Message: { idx: 4 }
 	};
 
-	/** @type {{autoScroll?: boolean}} */
-	let { autoScroll = $bindable(false) } = $props();
+	/** @type {{autoScroll?: boolean, filters?: any}} */
+	let { autoScroll = $bindable(false), filters = $bindable({}) } = $props();
 	let extraLines = $state(1);
 	let isDragging = $state(false);
 	let virtualList = $state();
@@ -134,12 +134,11 @@
 			: logValue;
 	}
 
-	const filters = persisted('adminLogsFilters', {}, { syncTabs: false });
 	const showFilters = persisted('adminLogsShowFilters', false, { syncTabs: false });
 
 	const filtersFlat = $derived.by(() => {
 		const result = [];
-		Object.entries($filters).forEach(([category, array]) => {
+		Object.entries(filters).forEach(([category, array]) => {
 			array.forEach((filter, index) => {
 				result.push({
 					category,
@@ -164,20 +163,17 @@
 	}
 
 	function removeFilter(category, index) {
-		filters.update(($filters) => {
-			$filters[category].splice(index, 1);
-			if ($filters[category].length == 0) {
-				delete $filters[category];
-			}
-			return $filters;
-		});
+		filters[category].splice(index, 1);
+		if (filters[category].length == 0) {
+			delete filters[category];
+		}
 	}
 
 	const logs = $derived.by(() => {
-		return Object.entries($filters).length == 0
+		return Object.entries(filters).length == 0
 			? Logs.logs
 			: Logs.logs.filter((log, index) => {
-					return Object.entries($filters).every(([name, array]) => {
+					return Object.entries(filters).every(([name, array]) => {
 						return array.length == 0
 							? true
 							: array.some(({ mode, value, not }) => {
@@ -294,22 +290,19 @@
 	let modalFilterSubmit = (e) => {
 		e.preventDefault();
 		const { mode, category, value, not, ts } = modalFilterParams;
-		filters.update((f) => {
-			let array = checkArray(f[category]);
-			const val = {
-				mode: e.submitter.value,
-				value,
-				not,
-				ts
-			};
-			if (mode) {
-				array[array.findIndex((o) => o.ts == ts)] = val;
-			} else {
-				array.push(val);
-			}
-			f[category] = array;
-			return f;
-		});
+		let array = checkArray(filters[category]);
+		const val = {
+			mode: e.submitter.value,
+			value,
+			not,
+			ts
+		};
+		if (mode) {
+			array[array.findIndex((o) => o.ts == ts)] = val;
+		} else {
+			array.push(val);
+		}
+		filters[category] = array;
 		modalFilter.close();
 	};
 	const size = '4';
@@ -428,6 +421,7 @@
 						type="submit"
 						class="btn"
 						class:preset-filled-primary-100-900={mode != _mode}
+						class:motif-primary={mode != _mode}
 						class:preset-filled-success-100-900={mode == _mode}
 						value={_mode}
 					>
@@ -453,6 +447,7 @@
 								class="mini-card"
 								class:preset-filled-success-100-900={show}
 								class:preset-filled-warning-100-900={!show}
+								class:motif-warning={!show}
 								class:animate-pulse={name == pulsedCategory}
 							>
 								<span>{name}</span>
@@ -491,7 +486,9 @@
 				class={{
 					'mini-card': true,
 					'preset-filled-secondary-100-900': !$showFilters,
-					'preset-filled-warning-200-800': $showFilters
+					'preset-filled-warning-200-800': $showFilters,
+					'motif-secondary': !$showFilters,
+					'motif-warning': $showFilters
 				}}
 			>
 				<Button
@@ -539,7 +536,7 @@
 					{/snippet}
 				</Popover>
 			</div>
-			<div class="mini-card preset-filled-tertiary-100-900">
+			<div class="mini-card preset-filled-tertiary-100-900 motif-tertiary">
 				<span>Message</span>
 				<Button
 					{size}
@@ -568,7 +565,9 @@
 					<div
 						class="mini-card"
 						class:preset-filled-secondary-100-900={!not}
+						class:motif-secondary={!not}
 						class:preset-filled-error-100-900={not}
+						class:motif-error={not}
 					>
 						<span class="max-w-xs overflow-hidden"
 							>{category} {not ? 'not' : ''} {mode} {value}</span
@@ -698,6 +697,7 @@
 			class="mini-card"
 			class:preset-filled-success-100-900={autoScroll}
 			class:preset-filled-warning-100-900={!autoScroll}
+			class:motif-warning={!autoScroll}
 			onclick={() => {
 				autoScroll = !autoScroll;
 				doAutoScroll();
@@ -731,17 +731,16 @@
 		background-color: yellow;
 		box-shadow: 2px 2px 5px 0px yellow;
 	}
-
 	.FATAL {
-		@apply preset-filled-secondary-100-900;
+		@apply preset-filled-secondary-100-900 motif-secondary;
 	}
 
 	.ERROR {
-		@apply preset-filled-error-100-900;
+		@apply preset-filled-error-100-900 motif-error;
 	}
 
 	.WARN {
-		@apply preset-filled-warning-100-900;
+		@apply preset-filled-warning-100-900 motif-warning;
 	}
 
 	.INFO {
@@ -749,10 +748,10 @@
 	}
 
 	.DEBUG {
-		@apply preset-filled-primary-100-900;
+		@apply preset-filled-primary-100-900 motif-primary;
 	}
 
 	.TRACE {
-		@apply preset-filled-tertiary-100-900;
+		@apply preset-filled-tertiary-100-900 motif-tertiary;
 	}
 </style>
