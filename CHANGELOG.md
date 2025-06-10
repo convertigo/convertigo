@@ -1,5 +1,19 @@
 # Changelog
 
+## 8.3.7
+
+#### Improvements:
+
+- [#957](https://github.com/convertigo/convertigo/issues/957) [Studio] Mobile preview screencast is no longer shown for the Frontend debug
+
+#### Bug Fixes:
+
+- [#955](https://github.com/convertigo/convertigo/issues/955) [FullSync] Fixed, GetAttachment transaction now correctly downloads application/json content-type files as expected
+- [#956](https://github.com/convertigo/convertigo/issues/956) [Studio] Fixed, NGX Frontend debug now displays devtool debugger content instead of a blank content
+- [#958](https://github.com/convertigo/convertigo/issues/958) [Studio] Fixed, Palette is now correctly populated even if the Studio starts with the registration wizard
+
+---
+
 ## 8.3.6
 
 #### Improvements:
@@ -21,16 +35,16 @@
 
 #### Improvements:
 
-- * [#949](https://github.com/convertigo/convertigo/issues/949) [Studio] Add an AdminView with integrated admin instead of opening in the external browser
+- [#949](https://github.com/convertigo/convertigo/issues/949) [Studio] Add an AdminView with integrated admin instead of opening in the external browser
 
 #### Bug Fixes:
 
-- * [#688](https://github.com/convertigo/convertigo/issues/688) Deploy: advertisin prevents to select the server in the list on small screens
-- * [#946](https://github.com/convertigo/convertigo/issues/946) [HTTP Connector] Multipart filename not well encoded in Content-Disposition
-- * [#947](https://github.com/convertigo/convertigo/issues/947) [Engine] Ghost session can occur if parallel requestables initialize the same HTTP session
-- * [#950](https://github.com/convertigo/convertigo/issues/950) [Admin] Reference external fonts can slowdown administration loading if browser hasn't Internet access
-- * [#951](https://github.com/convertigo/convertigo/issues/951) [Admin] Log viewer can fail on Edge
-- * [#953](https://github.com/convertigo/convertigo/issues/953) [Admin] NPE error on Symbols page if a project cannot load (caused by a superior version for example)
+- [#688](https://github.com/convertigo/convertigo/issues/688) Deploy: advertisin prevents to select the server in the list on small screens
+- [#946](https://github.com/convertigo/convertigo/issues/946) [HTTP Connector] Multipart filename not well encoded in Content-Disposition
+- [#947](https://github.com/convertigo/convertigo/issues/947) [Engine] Ghost session can occur if parallel requestables initialize the same HTTP session
+- [#950](https://github.com/convertigo/convertigo/issues/950) [Admin] Reference external fonts can slowdown administration loading if browser hasn't Internet access
+- [#951](https://github.com/convertigo/convertigo/issues/951) [Admin] Log viewer can fail on Edge
+- [#953](https://github.com/convertigo/convertigo/issues/953) [Admin] NPE error on Symbols page if a project cannot load (caused by a superior version for example)
 
 ---
 
