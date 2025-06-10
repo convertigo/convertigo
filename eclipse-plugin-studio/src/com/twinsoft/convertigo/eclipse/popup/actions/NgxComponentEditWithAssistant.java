@@ -84,6 +84,9 @@ public class NgxComponentEditWithAssistant extends MyAbstractAction {
 						IWorkbenchPage activePage = getActivePage();
 						if (activePage != null) {
 							IViewPart viewPart =  activePage.findView(AssistantView.ID);
+							if (viewPart == null) {
+								viewPart = activePage.showView(AssistantView.ID);
+							}
 							if (viewPart != null) {
 								AssistantView assistantView = (AssistantView)viewPart;
 								assistantView.changeThread(threadId);
