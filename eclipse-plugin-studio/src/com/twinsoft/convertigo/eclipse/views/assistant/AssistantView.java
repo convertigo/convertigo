@@ -207,8 +207,15 @@ public class AssistantView extends ViewPart {
 	public void changeThread(String threadId) {
 		if (threadId != null && !threadId.isBlank()) {
 			String burl = browser.getURL();
-			int idx = burl.indexOf("thread_");
-			String url = (idx != -1 ? burl.substring(0, idx-1): burl) + "/"+ threadId;
+			int idx = burl.indexOf("/DisplayObjects/mobile");
+			if (idx != -1) {
+				burl = burl.substring(0, idx) + "/DisplayObjects/mobile";
+			}
+			int idy = burl.indexOf("/path-to-xfirst");
+			if (idy != -1) {
+				burl = burl.substring(0, idy);
+			}
+			String url = burl + "/path-to-xfirst/" + threadId;
 			Engine.logStudio.info("[Assistant] url: "+ url);
 			browser.setUrl(url);
 		}
