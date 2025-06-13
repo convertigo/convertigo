@@ -72,7 +72,7 @@ public class MakeSplash {
 				RenderingHints.VALUE_RENDER_QUALITY);
 
 		g.drawImage(background, 0, 0, null);
-		g.drawImage(convertigo, 45, 56, null);
+		g.drawImage(convertigo, 25, 30, null);
 		g.drawImage(logo, 347, 240, 132, 48, null);
 		
 		try (FileInputStream fis = new FileInputStream("Interstate Light.ttf")) {
