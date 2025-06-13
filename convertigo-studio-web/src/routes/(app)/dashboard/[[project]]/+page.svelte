@@ -1,10 +1,12 @@
 <script>
-	import { resolveRoute } from '$app/paths';
+	import { assets, resolveRoute } from '$app/paths';
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
+	import LightSvelte from '$lib/common/Light.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { getThumbnailUrl, getUrl } from '$lib/utils/service';
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
@@ -39,6 +41,34 @@
 		})
 	);
 
+	function stringToColor(str, isDark) {
+		let h = 2166136261; // FNV-1a 32bit offset basis
+		for (let i = 0; i < str.length; i++) {
+			h ^= str.charCodeAt(i);
+			h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+		}
+		let hue = (h >>> 0) % 360;
+		let sat = 40 + ((h >> 10) % 30);
+
+		return hslToHex(hue, sat, isDark ? 30 : 70);
+	}
+
+	function hslToHex(h, s, l) {
+		s /= 100;
+		l /= 100;
+
+		const k = (n) => (n + h / 30) % 12;
+		const a = s * Math.min(l, 1 - l);
+		const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+
+		const toHex = (x) => {
+			const hex = Math.round(255 * x).toString(16);
+			return hex.length === 1 ? '0' + hex : hex;
+		};
+
+		return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+	}
+
 	onDestroy(Projects.stop);
 </script>
 
@@ -59,9 +89,9 @@
 			{#each filters as { icon, count }, i}
 				<span class="layout-x-none gap-[1px]!">
 					<button
-						class="btn rounded-none preset-filled p-1"
-						class:!bg-success-100={count != 1}
-						class:!bg-success-600={count == 1}
+						class="btn rounded-none p-1"
+						class:preset-filled-success-100-900={count != 1}
+						class:preset-filled-success-600-400={count == 1}
 						onclick={() => {
 							filters[i].count = count == 1 ? 0 : 1;
 						}}
@@ -69,9 +99,9 @@
 						<Ico {icon} size="nav" />
 					</button>
 					<button
-						class="btn rounded-none preset-filled p-1"
-						class:!bg-warning-100={count != 2}
-						class:!bg-warning-600={count == 2}
+						class="btn rounded-none p-1"
+						class:preset-filled-warning-100-900={count != 2}
+						class:preset-filled-warning-600-400={count == 2}
 						onclick={() => {
 							filters[i].count = count == 2 ? 0 : 2;
 						}}
@@ -101,9 +131,17 @@
 					>
 				</div>
 				<div class="relative">
-					<div class="img-hover-zoom flex justify-center dark:opacity-70">
+					<div
+						class="img-hover-zoom flex justify-center dark:opacity-70"
+						style="background-color: {stringToColor(name ?? `_${i}`, LightSvelte.dark)}"
+					>
 						<img
-							src="https://www.impactplus.com/hubfs/Fensea.jpg"
+							src={getThumbnailUrl(name)}
+							onerror={(/** @type {any} */ e) => {
+								e.target.onerror = null;
+								e.target.src = getUrl('/images/new/picto_version_convertigo.png');
+								e.target.src = assets + '/logo.svg';
+							}}
 							class="object-cover"
 							alt="project"
 						/>
@@ -112,7 +150,7 @@
 						<div class="flex grow">
 							<a
 								href={resolveRoute('/(app)/dashboard/[[project]]/backend', params)}
-								class="h-fit rounded-br-lg preset-filled-warning-300-700 p-3 hover:preset-filled-warning-500"
+								class="h-fit rounded-br-lg preset-filled-warning-100-900 p-3 hover:preset-filled-warning-300-700"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
 							</a>
@@ -121,7 +159,7 @@
 							<div class="flex grow justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
-									class="h-fit rounded-bl-lg preset-filled-success-300-700 p-3 hover:preset-filled-success-500"
+									class="h-fit rounded-bl-lg preset-filled-success-100-900 p-3 hover:preset-filled-success-300-700"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
 								</a>
@@ -136,9 +174,9 @@
 										`/(app)/dashboard/${rootProject == project ? '' : '[[project]]'}`,
 										params
 									)}
-									class="h-fit rounded-tr-lg p-3 hover:preset-filled-secondary-500"
-									class:preset-filled-secondary-300-700={rootProject != project}
-									class:preset-filled-secondary-500={rootProject == project}
+									class="h-fit rounded-tr-lg p-3 hover:preset-filled-secondary-300-700"
+									class:preset-filled-secondary-100-900={rootProject != project}
+									class:preset-filled-secondary-400-600={rootProject == project}
 								>
 									<Ico icon="ph:plugs-connected-thin" size="nav" />
 								</a>
@@ -148,7 +186,7 @@
 							<div class="flex grow justify-end">
 								<a
 									href={resolveRoute('/(app)/dashboard/[[project]]/platforms', params)}
-									class="h-fit rounded-tl-lg preset-filled-primary-300-700 p-3 hover:preset-filled-primary-500"
+									class="h-fit rounded-tl-lg preset-filled-primary-100-900 p-3 hover:preset-filled-primary-300-700"
 								>
 									<Ico icon="ph:package-thin" size="nav" />
 								</a>

@@ -43,7 +43,7 @@
 			/>
 
 			{#if error}
-				<p class="rounded-sm preset-filled-error p-low">{error}</p>
+				<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
 			{/if}
 
 			<Button label="Enter" class="button-primary" type="submit" />

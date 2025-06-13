@@ -25,17 +25,17 @@
 
 	const accessibilities = $state({
 		Private: {
-			bg: 'bg-success-200! dark:bg-success-600!',
+			bg: 'preset-filled-success-100-900',
 			icon: 'mdi:lock',
 			enabled: true
 		},
 		Hidden: {
-			bg: 'bg-warning-200! dark:bg-warning-600!',
+			bg: 'preset-filled-warning-100-900',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
 		Public: {
-			bg: 'bg-error-200! dark:bg-error-600!',
+			bg: 'preset-filled-error-100-900',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}

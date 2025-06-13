@@ -286,6 +286,10 @@ export function getFrontendUrl(projectName) {
 	return getUrl(`/projects/${projectName}/DisplayObjects/mobile/index.html`);
 }
 
+export function getThumbnailUrl(projectName) {
+	return getUrl(`/projects/${projectName}/thumbnail.png`);
+}
+
 // $lib/utils/xmlConverter.js
 
 export function toXml(data) {

@@ -1,4 +1,5 @@
 <script>
+	import { browser } from '$app/environment';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
@@ -55,9 +56,11 @@
 			PagesRail.extras = [];
 		}
 	});
-	onDestroy(() => {
-		TestPlatform(page.params?.project).stop();
-	});
+	if (browser) {
+		onDestroy(() => {
+			TestPlatform(page.params?.project).stop();
+		});
+	}
 </script>
 
 {@render children?.()}

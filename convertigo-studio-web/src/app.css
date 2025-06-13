@@ -9,31 +9,7 @@
 @import './convertigo.utilities.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-
-/* theme: {
-  extend: {
-    colors: {
-      'pale-violet': '#d6b5d6',
-      'pale-blue': '#b5c7d6',
-      'pale-green': '#b5d6c7',
-      'pale-pink': '#d6b5b5'
-    },
-    padding: {
-      sm: '0.5rem',
-      md: '1rem',
-      lg: '2rem',
-      xl: '4rem'
-    }
-  }
-}, */
+@custom-variant motif (&:where(.motif, .motif *));
 
 @layer base {
 	*,
@@ -54,37 +30,47 @@
 }
 
 @utility motif-primary {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
-	@variant dark {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	@variant motif {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+		@variant dark {
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+		}
 	}
 }
 
 @utility motif-secondary {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='black' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
-	@variant dark {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='white' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	@variant motif {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='black' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+		@variant dark {
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='0' y1='0' x2='20' y2='20' stroke='white' stroke-width='2' /%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+		}
 	}
 }
 
 @utility motif-tertiary {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
-	@variant dark {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	@variant motif {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='black' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+		@variant dark {
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Cline x1='7.5' y1='0' x2='7.5' y2='15' stroke='white' stroke-width='2' /%3E%3Cline x1='0' y1='7.5' x2='15' y2='7.5' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+		}
 	}
 }
 
 @utility motif-warning {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='black'/%3E%3C/svg%3E");
-	@variant dark {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='white'/%3E%3C/svg%3E");
+	@variant motif {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='black'/%3E%3C/svg%3E");
+		@variant dark {
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' opacity='0.075'%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='white'/%3E%3C/svg%3E");
+		}
 	}
 }
 
 @utility motif-error {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
-	@variant dark {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+	@variant motif {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='black' stroke-width='2' /%3E%3C/svg%3E");
+		@variant dark {
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' opacity='0.075'%3E%3Cline x1='20' y1='0' x2='0' y2='20' stroke='white' stroke-width='2' /%3E%3C/svg%3E");
+		}
 	}
 }
 
@@ -110,23 +96,6 @@
 
 @utility button-error {
 	@apply button preset-filled-error-200-800 motif-error;
-}
-
-@utility violet-button {
-	/* @apply button bg-pale-violet bg-opacity-50; */
-	@apply button bg-black/50;
-}
-
-@utility btnStyle {
-	@apply btn flex items-center gap-3 rounded-sm px-3 py-1 text-[13px] font-normal;
-}
-
-@utility input-button {
-	@apply flex items-center justify-center rounded-sm bg-primary-500 px-3 py-1 text-center text-[13px] font-normal text-white dark:bg-primary-500;
-}
-
-@utility search-input {
-	@apply flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-surface-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-hidden dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:placeholder-gray-200;
 }
 
 @utility mini-card {
@@ -161,32 +130,12 @@
 	@apply rounded-sm border-none font-normal placeholder:text-[12px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
 }
 
-@utility input-common-dash {
-	@apply rounded-sm border-[0.5px] border-surface-200 font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:border-surface-600 dark:bg-surface-800 dark:placeholder:text-surface-500;
-}
-
 @utility input-text {
 	@apply mt-1 pl-4 text-[16px] text-surface-800-200;
 }
 
-@utility checkbox-common {
-	@apply cursor-pointer;
-}
-
 @utility border-common {
 	@apply border-b-[1px] border-surface-50 dark:border-surface-600;
-}
-
-@utility input-name {
-	@apply mb-3 text-[14px] font-light;
-}
-
-@utility gray-button {
-	@apply button bg-surface-300-700 text-surface-900-100;
-}
-
-@utility confirm-button {
-	@apply bg-primary-400-600;
 }
 
 @utility select {
@@ -196,27 +145,12 @@
 	}
 }
 
-@utility activeSlideToggle {
-	@apply min-w-12 bg-success-400 dark:bg-success-600;
-}
-
-@utility unActiveSlideToggle {
-	@apply min-w-12 bg-error-400 dark:bg-error-600;
-}
-
 @utility border-color {
 	@apply border-surface-300-700;
 }
 
-@utility preset-filled-error {
-	@apply preset-filled-error-500;
-}
-
 @utility layout-cols-2 {
 	@apply grid grid-cols-1 justify-items-stretch gap-2 lg:grid-cols-2;
-}
-
-@layer utilities {
 }
 
 @layer utilities {

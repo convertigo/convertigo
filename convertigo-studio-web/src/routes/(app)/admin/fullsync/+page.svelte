@@ -3,7 +3,6 @@
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import Light from '$lib/common/Light.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { blur } from 'svelte/transition';
 
 	let iframe = $state();
 

@@ -1,5 +1,6 @@
 <script>
 	import { Modal } from '@skeletonlabs/skeleton-svelte';
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
 	import Topbar from '$lib/admin/components/Topbar.svelte';
@@ -36,7 +37,7 @@
 	{/snippet}
 </Modal>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex min-h-screen flex-col" class:blur-xs={!browser}>
 	<Topbar bind:showLeft bind:showDrawer />
 
 	<div class="layout-y-stretch grow gap-0! md:layout-x-stretch">
