@@ -107,8 +107,10 @@
 	import SolarMaskHapplyLineDuotone from '~icons/solar/mask-happly-line-duotone?raw';
 	import UimLayerGroup from '~icons/uim/layer-group?raw';
 	import VaadinKeyO from '~icons/vaadin/key-o?raw';
+	import ConvertigoLogo from './icons/logo.svg?raw';
 
 	export const ico = {
+		'convertigo:logo': ConvertigoLogo,
 		'arcticons:doc-scanner': ArcticonsDocScanner,
 		'bytesize:export': BytesizeExport,
 		'bytesize:import': BytesizeImport,
@@ -267,6 +269,8 @@
 	// 		return acc;
 	// 	}, {});
 	// }
+	// console.log('ConvertigoLogo', ConvertigoLogo);
+	// console.log('ArcticonsDocScanner', ArcticonsDocScanner);
 	let html = $derived(icon.includes(':') ? ico[icon].match(/>(.*)</)?.[1] : undefined);
 </script>
 

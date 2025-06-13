@@ -33,7 +33,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.e4.ui.css.core.engine.CSSEngine;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.events.MouseEvent;
@@ -108,13 +107,16 @@ public class SwtUtils {
 	}
 
 	public static void applyStyle(Control control, String style) {
-		CSSEngine engine = CompositeElement.getEngine(control);
-		try {
-			String id = "c8o-style-" + control.hashCode();
-			engine.parseStyleSheet(new StringReader("#" + id + " " + style));
-			control.setData("org.eclipse.e4.ui.css.id", id);
-		} catch (Throwable t) {
-		}
+	    try {
+	    	var engine = CompositeElement.getEngine(control);
+	        var id = "c8o-style-" + control.hashCode();
+	        control.setData("org.eclipse.e4.ui.css.id", id);
+	        var cssRule = "#" + id + " { " + style + " }";
+	        engine.parseStyleSheet(new StringReader(cssRule));
+	        engine.applyStyles(control, true);
+	    } catch (Throwable t) {
+	        t.printStackTrace();
+	    }
 	}
 
 	public static ImageData convertToSWT(BufferedImage bufferedImage) {
@@ -202,7 +204,8 @@ public class SwtUtils {
 	
 	public static void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
 		try {
-			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon(iconPath));
+			var image = ConvertigoPlugin.getDefault().getStudioIcon(iconPath);
+			toolItem.setImage(image);
 		} catch (IOException e1) {
 			toolItem.setText(text);
 		}

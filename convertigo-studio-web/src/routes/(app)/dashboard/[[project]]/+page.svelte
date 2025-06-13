@@ -133,14 +133,20 @@
 				<div class="relative">
 					<div
 						class="img-hover-zoom flex justify-center dark:opacity-70"
-						style="background-color: {stringToColor(name ?? `_${i}`, LightSvelte.dark)}"
+						style="background-color: {stringToColor(
+							name ?? `_${i}`,
+							LightSvelte.dark
+						)}; color: {stringToColor(name ?? `_${i}`, !LightSvelte.dark)}"
 					>
+						<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
 						<img
 							src={getThumbnailUrl(name)}
-							onerror={(/** @type {any} */ e) => {
-								e.target.onerror = null;
-								e.target.src = getUrl('/images/new/picto_version_convertigo.png');
-								e.target.src = assets + '/logo.svg';
+							onload={(/** @type {any} */ e) => {
+								if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
+									e.target.remove();
+								} else {
+									e.target.previousElementSibling.remove();
+								}
 							}}
 							class="object-cover"
 							alt="project"
@@ -223,6 +229,15 @@
 	}
 
 	.img-hover-zoom:hover img {
+		transform: scale(1.1);
+	}
+
+	:global(.img-hover-zoom svg) {
+		transform-origin: 50% 50%;
+		transition: transform 0.5s;
+	}
+
+	:global(.img-hover-zoom:hover svg) {
 		transform: scale(1.1);
 	}
 </style>

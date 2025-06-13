@@ -287,7 +287,7 @@ export function getFrontendUrl(projectName) {
 }
 
 export function getThumbnailUrl(projectName) {
-	return getUrl(`/projects/${projectName}/thumbnail.png`);
+	return `${getUrl()}projects.Thumbnail?projectName=${projectName}`;
 }
 
 // $lib/utils/xmlConverter.js

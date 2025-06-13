@@ -23,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.beans.BeanInfo;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
@@ -31,6 +33,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +53,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -66,8 +71,10 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -77,10 +84,12 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -104,7 +113,9 @@ import com.teamdev.jxbrowser.dom.Node;
 import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
+import com.teamdev.jxbrowser.view.swt.graphics.BitmapImage;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -252,7 +263,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				e.printStackTrace();
 			}
 		}
-		
+
 		@JsAccessible
 		public void onEditorEvent(String s) {
 			Engine.logStudio.info("onEditorEvent: " + s);
@@ -327,6 +338,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private File ionicDir;
 	private File nodeModules;
 	private File nodeDir;
+	
+	private boolean hasAutoThumbnail = false;
 
 	public ApplicationComponentEditor() {
 		try {
@@ -374,11 +387,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (c8oBrowser != null) {
 			c8oBrowser.dispose();
 		}
-		
+
 		if (devicesMenu != null) {
 			devicesMenu.dispose();
 		}
-		
+
 		for (Process p: processes) {
 			p.destroyForcibly();
 			p.destroy();
@@ -549,6 +562,32 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
 			tell.grant();
+		});
+		
+		browser.navigation().on(FrameLoadFinished.class, event -> {
+			var frame = event.frame();
+			var url = frame.browser().url();
+			if (baseUrl != null && url.startsWith(baseUrl)) {
+				Engine.execute(() -> {
+					ConvertigoPlugin.asyncExec(() -> {
+						var prjFile = project.getDirFile();
+						var thumbnail = new File(prjFile, "thumbnail.png");
+						var thumbnailAuto = new File(prjFile, "thumbnail.auto.png");
+						if (!thumbnail.exists() && (!hasAutoThumbnail || !thumbnailAuto.exists())) {
+							var capture = takeCapture();
+							try {
+								var saver = new ImageLoader();
+				                saver.data = new ImageData[]{capture};
+								saver.save(thumbnailAuto.getAbsolutePath(), SWT.IMAGE_PNG);
+								ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+								hasAutoThumbnail = true;
+							} catch (Exception e) {
+								Engine.logStudio.error("Failed to save thumbnail image", e);
+							}
+						}
+					});
+				}, 1000);
+			}
 		});
 	}
 
@@ -811,7 +850,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.PUSH);
 		var refreshBtn = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.gif", "Refresh", "Refresh");
@@ -832,7 +871,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		
+
 		item = new ToolItem(toolbar, SWT.CHECK);
 		editStyle = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/edit_16x16.png", "Style editor", "Style editor");
@@ -999,6 +1038,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
+
+		item = new ToolItem(toolbar, SWT.PUSH);
+		SwtUtils.setToolItemIcon(item, "icons/studio/capture_16x16.png", "Capture as thumbnail", "Capture as thumbnail");
+		item.addSelectionListener((SelectionListener) e -> {
+			createThumbnail();
+		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		SwtUtils.setToolItemIcon(item, "icons/studio/debug.gif", "Show debug", "Show debug");
@@ -1293,7 +1338,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				toast("No dataset selected !");
 			}
 		});
-		
+
 		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
 		SwtUtils.setToolItemIcon(item, "icons/studio/grid_color_16x16.png", "Show", "Show all grids or current selected");
 		item.addSelectionListener((SelectionListener) e -> {
@@ -1303,6 +1348,217 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		for (ToolItem ti: toolbar.getItems()) {
 			ti.setData("style", "background-color: unset");
+		}
+	}
+
+	private void createThumbnail() {
+	    var newImageData = takeCapture();
+	    var display = c8oBrowser.getDisplay();
+	    var changed = new boolean[] { false };
+
+	    var shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+	    shell.addDisposeListener(e -> {
+			try {
+				if (changed[0]) {
+					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+				}
+			} catch (Exception ex) {
+				Engine.logStudio.debug("(ApplicationComponentEditor) refreshLocal of " + project.getName() + " failed", ex);
+			}
+	    });
+	    shell.setText("Capture Manager");
+	    shell.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
+	    
+	    var text = new Text(shell, SWT.READ_ONLY | SWT.WRAP);
+	    text.setText("You can save the current view as a thumbnail (for the dashboard and the marketplace) or a screenshot (for the marketplace detail).");
+	    
+	    var mainArea = new Composite(shell, SWT.NONE);
+	    mainArea.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	    mainArea.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).margins(2, 2).create());
+
+	    var newImage = new Image(display, newImageData);
+	    var newLabel = new Label(mainArea, SWT.BORDER);
+	    newLabel.setImage(newImage);
+	    newLabel.addDisposeListener(evt -> newImage.dispose());
+	    newLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
+
+	    var scroll = new ScrolledComposite(mainArea, SWT.H_SCROLL | SWT.V_SCROLL);
+	    scroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	    scroll.setExpandHorizontal(true);
+	    scroll.setExpandVertical(true);
+
+	    var container = new Composite(scroll, SWT.NONE);
+	    container.setLayout(GridLayoutFactory.fillDefaults().numColumns(4).margins(2, 2).equalWidth(true).create());
+
+	    var entries = new String[][]{
+	        {"thumbnail", "thumbnail.png"},
+	        {"screen 1", "marketplace/screen1.png"},
+	        {"screen 2", "marketplace/screen2.png"},
+	        {"screen 3", "marketplace/screen3.png"}
+	    };
+
+	    var imageLabels = new HashMap<String, Label>();
+
+	    for (var entry : entries) {
+	        var labelName = entry[0];
+	        var filePath = entry[1];
+	        var file = new File(project.getDirFile(), filePath);
+	        var fileAuto = new File(project.getDirFile(), "thumbnail.auto.png");
+	        var fileToLoad = labelName.equals("thumbnail") && !file.exists() ? fileAuto : file;
+	        
+	        var slot = new Composite(container, SWT.BORDER);
+	        slot.setLayoutData(new GridData(200, Math.max(300, newImageData.height)));
+	        slot.setLayout(GridLayoutFactory.fillDefaults().create());
+
+	        var imageLabel = new Label(slot, SWT.BORDER);
+	        imageLabel.setLayoutData(GridDataFactory.fillDefaults().hint(200, 200).create());
+	        imageLabels.put(filePath, imageLabel);
+
+	        loadImageIntoLabel(display, fileToLoad, imageLabel);
+
+	        var saveButton = new Button(slot, SWT.PUSH);
+	        saveButton.setText("Save as " + labelName);
+	        saveButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+	        saveButton.addListener(SWT.Selection, ev -> {
+	            try {
+	                file.getParentFile().mkdirs();
+	                var saver = new ImageLoader();
+	                saver.data = new ImageData[]{newImageData};
+	                saver.save(file.getAbsolutePath(), SWT.IMAGE_PNG);
+	                if (labelName.equals("thumbnail") && fileAuto.exists()) {
+	                    fileAuto.delete();
+	                    hasAutoThumbnail = false;
+	                }
+	                changed[0] = true;
+	                loadImageIntoLabel(display, file, imageLabel);
+	            } catch (Exception ex) {
+	                ex.printStackTrace();
+	            }
+	        });
+
+	        var deleteButton = new Button(slot, SWT.PUSH);
+	        deleteButton.setText("Delete");
+	        deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+	        deleteButton.addListener(SWT.Selection, ev -> {
+	            if (fileToLoad.exists()) {
+	            	fileToLoad.delete();
+	                changed[0] = true;
+	                loadImageIntoLabel(display, fileToLoad, imageLabel);
+	            }
+	        });
+	    }
+
+	    scroll.setContent(container);
+	    container.pack();
+	    scroll.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+	    var close = new Button(shell, SWT.PUSH);
+	    close.setText("Close");
+	    close.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+	    close.addListener(SWT.Selection, ev -> shell.close());
+
+	    shell.pack();
+
+	    var bounds = c8oBrowser.getShell().getMonitor().getBounds();
+	    var shellBounds = shell.getBounds();
+	    var x = bounds.x + (bounds.width - shellBounds.width) / 2;
+	    var y = bounds.y + (bounds.height - shellBounds.height) / 2;
+	    shell.setLocation(x, y);
+
+	    shell.open();
+	}
+	
+	private void loadImageIntoLabel(Display display, File file, Label label) {
+	    var oldImage = label.getImage();
+	    if (oldImage != null && !oldImage.isDisposed()) {
+	        oldImage.dispose();
+	    }
+	    label.setText("");
+
+	    if (file.exists()) {
+	        var loader = new ImageLoader();
+	        try (var input = new FileInputStream(file)) {
+	            loader.load(input);
+	            var imageData = loader.data[0];
+
+	            var maxSize = 200;
+	            var width = imageData.width;
+	            var height = imageData.height;
+	            var scaleFactor = 1.0;
+
+	            if (width > height) {
+	                if (width > maxSize) scaleFactor = (double) maxSize / width;
+	            } else {
+	                if (height > maxSize) scaleFactor = (double) maxSize / height;
+	            }
+
+	            var scaledWidth = Math.max(1, (int) (width * scaleFactor));
+	            var scaledHeight = Math.max(1, (int) (height * scaleFactor));
+
+	            var scaledImage = new Image(display, imageData.scaledTo(scaledWidth, scaledHeight));
+	            label.setImage(scaledImage);
+	            label.setAlignment(SWT.CENTER);
+	        } catch (IOException ex) {
+	            ex.printStackTrace();
+	            label.setImage(null);
+	        }
+	    } else {
+	        label.setImage(null);
+	        label.setText("Empty");
+	        label.setAlignment(SWT.CENTER);
+	    }
+	}
+	
+	private ImageData takeCapture() {
+		var bitmap = c8oBrowser.getBrowser().bitmap();
+		var image = BitmapImage.toToolkit(c8oBrowser.getDisplay(), bitmap);
+		try {
+			var sourceData = image.getImageData();
+
+			var maxSize = 300;
+			var minSize = 50;
+			var srcWidth = sourceData.width;
+			var srcHeight = sourceData.height;
+			var scaleFactor = 1.0;
+
+			if (srcWidth > 10000 || srcHeight > 10000) {
+				srcWidth = Math.min(srcWidth, 10000);
+				srcHeight = Math.min(srcHeight, 10000);
+				sourceData = sourceData.scaledTo(srcWidth, srcHeight);
+			}
+
+			if (srcWidth >= srcHeight) {
+				if (srcWidth > maxSize) {
+					scaleFactor = (double) maxSize / srcWidth;
+				} else if (srcWidth < minSize) {
+					scaleFactor = (double) minSize / srcWidth;
+				}
+			} else {
+				if (srcHeight > maxSize) {
+					scaleFactor = (double) maxSize / srcHeight;
+				} else if (srcHeight < minSize) {
+					scaleFactor = (double) minSize / srcHeight;
+				}
+			}
+
+			var scaledWidth = Math.max(1, (int) (srcWidth * scaleFactor));
+			var scaledHeight = Math.max(1, (int) (srcHeight * scaleFactor));
+
+			var scaledImage = new Image(c8oBrowser.getDisplay(), sourceData.scaledTo(scaledWidth, scaledHeight));
+			var smootherImage = new Image(c8oBrowser.getDisplay(), scaledWidth, scaledHeight);
+			var gc = new GC(smootherImage);
+			gc.setAntialias(SWT.ON);
+			gc.setInterpolation(SWT.HIGH);
+			gc.drawImage(scaledImage, 0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight);
+			gc.dispose();
+			var scaledData = smootherImage.getImageData();
+			scaledImage.dispose();
+			smootherImage.dispose();
+
+			return scaledData;
+
+		} finally {
+			image.dispose();
 		}
 	}
 
@@ -1355,7 +1611,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 	}
-	
+
 	private void applySelectedDevice() {
 		if (editStyle.getData("deviceWidth") == null) {
 			return;
@@ -1374,7 +1630,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		width = zoomFactor.swt(width);
 		height = zoomFactor.swt(height);
-		
+
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
@@ -1492,7 +1748,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		// Launch build
 		Engine.execute(() -> {
 			initLoader();
-			
+
 			ionicDir = new File(project.getDirPath(), "_private/ionic");
 			nodeModules = new File(ionicDir, "node_modules");
 
@@ -1563,7 +1819,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			build(path, buildCount, mb);
 		});
 	}
-	
+
 	public int compareToTplVersion(String version, MobileBuilder mb) {
 		int result = -1;
 		if (version != null) {
@@ -1632,11 +1888,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
-			
+
 			String angular_json = FileUtils.readFileToString(new File(ionicDir, "angular.json"), "UTF-8");
 			angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*", "$1");
 			FileUtils.write(new File(ionicDir, "angular.json"), angular_json, "UTF-8");
-			
+
 			Process p = pb.start();
 			processes.add(p);
 
@@ -1728,7 +1984,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				}
 			}
-			
+
 
 			if (buildCount == this.buildCount) {
 				appendOutput("\\o/");
@@ -1869,7 +2125,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 	}
-	
+
 	private void highlightPriority(long priority) throws Exception {
 		var databaseObject = findDatabaseObject(priority);
 		if (databaseObject == null) {
@@ -1889,7 +2145,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 		}
 	}
-	
+
 	public void highlightComponent(MobileComponent mobileComponent, boolean selectPage) {
 		C8oBrowser.run(() -> {
 			if (selectPage && mobileComponent instanceof UIComponent) {
@@ -1929,7 +2185,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			c8oBrowser.executeJavaScriptAndReturnValue("_c8o_highlight_class('class" + mc.priority + "');");
 		});
 	}
-	
+
 	private DatabaseObject findDatabaseObject(long priority) throws Exception {
 		try {
 			var alreadyWalked =  new HashSet<DatabaseObject>();
@@ -2009,8 +2265,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				if (Engine.isWindows()) {
 					String prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
 					var process = new ProcessBuilder("powershell", "-Command",
-						"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\DisplayObjects\\*' " + prod + " } | ForEach-Object { $_.Terminate() }"
-					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
+							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\DisplayObjects\\*' " + prod + " } | ForEach-Object { $_.Terminate() }"
+							).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
 					code = process.waitFor();
 				} else {
 					String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
@@ -2089,7 +2345,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 				List<String> cmd = pb.command();
 				cmd.add("--");
-				
+
 				if(applicationEditorInput.application.compareToTplVersion("8.4.0.3") < 0) {
 					// #183 add useless option to help terminateNode method to find the current path
 					cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
@@ -2098,7 +2354,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					// #183 add useless option to help terminateNode method to find the current path
 					cmd.add("--external-dependencies=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 				}
-				
+
 				// #393 add base href for project's web app
 				cmd.add("--base-href="+ appBaseHref);
 
@@ -2189,7 +2445,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		return ok[0];
 	}
-	
+
 	private void disableEdition() {
 		editStyle.getDisplay().syncExec(() -> {
 			if (editStyle.getSelection()) {
