@@ -85,7 +85,7 @@ public class AssistantView extends ViewPart {
 		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
-		//url = "http://localhost:49906/path-to-xfirst";
+		//url = "http://localhost:49678/path-to-xfirst";
 		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
@@ -155,7 +155,7 @@ public class AssistantView extends ViewPart {
 									for (Object ob: clipboard.fromXml(sXml)) {
 										if (ob instanceof UISharedComponent) {
 											UISharedComponent uisc = (UISharedComponent)ob;
-											if (found.getComment().equals(uisc.getComment())) {
+											if (uisc.getComment().endsWith(threadid)) {
 												newScriptContent = uisc.getScriptContent();
 												found.setScriptContent(newScriptContent);
 												for (UIComponent uic: found.getUIComponentList()) {
