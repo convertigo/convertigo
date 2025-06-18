@@ -63,9 +63,12 @@ public class Thumbnail extends DownloadService {
 		var dir = Engine.projectDir(projectName);
 		var file = new File(dir, "thumbnail.png");
 		if (!file.exists()) {
-			file = new File(dir, "thumbnail.auto.png");
+			file = new File(dir, "thumbnail.jpg");
 		}
-		response.setContentType(MimeType.Png.value());
+		if (!file.exists()) {
+			file = new File(dir, "thumbnail.auto.jpg");
+		}
+		response.setContentType(file.getName().endsWith("png") ? MimeType.Png.value() : MimeType.Jpeg.value());
 		if (!file.exists()) {
 			response.setContentLength(imageBytes.length);
 			response.getOutputStream().write(imageBytes);
@@ -75,16 +78,6 @@ public class Thumbnail extends DownloadService {
 				IOUtils.copyLarge(fis, response.getOutputStream());
 			}
 		}
-
-//		if (file.exists()) {
-//			response.setContentType(MimeType.Png.value());
-//		} else {
-//			file = new File(Engine.WEBAPP_PATH, "images/logo.svg");
-//			if (!file.exists()) {
-//				throw new EngineException("Thumbnail file not found for project '" + projectName + "'.");
-//			}
-//			response.setContentType(MimeType.Svg.value());
-//		}
 		response.flushBuffer();
 	}
 }

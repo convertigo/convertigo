@@ -71,7 +71,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
@@ -338,7 +337,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private File ionicDir;
 	private File nodeModules;
 	private File nodeDir;
-	
+
 	private boolean hasAutoThumbnail = false;
 
 	public ApplicationComponentEditor() {
@@ -563,7 +562,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
 			tell.grant();
 		});
-		
+
 		browser.navigation().on(FrameLoadFinished.class, event -> {
 			var frame = event.frame();
 			var url = frame.browser().url();
@@ -577,7 +576,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							var capture = takeCapture();
 							try {
 								var saver = new ImageLoader();
-				                saver.data = new ImageData[]{capture};
+								saver.data = new ImageData[]{capture};
 								saver.save(thumbnailAuto.getAbsolutePath(), SWT.IMAGE_PNG);
 								ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 								hasAutoThumbnail = true;
@@ -1352,12 +1351,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createThumbnail() {
-	    var newImageData = takeCapture();
-	    var display = c8oBrowser.getDisplay();
-	    var changed = new boolean[] { false };
+		var newImageData = takeCapture();
+		var display = c8oBrowser.getDisplay();
+		var changed = new boolean[] { false };
 
-	    var shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-	    shell.addDisposeListener(e -> {
+		var shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+		shell.addDisposeListener(e -> {
 			try {
 				if (changed[0]) {
 					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -1365,157 +1364,159 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			} catch (Exception ex) {
 				Engine.logStudio.debug("(ApplicationComponentEditor) refreshLocal of " + project.getName() + " failed", ex);
 			}
-	    });
-	    shell.setText("Capture Manager");
-	    shell.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
-	    
-	    var text = new Text(shell, SWT.READ_ONLY | SWT.WRAP);
-	    text.setText("You can save the current view as a thumbnail (for the dashboard and the marketplace) or a screenshot (for the marketplace detail).");
-	    
-	    var mainArea = new Composite(shell, SWT.NONE);
-	    mainArea.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-	    mainArea.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).margins(2, 2).create());
+		});
+		shell.setText("Capture Manager");
+		shell.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
 
-	    var newImage = new Image(display, newImageData);
-	    var newLabel = new Label(mainArea, SWT.BORDER);
-	    newLabel.setImage(newImage);
-	    newLabel.addDisposeListener(evt -> newImage.dispose());
-	    newLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
+		var text = new Text(shell, SWT.READ_ONLY | SWT.WRAP);
+		text.setText("You can save the current view as a thumbnail (for the dashboard and the marketplace) or a screenshot (for the marketplace detail).");
 
-	    var scroll = new ScrolledComposite(mainArea, SWT.H_SCROLL | SWT.V_SCROLL);
-	    scroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-	    scroll.setExpandHorizontal(true);
-	    scroll.setExpandVertical(true);
+		var mainArea = new Composite(shell, SWT.NONE);
+		mainArea.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		mainArea.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).margins(2, 2).create());
 
-	    var container = new Composite(scroll, SWT.NONE);
-	    container.setLayout(GridLayoutFactory.fillDefaults().numColumns(4).margins(2, 2).equalWidth(true).create());
+		var newLabel = new Label(mainArea, SWT.BORDER);
+		loadImageDataIntoLabel(display, newImageData, newLabel);
+		newLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 
-	    var entries = new String[][]{
-	        {"thumbnail", "thumbnail.png"},
-	        {"screen 1", "marketplace/screen1.png"},
-	        {"screen 2", "marketplace/screen2.png"},
-	        {"screen 3", "marketplace/screen3.png"}
-	    };
+		var scroll = new ScrolledComposite(mainArea, SWT.H_SCROLL | SWT.V_SCROLL);
+		scroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		scroll.setExpandHorizontal(true);
+		scroll.setExpandVertical(true);
 
-	    var imageLabels = new HashMap<String, Label>();
+		var container = new Composite(scroll, SWT.NONE);
+		container.setLayout(GridLayoutFactory.fillDefaults().numColumns(4).margins(2, 2).equalWidth(true).create());
 
-	    for (var entry : entries) {
-	        var labelName = entry[0];
-	        var filePath = entry[1];
-	        var file = new File(project.getDirFile(), filePath);
-	        var fileAuto = new File(project.getDirFile(), "thumbnail.auto.png");
-	        var fileToLoad = labelName.equals("thumbnail") && !file.exists() ? fileAuto : file;
-	        
-	        var slot = new Composite(container, SWT.BORDER);
-	        slot.setLayoutData(new GridData(200, Math.max(300, newImageData.height)));
-	        slot.setLayout(GridLayoutFactory.fillDefaults().create());
+		var entries = new String[][]{
+			{"thumbnail", "thumbnail.jpg"},
+			{"screen 1", "marketplace/screen1.jpg"},
+			{"screen 2", "marketplace/screen2.jpg"},
+			{"screen 3", "marketplace/screen3.jpg"}
+		};
 
-	        var imageLabel = new Label(slot, SWT.BORDER);
-	        imageLabel.setLayoutData(GridDataFactory.fillDefaults().hint(200, 200).create());
-	        imageLabels.put(filePath, imageLabel);
+		var imageLabels = new HashMap<String, Label>();
 
-	        loadImageIntoLabel(display, fileToLoad, imageLabel);
+		for (var entry : entries) {
+			var labelName = entry[0];
+			var filePath = entry[1];
+			var file = new File(project.getDirFile(), filePath);
+			var fileAuto = new File(project.getDirFile(), "thumbnail.auto.jpg");
+			var fileToLoad = labelName.equals("thumbnail") && !file.exists() ? fileAuto : file;
 
-	        var saveButton = new Button(slot, SWT.PUSH);
-	        saveButton.setText("Save as " + labelName);
-	        saveButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-	        saveButton.addListener(SWT.Selection, ev -> {
-	            try {
-	                file.getParentFile().mkdirs();
-	                var saver = new ImageLoader();
-	                saver.data = new ImageData[]{newImageData};
-	                saver.save(file.getAbsolutePath(), SWT.IMAGE_PNG);
-	                if (labelName.equals("thumbnail") && fileAuto.exists()) {
-	                    fileAuto.delete();
-	                    hasAutoThumbnail = false;
-	                }
-	                changed[0] = true;
-	                loadImageIntoLabel(display, file, imageLabel);
-	            } catch (Exception ex) {
-	                ex.printStackTrace();
-	            }
-	        });
+			var slot = new Composite(container, SWT.BORDER);
+			slot.setLayoutData(new GridData(300, 300));
+			slot.setLayout(GridLayoutFactory.fillDefaults().create());
 
-	        var deleteButton = new Button(slot, SWT.PUSH);
-	        deleteButton.setText("Delete");
-	        deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-	        deleteButton.addListener(SWT.Selection, ev -> {
-	            if (fileToLoad.exists()) {
-	            	fileToLoad.delete();
-	                changed[0] = true;
-	                loadImageIntoLabel(display, fileToLoad, imageLabel);
-	            }
-	        });
-	    }
+			var imageLabel = new Label(slot, SWT.BORDER);
+			imageLabel.setLayoutData(GridDataFactory.fillDefaults().hint(200, 200).create());
+			imageLabels.put(filePath, imageLabel);
 
-	    scroll.setContent(container);
-	    container.pack();
-	    scroll.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			loadImageFileIntoLabel(display, fileToLoad, imageLabel);
 
-	    var close = new Button(shell, SWT.PUSH);
-	    close.setText("Close");
-	    close.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-	    close.addListener(SWT.Selection, ev -> shell.close());
+			var saveButton = new Button(slot, SWT.PUSH);
+			saveButton.setText("Save as " + labelName);
+			saveButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			saveButton.addListener(SWT.Selection, ev -> {
+				try {
+					file.getParentFile().mkdirs();
+					var saver = new ImageLoader();
+					saver.data = new ImageData[]{newImageData};
+					saver.compression = 90;
+					saver.save(file.getAbsolutePath(), file.getName().endsWith("png") ? SWT.IMAGE_PNG : SWT.IMAGE_JPEG);
+					if (labelName.equals("thumbnail") && fileAuto.exists()) {
+						fileAuto.delete();
+						hasAutoThumbnail = false;
+					}
+					changed[0] = true;
+					loadImageFileIntoLabel(display, file, imageLabel);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			});
 
-	    shell.pack();
+			var deleteButton = new Button(slot, SWT.PUSH);
+			deleteButton.setText("Delete");
+			deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			deleteButton.addListener(SWT.Selection, ev -> {
+				if (fileToLoad.exists()) {
+					fileToLoad.delete();
+					changed[0] = true;
+					loadImageFileIntoLabel(display, fileToLoad, imageLabel);
+				}
+			});
+		}
 
-	    var bounds = c8oBrowser.getShell().getMonitor().getBounds();
-	    var shellBounds = shell.getBounds();
-	    var x = bounds.x + (bounds.width - shellBounds.width) / 2;
-	    var y = bounds.y + (bounds.height - shellBounds.height) / 2;
-	    shell.setLocation(x, y);
+		scroll.setContent(container);
+		container.pack();
+		scroll.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
-	    shell.open();
+		var close = new Button(shell, SWT.PUSH);
+		close.setText("Close");
+		close.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		close.addListener(SWT.Selection, ev -> shell.close());
+
+		shell.pack();
+
+		var bounds = c8oBrowser.getShell().getMonitor().getBounds();
+		var shellBounds = shell.getBounds();
+		var x = bounds.x + (bounds.width - shellBounds.width) / 2;
+		var y = bounds.y + (bounds.height - shellBounds.height) / 2;
+		shell.setLocation(x, y);
+
+		shell.open();
 	}
-	
-	private void loadImageIntoLabel(Display display, File file, Label label) {
-	    var oldImage = label.getImage();
-	    if (oldImage != null && !oldImage.isDisposed()) {
-	        oldImage.dispose();
-	    }
-	    label.setText("");
 
-	    if (file.exists()) {
-	        var loader = new ImageLoader();
-	        try (var input = new FileInputStream(file)) {
-	            loader.load(input);
-	            var imageData = loader.data[0];
+	private void loadImageDataIntoLabel(Display display, ImageData imageData, Label label) {
+		var maxSize = 300;
+		var width = imageData.width;
+		var height = imageData.height;
+		var scaleFactor = 1.0;
 
-	            var maxSize = 200;
-	            var width = imageData.width;
-	            var height = imageData.height;
-	            var scaleFactor = 1.0;
+		if (width > height) {
+			if (width > maxSize) scaleFactor = (double) maxSize / width;
+		} else {
+			if (height > maxSize) scaleFactor = (double) maxSize / height;
+		}
 
-	            if (width > height) {
-	                if (width > maxSize) scaleFactor = (double) maxSize / width;
-	            } else {
-	                if (height > maxSize) scaleFactor = (double) maxSize / height;
-	            }
+		var scaledWidth = Math.max(1, (int) (width * scaleFactor));
+		var scaledHeight = Math.max(1, (int) (height * scaleFactor));
 
-	            var scaledWidth = Math.max(1, (int) (width * scaleFactor));
-	            var scaledHeight = Math.max(1, (int) (height * scaleFactor));
-
-	            var scaledImage = new Image(display, imageData.scaledTo(scaledWidth, scaledHeight));
-	            label.setImage(scaledImage);
-	            label.setAlignment(SWT.CENTER);
-	        } catch (IOException ex) {
-	            ex.printStackTrace();
-	            label.setImage(null);
-	        }
-	    } else {
-	        label.setImage(null);
-	        label.setText("Empty");
-	        label.setAlignment(SWT.CENTER);
-	    }
+		var scaledImage = new Image(display, imageData.scaledTo(scaledWidth, scaledHeight));
+		label.setImage(scaledImage);
+		label.setAlignment(SWT.CENTER);
+		label.addDisposeListener(evt -> scaledImage.dispose());
 	}
-	
+
+	private void loadImageFileIntoLabel(Display display, File file, Label label) {
+		var oldImage = label.getImage();
+		if (oldImage != null && !oldImage.isDisposed()) {
+			oldImage.dispose();
+		}
+		label.setText("");
+
+		if (file.exists()) {
+			var loader = new ImageLoader();
+			try (var input = new FileInputStream(file)) {
+				loader.load(input);
+				loadImageDataIntoLabel(display, loader.data[0], label);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				label.setImage(null);
+			}
+		} else {
+			label.setImage(null);
+			label.setText("Empty");
+			label.setAlignment(SWT.CENTER);
+		}
+	}
+
 	private ImageData takeCapture() {
 		var bitmap = c8oBrowser.getBrowser().bitmap();
 		var image = BitmapImage.toToolkit(c8oBrowser.getDisplay(), bitmap);
 		try {
 			var sourceData = image.getImageData();
 
-			var maxSize = 300;
+			var maxSize = 1024;
 			var minSize = 50;
 			var srcWidth = sourceData.width;
 			var srcHeight = sourceData.height;
@@ -1545,17 +1546,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			var scaledHeight = Math.max(1, (int) (srcHeight * scaleFactor));
 
 			var scaledImage = new Image(c8oBrowser.getDisplay(), sourceData.scaledTo(scaledWidth, scaledHeight));
-			var smootherImage = new Image(c8oBrowser.getDisplay(), scaledWidth, scaledHeight);
-			var gc = new GC(smootherImage);
-			gc.setAntialias(SWT.ON);
-			gc.setInterpolation(SWT.HIGH);
-			gc.drawImage(scaledImage, 0, 0, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight);
-			gc.dispose();
-			var scaledData = smootherImage.getImageData();
-			scaledImage.dispose();
-			smootherImage.dispose();
-
-			return scaledData;
+			return scaledImage.getImageData();
 
 		} finally {
 			image.dispose();
