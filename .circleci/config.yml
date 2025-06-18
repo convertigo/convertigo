@@ -700,7 +700,7 @@ jobs:
             local dest=$2
             local n=0
           
-            until [ $n -ge 5 ]; do
+            until [ $n -ge 20 ]; do
               aws s3 cp "$src" "$dest" --storage-class REDUCED_REDUNDANCY --acl public-read && return 0
               echo "Upload failed, retrying in 10s..."
               n=$((n + 1))
