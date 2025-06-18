@@ -1098,12 +1098,20 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							return false;
 						}
 					}
-					if (targetObject instanceof DatabaseObjectTreeObject) {
+					if (targetObject instanceof DatabaseObjectTreeObject targetDbot) {
 						try {
-							String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
-							List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
-							DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject) target).getObject();
+							var obj = TextTransfer.getInstance().nativeToJava(transferType);
+							DatabaseObject databaseObject = null;
+							
+							if (obj != null) {
+								String xmlData = obj.toString();
+								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
+								databaseObject = (DatabaseObject) list.get(0);
+							} else if (sourceObject instanceof DatabaseObjectTreeObject sourceDbot) {
+								databaseObject = sourceDbot.getObject();
+							}
+							
+							var targetDatabaseObject = targetDbot.getObject();
 							if (DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 								return true;
 							}
