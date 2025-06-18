@@ -4,6 +4,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
 	let { data } = $props();
@@ -26,7 +27,8 @@
 </script>
 
 <div class="layout-y h-full justify-center">
-	<Card class="preset-filled-surface-200-800" bg="">
+	<Ico icon="convertigo:logo" class="fixed z-0 text-primary-100-900" size="fit" />
+	<Card class="preset-glass-surface z-1" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-stretch">
 			<h1 class="text-center text-3xl">
 				<p>Welcome to Convertigo</p>

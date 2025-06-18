@@ -7,6 +7,7 @@
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import LightSvelte from '$lib/common/Light.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -25,17 +26,23 @@
 
 	const accessibilities = $state({
 		Private: {
-			bg: 'preset-filled-success-100-900',
+			bg: 'preset-outlined-success-50-950',
+			title: 'preset-filled-success-50-950 odd:preset-filled-success-100-900',
+			titleHover: 'hover:preset-filled-success-300-700',
 			icon: 'mdi:lock',
 			enabled: true
 		},
 		Hidden: {
-			bg: 'preset-filled-warning-100-900',
+			bg: 'preset-outlined-warning-50-950',
+			title: 'preset-filled-warning-50-950 odd:preset-filled-warning-100-900',
+			titleHover: 'hover:preset-filled-warning-300-700',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
 		Public: {
-			bg: 'preset-filled-error-100-900',
+			bg: 'preset-outlined-error-50-950',
+			title: 'preset-filled-error-50-950 odd:preset-filled-error-100-900',
+			titleHover: 'hover:preset-filled-error-300-700',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}
@@ -80,6 +87,7 @@
 	}
 
 	let parts = $state([]);
+	let partsOpened = $state(['Sequences']);
 	$effect(() => {
 		const _parts = [
 			{ name: 'Sequences', requestables: project.sequence, comment: 'high level requestables' }
@@ -121,7 +129,7 @@
 			<span class="layout-x-none gap-[1px]! pr-[1px]">
 				{#each Object.values(accessibilities) as accessibility}
 					<button
-						class="btn h-full rounded-none p-1 {accessibility.bg}"
+						class="btn h-full rounded-none p-1 {accessibility.title}"
 						class:opacity-50={!accessibility.enabled}
 						onclick={() => {
 							accessibility.enabled = !accessibility.enabled;
@@ -141,7 +149,10 @@
 		multiple
 		classes="-mx"
 		width=""
-		value={searchQuery.length ? parts.map(({ name }) => name) : ['Sequences']}
+		value={searchQuery.length ? parts.map(({ name }) => name) : partsOpened}
+		onValueChange={(e) => {
+			partsOpened = e.value;
+		}}
 	>
 		{#each parts as part, partIdx (part.name)}
 			{@const { name, requestables, comment } = part}
@@ -158,12 +169,18 @@
 						<Accordion multiple>
 							{#each requestables as requestable, requestableIdx (requestable.name)}
 								{@const { name, accessibility, comment } = requestable}
-								<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
+								<div
+									animate:flip={{ duration }}
+									transition:fly={{ duration, y }}
+									class="rounded-sm {accessibilities[accessibility].title}"
+								>
 									<Accordion.Item
 										value="{parts[partIdx]}.{name}"
 										classes="rounded-sm {accessibilities[accessibility].bg}"
+										controlHover={accessibilities[accessibility].titleHover}
 										controlPadding="py-1 px-2"
 										panelPadding="p-1"
+										panelClasses="preset-filled-surface-200-800"
 									>
 										{#snippet control()}
 											<div class="layout-x justify-between">
@@ -207,6 +224,8 @@
 														<Accordion.Item
 															value={`${requestableIdx}`}
 															classes={accessibilities[accessibility].bg}
+															controlClasses={accessibilities[accessibility].title}
+															controlHover={accessibilities[accessibility].titleHover}
 															controlPadding="py-1 px-2"
 															panelPadding="px-0"
 														>
@@ -219,9 +238,9 @@
 																</div>
 															{/snippet}
 															{#snippet panel()}
-																<div class="layout-grid-low-60">
+																<div class="layout-flex-warp m-low sm:layout-grid-low-80">
 																	{#each requestable.testcase as testcase}
-																		<Card title={testcase.name}>
+																		<Card title={testcase.name} bg="bg-white/5 odd:bg-white/10">
 																			{#snippet cornerOption()}
 																				<ResponsiveButtons
 																					buttons={[
@@ -233,7 +252,7 @@
 																						},
 																						{
 																							label: 'Edit',
-																							class: 'button-tertiary',
+																							class: 'button-secondary',
 																							onclick: () => {
 																								requestable.tc = { ...testcase };
 																							}
@@ -256,7 +275,7 @@
 														</Accordion.Item>
 													</Accordion>
 												{/if}
-												<Card class="layout-y p-low! md:layout-x">
+												<div class="layout-y px-low md:layout-x">
 													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
 													<Button label="Execute" type="submit" class="button-primary" />
 													{#if part.name == 'Sequences'}
@@ -269,7 +288,7 @@
 													{#if requestable.response?.length > 0}
 														<Button label="Clear" type="submit" class="button-error" />
 													{/if}
-												</Card>
+												</div>
 												{#if requestable.response?.length > 0}
 													<div
 														class="h-[480px]"
@@ -279,7 +298,7 @@
 														<Editor
 															content={requestable.response}
 															language={requestable.language}
-															theme={false ? '' : 'vs-dark'}
+															theme={LightSvelte.light ? '' : 'vs-dark'}
 														/>
 													</div>
 												{/if}

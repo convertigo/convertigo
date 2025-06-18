@@ -5,7 +5,7 @@
 	import { onMount, tick } from 'svelte';
 	import { fly } from 'svelte/transition';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, trClass?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
 	let {
 		definition,
 		data,
@@ -13,6 +13,7 @@
 		title = '',
 		comment = '',
 		class: cls = '',
+		trClass = 'even:preset-filled-surface-200-800 odd:preset-filled-surface-300-700 hover:preset-filled-surface-400-600',
 		children,
 		tr
 	} = $props();
@@ -42,10 +43,10 @@
 
 <div bind:this={container} class="table-container {cls}" class:autocard={isCardView}>
 	{#if title.length > 0}
-		<h1 class="text-[16px] font-normal text-surface-800-200">{title}</h1>
+		<h1 class="ztext-surface-800-200 text-[16px] font-normal">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="p-3 font-bold text-surface-700-300">{comment}</h1>
+		<h1 class="ztext-surface-700-300 p-3 font-bold">{comment}</h1>
 	{/if}
 
 	<table>
@@ -66,9 +67,9 @@
 		{/if}
 		{#if data && data.length > 0}
 			<tbody>
-				{#each data as row, rowIdx (row.name ?? rowIdx)}
+				{#each data as row, rowIdx}
 					{#snippet _tr({ row, rowIdx })}
-						<tr data-custom={row.name} transition:fly={{ duration, y, opacity }}>
+						<tr class={trClass} data-custom={row.name} transition:fly={{ duration, y, opacity }}>
 							{#each definition as def}
 								<td
 									class={def.class
@@ -106,7 +107,7 @@
 					<td colspan={definition.length}>
 						<div class="layout-x">
 							<Ico icon="line-md:coffee-loop" size={20} />
-							<p class="font-bold text-surface-300">There is no data to display ...</p>
+							<p class="ztext-surface-300 font-bold">There is no data to display ...</p>
 						</div>
 					</td>
 				</tr>
@@ -118,6 +119,25 @@
 <style>
 	@reference "../../../app.css";
 
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		border: 4px;
+		@apply overflow-hidden rounded-sm;
+	}
+	th,
+	td {
+		text-align: left;
+		font-weight: 300;
+		font-size: 15px;
+		@apply p-2! align-middle!;
+	}
+	th {
+		@apply preset-filled-surface-200-800 font-bold;
+	}
+	thead {
+		@apply border-b-[0.5px] border-surface-900-100;
+	}
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;

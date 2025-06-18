@@ -6,7 +6,7 @@
 	import PropertyType from './PropertyType.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
 
-	let { requestable = $bindable() } = $props();
+	let { requestable = $bindable(), trClass = undefined } = $props();
 	let multiples = $state({});
 	let testcase = $derived(
 		requestable.tc
@@ -58,6 +58,7 @@
 		{ name: 'Value', custom: true, class: 'min-w-40' },
 		{ name: 'Comment', custom: true, class: 'max-w-40' }
 	]}
+	{trClass}
 	data={requestable.variable}
 >
 	{#snippet children({ row, def })}
