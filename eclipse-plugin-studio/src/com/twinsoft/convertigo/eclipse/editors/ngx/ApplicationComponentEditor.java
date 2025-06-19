@@ -571,13 +571,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ConvertigoPlugin.asyncExec(() -> {
 						var prjFile = project.getDirFile();
 						var thumbnail = new File(prjFile, "thumbnail.png");
-						var thumbnailAuto = new File(prjFile, "thumbnail.auto.png");
+						if (!thumbnail.exists()) {
+							thumbnail = new File(prjFile, "thumbnail.jpg");
+						}
+						var thumbnailAuto = new File(prjFile, "thumbnail.auto.jpg");
 						if (!thumbnail.exists() && (!hasAutoThumbnail || !thumbnailAuto.exists())) {
 							var capture = takeCapture();
 							try {
 								var saver = new ImageLoader();
 								saver.data = new ImageData[]{capture};
-								saver.save(thumbnailAuto.getAbsolutePath(), SWT.IMAGE_PNG);
+								saver.save(thumbnailAuto.getAbsolutePath(), SWT.IMAGE_JPEG);
 								ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 								hasAutoThumbnail = true;
 							} catch (Exception e) {
