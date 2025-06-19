@@ -56,37 +56,37 @@ public abstract class BuildLocally {
 	// private static final Map<String, String> iOSIconsCorrespondences;
 	/** know which splash goes with which name on ios platform in function of height and width */
 	// private static final Map<String, String> iOSSplashCorrespondences;
-	
+
 	/** Mobile platform */
 	protected final MobilePlatform mobilePlatform;
 
 	private String cmdOutput;
 	private String errorLines = null;
-	
+
 	private boolean processCanceled = false;
 	private Process process;
-	
+
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
-	
+
 	private File jdkDir = null;
 	private File androidSdkDir = null;
 	private File gradleDir = null;
 	private File nodeDir = null;
 	private String preferedAndroidBuildTools = null;
 	private int preferedJDK = 8;
-	
+
 	private File mobilePackage = null;
 	private Status lastStatus = null;
-	
+
 	private String iosProvisioningProfileUUID = null;
 	private String iosSignIdentity = null;
-	
+
 	private File androidKeystore = null;
 	private String androidKeystorePassword = null;
 	private String androidPassword = null;
 	private String androidAlias = null;
-	
+
 	public BuildLocally(MobilePlatform mobilePlatform) {
 		this.mobilePlatform = mobilePlatform;
 		this.cordovaBinPath = null;
@@ -95,7 +95,7 @@ public abstract class BuildLocally {
 			cordovaInstallsDir.mkdir();
 		}
 	}
-	
+
 	public MobilePlatform getMobilePlatform() {
 		return mobilePlatform;
 	}
@@ -116,16 +116,16 @@ public abstract class BuildLocally {
 		if (gradleDir != null) {
 			paths = new File(gradleDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
 		}
-		
+
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
 				ProcessUtils.getNpmProcessBuilder(paths, parameters)
 				: ProcessUtils.getProcessBuilder(paths, parameters);
 		// Set the directory from where the command will be executed
 		pb.directory(launchDir.getCanonicalFile());
-		
+
 		pb.redirectErrorStream(mergeError);
-		
+
 		if (jdkDir != null) {
 			pb.environment().put("JAVA_HOME", jdkDir.getAbsolutePath());
 		}
@@ -133,20 +133,20 @@ public abstract class BuildLocally {
 			pb.environment().put("ANDROID_HOME", androidSdkDir.getAbsolutePath());
 			pb.environment().put("ANDROID_SDK_ROOT", androidSdkDir.getAbsolutePath());
 		}
-		
+
 		var lang = System.getenv("LANG");
 		if (lang != null && lang.contains("UTF-8")) {
 			pb.environment().put("LANG", lang);
 		} else {
 			pb.environment().put("LANG", "en_US.UTF-8");
 		}
-		
+
 		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
-		
+
 		process = pb.start();
-		
+
 		boolean[] done = {false};
-		
+
 		cmdOutput = "";
 		// Logs the output
 		Engine.execute(() -> {
@@ -166,7 +166,7 @@ public abstract class BuildLocally {
 				done.notify();
 			}
 		});
-		
+
 		if (!mergeError) {
 			// Logs the error output
 			new Thread(() -> {
@@ -183,7 +183,7 @@ public abstract class BuildLocally {
 				}
 			}).start();
 		}
-		
+
 		int exitCode = process.waitFor();
 
 		synchronized (done) {
@@ -191,17 +191,17 @@ public abstract class BuildLocally {
 				done.wait();
 			}
 		}
-		
+
 		if (exitCode != 0 && exitCode != 127) {
 			throw new Exception("Exit code " + exitCode + " when running the command '" + command + 
 					"' with parameters : '" + parameters + "'. The output of the command is : '" 
-					 + cmdOutput + "'");
+					+ cmdOutput + "'");
 		}
-		
-		
+
+
 		return cmdOutput;
 	}
-	
+
 	/***
 	 * Function which permit to run cordova command
 	 * @param projectDir
@@ -214,7 +214,7 @@ public abstract class BuildLocally {
 		Collections.addAll(commandsList, commands);
 		return runCordovaCommand(projectDir, commandsList);
 	}
-	
+
 	/***
 	 * Runs a Cordova command and returns the output stream. This will wait until the command is finished. 
 	 * Output stream and error stream are logged in  the console.
@@ -224,15 +224,15 @@ public abstract class BuildLocally {
 	 * @throws Throwable
 	 */
 	private String runCordovaCommand(File projectDir, List<String> cordovaCommands) throws Throwable {
-		
+
 		String command = "cordova";
 		if (this.cordovaBinPath != null) {
 			command = this.cordovaBinPath;
 		}
-		
+
 		return this.runCommand(projectDir, command, cordovaCommands, false);
 	}
-		
+
 	/***
 	 * Explore "config.xml", handle plugins and copy needed resources to appropriate platforms folders.
 	 * @param wwwDir
@@ -241,12 +241,12 @@ public abstract class BuildLocally {
 	 */
 	private void processConfigXMLResources(File wwwDir, File cordovaDir) throws Throwable {
 		try {
-			
+
 			File configFile = new File(cordovaDir, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
-			
+
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
-			
+
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
 			Element singleElement = (Element) nodeIterator.nextNode();
@@ -257,7 +257,7 @@ public abstract class BuildLocally {
 				if (file.exists()) {
 					singleElement.setAttribute("src", src);
 				}
-				
+
 				singleElement = (Element) nodeIterator.nextNode();
 			}
 
@@ -280,53 +280,53 @@ public abstract class BuildLocally {
 					}
 				}
 			}
-			
+
 			// We have to add the root config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
-			
+
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
-			
+
 			NodeList preferencesList = doc.getElementsByTagName("preference");
-			
+
 			// Remove old preferences
 			while ( preferencesList.getLength() > 0 ) { 
-	            Element pathNode = (Element) preferencesList.item(0);
-	            // Remove empty lines
-	            Node prev = pathNode.getPreviousSibling();
-	            if (prev != null && prev.getNodeType() == Node.TEXT_NODE &&
-	                prev.getNodeValue().trim().length() == 0) {
-	            		doc.getDocumentElement().removeChild(prev);
-	            }
-	            doc.getDocumentElement().removeChild(pathNode);
-	        }
-			
+				Element pathNode = (Element) preferencesList.item(0);
+				// Remove empty lines
+				Node prev = pathNode.getPreviousSibling();
+				if (prev != null && prev.getNodeType() == Node.TEXT_NODE &&
+						prev.getNodeValue().trim().length() == 0) {
+					doc.getDocumentElement().removeChild(prev);
+				}
+				doc.getDocumentElement().removeChild(pathNode);
+			}
+
 			for (Element preference = (Element) preferences.nextNode(); preference != null; preference = (Element) preferences.nextNode()) {
 				String name = preference.getAttribute("name");
 				String value = preference.getAttribute("value");
-				
+
 				Element elt = doc.createElement("preference");
 				elt.setAttribute("name", name);
 				elt.setAttribute("value", value);
-				
+
 				Engine.logEngine.info("Adding preference'" + name + "' with value '" + value + "'");
-				
+
 				doc.getDocumentElement().appendChild(elt);
 			}	
-			
+
 			Engine.logEngine.trace("New config.xml is: " + XMLUtils.prettyPrintDOM(doc));
 			File resXmlFile = new File(cordovaDir, "config.xml");
 			// FileUtils.deleteQuietly(resXmlFile);
 			XMLUtils.saveXml(doc, resXmlFile.getAbsolutePath());
-			
+
 			// Last part, as all resources has been copied to the correct location, we can remove
 			// our "www/res" directory before packaging to save build time and size...
 			// FileUtils.deleteDirectory(new File(wwwDir, "res"));
-			
+
 		} catch (Exception e) {
 			logException(e, "Unable to process config.xml in your project, check the file's validity");
 		}
 	}
-	
+
 	/***
 	 * Return the absolute path of built application file
 	 * @param mobilePlatform
@@ -336,12 +336,12 @@ public abstract class BuildLocally {
 	protected File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = File.separator + "platforms" + File.separator + cordovaPlatform + File.separator;
-		
+
 		String extension = "";
 		File f = new File(getCordovaDir(), builtPath);		
-		
+
 		if (f.exists()) {
-		
+
 			// Android
 			if (mobilePlatform instanceof Android) {
 				builtPath = builtPath + "ant-build" + File.separator;
@@ -351,8 +351,8 @@ public abstract class BuildLocally {
 							File.separator + "build" + File.separator + "outputs" + File.separator + "apk" + File.separator;
 				}
 				extension = "apk";
-				
-			// iOS
+
+				// iOS
 			} else if (mobilePlatform instanceof IOs){
 				extension = "xcworkspace";
 			} else {
@@ -376,10 +376,10 @@ public abstract class BuildLocally {
 		} else {
 			builtPath = File.separator + "platforms" + File.separator + cordovaPlatform + File.separator;
 		}
-		
+
 		return new File (getCordovaDir(), builtPath);
 	}
-	
+
 	/***
 	 * Dialog yes/no which ask to user if we want
 	 * remove the cordova directory present into "_private" directory
@@ -403,7 +403,7 @@ public abstract class BuildLocally {
 			return;
 		}
 	}
-	
+
 	/***
 	 * Return the Cordova directory
 	 * @return File
@@ -413,7 +413,7 @@ public abstract class BuildLocally {
 				"localbuild" + File.separator + 
 				mobilePlatform.getName() + File.separator + BuildLocally.cordovaDir);
 	}
-	
+
 	/***
 	 * Return the Private directory
 	 * @return File
@@ -421,36 +421,36 @@ public abstract class BuildLocally {
 	private File getPrivateDir() {
 		return new File(mobilePlatform.getProject().getDirPath() + "/_private");
 	}
-	
+
 	public enum Status {
 		OK,
 		CANCEL
 	}
-	
+
 	public Status runBuild(String option, boolean run, String target) {
 		try {			
 			File cordovaDir = getCordovaDir();
 			File wwwDir = new File(cordovaDir,"www");
 			wwwDir.mkdirs();
-			
+
 			if (!wwwDir.exists()) {
 				throw new EngineException("Cannot create the build folder '" + wwwDir.getAbsolutePath() + "', check the current user can create files or change the Eclipse preference: 'Convertigo/Studio/Local Build Folder'.");
 			}
-			
+
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
 			MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, wwwDir.getAbsolutePath());
-			
+
 			wwwDir = mobileResourceHelper.preparePackage();
 
 			// Step 2: Add platform and read config.xml to copy needed icons and splash resources
-			
+
 			String cordovaPlatform = mobilePlatform.getCordovaPlatform();
-			
+
 			//
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
-			
+
 			if (iosProvisioningProfileUUID != null) {
 				boolean release = "release".equals(option);
 				JSONObject json = new JSONObject();
@@ -464,7 +464,7 @@ public abstract class BuildLocally {
 				json = new JSONObject().put("ios", json);
 				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
 			}
-			
+
 			if (androidKeystore != null) {
 				boolean release = "release".equals(option);
 				JSONObject json = new JSONObject();
@@ -479,9 +479,9 @@ public abstract class BuildLocally {
 			}
 
 			processConfigXMLResources(wwwDir, cordovaDir);
-			
+
 			List<String> commandsList = new LinkedList<String>();
-			
+
 			jdkDir = null;
 			if ("android".equals(mobilePlatform.getCordovaPlatform())) {
 				Engine.logEngine.info("Check or install for the JDK to build the Android application");
@@ -495,7 +495,7 @@ public abstract class BuildLocally {
 					Engine.logEngine.info("download Gradle: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				});
 			}
-			
+
 			runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 
 			// Step 3: Build or Run using Cordova the specific platform.
@@ -504,20 +504,20 @@ public abstract class BuildLocally {
 				commandsList.add(cordovaPlatform);
 				commandsList.add("--" + option);
 				commandsList.add("--" + target);
-				
+
 				runCordovaCommand(cordovaDir, commandsList);
 			} else {
 				commandsList.add("build");
 				commandsList.add(cordovaPlatform);
 				commandsList.add("--" + option);
-				
+
 				if (mobilePlatform instanceof Android android && "release".equals(option)) {
 					commandsList.add("--");
 					commandsList.add("--packageType=" + android.getReleasePackageType().name());
 				}
-				
+
 				String out = runCordovaCommand(cordovaDir, commandsList);
-				
+
 				Matcher m = Pattern.compile("[^\\s]+(?:\\.apk|/build/device)").matcher(out);
 				if (m.find()) {
 					File pkg;
@@ -542,41 +542,41 @@ public abstract class BuildLocally {
 					showLocationInstallFile(mobilePlatform, process.exitValue(), errorLines, option);
 				}
 			}
-			
+
 			return Status.OK;
 		} catch (Throwable e) {
 			logException(e, "Error when processing Cordova build: " + e);
-			
+
 			return Status.CANCEL;
 		}
 	}
-	
+
 	public void cancelBuild(boolean run) {
 		//Only for the "Run On Device" action
 		if (run) {
 			if (mobilePlatform instanceof IOs) {
 				//kill the lldb process only for ios build platform
 				try {
-					Runtime.getRuntime().exec("pkill lldb").waitFor();
+					Runtime.getRuntime().exec(new String[] {"pkill", "lldb"}).waitFor();
 				} catch (Exception e) {
 					Engine.logEngine.error("Error during kill of process \"lldb\"\n" + e.getMessage(), e);
 				}
 			}
 		}
-		
+
 		processCanceled = true;
 
 		// Others OS
 		process.destroy();
 	}
-	
+
 	public Status installCordova() {
 		try {
 			File resourceFolder = mobilePlatform.getResourceFolder();
 			File configFile = new File(resourceFolder, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
-			
+
 			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='nodejs-version']");
 			String nodeVersion = (singleElement != null) ? singleElement.getAttribute("value") : ProcessUtils.getDefaultNodeVersion();
 			nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
@@ -592,17 +592,17 @@ public abstract class BuildLocally {
 				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou must download nodes.js from https://nodejs.org/en/download/");
 			}
 			Engine.logEngine.info("OK, nodejs (" + nodeVersion + ") and npm (" + npmVersion + ") are installed.");
-			
+
 			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='prefered-android-build-tools']");
 			if (singleElement != null && singleElement.hasAttribute("value")) {
 				preferedAndroidBuildTools = singleElement.getAttribute("value"); 
 			}
-			
+
 			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='prefered-android-jdk']");
 			if (singleElement != null && singleElement.hasAttribute("value")) {
 				preferedJDK = NumberUtils.toInt(singleElement.getAttribute("value"), preferedJDK);
 			}
-			
+
 			Engine.logEngine.info("Checking if this cordova version is already installed.");
 			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='cordova-version']");
 			if (singleElement == null) {
@@ -611,13 +611,13 @@ public abstract class BuildLocally {
 			if (singleElement != null) {
 				String cliVersion = singleElement.getAttribute("value");
 				if (cliVersion != null) {
-					
+
 					pattern = Pattern.compile("^(?:cli-)?([0-9]+\\.[0-9]+\\.[0-9]+)$");
 					matcher = pattern.matcher(cliVersion);			
 					if (!matcher.find()){
 						throw new Exception("The cordova version is specified but its value has not the right format.");
 					}
-					
+
 					// Remove 'cli-' from 'cli-x.x.x'
 					cliVersion = matcher.group(1);
 					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
@@ -629,24 +629,24 @@ public abstract class BuildLocally {
 							);
 					// If cordova is not installed
 					if (!cordovaBinFile.exists()) {
-						
+
 						Engine.logEngine.info("Installing cordova " + cliVersion + " This can take some time....");
-						
+
 						File cordovaInstallDir = new File(cordovaInstallPath);
 						cordovaInstallDir.mkdir();
-						
+
 						parameters = new LinkedList<String>();
 						parameters.add("--prefix");
 						parameters.add(cordovaInstallDir.getAbsolutePath());
 						parameters.add("--unsafe-perm=true");
 						parameters.add("install");
 						parameters.add("cordova@" + cliVersion);
-						
+
 						this.runCommand(cordovaInstallDir, "npm", parameters, true);
 					}
-					
+
 					Engine.logEngine.info("Cordova (" + cliVersion + ") is now installed.");
-					
+
 					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
 				} else {
 					Engine.logEngine.info("The phonegap-version prefrence version is not specified in config.xml.");
@@ -655,30 +655,30 @@ public abstract class BuildLocally {
 			} else {
 				throw new Exception("The phonegap-version preference not found in config.xml.");
 			}
-		
+
 		} catch (Throwable e) {
 			Engine.logEngine.info("Error when installing Cordova: " + e);
 			logException(e, "Error when installing Cordova");			
 			return Status.CANCEL;
 		}
-		
+
 		return Status.OK;
 	}
-	
+
 	public boolean isProcessCanceled() {
 		return this.processCanceled;
 	}
-	
-    abstract protected String getLocalBuildAdditionalPath();
-    abstract protected void logException(Throwable e, String message);
-    /***
+
+	abstract protected String getLocalBuildAdditionalPath();
+	abstract protected void logException(Throwable e, String message);
+	/***
 	 * Show the dialog with built application file 
 	 * @param mobilePlatform
 	 * @param exitValue
 	 * @param errorLines
 	 * @param buildOption
 	 */
-    abstract protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
+	abstract protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
 			final int exitValue, final String errorLines, final String buildOption);
 
 	public File getMobilePackage() {
@@ -688,7 +688,7 @@ public abstract class BuildLocally {
 	public Status getLastStatus() {
 		return lastStatus;
 	}
-	
+
 	public void configureSignIOS(File provisioningProfile, String signId) throws Exception {
 		if (!(mobilePlatform instanceof IOs && Engine.isMac())) {
 			return;
@@ -719,7 +719,7 @@ public abstract class BuildLocally {
 		iosProvisioningProfileUUID = uuid;
 		iosSignIdentity = signId;
 	}
-	
+
 	public void configureSignAndroid(File keystore, String keystorePassword, String alias, String password) {
 		if (mobilePlatform instanceof Android) {
 			androidKeystore = keystore;

@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors.validators;
 
-import java.net.URL;
+import java.net.URI;
 
 import org.eclipse.jface.viewers.ICellEditorValidator;
 
@@ -27,12 +27,12 @@ public class UrlValidator implements ICellEditorValidator {
 
 	public String isValid(Object value) {
 		try {
-			new URL(String.valueOf(value));
+			new URI(String.valueOf(value)).toURL();
 		}
 		catch (Exception e) {
 			return "The value \"" + value + "\" isn\'t a valid URL syntax! It must start with \"http:\"";
 		}
 		return null;
 	}
-	
+
 }

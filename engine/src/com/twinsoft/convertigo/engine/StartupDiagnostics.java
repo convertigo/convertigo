@@ -71,7 +71,7 @@ class StartupDiagnostics {
 			boolean isLinux = os.startsWith("Linux");
 			// boolean isWindows = os.startsWith("Windows");
 			boolean isMacOS = os.startsWith("Mac OS X");
-			
+
 			Architecture architecture = getArchitecture();
 			Engine.logEngine.info("Detected OS: " + os + " "
 					+ (architecture == Architecture.x32bits ? "(32 bits)" :
@@ -131,7 +131,7 @@ class StartupDiagnostics {
 			if (isLinux || isMacOS) {
 				try {
 					// Checking user returned by the command 'whoami'
-					Process process = Runtime.getRuntime().exec("whoami");
+					Process process = Runtime.getRuntime().exec(new String[] {"whoami"});
 					InputStreamReader isrStdout = new InputStreamReader(process.getInputStream());
 					BufferedReader stdout = new BufferedReader(isrStdout);
 					String whoami = stdout.readLine();

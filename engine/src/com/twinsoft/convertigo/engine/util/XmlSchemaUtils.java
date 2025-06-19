@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -91,7 +92,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaWalker.XmlSchemaWalkerWatche
 public class XmlSchemaUtils {
 	public static class XmlSchemaObjectCollectionList<E extends XmlSchemaObject> implements List<E> {
 		private XmlSchemaObjectCollection collection;
-		
+
 		public XmlSchemaObjectCollectionList(XmlSchemaObjectCollection collection) {
 			this.collection = collection;
 		}
@@ -173,7 +174,7 @@ public class XmlSchemaUtils {
 		}
 
 		public void add(int index, XmlSchemaObject element) {
-			
+
 		}
 
 		public E remove(int index) {
@@ -205,16 +206,16 @@ public class XmlSchemaUtils {
 		public List<E> subList(int fromIndex, int toIndex) {
 			return null;
 		}
-		
+
 	}
-	
+
 	final private static SchemaFactory factory = SchemaFactory.newInstance(Constants.URI_2001_SCHEMA_XSD);
 	final private static Source emptySource = new DOMSource(XMLUtils.getDefaultDocumentBuilder().newDocument());
-	
+
 	final public static XmlSchemaUse attributeUseRequired = new XmlSchemaUse(Constants.BlockConstants.REQUIRED);
 	final public static XmlSchemaUse attributeUseOptional = new XmlSchemaUse(Constants.BlockConstants.OPTIONAL);
-	
-	
+
+
 	final public static Comparator<XmlSchemaAttribute> attributeNameComparator = new Comparator<XmlSchemaAttribute>() {
 		public int compare(XmlSchemaAttribute o1, XmlSchemaAttribute o2) {
 			try {
@@ -225,7 +226,7 @@ public class XmlSchemaUtils {
 			}
 		}
 	};
-	
+
 	public static SortedSet<XmlSchemaAttribute> attributesToSortedSet(XmlSchemaObjectCollection attrs) {
 		SortedSet<XmlSchemaAttribute> result = new TreeSet<XmlSchemaAttribute>(XmlSchemaUtils.attributeNameComparator);
 		for (Iterator<XmlSchemaAttribute> i = GenericUtils.cast(attrs.getIterator()); i.hasNext();) {
@@ -233,35 +234,35 @@ public class XmlSchemaUtils {
 		}
 		return result;
 	}
-	
+
 	public static void clear(XmlSchemaObjectCollection collection) {
 		int count = collection.getCount();
 		while (count > 0) {
 			collection.removeAt(--count);
 		}
 	}
-	
+
 	public static <E extends XmlSchemaObject> E makeDynamic(DatabaseObject databaseObject, E xso) {
 		SchemaMeta.getReferencedDatabaseObjects(xso).add(databaseObject);
 		SchemaMeta.setDynamic(xso);
 		return xso;
 	}
-	
+
 	public static <E extends XmlSchemaObject> E makeDynamic(Collection<DatabaseObject> databaseObjects, E xso) {
 		SchemaMeta.getReferencedDatabaseObjects(xso).addAll(databaseObjects);
 		SchemaMeta.setDynamic(xso);
 		return xso;
 	}
-	
+
 	public static <E extends XmlSchemaObject> E makeDynamicReadOnly(DatabaseObject databaseObject, E xso) {
 		SchemaMeta.setReadOnly(xso);
 		return makeDynamic(databaseObject, xso);
 	}
-	
+
 	public static Document getDomInstance(XmlSchemaObject object) {
 		return getDomInstance(object, null);
 	}
-	
+
 	private static int getDomMaxDepth() {
 		try {
 			return Integer.valueOf(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_FROMSCHEMA_DEPTH), 10);
@@ -270,28 +271,28 @@ public class XmlSchemaUtils {
 			return 100;
 		}
 	}
-	
+
 	public static Document getDomInstance(XmlSchemaObject object, final Map<Node, XmlSchemaObject> references) {
 		final Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		final Element root = doc.createElement("document");
 		doc.appendChild(root);
-		
+
 		new XmlSchemaWalker() {
 			Node parent = root;
-			
+
 			int maxDepth = getDomMaxDepth();	// max depth from root
 			int maxCpt = getDomMaxDepth(); 		// max number of child per parent
-			
+
 			LinkedList<XmlSchemaElement> chain = new LinkedList<>();
 			int depth = 0;
 			int cpt = 0;
-			
+
 			@Override
 			protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
 				Node _parent = parent;
 				int _depth = depth;
 				int _cpt = cpt;
-				
+
 				XmlSchemaElement element = (XmlSchemaElement) obj;
 				if (element.getRefName() == null) {
 					if (_cpt < maxCpt) {
@@ -302,7 +303,7 @@ public class XmlSchemaUtils {
 						}
 						// add element to parent
 						_parent.appendChild(xElement);
-						
+
 						// walk element
 						parent = xElement; 	// set new parent
 						depth = depth + 1; 	// increase depth by one
@@ -333,7 +334,7 @@ public class XmlSchemaUtils {
 				if (parent instanceof Element) {
 					Element xParent = (Element) parent;
 					String value = "";
-										
+
 					if (obj != null) {
 						XmlSchemaSimpleTypeContent simpleTypeContent = obj.getContent();
 						if (simpleTypeContent != null && simpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
@@ -343,7 +344,7 @@ public class XmlSchemaUtils {
 							}
 						}
 					}
-					
+
 					Text text = doc.createTextNode(value);
 					xParent.appendChild(text);
 				}
@@ -356,7 +357,7 @@ public class XmlSchemaUtils {
 					String name = obj.getName();
 					String value = obj.getFixedValue() != null ? obj.getFixedValue() :
 						obj.getDefaultValue() != null ? obj.getDefaultValue() : "";
-										
+
 					XmlSchemaSimpleType simpleType = obj.getSchemaType(); 
 					if (simpleType != null) {
 						XmlSchemaSimpleTypeContent simpleTypeContent = simpleType.getContent();
@@ -367,129 +368,129 @@ public class XmlSchemaUtils {
 							}
 						}
 					}
-					
+
 					xParent.setAttribute(name, value);
 					if (references != null) {
 						references.put(xParent.getAttributeNode(name), obj);
 					}
 				}
 			}
-			
+
 		}.walk(SchemaMeta.getSchema(object), object);
-		
+
 		return doc;
 	}
 
 	public static void validate(XmlSchemaCollection collection) throws SAXException {
 		validate(collection, emptySource);
 	}
-	
+
 	public static void validate(XmlSchemaCollection collection, Document document) throws SAXException {
 		validate(collection, new DOMSource(document));
 	}
-	
+
 	private static LSInput createLSInputImpl() {
 		return new LSInput() {
-			
+
 			protected String fPublicId;
-			
-		    protected String fSystemId;
-		
-		    protected String fBaseSystemId;
-		
-		    protected InputStream fByteStream;
-		
-		    protected Reader fCharStream;
-		
-		    protected String fData;
-		
-		    protected String fEncoding;
-		
-		    protected boolean fCertifiedText;
-		
-		    public InputStream getByteStream() {
-		        return fByteStream;
-		    }
-		
-		    public void setByteStream(InputStream byteStream) {
-		        fByteStream = byteStream;
-		    }
-		
-		    public Reader getCharacterStream() {
-		        return fCharStream;
-		    }
-		
-		    public void setCharacterStream(Reader characterStream) {
-		        fCharStream = characterStream;
-		    }
-		
-		    public String getStringData() {
-		        return fData;
-		    }
-		
-		    public void setStringData(String stringData) {
-		        fData = stringData;
-		    }
-		
-		    public String getEncoding() {
-		        return fEncoding;
-		    }
-		
-		    public void setEncoding(String encoding) {
-		        fEncoding = encoding;
-		    }
-		
-		    public String getPublicId() {
-		        return fPublicId;
-		    }
-		
-		    public void setPublicId(String publicId) {
-		        fPublicId = publicId;
-		    }
-		
-		    public String getSystemId() {
-		        return fSystemId;
-		    }
-		
-		    public void setSystemId(String systemId) {
-		        fSystemId = systemId;
-		    }
-		
-		    public String getBaseURI() {
-		        return fBaseSystemId;
-		    }
-		
-		    public void setBaseURI(String baseURI) {
-		        fBaseSystemId = baseURI;
-		    }
-		
-		    public boolean getCertifiedText() {
-		        return fCertifiedText;
-		    }
-		
-		    public void setCertifiedText(boolean certifiedText) {
-		        fCertifiedText = certifiedText;
-		    }
+
+			protected String fSystemId;
+
+			protected String fBaseSystemId;
+
+			protected InputStream fByteStream;
+
+			protected Reader fCharStream;
+
+			protected String fData;
+
+			protected String fEncoding;
+
+			protected boolean fCertifiedText;
+
+			public InputStream getByteStream() {
+				return fByteStream;
+			}
+
+			public void setByteStream(InputStream byteStream) {
+				fByteStream = byteStream;
+			}
+
+			public Reader getCharacterStream() {
+				return fCharStream;
+			}
+
+			public void setCharacterStream(Reader characterStream) {
+				fCharStream = characterStream;
+			}
+
+			public String getStringData() {
+				return fData;
+			}
+
+			public void setStringData(String stringData) {
+				fData = stringData;
+			}
+
+			public String getEncoding() {
+				return fEncoding;
+			}
+
+			public void setEncoding(String encoding) {
+				fEncoding = encoding;
+			}
+
+			public String getPublicId() {
+				return fPublicId;
+			}
+
+			public void setPublicId(String publicId) {
+				fPublicId = publicId;
+			}
+
+			public String getSystemId() {
+				return fSystemId;
+			}
+
+			public void setSystemId(String systemId) {
+				fSystemId = systemId;
+			}
+
+			public String getBaseURI() {
+				return fBaseSystemId;
+			}
+
+			public void setBaseURI(String baseURI) {
+				fBaseSystemId = baseURI;
+			}
+
+			public boolean getCertifiedText() {
+				return fCertifiedText;
+			}
+
+			public void setCertifiedText(boolean certifiedText) {
+				fCertifiedText = certifiedText;
+			}
 		};
 	}
-	
-	
+
+
 	private static void validate(XmlSchemaCollection collection, Source source) throws SAXException {
 		try {
 			final XmlSchema[] schemas = collection.getXmlSchemas();
-			
+
 			Arrays.sort(schemas, new Comparator<XmlSchema>() {
 
 				public int compare(XmlSchema o1, XmlSchema o2) {
 					return SchemaMeta.isDynamic(o1) ?
-						-1 : SchemaMeta.isDynamic(o2) ?
-						1 : 0;
+							-1 : SchemaMeta.isDynamic(o2) ?
+									1 : 0;
 				}
-				
+
 			});
-			
+
 			final String collectionBaseURI = ((DefaultURIResolver)collection.getSchemaResolver()).getCollectionBaseURI();
-			
+
 			Source[] sources = new Source[schemas.length];
 			for (int i = 0; i < schemas.length; i++) {
 				Document doc = schemas[i].getSchemaDocument();
@@ -498,23 +499,23 @@ public class XmlSchemaUtils {
 				XMLUtils.saveXml(doc, tmp);
 				//doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
 				//doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
-				
+
 				// 7.2.x
 				//sources[i] = new DOMSource(doc, collectionBaseURI);
 				// 7.3.x
 				sources[i] = new StreamSource(tmp);
 			}
-			
+
 			factory.setResourceResolver(new LSResourceResolver() {
 				public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
 					System.out.println("==== Resolving '" + type + "' '" + namespaceURI + "' '" + publicId + "' '" + systemId + "' '" +baseURI + "'");
 					LSInput impl = createLSInputImpl();
 					InputStream ins = null;
-					
+
 					String resURL = null;
 					String sourceURI = null;
 					String schemaLocation = "";
-					
+
 					try {
 						if (baseURI != null) {
 							schemaLocation = baseURI.substring(0, baseURI.lastIndexOf("/") + 1);
@@ -524,27 +525,27 @@ public class XmlSchemaUtils {
 						}
 					}
 					catch (Exception e) {}
-					
+
 					if (systemId != null) {
 						if (systemId.indexOf(schemaLocation) < 0) {
 							resURL = schemaLocation + systemId;
 						} else {
 							resURL = systemId;
 						}
-						
+
 						sourceURI = resURL;
-						
+
 					} else if (namespaceURI != null) {
 						resURL = namespaceURI;
 					}
-					
+
 					try {
-						URL url = new URL(sourceURI);
+						URL url = new URI(sourceURI).toURL();
 						ins = url.openStream();
 					} catch (Exception e) {
 						//ignore
 					}
-					
+
 					if ((ins == null) && (namespaceURI != null)) {
 						for (XmlSchema xs : schemas/*collection.getXmlSchemas()*/) {
 							sourceURI = xs.getSourceURI();
@@ -579,7 +580,7 @@ public class XmlSchemaUtils {
 					return null;
 				}
 			});
-			
+
 			Schema vSchema = factory.newSchema(sources);
 			Validator validator = vSchema.newValidator();
 			validator.validate(source);
@@ -589,7 +590,7 @@ public class XmlSchemaUtils {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static XmlSchemaElement extractXmlSchemaElement(Document doc, final XmlSchema schemaAdopter, final DatabaseObject dboAdopter) throws Exception {
 		final String tns = schemaAdopter.getTargetNamespace();
 		XmlSchemaCollection collection = new XmlSchemaCollection();
@@ -602,7 +603,7 @@ public class XmlSchemaUtils {
 		SchemaMeta.setCollection(schema, collection);
 		XmlSchemaElement elt = (XmlSchemaElement) schema.getElements().getValues().next();
 		SchemaMeta.setSchema(elt, schema);
-		
+
 		new XmlSchemaWalkerWatcher() {
 			@Override
 			protected boolean on(XmlSchemaObject obj) {
@@ -639,12 +640,12 @@ public class XmlSchemaUtils {
 					obj.setSchemaTypeName(null);
 				}
 			}
-			
+
 		}.init(elt, true, false);
-		
+
 		return elt;
 	}
-	
+
 	public static QName getSchemaDataTypeName(String schemaDataTypeName) {
 		QName qname = Constants.XSD_STRING;
 		if (schemaDataTypeName != null && schemaDataTypeName.startsWith("xsd:")) {
@@ -655,7 +656,7 @@ public class XmlSchemaUtils {
 		}
 		return qname;
 	}
-	
+
 	public static boolean hasSameNamespace(XmlSchema schema1, XmlSchema schema2) throws EngineException {
 		String tns1 = schema1.getTargetNamespace();
 		String tns2 = schema2.getTargetNamespace();
@@ -681,7 +682,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(object);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaObject object) {
 		if (object instanceof XmlSchemaImport) {
 			remove(schema, (XmlSchemaImport) object);
@@ -708,7 +709,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(_import);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaImport _import) {
 		if (indexOf(schema.getIncludes(), _import) != -1) {
 			remove(schema.getIncludes(), _import);
@@ -740,7 +741,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(element);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaElement element) {
 		QName qname = element.getQName();
 		if (schema.getElementByName(qname) != null) {
@@ -748,7 +749,7 @@ public class XmlSchemaUtils {
 			remove(schema.getElements(), qname);
 		}
 	}
-	
+
 	public static void add(XmlSchema schema, XmlSchemaType type) {
 		QName qname = type.getQName();
 		if (schema.getTypeByName(qname) == null) {
@@ -756,7 +757,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(type);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaType type) {
 		QName qname = type.getQName();
 		if (schema.getTypeByName(qname) != null) {
@@ -772,7 +773,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(group);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaGroup group) {
 		QName qname = group.getName();
 		if (schema.getGroups().getItem(qname) != null) {
@@ -780,7 +781,7 @@ public class XmlSchemaUtils {
 			remove(schema.getGroups(), qname);
 		}
 	}
-	
+
 	public static void add(XmlSchema schema, XmlSchemaAttributeGroup attributeGroup) {
 		QName qname = attributeGroup.getName();
 		if (schema.getAttributeGroups().getItem(qname) == null) {
@@ -788,7 +789,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(attributeGroup);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaAttributeGroup attributeGroup) {
 		QName qname = attributeGroup.getName();
 		if (schema.getAttributeGroups().getItem(qname) != null) {
@@ -804,7 +805,7 @@ public class XmlSchemaUtils {
 			schema.getItems().add(attribute);
 		}
 	}
-	
+
 	public static void remove(XmlSchema schema, XmlSchemaAttribute attribute) {
 		QName qname = attribute.getQName();
 		if (schema.getAttributes().getItem(qname) != null) {
@@ -812,7 +813,7 @@ public class XmlSchemaUtils {
 			remove(schema.getAttributes(), qname);
 		}
 	}
-	
+
 	protected static void remove(XmlSchemaObjectTable objectTable, QName qname) {
 		Iterator<QName> it = GenericUtils.cast(objectTable.getNames());
 		while (it.hasNext()) {
@@ -833,7 +834,7 @@ public class XmlSchemaUtils {
 			}
 		}
 	}
-	
+
 	public static int indexOf(XmlSchemaObjectCollection xmlSchemaObjectCollection, XmlSchemaObject xmlSchemaObject) {
 		Iterator<XmlSchemaObject> it = GenericUtils.cast(xmlSchemaObjectCollection.getIterator());
 		int i = 0;
@@ -850,7 +851,7 @@ public class XmlSchemaUtils {
 	public static void handleXsdElement(Step step, XmlSchemaElement xsdElt, Element elt, XmlSchema schema) {
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(step, new XmlSchemaComplexType(schema));
 		xsdElt.setType(cType);
-		
+
 		NodeList nl = elt.getChildNodes();
 		boolean hasChild = false;
 		for (int i = 0; i < nl.getLength(); i++) {
@@ -859,12 +860,12 @@ public class XmlSchemaUtils {
 				break;
 			}
 		}
-		
+
 		XmlSchemaObjectCollection attributes;
 		if (hasChild) {
 			XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSequence());
 			cType.setParticle(seq);
-			
+
 			for (int i = 0; i < nl.getLength(); i++) {
 				if (nl.item(i) instanceof Element) {
 					Element child = (Element) nl.item(i);
@@ -882,14 +883,14 @@ public class XmlSchemaUtils {
 		} else {
 			XmlSchemaSimpleContent simpleContent = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSimpleContent());
 			cType.setContentModel(simpleContent);
-			
+
 			XmlSchemaSimpleContentExtension simpleContentExtension = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSimpleContentExtension());
 			simpleContent.setContent(simpleContentExtension);
-			
+
 			simpleContentExtension.setBaseTypeName(step.getSimpleTypeAffectation());
 			attributes = simpleContentExtension.getAttributes();
 		}
-		
+
 		XmlSchemaAttribute attribute;
 		NamedNodeMap attrs = elt.getAttributes();
 		for (int i = 0; i < attrs.getLength(); i++) {

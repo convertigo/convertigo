@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -40,17 +41,17 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class TranslateUtils {
 	public static class Translator {
-		
+
 		private Translator() {
-			
+
 		}
-		
+
 		public void translate(Locale from, File fromFile, Locale to, File toFile) throws EngineException {
 			boolean failed = false;
 			try {
 				// load source file (from)
 				JSONObject jsonObject = loadTranslations(fromFile);
-				
+
 				// translate using free google api
 				JSONObject translations = new JSONObject();
 				String value = null, key = null;
@@ -60,23 +61,23 @@ public class TranslateUtils {
 					while (it.hasNext()) {
 						key = it.next();
 						value = jsonObject.getString(key);
-						
+
 						String url = "https://translate.googleapis.com/translate_a/single?"+
 								"client=gtx&"+
 								"sl=" + from.getLanguage() + 
 								"&tl=" + to.getLanguage() + 
-								"&dt=t&q=" + URLEncoder.encode(value, "UTF-8");    
-						
-						URL obj = new URL(url);
+								"&dt=t&q=" + URLEncoder.encode(value, "UTF-8");
+
+						URL obj = new URI(url).toURL();
 						HttpURLConnection con = (HttpURLConnection) obj.openConnection(); 
 						con.setRequestProperty("User-Agent", "Mozilla/5.0");
 						con.setRequestProperty("Accept-Charset", "UTF-8");	
-						
+
 						String encoding = con.getContentEncoding();
 						if (encoding == null) {
 							encoding = "UTF-8";
 						}
-						
+
 						BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), encoding));
 						StringBuffer response = new StringBuffer();
 						String inputLine;
@@ -84,14 +85,14 @@ public class TranslateUtils {
 							response.append(inputLine);
 						}
 						in.close();
-					
+
 						String translation = parseResult(response.toString());
 						translations.put(key, translation);
 					}
 				} catch (Exception e) {
 					failed = true;
 				}
-				
+
 				// save file translated
 				if (!failed) {
 					if (!toFile.exists()) {
@@ -100,7 +101,7 @@ public class TranslateUtils {
 						storeTranslations(translations, toFile);
 					}
 				}
-				
+
 			} catch (Exception e) {
 				if (failed) {
 					throw new EngineException("Unable to translate file through google api", e);
@@ -109,7 +110,7 @@ public class TranslateUtils {
 				}
 			}
 		}
-		
+
 		private String parseResult(String jsonResponse) throws Exception {
 			//System.out.println(jsonResponse);
 			String translation = "";
@@ -123,11 +124,11 @@ public class TranslateUtils {
 			return translation;
 		}		
 	}
-	
+
 	public static Translator newTranslator() {
 		return new Translator();
 	}
-	
+
 	private static boolean existTranslationFiles(Project project) {
 		if (project != null) {
 			File i18nDir = new File(project.getDirPath(), "DisplayObjects/mobile/assets/i18n");
@@ -146,7 +147,7 @@ public class TranslateUtils {
 		}
 		return false;
 	}
-	
+
 	public static String htmlIonicTranslate(Project project, String text) {
 		if (existTranslationFiles(project)) {
 			String key = computeKey(text);
@@ -156,7 +157,7 @@ public class TranslateUtils {
 		}
 		return text;
 	}
-	
+
 	static String getComputedKey(Project project, String text) {
 		if (existTranslationFiles(project)) {
 			String key = computeKey(text);
@@ -166,7 +167,7 @@ public class TranslateUtils {
 		}
 		return text;
 	}
-	
+
 	private static boolean isCharAllowed(char c) {
 		if ((c == '_') || (c == '-')) {
 			return true;
@@ -182,20 +183,20 @@ public class TranslateUtils {
 		}
 		return false;
 	}
-	
+
 	private static String escape(String text) {
 		if (text != null  && !text.isEmpty()) {
 			int len = text.length();
 			StringBuffer sb = new StringBuffer(len);
-	        for (int i = 0 ; i < len ; i++) {
-	            char c = text.charAt(i);
-	            sb.append(isCharAllowed(c) ? c : "_");
-	        }
-	        return sb.toString();
+			for (int i = 0 ; i < len ; i++) {
+				char c = text.charAt(i);
+				sb.append(isCharAllowed(c) ? c : "_");
+			}
+			return sb.toString();
 		}
 		return text;
 	}
-	
+
 	private static String computeKey(String text) {
 		if (text != null  && !text.isEmpty()) {
 			String escaped = escape(text);
@@ -222,25 +223,25 @@ public class TranslateUtils {
 				}
 			}
 		}
-		
+
 		// store translations to file
 		storeTranslations(jsonObject, file);
 	}
-	
+
 	private static void storeTranslations(JSONObject jsonObject, File file) throws EngineException {
 		if (file == null || jsonObject == null) {
 			throw new EngineException("Unable to store translations : invalid null argument");
 		}
-		
+
 		// update translations : do not overwrite existing ones
 		if (file.exists()) {
 			JSONObject translations = loadTranslations(file);
-			
+
 			// return if no change
 			if (jsonObject.toString().equals(translations.toString())) {
 				return;
 			}
-			
+
 			String translation = null, key = null;
 			@SuppressWarnings("unchecked")
 			Iterator<String> it = translations.keys();
@@ -252,11 +253,11 @@ public class TranslateUtils {
 				} catch (JSONException e) {}
 			}
 		}
-		
+
 		// save translations to file
 		saveTranslations(jsonObject, file);
 	}
-	
+
 	private static void saveTranslations(JSONObject jsonObject, File file) throws EngineException {
 		try {
 			String content = jsonObject.toString(1);
@@ -265,7 +266,7 @@ public class TranslateUtils {
 			throw new EngineException("Unable to save translations to file", e);
 		}
 	}
-	
+
 	private static JSONObject loadTranslations(File file) throws EngineException {
 		try {
 			String content = FileUtils.readFileToString(file, "UTF-8");
@@ -274,5 +275,5 @@ public class TranslateUtils {
 			throw new EngineException("Unable to load translations from file", e);
 		}
 	}
-	
+
 }

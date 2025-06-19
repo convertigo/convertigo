@@ -55,7 +55,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 		roles = { Role.ANONYMOUS },
 		parameters = {},
 		returnValue = ""
-	)
+		)
 public class GetPackage extends DownloadService {
 
 	@Override
@@ -113,7 +113,7 @@ public class GetPackage extends DownloadService {
 		int methodStatusCode;
 		InputStream methodBodyContentInputStream;
 
-		URL url = new URL(mobileBuilderPlatformURL + "/getpackage");
+		URL url = new java.net.URI(mobileBuilderPlatformURL + "/getpackage").toURL();
 
 		HostConfiguration hostConfiguration = new HostConfiguration();
 		hostConfiguration.setHost(new URI(url.toString(), true));

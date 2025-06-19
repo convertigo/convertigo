@@ -19,6 +19,61 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.core.IMappingRefModel;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.MimeType;
+
 import io.swagger.models.Contact;
 import io.swagger.models.ExternalDocs;
 import io.swagger.models.Info;
@@ -51,60 +106,6 @@ import io.swagger.models.utils.PropertyModelConverter;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.connectors.HttpConnector;
-import com.twinsoft.convertigo.beans.core.IMappingRefModel;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.UrlAuthentication;
-import com.twinsoft.convertigo.beans.core.UrlMapper;
-import com.twinsoft.convertigo.beans.core.UrlMapping;
-import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
-import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
-import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
-import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
-import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
-import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
-import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
-import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
-import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.ProductVersion;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.SchemaManager.Option;
-import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
-import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
-import com.twinsoft.convertigo.engine.enums.HeaderName;
-import com.twinsoft.convertigo.engine.enums.HttpMethodType;
-import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class SwaggerUtils {
 	public static String servletMappingPath = "api";
@@ -114,15 +115,15 @@ public class SwaggerUtils {
 	public static Swagger read(String url) {
 		return new SwaggerParser().read(url);
 	}
-	
+
 	private static Swagger parseCommon(String requestUrl, Project project) {
 		Swagger swagger = new Swagger();
-		
+
 		Contact contact = new Contact();
 		/*contact.setName("Convertigo Support");
 		contact.setEmail("support@convertigo.com");
 		contact.setUrl("http://www.convertigo.com/#developers");*/
-		
+
 		Info info = new Info();
 		info.setContact(contact);
 		info.setTitle("Convertigo OAS2 REST API");
@@ -137,7 +138,7 @@ public class SwaggerUtils {
 		List<Scheme> schemes = new ArrayList<Scheme>();
 		String host;
 		String basePath;
-		
+
 		Matcher matcher = parseRequestUrl.matcher(requestUrl);
 		if (matcher.find()) {
 			schemes.add(matcher.group(1) == null ? Scheme.HTTP : Scheme.HTTPS);
@@ -155,26 +156,26 @@ public class SwaggerUtils {
 		swagger.setSchemes(schemes);
 		swagger.setHost(host);
 		swagger.setBasePath(basePath);
-		
+
 		swagger.setConsumes(Arrays.asList("multipart/form-data", MimeType.WwwForm.value(), MimeType.Json.value(), MimeType.Xml.value()));
 		swagger.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
-		
+
 		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" +
-							URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
-							+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
-							+ (Engine.isStudioMode() ? "&showErrors" : "");
-		
+				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
+						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
+		+ (Engine.isStudioMode() ? "&showErrors" : "");
+
 		ExternalDocs externalDocs = new ExternalDocs();
 		externalDocs.setDescription("Switch to Open Api definition (oas3)");
 		externalDocs.setUrl(oas3Url);
 		swagger.setExternalDocs(externalDocs);
-		
+
 		return swagger;
 	}
-	
+
 	public static Swagger parse(String requestUrl, Collection<UrlMapper> collection) {
 		Swagger swagger = parseCommon(requestUrl, null);
-		
+
 		List<Tag> tags = new ArrayList<Tag>();
 		Map<String, Path> paths = new HashMap<String, Path>();
 		Map<String, Model> models = new HashMap<String, Model>();
@@ -193,44 +194,44 @@ public class SwaggerUtils {
 		swagger.setTags(tags);
 		swagger.setPaths(paths);
 		swagger.setDefinitions(models);
-		
+
 		return swagger;
 	}
-	
+
 	public static Swagger parse(String requestUrl, String projectName) {
 		Swagger swagger;
-		
+
 		Project project = null;
 		try {
 			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 			swagger = parseCommon(requestUrl, project);
-			
+
 			List<Tag> tags = new ArrayList<Tag>();
 			Tag tag = new Tag();
 			tag.setName(projectName);
 			tag.setDescription(project.getComment());
 			tags.add(tag);
 			swagger.setTags(tags);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			swagger = new Swagger();
 		}
-		
+
 		return swagger;
 	}
-	
+
 	private static String getModels(String oasDirUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
-		
+
 		// User defined models
 		String models = "{}";
 		String mapperModels = urlMapper.getModels();
 		if (!mapperModels.isEmpty()) {
 			models = mapperModels;
 		}
-		
+
 		// Generated models from XSD
 		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
@@ -240,14 +241,14 @@ public class SwaggerUtils {
 				if (!xsdFile.exists()) {
 					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + "/oas/xsd2.jsonschema"), xsdFile, true);
 				}
-				
+
 				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
 				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
 				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
 					String tns = xmlSchema.getTargetNamespace();
 					if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
 					if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
-	
+
 					String prefix = nsMap.getPrefix(tns);
 					File jsonschemaFile = new File(targetDir, prefix+".jsonschema" );
 					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, true);
@@ -263,26 +264,26 @@ public class SwaggerUtils {
 				} catch (Exception ex) {}
 			}
 		}
-		
+
 		return models;
 	}
-	
+
 	public static Swagger parse(String requestUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
-		
+
 		String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + 
-								"/projects/"+ projectName + "/"+ jsonSchemaDirectory+"/";
-		
+				"/projects/"+ projectName + "/"+ jsonSchemaDirectory+"/";
+
 		Swagger swagger = parseCommon(requestUrl, project);
-		
+
 		List<Tag> tags = new ArrayList<Tag>();
 		Tag tag = new Tag();
 		tag.setName(urlMapper.getProject().getName());
 		tag.setDescription(urlMapper.getProject().getComment());
 		tags.add(tag);
 		swagger.setTags(tags);
-		
+
 		// Security
 		Map<String, SecuritySchemeDefinition> securityDefinitions = swagger.getSecurityDefinitions();
 		for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
@@ -290,24 +291,25 @@ public class SwaggerUtils {
 				if (securityDefinitions == null || !securityDefinitions.containsKey("basicAuth")) {
 					BasicAuthDefinition basicAuthDefinition = new BasicAuthDefinition();
 					swagger.addSecurityDefinition("basicAuth", basicAuthDefinition);
-					
+
 					SecurityRequirement securityRequirement = new SecurityRequirement();
 					securityRequirement.requirement("basicAuth", new ArrayList<String>());
 					swagger.addSecurity(securityRequirement);
 				}
 			}
 		}
-		
+
 		// Models and Schemas
-		Map<String, Model> swagger_models = new HashMap<String, Model>();		
+		Map<String, Model> swagger_models = new HashMap<String, Model>();
 		try {
 			String models = getModels(oasDirUrl, urlMapper);
 			if (!models.isEmpty()) {
 				ObjectMapper mapper = Json.mapper();
 				JsonNode definitionNode = mapper.readTree(models);
-				for (Iterator<Entry<String, JsonNode>> it = GenericUtils.cast(definitionNode.fields()); it.hasNext();) {
-					Entry<String, JsonNode> entry = it.next();
-					swagger_models.put(entry.getKey().toString(), mapper.convertValue(entry.getValue(), Model.class));
+				for (Iterator<String> it = GenericUtils.cast(definitionNode.fieldNames()); it.hasNext();) {
+					var name = it.next();
+					var value = definitionNode.get(name);
+					swagger_models.put(name, mapper.convertValue(value, Model.class));
 				}
 			}
 		} catch (Exception e) {
@@ -315,7 +317,7 @@ public class SwaggerUtils {
 			Engine.logEngine.warn("Unexpected exception while reading UrlMapper defined models", e);
 		}
 		swagger.setDefinitions(swagger_models);
-		
+
 		// Mappings
 		Map<String, Path> swagger_paths = new HashMap<String, Path>();
 		try {
@@ -326,7 +328,7 @@ public class SwaggerUtils {
 					s_operation.setOperationId(umo.getQName());
 					s_operation.setDescription(umo.getComment());
 					s_operation.setSummary(umo.getComment());
-					
+
 					// Operation produces
 					if (umo instanceof AbstractRestOperation) {
 						DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
@@ -340,14 +342,14 @@ public class SwaggerUtils {
 							s_operation.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
 						}
 					}
-					
+
 					// Operation tags
 					List<String> list = Arrays.asList(""+ project.getName());
 					s_operation.setTags(list);
-					
+
 					// Operation consumes
 					List<String> consumes = new ArrayList<String>();
-					
+
 					// Operation parameters
 					List<Parameter> s_parameters = new ArrayList<Parameter>();
 					// 1 - add path parameters
@@ -356,7 +358,7 @@ public class SwaggerUtils {
 						s_parameter.setName(pathVarName);
 						s_parameter.setRequired(true);
 						s_parameter.setType("string");
-						
+
 						// retrieve parameter description from bean
 						UrlMappingParameter ump = null;
 						try {
@@ -365,13 +367,13 @@ public class SwaggerUtils {
 						if (ump != null && ump.getType() == Type.Path) {
 							s_parameter.setDescription(ump.getComment());
 							s_parameter.setType(ump.getInputType().toLowerCase());
-							
+
 							Object value = ump.getValueOrNull();
 							if (value != null) {
 								s_parameter.setDefaultValue(String.valueOf(value));
 							}
 						}
-						
+
 						s_parameters.add(s_parameter);
 					}
 					// 2 - add other parameters
@@ -402,22 +404,22 @@ public class SwaggerUtils {
 						else if (ump.getType() == Type.Path) {
 							// ignore : should have been treated before
 						}
-						
+
 						if (s_parameter != null) {
 							s_parameter.setName(ump.getName());
 							s_parameter.setDescription(ump.getComment());
 							s_parameter.setRequired(ump.isRequired());
-							
+
 							if (s_parameter instanceof SerializableParameter) {
 								boolean isArray = ump.isMultiValued() || ump.isArray();
 								String _type = isArray ? "array":ump.getDataType().name().toLowerCase();
 								String _collectionFormat = ump.isMultiValued() ? "multi":(isArray ? "csv":null);
 								Property _items = isArray ? getItems(ump.getDataType()):null;
-								
+
 								((SerializableParameter)s_parameter).setType(_type);
 								((SerializableParameter)s_parameter).setCollectionFormat(_collectionFormat);
 								((SerializableParameter) s_parameter).setItems(_items);
-								
+
 								Object value = ump.getValueOrNull();
 								if (value != null) {
 									String collection = ((SerializableParameter)s_parameter).getCollectionFormat();
@@ -431,7 +433,7 @@ public class SwaggerUtils {
 									}
 								}
 							}
-							
+
 							DataContent dataInput = ump.getInputContent();
 							if (dataInput.equals(DataContent.toJson)) {
 								if (!consumes.contains(MimeType.Json.value())) {
@@ -443,7 +445,7 @@ public class SwaggerUtils {
 									consumes.add(MimeType.Xml.value());
 								}
 							}
-							
+
 							// swagger-ui workaround for invalid request content-type for POST
 							if (ump.getType() == Type.Form) {
 								if (!DataType.File.equals(ump.getDataType())) {
@@ -456,7 +458,7 @@ public class SwaggerUtils {
 									}
 								}
 							}
-							
+
 							// add parameter
 							if (ump.isExposed()) {
 								s_parameters.add(s_parameter);
@@ -464,11 +466,11 @@ public class SwaggerUtils {
 						}
 					}
 					s_operation.setParameters(s_parameters);
-					
+
 					if (!consumes.isEmpty()) {
 						s_operation.setConsumes(consumes);
 					}
-					
+
 					// Set operation responses
 					Map<String, Response> responses = new HashMap<String, Response>();
 					for (UrlMappingResponse umr: umo.getResponseList()) {
@@ -498,7 +500,7 @@ public class SwaggerUtils {
 						responses.put("200", resp200);
 					}
 					s_operation.setResponses(responses);
-					
+
 					// Add operation to path
 					String s_method = umo.getMethod().toLowerCase();
 					swagger_path.set(s_method, s_operation);
@@ -510,30 +512,30 @@ public class SwaggerUtils {
 			e.printStackTrace();
 			Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
 		}
-		
+
 		swagger.setPaths(swagger_paths);
-		
+
 		return swagger;
 	}
-	
+
 	public static HttpConnector createRestConnector(Swagger swagger) throws Exception {
 		try {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
-			
-			
+
+
 			Info info = swagger.getInfo();
 			String title = info != null ? info.getTitle():"";
 			title = title == null || title.isEmpty() ? "RestConnector":title;
 			httpConnector.setName(StringUtils.normalize(title));
-			
+
 			boolean isHttps = false;
 			for (Scheme scheme: swagger.getSchemes()) {
 				if (scheme.equals(Scheme.HTTPS)) {
 					isHttps = true;
 				}
 			}
-			
+
 			String host = swagger.getHost();
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
@@ -541,10 +543,10 @@ public class SwaggerUtils {
 			httpConnector.setHttps(isHttps);
 			httpConnector.setServer(server);
 			httpConnector.setPort(port <= 0 ? (isHttps ? 443:80) : port);
-			
+
 			String basePath = swagger.getBasePath();
 			httpConnector.setBaseDir(basePath == null ? "" : basePath);
-			
+
 			Map<String, SecuritySchemeDefinition> securityMap = swagger.getSecurityDefinitions();
 			if (securityMap != null && securityMap.size() > 0) {
 				for (String securityName : securityMap.keySet()) {
@@ -558,20 +560,20 @@ public class SwaggerUtils {
 					}
 				}
 			}
-			
+
 			List<String> _consumeList = swagger.getConsumes();
 			List<String> _produceList = swagger.getProduces();
 
 			//Map<String, Model> models = swagger.getDefinitions();
-			
+
 			Map<String, Path> paths = swagger.getPaths();
 			for (String subDir : paths.keySet()) {
 				Path path = paths.get(subDir);
-				
+
 				// Add transactions
 				List<Operation> operations = path.getOperations();
 				for (Operation operation : operations) {
-					
+
 					HttpMethodType httpMethodType = null;
 					if (operation.equals(path.getGet())) {
 						httpMethodType = HttpMethodType.GET;
@@ -588,18 +590,18 @@ public class SwaggerUtils {
 					} else {
 						httpMethodType = null;
 					}
-					
+
 					if (httpMethodType != null) {
 						List<String> consumeList = operation.getConsumes();
 						consumeList = consumeList== null || consumeList.isEmpty() ? _consumeList : consumeList;
-						
+
 						List<String> produceList = operation.getProduces();
 						produceList = produceList== null || produceList.isEmpty() ? _produceList : produceList;
-						
+
 						String operationId = operation.getOperationId();
 						String description = operation.getDescription();
 						String summary = operation.getSummary();
-						
+
 						String name = StringUtils.normalize(subDir + ":" + httpMethodType.toString());
 						if (name.isEmpty()) {
 							name = StringUtils.normalize(operationId);
@@ -610,18 +612,18 @@ public class SwaggerUtils {
 								}
 							}
 						}
-						
+
 						String comment = summary;
 						if (comment == null)
 							comment ="";
-						
+
 						if (comment.isEmpty()) {
 							comment = description;
 						}
-						
+
 						XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 						AbstractHttpTransaction transaction = new HttpTransaction();
-						
+
 						String h_ContentType = MimeType.WwwForm.value();
 						if (consumeList != null) {
 							if (consumeList.contains(MimeType.Json.value())) {
@@ -635,7 +637,7 @@ public class SwaggerUtils {
 										consumeList.get(0) : MimeType.WwwForm.value();
 							}
 						}
-						
+
 						String h_Accept = MimeType.Json.value();
 						if (produceList != null) {
 							if (produceList.contains(h_ContentType)) {
@@ -649,18 +651,18 @@ public class SwaggerUtils {
 									h_Accept = MimeType.Xml.value();
 								}
 							}
-							
+
 							if (consumeList == null && h_Accept != null) {
 								h_ContentType = h_Accept;
 							}
 						}
-						
+
 						if (h_Accept != null) {
 							XMLVector<String> xmlv = new XMLVector<String>();
 							xmlv.add("Accept");
 							xmlv.add(h_Accept);
-				   			httpParameters.add(xmlv);
-				   			
+							httpParameters.add(xmlv);
+
 							if (h_Accept.equals(MimeType.Xml.value())) {
 								transaction = new XmlHttpTransaction();
 								((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
@@ -670,7 +672,7 @@ public class SwaggerUtils {
 								((JsonHttpTransaction)transaction).setIncludeDataType(true);
 							}
 						}
-						
+
 						// Add variables
 						boolean hasBodyVariable = false;
 						List<io.swagger.models.parameters.Parameter> parameters = operation.getParameters();
@@ -682,7 +684,7 @@ public class SwaggerUtils {
 							//String p_pattern = parameter.getPattern();
 							boolean p_required = parameter.getRequired();
 							//Map<String,Object> p_extensions = parameter.getVendorExtensions();
-							
+
 							boolean isMultiValued = false;
 							if (parameter instanceof SerializableParameter) {
 								SerializableParameter serializable = (SerializableParameter)parameter;
@@ -692,16 +694,16 @@ public class SwaggerUtils {
 									}
 								}
 							}
-							
+
 							RequestableHttpVariable httpVariable = isMultiValued ? 
-																	new RequestableHttpMultiValuedVariable():
-																	new RequestableHttpVariable();
+									new RequestableHttpMultiValuedVariable():
+										new RequestableHttpVariable();
 							httpVariable.bNew = true;
-							
+
 							httpVariable.setName(p_name);
 							httpVariable.setHttpName(p_name);
 							httpVariable.setRequired(p_required);
-							
+
 							if (parameter instanceof QueryParameter || parameter instanceof PathParameter || parameter instanceof HeaderParameter) {
 								httpVariable.setHttpMethod(HttpMethodType.GET.name());
 								if (parameter instanceof HeaderParameter) {
@@ -725,7 +727,7 @@ public class SwaggerUtils {
 									hasBodyVariable = true;
 									// overrides variable's name for internal use
 									httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
-									
+
 									// add internal __contentType variable
 									/*RequestableHttpVariable ct = new RequestableHttpVariable();
 									ct.setName(Parameter.HttpContentType.getName());
@@ -733,18 +735,18 @@ public class SwaggerUtils {
 									ct.setValueOrNull(null);
 									ct.bNew = true;
 									transaction.addVariable(ct);*/
-									
+
 									BodyParameter bodyParameter = (BodyParameter)parameter;
 									Model model = bodyParameter.getSchema();
 									if (model != null) {
-										
+
 									}
 								}
 							}
 							else {
 								httpVariable.setHttpMethod("");
 							}
-							
+
 							Object defaultValue = null;
 							if (parameter instanceof AbstractSerializableParameter<?>) {
 								defaultValue = ((AbstractSerializableParameter<?>)parameter).getDefaultValue();
@@ -763,24 +765,24 @@ public class SwaggerUtils {
 								defaultValue = "";
 							}
 							httpVariable.setValueOrNull(defaultValue);
-							
+
 							if (p_description != null) {
 								httpVariable.setDescription(p_description);
 								httpVariable.setComment(p_description);
 							}
-							
+
 							transaction.addVariable(httpVariable);
 						}
-						
+
 						// Set Content-Type
 						if (h_ContentType != null) {
 							XMLVector<String> xmlv = new XMLVector<String>();
 							xmlv.add(HeaderName.ContentType.value());
 							xmlv.add(hasBodyVariable ? h_ContentType:MimeType.WwwForm.value());
-				   			httpParameters.add(xmlv);
+							httpParameters.add(xmlv);
 						}
-						
-						
+
+
 						transaction.bNew =  true;
 						transaction.setName(name);
 						transaction.setComment(comment);
@@ -788,13 +790,13 @@ public class SwaggerUtils {
 						transaction.setHttpVerb(httpMethodType);
 						transaction.setHttpParameters(httpParameters);
 						transaction.setHttpInfo(true);
-						
+
 						httpConnector.add(transaction);
-						
+
 					}
 				}
 			}
-			
+
 			return httpConnector;
 		}
 		catch (Throwable t) {
@@ -802,31 +804,31 @@ public class SwaggerUtils {
 			throw new Exception("Unable to create connector", t);
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private static HttpConnector createRestConnector(JSONObject json) throws Exception {
 		try {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
-			
+
 			JSONObject info = json.getJSONObject("info");
 			httpConnector.setName(StringUtils.normalize(info.getString("title")));
-			
+
 			String host = json.getString("host");
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
 			httpConnector.setServer(server);
 			httpConnector.setPort(port <= 0 ? 80:port);
-			
+
 			String basePath = json.getString("basePath");
 			httpConnector.setBaseDir(basePath);
-			
+
 			JSONArray _consumes = new JSONArray();
 			if (json.has("consumes")) {
 				_consumes = json.getJSONArray("consumes");
 			}
-			
+
 			JSONArray _produces = new JSONArray();
 			if (json.has("produces")) {
 				_produces = json.getJSONArray("produces");
@@ -842,25 +844,25 @@ public class SwaggerUtils {
 					models.put(key, model);
 				}
 			}
-			
+
 			JSONObject paths = json.getJSONObject("paths");
 			for (Iterator<String> i1 = GenericUtils.cast(paths.keys()); i1.hasNext(); ) {
 				String subDir = i1.next();
 				JSONObject path = paths.getJSONObject(subDir);
-				
+
 				for (Iterator<String> i2 = GenericUtils.cast(path.keys()); i2.hasNext(); ) {
 					String httpVerb = i2.next();
 					JSONObject verb = path.getJSONObject(httpVerb);
-					
+
 					XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 					AbstractHttpTransaction transaction = new HttpTransaction();
-					
+
 					JSONArray consumes = verb.has("consumes") ? verb.getJSONArray("consumes"):_consumes;
 					List<String> consumeList = new ArrayList<String>();
 					for (int i=0; i<consumes.length(); i++) {
 						consumeList.add(consumes.getString(i));
 					}
-					
+
 					String h_ContentType = null;
 					if (consumeList.contains(MimeType.Xml.value())) {
 						h_ContentType = MimeType.Xml.value();
@@ -872,13 +874,13 @@ public class SwaggerUtils {
 						h_ContentType = consumeList.size() > 0 ? 
 								consumeList.get(0) : MimeType.WwwForm.value();
 					}
-					
+
 					JSONArray produces = verb.has("produces") ? verb.getJSONArray("produces"):_produces;
 					List<String> produceList = new ArrayList<String>();
 					for (int i=0; i<produces.length(); i++) {
 						produceList.add(produces.getString(i));
 					}
-					
+
 					String h_Accept = null;
 					if (produceList.contains(h_ContentType)) {
 						h_Accept = h_ContentType;
@@ -891,13 +893,13 @@ public class SwaggerUtils {
 							h_Accept = MimeType.Json.value();
 						}
 					}
-					
+
 					if (h_Accept != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
 						xmlv.add("Accept");
 						xmlv.add(h_Accept);
-			   			httpParameters.add(xmlv);
-			   			
+						httpParameters.add(xmlv);
+
 						if (h_Accept.equals(MimeType.Xml.value())) {
 							transaction = new XmlHttpTransaction();
 							((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
@@ -906,32 +908,32 @@ public class SwaggerUtils {
 							transaction = new JsonHttpTransaction();
 							((JsonHttpTransaction)transaction).setIncludeDataType(true);
 						}
-						
+
 					}
-					
+
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
 						xmlv.add(HeaderName.ContentType.value());
 						xmlv.add(h_ContentType);
-			   			httpParameters.add(xmlv);
+						httpParameters.add(xmlv);
 					}
-					
+
 
 					String operationId = "";
 					if (verb.has("operationId")) {
 						operationId = verb.getString("operationId");
 					}
-					
+
 					String summary = "";
 					if (verb.has("summary")) {
 						summary = verb.getString("summary");
 					}
-					
+
 					String description ="";
 					if (verb.has("description")) {
 						description = verb.getString("description");
 					}
-					
+
 					String name = StringUtils.normalize(operationId);
 					if (name.isEmpty()) {
 						name = StringUtils.normalize(summary);
@@ -939,39 +941,39 @@ public class SwaggerUtils {
 							name = "operation";
 						}
 					}
-					
+
 					String comment = summary;
 					if (comment.isEmpty()) {
 						comment = description;
 					}
-					
+
 					JSONArray parameters = new JSONArray();
 					if (verb.has("parameters")) {
 						parameters = verb.getJSONArray("parameters");
 						for (int i=0; i<parameters.length(); i++) {
 							JSONObject parameter = (JSONObject) parameters.get(i);
-							
+
 							String type = "string";
 							if (parameter.has("collectionFormat")) {
 								type = parameter.getString("type");
 							}
-							
+
 							String collectionFormat = "csv";
 							if (parameter.has("collectionFormat")) {
 								collectionFormat = parameter.getString("collectionFormat");
 							}
-							
+
 							boolean isMultiValued = type.equalsIgnoreCase("array") && 
-														collectionFormat.equals("multi");
-							
+									collectionFormat.equals("multi");
+
 							RequestableHttpVariable httpVariable = isMultiValued ? 
-																	new RequestableHttpMultiValuedVariable():
-																	new RequestableHttpVariable();
+									new RequestableHttpMultiValuedVariable():
+										new RequestableHttpVariable();
 							httpVariable.bNew = true;
-							
+
 							httpVariable.setName(parameter.getString("name"));
 							httpVariable.setHttpName(parameter.getString("name"));
-							
+
 							String in = parameter.getString("in");
 							if (in.equals("query") || in.equals("path") || in.equals("header")) {
 								httpVariable.setHttpMethod(HttpMethodType.GET.name());
@@ -986,7 +988,7 @@ public class SwaggerUtils {
 								if (in.equals("body")) {
 									// overrides variable's name for internal use
 									httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
-									
+
 									// add internal __contentType variable
 									RequestableHttpVariable ct = new RequestableHttpVariable();
 									ct.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpContentType.getName());
@@ -995,7 +997,7 @@ public class SwaggerUtils {
 									ct.setValueOrNull(null);
 									ct.bNew = true;
 									transaction.addVariable(ct);
-									
+
 									//
 									if (parameter.has("schema")) {
 										//String schema = parameter.getString("schema");
@@ -1005,7 +1007,7 @@ public class SwaggerUtils {
 							else {
 								httpVariable.setHttpMethod("");
 							}
-							
+
 							Object defaultValue = null;
 							if (parameter.has("default")) {
 								defaultValue = parameter.get("default");
@@ -1017,15 +1019,15 @@ public class SwaggerUtils {
 								}
 							}
 							httpVariable.setValueOrNull(defaultValue);
-							
+
 							if (parameter.has("description")) {
 								httpVariable.setDescription(parameter.getString("description"));
 							}
-							
+
 							transaction.addVariable(httpVariable);
 						}
 					}
-					
+
 					transaction.bNew =  true;
 					transaction.setName(name);
 					transaction.setComment(comment);
@@ -1033,11 +1035,11 @@ public class SwaggerUtils {
 					transaction.setHttpVerb(HttpMethodType.valueOf(httpVerb.toUpperCase()));
 					transaction.setHttpParameters(httpParameters);
 					transaction.setHttpInfo(true);
-					
+
 					httpConnector.add(transaction);
 				}
 			}
-			
+
 			return httpConnector;
 		}
 		catch (Throwable t) {
@@ -1045,7 +1047,7 @@ public class SwaggerUtils {
 			throw new Exception("Invalid Swagger format", t);
 		}
 	}
-	
+
 	public static Property getItems(DataType dataType) {
 		if (DataType.String.equals(dataType))
 			return new StringProperty();
@@ -1057,7 +1059,7 @@ public class SwaggerUtils {
 			return new DoubleProperty();
 		return null;
 	}
-	
+
 	public static String getYamlDefinition(String requestUrl, Object object) throws JsonProcessingException {
 		if (object instanceof String) {	// project name
 			return prettyPrintYaml(parse(requestUrl, (String) object));
@@ -1085,11 +1087,11 @@ public class SwaggerUtils {
 		}
 		return null;
 	}
-	
+
 	public static String prettyPrintJson(Swagger swagger) {
 		return Json.pretty(swagger);
 	}
-	
+
 	public static String prettyPrintYaml(Swagger swagger) throws JsonProcessingException {
 		return Yaml.pretty().writeValueAsString(swagger);
 	}
@@ -1101,7 +1103,7 @@ public class SwaggerUtils {
 			Yaml.prettyPrint(swagger);
 		}		
 	}
-	
+
 	public static void testReadYaml() {
 		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.yaml");
 		if (swagger != null) {
@@ -1109,7 +1111,7 @@ public class SwaggerUtils {
 			Yaml.prettyPrint(swagger);
 		}		
 	}
-	
+
 	public static void testReadPath() throws JsonProcessingException, IOException {
 		String data = "{"
 				+ "\"post\": { \"tags\": [\"pet\"], \"summary\": \"add a new pet to the store\", \"description\": \"\", \"operationid\": \"addpet\", \"consumes\": [\"application/json\", \"application/xml\"], \"produces\": [\"application/xml\", \"application/json\"], \"parameters\": [{ \"in\": \"body\", \"name\": \"body\", \"description\": \"pet object that needs to be added to the store\", \"required\": true, \"schema\": { \"$ref\": \"#/definitions/pet\" } }], \"responses\": { \"405\": { \"description\": \"invalid input\" } }, \"security\": [{ \"petstore_auth\": [\"write:pets\", \"read:pets\"] }] },"
@@ -1121,7 +1123,7 @@ public class SwaggerUtils {
 		Json.prettyPrint(path);
 	}
 
-/*
+	/*
 	public static void main(String[] args) {
 		try {
 			testReadJson();
@@ -1132,5 +1134,5 @@ public class SwaggerUtils {
 			t.printStackTrace();
 		}
 	}
-*/
+	 */
 }

@@ -307,10 +307,10 @@ public class HttpBridge {
 	};
 
 	static private int findString(
-		String target,
-		String[] candList,
-		boolean[] candFlags,
-		boolean matchFlag) {
+			String target,
+			String[] candList,
+			boolean[] candFlags,
+			boolean matchFlag) {
 		int k = 0, kSize = candList.length;
 		for (; k < kSize; k++)
 			if (candFlags[k] == matchFlag && candList[k].equals(target))
@@ -322,11 +322,11 @@ public class HttpBridge {
 	static void convertIncomingRequest(ParameterShuttle infoShuttle) {
 		HttpConnector connector = (HttpConnector) infoShuttle.context.getConnector();
 		connector.setBaseUrl(); 
-		
+
 		// compose target siteURL by Http Bridge parameters
-		
+
 		String bridgeGoto = infoShuttle.userGoto;
-		
+
 		// BUGFIX: if the url contains blank spaces, replace them by "%20"
 		if (bridgeGoto != null) {
 			StringEx sx = new StringEx(bridgeGoto);
@@ -342,14 +342,14 @@ public class HttpBridge {
 			sx.replaceAll(" ", "%20");
 			bridgeThen = sx.toString();
 		}
-		
+
 		if (bridgeGoto == null) {
 			bridgeGoto = connector.sUrl;
 		}
 		else if (!bridgeGoto.startsWith(connector.sUrl)) {
 			bridgeGoto = connector.sUrl + bridgeGoto;
 		}
-		
+
 		Engine.logEngine.debug("(Proxy) goto: " + bridgeGoto);
 		Engine.logEngine.debug("(Proxy) then: " + bridgeThen);
 
@@ -381,8 +381,8 @@ public class HttpBridge {
 						gotoURI = new URI(infoShuttle.siteURL.getProtocol() + ":" + bridgeGoto);
 					else
 						gotoURI = new URI(infoShuttle.siteURL.getProtocol() + "://" +
-							infoShuttle.siteURL.getHost() +
-							(infoShuttle.siteURL.getPort() == -1 ? "" : ":" + infoShuttle.siteURL.getPort()) + bridgeGoto);
+								infoShuttle.siteURL.getHost() +
+								(infoShuttle.siteURL.getPort() == -1 ? "" : ":" + infoShuttle.siteURL.getPort()) + bridgeGoto);
 				}
 				else if (bridgeGoto.indexOf("://") < 0)
 					gotoURI = new URI("http://" + bridgeGoto);
@@ -413,7 +413,10 @@ public class HttpBridge {
 
 			try {
 				sb.append(infoShuttle.userPostData);
-				infoShuttle.siteURL = new URL(sb.toString());
+				infoShuttle.siteURL = new URI(sb.toString()).toURL();
+			}
+			catch (URISyntaxException e) {
+				throw new IllegalArgumentException("Cannot compose an URL (A): " + sb.toString());
 			}
 			catch (MalformedURLException e) {
 				throw new IllegalArgumentException("Cannot compose an URL (A): " + sb.toString());
@@ -442,14 +445,14 @@ public class HttpBridge {
 
 			index++;
 		}
-		
+
 		// always set Accept-Encoding to empty
 		infoShuttle.userHeaderNames.add(ALL_HEADERS[HH_ACCEPT_ENCODING]);
 		infoShuttle.userHeaderValues.add("");
 
 		// compose cookie for target site
 		String serverCookieStr = cookieMgr.getServerCookieString(infoShuttle.sessionID, infoShuttle.siteURL.getHost(), infoShuttle.siteURL.getPath());
-		
+
 		if (serverCookieStr != null) {
 			infoShuttle.userHeaderNames.add("cookie");
 			infoShuttle.userHeaderValues.add(serverCookieStr);
@@ -461,7 +464,7 @@ public class HttpBridge {
 		while (index < infoShuttle.siteHeaderNames.size()) {
 			String name = (String) infoShuttle.siteHeaderNames.get(index);
 			int headerIndex =
-				findString(name, ALL_HEADERS, AllowedToResponse, true);
+					findString(name, ALL_HEADERS, AllowedToResponse, true);
 
 			if (headerIndex == -1 || (!keepEncoding	&& (headerIndex == HH_CONTENT_ENCODING || headerIndex == HH_CONTENT_MD5))) {
 				infoShuttle.siteHeaderNames.remove(index);
@@ -473,12 +476,12 @@ public class HttpBridge {
 
 			if (headerIndex == HH_SET_COOKIE) {
 				cookieMgr.addCookie(
-					infoShuttle.sessionID,
-					infoShuttle.userIP + "-" + infoShuttle.userID,
-					new ClientCookie(
-						value,
-						infoShuttle.siteURL.getHost(),
-						infoShuttle.siteURL.getPath()));
+						infoShuttle.sessionID,
+						infoShuttle.userIP + "-" + infoShuttle.userID,
+						new ClientCookie(
+								value,
+								infoShuttle.siteURL.getHost(),
+								infoShuttle.siteURL.getPath()));
 
 				infoShuttle.siteHeaderNames.remove(index);
 				infoShuttle.siteHeaderValues.remove(index);
@@ -499,7 +502,7 @@ public class HttpBridge {
 			index++;
 		}
 	}
-	
+
 	// static varibles for HTML conversion service
 	static private final int TAG_HEAD = 100;
 	static private final int TAG_NAME = TAG_HEAD + 1;
@@ -529,14 +532,14 @@ public class HttpBridge {
 
 	// base UrlBuilder
 	private UrlBuilder baseUrlBuilder = new UrlBuilder();
-	
+
 	private ParameterShuttle infoShuttle;
 
 	// HTML conversion service for HtmlInputStream
 	// init() -- get connected to a HtmlInputStream
 	void init(ParameterShuttle infoShuttle, URL baseURL, IntQueue htmlQueue, IntQueue typeQueue, IntQueue sizeQueue) {
 		baseUrlBuilder.setBaseURL(baseURL);
-		
+
 		this.infoShuttle = infoShuttle;
 		this.htmlQueue = htmlQueue;
 		this.typeQueue = typeQueue;
@@ -545,32 +548,32 @@ public class HttpBridge {
 
 	void convertHtmlTag() {
 		switch (typeQueue.get()) {
-			case FORM_GET_URI :
-			case DIRECT_URI :
-			case META_URI :
-				convertDirectURI(false);
-				break;
+		case FORM_GET_URI :
+		case DIRECT_URI :
+		case META_URI :
+			convertDirectURI(false);
+			break;
 
-			case FORM_POST_URI :
-				convertDirectURI(true);
-				break;
+		case FORM_POST_URI :
+			convertDirectURI(true);
+			break;
 
-			case METHOD_POST :
-				insertContent(" method=\"post\"");
-				break;
+		case METHOD_POST :
+			insertContent(" method=\"post\"");
+			break;
 
-			case DISCARD :
-				htmlQueue.pop(sizeQueue.pop());
-				typeQueue.pop();
-				break;
+		case DISCARD :
+			htmlQueue.pop(sizeQueue.pop());
+			typeQueue.pop();
+			break;
 
-			case BASE_URI :
-				convertBaseURI();
-				break;
+		case BASE_URI :
+			convertBaseURI();
+			break;
 
-			default :
-				typeQueue.set(OUTPUT);
-				break;
+		default :
+			typeQueue.set(OUTPUT);
+			break;
 		}
 	}
 
@@ -592,7 +595,7 @@ public class HttpBridge {
 
 	private void convertBaseURI() {
 		try {
-			URL baseURL = new URL(htmlQueue.getString(sizeQueue.get()).trim());
+			URL baseURL = new URI(htmlQueue.getString(sizeQueue.get()).trim()).toURL();
 			baseUrlBuilder.setBaseURL(baseURL);
 		}
 		catch (Exception e) {
@@ -616,7 +619,7 @@ public class HttpBridge {
 
 		// direct URIes
 		int tagIndex =
-			findString(DIRECT_URI_TAGS, sizeQueue.get(0), sizeQueue.get(1));
+				findString(DIRECT_URI_TAGS, sizeQueue.get(0), sizeQueue.get(1));
 		if (tagIndex > -1) {
 			markDirectURITag(tagIndex);
 			return;
@@ -646,49 +649,49 @@ public class HttpBridge {
 
 	// predefined TAGs and ATTRIBUTIONs
 	static private final String[] DIRECT_URI_TAGS = {
-		"a",
-		"applet",
-		"area",
-		"blockquote",
-		"body",
-		"del",
-		"embed",
-		"frame",
-		"head",
-		"iframe",
-		"img",
-		"input",
-		"ins",
-		"item",
-		"link",
-		"object",
-		"q",
-		"script",
-		"table",
-		"td"
+			"a",
+			"applet",
+			"area",
+			"blockquote",
+			"body",
+			"del",
+			"embed",
+			"frame",
+			"head",
+			"iframe",
+			"img",
+			"input",
+			"ins",
+			"item",
+			"link",
+			"object",
+			"q",
+			"script",
+			"table",
+			"td"
 	};
 
 	static private final String[][] DIRECT_URI_ATTRS = {
-		{ "href" },
-		{ "codebase" },
-		{ "href" },
-		{ "cite" },
-		{ "background" },
-		{ "cite" },
-		{ "pluginspage", "src" },
-		{ "longdesc", "src" },
-		{ "profile" },
-		{ "longdesc", "src" },
-		{ "longdesc", "src", "usemap" },
-		{ "src", "usemap" },
-		{ "cite" },
-		{ "href" },
-		{ "href" },
-		{ "classid", "codebase", "data", "usemap" },
-		{ "cite" },
-		{ "src" },
-		{ "background" },
-		{ "background" }
+			{ "href" },
+			{ "codebase" },
+			{ "href" },
+			{ "cite" },
+			{ "background" },
+			{ "cite" },
+			{ "pluginspage", "src" },
+			{ "longdesc", "src" },
+			{ "profile" },
+			{ "longdesc", "src" },
+			{ "longdesc", "src", "usemap" },
+			{ "src", "usemap" },
+			{ "cite" },
+			{ "href" },
+			{ "href" },
+			{ "classid", "codebase", "data", "usemap" },
+			{ "cite" },
+			{ "src" },
+			{ "background" },
+			{ "background" }
 	};
 
 	private void markDirectURITag(int tagIndex) {
@@ -753,7 +756,7 @@ public class HttpBridge {
 			if (segType == ATTR) {
 				attrCount++;
 				if (segSize == BASE_URI_ATTR.length()
-					&& htmlQueue.compareString(BASE_URI_ATTR, totSize, segSize)
+						&& htmlQueue.compareString(BASE_URI_ATTR, totSize, segSize)
 						== 0)
 					valueTrigger = attrCount;
 
@@ -793,8 +796,8 @@ public class HttpBridge {
 		boolean equivAttrFound = false;
 		boolean contentAttrFound = false;
 		for (int k = 0, pos = 0;
-			k < sizeQueue.size();
-			pos += sizeQueue.get(k++)) {
+				k < sizeQueue.size();
+				pos += sizeQueue.get(k++)) {
 			if (typeQueue.get(k) != ATTR)
 				continue;
 
@@ -860,9 +863,9 @@ public class HttpBridge {
 			for (int k = pos, kEnd = totSize + restLen; k < kEnd; k++) {
 				char ch = htmlQueue.getChar(k);
 				if (ch == '\''
-					|| ch == '\"'
-					|| Character.isWhitespace(ch)
-					|| ch == '&') {
+						|| ch == '\"'
+						|| Character.isWhitespace(ch)
+						|| ch == '&') {
 					uriLen = k - pos;
 					break;
 				}
@@ -906,25 +909,25 @@ public class HttpBridge {
 		boolean actionAttrFound = false;
 
 		for (int k = 0, kSize = typeQueue.size(), totSize = 0;
-			k < kSize;
-			totSize += sizeQueue.get(k++)) {
+				k < kSize;
+				totSize += sizeQueue.get(k++)) {
 			if (typeQueue.get(k) == ATTR
-				&& typeQueue.get(k + 1) == EQUAL
-				&& (typeQueue.get(k + 2) == VALUE
+					&& typeQueue.get(k + 1) == EQUAL
+					&& (typeQueue.get(k + 2) == VALUE
 					|| (typeQueue.get(k + 2) == LEFT_QUOTE
-						&& typeQueue.get(k + 3) == VALUE))) {
+					&& typeQueue.get(k + 3) == VALUE))) {
 				if (htmlQueue.compareString(FORM_ACTION_ATTR, totSize, sizeQueue.get(k)) == 0) {
 					actionAttrFound = true;
 					if (isPost)
 						break;
 				} else if (
-					htmlQueue.compareString(
-						FORM_METHOD_ATTR,
-						totSize,
-						sizeQueue.get(k))
+						htmlQueue.compareString(
+								FORM_METHOD_ATTR,
+								totSize,
+								sizeQueue.get(k))
 						== 0) {
 					int startPos =
-						totSize + sizeQueue.get(k) + sizeQueue.get(k + 1);
+							totSize + sizeQueue.get(k) + sizeQueue.get(k + 1);
 					int endPos = startPos + sizeQueue.get(k + 2);
 					if (typeQueue.get(k + 2) == LEFT_QUOTE) {
 						startPos += sizeQueue.get(k + 2);
@@ -932,7 +935,7 @@ public class HttpBridge {
 					}
 
 					if (htmlQueue.indexOf("post", startPos, endPos - startPos)
-						> -1) {
+							> -1) {
 						isPost = true;
 						if (actionAttrFound)
 							break;
@@ -963,7 +966,7 @@ public class HttpBridge {
 			if (segType == ATTR) {
 				// convert ATTRs
 				if (htmlQueue.compareString(FORM_ACTION_ATTR, totSize, segSize)
-					== 0) {
+						== 0) {
 					// merge ATTR, EQUAL, LEFT_QUOTE
 					do {
 						bufSize += segSize;
@@ -986,12 +989,12 @@ public class HttpBridge {
 					totSize += segSize;
 				}
 				else if (
-					!isPost
+						!isPost
 						&& htmlQueue.compareString(
-							FORM_METHOD_ATTR,
-							totSize,
-							segSize)
-							== 0) {
+								FORM_METHOD_ATTR,
+								totSize,
+								segSize)
+						== 0) {
 					// output all segments that are before ATTR of method
 					typeQueue.append(OUTPUT);
 					sizeQueue.append(bufSize);
@@ -1001,7 +1004,7 @@ public class HttpBridge {
 					totSize += segSize;
 
 					while (typeQueue.get() != TAG_TAIL
-						&& typeQueue.get() != ATTR) {
+							&& typeQueue.get() != ATTR) {
 						segType = typeQueue.pop();
 						segSize = sizeQueue.pop();
 
@@ -1080,23 +1083,23 @@ public class HttpBridge {
 		rt = parseTag(in);
 
 		switch (rt) {
-			case START_TAG :
-				markHtmlTag();
-				break;
+		case START_TAG :
+			markHtmlTag();
+			break;
 
-			case END_TAG :
-				typeQueue.clear();
-				sizeQueue.clear();
+		case END_TAG :
+			typeQueue.clear();
+			sizeQueue.clear();
 
-				typeQueue.append(OUTPUT);
-				sizeQueue.append(htmlQueue.size());
-				break;
+			typeQueue.append(OUTPUT);
+			sizeQueue.append(htmlQueue.size());
+			break;
 
-			case INVALID_TAG :
-			case NOT_A_TAG :
-			default :
-				typeQueue.set(OUTPUT);
-				break;
+		case INVALID_TAG :
+		case NOT_A_TAG :
+		default :
+			typeQueue.set(OUTPUT);
+			break;
 		}
 
 		return -2;
@@ -1242,9 +1245,9 @@ public class HttpBridge {
 
 				ch = (char) ci;
 				if (ch == '='
-					|| ch == '>'
-					|| ch == '/'
-					|| Character.isWhitespace(ch)) {
+						|| ch == '>'
+						|| ch == '/'
+						|| Character.isWhitespace(ch)) {
 					typeQueue.append(ATTR);
 					sizeQueue.append(segSize);
 
@@ -1424,8 +1427,8 @@ public class HttpBridge {
 
 						ch = (char) ci;
 						if (ch == '/'
-							|| ch == '>'
-							|| Character.isWhitespace(ch))
+								|| ch == '>'
+								|| Character.isWhitespace(ch))
 							break;
 					}
 					if (segType == INVALID_TAG)
@@ -1448,62 +1451,62 @@ public class HttpBridge {
 						quoteSize = 1;
 				} else if (leftQuoteType == DQ_BS) {
 					if (segSize > 1
-						&& htmlQueue.getChar(segPos - 1) == '\\'
-						&& htmlCh == '\"')
+							&& htmlQueue.getChar(segPos - 1) == '\\'
+							&& htmlCh == '\"')
 						quoteSize = 2;
 				} else if (leftQuoteType == SQ_BS) {
 					if (segSize > 1
-						&& htmlQueue.getChar(segPos - 1) == '\\'
-						&& htmlCh == '\'')
+							&& htmlQueue.getChar(segPos - 1) == '\\'
+							&& htmlCh == '\'')
 						quoteSize = 2;
 				} else if (leftQuoteType == DQ_DEC) {
 					if (htmlCh == ';') {
 						if (segSize > 4
-							&& htmlQueue.compareString("&#34", segPos - 4) == 0)
+								&& htmlQueue.compareString("&#34", segPos - 4) == 0)
 							quoteSize = 5;
 					} else if (htmlCh == '4') {
 						if (segSize > 3
-							&& htmlQueue.compareString("&#34", segPos - 3) == 0)
+								&& htmlQueue.compareString("&#34", segPos - 3) == 0)
 							quoteSize = 4;
 					}
 				} else if (leftQuoteType == SQ_DEC) {
 					if (htmlCh == ';') {
 						if (segSize > 4
-							&& htmlQueue.compareString("&#39", segPos - 4) == 0)
+								&& htmlQueue.compareString("&#39", segPos - 4) == 0)
 							quoteSize = 5;
 					} else if (htmlCh == '9') {
 						if (segSize > 3
-							&& htmlQueue.compareString("&#39", segPos - 3) == 0)
+								&& htmlQueue.compareString("&#39", segPos - 3) == 0)
 							quoteSize = 4;
 					}
 				} else if (leftQuoteType == DQ_HEX) {
 					if (htmlCh == ';') {
 						if (segSize > 5
-							&& htmlQueue.compareString("&#x22", segPos - 5) == 0)
+								&& htmlQueue.compareString("&#x22", segPos - 5) == 0)
 							quoteSize = 6;
 					} else if (htmlCh == '2') {
 						if (segSize > 4
-							&& htmlQueue.compareString("&#x22", segPos - 4) == 0)
+								&& htmlQueue.compareString("&#x22", segPos - 4) == 0)
 							quoteSize = 5;
 					}
 				} else if (leftQuoteType == SQ_HEX) {
 					if (htmlCh == ';') {
 						if (segSize > 5
-							&& htmlQueue.compareString("&#x27", segPos - 5) == 0)
+								&& htmlQueue.compareString("&#x27", segPos - 5) == 0)
 							quoteSize = 6;
 					} else if (htmlCh == '7') {
 						if (segSize > 4
-							&& htmlQueue.compareString("&#x27", segPos - 4) == 0)
+								&& htmlQueue.compareString("&#x27", segPos - 4) == 0)
 							quoteSize = 5;
 					}
 				} else if (leftQuoteType == DQ_WORD) {
 					if (htmlCh == ';') {
 						if (segSize > 5
-							&& htmlQueue.compareString("&quot", segPos - 5) == 0)
+								&& htmlQueue.compareString("&quot", segPos - 5) == 0)
 							quoteSize = 6;
 					} else if (htmlCh == 't') {
 						if (segSize > 4
-							&& htmlQueue.compareString("&quot", segPos - 4) == 0)
+								&& htmlQueue.compareString("&quot", segPos - 4) == 0)
 							quoteSize = 5;
 					}
 				}
@@ -1533,7 +1536,7 @@ public class HttpBridge {
 					if (ci == -1)
 						segType = INVALID_TAG;
 					else if (
-						ch == '/' || ch == '>' || Character.isWhitespace(ch))
+							ch == '/' || ch == '>' || Character.isWhitespace(ch))
 						break;
 				}
 

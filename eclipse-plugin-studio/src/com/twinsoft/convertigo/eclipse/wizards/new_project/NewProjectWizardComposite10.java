@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -50,12 +51,12 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 	private String filePath = "";
 	private String urlPath = "";
 	private WizardPage parentWizard = null;
-	
+
 	private WsReferenceComposite wsRefAuthenticated = null;
 	Button useAuthentication = null;
 	Text loginText = null, passwordText = null;
 	private String wizardId;
-	
+
 	NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
 		super(parent, style);
 		this.parentWizard = page;
@@ -68,26 +69,26 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
 		gridLayout.makeColumnsEqualWidth = false;
-		
+
 		container.setLayout(gridLayout);
-				
+
 		GridData data = new GridData ();
 		data.horizontalAlignment = GridData.FILL;
 		data.horizontalSpan = 2;
 		data.grabExcessHorizontalSpace = true;		
-		
+
 		/* Authenticated Composite for import WS Reference */
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data);
 		wsRefAuthenticated.setFilterExtension(getFilterExtension());
 		wsRefAuthenticated.setFilterNames(getFilterNames());
-		
+
 		combo = wsRefAuthenticated.getCombo();
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				comboChanged();
 			}
 		});
-		
+
 		editor = wsRefAuthenticated.getEditor();
 		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
@@ -95,49 +96,49 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 				editorChanged();
 			}
 		});	
-		
+
 		useAuthentication = wsRefAuthenticated.getUseAuthentication();
 		useAuthentication.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				dialogChanged();
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				dialogChanged();
 			}
 		});
-		
+
 		ModifyListener ml = new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				dialogChanged();
 			}
 		};
-		
+
 		loginText = wsRefAuthenticated.getLoginText();
 		loginText.addModifyListener(ml);
-		
+
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
-		
+
 		urlPath = combo.getText();
 	}
 
-	
+
 	private String[] getFilterExtension() {
 		String[] filterExtension = new String[]{"*"};
 		switch (wizardId) {
-			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
-				filterExtension = new String[]{"*.wsdl", "*.xml"};
-				break;
-			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
-				filterExtension = new String[]{"*.yaml", "*.json"};
-				break;
+		case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
+			filterExtension = new String[]{"*.wsdl", "*.xml"};
+			break;
+		case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
+			filterExtension = new String[]{"*.yaml", "*.json"};
+			break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
-			default:
-				break;
+		default:
+			break;
 		}
 		return filterExtension;
 	}
@@ -145,15 +146,15 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 	private String[] getFilterNames() {
 		String[] filterNames = new String[]{"All files"};
 		switch (wizardId) {
-			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
-				filterNames = new String[]{"WSDL files", "XML files"};
-				break;
-			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
-				filterNames = new String[]{"YAML files", "JSON files"};
-				break;
+		case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
+			filterNames = new String[]{"WSDL files", "XML files"};
+			break;
+		case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
+			filterNames = new String[]{"YAML files", "JSON files"};
+			break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
-			default:
-				break;
+		default:
+			break;
 		}
 		return filterNames;
 	}
@@ -163,8 +164,8 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 		String message = null;
 		if (!urlPath.equals("")) {
 			try {
-				URL url = new URL(urlPath);
-				
+				URL url = new URI(urlPath).toURL();
+
 				if (urlPath.startsWith("file:/")) {
 					File f = FileUtils.toFile(url);
 					if (f.exists()) {
@@ -209,21 +210,21 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 		} else {
 			message = "Please enter an URL!";
 		}
-		
+
 		if (message == null) {
 			if (useAuthentication.getSelection() && 
 					(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 				message = "Please enter login and password";
 			} 
 		}
-		
+
 		setTextStatus(message);
 	}
-	
+
 	@Override
 	public void comboChanged() {
 		urlPath = combo.getText();
-		
+
 		if (!filePath.isEmpty() && urlPath.indexOf(filePath) == -1) {
 			editor.setStringValue(null);
 		}
@@ -254,7 +255,7 @@ class NewProjectWizardComposite10 extends Composite implements IWsReferenceCompo
 			combo.select(wsRefAuthenticated.getItem(uriFile));
 		}
 	}
-	
+
 	@Override
 	public void setTextStatus(String message) {
 		if(message==null && !wsRefAuthenticated.isValidURL()){

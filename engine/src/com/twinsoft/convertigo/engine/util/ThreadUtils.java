@@ -21,11 +21,11 @@ package com.twinsoft.convertigo.engine.util;
 
 public class ThreadUtils {
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "removal" })
 	public static void stopThread(Thread thread) {
 		thread.stop();
 	}
-	
+
 	public static void sleep(long millis) {
 		try {
 			Thread.sleep(millis);

@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,13 +56,13 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 public class LaunchBuild extends XmlService {
 
 	private static final Object buildLock = new Object();
-	
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		synchronized(buildLock) {
 			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/www");
 			MobileApplication mobileApplication = mobileResourceHelper.mobileApplication;
-			
+
 			if (mobileApplication == null) {
 				throw new ServiceException("no such mobile application");
 			} else {
@@ -70,9 +71,9 @@ public class LaunchBuild extends XmlService {
 					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 				}
 			}
-			
+
 			String sResult = perform(mobileResourceHelper, request);
-			
+
 			JSONObject jsonObject = new JSONObject(sResult);
 			Element statusElement = document.createElement("application");
 			statusElement.setAttribute("id", jsonObject.getString("id"));
@@ -80,52 +81,52 @@ public class LaunchBuild extends XmlService {
 			document.getDocumentElement().appendChild(statusElement);
 		}
 	}
-	
+
 	static public String perform(MobileResourceHelper mobileResourceHelper, HttpServletRequest request) throws Exception {
 		MobilePlatform mobilePlatform = mobileResourceHelper.mobilePlatform;
 		MobileApplication mobileApplication = mobileResourceHelper.mobileApplication;
-		
+
 		String finalApplicationName = mobileApplication.getComputedApplicationName();
 		File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
-		
+
 		// Login to the mobile builder platform
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-		
+
 		Map<String, String[]> params = new HashMap<String, String[]>();
-		
+
 		params.put("application", new String[]{finalApplicationName});
 		params.put("platformName", new String[]{mobilePlatform.getName()});
 		params.put("platformType", new String[]{mobilePlatform.getType()});
 		params.put("auth_token", new String[]{mobileApplication.getComputedAuthenticationToken()});
-		
+
 		//revision and endpoint params
 		params.put("revision", new String[]{mobileResourceHelper.getRevision()});
 		params.put("endpoint", new String[]{mobileApplication.getComputedEndpoint(request)});
 		params.put("appid", new String[]{mobileApplication.getComputedApplicationId()});
-					
+
 		//iOS
 		if (mobilePlatform instanceof IOs) {
 			IOs ios = (IOs) mobilePlatform;
-			
+
 			String pw, title = ios.getiOSCertificateTitle();
-			
+
 			if (!title.equals("")) {
 				pw = ios.getiOSCertificatePw();
 			} else {
 				title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
 				pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
 			}
-			
+
 			params.put("iOSCertificateTitle", new String[]{title});
 			params.put("iOSCertificatePw", new String[]{pw});
 		}
-		
+
 		//Android
 		if (mobilePlatform instanceof Android) {
 			Android android = (Android) mobilePlatform;
-			
+
 			String certificatePw, keystorePw, title = android.getAndroidCertificateTitle();
-			
+
 			if (!title.equals("")) {
 				certificatePw = android.getAndroidCertificatePw();
 				keystorePw = android.getAndroidKeystorePw();
@@ -134,32 +135,32 @@ public class LaunchBuild extends XmlService {
 				certificatePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
 				keystorePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
 			}
-			
+
 			params.put("androidCertificateTitle", new String[]{title});
 			params.put("androidCertificatePw", new String[]{certificatePw});
 			params.put("androidKeystorePw", new String[]{keystorePw});
 		}
-		
+
 		// Launch the mobile build
-		URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
-		
+		URL url = new URI(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params)).toURL();
+
 		HostConfiguration hostConfiguration = new HostConfiguration();
 		hostConfiguration.setHost(url.getHost());
 		HttpState httpState = new HttpState();
 		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-		
+
 		PostMethod method = new PostMethod(url.toString());
-		
+
 		FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
 		method.setRequestEntity(entity);
-		
+
 		int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 		String sResult = IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
-		
+
 		if (methodStatusCode != HttpStatus.SC_OK) {
 			throw new ServiceException("Unable to build application '" + finalApplicationName + "'.\n" + sResult);
 		}
-		
+
 		return sResult;
 	}
 }

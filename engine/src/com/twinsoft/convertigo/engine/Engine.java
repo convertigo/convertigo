@@ -116,7 +116,7 @@ public class Engine {
 			USER_WORKSPACE_PATH = new File(USER_WORKSPACE_PATH).getCanonicalPath();
 		} catch (IOException e) {
 		}
-		
+
 		System.setProperty("log4j1.compatibility", "true");
 		System.setProperty("log4j2.isThreadContextMapInheritable", "true");
 		RhinoUtils.init();
@@ -131,7 +131,7 @@ public class Engine {
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread thread = new Thread(r);
-			thread.setName("ConvertigoExecutor-" + thread.getId());
+			thread.setName("ConvertigoExecutor-" + thread.threadId());
 			thread.setDaemon(true);
 			return thread;
 		}
@@ -244,7 +244,7 @@ public class Engine {
 	public RestApiManager restApiManager;
 
 	public ReferencedProjectManager referencedProjectManager;
-	
+
 	public ReverseProxyManager reverseProxyManager;
 	/**
 	 * Loggers
@@ -733,7 +733,7 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
-							
+
 							Engine.logEngine.info("Convertigo will run auto start Sequences.");
 							for (String name: names) {
 								Project.executeAutoStartSequences(name);
@@ -1636,7 +1636,7 @@ public class Engine {
 	public SystemDatabaseObjectsManager getSystemDatabaseObjectsManager() {
 		return systemDatabaseObjectsManager;
 	}
-	
+
 	public void showErrorMessage(String message) {
 		eventManager.dispatchEvent(new StudioEvent(StudioEvent.ERROR_MESSAGE, message), StudioEventListener.class);
 	}

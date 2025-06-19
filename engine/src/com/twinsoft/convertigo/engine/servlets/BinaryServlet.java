@@ -53,32 +53,32 @@ public class BinaryServlet extends GenericServlet {
 	private static final long serialVersionUID = 8273215871882400280L;
 
 	public BinaryServlet() {
-    }
+	}
 
-    public String getName() {
-        return "BinaryServlet";
-    }
+	public String getName() {
+		return "BinaryServlet";
+	}
 
-    @Override
-    public String getDefaultContentType() {
-    	return MimeType.OctetStream.value();
-    }
+	@Override
+	public String getDefaultContentType() {
+		return MimeType.OctetStream.value();
+	}
 
-    @Override
-    public String getServletInfo() {
-        return "Twinsoft Convertigo BinaryServlet";
-    }
-    
-    @Override
-    public String getDocumentExtension() {
-        return ".bin";
-    }
+	@Override
+	public String getServletInfo() {
+		return "Twinsoft Convertigo BinaryServlet";
+	}
 
-    @Override
+	@Override
+	public String getDocumentExtension() {
+		return ".bin";
+	}
+
+	@Override
 	public Requester getRequester() {
 		return new BinaryServletRequester();
 	}
-    
+
 	@Override
 	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if ("true".equals(request.getParameter("__proxy_mode"))) {
@@ -87,12 +87,12 @@ public class BinaryServlet extends GenericServlet {
 			super.doRequest(request, response);
 		}
 	}
-	
+
 	private void handleRemoteData(HttpServletRequest request, HttpServletResponse response, String remoteDataUrl) throws ServletException, IOException {
 		GetMethod method = null;
 		try {
 			HttpSession httpSession = request.getSession();
-			
+
 			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(BinaryServlet.class.getCanonicalName()));
 			if (logParameters == null) {
 				httpSession.setAttribute(BinaryServlet.class.getCanonicalName(), logParameters = new LogParameters());
@@ -100,69 +100,69 @@ public class BinaryServlet extends GenericServlet {
 			}
 			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 			Log4jHelper.mdcSet(logParameters);
-			
+
 			if (SessionAttribute.authenticatedUser.string(request.getSession()) != null) {
 				if (remoteDataUrl == null  || remoteDataUrl.isEmpty() ||
 						(remoteDataUrl.indexOf("/.bin?") != -1 && remoteDataUrl.indexOf("__proxy_mode=true") != -1)) {
 					throw new EngineException("Invalid remote data url: "+ remoteDataUrl);
 				}
-				
+
 				Engine.logEngine.debug("(BinaryServlet) Requested remote data url: "+ remoteDataUrl);
-		        URL url = new URL(remoteDataUrl);
+				URL url = new java.net.URI(remoteDataUrl).toURL();
 
 				HostConfiguration hostConfiguration = new HostConfiguration();
 				hostConfiguration.setHost(new URI(url.toString(), true));
 				HttpState httpState = new HttpState();
 				Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-				
+
 				method = new GetMethod(url.toString());
 				method.setFollowRedirects(false);
-				
-		        int statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
-	            if (   statuscode == HttpStatus.SC_MOVED_TEMPORARILY
-					|| statuscode == HttpStatus.SC_MOVED_PERMANENTLY
-					|| statuscode == HttpStatus.SC_SEE_OTHER
-					|| statuscode == HttpStatus.SC_TEMPORARY_REDIRECT) {
-				
-	            	String location = method.getResponseHeader("Location").getValue();
-	            	Engine.logEngine.debug("(BinaryServlet) Redirecting to url: "+ location);
-	                method.releaseConnection();
-	                handleRemoteData(request, response, location);
-	                
-	            } else if (statuscode == HttpStatus.SC_OK) {
-		        	Header[] headers = method.getResponseHeaders();
-		        	StringBuffer buf = new StringBuffer();
-		        	for (Header header: headers) {
-		        		buf.append(header.getName() + " = " + header.getValue()).append(System.lineSeparator());
-		        	}
-		        	Engine.logEngine.debug("(BinaryServlet) Response headers: " + System.lineSeparator() + buf.toString());
-		        	
-		            response.setStatus(statuscode);
-		        	try {
-			            int contentLength = Integer.parseInt(method.getResponseHeader(HeaderName.ContentLength.value()).getValue(), 10);
-			            response.setContentLength(contentLength);
-		        	} catch (Exception e) {}
-		        	try {
-		        		String contentDisposition = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue();
-		        		response.setHeader(HeaderName.ContentDisposition.value(), contentDisposition);
-		        	} catch (Exception e) {}
-		        	try {
-		        		String contentType = method.getResponseHeader(HeaderName.ContentType.value()).getValue();
-		        		response.setContentType(contentType);
-		        	} catch (Exception e) {
-		        		response.setContentType(MimeType.Plain.value());
-		        		Engine.logEngine.debug("(BinaryServlet) Data retrieved - content type set to " + response.getContentType());
-		        	}
-		            
-		            OutputStream outputStream = response.getOutputStream();
-		            try (InputStream inputStream = method.getResponseBodyAsStream()) {
-		                IOUtils.copy(inputStream, outputStream );
-		            }
-		            
-		            Engine.logEngine.debug("(BinaryServlet) Data sent from remote url: "+ remoteDataUrl);
-		        } else {
+
+				int statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+				if (   statuscode == HttpStatus.SC_MOVED_TEMPORARILY
+						|| statuscode == HttpStatus.SC_MOVED_PERMANENTLY
+						|| statuscode == HttpStatus.SC_SEE_OTHER
+						|| statuscode == HttpStatus.SC_TEMPORARY_REDIRECT) {
+
+					String location = method.getResponseHeader("Location").getValue();
+					Engine.logEngine.debug("(BinaryServlet) Redirecting to url: "+ location);
+					method.releaseConnection();
+					handleRemoteData(request, response, location);
+
+				} else if (statuscode == HttpStatus.SC_OK) {
+					Header[] headers = method.getResponseHeaders();
+					StringBuffer buf = new StringBuffer();
+					for (Header header: headers) {
+						buf.append(header.getName() + " = " + header.getValue()).append(System.lineSeparator());
+					}
+					Engine.logEngine.debug("(BinaryServlet) Response headers: " + System.lineSeparator() + buf.toString());
+
+					response.setStatus(statuscode);
+					try {
+						int contentLength = Integer.parseInt(method.getResponseHeader(HeaderName.ContentLength.value()).getValue(), 10);
+						response.setContentLength(contentLength);
+					} catch (Exception e) {}
+					try {
+						String contentDisposition = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue();
+						response.setHeader(HeaderName.ContentDisposition.value(), contentDisposition);
+					} catch (Exception e) {}
+					try {
+						String contentType = method.getResponseHeader(HeaderName.ContentType.value()).getValue();
+						response.setContentType(contentType);
+					} catch (Exception e) {
+						response.setContentType(MimeType.Plain.value());
+						Engine.logEngine.debug("(BinaryServlet) Data retrieved - content type set to " + response.getContentType());
+					}
+
+					OutputStream outputStream = response.getOutputStream();
+					try (InputStream inputStream = method.getResponseBodyAsStream()) {
+						IOUtils.copy(inputStream, outputStream );
+					}
+
+					Engine.logEngine.debug("(BinaryServlet) Data sent from remote url: "+ remoteDataUrl);
+				} else {
 					throw new EngineException("Unabled to retrieve remote data from " + remoteDataUrl + ". Remote server returned with status "+ statuscode);
-		        }
+				}
 			} else {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				throw new EngineException("Authentication is required");
@@ -177,5 +177,5 @@ public class BinaryServlet extends GenericServlet {
 			}
 		}
 	}
-    
+
 }

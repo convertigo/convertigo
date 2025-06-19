@@ -28,7 +28,7 @@ import java.util.Properties;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class SqlRequester {
-	
+
 	private static final String PROPERTIES_JDBC_DRIVER_CLASSNAME = "jdbc.driver.class_name";
 	public static final String PROPERTIES_JDBC_URL = "jdbc.url";
 	private static final String PROPERTIES_JDBC_USER_NAME = "jdbc.user.name";
@@ -43,7 +43,7 @@ public class SqlRequester {
 	 * The database connection.
 	 */
 	public Connection connection;
-	
+
 	/**
 	 * Constructs a SqlRequester object.
 	 *
@@ -59,11 +59,11 @@ public class SqlRequester {
 	public String getProperty(String key) {
 		return properties.getProperty(key);
 	}
-    
+
 	public String getProperty(String key, String defaultValue) {
 		return properties.getProperty(key, defaultValue);
 	}
-	
+
 	/**
 	 * Opens or reopens the connection to database.
 	 * 
@@ -72,7 +72,7 @@ public class SqlRequester {
 	 */
 	public synchronized void open() throws ClassNotFoundException, SQLException {
 		String text = "";
-		
+
 		if (connection != null) {
 			connection.close();
 			text = "Reconnected to the database";
@@ -80,7 +80,7 @@ public class SqlRequester {
 		else {
 			text = "Connected to the database";
 		}
-		
+
 		// Attempt to load the database driver
 		String jdbcClassName = getProperty(SqlRequester.PROPERTIES_JDBC_DRIVER_CLASSNAME);
 		Class.forName(jdbcClassName);
@@ -90,21 +90,21 @@ public class SqlRequester {
 		String jdbcURL = getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 		String jdbcUserName = getProperty(SqlRequester.PROPERTIES_JDBC_USER_NAME);
 		String jdbcUserPassword = Crypto2.decodeFromHexString(getProperty(SqlRequester.PROPERTIES_JDBC_USER_PASSWORD));
-		
+
 		// MariaDB Java 3.x migration
 		if (jdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(jdbcClassName)) {
 			jdbcURL = "jdbc:mariadb:" + jdbcURL.substring(11);
 		}
-		
+
 		Engine.logEngine.debug("[SqlRequester] JDBC URL: " + jdbcURL);
 		Engine.logEngine.debug("[SqlRequester] User name: " + jdbcUserName);
 		Engine.logEngine.debug("[SqlRequester] User password: " + jdbcUserPassword);
 
 		connection = DriverManager.getConnection(jdbcURL, jdbcUserName, jdbcUserPassword);
-			
+
 		Engine.logEngine.debug("[SqlRequester] " + text);
 	}
-	
+
 	public synchronized void checkConnection() throws ClassNotFoundException, SQLException {
 		try {
 			if (connection == null || connection.isClosed() || !connection.isValid(30)) {
@@ -116,7 +116,7 @@ public class SqlRequester {
 			}
 		}
 	}
-	
+
 	public synchronized void close() {
 		try {
 			if (connection != null) {
@@ -129,12 +129,12 @@ public class SqlRequester {
 		}
 		connection = null;
 	}
-	
-	@SuppressWarnings("deprecation")
+
+	@SuppressWarnings({ "removal" })
 	@Override
 	protected void finalize() throws Throwable {
 		close();
 		super.finalize();
 	}
-	
+
 }

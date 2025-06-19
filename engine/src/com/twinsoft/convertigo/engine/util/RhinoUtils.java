@@ -42,7 +42,7 @@ public class RhinoUtils {
 		json = (NativeJSON) scope.get("JSON", scope);
 		Context.exit();
 	}
-	
+
 	static public Scriptable copyScope(Context context, Scriptable scope) {
 		Scriptable scopeCopy = context.initStandardObjects();
 		for (Object id : scope.getIds()) {
@@ -53,7 +53,7 @@ public class RhinoUtils {
 	static public Object evalCachedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
 		return evalCachedJavascript(null, cx, scope, source, sourceName, lineno, securityDomain);
 	}
-	
+
 	static public Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
 		source = CopilotHelper.addInstruction(dbo, source);
 		if (debugMode) {
@@ -64,35 +64,35 @@ public class RhinoUtils {
 		}
 		Script script = compiledScript.get(source);
 		if (script == null) {
-			cx.setOptimizationLevel(9);
+			cx.setInterpretedMode(false);
 			script = cx.compileString(source, sourceName, lineno, securityDomain);
 			compiledScript.put(source, script);
 		}
 		Object result = script.exec(cx, scope);
 		return result;
 	}
-	
+
 	static public Object evalInterpretedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
-		cx.setOptimizationLevel(-1);
+		cx.setInterpretedMode(true);
 		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
 		return result;
 	}
-	
+
 	static public Object jsonParse(String string) {
 		return ScriptableObject.callMethod(json, "parse", new Object[]{string});
 	}
-	
+
 	static public String jsonStringify(Object object) {
 		return ScriptableObject.callMethod(json, "stringify", new Object[]{object}).toString();
 	}
-	
+
 	static public void init() {
 		ContextFactory.getGlobal().addListener(new Listener() {
-			
+
 			@Override
 			public void contextReleased(Context cx) {
 			}
-			
+
 			@Override
 			public void contextCreated(Context cx) {
 				cx.setLanguageVersion(Context.VERSION_ES6);

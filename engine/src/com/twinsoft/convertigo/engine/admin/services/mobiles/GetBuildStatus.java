@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,9 +56,9 @@ public class GetBuildStatus extends XmlService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String project = Keys.project.value(request);
-		
+
 		MobileApplication mobileApplication = getMobileApplication(project);
-		
+
 		if (mobileApplication == null) {
 			throw new ServiceException("no such mobile application");
 		} else {
@@ -66,23 +67,23 @@ public class GetBuildStatus extends XmlService {
 				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 			}
 		}
-		
+
 		String platformName = Keys.platform.value(request);
-		
+
 		String sResult = perform(mobileApplication, platformName, request);
-		
+
 		JSONObject jsonResult = new JSONObject(sResult);
-		
+
 		Element statusElement = document.createElement("build");
 		statusElement.setAttribute(Keys.project.name(), project);
 		statusElement.setAttribute(Keys.platform.name(), platformName);
-		
+
 		if (jsonResult.has(platformName + "_status")) {
 			statusElement.setAttribute("status", jsonResult.getString(platformName + "_status"));
 		} else {
 			statusElement.setAttribute("status", "none");
 		}
-				
+
 		if (jsonResult.has(platformName + "_bn")) {
 			statusElement.setAttribute("bn", jsonResult.getString(platformName + "_bn"));
 			statusElement.setAttribute("bp_url", EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL).replaceFirst("(.*)/.*?$", "$1"));
@@ -94,7 +95,7 @@ public class GetBuildStatus extends XmlService {
 
 		statusElement.setAttribute("version", jsonResult.has("version") ? jsonResult.getString("version") : "n/a");
 		statusElement.setAttribute("phonegap_version", jsonResult.has("phonegap_version") ? jsonResult.getString("phonegap_version") : "n/a");
-		
+
 		statusElement.setAttribute("revision", jsonResult.has("revision") ? jsonResult.getString("revision") : "n/a");
 		statusElement.setAttribute("endpoint", jsonResult.has("endpoint") ? jsonResult.getString("endpoint") : "n/a");
 
@@ -104,29 +105,29 @@ public class GetBuildStatus extends XmlService {
 	static MobileApplication getMobileApplication(String projectName) throws EngineException {
 		return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).getMobileApplication();
 	}
-	
+
 	static public String perform(MobileApplication mobileApplication, String platformName, HttpServletRequest request) throws Exception {
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
 
-		URL url = new URL(mobileBuilderPlatformURL + "/getstatus");
-		
+		URL url = new URI(mobileBuilderPlatformURL + "/getstatus").toURL();
+
 		HostConfiguration hostConfiguration = new HostConfiguration();
 		hostConfiguration.setHost(url.getHost());
 		HttpState httpState = new HttpState();
 		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-		
+
 		PostMethod method = new PostMethod(url.toString());
-		
+
 		try {
 			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 			method.setRequestBody(new NameValuePair[] {
-				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
-				new NameValuePair("platformName", platformName),
-				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
-				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
+					new NameValuePair("application", mobileApplication.getComputedApplicationName()),
+					new NameValuePair("platformName", platformName),
+					new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
+					new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
 			});
-			
-			
+
+
 			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 
 			InputStream methodBodyContentInputStream = method.getResponseBodyAsStream();
@@ -135,9 +136,9 @@ public class GetBuildStatus extends XmlService {
 
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				throw new ServiceException("Unable to get building status for application '" + mobileApplication.getProject()
-						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
+				+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
 			}
-			
+
 			return sResult;
 		} finally {
 			method.releaseConnection();

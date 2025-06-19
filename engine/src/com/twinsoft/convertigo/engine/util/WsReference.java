@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +122,7 @@ public class WsReference {
 					String wsdlUrl = wsReference.getUrlpath();
 					
 					// test for valid URL
-					new URL(wsdlUrl);
+					new URI(wsdlUrl).toURL();
 					
 					needAuthentication = wsReference.needAuthentication();
 					
@@ -255,7 +256,7 @@ public class WsReference {
 			if (enableProxy) {
 				if (proxyMode == ProxyMode.auto) {
 					try {
-						URL url = new URL(wsdlUrl);
+						URL url = new URI(wsdlUrl).toURL();
 						PacInfos pacInfos = Engine.theApp.proxyManager.getPacInfos(url.toString(), url.getHost());
 						if (pacInfos != null) {
 							proxyServer = pacInfos.getServer();
@@ -323,7 +324,7 @@ public class WsReference {
 				}
 			}
 			else if (urlPath.startsWith("file")) {
-				URL url = new URL(urlPath);
+				URL url = new URI(urlPath).toURL();
 				File f = FileUtils.toFile(url);
 				String filePath = f.getAbsolutePath();
 				

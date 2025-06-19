@@ -154,11 +154,11 @@ public class OpenApiUtils {
 	public static String servletMappingPath = "openapi";
 	public static String jsonSchemaDirectory = "oas3";
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
-	
+
 	public static OpenAPI read(String url) {
 		return new OpenAPIV3Parser().read(url);
 	}
-	
+
 	private static void walkRefs(Object ob, List<String> refList) {
 		try {
 			if (ob instanceof JSONObject) {
@@ -170,7 +170,7 @@ public class OpenApiUtils {
 					}
 					jsonOb.put("$ref", ref.substring(ref.indexOf('#')));
 				}
-				
+
 				@SuppressWarnings("unchecked")
 				Iterator<String> it = jsonOb.keys();
 				while (it.hasNext()) {
@@ -183,28 +183,28 @@ public class OpenApiUtils {
 					walkRefs(jsonArray.get(i), refList);
 				}
 			}
-			
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static JSONObject makeCopy(JSONObject jsonOb) throws JSONException {
 		if (jsonOb != null) {
 			return new JSONObject(jsonOb.toString());
 		}
 		return null;
 	}
-	
+
 	private static void toOas3Content(File jsonschemaFile, String oasDirUrl, Map<String, JSONObject> modelMap) {
 		try {
 			File targetDir = jsonschemaFile.getParentFile();
 			String name = jsonschemaFile.getName().substring(0, jsonschemaFile.getName().indexOf('.'));
-			
+
 			String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
 			content = content.replaceAll("\"#\\\\/definitions", "\"#/components/schemas");
 			content = content.replaceAll("\\.jsonschema#\\\\/definitions", ".json#/components/schemas");
-			
+
 			JSONObject jsonModels = new JSONObject();
 			JSONObject jsonDefinition = new JSONObject(content).getJSONObject("definitions");
 			@SuppressWarnings("rawtypes")
@@ -214,7 +214,7 @@ public class OpenApiUtils {
 				JSONObject ob = jsonDefinition.getJSONObject(key);
 				if (ob != null) {
 					jsonModels.put(key, ob);
-					
+
 					// fill model map
 					String pKey = oasDirUrl + name + ".json#/components/schemas/" + key;
 					if (!modelMap.containsKey(pKey)) {
@@ -229,31 +229,31 @@ public class OpenApiUtils {
 					}
 				}
 			}
-			
+
 			OpenAPI oa = new OpenAPI();
 			String s = Json.pretty(oa.info(new Info()));
 			JSONObject json = new JSONObject(s);
 			json.put("components", new JSONObject());
 			json.getJSONObject("components").put("schemas", jsonModels);
-			
+
 			JsonNode rootNode = Json.mapper().readTree(json.toString());
 			OpenAPIDeserializer ds = new OpenAPIDeserializer();
 			SwaggerParseResult result = ds.deserialize(rootNode);
-			
+
 			String openApiContent = Json.pretty(result.getOpenAPI());
 			//System.out.println(openApiContent);
 			File jsonFile = new File(targetDir, name+".json");
 			FileUtils.write(jsonFile, openApiContent, "UTF-8");
-		
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static String getModels(String oasDirUrl, UrlMapper urlMapper, Map<String, JSONObject> modelMap) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
-		
+
 		// User defined models
 		String models = "{}";
 		String mapperModels = urlMapper.getModels();
@@ -265,7 +265,7 @@ public class OpenApiUtils {
 		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName+".yaml" );
 		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
-		
+
 		if (doIt) {
 			try {
 				Engine.theApp.schemaManager.clearCache(projectName);
@@ -279,12 +279,12 @@ public class OpenApiUtils {
 					// generate models
 					JSONObject oasObject = JsonSchemaUtils.getOasSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, false);
 					String content = oasObject.toString(4);
-					
+
 					// generate .jsonschema (working file for .json generation)
 					String prefix = nsMap.getPrefix(tns);
 					File jsonSchemaFile = new File(targetDir, prefix+".jsonschema" );
 					FileUtils.write(jsonSchemaFile, content, "UTF-8");
-					
+
 					// generate .json (oas3 compliant)
 					toOas3Content(jsonSchemaFile, oasDirUrl, modelMap);
 					//System.out.println(content);
@@ -297,13 +297,13 @@ public class OpenApiUtils {
 				} catch (Exception ex) {}
 			}
 		}
-		
+
 		return models;
 	}
-	
+
 	private static OpenAPI parseCommon(String requestUrl, Project project) {
 		OpenAPI openAPI = new OpenAPI();
-		
+
 		Info info = new Info();
 		info.setContact(new Contact());
 		info.setTitle("Convertigo OAS3 REST API");
@@ -315,7 +315,7 @@ public class OpenApiUtils {
 			info.setVersion(project.getVersion());
 		}
 		openAPI.setInfo(info);
-		
+
 		List<Server> servers = new ArrayList<>();
 		String serverUrl, scheme, host, basePath;
 		Matcher matcher = parseRequestUrl.matcher(requestUrl);
@@ -327,29 +327,29 @@ public class OpenApiUtils {
 		} else {
 			serverUrl = getConvertigoServeurUrl();
 		}
-		
+
 		Server server1 = new Server();		
 		server1.setDescription("Main server");
 		server1.setUrl(serverUrl);
 		servers.add(server1);
 		openAPI.setServers(servers);
-		
+
 		String oas2Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
 				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, SwaggerUtils.servletMappingPath) 
-					+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
-					+ (Engine.isStudioMode() ? "&showErrors" : "");
-		
+						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
+		+ (Engine.isStudioMode() ? "&showErrors" : "");
+
 		ExternalDocumentation externalDocumentation = new ExternalDocumentation();
 		externalDocumentation.setDescription("Switch to Swagger definition (oas2)");
 		externalDocumentation.setUrl(oas2Url);
 		openAPI.setExternalDocs(externalDocumentation);
-		
+
 		return openAPI;
 	}
-	
+
 	private static Schema<?> getSchema(DataType dataType) {
 		if (dataType.equals(DataType.Boolean)) {
-			 return new BooleanSchema();
+			return new BooleanSchema();
 		} else if (dataType.equals(DataType.Integer)) {
 			return new IntegerSchema();
 		} else if (dataType.equals(DataType.Number)) {
@@ -363,31 +363,31 @@ public class OpenApiUtils {
 		}
 		return null;
 	}
-	
+
 	private static Schema<?> getSchema(UrlMappingParameter ump) {
 		Schema<?> schema = null;
 		Object value = ump.getValueOrNull();
 		boolean isArray = ump.isMultiValued() || ump.isArray();
-		
+
 		if (isArray) {
 			schema = new ArraySchema();
 			((ArraySchema)schema).setItems(getSchema(ump.getDataType()));
-//			((ArraySchema)schema).setEnum(Arrays.asList("val1","val2","val3"));
-//			if (value != null && value instanceof String) {
-//				((ArraySchema)schema).setExample(Arrays.asList(String.valueOf(value).split(";")));
-//			}
+			//			((ArraySchema)schema).setEnum(Arrays.asList("val1","val2","val3"));
+			//			if (value != null && value instanceof String) {
+			//				((ArraySchema)schema).setExample(Arrays.asList(String.valueOf(value).split(";")));
+			//			}
 		} else {
 			schema = getSchema(ump.getDataType());
 			if (value != null) {
 				schema.setDefault(value);
 			}
 		}
-		
+
 		schema.setNullable(ump.isRequired() ? false:true);
-		
+
 		return schema;
 	}
-	
+
 	private static void addFormParameter(Operation operation, UrlMappingParameter ump) {
 		RequestBody requestBody = operation.getRequestBody();
 		if (requestBody == null) {
@@ -398,18 +398,18 @@ public class OpenApiUtils {
 			mediaType.setSchema(new ObjectSchema());
 			requestBody.getContent().addMediaType("application/x-www-form-urlencoded", mediaType);
 		}
-		
+
 		if (ump.getType() == Type.Form) {
 			MediaType mediaType = requestBody.getContent().get("application/x-www-form-urlencoded");
 			Schema<?> mediaSchema =  mediaType.getSchema();
 			Schema<?> propertiesItem = getSchema(ump);
 			if (propertiesItem != null) {
 				propertiesItem.setDescription(ump.getComment());
-				
+
 				// add parameter
 				if (ump.isExposed()) {
-					mediaSchema.addProperties(ump.getName(), propertiesItem);
-	
+					mediaSchema.addProperty(ump.getName(), propertiesItem);
+
 					if (ump.isRequired()) {
 						List<String> requiredList = mediaSchema.getRequired();
 						if (requiredList == null || !requiredList.contains(ump.getName())) {
@@ -419,9 +419,9 @@ public class OpenApiUtils {
 				}
 			}
 		}
-		
+
 	}
-	
+
 	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasDirUrl, List<String> refList, boolean useExternalRef) {
 		RequestBody requestBody = operation.getRequestBody();
 		if (requestBody == null) {
@@ -445,7 +445,7 @@ public class OpenApiUtils {
 				oschema.set$ref(modelReference);
 				mediaType.setSchema(oschema);
 			}
-			
+
 			DataContent dataInput = ump.getInputContent();
 			if (dataInput.equals(DataContent.toJson)) {
 				requestBody.getContent().addMediaType(MimeType.Json.value(), mediaType);
@@ -455,14 +455,14 @@ public class OpenApiUtils {
 			}
 		}		
 	}
-	
+
 	private static String getOperationId(List<String> idList, UrlMappingOperation umo, boolean useQName) {
 		if (useQName) {
 			return umo.getQName();
 		} else {
 			String prefix = umo.getProject().getName().toLowerCase();
 			String operationId = prefix + "__" + umo.getName();
-			
+
 			int index = 1;
 			while (idList.contains(operationId)) {
 				operationId = operationId + "_n" + index;
@@ -472,7 +472,7 @@ public class OpenApiUtils {
 			return operationId;
 		}
 	}
-	
+
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper) {
 		return parse(requestUrl, urlMapper, false);
 	}
@@ -480,10 +480,10 @@ public class OpenApiUtils {
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper, boolean useExternalRef) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
-		
+
 		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName+".yaml" );
-		
+
 		// generate yaml file if needed
 		if (Engine.isStudioMode() || !yamlFile.exists()) {
 			try {
@@ -493,9 +493,9 @@ public class OpenApiUtils {
 				Engine.logEngine.error("Unexpected exception while generating project YAML file", e);
 			}
 		}
-		
+
 		OpenAPI openAPI = null;
-		
+
 		// read generated yaml file
 		try {
 			openAPI = readOpenApiFromFile(yamlFile);
@@ -503,7 +503,7 @@ public class OpenApiUtils {
 			e.printStackTrace();
 			Engine.logEngine.error("Unexpected exception while reading project YAML file", e);
 		}
-		
+
 		return openAPI;
 	}
 
@@ -511,31 +511,31 @@ public class OpenApiUtils {
 
 	private static void writeOpenApiToFile(final String requestUrl, final UrlMapper urlMapper, final File yamlFile, boolean useExternalRef) throws Exception {
 		synchronized (lockObject) {
-			
+
 			if (yamlFile.exists() && Engine.isEngineMode())
 				return;
-			
+
 			Long t0 = System.currentTimeMillis();
-			
+
 			Project project = urlMapper.getProject();
 			String projectName = project.getName();
-			
+
 			String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
-										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
-			
+					"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
+
 			OpenAPI openAPI = parseCommon(requestUrl, project);
-			
+
 			List<Tag> tags = new ArrayList<>();
 			Tag tag = new Tag();
 			tag.setName(project.getName());
 			tag.setDescription(project.getComment());
 			tags.add(tag);
 			openAPI.setTags(tags);
-			
+
 			if (openAPI.getComponents() == null) {
 				openAPI.components(new Components());
 			}
-			
+
 			// Security
 			Map<String, SecurityScheme> securitySchemes = openAPI.getComponents().getSecuritySchemes();
 			for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
@@ -545,17 +545,17 @@ public class OpenApiUtils {
 						securitySchemesItem.setType(SecurityScheme.Type.HTTP);
 						securitySchemesItem.setScheme("basic");
 						openAPI.getComponents().addSecuritySchemes("basicAuth", securitySchemesItem);
-						
+
 						SecurityRequirement securityRequirement = new SecurityRequirement();
 						securityRequirement.addList("basicAuth", new ArrayList<String>());
 						openAPI.addSecurityItem(securityRequirement);
 					}
 				}
 			}
-			
+
 			List<String> refList = new ArrayList<String>();
 			List<String> opIdList = new ArrayList<String>();
-			
+
 			// Paths
 			Paths paths = new Paths();
 			try {
@@ -566,17 +566,17 @@ public class OpenApiUtils {
 						operation.setOperationId(getOperationId(opIdList, umo, false)/*umo.getQName()*/);
 						operation.setDescription(umo.getComment());
 						operation.setSummary(umo.getComment());
-						
+
 						// Tags
 						List<String> list = Arrays.asList(""+ project.getName());
 						operation.setTags(list);
-						
+
 						// Parameters
 						//  1 - add path parameters
 						for (String pathVarName: urlMapping.getPathVariableNames()) {
 							PathParameter parameter = new PathParameter();
 							parameter.setName(pathVarName);
-							
+
 							// retrieve parameter description from bean
 							UrlMappingParameter ump = null;
 							try {
@@ -591,7 +591,7 @@ public class OpenApiUtils {
 							}
 							operation.addParametersItem(parameter);
 						}
-							
+
 						//  2 - add other parameters
 						for (UrlMappingParameter ump: umo.getParameterList()) {
 							Parameter parameter = null;
@@ -606,7 +606,7 @@ public class OpenApiUtils {
 							} else if (ump.getType() == Type.Path) {
 								// ignore : should have been treated before
 							}
-							
+
 							if (parameter != null) { // Query | Header
 								parameter.setName(ump.getName());
 								parameter.setDescription(ump.getComment());
@@ -616,14 +616,14 @@ public class OpenApiUtils {
 								if (schema != null) {
 									parameter.setSchema(schema);
 								}
-								
+
 								// add parameter
 								if (ump.isExposed()) {
 									operation.addParametersItem(parameter);
 								}
 							}
 						}
-						
+
 						// Responses
 						List<String> produces = new ArrayList<String>();
 						if (umo instanceof AbstractRestOperation) {
@@ -638,7 +638,7 @@ public class OpenApiUtils {
 								produces = Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
 							}
 						}
-						
+
 						ApiResponses responses = new ApiResponses();
 						operation.setResponses(responses);
 						for (UrlMappingResponse umr: umo.getResponseList()) {
@@ -648,7 +648,7 @@ public class OpenApiUtils {
 									ApiResponse response = new ApiResponse();
 									response.setDescription(umr.getStatusText());
 									responses.addApiResponse(statusCode, response);
-									
+
 									String modelReference = ((IMappingRefModel)umr).getModelReference();
 									if (!modelReference.isEmpty() && !produces.isEmpty()) {
 										if (modelReference.indexOf(".jsonschema") != -1) {
@@ -674,7 +674,7 @@ public class OpenApiUtils {
 								}
 							}
 						}
-						
+
 						if (umo.getMethod().equals(HttpMethodType.DELETE.name())) {
 							item.setDelete(operation);
 						} else if (umo.getMethod().equals(HttpMethodType.GET.name())) {
@@ -691,7 +691,7 @@ public class OpenApiUtils {
 							item.setTrace(operation);
 						}
 					}
-					
+
 					paths.addPathItem(urlMapping.getPathWithPrefix(), item);
 				}
 			} catch (Exception e) {
@@ -699,12 +699,12 @@ public class OpenApiUtils {
 				Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
 			}
 			openAPI.setPaths(paths);
-	
+
 			// Models and Schemas
 			try {
 				Map<String, JSONObject> modelMap = new HashMap<String, JSONObject>(1000);
 				String models = getModels(oasDirUrl, urlMapper, modelMap);
-				
+
 				/*System.out.println("refList");
 				for (String keyRef: refList) {
 					System.out.println(keyRef);
@@ -713,34 +713,34 @@ public class OpenApiUtils {
 				for (String keyRef: modelMap.keySet()) {
 					System.out.println(keyRef);
 				}*/
-				
+
 				Set<String> done = new HashSet<String>();
 				JSONObject jsonModels = new JSONObject(models);
 				for (String keyRef: refList) {
 					addModelsFromMap(done, modelMap, keyRef, jsonModels);
 				}
-				
+
 				OpenAPI oa = new OpenAPI();
 				String s = Json.pretty(oa.info(new Info()));
 				JSONObject json = new JSONObject(s);
 				json.put("components", new JSONObject());
 				json.getJSONObject("components").put("schemas", jsonModels);
-				
+
 				JsonNode rootNode = Json.mapper().readTree(json.toString());
 				OpenAPIDeserializer ds = new OpenAPIDeserializer();
 				SwaggerParseResult result = ds.deserialize(rootNode);
-				
+
 				@SuppressWarnings("rawtypes")
 				Map<String, Schema> map = result.getOpenAPI().getComponents().getSchemas();
 				openAPI.getComponents().schemas(new TreeMap<>(map));
-				
+
 				modelMap.clear();
-				
+
 			} catch (Throwable t) {
 				t.printStackTrace();
 				Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate models", t);
 			}
-			
+
 			// write yaml
 			try {
 				FileUtils.write(yamlFile, prettyPrintYaml(openAPI), "UTF-8");
@@ -753,7 +753,7 @@ public class OpenApiUtils {
 			}
 		}
 	}
-	
+
 	private static OpenAPI readOpenApiFromFile(final File yamlFile) throws Exception {
 		Long t0 = System.currentTimeMillis();
 		try {
@@ -768,7 +768,7 @@ public class OpenApiUtils {
 			Engine.logEngine.info("YAML for "+ projectName +" project retrieved in "+ (t1-t0) + " ms");
 		}
 	}
-	
+
 	private static void addModelsFromMap(Set<String> done, Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
 		try {
 			if (!done.add(keyRef)) {
@@ -780,7 +780,7 @@ public class OpenApiUtils {
 				if (ob.has("model")) {
 					jsonModels.put(pkey, ob.getJSONObject("model"));
 				}
-				
+
 				if (ob.has("refs")) {
 					JSONArray refs = ob.getJSONArray("refs");
 					for (int i = 0; i < refs.length(); i++) {
@@ -792,11 +792,11 @@ public class OpenApiUtils {
 			e.printStackTrace();
 		}
 	}
-		
+
 	@SuppressWarnings("rawtypes")
 	public static OpenAPI parse(String requestUrl, Collection<UrlMapper> collection) {
 		OpenAPI openAPI = parseCommon(requestUrl, null);
-		
+
 		List<Tag> tags = new ArrayList<>();
 		Components components = new Components();
 		components.callbacks(new HashMap<String, Callback>());
@@ -809,7 +809,7 @@ public class OpenApiUtils {
 		components.responses(new HashMap<String, ApiResponse>());
 		components.schemas(new HashMap<String, Schema>());
 		components.securitySchemes(new HashMap<String, SecurityScheme>());
-		
+
 		Paths paths = new Paths();
 		for (UrlMapper urlMapper : collection) {
 			if (urlMapper != null) {
@@ -817,7 +817,7 @@ public class OpenApiUtils {
 				if (_openAPI != null) {
 					try {tags.addAll(_openAPI.getTags());} catch (Exception e) {}
 					try {paths.putAll(_openAPI.getPaths());} catch (Exception e) {}
-					
+
 					Components _components = _openAPI.getComponents();
 					if (_components != null) {
 						try {components.getCallbacks().putAll(_components.getCallbacks());} catch (Exception e) {}
@@ -834,36 +834,36 @@ public class OpenApiUtils {
 				}
 			}
 		}
-		
+
 		openAPI.setTags(tags);
 		openAPI.setPaths(paths);
 		openAPI.setComponents(components);
 		return openAPI;
 	}
-	
+
 	public static OpenAPI parse(String requestUrl, String projectName) {
 		OpenAPI openAPI;
-		
+
 		Project project;
 		try {
 			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 			openAPI = parseCommon(requestUrl, project);
-			
+
 			List<Tag> tags = new ArrayList<>();
 			Tag tag = new Tag();
 			tag.setName(projectName);
 			tag.setDescription(project.getComment());
 			tags.add(tag);
 			openAPI.setTags(tags);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			openAPI = new OpenAPI();
 		}
-		
+
 		return openAPI;
 	}
-	
+
 	private static String getConvertigoServeurUrl() {
 		String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 		int index = webAppPath.indexOf("://") + 3;
@@ -873,12 +873,12 @@ public class OpenApiUtils {
 		String serverUrl = scheme+ "://"+ host + basePath;
 		return serverUrl;
 	}
-	
+
 	public static HttpConnector createRestConnector(OpenAPI openApi) throws Exception {
 		try {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
-			
+
 			Info info = openApi.getInfo();
 			String title = info != null ? info.getTitle():"";
 			title = title == null || title.isEmpty() ? "RestConnector":title;
@@ -886,21 +886,21 @@ public class OpenApiUtils {
 			description = description == null || description.isEmpty() ? "":description;
 			httpConnector.setName(StringUtils.normalize(title));
 			httpConnector.setComment(description);
-			
+
 			String httpUrl = "";
 			List<Server> servers = openApi.getServers();
 			if (servers.size() > 0) {
 				httpUrl = servers.get(0).getUrl();
 			}
 			httpUrl = httpUrl.isEmpty() ? getConvertigoServeurUrl(): httpUrl;
-			
+
 			UrlFields urlFields = UrlParser.parse(httpUrl);
 			if (urlFields != null) {
 				String scheme = urlFields.getScheme();
 				String host = urlFields.getHost();
 				String port = urlFields.getPort();
 				String basePath = urlFields.getPath();
-				
+
 				boolean isHttps = "https".equals(scheme);
 				httpConnector.setHttps(isHttps);
 				httpConnector.setServer(host);
@@ -908,7 +908,7 @@ public class OpenApiUtils {
 				httpConnector.setBaseDir(basePath);
 			}
 			httpConnector.setBaseUrl(httpUrl);
-			
+
 			List<SecurityRequirement> securityRequirements = openApi.getSecurity();
 			if (securityRequirements != null && securityRequirements.size() > 0) {
 				Map<String, SecurityScheme> securitySchemes = openApi.getComponents().getSecuritySchemes();
@@ -927,7 +927,7 @@ public class OpenApiUtils {
 					}
 				}
 			}
-			
+
 			Paths paths = openApi.getPaths();
 			if (paths != null) {
 				AbstractHttpTransaction defTransaction = null;
@@ -935,15 +935,15 @@ public class OpenApiUtils {
 					HttpMethodType httpMethodType = null;
 					Operation operation = null;
 					String customHttpVerb = "";
-					
+
 					String subDir = entry.getKey();
 					PathItem pathItem = entry.getValue();
-					
+
 					Map<HttpMethod, Operation> operationMap = pathItem.readOperationsMap();
 					for (HttpMethod httpMethod : operationMap.keySet()) {
-						
+
 						operation = operationMap.get(httpMethod);
-						
+
 						if (httpMethod.equals(HttpMethod.GET)) {
 							httpMethodType = HttpMethodType.GET;
 						} else if (httpMethod.equals(HttpMethod.POST)) {
@@ -964,14 +964,14 @@ public class OpenApiUtils {
 						} else {
 							httpMethodType = null;
 						}
-						
+
 						if (operation != null && httpMethodType != null) {
 							String operationId = operation.getOperationId();
 							String operationDesc = operation.getDescription();
 							String summary = operation.getSummary();
-							
+
 							String custom = subDir + ":" + (customHttpVerb.isEmpty() ? httpMethodType.toString() : customHttpVerb);
-							
+
 							String name = StringUtils.normalize(operationId);
 							if (name.isEmpty()) {
 								name = StringUtils.normalize(custom);
@@ -979,13 +979,13 @@ public class OpenApiUtils {
 									name = "operation";
 								}
 							}
-							
+
 							String comment = org.apache.commons.lang3.StringUtils.isNotBlank(summary) && !"null".equals(summary) ? summary :
 								(org.apache.commons.lang3.StringUtils.isNotBlank(operationDesc) && !"null".equals(operationDesc) ? operationDesc : "");
-							
+
 							XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 							AbstractHttpTransaction transaction = new HttpTransaction();
-							
+
 							String h_ContentType = MimeType.WwwForm.value();
 							/*if (consumeList != null) {
 								if (consumeList.contains(MimeType.Json.value())) {
@@ -999,7 +999,7 @@ public class OpenApiUtils {
 											consumeList.get(0) : MimeType.WwwForm.value();
 								}
 							}*/
-							
+
 							String h_Accept = MimeType.Json.value();
 							/*if (produceList != null) {
 								if (produceList.contains(h_ContentType)) {
@@ -1013,18 +1013,18 @@ public class OpenApiUtils {
 										h_Accept = MimeType.Xml.value();
 									}
 								}
-								
+
 								if (consumeList == null && h_Accept != null) {
 									h_ContentType = h_Accept;
 								}
 							}*/
-							
+
 							if (h_Accept != null) {
 								XMLVector<String> xmlv = new XMLVector<String>();
 								xmlv.add("Accept");
 								xmlv.add(h_Accept);
-					   			httpParameters.add(xmlv);
-					   			
+								httpParameters.add(xmlv);
+
 								if (h_Accept.equals(MimeType.Xml.value())) {
 									transaction = new XmlHttpTransaction();
 									((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
@@ -1034,7 +1034,7 @@ public class OpenApiUtils {
 									((JsonHttpTransaction)transaction).setIncludeDataType(true);
 								}
 							}
-							
+
 							// Add variables
 							boolean hasBodyVariable = false;
 							RequestBody body = operation.getRequestBody();
@@ -1053,15 +1053,15 @@ public class OpenApiUtils {
 													Schema<?> schema = properties.get(p_name);
 													String p_description = schema.getDescription();
 													boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
-													
+
 													boolean isMultiValued = false;
 													if (schema instanceof ArraySchema) {
 														isMultiValued = true;
 													}
-													
+
 													RequestableHttpVariable httpVariable = isMultiValued ? 
 															new RequestableHttpMultiValuedVariable():
-															new RequestableHttpVariable();
+																new RequestableHttpVariable();
 													httpVariable.bNew = true;
 													httpVariable.setHttpMethod(HttpMethodType.POST.name());
 													httpVariable.setName(p_name);
@@ -1069,17 +1069,17 @@ public class OpenApiUtils {
 													httpVariable.setHttpName(p_name);
 													httpVariable.setRequired(p_required);
 													httpVariable.setComment(p_description == null ? "":p_description);
-													
+
 													if (schema instanceof FileSchema) {
 														httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
 													}
-													
+
 													Object defaultValue = schema.getDefault();
 													if (defaultValue == null && p_required) {
 														defaultValue = "";
 													}
 													httpVariable.setValueOrNull(defaultValue);
-													
+
 													transaction.addVariable(httpVariable);
 												}
 											}
@@ -1088,47 +1088,47 @@ public class OpenApiUtils {
 											httpVariable.bNew = true;
 											httpVariable.setHttpMethod(HttpMethodType.POST.name());
 											httpVariable.setRequired(true);
-											
+
 											// overrides variable's name for internal use
 											httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
-											
+
 											Object defaultValue = null;
 											httpVariable.setValueOrNull(defaultValue);
-											
+
 											transaction.addVariable(httpVariable);
-											
+
 											h_ContentType = contentType;
-											
+
 											hasBodyVariable = true;
 										}
 									}
 								}
 							}
-							
+
 							List<Parameter> parameters = operation.getParameters();
 							if (parameters != null) {
 								for (Parameter parameter: parameters) {
 									String p_name = parameter.getName();
 									String p_description = parameter.getDescription();
 									boolean p_required = parameter.getRequired();
-									
+
 									boolean isMultiValued = false;
 									Schema<?> schema = parameter.getSchema();
 									if (schema instanceof ArraySchema) {
 										isMultiValued = true;
 									}
-									
+
 									RequestableHttpVariable httpVariable = isMultiValued ? 
 											new RequestableHttpMultiValuedVariable():
-											new RequestableHttpVariable();
+												new RequestableHttpVariable();
 									httpVariable.bNew = true;
-									
+
 									httpVariable.setName(p_name);
 									httpVariable.setDescription(p_name);
 									httpVariable.setHttpName(p_name);
 									httpVariable.setRequired(p_required);
 									httpVariable.setComment(p_description == null ? "":p_description);
-									
+
 									if (parameter instanceof QueryParameter || parameter instanceof PathParameter || parameter instanceof HeaderParameter) {
 										httpVariable.setHttpMethod(HttpMethodType.GET.name());
 										if (parameter instanceof HeaderParameter) {
@@ -1142,25 +1142,25 @@ public class OpenApiUtils {
 									} else {
 										httpVariable.setHttpMethod("");
 									}
-									
+
 									Object defaultValue = schema.getDefault();
 									if (defaultValue == null && p_required) {
 										defaultValue = "";
 									}
 									httpVariable.setValueOrNull(defaultValue);
-									
+
 									transaction.addVariable(httpVariable);
 								}
 							}
-							
+
 							// Set Content-Type
 							if (h_ContentType != null) {
 								XMLVector<String> xmlv = new XMLVector<String>();
 								xmlv.add(HeaderName.ContentType.value());
 								xmlv.add(hasBodyVariable ? h_ContentType:MimeType.WwwForm.value());
-					   			httpParameters.add(xmlv);
+								httpParameters.add(xmlv);
 							}
-							
+
 							transaction.bNew =  true;
 							transaction.setName(name);
 							transaction.setComment(comment);
@@ -1169,7 +1169,7 @@ public class OpenApiUtils {
 							transaction.setCustomHttpVerb(customHttpVerb);
 							transaction.setHttpParameters(httpParameters);
 							transaction.setHttpInfo(true);
-							
+
 							httpConnector.add(transaction);
 							if (defTransaction == null) {
 								defTransaction = transaction;
@@ -1186,108 +1186,108 @@ public class OpenApiUtils {
 			throw new Exception("Unable to create connector", t);
 		}
 	}
-	
+
 	public static String prettyPrintJson(OpenAPI openAPI) {
 		return Json.pretty(openAPI);
 	}
-	
-    static ObjectMapper mapper;
 
-    @SuppressWarnings({ "serial", "deprecation" })
+	static ObjectMapper mapper;
+
+	@SuppressWarnings({ "serial", "deprecation" })
 	private static ObjectMapper objectMapper() {
-        if (mapper == null) {
-            YAMLFactory factory = new YAMLFactory();
-            factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
-            factory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
-            factory.disable(YAMLGenerator.Feature.SPLIT_LINES);
-            factory.enable(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS);
-            
-            mapper = new ObjectMapper(factory);
+		if (mapper == null) {
+			YAMLFactory factory = new YAMLFactory();
+			factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+			factory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+			factory.disable(YAMLGenerator.Feature.SPLIT_LINES);
+			factory.enable(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS);
 
-            // handle ref schema serialization skipping all other props
-            mapper.registerModule(new SimpleModule() {
-                @Override
-                public void setupModule(SetupContext context) {
-                    super.setupModule(context);
-                    context.addBeanSerializerModifier(new BeanSerializerModifier() {
-                        @SuppressWarnings("unchecked")
+			mapper = new ObjectMapper(factory);
+
+			// handle ref schema serialization skipping all other props
+			mapper.registerModule(new SimpleModule() {
+				@Override
+				public void setupModule(SetupContext context) {
+					super.setupModule(context);
+					context.addBeanSerializerModifier(new BeanSerializerModifier() {
+						@SuppressWarnings("unchecked")
 						@Override
-                        public JsonSerializer<?> modifySerializer(
-                                SerializationConfig config, BeanDescription desc, JsonSerializer<?> serializer) {
-                            if (Schema.class.isAssignableFrom(desc.getBeanClass())) {
-                                return new SchemaSerializer((JsonSerializer<Object>) serializer);
-                            }
-                            return serializer;
-                        }
-                    });
-                }
-            });
+						public JsonSerializer<?> modifySerializer(
+								SerializationConfig config, BeanDescription desc, JsonSerializer<?> serializer) {
+							if (Schema.class.isAssignableFrom(desc.getBeanClass())) {
+								return new SchemaSerializer((JsonSerializer<Object>) serializer);
+							}
+							return serializer;
+						}
+					});
+				}
+			});
 
-            Module deserializerModule = new DeserializationModule();
-            mapper.registerModule(deserializerModule);
+			Module deserializerModule = new DeserializationModule();
+			mapper.registerModule(deserializerModule);
 
-            Map<Class<?>, Class<?>> sourceMixins = new LinkedHashMap<>();
+			Map<Class<?>, Class<?>> sourceMixins = new LinkedHashMap<>();
 
-            sourceMixins.put(ApiResponses.class, ExtensionsMixin.class);
-            sourceMixins.put(ApiResponse.class, ExtensionsMixin.class);
-            sourceMixins.put(Callback.class, ExtensionsMixin.class);
-            sourceMixins.put(Components.class, ComponentsMixin.class);
-            sourceMixins.put(Contact.class, ExtensionsMixin.class);
-            sourceMixins.put(Encoding.class, ExtensionsMixin.class);
-            sourceMixins.put(EncodingProperty.class, ExtensionsMixin.class);
-            sourceMixins.put(Example.class, ExtensionsMixin.class);
-            sourceMixins.put(ExternalDocumentation.class, ExtensionsMixin.class);
-            sourceMixins.put(Header.class, ExtensionsMixin.class);
-            sourceMixins.put(Info.class, ExtensionsMixin.class);
-            sourceMixins.put(License.class, ExtensionsMixin.class);
-            sourceMixins.put(Link.class, ExtensionsMixin.class);
-            sourceMixins.put(LinkParameter.class, ExtensionsMixin.class);
-            sourceMixins.put(MediaType.class, ExtensionsMixin.class);
-            sourceMixins.put(OAuthFlow.class, ExtensionsMixin.class);
-            sourceMixins.put(OAuthFlows.class, ExtensionsMixin.class);
-            sourceMixins.put(OpenAPI.class, OpenAPIMixin.class);
-            sourceMixins.put(Operation.class, OperationMixin.class);
-            sourceMixins.put(Parameter.class, ExtensionsMixin.class);
-            sourceMixins.put(PathItem.class, ExtensionsMixin.class);
-            sourceMixins.put(Paths.class, ExtensionsMixin.class);
-            sourceMixins.put(RequestBody.class, ExtensionsMixin.class);
-            sourceMixins.put(Scopes.class, ExtensionsMixin.class);
-            sourceMixins.put(SecurityScheme.class, ExtensionsMixin.class);
-            sourceMixins.put(Server.class, ExtensionsMixin.class);
-            sourceMixins.put(ServerVariable.class, ExtensionsMixin.class);
-            sourceMixins.put(ServerVariables.class, ExtensionsMixin.class);
-            sourceMixins.put(Tag.class, ExtensionsMixin.class);
-            sourceMixins.put(XML.class, ExtensionsMixin.class);
-            sourceMixins.put(Schema.class, ExtensionsMixin.class);
+			sourceMixins.put(ApiResponses.class, ExtensionsMixin.class);
+			sourceMixins.put(ApiResponse.class, ExtensionsMixin.class);
+			sourceMixins.put(Callback.class, ExtensionsMixin.class);
+			sourceMixins.put(Components.class, ComponentsMixin.class);
+			sourceMixins.put(Contact.class, ExtensionsMixin.class);
+			sourceMixins.put(Encoding.class, ExtensionsMixin.class);
+			sourceMixins.put(EncodingProperty.class, ExtensionsMixin.class);
+			sourceMixins.put(Example.class, ExtensionsMixin.class);
+			sourceMixins.put(ExternalDocumentation.class, ExtensionsMixin.class);
+			sourceMixins.put(Header.class, ExtensionsMixin.class);
+			sourceMixins.put(Info.class, ExtensionsMixin.class);
+			sourceMixins.put(License.class, ExtensionsMixin.class);
+			sourceMixins.put(Link.class, ExtensionsMixin.class);
+			sourceMixins.put(LinkParameter.class, ExtensionsMixin.class);
+			sourceMixins.put(MediaType.class, ExtensionsMixin.class);
+			sourceMixins.put(OAuthFlow.class, ExtensionsMixin.class);
+			sourceMixins.put(OAuthFlows.class, ExtensionsMixin.class);
+			sourceMixins.put(OpenAPI.class, OpenAPIMixin.class);
+			sourceMixins.put(Operation.class, OperationMixin.class);
+			sourceMixins.put(Parameter.class, ExtensionsMixin.class);
+			sourceMixins.put(PathItem.class, ExtensionsMixin.class);
+			sourceMixins.put(Paths.class, ExtensionsMixin.class);
+			sourceMixins.put(RequestBody.class, ExtensionsMixin.class);
+			sourceMixins.put(Scopes.class, ExtensionsMixin.class);
+			sourceMixins.put(SecurityScheme.class, ExtensionsMixin.class);
+			sourceMixins.put(Server.class, ExtensionsMixin.class);
+			sourceMixins.put(ServerVariable.class, ExtensionsMixin.class);
+			sourceMixins.put(ServerVariables.class, ExtensionsMixin.class);
+			sourceMixins.put(Tag.class, ExtensionsMixin.class);
+			sourceMixins.put(XML.class, ExtensionsMixin.class);
+			sourceMixins.put(Schema.class, ExtensionsMixin.class);
 
-            mapper.setMixIns(sourceMixins);
-            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-            mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-            mapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+			mapper.setMixIns(sourceMixins);
+			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+			mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			mapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+			mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            return mapper;
-        }
-        return mapper;
-    }
+			return mapper;
+		}
+		return mapper;
+	}
 
-    public static String yamlPretty(Object o) {
-        try {
-        	ObjectWriter ow = objectMapper().writer(new DefaultPrettyPrinter());
-            return ow.writeValueAsString(o);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-	
+	public static String yamlPretty(Object o) {
+		try {
+			ObjectWriter ow = objectMapper().writer(new DefaultPrettyPrinter());
+			return ow.writeValueAsString(o);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public static String prettyPrintYaml(OpenAPI openAPI) {
 		//return Yaml.pretty(openAPI);
 		return yamlPretty(openAPI);
 	}
-	
+
 	public static String getYamlDefinition(String requestUrl, Object object) throws JsonProcessingException {
 		if (object instanceof String) {	// project name
 			return prettyPrintYaml(parse(requestUrl, (String) object));
@@ -1315,7 +1315,7 @@ public class OpenApiUtils {
 		}
 		return null;
 	}
-	
+
 	public static void testReadJsonUrl(String urlString) {
 		OpenAPI openAPI = read(urlString);
 		if (openAPI != null) {
@@ -1323,7 +1323,7 @@ public class OpenApiUtils {
 			Yaml.prettyPrint(openAPI);
 		}
 	}
-	
+
 	public static void testReadJson() {
 		OpenAPI openAPI = read("https://petstore3.swagger.io/api/v3/openapi.json");
 		if (openAPI != null) {
@@ -1331,7 +1331,7 @@ public class OpenApiUtils {
 			Yaml.prettyPrint(openAPI);
 		}
 	}
-	
+
 	public static void testReadYaml() {
 		OpenAPI openAPI = read("https://petstore3.swagger.io/api/v3/openapi.yaml");
 		if (openAPI != null) {
@@ -1339,5 +1339,5 @@ public class OpenApiUtils {
 			Yaml.prettyPrint(openAPI);
 		}
 	}
-	
+
 }

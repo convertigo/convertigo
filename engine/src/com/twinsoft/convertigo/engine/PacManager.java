@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -65,7 +65,7 @@ public class PacManager {
 	public String getScriptContent() throws IOException {
 		try {
 			String scriptContent = (this.scriptUrl.startsWith("file:/") || this.scriptUrl.indexOf(":/") == -1) ?
-				readPacFileContent(this.scriptUrl) : downloadPacContent(this.scriptUrl);
+					readPacFileContent(this.scriptUrl) : downloadPacContent(this.scriptUrl);
 			Engine.logProxyManager.debug("(PacManager) .pac content : \n" + scriptContent);
 			return scriptContent;
 		} catch (IOException e) {
@@ -76,8 +76,8 @@ public class PacManager {
 
 	private String readPacFileContent(String scriptUrl) {
 		try {
-			File file = (scriptUrl.indexOf(":/") == -1) ? new File(scriptUrl) : new File(new URL(scriptUrl).toURI());
-			
+			File file = (scriptUrl.indexOf(":/") == -1) ? new File(scriptUrl) : new File(new URI(scriptUrl));
+
 			return IOUtils.toString(new FileInputStream(file), "UTF-8");
 		} catch (Exception e) {
 			Engine.logProxyManager.error("(PacManager) Error reading proxy auto config file" + e);
@@ -99,7 +99,7 @@ public class PacManager {
 		if (statusCode != HttpStatus.SC_OK) {
 			throw new IOException("(PacManager) Method failed: " + method.getStatusLine());
 		}
-		
+
 		return IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
 	}
 
@@ -116,12 +116,12 @@ public class PacManager {
 		if (result instanceof NativeJavaObject) {
 			result = ((NativeJavaObject) result).unwrap();
 		}
-		
+
 		Engine.logProxyManager.debug("(PacManager) evaluate " + url + " from " + host + " : " + result);
-		
+
 		return result.toString();
 	}
-	
+
 	PacInfos getPacInfos(String url, String host) {
 		PacInfos pacInfos = null;
 		String result = evaluate(url, host);
@@ -133,18 +133,18 @@ public class PacManager {
 		}
 		return pacInfos;
 	}
-	
+
 	public class PacInfos {
 		private String pacServer;
 		private int pacPort;
-		
+
 		protected PacInfos() {
 		}
-		
+
 		public String getServer() {
 			return pacServer;
 		}
-		
+
 		public int getPort() {
 			return pacPort;
 		}

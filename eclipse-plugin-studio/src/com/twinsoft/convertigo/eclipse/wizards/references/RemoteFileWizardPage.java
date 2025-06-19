@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.wizards.references;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -56,16 +57,16 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 	private String[] filterExtension = new String[]{"*"};
 	private String[] filterNames = new String[]{"All files"};
 	private Object parentObject = null;
-	
+
 	private WsReferenceComposite wsRefAuthenticated = null;
 	private Button useAuthentication = null;
 	private Text loginText = null, passwordText = null;
-	
+
 	private FileFieldEditor editor = null;
 	private Combo combo = null;
 	private String filePath = "";
 	private String urlPath = "";
-	
+
 	RemoteFileWizardPage(Object parentObject, String pageName) {
 		super(pageName);
 		this.parentObject = parentObject;
@@ -80,7 +81,7 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 	public void setFilterExtension(String[] filterExtension) {
 		this.filterExtension = filterExtension;
 	}
-	
+
 	public String[] getFilterNames() {
 		return filterNames;
 	}
@@ -88,19 +89,19 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 	public void setFilterNames(String[] filterNames) {
 		this.filterNames = filterNames;
 	}
-	
+
 	public Text getPasswordText() {
 		return passwordText;
 	}
-	
+
 	public Text getLoginText() {
 		return loginText;
 	}
-	
+
 	public Button getUseAuthentication() {
 		return useAuthentication;
 	}
-	
+
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -108,24 +109,24 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 		layout.numColumns = 3;
 		layout.horizontalSpacing = 15;
 		layout.verticalSpacing = 9;
-		
+
 		/* Composite for import WS Reference */
 		GridData data2 = new GridData ();
 		data2.horizontalAlignment = GridData.FILL;
 		data2.horizontalSpan = 3;
 		data2.grabExcessHorizontalSpace = true;
-		
+
 		wsRefAuthenticated = new WsReferenceComposite(container, SWT.NONE, data2);
 		wsRefAuthenticated.setFilterNames(filterNames);
 		wsRefAuthenticated.setFilterExtension(filterExtension);
-		
+
 		combo = wsRefAuthenticated.getCombo();
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				comboChanged();
 			}
 		});
-		
+
 		editor = wsRefAuthenticated.getEditor();
 		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
@@ -133,34 +134,34 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 				editorChanged();
 			}
 		});
-		
+
 		useAuthentication = wsRefAuthenticated.getUseAuthentication();
 		useAuthentication.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				dialogChanged();
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				dialogChanged();
 			}
 		});
-		
+
 		ModifyListener ml = new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				dialogChanged();
 			}
 		};
-		
+
 		loginText = wsRefAuthenticated.getLoginText();
 		loginText.addModifyListener(ml);
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
-		
+
 		urlPath = combo.getText();
-		
+
 		dialogChanged();
 		setControl(container);
 	}
@@ -188,7 +189,7 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 			setTextStatus("Please select an existing file");
 		}
 	}
-	
+
 	private void addToCombo(String uriFile) {
 		if(!Arrays.asList(combo.getItems()).contains(uriFile)){
 			combo.add(uriFile);
@@ -197,14 +198,14 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 			combo.select(wsRefAuthenticated.getItem(uriFile));
 		}
 	}
-	
+
 	public void dialogChanged() {
 		String message = null;
-		
+
 		if (!urlPath.isEmpty()) {
 			try {
-				URL url = new URL(urlPath);
-				
+				URL url = new URI(urlPath).toURL();
+
 				if (urlPath.startsWith("file:/")) {
 					if (FileUtils.toFile(url).exists()) {
 						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
@@ -250,23 +251,23 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 		else {
 			message = "Please enter an URL!";
 		}
-		
+
 		if (message == null) {
 			if (useAuthentication.getSelection() &&
 					(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 				message = "Please enter login and password";
 			}
 		}
-		
+
 		if (message == null) {
 			try {
 				RemoteFileReference reference = (RemoteFileReference)getDbo();
-				
+
 				String localPath = "";
 				if (urlPath.startsWith("file:/")) {
 					localPath = getLocalFilePath(urlPath.substring("file:/".length()));
 				}
-				
+
 				if (reference instanceof WebServiceReference || reference instanceof RestServiceReference) {
 					reference.setUrlpath(urlPath);
 					reference.setFilepath("");
@@ -275,7 +276,7 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 					reference.setUrlpath(localPath.isEmpty() ? urlPath : "");
 					reference.setFilepath(localPath.isEmpty() ? "" : localPath);
 				}
-				
+
 				if (useAuthentication.getSelection()) {
 					reference.setNeedAuthentication(true);
 					reference.setAuthUser(loginText.getText());
@@ -285,7 +286,7 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 				message = e.getMessage();
 			}
 		}
-		
+
 		setTextStatus(message);
 	}
 
@@ -308,18 +309,18 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 		}
 		return "";
 	}
-	
+
 	private DatabaseObject getDbo() {
 		return ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
 	}
-	
+
 	private String getProjectName() {
 		if (parentObject instanceof Project) {
 			return ((Project)parentObject).getName();
 		}
 		return null;
 	}
-		
+
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
@@ -342,5 +343,5 @@ abstract class RemoteFileWizardPage extends WizardPage implements IWsReferenceCo
 	public IWizardPage getNextPage() {
 		return null;
 	}
-	
+
 }

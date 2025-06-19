@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.engine.proxy.translated;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
@@ -52,9 +54,9 @@ import com.twinsoft.convertigo.engine.proxy.cache.CacheEntry;
 public class HttpClient {
 	private HttpMethod method = null;
 	private HtmlInputStream htmlInputStream = new HtmlInputStream();
-		
+
 	void connect(ParameterShuttle infoShuttle) throws Exception {
-		
+
 		boolean noEncoding = false;
 		boolean zipEncoding = false;
 		boolean doConvert = false;
@@ -69,7 +71,7 @@ public class HttpClient {
 
 		String resourceUrl = infoShuttle.siteURL.toString();
 		infoShuttle.siteInputStream = ProxyServletRequester.proxyCacheManager.getResource(resourceUrl);
-		
+
 		if (infoShuttle.siteInputStream == null) {
 			Engine.logEngine.debug("(HttpClient) Resource requested: " + resourceUrl);
 
@@ -77,7 +79,7 @@ public class HttpClient {
 			Engine.logEngine.debug("(HttpClient) Getting response");
 			byte[] result = getData(connector, resourceUrl, infoShuttle);
 			Engine.logEngine.trace("(HttpClient) Data received:\n" + new String(result));
-			
+
 			// get connected and get info from HTTP headers and save them into ParameterShuttle
 			infoShuttle.httpCode = method.getStatusCode();
 			Engine.logEngine.debug("(HttpClient) Response code: " + infoShuttle.httpCode);
@@ -156,21 +158,21 @@ public class HttpClient {
 		if (method != null) {
 			method.releaseConnection();
 			method = null;
-			
+
 			htmlInputStream.close();
 		}
 	}
-	
+
 	private HttpState httpState = null;
 	private boolean handleCookie = true;
-	
+
 	private void getHttpState(HttpConnector connector, ParameterShuttle infoShuttle) {
 		Context context = infoShuttle.context;
-		
+
 		if (context.httpState == null) {
 			Engine.logEngine.debug("(HttpClient) Creating new HttpState for context id "+ context.contextID);
-	        httpState = new HttpState();
-	        
+			httpState = new HttpState();
+
 			context.httpState = httpState;
 		}
 		else {
@@ -178,10 +180,10 @@ public class HttpClient {
 			httpState = context.httpState;
 		}
 	}
-	
-	private byte[] getData(HttpConnector connector, String resourceUrl, ParameterShuttle infoShuttle) throws IOException, EngineException {
+
+	private byte[] getData(HttpConnector connector, String resourceUrl, ParameterShuttle infoShuttle) throws IOException, EngineException, URISyntaxException {
 		byte[] result = null;
-		
+
 		try {
 			Context context = infoShuttle.context;
 
@@ -189,17 +191,17 @@ public class HttpClient {
 			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
 			String proxyPassword = Engine.theApp.proxyManager.getProxyPassword();
 			int proxyPort = Engine.theApp.proxyManager.getProxyPort();
-			
+
 			HostConfiguration hostConfiguration = connector.hostConfiguration;
-			
+
 			boolean trustAllServerCertificates = connector.isTrustAllServerCertificates();
-			
+
 			// Retrieving httpState
 			getHttpState(connector, infoShuttle);
-			
+
 			Engine.logEngine.trace("(HttpClient) Retrieving data as a bytes array...");
 			Engine.logEngine.debug("(HttpClient) Connecting to: " + resourceUrl);
-			
+
 			// Proxy configuration
 			if (!proxyServer.equals("")) {
 				hostConfiguration.setProxy(proxyServer, proxyPort);
@@ -212,15 +214,15 @@ public class HttpClient {
 
 			Engine.logEngine.debug("(HttpClient) Https: " + connector.isHttps());
 			CertificateManager certificateManager = connector.certificateManager;
-			
+
 			URL url = null;
 			String host = "";
 			int port = -1;
 			if (resourceUrl.toLowerCase().startsWith("https:")) {
 				Engine.logEngine.debug("(HttpClient) Setting up SSL properties");
 				certificateManager.collectStoreInformation(context);
-				
-				url = new URL(resourceUrl);
+
+				url = new URI(resourceUrl).toURL();
 				host = url.getHost();
 				port = url.getPort();
 				if (port == -1) port = 443;
@@ -242,14 +244,14 @@ public class HttpClient {
 				Engine.logEngine.debug("(HttpClient) Updated URL for SSL purposes: " + resourceUrl);
 			}
 			else {
-				url = new URL(resourceUrl);
+				url = new URI(resourceUrl).toURL();
 				host = url.getHost();
 				port = url.getPort();
 
 				Engine.logEngine.debug("(HttpClient) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
 			}
-			
+
 			Engine.logEngine.debug("(HttpClient) Building method on: " + resourceUrl);
 			Engine.logEngine.debug("(HttpClient) postFromUser=" + infoShuttle.postFromUser);
 			Engine.logEngine.debug("(HttpClient) postToSite=" + infoShuttle.postToSite);
@@ -262,9 +264,9 @@ public class HttpClient {
 			else {
 				method = new GetMethod(resourceUrl);
 			}
-			
+
 			HttpMethodParams httpMethodParams = method.getParams();
-			
+
 			// Cookie configuration
 			if (handleCookie) {
 				Engine.logEngine.debug("(HttpClient) Setting cookie policy.");
@@ -284,13 +286,13 @@ public class HttpClient {
 				httpState.setCredentials(new AuthScope(host, port, realm), new UsernamePasswordCredentials(userName, userPassword));
 				Engine.logEngine.debug("(HttpClient) Credentials: " + userName + ":******");
 			}
-			
+
 			// Setting basic authentication for proxy
 			if (!proxyServer.equals("") && !proxyUser.equals("")) {
 				httpState.setProxyCredentials(new AuthScope(proxyServer, proxyPort), new UsernamePasswordCredentials(proxyUser, proxyPassword));
 				Engine.logEngine.debug("(HttpClient) Proxy credentials: " + proxyUser + ":******");
 			}
-						
+
 			// Setting HTTP headers
 			Engine.logEngine.debug("(HttpClient) Incoming HTTP headers:");
 			String headerName, headerValue;
@@ -307,7 +309,7 @@ public class HttpClient {
 					Engine.logEngine.debug(headerName + "=" + headerValue);
 				}
 			}
-			
+
 			// Getting the result
 			executeMethod(method, connector, resourceUrl, infoShuttle);
 			result = method.getResponseBody();
@@ -316,42 +318,42 @@ public class HttpClient {
 		finally {
 			if (method != null) method.releaseConnection();
 		}
-		
+
 		return result;
 	}
-	
+
 	private void executeMethod(HttpMethod method, HttpConnector connector, String resourceUrl, ParameterShuttle infoShuttle) throws IOException, URIException, MalformedURLException, EngineException {
 		doExecuteMethod(method, connector, resourceUrl, infoShuttle);
 	}
-	
+
 	private int doExecuteMethod(HttpMethod method, HttpConnector connector, String resourceUrl, ParameterShuttle infoShuttle) throws ConnectionException, URIException, MalformedURLException {
 		int statuscode = -1;
-		
+
 		HostConfiguration hostConfiguration = connector.hostConfiguration;
-		
+
 		// Tells the method to automatically handle authentication.
 		method.setDoAuthentication(true);
-		
+
 		// Tells the method to automatically handle redirection.
 		method.setFollowRedirects(false);
-		
+
 		try {
-	        // Display the cookies
+			// Display the cookies
 			if (handleCookie) {
-		        Cookie[] cookies = httpState.getCookies();
-		        if (Engine.logEngine.isTraceEnabled())
-		        	Engine.logEngine.trace("(HttpClient) request cookies:" + Arrays.asList(cookies).toString());
+				Cookie[] cookies = httpState.getCookies();
+				if (Engine.logEngine.isTraceEnabled())
+					Engine.logEngine.trace("(HttpClient) request cookies:" + Arrays.asList(cookies).toString());
 			}
-			
+
 			Engine.logEngine.debug("(HttpClient) executing method...");
 			statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			Engine.logEngine.debug("(HttpClient) end of method successfull");
-			
-	        // Display the cookies
+
+			// Display the cookies
 			if (handleCookie) {
-		        Cookie[] cookies = httpState.getCookies();
-		        if (Engine.logEngine.isTraceEnabled())
-		        	Engine.logEngine.trace("(HttpClient) response cookies:" + Arrays.asList(cookies).toString());
+				Cookie[] cookies = httpState.getCookies();
+				if (Engine.logEngine.isTraceEnabled())
+					Engine.logEngine.trace("(HttpClient) response cookies:" + Arrays.asList(cookies).toString());
 			}
 		}
 		catch(IOException e) {
@@ -366,5 +368,5 @@ public class HttpClient {
 		}
 		return statuscode;
 	}
-	
+
 }

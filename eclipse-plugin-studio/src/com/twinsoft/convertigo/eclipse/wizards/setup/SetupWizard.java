@@ -22,7 +22,8 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,7 +74,7 @@ public class SetupWizard extends Wizard {
 	private ProxyManager proxyManager;
 
 	private String previousPageName = "";
-	
+
 	String psc = "";
 
 	public SetupWizard() {
@@ -85,7 +86,7 @@ public class SetupWizard extends Wizard {
 
 	private void generateUniqueID() {
 		uniqueID = "" + System.currentTimeMillis()
-				+ Math.round(300 * Math.random());
+		+ Math.round(300 * Math.random());
 	}
 
 	@Override
@@ -137,10 +138,10 @@ public class SetupWizard extends Wizard {
 
 		configureProxyPage = new ConfigureProxyPage(proxyManager);
 		addPage(configureProxyPage);
-		
+
 		embeddedRegistrationPage = new EmbeddedRegistrationPage();
 		addPage(embeddedRegistrationPage);
-		
+
 		pscKeyValidationPage = new PscKeyValidationPage();
 		addPage(pscKeyValidationPage);
 
@@ -161,7 +162,7 @@ public class SetupWizard extends Wizard {
 			File eclipseWorkspace = new File(Engine.PROJECTS_PATH);
 
 			ConvertigoPlugin
-					.logInfo("The current Eclipse workspace is a pre-6.2.0 CEMS workspace. Migration starting …");
+			.logInfo("The current Eclipse workspace is a pre-6.2.0 CEMS workspace. Migration starting …");
 
 			boolean projectsMoveFailed = false;
 
@@ -169,24 +170,24 @@ public class SetupWizard extends Wizard {
 				if (!file.getName().equals(".metadata")) {
 					try {
 						ConvertigoPlugin
-								.logInfo("Migration in progress: moving "
-										+ file.getName() + " …");
+						.logInfo("Migration in progress: moving "
+								+ file.getName() + " …");
 						FileUtils.moveToDirectory(file, userWorkspace, false);
 					} catch (IOException e) {
 						projectsMoveFailed = projectsMoveFailed
 								|| file.getName().equals("projects");
 						ConvertigoPlugin
-								.logInfo("Migration in progress: failed to move "
-										+ file.getName()
-										+ " ! ("
-										+ e.getMessage() + ")");
+						.logInfo("Migration in progress: failed to move "
+								+ file.getName()
+								+ " ! ("
+								+ e.getMessage() + ")");
 					}
 				}
 			}
 
 			if (!projectsMoveFailed) {
 				ConvertigoPlugin
-						.logInfo("Migration in progress: move move back CEMS projects to the Eclipse workspace …");
+				.logInfo("Migration in progress: move move back CEMS projects to the Eclipse workspace …");
 				File exMetadata = new File(userWorkspace, "projects/.metadata");
 				try {
 					FileUtils.copyDirectoryToDirectory(exMetadata,
@@ -194,25 +195,25 @@ public class SetupWizard extends Wizard {
 					FileUtils.deleteQuietly(exMetadata);
 				} catch (IOException e1) {
 					ConvertigoPlugin
-							.logInfo("Migration in progress: failed to merge .metadata ! ("
-									+ e1.getMessage() + ")");
+					.logInfo("Migration in progress: failed to merge .metadata ! ("
+							+ e1.getMessage() + ")");
 				}
 
 				for (File file : new File(userWorkspace, "projects")
 						.listFiles()) {
 					try {
 						ConvertigoPlugin
-								.logInfo("Migration in progress: moving the file "
-										+ file.getName()
-										+ " into the Eclipse Workspace …");
+						.logInfo("Migration in progress: moving the file "
+								+ file.getName()
+								+ " into the Eclipse Workspace …");
 						FileUtils
-								.moveToDirectory(file, eclipseWorkspace, false);
+						.moveToDirectory(file, eclipseWorkspace, false);
 					} catch (IOException e) {
 						ConvertigoPlugin
-								.logInfo("Migration in progress: failed to move "
-										+ file.getName()
-										+ " ! ("
-										+ e.getMessage() + ")");
+						.logInfo("Migration in progress: failed to move "
+								+ file.getName()
+								+ " ! ("
+								+ e.getMessage() + ")");
 					}
 				}
 
@@ -225,7 +226,7 @@ public class SetupWizard extends Wizard {
 						+ userWorkspace.getAbsolutePath());
 			} else {
 				ConvertigoPlugin
-						.logInfo("Migration incomplet: cannot move back CEMS projects to the Eclipse workspace !");
+				.logInfo("Migration incomplet: cannot move back CEMS projects to the Eclipse workspace !");
 			}
 		}
 
@@ -248,7 +249,7 @@ public class SetupWizard extends Wizard {
 	}
 
 	private HttpClient prepareHttpClient(String[] url) throws EngineException,
-			MalformedURLException {
+	MalformedURLException, URISyntaxException {
 		HttpClient client = new HttpClient();
 
 		HostConfiguration hostConfiguration = client.getHostConfiguration();
@@ -259,7 +260,7 @@ public class SetupWizard extends Wizard {
 		if (proxyManager != null) {
 			proxyManager.getEngineProperties();
 			proxyManager
-					.setProxy(hostConfiguration, httpState, new URL(url[0]));
+			.setProxy(hostConfiguration, httpState, new URI(url[0]).toURL());
 		}
 
 		Matcher matcher = scheme_host_pattern.matcher(url[0]);
@@ -353,7 +354,7 @@ public class SetupWizard extends Wizard {
 									"http://www.convertigo.com");
 							method.setParameter("dp",
 									"/StudioRegistrationWizard_" + page
-											+ ".html");
+									+ ".html");
 							method.setParameter("dt", page + "_"
 									+ ProductVersion.productVersion);
 

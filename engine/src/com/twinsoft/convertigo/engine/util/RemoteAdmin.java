@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
@@ -71,16 +73,20 @@ public class RemoteAdmin {
 		this.bHttps = bHttps;
 		this.bTrustAllCertificates = bTrustAllCertificates;
 		this.httpClient = new HttpClient();
-		
+
 		try {
-			url = new URL("http" + (bHttps ? "s" : "") + "://" + serverBaseUrl);
+			url = new URI("http" + (bHttps ? "s" : "") + "://" + serverBaseUrl).toURL();
 			this.serverPort = url.getPort();
 			this.host = url.getHost();
-			
+
 			if (serverPort == -1) {
 				if (bHttps) serverPort = 443;
 				else serverPort = 80;
 			}
+		} catch (URISyntaxException e) {
+			throw new RemoteAdminException(
+					"The Convertigo server is not valid: " + serverBaseUrl + "\n"
+							+ e.getMessage());
 		} catch (MalformedURLException e) {
 			throw new RemoteAdminException(
 					"The Convertigo server is not valid: " + serverBaseUrl + "\n"
@@ -91,37 +97,37 @@ public class RemoteAdmin {
 	public void login(String username, String password)
 			throws RemoteAdminException, EngineException {
 		PostMethod loginMethod = null;
-	
+
 		try {
 			String loginServiceURL = (bHttps ? "https" : "http") + "://"
 					+ serverBaseUrl + "/admin/services/engine.Authenticate";
 
 			Protocol myhttps = null;					
-			
+
 			hostConfiguration = httpClient.getHostConfiguration();
-			
+
 			if (bHttps) {
 				if (bTrustAllCertificates) {	
 					ProtocolSocketFactory socketFactory = new EasySSLProtocolSocketFactory();
 					myhttps = new Protocol("https", socketFactory, serverPort);
 					Protocol.registerProtocol("https", myhttps);
-	
+
 					hostConfiguration.setHost(host, serverPort, myhttps);
 				}
 			}
-				
+
 			if (("").equals(username) || username == null) {
 				throw new RemoteAdminException(
-				"Unable to connect to the Convertigo server: \"Server administrator\" field is empty.");
+						"Unable to connect to the Convertigo server: \"Server administrator\" field is empty.");
 			}
 			if (("").equals(password) || password == null) {
 				throw new RemoteAdminException(
 						"Unable to connect to the Convertigo server: \"Password\" field is empty.");
 			}
-			
-			
-			URL url = new URL (loginServiceURL);
-			
+
+
+			URL url = new URI(loginServiceURL).toURL();
+
 			HttpState httpState = new HttpState();
 			httpClient.setState(httpState);
 			// Proxy configuration
@@ -131,7 +137,7 @@ public class RemoteAdmin {
 			loginMethod.addParameter("authType", "login");
 			loginMethod.addParameter("authUserName", username);
 			loginMethod.addParameter("authPassword", password);
-			
+
 			int returnCode = httpClient.executeMethod(loginMethod);
 			String httpResponse = loginMethod.getResponseBodyAsString();
 
@@ -174,13 +180,17 @@ public class RemoteAdmin {
 			throw new RemoteAdminException(
 					"An unexpected error has occured during the Convertigo server login.\n"
 							+ "Cause: " + e.getMessage(), e);
+		} catch (URISyntaxException e) {
+			throw new RemoteAdminException(
+					"Unable to parse the URI: "
+							+ e.getMessage());
 		} catch (UnknownHostException e) {
 			throw new RemoteAdminException(
 					"Unable to find the Convertigo server (unknown host): "
 							+ e.getMessage());
 		} catch (IOException e) {
 			String message = e.getMessage();
-			
+
 			if (message.indexOf("unable to find valid certification path") != -1) {
 				throw new RemoteAdminException(
 						"The SSL certificate of the Convertigo server is not trusted.\nPlease check the 'Trust all certificates' checkbox.");
@@ -208,7 +218,7 @@ public class RemoteAdmin {
 
 		PostMethod deployMethod = null;
 		Protocol myhttps = null;
-		
+
 		try {
 			if (bHttps && bTrustAllCertificates) {	
 				ProtocolSocketFactory socketFactory = MySSLSocketFactory.getSSLSocketFactory(null, null, null, null, true);
@@ -227,7 +237,7 @@ public class RemoteAdmin {
 
 			int returnCode = httpClient.executeMethod(deployMethod);
 			String httpResponse = deployMethod.getResponseBodyAsString();
-			
+
 			if (returnCode == HttpStatus.SC_OK) {
 				Document domResponse;
 				try {
@@ -236,13 +246,13 @@ public class RemoteAdmin {
 					domResponse = parser.parse(new InputSource(
 							new StringReader(httpResponse)));
 					domResponse.normalize();
-	
+
 					NodeList nodeList = domResponse
 							.getElementsByTagName("error");
-	
+
 					if (nodeList.getLength() != 0) {
 						Element errorNode = (Element) nodeList.item(0);
-						
+
 						Element errorMessage = (Element) errorNode
 								.getElementsByTagName("message").item(0);
 
@@ -251,7 +261,7 @@ public class RemoteAdmin {
 
 						Element stackTrace = (Element) errorNode
 								.getElementsByTagName("stacktrace").item(0);
-						
+
 						if (errorMessage != null) {
 							throw new RemoteAdminException(
 									errorMessage.getTextContent(),
@@ -263,9 +273,9 @@ public class RemoteAdmin {
 									"An unexpected error has occured during the Convertigo project deployment: \n"
 											+ "Body content: \n\n"
 											+ XMLUtils
-													.prettyPrintDOMWithEncoding(
-															domResponse,
-															"UTF-8"));
+											.prettyPrintDOMWithEncoding(
+													domResponse,
+													"UTF-8"));
 						}
 					}
 				} catch (ParserConfigurationException e) {
@@ -305,7 +315,7 @@ public class RemoteAdmin {
 				deployMethod.releaseConnection();
 		}
 	}
-	
+
 	private void decodeResponseError(String httpResponse) throws RemoteAdminException {
 		Document domResponse;
 		try {
@@ -333,7 +343,7 @@ public class RemoteAdmin {
 				throw new RemoteAdminException(
 						errorMessage.getTextContent(),
 						exceptionName == null ? "" : exceptionName.getTextContent(),
-						stackTrace == null ? "" : stackTrace.getTextContent());
+								stackTrace == null ? "" : stackTrace.getTextContent());
 			}		
 		} catch (ParserConfigurationException e) {
 			throw new RemoteAdminException(

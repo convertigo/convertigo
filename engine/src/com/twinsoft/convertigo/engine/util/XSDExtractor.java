@@ -20,7 +20,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,18 +45,18 @@ public class XSDExtractor {
 	Document xsdDom = null;
 	Map<String, XSDObject> items = new HashMap<String, XSDObject>(10);
 	Set<String> extractedPrefixes = new HashSet<String>();
-	
+
 	public static Document extractXSD(String prefixName, Document doc) throws Exception {
 		Document xsdDom = new XSDExtractor().parse(prefixName, doc);
 		return xsdDom;
 	}
-	
+
 	public static Document extractXSD(String prefixName, String xml) throws Exception {
 		Document doc = XMLUtils.parseDOM("java", xml);
 		Document xsdDom = new XSDExtractor().parse(prefixName, doc); 
 		return xsdDom;
 	}
-	
+
 	public static Document extractXSD(String prefixName, InputStream is) throws Exception {
 		Document doc = XMLUtils.parseDOM(is);
 		Document xsdDom = new XSDExtractor().parse(prefixName, doc); 
@@ -64,16 +64,16 @@ public class XSDExtractor {
 	}
 
 	protected XSDExtractor() {
-		
+
 	}
-	
+
 	private Document createDom() throws ParserConfigurationException {
 		Document dom = XMLUtils.createDom("java");
 		Element root = dom.createElement("xsd:schema");
 		dom.appendChild(root);
 		return dom;
 	}
-	
+
 	private Document parse(String prefixName, Document xmlDom) throws Exception {
 		xsdDom = createDom();
 		if (xmlDom != null) {
@@ -82,7 +82,7 @@ public class XSDExtractor {
 			for (int i=0; i<list.getLength(); i++) {
 				parse(list.item(i));
 			}
-			
+
 			Enumeration<XSDObject> e = Collections.enumeration(items.values());
 			while (e.hasMoreElements()) {
 				e.nextElement().toXML(prefixName, null, xsdDom.getDocumentElement());
@@ -90,23 +90,23 @@ public class XSDExtractor {
 		}
 		return xsdDom;
 	}
-	
+
 	private void parse(Node node) {
 		if (node != null) {
 			short type = node.getNodeType();
 			switch (type) {
-				case Node.ELEMENT_NODE:
-					XSDElement xsdElement = new XSDElement((Element)node);
-					items.put(xsdElement.name, xsdElement);
-					xsdElement.parse();
-					break;
-				default:
-					//System.out.println("Node '"+ node.getNodeName() +"' type:"+ type);
-					break;
+			case Node.ELEMENT_NODE:
+				XSDElement xsdElement = new XSDElement((Element)node);
+				items.put(xsdElement.name, xsdElement);
+				xsdElement.parse();
+				break;
+			default:
+				//System.out.println("Node '"+ node.getNodeName() +"' type:"+ type);
+				break;
 			}
 		}
 	}
-		
+
 	private abstract class XSDObject {
 		protected static final int UNKNOWN_OBJECT_TYPE	= 0;
 		protected static final int ELEMENT_SIMPLE_TYPE	= 1;
@@ -117,17 +117,17 @@ public class XSDExtractor {
 		protected int type = UNKNOWN_OBJECT_TYPE;
 		protected String name = "";
 		protected String value = "";
-		
+
 		abstract protected void parse();
 		abstract protected void toXML(String prefixName, XSDObject parentXSDObject, Element parentElement);
-		
+
 		protected String getSchemaType() {
 			String datatype = "xsd:string";
-			
+
 			// boolean
 			if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
 				return "xsd:boolean";
-			
+
 			// byte
 			try {
 				Byte.parseByte(value);
@@ -151,7 +151,7 @@ public class XSDExtractor {
 			}
 			catch (NumberFormatException e) {
 			}
-			
+
 			// long
 			try {
 				Long.parseLong(value);
@@ -167,7 +167,7 @@ public class XSDExtractor {
 			}
 			catch (NumberFormatException e) {
 			}
-			
+
 			// float
 			try {
 				Float.parseFloat(value);
@@ -175,7 +175,7 @@ public class XSDExtractor {
 			}
 			catch (NumberFormatException e) {
 			}
-			
+
 			// datetime
 			try {
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
@@ -183,7 +183,7 @@ public class XSDExtractor {
 				return "xsd:datetime";
 			} catch (ParseException e1) {
 			}
-			
+
 			// date
 			try {
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -191,7 +191,7 @@ public class XSDExtractor {
 				return "xsd:date";
 			} catch (ParseException e1) {
 			}
-			
+
 			// time
 			try {
 				SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
@@ -199,19 +199,19 @@ public class XSDExtractor {
 				return "xsd:time";
 			} catch (ParseException e1) {
 			}
-			
+
 			// uri
 			try {
-				new URL(value);
+				new URI(value);
 				return "xsd:anyURI";
 			}
 			catch (Exception e) {
 			}
-			
+
 			return datatype;
 		}
 	}
-	
+
 	private class XSDElement extends XSDObject {
 		private ArrayList<String> nes = new ArrayList<String>();
 		private ArrayList<String> nas = new ArrayList<String>();
@@ -231,51 +231,51 @@ public class XSDExtractor {
 				String key;
 				short type = node.getNodeType();
 				switch (type) {
-					case Node.ELEMENT_NODE:
-						key = ((Element)node).getTagName();
-						//if (!elements.containsKey(key)) {
-						if (!nes.contains(key)) {
-							nes.add(key);
-							xsdObject = new XSDElement((Element)node);
-							elements.put(xsdObject.name, xsdObject);
-							occurs.put(key, Integer.valueOf(1));
-							xsdObject.parse();
-						}
-						else {
-							int oldOccur = ((Integer)occurs.get(key)).intValue();
-							int newOccur = XMLUtils.countOccurrences((Element)node);//(((Element)node.getParentNode()).getElementsByTagName(key).getLength());
-							occurs.put(key, Math.max(oldOccur, newOccur));
-							xsdObject = elements.get(key);
-							((XSDElement)xsdObject).parse((Element)node);
-						}
-						break;
-					case Node.ATTRIBUTE_NODE:
-						key = ((Attr)node).getNodeName();
-						//if (!attributes.containsKey(key)) {
-						if (!nas.contains(key)) {
-							nas.add(key);
-							xsdObject = new XSDAttribute((Attr)node);
-							attributes.put(xsdObject.name, xsdObject);
-							xsdObject.parse();
-						}
-						else {
-							// should not append
-						}
-						break;
-					case Node.TEXT_NODE:
-						break;
-					default:
-						//System.out.println("Node '"+ node.getNodeName() +"' type:"+ type);
-						break;
+				case Node.ELEMENT_NODE:
+					key = ((Element)node).getTagName();
+					//if (!elements.containsKey(key)) {
+					if (!nes.contains(key)) {
+						nes.add(key);
+						xsdObject = new XSDElement((Element)node);
+						elements.put(xsdObject.name, xsdObject);
+						occurs.put(key, Integer.valueOf(1));
+						xsdObject.parse();
+					}
+					else {
+						int oldOccur = ((Integer)occurs.get(key)).intValue();
+						int newOccur = XMLUtils.countOccurrences((Element)node);//(((Element)node.getParentNode()).getElementsByTagName(key).getLength());
+						occurs.put(key, Math.max(oldOccur, newOccur));
+						xsdObject = elements.get(key);
+						((XSDElement)xsdObject).parse((Element)node);
+					}
+					break;
+				case Node.ATTRIBUTE_NODE:
+					key = ((Attr)node).getNodeName();
+					//if (!attributes.containsKey(key)) {
+					if (!nas.contains(key)) {
+						nas.add(key);
+						xsdObject = new XSDAttribute((Attr)node);
+						attributes.put(xsdObject.name, xsdObject);
+						xsdObject.parse();
+					}
+					else {
+						// should not append
+					}
+					break;
+				case Node.TEXT_NODE:
+					break;
+				default:
+					//System.out.println("Node '"+ node.getNodeName() +"' type:"+ type);
+					break;
 				}
 			}
 			return xsdObject;
 		}
-		
+
 		protected void parse() {
 			parse(source);
 		}
-		
+
 		protected void parse(Element element) {
 			if (XMLUtils.findChildNode(element, Node.ELEMENT_NODE) != null) {
 				this.type = ELEMENT_COMPLEX_TYPE;
@@ -287,12 +287,12 @@ public class XSDExtractor {
 				this.type = ELEMENT_SIMPLE_TYPE;
 				this.value = element.getTextContent().trim();
 			}
-			
+
 			NamedNodeMap map = element.getAttributes();
 			for (int i=0; i<map.getLength(); i++) {
 				add(map.item(i));
 			}
-			
+
 			NodeList list = element.getChildNodes();
 			for (int i=0; i<list.getLength(); i++) {
 				add(list.item(i));
@@ -311,7 +311,7 @@ public class XSDExtractor {
 			int index = name.indexOf(":");
 			String extractedName = (index == -1) ? name:name.substring(index+1);
 			String extractedPrefix = prefixName + name.replace(':', '-');
-			
+
 			if (extractedPrefixes.contains(extractedPrefix)) {
 				int i = 1;
 				String s;
@@ -321,9 +321,9 @@ public class XSDExtractor {
 				extractedPrefix = s;
 			}
 			extractedPrefixes.add(extractedPrefix);
-			
+
 			String extractedType = extractedPrefix + "Type";//prefixName + extractedName + "Type";
-			
+
 			if (type == ELEMENT_COMPLEX_TYPE) {
 				Element element = xsdDom.createElement("xsd:element");
 				element.setAttribute("name", extractedName);
@@ -334,12 +334,12 @@ public class XSDExtractor {
 					element.setAttribute("maxOccurs", "unbounded");
 				}
 				parentElement.appendChild(element);
-				
+
 				Element complex = xsdDom.createElement("xsd:complexType");
 				complex.setAttribute("name", extractedType);
-				
+
 				prefixName = extractedPrefix + "_";//prefixName = prefixName + extractedName + "_";
-				
+
 				/*Enumeration e;
 				e = elements.elements();
 				if (e.hasMoreElements()) {
@@ -349,7 +349,7 @@ public class XSDExtractor {
 					}
 					complex.appendChild(sequence);
 				}*/
-				
+
 				Element parentForAttributes;
 				if (!nes.isEmpty()) {
 					Element sequence = xsdDom.createElement("xsd:sequence");
@@ -357,21 +357,21 @@ public class XSDExtractor {
 						((XSDElement)elements.get(key)).toXML(prefixName, this, sequence);
 					}
 					complex.appendChild(sequence);
-					
+
 					parentForAttributes = complex; //
 				}
 				else {
 					Element extension = xsdDom.createElement("xsd:extension");
 					extension.setAttribute("base", getSchemaType());
-					
+
 					Element simpleContent = xsdDom.createElement("xsd:simpleContent");
 					simpleContent.appendChild(extension);
-					
+
 					complex.appendChild(simpleContent);
-					
+
 					parentForAttributes = extension; //
 				}
-				
+
 				/*e = attributes.elements();
 				while (e.hasMoreElements()) {
 					((XSDAttribute)e.nextElement()).toXML(prefixName, this, complex);
@@ -396,29 +396,29 @@ public class XSDExtractor {
 			}
 		}
 	}
-	
+
 	private class XSDAttribute extends XSDObject {
-//		private Attr source = null;
-		
+		//		private Attr source = null;
+
 		private XSDAttribute(Attr attr) {
-//			this.source = attr;
+			//			this.source = attr;
 			this.name = attr.getName();
 			this.value = attr.getValue();
 			this.type = ATTRIBUTE_SIMPLE_TYPE;
 		}
-		
-//		public Attr getSource() {
-//			return source;
-//		}
+
+		//		public Attr getSource() {
+		//			return source;
+		//		}
 
 		protected void parse() {
-			
+
 		}
 
 		protected void toXML(String prefixName, XSDObject parentXSDObject, Element parentElement) {
 			if (name.startsWith("xmlns"))
 				return;
-			
+
 			if (name.indexOf(":") != -1)
 				return;
 
@@ -440,9 +440,9 @@ public class XSDExtractor {
 				parentElement.appendChild(attr);
 			}
 		}
-		
+
 	}
-	
+
 	/*public static void main(String[] args) {
 		//String xsdURI = "C:/Development/SVN/Convertigo4.4.3/testXSD.xml";
 		//String xsdURI = "C:/Development/SVN/Convertigo4.4.3/testXSD1.xml";
@@ -451,7 +451,7 @@ public class XSDExtractor {
 			Document doc = extractXSD("", new FileInputStream(xsdURI));
 			String s = XMLUtils.prettyPrintDOMWithEncoding(doc, "UTF-8");
 			System.out.println(s);
-			
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
