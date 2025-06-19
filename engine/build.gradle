@@ -175,9 +175,9 @@ sourceSets {
 }
 
 dependencies {
-	implementation 'org.apache.logging.log4j:log4j-1.2-api:2.24.3'
+	implementation 'org.apache.logging.log4j:log4j-1.2-api:2.25.0'
 	compileFlat    project(path: ':patches')
-	compileFlat    ('org.apache.logging.log4j:log4j-core:2.24.3') {
+	compileFlat    ('org.apache.logging.log4j:log4j-core:2.25.0') {
 		exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
 	}
 	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
@@ -202,24 +202,24 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.19.0'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.19.1'
 	compileFlat    'com.google.gcm:gcm-server:1.0.0'
-	compileFlat    'com.opencsv:opencsv:5.11'
+	compileFlat    'com.opencsv:opencsv:5.11.1'
 	compileFlat    'com.sun.xml.bind:jaxb-xjc:2.2.11'
 	compileFlat    'commons-collections:commons-collections:3.2.2'
 	compileFlat    'commons-cli:commons-cli:1.9.0'
-	compileFlat    'commons-fileupload:commons-fileupload:1.5'
+	compileFlat    'commons-fileupload:commons-fileupload:1.6.0'
 	compileFlat    'commons-httpclient:commons-httpclient:3.1'
 	compileFlat    'commons-io:commons-io:2.19.0'
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'commons-lang:commons-lang:2.6'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.75'
-	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.32'
-	compileFlat    'io.swagger.core.v3:swagger-models:2.2.32'
-	compileFlat    'io.swagger.core.v3:swagger-core:2.2.32'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.28'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.28'
+	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.33'
+	compileFlat    'io.swagger.core.v3:swagger-models:2.2.33'
+	compileFlat    'io.swagger.core.v3:swagger-core:2.2.33'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.29'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.29'
 	compileFlat    'javax.activation:activation:1.1.1'
 	compileFlat    'javax.mail:mail:1.4.7'
 	compileFlat    'org.slf4j:slf4j-ext:2.0.17'
@@ -235,13 +235,13 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:1.4.7'
-	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.80'
+	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.81'
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.2.1.202505142326-r'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.2.1.202505142326-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:6.4.4.Final'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.3.0.202506031305-r'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.0.2.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
 	compileFlat    'org.mozilla:rhino:1.8.0'
 	compileFlat    'org.mozilla:rhino-tools:1.8.0'
@@ -258,7 +258,7 @@ dependencies {
 	compileFlat    'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.3'
-	compileFlat    'org.postgresql:postgresql:42.7.5'
+	compileFlat    'org.postgresql:postgresql:42.7.7'
 	// end runtime dependencies
 	compileFlat 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat 'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
