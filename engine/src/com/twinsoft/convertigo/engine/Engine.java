@@ -127,11 +127,12 @@ public class Engine {
 	public static Engine theApp;
 
 	private final static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
-
+		private int threadCount = 0;
+		
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread thread = new Thread(r);
-			thread.setName("ConvertigoExecutor-" + thread.threadId());
+			thread.setName("ConvertigoExecutor-" + threadCount++);
 			thread.setDaemon(true);
 			return thread;
 		}
