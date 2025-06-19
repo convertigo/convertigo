@@ -650,8 +650,8 @@ jobs:
     macos:
       xcode: 15.0.0
     steps:
-    - aws-cli/setup
-		use_brew: true
+    - aws-cli/setup:
+        use_brew: true
     - attach_workspace:
         at: for_mac
     - run:
