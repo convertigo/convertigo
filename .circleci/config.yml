@@ -11,7 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@5.2.0
+  aws-cli: circleci/aws-cli@5.4.0
 jobs:
   build_engine_jar:
     <<: *defaults
@@ -651,6 +651,7 @@ jobs:
       xcode: 15.0.0
     steps:
     - aws-cli/setup
+		use_brew: true
     - attach_workspace:
         at: for_mac
     - run:
@@ -695,27 +696,17 @@ jobs:
           echo "prepare s3 upload, aws client version"
           aws --version
           
-          upload_with_retry() {
-            local src=$1
-            local dest=$2
-            local n=0
+          aws s3api put-object --bucket convertigo-ci \
+            --key "convertigo-${CONVERTIGO_BUILD_NAME}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg" \
+            --body "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg" \
+            --storage-class REDUCED_REDUNDANCY \
+            --acl public-read
           
-            until [ $n -ge 20 ]; do
-              aws s3 cp "$src" "$dest" --storage-class REDUCED_REDUNDANCY --acl public-read && return 0
-              echo "Upload failed, retrying in 10s..."
-              n=$((n + 1))
-              sleep 10
-            done
-          
-            echo "Upload failed after 5 retries: $src"
-            exit 1
-          }
-          
-          upload_with_retry "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg" \
-            "s3://convertigo-ci/convertigo-${CONVERTIGO_BUILD_NAME}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg"
-          
-          upload_with_retry "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg" \
-            "s3://convertigo-ci/convertigo-${CONVERTIGO_BUILD_NAME}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg"
+          aws s3api put-object --bucket convertigo-ci \
+            --key "convertigo-${CONVERTIGO_BUILD_NAME}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg" \
+            --body "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg" \
+            --storage-class REDUCED_REDUNDANCY \
+            --acl public-read
   release:
     docker:
     - image: cibuilds/github:latest
