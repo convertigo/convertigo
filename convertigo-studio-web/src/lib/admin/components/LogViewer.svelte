@@ -500,8 +500,13 @@
 			<div class="mini-card preset-filled-success-100-900">
 				<Popover
 					open={searchBoxOpened}
-					onclick={() => (searchBoxOpened = !searchBoxOpened)}
-					onInteractOutside={() => (searchBoxOpened = false)}
+					onOpenChange={(e) => {
+						searchBoxOpened = e.open;
+						if (!e.open) {
+							searched = '';
+							doSearch();
+						}
+					}}
 					arrow
 					arrowBackground="bg-surface-50-950"
 					triggerBase="block"

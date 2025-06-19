@@ -48,7 +48,7 @@
 
 <Modal
 	open={opened}
-	onInteractOutside={() => (opened = false)}
+	onOpenChange={(e) => (opened = e.open)}
 	triggerBase="hidden"
 	contentBase={`max-h-full overflow-auto ${cls}`}
 >
