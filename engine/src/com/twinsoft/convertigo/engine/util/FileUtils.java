@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.Engine;
 @SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static final int BUFFER_SIZE = 4096;
+	public static final boolean isCaseSensitive = !Engine.isWindows();
 
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 	public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
@@ -270,10 +271,38 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		return fis;
 	}
 
-	public static boolean areFilesIdentical(File file, String newContent, Charset charset) throws IOException {
-		if (file == null || !file.exists()) {
+	public static boolean fileExistsWithExactCase(File file) {
+		if (!file.exists()) {
 			return false;
 		}
+		if (isCaseSensitive) {
+			return true;
+		}
+		
+		var parent = file.getParentFile();
+		if (parent == null) {
+			return false;
+		}
+
+		var targetName = file.getName();
+		var files = parent.list();
+		if (files == null) {
+			return false;
+		}
+
+		for (var name : files) {
+			if (name.equals(targetName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean areFilesIdentical(File file, String newContent, Charset charset) throws IOException {
+		if (file == null || !fileExistsWithExactCase(file)) {
+			return false;
+		}
+		
 		try (var fileStream = new BufferedInputStream(new FileInputStream(file));
 				InputStream contentStream = new ByteArrayInputStream(newContent.getBytes(charset))) {
 
@@ -297,6 +326,9 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			return;
 		}
 		Files.createDirectories(file.toPath().getParent());
+		if (!isCaseSensitive) {
+			FileUtils.deleteQuietly(file);
+		}
 		Files.writeString(file.toPath(), content, charset);
 	}
 
