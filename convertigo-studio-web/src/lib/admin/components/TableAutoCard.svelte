@@ -3,9 +3,9 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { onMount, tick } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, trClass?: string, title_1?: import('svelte').Snippet, children?: import('svelte').Snippet<[any]>, tr?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, trClass?: string, fnRowId?: function, children?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
 	let {
 		definition,
 		data,
@@ -14,11 +14,12 @@
 		comment = '',
 		class: cls = '',
 		trClass = 'even:preset-filled-surface-200-800 odd:preset-filled-surface-300-700 hover:preset-filled-surface-400-600',
+		fnRowId = (row, i) => row.name ?? i,
 		children,
-		tr
+		thead
 	} = $props();
 
-	const [duration, y, opacity] = [200, -50, 1];
+	const duration = 50;
 	let isCardView = $state(false);
 	let container;
 
@@ -51,54 +52,54 @@
 
 	<table>
 		{#if showHeaders}
-			<thead>
-				<tr>
-					{#each definition as def}
-						<th class={def.th}>
-							{#if def.icon}
-								<Icon icon={def.icon} class="h-7 w-7" />
-							{:else}
-								{def.name ?? ''}
-							{/if}
-						</th>
-					{/each}
-				</tr>
-			</thead>
+			{#snippet _thead({ definition })}
+				<thead>
+					<tr>
+						{#each definition as def}
+							<th class={def.th}>
+								{#if def.icon}
+									<Icon icon={def.icon} class="h-7 w-7" />
+								{:else}
+									{def.name ?? ''}
+								{/if}
+							</th>
+						{/each}
+					</tr>
+				</thead>
+			{/snippet}
+			{#if thead}
+				{@render thead({ definition })}
+			{:else}
+				{@render _thead({ definition })}
+			{/if}
 		{/if}
 		{#if data && data.length > 0}
 			<tbody>
-				{#each data as row, rowIdx}
-					{#snippet _tr({ row, rowIdx })}
-						<tr class={trClass} data-custom={row.name} transition:fly={{ duration, y, opacity }}>
-							{#each definition as def}
-								<td
-									class={def.class
-										? typeof def.class == 'function'
-											? def.class(row)
-											: def.class
-										: ''}
-									data-label={showHeaders ? (def.name ?? '') : ''}
-								>
-									{#if def.custom}
-										{#if children}
-											{@render children({ row, def, rowIdx })}
-										{:else}
-											{row[def.key] ?? ''}
-										{/if}
+				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
+					<tr class={trClass} data-custom={row.name} transition:fade>
+						{#each definition as def}
+							<td
+								class={def.class
+									? typeof def.class == 'function'
+										? def.class(row)
+										: def.class
+									: ''}
+								data-label={showHeaders ? (def.name ?? '') : ''}
+							>
+								{#if def.custom}
+									{#if children}
+										{@render children({ row, def, rowIdx })}
 									{:else}
-										<AutoPlaceholder loading={row[def.key] == null}
-											>{row[def.key] ?? ''}</AutoPlaceholder
-										>
+										{row[def.key] ?? ''}
 									{/if}
-								</td>
-							{/each}
-						</tr>
-					{/snippet}
-					{#if tr}
-						{@render tr({ row, rowIdx, tr: _tr, definition })}
-					{:else}
-						{@render _tr({ row, rowIdx })}
-					{/if}
+								{:else}
+									<AutoPlaceholder loading={row[def.key] == null}
+										>{row[def.key] ?? ''}</AutoPlaceholder
+									>
+								{/if}
+							</td>
+						{/each}
+					</tr>
 				{/each}
 			</tbody>
 		{:else}

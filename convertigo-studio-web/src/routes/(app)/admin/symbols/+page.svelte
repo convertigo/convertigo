@@ -33,7 +33,9 @@
 	/*** @type {any} */
 
 	let fsymbols = $derived(
-		symbols.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
+		symbols
+			.map((s, i) => ({ ...s, index: i }))
+			.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
 	);
 
 	function modalOpen(params) {
@@ -284,6 +286,7 @@
 			{ name: 'Value', key: 'value', class: 'truncate max-w-xl text-xs' }
 		]}
 		data={fsymbols.filter((s) => !exporting || !s.project)}
+		fnRowId={(row) => row.index}
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}

@@ -53,9 +53,16 @@
 			{' and'} {nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
 			The first key was created the {new Date(firstStartDate).toISOString().split('T')[0]}.{/if}
 	</AutoPlaceholder>
-	{#each categories as { keys: data, name, total, remaining }}
+	{#each categories as { keys: data, name, total, remaining, overflow }, iCat}
+		{@const classCat = [
+			['preset-filled-success-50-950', 'preset-filled-success-100-900'],
+			['preset-filled-warning-50-950', 'preset-filled-warning-100-900'],
+			['preset-filled-error-50-950', 'preset-filled-error-100-900']
+		]}
+		{@const ratioCat = total > 1 ? remaining / total : 1}
+		{@const iClass = ratioCat < 0.5 ? 1 : ratioCat < 0.2 ? 2 : 0}
 		<TableAutoCard
-			showHeaders={false}
+			showHeaders={true}
 			definition={[
 				{ name: 'Actions', custom: true },
 				{ name: 'Key', custom: true, class: expired },
@@ -64,15 +71,15 @@
 			]}
 			{data}
 		>
-			{#snippet tr({ row, rowIdx, tr, definition: { length: colspan } })}
-				{#if rowIdx == 0}
-					<tr class="border-b-[0.5px] border-surface-900-100">
+			{#snippet thead({ definition: { length: colspan } })}
+				<thead>
+					<tr class={classCat[iClass][iCat % classCat[iClass].length]}>
 						<th {colspan}>
 							<AutoPlaceholder {loading}>
-								<div class="layout-x flex-wrap justify-between">
+								<div class="layout-x flex-wrap justify-between p-low">
 									<div>
 										{name}
-										{#if row.overflow == 'true'}
+										{#if overflow == 'true'}
 											<span class="ml text-xs">(overflow)</span>
 										{/if}
 									</div>
@@ -85,9 +92,7 @@
 							</AutoPlaceholder>
 						</th>
 					</tr>
-					<tr></tr>
-				{/if}
-				{@render tr({ row, rowIdx })}
+				</thead>
 			{/snippet}
 			{#snippet children({ row: { text, evaluation, expired }, def: { name } })}
 				{#if name == 'Actions'}
