@@ -46,6 +46,7 @@ import com.teamdev.jxbrowser.engine.EngineOptions;
 import com.teamdev.jxbrowser.engine.PasswordStore;
 import com.teamdev.jxbrowser.engine.ProprietaryFeature;
 import com.teamdev.jxbrowser.engine.RenderingMode;
+import com.teamdev.jxbrowser.engine.Theme;
 import com.teamdev.jxbrowser.event.Observer;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
@@ -180,6 +181,7 @@ public class C8oBrowser extends Composite {
 								.addSwitch("--remote-allow-origins=*")
 								.remoteDebuggingPort(debugPort).build());
 						rt = 0;
+						browserContext.setTheme(SwtUtils.isDark() ? Theme.DARK : Theme.LIGHT);
 					} catch (ChromiumBinariesDeliveryException e) {
 						rt--;
 						if (rt == 0) {
