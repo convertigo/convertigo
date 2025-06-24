@@ -145,7 +145,7 @@ $(window).ready(function() {
 function checkAuthentication(){
 	$.ajax( {
 		type : "POST",
-		url : "services/engine.CheckAuthentication",
+		url : "../admin/services/engine.CheckAuthentication",
 		dataType : "xml",
 		data : {},
 		success : function(xml) {
@@ -474,7 +474,7 @@ function genericError(XMLHttpRequest, type, extra, callback) {
 }
 
 function loadHTML(url, successFunction, parameters, errorFunction, extra) {
-	return ajaxCall("GET", url, "text", parameters, successFunction, errorFunction, extra);
+	return ajaxCall("GET", "../admin_/" + url, "text", parameters, successFunction, errorFunction, extra);
 }
 
 function callService(serviceName, successFunction, parameters, errorFunction, extra) {
@@ -488,7 +488,7 @@ function callJSONService(serviceName, successFunction, parameters, errorFunction
 function ajaxCall(httpMethod, url, dataType, data, successFunction, errorFunction, extra) {
 	var parameters = {
 		type : httpMethod,
-		url : url,
+		url : '../admin/' + url,
 		dataType : dataType,
 		data : data,
 		success : successFunction,

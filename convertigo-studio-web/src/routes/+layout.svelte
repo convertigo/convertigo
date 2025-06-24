@@ -35,15 +35,22 @@
 		if (page.route.id == '/logout') {
 			return;
 		}
-		await Authentication.checkAuthentication();
+		var authToken = page.url.hash.match(new RegExp('#authToken=(.*)'));
+
+		if (authToken != null) {
+			await Authentication.authenticate({ authToken: authToken[1], authType: 'login' });
+		} else {
+			await Authentication.checkAuthentication();
+		}
 		if (!Authentication.authenticated && page.route.id != '/login') {
 			goto(`${base}/login/?redirect=${page.url.pathname}`);
 		} else if (
 			Authentication.authenticated &&
-			(page.route.id == '/' || page.route.id == '/login')
+			(page.route.id == null || page.route.id == '/' || page.route.id == '/login')
 		) {
 			goto(`${base}/admin/`);
 		}
+		console.log('route.hash', page.url.hash.startsWith('#authToken='));
 	});
 
 	Light.light;

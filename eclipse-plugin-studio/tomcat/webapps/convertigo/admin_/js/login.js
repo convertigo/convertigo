@@ -79,7 +79,7 @@ function checkFromStudioWeb(page) {
 
 function checkAuthentication() {
 	$.ajax( {
-		url : "services/engine.CheckAuthentication",
+		url : "../admin/services/engine.CheckAuthentication",
 		data : {},
 		success : function(xml) {
 			var $xml = $(xml);
@@ -95,7 +95,7 @@ function authenticate(data) {
 	data.authType = "login";
 	
 	request = $.ajax( {
-		url : "services/engine.Authenticate",
+		url : "../admin/services/engine.Authenticate",
 		data : data,
 		success : function(xml) {
 			var $xml = $(xml);

@@ -16,7 +16,7 @@
 		try {
 			await Authentication.authenticate(e);
 			if (Authentication.authenticated) {
-				goto(`${data.redirect ?? '/admin'}`);
+				goto(`${data.redirect ?? '../admin'}`);
 			} else {
 				error = Authentication.error;
 			}
@@ -26,10 +26,10 @@
 	}
 </script>
 
-<div class="layout-y h-full justify-center">
-	<Ico icon="convertigo:logo" class="fixed z-0 text-primary-100-900" size="fit" />
-	<Card class="preset-glass-surface z-1" bg="">
-		<form onsubmit={handleSubmit} class="layout-y-m-stretch">
+<div class="bg layout-y h-full justify-center">
+	<Card class="preset-glass-surface" bg="">
+		<form onsubmit={handleSubmit} class="layout-y-m-center">
+			<Ico icon="convertigo:logo" class="-m-15 text-primary-100-900" size="64" />
 			<h1 class="text-center text-3xl">
 				<p>Welcome to Convertigo</p>
 				<p>Administration Console</p>
@@ -48,7 +48,49 @@
 				<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
 			{/if}
 
-			<Button label="Enter" class="button-primary" type="submit" />
+			<button class="button-primary w-full" type="submit">Enter</button>
 		</form>
 	</Card>
 </div>
+
+<style>
+	@property --angle {
+		syntax: '<angle>';
+		inherits: false;
+		initial-value: 150deg;
+	}
+	@keyframes gradient {
+		0% {
+			background-position: 0% 50%;
+			--angle: 150deg;
+		}
+		50% {
+			background-position: 100% 50%;
+			--angle: 250deg;
+		}
+		100% {
+			background-position: 0% 50%;
+			--angle: 150deg;
+		}
+	}
+	.bg {
+		background-image: linear-gradient(
+			var(--angle),
+			var(--color-tertiary-50),
+			var(--color-secondary-50),
+			var(--color-primary-100),
+			var(--color-surface-50) 90%
+		);
+		background-size: 250% 250%;
+		animation: gradient 15s ease infinite;
+	}
+	:global(.dark) .bg {
+		background-image: linear-gradient(
+			var(--angle),
+			var(--color-tertiary-950),
+			var(--color-secondary-950),
+			var(--color-primary-900),
+			var(--color-surface-950) 90%
+		);
+	}
+</style>

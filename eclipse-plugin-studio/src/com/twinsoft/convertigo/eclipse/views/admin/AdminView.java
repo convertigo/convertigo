@@ -147,7 +147,7 @@ public class AdminView extends ViewPart {
 		lastAuthToken = UUID.randomUUID().toString();
 		lastAuthTokenExpiration = System.currentTimeMillis() + 30000;
 		
-		return EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/admin/login.html#authToken=" + lastAuthToken;
+		return EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/#authToken=" + lastAuthToken;
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

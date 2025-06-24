@@ -1,4 +1,5 @@
 import Status from '$lib/common/Status.svelte';
+import { getUrl } from '$lib/utils/service';
 
 const parts = $derived([
 	[
@@ -75,7 +76,17 @@ const parts = $derived([
 		{
 			title: 'Swagger',
 			icon: 'material-symbols:data-object',
-			url: 'https://swagger.io'
+			url: getUrl(`/swagger/dist/index.html?url=${encodeURIComponent(getUrl('/openapi?YAML'))}`)
+		},
+		{
+			title: 'Test Platform',
+			icon: 'material-symbols:dashboard-outline-rounded',
+			url: getUrl('/testplatform.html')
+		},
+		{
+			title: 'Old Admin',
+			icon: 'material-symbols:settings-outline-rounded',
+			url: getUrl('/admin_/')
 		},
 		{
 			title: 'Convertigo',

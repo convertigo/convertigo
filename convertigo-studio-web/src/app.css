@@ -172,41 +172,41 @@
 	.preset-glass-neutral {
 		background: color-mix(in oklab, var(--color-surface-50-950) 30%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-surface-50-950) 30%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-primary {
 		background: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-primary-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-secondary {
 		background: color-mix(in oklab, var(--color-secondary-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-secondary-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-tertiary {
 		background: color-mix(in oklab, var(--color-tertiary-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-tertiary-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-success {
 		background: color-mix(in oklab, var(--color-success-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-success-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-warning {
 		background: color-mix(in oklab, var(--color-warning-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-warning-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-error {
 		background: color-mix(in oklab, var(--color-error-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-error-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 	.preset-glass-surface {
 		background: color-mix(in oklab, var(--color-surface-500) 40%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-surface-500) 50%, transparent) inset;
-		backdrop-filter: blur(16px);
+		backdrop-filter: blur(3px);
 	}
 }

@@ -27,7 +27,8 @@ export default {
 	},
 	authenticate: async (event) => {
 		event.preventDefault?.();
-		result = (await call('engine.Authenticate', new FormData(event.target))).admin ?? {
+		result = (await call('engine.Authenticate', event.target ? new FormData(event.target) : event))
+			.admin ?? {
 			error: 'Error authenticating'
 		};
 	},

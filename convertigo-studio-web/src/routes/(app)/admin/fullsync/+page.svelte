@@ -104,7 +104,7 @@
 	<MaxRectangle>
 		<iframe
 			bind:this={iframe}
-			src={getUrl().replace('/services/', '/_utils/')}
+			src={getUrl().replace('/services/', '/../admin_/_utils/')}
 			title="fullsync"
 			class="h-full w-full rounded-xl opacity-0 transition-opacity duration-200"
 			{onload}
