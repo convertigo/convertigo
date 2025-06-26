@@ -20,12 +20,18 @@
 package com.twinsoft.convertigo.eclipse.views.assistant;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.engine.Theme;
@@ -55,12 +61,14 @@ public class AssistantView extends ViewPart {
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
+	private JSONObject jsonMessage = new JSONObject();
 	
 	@Override
 	public void dispose() {
 		if (browser != null) {
 			browser.dispose();
 		}
+		jsonMessage = new JSONObject();
 		super.dispose();
 	}
 
@@ -110,6 +118,7 @@ public class AssistantView extends ViewPart {
 			}
 		});
 		handler.onLoad(event -> {
+			// post init message
 			try {
 				var json = new JSONObject();
 				json.put("type", "init");
@@ -117,9 +126,77 @@ public class AssistantView extends ViewPart {
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
+			
+			// post select message
+			try {
+				if (jsonMessage.has("type") && "select".equals(jsonMessage.getString("type"))) {
+					handler.postMessage(jsonMessage);
+				}
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			
 		});
 
 		browser.setUrl(url);
+		
+		Runnable initPev = () -> {
+			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev == null) {
+				return;
+			}
+			ISelectionChangedListener selectionListener = new ISelectionChangedListener() {
+				@Override
+				public void selectionChanged(SelectionChangedEvent e) {
+					if (browser != null && browser.isDisposed()) {
+						pev.removeSelectionChangedListener(this);
+						jsonMessage = new JSONObject();
+						return;
+					}
+					@SuppressWarnings("unused")
+					ApplicationComponent app = null;
+					Project p = null;
+					try {
+						TreeSelection selection = (TreeSelection) e.getSelection();
+						TreeObject to = (TreeObject) selection.getFirstElement();
+						ProjectTreeObject prjtree = to.getProjectTreeObject();
+						p = prjtree != null ? prjtree.getObject() : null;
+						app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+					} catch (Exception ex) {
+						p = null;
+					}
+					try {
+						String pname = p != null ? p.getName() : "";
+						String projectName = jsonMessage.has("projectName") ? jsonMessage.getString("projectName") : null;
+						if (projectName == null || !projectName.equals(pname)) {
+							// set select message
+							setSelectMessage(p);
+							// post project message
+							handler.postMessage(jsonMessage);
+						}
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			};
+			pev.addSelectionChangedListener(selectionListener);
+			selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
+		};
+		
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener2() {
+			@Override
+			public void partOpened(IWorkbenchPartReference partRef) {
+				if (browser != null && browser.isDisposed()) {
+					partRef.getPage().removePartListener(this);
+					return;
+				}
+				if (partRef.getPart(false) instanceof ProjectExplorerView) {
+					ConvertigoPlugin.asyncExec(initPev);
+				}
+			}
+		});
+		ConvertigoPlugin.asyncExec(initPev);
+		
 	}
 
 	private void edit(String sXml, String threadid) {
@@ -212,8 +289,36 @@ public class AssistantView extends ViewPart {
 	public void setFocus() {
 	}
 
-	public void changeThread(String threadId) {
-		if (threadId != null && !threadId.isBlank()) {
+	protected void setSelectMessage(Project p) {
+		try {
+			String pname = p != null ? p.getName() : "";
+			jsonMessage.put("type", "select");
+			jsonMessage.put("projectName", pname);
+			Engine.logStudio.info("[Assistant] set json message: "+ jsonMessage.toString());
+		} catch (Exception e) {
+			Engine.logStudio.warn("[Assistant] could not set json message: "+ e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	protected void setSelectMessage(String qname) {
+		try {
+			jsonMessage.put("type", "select");
+			jsonMessage.put("threadQname", qname);
+			jsonMessage.put("projectName", qname.substring(0, qname.indexOf('.')));
+			Engine.logStudio.info("[Assistant] set json message: "+ jsonMessage.toString());
+		} catch (Exception e) {
+			Engine.logStudio.warn("[Assistant] could not set json message: "+ e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	public void changeThread(String qname, String threadId) {
+		if (qname != null && threadId != null && !threadId.isBlank()) {
+			// set select message
+			setSelectMessage(qname);
+			
+			// set url
 			String burl = browser.getURL();
 			int idx = burl.indexOf("/DisplayObjects/mobile");
 			if (idx != -1) {
@@ -225,7 +330,7 @@ public class AssistantView extends ViewPart {
 			}
 			String url = burl + "/path-to-xfirst/" + threadId;
 			Engine.logStudio.info("[Assistant] url: "+ url);
-			browser.setUrl(url);
+			browser.setUrl(url);			
 		}
-	}	
+	}
 }
