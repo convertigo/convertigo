@@ -12,24 +12,27 @@
 	const edges = useEdges();
 
 	function duplicateNode() {
-		const node = $nodes.find((node) => node.id === id);
+		const node = nodes.current.find((node) => node.id === id);
 		if (node) {
-			$nodes.push({
-				...node,
-				// You should use a better id than this in production
-				id: `${id}-copy${Math.random()}`,
-				position: {
-					x: node.position.x,
-					y: node.position.y + 50
-				}
+			nodes.update((nds) => {
+				nds.push({
+					...node,
+					// You should use a better id than this in production
+					id: `${id}-copy${Math.random()}`,
+					position: {
+						x: node.position.x,
+						y: node.position.y + 50
+					}
+				});
+				return nds;
 			});
 		}
-		$nodes = $nodes;
+		// $nodes = $nodes;
 	}
 
 	function deleteNode() {
-		$nodes = $nodes.filter((node) => node.id !== id);
-		$edges = $edges.filter((edge) => edge.source !== id && edge.target !== id);
+		nodes.set(nodes.current.filter((node) => node.id !== id));
+		edges.set(edges.current.filter((edge) => edge.source !== id && edge.target !== id));
 	}
 </script>
 

@@ -76,17 +76,20 @@ const parts = $derived([
 		{
 			title: 'Swagger',
 			icon: 'material-symbols:data-object',
-			url: getUrl(`/swagger/dist/index.html?url=${encodeURIComponent(getUrl('/openapi?YAML'))}`)
+			url: getUrl(`swagger/dist/index.html?url=${encodeURIComponent(getUrl('/openapi?YAML'))}`),
+			external: true
 		},
 		{
 			title: 'Test Platform',
 			icon: 'material-symbols:dashboard-outline-rounded',
-			url: getUrl('/testplatform.html')
+			url: getUrl('testplatform.html'),
+			external: true
 		},
 		{
 			title: 'Old Admin',
 			icon: 'material-symbols:settings-outline-rounded',
-			url: getUrl('/admin_/')
+			url: getUrl('admin_/'),
+			external: true
 		},
 		{
 			title: 'Convertigo',

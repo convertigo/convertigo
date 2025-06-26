@@ -21,7 +21,7 @@
 	let expanded = $state(false);
 
 	onMount(() => {
-		const children = $nodes.filter(
+		const children = nodes.current.filter(
 			(node) => id === node?.parentId || id === node?.data?.parentDboId
 		);
 		done = data.hasChildren && children.length > 0;
@@ -32,34 +32,37 @@
 
 	function updateEdges(newNodes = []) {
 		if (isOutsideContainer(data.classname)) {
-			const currentNode = $nodes.filter((node) => id === node.id)[0];
-			const browsers = $nodes.filter(
+			const currentNode = nodes.current.filter((node) => id === node.id)[0];
+			const browsers = nodes.current.filter(
 				(node) => currentNode.data.parentDboId === node.data.parentDboId
 			);
 			//console.log("browsers", $state.snapshot(browsers))
 			const index = browsers.indexOf(currentNode);
 			if (index > 0 && index < browsers.length - 1) {
 				const nextNode = browsers[index + 1];
-				$edges.forEach((edge) => {
+				edges.current.forEach((edge) => {
 					if (currentNode.id === edge.source && nextNode.id === edge.target) {
 						edge.hidden = !expanded;
 					}
 				});
 				newNodes.forEach((node) => {
-					$edges.push(createEdge(node.id, nextNode.id));
+					edges.update((dgs) => {
+						dgs.push(createEdge(node.id, nextNode.id));
+						return dgs;
+					});
 				});
 			}
 		}
 	}
 
 	function showhideChildren(nodeId) {
-		const children = $nodes.filter(
+		const children = nodes.current.filter(
 			(node) => nodeId === node?.parentId || nodeId === node?.data?.parentDboId
 		);
 		if (children.length > 0) {
 			children.forEach((child) => {
 				child.hidden = expanded;
-				$edges.forEach((edge) => {
+				edges.current.forEach((edge) => {
 					if (child.id === edge.source || child.id === edge.target) {
 						edge.hidden = expanded;
 					}
@@ -72,7 +75,7 @@
 	}
 
 	const onclick = (event) => {
-		const currentNode = $nodes.filter((node) => id === node.id)[0];
+		const currentNode = nodes.current.filter((node) => id === node.id)[0];
 		if (done) {
 			currentNode.style = 'width: 150px; height: 40px';
 
@@ -83,8 +86,8 @@
 			expanded = !expanded;
 			currentNode.data.expanded = expanded;
 
-			$nodes = $nodes;
-			$edges = $edges;
+			// $nodes = $nodes;
+			// $edges = $edges;
 			//console.log("openclose nodes after", JSON.parse(JSON.stringify($nodes)));
 
 			onLayout('DOWN');
@@ -99,12 +102,18 @@
 					console.log(parentDbo);
 					const ne = createNodesAndEdges(parentDbo, currentNode);
 					console.log(ne);
-					$nodes.push(...ne.nodes);
-					$edges.push(...ne.edges);
+					nodes.update((nds) => {
+						nds.push(...ne.nodes);
+						return nds;
+					});
+					edges.update((dgs) => {
+						dgs.push(...ne.edges);
+						return dgs;
+					});
 					updateEdges(ne.nodes);
 
-					$nodes = $nodes;
-					$edges = $edges;
+					// $nodes = $nodes;
+					// $edges = $edges;
 					done = true;
 					expanded = true;
 
@@ -116,10 +125,10 @@
 
 	function onLayout(direction) {
 		const opts = { 'elk.direction': direction };
-		getLayoutedElements($nodes, $edges, opts)
+		getLayoutedElements(nodes, edges, opts)
 			.then((layouted) => {
-				$nodes = layouted.nodes;
-				$edges = layouted.edges;
+				nodes.update(() => layouted.nodes);
+				edges.update(() => layouted.edges);
 			})
 			.then(() => {
 				fitView();

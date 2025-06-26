@@ -23,10 +23,11 @@
 
 <nav class="layout-y-none h-full border-r-[0.5px] border-color bg-surface-200-800">
 	{#each parts as tiles, i}
-		{#each tiles as { title, icon, url, page, params, loading }, j}
+		{#each tiles as { title, icon, url, page, params, loading, external }, j}
 			{@const href = loading ? undefined : page ? resolveRoute(page, params) : url}
 			<a
 				{href}
+				rel={external ? 'external' : undefined}
 				class="relative layout-x-p-low min-w-36 !gap rounded hover:bg-surface-200-800 {loading
 					? 'blur-sm'
 					: ''}"

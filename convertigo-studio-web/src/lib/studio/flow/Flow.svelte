@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import ContextMenu from './ContextMenu.svelte';
 	import { createNodesAndEdges, getLayoutedElements } from './FlowUtils.js';
 	import StepNode from './StepNode.svelte';
@@ -11,8 +10,8 @@
 
 	const { fitView } = useSvelteFlow();
 
-	const nodes = writable([]);
-	const edges = writable([]);
+	let nodes = $state.raw([]);
+	let edges = $state.raw([]);
 
 	const nodeTypes = {
 		'step-node': StepNode
@@ -28,8 +27,8 @@
 				const ne = createNodesAndEdges(res);
 				console.log(ne);
 
-				$nodes = ne.nodes;
-				$edges = ne.edges;
+				nodes = ne.nodes;
+				edges = ne.edges;
 
 				onLayout('DOWN');
 			});
@@ -40,10 +39,10 @@
 
 	function onLayout(direction) {
 		const opts = { 'elk.direction': direction };
-		getLayoutedElements($nodes, $edges, opts)
+		getLayoutedElements(nodes, edges, opts)
 			.then((layouted) => {
-				$nodes = layouted.nodes;
-				$edges = layouted.edges;
+				nodes = layouted.nodes;
+				edges = layouted.edges;
 			})
 			.then(() => {
 				fitView();
@@ -52,11 +51,11 @@
 	}
 
 	//menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null
-	let menu;
-	let width;
-	let height;
+	let menu = $state();
+	let width = $state();
+	let height = $state();
 
-	function handleContextMenu({ detail: { event, node } }) {
+	function handleContextMenu({ event, node }) {
 		// Prevent native context menu from showing
 		event.preventDefault();
 
@@ -79,14 +78,14 @@
 
 <div style="height:90vh;" bind:clientWidth={width} bind:clientHeight={height}>
 	<SvelteFlow
-		{nodes}
-		{edges}
+		bind:nodes
+		bind:edges
 		{nodeTypes}
 		fitView
 		fitViewOptions={{ duration: 200 }}
 		defaultEdgeOptions={{ type: 'smoothstep', zIndex: 100, animated: true }}
-		on:nodecontextmenu={handleContextMenu}
-		on:paneclick={handlePaneClick}
+		onnodecontextmenu={handleContextMenu}
+		onpaneclick={handlePaneClick}
 	>
 		{#if menu}
 			<ContextMenu

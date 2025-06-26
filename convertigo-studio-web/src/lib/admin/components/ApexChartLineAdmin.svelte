@@ -1,7 +1,6 @@
 <script>
+	import { browser } from '$app/environment';
 	import Light from '$lib/common/Light.svelte';
-	// @ts-ignore
-	import ApexCharts from 'apexcharts?client';
 	import { onMount, untrack } from 'svelte';
 
 	/** @type {{categories: any, series: any, title: any}} */
@@ -90,10 +89,13 @@
 				colors[m[0]].push(styles.getPropertyValue(`--color-${color}-${m[1]}`));
 			});
 		}
-		chart = new ApexCharts(chartEl, options);
-		chart.render();
+
+		import('apexcharts').then(({ default: ApexCharts }) => {
+			chart = new ApexCharts(chartEl, options);
+			chart.render();
+		});
 		return () => {
-			chart.destroy();
+			chart?.destroy();
 			chart = undefined;
 		};
 	});

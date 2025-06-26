@@ -216,7 +216,7 @@
 	</Card>
 </div>
 
-<style>
+<style lang="postcss">
 	@reference "../../../../app.css";
 
 	:global(.session-table tr:has(.current)) {

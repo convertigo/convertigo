@@ -1,6 +1,5 @@
 <script>
 	import { goto } from '$app/navigation';
-	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
@@ -29,7 +28,7 @@
 <div class="bg layout-y h-full justify-center">
 	<Card class="preset-glass-surface" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
-			<Ico icon="convertigo:logo" class="-m-15 text-primary-100-900" size="64" />
+			<Ico icon="convertigo:logo" class="-m-5 text-primary-100-900" size="32" />
 			<h1 class="text-center text-3xl">
 				<p>Welcome to Convertigo</p>
 				<p>Administration Console</p>
@@ -82,7 +81,7 @@
 			var(--color-surface-50) 90%
 		);
 		background-size: 250% 250%;
-		animation: gradient 15s ease infinite;
+		animation: gradient 20s ease infinite;
 	}
 	:global(.dark) .bg {
 		background-image: linear-gradient(

@@ -42,7 +42,7 @@
 	</section>
 </header>
 
-<style>
+<style lang="postcss">
 	@reference "../../../app.css";
 
 	.monitor-time {

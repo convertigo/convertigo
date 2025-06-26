@@ -33,13 +33,9 @@ const config = {
 			base
 		},
 		prerender: {
-			handleHttpError: ({ path }) => {
-				if (path.startsWith('/convertigo/')) {
-					return;
-				}
-			},
-			handleMissingId: 'warn',
-			handleEntryGeneratorMismatch: 'warn',
+			handleHttpError: 'ignore',
+			handleMissingId: 'ignore',
+			handleEntryGeneratorMismatch: 'ignore',
 			entries: ['*', '/dashboard/_/frontend', '/dashboard/_/platforms']
 		}
 	},

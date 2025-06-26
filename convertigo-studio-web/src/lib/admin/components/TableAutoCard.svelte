@@ -117,7 +117,7 @@
 	</table>
 </div>
 
-<style>
+<style lang="postcss">
 	@reference "../../../app.css";
 
 	table {

@@ -7,6 +7,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
+	import { tick } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
@@ -63,8 +64,15 @@
 		Message: { idx: 4 }
 	};
 
-	/** @type {{autoScroll?: boolean, filters?: any}} */
-	let { autoScroll = $bindable(false), filters = $bindable({}) } = $props();
+	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, realtime?: boolean}} */
+	let {
+		autoScroll = $bindable(false),
+		filters = $bindable({}),
+		serverFilter = $bindable(''),
+		startDate = $bindable(''),
+		endDate = $bindable(''),
+		realtime = $bindable(false)
+	} = $props();
 	let extraLines = $state(1);
 	let isDragging = $state(false);
 	let virtualList = $state();
@@ -83,25 +91,32 @@
 		pulsedCategoryTimeout = setTimeout(() => (pulsedCategory = ''), 2000);
 	}
 
-	function doAutoScroll() {
+	async function doAutoScroll() {
 		if (autoScroll && logs.length > 1) {
 			founds = [];
+			scrollToIndex = undefined;
+			await tick();
 			scrollToIndex = logs.length - 1;
+			if (showedLines.end == scrollToIndex && !Logs.moreResults && !realtime && !Logs.calling) {
+				autoScroll = false;
+			}
 		}
 	}
 
-	async function itemsUpdated(event) {
-		doAutoScroll();
-		showedLines = event.detail;
+	async function itemsUpdated({ detail }) {
+		showedLines = detail;
 
 		if (recenter) {
 			recenter();
-		}
-
-		if (event.detail.end >= logs.length - 1) {
-			await Logs.list();
+		} else {
+			if (detail.end >= logs.length - 1 && !Logs.calling) {
+				await list();
+			}
+			await doAutoScroll();
 		}
 	}
+
+	async function afterScroll() {}
 
 	function itemSize(index) {
 		let height =
@@ -156,9 +171,10 @@
 		value = '',
 		mode = false,
 		ts = new Date().getTime(),
-		not = false
+		not = false,
+		sensitive = false
 	}) {
-		modalFilterParams = { category, value, mode, ts, not };
+		modalFilterParams = { category, value, mode, ts, not, sensitive };
 		modalFilter.open({ event });
 	}
 
@@ -176,8 +192,12 @@
 					return Object.entries(filters).every(([name, array]) => {
 						return array.length == 0
 							? true
-							: array.some(({ mode, value, not }) => {
+							: array.some(({ mode, value, not, sensitive }) => {
 									let logValue = getValue(name, log, index);
+									if (!sensitive) {
+										logValue = logValue.toLowerCase();
+										value = value.toLowerCase();
+									}
 									let ret = mode == 'equals' ? logValue == value : logValue[mode](value);
 									return not ? !ret : ret;
 								});
@@ -198,47 +218,68 @@
 
 	let scrollToIndex = $state();
 	$effect(() => {
-		if (scrollToIndex >= logs.length) {
+		if (scrollToIndex >= logs.length || logs.length == 0) {
 			scrollToIndex = undefined;
 		}
 	});
 
 	let searched = $state('');
-	let founds = $state([]);
+	let founds = $state.raw([]);
 	let foundsIndex = $state(0);
 
 	function getCenterLine() {
 		return Math.round(showedLines.start + (showedLines.end - showedLines.start) / 2);
 	}
 
-	function doSearch(e) {
-		if (e?.key == 'Enter') {
-			doSearchNext();
-		} else if (searched) {
-			const centerLine = getCenterLine();
-			const s = searched.toLowerCase();
-			let nearest = -1;
-			founds = logs.reduce((acc, log, index) => {
-				const l = log[4].toLowerCase();
+	let searchAbortController;
+
+	let asyncSearch = debounce(async (s, centerLine) => {
+		const batchSize = 100;
+		let acc = [];
+		let nearest = -1;
+
+		for (let i = 0; i < logs.length; i += batchSize) {
+			if (searchAbortController?.aborted) return;
+
+			const batch = logs.slice(i, i + batchSize);
+			for (let j = 0; j < batch.length; j++) {
+				const index = i + j;
+				const l = batch[j][4].toLowerCase();
 				let start = l.indexOf(s, 0);
-				if (start != -1) {
+
+				if (start !== -1) {
 					if (
-						nearest == -1 ||
+						nearest === -1 ||
 						Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
 					) {
 						nearest = acc.length;
 					}
 				}
-				while (start != -1) {
+
+				while (start !== -1) {
 					const end = start + s.length;
 					acc.push({ index, start, end });
 					start = l.indexOf(s, end);
 				}
-				return acc;
-			}, []);
+			}
+			founds = acc;
 			if (founds.length > 0) {
 				scrollToIndex = founds[(foundsIndex = nearest)].index;
 			}
+			await tick();
+		}
+	}, 200);
+
+	function doSearch(e) {
+		if (e?.key === 'Enter') {
+			doSearchNext();
+		} else if (searched) {
+			if (searchAbortController) searchAbortController.abort();
+			searchAbortController = new AbortController();
+
+			const s = searched.toLowerCase();
+			const centerLine = getCenterLine();
+			asyncSearch(s, centerLine);
 		} else {
 			founds = [];
 		}
@@ -278,9 +319,11 @@
 		const centerLine = getCenterLine();
 		extraLines += inc;
 		virtualList.recomputeSizes(0);
-		recenter = debounce(() => {
-			scrollToIndex = centerLine;
+		recenter = debounce(async () => {
+			scrollToIndex = undefined;
 			recenter = undefined;
+			await tick();
+			scrollToIndex = centerLine;
 		}, 333);
 	}
 
@@ -289,13 +332,14 @@
 	let modalFilterParams = $state({});
 	let modalFilterSubmit = (e) => {
 		e.preventDefault();
-		const { mode, category, value, not, ts } = modalFilterParams;
+		const { mode, category, value, not, ts, sensitive } = modalFilterParams;
 		let array = checkArray(filters[category]);
 		const val = {
 			mode: e.submitter.value,
 			value,
 			not,
-			ts
+			ts,
+			sensitive
 		};
 		if (mode) {
 			array[array.findIndex((o) => o.ts == ts)] = val;
@@ -374,6 +418,22 @@
 			document.body.classList.remove('select-none');
 		};
 	}
+
+	export async function list(renew = false) {
+		Logs.realtime = realtime;
+		Logs.autoScroll = autoScroll;
+		Logs.filter = serverFilter;
+		Logs.startDate = startDate;
+		Logs.endDate = endDate;
+		if (renew) {
+			scrollToIndex = undefined;
+		}
+		let len = renew ? 0 : logs.length;
+		await Logs.list(renew);
+		if (logs.length == len && Logs.moreResults) {
+			await list(false);
+		}
+	}
 </script>
 
 <svelte:window
@@ -396,7 +456,7 @@
 	}}
 />
 <ModalDynamic bind:this={modalFilter}>
-	{@const { mode, category, value, not } = modalFilterParams}
+	{@const { mode, category, value, not, sensitive } = modalFilterParams}
 	<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
 		<form onsubmit={modalFilterSubmit} class="flex flex-col gap-2">
 			{#if category == 'Message'}
@@ -414,6 +474,12 @@
 				type="check"
 				label={not ? 'not' : 'is'}
 				bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
+			/>
+			<PropertyType
+				name="case"
+				type="check"
+				label={sensitive ? 'sensitive' : 'insensitive'}
+				bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
 			/>
 			<div class="flex flex-wrap gap-2">
 				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
@@ -555,7 +621,7 @@
 						})}
 				/>
 			</div>
-			{#each filtersFlat as { category, value, mode, ts, not, index }, idx (ts)}
+			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index }, idx (ts)}
 				<div
 					class="flex flex-row"
 					animate:flip={{ duration }}
@@ -575,13 +641,13 @@
 						class:motif-error={not}
 					>
 						<span class="max-w-xs overflow-hidden"
-							>{category} {not ? 'not' : ''} {mode} {value}</span
+							>{category} {not ? 'not' : ''} {mode} {sensitive ? value : value.toLowerCase()}</span
 						>
 						<Button
 							{size}
 							icon="mdi:edit-outline"
 							class="w-fit!"
-							onclick={(event) => addFilter({ event, category, value, mode, ts, not })}
+							onclick={(event) => addFilter({ event, category, value, mode, ts, not, sensitive })}
 						/>
 						<Button
 							{size}
@@ -630,6 +696,7 @@
 				scrollToAlignment="center"
 				scrollToBehaviour="smooth"
 				on:itemsUpdated={itemsUpdated}
+				on:afterScroll={afterScroll}
 				bind:this={virtualList}
 			>
 				<div slot="item" let:index let:style {style}>
@@ -695,6 +762,7 @@
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
+			{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
 			{#if !Logs.realtime}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
 			{#if Logs.calling}Calling…{/if}</span
 		>
@@ -703,9 +771,10 @@
 			class:preset-filled-success-100-900={autoScroll}
 			class:preset-filled-warning-100-900={!autoScroll}
 			class:motif-warning={!autoScroll}
-			onclick={() => {
+			onclick={async () => {
+				scrollToIndex = undefined;
 				autoScroll = !autoScroll;
-				doAutoScroll();
+				await doAutoScroll();
 			}}
 		>
 			{autoScroll ? 'Enabled' : 'Disabled'} auto tail
@@ -714,7 +783,7 @@
 	</div>
 </div>
 
-<style>
+<style lang="postcss">
 	@reference "../../../app.css";
 
 	:global([data-part='arrow-tip']:is(.dark *)) {

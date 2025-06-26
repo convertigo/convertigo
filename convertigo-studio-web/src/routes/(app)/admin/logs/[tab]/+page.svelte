@@ -11,17 +11,15 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
-	import Logs from '$lib/admin/Logs.svelte';
+	import { formatDate, formatTime } from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount, untrack } from 'svelte';
-	import { persisted } from 'svelte-persisted-store';
-	import { fromStore } from 'svelte/store';
 	import { slide } from 'svelte/transition';
 
+	let logViewer = $state();
 	onMount(() => {
-		Logs.list();
 		return () => {
 			Configuration.stop();
 			LogsPurge.stop();
@@ -74,11 +72,12 @@
 		new Date().setHours(0, 0, 0, 0) + 86400000
 	]);
 	let dates = $state([...datesEdited]);
-	let times = $state(datesEdited.map((d) => Logs.formatTime(d)));
+	let times = $state(datesEdited.map((d) => formatTime(d)));
 	let isOpen = $state(false);
 
-	Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
-	Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
+	let startDate = $derived(formatDate(dates[0]) + ' ' + times[0]);
+	let endDate = $derived(formatDate(dates[1]) + ' ' + times[1]);
+	let realtime = $derived(tabSet == 'realtime');
 
 	function onDayClick(e) {
 		if (e.startDate) {
@@ -90,11 +89,11 @@
 	}
 
 	async function refreshLogs() {
-		Logs.startDate = Logs.formatDate(dates[0]) + ' ' + times[0];
-		Logs.endDate = Logs.formatDate(dates[1]) + ' ' + times[1];
-		Logs.realtime = tabSet == 'realtime';
-		Logs.filter = serverFilter;
-		await Logs.list(true);
+		// Logs.startDate = formatDate(dates[0]) + ' ' + times[0];
+		// Logs.endDate = formatDate(dates[1]) + ' ' + times[1];
+		// Logs.realtime = tabSet == 'realtime';
+		// Logs.filter = serverFilter;
+		await logViewer.list(true);
 	}
 
 	const presets = [
@@ -161,10 +160,10 @@
 			.filter(([_, array]) => array.length > 0)
 			.map(([name, array]) =>
 				array
-					.map(({ mode, value, not }) =>
+					.map(({ mode, value, not, sensitive }) =>
 						mode == 'equals'
-							? `${name.toLowerCase()} ${not ? '!' : '='}= '${value}'`
-							: `${not ? '!' : ''}${name.toLowerCase()}.${mode}('${value}')`
+							? `${name.toLowerCase()}${sensitive ? '' : '.toLowerCase()'} ${not ? '!' : '='}= '${sensitive ? value : value.toLowerCase()}'`
+							: `${not ? '!' : ''}${name.toLowerCase()}${sensitive ? '' : '.toLowerCase()'}.${mode}('${sensitive ? value : value.toLowerCase()}')`
 					)
 					.join(' or ')
 			)
@@ -285,7 +284,7 @@
 																		class="button-primary"
 																		onclick={() => {
 																			dates[i] = fn();
-																			times[i] = Logs.formatTime(dates[i]);
+																			times[i] = formatTime(dates[i]);
 																		}}
 																	/>
 																{/each}
@@ -296,7 +295,7 @@
 												<input
 													type="text"
 													class="input-text button input-common w-[12ch] max-w-fit preset-filled-primary-50-950 px-low"
-													value={Logs.formatDate(dates[i])}
+													value={formatDate(dates[i])}
 													onfocus={() => {
 														datesEdited[i] = null;
 														isOpen = true;
@@ -348,7 +347,15 @@
 							</div>
 						{/if}
 						<div class="-mx -mb h-full">
-							<LogViewer autoScroll={tabSet == 'realtime'} bind:filters />
+							<LogViewer
+								bind:this={logViewer}
+								autoScroll={realtime}
+								{startDate}
+								{endDate}
+								{realtime}
+								{serverFilter}
+								bind:filters
+							/>
 						</div>
 					</div>
 				{:else if tabSet == 'purge'}

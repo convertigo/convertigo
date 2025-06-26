@@ -11,12 +11,12 @@ let calling = $state(false);
 
 let lastCall = 0;
 
-function formatDate(timestamp) {
+export function formatDate(timestamp) {
 	if (timestamp === null) return '';
 	return new Date(timestamp).toISOString().split('T')[0];
 }
 
-function formatTime(timestamp) {
+export function formatTime(timestamp) {
 	if (timestamp === null) return '';
 	return new Date(timestamp).toISOString().split('T')[1].split('Z')[0].replace('.', ',');
 }
@@ -51,6 +51,8 @@ async function list(clear = false) {
 			}
 			logs.push(...lines);
 		}
+	} catch (error) {
+		console.error('Error while fetching logs:', error);
 	} finally {
 		if (currentCall == lastCall) {
 			calling = false;
