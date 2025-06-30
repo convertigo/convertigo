@@ -4,6 +4,7 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
+	import ProjectEditor from '$lib/admin/components/ProjectEditor.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -40,6 +41,8 @@
 	let fprojects = $derived(
 		projects.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
 	);
+
+	let editedProject = $state('');
 </script>
 
 <ModalDynamic bind:this={modalExport}>
@@ -230,9 +233,13 @@
 			{ name: 'Actions', custom: true },
 			{ name: 'Project', key: 'name', class: 'font-medium' },
 			{ name: 'Comment', key: 'comment' },
-			{ name: 'Version', key: 'version', class: 'break-words opacity-80 min-w-32' },
-			{ name: 'Exported', key: 'exported', class: 'text-sm min-w-32' },
-			{ name: 'Deployment', key: 'deployDate', class: 'text-sm min-w-32' }
+			{
+				name: 'Version',
+				key: 'version',
+				class: 'break-words text-[12px]  font-mono opacity-80 min-w-34'
+			},
+			{ name: 'Exported', key: 'exported', class: 'text-[12px] font-mono min-w-34' },
+			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] font-mono min-w-34' }
 		]}
 		data={fprojects}
 		class="rounded-sm"
@@ -278,6 +285,12 @@
 							}
 						},
 						{
+							icon: 'mdi:edit-outline',
+							cls: `button-warning ${editedProject == project ? 'opacity-50' : ''}`,
+							onclick: () => (editedProject = editedProject == project ? '' : project),
+							disabled: false
+						},
+						{
 							icon: 'file-icons:test-ruby',
 							cls: 'button-tertiary',
 							href: `${base}/dashboard/${project}/backend/`,
@@ -298,9 +311,19 @@
 						}
 					]}
 					size="4"
-					class="w-full min-w-32"
+					class="w-full min-w-33"
 					disabled={!init}
 				/>
+			{/if}
+		{/snippet}
+		{#snippet rowChildren({ row, definition, rowRender })}
+			{#if editedProject == row.name}
+				<td colspan={definition.length}>
+					<table class="w-full"><tbody><tr> {@render rowRender()}</tr></tbody></table>
+					<ProjectEditor project={row.name} />
+				</td>
+			{:else}
+				{@render rowRender()}
 			{/if}
 		{/snippet}
 	</TableAutoCard>

@@ -43,14 +43,18 @@
 			await Authentication.checkAuthentication();
 		}
 		if (!Authentication.authenticated && page.route.id != '/login') {
-			goto(`${base}/login/?redirect=${page.url.pathname}`);
+			console.log('page', JSON.stringify(page, null, 2));
+			if (page.url.pathname.endsWith('.html/') || page.error) {
+				goto(`${base}/login/`);
+			} else {
+				goto(`${base}/login/?redirect=${encodeURIComponent(page.url.pathname)}`);
+			}
 		} else if (
 			Authentication.authenticated &&
 			(page.route.id == null || page.route.id == '/' || page.route.id == '/login')
 		) {
 			goto(`${base}/admin/`);
 		}
-		console.log('route.hash', page.url.hash.startsWith('#authToken='));
 	});
 
 	Light.light;

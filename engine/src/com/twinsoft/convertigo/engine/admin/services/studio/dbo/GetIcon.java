@@ -19,7 +19,9 @@
 
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,7 +96,17 @@ public class GetIcon extends DownloadService {
 				type = "svg+xml";
 			}
 			HeaderName.ContentType.setHeader(response, "image/" + type);
-			IOUtils.copy(GetIcon.class.getResourceAsStream(iconPath), response.getOutputStream());
+			InputStream iconStream;
+			if (iconPath.startsWith("projects:")) {
+				iconStream = new FileInputStream(Engine.PROJECTS_PATH + iconPath.substring("projects:".length()));
+			} else if (iconPath.startsWith("workspace:")) {
+				iconStream = new FileInputStream(Engine.USER_WORKSPACE_PATH + iconPath.substring("workspace:".length()));
+			} else {
+				iconStream = GetIcon.class.getResourceAsStream(iconPath);
+			}
+			try (var is = iconStream) {
+				IOUtils.copy(iconStream, response.getOutputStream());
+			}
 			Engine.logAdmin.info("The image has been exported. From iconPath " + iconPath);
 			return;
 		} catch (Exception e) {

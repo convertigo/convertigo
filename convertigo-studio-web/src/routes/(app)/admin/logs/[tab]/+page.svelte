@@ -336,7 +336,7 @@
 											/>
 										{/if}
 										<Button
-											label="Search"
+											label="Server search"
 											size={4}
 											icon="mdi:receipt-text-send-outline"
 											class="button-success w-fit! grow"

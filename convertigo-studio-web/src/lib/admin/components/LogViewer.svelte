@@ -694,7 +694,7 @@
 				{scrollToIndex}
 				{itemSize}
 				scrollToAlignment="center"
-				scrollToBehaviour="smooth"
+				scrollToBehaviour="instant"
 				on:itemsUpdated={itemsUpdated}
 				on:afterScroll={afterScroll}
 				bind:this={virtualList}

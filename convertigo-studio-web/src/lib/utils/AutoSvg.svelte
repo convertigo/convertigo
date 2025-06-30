@@ -1,9 +1,9 @@
 <script>
 	import { onMount } from 'svelte';
 
-	/** @type {{Record<string, any>}} */
+	/** @type {any} */
 	let { src, ...rest } = $props();
-	let svg = $state(null);
+	let svg = $state('');
 	let viewBox = $state();
 
 	onMount(() => {

@@ -5,7 +5,7 @@
 	import { onMount, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, trClass?: string, fnRowId?: function, children?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
 	let {
 		definition,
 		data,
@@ -13,9 +13,11 @@
 		title = '',
 		comment = '',
 		class: cls = '',
+		thClass = 'preset-filled-surface-200-800',
 		trClass = 'even:preset-filled-surface-200-800 odd:preset-filled-surface-300-700 hover:preset-filled-surface-400-600',
 		fnRowId = (row, i) => row.name ?? i,
 		children,
+		rowChildren,
 		thead
 	} = $props();
 
@@ -52,9 +54,11 @@
 
 	<table>
 		{#if showHeaders}
-			{#snippet _thead({ definition })}
+			{#if thead}
+				{@render thead({ definition })}
+			{:else}
 				<thead>
-					<tr>
+					<tr class={thClass}>
 						{#each definition as def}
 							<th class={def.th}>
 								{#if def.icon}
@@ -66,39 +70,41 @@
 						{/each}
 					</tr>
 				</thead>
-			{/snippet}
-			{#if thead}
-				{@render thead({ definition })}
-			{:else}
-				{@render _thead({ definition })}
 			{/if}
 		{/if}
 		{#if data && data.length > 0}
 			<tbody>
 				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
 					<tr class={trClass} data-custom={row.name} transition:fade>
-						{#each definition as def}
-							<td
-								class={def.class
-									? typeof def.class == 'function'
-										? def.class(row)
-										: def.class
-									: ''}
-								data-label={showHeaders ? (def.name ?? '') : ''}
-							>
-								{#if def.custom}
-									{#if children}
-										{@render children({ row, def, rowIdx })}
+						{#snippet rowRender()}
+							{#each definition as def}
+								<td
+									class={def.class
+										? typeof def.class == 'function'
+											? def.class(row)
+											: def.class
+										: ''}
+									data-label={showHeaders ? (def.name ?? '') : ''}
+								>
+									{#if def.custom}
+										{#if children}
+											{@render children({ row, def, rowIdx })}
+										{:else}
+											{row[def.key] ?? ''}
+										{/if}
 									{:else}
-										{row[def.key] ?? ''}
+										<AutoPlaceholder loading={row[def.key] == null}
+											>{row[def.key] ?? ''}</AutoPlaceholder
+										>
 									{/if}
-								{:else}
-									<AutoPlaceholder loading={row[def.key] == null}
-										>{row[def.key] ?? ''}</AutoPlaceholder
-									>
-								{/if}
-							</td>
-						{/each}
+								</td>
+							{/each}
+						{/snippet}
+						{#if rowChildren}
+							{@render rowChildren({ row, rowIdx, definition, rowRender })}
+						{:else}
+							{@render rowRender()}
+						{/if}
 					</tr>
 				{/each}
 			</tbody>
@@ -129,13 +135,11 @@
 	th,
 	td {
 		text-align: left;
-		font-weight: 300;
-		font-size: 15px;
 		@apply p-2! align-middle!;
 	}
-	th {
-		@apply preset-filled-surface-200-800 font-bold;
-	}
+	/* th {
+		@apply preset-filled-surface-200-800;
+	} */
 	thead {
 		@apply border-b-[0.5px] border-surface-900-100;
 	}
@@ -149,7 +153,7 @@
 	.autocard {
 		th,
 		td {
-			@apply text-sm text-wrap;
+			@apply text-wrap;
 		}
 
 		table {
@@ -164,9 +168,11 @@
 		thead {
 			display: none;
 		}
+
 		td {
 			@apply layout-y-start-low overflow-x-auto;
 		}
+
 		td[data-label]:not([data-label='']):before {
 			content: attr(data-label);
 			display: inline-block;

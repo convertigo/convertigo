@@ -93,7 +93,14 @@ public class Get extends JSonService {
 		var qname = dbo.getFullQName();
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
-		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32));
+		obj.put("name", dbo.toString());
+		var iconPath = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32);
+		if (iconPath.startsWith(Engine.PROJECTS_PATH)) {
+			iconPath = "projects:" + iconPath.substring(Engine.PROJECTS_PATH.length());
+		} else if (iconPath.startsWith(Engine.USER_WORKSPACE_PATH)) {
+			iconPath = "workspace:" + iconPath.substring(Engine.USER_WORKSPACE_PATH.length());
+		}
+		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath);
 		obj.put("id", qname);
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());
@@ -109,6 +116,7 @@ public class Get extends JSonService {
 			if (dbo instanceof Project) {
 				var o = new JSONObject();
 				o.put("label", "Files");
+				o.put("name", "Files");
 				o.put("icon", "folder");
 				o.put("id", qname + '/');
 				o.put("children", true);
@@ -135,6 +143,7 @@ public class Get extends JSonService {
 					map.put(cft, o = new JSONObject());
 					jChildren.put(o);
 					o.put("label", cft.displayName());
+					o.put("name", cft.displayName());
 					o.put("icon", "folder");
 					o.put("id", qname + ':' + cft.shortName());
 					if (full) {
@@ -173,6 +182,7 @@ public class Get extends JSonService {
 				var o = new JSONObject();
 				jChildren.put(o);
 				o.put("label", f.getName());
+				o.put("name", f.getName());
 				o.put("icon", f.isDirectory() ? "folder" : "file");
 				o.put("id", id + "/" + f.getName());
 				o.put("children", f.isDirectory());
