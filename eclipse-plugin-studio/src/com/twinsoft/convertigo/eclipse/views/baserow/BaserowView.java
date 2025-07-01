@@ -110,7 +110,7 @@ import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
-	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/1.1.11/lib_BaseRow.car";
+	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/1.1.31/lib_BaseRow.car";
 	
 	private Cursor handCursor;
 	private Composite main;
@@ -364,12 +364,19 @@ public class BaserowView extends ViewPart {
 .dashboard__help,
 .sidebar__user,
 .sidebar__foot,
-.context__menu-item:has(.iconoir-settings),
+.context__menu-item:has(.iconoir-settings, .iconoir-lock),
 .tree__item:has(.baserow-icon-application, .iconoir-lock),
+li:has(.choice-items__link .iconoir-lock),
 .dashboard__sidebar-group:has(.fa-sign-out-alt),
 .dashboard__resources,
 .context__menu-item:has(.baserow-icon-application),
-.alert:has(.baserow-icon-gitlab)
+.tabs__item:has(.iconoir-lock),
+li.select__item:has(.iconoir-lock),
+.alert:has(.baserow-icon-gitlab),
+li.header__filter-item:has(.iconoir-palette),
+.select__footer-create-link:has(.iconoir-lock),
+.view-sharing__option:has(.iconoir-lock),
+div.radio:has(.iconoir-lock)
 { display: none}""");
 					doc.findElementByTagName("head").get().appendChild(style);
 				} catch (Exception e) {
