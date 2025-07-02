@@ -81,16 +81,16 @@ public class WalkHelper {
 				}
 			}
 
+			if (before(databaseObject, Reference.class)) {
+				for (Reference reference : project.getReferenceList()) {
+					walk(reference);
+				}
+			}
+
 			if (before(databaseObject, UrlMapper.class)) {
 				UrlMapper urlMapper = project.getUrlMapper();
 				if (urlMapper != null) {
 					walk(urlMapper);
-				}
-			}
-
-			if (before(databaseObject, Reference.class)) {
-				for (Reference reference : project.getReferenceList()) {
-					walk(reference);
 				}
 			}
 

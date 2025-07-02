@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
@@ -34,6 +35,7 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
@@ -54,95 +56,108 @@ public class Set extends JSonService {
 			throw new ServiceException("missing id parameter");
 		}
 
+		var save = request.getParameter("save");
+		var props = request.getParameter("props");
 		var prop = request.getParameter("prop");
-		if (prop == null) {
-			throw new ServiceException("missing prop parameter");
+		if (prop != null && props == null) {
+			props = "[" + prop + "]";
+		}
+		if (props == null) {
+			throw new ServiceException("missing prop or props parameter");
 		}
 
 		boolean done = false;
 		DatabaseObject dbo = Utils.getDbo(id);
 		if (dbo != null) {
-			Object oldValue = null, newValue = null;
-			JSONObject jsonObject = new JSONObject(prop);
-			var pname = jsonObject.getString("name");
-			var pvalue = jsonObject.getString("value");
-			var mode = jsonObject.has("mode") ? jsonObject.getString("mode") : "plain";
+			var jsonArray = new JSONArray(props);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				Object oldValue = null, newValue = null;
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				var pname = jsonObject.getString("name");
+				var pvalue = jsonObject.getString("value");
+				var mode = jsonObject.has("mode") ? jsonObject.getString("mode") : "plain";
 
-			MobileSmartSourceType msst = new MobileSmartSourceType(pvalue);
-			if ("script".equals(mode)) {
-				msst = new MobileSmartSourceType();
-				msst.setMode(Mode.SCRIPT);
-				msst.setSmartValue(pvalue);
-			} else if ("source".equals(mode)) {
-				msst = new MobileSmartSourceType();
-				msst.setMode(Mode.SOURCE);
-				msst.setSmartValue(pvalue);
-			}
+				MobileSmartSourceType msst = new MobileSmartSourceType(pvalue);
+				if ("script".equals(mode)) {
+					msst = new MobileSmartSourceType();
+					msst.setMode(Mode.SCRIPT);
+					msst.setSmartValue(pvalue);
+				} else if ("source".equals(mode)) {
+					msst = new MobileSmartSourceType();
+					msst.setMode(Mode.SOURCE);
+					msst.setSmartValue(pvalue);
+				}
 
-			BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());
-			PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-			for (PropertyDescriptor pd : propertyDescriptors) {
-				if (pd.getName().equals(pname)) {
-					Method setter = pd.getWriteMethod();
-					Method getter = pd.getReadMethod();
-					Class<?> pdc = pd.getPropertyEditorClass();
-					Class<?> ptc = pd.getPropertyType();
+				BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());
+				PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+				for (PropertyDescriptor pd : propertyDescriptors) {
+					if (pd.getName().equals(pname)) {
+						Method setter = pd.getWriteMethod();
+						Method getter = pd.getReadMethod();
+						Class<?> pdc = pd.getPropertyEditorClass();
+						Class<?> ptc = pd.getPropertyType();
 
-					oldValue = getter.invoke(dbo);
-					
-					if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
-						setter.invoke(dbo, new Object[] { msst });
-					} else if (pname.equals("actionValue")) {// CustomAction
-						FormatedContent fc = new FormatedContent(pvalue);
-						setter.invoke(dbo, new Object[] { fc });
-					} else {
-						String propertyValue = dbo.compileProperty(pname, pvalue).toString();
-						Object oPropertyValue = createObject(ptc, propertyValue);
+						oldValue = getter.invoke(dbo);
 
-						if (dbo.isCipheredProperty(pname)) {
-							String initialValue = (String) getter.invoke(dbo, (Object[]) null);
+						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
+							setter.invoke(dbo, new Object[] { msst });
+						} else if (pname.equals("actionValue")) {// CustomAction
+							FormatedContent fc = new FormatedContent(pvalue);
+							setter.invoke(dbo, new Object[] { fc });
+						} else {
+							String propertyValue = dbo.compileProperty(pname, pvalue).toString();
+							Object oPropertyValue = createObject(ptc, propertyValue);
 
-							if (oPropertyValue.equals(initialValue)
-									|| DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
-								oPropertyValue = initialValue;
-								// } else{
-								// dbo.hasChanged = true;
+							if (dbo.isCipheredProperty(pname)) {
+								String initialValue = (String) getter.invoke(dbo, (Object[]) null);
+
+								if (oPropertyValue.equals(initialValue)
+										|| DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
+									oPropertyValue = initialValue;
+									// } else{
+									// dbo.hasChanged = true;
+								}
+							}
+
+							if (oPropertyValue != null) {
+								Object args[] = { oPropertyValue };
+								setter.invoke(dbo, args);
 							}
 						}
 
-						if (oPropertyValue != null) {
-							Object args[] = { oPropertyValue };
-							setter.invoke(dbo, args);
-						}
+						newValue = getter.invoke(dbo);
+
+						break;
 					}
-					
-					newValue = getter.invoke(dbo);
-					
-					break;
+				}
+
+				if (dbo instanceof UIDynamicElement) {
+					IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
+					if (ionBean != null && ionBean.getProperty(pname) != null) {
+						oldValue = ionBean.getPropertyValue(pname);
+						ionBean.setPropertyValue(pname, msst);
+						newValue = ionBean.getPropertyValue(pname);
+					}
+				}
+
+				if (oldValue != null && newValue != null) {
+					done = true;
+					dbo.hasChanged = true;
+
+					// notify for app generation
+					BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
 				}
 			}
-
-			if (dbo instanceof UIDynamicElement) {
-				IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
-				if (ionBean != null && ionBean.getProperty(pname) != null) {
-					oldValue = ionBean.getPropertyValue(pname);
-					ionBean.setPropertyValue(pname, msst);
-					newValue = ionBean.getPropertyValue(pname);
-				}
-			}
-
-			if (oldValue != null && newValue != null) {
-				done = true;
-				dbo.hasChanged = true;
-	
-				// notify for app generation
-				BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
+			if (save != null && save.equals("true")) {
+				Engine.theApp.databaseObjectsManager.exportProject(dbo.getProject());
 			}
 		}
 
 		if (done) {
 			response.put("done", true);
 			response.put("id", dbo.getFullQName());
+			response.put("state", "success");
+			response.put("message", "Properties have been successfully updated!");
 		} else {
 			response.put("done", false);
 		}

@@ -23,6 +23,7 @@
 		loading = false,
 		placeholder = 'Enter value …',
 		fit = false,
+		buttons = [],
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
@@ -138,7 +139,7 @@
 			</div>
 		{/if}
 	</div>
-	{#if restores.length > 0}
+	{#if restores.length > 0 || buttons.length > 0}
 		<div class="layout-x-low justify-around! sm:layout-y-low sm:h-full">
 			{#each restores as { icon, val, title }}
 				<button
@@ -148,6 +149,11 @@
 					title="{title}:{val}"
 					class="btn bg-surface-200-800 btn-sm"
 				>
+					<Ico {icon} />
+				</button>
+			{/each}
+			{#each buttons as { disabled, onclick, title, icon }}
+				<button {disabled} type="button" {onclick} {title} class="btn bg-surface-200-800 btn-sm">
 					<Ico {icon} />
 				</button>
 			{/each}

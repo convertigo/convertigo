@@ -13,7 +13,8 @@
 		childrenClass,
 		nodeIcon,
 		nodeText,
-		nodeIndicator
+		nodeIndicator,
+		nodeClass
 	} = $props();
 
 	let nodeState = $derived(api.getNodeState({ node, indexPath }));
@@ -43,7 +44,7 @@
 {/snippet}
 
 {#if nodeState.isBranch}
-	<div {...api.getBranchProps({ node, indexPath })}>
+	<div {...api.getBranchProps({ node, indexPath })} class={nodeClass}>
 		<div {...api.getBranchControlProps({ node, indexPath })} class={controlClass}>
 			{@render nodeCommon({ node, indexPath })}
 			<span {...api.getBranchIndicatorProps({ node, indexPath })} class={indicatorClass}>
@@ -77,13 +78,14 @@
 						{textClass}
 						{indicatorClass}
 						{childrenClass}
+						{nodeClass}
 					/>
 				{/each}
 			</div>
 		{/if}
 	</div>
 {:else}
-	<div {...api.getItemProps({ node, indexPath })} class={controlClass}>
+	<div {...api.getItemProps({ node, indexPath })} class="{controlClass} {nodeClass}">
 		{@render nodeCommon({ node, indexPath })}
 	</div>
 {/if}

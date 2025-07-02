@@ -1,7 +1,6 @@
 <script>
 	import { normalizeProps, useMachine } from '@zag-js/svelte';
 	import * as tree from '@zag-js/tree-view';
-	import { onMount, tick } from 'svelte';
 	import TreeNode from './TreeNode.svelte';
 
 	/** @type {any} */
@@ -22,6 +21,7 @@
 		textClass = 'text-sm',
 		indicatorClass = 'ml-auto text-muted',
 		childrenClass = 'pl-4',
+		nodeClass = '',
 		label,
 		nodeIcon,
 		nodeText,
@@ -50,6 +50,9 @@
 		...zagProps
 	}));
 	const api = $derived(tree.connect(service, normalizeProps));
+	export function setSelectedValue(value) {
+		return api.setSelectedValue(value);
+	}
 </script>
 
 <div {...api.getRootProps()} class="{base} {classes}" data-testid="tree-view">
@@ -70,6 +73,7 @@
 				{indicatorClass}
 				{childrenClass}
 				{animationConfig}
+				{nodeClass}
 			/>
 		{/each}
 	</div>

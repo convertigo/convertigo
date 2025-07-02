@@ -3,6 +3,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
@@ -25,10 +26,11 @@
 	}
 </script>
 
+<span class="fixed top-0 right-0 p-low"><LightSwitch></LightSwitch></span>
 <div class="bg layout-y h-full justify-center">
 	<Card class="preset-glass-surface" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
-			<Ico icon="convertigo:logo" class="-m-5 text-primary-100-900" size="32" />
+			<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
 			<h1 class="text-center text-3xl">
 				<p>Welcome to Convertigo</p>
 				<p>Administration Console</p>

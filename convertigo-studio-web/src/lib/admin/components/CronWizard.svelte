@@ -98,7 +98,6 @@
 	];
 
 	let selection = $state(Array(def.length).fill([]));
-	$inspect('selection', selection);
 	$effect(() => {
 		selection = cronExpression
 			.split(' ')

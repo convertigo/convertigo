@@ -320,7 +320,7 @@
 			{#if editedProject == row.name}
 				<td colspan={definition.length}>
 					<table class="w-full"><tbody><tr> {@render rowRender()}</tr></tbody></table>
-					<ProjectEditor project={row.name} />
+					<ProjectEditor project={row.name} class="!-m-low preset-filled-surface-400-600 p" />
 				</td>
 			{:else}
 				{@render rowRender()}

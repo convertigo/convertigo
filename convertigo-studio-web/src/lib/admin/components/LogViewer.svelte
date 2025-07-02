@@ -18,7 +18,7 @@
 	import PropertyType from './PropertyType.svelte';
 
 	const duration = 400;
-	const lineHeight = 16; // px
+	const lineHeight = 14; // px
 
 	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
@@ -120,7 +120,7 @@
 
 	function itemSize(index) {
 		let height =
-			7 +
+			4 +
 			extraLines * lineHeight +
 			Math.max(lineHeight, logs[index][logs[index].length - 1] * lineHeight);
 		return height;

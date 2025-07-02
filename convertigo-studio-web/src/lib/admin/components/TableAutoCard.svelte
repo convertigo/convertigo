@@ -5,17 +5,19 @@
 	import { onMount, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
 	let {
 		definition,
 		data,
 		showHeaders = true,
+		showNothing = true,
 		title = '',
 		comment = '',
 		class: cls = '',
 		thClass = 'preset-filled-surface-200-800',
 		trClass = 'even:preset-filled-surface-200-800 odd:preset-filled-surface-300-700 hover:preset-filled-surface-400-600',
 		fnRowId = (row, i) => row.name ?? i,
+		animationProps = { duration: 100 },
 		children,
 		rowChildren,
 		thead
@@ -75,7 +77,7 @@
 		{#if data && data.length > 0}
 			<tbody>
 				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
-					<tr class={trClass} data-custom={row.name} transition:fade>
+					<tr class={trClass} data-custom={row.name} transition:fade={animationProps}>
 						{#snippet rowRender()}
 							{#each definition as def}
 								<td
@@ -108,7 +110,7 @@
 					</tr>
 				{/each}
 			</tbody>
-		{:else}
+		{:else if showNothing}
 			<tbody>
 				<tr>
 					<td colspan={definition.length}>

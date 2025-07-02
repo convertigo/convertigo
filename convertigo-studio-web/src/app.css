@@ -26,7 +26,7 @@
 }
 
 @utility button {
-	@apply btn flex items-center rounded-sm px-3 py-1 text-[13px] font-normal text-white;
+	@apply btn flex items-center rounded-base px-3 py-1 text-[13px] font-normal text-white;
 }
 
 @utility motif-primary {
@@ -143,6 +143,7 @@
 	& option:checked {
 		@apply preset-filled-primary-50-950 dark:preset-filled-primary-950-50;
 	}
+	@apply bg-white dark:bg-surface-800;
 }
 
 @utility border-color {
