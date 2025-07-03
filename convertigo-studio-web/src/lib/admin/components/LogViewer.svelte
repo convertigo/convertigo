@@ -18,7 +18,8 @@
 	import PropertyType from './PropertyType.svelte';
 
 	const duration = 400;
-	const lineHeight = 14; // px
+	const lineHeight = 14.1; // px
+	const headerHeight = 16; // px
 
 	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
@@ -121,7 +122,7 @@
 	function itemSize(index) {
 		let height =
 			4 +
-			extraLines * lineHeight +
+			extraLines * headerHeight +
 			Math.max(lineHeight, logs[index][logs[index].length - 1] * lineHeight);
 		return height;
 	}
@@ -563,6 +564,14 @@
 					onmousedown={() => ($showFilters = !$showFilters)}
 				/>
 			</div>
+			{#if $showFilters}
+				<div class="mini-card preset-filled-secondary-100-900">
+					<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
+					{#if extraLines > 0}
+						<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
+					{/if}
+				</div>
+			{/if}
 			<div class="mini-card preset-filled-success-100-900">
 				<Popover
 					open={searchBoxOpened}
@@ -659,29 +668,21 @@
 				</div>
 			{/each}
 		</div>
-		<div class="relative">
-			<div class="absolute left-[-25px] layout-y-low rounded-sm bg-primary-100-900 p-1 text-white">
-				<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
-				{#if extraLines > 0}
-					<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
-				{/if}
-			</div>
-			<div
-				class="flex flex-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
-				style="height: {2 + extraLines * 18}px"
-			>
-				{#each columns as { name, cls, style } (name)}
-					<div
-						{style}
-						class="px-1 py-0 {cls} max-h-[18px] overflow-hidden text-nowrap"
-						animate:grabFlip={{ duration }}
-					>
-						<button class="cursor-help font-semibold" onclick={doPulse} onmouseover={doPulse}>
-							{name}
-						</button>
-					</div>
-				{/each}
-			</div>
+		<div
+			class="flex flex-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
+			style="height: {2 + extraLines * 18}px"
+		>
+			{#each columns as { name, cls, style } (name)}
+				<div
+					{style}
+					class="px-1 py-0 {cls} max-h-[18px] overflow-hidden text-nowrap"
+					animate:grabFlip={{ duration }}
+				>
+					<button class="cursor-help font-semibold" onclick={doPulse} onmouseover={doPulse}>
+						{name}
+					</button>
+				</div>
+			{/each}
 		</div>
 	</div>
 	<div class="grow">
@@ -710,16 +711,15 @@
 								'items-baseline',
 								log[2],
 								'opacity-90',
-								log[log.length - 1] > 1 && 'sticky',
-								'top-0'
+								log[log.length - 1] > 1 && 'sticky'
 							]}
-							style="height: {extraLines * lineHeight - 1}px"
+							style="height: {extraLines * headerHeight}px"
 						>
 							{#each columns as { name, cls, style } (name)}
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden pt-[2px] text-left leading-none text-nowrap"
+									class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>

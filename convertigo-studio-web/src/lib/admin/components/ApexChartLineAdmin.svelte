@@ -16,7 +16,9 @@
 			mode: Light.mode
 		},
 		title: {
-			text: title
+			text: title,
+			offsetX: 8,
+			offsetY: 8
 		},
 		chart: {
 			type: 'line',

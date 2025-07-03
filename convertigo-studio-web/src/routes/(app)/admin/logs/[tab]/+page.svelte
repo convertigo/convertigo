@@ -182,7 +182,7 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs" class="h-full gap-low! pt-low!">
+	<Card title="Logs" class="h-full gap-low! overflow-hidden pt-low!">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
