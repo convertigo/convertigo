@@ -29,7 +29,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
@@ -43,6 +46,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
+import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -62,6 +67,7 @@ public class AssistantView extends ViewPart {
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
 	private JSONObject jsonMessage = new JSONObject();
+	private int counter = 1;
 	
 	@Override
 	public void dispose() {
@@ -100,17 +106,22 @@ public class AssistantView extends ViewPart {
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
-				var sXml = json.getString("clipboard");
-				var threadid = json.getString("threadid");
-				Engine.logStudio.debug("[Assistant] received clipboard: " + sXml);
 				if ("create".equals(json.getString("type"))) {
+					var sXml = json.getString("clipboard");
 					ConvertigoPlugin.asyncExec(() -> {
 						create(sXml);
 					});
 				}
 				else if ("edit".equals(json.getString("type"))) {
+					var sXml = json.getString("clipboard");
+					var threadid = json.getString("threadid");
 					ConvertigoPlugin.asyncExec(() -> {
 						edit(sXml, threadid);
+					});
+				}
+				else if ("capture".equals(json.getString("type"))) {
+					ConvertigoPlugin.asyncExec(() -> {
+						capture();
 					});
 				}
 			} catch (Exception e1) {
@@ -197,6 +208,44 @@ public class AssistantView extends ViewPart {
 		});
 		ConvertigoPlugin.asyncExec(initPev);
 		
+	}
+
+	private void capture() {
+		try {
+			String base64 = null;
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					String project = jsonMessage.has("projectName") ? jsonMessage.getString("projectName") : "";
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+						if (((ApplicationComponentEditorInput) editorInput).getApplication().getProject().getName().equals(project)) {
+							ApplicationComponentEditor editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
+							base64 = editorPart.captureToBase64HtmlString();
+							break;
+						}
+					}
+				}
+				if (base64 != null) {
+					if (browser != null && browser.isDisposed()) {
+						return;
+					}
+					JSONObject jo = new JSONObject();
+					jo.put("type", "capture")
+					.put("filename", "capture"+ counter++ +".jpg")
+					.put("filetype", "image/jpg")
+					.put("filedata", base64);
+					handler.postMessage(jo);
+					Engine.logStudio.info("[Assistant] capture component: image succesfully sent");
+				} else {
+					Engine.logStudio.warn("[Assistant] unable to make capture: editor not found");
+				}
+			}
+		} catch (Exception e) {
+			Engine.logStudio.error("[Assistant] unable to make capture", e);
+		}
 	}
 
 	private void edit(String sXml, String threadid) {

@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 import java.awt.image.BufferedImage;
 import java.beans.BeanInfo;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.lang.ProcessBuilder.Redirect;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1513,6 +1515,21 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
+	public String captureToBase64HtmlString() {
+		try {
+			var capture = takeCapture();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			ImageLoader loader = new ImageLoader();
+			loader.data = new ImageData[] { capture };
+			loader.save(out, SWT.IMAGE_JPEG);
+			String base64 = Base64.getEncoder().encodeToString(out.toByteArray());
+			return "data:image/jpg;base64," + base64;
+		} catch (Exception e) {
+			Engine.logStudio.error("Failed to save image to base64", e);
+		}
+		return null;
+	}
+	
 	private ImageData takeCapture() {
 		var bitmap = c8oBrowser.getBrowser().bitmap();
 		var image = BitmapImage.toToolkit(c8oBrowser.getDisplay(), bitmap);
