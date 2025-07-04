@@ -135,7 +135,7 @@
 }
 
 @utility border-common {
-	@apply border-b-[1px] border-surface-50 dark:border-surface-600;
+	@apply border-b-[1px] border-surface-400-600;
 }
 
 @utility select {
@@ -152,15 +152,6 @@
 
 @utility layout-cols-2 {
 	@apply grid grid-cols-1 justify-items-stretch gap-2 lg:grid-cols-2;
-}
-
-@layer utilities {
-	html {
-		@apply h-full bg-surface-50-950;
-	}
-	body {
-		@apply h-full;
-	}
 }
 
 @layer components {

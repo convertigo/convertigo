@@ -1,6 +1,5 @@
 <script>
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
-	import { DatePicker } from '@svelte-plugins/datepicker';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -11,12 +10,14 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
-	import { formatDate, formatTime } from '$lib/admin/Logs.svelte';
+	import { formatTime } from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
+	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount, untrack } from 'svelte';
 	import { slide } from 'svelte/transition';
+	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
 
 	let logViewer = $state();
 	onMount(() => {
@@ -58,35 +59,30 @@
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
 	const tabs = {
-		view: { name: 'Viewer', icon: 'grommet-icons:add', viewer: true },
+		view: { name: 'Viewer', icon: 'material-symbols:search-rounded', viewer: true },
 		realtime: { name: 'Real Time', icon: 'grommet-icons:add', viewer: true },
-		purge: { name: 'Purge', icon: 'grommet-icons:add' },
-		config: { name: 'Log Levels', icon: 'grommet-icons:add' }
+		purge: { name: 'Purge', icon: 'material-symbols-light:delete-outline' },
+		config: { name: 'Log Levels', icon: 'material-symbols:settings-outline-rounded' }
 	};
 
 	let tabSet = $derived(Object.keys(tabs).includes(page.params.tab) ? page.params.tab : 'view');
+	let dates = $state([toCalendarDate(today(getLocalTimeZone())), toCalendarDate(today(getLocalTimeZone()))]);
+	let times = $state([toTime(now(getLocalTimeZone()).subtract({ minutes: 10 })).toString().replace('.', ','), toTime(now(getLocalTimeZone())).toString().replace('.', ',')]);
+	
+	// let isOpen = $state(false);
 
-	/** @type {Array<number|null>}*/
-	let datesEdited = $state([
-		new Date().setDate(new Date().getDate() - 1),
-		new Date().setHours(0, 0, 0, 0) + 86400000
-	]);
-	let dates = $state([...datesEdited]);
-	let times = $state(datesEdited.map((d) => formatTime(d)));
-	let isOpen = $state(false);
-
-	let startDate = $derived(formatDate(dates[0]) + ' ' + times[0]);
-	let endDate = $derived(formatDate(dates[1]) + ' ' + times[1]);
+	let startDate = $derived(dates[0].toString() + ' ' + times[0]);
+	let endDate = $derived(dates[1].toString() + ' ' + times[1]);
 	let realtime = $derived(tabSet == 'realtime');
 
-	function onDayClick(e) {
-		if (e.startDate) {
-			dates[0] = e.startDate - tzOffset;
-		}
-		if (e.endDate) {
-			dates[1] = e.endDate - tzOffset;
-		}
-	}
+	// function onDayClick(e) {
+	// 	if (e.startDate) {
+	// 		dates[0] = e.startDate - tzOffset;
+	// 	}
+	// 	if (e.endDate) {
+	// 		dates[1] = e.endDate - tzOffset;
+	// 	}
+	// }
 
 	async function refreshLogs() {
 		// Logs.startDate = formatDate(dates[0]) + ' ' + times[0];
@@ -98,26 +94,26 @@
 
 	const presets = [
 		[
-			{ name: 'now', fn: () => new Date().getTime() },
-			{
-				name: '10 min ago',
-				fn: () => new Date(dates[0] ?? 0).setMinutes(new Date(dates[0] ?? 0).getMinutes() - 10)
-			},
-			{
-				name: '1 hour ago',
-				fn: () => new Date(dates[0] ?? 0).setHours(new Date(dates[0] ?? 0).getHours() - 1)
-			},
-			{ name: 'today', fn: () => new Date().setHours(0, 0, 0, 0) },
-			{ name: 'yesterday', fn: () => new Date().setHours(0, 0, 0, 0) - 86400000 },
-			{
-				name: 'start of the month',
-				fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setDate(1)
-			},
-			{
-				name: 'start of the year',
-				fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setMonth(0, 1)
-			},
-			{ name: 'epoch', fn: () => 0 }
+			// { name: 'now', fn: () => new Date().getTime() },
+			// {
+			// 	name: '10 min ago',
+			// 	fn: () => new Date(dates[0] ?? 0).setMinutes(new Date(dates[0] ?? 0).getMinutes() - 10)
+			// },
+			// {
+			// 	name: '1 hour ago',
+			// 	fn: () => new Date(dates[0] ?? 0).setHours(new Date(dates[0] ?? 0).getHours() - 1)
+			// },
+			// { name: 'today', fn: () => new Date().setHours(0, 0, 0, 0) },
+			// { name: 'yesterday', fn: () => new Date().setHours(0, 0, 0, 0) - 86400000 },
+			// {
+			// 	name: 'start of the month',
+			// 	fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setDate(1)
+			// },
+			// {
+			// 	name: 'start of the year',
+			// 	fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setMonth(0, 1)
+			// },
+			// { name: 'epoch', fn: () => 0 }
 		],
 		[
 			{ name: 'now', fn: () => new Date().getTime() },
@@ -194,8 +190,7 @@
 					{#snippet list()}
 						{#each Object.entries(tabs) as [value, { name, icon }]}
 							<Tabs.Control {value} stateLabelActive="preset-filled-primary-100-900" padding="">
-								{#snippet lead()}{name}{/snippet}
-								<Ico {icon} />
+								{#snippet lead()}<Ico {icon} />{/snippet}{name}
 							</Tabs.Control>
 						{/each}
 					{/snippet}
@@ -257,7 +252,7 @@
 					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 						{#if tabSet == 'view'}
 							<div transition:slide={{ axis: 'y' }}>
-								<DatePicker
+								<!-- <DatePicker
 									bind:isOpen
 									alwaysShow={false}
 									isRange={true}
@@ -267,32 +262,32 @@
 									showYearControls={true}
 									startOfWeek={1}
 									{onDayClick}
-								>
-									<div class="layout-x-end-low flex-wrap">
-										{#each ['From', 'To'] as way, i}
-											<div class="layout-x-baseline-low flex-wrap">
-												<Popover triggerBase="button-primary" arrow arrowBackground="">
-													{#snippet trigger()}{way}<Ico
-															icon="mdi:clock-star-four-points-outline"
-														/>{/snippet}
-													{#snippet content()}
-														<Card bg="bg-surface-50-950" class="p-low!">
-															<div class="layout-y-stretch-low">
-																{#each presets[i] as { name, fn }}
-																	<Button
-																		label={name}
-																		class="button-primary"
-																		onclick={() => {
-																			dates[i] = fn();
-																			times[i] = formatTime(dates[i]);
-																		}}
-																	/>
-																{/each}
-															</div>
-														</Card>
-													{/snippet}
-												</Popover>
-												<input
+								> -->
+								<div class="layout-x-end-low flex-wrap">
+									<!-- {#each ['From', 'To'] as way, i} -->
+									<div class="layout-x-baseline-low flex-wrap">
+										<Popover triggerBase="button-primary" arrow arrowBackground="">
+											{#snippet trigger()}Preset<Ico
+													icon="mdi:clock-star-four-points-outline"
+												/>{/snippet}
+											{#snippet content()}
+												<Card bg="bg-surface-50-950" class="p-low!">
+													<div class="layout-y-stretch-low">
+														{#each presets[0] as { name, fn }}
+															<Button
+																label={name}
+																class="button-primary"
+																onclick={() => {
+																	// dates[0] = fn();
+																	times[0] = formatTime(dates[0]);
+																}}
+															/>
+														{/each}
+													</div>
+												</Card>
+											{/snippet}
+										</Popover>
+										<!-- <input
 													type="text"
 													class="input-text button input-common w-[12ch] max-w-fit preset-filled-primary-50-950 px-low"
 													value={formatDate(dates[i])}
@@ -301,49 +296,57 @@
 														isOpen = true;
 													}}
 													size="11"
-												/>
-												<TimePicker bind:inputValue={times[i]} />
-											</div>
-										{/each}
-										<Button
-											size={4}
-											icon="mdi:filter-cog{showFilters ? '' : '-outline'}"
-											onmousedown={() => (showFilters = !showFilters)}
-											class="button-secondary h-7! w-fit!"
+												/> -->
+										<TimePicker bind:inputValue={times[0]} />
+										<DateRangePicker
+											bind:start={dates[0]}
+											bind:end={dates[1]}
 										/>
-										{#if showFilters}
-											<Button
-												size={4}
-												icon="mingcute:delete-line"
-												onmousedown={() => (serverFilter = '')}
-												class="button-error h-7! w-fit!"
-												label="Clear"
-											/>
-											<Button
-												size={4}
-												icon="material-symbols:sync-arrow-up-rounded"
-												onmousedown={copyFilters}
-												class="button-tertiary h-7! w-fit!"
-												label="Copy filters"
-											/>
-											<PropertyType
-												placeholder="Server filter…"
-												bind:value={serverFilter}
-												onkeyup={(e) => {
-													if (e?.key == 'Enter') refreshLogs();
-												}}
-												class="preset-filled-secondary-50-950 motif-secondary"
-											/>
-										{/if}
-										<Button
-											label="Server search"
-											size={4}
-											icon="mdi:receipt-text-send-outline"
-											class="button-success w-fit! grow"
-											onclick={refreshLogs}
-										/>
+										<TimePicker bind:inputValue={times[1]} />
 									</div>
-								</DatePicker>
+									<!-- {/each} -->
+									<Button
+										size={4}
+										label="Server filter"
+										icon="mdi:filter-cog{showFilters ? '' : '-outline'}"
+										onmousedown={() => (showFilters = !showFilters)}
+										class="button-secondary h-7! w-fit!"
+									/>
+									{#if showFilters}
+										<Button
+											size={4}
+											icon="mingcute:delete-line"
+											onmousedown={() => (serverFilter = '')}
+											class="button-error h-7! w-fit!"
+											label="Clear"
+										/>
+										<Button
+											size={4}
+											icon="material-symbols:sync-arrow-up-rounded"
+											onmousedown={copyFilters}
+											class="button-tertiary h-7! w-fit!"
+											label="Copy client filters"
+										/>
+									{/if}
+									<Button
+										label="Server search"
+										size={4}
+										icon="mdi:receipt-text-send-outline"
+										class="button-success w-fit!"
+										onclick={refreshLogs}
+									/>
+									{#if showFilters}
+										<PropertyType
+											placeholder="Server filter…"
+											bind:value={serverFilter}
+											onkeyup={(e) => {
+												if (e?.key == 'Enter') refreshLogs();
+											}}
+											class="preset-filled-secondary-50-950 motif-secondary"
+										/>
+									{/if}
+								</div>
+								<!-- </DatePicker> -->
 							</div>
 						{/if}
 						<div class="-mx -mb h-full">

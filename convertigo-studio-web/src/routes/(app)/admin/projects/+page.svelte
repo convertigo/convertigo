@@ -316,11 +316,15 @@
 				/>
 			{/if}
 		{/snippet}
-		{#snippet rowChildren({ row, definition, rowRender })}
+		{#snippet rowChildren({ row, rowIdx, definition, rowRender })}
 			{#if editedProject == row.name}
-				<td colspan={definition.length}>
+				<td
+					colspan={definition.length}
+					class:preset-filled-surface-100-900={rowIdx % 2 == 1}
+					class:preset-filled-surface-200-800={rowIdx % 2 == 0}
+				>
 					<table class="w-full"><tbody><tr> {@render rowRender()}</tr></tbody></table>
-					<ProjectEditor project={row.name} class="!-m-low preset-filled-surface-400-600 p" />
+					<ProjectEditor project={row.name} class="!-m-low p" />
 				</td>
 			{:else}
 				{@render rowRender()}

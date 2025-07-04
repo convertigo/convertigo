@@ -9,7 +9,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-20 flex justify-between border-b-[0.5px] border-color preset-filled-surface-100-900"
+	class="sticky top-0 z-20 flex justify-between border-b-[0.5px] border-color preset-filled-surface-50-950"
 >
 	<section class="layout-x pl-5">
 		<PagesRailToggle class="md:hidden" bind:state={showDrawer} />

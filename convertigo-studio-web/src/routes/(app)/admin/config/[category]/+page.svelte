@@ -80,7 +80,7 @@
 
 {#snippet rightPart()}
 	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-100-900 p-low max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 p-low max-md:layout-grid-[100px]"
 	>
 		{#each categories as { name, displayName }, i}
 			<a

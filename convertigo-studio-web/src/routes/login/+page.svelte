@@ -26,35 +26,37 @@
 	}
 </script>
 
-<span class="fixed top-0 right-0 p-low"><LightSwitch></LightSwitch></span>
-<div class="bg layout-y h-full justify-center">
-	<Card class="preset-glass-surface" bg="">
-		<form onsubmit={handleSubmit} class="layout-y-m-center">
-			<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
-			<h1 class="text-center text-3xl">
-				<p>Welcome to Convertigo</p>
-				<p>Administration Console</p>
-			</h1>
-			<input type="hidden" name="authType" value="login" />
-			<PropertyType name="authUserName" placeholder="username" autocomplete="username" />
+<div class="h-screen">
+	<span class="fixed top-0 right-0 p-low"><LightSwitch></LightSwitch></span>
+	<div class="bg layout-y h-full justify-center">
+		<Card class="preset-glass-surface" bg="">
+			<form onsubmit={handleSubmit} class="layout-y-m-center">
+				<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
+				<h1 class="text-center text-3xl">
+					<p>Welcome to Convertigo</p>
+					<p>Administration Console</p>
+				</h1>
+				<input type="hidden" name="authType" value="login" />
+				<PropertyType name="authUserName" placeholder="username" autocomplete="username" />
 
-			<PropertyType
-				name="authPassword"
-				placeholder="password"
-				type="password"
-				autocomplete="current-password"
-			/>
+				<PropertyType
+					name="authPassword"
+					placeholder="password"
+					type="password"
+					autocomplete="current-password"
+				/>
 
-			{#if error}
-				<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
-			{/if}
+				{#if error}
+					<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
+				{/if}
 
-			<button class="button-primary w-full" type="submit">Enter</button>
-		</form>
-	</Card>
+				<button class="button-primary w-full" type="submit">Enter</button>
+			</form>
+		</Card>
+	</div>
 </div>
 
-<style>
+<style lang="postcss">
 	@property --angle {
 		syntax: '<angle>';
 		inherits: false;

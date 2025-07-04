@@ -113,10 +113,10 @@
 		expandOnClick={false}
 		defaultExpandedValue={[project]}
 		defaultSelectedValue={[project]}
-		base="preset-outlined-primary-500 py-low px-[20px] rounded-base overflow-clip bg-primary-200-800/10"
-		classes="text-primary-700-300 min-w-80 overflow-hidden break-all select-none"
+		base="preset-outlined-surface-500 py-low px-[20px] rounded-base overflow-clip"
+		classes="text-surface-700-300 min-w-80 overflow-hidden break-all select-none"
 		textClass="text-surface-800-200"
-		indicatorClass="order-first text-primary-600-400 -ml-[14px]"
+		indicatorClass="order-first text-surface-600-400 -ml-[14px]"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
 			{#if node.icon?.includes('?')}
@@ -144,7 +144,7 @@
 		<span data-spacer class="max-lg:hidden"></span>
 		{#snippet saveCancel()}
 			<ResponsiveButtons
-				class="w-full"
+				class="w-full max-w-100"
 				buttons={[
 					{
 						label: 'Save changes',
@@ -196,7 +196,7 @@
 						<TableAutoCard
 							showHeaders={false}
 							showNothing={false}
-							trClass="even:preset-filled-surface-50-950 odd:preset-filled-surface-100-900 hover:preset-filled-surface-200-800"
+							trClass="preset-filled-surface-50-950 odd:bg-surface-50-950/50 hover:preset-filled-surface-100-900"
 							definition={[
 								{ key: 'displayName', name: 'Name', class: 'min-w-40' },
 								{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
@@ -207,7 +207,7 @@
 							{#snippet children({ row })}
 								{@const { class: cls, value, originalValue, values } = row}
 								{#if category == 'Information'}
-									<span class="font-mono">{value}</span>
+									<span>{value}</span>
 								{:else if cls?.startsWith('java.lang.')}
 									{@const type = getType(row)}
 									<PropertyType

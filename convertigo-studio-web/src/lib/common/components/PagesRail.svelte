@@ -21,7 +21,7 @@
 	});
 </script>
 
-<nav class="layout-y-none h-full border-r-[0.5px] border-color preset-filled-surface-100-900">
+<nav class="layout-y-none h-full border-r-[0.5px] border-color preset-filled-surface-50-950">
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params, loading, external }, j}
 			{@const href = loading ? undefined : page ? resolveRoute(page, params) : url}
