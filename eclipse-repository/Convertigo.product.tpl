@@ -66,12 +66,10 @@
       <feature id="com.twinsoft.convertigo.studio.feature" version="@convertigoVersion@.qualifier"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.ecf.core.feature"/>
-      <feature id="org.eclipse.ecf.core.ssl.feature"/>
       <feature id="org.eclipse.ecf.filetransfer.feature"/>
       <feature id="org.eclipse.help"/>
       <feature id="org.eclipse.jgit"/>
       <feature id="org.eclipse.jgit.ssh.apache"/>
-      <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
       <feature id="org.eclipse.egit"/>
       <feature id="org.eclipse.egit.gitflow.feature"/>
       <feature id="org.eclipse.emf.common"/>
