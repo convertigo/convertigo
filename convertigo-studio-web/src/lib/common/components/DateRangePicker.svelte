@@ -1,5 +1,5 @@
 <script>
-	import { getLocalTimeZone, parseDate, toCalendarDate, today } from '@internationalized/date';
+	import { getLocalTimeZone } from '@internationalized/date';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { DateRangePicker } from 'bits-ui';
 
@@ -16,10 +16,10 @@
 	bind:value
 	weekdayFormat="short"
 	weekStartsOn={1}
-	locale='fr-FR'
-	class="max-w-92 border-common preset-filled-surface-100-900"
+	locale="fr-FR"
+	class="max-w-92 border-common"
 >
-	<div class="input-like input-text flex input-common">
+	<div class="input-text button flex input-common preset-filled-surface-200-800 light:bg-white">
 		{#each dateTypes as type (type)}
 			<DateRangePicker.Input {type}>
 				{#snippet children({ segments })}
@@ -30,7 +30,7 @@
 									{value}
 								</DateRangePicker.Segment>
 							{:else}
-								<DateRangePicker.Segment {part} class="rounded-base px-1 py-1 hover:bg-black/10">
+								<DateRangePicker.Segment {part} class="rounded-base px-1 py-1 hover:bg-black/30">
 									{value}
 								</DateRangePicker.Segment>
 							{/if}
@@ -43,7 +43,7 @@
 			{/if}
 		{/each}
 
-		<DateRangePicker.Trigger class="-m-1 ml-auto rounded-base bg-black/5 p-1 hover:bg-black/10">
+		<DateRangePicker.Trigger class="-m-1 ml-auto rounded-base p-1 hover:bg-black/30">
 			<Ico size="6" icon="material-symbols-light:date-range-rounded" />
 		</DateRangePicker.Trigger>
 	</div>
@@ -137,15 +137,3 @@
 		</DateRangePicker.Calendar>
 	</DateRangePicker.Content>
 </DateRangePicker.Root>
-
-<style lang="postcss">
-	@reference '../../../app.css';
-
-	.input-like {
-		padding-top: 0.5rem;
-		padding-right: 0.75rem;
-		padding-bottom: 0.5rem;
-		line-height: 1.5rem;
-		--tw-shadow: 0 0 #0000;
-	}
-</style>

@@ -9,6 +9,7 @@
 @import './convertigo.utilities.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(:not(.dark, .dark *)));
 @custom-variant motif (&:where(.motif, .motif *));
 
 @layer base {

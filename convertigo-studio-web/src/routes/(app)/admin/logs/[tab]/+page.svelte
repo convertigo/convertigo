@@ -1,4 +1,5 @@
 <script>
+	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
 	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -17,7 +18,6 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount, untrack } from 'svelte';
 	import { slide } from 'svelte/transition';
-	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
 
 	let logViewer = $state();
 	onMount(() => {
@@ -55,6 +55,7 @@
 	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
 	let serverFilter = $state('');
 	let filters = $state({}); //fromStore(persisted('adminLogsFilters', {}, { syncTabs: false })).current;
+	let presetOpened = $state(false);
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
@@ -66,9 +67,17 @@
 	};
 
 	let tabSet = $derived(Object.keys(tabs).includes(page.params.tab) ? page.params.tab : 'view');
-	let dates = $state([toCalendarDate(today(getLocalTimeZone())), toCalendarDate(today(getLocalTimeZone()))]);
-	let times = $state([toTime(now(getLocalTimeZone()).subtract({ minutes: 10 })).toString().replace('.', ','), toTime(now(getLocalTimeZone())).toString().replace('.', ',')]);
-	
+	let dates = $state([
+		toCalendarDate(now(getLocalTimeZone()).subtract({ minutes: 10 })),
+		toCalendarDate(today(getLocalTimeZone()))
+	]);
+	let times = $state([
+		toTime(now(getLocalTimeZone()).subtract({ minutes: 10 }))
+			.toString()
+			.replace('.', ','),
+		toTime(now(getLocalTimeZone())).toString().replace('.', ',')
+	]);
+
 	// let isOpen = $state(false);
 
 	let startDate = $derived(dates[0].toString() + ' ' + times[0]);
@@ -92,35 +101,69 @@
 		await logViewer.list(true);
 	}
 
+	function setDatesTimes(start, end) {
+		dates = [toCalendarDate(start), toCalendarDate(end)];
+		times = [toTime(start).toString().replace('.', ','), toTime(end).toString().replace('.', ',')];
+		presetOpened = false;
+	}
+
 	const presets = [
-		[
-			// { name: 'now', fn: () => new Date().getTime() },
-			// {
-			// 	name: '10 min ago',
-			// 	fn: () => new Date(dates[0] ?? 0).setMinutes(new Date(dates[0] ?? 0).getMinutes() - 10)
-			// },
-			// {
-			// 	name: '1 hour ago',
-			// 	fn: () => new Date(dates[0] ?? 0).setHours(new Date(dates[0] ?? 0).getHours() - 1)
-			// },
-			// { name: 'today', fn: () => new Date().setHours(0, 0, 0, 0) },
-			// { name: 'yesterday', fn: () => new Date().setHours(0, 0, 0, 0) - 86400000 },
-			// {
-			// 	name: 'start of the month',
-			// 	fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setDate(1)
-			// },
-			// {
-			// 	name: 'start of the year',
-			// 	fn: () => new Date(new Date().setHours(0, 0, 0, 0)).setMonth(0, 1)
-			// },
-			// { name: 'epoch', fn: () => 0 }
-		],
-		[
-			{ name: 'now', fn: () => new Date().getTime() },
-			{ name: '10 min after', fn: () => new Date().setMinutes(new Date().getMinutes() + 10) },
-			{ name: '1 hour after', fn: () => new Date().setHours(new Date().getHours() + 1) },
-			{ name: 'tomorrow', fn: () => new Date().setHours(0, 0, 0, 0) + 86400000 }
-		]
+		{
+			label: 'now ⇒ +24h',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate, nowDate.add({ days: 1 }));
+			}
+		},
+		{
+			label: '1 min ago ⇒ now',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate.copy().subtract({ minutes: 1 }), nowDate);
+			}
+		},
+		{
+			label: '10 min ago ⇒ now',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate.subtract({ minutes: 10 }), nowDate);
+			}
+		},
+		{
+			label: '1 hour ago ⇒ now',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate.subtract({ hours: 1 }), nowDate);
+			}
+		},
+		{
+			label: 'today',
+			onclick: () => {
+				const todayDate = today(getLocalTimeZone());
+				setDatesTimes(todayDate, todayDate.add({ days: 1 }));
+			}
+		},
+		{
+			label: 'yesterday',
+			onclick: () => {
+				const yesterdayDate = today(getLocalTimeZone()).subtract({ days: 1 });
+				setDatesTimes(yesterdayDate, yesterdayDate.add({ days: 1 }));
+			}
+		},
+		{
+			label: 'last 7 days',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate.subtract({ days: 7 }), nowDate);
+			}
+		},
+		{
+			label: 'last 30 days',
+			onclick: () => {
+				const nowDate = now(getLocalTimeZone());
+				setDatesTimes(nowDate.subtract({ days: 30 }), nowDate);
+			}
+		}
 	];
 
 	$effect(() => {
@@ -252,59 +295,36 @@
 					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 						{#if tabSet == 'view'}
 							<div transition:slide={{ axis: 'y' }}>
-								<!-- <DatePicker
-									bind:isOpen
-									alwaysShow={false}
-									isRange={true}
-									isMultipane={true}
-									bind:startDate={datesEdited[0]}
-									bind:endDate={datesEdited[1]}
-									showYearControls={true}
-									startOfWeek={1}
-									{onDayClick}
-								> -->
 								<div class="layout-x-end-low flex-wrap">
-									<!-- {#each ['From', 'To'] as way, i} -->
 									<div class="layout-x-baseline-low flex-wrap">
-										<Popover triggerBase="button-primary" arrow arrowBackground="">
+										<Popover
+											triggerBase="button-primary"
+											arrow
+											arrowBackground="preset-glass-primary"
+											open={presetOpened}
+											onOpenChange={(e) => (presetOpened = e.open)}
+										>
 											{#snippet trigger()}Preset<Ico
 													icon="mdi:clock-star-four-points-outline"
 												/>{/snippet}
 											{#snippet content()}
-												<Card bg="bg-surface-50-950" class="p-low!">
+												<Card bg="preset-glass-primary" class="p-low!">
 													<div class="layout-y-stretch-low">
-														{#each presets[0] as { name, fn }}
+														{#each presets as { label, onclick }}
 															<Button
-																label={name}
-																class="button-primary"
-																onclick={() => {
-																	// dates[0] = fn();
-																	times[0] = formatTime(dates[0]);
-																}}
+																{label}
+																class="button-primary bg-primary-50-950 odd:bg-primary-50-950/75"
+																{onclick}
 															/>
 														{/each}
 													</div>
 												</Card>
 											{/snippet}
 										</Popover>
-										<!-- <input
-													type="text"
-													class="input-text button input-common w-[12ch] max-w-fit preset-filled-primary-50-950 px-low"
-													value={formatDate(dates[i])}
-													onfocus={() => {
-														datesEdited[i] = null;
-														isOpen = true;
-													}}
-													size="11"
-												/> -->
 										<TimePicker bind:inputValue={times[0]} />
-										<DateRangePicker
-											bind:start={dates[0]}
-											bind:end={dates[1]}
-										/>
+										<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} />
 										<TimePicker bind:inputValue={times[1]} />
 									</div>
-									<!-- {/each} -->
 									<Button
 										size={4}
 										label="Server filter"
@@ -346,7 +366,6 @@
 										/>
 									{/if}
 								</div>
-								<!-- </DatePicker> -->
 							</div>
 						{/if}
 						<div class="-mx -mb h-full">

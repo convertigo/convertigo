@@ -215,10 +215,10 @@
 	});
 </script>
 
-<div class="relative h-full" bind:this={root}>
+<div class="relative h-full border-common" bind:this={root}>
 	<input
 		type="text"
-		class="input-text button input-common w-[14ch] max-w-fit preset-filled-tertiary-100-900"
+		class="input-text button input-common w-[14ch] max-w-fit preset-filled-surface-200-800 light:bg-white"
 		maxlength="12"
 		size="11"
 		bind:this={input}

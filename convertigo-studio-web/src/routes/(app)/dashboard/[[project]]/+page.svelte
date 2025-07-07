@@ -1,12 +1,12 @@
 <script>
-	import { assets, resolveRoute } from '$app/paths';
+	import { resolveRoute } from '$app/paths';
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getThumbnailUrl, getUrl } from '$lib/utils/service';
+	import { getThumbnailUrl } from '$lib/utils/service';
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
