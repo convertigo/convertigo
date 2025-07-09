@@ -25,7 +25,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.security.GeneralSecurityException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,7 +35,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
@@ -96,13 +94,13 @@ public class RemoteAdmin {
 			String loginServiceURL = (bHttps ? "https" : "http") + "://"
 					+ serverBaseUrl + "/admin/services/engine.Authenticate";
 
-			Protocol myhttps = null;					
+			Protocol myhttps = null;
 			
 			hostConfiguration = httpClient.getHostConfiguration();
 			
 			if (bHttps) {
-				if (bTrustAllCertificates) {	
-					ProtocolSocketFactory socketFactory = new EasySSLProtocolSocketFactory();
+				if (bTrustAllCertificates) {
+					ProtocolSocketFactory socketFactory = MySSLSocketFactory.getSSLSocketFactory(null, null, null, null, true);
 					myhttps = new Protocol("https", socketFactory, serverPort);
 					Protocol.registerProtocol("https", myhttps);
 	
@@ -188,10 +186,6 @@ public class RemoteAdmin {
 			else throw new RemoteAdminException(
 					"Unable to reach the Convertigo server: \n"
 							+ "(IOException) " + e.getMessage(), e);
-		} catch (GeneralSecurityException e) {
-			throw new RemoteAdminException(
-					"Unable to reach the Convertigo server: \n"
-							+ "(GeneralSecurityException) " + e.getMessage(), e);
 		} finally {
 			Protocol.unregisterProtocol("https");
 			if (loginMethod != null)
