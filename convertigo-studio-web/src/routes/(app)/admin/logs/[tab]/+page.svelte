@@ -11,7 +11,6 @@
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
-	import { formatTime } from '$lib/admin/Logs.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -61,7 +60,6 @@
 
 	const tabs = {
 		view: { name: 'Viewer', icon: 'material-symbols:search-rounded', viewer: true },
-		realtime: { name: 'Real Time', icon: 'grommet-icons:add', viewer: true },
 		purge: { name: 'Purge', icon: 'material-symbols-light:delete-outline' },
 		config: { name: 'Log Levels', icon: 'material-symbols:settings-outline-rounded' }
 	};
@@ -78,69 +76,63 @@
 		toTime(now(getLocalTimeZone())).toString().replace('.', ',')
 	]);
 
-	// let isOpen = $state(false);
-
 	let startDate = $derived(dates[0].toString() + ' ' + times[0]);
-	let endDate = $derived(dates[1].toString() + ' ' + times[1]);
-	let realtime = $derived(tabSet == 'realtime');
-
-	// function onDayClick(e) {
-	// 	if (e.startDate) {
-	// 		dates[0] = e.startDate - tzOffset;
-	// 	}
-	// 	if (e.endDate) {
-	// 		dates[1] = e.endDate - tzOffset;
-	// 	}
-	// }
+	let endDate = $derived(dates[1] ? dates[1].toString() + ' ' + times[1] : '');
+	let live = $state(true);
 
 	async function refreshLogs() {
-		// Logs.startDate = formatDate(dates[0]) + ' ' + times[0];
-		// Logs.endDate = formatDate(dates[1]) + ' ' + times[1];
-		// Logs.realtime = tabSet == 'realtime';
-		// Logs.filter = serverFilter;
 		await logViewer.list(true);
 	}
 
 	function setDatesTimes(start, end) {
-		dates = [toCalendarDate(start), toCalendarDate(end)];
-		times = [toTime(start).toString().replace('.', ','), toTime(end).toString().replace('.', ',')];
+		const range = [start, end];
+		dates = range.map(toCalendarDate);
+		times = range.map((date) => {
+			let time = toTime(date).toString().replace('.', ',');
+			return time.includes(',') ? time : time + ',000';
+		});
 		presetOpened = false;
 	}
 
 	const presets = [
 		{
-			label: 'now ⇒ +24h',
+			label: 'now ⇒ live',
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate, nowDate.add({ days: 1 }));
+				live = true;
 			}
 		},
 		{
-			label: '1 min ago ⇒ now',
+			label: '1 min ago ⇒ live',
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate.copy().subtract({ minutes: 1 }), nowDate);
+				live = true;
 			}
 		},
 		{
-			label: '10 min ago ⇒ now',
+			label: '10 min ago ⇒ live',
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate.subtract({ minutes: 10 }), nowDate);
+				live = true;
 			}
 		},
 		{
-			label: '1 hour ago ⇒ now',
+			label: '1 hour ago ⇒ live',
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate.subtract({ hours: 1 }), nowDate);
+				live = true;
 			}
 		},
 		{
-			label: 'today',
+			label: 'today ⇒ live',
 			onclick: () => {
 				const todayDate = today(getLocalTimeZone());
 				setDatesTimes(todayDate, todayDate.add({ days: 1 }));
+				live = true;
 			}
 		},
 		{
@@ -148,6 +140,7 @@
 			onclick: () => {
 				const yesterdayDate = today(getLocalTimeZone()).subtract({ days: 1 });
 				setDatesTimes(yesterdayDate, yesterdayDate.add({ days: 1 }));
+				live = false;
 			}
 		},
 		{
@@ -155,6 +148,7 @@
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate.subtract({ days: 7 }), nowDate);
+				live = true;
 			}
 		},
 		{
@@ -162,6 +156,7 @@
 			onclick: () => {
 				const nowDate = now(getLocalTimeZone());
 				setDatesTimes(nowDate.subtract({ days: 30 }), nowDate);
+				live = true;
 			}
 		}
 	];
@@ -296,7 +291,7 @@
 						{#if tabSet == 'view'}
 							<div transition:slide={{ axis: 'y' }}>
 								<div class="layout-x-end-low flex-wrap">
-									<div class="layout-x-baseline-low flex-wrap">
+									<div class="layout-x-end-low flex-wrap">
 										<Popover
 											triggerBase="button-primary"
 											arrow
@@ -313,7 +308,7 @@
 														{#each presets as { label, onclick }}
 															<Button
 																{label}
-																class="button-primary bg-primary-50-950 odd:bg-primary-50-950/75"
+																class="button-primary bg-primary-50-950 text-black odd:bg-primary-50-950/75 dark:text-white"
 																{onclick}
 															/>
 														{/each}
@@ -322,8 +317,12 @@
 											{/snippet}
 										</Popover>
 										<TimePicker bind:inputValue={times[0]} />
-										<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} />
-										<TimePicker bind:inputValue={times[1]} />
+										<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
+										{#if !live}
+											<span transition:slide={{ axis: 'x' }}
+												><TimePicker bind:inputValue={times[1]} /></span
+											>
+										{/if}
 									</div>
 									<Button
 										size={4}
@@ -346,6 +345,7 @@
 											onmousedown={copyFilters}
 											class="button-tertiary h-7! w-fit!"
 											label="Copy client filters"
+											disabled={Object.keys(filters).length == 0}
 										/>
 									{/if}
 									<Button
@@ -362,7 +362,8 @@
 											onkeyup={(e) => {
 												if (e?.key == 'Enter') refreshLogs();
 											}}
-											class="preset-filled-secondary-50-950 motif-secondary"
+											class="input-text input-common preset-filled-surface-200-800 light:bg-white"
+											type="text"
 										/>
 									{/if}
 								</div>
@@ -371,10 +372,10 @@
 						<div class="-mx -mb h-full">
 							<LogViewer
 								bind:this={logViewer}
-								autoScroll={realtime}
+								autoScroll={live}
 								{startDate}
 								{endDate}
-								{realtime}
+								{live}
 								{serverFilter}
 								bind:filters
 							/>

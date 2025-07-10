@@ -60,15 +60,32 @@ public class Get extends JSonService {
 			try {
 				realtime = Boolean.parseBoolean(request.getParameter("realtime"));
 			} catch (Exception e) {}
+			
+			boolean live = false;
+			try {
+				live = Boolean.parseBoolean(request.getParameter("live"));
+			} catch (Exception e) {}
+			
+			boolean clear = false;
+			try {
+				clear = Boolean.parseBoolean(request.getParameter("clear"));
+			} catch (Exception e) {}
 
-			if (realtime) {
-				LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines);
-				logmanager.setContinue(true);
+			if (realtime || live) {
+				if (live) {
+					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines, LogManagerParameter.startDate);
+					logmanager.setContinue(!clear);
+				} else {
+					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines);
+					logmanager.setContinue(true);
+				}
 
 				if (session.getAttribute("isRealtime") == null) {
 					// fix #2959 - Removed 10 last minutes added to real time mode
 					//logmanager.setDateStart(new Date(System.currentTimeMillis() - 600000));
-					logmanager.setDateStart(new Date(System.currentTimeMillis()));
+					if (realtime) {
+						logmanager.setDateStart(new Date(System.currentTimeMillis()));
+					}
 					logmanager.setDateEnd(LogManager.date_last);
 					session.setAttribute("isRealtime", true);
 				}

@@ -6,10 +6,12 @@
 		name = '',
 		values = ['false', 'true'],
 		value = $bindable(values[0]),
-		class: classes = '',
+		class: cls = '',
 		disabled = false,
 		children
 	} = $props();
+	let classes = $derived(cls);
+	$inspect('classes', classes);
 </script>
 
 <Switch

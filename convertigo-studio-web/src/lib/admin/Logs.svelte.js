@@ -4,7 +4,7 @@ let logs = $state([]);
 let startDate = $state('');
 let endDate = $state('');
 let filter = $state('');
-let realtime = $state(false);
+let live = $state(false);
 let nbLines = $state(100);
 let moreResults = $state(false);
 let calling = $state(false);
@@ -22,14 +22,14 @@ export function formatTime(timestamp) {
 }
 
 async function list(clear = false) {
-	if (realtime && calling) {
+	if (!clear && live && calling) {
 		return;
 	}
 	if (clear) {
 		logs = [];
 		moreResults = false;
 	}
-	if (!realtime && !moreResults && !clear) {
+	if (!live && !moreResults && !clear) {
 		return;
 	}
 	calling = true;
@@ -40,8 +40,9 @@ async function list(clear = false) {
 			startDate,
 			endDate,
 			filter,
-			realtime,
-			nbLines
+			live,
+			nbLines,
+			clear
 		});
 		if (currentCall == lastCall) {
 			moreResults = res?.hasMoreResults ?? false;
@@ -82,11 +83,11 @@ export default {
 	set filter(value) {
 		filter = value;
 	},
-	get realtime() {
-		return realtime;
+	get live() {
+		return live;
 	},
-	set realtime(value) {
-		realtime = value;
+	set live(value) {
+		live = value;
 	},
 	get nbLines() {
 		return nbLines;

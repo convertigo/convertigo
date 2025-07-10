@@ -65,14 +65,14 @@
 		Message: { idx: 4 }
 	};
 
-	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, realtime?: boolean}} */
+	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean}} */
 	let {
 		autoScroll = $bindable(false),
 		filters = $bindable({}),
 		serverFilter = $bindable(''),
 		startDate = $bindable(''),
 		endDate = $bindable(''),
-		realtime = $bindable(false)
+		live = $bindable(false)
 	} = $props();
 	let extraLines = $state(1);
 	let isDragging = $state(false);
@@ -98,7 +98,7 @@
 			scrollToIndex = undefined;
 			await tick();
 			scrollToIndex = logs.length - 1;
-			if (showedLines.end == scrollToIndex && !Logs.moreResults && !realtime && !Logs.calling) {
+			if (showedLines.end == scrollToIndex && !Logs.moreResults && !live && !Logs.calling) {
 				autoScroll = false;
 			}
 		}
@@ -421,7 +421,7 @@
 	}
 
 	export async function list(renew = false) {
-		Logs.realtime = realtime;
+		Logs.live = live;
 		Logs.autoScroll = autoScroll;
 		Logs.filter = serverFilter;
 		Logs.startDate = startDate;
@@ -431,7 +431,7 @@
 		}
 		let len = renew ? 0 : logs.length;
 		await Logs.list(renew);
-		if (logs.length == len && Logs.moreResults) {
+		if (logs.length == len && (false || Logs.moreResults)) {
 			await list(false);
 		}
 	}
@@ -470,18 +470,22 @@
 			{:else}
 				<input class="input" bind:value={modalFilterParams.value} />
 			{/if}
-			<PropertyType
-				name="negate"
-				type="check"
-				label={not ? 'not' : 'is'}
-				bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
-			/>
-			<PropertyType
-				name="case"
-				type="check"
-				label={sensitive ? 'sensitive' : 'insensitive'}
-				bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
-			/>
+			<div class="flex flex-wrap justify-between gap">
+				<PropertyType
+					name="negate"
+					type="check"
+					label={not ? 'not' : 'is'}
+					fit={true}
+					bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
+				/>
+				<PropertyType
+					name="case"
+					type="check"
+					label={sensitive ? 'case' : 'ignore case'}
+					fit={true}
+					bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
+				/>
+			</div>
 			<div class="flex flex-wrap gap-2">
 				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
 					<button
@@ -702,14 +706,13 @@
 			>
 				<div slot="item" let:index let:style {style}>
 					{@const log = logs[index]}
-					<div class="{log[2]} rounded-sm">
+					<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
 						<div
 							class={[
 								'flex',
 								'flex-wrap',
 								'overflow-y-hidden',
 								'items-baseline',
-								log[2],
 								'opacity-90',
 								log[log.length - 1] > 1 && 'sticky'
 							]}
@@ -719,7 +722,7 @@
 								{@const value = getValue(name, log, index)}
 								<button
 									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
+									class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none font-semibold text-nowrap"
 									animate:grabFlip={{ duration }}
 									onclick={(event) => addFilter({ event, category: name, value })}
 								>
@@ -729,7 +732,7 @@
 						</div>
 						<div
 							class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black dark:text-white"
-							style="scrollbar-width: thin; --tw-ring-opacity: 0.3;"
+							style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
 							{@attach dragscroll}
 						>
 							{#if founds.length > 0}
@@ -763,7 +766,7 @@
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
 			{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
-			{#if !Logs.realtime}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
+			{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
 			{#if Logs.calling}Calling…{/if}</span
 		>
 		<button
@@ -809,23 +812,47 @@
 		@apply preset-filled-secondary-100-900 motif-secondary;
 	}
 
+	.FATAL.even {
+		@apply bg-secondary-100-900/80;
+	}
+
 	.ERROR {
 		@apply preset-filled-error-100-900 motif-error;
+	}
+
+	.ERROR.even {
+		@apply bg-error-100-900/80;
 	}
 
 	.WARN {
 		@apply preset-filled-warning-100-900 motif-warning;
 	}
 
+	.WARN.even {
+		@apply bg-warning-100-900/80;
+	}
+
 	.INFO {
 		@apply preset-filled-success-100-900;
+	}
+
+	.INFO.even {
+		@apply bg-success-100-900/80;
 	}
 
 	.DEBUG {
 		@apply preset-filled-primary-100-900 motif-primary;
 	}
 
+	.DEBUG.even {
+		@apply bg-primary-100-900/80;
+	}
+
 	.TRACE {
 		@apply preset-filled-tertiary-100-900 motif-tertiary;
+	}
+
+	.TRACE.even {
+		@apply bg-tertiary-100-900/80;
 	}
 </style>
