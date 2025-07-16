@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.3.8
+
+#### Bug Fixes:
+
+- [#960](https://github.com/convertigo/convertigo/issues/960) [Studio] Fixed, dragging items from the Project tree on macOS no longer raises exceptions
+- [#961](https://github.com/convertigo/convertigo/issues/961) [Studio] Fixed, renaming a Sequence with a case-only change now correctly updates the file name on Windows
+- [#962](https://github.com/convertigo/convertigo/issues/962) [Studio] Fixed, deployment now succeeds even when the target HTTPS server is using an untrusted certificate
+
+---
+
 ## 8.3.7
 
 #### Improvements:
