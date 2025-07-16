@@ -19,6 +19,11 @@
 
 package com.twinsoft.convertigo.eclipse.views.assistant;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.Base64;
+
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -58,6 +63,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.Clipboard;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class AssistantView extends ViewPart {
 
@@ -107,16 +113,13 @@ public class AssistantView extends ViewPart {
 			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
 				if ("create".equals(json.getString("type"))) {
-					var sXml = json.getString("clipboard");
 					ConvertigoPlugin.asyncExec(() -> {
-						create(sXml);
+						create(json);
 					});
 				}
 				else if ("edit".equals(json.getString("type"))) {
-					var sXml = json.getString("clipboard");
-					var threadid = json.getString("threadid");
 					ConvertigoPlugin.asyncExec(() -> {
-						edit(sXml, threadid);
+						edit(json);
 					});
 				}
 				else if ("capture".equals(json.getString("type"))) {
@@ -248,8 +251,11 @@ public class AssistantView extends ViewPart {
 		}
 	}
 
-	private void edit(String sXml, String threadid) {
+	private void edit(JSONObject json) {
 		try {
+			var sXml = json.getString("clipboard");
+			var threadid = json.getString("threadid");
+			
 			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			if (pev != null) {
 				UISharedComponent found = null;
@@ -301,7 +307,7 @@ public class AssistantView extends ViewPart {
 					Engine.logStudio.info("[Assistant] edit component: clipboard succesfully added");
 				} else {
 					Engine.logStudio.warn("[Assistant] component with threadid '"+threadid+"' not found, try to create it instead");
-					create(sXml);
+					create(json);
 				}
 			}
 		} catch (Exception e) {
@@ -309,8 +315,10 @@ public class AssistantView extends ViewPart {
 		}
 	}
 
-	private void create(String sXml) {
-		try {
+	private void create(JSONObject json) {
+		try {			
+			var sXml = json.getString("clipboard");
+			
 			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			if (pev != null) {
 				DatabaseObjectTreeObject doto = pev.getFirstSelectedDatabaseObjectTreeObject();
@@ -320,6 +328,15 @@ public class AssistantView extends ViewPart {
 						app = (ApplicationComponent) doto.getObject().getProject().getMobileApplication().getApplicationComponent();
 					} catch (Exception e) {}
 					if (app != null) {
+						// add assets
+						if (json.has("assets")) {
+							File assetsDir = new File(app.getParent().getResourceFolder(), "assets");
+							JSONArray arr = json.getJSONArray("assets");
+							for (int i = 0; i < arr.length(); i++) {
+								addAsset(assetsDir, arr.getJSONObject(i));
+							}
+						}
+						// paste clipboard
 						ConvertigoPlugin.clipboardManagerSystem.paste(sXml, app, true);
 						TreeObject tto = pev.findTreeObjectByUserObject(app);
 						pev.objectChanged(new CompositeEvent(app, tto.getPath()));
@@ -331,6 +348,25 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 			Engine.logStudio.error("[Assistant] unable to create component from clipboard", e);
+		}
+	}
+
+	private void addAsset(File assetsDir, JSONObject jsonObject) {
+		try {
+			String filename = jsonObject.getString("filename");
+			String content = jsonObject.getString("content");
+			String type = jsonObject.getString("type");
+			
+			File image = new File(assetsDir, filename);
+			if ("image/svg+xml".equals(type)) {
+				FileUtils.writeFile(image, content, Charset.forName("UTF-8"));
+			} else if ("image/png".equals(type)) {
+				byte[] decodedBytes = Base64.getDecoder().decode(content);
+				FileUtils.writeByteArrayToFile(image, decodedBytes);
+			}
+		} catch (Exception e) {
+			Engine.logStudio.warn("[Assistant] could not add asset: "+ e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
