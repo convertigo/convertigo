@@ -295,7 +295,7 @@
 										<Popover
 											triggerBase="button-primary"
 											arrow
-											arrowBackground="preset-glass-primary"
+											arrowBackground="var(--color-primary-200-800)"
 											open={presetOpened}
 											onOpenChange={(e) => (presetOpened = e.open)}
 										>
