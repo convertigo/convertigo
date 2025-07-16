@@ -1,0 +1,21 @@
+{
+	"name": "Convertigo Admin",
+	"short_name": "C8o Admin",
+	"description": "Administration Console for Convertigo",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#00c3fb",
+	"icons": [
+		{
+			"src": "./logo-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "./logo-512.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	]
+}
