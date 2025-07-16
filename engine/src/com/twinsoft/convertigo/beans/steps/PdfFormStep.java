@@ -22,12 +22,12 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSArray;
@@ -289,7 +289,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 					Engine.logBeans.debug("(PdfFormStep) Reading image from base64...");
 					if (value != "") {
 						try (ByteArrayInputStream bais = new ByteArrayInputStream(
-								DatatypeConverter.parseBase64Binary(value))) {
+								Base64.getDecoder().decode(value))) {
 							pdImageXObject = LosslessFactory.createFromImage(doc, ImageIO.read(bais));
 						} catch (IOException e) {
 							Engine.logBeans.error("(PdfFormStep) Failed to read image from base64", e);
