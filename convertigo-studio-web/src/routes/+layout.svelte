@@ -32,7 +32,7 @@
 	setModalAlert(getContext('modalAlert'));
 
 	afterNavigate(async () => {
-		if (page.route.id == '/logout') {
+		if (page.route.id == '/(root)/logout') {
 			return;
 		}
 		var authToken = page.url.hash.match(new RegExp('#authToken=(.*)'));
@@ -42,8 +42,7 @@
 		} else {
 			await Authentication.checkAuthentication();
 		}
-		if (!Authentication.authenticated && page.route.id != '/login') {
-			console.log('page', JSON.stringify(page, null, 2));
+		if (!Authentication.authenticated && page.route.id != '/(root)/login') {
 			if (page.url.pathname.endsWith('.html/') || page.error) {
 				goto(`${base}/login/`);
 			} else {
@@ -51,7 +50,7 @@
 			}
 		} else if (
 			Authentication.authenticated &&
-			(page.route.id == null || page.route.id == '/' || page.route.id == '/login')
+			(page.route.id == null || page.route.id == '/(root)' || page.route.id == '/(root)/login')
 		) {
 			goto(`${base}/admin/`);
 		}

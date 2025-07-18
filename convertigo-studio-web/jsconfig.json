@@ -10,7 +10,7 @@
 		"sourceMap": true,
 		"strict": true,
 		"noImplicitAny": false,
-		"plugins": [{ "name": "vite-plugin-iso-import" }]
+		"plugins": []
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias and https://kit.svelte.dev/docs/configuration#files
 	//

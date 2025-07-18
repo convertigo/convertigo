@@ -13,6 +13,7 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
+	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount, untrack } from 'svelte';
@@ -78,7 +79,8 @@
 
 	let startDate = $derived(dates[0].toString() + ' ' + times[0]);
 	let endDate = $derived(dates[1] ? dates[1].toString() + ' ' + times[1] : '');
-	let live = $state(true);
+	let autoScroll = $state(false);
+	let live = $state(false);
 
 	async function refreshLogs() {
 		await logViewer.list(true);
@@ -94,43 +96,57 @@
 		presetOpened = false;
 	}
 
+	let _tz_init = $state(false);
+	let timezone = $derived(Time.serverTimezone ? Time.serverTimezone : getLocalTimeZone());
+
+	$effect(() => {
+		if (_tz_init || !Time.serverTimezone) return;
+		_tz_init = true;
+		presets[1].onclick();
+	});
+
 	const presets = [
 		{
 			label: 'now ⇒ live',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate, nowDate.add({ days: 1 }));
+				autoScroll = true;
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
 			label: '1 min ago ⇒ live',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate.copy().subtract({ minutes: 1 }), nowDate);
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
 			label: '10 min ago ⇒ live',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ minutes: 10 }), nowDate);
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
 			label: '1 hour ago ⇒ live',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ hours: 1 }), nowDate);
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
 			label: 'today ⇒ live',
 			onclick: () => {
-				const todayDate = today(getLocalTimeZone());
+				const todayDate = today(timezone);
 				setDatesTimes(todayDate, todayDate.add({ days: 1 }));
 				live = true;
 			}
@@ -138,34 +154,37 @@
 		{
 			label: 'yesterday',
 			onclick: () => {
-				const yesterdayDate = today(getLocalTimeZone()).subtract({ days: 1 });
+				const yesterdayDate = today(timezone).subtract({ days: 1 });
 				setDatesTimes(yesterdayDate, yesterdayDate.add({ days: 1 }));
 				live = false;
+				refreshLogs();
 			}
 		},
 		{
 			label: 'last 7 days',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ days: 7 }), nowDate);
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
 			label: 'last 30 days',
 			onclick: () => {
-				const nowDate = now(getLocalTimeZone());
+				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ days: 30 }), nowDate);
 				live = true;
+				refreshLogs();
 			}
 		}
 	];
 
-	$effect(() => {
-		if (tabs[tabSet].viewer) {
-			untrack(refreshLogs);
-		}
-	});
+	// $effect(() => {
+	// 	if (tabs[tabSet].viewer) {
+	// 		untrack(refreshLogs);
+	// 	}
+	// });
 
 	$effect(() => {
 		if (tabSet != 'purge') {
@@ -216,7 +235,7 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs" class="h-full gap-low! overflow-hidden pt-low!">
+	<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
 		{#snippet cornerOption()}
 			<div class="layout-x-low w-full">
 				<Tabs
@@ -372,7 +391,7 @@
 						<div class="-mx -mb h-full">
 							<LogViewer
 								bind:this={logViewer}
-								autoScroll={live}
+								{autoScroll}
 								{startDate}
 								{endDate}
 								{live}

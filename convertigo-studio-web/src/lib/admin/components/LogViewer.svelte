@@ -95,10 +95,10 @@
 	async function doAutoScroll() {
 		if (autoScroll && logs.length > 1) {
 			founds = [];
-			scrollToIndex = undefined;
+			_scrollToIndex = undefined;
 			await tick();
-			scrollToIndex = logs.length - 1;
-			if (showedLines.end == scrollToIndex && !Logs.moreResults && !live && !Logs.calling) {
+			_scrollToIndex = logs.length - 1;
+			if (showedLines.end == _scrollToIndex && !Logs.moreResults && !live && !Logs.calling) {
 				autoScroll = false;
 			}
 		}
@@ -217,11 +217,12 @@
 			}))
 	);
 
-	let scrollToIndex = $state();
-	$effect(() => {
-		if (scrollToIndex >= logs.length || logs.length == 0) {
-			scrollToIndex = undefined;
+	let _scrollToIndex = $state();
+	let scrollToIndex = $derived.by(() => {
+		if (_scrollToIndex == undefined || _scrollToIndex < 0 || _scrollToIndex >= logs.length) {
+			return undefined;
 		}
+		return _scrollToIndex;
 	});
 
 	let searched = $state('');
@@ -265,7 +266,7 @@
 			}
 			founds = acc;
 			if (founds.length > 0) {
-				scrollToIndex = founds[(foundsIndex = nearest)].index;
+				_scrollToIndex = founds[(foundsIndex = nearest)].index;
 			}
 			await tick();
 		}
@@ -289,14 +290,14 @@
 	function doSearchNext() {
 		if (founds.length > 0) {
 			foundsIndex = (foundsIndex + 1) % founds.length;
-			scrollToIndex = founds[foundsIndex].index;
+			_scrollToIndex = founds[foundsIndex].index;
 		}
 	}
 
 	function doSearchPrev() {
 		if (founds.length > 0) {
 			foundsIndex = (foundsIndex - 1 + founds.length) % founds.length;
-			scrollToIndex = founds[foundsIndex].index;
+			_scrollToIndex = founds[foundsIndex].index;
 		}
 	}
 
@@ -321,10 +322,10 @@
 		extraLines += inc;
 		virtualList.recomputeSizes(0);
 		recenter = debounce(async () => {
-			scrollToIndex = undefined;
+			_scrollToIndex = undefined;
 			recenter = undefined;
 			await tick();
-			scrollToIndex = centerLine;
+			_scrollToIndex = centerLine;
 		}, 333);
 	}
 
@@ -427,11 +428,11 @@
 		Logs.startDate = startDate;
 		Logs.endDate = endDate;
 		if (renew) {
-			scrollToIndex = undefined;
+			_scrollToIndex = undefined;
 		}
 		let len = renew ? 0 : logs.length;
 		await Logs.list(renew);
-		if (logs.length == len && (false || Logs.moreResults)) {
+		if (logs.length == len && (live || Logs.moreResults)) {
 			await list(false);
 		}
 	}
@@ -553,29 +554,6 @@
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
 			</div>
-			<div
-				class={{
-					'mini-card': true,
-					'preset-filled-secondary-100-900': !$showFilters,
-					'preset-filled-warning-200-800': $showFilters,
-					'motif-secondary': !$showFilters,
-					'motif-warning': $showFilters
-				}}
-			>
-				<Button
-					{size}
-					icon="mdi:filter-cog{$showFilters ? '' : '-outline'}"
-					onmousedown={() => ($showFilters = !$showFilters)}
-				/>
-			</div>
-			{#if $showFilters}
-				<div class="mini-card preset-filled-secondary-100-900">
-					<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
-					{#if extraLines > 0}
-						<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
-					{/if}
-				</div>
-			{/if}
 			<div class="mini-card preset-filled-success-100-900">
 				<Popover
 					open={searchBoxOpened}
@@ -620,6 +598,29 @@
 					{/snippet}
 				</Popover>
 			</div>
+			<div
+				class={{
+					'mini-card': true,
+					'preset-filled-secondary-100-900': !$showFilters,
+					'preset-filled-warning-200-800': $showFilters,
+					'motif-secondary': !$showFilters,
+					'motif-warning': $showFilters
+				}}
+			>
+				<Button
+					{size}
+					icon="mdi:filter-cog{$showFilters ? '' : '-outline'}"
+					onmousedown={() => ($showFilters = !$showFilters)}
+				/>
+			</div>
+			{#if $showFilters}
+				<div class="mini-card preset-filled-secondary-100-900">
+					<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
+					{#if extraLines > 0}
+						<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
+					{/if}
+				</div>
+			{/if}
 			<div class="mini-card preset-filled-tertiary-100-900 motif-tertiary">
 				<span>Message</span>
 				<Button
@@ -775,7 +776,7 @@
 			class:preset-filled-warning-100-900={!autoScroll}
 			class:motif-warning={!autoScroll}
 			onclick={async () => {
-				scrollToIndex = undefined;
+				_scrollToIndex = undefined;
 				autoScroll = !autoScroll;
 				await doAutoScroll();
 			}}

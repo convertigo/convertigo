@@ -2,7 +2,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import Icons from 'unplugin-icons/vite';
 import { defineConfig } from 'vite';
-import { isoImport } from 'vite-plugin-iso-import';
 import convertigo from './src/convertigo.plugin.js';
 
 function determineProxy() {
@@ -29,8 +28,7 @@ export default defineConfig(({ command }) => {
 				compiler: 'svelte',
 				autoInstall: true,
 				defaultClass: 'ico'
-			}),
-			isoImport()
+			})
 		]
 	};
 	if (command === 'serve') {

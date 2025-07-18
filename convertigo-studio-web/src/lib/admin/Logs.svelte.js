@@ -5,7 +5,7 @@ let startDate = $state('');
 let endDate = $state('');
 let filter = $state('');
 let live = $state(false);
-let nbLines = $state(100);
+let nbLines = $state(1000);
 let moreResults = $state(false);
 let calling = $state(false);
 
@@ -42,7 +42,8 @@ async function list(clear = false) {
 			filter,
 			live,
 			nbLines,
-			clear
+			clear,
+			timeout: 500
 		});
 		if (currentCall == lastCall) {
 			moreResults = res?.hasMoreResults ?? false;
