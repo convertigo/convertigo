@@ -124,13 +124,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasTplPageTsImport(name);
+				getProject().getMobileBuilder().hasTplCompTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {
 		synchronized (scriptContent) {
 			String c8o_UserCustoms = scriptContent.getString();
-			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "PageImport");
+			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "CompImport");
 			Map<String, String> map = new HashMap<String, String>(10);
 			MobileBuilder.initMapImports(map, importMarker);
 			return map.containsKey(name);
