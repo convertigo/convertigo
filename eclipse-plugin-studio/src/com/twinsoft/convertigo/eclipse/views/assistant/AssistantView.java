@@ -68,7 +68,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 public class AssistantView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
-	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+	private static final String STARTUP_URL = "https://c8ocloud.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
