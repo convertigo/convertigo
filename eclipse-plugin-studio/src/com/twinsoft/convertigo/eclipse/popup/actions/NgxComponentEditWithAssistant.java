@@ -76,17 +76,22 @@ public class NgxComponentEditWithAssistant extends MyAbstractAction {
 				if ((databaseObject != null) && (databaseObject instanceof UISharedRegularComponent)) {
 					UISharedRegularComponent uisc = (UISharedRegularComponent)databaseObject;
 					String threadId = null;
+					String qname = null;
 					try {
 						int idx = uisc.getComment().indexOf("thread");
 						threadId = uisc.getComment().substring(idx);
+						qname = uisc.getQName();
 					} catch (Exception e) {}
-					if (threadId != null) {
+					if (threadId != null && qname != null) {
 						IWorkbenchPage activePage = getActivePage();
 						if (activePage != null) {
 							IViewPart viewPart =  activePage.findView(AssistantView.ID);
+							if (viewPart == null) {
+								viewPart = activePage.showView(AssistantView.ID);
+							}
 							if (viewPart != null) {
 								AssistantView assistantView = (AssistantView)viewPart;
-								assistantView.changeThread(threadId);
+								assistantView.changeThread(qname, threadId);
 							}
 						}
 					}

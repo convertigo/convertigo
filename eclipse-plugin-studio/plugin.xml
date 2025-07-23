@@ -692,12 +692,12 @@
 				relationship="stack"
 				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView">
 			</view>
-<!--			<view-->
-<!--				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
-<!--				minimized="false"-->
-<!--				visible="false"-->
-<!--				relationship="stack"-->
-<!--				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"/>-->
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
+				minimized="false"
+				visible="false"
+				relationship="stack"
+				relative="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"/>
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 				relationship="right"
@@ -1337,19 +1337,19 @@
 				label="Import events from the targeted object"
 				menubarPath="import">
 			</action>
-<!--			<action-->
-<!--				class="com.twinsoft.convertigo.eclipse.popup.actions.NgxComponentEditWithAssistant"-->
-<!--				enablesFor="1"-->
-<!--				id="convertigo.action.editNgxAppComponentWithAssistant"-->
-<!--				label="Edit component with Convertigo AI Assistant"-->
-<!--				menubarPath="default">-->
-<!--				<enablement>-->
-<!--					<objectState-->
-<!--						name="objectClassName"-->
-<!--						value="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent">-->
-<!--					</objectState>-->
-<!--				</enablement>-->
-<!--			</action>-->
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.NgxComponentEditWithAssistant"
+				enablesFor="1"
+				id="convertigo.action.editNgxAppComponentWithAssistant"
+				label="Edit component with Convertigo AI Assistant"
+				menubarPath="default">
+				<enablement>
+					<objectState
+						name="objectClassName"
+						value="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent">
+					</objectState>
+				</enablement>
+			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
 				enablesFor="1"
@@ -3854,14 +3854,14 @@
 			name="Convertigo Administration"
 			restorable="true">
 		</view>
-<!--		<view-->
-<!--			category="convertigo"-->
-<!--			class="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
-<!--			icon="icons/setupwizard_16x16.gif"-->
-<!--			id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"-->
-<!--			name="Convertigo Assistant"-->
-<!--			restorable="true">-->
-<!--		</view>-->
+		<view
+			category="convertigo"
+			class="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
+			icon="icons/setupwizard_16x16.gif"
+			id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
+			name="Convertigo Assistant"
+			restorable="true">
+		</view>
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"

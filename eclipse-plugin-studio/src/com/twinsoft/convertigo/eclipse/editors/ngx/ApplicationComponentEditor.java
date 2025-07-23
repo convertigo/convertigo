@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 import java.awt.image.BufferedImage;
 import java.beans.BeanInfo;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,6 +30,7 @@ import java.lang.ProcessBuilder.Redirect;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -68,6 +70,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -105,6 +108,7 @@ import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
+import com.teamdev.jxbrowser.view.swt.graphics.BitmapImage;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -1302,6 +1306,64 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		for (ToolItem ti: toolbar.getItems()) {
 			ti.setData("style", "background-color: unset");
+		}
+	}
+
+	public String captureToBase64HtmlString() {
+		try {
+			var capture = takeCapture();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			ImageLoader loader = new ImageLoader();
+			loader.data = new ImageData[] { capture };
+			loader.save(out, SWT.IMAGE_JPEG);
+			String base64 = Base64.getEncoder().encodeToString(out.toByteArray());
+			return "data:image/jpg;base64," + base64;
+		} catch (Exception e) {
+			Engine.logStudio.error("Failed to save image to base64", e);
+		}
+		return null;
+	}
+	
+	private ImageData takeCapture() {
+		var bitmap = c8oBrowser.getBrowser().bitmap();
+		var image = BitmapImage.toToolkit(c8oBrowser.getDisplay(), bitmap);
+		try {
+			var sourceData = image.getImageData();
+
+			var maxSize = 1024;
+			var minSize = 50;
+			var srcWidth = sourceData.width;
+			var srcHeight = sourceData.height;
+			var scaleFactor = 1.0;
+
+			if (srcWidth > 10000 || srcHeight > 10000) {
+				srcWidth = Math.min(srcWidth, 10000);
+				srcHeight = Math.min(srcHeight, 10000);
+				sourceData = sourceData.scaledTo(srcWidth, srcHeight);
+			}
+
+			if (srcWidth >= srcHeight) {
+				if (srcWidth > maxSize) {
+					scaleFactor = (double) maxSize / srcWidth;
+				} else if (srcWidth < minSize) {
+					scaleFactor = (double) minSize / srcWidth;
+				}
+			} else {
+				if (srcHeight > maxSize) {
+					scaleFactor = (double) maxSize / srcHeight;
+				} else if (srcHeight < minSize) {
+					scaleFactor = (double) minSize / srcHeight;
+				}
+			}
+
+			var scaledWidth = Math.max(1, (int) (srcWidth * scaleFactor));
+			var scaledHeight = Math.max(1, (int) (srcHeight * scaleFactor));
+
+			var scaledImage = new Image(c8oBrowser.getDisplay(), sourceData.scaledTo(scaledWidth, scaledHeight));
+			return scaledImage.getImageData();
+
+		} finally {
+			image.dispose();
 		}
 	}
 
