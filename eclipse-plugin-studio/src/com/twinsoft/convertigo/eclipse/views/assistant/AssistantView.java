@@ -32,8 +32,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener2;
@@ -89,16 +87,10 @@ public class AssistantView extends ViewPart {
 		SwtUtils.refreshTheme();
 		
 		parent.setLayout(new GridLayout(1, true));
-		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
 		
 		browser.getBrowser().engine().setTheme(Theme.LIGHT);
-		
-		browser.addToolItemNavigation(tb);
-		new ToolItem(tb, SWT.SEPARATOR);
-		browser.addToolItemOpenExternal(tb);
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
