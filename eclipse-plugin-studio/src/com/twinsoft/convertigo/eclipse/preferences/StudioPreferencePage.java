@@ -35,6 +35,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.assistant.AssistantView;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class StudioPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
@@ -54,6 +55,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private StringFieldEditor localBuildAdditionalPath = null;
 	private StringFieldEditor localBuildFolder = null;
 	private StringFieldEditor mobileBuilderThreshold = null;
+	private StringFieldEditor assistantUrl = null;
 	
 	public StudioPreferencePage() {
 		super();
@@ -194,6 +196,19 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 			mobileBuilderThreshold.setStringValue(Integer.toString(ConvertigoPlugin.getMobileBuilderThreshold()));
 		}
 		mobileBuilderThreshold.setEmptyStringAllowed(false);
+		
+
+		
+		assistantUrl = new StringFieldEditor(
+				ConvertigoPlugin.PREFERENCE_ASSISTANT_URL,
+				"Assistant View URL (save empty to restore the default value)", groupLocalBuild);
+		assistantUrl.setPage(this);
+		assistantUrl.setPreferenceStore(getPreferenceStore());
+		assistantUrl.load();
+		if (assistantUrl.getStringValue().isEmpty()) {
+			assistantUrl.setStringValue(AssistantView.STARTUP_URL);
+		}
+		
 		/*
 		Group groupSystemProject = new Group(top, SWT.SHADOW_IN);
 		groupSystemProject.setText("System projects");
@@ -232,6 +247,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
+		assistantUrl.loadDefault();
 //		cbUseSystemFlowViewer.loadDefault();
 		
 		super.performDefaults();
@@ -268,6 +284,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbBrowserOffscreen.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
+		assistantUrl.store();
 //		cbUseSystemFlowViewer.store();
 		
 		return super.performOk();

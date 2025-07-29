@@ -23,6 +23,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Base64;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -66,7 +67,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 public class AssistantView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
-	private static final String STARTUP_URL = "https://c8ocloud.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+	public static final String STARTUP_URL = "https://c8ocloud.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
@@ -97,6 +98,13 @@ public class AssistantView extends ViewPart {
 		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url = u;
+			}
+		} catch (Exception e) {
+		}
 		//url = "http://localhost:40994/path-to-xfirst";
 		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 		
