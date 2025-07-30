@@ -348,7 +348,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		return clonedObject;
 	}
 
-	@SuppressWarnings("removal")
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		if (preparedStatement != null)

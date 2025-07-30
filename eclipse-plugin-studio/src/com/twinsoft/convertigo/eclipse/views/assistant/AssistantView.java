@@ -112,20 +112,23 @@ public class AssistantView extends ViewPart {
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("[Assistant] onMessage: " + json);
 			try {
-				if ("create".equals(json.getString("type"))) {
+				var type = json.getString("type");
+				if ("create".equals(type)) {
 					ConvertigoPlugin.asyncExec(() -> {
 						create(json);
 					});
 				}
-				else if ("edit".equals(json.getString("type"))) {
+				else if ("edit".equals(type)) {
 					ConvertigoPlugin.asyncExec(() -> {
 						edit(json);
 					});
 				}
-				else if ("capture".equals(json.getString("type"))) {
+				else if ("capture".equals(type)) {
 					ConvertigoPlugin.asyncExec(() -> {
 						capture();
 					});
+				}
+				else if ("sqlConnectors".equals(type)) {
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();

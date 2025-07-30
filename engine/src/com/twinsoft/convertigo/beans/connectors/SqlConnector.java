@@ -37,10 +37,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -79,39 +82,39 @@ public class SqlConnector extends Connector {
 	transient public Connection connection = null;
 
 	transient private boolean needReset = false;
-	
+
 	transient private String realJdbcURL = null;
-	
+
 	transient private String overJdbcUrl = null;
-	
+
 	/** Holds keys/values of driver/url. */
 	transient private Map<String, String> jdbc = new HashMap<String, String>();
-	 
+
 	/** Holds value of property jdbcDriverClassName. */
 	private String jdbcDriverClassName = "";
-	
+
 	/** Holds value of property jdbcURL. */
 	private String jdbcURL = "";
-	
+
 	/** Holds value of property jdbcUserName. */
 	private String jdbcUserName = "";
-	
+
 	/** Holds value of property jdbcUserPassword. */
 	private String jdbcUserPassword = "";
 
 	private String systemTablesQuery = "";
-	
+
 	/** Holds value of property maxConnection. */
 	private int jdbcMaxConnection = 10;
-	
+
 	private boolean keepConnectionAliveAfterTransaction = true;
-	
+
 	private long idleConnectionTestTime = 60;
-	
+
 	private boolean testOnBorrow = false;
-	
+
 	private boolean connectionPool = true;
-	
+
 	public SqlConnector() {
 		super();
 	}
@@ -126,7 +129,7 @@ public class SqlConnector extends Connector {
 		clonedObject.needReset = false;
 		return clonedObject;
 	}
-	
+
 	public Connection getJNDIConnection() throws NamingException, SQLException {
 		Connection conn = null;
 		if (jdbcDriverClassName.equals("JNDI")) {
@@ -138,37 +141,37 @@ public class SqlConnector extends Connector {
 			if (ds == null) {
 				throw new NamingException(path + " not found in context");
 			}
-				
+
 			conn = ds.getConnection();
 		}
 		return conn;
 	}
-	
+
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
-		
-        String version = element.getAttribute("version");
-        
-        if (version == null) {
-            String s = XMLUtils.prettyPrintDOM(element);
-            EngineException ee = new EngineException(
-                "Unable to find version number for the database object \"" + getName() + "\".\n" +
-                "XML data: " + s
-            );
-            throw ee;
-        }
-        
-        if (VersionUtils.compare(version, "4.6.0") < 0) {
-        	if ((jdbcURL.startsWith("jdbc:hsqldb:file:")) && (jdbcURL.indexOf("/WEB-INF/minime/") != -1)) {
-        		StringEx sx = new StringEx(jdbcURL);
-        		sx.replace("/WEB-INF/minime/", "/WEB-INF/databases/");
-        		jdbcURL = sx.toString();
+
+		String version = element.getAttribute("version");
+
+		if (version == null) {
+			String s = XMLUtils.prettyPrintDOM(element);
+			EngineException ee = new EngineException(
+					"Unable to find version number for the database object \"" + getName() + "\".\n" +
+							"XML data: " + s
+					);
+			throw ee;
+		}
+
+		if (VersionUtils.compare(version, "4.6.0") < 0) {
+			if ((jdbcURL.startsWith("jdbc:hsqldb:file:")) && (jdbcURL.indexOf("/WEB-INF/minime/") != -1)) {
+				StringEx sx = new StringEx(jdbcURL);
+				sx.replace("/WEB-INF/minime/", "/WEB-INF/databases/");
+				jdbcURL = sx.toString();
 				hasChanged = true;
 				Engine.logBeans.warn("[SqlConnector] Successfully updated connection string for \""+ getName() +"\" (v 4.6.0)");
-        	}
-        }
-		
+			}
+		}
+
 	}
 
 	/* (non-Javadoc)
@@ -209,18 +212,18 @@ public class SqlConnector extends Connector {
 	 */
 	public synchronized void open() throws ClassNotFoundException, SQLException, EngineException {
 		String text = "";
-		
+
 		if (connection != null) {
 			try {
 				connection.close();
 			} catch (SQLException e) {}
 			text = "Reconnected to the database";
 		} else text = "Connected to the database";
-		
+
 		String currentJdbcURL = getConnectionJdbcURL();
-		
+
 		realJdbcURL = currentJdbcURL;
-		
+
 		if (currentJdbcURL.startsWith("jdbc:hsqldb:file:")){ // make relativ path for hsqldb driver
 			String fileURL = currentJdbcURL.substring("jdbc:hsqldb:file:".length());
 			fileURL = Engine.theApp.filePropertyManager.getFilepathFromProperty(fileURL, getProject().getName());
@@ -229,7 +232,7 @@ public class SqlConnector extends Connector {
 			// MariaDB Java 3.x migration
 			realJdbcURL = "jdbc:mariadb:" + currentJdbcURL.substring(11);
 		}
-		
+
 		// Now attempt to create a database connection
 		Engine.logBeans.debug("(SqlConnector)  JDBC URL: " + realJdbcURL);//jdbc:hsqldb:file:C:\projets\Convertigo4\tomcat\webapps\convertigo\minime\crawlingDatabase
 		Engine.logBeans.debug("(SqlConnector)  User name: " + getRealJdbcUserName());
@@ -252,12 +255,12 @@ public class SqlConnector extends Connector {
 		}
 
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
-		
+
 		needReset = false;
-		
+
 		Engine.logBeans.debug("(SqlConnector) " + text);
 	}
-	
+
 	/**
 	 * Determines if the connection is opened.
 	 * 
@@ -273,7 +276,7 @@ public class SqlConnector extends Connector {
 		}
 		return isClosed;	
 	}
-	
+
 	public synchronized void close() {
 		try {
 			if (connection != null) {
@@ -285,11 +288,11 @@ public class SqlConnector extends Connector {
 				Engine.logBeans.debug("[SqlConnector] Close connection ("+connection.hashCode()+") on database " + realJdbcURL);
 				if(!connection.isClosed())
 					connection.close();
-				
+
 				if (!keepConnectionAliveAfterTransaction) {
 					removeDatabasePool();
 				}
-				
+
 				Engine.logBeans.debug("(SqlConnector) Database connection closed");
 			}
 		}
@@ -302,17 +305,17 @@ public class SqlConnector extends Connector {
 			needReset = false;
 		}
 	}
-	
+
 	public PreparedStatement prepareStatement(String sqlQuery, SqlQueryInfos sqlQueryInfos) throws SQLException, ClassNotFoundException, EngineException {
 		PreparedStatement preparedStatement = null;
 		if (isClosed() || needReset)
 			open();
-		
+
 		// In the case when we want to escape the bracket "\{id\}"
 		sqlQuery = sqlQuery.replace("\\{", "{").replace("\\}", "}");
-		
+
 		boolean isCallableStmt = sqlQueryInfos.isCallable();
-		
+
 		try {
 			Engine.logBeans.debug("[SqlConnector] Preparing statement...");
 			preparedStatement = isCallableStmt ? connection.prepareCall(sqlQuery) : connection.prepareStatement(sqlQuery);
@@ -331,10 +334,10 @@ public class SqlConnector extends Connector {
 				}
 			}
 		}
-		
+
 		// Call the method prepareParameters with the preparedStatement and the ArrayList 
 		prepareParameters(preparedStatement, sqlQueryInfos); 
-		
+
 		return preparedStatement;
 	}
 
@@ -347,33 +350,33 @@ public class SqlConnector extends Connector {
 			String param_name = (String) parameterMap.get("COLUMN_NAME");
 			int param_mode = (Integer) parameterMap.get("COLUMN_TYPE");
 			int param_type = (Integer) parameterMap.get("DATA_TYPE");
-            switch (param_mode) {
-	  	    	case DatabaseMetaData.procedureColumnIn :
-	  	    		isIn = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnInOut :
-	  	    		isIn = true; isOut = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnOut :
-	  	    	case DatabaseMetaData.procedureColumnReturn :
-	  	    	case DatabaseMetaData.procedureColumnResult :
-	  	    		isOut = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnUnknown : 
-	  	    	default :
-	  	    		break;  
-            }
-            
-            if (isOut) {
-            	Engine.logBeans.trace("[SqlConnector] Registering OUT parameter at index "+i);
-            	((CallableStatement)preparedStatement).registerOutParameter(i, param_type);
-            }
-            
-            if (isIn) {
-            	Engine.logBeans.trace("[SqlConnector] Setting IN parameter at index "+i);
-            	Object java_value = null;
+			switch (param_mode) {
+			case DatabaseMetaData.procedureColumnIn :
+				isIn = true;
+				break; 
+			case DatabaseMetaData.procedureColumnInOut :
+				isIn = true; isOut = true;
+				break; 
+			case DatabaseMetaData.procedureColumnOut :
+			case DatabaseMetaData.procedureColumnReturn :
+			case DatabaseMetaData.procedureColumnResult :
+				isOut = true;
+				break; 
+			case DatabaseMetaData.procedureColumnUnknown : 
+			default :
+				break;  
+			}
+
+			if (isOut) {
+				Engine.logBeans.trace("[SqlConnector] Registering OUT parameter at index "+i);
+				((CallableStatement)preparedStatement).registerOutParameter(i, param_type);
+			}
+
+			if (isIn) {
+				Engine.logBeans.trace("[SqlConnector] Setting IN parameter at index "+i);
+				Object java_value = null;
 				try {
-	            	String param_in = StringUtils.normalize(param_name);
+					String param_in = StringUtils.normalize(param_name);
 					java_value = getParameterJavaValue(param_type, values.get(param_in));
 					if (java_value == null) {// param name differs from variable name
 						List<String> params = sqlQueryInfos.getOrderedParametersList();
@@ -385,13 +388,13 @@ public class SqlConnector extends Connector {
 					Engine.logBeans.warn("[SqlConnector] Error generating value for parameter at index "+i, e);
 					preparedStatement.setNull(i, Types.OTHER);
 				}
-            }
-            i++;
+			}
+			i++;
 		}
-		
+
 		Engine.logBeans.trace("[SqlConnector] Preparing statement done");
 	}
-	
+
 	public void prepareForTransaction(Context context) throws EngineException {
 		SqlTransaction sqlTransaction = null;
 		try {
@@ -399,7 +402,7 @@ public class SqlConnector extends Connector {
 		} catch (ClassCastException e) {
 			throw new EngineException("Requested object is not a SQL transaction", e);
 		}
-		
+
 		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDSQL) < 1) {
 			String msg;
 			if (KeyManager.has(Session.EmulIDSQL) && KeyManager.hasExpired(Session.EmulIDSQL)) {
@@ -433,7 +436,7 @@ public class SqlConnector extends Connector {
 		connection = null;
 		super.finalize();
 	}
-	
+
 	/**
 	 * Getter for property jdbcDriverClassName
 	 * @return
@@ -448,14 +451,14 @@ public class SqlConnector extends Connector {
 	 */
 	public void setJdbcDriverClassName(String string) {
 		if (connection != null) needReset = true;
-		
+
 		String url = "";
 		if (jdbc.containsKey(jdbcDriverClassName = string))
 			url = jdbc.get(jdbcDriverClassName);
 		if (url.equals("")) {
 			try (InputStream stream = getClass().getResourceAsStream("/jdbc_drivers.properties")) {
 				Properties properties = PropertiesUtils.load(stream);
-				
+
 				// Enumeration of the properties
 				for(Map.Entry<String, String> prop : GenericUtils.<Set<Map.Entry<String,String>>>cast(properties.entrySet())){
 					String propertyValue = prop.getValue()!=null?prop.getValue():"";
@@ -492,13 +495,13 @@ public class SqlConnector extends Connector {
 	public String getOverJdbcURL() {
 		return overJdbcUrl;
 	}
-	
+
 	public void setOverJdbcURL(String overJdbcURL) {
 		this.overJdbcUrl = overJdbcURL;
 		if (connection != null) needReset = true;
 		removeDatabasePool();	
 	}
-	
+
 	public String getConnectionJdbcURL() {
 		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
 			int index = overJdbcUrl.indexOf('?');
@@ -510,7 +513,7 @@ public class SqlConnector extends Connector {
 		}
 		return getJdbcURL();
 	}
-	
+
 	public String getRealJdbcUserName() {
 		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
 			int index = overJdbcUrl.indexOf('?');
@@ -526,7 +529,7 @@ public class SqlConnector extends Connector {
 		}
 		return getJdbcUserName();
 	}
-	
+
 	public String getRealJdbcUserPassword() {
 		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
 			int index = overJdbcUrl.indexOf('?');
@@ -542,7 +545,7 @@ public class SqlConnector extends Connector {
 		}
 		return getJdbcUserPassword();
 	}
-	
+
 	/**
 	 * Getter for property jdbcUserName
 	 * @return
@@ -603,13 +606,13 @@ public class SqlConnector extends Connector {
 	public String getRealJdbcURL() {
 		return realJdbcURL;
 	}
-	
+
 	public void setSystemTablesQuery(String systemTablesQuery) {
 		this.systemTablesQuery = systemTablesQuery;
 		if (connection != null) needReset = true;
 		removeDatabasePool();
 	}
-	
+
 	public String getSystemTablesQuery() {
 		return systemTablesQuery;
 	}
@@ -626,10 +629,10 @@ public class SqlConnector extends Connector {
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("jdbcDriverClassName")){
 			String[] sDriverNames = new String[0];
-			
+
 			try {
 				Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
-				
+
 				sDriverNames = properties.values().toArray(new String[properties.size()]);
 				for(int i=0;i<sDriverNames.length;i++)
 					sDriverNames[i] = sDriverNames[i]!=null?sDriverNames[i].split(",")[0]:"";
@@ -639,7 +642,7 @@ public class SqlConnector extends Connector {
 		}
 		return super.getTagsForProperty(propertyName);
 	}
-	
+
 	@Override
 	public SqlTransaction newTransaction() {
 		return new SqlTransaction();
@@ -660,7 +663,7 @@ public class SqlConnector extends Connector {
 		}
 		return super.isCipheredProperty(propertyName);
 	}
-	
+
 	@Override
 	public SqlTransaction getDefaultTransaction() throws EngineException {
 		return (SqlTransaction) super.getDefaultTransaction();
@@ -693,236 +696,268 @@ public class SqlConnector extends Connector {
 		if (connection != null) needReset = true;
 		removeDatabasePool();
 	}
-	
+
 	static public Object getParameterJavaValue(int param_type, String value) throws UnsupportedEncodingException, MalformedURLException, SQLException {
 		if (value != null) {
 			switch (param_type) {
-		    	case Types.ARRAY: 
-		    		return value.split(",");
-		        case Types.BIGINT: 
-		        	return Long.valueOf(value);
-		        case Types.BINARY: 
-		        	return String.valueOf(value).getBytes("UTF-8");
-		        case Types.BIT: 
-		        	return Boolean.valueOf(value);
-		        case Types.BLOB:
-		        	return value;//connection.createBlob();//
-		        case Types.BOOLEAN:
-		        	return Boolean.valueOf(value);
-		        case Types.CHAR: 
-		        	return String.valueOf(value);
-		        case Types.CLOB: 
-		        	return value;//connection.createClob();//
-		        case Types.DATALINK: 
-		        	return new java.net.URL(value);
-		        case Types.DATE: 
-		        	return java.sql.Date.valueOf(value); 
-		        case Types.DECIMAL: 
-		        	return java.math.BigDecimal.valueOf(Double.valueOf(value)); 
-		        case Types.DISTINCT: 
-		        	return value;//Object.class; 
-		        case Types.DOUBLE: 
-		        	return Double.valueOf(value); 
-		        case Types.FLOAT: 
-		        	return Double.valueOf(value); 
-		        case Types.INTEGER: 
-		        	return Integer.valueOf(value, 10); 
-		        case Types.JAVA_OBJECT: 
-		        	return value;//Object.class; 
-		        case Types.LONGVARBINARY: 
-		        	return String.valueOf(value).getBytes("UTF-8"); 
-		        case Types.LONGVARCHAR: 
-		        	return String.valueOf(value);
-		        case Types.NCLOB: 
-		        	return value;//connection.createNClob();//
-		        case Types.NULL: 
-		        	return null;//Object.class; 
-		        case Types.NUMERIC: 
-		        	return java.math.BigDecimal.valueOf(Double.parseDouble(value));  
-		        case Types.NCHAR: 
-		        case Types.NVARCHAR: 
-		        case Types.LONGNVARCHAR: 
-		        	return String.valueOf(value);
-		        case Types.OTHER: 
-		        	return value;//Object.class; 
-		        case Types.REAL: 
-		        	return Float.parseFloat(value); 
-		        case Types.REF: 
-		        	return value;//java.sql.Ref.class;
-		        case Types.ROWID: 
-		        	return value;//java.sql.RowId.class; 
-		        case Types.SMALLINT: 
-		        	return Short.valueOf(value); 
-		        case Types.STRUCT: 
-		        	return value;//connection.createStruct(typeName, attributes);//
-		        case Types.SQLXML: 
-		        	return value;//connection.createSQLXML();//
-		        case Types.TIME: 
-		        	return java.sql.Time.valueOf(value); 
-		        case Types.TIMESTAMP: 
-		        	return java.sql.Timestamp.valueOf(value); 
-		        case Types.TINYINT: 
-		        	return Byte.valueOf(value); 
-		        case Types.VARBINARY: 
-		        	return String.valueOf(value).getBytes("UTF-8");
-		        case Types.VARCHAR: 
-		        	return String.valueOf(value);
-		        default: 
-		        	return value;
-	        }
+			case Types.ARRAY: 
+				return value.split(",");
+			case Types.BIGINT: 
+				return Long.valueOf(value);
+			case Types.BINARY: 
+				return String.valueOf(value).getBytes("UTF-8");
+			case Types.BIT: 
+				return Boolean.valueOf(value);
+			case Types.BLOB:
+				return value;//connection.createBlob();//
+			case Types.BOOLEAN:
+				return Boolean.valueOf(value);
+			case Types.CHAR: 
+				return String.valueOf(value);
+			case Types.CLOB: 
+				return value;//connection.createClob();//
+			case Types.DATALINK: 
+				return new java.net.URL(value);
+			case Types.DATE: 
+				return java.sql.Date.valueOf(value); 
+			case Types.DECIMAL: 
+				return java.math.BigDecimal.valueOf(Double.valueOf(value)); 
+			case Types.DISTINCT: 
+				return value;//Object.class; 
+			case Types.DOUBLE: 
+				return Double.valueOf(value); 
+			case Types.FLOAT: 
+				return Double.valueOf(value); 
+			case Types.INTEGER: 
+				return Integer.valueOf(value, 10); 
+			case Types.JAVA_OBJECT: 
+				return value;//Object.class; 
+			case Types.LONGVARBINARY: 
+				return String.valueOf(value).getBytes("UTF-8"); 
+			case Types.LONGVARCHAR: 
+				return String.valueOf(value);
+			case Types.NCLOB: 
+				return value;//connection.createNClob();//
+			case Types.NULL: 
+				return null;//Object.class; 
+			case Types.NUMERIC: 
+				return java.math.BigDecimal.valueOf(Double.parseDouble(value));  
+			case Types.NCHAR: 
+			case Types.NVARCHAR: 
+			case Types.LONGNVARCHAR: 
+				return String.valueOf(value);
+			case Types.OTHER: 
+				return value;//Object.class; 
+			case Types.REAL: 
+				return Float.parseFloat(value); 
+			case Types.REF: 
+				return value;//java.sql.Ref.class;
+			case Types.ROWID: 
+				return value;//java.sql.RowId.class; 
+			case Types.SMALLINT: 
+				return Short.valueOf(value); 
+			case Types.STRUCT: 
+				return value;//connection.createStruct(typeName, attributes);//
+			case Types.SQLXML: 
+				return value;//connection.createSQLXML();//
+			case Types.TIME: 
+				return java.sql.Time.valueOf(value); 
+			case Types.TIMESTAMP: 
+				return java.sql.Timestamp.valueOf(value); 
+			case Types.TINYINT: 
+				return Byte.valueOf(value); 
+			case Types.VARBINARY: 
+				return String.valueOf(value).getBytes("UTF-8");
+			case Types.VARCHAR: 
+				return String.valueOf(value);
+			default: 
+				return value;
+			}
 		}
 		return null;
 	}
-	
+
 	static public Class<?> getParameterJavaClass(int param_type) {
 		switch (param_type) {
-	    	case Types.ARRAY: 
-	    		return Object[].class; 
-	        case Types.BIGINT: 
-	        	return Long.class; 
-	        case Types.BINARY: 
-	        	return byte[].class; 
-	        case Types.BIT: 
-	        	return Boolean.class; 
-	        case Types.BLOB: 
-	        	return java.sql.Blob.class; 
-	        case Types.BOOLEAN:
-	        	return Boolean.class; 
-	        case Types.CHAR: 
-	        	return String.class; 
-	        case Types.CLOB: 
-	        	return java.sql.Clob.class; 
-	        case Types.DATALINK: 
-	        	return java.net.URL.class; 
-	        case Types.DATE: 
-	        	return java.sql.Date.class; 
-	        case Types.DECIMAL: 
-	        	return java.math.BigDecimal.class; 
-	        case Types.DISTINCT: 
-	        	return Object.class; 
-	        case Types.DOUBLE: 
-	        	return Double.class; 
-	        case Types.FLOAT: 
-	        	return Double.class; 
-	        case Types.INTEGER: 
-	        	return Integer.class; 
-	        case Types.JAVA_OBJECT: 
-	        	return Object.class; 
-	        case Types.LONGVARBINARY: 
-	        	return byte[].class; 
-	        case Types.LONGVARCHAR: 
-	        	return String.class; 
-	        case Types.NCLOB: 
-	        	return java.sql.NClob.class; 
-	        case Types.NULL: 
-	        	return Object.class; 
-	        case Types.NUMERIC: 
-	        	return java.math.BigDecimal.class; 
-	        case Types.NCHAR: 
-	        case Types.NVARCHAR: 
-	        case Types.LONGNVARCHAR: 
-	        	return String.class; 
-	        case Types.OTHER: 
-	        	return Object.class; 
-	        case Types.REAL: 
-	        	return Float.class; 
-	        case Types.REF: 
-	        	return java.sql.Ref.class; 
-	        case Types.ROWID: 
-	        	return java.sql.RowId.class; 
-	        case Types.SMALLINT: 
-	        	return Short.class; 
-	        case Types.STRUCT: 
-	        	return java.sql.Struct.class; 
-	        case Types.SQLXML: 
-	        	return java.sql.SQLXML.class; 
-	        case Types.TIME: 
-	        	return java.sql.Time.class; 
-	        case Types.TIMESTAMP: 
-	        	return java.sql.Timestamp.class; 
-	        case Types.TINYINT: 
-	        	return Byte.class; 
-	        case Types.VARBINARY: 
-	        	return byte[].class; 
-	        case Types.VARCHAR: 
-	        	return String.class; 
-	        default: 
-	        	return Object.class;
-        }
+		case Types.ARRAY: 
+			return Object[].class; 
+		case Types.BIGINT: 
+			return Long.class; 
+		case Types.BINARY: 
+			return byte[].class; 
+		case Types.BIT: 
+			return Boolean.class; 
+		case Types.BLOB: 
+			return java.sql.Blob.class; 
+		case Types.BOOLEAN:
+			return Boolean.class; 
+		case Types.CHAR: 
+			return String.class; 
+		case Types.CLOB: 
+			return java.sql.Clob.class; 
+		case Types.DATALINK: 
+			return java.net.URL.class; 
+		case Types.DATE: 
+			return java.sql.Date.class; 
+		case Types.DECIMAL: 
+			return java.math.BigDecimal.class; 
+		case Types.DISTINCT: 
+			return Object.class; 
+		case Types.DOUBLE: 
+			return Double.class; 
+		case Types.FLOAT: 
+			return Double.class; 
+		case Types.INTEGER: 
+			return Integer.class; 
+		case Types.JAVA_OBJECT: 
+			return Object.class; 
+		case Types.LONGVARBINARY: 
+			return byte[].class; 
+		case Types.LONGVARCHAR: 
+			return String.class; 
+		case Types.NCLOB: 
+			return java.sql.NClob.class; 
+		case Types.NULL: 
+			return Object.class; 
+		case Types.NUMERIC: 
+			return java.math.BigDecimal.class; 
+		case Types.NCHAR: 
+		case Types.NVARCHAR: 
+		case Types.LONGNVARCHAR: 
+			return String.class; 
+		case Types.OTHER: 
+			return Object.class; 
+		case Types.REAL: 
+			return Float.class; 
+		case Types.REF: 
+			return java.sql.Ref.class; 
+		case Types.ROWID: 
+			return java.sql.RowId.class; 
+		case Types.SMALLINT: 
+			return Short.class; 
+		case Types.STRUCT: 
+			return java.sql.Struct.class; 
+		case Types.SQLXML: 
+			return java.sql.SQLXML.class; 
+		case Types.TIME: 
+			return java.sql.Time.class; 
+		case Types.TIMESTAMP: 
+			return java.sql.Timestamp.class; 
+		case Types.TINYINT: 
+			return Byte.class; 
+		case Types.VARBINARY: 
+			return byte[].class; 
+		case Types.VARCHAR: 
+			return String.class; 
+		default: 
+			return Object.class;
+		}
 	}
-	
-	static public Document executeSearch(SqlConnector sqlConnector, String pattern) throws EngineException, ClassNotFoundException, SQLException {
+
+	static public Document executeSearch(SqlConnector sqlConnector, String pattern, List<String> types) throws EngineException, ClassNotFoundException, SQLException {
 		Document doc = SqlTransaction.createDOM("UTF-8");
 		if (sqlConnector != null) {
 			sqlConnector.open();
-			
+
 			ResultSet rs = null;
 			try {
-				
+
 				Connection connection = sqlConnector.connection;
 				DatabaseMetaData dmd = connection.getMetaData();
 				String catalog = connection.getCatalog();
-				
+
 				Element item, child;
 				Element root = (Element) doc.appendChild(doc.createElement("items"));
-				
-				// Retrieve all stored procedures
-				rs = dmd.getProcedures(catalog, null, pattern);
-				if (rs != null) {
-					while (rs.next()) {
-						item = (Element) root.appendChild(doc.createElement("item"));
-						
-						String callableName = rs.getString("PROCEDURE_NAME");
-						
-						int index = callableName.indexOf(";");
-						if (index != -1) {// seen for ms sql server
-							callableName = callableName.substring(0, index);
+
+				if (types.contains("PROCEDURE")) {
+					// Retrieve all stored procedures
+					rs = dmd.getProcedures(catalog, null, pattern);
+					if (rs != null) {
+						while (rs.next()) {
+							item = (Element) root.appendChild(doc.createElement("item"));
+
+							String callableName = rs.getString("PROCEDURE_NAME");
+
+							int index = callableName.indexOf(";");
+							if (index != -1) {// seen for ms sql server
+								callableName = callableName.substring(0, index);
+							}
+
+							child = (Element) item.appendChild(doc.createElement("NAME"));
+							child.appendChild(doc.createTextNode(callableName));
+							try {
+								child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
+							} catch(Exception e) {}
+
+							String callableDesc = rs.getString("REMARKS");
+							child = (Element) item.appendChild(doc.createElement("REMARKS"));
+							child.appendChild(doc.createTextNode(callableDesc));
+
+							child = (Element) item.appendChild(doc.createElement("TYPE"));
+							child.appendChild(doc.createTextNode(index == -1 ? "PROCEDURE":"FUNCTION"));
 						}
-						
-						child = (Element) item.appendChild(doc.createElement("NAME"));
-						child.appendChild(doc.createTextNode(callableName));
 						try {
-							child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
-						} catch(Exception e) {}
-						
-						String callableDesc = rs.getString("REMARKS");
-						child = (Element) item.appendChild(doc.createElement("REMARKS"));
-						child.appendChild(doc.createTextNode(callableDesc));
-						
-						child = (Element) item.appendChild(doc.createElement("TYPE"));
-						child.appendChild(doc.createTextNode(index == -1 ? "PROCEDURE":"FUNCTION"));
+							rs.close();
+						} catch (Exception e) {}
+						rs = null;
 					}
-					try {
-						rs.close();
-					} catch (Exception e) {}
-					rs = null;
 				}
-				
-				// Retrieve all stored functions
-				rs = dmd.getFunctions(catalog, null, pattern);
-				if (rs != null) {
-					while (rs.next()) {
-						item = (Element) root.appendChild(doc.createElement("item"));
-						
-						String callableName = rs.getString(3);//"FUNCTION_NAME");
-						child = (Element) item.appendChild(doc.createElement("NAME"));
-						child.appendChild(doc.createTextNode(callableName));
-						try {
-							child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
+
+				if (types.contains("FUNCTION")) {
+					// Retrieve all stored functions
+					rs = dmd.getFunctions(catalog, null, pattern);
+					if (rs != null) {
+						while (rs.next()) {
+							item = (Element) root.appendChild(doc.createElement("item"));
+
+							String callableName = rs.getString(3);//"FUNCTION_NAME");
+							child = (Element) item.appendChild(doc.createElement("NAME"));
+							child.appendChild(doc.createTextNode(callableName));
+							try {
+								child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
+							}
+							catch (Exception e) {}
+
+							String callableDesc = rs.getString("REMARKS");
+							child = (Element) item.appendChild(doc.createElement("REMARKS"));
+							child.appendChild(doc.createTextNode(callableDesc));
+
+							child = (Element) item.appendChild(doc.createElement("TYPE"));
+							child.appendChild(doc.createTextNode("FUNCTION"));
 						}
-						catch (Exception e) {}
-						
-						String callableDesc = rs.getString("REMARKS");
-						child = (Element) item.appendChild(doc.createElement("REMARKS"));
-						child.appendChild(doc.createTextNode(callableDesc));
-						
-						child = (Element) item.appendChild(doc.createElement("TYPE"));
-						child.appendChild(doc.createTextNode("FUNCTION"));
+						try {
+							rs.close();
+						} catch (Exception e) {}
+						rs = null;
 					}
-					try {
-						rs.close();
-					} catch (Exception e) {}
-					rs = null;
+				}
+
+				if (types.contains("TABLE")) {
+					// Retrieve all tables
+					rs = dmd.getTables(catalog, null, pattern, null);
+					if (rs != null) {
+						while (rs.next()) {
+							item = (Element) root.appendChild(doc.createElement("item"));
+							String tableName = rs.getString(3);
+							child = (Element) item.appendChild(doc.createElement("NAME"));
+							child.appendChild(doc.createTextNode(tableName));
+							var rsc = dmd.getColumns(catalog, null, tableName, "%");
+							var columns = new LinkedList<String>();
+							while (rsc.next()) {
+								columns.add(rsc.getString("COLUMN_NAME"));
+							}
+							rsc.close();
+							child = (Element) item.appendChild(doc.createElement("REMARKS"));
+							child.appendChild(doc.createTextNode(columns.stream().collect(Collectors.joining(", "))));
+
+							child = (Element) item.appendChild(doc.createElement("TYPE"));
+							child.appendChild(doc.createTextNode("TABLE"));
+						}
+						try {
+							rs.close();
+						} catch (Exception e) {}
+						rs = null;
+					}
 				}
 			}
 			catch (Throwable t) {
@@ -936,9 +971,9 @@ public class SqlConnector extends Connector {
 				}
 				rs = null;
 			}
-			
+
 			sqlConnector.close();
-			
+
 			//System.out.println(XMLUtils.prettyPrintDOM(doc));
 		}
 		return doc;
@@ -960,7 +995,7 @@ public class SqlConnector extends Connector {
 			return parameterList;
 		}
 	}
-	
+
 	public static List<Map<String, Object>> getProcedureParameters(Connection connection, String procedure) {
 		List<Map<String, Object>> parameterList = new ArrayList<Map<String, Object>>();
 		if (connection != null && procedure != null && !procedure.isEmpty()) {
@@ -1021,19 +1056,19 @@ public class SqlConnector extends Connector {
 		}
 		return parameterList;
 	}
-	
+
 	public static SqlTransaction createSqlTransaction(SqlConnector sqlConnector, String callableName, String specific_name) throws EngineException, ClassNotFoundException, SQLException {
 		SqlTransaction sqlTransaction = null;
 		if (sqlConnector != null && !callableName.isEmpty()) {
 			// get a connection
 			sqlConnector.open();
-			
+
 			// Create transaction
 			sqlTransaction = sqlConnector.newTransaction();
 			sqlTransaction.setName("Call_"+StringUtils.normalize(callableName));
 			sqlTransaction.hasChanged = true;
 			sqlTransaction.bNew = true;
-			
+
 			// Build sqlQuery and retrieve parameters
 			boolean isFunction = false;
 			String sqlQuery = "CALL "+ callableName +"(";
@@ -1045,36 +1080,36 @@ public class SqlConnector extends Connector {
 					String param_name = (String) parameterMap.get("COLUMN_NAME");
 					int param_mode = (Integer) parameterMap.get("COLUMN_TYPE");
 					//int param_type = (Integer) parameterMap.get("DATA_TYPE");
-		            switch(param_mode) {
-			  	    	case DatabaseMetaData.procedureColumnReturn :
-			  	    	case DatabaseMetaData.procedureColumnResult :
-			  	    		isFunction = true;
-			  	    		break;
-		  	    		case DatabaseMetaData.procedureColumnIn :
-			  	    	case DatabaseMetaData.procedureColumnInOut :
-			  	    		// update query and create input variable
-			  	    		if (param_name != null && !param_name.isEmpty()) {
-			  	    			RequestableVariable variable = new RequestableVariable();
-			  	    			variable.setName(StringUtils.normalize(param_name));
-			  	    			variable.hasChanged = true;
-			  	    			variable.bNew = true;
-			  	    			
-				  	    		sqlQuery += sqlQuery.endsWith("(") ? "":",";
-				  	    		sqlQuery += "{"+ variable.getName()+"}";
-			  	    			
-			  	    			sqlTransaction.addVariable(variable);
-			  	    		}
-			  	    		else {
-				  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
-			  	    		}
-			  	    		break;
-			  	    	case DatabaseMetaData.procedureColumnOut :
-			  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
-			  	    		break;
-			  	    	case DatabaseMetaData.procedureColumnUnknown : 
-			  	    	default :
-			  	    		break;  
-		            }
+					switch(param_mode) {
+					case DatabaseMetaData.procedureColumnReturn :
+					case DatabaseMetaData.procedureColumnResult :
+						isFunction = true;
+						break;
+					case DatabaseMetaData.procedureColumnIn :
+					case DatabaseMetaData.procedureColumnInOut :
+						// update query and create input variable
+						if (param_name != null && !param_name.isEmpty()) {
+							RequestableVariable variable = new RequestableVariable();
+							variable.setName(StringUtils.normalize(param_name));
+							variable.hasChanged = true;
+							variable.bNew = true;
+
+							sqlQuery += sqlQuery.endsWith("(") ? "":",";
+							sqlQuery += "{"+ variable.getName()+"}";
+
+							sqlTransaction.addVariable(variable);
+						}
+						else {
+							sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
+						}
+						break;
+					case DatabaseMetaData.procedureColumnOut :
+						sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
+						break;
+					case DatabaseMetaData.procedureColumnUnknown : 
+					default :
+						break;  
+					}
 				}
 			}
 			sqlQuery += ")";
@@ -1083,10 +1118,93 @@ public class SqlConnector extends Connector {
 			}
 			sqlQuery = "{"+sqlQuery+"}";
 			sqlTransaction.setSqlQuery(sqlQuery);
-			
+
 			// close connection
 			sqlConnector.close();
 		}
 		return sqlTransaction;
+	}
+
+	public static List<SqlTransaction> createSqlTransaction(SqlConnector sqlConnector, String tableName, List<String> cruds) throws EngineException, ClassNotFoundException, SQLException {
+		var sqlTransactions = new LinkedList<SqlTransaction>();
+		if (sqlConnector != null && !tableName.isEmpty()) {
+			sqlConnector.open();
+
+			var dmd = sqlConnector.connection.getMetaData();
+			var catalog = sqlConnector.connection.getCatalog();
+			var columns = new LinkedList<String>();
+			var autoinc = new HashSet<String>();
+			var primaryKeys = new LinkedList<String>();
+
+			var rs = dmd.getColumns(catalog, null, tableName, "%");
+			while (rs.next()) {
+				columns.add(rs.getString("COLUMN_NAME"));
+				if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
+					autoinc.add(rs.getString("COLUMN_NAME"));
+				}
+			}
+
+			rs = dmd.getPrimaryKeys(catalog, null, tableName);
+			while(rs.next()) {
+				primaryKeys.add(rs.getString("COLUMN_NAME"));
+			}
+			if (primaryKeys.isEmpty() && !columns.isEmpty()) {
+				primaryKeys.add(columns.getFirst());
+			}
+
+			for (var verb : cruds) {
+				var sqlTransaction = sqlConnector.newTransaction();
+				sqlTransaction.setName(StringUtils.normalize(tableName) + "_" + verb);
+				sqlTransaction.hasChanged = true;
+				sqlTransaction.bNew = true;
+
+				String sqlQuery = null;
+
+				switch (verb) {
+				case "INSERT" -> {
+					var insertableCols = columns.stream()
+							.filter(c -> !autoinc.contains(c))
+							.collect(Collectors.toList());
+					var cols = String.join(", ", insertableCols);
+					var vals = insertableCols.stream()
+							.map(c -> "{" + c + "}")
+							.collect(Collectors.joining(", "));
+					sqlQuery = "INSERT INTO " + tableName + " (" + cols + ")\nVALUES (" + vals + ")";
+				}
+				case "SELECT", "READ" -> {
+					var cols = String.join(", ", columns);
+					var where = primaryKeys.isEmpty() ? "" :
+						"\nWHERE " + primaryKeys.stream()
+						.map(pk -> pk + " = {" + pk + "}")
+						.collect(Collectors.joining("\nAND "));
+					sqlQuery = "SELECT " + cols + "\nFROM " + tableName + where;
+				}
+				case "UPDATE" -> {
+					var setClause = columns.stream()
+							.filter(c -> !primaryKeys.contains(c))
+							.map(c -> c + " = {" + c + "}")
+							.collect(Collectors.joining(", "));
+					var where = primaryKeys.isEmpty() ? "" :
+						"\nWHERE " + primaryKeys.stream()
+						.map(pk -> pk + " = {" + pk + "}")
+						.collect(Collectors.joining("\nAND "));
+					sqlQuery = "UPDATE " + tableName + "\nSET " + setClause + where;
+				}
+				case "DELETE" -> {
+					var where = primaryKeys.isEmpty() ? "" :
+						"\nWHERE " + primaryKeys.stream()
+						.map(pk -> pk + " = {" + pk + "}")
+						.collect(Collectors.joining("\nAND "));
+					sqlQuery = "DELETE FROM " + tableName + where;
+				}
+				}
+
+				sqlTransaction.setSqlQuery(sqlQuery);
+				sqlTransactions.add(sqlTransaction);
+			}
+
+			sqlConnector.close();
+		}
+		return sqlTransactions;
 	}
 }
