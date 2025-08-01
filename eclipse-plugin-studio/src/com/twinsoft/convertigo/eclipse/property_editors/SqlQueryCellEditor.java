@@ -29,13 +29,13 @@ import org.eclipse.ui.part.FileInPlaceEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class SqlQueryCellEditor extends TextMultiGenericCellEditor {
-	
-	static final String header = "### Declare and use parameters with {simple-brace} to prevent SQL injection, {{double-brace}} for plain replacement and separate queries with semicolons ;\n";
+
+	static final String header = "### Declare and use parameters with {simple-brace} to prevent SQL injection, {{double-brace}} for plain replacement and separate queries with semicolons ;\n\n";
 
 	public SqlQueryCellEditor(Composite parent, DatabaseObjectTreeObject databaseObjectTreeObject, PropertyDescriptor propertyDescriptor) {
 		super(parent, databaseObjectTreeObject, propertyDescriptor);
 	}
-	
+
 	@Override
 	protected FileInPlaceEditorInput getInput() {
 		super.getInput();
@@ -54,13 +54,13 @@ public class SqlQueryCellEditor extends TextMultiGenericCellEditor {
 		}
 		super.setNewValue(newValue);
 	}
-	
+
 	@Override
 	protected String editorInitValue() {
 		var txt = super.editorInitValue();
 		return header + txt + "\n";
 	}
-	
+
 	public void open() {
 		openEditor();
 	}

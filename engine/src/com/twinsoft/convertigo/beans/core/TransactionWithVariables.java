@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.xml.namespace.QName;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -56,28 +58,29 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XsdTypeParser;
 import com.twinsoft.util.StringEx;
 
 public abstract class TransactionWithVariables extends Transaction implements IVariableContainer, ITestCaseContainer, IContainerOrdered {
-    
+
 	private static final long serialVersionUID = -7348846395918560818L;
-	
+
 	transient private List<RequestableVariable> vVariables = new ArrayList<RequestableVariable>();
 	transient private List<RequestableVariable> vAllVariables = null;
-	
+
 	transient private List<TestCase> vTestCases = new ArrayList<TestCase>();
-	
-    /**
-     * Constructs a TransactionWithVariables object.
-     */
-    public TransactionWithVariables() {
-        super();
-        
+
+	/**
+	 * Constructs a TransactionWithVariables object.
+	 */
+	public TransactionWithVariables() {
+		super();
+
 		orderedVariables = new XMLVector<XMLVector<Long>>();
 		orderedVariables.add(new XMLVector<Long>());
-    }
-    
-    @Override
+	}
+
+	@Override
 	public TransactionWithVariables clone() throws CloneNotSupportedException {
 		TransactionWithVariables clonedObject = (TransactionWithVariables) super.clone();
 		clonedObject.variables = new HashMap<String, Object>();
@@ -88,141 +91,141 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		clonedObject.needRestoreVariables = false;
 		return clonedObject;
 	}
-    
+
 	@Override
 	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
-        if (databaseObject instanceof RequestableVariable) {
-            addVariable((RequestableVariable) databaseObject, after);
-        }
-        else if (databaseObject instanceof TestCase) {
-            addTestCase((TestCase) databaseObject);
-        }
-        else {
-            super.add(databaseObject);
-        }		
+		if (databaseObject instanceof RequestableVariable) {
+			addVariable((RequestableVariable) databaseObject, after);
+		}
+		else if (databaseObject instanceof TestCase) {
+			addTestCase((TestCase) databaseObject);
+		}
+		else {
+			super.add(databaseObject);
+		}		
 	}
-    
-    @Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
-    	add(databaseObject, null);
-    }
-	
-    @Override
-    public void remove(DatabaseObject databaseObject) throws EngineException {
-        if (databaseObject instanceof RequestableVariable) {
-            removeVariable((RequestableVariable) databaseObject);
-        }
-        else if (databaseObject instanceof TestCase) {
-            removeTestCase((TestCase) databaseObject);
-        }
-        else {
-        	super.remove(databaseObject);
-        }
-    }
-    
-    public void addVariable(RequestableVariable variable, Long after) throws EngineException {
-    	checkSubLoaded();
-    	
+
+	@Override
+	public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
+	}
+
+	@Override
+	public void remove(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RequestableVariable) {
+			removeVariable((RequestableVariable) databaseObject);
+		}
+		else if (databaseObject instanceof TestCase) {
+			removeTestCase((TestCase) databaseObject);
+		}
+		else {
+			super.remove(databaseObject);
+		}
+	}
+
+	public void addVariable(RequestableVariable variable, Long after) throws EngineException {
+		checkSubLoaded();
+
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
 		variable.setName(newDatabaseObjectName);
-        
+
 		vVariables.add(variable);
-        
+
 		variable.setParent(this);
-		
+
 		insertOrderedVariable(variable, after);
-    }
-    
-    public void addVariable(RequestableVariable variable) throws EngineException {
-    	addVariable(variable, null);
-    }
-    
-    private void insertOrderedVariable(Variable variable, Long after) {
-    	XMLVector<Long> ordered = orderedVariables.get(0);
-    	int size = ordered.size();
-    	
-    	Long value = Long.valueOf(variable.priority);
-    	
-    	if (ordered.contains(value))
-    		return;
-    	
-    	if (after == null) {
-    		after = 0L;
-    		if (size > 0)
-    			after = (Long)ordered.lastElement();
-    	}
-    	
-   		int order = ordered.indexOf(after);
-    	ordered.add(order+1, value);
-    	hasChanged = !isImporting;
-    }
-    
-    public void removeVariable(RequestableVariable variable) {
-    	checkSubLoaded();
-    	
-    	vVariables.remove(variable);
-    	variable.setParent(null);
-    	
-    	Long value = Long.valueOf(variable.priority);
-        removeOrderedVariable(value);
-        
-        hasChanged = true;
-    }
-    
-    private void removeOrderedVariable(Long value) {
-    	XMLVector<Long> ordered = orderedVariables.get(0);
-        ordered.remove(value);
-        hasChanged = true;
-    }
-    
+	}
+
+	public void addVariable(RequestableVariable variable) throws EngineException {
+		addVariable(variable, null);
+	}
+
+	private void insertOrderedVariable(Variable variable, Long after) {
+		XMLVector<Long> ordered = orderedVariables.get(0);
+		int size = ordered.size();
+
+		Long value = Long.valueOf(variable.priority);
+
+		if (ordered.contains(value))
+			return;
+
+		if (after == null) {
+			after = 0L;
+			if (size > 0)
+				after = (Long)ordered.lastElement();
+		}
+
+		int order = ordered.indexOf(after);
+		ordered.add(order+1, value);
+		hasChanged = !isImporting;
+	}
+
+	public void removeVariable(RequestableVariable variable) {
+		checkSubLoaded();
+
+		vVariables.remove(variable);
+		variable.setParent(null);
+
+		Long value = Long.valueOf(variable.priority);
+		removeOrderedVariable(value);
+
+		hasChanged = true;
+	}
+
+	private void removeOrderedVariable(Long value) {
+		XMLVector<Long> ordered = orderedVariables.get(0);
+		ordered.remove(value);
+		hasChanged = true;
+	}
+
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
 		increaseOrder(databaseObject, priority);
 	}
-    
-    private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-    	XMLVector<Long> ordered = null;
-    	Long value = Long.valueOf(databaseObject.priority);
-    	
-    	if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.get(0);
-    	
-    	if (!ordered.contains(value))
-    		return;
-    	int pos = ordered.indexOf(value);
-    	if (pos == 0)
-    		return;
-    	
-    	if (before == null)
-    		before = (Long)ordered.get(pos-1);
-    	int pos1 = ordered.indexOf(before);
-    	
-    	ordered.add(pos1, value);
-    	ordered.remove(pos+1);
-    	hasChanged = true;
-    }
-    
-    private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-    	XMLVector<Long> ordered = null;
-    	Long value = Long.valueOf(databaseObject.priority);
-    	
-    	if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.get(0);
-    	
-    	if (!ordered.contains(value))
-    		return;
-    	int pos = ordered.indexOf(value);
-    	if (pos+1 == ordered.size())
-    		return;
-    	
-    	if (after == null)
-    		after = (Long)ordered.get(pos+1);
-    	int pos1 = ordered.indexOf(after);
-    	
-    	ordered.add(pos1+1, value);
-    	ordered.remove(pos);
-    	hasChanged = true;
-    }
-    
+
+	private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+		XMLVector<Long> ordered = null;
+		Long value = Long.valueOf(databaseObject.priority);
+
+		if (databaseObject instanceof Variable)
+			ordered = orderedVariables.get(0);
+
+		if (!ordered.contains(value))
+			return;
+		int pos = ordered.indexOf(value);
+		if (pos == 0)
+			return;
+
+		if (before == null)
+			before = (Long)ordered.get(pos-1);
+		int pos1 = ordered.indexOf(before);
+
+		ordered.add(pos1, value);
+		ordered.remove(pos+1);
+		hasChanged = true;
+	}
+
+	private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+		XMLVector<Long> ordered = null;
+		Long value = Long.valueOf(databaseObject.priority);
+
+		if (databaseObject instanceof Variable)
+			ordered = orderedVariables.get(0);
+
+		if (!ordered.contains(value))
+			return;
+		int pos = ordered.indexOf(value);
+		if (pos+1 == ordered.size())
+			return;
+
+		if (after == null)
+			after = (Long)ordered.get(pos+1);
+		int pos1 = ordered.indexOf(after);
+
+		ordered.add(pos1+1, value);
+		ordered.remove(pos);
+		hasChanged = true;
+	}
+
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Variable)
 			increaseOrder(databaseObject,null);
@@ -232,91 +235,91 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		if (databaseObject instanceof Variable)
 			decreaseOrder(databaseObject,null);
 	}
-    
-    public void addTestCase(TestCase testCase) throws EngineException {
-    	checkSubLoaded();
-    	
+
+	public void addTestCase(TestCase testCase) throws EngineException {
+		checkSubLoaded();
+
 		String newDatabaseObjectName = getChildBeanName(vTestCases, testCase.getName(), testCase.bNew);
 		testCase.setName(newDatabaseObjectName);
-        
-		vTestCases.add(testCase);
-        
-		testCase.setParent(this);
-    }
-	
-    public void removeTestCase(TestCase testCase) {
-    	checkSubLoaded();
-    	
-    	vTestCases.remove(testCase);
-    	testCase.setParent(null);
-    }
-    
-    /**
-     * Get representation of order for quick sort of a given database object.
-     */
-	@Override
-    public Object getOrder(Object object) throws EngineException	{
-        if (object instanceof Variable) {
-        	List<Long> ordered = orderedVariables.get(0);
-        	long time = ((Variable)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
-        	else throw new EngineException("Corrupted variable for transaction \""+ getName() +"\". Variable \""+ ((Variable)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
-        } else return super.getOrder(object);
-    }
 
-    public List<RequestableVariable> getVariables(boolean reset) {
-    	if (reset)
-    		vAllVariables = null;
-    	return getVariablesList();
-    }
-    
-    /** Compatibility for version older than 4.6.0 **/
-    @Deprecated
-    public XMLVector<XMLVector<Object>> getVariablesDefinition() {
-    	XMLVector<XMLVector<Object>> xmlv = new XMLVector<XMLVector<Object>>();
-    	getVariablesList();
-    	if (hasVariables()) {
-    		for (int i=0; i<numberOfVariables(); i++) {
-    			RequestableVariable variable = (RequestableVariable)getVariable(i);
-    			
-    			XMLVector<Object> v = new XMLVector<Object>();
-    			v.add(variable.getName());
-    			v.add(variable.getDescription());
-    			v.add(variable.getDefaultValue());
-    			v.add(variable.isWsdl());
-    			v.add(variable.isMultiValued());
-    			v.add(variable.isPersonalizable());
-    			v.add(variable.isCachedKey());
-    			
-    			xmlv.add(v);
-    		}
-    	}
-    	return xmlv;
-    }
-    
-    @Deprecated
-    public Vector<RequestableVariable> getVariables() {
-    	return new Vector<RequestableVariable>(getVariablesList());
-    }
-    
-    public List<RequestableVariable> getVariablesList() {
-    	checkSubLoaded();
-    	
-    	if ((vAllVariables == null) || hasChanged)
-    		vAllVariables = getAllVariables();
-    	return vAllVariables;
-    }
-    
-    public List<RequestableVariable> getAllVariables() {
-    	checkSubLoaded();
-    	
-        return sort(vVariables);
-    }
+		vTestCases.add(testCase);
+
+		testCase.setParent(this);
+	}
+
+	public void removeTestCase(TestCase testCase) {
+		checkSubLoaded();
+
+		vTestCases.remove(testCase);
+		testCase.setParent(null);
+	}
+
+	/**
+	 * Get representation of order for quick sort of a given database object.
+	 */
+	@Override
+	public Object getOrder(Object object) throws EngineException	{
+		if (object instanceof Variable) {
+			List<Long> ordered = orderedVariables.get(0);
+			long time = ((Variable)object).priority;
+			if (ordered.contains(time))
+				return (long)ordered.indexOf(time);
+			else throw new EngineException("Corrupted variable for transaction \""+ getName() +"\". Variable \""+ ((Variable)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+		} else return super.getOrder(object);
+	}
+
+	public List<RequestableVariable> getVariables(boolean reset) {
+		if (reset)
+			vAllVariables = null;
+		return getVariablesList();
+	}
+
+	/** Compatibility for version older than 4.6.0 **/
+	@Deprecated
+	public XMLVector<XMLVector<Object>> getVariablesDefinition() {
+		XMLVector<XMLVector<Object>> xmlv = new XMLVector<XMLVector<Object>>();
+		getVariablesList();
+		if (hasVariables()) {
+			for (int i=0; i<numberOfVariables(); i++) {
+				RequestableVariable variable = (RequestableVariable)getVariable(i);
+
+				XMLVector<Object> v = new XMLVector<Object>();
+				v.add(variable.getName());
+				v.add(variable.getDescription());
+				v.add(variable.getDefaultValue());
+				v.add(variable.isWsdl());
+				v.add(variable.isMultiValued());
+				v.add(variable.isPersonalizable());
+				v.add(variable.isCachedKey());
+
+				xmlv.add(v);
+			}
+		}
+		return xmlv;
+	}
+
+	@Deprecated
+	public Vector<RequestableVariable> getVariables() {
+		return new Vector<RequestableVariable>(getVariablesList());
+	}
+
+	public List<RequestableVariable> getVariablesList() {
+		checkSubLoaded();
+
+		if ((vAllVariables == null) || hasChanged)
+			vAllVariables = getAllVariables();
+		return vAllVariables;
+	}
+
+	public List<RequestableVariable> getAllVariables() {
+		checkSubLoaded();
+
+		return sort(vVariables);
+	}
 
 	public Variable getVariable(int index) {
 		checkSubLoaded();
-		
+
 		try {
 			return (RequestableVariable)vVariables.get(index);
 		}
@@ -324,10 +327,10 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			return null;
 		}
 	}
-	
+
 	public Variable getVariable(String variableName) {
 		checkSubLoaded();
-		
+
 		for (int i=0; i < vVariables.size(); i++) {
 			RequestableVariable variable = (RequestableVariable)vVariables.get(i);
 			if (variable.getName().equals(variableName)) {
@@ -339,17 +342,17 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 
 	public boolean hasVariables() {
 		checkSubLoaded();
-		
+
 		return (vVariables.size() > 0);
 	}
-    
+
 	public int numberOfVariables() {
 		checkSubLoaded();
-		
+
 		return vVariables.size();
 	}
-	
-	
+
+
 	public TestCase getTestCaseByName(String testCaseName) {
 		checkSubLoaded();
 		for (TestCase testCase : vTestCases) {
@@ -357,39 +360,39 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 		return null;
 	}
-    
+
 	public List<TestCase> getTestCasesList() {
 		checkSubLoaded();
 		return sort(vTestCases);
 	}
-	
+
 	/** Holds value of property orderedVariables. */
 	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
-	
+
 	/** Stores value of property orderedVariables. */
 	//private transient XMLVector originalVariablesDefinition = null;
 	private transient List<RequestableVariable> originalVariables = null;
-    
+
 	/** Getter for property orderedVariables.
 	 * @return Value of property orderedVariables.
 	 */
 	public XMLVector<XMLVector<Long>> getOrderedVariables() {
 		return orderedVariables;
 	}
-    
+
 	/** Setter for property orderedVariables.
 	 * @param orderedVariables New value of property orderedVariables.
 	 */
 	public void setOrderedVariables(XMLVector<XMLVector<Long>> orderedVariables) {
 		this.orderedVariables = orderedVariables;
 	}
-    
+
 	/**
 	 * Resets variables to original value
 	 */
 	protected void restoreVariables() {
 		checkSubLoaded();
-		
+
 		if (needRestoreVariables) {
 			if (originalVariables != null) {
 				vVariables = new ArrayList<RequestableVariable>(originalVariables);
@@ -401,12 +404,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 
 	private void setDynamicVariable(String variableName, Object variableValue, Boolean multi, String variableMethod) {
 		checkSubLoaded();
-		
+
 		needRestoreVariables = true;
 		if (originalVariables == null) {
 			originalVariables = new ArrayList<RequestableVariable>(vVariables);
 		}
-		
+
 		RequestableVariable variable = (RequestableVariable) getVariable(variableName);
 		try {
 			// variable definition does not exist, creates it
@@ -421,7 +424,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				variable.bNew = true;
 				variable.hasChanged = true;
 			}
-			
+
 			// override existing variable definition with dynamic one
 			variable.setName(variableName);
 			variable.setDescription(variableName);
@@ -429,19 +432,19 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			variable.setWsdl(Boolean.FALSE);
 			variable.setPersonalizable(Boolean.FALSE);
 			variable.setCachedKey(Boolean.TRUE);
-			
+
 			if (variable.bNew)
 				addVariable(variable);
 		}
 		catch (EngineException e) {
 		}
 	}
-	
+
 	public Object getParameterValue(String parameterName) throws EngineException {
 		Object variableValue = null;
-		
+
 		int variableVisibility = getVariableVisibility(parameterName);
-		
+
 		// Transaction parameter
 		variableValue = variables.get(parameterName);
 		if (variableValue != null)
@@ -476,19 +479,30 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				variableValue = Arrays.asList((Object[]) variableValue);
 			}
 		}
-		
+
 		return variableValue;
 	}
-	
+
 	public String getParameterStringValue(String parameterName) throws EngineException {
 		return ParameterUtils.toString(getParameterValue(parameterName));
 	}
-	
+
+	public Object getParameterTypedValue(String parameterName) throws EngineException {
+		var variableValueString = getParameterStringValue(parameterName);
+		Object variableValue = variableValueString;
+		var dboVar = getVariable(parameterName);
+		if (dboVar != null && dboVar instanceof RequestableVariable rv) {
+			QName q = rv.getTypeAffectation();
+			variableValue = XsdTypeParser.parse(q, variableValueString);
+		}
+		return variableValue;
+	}
+
 	@Override
 	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		// Request parameter value (see parseInputDocument())
 		Object value = ((variables == null) ? null: variables.get(requestedVariableName));
-		
+
 		// If no value is found, find the default value and return it.
 		if (value == null) {
 			Object valueToPrint = null;
@@ -502,13 +516,13 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					else
 						Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
 				}
-				
+
 				if (value == null && variable.isRequired()) {
 					throw new EngineException("Variable named \""+requestedVariableName+"\" is required for transaction \""+getName()+"\"");
 				}
 			}
 		}
-		
+
 		if ((value != null) && (value instanceof List)) {
 			List<?> lValue = GenericUtils.cast(value);
 			value = lValue.toArray(new Object[lValue.size()]);
@@ -524,9 +538,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 
 	public transient Map<String, Object> variables = new HashMap<String, Object>();
-	
+
 	protected transient boolean needRestoreVariables = false;
-	
+
 	@Override
 	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
@@ -534,7 +548,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			Document printDoc = (Document) Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);
 			XMLUtils.logXml(printDoc, Engine.logContext, "Input document");
 		}
-		
+
 		NodeList variableNodes = context.inputDocument.getElementsByTagName("variable");
 		Element variableNode;
 		Attr valueAttrNode;
@@ -542,20 +556,20 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		String variableName, variableValue, variableMethod;
 		RequestableVariable variable;
 		boolean bMulti;
-		
+
 		// TODO: handle persistent variables
 
 		variables.clear();
-		
+
 		for (int i = 0 ; i < len ; i++) {
 			bMulti = false;
 			variableNode = (Element) variableNodes.item(i);
 			variableName = variableNode.getAttribute("name");
 			variableValue = (variableNode.hasAttribute("value") ? variableNode.getAttribute("value") : null);
 			valueAttrNode = variableNode.getAttributeNode("value");
-			
+
 			variableMethod = null;
-			
+
 			// Test case for transaction
 			if (variableName.indexOf(Parameter.Testcase.getName()) == 0) {
 				TestCase testcase = getTestCaseByName(variableValue);
@@ -579,7 +593,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			// May be a dynamic transaction variable definition
 			else if ((variableName.indexOf(Parameter.DynamicVariablePost.getName()) == 0) || (variableName.indexOf(Parameter.DynamicVariableGet.getName()) == 0)) {
 				bMulti = variableNode.getAttribute("multi").equalsIgnoreCase("true");
-				
+
 				if (variableName.indexOf(Parameter.DynamicVariablePost.getName()) == 0) {
 					variableName = variableName.substring(Parameter.DynamicVariablePost.getName().length());
 					variableMethod = "POST";
@@ -588,10 +602,10 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					variableName = variableName.substring(Parameter.DynamicVariableGet.getName().length());
 					variableMethod = "GET";
 				}
-				
+
 				// retrieve variable definition
 				variable = (RequestableVariable)getVariable(variableName);
-				
+
 				if (variableMethod != null) {
 					setDynamicVariable(variableName, variableValue, Boolean.valueOf(bMulti), variableMethod);
 				}
@@ -600,7 +614,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			else {
 				variable = (RequestableVariable)getVariable(variableName);
 			}
-			
+
 			// Structured value?
 			Object scopeValue = null;
 			if (getProject().isStrictMode()) {
@@ -617,7 +631,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					scopeValue = sValue;
 				}
 			}
-			
+
 			// Multivalued variable ?
 			if ((variable != null) && (variable.isMultiValued())) {
 				List<Object> current = GenericUtils.cast(variables.get(variableName));
@@ -632,12 +646,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				variables.put(variableName, scopeValue);
 			}
 		}
-		
+
 		// Enumeration of all transaction variables
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("Transaction variables: " + (variables == null ? "none" : Visibility.Logs.replaceVariables(getVariablesList(), variables)));
 	}
-	
+
 	@Override
 	protected void initializeConnector(Context context) throws EngineException {
 		// Initialize connector if transaction is not considered as a void transaction
@@ -650,9 +664,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 
 	@Override
-    protected void insertObjectsInScope() throws EngineException {
-    	super.insertObjectsInScope();
-    	
+	protected void insertObjectsInScope() throws EngineException {
+		super.insertObjectsInScope();
+
 		// Insert variables into the scripting context: first insert the explicit
 		// (declared) variables (with or not default values), and then insert the
 		// variables (that may eventually be the same).
@@ -663,7 +677,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		Scriptable jsObject;
 
 		checkSubLoaded();
-		
+
 		for (RequestableVariable variable : vVariables) {
 			variableName = variable.getName();
 			variableVisibility = variable.getVisibility();
@@ -691,11 +705,11 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			else
 				Engine.logBeans.debug("(TransactionWithVariables) Provided transaction variable " + variableName2 + "=" + variableValueToPrint + " added (or overridden) to the scripting scope");
 		}
-    }
+	}
 
 	public String getRequestString(Context context) {
 		checkSubLoaded();
-		
+
 		List<String> vVariables = new ArrayList<String>(variables.size());
 		//Use authenticated user as cache key
 		if ( isAuthenticatedUserAsCacheKey() )
@@ -706,12 +720,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				vVariables.add(variableName + "=" + variableValueAsString);
 			}
 		}
-		
+
 		if (bIncludeCertificateGroup) {
 			try {
 				CertificateManager certificateManager = ((HttpConnector) getParent()).certificateManager;
 				certificateManager.collectStoreInformation(context);
-				
+
 				if ((certificateManager.keyStoreGroup == null) || (certificateManager.keyStoreGroup.length() == 0)) {
 					vVariables.add("certificateGroup=" + certificateManager.keyStoreName);
 				}
@@ -723,14 +737,14 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				vVariables.add("certificateGroup=exception");
 			}
 		}
-		
+
 		Collections.sort(vVariables);
-		
+
 		String requestString = context.projectName + " " + context.transactionName + " " + vVariables.toString();
-		
+
 		return requestString;
 	}
-	
+
 	public boolean includeVariableIntoRequestString(String variableName) {
 		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
 		if (variable != null) {
@@ -738,7 +752,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String generateXsdArrayOfData() throws Exception {
 		String xsdArrayData = "";
@@ -753,18 +767,18 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 		return xsdArrayData;
 	}
-	
+
 	@Override
 	public String generateXsdRequestData() throws Exception {
 		String prefix = getXsdTypePrefix();
-    	String xsdRequestData = null;
-    	RequestableVariable variable = null;
-    	var doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-    	var root = doc.createElement("xsd:complexType");
-    	doc.appendChild(root);
-    	root.setAttribute("name", prefix + getName() + "RequestData");
-    	var seq = doc.createElement("xsd:sequence");
-    	root.appendChild(seq);
+		String xsdRequestData = null;
+		RequestableVariable variable = null;
+		var doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = doc.createElement("xsd:complexType");
+		doc.appendChild(root);
+		root.setAttribute("name", prefix + getName() + "RequestData");
+		var seq = doc.createElement("xsd:sequence");
+		root.appendChild(seq);
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
 			if (variable.isWsdl()) {
@@ -811,31 +825,31 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			}
 		}
 		xsdRequestData = XMLUtils.prettyPrintDOM(root).replaceFirst(".*?(<xsd)","$1");
-    	return xsdRequestData;
-    }
-    
+		return xsdRequestData;
+	}
+
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
-    	StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
-    	//sx.replace(getName() + "Response", getName() + "ResponseData");
-    	sx.replace(getName() + "Response\"", getName() + "ResponseData\"");
-    	sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
-    	String xsdResponseData = "  " + sx.toString();
-    	return xsdResponseData;
-    }
-    
+		StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
+		//sx.replace(getName() + "Response", getName() + "ResponseData");
+		sx.replace(getName() + "Response\"", getName() + "ResponseData\"");
+		sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
+		String xsdResponseData = "  " + sx.toString();
+		return xsdResponseData;
+	}
+
 	@Override
 	public void preconfigure(Element element) throws Exception {
 		super.preconfigure(element);
-		
+
 		String version = element.getAttribute("version");
-		
+
 		if (VersionUtils.compare(version, "4.6.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
-			
+
 			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 			String objectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(propName, Node.ELEMENT_NODE));
-			
+
 			Element propVarDef = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "variablesDefinition");
 			if (propVarDef != null) {
 				propVarDef.setAttribute("name", "orderedVariables");
@@ -844,14 +858,14 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			}
 		}
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 
 		String version = element.getAttribute("version");
-		
+
 		if (version == null) {
 			String s = XMLUtils.prettyPrintDOM(element);
 			EngineException ee = new EngineException("Unable to find version number for the database object \"" + getName() + "\".\nXML data: " + s);
@@ -868,7 +882,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					line.add(Boolean.TRUE);
 				}
 			}
-			
+
 			hasChanged = true;
 			Engine.logBeans.warn("[TransactionWithVariables] The object \"" + getName() + "\" has been updated to version 3.1.8");
 		}
@@ -883,11 +897,11 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					line.add(3, Boolean.FALSE);
 				}
 			}
-			
+
 			hasChanged = true;
 			Engine.logBeans.warn("[TransactionWithVariables] The object \"" + getName() + "\" has been updated to version 3.2.4");
 		}
-		
+
 		if (VersionUtils.compare(version, "4.2.0") < 0) {
 			int len = orderedVariables.size();
 			XMLVector line;
@@ -900,11 +914,11 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					line.add(1, line.get(0));
 				}
 			}
-			
+
 			hasChanged = true;
 			Engine.logBeans.warn("[TransactionWithVariables] The object \"" + getName() + "\" has been updated to version 4.2.0");
 		}
-		
+
 		if (VersionUtils.compare(version, "4.3.0") < 0) {
 			int len = orderedVariables.size();
 			XMLVector line;
@@ -915,31 +929,31 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					line.add(6, Boolean.TRUE);
 				}
 			}
-			
+
 			hasChanged = true;
 			Engine.logBeans.warn("[TransactionWithVariables] The object \"" + getName() + "\" has been updated to version 4.3.0");
 		}
-		
+
 	}
 
 	/** Holds value of property bIncludeCertificateGroup. */
 	private boolean bIncludeCertificateGroup = false;
 
 	/** Getter for property bIncludeCertificateGroup.
-     * @return Value of property bIncludeCertificateGroup.
-     */
-    public boolean includeCertificateGroup() {
-        return this.bIncludeCertificateGroup;
-    }
-    
-    /** Setter for property bIncludeCertificateGroup.
-     * @param billable New value of property bIncludeCertificateGroup.
-     */
-    public void setIncludeCertificateGroup(boolean bIncludeCertificateGroup) {
-        this.bIncludeCertificateGroup = bIncludeCertificateGroup;
-    }
-    
-    @Override
+	 * @return Value of property bIncludeCertificateGroup.
+	 */
+	public boolean includeCertificateGroup() {
+		return this.bIncludeCertificateGroup;
+	}
+
+	/** Setter for property bIncludeCertificateGroup.
+	 * @param billable New value of property bIncludeCertificateGroup.
+	 */
+	public void setIncludeCertificateGroup(boolean bIncludeCertificateGroup) {
+		this.bIncludeCertificateGroup = bIncludeCertificateGroup;
+	}
+
+	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep=super.getAllChildren();
 		List<RequestableVariable> variables=getVariablesList();		
@@ -952,7 +966,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}		
 		return rep;
 	}
-    
+
 	@Override
 	protected XmlSchemaComplexType addSchemaRequestDataType(XmlSchema xmlSchema) {
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaRequestDataType(xmlSchema);
@@ -964,18 +978,18 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				if (variable.isWsdl()) {
 					XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
 					xmlSchemaElement.setName(variable.getName());
-					
+
 					if (variable.isMultiValued()) {
 						xmlSchemaElement.setMaxOccurs(Long.MAX_VALUE);
 					}
-					
+
 					//String[] qn = variable.getSchemaType().split(":");
 					//QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
 					//xmlSchemaElement.setSchemaTypeName(typeName);
 					xmlSchemaElement.setSchemaTypeName(variable.getTypeAffectation());
-					
+
 					addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment(), variable.getDescription());
-					
+
 					xmlSchemaSequence.getItems().add(xmlSchemaElement);
 				}
 			}
