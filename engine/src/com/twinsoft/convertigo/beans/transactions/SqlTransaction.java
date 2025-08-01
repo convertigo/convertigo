@@ -62,7 +62,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -197,7 +196,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		private List<String> otherParametersList = null;
 
 		/** Query's parameters map (name and value) */
-		private Map<String, String> parametersMap = new HashMap<String, String>();
+		private Map<String, Object> parametersMap = new HashMap<>();
 
 		private void findType(){
 			if (query.toUpperCase().indexOf("--") == 0)				// == 0 means starts with
@@ -273,7 +272,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 				while (matcher.find()) {
 					String parameterName = matcher.group(2);
-					String parameterValue = ParameterUtils.toString(sqlTransaction.getParameterValue(parameterName));
+					var parameterValue = sqlTransaction.getParameterTypedValue(parameterName);
 
 					// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.
 					orderedParametersList.add(parameterName);
@@ -321,7 +320,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			return otherParametersList;
 		}
 
-		public Map<String, String> getParametersMap(){
+		public Map<String, Object> getParametersMap(){
 			return parametersMap;
 		}
 
@@ -353,7 +352,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	protected void finalize() throws Throwable {
 		if (preparedStatement != null)
 			preparedStatement.close();
-		
+
 		super.finalize();
 	}
 
@@ -1214,7 +1213,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				}
 				if (tables != null) {
 					sql_out.setAttribute("type", "array");
-	
+
 					if (xmlMode == XmlMode.flat_element) {
 						int k = 0;
 						Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
@@ -1263,7 +1262,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			Engine.logEngine.error("(SqlTransaction) Unabled to generate output json types for "+ this.getName(), e);
 		}
 	}
-	
+
 	private Element getSchemaContainerElement() {
 		if (Engine.isStudioMode()) {
 			Document doc = createDOM(getEncodingCharSet());
@@ -1291,14 +1290,15 @@ public class SqlTransaction extends TransactionWithVariables {
 
 		if (sqlQueries != null) {
 			for(SqlQueryInfos sqlQuery : sqlQueries){
-				Map<String, String> variables  = sqlQuery.getParametersMap();
+				var variables = sqlQuery.getParametersMap();
 				if (sqlQuery.orderedParametersList != null && variables != null){
 					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
 						for (String key : sqlQuery.orderedParametersList){
 							String valueKey = getParameterStringValue(key);
-							String valueVar = variables.get(key);
-							if( !valueKey.equals(valueVar))
+							var valueVar = variables.get(key);
+							if (!valueKey.equals(valueVar)) {
 								return false;
+							}
 						}
 					}
 				}
@@ -1306,9 +1306,10 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
 					for (String key : sqlQuery.otherParametersList){
 						String valueKey = getParameterStringValue(key);
-						String valueVar = variables.get(key);
-						if( !valueKey.equals(valueVar))
+						var valueVar = variables.get(key);
+						if (!valueKey.equals(valueVar)) {
 							return false;
+						}
 					}
 				}
 			}

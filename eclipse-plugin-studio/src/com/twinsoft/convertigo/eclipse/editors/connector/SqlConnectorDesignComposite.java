@@ -20,12 +20,14 @@
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.event.EventListenerList;
 
+import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.layout.RowLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -36,6 +38,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -48,15 +51,26 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 class SqlConnectorDesignComposite extends Composite {
 
@@ -173,6 +187,9 @@ class SqlConnectorDesignComposite extends Composite {
 		cruds.setLayout(new RowLayout());
 
 		checkbox = new Button(cruds, SWT.CHECK);
+		checkbox.setText("LIST");
+		checkbox.setSelection(true);
+		checkbox = new Button(cruds, SWT.CHECK);
 		checkbox.setText("INSERT");
 		checkbox.setSelection(true);
 		checkbox = new Button(cruds, SWT.CHECK);
@@ -184,15 +201,37 @@ class SqlConnectorDesignComposite extends Composite {
 		checkbox = new Button(cruds, SWT.CHECK);
 		checkbox.setText("DELETE");
 		checkbox.setSelection(true);
-		
+
 		var right = new Composite(footer, SWT.NONE);
 		right.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		right.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
 		var override = new Button(right, SWT.CHECK);
 		override.setText("Override");
-		
+		var wrap = new Button(right, SWT.CHECK);
+		wrap.setText("Sequence wrap");
+
 		btnImportAsTransactions = new Button(right, SWT.NONE);
 		btnImportAsTransactions.setText("Import as transaction(s) in project");
+
+		var wrapPart = new Composite(footer, SWT.NONE);
+		var wrapPartGridData = new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1);
+		wrapPart.setLayoutData(wrapPartGridData);
+		wrapPart.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
+		wrapPart.setVisible(false);
+		wrapPartGridData.exclude = true;
+
+		lblNewLabel = new Label(wrapPart, SWT.NONE);
+		lblNewLabel.setText("For Sequences…");
+
+		var combo = new Combo(wrapPart, SWT.READ_ONLY);
+		for (Accessibility a : Accessibility.values()) {
+			combo.add("Accessibility " + a.name());
+		}
+		combo.setText(combo.getItem(1));
+
+		var auth = new Button(wrapPart, SWT.CHECK);
+		auth.setText("Authenticated session MANDATORY");
+		auth.setSelection(true);
 
 		btnImportAsTransactions.addMouseListener(new MouseAdapter() {
 			@Override
@@ -203,8 +242,19 @@ class SqlConnectorDesignComposite extends Composite {
 						enabled.add(b.getText());
 					}
 				}
-				createSqlTransactions(table.getSelection(), override.getSelection(), enabled);
+				Accessibility accessibility = null;
+				if (wrap.getSelection()) {
+					accessibility = Accessibility.valueOf(combo.getSelectionIndex());
+				}
+				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection());
 			}
+		});
+
+		wrap.addSelectionListener((SelectionListener)(e) -> {
+			var visible = wrap.getSelection();
+			wrapPart.setVisible(visible);
+			wrapPartGridData.exclude = !visible;
+			parent.layout(true, true);
 		});
 	}
 
@@ -273,7 +323,7 @@ class SqlConnectorDesignComposite extends Composite {
 		}
 	}
 
-	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds) {
+	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = display.getActiveShell();
@@ -317,8 +367,21 @@ class SqlConnectorDesignComposite extends Composite {
 									var dbot = pev.findTreeObjectByUserObject(sqlTransaction);
 									pev.fireTreeObjectPropertyChanged(new TreeObjectEvent(dbot, "sqlQuery", "", sqlTransaction.getSqlQuery(), TreeObjectEvent.UPDATE_NONE));
 									pev.setSelectedTreeObject(dbot);
+									if (sqlTransaction.getName().endsWith("_LIST")) {
+										if (sqlTransaction.getVariable("limit") instanceof RequestableVariable v && v != null) {
+											v.setXmlTypeAffectation(new XmlQName(Constants.XSD_LONG));
+											v.setValueOrNull("100");
+										}
+										if (sqlTransaction.getVariable("offset") instanceof RequestableVariable v && v != null) {
+											v.setXmlTypeAffectation(new XmlQName(Constants.XSD_LONG));
+											v.setValueOrNull("0");
+										}
+									}
 								}
 								ConvertigoPlugin.logDebug("Transaction added.");
+							}
+							if (accessibility != null) {
+								createSequenceWrapper(sqlTransaction, accessibility, authenticated);
 							}
 						}
 					}
@@ -329,6 +392,48 @@ class SqlConnectorDesignComposite extends Composite {
 				shell.setCursor(null);
 				waitCursor.dispose();
 			}
+		}
+	}
+
+	private void createSequenceWrapper(SqlTransaction transaction, Accessibility accessibility, boolean authenticatedContextRequired) throws EngineException {
+		GenericSequence sequence;
+		var project = transaction.getProject();
+		var sequenceName = transaction.getName();
+		try {
+			sequence = (GenericSequence) project.getSequenceByName(sequenceName);
+			List<Step> steps = sequence.getAllSteps();
+			List<RequestableVariable> vars = sequence.getAllVariables();
+			List<DatabaseObject> children = new ArrayList<>(steps.size() + vars.size());
+			children.addAll(steps);
+			children.addAll(vars);
+			for (DatabaseObject dbo: children) {
+				sequence.remove(dbo);
+			}
+		} catch (Exception e) {
+			sequence = new GenericSequence();
+			sequence.setName(sequenceName);
+			sequence.setAccessibility(accessibility);
+			sequence.setAuthenticatedContextRequired(authenticatedContextRequired);
+			project.add(sequence);
+		}
+		var transactionStep = new TransactionStep();
+		transactionStep.setSourceTransaction(transaction.getQName());
+		sequence.add(transactionStep);
+		transactionStep.importVariableDefinition();
+		transactionStep.exportVariableDefinition();
+
+		var xmlCopyStep = new XMLCopyStep();
+		var source = new XMLVector<String>();
+		source.add(Long.toString(transactionStep.priority));
+		source.add("./document/error|./document/sql_output[row]/*|./document/sql_output[not(row)]");
+		xmlCopyStep.setSourceDefinition(source);
+		sequence.add(xmlCopyStep);
+
+		fireObjectChanged(new CompositeEvent(project));
+		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (pev != null) {
+			var dbot = pev.findTreeObjectByUserObject(sequence);
+			pev.setSelectedTreeObject(dbot);
 		}
 	}
 }

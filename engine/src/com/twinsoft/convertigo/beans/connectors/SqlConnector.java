@@ -231,6 +231,8 @@ public class SqlConnector extends Connector {
 		} else if (currentJdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(getJdbcDriverClassName())) {
 			// MariaDB Java 3.x migration
 			realJdbcURL = "jdbc:mariadb:" + currentJdbcURL.substring(11);
+		} else if ("org.postgresql.Driver".equals(getJdbcDriverClassName()) && !currentJdbcURL.contains("stringtype")) {
+			realJdbcURL = currentJdbcURL + (currentJdbcURL.contains("?") ? "&" : "?") + "stringtype=unspecified"; 
 		}
 
 		// Now attempt to create a database connection
@@ -342,7 +344,7 @@ public class SqlConnector extends Connector {
 	}
 
 	private void prepareParameters(PreparedStatement preparedStatement, SqlQueryInfos sqlQueryInfos) throws SQLException{ 
-		Map<String, String> values = sqlQueryInfos.getParametersMap();
+		var values = sqlQueryInfos.getParametersMap();
 		List<Map<String, Object>> parameterList = getProcedureParameters(connection, sqlQueryInfos);
 		int i = 1;
 		for (Map<String, Object> parameterMap : parameterList) {
@@ -697,8 +699,8 @@ public class SqlConnector extends Connector {
 		removeDatabasePool();
 	}
 
-	static public Object getParameterJavaValue(int param_type, String value) throws UnsupportedEncodingException, MalformedURLException, SQLException {
-		if (value != null) {
+	static public Object getParameterJavaValue(int param_type, Object object) throws UnsupportedEncodingException, MalformedURLException, SQLException {
+		if (object != null && object instanceof String value) {
 			switch (param_type) {
 			case Types.ARRAY: 
 				return value.split(",");
@@ -774,7 +776,7 @@ public class SqlConnector extends Connector {
 				return value;
 			}
 		}
-		return null;
+		return object;
 	}
 
 	static public Class<?> getParameterJavaClass(int param_type) {
@@ -1171,13 +1173,23 @@ public class SqlConnector extends Connector {
 							.collect(Collectors.joining(", "));
 					sqlQuery = "INSERT INTO " + tableName + " (" + cols + ")\nVALUES (" + vals + ")";
 				}
-				case "SELECT", "READ" -> {
+				case "SELECT", "LIST" -> {
+					var bList = "LIST".equals(verb);
 					var cols = String.join(", ", columns);
-					var where = primaryKeys.isEmpty() ? "" :
+					var where = bList || primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
 						.map(pk -> pk + " = {" + pk + "}")
 						.collect(Collectors.joining("\nAND "));
 					sqlQuery = "SELECT " + cols + "\nFROM " + tableName + where;
+					if (bList) {
+						var driver = sqlConnector.jdbcDriverClassName;
+						if (driver.contains("postgresql") || driver.contains("mysql") || driver.contains("mariadb") || driver.contains("hsqldb")) {
+							sqlQuery += "\nLIMIT {limit} OFFSET {offset}";
+						} else if (driver.contains("sqlserver") || driver.contains("oracle")) {
+							sqlQuery += "\nORDER BY {order_by}";
+							sqlQuery += "\nOFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY";
+						}
+					}
 				}
 				case "UPDATE" -> {
 					var setClause = columns.stream()
