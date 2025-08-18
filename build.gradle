@@ -19,6 +19,7 @@ plugins {
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
+import groovy.xml.XmlSlurper
 import groovy.xml.XmlUtil
 
 apply plugin: 'eclipse'
@@ -30,11 +31,11 @@ ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '8.9.4'
+ext.jxBrowserVersion = '8.11.0'
 ext.swaggerUiVersion = '5.11.10'
-ext.tomcatVersion = '9.0.107'
-ext.eclipseVersion = '2025-06'
-ext.eclipseBase = '4.36'
+ext.tomcatVersion = '9.0.108'
+ext.eclipseVersion = '2025-09'
+ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
@@ -483,7 +484,7 @@ task checkLicenseDate {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '8.14.3'
+	gradleVersion = '9.0.0'
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
