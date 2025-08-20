@@ -362,7 +362,6 @@ public class BaserowView extends ViewPart {
 .auth__logo,
 .dashboard__footer,
 .dashboard__help,
-.sidebar__user,
 .sidebar__foot,
 .context__menu-item:has(.iconoir-settings),
 .tree__item:has(.baserow-icon-application, .iconoir-lock),
