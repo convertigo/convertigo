@@ -1183,12 +1183,18 @@ public class SqlConnector extends Connector {
 					sqlQuery = "SELECT " + cols + "\nFROM " + tableName + where;
 					if (bList) {
 						var driver = sqlConnector.jdbcDriverClassName;
+						sqlQuery += "\nORDER BY {{order_by}}";
 						if (driver.contains("postgresql") || driver.contains("mysql") || driver.contains("mariadb") || driver.contains("hsqldb")) {
 							sqlQuery += "\nLIMIT {limit} OFFSET {offset}";
 						} else if (driver.contains("sqlserver") || driver.contains("oracle")) {
-							sqlQuery += "\nORDER BY {order_by}";
 							sqlQuery += "\nOFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY";
 						}
+						sqlTransaction.handlers = """
+function onTransactionStarted() {
+    if (!order_by || !order_by.length || -1 == context.transaction.sqlQuery.indexOf(order_by.replace(/\\s+(asc|desc)/i,""))) {
+        order_by = "''";
+    }
+}""";
 					}
 				}
 				case "UPDATE" -> {

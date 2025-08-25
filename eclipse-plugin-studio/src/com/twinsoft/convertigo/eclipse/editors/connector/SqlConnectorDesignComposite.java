@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.event.EventListenerList;
 
@@ -207,32 +208,39 @@ class SqlConnectorDesignComposite extends Composite {
 		right.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
 		var override = new Button(right, SWT.CHECK);
 		override.setText("Override");
-		var wrap = new Button(right, SWT.CHECK);
-		wrap.setText("Sequence wrap");
 
 		btnImportAsTransactions = new Button(right, SWT.NONE);
 		btnImportAsTransactions.setText("Import as transaction(s) in project");
 
-		var wrapPart = new Composite(footer, SWT.NONE);
-		var wrapPartGridData = new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1);
-		wrapPart.setLayoutData(wrapPartGridData);
-		wrapPart.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
-		wrapPart.setVisible(false);
-		wrapPartGridData.exclude = true;
-
-		lblNewLabel = new Label(wrapPart, SWT.NONE);
+		lblNewLabel = new Label(footer, SWT.NONE);
 		lblNewLabel.setText("For Sequences…");
 
-		var combo = new Combo(wrapPart, SWT.READ_ONLY);
+		right = new Composite(footer, SWT.NONE);
+		right.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		right.setLayout(new GridLayout(2, false));
+		var wrap = new Button(right, SWT.CHECK);
+		wrap.setText("Generate Sequences");
+		
+		var wrapHiddenPart = new Composite(right, SWT.NONE);
+		var wrapHiddenGridData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+		wrapHiddenPart.setLayoutData(wrapHiddenGridData);
+		wrapHiddenPart.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
+		wrapHiddenPart.setVisible(false);
+		wrapHiddenGridData.exclude = true;
+		
+		var combo = new Combo(wrapHiddenPart, SWT.READ_ONLY);
 		for (Accessibility a : Accessibility.values()) {
 			combo.add("Accessibility " + a.name());
 		}
 		combo.setText(combo.getItem(1));
 
-		var auth = new Button(wrapPart, SWT.CHECK);
+		var auth = new Button(wrapHiddenPart, SWT.CHECK);
 		auth.setText("Authenticated session MANDATORY");
 		auth.setSelection(true);
-
+		
+		var mb = new Button(wrapHiddenPart, SWT.CHECK);
+		mb.setText("Generate Mobile Shared Component");
+		
 		btnImportAsTransactions.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
@@ -246,14 +254,14 @@ class SqlConnectorDesignComposite extends Composite {
 				if (wrap.getSelection()) {
 					accessibility = Accessibility.valueOf(combo.getSelectionIndex());
 				}
-				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection());
+				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection(), mb.getSelection());
 			}
 		});
 
 		wrap.addSelectionListener((SelectionListener)(e) -> {
 			var visible = wrap.getSelection();
-			wrapPart.setVisible(visible);
-			wrapPartGridData.exclude = !visible;
+			wrapHiddenPart.setVisible(visible);
+			wrapHiddenGridData.exclude = !visible;
 			parent.layout(true, true);
 		});
 	}
@@ -323,7 +331,7 @@ class SqlConnectorDesignComposite extends Composite {
 		}
 	}
 
-	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated) {
+	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated, boolean generateMobileBuilder) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = display.getActiveShell();
@@ -365,9 +373,18 @@ class SqlConnectorDesignComposite extends Composite {
 								var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 								if (pev != null) {
 									var dbot = pev.findTreeObjectByUserObject(sqlTransaction);
-									pev.fireTreeObjectPropertyChanged(new TreeObjectEvent(dbot, "sqlQuery", "", sqlTransaction.getSqlQuery(), TreeObjectEvent.UPDATE_NONE));
+									var query = sqlTransaction.getSqlQuery();
+									var order = "id";
+									var mOrder = Pattern.compile("SELECT (.*?),").matcher(query); 
+									if (mOrder.find()) {
+										order = mOrder.group(1);
+									}
+									pev.fireTreeObjectPropertyChanged(new TreeObjectEvent(dbot, "sqlQuery", "", query, TreeObjectEvent.UPDATE_NONE));
 									pev.setSelectedTreeObject(dbot);
 									if (sqlTransaction.getName().endsWith("_LIST")) {
+										if (sqlTransaction.getVariable("order_by") instanceof RequestableVariable v && v != null) {
+											v.setValueOrNull(order);
+										}
 										if (sqlTransaction.getVariable("limit") instanceof RequestableVariable v && v != null) {
 											v.setXmlTypeAffectation(new XmlQName(Constants.XSD_LONG));
 											v.setValueOrNull("100");
