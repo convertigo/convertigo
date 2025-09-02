@@ -21,11 +21,45 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
-
-public class ExitHandlerNode extends AbstractNodeWithDatabaseObjectReference {
-
-	public ExitHandlerNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
-		super(parent, name, refDatabaseObject);
+public class DboNode extends AbstractParentNode {
+	
+	public DboNode(
+			AbstractParentNode parent, String name,
+			DatabaseObject target) {
+		super(parent, name);
+		setTarget(target);
 	}
 
+	private DatabaseObject target;
+	private DatabaseObject source;
+
+	public DatabaseObject getTarget() {
+		return target;
+	}
+
+	public void setTarget(DatabaseObject target) {
+		this.target = target;
+	}
+
+	public DatabaseObject getSource() {
+		return source;
+	}
+
+	public void setSource(DatabaseObject source) {
+		this.source = source;
+	}
+
+	@Override
+	public String getName() {
+		/*
+		 * treat speacial case, see ViewRefLabelProvider.java
+		 * public Image getImage(Object element)
+		 */
+		if (target == null) {
+			if (name.contains("entry") || name.contains("exit"))
+				return name;
+		}
+
+		return (target == null ? name + " (broken reference)" : name);
+	}
 }

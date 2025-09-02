@@ -59,6 +59,9 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
@@ -210,7 +213,7 @@ class SqlConnectorDesignComposite extends Composite {
 		override.setText("Override");
 
 		btnImportAsTransactions = new Button(right, SWT.NONE);
-		btnImportAsTransactions.setText("Import as transaction(s) in project");
+		btnImportAsTransactions.setText("Import selected in the project");
 
 		lblNewLabel = new Label(footer, SWT.NONE);
 		lblNewLabel.setText("For Sequences…");
@@ -338,7 +341,7 @@ class SqlConnectorDesignComposite extends Composite {
 		if (shell != null) {
 			try {
 				shell.setCursor(waitCursor);
-				for (int i=0; i < items.length; i++) {
+				for (int i = 0; i < items.length; i++) {
 					TableItem item = items[i];
 					String callableName = item.getText(0);
 					String type = item.getText(2);
@@ -396,11 +399,16 @@ class SqlConnectorDesignComposite extends Composite {
 									}
 								}
 								ConvertigoPlugin.logDebug("Transaction added.");
+							} else if (transaction instanceof SqlTransaction sqlTr) {
+								sqlTransaction = sqlTr;
 							}
 							if (accessibility != null) {
 								createSequenceWrapper(sqlTransaction, accessibility, authenticated);
 							}
 						}
+					}
+					if (generateMobileBuilder) {
+						generateMobileBuilder(callableName, override);
 					}
 				}
 			} catch (Exception ee) {
@@ -408,6 +416,40 @@ class SqlConnectorDesignComposite extends Composite {
 			} finally {
 				shell.setCursor(null);
 				waitCursor.dispose();
+			}
+		}
+	}
+
+	private void generateMobileBuilder(String callableName, boolean override) {
+		var mobApp = sqlConnector.getProject().getMobileApplication();
+		if (mobApp == null) {
+			return;
+		}
+		var name = callableName + "Grid";
+		if (mobApp.getApplicationComponent() instanceof ApplicationComponent ngxApp) {
+			UISharedComponent exComponent = null;
+			for (UISharedComponent c: ngxApp.getSharedComponentList()) {
+				if (name.equals(c.getName())) {
+					exComponent = c;
+					break;
+				}
+			}
+			if (exComponent != null && ! override) {
+				return;
+			}
+			
+			try {
+				var newComponent = new UISharedRegularComponent();
+				newComponent.setName(name);
+				ngxApp.add(newComponent);
+				
+				fireObjectChanged(new CompositeEvent(ngxApp));
+				var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				if (pev != null) {
+					var dbot = pev.findTreeObjectByUserObject(newComponent);
+					pev.setSelectedTreeObject(dbot);
+				}
+			} catch (EngineException e) {
 			}
 		}
 	}
