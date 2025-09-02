@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
-import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDatabaseObjectReference;
+import com.twinsoft.convertigo.eclipse.views.references.model.DboNode;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
 public class ViewImageProvider {
@@ -64,8 +64,8 @@ public class ViewImageProvider {
 			imageName = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
 		} else if (object instanceof DatabaseObjectTreeObject) {
 			imageName = ((DatabaseObjectTreeObject)object).getImageName();
-		} else if (object instanceof AbstractNodeWithDatabaseObjectReference) {
-			DatabaseObject dbo = ((AbstractNodeWithDatabaseObjectReference) object).getRefDatabaseObject();
+		} else if (object instanceof DboNode) {
+			DatabaseObject dbo = ((DboNode) object).getTarget();
 			imageName = MySimpleBeanInfo.getIconName(dbo, MySimpleBeanInfo.ICON_COLOR_16x16);
 		} else if (object instanceof PropertyTableTreeObject) {
 			imageName = "property";
