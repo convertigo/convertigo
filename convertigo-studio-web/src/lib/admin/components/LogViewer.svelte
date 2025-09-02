@@ -705,59 +705,61 @@
 				on:afterScroll={afterScroll}
 				bind:this={virtualList}
 			>
-				<div slot="item" let:index let:style {style}>
+				{#snippet item({ style, index })}
 					{@const log = logs[index]}
-					<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
-						<div
-							class={[
-								'flex',
-								'flex-wrap',
-								'overflow-y-hidden',
-								'items-baseline',
-								'opacity-90',
-								log[log.length - 1] > 1 && 'sticky'
-							]}
-							style="height: {extraLines * headerHeight}px"
-						>
-							{#each columns as { name, cls, style } (name)}
-								{@const value = getValue(name, log, index)}
-								<button
-									{style}
-									class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none font-semibold text-nowrap"
-									animate:grabFlip={{ duration }}
-									onclick={(event) => addFilter({ event, category: name, value })}
-								>
-									{value}
-								</button>
-							{/each}
-						</div>
-						<div
-							class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black dark:text-white"
-							style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
-							{@attach dragscroll}
-						>
-							{#if founds.length > 0}
-								{@const _founds = founds.filter((f) => f.index == index)}
-								{#if _founds.length > 0}
-									{#each _founds as found, index}
-										{@const { start, end } = found}
-										{#if index == 0}
-											{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-												use:scrollIntoView
-												class="searchedCurrent">{log[4].substring(start, end)}</span
-											>{:else}<span class="searched">{log[4].substring(start, end)}</span
-											>{/if}{#if index < _founds.length - 1}{log[4].substring(
-												end,
-												_founds[index + 1].start
-											)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+					<div {style}>
+						<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
+							<div
+								class={[
+									'flex',
+									'flex-wrap',
+									'overflow-y-hidden',
+									'items-baseline',
+									'opacity-90',
+									log[log.length - 1] > 1 && 'sticky'
+								]}
+								style="height: {extraLines * headerHeight}px"
+							>
+								{#each columns as { name, cls, style } (name)}
+									{@const value = getValue(name, log, index)}
+									<button
+										{style}
+										class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none font-semibold text-nowrap"
+										animate:grabFlip={{ duration }}
+										onclick={(event) => addFilter({ event, category: name, value })}
+									>
+										{value}
+									</button>
+								{/each}
+							</div>
+							<div
+								class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black dark:text-white"
+								style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
+								{@attach dragscroll}
+							>
+								{#if founds.length > 0}
+									{@const _founds = founds.filter((f) => f.index == index)}
+									{#if _founds.length > 0}
+										{#each _founds as found, index}
+											{@const { start, end } = found}
+											{#if index == 0}
+												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+													use:scrollIntoView
+													class="searchedCurrent">{log[4].substring(start, end)}</span
+												>{:else}<span class="searched">{log[4].substring(start, end)}</span
+												>{/if}{#if index < _founds.length - 1}{log[4].substring(
+													end,
+													_founds[index + 1].start
+												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+										{log[4]}
+									{/if}
+								{:else}
 									{log[4]}
 								{/if}
-							{:else}
-								{log[4]}
-							{/if}
+							</div>
 						</div>
 					</div>
-				</div>
+				{/snippet}
 			</VirtualList>
 		</MaxRectangle>
 	</div>
