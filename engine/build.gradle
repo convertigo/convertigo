@@ -430,7 +430,7 @@ task generateDocumentationMd(type: JavaExec, dependsOn: [engineDependenciesClass
 		classpath sourceSets.main.output
 		classpath engineDependenciesClasspathJar.archiveFile
 		
-		main = 'com.twinsoft.convertigo.beans.BeansDoc'
+		mainClass = 'com.twinsoft.convertigo.beans.BeansDoc'
 		
 		args docPath.absolutePath, docMax
 	}
