@@ -31,6 +31,7 @@ import javax.swing.event.EventListenerList;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.layout.RowLayoutFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -59,9 +60,6 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
@@ -84,7 +82,7 @@ class SqlConnectorDesignComposite extends Composite {
 	private TableColumn tblclmnDescription;
 	private TableColumn tblclmnGroupName;
 
-	private Button btnImportAsTransactions;
+	private Button btnImport;
 
 	private SqlConnector sqlConnector;
 
@@ -140,7 +138,7 @@ class SqlConnectorDesignComposite extends Composite {
 		checkbox.setSelection(true);
 
 
-		text.addKeyListener(new org.eclipse.swt.events.KeyAdapter() {
+		text.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.character == SWT.CR) {
@@ -212,8 +210,8 @@ class SqlConnectorDesignComposite extends Composite {
 		var override = new Button(right, SWT.CHECK);
 		override.setText("Override");
 
-		btnImportAsTransactions = new Button(right, SWT.NONE);
-		btnImportAsTransactions.setText("Import selected in the project");
+		btnImport = new Button(right, SWT.NONE);
+		btnImport.setText("Import selected in the project");
 
 		lblNewLabel = new Label(footer, SWT.NONE);
 		lblNewLabel.setText("For Sequences…");
@@ -241,10 +239,7 @@ class SqlConnectorDesignComposite extends Composite {
 		auth.setText("Authenticated session MANDATORY");
 		auth.setSelection(true);
 		
-		var mb = new Button(wrapHiddenPart, SWT.CHECK);
-		mb.setText("Generate Mobile Shared Component");
-		
-		btnImportAsTransactions.addMouseListener(new MouseAdapter() {
+		btnImport.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
 				var enabled = new LinkedList<String>();
@@ -257,7 +252,7 @@ class SqlConnectorDesignComposite extends Composite {
 				if (wrap.getSelection()) {
 					accessibility = Accessibility.valueOf(combo.getSelectionIndex());
 				}
-				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection(), mb.getSelection());
+				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection());
 			}
 		});
 
@@ -334,7 +329,7 @@ class SqlConnectorDesignComposite extends Composite {
 		}
 	}
 
-	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated, boolean generateMobileBuilder) {
+	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = display.getActiveShell();
@@ -407,9 +402,6 @@ class SqlConnectorDesignComposite extends Composite {
 							}
 						}
 					}
-					if (generateMobileBuilder) {
-						generateMobileBuilder(callableName, override);
-					}
 				}
 			} catch (Exception ee) {
 				ConvertigoPlugin.logException(ee, "Error while creating transaction(s)");
@@ -419,41 +411,7 @@ class SqlConnectorDesignComposite extends Composite {
 			}
 		}
 	}
-
-	private void generateMobileBuilder(String callableName, boolean override) {
-		var mobApp = sqlConnector.getProject().getMobileApplication();
-		if (mobApp == null) {
-			return;
-		}
-		var name = callableName + "Grid";
-		if (mobApp.getApplicationComponent() instanceof ApplicationComponent ngxApp) {
-			UISharedComponent exComponent = null;
-			for (UISharedComponent c: ngxApp.getSharedComponentList()) {
-				if (name.equals(c.getName())) {
-					exComponent = c;
-					break;
-				}
-			}
-			if (exComponent != null && ! override) {
-				return;
-			}
-			
-			try {
-				var newComponent = new UISharedRegularComponent();
-				newComponent.setName(name);
-				ngxApp.add(newComponent);
-				
-				fireObjectChanged(new CompositeEvent(ngxApp));
-				var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				if (pev != null) {
-					var dbot = pev.findTreeObjectByUserObject(newComponent);
-					pev.setSelectedTreeObject(dbot);
-				}
-			} catch (EngineException e) {
-			}
-		}
-	}
-
+	
 	private void createSequenceWrapper(SqlTransaction transaction, Accessibility accessibility, boolean authenticatedContextRequired) throws EngineException {
 		GenericSequence sequence;
 		var project = transaction.getProject();
