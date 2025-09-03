@@ -128,7 +128,7 @@
 						name="action-import"
 						item={[
 							{ text: 'Clear & Import', value: 'clear-import' },
-							{ text: 'Merge users', value: 'on' }
+							{ text: 'Merge symbols', value: 'on' }
 						]}
 						bind:value={actionImport}
 						orientation="vertical"
