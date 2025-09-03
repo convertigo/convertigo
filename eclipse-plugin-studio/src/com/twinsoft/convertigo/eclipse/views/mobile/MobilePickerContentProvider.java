@@ -539,12 +539,11 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 	
 	private void addActions(TVObject tvi, Object object) {
 		if (object != null) {
-			List<? extends UIComponent> list = null;
-			if (object instanceof ApplicationComponent) {
-				ApplicationComponent app = (ApplicationComponent)object;
-				list = app.getUIAppEventList();
-				list.addAll(GenericUtils.cast(app.getUIEventSubscriberList()));
-				list.addAll(GenericUtils.cast(app.getSharedActionList()));
+			List<UIComponent> list = null;
+			if (object instanceof ApplicationComponent app) {
+				list = GenericUtils.cast(app.getUIAppEventList());
+				list.addAll(app.getUIEventSubscriberList());
+				list.addAll(app.getSharedActionList());
 			} else if (object instanceof UIActionStack) {
 				if (tvi != null && "actions".equals(tvi.getName())) {
 					list = new ArrayList<>(Arrays.asList((UIActionStack)object));
