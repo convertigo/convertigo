@@ -89,7 +89,7 @@ ISelectionListener, IPartListener2 {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		treeViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		treeViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		treeViewer.getTree().setHeaderVisible(true);
 		treeViewer.setContentProvider(new ViewRefContentProvider());
 		var first = new TreeViewerColumn(treeViewer, SWT.NONE);
@@ -100,29 +100,28 @@ ISelectionListener, IPartListener2 {
 		second.setLabelProvider(new DelegatingStyledCellLabelProvider(new ViewRefLabelProvider(true)));
 		second.getColumn().setText("Target");
 		second.getColumn().setWidth(300);
-		treeViewer.getTree().addListener(SWT.MouseDown, (Listener) event -> {
+
+		treeViewer.getTree().addListener(SWT.MouseUp, (Listener) event -> {
 			try {
 				var p = new Point(event.x, event.y);
-				var item = treeViewer.getTree().getItem(p);
-				if (item == null) return;
+				var cell = treeViewer.getCell(p);
+				if (cell == null) return;
 
-				int colIndex = -1;
-				var cols = treeViewer.getTree().getColumns();
-				for (int i = 0; i < cols.length; i++) {
-					if (item.getBounds(i).contains(p)) { colIndex = i; break; }
-				}
-				if (colIndex < 0) return;
+				int colIndex = cell.getColumnIndex();
+				var element  = cell.getElement();
 
-				var element = item.getData();
-
-				if (element instanceof DboNode node && node.getTarget() != null) {
-					handleSelectedObjectInRefView(colIndex == 0 ? node.getSource() : node.getTarget());
-					event.doit = false; // prevent selection change in tree
+				if (element instanceof DboNode node) {
+					var target = (colIndex == 0) ? node.getSource() : node.getTarget();
+					if (target != null) {
+						handleSelectedObjectInRefView(target);
+						event.doit = false;
+					}
 				}
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Error handling click in ReferencesView", true);
 			}
 		});
+
 		treeViewer.setInput(null);
 		treeViewer.expandAll();
 
