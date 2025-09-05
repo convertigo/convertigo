@@ -2,11 +2,16 @@
 
 ## 8.3.8
 
+#### Improvements:
+
+- [#963](https://github.com/convertigo/convertigo/issues/963) [Studio] The SQL Connector editor now assists in creating CRUD SQL Transactions and Sequences (compatible with AgGrid_CRUD from lib_ExtendedComponents_ui_ngx)
+- [#965](https://github.com/convertigo/convertigo/issues/965) [Studio] The Reference View now handles NGX objects and references (shared actions/components, Call_Sequence, FullSync, etc.)
+
 #### Bug Fixes:
 
 - [#960](https://github.com/convertigo/convertigo/issues/960) [Studio] Fixed, dragging items from the Project tree on macOS no longer raises exceptions
 - [#961](https://github.com/convertigo/convertigo/issues/961) [Studio] Fixed, renaming a Sequence with a case-only change now correctly updates the file name on Windows
-- [#962](https://github.com/convertigo/convertigo/issues/962) [Studio] Fixed, deployment now succeeds even when the target HTTPS server is using an untrusted certificate
+- [#962](https://github.com/convertigo/convertigo/issues/962) [Studio] Fixed, deployment now succeeds even when the target HTTPS server uses an untrusted certificate
 
 ---
 
