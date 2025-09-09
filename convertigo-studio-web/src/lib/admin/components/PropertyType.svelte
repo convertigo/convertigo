@@ -79,7 +79,9 @@
 			<div class="layout-y-stretch-none" class:border-common={type != 'segment'}>
 				{#if label}
 					<AutoPlaceholder {loading}>
-						<label class="label-common" for={id}>{label}</label>
+						<label class="label-common" for={id}>
+							{@html label.replace(/\n/g, '<br>')}
+						</label>
 					</AutoPlaceholder>
 				{/if}
 				{#if type == 'segment'}
