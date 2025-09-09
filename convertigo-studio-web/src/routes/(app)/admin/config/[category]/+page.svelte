@@ -85,13 +85,13 @@
 		{#each categories as { name, displayName }, i}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
+				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/20"
 			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/50 shadow-primary-900-100 hover:shadow-md/80"
 					></span>
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>

@@ -1,8 +1,8 @@
 import { redirect } from '@sveltejs/kit';
 import { building } from '$app/environment';
-import { resolveRoute } from '$app/paths';
+import { resolve } from '$app/paths';
 import Last from './Last.svelte';
 
 export function load() {
-	redirect(302, resolveRoute('/(app)/admin/logs/[tab]', { tab: building ? '_' : Last.tab }));
+	redirect(302, resolve('/(app)/admin/logs/[tab]', { tab: building ? '_' : Last.tab }));
 }

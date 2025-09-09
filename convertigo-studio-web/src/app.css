@@ -75,28 +75,32 @@
 	}
 }
 
+@utility shadow-follow {
+	@apply shadow-md/30 hover:shadow-md/50 dark:shadow-white;
+}
+
 @utility button-primary {
-	@apply button preset-filled-primary-200-800 motif-primary;
+	@apply button preset-filled-primary-200-800 motif-primary shadow-follow shadow-primary-900-100;
 }
 
 @utility button-secondary {
-	@apply button preset-filled-secondary-200-800 motif-secondary;
+	@apply button preset-filled-secondary-200-800 motif-secondary shadow-follow shadow-secondary-900-100;
 }
 
 @utility button-tertiary {
-	@apply button preset-filled-tertiary-200-800 motif-tertiary;
+	@apply button preset-filled-tertiary-200-800 motif-tertiary shadow-follow shadow-tertiary-900-100;
 }
 
 @utility button-success {
-	@apply button preset-filled-success-200-800;
+	@apply button preset-filled-success-200-800 shadow-follow shadow-success-900-100;
 }
 
 @utility button-warning {
-	@apply button preset-filled-warning-200-800 motif-warning;
+	@apply button preset-filled-warning-200-800 motif-warning shadow-follow shadow-warning-900-100;
 }
 
 @utility button-error {
-	@apply button preset-filled-error-200-800 motif-error;
+	@apply button preset-filled-error-200-800 motif-error shadow-follow shadow-error-900-100;
 }
 
 @utility mini-card {

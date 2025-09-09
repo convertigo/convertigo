@@ -1,5 +1,5 @@
 <script>
-	import { resolveRoute } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
@@ -118,7 +118,7 @@
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-stretch-none rounded-sm preset-outlined-surface-700-300 bg-surface-200-800"
+				class="layout-y-stretch-none rounded-container preset-outlined-surface-700-300 bg-surface-200-800 p-low shadow-follow"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>
@@ -155,7 +155,7 @@
 					<div class="absolute top-0 flex w-full">
 						<div class="flex grow">
 							<a
-								href={resolveRoute('/(app)/dashboard/[[project]]/backend', params)}
+								href={resolve('/(app)/dashboard/[[project]]/backend', params)}
 								class="h-fit rounded-br-lg preset-filled-warning-100-900 p-3 hover:preset-filled-warning-300-700"
 							>
 								<Ico icon="ph:gear-six-thin" size="nav" />
@@ -164,7 +164,7 @@
 						{#if hasFrontend == 'true'}
 							<div class="flex grow justify-end">
 								<a
-									href={resolveRoute('/(app)/dashboard/[[project]]/frontend', params)}
+									href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
 									class="h-fit rounded-bl-lg preset-filled-success-100-900 p-3 hover:preset-filled-success-300-700"
 								>
 									<Ico icon="ph:video-thin" size="nav" />
@@ -176,10 +176,9 @@
 						{#if ref?.length > 0}
 							<div class="flex grow">
 								<a
-									href={resolveRoute(
-										`/(app)/dashboard/${rootProject == project ? '' : '[[project]]'}`,
-										params
-									)}
+									href={rootProject == project
+										? resolve('/(app)/dashboard')
+										: resolve('/(app)/dashboard/[[project]]', params)}
 									class="h-fit rounded-tr-lg p-3 hover:preset-filled-secondary-300-700"
 									class:preset-filled-secondary-100-900={rootProject != project}
 									class:preset-filled-secondary-400-600={rootProject == project}
@@ -191,7 +190,7 @@
 						{#if hasPlatform == 'true'}
 							<div class="flex grow justify-end">
 								<a
-									href={resolveRoute('/(app)/dashboard/[[project]]/platforms', params)}
+									href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
 									class="h-fit rounded-tl-lg preset-filled-primary-100-900 p-3 hover:preset-filled-primary-300-700"
 								>
 									<Ico icon="ph:package-thin" size="nav" />

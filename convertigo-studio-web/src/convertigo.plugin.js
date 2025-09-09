@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 
 const versions = {
-	'': { base: 2, md: 4 },
-	low: { base: 1, md: 2 },
+	'': { base: 3, md: 6 },
+	low: { base: 1.5, md: 3 },
 	none: { base: 0, md: 0 }
 };
 

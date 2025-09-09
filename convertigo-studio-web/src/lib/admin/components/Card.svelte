@@ -22,7 +22,10 @@
 	} = $props();
 </script>
 
-<div class="layout-y-p-stretch {bg} rounded-container border-[0.5px] border-color {cls}" {...rest}>
+<div
+	class="layout-y-p-stretch {bg} rounded-container border-[0.5px] border-color shadow-follow {cls}"
+	{...rest}
+>
 	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x w-full flex-wrap">
 			{#if title == null}

@@ -311,7 +311,7 @@
 						}
 					]}
 					size="4"
-					class="w-full min-w-33"
+					class="w-full min-w-40"
 					disabled={!init}
 				/>
 			{/if}

@@ -1,6 +1,6 @@
 import { createToaster } from '@skeletonlabs/skeleton-svelte';
 import { browser, dev } from '$app/environment';
-import { resolveRoute } from '$app/paths';
+import { resolve } from '$app/paths';
 import Authentication from '$lib/common/Authentication.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
@@ -273,7 +273,7 @@ function handleStateMessage(res, service) {
 }
 
 export function getUrl(path = '/admin/services/') {
-	let prefix = resolveRoute('/', {});
+	let prefix = resolve('/');
 	if (dev) {
 		prefix += 'convertigo';
 	}
