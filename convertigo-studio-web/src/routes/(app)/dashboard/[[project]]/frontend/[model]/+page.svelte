@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { assets } from '$app/paths';
+	import { asset } from '$app/paths';
 	import { page } from '$app/state';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -12,9 +12,9 @@
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import Last from '../Last.svelte';
 
-	let orientation = $derived(page.params.model.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
+	let orientation = $derived(page.params.model?.split('_')[1] == 'h' ? 'horizontal' : 'vertical');
 	let selectedDevice = $derived(
-		Bezels[page.params.model.split('_')[0]] ?? Object.values(Bezels)[0]
+		Bezels[page.params.model?.split('_')[0]] ?? Object.values(Bezels)[0]
 	);
 	let selectedIndex = $derived(selectedDevice.index);
 	let selectedIndexLast = $state(-1);
@@ -157,7 +157,7 @@
 			{#if selectedDevice.id != 'none'}
 				{#key selectedDevice.id}
 					<img
-						src="{assets}/bezels/{selectedDevice.id}.png"
+						src={asset(`/bezels/${selectedDevice.id}.png`)}
 						alt={`${selectedDevice.title} Bezel`}
 						class="pointer-events-none absolute min-h-full min-w-full"
 						transition:blur

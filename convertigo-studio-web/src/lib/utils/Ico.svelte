@@ -224,7 +224,7 @@
 
 <script>
 	import { browser } from '$app/environment';
-	import { assets } from '$app/paths';
+	import { asset } from '$app/paths';
 
 	/** @type {{icon: string, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any} | any} */
 	let {
@@ -285,10 +285,10 @@
 		{:else}
 			{@html html}
 		{/if}
-	</svg>
-{:else}
-	<img src="{assets}/{icon}" class={cls} style="width: calc(var(--spacing)*{size});" {...props} />
-{/if}
+		</svg>
+	{:else}
+		<img src={asset(`/${icon}`)} class={cls} style="width: calc(var(--spacing)*{size});" {...props} />
+	{/if}
 
 <!-- {#if !svg || !animate}
 	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
