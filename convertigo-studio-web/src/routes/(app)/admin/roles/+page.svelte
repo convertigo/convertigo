@@ -92,7 +92,7 @@
 			class:motif-primary={hasView && !hasConfig}
 			class:preset-filled-warning-100-900={!hasView && hasConfig}
 			class:motif-warning={!hasView && hasConfig}
-			class:preset-filled-surface-800-200={!hasView && !hasConfig}
+			class:preset-filled-surface-100-900={!hasView && !hasConfig}
 			class:motif-surface={!hasView && !hasConfig}
 		>
 			{#if part}<Ico icon={part.icon} />{/if}
@@ -412,6 +412,7 @@
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
+				{@const size = 6}
 				<fieldset class="layout-x-low" disabled={!init}>
 					{#if exporting}
 						<PropertyType
@@ -422,14 +423,14 @@
 						/>
 					{:else}
 						<Button
-							class="button-primary"
-							size={4}
+							class="button-ico-primary"
+							{size}
 							icon="mdi:edit-outline"
 							onclick={(event) => openRoleModal({ event, row })}
 						/>
 						<Button
-							class="button-error"
-							size={4}
+							class="button-ico-error"
+							{size}
 							icon="mdi:delete-outline"
 							onclick={async () => {
 								if (

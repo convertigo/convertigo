@@ -3,7 +3,7 @@ const parts = $derived([
 	[
 		{
 			title: 'Projects',
-			icon: 'mdi:panel-top',
+			icon: 'mdi:folder-outline',
 			page: '/(app)/dashboard'
 		},
 		...extras

@@ -59,7 +59,7 @@
 			{#snippet children({ months, weekdays })}
 				<Api.Header class="flex items-center justify-between">
 					<Api.PrevButton class="btn-icon preset-filled-primary-500">❮</Api.PrevButton>
-					<Api.Heading class="text-lg font-bold" />
+					<Api.Heading class="text-lg font-medium" />
 					<Api.NextButton class="btn-icon preset-filled-primary-500">❯</Api.NextButton>
 				</Api.Header>
 				<div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:space-y-0 sm:space-x-4">

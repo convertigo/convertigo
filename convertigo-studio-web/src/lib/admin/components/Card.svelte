@@ -32,7 +32,7 @@
 				<AutoPlaceholder class="max-w-48" loading={true} />
 			{/if}
 			{#if title?.length > 0}
-				<span class="text-xl font-bold">{title}</span>
+				<span class="text-xl font-normal">{title}</span>
 			{/if}
 			{#if cornerOption}
 				<div class="grow">

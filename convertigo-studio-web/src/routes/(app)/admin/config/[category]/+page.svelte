@@ -80,22 +80,22 @@
 
 {#snippet rightPart()}
 	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 p-low max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 p-low max-md:layout-grid-[100px] md:text-right"
 	>
 		{#each categories as { name, displayName }, i}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/20"
+				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
 			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/50 shadow-primary-900-100 hover:shadow-md/80"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
 					></span>
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>
-					<span class="z-10 text-[13px] font-{i == selectedIndex ? 'medium' : 'light'}"
+					<span class="z-10 w-full text-[13px] font-{i == selectedIndex ? 'medium' : 'normal'}"
 						>{displayName}</span
 					>
 				</AutoPlaceholder>

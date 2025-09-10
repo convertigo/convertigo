@@ -16,7 +16,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getContext, onMount, untrack } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 
 	let logViewer = $state();
@@ -424,9 +424,9 @@
 						<AutoPlaceholder {loading}>
 							<div class="layout-x justify-between">
 								{#if idx >= 0}
-									<div class="font-bold">Delete logs files older than {date}</div>
+									<div class="font-medium">Delete logs files older than {date}</div>
 								{:else}
-									<div class="font-bold">No selected date</div>
+									<div class="font-medium">No selected date</div>
 								{/if}
 								<div class="text-xs">{idx + 1} / {dates.length}</div>
 							</div>

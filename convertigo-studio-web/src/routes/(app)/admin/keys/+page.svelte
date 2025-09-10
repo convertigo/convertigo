@@ -92,9 +92,9 @@
 			{#snippet children({ row: { text, evaluation, expired }, def: { name } })}
 				{#if name == 'Actions'}
 					<Button
-						size="4"
+						size="6"
 						icon="mdi:delete-outline"
-						class="button-error"
+						class="button-ico-error"
 						onclick={async (event) => {
 							if (
 								await modalYesNo.open({

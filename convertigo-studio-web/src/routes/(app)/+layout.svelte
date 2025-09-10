@@ -22,7 +22,7 @@
 
 <Modal
 	open={showDrawer}
-	contentBase="shadow-xl w-fit h-screen"
+	contentBase="w-fit h-screen"
 	triggerBase="hidden"
 	positionerJustify="justify-start"
 	positionerAlign=""

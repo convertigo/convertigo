@@ -135,7 +135,7 @@
 		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
 				<p>Import a project from url like:</p>
-				<p class="font-bold">
+				<p class="font-medium">
 					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
@@ -208,9 +208,7 @@
 			disabled={!init}
 		/>
 	{/snippet}
-	<div
-		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
-	>
+	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
 		<label for="projectsFilter" class="ig-cell"><Ico icon="mdi:magnify" /> </label>
 		<input
 			class="ig-input placeholder:text-surface-500"
@@ -223,15 +221,15 @@
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true },
-			{ name: 'Project', key: 'name', class: 'font-medium' },
+			{ name: 'Project', key: 'name', class: 'font-normal' },
 			{ name: 'Comment', key: 'comment' },
 			{
 				name: 'Version',
 				key: 'version',
-				class: 'break-words text-[12px]  font-mono opacity-80 min-w-34'
+				class: 'break-words text-[12px] min-w-34'
 			},
-			{ name: 'Exported', key: 'exported', class: 'text-[12px] font-mono min-w-34' },
-			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] font-mono min-w-34' }
+			{ name: 'Exported', key: 'exported', class: 'text-[12px] min-w-34' },
+			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34' }
 		]}
 		data={fprojects}
 		class="rounded-sm"
@@ -243,7 +241,7 @@
 					buttons={[
 						{
 							icon: 'mdi:delete-outline',
-							cls: 'button-error',
+							cls: 'button-ico-error',
 							onclick: async (event) => {
 								if (
 									await modalYesNo.open({
@@ -258,14 +256,14 @@
 						},
 						{
 							icon: 'mdi:reload',
-							cls: 'button-success',
+							cls: 'button-ico-success',
 							onclick: () => {
 								reload(project);
 							}
 						},
 						{
 							icon: 'mdi:export',
-							cls: 'button-primary',
+							cls: 'button-ico-primary',
 							onclick: async (event) => {
 								event.currentTarget?.blur();
 								const options = await exportOptions(project);
@@ -278,19 +276,19 @@
 						},
 						{
 							icon: 'mdi:edit-outline',
-							cls: `button-warning ${editedProject == project ? 'opacity-50' : ''}`,
+							cls: `button-ico-warning ${editedProject == project ? 'opacity-50' : ''}`,
 							onclick: () => (editedProject = editedProject == project ? '' : project),
 							disabled: false
 						},
 						{
 							icon: 'mdi:language-ruby',
-							cls: 'button-tertiary',
+							cls: 'button-ico-tertiary',
 							href: `${base}/dashboard/${project}/backend/`,
 							disabled: false
 						},
 						{
 							icon: 'mdi:warning-outline',
-							cls: 'button preset-tonal-warning',
+							cls: 'button-ico-warning',
 							hidden: !undefined_symbols,
 							onclick: async (event) => {
 								event.currentTarget?.blur();
@@ -302,7 +300,7 @@
 							}
 						}
 					]}
-					size="4"
+					size="6"
 					class="w-full min-w-40"
 					disabled={!init}
 				/>

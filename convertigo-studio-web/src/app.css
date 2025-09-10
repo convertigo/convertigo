@@ -3,6 +3,7 @@
 @plugin '@tailwindcss/typography';
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 @source './';
+@import '@fontsource-variable/inter';
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
 @import './convertigo.theme.css';
@@ -76,7 +77,7 @@
 }
 
 @utility shadow-follow {
-	@apply shadow-md/30 hover:shadow-md/50 dark:shadow-white;
+	@apply shadow-md/5 hover:shadow-md/15 dark:shadow-white;
 }
 
 @utility button-primary {
@@ -101,6 +102,30 @@
 
 @utility button-error {
 	@apply button preset-filled-error-200-800 motif-error shadow-follow shadow-error-900-100;
+}
+
+@utility button-ico-primary {
+	@apply button text-primary-500;
+}
+
+@utility button-ico-secondary {
+	@apply button text-secondary-500;
+}
+
+@utility button-ico-tertiary {
+	@apply button text-tertiary-500;
+}
+
+@utility button-ico-success {
+	@apply button text-success-700-300;
+}
+
+@utility button-ico-warning {
+	@apply button text-warning-500;
+}
+
+@utility button-ico-error {
+	@apply button text-error-500;
 }
 
 @utility mini-card {

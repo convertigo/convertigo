@@ -73,9 +73,7 @@
 </script>
 
 <Card>
-	<div
-		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
-	>
+	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
 		<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
 			id="search"
@@ -118,7 +116,7 @@
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-stretch-none rounded-container preset-outlined-surface-700-300 bg-surface-200-800 p-low shadow-follow"
+				class="layout-y-stretch-none rounded-container bg-surface-200-800 p-low shadow-follow"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>

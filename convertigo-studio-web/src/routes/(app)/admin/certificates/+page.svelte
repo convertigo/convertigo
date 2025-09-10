@@ -199,7 +199,7 @@
 	{:else if def.name == 'Password'}
 		<form class="w-full">
 			{#if validPass == 'false'}
-				<p class="font-bold text-error-700-300">Invalid password</p>
+				<p class="font-medium text-error-700-300">Invalid password</p>
 			{/if}
 			<PropertyType
 				name="pwd_0"
@@ -222,17 +222,17 @@
 			buttons={[
 				{
 					icon: 'mdi:delete-outline',
-					cls: 'button-error',
+					cls: 'button-ico-error',
 					hidden: last,
 					onclick: def.setup ? del : mappingsDel
 				},
 				{
 					icon: 'mdi:update',
-					cls: 'button-success',
+					cls: 'button-ico-success',
 					onclick: def.setup ? configure : mappingsConfigure
 				}
 			]}
-			size="4"
+			size="6"
 			class="w-full min-w-16"
 		/>
 	{/if}

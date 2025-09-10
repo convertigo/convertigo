@@ -261,9 +261,7 @@
 		The value can be a fixed string, another Symbol (using <strong>{'{symb\\}'}</strong>) or an
 		Environment Variable (see below).
 	</p>
-	<div
-		class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
-	>
+	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
 		<label for="symbolsFilter" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
 			id="symbolsFilter"
@@ -284,12 +282,13 @@
 	>
 		{#snippet children({ row, def })}
 			{#if def.name == 'Actions'}
+				{@const size = 6}
 				<fieldset class="layout-grid-low-5 w-full" disabled={!init}>
 					{#if row.project}
 						<Button
 							label={row.project}
 							class="button-success justify-start gap-1 overflow-hidden px-1 text-xs"
-							size={4}
+							{size}
 							icon="mdi:plus"
 							onclick={(event) => modalOpen({ event, row })}
 						/>
@@ -302,16 +301,16 @@
 						/>
 					{:else}
 						<Button
-							class="button-primary"
-							size={4}
+							class="button-ico-primary"
+							{size}
 							icon="mdi:edit-outline"
 							onclick={(event) => {
 								modalOpen({ event, row });
 							}}
 						/>
 						<Button
-							class="button-error"
-							size={4}
+							class="button-ico-error"
+							{size}
 							icon="mdi:delete-outline"
 							onclick={async () => {
 								if (

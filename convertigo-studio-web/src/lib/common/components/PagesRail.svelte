@@ -21,14 +21,16 @@
 	});
 </script>
 
-<nav class="layout-y-none h-full border-r-[0.5px] border-color preset-filled-surface-50-950">
+<nav
+	class="layout-y-stretch-none h-full border-r-[0.5px] border-color preset-filled-surface-50-950"
+>
 	{#each parts as tiles, i}
 		{#each tiles as { title, icon, url, page, params, loading, external }, j}
 			{@const href = loading ? undefined : page ? resolve(page, params) : url}
 			<a
 				{href}
 				rel={external ? 'external' : undefined}
-				class="relative layout-x-p-low min-w-36 !gap rounded shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/20 {loading
+				class="relative layout-x-p-low min-w-36 !gap rounded shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10 {loading
 					? 'blur-sm'
 					: ''}"
 				transition:slide={{ axis: 'y' }}
@@ -37,19 +39,19 @@
 					<span
 						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/50 shadow-primary-900-100 hover:shadow-md/80"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
 					></span>
 				{/if}
 				<Ico size="5" {icon} class="z-10" />
-				<span class="z-10 text-[14px] font-{i == 0 && j == activeIndex ? 'semibold' : 'medium'}"
+				<span class="z-10 text-[14px] font-{i == 0 && j == activeIndex ? 'medium' : 'normal'}"
 					>{title}</span
 				>
 			</a>
 		{/each}
 
 		{#if i < parts.length - 1}
-			<div class="w-full p-5">
-				<div class="border-[1px] border-surface-700-300"></div>
+			<div class="w-full py-3">
+				<div class="border-[0.1px] border-surface-400-600"></div>
 			</div>
 		{/if}
 	{/each}

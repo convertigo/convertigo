@@ -253,7 +253,7 @@
 						{@const requestable = mode.startsWith('Tr') ? selected.transaction : selected.sequence}
 						{#if requestable?.variable}
 							<div class="layout-y">
-								<p class="font-bold">Variables</p>
+								<p class="font-medium">Variables</p>
 								{#each Object.keys(requestable?.variable) as name}
 									<label class="border-common">
 										<p class="label-common">{name}</p>
@@ -318,7 +318,7 @@
 </ModalDynamic>
 
 <div class="layout-y-stretch">
-	{#each cards as { title, range, next, data, size = "4" }}
+	{#each cards as { title, range, next, data, size = "6" }}
 		<Card {title}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons
@@ -371,13 +371,13 @@
 								disabled={!init}
 							/>
 							<Button
-								class="button-primary"
+								class="button-ico-primary"
 								{size}
 								icon="mdi:edit-outline"
 								onclick={(event) => open({ event, mode: row.type, row })}
 							/>
 							<Button
-								class="button-error"
+								class="button-ico-error"
 								{size}
 								icon="mdi:delete-outline"
 								onclick={async (event) => {
@@ -396,7 +396,7 @@
 					{:else if row.next?.length > 1}
 						<Button
 							label={`${row.next?.[0]} …`}
-							class="button-tertiary"
+							class="button-ico-tertiary"
 							{size}
 							onclick={(event) => nextCron.open({ event, row })}
 						/>

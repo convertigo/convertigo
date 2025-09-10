@@ -204,14 +204,14 @@
 				<TableAutoCard
 					showHeaders={false}
 					definition={[
-						{ key: 'Name', custom: true },
-						{ key: 'Value', custom: true }
+						{ key: 'Name', custom: true, class: 'min-w-32' },
+						{ key: 'Value', custom: true, class: 'text-right! break-all min-w-60' }
 					]}
 					{data}
 				>
 					{#snippet children({ row, def })}
 						{#if def.key === 'Name'}
-							<span class="font-medium">{row.Name}</span>
+							<span class="font-normal">{row.Name}</span>
 						{:else}
 							{#if row[def.key] == 'Running'}
 								<span class="on"></span>

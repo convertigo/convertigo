@@ -188,7 +188,7 @@
 					base="even:preset-filled-primary-100-900 odd:preset-filled-primary-200-800"
 					panelPadding=""
 					panelClasses="bg-surface-100-900"
-					controlClasses="font-bold"
+					controlClasses="font-medium"
 					disabled={properties.length == 0}
 				>
 					{#snippet control()}{category}{/snippet}

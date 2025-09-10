@@ -44,8 +44,8 @@
 	//let columnsOrder = fromStore(persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false }));
 
 	const columnsConfiguration = {
-		Date: { idx: 1, cls: '', fn: (v) => v.split(' ')[0] }, //'font-bold'
-		Time: { idx: 1, cls: '', fn: (v) => v.split(' ')[1] }, //'font-bold'
+		Date: { idx: 1, cls: '', fn: (v) => v.split(' ')[0] }, //'font-medium'
+		Time: { idx: 1, cls: '', fn: (v) => v.split(' ')[1] }, //'font-medium'
 		Delta: {
 			idx: 1,
 			fn: (v, i) => {

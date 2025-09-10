@@ -98,25 +98,25 @@
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="w-full min-w-24"
-						size="4"
+						size="6"
 						buttons={[
 							{
 								icon: 'mdi:magnify',
-								cls: 'button-primary',
+								cls: 'button-ico-primary',
 								onclick: () => {
 									alert('TODO: filter in log viewer');
 								}
 							},
 							{
 								icon: 'mdi:filter',
-								cls: 'button-tertiary',
+								cls: 'button-ico-tertiary',
 								onclick: () => {
 									Connections.selectedSession = sessionID;
 								}
 							},
 							{
 								icon: 'mdi:delete-outline',
-								cls: 'button-error',
+								cls: 'button-ico-error',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -185,16 +185,16 @@
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="w-full min-w-16"
-						size="4"
+						size="6"
 						buttons={[
 							{
 								icon: 'mdi:magnify',
-								cls: 'button-primary',
+								cls: 'button-ico-primary',
 								onclick: () => {}
 							},
 							{
 								icon: 'mdi:delete-outline',
-								cls: 'button-error',
+								cls: 'button-ico-error',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({

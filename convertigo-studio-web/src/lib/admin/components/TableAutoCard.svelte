@@ -51,7 +51,7 @@
 		<h1 class="ztext-surface-800-200 text-[16px] font-normal">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="ztext-surface-700-300 p-3 font-bold">{comment}</h1>
+		<h1 class="ztext-surface-700-300 p-3 font-medium">{comment}</h1>
 	{/if}
 
 	<table>
@@ -116,7 +116,7 @@
 					<td colspan={definition.length}>
 						<div class="layout-x">
 							<Ico icon="mdi:coffee" size={20} />
-							<p class="ztext-surface-300 font-bold">There is no data to display ...</p>
+							<p class="ztext-surface-300 font-medium">There is no data to display ...</p>
 						</div>
 					</td>
 				</tr>
@@ -132,16 +132,15 @@
 		width: 100%;
 		border-collapse: collapse;
 		border: 4px;
-		@apply overflow-hidden rounded-sm;
+		@apply overflow-hidden rounded-base;
+	}
+	th {
+		@apply font-normal;
 	}
 	th,
 	td {
-		text-align: left;
 		@apply p-2! align-middle!;
 	}
-	/* th {
-		@apply preset-filled-surface-200-800;
-	} */
 	thead {
 		@apply border-b-[0.5px] border-surface-900-100;
 	}

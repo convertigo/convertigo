@@ -115,16 +115,16 @@
 			{@const href = type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
 			<a
 				{href}
-				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
+				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
 			>
 				{#if i == selectedIndex}
 					<span
 						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
 						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40"
+						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
 					></span>
 				{/if}
-				<span class="z-10 text-[13px] font-{i == selectedIndex ? 'medium' : 'light'}"
+				<span class="z-10 text-[13px] font-{i == selectedIndex ? 'medium' : 'normal'}"
 					>{title}<br /><small>{width} x {height}</small></span
 				>
 			</a>

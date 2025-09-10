@@ -1,5 +1,4 @@
 <script>
-	import { browser } from '$app/environment';
 	import Light from '$lib/common/Light.svelte';
 	import { onMount, untrack } from 'svelte';
 
@@ -52,8 +51,12 @@
 				format: 'HH:mm:ss'
 			}
 		},
+		dataLabels: {
+			enabled: false
+		},
 		stroke: {
-			curve: 'smooth'
+			curve: 'smooth',
+			width: 2
 		},
 		legend: {
 			position: 'top',

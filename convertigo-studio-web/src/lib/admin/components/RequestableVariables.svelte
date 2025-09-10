@@ -68,7 +68,7 @@
 				bind:value={row.send}
 				fit={true}
 				label={row.name}
-				class="font-bold"
+				class="font-medium"
 			/>
 		{:else if def.name == 'Value'}
 			<div class:opacity-50={row.send == 'false'}>

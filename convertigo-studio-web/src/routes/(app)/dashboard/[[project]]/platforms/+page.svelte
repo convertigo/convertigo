@@ -19,7 +19,7 @@
 <Card title={project?.name ?? null}>
 	<TableAutoCard
 		showHeaders={false}
-		definition={[{ key: 'key', class: 'font-bold w-0 text-nowrap' }, { key: 'val' }]}
+		definition={[{ key: 'key', class: 'font-medium w-0 text-nowrap' }, { key: 'val' }]}
 		data={[
 			{ key: 'Mobile Project Name', val: app?.mobileProjectName },
 			{ key: 'Endpoint', val: app?.endpoint },
@@ -47,7 +47,7 @@
 					<div class="layout-y-stretch md:layout-x-stretch">
 						<TableAutoCard
 							showHeaders={false}
-							definition={[{ key: 'key', class: 'font-bold w-0 text-nowrap' }, { key: 'val' }]}
+							definition={[{ key: 'key', class: 'font-medium w-0 text-nowrap' }, { key: 'val' }]}
 							data={[
 								{ key: 'Platform', val: `${classname} (.${packageType})` },
 								{ key: 'Local Revision', val: local.revision },

@@ -115,9 +115,7 @@
 
 <Card title={project?.name ?? null}>
 	{#snippet cornerOption()}
-		<div
-			class="input-group w-full grid-cols-[auto_1fr_auto] divide-x divide-surface-700-300 preset-outlined-surface-700-300 bg-surface-200-800"
-		>
+		<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
 			<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 			<input
 				id="search"
@@ -186,7 +184,7 @@
 											<div class="layout-x justify-between">
 												<div class="layout-x">
 													<Ico icon={accessibilities[accessibility].icon} /><span
-														class="text text-[14px] font-bold">{name}</span
+														class="text text-[14px] font-medium">{name}</span
 													>
 												</div>
 												{#if !requestable.open}
@@ -263,7 +261,7 @@
 																			<TableAutoCard
 																				showHeaders={false}
 																				definition={[
-																					{ key: 'name', class: 'font-bold' },
+																					{ key: 'name', class: 'font-medium' },
 																					{ key: 'value' }
 																				]}
 																				data={testcase.variable}
