@@ -19,14 +19,14 @@
 			if (Project.hasRef) {
 				extras.push({
 					title: 'References',
-					icon: 'ph:plugs-connected-thin',
+					icon: 'mdi:power-plug',
 					page: '/(app)/dashboard/[[project]]',
 					params: { project }
 				});
 			}
 			extras.push({
 				title: 'Backend',
-				icon: 'ph:gear-six-thin',
+				icon: 'mdi:cog',
 				page: '/(app)/dashboard/[[project]]/backend',
 				id: '/(app)/dashboard/[[project]]/backend/[sequence]',
 				params: { project }
@@ -34,7 +34,7 @@
 			if (Project.hasFrontend) {
 				extras.push({
 					title: 'Frontend',
-					icon: 'ph:video-thin',
+					icon: 'mdi:video-outline',
 					page: '/(app)/dashboard/[[project]]/frontend',
 					id: '/(app)/dashboard/[[project]]/frontend/[model]',
 					params: { project }
@@ -43,7 +43,7 @@
 			if (Project.hasPlatforms) {
 				extras.push({
 					title: 'Platforms',
-					icon: 'ph:package-thin',
+					icon: 'mdi:package-variant-closed',
 					page: '/(app)/dashboard/[[project]]/platforms',
 					params: { project }
 				});

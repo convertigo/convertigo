@@ -77,14 +77,14 @@
 					<Button
 						type="submit"
 						class="{sec ? 'button-tertiary' : 'button-success'} w-fit!"
-						icon={edit ? 'mdi:edit-outline' : sec ? 'vaadin:key-o' : 'grommet-icons:add'}
+						icon={edit ? 'mdi:edit-outline' : sec ? 'mdi:key-outline' : 'mdi:plus'}
 						size="btn"
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
 						class="button-error w-fit!"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						label="Cancel"
 					/>
 				</fieldset>
@@ -111,15 +111,9 @@
 					required
 					allowDrop
 				>
-					{#snippet iconInterface()}<Ico
-							icon="material-symbols:hotel-class-outline"
-							size="8"
-						/>{/snippet}
+					{#snippet iconInterface()}<Ico icon="mdi:star-outline" size="8" />{/snippet}
 					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
-					{#snippet iconFileRemove()}<Ico
-							icon="material-symbols-light:delete-outline"
-							size="8"
-						/>{/snippet}
+					{#snippet iconFileRemove()}<Ico icon="mdi:delete-outline" size="8" />{/snippet}
 				</FileUpload>
 				<div>
 					Import policy
@@ -154,13 +148,13 @@
 				<div class="layout-x w-full justify-end">
 					<Button
 						label="Import"
-						icon="material-symbols:hotel-class-outline"
+						icon="mdi:star-outline"
 						type="submit"
 						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalImport.close}
 					/>
@@ -177,21 +171,21 @@
 			buttons={[
 				{
 					label: 'Add',
-					icon: 'grommet-icons:add',
+					icon: 'mdi:plus',
 					cls: 'button-success',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event })
 				},
 				{
 					label: 'Add Secret',
-					icon: 'vaadin:key-o',
+					icon: 'mdi:key-outline',
 					cls: 'button-tertiary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event, secret: true })
 				},
 				{
 					label: 'Import',
-					icon: 'bytesize:import',
+					icon: 'mdi:import',
 					cls: 'button-primary',
 					hidden: exporting,
 					onclick: modalImport?.open
@@ -212,7 +206,7 @@
 				},
 				{
 					label: 'Export',
-					icon: 'bytesize:export',
+					icon: 'mdi:export',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
@@ -221,7 +215,7 @@
 				},
 				{
 					label: `Export [${fsymbols.filter((user) => user.export).length}]`,
-					icon: 'bytesize:export',
+					icon: 'mdi:export',
 					cls: 'button-primary',
 					hidden: !exporting,
 					disabled: fsymbols.every((user) => !user.export),
@@ -229,7 +223,7 @@
 				},
 				{
 					label: 'Cancel',
-					icon: 'material-symbols-light:cancel-outline',
+					icon: 'mdi:close-circle-outline',
 					cls: 'button-error',
 					hidden: !exporting,
 					onclick: () => {
@@ -238,7 +232,7 @@
 				},
 				{
 					label: 'Delete All',
-					icon: 'mingcute:delete-line',
+					icon: 'mdi:delete-outline',
 					cls: 'button-error',
 					hidden: exporting,
 					onclick: async () => {
@@ -296,7 +290,7 @@
 							label={row.project}
 							class="button-success justify-start gap-1 overflow-hidden px-1 text-xs"
 							size={4}
-							icon="grommet-icons:add"
+							icon="mdi:plus"
 							onclick={(event) => modalOpen({ event, row })}
 						/>
 					{:else if exporting}
@@ -318,7 +312,7 @@
 						<Button
 							class="button-error"
 							size={4}
-							icon="mingcute:delete-line"
+							icon="mdi:delete-outline"
 							onclick={async () => {
 								if (
 									await modalYesNo.open({

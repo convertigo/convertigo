@@ -60,9 +60,9 @@
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
 	const tabs = {
-		view: { name: 'Viewer', icon: 'material-symbols:search-rounded', viewer: true },
-		purge: { name: 'Purge', icon: 'material-symbols-light:delete-outline' },
-		config: { name: 'Log Levels', icon: 'material-symbols:settings-outline-rounded' }
+		view: { name: 'Viewer', icon: 'mdi:magnify', viewer: true },
+		purge: { name: 'Purge', icon: 'mdi:delete-outline' },
+		config: { name: 'Log Levels', icon: 'mdi:cog-outline' }
 	};
 
 	let tabSet = $derived(Object.keys(tabs).includes(page.params.tab) ? page.params.tab : 'view');
@@ -258,7 +258,7 @@
 							buttons={[
 								{
 									label: 'Purge',
-									icon: 'material-symbols-light:save-as-outline',
+									icon: 'mdi:content-save-edit-outline',
 									cls: 'button-error',
 									disabled: LogsPurge.value[0] == -1,
 									onclick: async (event) => {
@@ -280,14 +280,14 @@
 							buttons={[
 								{
 									label: 'Save changes',
-									icon: 'material-symbols-light:save-as-outline',
+									icon: 'mdi:content-save-edit-outline',
 									cls: 'button-success',
 									disabled: !hasChanges,
 									onclick: saveChanges
 								},
 								{
 									label: 'Cancel changes',
-									icon: 'material-symbols-light:cancel-outline',
+									icon: 'mdi:close-circle-outline',
 									cls: 'button-error',
 									disabled: !hasChanges,
 									onclick: Configuration.refresh
@@ -353,14 +353,14 @@
 									{#if showFilters}
 										<Button
 											size={4}
-											icon="mingcute:delete-line"
+											icon="mdi:delete-outline"
 											onmousedown={() => (serverFilter = '')}
 											class="button-error h-7! w-fit!"
 											label="Clear"
 										/>
 										<Button
 											size={4}
-											icon="material-symbols:sync-arrow-up-rounded"
+											icon="mdi:cloud-sync-outline"
 											onmousedown={copyFilters}
 											class="button-tertiary h-7! w-fit!"
 											label="Copy client filters"

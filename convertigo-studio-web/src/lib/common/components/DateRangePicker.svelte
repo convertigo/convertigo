@@ -19,7 +19,7 @@
 	<div class="max-w-92 border-common">
 		<div class="input-text button flex input-common preset-filled-surface-200-800 light:bg-white">
 			<Api.Trigger class="-m-1 rounded-base p-1 hover:bg-black/30">
-				<Ico size="6" icon="material-symbols-light:date-range-rounded" />
+				<Ico size="6" icon="mdi:calendar-range" />
 			</Api.Trigger>
 			{#each dateTypes as type (type)}
 				<Api.Input {type}>

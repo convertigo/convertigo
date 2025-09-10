@@ -60,23 +60,20 @@
 					required
 					allowDrop
 				>
-					{#snippet iconInterface()}<Ico icon="fluent-mdl2:certificate" size="8" />{/snippet}
+					{#snippet iconInterface()}<Ico icon="mdi:certificate" size="8" />{/snippet}
 					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
-					{#snippet iconFileRemove()}<Ico
-							icon="material-symbols-light:delete-outline"
-							size="8"
-						/>{/snippet}
+					{#snippet iconFileRemove()}<Ico icon="mdi:delete-outline" size="8" />{/snippet}
 				</FileUpload>
 				<div class="layout-x w-full justify-end">
 					<Button
 						label="Install"
-						icon="fluent-mdl2:certificate"
+						icon="mdi:certificate"
 						type="submit"
 						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalCertInstall.close}
 					/>
@@ -105,13 +102,13 @@
 				<div class="layout-x w-full justify-end">
 					<Button
 						label="Remove"
-						icon="fluent-mdl2:certificate"
+						icon="mdi:certificate"
 						type="submit"
 						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalCertRemove.close}
 					/>
@@ -224,13 +221,13 @@
 		<ResponsiveButtons
 			buttons={[
 				{
-					icon: 'mingcute:delete-line',
+					icon: 'mdi:delete-outline',
 					cls: 'button-error',
 					hidden: last,
 					onclick: def.setup ? del : mappingsDel
 				},
 				{
-					icon: 'dashicons:update',
+					icon: 'mdi:update',
 					cls: 'button-success',
 					onclick: def.setup ? configure : mappingsConfigure
 				}
@@ -249,13 +246,13 @@
 				buttons={[
 					{
 						label: 'Install a new certificate',
-						icon: 'fluent-mdl2:certificate',
+						icon: 'mdi:certificate',
 						cls: 'button-primary',
 						onclick: modalCertInstall?.open
 					},
 					{
 						label: 'Remove a certificate',
-						icon: 'mingcute:delete-line',
+						icon: 'mdi:delete-outline',
 						cls: 'button-error',
 						disabled: !candidates.length,
 						onclick: modalCertRemove?.open

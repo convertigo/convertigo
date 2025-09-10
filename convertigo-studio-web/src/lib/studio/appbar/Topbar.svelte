@@ -18,7 +18,7 @@
 		>
 			<svelte:fragment slot="lead"
 				><div class={$loading > 0 ? 'rotate' : ''} style="margin-left:-4px">
-					<Icon icon="material-symbols-light:cloud-outline" class="h-8 w-8 " />
+					<Icon icon="mdi:cloud-outline" class="h-8 w-8 " />
 				</div></svelte:fragment
 			>
 

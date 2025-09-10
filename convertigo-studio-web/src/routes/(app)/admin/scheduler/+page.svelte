@@ -24,11 +24,11 @@
 	});
 
 	const jobTypes = {
-		SequenceConvertigoJob: { name: 'Job Sequence', icon: 'material-symbols:api-rounded' },
-		TransactionConvertigoJob: { name: 'Job Transaction', icon: 'carbon:data-regular' },
-		JobGroupJob: { name: 'Jobs Group', icon: 'uim:layer-group' },
-		ScheduleCron: { name: 'Cron', icon: 'eos-icons:cronjob' },
-		ScheduleRunNow: { name: 'Run Now', icon: 'codicon:run-all' },
+		SequenceConvertigoJob: { name: 'Job Sequence', icon: 'mdi:api' },
+		TransactionConvertigoJob: { name: 'Job Transaction', icon: 'mdi:database' },
+		JobGroupJob: { name: 'Jobs Group', icon: 'mdi:layers-outline' },
+		ScheduleCron: { name: 'Cron', icon: 'mdi:calendar-clock' },
+		ScheduleRunNow: { name: 'Run Now', icon: 'mdi:play-circle-outline' },
 		ScheduledJob: { name: 'Scheduled Job', icon: 'mdi:invoice-scheduled-outline' }
 	};
 
@@ -281,7 +281,7 @@
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={close}
 					/>
@@ -308,7 +308,7 @@
 			<div class="layout-x w-full justify-end">
 				<Button
 					label="Close"
-					icon="material-symbols-light:cancel-outline"
+					icon="mdi:close-circle-outline"
 					class="button-error"
 					onclick={close}
 				/>
@@ -379,7 +379,7 @@
 							<Button
 								class="button-error"
 								{size}
-								icon="mingcute:delete-line"
+								icon="mdi:delete-outline"
 								onclick={async (event) => {
 									if (
 										await modalYesNo.open({

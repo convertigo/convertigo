@@ -3,7 +3,7 @@ const parts = $derived([
 	[
 		{
 			title: 'Projects',
-			icon: 'lucide:layout-panel-top',
+			icon: 'mdi:panel-top',
 			page: '/(app)/dashboard'
 		},
 		...extras
@@ -11,12 +11,12 @@ const parts = $derived([
 	[
 		{
 			title: 'Admin',
-			icon: 'carbon:panel-expansion',
+			icon: 'mdi:unfold-more-horizontal',
 			page: '/(app)/admin'
 		},
 		{
 			title: 'Documentation',
-			icon: 'grommet-icons:resources',
+			icon: 'mdi:book-multiple',
 			url: 'https://doc.convertigo.com/'
 		},
 		{

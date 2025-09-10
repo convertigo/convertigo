@@ -55,7 +55,7 @@
 				class="w-full"
 				buttons={[
 					{
-						icon: 'bytesize:export',
+						icon: 'mdi:export',
 						label: 'Export',
 						cls: 'button-primary',
 						onclick: async () => {
@@ -70,7 +70,7 @@
 						}
 					},
 					{
-						icon: 'material-symbols-light:cancel-outline',
+						icon: 'mdi:close-circle-outline',
 						label: 'Cancel',
 						cls: 'button-error',
 						onclick: close
@@ -99,12 +99,9 @@
 					required
 					allowDrop
 				>
-					{#snippet iconInterface()}<Ico icon="carbon:application" size="8" />{/snippet}
+					{#snippet iconInterface()}<Ico icon="mdi:application-outline" size="8" />{/snippet}
 					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
-					{#snippet iconFileRemove()}<Ico
-							icon="material-symbols-light:delete-outline"
-							size="8"
-						/>{/snippet}
+					{#snippet iconFileRemove()}<Ico icon="mdi:delete-outline" size="8" />{/snippet}
 				</FileUpload>
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
@@ -112,13 +109,13 @@
 				<div class="layout-x justify-end">
 					<Button
 						label="Deploy"
-						icon="carbon:application"
+						icon="mdi:application-outline"
 						type="submit"
 						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalDeployUpload.close}
 					/>
@@ -148,15 +145,10 @@
 					required
 				/>
 				<div class="layout-x justify-end">
-					<Button
-						label="Import"
-						icon="bytesize:import"
-						type="submit"
-						class="button-secondary w-fit!"
-					/>
+					<Button label="Import" icon="mdi:import" type="submit" class="button-secondary w-fit!" />
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalDeployURL.close}
 					/>
@@ -178,13 +170,13 @@
 			<div class="layout-x w-full justify-end">
 				<Button
 					label="Create symbols"
-					icon="et:tools-2"
+					icon="mdi:wrench"
 					class="button-primary"
 					onclick={() => close(true)}
 				/>
 				<Button
 					label="Cancel"
-					icon="material-symbols-light:cancel-outline"
+					icon="mdi:close-circle-outline"
 					class="button-error"
 					onclick={() => close(false)}
 				/>
@@ -198,14 +190,14 @@
 		<ResponsiveButtons
 			buttons={[
 				{
-					icon: 'carbon:application',
+					icon: 'mdi:application-outline',
 					value: 'deploy',
 					cls: 'button-primary',
 					label: 'Deploy project',
 					onclick: modalDeployUpload?.open
 				},
 				{
-					icon: 'bytesize:import',
+					icon: 'mdi:import',
 					value: 'export',
 					cls: 'button-secondary',
 					label: 'Import a Remote Project URL',
@@ -250,7 +242,7 @@
 				<ResponsiveButtons
 					buttons={[
 						{
-							icon: 'mingcute:delete-line',
+							icon: 'mdi:delete-outline',
 							cls: 'button-error',
 							onclick: async (event) => {
 								if (
@@ -265,14 +257,14 @@
 							}
 						},
 						{
-							icon: 'simple-line-icons:reload',
+							icon: 'mdi:reload',
 							cls: 'button-success',
 							onclick: () => {
 								reload(project);
 							}
 						},
 						{
-							icon: 'bytesize:export',
+							icon: 'mdi:export',
 							cls: 'button-primary',
 							onclick: async (event) => {
 								event.currentTarget?.blur();
@@ -291,7 +283,7 @@
 							disabled: false
 						},
 						{
-							icon: 'file-icons:test-ruby',
+							icon: 'mdi:language-ruby',
 							cls: 'button-tertiary',
 							href: `${base}/dashboard/${project}/backend/`,
 							disabled: false

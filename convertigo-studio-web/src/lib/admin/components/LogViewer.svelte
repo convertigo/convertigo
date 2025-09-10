@@ -591,7 +591,7 @@
 								<button class="button-primary" onclick={doSearchPrev}>↑</button>
 								<button class="button-primary" onclick={doSearchNext}>↓</button>
 								<button class="button-error p-2" onclick={doSearchClear}
-									><Ico icon="mingcute:delete-line" /></button
+									><Ico icon="mdi:delete-outline" /></button
 								>
 							</div>
 						</Card>
@@ -615,9 +615,9 @@
 			</div>
 			{#if $showFilters}
 				<div class="mini-card preset-filled-secondary-100-900">
-					<Button {size} icon="grommet-icons:add" onclick={() => addExtraLines(1)} />
+					<Button {size} icon="mdi:plus" onclick={() => addExtraLines(1)} />
 					{#if extraLines > 0}
-						<Button {size} icon="grommet-icons:form-subtract" onclick={() => addExtraLines(-1)} />
+						<Button {size} icon="mdi:minus" onclick={() => addExtraLines(-1)} />
 					{/if}
 				</div>
 			{/if}
@@ -665,7 +665,7 @@
 						/>
 						<Button
 							{size}
-							icon="mingcute:delete-line"
+							icon="mdi:delete-outline"
 							class="w-fit!"
 							onclick={() => removeFilter(category, index)}
 						/>

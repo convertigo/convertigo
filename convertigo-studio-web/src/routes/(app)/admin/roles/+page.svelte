@@ -232,14 +232,14 @@
 					<Button
 						type="submit"
 						class="button-success w-fit!"
-						icon={row ? 'mdi:edit-outline' : 'grommet-icons:add'}
+						icon={row ? 'mdi:edit-outline' : 'mdi:plus'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
 						class="button-error w-fit!"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						label="Cancel"
 					/>
 				</fieldset>
@@ -267,14 +267,11 @@
 					allowDrop
 				>
 					{#snippet iconInterface()}<Ico
-							icon="material-symbols:supervised-user-circle-outline"
+							icon="mdi:account-supervisor-circle-outline"
 							size="8"
 						/>{/snippet}
 					{#snippet iconFile()}<Ico icon="mdi:briefcase-upload-outline" size="8" />{/snippet}
-					{#snippet iconFileRemove()}<Ico
-							icon="material-symbols-light:delete-outline"
-							size="8"
-						/>{/snippet}
+					{#snippet iconFileRemove()}<Ico icon="mdi:delete-outline" size="8" />{/snippet}
 				</FileUpload>
 				<div>
 					Import policy:
@@ -309,13 +306,13 @@
 				<div class="layout-x w-full justify-end">
 					<Button
 						label="Import"
-						icon="material-symbols:supervised-user-circle-outline"
+						icon="mdi:account-supervisor-circle-outline"
 						type="submit"
 						class="button-primary w-fit!"
 					/>
 					<Button
 						label="Cancel"
-						icon="material-symbols-light:cancel-outline"
+						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
 						onclick={modalImport.close}
 					/>
@@ -332,14 +329,14 @@
 			buttons={[
 				{
 					label: 'Add User',
-					icon: 'grommet-icons:add',
+					icon: 'mdi:plus',
 					cls: 'button-success',
 					hidden: exporting,
 					onclick: (event) => openRoleModal({ event, mode: 'addRoles' })
 				},
 				{
 					label: 'Import',
-					icon: 'bytesize:import',
+					icon: 'mdi:import',
 					cls: 'button-primary',
 					hidden: exporting,
 					onclick: modalImport?.open
@@ -360,7 +357,7 @@
 				},
 				{
 					label: 'Export',
-					icon: 'bytesize:export',
+					icon: 'mdi:export',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
@@ -369,7 +366,7 @@
 				},
 				{
 					label: `Export [${users.filter((user) => user.export).length}]`,
-					icon: 'bytesize:export',
+					icon: 'mdi:export',
 					cls: 'button-success',
 					hidden: !exporting,
 					disabled: users.every((user) => !user.export),
@@ -377,7 +374,7 @@
 				},
 				{
 					label: 'Cancel',
-					icon: 'material-symbols-light:cancel-outline',
+					icon: 'mdi:close-circle-outline',
 					cls: 'button-error',
 					hidden: !exporting,
 					onclick: () => {
@@ -386,7 +383,7 @@
 				},
 				{
 					label: 'Delete All',
-					icon: 'mingcute:delete-line',
+					icon: 'mdi:delete-outline',
 					cls: 'button-error',
 					hidden: exporting,
 					onclick: async () => {
@@ -433,7 +430,7 @@
 						<Button
 							class="button-error"
 							size={4}
-							icon="mingcute:delete-line"
+							icon="mdi:delete-outline"
 							onclick={async () => {
 								if (
 									await modalYesNo.open({

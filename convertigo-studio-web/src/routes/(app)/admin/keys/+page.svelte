@@ -39,12 +39,7 @@
 		>
 			<fieldset class="layout-x max-sm:flex-wrap" disabled={calling || loading}>
 				<PropertyType type="text" name="key" placeholder="Enter a new key" />
-				<Button
-					label="Add"
-					class="button-primary sm:w-fit!"
-					icon="material-symbols:key-outline-rounded"
-					type="submit"
-				/>
+				<Button label="Add" class="button-primary sm:w-fit!" icon="mdi:key-outline" type="submit" />
 			</fieldset>
 		</form>
 	{/snippet}
@@ -98,7 +93,7 @@
 				{#if name == 'Actions'}
 					<Button
 						size="4"
-						icon="mingcute:delete-line"
+						icon="mdi:delete-outline"
 						class="button-error"
 						onclick={async (event) => {
 							if (

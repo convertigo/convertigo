@@ -20,7 +20,7 @@
 					buttons={[
 						{
 							label: 'Clear entries',
-							icon: 'mingcute:delete-line',
+							icon: 'mdi:delete-outline',
 							cls: 'button-error',
 							onclick: clear
 						}
@@ -48,19 +48,19 @@
 						{
 							label: 'Apply',
 							type: 'submit',
-							icon: 'solar:mask-happly-line-duotone',
+							icon: 'mdi:emoticon-happy-outline',
 							cls: 'button-success'
 						},
 						{
 							label: 'Create Table and Apply',
 							type: 'submit',
-							icon: 'lets-icons:table-light',
+							icon: 'mdi:table',
 							cls: 'button-secondary',
 							hidden: !conf?.cacheType.endsWith('DatabaseCacheManager')
 						},
 						{
 							label: 'Cancel',
-							icon: 'material-symbols-light:cancel-outline',
+							icon: 'mdi:close-circle-outline',
 							cls: 'button-error',
 							disabled: !hasChanged,
 							onclick: cancel

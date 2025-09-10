@@ -16,9 +16,9 @@
 	let rootProject = $derived(projects.find(({ name }) => name == page.params.project));
 
 	let filters = $state([
-		{ icon: 'ph:video-thin', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
+		{ icon: 'mdi:video-outline', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
 		{
-			icon: 'ph:books-thin',
+			icon: 'mdi:book-open-variant',
 			count: 0,
 			filter: ({ name }) => name.startsWith('lib')
 		}
@@ -158,7 +158,7 @@
 								href={resolve('/(app)/dashboard/[[project]]/backend', params)}
 								class="h-fit rounded-br-lg preset-filled-warning-100-900 p-3 hover:preset-filled-warning-300-700"
 							>
-								<Ico icon="ph:gear-six-thin" size="nav" />
+								<Ico icon="mdi:cog" size="nav" />
 							</a>
 						</div>
 						{#if hasFrontend == 'true'}
@@ -167,7 +167,7 @@
 									href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
 									class="h-fit rounded-bl-lg preset-filled-success-100-900 p-3 hover:preset-filled-success-300-700"
 								>
-									<Ico icon="ph:video-thin" size="nav" />
+									<Ico icon="mdi:video-outline" size="nav" />
 								</a>
 							</div>
 						{/if}
@@ -183,7 +183,7 @@
 									class:preset-filled-secondary-100-900={rootProject != project}
 									class:preset-filled-secondary-400-600={rootProject == project}
 								>
-									<Ico icon="ph:plugs-connected-thin" size="nav" />
+									<Ico icon="mdi:power-plug" size="nav" />
 								</a>
 							</div>
 						{/if}
@@ -193,7 +193,7 @@
 									href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
 									class="h-fit rounded-tl-lg preset-filled-primary-100-900 p-3 hover:preset-filled-primary-300-700"
 								>
-									<Ico icon="ph:package-thin" size="nav" />
+									<Ico icon="mdi:package-variant-closed" size="nav" />
 								</a>
 							</div>
 						{/if}

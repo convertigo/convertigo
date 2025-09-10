@@ -5,64 +5,64 @@ const parts = $derived([
 	[
 		{
 			title: 'Home',
-			icon: 'material-symbols:home-outline-rounded',
+			icon: 'mdi:home-outline',
 			page: '/(app)/admin'
 		},
 		{
 			title: 'Config',
-			icon: 'material-symbols:settings-outline-rounded',
+			icon: 'mdi:cog-outline',
 			id: '/(app)/admin/config/[category]',
 			page: '/(app)/admin/config'
 		},
 		{
 			title: 'Projects',
-			icon: 'material-symbols:folder-outline',
+			icon: 'mdi:folder-outline',
 			page: '/(app)/admin/projects'
 		},
 		{
 			title: 'Symbols',
-			icon: 'material-symbols:hotel-class-outline',
+			icon: 'mdi:star-outline',
 			page: '/(app)/admin/symbols'
 		},
 		{
 			title: 'Connections',
-			icon: 'material-symbols:online-prediction-rounded',
+			icon: 'mdi:brain',
 			page: '/(app)/admin/connections'
 		},
 		{
 			title: 'Logs',
-			icon: 'material-symbols:search-rounded',
+			icon: 'mdi:magnify',
 			id: '/(app)/admin/logs/[tab]',
 			page: '/(app)/admin/logs'
 		},
 		{
 			title: 'Full Sync',
-			icon: 'material-symbols:sync-arrow-up-rounded',
+			icon: 'mdi:cloud-sync-outline',
 			page: '/(app)/admin/fullsync'
 		},
 		{
 			title: 'Cache',
-			icon: 'material-symbols:cached-rounded',
+			icon: 'mdi:cached',
 			page: '/(app)/admin/cache'
 		},
 		{
 			title: 'Scheduler',
-			icon: 'material-symbols:schedule-outline-rounded',
+			icon: 'mdi:calendar-clock',
 			page: '/(app)/admin/scheduler'
 		},
 		{
 			title: 'Roles',
-			icon: 'material-symbols:supervised-user-circle-outline',
+			icon: 'mdi:account-supervisor-circle-outline',
 			page: '/(app)/admin/roles'
 		},
 		{
 			title: 'Certificates',
-			icon: 'material-symbols:bookmark-added-outline-sharp',
+			icon: 'mdi:bookmark-check-outline',
 			page: '/(app)/admin/certificates'
 		},
 		{
 			title: 'Keys',
-			icon: 'material-symbols:key-outline-rounded',
+			icon: 'mdi:key-outline',
 			page: '/(app)/admin/keys',
 			loading: Status.cloud == null
 		}
@@ -70,40 +70,40 @@ const parts = $derived([
 	[
 		{
 			title: 'Dashboard',
-			icon: 'material-symbols:dashboard-outline-rounded',
+			icon: 'mdi:view-dashboard-outline',
 			page: '/(app)/dashboard'
 		},
 		{
 			title: 'Swagger',
-			icon: 'material-symbols:data-object',
+			icon: 'mdi:code-braces',
 			url: getUrl(`/swagger/dist/index.html?url=${encodeURIComponent(getUrl('/openapi?YAML'))}`),
 			external: true
 		},
 		{
 			title: 'Test Platform',
-			icon: 'material-symbols:dashboard-outline-rounded',
+			icon: 'mdi:view-dashboard-outline',
 			url: getUrl('/testplatform.html'),
 			external: true
 		},
 		{
 			title: 'Old Admin',
-			icon: 'material-symbols:settings-outline-rounded',
+			icon: 'mdi:cog-outline',
 			url: getUrl('/admin_/'),
 			external: true
 		},
 		{
 			title: 'Convertigo',
-			icon: 'material-symbols:cloud-outline',
+			icon: 'mdi:cloud-outline',
 			url: 'https://www.convertigo.com'
 		},
 		{
 			title: 'Dev Network',
-			icon: 'material-symbols:device-hub',
+			icon: 'mdi:hub',
 			url: 'https://convertigo.atlassian.net/wiki/spaces/CK/'
 		},
 		{
 			title: 'Documentation',
-			icon: 'material-symbols:unknown-document-outline',
+			icon: 'mdi:file-question-outline',
 			url: 'https://doc.convertigo.com'
 		}
 	]

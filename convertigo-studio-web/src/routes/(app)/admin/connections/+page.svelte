@@ -48,7 +48,7 @@
 				buttons={[
 					{
 						label: 'Delete all Sessions and Contexts',
-						icon: 'mingcute:delete-line',
+						icon: 'mdi:delete-outline',
 						cls: 'button-error',
 						onclick: async (event) => {
 							if (
@@ -101,7 +101,7 @@
 						size="4"
 						buttons={[
 							{
-								icon: 'lets-icons:search-light',
+								icon: 'mdi:magnify',
 								cls: 'button-primary',
 								onclick: () => {
 									alert('TODO: filter in log viewer');
@@ -115,7 +115,7 @@
 								}
 							},
 							{
-								icon: 'mingcute:delete-line',
+								icon: 'mdi:delete-outline',
 								cls: 'button-error',
 								onclick: async (event) => {
 									if (
@@ -137,7 +137,7 @@
 					{/if}
 				{:else if def.name == 'FS'}
 					<Ico
-						icon="material-symbols-light:sync-outline"
+						icon="mdi:sync"
 						class={!init
 							? 'animate-pulse'
 							: isFullSyncActive == 'true'
@@ -188,12 +188,12 @@
 						size="4"
 						buttons={[
 							{
-								icon: 'lets-icons:search-light',
+								icon: 'mdi:magnify',
 								cls: 'button-primary',
 								onclick: () => {}
 							},
 							{
-								icon: 'mingcute:delete-line',
+								icon: 'mdi:delete-outline',
 								cls: 'button-error',
 								onclick: async (event) => {
 									if (

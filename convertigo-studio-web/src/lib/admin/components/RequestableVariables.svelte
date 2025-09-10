@@ -77,8 +77,7 @@
 						<button
 							type="button"
 							class="btn w-fit! bg-surface-200-800 btn-sm"
-							onclick={() => multiples[row.name].push({ val: '' })}
-							><Ico icon="grommet-icons:add" /></button
+							onclick={() => multiples[row.name].push({ val: '' })}><Ico icon="mdi:plus" /></button
 						><button type="button" onclick={() => parse(row)} class="btn bg-surface-200-800 btn-sm">
 							<Ico icon="mdi:backup-restore" />
 						</button>
@@ -94,7 +93,7 @@
 								type="button"
 								class="btn w-fit! bg-surface-200-800 btn-sm"
 								onclick={() => multiples[row.name].splice(i, 1)}
-								><Ico icon="mingcute:delete-line" /></button
+								><Ico icon="mdi:delete-outline" /></button
 							>
 						</div>
 					{/each}

@@ -115,7 +115,7 @@
 				<tr>
 					<td colspan={definition.length}>
 						<div class="layout-x">
-							<Ico icon="line-md:coffee-loop" size={20} />
+							<Ico icon="mdi:coffee" size={20} />
 							<p class="ztext-surface-300 font-bold">There is no data to display ...</p>
 						</div>
 					</td>

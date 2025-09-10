@@ -112,14 +112,14 @@
 					buttons={[
 						{
 							label: 'Save changes',
-							icon: 'material-symbols-light:save-as-outline',
+							icon: 'mdi:content-save-edit-outline',
 							cls: 'button-success',
 							disabled: !hasChanges,
 							onclick: saveChanges
 						},
 						{
 							label: 'Cancel changes',
-							icon: 'material-symbols-light:cancel-outline',
+							icon: 'mdi:close-circle-outline',
 							cls: 'button-error',
 							disabled: !hasChanges,
 							onclick: refresh
@@ -150,7 +150,7 @@
 					onValueChange={(e) => (Last.advanced = e.value)}
 				>
 					<Accordion.Item value="" panelPadding="py" controlPadding="">
-						{#snippet lead()}<Ico icon="game-icons:level-three-advanced" />{/snippet}
+						{#snippet lead()}<Ico icon="mdi:star-three-points-outline" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}
 						{#snippet panel()}
 							<div class="layout-cols-2 w-full">

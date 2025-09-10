@@ -122,9 +122,9 @@
 			{#if node.icon?.includes('?')}
 				<AutoSvg class="h-6 w-6 p-1" fill="currentColor" src="{getUrl()}{node.icon}" alt="ico" />
 			{:else if node.icon == 'file'}
-				<Ico icon="material-symbols:unknown-document-outline" class="h-6 w-6" />
+				<Ico icon="mdi:file-question-outline" class="h-6 w-6" />
 			{:else if node.icon == 'folder'}
-				<Ico icon="material-symbols:folder-outline" class="h-6 w-6" />
+				<Ico icon="mdi:folder-outline" class="h-6 w-6" />
 			{:else}
 				<Ico icon="convertigo:logo" class="h-6 w-6" />
 			{/if}
@@ -148,7 +148,7 @@
 				buttons={[
 					{
 						label: 'Save changes',
-						icon: 'material-symbols-light:save-as-outline',
+						icon: 'mdi:content-save-edit-outline',
 						cls: 'button-success',
 						disabled: !hasChanges,
 						onclick: async () => {
@@ -165,7 +165,7 @@
 					},
 					{
 						label: 'Cancel changes',
-						icon: 'material-symbols-light:cancel-outline',
+						icon: 'mdi:close-circle-outline',
 						cls: 'button-error',
 						disabled: !hasChanges,
 						onclick: cancel
@@ -219,7 +219,7 @@
 											? []
 											: [
 													{
-														icon: 'material-symbols:hotel-class-outline',
+														icon: 'mdi:star-outline',
 														title: 'edit symbols',
 														onclick: () => onSwitchSymbols(row)
 													}

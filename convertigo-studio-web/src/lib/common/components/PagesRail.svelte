@@ -8,7 +8,7 @@
 	let { parts: _parts } = $props();
 	let parts = $derived([
 		..._parts,
-		[{ title: 'Logout', icon: 'material-symbols-light:cancel-outline', page: '/(app)/logout' }]
+		[{ title: 'Logout', icon: 'mdi:close-circle-outline', page: '/(app)/logout' }]
 	]);
 	let activeIndex = $derived.by(() => {
 		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
