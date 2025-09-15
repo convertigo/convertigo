@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -191,7 +190,6 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 					
 					if (searchLogin != null) {
 						int countLimit = 0, timeLimit = 0;
-						String searchHost = getHost(serverUrl);
 						String searchFilter = getFilter(userLogin);
 						String[] searchAttributes = attributes.getStringArray(this);
 						
@@ -200,10 +198,10 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 						
 						// Search database for given user
 						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search start");
-						twsLDAP.search(searchHost, searchLogin, searchPassword, searchBase, searchFilter, searchAttributes, timeLimit, countLimit);
+						twsLDAP.search(serverUrl, searchLogin, searchPassword, searchBase, searchFilter, searchAttributes, timeLimit, countLimit);
 						String errorMsg = twsLDAP.errorMessage != null ? " (Error: "+twsLDAP.errorMessage+")":"";
 						boolean bFound = twsLDAP.hasMoreResults();
-						Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP search: host:"+searchHost+", searchBase:"+searchBase+", filter:"+ searchFilter + "; user "+ (bFound ? "found":"NOT found") + errorMsg);
+						Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP search: host:"+serverUrl+", searchBase:"+searchBase+", filter:"+ searchFilter + "; user "+ (bFound ? "found":"NOT found") + errorMsg);
 						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search end");
 						
 						if (bFound) {
@@ -343,17 +341,6 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 			}
 		}
 		return username;
-	}
-
-	private static String getHost(String ldap_url) {
-		String host = "";
-		try {
-			URL ldapURL = new URL(ldap_url.toLowerCase().replaceFirst("ldap", "http"));
-			host = ldapURL.getHost();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return host;
 	}
 
 	@Override
