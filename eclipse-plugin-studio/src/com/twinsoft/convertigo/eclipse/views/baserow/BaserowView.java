@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -650,6 +651,29 @@ div.radio:has(.iconoir-lock)
 		}
 	}
 
+	private JSONObject checkGrp(Map<Integer, JSONObject> groups, Integer grpKey) throws InterruptedException, ExecutionException, JSONException {
+			var grp = groups.get(grpKey);
+			if (grp == null) {
+				groups.put(grpKey, grp = new JSONObject());
+				var res = callObject("database/views/" + (grpKey == null ? view_id : ("filter-group/" + grpKey))+ "/").get();
+				var filter_type = res.has("filter_type") ? get(res, "filter_type") : "AND";
+				var parent_group = res.has("parent_group") ? (res.isNull("parent_group") ? null : res.getInt("parent_group")) : null;
+				var parent = parent_group == grpKey ? null : checkGrp(groups, parent_group); 
+				var prefix = parent == null ? "" : parent.get("prefix");
+				prefix += StringUtils.capitalize(filter_type.toLowerCase());
+				grp.put("prefix", prefix);
+				grp.put("filter_type", filter_type);
+				grp.put("filters", new JSONArray());
+				if (parent != null) {
+					if (!parent.has("groups")) {
+						parent.put("groups", new JSONArray());
+					}
+					parent.getJSONArray("groups").put(grp);
+				}
+			}
+			return grp;
+	}
+	
 	private void createStub(List<Pair<String, String>> stubs, boolean authenticatedContextRequired, Accessibility accessibility) {
 		if (project == null) {
 			return;
@@ -1028,24 +1052,7 @@ div.radio:has(.iconoir-lock)
 												String name = field.getString("name");
 												String typ = filter.getString("type");
 												var grpKey = (Integer) (filter.isNull("group") ? null : filter.getInt("group"));
-												JSONObject grp = groups.get(grpKey);
-												if (grp == null) {
-													groups.put(grpKey, grp = new JSONObject());
-													JSONObject res = callObject("database/views/" + (grpKey == null ? view_id : ("filter-group/" + grpKey))+ "/").get();
-													filter_type = res.has("filter_type") ? get(res, "filter_type") : "AND";
-													var parent = !res.has("parent_group") ? null : groups.get(res.isNull("parent_group") ? null : res.getInt("parent_group")); 
-													var prefix = parent == null ? "" : parent.get("prefix");
-													prefix += StringUtils.capitalize(filter_type.toLowerCase());
-													grp.put("prefix", prefix);
-													grp.put("filter_type", filter_type);
-													grp.put("filters", new JSONArray());
-													if (parent != null) {
-														if (!parent.has("groups")) {
-															parent.put("groups", new JSONArray());
-														}
-														parent.getJSONArray("groups").put(grp);
-													}
-												}
+												var grp = checkGrp(groups, grpKey);
 												RequestableVariable var = null;
 												if (!typ.contains("empty")) {
 													var = new RequestableVariable();
