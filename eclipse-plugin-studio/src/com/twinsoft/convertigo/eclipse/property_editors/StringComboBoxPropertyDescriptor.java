@@ -45,6 +45,7 @@ import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.eclipse.ColorEnum;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
@@ -96,7 +97,18 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 		protected Control createControl(Composite parent) {
 			comboBox = new CCombo(parent, getStyle());
 			comboBox.setFont(parent.getFont());
-
+			
+			DatabaseObject dbo = databaseObjectTreeObject.getObject();
+			boolean isScriptable = false;
+			try {
+				Method method = dbo.getClass().getMethod("isScriptableProperty", new Class[] { String.class});
+				isScriptable = (boolean) method.invoke(dbo, new Object[] { (String) getId() });
+			} catch (Exception e) {}
+			if (isScriptable) {
+				comboBox.setForeground(ColorEnum.BLACK.get());
+				comboBox.setBackground(ColorEnum.JAVASCRIPTABLE.get());
+			}
+			
 			populateComboBoxItems();
 
 			comboBox.addKeyListener(new KeyAdapter() {
