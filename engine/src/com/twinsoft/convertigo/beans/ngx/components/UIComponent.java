@@ -609,30 +609,31 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 					"			return scopeVal;" + System.lineSeparator() +
 					"		}" + System.lineSeparator() +
 					"		" + System.lineSeparator() +
-					"		let get = (keyName, keyVal) => {" + System.lineSeparator() +
+					"		let get = (keyName, keyVal, keyFunction?) => {" + System.lineSeparator() +
+					"			keyFunction = keyFunction == undefined ? \""+functionName+"\": keyFunction;" + System.lineSeparator() +
 					"			let val = undefined;" + System.lineSeparator() +
 					"			try {" + System.lineSeparator() +
 					"				val= keyVal === '' ? keyVal : eval('('+ keyVal + ')');" + System.lineSeparator() +
 					"				if (val == undefined) {" + System.lineSeparator() +
-					"					"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");" + System.lineSeparator() +
+					"					"+pageKey+".c8o.log.trace(\"[MB] \"+keyFunction+\": key=\"+ keyName +\" value=undefined\");" + System.lineSeparator() +
 					"				} else {" + System.lineSeparator() +
-					"					"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=\"+ val);" + System.lineSeparator() +
+					"					"+pageKey+".c8o.log.trace(\"[MB] \"+keyFunction+\": key=\"+ keyName +\" value=\"+ val);" + System.lineSeparator() +
 					"				}" + System.lineSeparator() +
 					"			} catch(e) {" + System.lineSeparator() +
 					"				try {" + System.lineSeparator() +
 					"					let scopeVal = fromScope(keyVal);" + System.lineSeparator() +
 					"					val= keyVal === '' ? keyVal : eval('('+ scopeVal + ')');" + System.lineSeparator() +
 					"					if (val == undefined) {" + System.lineSeparator() +
-					"						"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");" + System.lineSeparator() +
+					"						"+pageKey+".c8o.log.trace(\"[MB] \"+keyFunction+\": key=\"+ keyName +\" value=undefined\");" + System.lineSeparator() +
 					"					} else {" + System.lineSeparator() +
-					"						"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=\"+ val);" + System.lineSeparator() +
+					"						"+pageKey+".c8o.log.trace(\"[MB] \"+keyFunction+\": key=\"+ keyName +\" value=\"+ val);" + System.lineSeparator() +
 					"					}" + System.lineSeparator() +
 					"				} catch(e1) {" + System.lineSeparator() +
 					"					" + System.lineSeparator() +
 					"				}" + System.lineSeparator() +
 					"				if (val == undefined) {" + System.lineSeparator() +
 					"					let sKeyVal = keyVal == null ? \"null\" : (keyVal == undefined ? \"undefined\" : keyVal);" + System.lineSeparator() +
-					"					"+pageKey+".c8o.log.warn(\"[MB] "+functionName+": For \"+ keyName +\":\"+ sKeyVal + \", \"+ e.message);" + System.lineSeparator() +
+					"					"+pageKey+".c8o.log.warn(\"[MB] \"+keyFunction+\": For \"+ keyName +\":\"+ sKeyVal + \", \"+ e.message);" + System.lineSeparator() +
 					"				}" + System.lineSeparator() +
 					"			}" + System.lineSeparator() +
 					"			return val;" + System.lineSeparator() +

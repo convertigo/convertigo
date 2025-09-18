@@ -73,10 +73,11 @@ public class UIActionCaseEvent extends UIActionEvent {
 		if (isEnabled()) {
 			String caseFn = getCaseFn();
 			String caseIn = super.computeEvent();
+			String functionKey = toString() + "["+ caseFn +"]";
 			
 			String tsCode = "";
 			tsCode += "\t\tconst "+caseFn+" = (c8oPage : C8oPageBase) : Promise<any> => {" + System.lineSeparator();
-			tsCode += computeInnerGet("c8oPage", "doCase");
+			tsCode += computeInnerGet("c8oPage", functionKey);
 			tsCode += caseIn.isEmpty() ? "\t\t\treturn Promise.resolve()"+ System.lineSeparator() : caseIn;
 			tsCode += "\t\t}" + System.lineSeparator();
 			return tsCode;

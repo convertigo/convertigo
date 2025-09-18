@@ -157,6 +157,10 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 		return getActionName();
 	}
 
+	public String getFunctionKey() {
+		return getName() + "[" + getFunctionName() + "]";
+	}
+	
 	@Override
 	public String computeTemplate() {
 		return null;
@@ -226,6 +230,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 			cartridge.append("\t */").append(System.lineSeparator());
 			
 			String functionName = getFunctionName();
+			String functionKey = getFunctionKey();
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("page: "+ cafPageType +", props, vars, event: any");
@@ -241,13 +246,13 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 			computed += "\t\tlet out = event;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("page",functionName);
+			computed += computeInnerGet("page",functionKey);
 			computed += "\t\t" + System.lineSeparator();
 			
 			computed += "\t\tlet params = { ..."+ computeStackParams() +", ...vars};" + System.lineSeparator();
 			
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tpage.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\tpage.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += "\t\tparent = self = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
 			computed += "\t\tself.in = {props: props, vars: params};"+ System.lineSeparator();
@@ -265,7 +270,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 				computed += "\t\t"+ sCatch;
 				computed += "\t\t})"+ System.lineSeparator();
 			}
-			computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
 			if (sbFinally.length() > 0) {
 				String sFinally = sbFinally.toString();
 				sFinally = sFinally.replaceAll("this", "page");
@@ -277,9 +282,9 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 				computed += "\t\tout = parent.out;"+ System.lineSeparator();
 				computed += "\t\t"+ sFinally;
 				computed += "\t\t})"+ System.lineSeparator();
-				computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
 			}
-			computed += "\t\t.then((res:any) => {page.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {page.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";
 		}

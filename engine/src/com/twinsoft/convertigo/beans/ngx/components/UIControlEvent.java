@@ -305,6 +305,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			
 			String cafPageType = "C8oPageBase";
 			String functionName = getEventFunctionName();
+			String functionKey = getFunctionKey();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
@@ -315,7 +316,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
+			computed += computeInnerGet("c8oPage",functionKey);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
@@ -335,7 +336,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				computed += "\t\t" + System.lineSeparator();
 			}
 			
-			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeEvent();
 			if (sbCatch.length() > 0) {
@@ -346,7 +347,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				computed += "\t\t"+ sbCatch.toString() + System.lineSeparator();
 				computed += "\t\t})"+ System.lineSeparator();
 			}			
-			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
 			if (sbFinally.length() > 0) {
 				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
 				computed += "\t\tparent = self;"+ System.lineSeparator();
@@ -354,9 +355,9 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				computed += "\t\tout = parent.out;"+ System.lineSeparator();
 				computed += "\t\t"+ sbFinally.toString() + System.lineSeparator();
 				computed += "\t\t})"+ System.lineSeparator();
-				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
 			}			
-			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolveP(res)});" + System.lineSeparator();
 			// zoneless support
 			if (compareToTplVersion("8.3.2.0") >= 0) {
 				computed += "\t\t}).finally(() => {this.ref.markForCheck();});"+System.lineSeparator();
@@ -504,6 +505,10 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		return "ETS" + priority;
 	}
 
+	public String getFunctionKey() {
+		return getEventName() + "[" + getEventFunctionName() + "]";
+	}
+	
 	protected String getScope() {
 		
 		UIControlEvent original = (UIControlEvent) getOriginal();

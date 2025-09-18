@@ -64,10 +64,11 @@ public class UIActionLoopEvent extends UIActionEvent {
 		if (!loopIn.isEmpty()) {
 			String item = varItemName.isEmpty() ? "item" : varItemName;
 			String index = varIndexName.isEmpty() ? "index" : varIndexName;
+			String functionKey = toString() + "[doLoop"+ priority +"]";
 			
 			String tsCode = "";
 			tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
-			tsCode += computeInnerGet("c8oPage", "doLoop");
+			tsCode += computeInnerGet("c8oPage", functionKey);
 			tsCode += loopIn;
 			tsCode += "\t\t}" + System.lineSeparator();
 			

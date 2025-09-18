@@ -132,6 +132,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return getName();
 	}
 	
+	@Override
+	public String getFunctionKey() {
+		return getName() + "[" + getFunctionName() + "]";
+	}
+	
 	protected int numberOfActions() {
 		checkSubLoaded();
 		
@@ -307,6 +312,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		boolean extended = !forTemplate;
 		
 		if (isEnabled()) {
+			String keyFunction = getFunctionKey();
+			
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
 				StringBuilder sbProps = initProps(forTemplate);
@@ -351,7 +358,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								smartValue = "scope."+ smartValue;
 							}
 							
-							smartValue = "get('"+ p_name +"', `"+smartValue+"`)";
+							smartValue = "get('"+ p_name +"', `"+smartValue+"`,'"+ keyFunction+"')";
 						}
 						
 						sbProps.append(smartValue);
@@ -395,7 +402,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								if (!smartValue.isEmpty()) {
 									sbVars.append(sbVars.length() > 0 ? ", ":"");
 									sbVars.append(uicv.getVarName()).append(": ");
-									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`,'"+ keyFunction+"')");
 								}
 							}
 						}
@@ -529,6 +536,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			String cafPageType = "C8oPageBase";
 			String functionName = getFunctionName();
+			String functionKey = getFunctionKey();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
@@ -540,18 +548,18 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += computeInnerGet("c8oPage",functionName);
+			computed += computeInnerGet("c8oPage",functionKey);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\tout = event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeActionContent();
-			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
-			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";
 		}
@@ -564,6 +572,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			if (ionBean != null) {
 				int numThen = numberOfActions();
 				String actionName = getActionName();
+				String functionKey = getFunctionKey();
 				String inputs = computeActionInputs(false);
 				
 				StringBuilder sbCatch = new StringBuilder();
@@ -598,6 +607,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				//tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
+				tsCode += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 				
 				if ("InvokeAction".equals(ionBean.getName())) {
 					if (isBroken()) {
@@ -649,11 +659,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 				
 				if ("IfAction".equals(ionBean.getName())) {
-					tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);}})"+ System.lineSeparator();
+					tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+functionKey+":\", error.message);throw new Error(error);}})"+ System.lineSeparator();
 				} else {
-					tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+					tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+functionKey+":\", error.message);throw new Error(error);})"+ System.lineSeparator();
 				}
-				tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+				tsCode += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolve(res)}).catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": an error occured\");reject(error)})"+ System.lineSeparator();
 				tsCode += "\t\t})"+ System.lineSeparator();
 				return tsCode;
 			}
