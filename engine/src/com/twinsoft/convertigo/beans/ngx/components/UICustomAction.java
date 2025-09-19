@@ -195,10 +195,16 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "ATS"+ this.priority;
 	}
 	
+	@Override
 	public String getActionName() {
 		return "CTS"+ this.priority;
 	}
 
+	@Override
+	public String getFunctionKey() {
+		return getName() + "[" + getActionName() + "]";
+	}
+	
 	public String getActionCode() {
 		return computeActionMain(true);
 	}
@@ -564,6 +570,8 @@ public class UICustomAction extends UIComponent implements IAction {
 		boolean extended = !forTemplate;
 		
 		if (isEnabled()) {
+			String keyFunction = getFunctionKey();
+			
 			StringBuilder sbProps = initProps(forTemplate);
 			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 			
@@ -601,7 +609,7 @@ public class UICustomAction extends UIComponent implements IAction {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");
 								sbVars.append(uicv.getVarName()).append(": ");
 								if(tplIsLowerThan8043) {
-									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`, '"+keyFunction+"')");
 								}
 								else {
 									sbVars.append(smartValue);
@@ -766,6 +774,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
+			String functionKey = getFunctionKey();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
@@ -778,7 +787,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			if(tplIsLowerThan8043) {
-				computed += computeInnerGet("c8oPage",functionName);
+				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
@@ -786,11 +795,11 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\tout = event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeActionContent();
-			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
-			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";
 		}
@@ -802,6 +811,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			int numThen = numberOfActions();
 			String beanName = getName();
 			String actionName = getActionName();
+			String functionKey = getFunctionKey();
 			String inputs = computeActionInputs(false);
 			
 			StringBuilder sbCatch = new StringBuilder();
@@ -836,7 +846,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			//tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
-			
+			tsCode += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 			if (getSharedAction() != null) {
 				tsCode +="\t\treturn this.actionBeans."+ actionName +
 						"(this, {...{stack: stack, parent: parent, out: out}, ...self.in.props}, "+ 
@@ -875,8 +885,8 @@ public class UICustomAction extends UIComponent implements IAction {
 			} else {
 				tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 			}
-			tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
-			tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+			tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+functionKey+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+			tsCode += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolve(res)}).catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": an error occured\");reject(error)})"+ System.lineSeparator();
 			tsCode += "\t\t})"+ System.lineSeparator();
 			return tsCode;
 		}

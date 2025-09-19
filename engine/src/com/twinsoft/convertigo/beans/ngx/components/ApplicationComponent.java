@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.ngx.components;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -170,6 +171,13 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		
 		c8o_version = p_version;
+		
+		// splitPaneLayout property is now scriptable
+		String[] old = new String[] {"xs","sm","md","lg","xl"};
+		if (Arrays.asList(old).contains(splitPaneLayout)) {
+			splitPaneLayout = "'"+ splitPaneLayout + "'";
+			hasChanged = true;
+		}
 	}
 
 	@Override
@@ -1148,10 +1156,11 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		String layout = getSplitPaneLayout();
 		boolean hasSplitPane = !layout.equals("not set");
 		if (hasSplitPane) {
-			if (layout.isEmpty())
+			if (layout.isEmpty()) {
 				sb.append("<ion-split-pane content-id=\"main-content\">").append(System.lineSeparator());
-			else
-				sb.append("<ion-split-pane when=\""+ layout +"\" content-id=\"main-content\">").append(System.lineSeparator());
+			} else {
+				sb.append("<ion-split-pane [when]=\""+ layout +"\" content-id=\"main-content\">").append(System.lineSeparator());
+			}
 		}
 		
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
@@ -1511,7 +1520,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			return projects.descendingSet().toArray(new String[projects.size()]);
 		}
 		if (propertyName.equals("splitPaneLayout")) {
-			return new String[] {"not set","xs","sm","md","lg","xl"};
+			return new String[] {"not set","'xs'","'sm'","'md'","'lg'","'xl'"};
 		}
 		return new String[0];
 	}
@@ -1738,4 +1747,12 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		return super.testAttribute(name, value);
 	}
+	
+	public boolean isScriptableProperty(String propertyName) {
+		if (propertyName.equals("splitPaneLayout")) {
+			return true;
+		}
+		return false;
+	}
+	
 }

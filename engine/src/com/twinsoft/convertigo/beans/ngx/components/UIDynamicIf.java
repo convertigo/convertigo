@@ -115,6 +115,7 @@ public class UIDynamicIf extends UIDynamicAction {
 			if (ionBean != null) {
 				int numThen = numberOfActions();
 				String actionName = getActionName();
+				String functionKey = getFunctionKey();
 				String inputs = computeActionInputs(false);
 				
 				StringBuilder sbElse = new StringBuilder();
@@ -158,6 +159,7 @@ public class UIDynamicIf extends UIDynamicAction {
 				//tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
+				tsCode += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 				tsCode +="\t\treturn this.actionBeans."+actionName+
 						"(this, self.in.props, {...stack[\"root\"].in, ...self.in.vars})"+ System.lineSeparator();
 				
@@ -189,14 +191,14 @@ public class UIDynamicIf extends UIDynamicAction {
 				}
 				tsCode += "\t\t} else if (res == false) {"+ System.lineSeparator();
 				if (sbElse.toString().isEmpty()) {
-					tsCode += "\t\tthis.c8o.log.debug(\"For '"+getName()+"' condition is not verified. No Else handler, skipping and resolve false\");" + System.lineSeparator();
+					tsCode += "\t\tthis.c8o.log.debug(\"For "+functionKey+" condition is not verified. No Else handler, skipping and resolve false\");" + System.lineSeparator();
 					tsCode += "\t\tresolve(false)" + System.lineSeparator();
 				} else {
 					tsCode += "\t\t"+ sbElse.toString().replaceFirst("\t\t", "");
 				}
 				tsCode += "\t\t}"+ System.lineSeparator();
-				tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);}})"+ System.lineSeparator();
-				tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+				tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+functionKey+":\", error.message);throw new Error(error);}})"+ System.lineSeparator();
+				tsCode += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolve(res)}).catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": an error occured\");reject(error)})"+ System.lineSeparator();
 				tsCode += "\t\t})"+ System.lineSeparator();
 				return tsCode;
 			}

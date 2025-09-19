@@ -67,6 +67,11 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		return isBroken() ? "ErrorAction" : getTargetSharedAction().getActionName();
 	}
 
+	@Override
+	public String getFunctionKey() {
+		return getName() + "[" + getFunctionName() + "]";
+	}
+	
 	public String getSharedActionQName() {
 		return stack;
 	}

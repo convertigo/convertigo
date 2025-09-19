@@ -152,6 +152,7 @@ public class UIDynamicSwitch extends UIDynamicAction {
 			if (ionBean != null) {
 				int numThen = numberOfActions();
 				String actionName = getActionName();
+				String functionKey = getFunctionKey();
 				String inputs = computeActionInputs(false);
 				
 				StringBuilder sbCase = new StringBuilder();
@@ -234,7 +235,8 @@ public class UIDynamicSwitch extends UIDynamicAction {
 				tsCode += "\t\t" + System.lineSeparator();
 				
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {event: event};"+ System.lineSeparator();
-				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();				
+				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
+				tsCode += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": started\");" + System.lineSeparator();
 //				tsCode +="\t\treturn this.actionBeans."+actionName+
 //						"(this, self.in.props, {...stack[\"root\"].in, ...self.in.vars}, cases)"+ System.lineSeparator();
 				if (getSharedAction() != null) {
@@ -275,8 +277,8 @@ public class UIDynamicSwitch extends UIDynamicAction {
 				} else {
 					tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 				}
-				tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
-				tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+				tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+functionKey+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+				tsCode += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolve(res)}).catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": an error occured\");reject(error)})"+ System.lineSeparator();
 				tsCode += "\t\t})"+ System.lineSeparator();
 				return tsCode;
 			}
