@@ -7,7 +7,6 @@
 	import MdiBookMultiple from '~icons/mdi/book-multiple?raw';
 	import MdiBookOpenVariant from '~icons/mdi/book-open-variant?raw';
 	import MdiBookmarkCheckOutline from '~icons/mdi/bookmark-check-outline?raw';
-	import MdiBrain from '~icons/mdi/brain?raw';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
 	import MdiBroom from '~icons/mdi/broom?raw';
 	import MdiCached from '~icons/mdi/cached?raw';
@@ -25,6 +24,8 @@
 	import MdiCogOutline from '~icons/mdi/cog-outline?raw';
 	import MdiCog from '~icons/mdi/cog?raw';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline?raw';
+	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline?raw';
+	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline?raw';
 	import MdiDatabase from '~icons/mdi/database?raw';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
@@ -34,6 +35,7 @@
 	import MdiExport from '~icons/mdi/export?raw';
 	import MdiEyeOff from '~icons/mdi/eye-off?raw';
 	import MdiEye from '~icons/mdi/eye?raw';
+	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline?raw';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline?raw';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
 	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
@@ -41,11 +43,14 @@
 	import MdiFolderOutline from '~icons/mdi/folder-outline?raw';
 	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
 	import MdiGithub from '~icons/mdi/github?raw';
+	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline?raw';
 	import MdiHomeOutline from '~icons/mdi/home-outline?raw';
 	import MdiHub from '~icons/mdi/hub?raw';
 	import MdiImport from '~icons/mdi/import?raw';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
 	import MdiKeyOutline from '~icons/mdi/key-outline?raw';
+	import MdiLanConnect from '~icons/mdi/lan-connect?raw';
+	import MdiLandPlots from '~icons/mdi/land-plots?raw';
 	import MdiLanguageJava from '~icons/mdi/language-java?raw';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby?raw';
 	import MdiLayersOutline from '~icons/mdi/layers-outline?raw';
@@ -64,6 +69,7 @@
 	import MdiReload from '~icons/mdi/reload?raw';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
 	import MdiSearch from '~icons/mdi/search?raw';
+	import MdiSmartphoneLink from '~icons/mdi/smartphone-link?raw';
 	import MdiStarOutline from '~icons/mdi/star-outline?raw';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline?raw';
 	import MdiSync from '~icons/mdi/sync?raw';
@@ -87,7 +93,6 @@
 		'mdi:book-multiple': MdiBookMultiple,
 		'mdi:book-open-variant': MdiBookOpenVariant,
 		'mdi:bookmark-check-outline': MdiBookmarkCheckOutline,
-		'mdi:brain': MdiBrain,
 		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
 		'mdi:broom': MdiBroom,
 		'mdi:cached': MdiCached,
@@ -105,6 +110,8 @@
 		'mdi:cog-outline': MdiCogOutline,
 		'mdi:cog': MdiCog,
 		'mdi:content-save-edit-outline': MdiContentSaveEditOutline,
+		'mdi:database-clock-outline': MdiDatabaseClockOutline,
+		'mdi:database-sync-outline': MdiDatabaseSyncOutline,
 		'mdi:database': MdiDatabase,
 		'mdi:delete-outline': MdiDeleteOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
@@ -114,6 +121,7 @@
 		'mdi:export': MdiExport,
 		'mdi:eye-off': MdiEyeOff,
 		'mdi:eye': MdiEye,
+		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
 		'mdi:filter-cog': MdiFilterCog,
@@ -121,11 +129,14 @@
 		'mdi:folder-outline': MdiFolderOutline,
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:github': MdiGithub,
+		'mdi:home-alert-outline': MdiHomeAlertOutline,
 		'mdi:home-outline': MdiHomeOutline,
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:key-outline': MdiKeyOutline,
+		'mdi:lan-connect': MdiLanConnect,
+		'mdi:land-plots': MdiLandPlots,
 		'mdi:language-java': MdiLanguageJava,
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
@@ -144,6 +155,7 @@
 		'mdi:reload': MdiReload,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:search': MdiSearch,
+		'mdi:smartphone-link': MdiSmartphoneLink,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,

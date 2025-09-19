@@ -205,7 +205,7 @@
 					showHeaders={false}
 					definition={[
 						{ key: 'Name', custom: true, class: 'min-w-32' },
-						{ key: 'Value', custom: true, class: 'text-right! break-all min-w-60' }
+						{ key: 'Value', custom: true, class: 'text-right! break' }
 					]}
 					{data}
 				>
@@ -243,5 +243,9 @@
 	}
 	:global(.statusTable td:has(> .off)) {
 		@apply preset-filled-error-200-800;
+	}
+	:global(.statusTable td.break) {
+		@apply wrap-break-word;
+		word-break: break-word;
 	}
 </style>

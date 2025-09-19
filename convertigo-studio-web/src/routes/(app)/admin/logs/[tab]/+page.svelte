@@ -60,7 +60,7 @@
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
 
 	const tabs = {
-		view: { name: 'Viewer', icon: 'mdi:magnify', viewer: true },
+		view: { name: 'Viewer', icon: 'mdi:file-document-box-outline', viewer: true },
 		purge: { name: 'Purge', icon: 'mdi:delete-outline' },
 		config: { name: 'Log Levels', icon: 'mdi:cog-outline' }
 	};

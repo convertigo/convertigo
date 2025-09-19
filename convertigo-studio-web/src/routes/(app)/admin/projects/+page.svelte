@@ -281,7 +281,7 @@
 							disabled: false
 						},
 						{
-							icon: 'mdi:language-ruby',
+							icon: 'mdi:cog',
 							cls: 'button-ico-tertiary',
 							href: `${base}/dashboard/${project}/backend/`,
 							disabled: false

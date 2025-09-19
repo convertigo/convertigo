@@ -72,8 +72,8 @@
 	onDestroy(Projects.stop);
 </script>
 
-<Card>
-	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
+<div class="layout-y">
+	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-50-950">
 		<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
 		<input
 			id="search"
@@ -116,7 +116,7 @@
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
 			<div
-				class="layout-y-stretch-none rounded-container bg-surface-200-800 p-low shadow-follow"
+				class="layout-y-stretch-none rounded-container bg-surface-50-950 p-low shadow-follow"
 				animate:flip={{ duration: 500 }}
 				transition:fade
 			>
@@ -130,7 +130,7 @@
 				</div>
 				<div class="relative">
 					<div
-						class="img-hover-zoom flex justify-center dark:opacity-70"
+						class="img-hover-zoom flex justify-center rounded-lg dark:opacity-70"
 						style="background-color: {stringToColor(
 							name ?? `_${i}`,
 							LightSvelte.dark
@@ -150,50 +150,45 @@
 							alt="project"
 						/>
 					</div>
-					<div class="absolute top-0 flex w-full">
-						<div class="flex grow">
-							<a
-								href={resolve('/(app)/dashboard/[[project]]/backend', params)}
-								class="h-fit rounded-br-lg preset-filled-warning-100-900 p-3 hover:preset-filled-warning-300-700"
-							>
-								<Ico icon="mdi:cog" size="nav" />
-							</a>
-						</div>
+					<div class="absolute top-0 layout-y-start-none overflow-clip rounded-tl-lg rounded-br-lg">
+						<a
+							href={resolve('/(app)/dashboard/[[project]]/backend', params)}
+							class="hover:preset-filled-warning-300-70 icon-link preset-filled-warning-100-900"
+						>
+							<Ico icon="mdi:cog" size="nav" />
+							<span class="icon-link-text">Backend</span>
+						</a>
 						{#if hasFrontend == 'true'}
-							<div class="flex grow justify-end">
-								<a
-									href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
-									class="h-fit rounded-bl-lg preset-filled-success-100-900 p-3 hover:preset-filled-success-300-700"
-								>
-									<Ico icon="mdi:video-outline" size="nav" />
-								</a>
-							</div>
+							<a
+								href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
+								class="icon-link preset-filled-success-100-900 hover:preset-filled-success-300-700"
+							>
+								<Ico icon="mdi:smartphone-link" size="nav" />
+								<span class="icon-link-text">Frontend</span>
+							</a>
 						{/if}
-					</div>
-					<div class="absolute inset-x-0 bottom-0 flex">
+
 						{#if ref?.length > 0}
-							<div class="flex grow">
-								<a
-									href={rootProject == project
-										? resolve('/(app)/dashboard')
-										: resolve('/(app)/dashboard/[[project]]', params)}
-									class="h-fit rounded-tr-lg p-3 hover:preset-filled-secondary-300-700"
-									class:preset-filled-secondary-100-900={rootProject != project}
-									class:preset-filled-secondary-400-600={rootProject == project}
-								>
-									<Ico icon="mdi:power-plug" size="nav" />
-								</a>
-							</div>
+							<a
+								href={rootProject == project
+									? resolve('/(app)/dashboard')
+									: resolve('/(app)/dashboard/[[project]]', params)}
+								class="icon-link hover:preset-filled-secondary-300-700"
+								class:preset-filled-secondary-100-900={rootProject != project}
+								class:preset-filled-secondary-400-600={rootProject == project}
+							>
+								<Ico icon="mdi:power-plug" size="nav" />
+								<span class="icon-link-text">References</span>
+							</a>
 						{/if}
 						{#if hasPlatform == 'true'}
-							<div class="flex grow justify-end">
-								<a
-									href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
-									class="h-fit rounded-tl-lg preset-filled-primary-100-900 p-3 hover:preset-filled-primary-300-700"
-								>
-									<Ico icon="mdi:package-variant-closed" size="nav" />
-								</a>
-							</div>
+							<a
+								href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
+								class="icon-link preset-filled-primary-100-900 hover:preset-filled-primary-300-700"
+							>
+								<Ico icon="mdi:package-variant-closed" size="nav" />
+								<span class="icon-link-text">Platforms</span>
+							</a>
 						{/if}
 					</div>
 				</div>
@@ -209,7 +204,7 @@
 			</div>
 		{/each}
 	</div>
-</Card>
+</div>
 
 <style>
 	.img-hover-zoom {
@@ -236,5 +231,25 @@
 
 	:global(.img-hover-zoom:hover svg) {
 		transform: scale(1.1);
+	}
+
+	.icon-link {
+		display: flex;
+		align-items: center;
+		padding: 0.5rem;
+	}
+
+	.icon-link-text {
+		max-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		transition:
+			max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.icon-link:hover .icon-link-text {
+		max-width: 200px;
+		margin-left: 5px;
 	}
 </style>

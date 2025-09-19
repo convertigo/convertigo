@@ -26,23 +26,23 @@ const parts = $derived([
 		},
 		{
 			title: 'Connections',
-			icon: 'mdi:brain',
+			icon: 'mdi:lan-connect',
 			page: '/(app)/admin/connections'
 		},
 		{
 			title: 'Logs',
-			icon: 'mdi:magnify',
+			icon: 'mdi:file-document-box-outline',
 			id: '/(app)/admin/logs/[tab]',
 			page: '/(app)/admin/logs'
 		},
 		{
 			title: 'Full Sync',
-			icon: 'mdi:cloud-sync-outline',
+			icon: 'mdi:database-sync-outline',
 			page: '/(app)/admin/fullsync'
 		},
 		{
 			title: 'Cache',
-			icon: 'mdi:cached',
+			icon: 'mdi:database-clock-outline',
 			page: '/(app)/admin/cache'
 		},
 		{
@@ -81,19 +81,19 @@ const parts = $derived([
 		},
 		{
 			title: 'Test Platform',
-			icon: 'mdi:view-dashboard-outline',
+			icon: 'mdi:home-alert-outline',
 			url: getUrl('/testplatform.html'),
 			external: true
 		},
 		{
 			title: 'Old Admin',
-			icon: 'mdi:cog-outline',
+			icon: 'mdi:home-alert-outline',
 			url: getUrl('/admin_/'),
 			external: true
 		},
 		{
 			title: 'Convertigo',
-			icon: 'mdi:cloud-outline',
+			icon: 'convertigo:logo',
 			url: 'https://www.convertigo.com'
 		},
 		{

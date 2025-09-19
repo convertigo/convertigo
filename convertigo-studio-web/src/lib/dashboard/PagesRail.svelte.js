@@ -11,17 +11,17 @@ const parts = $derived([
 	[
 		{
 			title: 'Admin',
-			icon: 'mdi:unfold-more-horizontal',
+			icon: 'mdi:land-plots',
 			page: '/(app)/admin'
 		},
 		{
 			title: 'Documentation',
-			icon: 'mdi:book-multiple',
+			icon: 'mdi:file-question-outline',
 			url: 'https://doc.convertigo.com/'
 		},
 		{
 			title: 'Convertigo',
-			icon: 'mdi:marketplace-outline',
+			icon: 'convertigo:logo',
 			url: 'https://www.convertigo.com'
 		}
 	]

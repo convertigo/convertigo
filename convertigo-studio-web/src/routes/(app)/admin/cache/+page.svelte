@@ -48,7 +48,7 @@
 						{
 							label: 'Apply',
 							type: 'submit',
-							icon: 'mdi:emoticon-happy-outline',
+							icon: 'mdi:check-all',
 							cls: 'button-success'
 						},
 						{

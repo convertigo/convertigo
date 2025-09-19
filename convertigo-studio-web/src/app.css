@@ -77,7 +77,7 @@
 }
 
 @utility shadow-follow {
-	@apply shadow-md/5 hover:shadow-md/15 dark:shadow-white;
+	@apply shadow-md/5 shadow-primary-500 hover:shadow-md/15;
 }
 
 @utility button-primary {

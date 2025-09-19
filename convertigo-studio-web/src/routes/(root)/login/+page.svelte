@@ -36,7 +36,7 @@
 		<span class="animate-pulse">Authenticating …</span>
 	</ProgressRing>
 {:else}
-	<Card class="preset-glass-surface" bg="">
+	<Card class="preset-glass-neutral" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
 			<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
 			<h1 class="text-center text-3xl">

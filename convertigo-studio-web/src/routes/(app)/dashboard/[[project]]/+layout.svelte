@@ -34,7 +34,7 @@
 			if (Project.hasFrontend) {
 				extras.push({
 					title: 'Frontend',
-					icon: 'mdi:video-outline',
+					icon: 'mdi:smartphone-link',
 					page: '/(app)/dashboard/[[project]]/frontend',
 					id: '/(app)/dashboard/[[project]]/frontend/[model]',
 					params: { project }
