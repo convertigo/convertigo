@@ -202,7 +202,7 @@ ISelectionListener, IPartListener2 {
 					treeViewer.getTree().getDisplay().asyncExec(() -> {
 						try {
 							treeViewer.setInput(root);
-							treeViewer.expandAll();
+							treeViewer.expandToLevel(4);
 							for (var n: Arrays.asList(requiresNode, usedByNode)) {
 								for (var c: n.getChildren()) {
 									if (c instanceof DboNode dn && selProject.equals(dn.getTarget())) {

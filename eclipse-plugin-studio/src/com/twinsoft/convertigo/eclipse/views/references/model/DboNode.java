@@ -46,7 +46,22 @@ public class DboNode extends AbstractParentNode {
 	}
 
 	public void setSource(DatabaseObject source) {
-		this.source = source;
+		var isEmpty = getChildren().isEmpty();
+		if (this.source == null && isEmpty) {
+			this.source = source;
+		} else {
+			if (isEmpty) {
+				// first time we have to clone current node
+				var clone = new DboNode(this, target.getName(), target);
+				clone.source = getSource();
+				addChild(clone);
+				this.source = null;
+			}
+			var node = new DboNode(this, target.getName(), target);
+			node.setSource(source);
+			addChild(node);
+			name = target.getName() + " (" + getChildren().size() + " uses)";
+		}
 	}
 
 	@Override
