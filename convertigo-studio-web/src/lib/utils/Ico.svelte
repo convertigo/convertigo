@@ -29,6 +29,7 @@
 	import MdiDatabase from '~icons/mdi/database?raw';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline?raw';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
+	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
 	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
 	import MdiEmoticonHappyOutline from '~icons/mdi/emoticon-happy-outline?raw';
@@ -115,6 +116,7 @@
 		'mdi:database': MdiDatabase,
 		'mdi:delete-outline': MdiDeleteOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
+		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,
 		'mdi:edit-outline': MdiEditOutline,
 		'mdi:emoticon-happy-outline': MdiEmoticonHappyOutline,

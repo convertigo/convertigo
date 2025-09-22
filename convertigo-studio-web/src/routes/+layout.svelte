@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { Toaster } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
@@ -44,15 +44,15 @@
 		}
 		if (!Authentication.authenticated && page.route.id != '/(root)/login') {
 			if (page.url.pathname.endsWith('.html/') || page.error) {
-				goto(`${base}/login/`);
+				goto(resolve('/login/'));
 			} else {
-				goto(`${base}/login/?redirect=${encodeURIComponent(page.url.pathname)}`);
+				goto(`${resolve('/login/')}?redirect=${encodeURIComponent(page.url.pathname)}`);
 			}
 		} else if (
 			Authentication.authenticated &&
 			(page.route.id == null || page.route.id == '/(root)' || page.route.id == '/(root)/login')
 		) {
-			goto(`${base}/admin/`);
+			goto(resolve('/admin/'));
 		}
 	});
 

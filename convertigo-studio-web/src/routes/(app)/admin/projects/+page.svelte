@@ -1,6 +1,6 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
@@ -283,7 +283,7 @@
 						{
 							icon: 'mdi:cog',
 							cls: 'button-ico-tertiary',
-							href: `${base}/dashboard/${project}/backend/`,
+							href: resolve(`/dashboard/${project}/backend/`),
 							disabled: false
 						},
 						{

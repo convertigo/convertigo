@@ -7,7 +7,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
@@ -421,6 +421,14 @@
 		};
 	}
 
+	// Avoid recursive synchronous loop when server returns no new lines.
+	// We keep only one pending retry via a single timeout reference.
+	let retryTimer;
+
+	onDestroy(() => {
+		if (retryTimer) clearTimeout(retryTimer);
+	});
+
 	export async function list(renew = false) {
 		Logs.live = live;
 		Logs.autoScroll = autoScroll;
@@ -432,8 +440,15 @@
 		}
 		let len = renew ? 0 : logs.length;
 		await Logs.list(renew);
+		// If no new lines arrived but we are in tailing mode (live) or server says moreResults,
+		// schedule a delayed retry instead of immediate recursion to prevent UI freeze.
 		if (logs.length == len && (live || Logs.moreResults)) {
-			await list(false);
+			if (retryTimer) clearTimeout(retryTimer);
+			retryTimer = setTimeout(async () => {
+				if (live || Logs.moreResults) {
+					await list(false);
+				}
+			}, 200);
 		}
 	}
 </script>

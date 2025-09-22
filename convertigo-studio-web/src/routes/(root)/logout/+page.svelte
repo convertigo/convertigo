@@ -2,12 +2,12 @@
 	import { ProgressRing } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Authentication from '$lib/common/Authentication.svelte';
 
 	if (browser) {
 		Authentication.logout().finally(() => {
-			goto(`${base}/login`);
+			goto(resolve('/login/'));
 		});
 	}
 </script>

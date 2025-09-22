@@ -143,13 +143,18 @@
 		</Card>
 
 		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
-			<Card>
+			<Card class="pt-low">
 				<Accordion
 					collapsible
 					value={Last.advanced}
 					onValueChange={(e) => (Last.advanced = e.value)}
 				>
-					<Accordion.Item value="" panelPadding="py" controlPadding="">
+					<Accordion.Item
+						value=""
+						panelPadding="py"
+						controlPadding="p-low"
+						controlHover="hover:bg-surface-100-900 rounded-base"
+					>
 						{#snippet lead()}<Ico icon="mdi:star-three-points-outline" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}
 						{#snippet panel()}

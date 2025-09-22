@@ -1,7 +1,6 @@
 <script>
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import Card from '$lib/admin/components/Card.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -16,7 +15,7 @@
 	let rootProject = $derived(projects.find(({ name }) => name == page.params.project));
 
 	let filters = $state([
-		{ icon: 'mdi:video-outline', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
+		{ icon: 'mdi:smartphone-link', count: 0, filter: ({ hasFrontend }) => hasFrontend == 'true' },
 		{
 			icon: 'mdi:book-open-variant',
 			count: 0,

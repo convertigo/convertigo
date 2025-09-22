@@ -153,7 +153,10 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-sm border-none font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
+	@apply w-full rounded-sm border-none bg-surface-100-900 font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:placeholder:text-surface-500;
+	&:focus {
+		box-shadow: none;
+	}
 }
 
 @utility select-common {

@@ -180,12 +180,6 @@
 		}
 	];
 
-	// $effect(() => {
-	// 	if (tabs[tabSet].viewer) {
-	// 		untrack(refreshLogs);
-	// 	}
-	// });
-
 	$effect(() => {
 		if (tabSet != 'purge') {
 			LogsPurge.stop();
@@ -435,7 +429,7 @@
 				{:else if tabSet == 'config'}
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
 						{#each logsCategory?.property as property}
-							{#if property.description?.startsWith('Log4J')}
+							{#if property.name?.startsWith('LOG4J')}
 								<PropertyType {...property} bind:value={property.value} />
 							{/if}
 						{/each}

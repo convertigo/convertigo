@@ -68,7 +68,7 @@
 		>
 			{#snippet thead({ definition: { length: colspan } })}
 				<thead>
-					<tr class={classCat[iClass][iCat % classCat[iClass].length]}>
+					<tr class="preset-filled-surface-100-900">
 						<th {colspan}>
 							<AutoPlaceholder {loading}>
 								<div class="layout-x flex-wrap justify-between p-low">
@@ -78,7 +78,11 @@
 											<span class="ml text-xs">(overflow)</span>
 										{/if}
 									</div>
-									<div>
+									<div
+										class="rounded-container px-4 py-1 {classCat[iClass][
+											iCat % classCat[iClass].length
+										]}"
+									>
 										used {total - remaining} / {total}<span class="ml text-xs"
 											>({remaining} left)</span
 										>

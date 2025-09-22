@@ -2,7 +2,7 @@
 	// @ts-ignore
 	import Icon from '@iconify/svelte';
 	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { loading } from '$lib/utils/loadingStore';
 </script>
 
@@ -24,7 +24,7 @@
 
 			<svelte:fragment slot="trail">
 				<div class=" mr-7 preset-filled bg-surface-600 pr-3 pl-3">
-					<a href="{base}/admin/" class="flex items-center"
+					<a href={resolve('/admin/')} class="flex items-center"
 						><p class="mr-2 text-[12px] font-light">Admin-consoleugugu</p>
 						<Icon icon="arcticons:google-admin" class="h-8 w-8 " /></a
 					>
