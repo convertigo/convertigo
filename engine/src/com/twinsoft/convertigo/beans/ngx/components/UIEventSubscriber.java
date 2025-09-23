@@ -301,6 +301,8 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 		String computed = "";
 		if (isEnabled()) {
 			
+			boolean isTplStandalone = this.isTplStandalone();
+			
 			StringBuilder sbCatch = new StringBuilder();
 			if (handleError()) {
 				sbCatch.append(this.errorEvent.computeEvent());
@@ -310,7 +312,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 				sbFinally.append(this.finallyEvent.computeEvent());
 			}
 			
-			String cafPageType = this.compareToTplVersion("8.4.0.3") < 0 ? "C8oPageBase" : "any";
+			String cafPageType = !isTplStandalone ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			String functionKey = getFunctionKey();
 			
@@ -336,7 +338,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\tlet stack = {root: {scope: data.scope ? data.scope : {}, in:{}, out:data}};" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(this.compareToTplVersion("8.4.0.3") < 0) {
+			if (!isTplStandalone) {
 				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}

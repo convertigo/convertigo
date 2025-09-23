@@ -272,7 +272,7 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = this.compareToTplVersion("8.4.0.3") < 0 ? "C8oPageBase" : "any";
+			String cafPageType = !this.isTplStandalone() ? "C8oPageBase" : "any";
 			String functionName = getEventFunctionName();
 			String functionKey = getFunctionKey();
 			
@@ -285,7 +285,7 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(this.compareToTplVersion("8.4.0.3") < 0) {
+			if (!this.isTplStandalone()) {
 				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}

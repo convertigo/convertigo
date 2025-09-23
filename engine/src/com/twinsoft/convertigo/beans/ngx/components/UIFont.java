@@ -65,7 +65,7 @@ public class UIFont extends UIStyle implements IStyleGenerator {
 	
 	@Override
 	public String computeStyle() {
-		return fontSource.getStyleCssImport(compareToTplVersion("8.4.0.3") < 0);
+		return fontSource.getStyleCssImport(!this.isTplStandalone());
 	}
 	
 	@Override

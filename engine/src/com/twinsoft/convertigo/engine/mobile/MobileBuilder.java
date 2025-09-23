@@ -76,7 +76,7 @@ public abstract class MobileBuilder {
 	protected Map<String, CharSequence> pushedFiles = null;
 	protected BlockingQueue<Map<String, CharSequence>> queue = null;
 	protected String tplVersion = null;
-
+	protected String standalone = null;
 	private boolean[] isBuilding = {false};
 
 	protected MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
@@ -373,7 +373,7 @@ public abstract class MobileBuilder {
 
 	}
 
-	protected void updateTplVersion() {
+	protected void updateTplProperties() {
 		if (tplVersion == null) {
 			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
 			if (versionJson.exists()) {
@@ -400,13 +400,31 @@ public abstract class MobileBuilder {
 				}
 			}
 		}
+		if (standalone == null) {
+			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
+			if (versionJson.exists()) {
+				try {
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+					JSONObject jsonOb = new JSONObject(tsContent);
+					standalone = jsonOb.has("standalone") ? jsonOb.getString("standalone") : "false";
+					Engine.logEngine.debug("("+ builderType +") Template standalone: "+ standalone+ " for ionic project '"+ project.getName() +"'");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public String getTplVersion() {
-		updateTplVersion();
+		updateTplProperties();
 		return tplVersion;
 	}
 
+	public boolean isStandalone() {
+		updateTplProperties();
+		return "true".equalsIgnoreCase(standalone);
+	}
+	
 	public boolean hasTplAppCompTsImport(String name) {
 		return getTplAppCompTsImports().containsKey(name);
 	}

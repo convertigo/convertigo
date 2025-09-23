@@ -593,7 +593,7 @@ public class Ionic3Builder extends MobileBuilder {
 			updateConfigurationFiles();
 			
 			// Tpl version
-			updateTplVersion();
+			updateTplProperties();
 			
 			// PWA
 			configurePwaApp(application);
@@ -2262,5 +2262,10 @@ public class Ionic3Builder extends MobileBuilder {
 	@Override
 	public String getTempTsRelativePath(ISharedComponent sharedComponent) throws EngineException {
 		return null;
+	}
+	
+	@Override
+	public boolean isStandalone() {
+		return false;
 	}
 }

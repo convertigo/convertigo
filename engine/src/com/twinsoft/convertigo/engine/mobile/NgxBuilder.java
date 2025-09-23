@@ -315,7 +315,7 @@ public class NgxBuilder extends MobileBuilder {
 			synchronized (app) {
 				configurePwaApp(app);		// for worker
 				writeAppComponentTs(app);	// for prod mode
-				if(app.compareToTplVersion("8.4.0.3") < 0) {
+				if (!app.isTplStandalone()) {
 					writeAppModuleTs(app); // for worker
 				}
 				else {
@@ -384,7 +384,7 @@ public class NgxBuilder extends MobileBuilder {
 			updateConfigurationFiles();
 
 			// Tpl version
-			updateTplVersion();
+			updateTplProperties();
 
 			// Modify env.json
 			initEnvFile();
@@ -524,11 +524,6 @@ public class NgxBuilder extends MobileBuilder {
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
 		}
-	}
-
-	@Override
-	protected void updateTplVersion() {
-		super.updateTplVersion();
 	}
 
 	private void initEnvFile() {
@@ -1330,11 +1325,11 @@ public class NgxBuilder extends MobileBuilder {
 	private void writePageRoutingTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null) {
-				boolean tplIsLowerThan8043 = page.compareToTplVersion("8.4.0.3") < 0;
+				boolean tplIsStandalone = page.isTplStandalone();
 				File pageDir = pageDir(page);
 				String pageName = page.getName();
 
-				String c8o_PageRoutingModuleName =  page.getName() + (tplIsLowerThan8043 ? "RoutingModule" : "Route");
+				String c8o_PageRoutingModuleName =  page.getName() + (!tplIsStandalone ? "RoutingModule" : "Route");
 
 				String c8o_PageImport = "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
 
@@ -1359,13 +1354,13 @@ public class NgxBuilder extends MobileBuilder {
 				c8o_PageRoutes += c8o_PageChildRoute;
 				c8o_PageRoutes += "]}," + System.lineSeparator();
 
-				File pageRoutingTpl = new File(ionicTplDir, tplIsLowerThan8043 ? "src/page-routing.module.tpl": "src/page.routes.tpl");
+				File pageRoutingTpl = new File(ionicTplDir, !tplIsStandalone ? "src/page-routing.module.tpl": "src/page.routes.tpl");
 				String mContent = FileUtils.readFileToString(pageRoutingTpl, "UTF-8");
 				mContent = replaceAll(mContent, "/\\*\\=c8o_PageImport\\*/", c8o_PageImport);
 				mContent = replaceAll(mContent, "/\\*\\=c8o_PageRoutes\\*/", c8o_PageRoutes);
 				mContent = replaceAll(mContent, "/\\*\\=c8o_PageRoutingModuleName\\*/", c8o_PageRoutingModuleName);
 
-				File pageRoutingTsFile = new File(pageDir, pageName.toLowerCase() + (tplIsLowerThan8043 ? "-routing.module.ts" : ".routes.ts"));
+				File pageRoutingTsFile = new File(pageDir, pageName.toLowerCase() + (!tplIsStandalone ? "-routing.module.ts" : ".routes.ts"));
 				writeFile(pageRoutingTsFile, mContent, "UTF-8");
 
 
@@ -1383,7 +1378,7 @@ public class NgxBuilder extends MobileBuilder {
 	private void writePageModuleTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null) {
-				if (page.compareToTplVersion("7.7.0.2") >= 0 && page.compareToTplVersion("8.4.0.3") < 0) {
+				if (page.compareToTplVersion("7.7.0.2") >= 0 && !page.isTplStandalone()) {
 					String pageName = page.getName();
 					File pageDir = pageDir(page);
 					File pageModuleTsFile = new File(pageDir, pageName.toLowerCase() + ".module.ts");
@@ -1403,7 +1398,7 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeCompModuleTs(UISharedComponent comp) throws EngineException {
 		try {
 			if (comp != null) {
-				if (comp.compareToTplVersion("8.4.0.3") < 0) {
+				if (!comp.isTplStandalone()) {
 					File compModuleTsFile = new File(compDir(comp), compFileName(comp) + ".module.ts");
 					writeFile(compModuleTsFile, getCompModuleTsContent(comp), "UTF-8");
 	
@@ -1720,11 +1715,11 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_PageConstructors = page.getComputedConstructors();
 		String c8o_PageFunctions = page.getComputedFunctions();
 		
-		boolean tplIsLowerThan8043 = page.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = page.isTplStandalone();
 		
 		// import local ts imports from page contributors
 		String c8o_PageTsImports = "";
-		if(tplIsLowerThan8043) {
+		if(!tplIsStandalone) {
 			Map<String, String> page_ts_imports = new HashMap<>();
 			for (Contributor contributor : page.getContributors()) {
 				contributor.forContainer(page, () -> {
@@ -1750,7 +1745,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_ModuleTsImports = "";
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleNgProviders = "";
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			Map<String, String> module_ts_imports = new HashMap<>();
 			Set<String> module_ng_imports =  new HashSet<String>();
 			Set<String> module_ng_providers =  new HashSet<String>();
@@ -1823,14 +1818,11 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageStyleUrls\\*/","'"+c8o_PageStyleUrls+"'");
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageName\\*/",c8o_PageName);
-//		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageImports\\*/",c8o_PageImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
-		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageImports\\*/",c8o_PageImports + c8o_PageTsImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageImports\\*/",c8o_PageImports + c8o_PageTsImports + (!tplIsStandalone ? "" : c8o_ModuleTsImports));
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			tsContent = replaceAll(tsContent, "/\\*c8o_StandAloneNgModules\\*/", c8o_ModuleNgImports);
-//			tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-//			tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
 		}
 
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -1846,7 +1838,7 @@ public class NgxBuilder extends MobileBuilder {
 
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageFunctions\\*/", c8o_PageFunctions);
 
-		if (!tplIsLowerThan8043) {
+		if (tplIsStandalone) {
 			this.createCompBeansDirFiles(comp_beans_dirs);
 		}
 		return tsContent;
@@ -1874,11 +1866,11 @@ public class NgxBuilder extends MobileBuilder {
 		String scriptcontentstring = comp.getScriptContent().getString();
 		String c8o_UserCustoms = checkEnable ? (comp.isEnabled() ? scriptcontentstring : "") : scriptcontentstring;
 		
-		boolean tplIsLowerThan8043 = comp.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = comp.isTplStandalone();
 
 		// import local ts imports from comp contributors
 		String c8o_CompTsImports = "";
-		if(tplIsLowerThan8043) {
+		if(!tplIsStandalone) {
 			Map<String, String> comp_ts_imports = new HashMap<>();
 			for (Contributor contributor : comp.getContributors()) {
 				contributor.forContainer(comp, () -> {
@@ -1904,7 +1896,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_ModuleTsImports = "";
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleNgProviders = "";
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			Map<String, String> module_ts_imports = new HashMap<>();
 			Set<String> module_ng_imports =  new HashSet<String>();
 			Set<String> module_ng_providers =  new HashSet<String>();
@@ -1974,17 +1966,14 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompStyleUrls\\*/","'"+c8o_CompStyleUrls+"'");
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompChangeDetection\\*/",c8o_CompChangeDetection);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompName\\*/",c8o_CompName);
-//		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompImports\\*/",c8o_CompImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
-		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompImports\\*/",c8o_CompImports + c8o_CompTsImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
+		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompImports\\*/",c8o_CompImports + c8o_CompTsImports + (!tplIsStandalone ? "" : c8o_ModuleTsImports));
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompInitializations\\*/",c8o_CompInitializations);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			tsContent = replaceAll(tsContent, "/\\*c8o_StandAloneNgModules\\*/",c8o_ModuleNgImports);
-//			tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
-//			tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
 		}
 		
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -2000,7 +1989,7 @@ public class NgxBuilder extends MobileBuilder {
 
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompFunctions\\*/", c8o_CompFunctions);
 		
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			//createCompBeansDirFiles(comp);
 			this.createCompBeansDirFiles(comp_beans_dirs);
 		}
@@ -2695,7 +2684,7 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeAppRoutingTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
-				boolean tplIsLowerThan8043 = app.compareToTplVersion("8.4.0.3") < 0;
+				boolean tplIsStandalone = app.isTplStandalone();
 				String c8o_AppRoutes = "";
 				int i=1;
 
@@ -2704,8 +2693,8 @@ public class NgxBuilder extends MobileBuilder {
 				for (PageComponent page : pages) {
 					synchronized (page) {
 						String pageDirName = pageDir(page).getName();
-						String pageModuleName =  page.getName() + (tplIsLowerThan8043 ? "Module": "Route");
-						String pageModulePath = "./pages/" + pageDirName + "/" + page.getName().toLowerCase() + (tplIsLowerThan8043 ? ".module": ".routes");
+						String pageModuleName =  page.getName() + (!tplIsStandalone ? "Module": "Route");
+						String pageModulePath = "./pages/" + pageDirName + "/" + page.getName().toLowerCase() + (!tplIsStandalone ? ".module": ".routes");
 						String pageSegment = page.getSegment();
 						boolean isLastPage = i == pages.size();
 						if (page.isRoot) {
@@ -2722,11 +2711,11 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 
-				File appRoutingTpl = new File(ionicTplDir, tplIsLowerThan8043 ? "src/app-routing.module.tpl" : "src/app.routes.tpl");
+				File appRoutingTpl = new File(ionicTplDir, !tplIsStandalone ? "src/app-routing.module.tpl" : "src/app.routes.tpl");
 				String mContent = FileUtils.readFileToString(appRoutingTpl, "UTF-8");
 				mContent = replaceAll(mContent, "/\\*\\=c8o_AppRoutes\\*/", c8o_AppRoutes);
 
-				File appRoutingTsFile = new File(appDir, tplIsLowerThan8043 ? "app-routing.module.ts" : "app.routes.ts");
+				File appRoutingTsFile = new File(appDir, !tplIsStandalone ? "app-routing.module.ts" : "app.routes.ts");
 				writeFile(appRoutingTsFile, mContent, "UTF-8");
 
 
@@ -3036,11 +3025,11 @@ public class NgxBuilder extends MobileBuilder {
 		Set<String> module_ng_imports =  new HashSet<String>();
 		Map<String, String> module_ts_imports = new HashMap<>();
 		
-		boolean tplIsLowerThan8043 = app.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = app.isTplStandalone();
 		
 		// import local ts imports from app contributors
 		String c8o_AppTsImports = "";
-		if (tplIsLowerThan8043) {
+		if (!tplIsStandalone) {
 			Map<String, String> app_ts_imports = new HashMap<>();
 			for (Contributor contributor : app.getContributors()) {
 				contributor.forContainer(app, () -> {
@@ -3062,7 +3051,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			//App contributors
 			for (Contributor contributor : app.getContributors()) {
 				contributor.forContainer(app, () -> {
@@ -3104,7 +3093,7 @@ public class NgxBuilder extends MobileBuilder {
 
 					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 				}
-				if(!tplIsLowerThan8043) {
+				if(tplIsStandalone) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
 						contributor.forContainer(app, () -> {
@@ -3122,7 +3111,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleTsImports = "";
-		if(!tplIsLowerThan8043) {
+		if(tplIsStandalone) {
 			// fix for BrowserAnimationsModule until it will be handled in config
 			module_ts_imports.remove("BrowserAnimationsModule");
 			module_ng_imports.remove("BrowserAnimationsModule");
@@ -3175,9 +3164,8 @@ public class NgxBuilder extends MobileBuilder {
 		cContent = replaceAll(cContent, "/\\*\\=c8o_AppDeclarations\\*/",c8o_AppDeclarations);
 		cContent = replaceAll(cContent, "/\\*\\=c8o_AppConstructors\\*/",c8o_AppConstructors);
 		cContent = replaceAll(cContent, "/\\*\\=c8o_AppProdMode\\*/",c8o_AppProdMode);
-//		cContent = replaceAll(cContent, "/\\*\\=c8o_AppImports\\*/",c8o_AppImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
-		cContent = replaceAll(cContent, "/\\*\\=c8o_AppImports\\*/",c8o_AppImports + c8o_AppTsImports + (tplIsLowerThan8043 ? "" : c8o_ModuleTsImports));
-		if(!tplIsLowerThan8043) {
+		cContent = replaceAll(cContent, "/\\*\\=c8o_AppImports\\*/",c8o_AppImports + c8o_AppTsImports + (!tplIsStandalone ? "" : c8o_ModuleTsImports));
+		if(tplIsStandalone) {
 			cContent = replaceAll(cContent, "/\\*Begin_c8o_NgModules\\*/","");
 			cContent = replaceAll(cContent, "/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
 		}
@@ -3363,7 +3351,7 @@ public class NgxBuilder extends MobileBuilder {
 				writeAppBuildSettings(application);
 				writeAppPluginsConfig(application);
 				writeAppServiceTs(application);
-				if(application.compareToTplVersion("8.4.0.3") < 0) {
+				if (!application.isTplStandalone()) {
 					writeAppModuleTs(application);
 				}
 				else {

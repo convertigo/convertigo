@@ -318,7 +318,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	protected String computeActionInputs(boolean forTemplate) {
 		boolean extended = !forTemplate;
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = this.isTplStandalone();
 		if (isEnabled()) {
 			String keyFunction = getFunctionKey();
 			
@@ -341,7 +341,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (property.getType().equalsIgnoreCase("string")) {
 								smartValue = forTemplate ?
 										"\'" + MobileSmartSourceType.escapeStringForTpl(smartValue) + "\'":
-											"\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsLowerThan8043) + "\'";
+											"\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsStandalone) + "\'";
 							}
 						}
 						
@@ -362,7 +362,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
 							smartValue = smartValue.replaceAll("this(\\??)\\.", "c8oPage$1.");
-							if(tplIsLowerThan8043) {
+							if(!tplIsStandalone) {
 								if (paramsPattern.matcher(smartValue).lookingAt()) {
 									smartValue = "scope."+ smartValue;
 								}
@@ -402,7 +402,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								
 								String smartValue = msst.getValue(extended);
 								if (Mode.PLAIN.equals(msst.getMode())) {
-									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsLowerThan8043) + "\'";
+									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsStandalone) + "\'";
 								}
 								
 								smartValue = smartValue.replaceAll("this(\\??)\\.", "c8oPage$1.");
@@ -413,7 +413,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								if (!smartValue.isEmpty()) {
 									sbVars.append(sbVars.length() > 0 ? ", ":"");
 									sbVars.append(uicv.getVarName()).append(": ");
-									if(this.compareToTplVersion("8.4.0.3") < 0) {
+									if (!this.isTplStandalone()) {
 										sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`,'"+ keyFunction+"')");
 									}
 									else {
@@ -500,8 +500,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
-			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
+			boolean tplIsStandalone = this.isTplStandalone();
+			String cafPageType = !tplIsStandalone ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			String functionKey = getFunctionKey();
 			
@@ -515,7 +515,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(tplIsLowerThan8043) {
+			if(!tplIsStandalone) {
 				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();	
 			}
@@ -764,12 +764,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
-							boolean tplIsLowerThan8043 = UIDynamicAction.this.compareToTplVersion("8.4.0.3") < 0;
+							boolean tplIsStandalone = UIDynamicAction.this.isTplStandalone();
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + (tplIsLowerThan8043 ? "Module" : "");
-								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ (tplIsLowerThan8043 ? ".module" : "");
+								String pageModuleName = pageName + (!tplIsStandalone ? "Module" : "");
+								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ (!tplIsStandalone ? ".module" : "");
 								if (!map.containsKey(pageModuleName)) {
 									map.put("{ "+ pageModuleName + " }", pageModulepath);
 								}
@@ -789,11 +789,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
-							boolean tplIsLowerThan8043 = UIDynamicAction.this.compareToTplVersion("8.4.0.3") < 0;
+							boolean tplIsStandalone = UIDynamicAction.this.isTplStandalone();
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + (tplIsLowerThan8043 ? "Module" : "");
+								String pageModuleName = pageName + (!tplIsStandalone ? "Module" : "");
 								if (!imports.contains(pageModuleName)) {
 									imports.add(pageModuleName);
 								}

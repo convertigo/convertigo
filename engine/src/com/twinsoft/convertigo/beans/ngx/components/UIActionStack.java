@@ -180,7 +180,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 	
 	protected String computeStackParams() {
 		StringBuilder sbParams = new StringBuilder();
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = this.isTplStandalone();
 		if (isEnabled()) {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -193,7 +193,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 						paramValue = paramValue.toString().replaceAll("this\\.", "page.");
 						sbParams.append(sbParams.length() > 0 ? ", " : "");
 						sbParams.append(param.getVariableName()).append(": ");
-						if(tplIsLowerThan8043) {
+						if(!tplIsStandalone) {
 							sbParams.append("get('"+ param.getVariableName() +"', `"+ paramValue +"`)");
 						}
 						else {
@@ -210,7 +210,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 		String computed = "";
 		if (isEnabled()) {
 			StringBuilder sbCatch = new StringBuilder();
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			boolean tplIsStandalone = this.isTplStandalone();
 			if (handleError()) {
 				UIActionErrorEvent errorEvent = getErrorEvent();
 				sbCatch.append(errorEvent.computeEvent());
@@ -221,7 +221,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 				sbFinally.append(finallyEvent.computeEvent());
 			}
 			
-			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
+			String cafPageType = !tplIsStandalone ? "C8oPageBase" : "any";
 			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
@@ -253,7 +253,7 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 			computed += "\t\tlet out = event;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(tplIsLowerThan8043) {
+			if(!tplIsStandalone) {
 				computed += computeInnerGet("page",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}

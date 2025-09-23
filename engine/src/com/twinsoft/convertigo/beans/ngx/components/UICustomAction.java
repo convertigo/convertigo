@@ -430,7 +430,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		UICustomAction original = (UICustomAction) getOriginal();
 		UISharedComponent sharedComponent = original.getSharedComponent();
 		boolean isInSharedComponent = sharedComponent  != null;
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = this.isTplStandalone();
 		
 		String scope = "";
 		
@@ -450,7 +450,7 @@ public class UICustomAction extends UIComponent implements IAction {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.isForDirective(uicd.getDirectiveName())) {
 					scope += !scope.isEmpty() ? ", ":"";
-					if(tplIsLowerThan8043) {
+					if(!tplIsStandalone) {
 						scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
 					}
 					else {
@@ -459,7 +459,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					String item = uicd.getDirectiveItemName();
 					if (!item.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						if(tplIsLowerThan8043) {
+						if(!tplIsStandalone) {
 							scope += item + ": "+ item;
 						}
 						else {
@@ -469,7 +469,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					String index = uicd.getDirectiveIndexName();
 					if (!index.isEmpty()) {
 						scope += !scope.isEmpty() ? ", ":"";
-						if(tplIsLowerThan8043) {
+						if(!tplIsStandalone) {
 							scope += index + ":" + index;
 						}
 						else {
@@ -482,7 +482,7 @@ public class UICustomAction extends UIComponent implements IAction {
 				String identifier = ((UIElement)parent).getIdentifier();
 				if (!identifier.isEmpty()) {
 					scope += !scope.isEmpty() ? ", ":"";
-					if(tplIsLowerThan8043) {
+					if(!tplIsStandalone) {
 						scope += identifier+ ": "+ identifier;
 					}
 					else {
@@ -573,7 +573,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			String keyFunction = getFunctionKey();
 			
 			StringBuilder sbProps = initProps(forTemplate);
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			boolean tplIsStandalone = this.isTplStandalone();
 			
 			StringBuilder sbVars = new StringBuilder();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -597,7 +597,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							String smartValue = msst.getValue(extended);
 							if (Mode.PLAIN.equals(msst.getMode())) {
-								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsLowerThan8043) + "\'";
+								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue, tplIsStandalone) + "\'";
 							}
 							
 							smartValue = smartValue.replaceAll("this(\\??)\\.", "c8oPage$1.");
@@ -608,7 +608,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							if (!smartValue.isEmpty()) {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");
 								sbVars.append(uicv.getVarName()).append(": ");
-								if(tplIsLowerThan8043) {
+								if(!tplIsStandalone) {
 									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`, '"+keyFunction+"')");
 								}
 								else {
@@ -677,49 +677,6 @@ public class UICustomAction extends UIComponent implements IAction {
 		
 		try {
 			String imports = jsonScripts.getString("imports");
-			/*if(this.compareToTplVersion("8.4.0.3") < 0) {
-				for (XMLVector<String> v : page_ts_imports) {
-					String name = v.get(0).trim();
-					String path = v.get(1).trim();
-					if (main.addImport(name, path)) {
-						if (name.indexOf(" as ") != -1) {
-							imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
-						} else {
-							imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
-						}
-					}
-				}
-			}
-			else {
-				for (XMLVector<String> v : page_ts_imports) {
-
-				    String name = v.get(0).trim();
-				    String path = v.get(1).trim();
-				    String defaultSyntax = v.size() > 2 ? v.get(2).trim() : "false"; // "false" or "true"
-				    
-				    if (main.addImport(name, path)) {
-					    if ("true".equalsIgnoreCase(defaultSyntax)) {
-					        imports += "import " + name + " from '" + path + "';" + System.lineSeparator();
-					    } else if (name.indexOf(" as ") != -1) {
-							imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
-						} else {
-							imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
-						}
-				    }
-				    
-				}
-			}*/
-			
-			/*for (XMLVector<String> v : page_ts_imports) {
-				String name = v.get(0).trim();
-				String from = v.get(1).trim();
-				
-				String cname = UIComponent.getImportClassname(name);
-				if (main.addImport(cname, from)) {
-					imports += "import "+ name +" from '"+ from +"';" + System.lineSeparator();
-				}
-			}*/
-			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -770,9 +727,9 @@ public class UICustomAction extends UIComponent implements IAction {
 			cartridge.append("\t * ").append(System.lineSeparator());
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			boolean tplIsStandalone = this.isTplStandalone();
 			
-			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
+			String cafPageType = !tplIsStandalone ? "C8oPageBase" : "any";
 			String functionName = getFunctionName();
 			String functionKey = getFunctionKey();
 			
@@ -786,7 +743,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(tplIsLowerThan8043) {
+			if(!tplIsStandalone) {
 				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}
@@ -963,7 +920,6 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected Contributor getContributor() {
-		//boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
 		return new Contributor() {
 			
 			private boolean accept() {

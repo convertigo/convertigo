@@ -280,7 +280,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	protected String computeEventFunction() {
 		String computed = "";
 		if (isEnabled()) {
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			boolean tplIsStandalone = this.isTplStandalone();
 			StringBuilder sbCatch = new StringBuilder();
 			if (handleError()) {
 				sbCatch.append(this.errorEvent.computeEvent());
@@ -292,7 +292,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
-			if(!tplIsLowerThan8043) {
+			if(tplIsStandalone) {
 				String scopeBis = getScope(true, true);
 				scopeBis = scopeBis.replaceAll("$", "");
 				parameters.append(scopeBis != "" ? (", " + scopeBis) : "");
@@ -308,7 +308,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = tplIsLowerThan8043 ? "C8oPageBase" : "any";
+			String cafPageType = !tplIsStandalone ? "C8oPageBase" : "any";
 			String functionName = getEventFunctionName();
 			String functionKey = getFunctionKey();
 			
@@ -321,7 +321,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			if(tplIsLowerThan8043) {
+			if(!tplIsStandalone) {
 				computed += computeInnerGet("c8oPage",functionKey);
 				computed += "\t\t" + System.lineSeparator();
 			}
@@ -611,7 +611,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			}
 		}
 		String attrValue;
-		if(this.compareToTplVersion("8.4.0.3") < 0) {
+		if (!this.isTplStandalone()) {
 			String scope = getScope();
 			String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
 			attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;

@@ -64,11 +64,11 @@ public class UIActionLoopEvent extends UIActionEvent {
 		if (!loopIn.isEmpty()) {
 			String item = varItemName.isEmpty() ? "item" : varItemName;
 			String index = varIndexName.isEmpty() ? "index" : varIndexName;
-			boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+			boolean tplIsStandalone = this.isTplStandalone();
 			String functionKey = toString() + "[doLoop"+ priority +"]";
 			String tsCode = "";
-			tsCode += "\t\tconst doLoop = (c8oPage : " + (tplIsLowerThan8043 ? "C8oPageBase":"any") + ", "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
-			if(tplIsLowerThan8043) {
+			tsCode += "\t\tconst doLoop = (c8oPage : " + (!tplIsStandalone ? "C8oPageBase":"any") + ", "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
+			if(!tplIsStandalone) {
 				tsCode += computeInnerGet("c8oPage", functionKey);
 			}
 			tsCode += loopIn;

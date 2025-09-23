@@ -794,15 +794,15 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	}
 	
 	protected String getModuleName() {
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = this.isTplStandalone();
 		String moduleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this);
-		return moduleName + (tplIsLowerThan8043 ? "Module" : "");
+		return moduleName + (!tplIsStandalone ? "Module" : "");
 	}
 	
 	protected String getModulePath() {
-		boolean tplIsLowerThan8043 = this.compareToTplVersion("8.4.0.3") < 0;
+		boolean tplIsStandalone = this.isTplStandalone();
 		String modulePath = "/components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this);
-		return modulePath + (tplIsLowerThan8043 ? ".module" : "");
+		return modulePath + (!tplIsStandalone ? ".module" : "");
 	}
 	
 	@Override

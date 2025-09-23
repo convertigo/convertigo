@@ -102,4 +102,24 @@ public abstract class MobileObject extends DatabaseObject implements IMobileObje
 		return result;
 	}
 	
+	public boolean isTplStandalone() {
+		Project p = getProject();
+		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
+		boolean isStandalone = mb == null ? false : mb.isStandalone();
+			
+		if (p == null) {
+			String message = "(MobileComponent.isTplStandalone()) project is null for component " + getName() + 
+								(Engine.isStudioMode() ? " (probably removed component)": "");
+			if (Engine.isStudioMode()) {
+				Engine.logBeans.trace(message);
+			} else {
+				Engine.logBeans.warn(message);
+			}
+		} else {
+			if (mb == null) {
+				Engine.logBeans.warn("(MobileComponent.isTplStandalone()) MB is null for component " + getQName());
+			}
+		}
+		return isStandalone;
+	}
 }

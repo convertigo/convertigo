@@ -1913,7 +1913,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			String line;
 
 			StringBuilder sb = null;
-			if(this.compareToTplVersion("8.4.0.3", mb) < 0) {
+			if (!mb.isStandalone()) {
 				while ((line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					if (StringUtils.isNotBlank(line)) {
@@ -2357,7 +2357,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				List<String> cmd = pb.command();
 				cmd.add("--");
 
-				if(applicationEditorInput.application.compareToTplVersion("8.4.0.3") < 0) {
+				if (!applicationEditorInput.application.isTplStandalone()) {
 					// #183 add useless option to help terminateNode method to find the current path
 					cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 				}
