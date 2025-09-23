@@ -164,6 +164,13 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 	
 				ks = KeyStore.getInstance("pkcs11", providerName);
 				ks.load((InputStream) null, pinCode.toCharArray());
+				if (alias == null) {
+					try {
+						alias = ks.aliases().nextElement();
+					} catch (Exception e) {
+						Engine.logCertificateManager.debug("(MySSLSocketFactory) Unabled to find client alias for provider");
+					}
+				}
 				kmf.init(ks, null);
 			}
 			else {
