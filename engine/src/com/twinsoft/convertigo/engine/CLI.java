@@ -284,6 +284,9 @@ public class CLI {
 	
 	public void generateMobileBuilder(Project project, String mode) throws Exception {
 		MobileBuilder mb = project.getMobileBuilder();
+		if (mb == null) {
+			return;
+		}
 		MobileBuilderBuildMode bm = MobileBuilderBuildMode.production;
 		try {
 			bm = MobileBuilderBuildMode.valueOf(mode);

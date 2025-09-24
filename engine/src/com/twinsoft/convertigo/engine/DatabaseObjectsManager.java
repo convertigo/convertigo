@@ -1874,12 +1874,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 					String name = propsEnum.nextElement();
 					symbolsToStore.put(name, symbolsGetValueStore(name));
 				}
-				String msg = "symbolsUpdated: " + symbolsToStore + " [" + symbolsToStore.size() + "] to:"
-						+ globalSymbolsFilePath;
 				if (Engine.logDatabaseObjectManager != null) {
-					Engine.logDatabaseObjectManager.warn(msg);
+					if (Engine.logDatabaseObjectManager.isTraceEnabled()) {
+						Engine.logDatabaseObjectManager.trace("symbolsUpdated: " + symbolsToStore + " [" + symbolsToStore.size() + "] to:"
+								+ globalSymbolsFilePath);
+					} else {
+						Engine.logDatabaseObjectManager.debug("symbolsUpdated: [" + symbolsToStore.size() + "] to:"
+								+ globalSymbolsFilePath);
+					}
 				}
-				System.out.println(msg);
 				PropertiesUtils.store(symbolsToStore, globalSymbolsFilePath, "global symbols");
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to store symbols!", e);
