@@ -1,5 +1,22 @@
 # Changelog
 
+## 8.3.9
+
+#### Improvements:
+
+- [#968](https://github.com/convertigo/convertigo/issues/968) [MobileBuilder] Logs now trace the full UI Action Stack (including nested actions) so you can follow UI execution step-by-step
+- [#969](https://github.com/convertigo/convertigo/issues/969) [NGX] The NgxApp Split Pane `breakpoint` property now accepts TypeScript expressions/bindings (e.g. `[breakpoint]="isAdmin ? 'xl' : 'md'"`)
+
+#### Bug Fixes:
+
+- [#966](https://github.com/convertigo/convertigo/issues/966) [NoCode DB] Fixed, filters built from filter groups now generate the correct `filter` content in the sequenceJS step, producing proper queries
+- [#967](https://github.com/convertigo/convertigo/issues/967) [LDAPStep] Fixed, LDAP searches now work even when the LDAP URL includes an explicit port; the port in the URL no longer breaks the search
+- [#970](https://github.com/convertigo/convertigo/issues/970) [Studio] Fixed, the Reference view **Used by** section now lists all usages of a component instead of missing some entries
+- [#971](https://github.com/convertigo/convertigo/issues/971) [SSL] Fixed, client certificate aliases can now be retrieved from USB tokens, restoring mutual-TLS selection
+- [#974](https://github.com/convertigo/convertigo/issues/974) [CI] Fixed, `generateMobileBuilder` no longer throws an NPE when the project has no Mobile App; the task now exits gracefully
+
+---
+
 ## 8.3.8
 
 #### Improvements:
