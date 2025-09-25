@@ -14,7 +14,7 @@ buildscript {
 //}
 
 plugins {
-  id 'com.github.ben-manes.versions' version '0.52.0'
+  id 'com.github.ben-manes.versions' version '0.53.0'
 }
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync

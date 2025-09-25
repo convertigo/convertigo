@@ -1193,7 +1193,7 @@ public class OpenApiUtils {
 
 	static ObjectMapper mapper;
 
-	@SuppressWarnings({ "serial", "deprecation" })
+	@SuppressWarnings("deprecation")
 	private static ObjectMapper objectMapper() {
 		if (mapper == null) {
 			YAMLFactory factory = new YAMLFactory();

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.references;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URI;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -57,7 +58,7 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 		if (wsdlUrl.startsWith("http://localhost:18080/convertigo")) {
 			wsdlUrl = wsdlUrl.replaceAll("http://localhost:18080/convertigo", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL));
 		}
-		return new URL(wsdlUrl);
+		return URI.create(wsdlUrl).toURL();
 	}
 	
 	protected URL getReferenceUrl() throws MalformedURLException {

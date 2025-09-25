@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,7 +151,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 			targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 			targetUrl += "/projects/" + projectName + "/.xml?";
 			
-			URL url = new URL(targetUrl);
+			URL url = URI.create(targetUrl).toURL();
 			String host = url.getHost();
 			int port = url.getPort();
 			

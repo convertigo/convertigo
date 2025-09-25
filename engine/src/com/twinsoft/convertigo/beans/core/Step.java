@@ -231,18 +231,12 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return xpathApi;
 	}
 	
-	@SuppressWarnings("deprecation")
-	@Override
-    protected void finalize() throws Throwable {
-		super.finalize();
-	}
-
     /**
      * Get order for quick sort.
      */
     @Override
     public Object getOrderedValue() {
-    	return priority;
+        return priority;
     }    
 
 	public Sequence getParentSequence() {

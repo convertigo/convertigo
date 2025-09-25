@@ -38,9 +38,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.help.HelpFormatter;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -629,43 +629,43 @@ public class CLI {
 	
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
-			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder).").build())
-			.addOption(Option.builder("gc").longOpt("gitContainer").optionalArg(true).argName("path").hasArg().desc("git dependencies can be extrated to the <gitContainer> folder instead of defaults.").build())
-			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").build())
-			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
-			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
-			.addOption(Option.builder("icdv").longOpt("installCordova").optionalArg(true).argName("platforms").hasArg().desc("check and install the cordova needed by the project for a specific platform, a list of platform separated by comma, or empty for all.").build())
-			.addOption(Option.builder("iosprof").longOpt("iosProfile").optionalArg(false).argName("provisioningProfile").hasArg().desc("use the specified provisioningProfile for iOS builds.").build())
-			.addOption(Option.builder("iossignid").longOpt("iosSignIdentity").optionalArg(false).argName("signIdentity").hasArg().desc("override default sign identity for ios builds (iPhone Developer / iPhone Distribution).").build())
-			.addOption(Option.builder("andks").longOpt("androidKeystore").optionalArg(false).argName("keystore").hasArg().desc("use the specified keystore for Android builds.").build())
-			.addOption(Option.builder("andkspass").longOpt("androidKeystorePassword").optionalArg(false).argName("keystorePassword").hasArg().desc("use this password to unlock the Android keystore.").build())
-			.addOption(Option.builder("andalias").longOpt("androidAlias").optionalArg(false).argName("alias").hasArg().desc("use this alias to choose the right certificate in the Android keystore.").build())
-			.addOption(Option.builder("andpass").longOpt("androidPassword").optionalArg(false).argName("password").hasArg().desc("use this password to unlock the Android private key.").build())
-			.addOption(Option.builder("cdv").longOpt("cordovaBuild").optionalArg(true).argName("mode").hasArg().desc("perform a cordova build need parameter: debug (default), release, emulator, device.").build())
-			.addOption(Option.builder("mp").longOpt("movePackage").optionalArg(false).argName("dir").hasArg().desc("move native mobile package after a cordova build to the <dir> folder.").build())
-			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
-			.addOption(Option.builder("lrb").longOpt("launchRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
-			.addOption(Option.builder("drb").longOpt("downloadRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
-			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases.").build())
-			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs.").build())
-			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp.").build())
-			.addOption(Option.builder("noMAA").longOpt("excludeMobileAppAssets").desc("when export or deploy, do not include built MobileApp assets.").build())
-			.addOption(Option.builder("noDS").longOpt("excludeDataset").desc("when export or deploy, do not include mobile dataset.").build())
-			.addOption(Option.builder("noPA").longOpt("excludePlatformAssets").desc("when export or deploy, do not include mobile platform assets.").build())
-			.addOption(Option.builder("d").longOpt("deploy").optionalArg(false).argName("server").hasArg().desc("deploy the current project to <server> using user/password credentials.").build())
-			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'.").build())
-			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'.").build())
-			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates.").build())
-			.addOption(Option.builder("retry").longOpt("deployRetry").desc("deploy will retry <retry> times in case of failure.").build())
-			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy.").build())
-			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>.").build())
-			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace.").build())
+			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder).").get())
+			.addOption(Option.builder("gc").longOpt("gitContainer").optionalArg(true).argName("path").hasArg().desc("git dependencies can be extrated to the <gitContainer> folder instead of defaults.").get())
+			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").get())
+			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").get())
+			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").get())
+			.addOption(Option.builder("icdv").longOpt("installCordova").optionalArg(true).argName("platforms").hasArg().desc("check and install the cordova needed by the project for a specific platform, a list of platform separated by comma, or empty for all.").get())
+			.addOption(Option.builder("iosprof").longOpt("iosProfile").optionalArg(false).argName("provisioningProfile").hasArg().desc("use the specified provisioningProfile for iOS builds.").get())
+			.addOption(Option.builder("iossignid").longOpt("iosSignIdentity").optionalArg(false).argName("signIdentity").hasArg().desc("override default sign identity for ios builds (iPhone Developer / iPhone Distribution).").get())
+			.addOption(Option.builder("andks").longOpt("androidKeystore").optionalArg(false).argName("keystore").hasArg().desc("use the specified keystore for Android builds.").get())
+			.addOption(Option.builder("andkspass").longOpt("androidKeystorePassword").optionalArg(false).argName("keystorePassword").hasArg().desc("use this password to unlock the Android keystore.").get())
+			.addOption(Option.builder("andalias").longOpt("androidAlias").optionalArg(false).argName("alias").hasArg().desc("use this alias to choose the right certificate in the Android keystore.").get())
+			.addOption(Option.builder("andpass").longOpt("androidPassword").optionalArg(false).argName("password").hasArg().desc("use this password to unlock the Android private key.").get())
+			.addOption(Option.builder("cdv").longOpt("cordovaBuild").optionalArg(true).argName("mode").hasArg().desc("perform a cordova build need parameter: debug (default), release, emulator, device.").get())
+			.addOption(Option.builder("mp").longOpt("movePackage").optionalArg(false).argName("dir").hasArg().desc("move native mobile package after a cordova build to the <dir> folder.").get())
+			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").get())
+			.addOption(Option.builder("lrb").longOpt("launchRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").get())
+			.addOption(Option.builder("drb").longOpt("downloadRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").get())
+			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases.").get())
+			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs.").get())
+			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp.").get())
+			.addOption(Option.builder("noMAA").longOpt("excludeMobileAppAssets").desc("when export or deploy, do not include built MobileApp assets.").get())
+			.addOption(Option.builder("noDS").longOpt("excludeDataset").desc("when export or deploy, do not include mobile dataset.").get())
+			.addOption(Option.builder("noPA").longOpt("excludePlatformAssets").desc("when export or deploy, do not include mobile platform assets.").get())
+			.addOption(Option.builder("d").longOpt("deploy").optionalArg(false).argName("server").hasArg().desc("deploy the current project to <server> using user/password credentials.").get())
+			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'.").get())
+			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'.").get())
+			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates.").get())
+			.addOption(Option.builder("retry").longOpt("deployRetry").desc("deploy will retry <retry> times in case of failure.").get())
+			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy.").get())
+			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>.").get())
+			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace.").get())
 			.addOption(new Option("h", "help", false, "show this help"));
 		
 		CommandLine cmd = new DefaultParser().parse(opts, args, true);
 		if (cmd.getOptions().length == 0 || cmd.hasOption("help")) {
-			HelpFormatter help = new HelpFormatter();
-			help.printHelp("cli", opts);
+			HelpFormatter help = HelpFormatter.builder().get();
+			help.printHelp("cli", "", opts, "", true);
 			return;
 		}
 		
