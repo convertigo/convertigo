@@ -6,8 +6,11 @@
 </script>
 
 <div class="h-screen">
-	<span class="fixed top-0 right-0 p-low"><LightSwitch /></span>
-	<div class="bg layout-y h-full justify-center">
+	<div class="fixed inset-0 z-[-1] bg-surface-50-950">
+		<div class="bg clipped h-full"></div>
+	</div>
+	<span class="fixed top-0 right-0 p"><LightSwitch /></span>
+	<div class="layout-y h-full justify-center">
 		{@render children?.()}
 	</div>
 </div>
@@ -42,6 +45,10 @@
 		);
 		background-size: 250% 250%;
 		animation: gradient 20s ease infinite;
+	}
+	.clipped {
+		clip-path: polygon(0 0, 100% 0, 100% 10%, 0 90%);
+		color: green;
 	}
 	:global(.dark) .bg {
 		background-image: linear-gradient(

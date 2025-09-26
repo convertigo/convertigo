@@ -7,6 +7,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
 	import Symbols from '$lib/admin/Symbols.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext } from 'svelte';
@@ -261,16 +262,14 @@
 		The value can be a fixed string, another Symbol (using <strong>{'{symb\\}'}</strong>) or an
 		Environment Variable (see below).
 	</p>
-	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
-		<label for="symbolsFilter" class="ig-cell"><Ico icon="mdi:magnify" /></label>
-		<input
-			id="symbolsFilter"
-			class="ig-input placeholder:text-surface-500"
-			type="search"
-			placeholder="Filter symbols..."
-			bind:value={filter}
-		/>
-	</div>
+	<InputGroup
+		id="symbolsFilter"
+		type="search"
+		placeholder="Filter symbols..."
+		class="bg-surface-200-800"
+		icon="mdi:magnify"
+		bind:value={filter}
+	/>
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true, class: 'max-w-28' },

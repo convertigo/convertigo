@@ -77,7 +77,7 @@
 }
 
 @utility shadow-follow {
-	@apply shadow-md/5 shadow-primary-500 hover:shadow-md/15;
+	@apply shadow-md/10 shadow-primary-500 hover:shadow-md/15;
 }
 
 @utility button-primary {
@@ -126,6 +126,15 @@
 
 @utility button-ico-error {
 	@apply button text-error-500;
+}
+
+@utility preset-gradient-one {
+	background-image: linear-gradient(
+		45deg,
+		var(--color-secondary-200-800),
+		var(--color-primary-200-800)
+	);
+	color: var(--color-primary-contrast-200-800);
 }
 
 @utility mini-card {

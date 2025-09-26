@@ -8,6 +8,7 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -208,16 +209,14 @@
 			disabled={!init}
 		/>
 	{/snippet}
-	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
-		<label for="projectsFilter" class="ig-cell"><Ico icon="mdi:magnify" /> </label>
-		<input
-			class="ig-input placeholder:text-surface-500"
-			type="search"
-			id="projectsFilter"
-			placeholder="Filter projects..."
-			bind:value={filter}
-		/>
-	</div>
+	<InputGroup
+		id="projectsFilter"
+		type="search"
+		placeholder="Filter projects..."
+		class="bg-surface-200-800"
+		icon="mdi:magnify"
+		bind:value={filter}
+	/>
 	<TableAutoCard
 		definition={[
 			{ name: 'Actions', custom: true },

@@ -12,9 +12,8 @@
 	}
 </script>
 
-<h1 class="text-center text-4xl">
-	<p>Disconnecting from Convertigo</p>
-</h1>
-<ProgressRing value={null} size="size-72">
-	<span class="animate-pulse text-center">Disconnecting from<br />Convertigo …</span>
-</ProgressRing>
+<div class="preset-glass-primary rounded-full">
+	<ProgressRing value={null} size="size-72">
+		<span class="animate-pulse text-center">Disconnecting from<br />Convertigo …</span>
+	</ProgressRing>
+</div>

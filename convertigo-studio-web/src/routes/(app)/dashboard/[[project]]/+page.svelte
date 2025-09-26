@@ -1,6 +1,7 @@
 <script>
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -72,17 +73,17 @@
 </script>
 
 <div class="layout-y">
-	<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-50-950">
-		<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
-		<input
-			id="search"
-			type="search"
-			class="ig-input placeholder-surface-500"
-			placeholder="Search projects..."
-			bind:value={searchQuery}
-			disabled={rootProject}
-		/>
-		<span class="layout-y-none gap-[1px]!">
+	<InputGroup
+		id="search"
+		type="search"
+		placeholder="Search projects..."
+		class="bg-surface-50-950"
+		actionsClass="layout-y-none"
+		icon="mdi:magnify"
+		disabled={rootProject}
+		bind:value={searchQuery}
+	>
+		{#snippet actions()}
 			{#each filters as { icon, count }, i}
 				<span class="layout-x-none gap-[1px]!">
 					<button
@@ -107,8 +108,8 @@
 					</button>
 				</span>
 			{/each}
-		</span>
-	</div>
+		{/snippet}
+	</InputGroup>
 	<div class="grid grid-cols-1 gap sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project.name ?? i)}
 			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}

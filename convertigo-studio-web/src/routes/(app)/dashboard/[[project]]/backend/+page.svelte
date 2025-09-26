@@ -7,6 +7,7 @@
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import Editor from '$lib/studio/editor/Editor.svelte';
@@ -115,19 +116,21 @@
 
 <Card title={project?.name ?? null}>
 	{#snippet cornerOption()}
-		<div class="input-group w-full grid-cols-[auto_1fr_auto] bg-surface-200-800">
-			<label for="search" class="ig-cell"><Ico icon="mdi:magnify" /></label>
-			<input
-				id="search"
-				class="ig-input placeholder:text-surface-500"
-				type="search"
-				placeholder="Search requestable..."
-				bind:value={searchQuery}
-			/>
-			<span class="layout-x-none gap-[1px]! pr-[1px]">
-				{#each Object.values(accessibilities) as accessibility}
+		<InputGroup
+			id="search"
+			type="search"
+			placeholder="Search requestable..."
+			class="bg-surface-200-800"
+			actionsClass="pr-1"
+			icon="mdi:magnify"
+			bind:value={searchQuery}
+		>
+			{#snippet actions()}
+				{#each Object.values(accessibilities) as accessibility, idx}
 					<button
 						class="btn h-full rounded-none p-1 {accessibility.title}"
+						class:rounded-l={idx === 0}
+						class:rounded-r={idx === 2}
 						class:opacity-50={!accessibility.enabled}
 						onclick={() => {
 							accessibility.enabled = !accessibility.enabled;
@@ -136,8 +139,8 @@
 						<Ico icon={accessibility.icon} size="nav" />
 					</button>
 				{/each}
-			</span>
-		</div>
+			{/snippet}
+		</InputGroup>
 	{/snippet}
 	<AutoPlaceholder loading={!project}>
 		{@html convertMarkdownToHtml(project.comment)}

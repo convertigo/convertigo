@@ -1,7 +1,9 @@
 <script module>
+	import MdiAccountOutline from '~icons/mdi/account-outline?raw';
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline?raw';
 	import MdiApi from '~icons/mdi/api?raw';
 	import MdiApplicationOutline from '~icons/mdi/application-outline?raw';
+	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick?raw';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
 	import MdiBookMultiple from '~icons/mdi/book-multiple?raw';
@@ -32,9 +34,12 @@
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
 	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
+	import MdiEmailOutline from '~icons/mdi/email-outline?raw';
 	import MdiEmoticonHappyOutline from '~icons/mdi/emoticon-happy-outline?raw';
 	import MdiExport from '~icons/mdi/export?raw';
+	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline?raw';
 	import MdiEyeOff from '~icons/mdi/eye-off?raw';
+	import MdiEyeOutline from '~icons/mdi/eye-outline?raw';
 	import MdiEye from '~icons/mdi/eye?raw';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline?raw';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline?raw';
@@ -56,6 +61,7 @@
 	import MdiLanguageRuby from '~icons/mdi/language-ruby?raw';
 	import MdiLayersOutline from '~icons/mdi/layers-outline?raw';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant?raw';
+	import MdiLockOutline from '~icons/mdi/lock-outline?raw';
 	import MdiLock from '~icons/mdi/lock?raw';
 	import MdiMagnify from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
@@ -86,10 +92,12 @@
 
 	export const ico = {
 		'convertigo:logo': ConvertigoLogo,
+		'mdi:account-outline': MdiAccountOutline,
 		'mdi:account-supervisor-circle-outline': MdiAccountSupervisorCircleOutline,
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
+		'mdi:arrow-right-thick': MdiArrowRightThick,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:book-multiple': MdiBookMultiple,
 		'mdi:book-open-variant': MdiBookOpenVariant,
@@ -119,10 +127,13 @@
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,
 		'mdi:edit-outline': MdiEditOutline,
+		'mdi:email-outline': MdiEmailOutline,
 		'mdi:emoticon-happy-outline': MdiEmoticonHappyOutline,
 		'mdi:export': MdiExport,
 		'mdi:eye-off': MdiEyeOff,
 		'mdi:eye': MdiEye,
+		'mdi:eye-outline': MdiEyeOutline,
+		'mdi:eye-off-outline': MdiEyeOffOutline,
 		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
@@ -143,6 +154,7 @@
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
+		'mdi:lock-outline': MdiLockOutline,
 		'mdi:lock': MdiLock,
 		'mdi:magnify': MdiMagnify,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,

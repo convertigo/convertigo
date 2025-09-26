@@ -2,8 +2,8 @@
 	import { ProgressRing } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
 	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
@@ -13,6 +13,7 @@
 	let error = $state(null);
 
 	let doAuthenticate = $state(false);
+	let passwordVisible = $state(false);
 
 	async function handleSubmit(e) {
 		try {
@@ -32,32 +33,94 @@
 </script>
 
 {#if doAuthenticate}
-	<ProgressRing value={null} size="size-72">
-		<span class="animate-pulse">Authenticating …</span>
-	</ProgressRing>
+	<div class="preset-glass-primary rounded-full">
+		<ProgressRing value={null} size="size-72">
+			<span class="animate-pulse">Authenticating …</span>
+		</ProgressRing>
+	</div>
 {:else}
-	<Card class="preset-glass-neutral" bg="">
+	<Card class="preset-filled-surface-50-950 max-md:w-[95%]" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
 			<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
-			<h1 class="text-center text-3xl">
-				<p>Welcome to Convertigo</p>
+			<h1 class="text-center text-xl md:text-3xl">
+				<p>Connect to <span class="font-normal text-primary-500">Convertigo</span></p>
 				<p>Administration Console</p>
 			</h1>
 			<input type="hidden" name="authType" value="login" />
-			<PropertyType name="authUserName" placeholder="username" autocomplete="username" />
+			<div class="layout-y-start-low w-full">
+				<label
+					class="label-common text-left text-sm font-medium text-surface-600-400"
+					for="login-username">Username</label
+				>
+				<InputGroup
+					id="login-username"
+					name="authUserName"
+					autocomplete="username"
+					placeholder="Your username"
+					icon="mdi:account-outline"
+					iconClass="text-surface-500"
+					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
+					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
+					inputClass="text-base"
+				/>
+			</div>
 
-			<PropertyType
-				name="authPassword"
-				placeholder="password"
-				type="password"
-				autocomplete="current-password"
-			/>
+			<div class="layout-y-start-low w-full">
+				<label
+					class="label-common text-left text-sm font-medium text-surface-600-400"
+					for="login-password">Password</label
+				>
+				<InputGroup
+					id="login-password"
+					name="authPassword"
+					autocomplete="current-password"
+					placeholder="Your password"
+					type={passwordVisible ? 'text' : 'password'}
+					icon="mdi:lock-outline"
+					iconClass="text-surface-500"
+					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
+					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
+					inputClass="text-base"
+				>
+					{#snippet actions()}
+						<button
+							type="button"
+							class="btn h-full rounded-r-xl border-l border-surface-200-800 bg-transparent px-3 text-primary-500 hover:text-primary-400"
+							onclick={() => (passwordVisible = !passwordVisible)}
+							title={passwordVisible ? 'Hide password' : 'Show password'}
+						>
+							<Ico icon={passwordVisible ? 'mdi:eye-off-outline' : 'mdi:eye-outline'} size="nav" />
+						</button>
+					{/snippet}
+				</InputGroup>
+			</div>
 
 			{#if error}
 				<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
 			{/if}
-
-			<button class="button-primary w-full" type="submit">Enter</button>
+			<span></span>
+			<button class="relative button-primary w-full preset-gradient-one py-5" type="submit">
+				<span class="absolute left-1/2 inline-flex -translate-x-1/2 items-center gap-2">
+					<span>Login</span>
+					<span class="bounce"><Ico icon="mdi:arrow-right-thick" /></span>
+				</span>
+			</button>
 		</form>
 	</Card>
+	<span class="text-xs">© {new Date().getFullYear()} Convertigo. All rights reserved.</span>
 {/if}
+
+<style lang="postcss">
+	.bounce {
+		animation: bounce-x 1.6s infinite alternate ease-in-out;
+	}
+
+	@keyframes bounce-x {
+		from {
+			transform: translateX(-3px);
+		}
+		to {
+			transform: translateX(3px);
+		}
+	}
+</style>
