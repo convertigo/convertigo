@@ -336,17 +336,19 @@
 			{/snippet}
 
 			<TableAutoCard
+				class="text-left"
 				definition={[
 					{
 						name: 'Actions',
 						class: 'w-32',
 						custom: true
 					},
-					{ name: 'Name', key: 'name' },
-					{ name: 'Description', key: 'description', class: 'min-w-32 break-all' },
+					{ name: 'Name', key: 'name', class: 'w-50' },
+					{ name: 'Description', key: 'description', class: 'w-60 break-all' },
 					{
 						name: 'Next',
-						custom: true
+						custom: true,
+						class: 'w-32'
 					},
 					{ name: 'Info', key: 'info', class: 'min-w-32 break-all' }
 				].filter((elt) => next || elt.name != 'Next')}
@@ -396,7 +398,8 @@
 					{:else if row.next?.length > 1}
 						<Button
 							label={`${row.next?.[0]} …`}
-							class="button-ico-tertiary"
+							class="button-ico-tertiary w-fit! p-none"
+							icon="mdi:calendar-clock"
 							{size}
 							onclick={(event) => nextCron.open({ event, row })}
 						/>

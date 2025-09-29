@@ -20,9 +20,9 @@
 		calling
 	} = $derived(Keys);
 
-	function expired({ expired }) {
-		return expired == 'true' ? 'text-error-900-100 font-semibold' : '';
-	}
+	const expired = ({ expired }, { name }) =>
+		(expired == 'true' ? 'text-error-900-100 font-semibold ' : '') +
+		(name == 'Key' ? 'w-120' : name == 'Avalaible' ? 'w-40' : 'text-right');
 </script>
 
 <Card title="Keys">
@@ -59,7 +59,7 @@
 		<TableAutoCard
 			showHeaders={true}
 			definition={[
-				{ name: 'Actions', custom: true },
+				{ name: 'Actions', custom: true, class: 'w-14' },
 				{ name: 'Key', custom: true, class: expired },
 				{ name: 'Avalaible', key: 'value', class: expired },
 				{ name: 'Expiration Date', key: 'expiration', class: expired }

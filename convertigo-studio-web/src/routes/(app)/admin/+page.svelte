@@ -175,7 +175,10 @@
 
 <ModalDynamic bind:this={modalHome} class="w-full">
 	{#snippet children({ close, params: { mode, data } })}
-		<Card title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'} class="w-full">
+		<Card
+			title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}
+			class="w-full preset-filled-surface-300-700!"
+		>
 			<TableAutoCard
 				definition={[
 					{ name: 'Name', key: 'name', class: 'break-all min-w-48' },

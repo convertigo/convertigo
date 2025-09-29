@@ -83,7 +83,7 @@
 								<td
 									class={def.class
 										? typeof def.class == 'function'
-											? def.class(row)
+											? def.class(row, def)
 											: def.class
 										: ''}
 									data-label={showHeaders ? (def.name ?? '') : ''}

@@ -133,7 +133,7 @@
 						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
-						class="input-text input-common placeholder:pl-1"
+						class="input-text input-common placeholder:pl-1 placeholder:text-surface-500"
 						{...rest}
 						bind:value
 					/>

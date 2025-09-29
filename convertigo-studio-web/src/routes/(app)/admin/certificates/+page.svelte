@@ -266,8 +266,9 @@
 			servers.
 		</div>
 		<TableAutoCard
+			class="text-left"
 			definition={[
-				['Actions'],
+				['Actions', 'w-20'],
 				['Certificate / Store', 'min-w-52'],
 				['Type', 'min-w-48'],
 				['Password', 'min-w-60'],
@@ -298,8 +299,14 @@
 
 		<TableAutoCard
 			title="Mappings for anonymous users"
-			definition={['Actions', 'Project Name', 'Certificate / Store'].map((name) => ({
+			class="text-left"
+			definition={[
+				['Actions', 'w-20'],
+				['Project Name', 'min-w-52'],
+				['Certificate / Store', 'min-w-52']
+			].map(([name, cls]) => ({
 				name,
+				class: cls,
 				custom: true
 			}))}
 			data={certificates.length && projects.length ? [...anonymous, { last: true }] : anonymous}
@@ -322,8 +329,9 @@
 		</div>
 		<TableAutoCard
 			title="Mappings for carioca users"
+			class="text-left"
 			definition={[
-				['Actions'],
+				['Actions', 'w-20'],
 				['Project Name', 'min-w-52'],
 				['Virtual Server', 'min-w-60'],
 				['Authorization Group', 'min-w-60'],

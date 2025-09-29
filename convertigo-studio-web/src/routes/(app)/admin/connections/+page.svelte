@@ -67,6 +67,7 @@
 			/>
 		{/snippet}
 		<TableAutoCard
+			class="text-left"
 			definition={[
 				{ name: 'Contexts In Use', key: 'contexts', class: 'max-w-10' },
 				{ name: 'Threads In Use', key: 'threads', class: 'max-w-10' },
