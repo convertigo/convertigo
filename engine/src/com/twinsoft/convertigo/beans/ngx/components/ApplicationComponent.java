@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -120,6 +121,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		cloned.appConstructors = new HashMap<String, String>();
 		cloned.appFunctions = new HashMap<String, String>();
 		cloned.appTemplates = new HashMap<String, String>();
+		cloned.declaredModules = new HashSet<String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.rootPage = null;
@@ -823,6 +825,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		String newDatabaseObjectName = getChildBeanName(vSharedComponents, stackComponent.getName(), stackComponent.bNew);
 		stackComponent.setName(newDatabaseObjectName);
 		vSharedComponents.add(stackComponent);
+		
+		addDeclaredModule(stackComponent.getSharedModuleFullName());
+		
 		super.add(stackComponent);
 		
 		insertOrderedSharedComponent(stackComponent, after);
@@ -837,6 +842,76 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public List<UISharedComponent> getSharedComponentList() {
 		checkSubLoaded();
 		return sort(vSharedComponents);
+	}
+	
+	private transient Set<String> declaredModules = new HashSet<String>();
+	
+	public Set<String> getDeclaredModules() {
+		synchronized (declaredModules) {
+			return Collections.unmodifiableSet(declaredModules);
+		}
+	}
+	
+	protected void addDeclaredModule(String declaredModule) {
+		if (!declaredModule.isBlank()) {
+			synchronized (declaredModules) {
+				declaredModules.add(declaredModule);
+			}
+		}
+	}
+	
+	public Set<String> getBlankModuleSet() {
+		Set<String> set = new HashSet<String>();
+		Map<String, List<UISharedComponent>> map = getSharedModuleMap();
+		for (String module: getDeclaredModules()) {
+			if (!map.containsKey(module)) {
+				set.add(module);
+			}
+		}
+		return set;
+	}
+	
+	public Map<String, List<UISharedComponent>> getSharedModuleMap() {
+		Map<String, List<UISharedComponent>> map = new HashMap<String, List<UISharedComponent>>();
+		for (UISharedComponent uisc: getSharedComponentList()) {
+			String module = uisc.getSharedModuleFullName();
+			if (!module.isBlank()) {
+				if (map.get(module) == null) {
+					map.put(module, new ArrayList<UISharedComponent>());
+				}
+				if (!map.get(module).contains(uisc)) {
+					map.get(module).add(uisc);
+				}
+			}
+		}
+		return Collections.unmodifiableMap(map);
+	}
+	
+	public boolean hasSharedModule(File sharedModuleFile) {
+		if (sharedModuleFile != null) {
+			Map<String, List<UISharedComponent>> map = getSharedModuleMap();
+			for (String module: map.keySet()) {
+				if (map.get(module).isEmpty()) continue; // ignore
+				
+				String simpleModule = module;
+				if (simpleModule.endsWith("Module")) {
+					simpleModule = simpleModule.substring(0, module.length() - "Module".length());
+				}
+				if (sharedModuleFile.getName().equals(simpleModule + ".module.ts")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean hasSharedModule(String sharedModule) {
+		if (!sharedModule.isBlank()) {
+			try {
+				return !getSharedModuleMap().get(sharedModule).isEmpty();
+			} catch (Exception e) {}
+		}
+		return false;
 	}
 	
 	@Override

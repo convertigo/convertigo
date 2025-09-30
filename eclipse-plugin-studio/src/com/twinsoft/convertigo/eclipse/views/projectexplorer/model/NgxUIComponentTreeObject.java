@@ -35,6 +35,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Composite;
@@ -98,6 +99,7 @@ import com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.NgxSharedComponentModuleValidator;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
@@ -126,6 +128,13 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		return super.testAttribute(target, name, value);
 	}
 
+	@Override
+	protected ICellEditorValidator getValidator(String propertyName) {
+		if ("sharedModule".equals(propertyName))
+			return new NgxSharedComponentModuleValidator();
+		return super.getValidator(propertyName);
+	}
+	
 	@Override
 	public boolean isEnabled() {
 		setEnabled(getObject().isEnabled());

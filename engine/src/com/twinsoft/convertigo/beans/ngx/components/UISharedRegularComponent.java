@@ -95,6 +95,30 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 		return UISharedComponent.getNsCompFileName(this);
 	}
 	
+	private String sharedModule = "";
+	
+	public String getSharedModule() {
+		return this.sharedModule;
+	}
+	
+	public void setSharedModule(String sharedModule) {
+		this.sharedModule = sharedModule;
+		
+		if (getParent() != null) {
+			getApplication().addDeclaredModule(sharedModule);
+		}
+	}
+	
+	@Override
+	public String getSharedModuleFullName() {
+		return getSharedModule();
+	}
+	
+	@Override
+	public String getSharedModuleSimpleName() {
+		return simpleModuleName(getSharedModule());
+	}
+	
 	@Override
 	public List<UICompEvent> getUICompEventList() {
 		List<UICompEvent> compEventList = new ArrayList<UICompEvent>();
@@ -246,13 +270,22 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	@Override
 	public synchronized List<Contributor> getContributors() {
 		if (contributors == null) {
-			doGetContributors();
+			doGetContributors();		
 		}
 		return contributors;
 	}
 	
 	protected void doGetContributors() {
 		contributors = new ArrayList<>();
+		
+		// self contribute for shared module
+		Contributor contributor = getContributor();
+		if (contributor != null) {
+			if (!contributors.contains(contributor)) {
+				contributors.add(contributor);
+			}
+		}
+		
 		Set<UIComponent> done = new HashSet<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
 			uiComponent.addContributors(done, contributors);
@@ -793,15 +826,23 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 		}
 	}
 	
+	protected String getCompName() {
+		return UISharedComponent.getNsCompName(this);
+	}
+	
+	protected String getCompPath() {
+		return "/components/"+ UISharedComponent.getNsCompDirName(this) + "/" + UISharedComponent.getNsCompFileName(this);
+	}
+	
 	protected String getModuleName() {
 		boolean tplIsStandalone = this.isTplStandalone();
-		String moduleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this);
+		String moduleName = UISharedComponent.getNsCompModuleName(this);
 		return moduleName + (!tplIsStandalone ? "Module" : "");
 	}
 	
 	protected String getModulePath() {
 		boolean tplIsStandalone = this.isTplStandalone();
-		String modulePath = "/components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this);
+		String modulePath = UISharedComponent.getNsCompModuleDirPath(this);
 		return modulePath + (!tplIsStandalone ? ".module" : "");
 	}
 	
@@ -811,8 +852,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	}
 	
 	protected Contributor getContributor(UIUseShared uiUse) {
-		final String c8o_CompModuleName = getModuleName();
-		final String c8o_CompModulePath = getModulePath();
 		final UIUseShared use = uiUse;
 		
 		return new Contributor() {
@@ -820,8 +859,19 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			private boolean accept() {
 				if (getContainer() == null) {
 					return true;
-				} else if (use != null) {
-					return ((MobileComponent)use.getMainScriptComponent()).equals(getContainer());
+				}			
+				else if (use != null) {
+					MobileComponent mc = (MobileComponent)use.getMainScriptComponent();
+					if (mc.equals(getContainer())) {
+						return true;
+					}
+					
+					if (mc instanceof UISharedComponent && isCompContainer()) {
+						String mainSharedModule = ((UISharedRegularComponent)mc).getSharedModule();
+						if (!mainSharedModule.isBlank()) {
+							return true;
+						}
+					}
 				}
 				
 				/** 
@@ -830,6 +880,20 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 				 * [HMR] Update failed: ChunkLoadError: Loading hot update chunk runtime failed
 				 * */
 				return getContainer().equals(getParent()); // return false
+			}
+			
+			private boolean inSharedModule() {
+				if (isCompContainer()) {
+					UISharedRegularComponent container = (UISharedRegularComponent)getContainer();
+					String containerSharedModule = container.getSharedModule();
+					if (!containerSharedModule.isBlank()) {
+						String sharedModule = UISharedRegularComponent.this.getSharedModule();
+						if (containerSharedModule.equals(sharedModule)) {
+							return true;
+						}
+					}
+				}
+				return false;
 			}
 			
 			@Override
@@ -851,7 +915,10 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
-					imports.put("{ "+ c8o_CompModuleName+" }", c8o_CompModulePath);
+					imports.put("{ "+ getModuleName()+" }", getModulePath());
+				}
+				if (inSharedModule()) {
+					imports.put("{ "+ getCompName()+" }", getCompPath());
 				}
 				return imports;
 			}
@@ -860,7 +927,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			public Set<String> getModuleNgImports() {
 				Set<String> ngImports = new HashSet<String>();
 				if (accept()) {
-					ngImports.add(c8o_CompModuleName);
+					ngImports.add(getModuleName());
 				}
 				return ngImports;
 			}
@@ -872,7 +939,12 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 
 			@Override
 			public Set<String> getModuleNgDeclarations() {
-				return new HashSet<String>();
+				//return new HashSet<String>();
+				Set<String> ngDeclarations = new HashSet<String>();
+				if (inSharedModule()) {
+					ngDeclarations.add(getCompName());
+				}
+				return ngDeclarations;
 			}
 			
 			@Override

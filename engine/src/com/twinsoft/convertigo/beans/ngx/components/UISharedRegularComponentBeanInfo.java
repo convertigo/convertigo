@@ -38,7 +38,13 @@ public class UISharedRegularComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("sharedModule", beanClass, "getSharedModule", "setSharedModule");
+			properties[0].setDisplayName(getExternalizedString("property.sharedModule.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.sharedModule.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithValidatorEditor"));
+			properties[0].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
