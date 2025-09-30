@@ -3,7 +3,9 @@
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline?raw';
 	import MdiApi from '~icons/mdi/api?raw';
 	import MdiApplicationOutline from '~icons/mdi/application-outline?raw';
+	import MdiArrowLeft from '~icons/mdi/arrow-left?raw';
 	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick?raw';
+	import MdiArrowRight from '~icons/mdi/arrow-right?raw';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
 	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
 	import MdiBookMultiple from '~icons/mdi/book-multiple?raw';
@@ -46,6 +48,7 @@
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
 	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
 	import MdiFilter from '~icons/mdi/filter?raw';
+	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline?raw';
 	import MdiFolderOutline from '~icons/mdi/folder-outline?raw';
 	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
 	import MdiGithub from '~icons/mdi/github?raw';
@@ -63,12 +66,16 @@
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant?raw';
 	import MdiLockOutline from '~icons/mdi/lock-outline?raw';
 	import MdiLock from '~icons/mdi/lock?raw';
+	import MdiMagnifyMinusOutline from '~icons/mdi/magnify-minus-outline?raw';
+	import MdiMagnifyPlusOutline from '~icons/mdi/magnify-plus-outline?raw';
 	import MdiMagnify from '~icons/mdi/magnify?raw';
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
 	import MdiMenu from '~icons/mdi/menu?raw';
 	import MdiMinus from '~icons/mdi/minus?raw';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars?raw';
+	import MdiOpenInNew from '~icons/mdi/open-in-new?raw';
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed?raw';
+	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape?raw';
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline?raw';
 	import MdiPlus from '~icons/mdi/plus?raw';
 	import MdiPowerPlug from '~icons/mdi/power-plug?raw';
@@ -81,6 +88,8 @@
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline?raw';
 	import MdiSync from '~icons/mdi/sync?raw';
 	import MdiTable from '~icons/mdi/table?raw';
+	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline?raw';
+	import MdiToggleSwitch from '~icons/mdi/toggle-switch?raw';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal?raw';
 	import MdiUpdate from '~icons/mdi/update?raw';
 	import MdiVideoOutline from '~icons/mdi/video-outline?raw';
@@ -97,7 +106,9 @@
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
+		'mdi:arrow-right': MdiArrowRight,
 		'mdi:arrow-right-thick': MdiArrowRightThick,
+		'mdi:arrow-left': MdiArrowLeft,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:book-multiple': MdiBookMultiple,
 		'mdi:book-open-variant': MdiBookOpenVariant,
@@ -157,11 +168,18 @@
 		'mdi:lock-outline': MdiLockOutline,
 		'mdi:lock': MdiLock,
 		'mdi:magnify': MdiMagnify,
+		'mdi:magnify-minus-outline': MdiMagnifyMinusOutline,
+		'mdi:magnify-plus-outline': MdiMagnifyPlusOutline,
 		'mdi:marketplace-outline': MdiMarketplaceOutline,
 		'mdi:menu': MdiMenu,
 		'mdi:minus': MdiMinus,
 		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
+		'mdi:open-in-new-variant': MdiOpenInNew,
+		'mdi:fit-to-page-outline': MdiFitToPageOutline,
+		'mdi:camera-rotate-outline': MdiPhoneRotateLandscape,
+		'mdi:toggle-switch': MdiToggleSwitch,
+		'mdi:toggle-switch-off-outline': MdiToggleSwitchOffOutline,
 		'mdi:play-circle-outline': MdiPlayCircleOutline,
 		'mdi:plus': MdiPlus,
 		'mdi:power-plug': MdiPowerPlug,

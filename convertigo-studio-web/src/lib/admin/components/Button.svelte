@@ -13,6 +13,8 @@
 		hidden,
 		href,
 		type = 'button',
+		title = label,
+		ariaLabel = title,
 		...rest
 	} = $props();
 	cls ??= _cls;
@@ -20,11 +22,25 @@
 
 {#if !hidden}
 	{#if href && !disabled}
-		<a {href} class="{cls} h-full min-h-fit w-full text-wrap" {...rest}>
+		<a
+			{href}
+			class="{cls} h-full min-h-fit w-full text-wrap"
+			{title}
+			aria-label={ariaLabel}
+			{...rest}
+		>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</a
 		>
 	{:else}
-		<button {disabled} class="{cls} h-full min-h-fit w-full text-wrap" {type} {value} {...rest}>
+		<button
+			{disabled}
+			class="{cls} h-full min-h-fit w-full text-wrap"
+			{type}
+			{value}
+			{title}
+			aria-label={ariaLabel}
+			{...rest}
+		>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</button
 		>
 	{/if}

@@ -2,6 +2,7 @@
 node_modules
 /build
 /.svelte-kit
+/.cache
 /package
 .env
 .env.*
@@ -9,3 +10,4 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /src/convertigo.utilities.css
+/assets/bezel-sources
