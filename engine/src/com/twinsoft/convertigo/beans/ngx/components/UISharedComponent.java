@@ -46,6 +46,18 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		return null;
 	}
 	
+	static public String getNsCompModuleDirPath(UISharedComponent uisc) {
+		if (uisc != null) {
+			String sharedModuleName = uisc.getSharedModuleFullName();
+			if (sharedModuleName.isBlank()) {
+				return "/components/"+ UISharedComponent.getNsCompDirName(uisc) + "/" + UISharedComponent.getNsCompFileName(uisc);
+			} else {
+				return "/components/"+ UISharedComponent.getNsCompModuleFileName(uisc);
+			}
+		}
+		return null;
+	}
+	
 	static public String getNsCompDirPath(String compQName, String compName) {
 		if (compQName != null && compName != null) {
 			String lowerCompName = compName.toLowerCase();
@@ -76,8 +88,25 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		return null;
 	}
 	
+	static public String getNsCompModuleFileName(UISharedComponent uisc) {
+		if (uisc != null) {
+			String simpleModule = uisc.getSharedModuleSimpleName();
+			//return getNsCompModuleFileName(uisc.getQName(), simpleModule.isBlank()? uisc.getName() : simpleModule);
+			if (simpleModule.isBlank()) {
+				return getNsCompModuleFileName(uisc.getQName(), uisc.getName());
+			} else {
+				return simpleModule.toLowerCase();
+			}
+		}
+		return null;
+	}
+	
 	static public String getNsCompFileName(String compQName, String compName) {
 		return joinLower(compQName, compName, "-");
+	}
+	
+	static public String getNsCompModuleFileName(String qname, String name) {
+		return joinLower(qname, name, "-");
 	}
 	
 	static public String getNsCompIdentifier(UISharedComponent uisc) {
@@ -102,6 +131,25 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 		return joinCapitalize(compQName, compName, "_");
 	}
 	
+	static public String getNsCompModuleName(UISharedComponent uisc) {
+		if (uisc != null) {
+			String simpleModuleName = uisc.getSharedModuleSimpleName();
+			if (simpleModuleName.isBlank()) {
+				return getNsCompName(uisc.getQName(), uisc.getName());
+			} else {
+				return simpleModuleName;
+			}
+		}
+		return null;
+	}
+	
+	static public String getNsCompModuleName(String qname, String name) {
+		if (qname != null && name != null) {
+			return joinCapitalize(qname, name, "_");
+		}
+		return null;
+	}
+
 	static protected String joinLower(String dboQName, String dboName, String separator) {
 		if (dboQName != null && dboName != null) {
 			String lowerDboName = dboName.toLowerCase();
@@ -181,6 +229,22 @@ public class UISharedComponent extends UIComponent implements IShared, IExposeAb
 	
 	public void setExposed(boolean exposed) {
 		this.exposed = exposed;
+	}
+	
+	public String getSharedModuleFullName() {
+		return "";
+	}
+	
+	public String getSharedModuleSimpleName() {
+		return "";
+	}
+	
+	static public String simpleModuleName(String moduleName) {
+		String module = moduleName;
+		if (module.endsWith("Module")) {
+			module = module.substring(0, module.length() - "Module".length());
+		}
+		return module;
 	}
 	
 	public List<UICompVariable> getVariables() {

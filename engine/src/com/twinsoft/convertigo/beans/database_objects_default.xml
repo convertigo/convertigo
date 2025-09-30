@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent" priority="0" version="   8   4   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="exposed">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="sharedModule">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAsyncAction" priority="0" version="   8   4   0">
         <property name="actionValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
