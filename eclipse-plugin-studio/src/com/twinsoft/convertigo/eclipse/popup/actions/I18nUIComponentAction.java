@@ -32,6 +32,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -94,6 +95,13 @@ public class I18nUIComponentAction extends MyAbstractAction {
 				if (!found.isEmpty()) {
 					for (var d :found) {
 						explorerView.updateDatabaseObject(d);
+						
+						// trigger app build
+						TreeObject treeObject = explorerView.findTreeObjectByUserObject(d);
+						if (treeObject != null) {
+							TreeObjectEvent treeObjectEvent = new TreeObjectEvent(treeObject, "i18n", !enable, enable);
+							explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+						}
 					}
 				}
 			}
