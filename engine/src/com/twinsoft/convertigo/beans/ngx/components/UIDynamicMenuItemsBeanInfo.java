@@ -35,7 +35,11 @@ public class UIDynamicMenuItemsBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("i18n", beanClass, "isI18n", "setI18n");
+			properties[0].setDisplayName(getExternalizedString("property.i18n.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.i18n.short_description"));
 			
 			getPropertyDescriptor("itempage").setHidden(true);
 			getPropertyDescriptor("itemtitle").setHidden(true);

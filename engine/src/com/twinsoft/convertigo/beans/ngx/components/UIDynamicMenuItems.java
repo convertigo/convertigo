@@ -21,6 +21,12 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Iterator;
 
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+
 public class UIDynamicMenuItems extends UIDynamicMenuItem {
 
 	private static final long serialVersionUID = -1878766101499902856L;
@@ -37,6 +43,41 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 	public UIDynamicMenuItems clone() throws CloneNotSupportedException {
 		UIDynamicMenuItems cloned = (UIDynamicMenuItems) super.clone();
 		return cloned;
+	}
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+
+		String version = element.getAttribute("version");
+
+		if (version == null) {
+			String s = XMLUtils.prettyPrintDOM(element);
+			EngineException ee = new EngineException(
+					"Unable to find version number for the database object \"" + getName() + "\".\nXML data: " + s);
+			throw ee;
+		}
+
+		try {
+			if (VersionUtils.compare(version, "8.4.0") < 0) {
+				if (!isI18n()) {
+					this.setI18n(true); // for compatibility
+					this.hasChanged = true;
+				}
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to migrate the UICustomAction \"" + getName() + "\".", e);
+		}
+	}
+	
+	private boolean i18n = false;
+
+	public boolean isI18n() {
+		return i18n;
+	}
+
+	public void setI18n(boolean i18n) {
+		this.i18n = i18n;
 	}
 	
 	@Override
@@ -92,7 +133,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 				.append(System.lineSeparator())
 				.append("<ion-icon [slot]=\"(p.icon != '' && p.iconPos == '') ? 'start':p.iconPos\" [ios]=\"p.icon + (p.icon == '' ? '':'-outline')\" [md]=\"p.icon + (p.icon == '' ? '':'-sharp')\"></ion-icon>")
 				.append(System.lineSeparator())
-				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
+				.append("<ion-label>"+ (isI18n() ? "{{ p.titleKey | translate }}" : "{{p.title}}") +"</ion-label>")
 				.append(System.lineSeparator())
 				.append("</ion-item>")
 				.append(System.lineSeparator());

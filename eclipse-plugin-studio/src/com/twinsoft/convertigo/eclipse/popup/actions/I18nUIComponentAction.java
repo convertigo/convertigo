@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -65,6 +66,14 @@ public class I18nUIComponentAction extends MyAbstractAction {
 									var txt = (UIText) dbo;
 									if (txt.isI18n() != enable) {
 										txt.setI18n(enable);
+										dbo.hasChanged = true;
+										found.add(dbo);
+										found.add(dbo.getProject());
+									}
+								} else if (dbo instanceof UIDynamicMenuItems) {
+									var autoitems = (UIDynamicMenuItems) dbo;
+									if (autoitems.isI18n() != enable) {
+										autoitems.setI18n(enable);
 										dbo.hasChanged = true;
 										found.add(dbo);
 										found.add(dbo.getProject());

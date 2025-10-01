@@ -1,4 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems" priority="0" version="   8   4   0">
+        <property name="beanData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="i18n">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="itemicon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemiconPos">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itempage">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemtitle">
+            <java.lang.String value="'item\'s title'"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="tag"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent" priority="0" version="   8   4   0">
         <property name="comment">
             <java.lang.String value=""/>
