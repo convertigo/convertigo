@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:9-jdk21-temurin-jammy
+FROM tomcat:9-jdk25-temurin
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com

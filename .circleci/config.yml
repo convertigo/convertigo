@@ -648,7 +648,7 @@ jobs:
           
   build_studio_mac:
     macos:
-      xcode: 15.0.0
+      xcode: 16.4.0
     steps:
     - aws-cli/setup:
         use_brew: true
