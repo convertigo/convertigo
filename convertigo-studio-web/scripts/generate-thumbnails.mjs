@@ -18,8 +18,9 @@ const bezelsModulePath = pathToFileURL(
 
 const THUMBNAIL_HEIGHT = 240;
 const THUMBNAIL_GRADIENT = [
-	{ position: 0, color: '#0f704f' },
-	{ position: 1, color: '#7a22b6' }
+	{ position: 0, color: '#243b5c' },
+	{ position: 0.55, color: '#315f87' },
+	{ position: 1, color: '#48b5a1' }
 ];
 const LOGO_SCALE = 0.42;
 
@@ -30,10 +31,15 @@ const hexToRgba = (value) => {
 	if (![3, 6].includes(hex.length)) {
 		throw new Error(`Unsupported color value: ${value}`);
 	}
-	const expand = (component) => (hex.length === 3 ? component.repeat(2) : component);
-	const r = parseInt(expand(hex[0]), 16);
-	const g = parseInt(expand(hex[1]), 16);
-	const b = parseInt(expand(hex[2]), 16);
+	if (hex.length === 3) {
+		const r = parseInt(hex[0].repeat(2), 16);
+		const g = parseInt(hex[1].repeat(2), 16);
+		const b = parseInt(hex[2].repeat(2), 16);
+		return { r, g, b };
+	}
+	const r = parseInt(hex.substring(0, 2), 16);
+	const g = parseInt(hex.substring(2, 4), 16);
+	const b = parseInt(hex.substring(4, 6), 16);
 	return { r, g, b };
 };
 
@@ -42,11 +48,24 @@ const createVerticalGradient = (width, height, stops) => {
 	const buffer = Buffer.alloc(width * height * channels);
 	for (let y = 0; y < height; y++) {
 		const ratio = height <= 1 ? 0 : y / (height - 1);
-		const start = stops[0];
-		const end = stops[stops.length - 1];
-		const r = Math.round(start.r + (end.r - start.r) * ratio);
-		const g = Math.round(start.g + (end.g - start.g) * ratio);
-		const b = Math.round(start.b + (end.b - start.b) * ratio);
+
+		let start = stops[0];
+		let end = stops[stops.length - 1];
+		for (let i = 0; i < stops.length - 1; i++) {
+			if (ratio >= stops[i].position && ratio <= stops[i + 1].position) {
+				start = stops[i];
+				end = stops[i + 1];
+				break;
+			}
+		}
+
+		const range = end.position - start.position;
+		const localRatio = range === 0 ? 0 : (ratio - start.position) / range;
+
+		const r = Math.round(start.r + (end.r - start.r) * localRatio);
+		const g = Math.round(start.g + (end.g - start.g) * localRatio);
+		const b = Math.round(start.b + (end.b - start.b) * localRatio);
+
 		for (let x = 0; x < width; x++) {
 			const offset = (y * width + x) * channels;
 			buffer[offset] = r;
@@ -75,13 +94,11 @@ async function generateThumbnail({ id, iframe, bezel }) {
 	}
 
 	const bezelImage = sharp(bezelPath);
-	const bezelMeta = await bezelImage.metadata();
-	if (!bezelMeta.width || !bezelMeta.height) {
-		throw new Error(`Missing dimensions for bezel ${id}`);
-	}
 
-	const scale = THUMBNAIL_HEIGHT / bezelMeta.height;
-	const targetWidth = Math.max(1, Math.round(bezelMeta.width * scale));
+	// Use dimensions from Bezels.js as the source of truth for scaling
+	const scale = THUMBNAIL_HEIGHT / bezel.height;
+	const targetWidth = Math.max(1, Math.round(bezel.width * scale));
+
 	const base = sharp({
 		create: {
 			width: targetWidth,
@@ -101,43 +118,79 @@ async function generateThumbnail({ id, iframe, bezel }) {
 	const screenWidth = clamp(rawScreenWidth, 1, targetWidth - screenLeft);
 	const screenHeight = clamp(rawScreenHeight, 1, THUMBNAIL_HEIGHT - screenTop);
 
+	// Create screen content (gradient + logo)
+	const screenComposites = [];
 	const gradientStops = THUMBNAIL_GRADIENT.map(({ position, color }) => ({
 		position,
 		...hexToRgba(color)
 	}));
-	const gradientBuffer = createVerticalGradient(screenWidth, screenHeight, gradientStops);
-
-	const composites = [];
-	composites.push({
-		input: gradientBuffer,
-		left: screenLeft,
-		top: screenTop,
-		raw: { width: screenWidth, height: screenHeight, channels: 4 }
+	const screenGradientBuffer = createVerticalGradient(screenWidth, screenHeight, gradientStops);
+	screenComposites.push({
+		input: screenGradientBuffer,
+		raw: { width: screenWidth, height: screenHeight, channels: 4 },
+		top: 0,
+		left: 0
 	});
 
 	if (existsSync(logoPath)) {
 		const logoHeight = clamp(Math.round(screenHeight * LOGO_SCALE), 16, screenHeight);
 		const maxLogoWidth = Math.max(16, screenWidth - 8);
 		const logo = sharp(logoPath).resize({ height: logoHeight, width: maxLogoWidth, fit: 'inside' });
-		const { width: logoWidth = 0, height: actualLogoHeight = 0 } = await logo.metadata();
-		const logoLeft = clamp(
-			screenLeft + Math.round((screenWidth - logoWidth) / 2),
-			screenLeft,
-			screenLeft + screenWidth - logoWidth
-		);
-		const logoTop = clamp(
-			screenTop + Math.round((screenHeight - actualLogoHeight) / 2),
-			screenTop,
-			screenTop + screenHeight - actualLogoHeight
-		);
-		composites.push({ input: await logo.toBuffer(), left: logoLeft, top: logoTop });
+
+		const resizedLogoBuffer = await logo.toBuffer();
+		const { width: logoWidth = 0, height: actualLogoHeight = 0 } =
+			await sharp(resizedLogoBuffer).metadata();
+
+		const logoLeft = Math.round((screenWidth - logoWidth) / 2);
+		const logoTop = Math.round((screenHeight - actualLogoHeight) / 2);
+
+		screenComposites.push({ input: resizedLogoBuffer, left: logoLeft, top: logoTop });
 	}
 
+	const screenContent = await sharp({
+		create: {
+			width: screenWidth,
+			height: screenHeight,
+			channels: 4,
+			background: { r: 0, g: 0, b: 0, alpha: 0 }
+		}
+	})
+		.composite(screenComposites)
+		.raw()
+		.toBuffer();
+
+	// Create rounded corner mask
+	const scaledRadius = (iframe.borderRadius ?? 0) * scale;
+	const mask = Buffer.from(
+		`<svg><rect x="0" y="0" width="${screenWidth}" height="${screenHeight}" rx="${scaledRadius}" ry="${scaledRadius}"/></svg>`
+	);
+
+	const maskedScreen = await sharp(screenContent, {
+		raw: { width: screenWidth, height: screenHeight, channels: 4 }
+	})
+		.composite([
+			{
+				input: mask,
+				blend: 'dest-in'
+			}
+		])
+		.raw()
+		.toBuffer();
+
+	// Composite final image
+	const finalComposites = [];
+	finalComposites.push({
+		input: maskedScreen,
+		raw: { width: screenWidth, height: screenHeight, channels: 4 },
+		left: screenLeft,
+		top: screenTop
+	});
+
 	const frameBuffer = await bezelImage.resize({ height: THUMBNAIL_HEIGHT }).toBuffer();
-	composites.push({ input: frameBuffer, left: 0, top: 0 });
+	finalComposites.push({ input: frameBuffer, left: 0, top: 0 });
 
 	const thumbPath = path.join(thumbsDir, `${id}.webp`);
-	await base.composite(composites).webp({ quality: 85 }).toFile(thumbPath);
+	await base.composite(finalComposites).webp({ quality: 85 }).toFile(thumbPath);
 
 	console.log(`✓ Generated thumbnail for ${id}`);
 }
