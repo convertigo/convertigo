@@ -16,12 +16,12 @@
 FROM tomcat:9-jdk25-temurin
 
 
-MAINTAINER Nicolas Albert nicolasa@convertigo.com
+LABEL maintainer="Nicolas Albert <nicolasa@convertigo.com>"
 
 ## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
-ENV SWT_GTK3 0
+ENV SWT_GTK3=0
 
-ENV CATALINA_HOME /usr/local/tomcat
+ENV CATALINA_HOME=/usr/local/tomcat
 RUN mkdir -p "$CATALINA_HOME"
 WORKDIR $CATALINA_HOME
 
@@ -42,12 +42,13 @@ RUN apt-get update -y \
 
 ## create a 'convertigo' user and fix some rights
 
-RUN useradd -s /bin/false -m convertigo \
-    && mkdir -p /workspace \
-    && chown -R convertigo:convertigo /workspace \
-    && chmod -R 777 /workspace \
-    && echo "convertigo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/convertigo \
-    && chmod 0440 /etc/sudoers.d/convertigo
+RUN groupmod -n convertigo ubuntu \
+  && usermod -l convertigo -d /home/convertigo -m ubuntu \
+  && mkdir -p /workspace \
+  && chown -R 1000:1000 /workspace \
+  && chmod -R 777 /workspace \
+  && echo "convertigo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/convertigo \
+  && chmod 0440 /etc/sudoers.d/convertigo
 
 ## disable unused AJP and Jasper features
 ## change HTTP port the historic Convertigo port 28080
@@ -82,11 +83,11 @@ RUN sed -i.bak \
     && chmod -w conf/* \
     && chmod 777 conf/context.xml conf/server.xml
 
-ENV CONVERTIGO_VERSION %VERSION%
+ENV CONVERTIGO_VERSION=%VERSION%
 
-ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
+ENV CONVERTIGO_WAR_URL=https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
-ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
+ENV CONVERTIGO_GPG_KEYS=6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 
 
 ## download and extract the convertigo webapps
