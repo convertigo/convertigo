@@ -58,8 +58,8 @@
 	let rotationSteps = $state(0);
 	let showStatusBar = $state(false);
 	const iconButtonClasses =
-		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-surface-200-800/40 bg-surface-50-950/80 text-surface-600 transition hover:bg-surface-200-800/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
-	const iconButtonActiveClasses = 'bg-primary-100/70 text-primary-600';
+		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-surface-200-800/40 bg-surface-50-950/80 text-surface-600-400 transition hover:bg-surface-200-800/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
+	const iconButtonActiveClasses = 'bg-primary-100/70 text-primary-600-400';
 	let groupedDevices = $derived.by(() => {
 		const devices = Object.values(Bezels)
 			.filter(Boolean)
@@ -287,13 +287,13 @@
 			onValueChange={({ value }) => {
 				openGroups = value;
 			}}
-			classes="-mx divide-y divide-surface-200-800/40 border border-transparent"
+			classes=""
 		>
 			{#each groupedDevices as { id, title, devices }}
 				<Accordion.Item
 					value={id}
-					classes="border-b border-surface-200-800/30 last:border-none"
-					controlClasses="flex items-center justify-between px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600 hover:text-surface-900"
+					classes="border-b border-surface-200-800 last:border-none"
+					controlClasses="flex items-center justify-between px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600-400 hover:text-surface-900-100"
 					panelClasses="px-low pb-2"
 				>
 					{#snippet control()}
@@ -360,13 +360,6 @@
 				</Accordion.Item>
 			{/each}
 		</Accordion>
-		<a
-			href={projectUrl}
-			target="_blank"
-			class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 hover:bg-surface-200-800"
-		>
-			<span class="z-10 text-[13px] font-light">New Tab</span>
-		</a>
 	</nav>
 {/snippet}
 <InputGroup

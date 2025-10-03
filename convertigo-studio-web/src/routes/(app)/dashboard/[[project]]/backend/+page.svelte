@@ -152,7 +152,7 @@
 
 	<Accordion
 		multiple
-		classes="space-y-4"
+		classes="-mx-low"
 		width=""
 		value={searchQuery.length ? parts.map(({ name }) => name) : partsOpened}
 		onValueChange={(e) => {
@@ -164,11 +164,11 @@
 			<div transition:fly={{ duration, y }}>
 				<Accordion.Item
 					value={part.name}
-					classes="rounded-2xl border border-surface-200-800/40 bg-surface-50-950/70 shadow-sm shadow-surface-900/5"
+					classes="rounded-container bg-surface-100-900 shadow-follow"
 					controlClasses="group flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
-					controlPadding="p-0"
-					panelPadding="px-2 pb-4"
-					panelClasses="bg-transparent"
+					controlPadding=""
+					panelPadding="px-low pb-low"
+					panelClasses=""
 				>
 					{#snippet control()}
 						<div class="flex w-full flex-wrap items-center justify-between gap-3">
@@ -211,7 +211,7 @@
 													class="flex w-full items-stretch gap-3 rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40 dark:group-data-[state=open]:bg-surface-900/40"
 												>
 													<span
-														aria-hidden
+														aria-hidden="true"
 														class={`hidden w-1.5 shrink-0 rounded-full ${accessibilities[accessibility].accent} sm:block`}
 													></span>
 													<span
@@ -291,7 +291,7 @@
 																	>
 																		<div class="flex items-center gap-2">
 																			<span
-																				aria-hidden
+																				aria-hidden="true"
 																				class={`h-2 w-2 rounded-full ${accessibilities[accessibility].accent}`}
 																			></span>
 																			<span>

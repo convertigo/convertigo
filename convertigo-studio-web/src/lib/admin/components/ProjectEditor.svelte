@@ -6,13 +6,14 @@
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { getContext, onMount, untrack } from 'svelte';
+	import { getContext, onMount, tick, untrack } from 'svelte';
+	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 	import ResponsiveButtons from './ResponsiveButtons.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
 
 	let { project, class: cls = '' } = $props();
-	let { rootNode, addProject, checkChildren, onExpandedChange } = $derived(createProjectTree());
+	let { rootNode, addProject, checkChildren } = $derived(createProjectTree());
 	let {
 		id,
 		properties,
@@ -66,11 +67,70 @@
 	}
 
 	onMount(() => {
-		addProject(project).then(() => {
-			checkChildren(rootNode.children[0]);
+		addProject(project).then(async () => {
+			const [projectNode] = rootNode.children;
+			if (projectNode) {
+				await checkChildren(projectNode);
+				await autoExpandNodes([projectNode]);
+			}
 			onSelectionChange({ selectedValue: [project] });
 		});
 	});
+
+	async function ensureTreeviewReady() {
+		if (!treeview) {
+			await tick();
+		}
+		return treeview;
+	}
+
+	async function expandChain(node, expandedSet, visited) {
+		let current = node;
+		let mutated = false;
+		while (current && !visited.has(current.id)) {
+			visited.add(current.id);
+			if (!Array.isArray(current.children) || current.children.length !== 1) {
+				break;
+			}
+			const [child] = current.children;
+			if (!child || child.id === current.id || !child.children) {
+				break;
+			}
+			const beforeSize = expandedSet.size;
+			expandedSet.add(child.id);
+			mutated ||= expandedSet.size !== beforeSize;
+			if (!Array.isArray(child.children)) {
+				await checkChildren(child);
+			}
+			if (!Array.isArray(child.children) || child.children.length === 0) {
+				break;
+			}
+			current = child;
+		}
+		return mutated;
+	}
+
+	async function autoExpandNodes(nodes = []) {
+		if (!nodes.length) return;
+		const view = await ensureTreeviewReady();
+		if (!view?.getExpandedValue || !view?.setExpandedValue) return;
+		const expandedSet = new Set(view.getExpandedValue() ?? []);
+		const visited = new Set();
+		let mutated = false;
+		for (const node of nodes) {
+			if (!node) continue;
+			mutated ||= await expandChain(node, expandedSet, visited);
+		}
+		if (mutated) {
+			view.setExpandedValue([...expandedSet]);
+		}
+	}
+
+	async function handleExpandedChange(details) {
+		const nodes = details?.expandedNodes ?? [];
+		await Promise.all(nodes.map((node) => checkChildren(node)));
+		await autoExpandNodes(nodes);
+	}
 
 	async function onNodeIndicator(e, api, nodeState) {
 		e.stopPropagation();
@@ -108,15 +168,17 @@
 	<TreeView
 		bind:this={treeview}
 		{rootNode}
-		{onExpandedChange}
+		onExpandedChange={handleExpandedChange}
 		{onSelectionChange}
 		expandOnClick={false}
 		defaultExpandedValue={[project]}
 		defaultSelectedValue={[project]}
-		base="preset-outlined-surface-500 py-low px-[20px] rounded-base overflow-clip"
-		classes="text-surface-700-300 min-w-80 overflow-hidden break-all select-none"
-		textClass="text-surface-800-200"
-		indicatorClass="order-first text-surface-600-400 -ml-[14px]"
+		base="rounded-container preset-filled-surface-50-950 p-3 shadow-follow min-w-fit"
+		classes="overflow-hidden break-words select-none"
+		textClass="text-sm font-medium"
+		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
+		childrenClass="border-l border-surface-200-800 pl-2"
+		controlClass="layout-x-low rounded-base py-1 transition-colors duration-200 hover:bg-surface-200-800"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
 			{#if node.icon?.includes('?')}
@@ -133,11 +195,12 @@
 			<span>{node.name}</span>
 		{/snippet}
 		{#snippet nodeIndicator({ api, nodeState })}
-			<button
+			<Button
+				aria-label={nodeState.expanded ? 'Collapse' : 'Expand'}
 				onclick={(e) => onNodeIndicator(e, api, nodeState)}
-				class:opened={nodeState.expanded}
-				class:closed={!nodeState.expanded}>❯</button
-			>
+				class="grid size-6 place-items-center"
+				icon="mdi:chevron-right"
+			/>
 		{/snippet}
 	</TreeView>
 	<div class="layout-y-low w-full items-stretch">
@@ -177,59 +240,87 @@
 		{@render saveCancel()}
 		<Accordion
 			value={openedCategories}
-			onValueChange={(e) => (openedCategories = clickedCategories = e.value)}
-			classes="rounded overflow-hidden"
+			onValueChange={({ value }) => (openedCategories = clickedCategories = value)}
 			multiple
-			spaceY=""
 		>
 			{#each categories as { category, properties }}
 				<Accordion.Item
 					value={category}
-					base="even:preset-filled-primary-100-900 odd:preset-filled-primary-200-800"
-					panelPadding=""
-					panelClasses="bg-surface-100-900"
-					controlClasses="font-medium"
+					classes="rounded-container preset-filled-surface-50-950 shadow-follow"
+					controlClasses="flex items-center justify-between gap-low rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
+					controlPadding="p-0"
+					panelPadding="px-3 pb-4"
+					panelClasses="bg-transparent"
 					disabled={properties.length == 0}
 				>
-					{#snippet control()}{category}{/snippet}
+					{#snippet control()}
+						<div class="flex w-full flex-wrap items-center justify-between gap-3">
+							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50"
+								>{category}</span
+							>
+							{#if properties.length}
+								<span
+									class="rounded-full border border-surface-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide text-surface-500 uppercase"
+									>{properties.length} item{properties.length > 1 ? 's' : ''}</span
+								>
+							{:else}
+								<span
+									class="text-surface-500-300 rounded-full border border-dashed border-surface-300-700/60 px-2 py-1 text-[11px] tracking-wide uppercase"
+									>Empty</span
+								>
+							{/if}
+						</div>
+					{/snippet}
 					{#snippet panel()}
-						<TableAutoCard
-							showHeaders={false}
-							showNothing={false}
-							trClass="preset-filled-surface-50-950 odd:bg-surface-50-950/50 hover:preset-filled-surface-100-900"
-							definition={[
-								{ key: 'displayName', name: 'Name', class: 'min-w-40' },
-								{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
-							]}
-							animationProps={{ duration: 100 }}
-							data={properties}
-						>
-							{#snippet children({ row })}
-								{@const { class: cls, value, originalValue, values } = row}
-								{#if category == 'Information'}
-									<span>{value}</span>
-								{:else if cls?.startsWith('java.lang.')}
-									{@const type = getType(row)}
-									<PropertyType
-										{type}
-										bind:value={() => value, (v) => (row.value = v)}
-										item={values}
-										{originalValue}
-										buttons={['text', 'array'].includes(type)
-											? []
-											: [
-													{
-														icon: 'mdi:star-outline',
-														title: 'edit symbols',
-														onclick: () => onSwitchSymbols(row)
-													}
-												]}
-									/>
-								{:else}
-									<span class="font-mon max-w-40 break-all">{row.value}</span>
-								{/if}
-							{/snippet}
-						</TableAutoCard>
+						{#if properties.length === 0}
+							<p
+								class="rounded-xl border border-dashed border-surface-300-700/60 bg-surface-100-900/40 px-4 py-6 text-center text-sm text-surface-500"
+							>
+								No properties available for this section.
+							</p>
+						{:else}
+							<TableAutoCard
+								showHeaders={false}
+								showNothing={false}
+								trClass="transition-colors duration-150 hover:bg-surface-200-800"
+								definition={[
+									{
+										key: 'displayName',
+										name: 'Name',
+										class: 'min-w-40 text-xs uppercase text-surface-600-400'
+									},
+									{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
+								]}
+								animationProps={{ duration: 120 }}
+								data={properties}
+							>
+								{#snippet children({ row })}
+									{@const { class: cls, value, originalValue, values } = row}
+									{#if category == 'Information'}
+										<span>{value}</span>
+									{:else if cls?.startsWith('java.lang.')}
+										{@const type = getType(row)}
+										<PropertyType
+											{type}
+											bind:value={() => value, (v) => (row.value = v)}
+											item={values}
+											{originalValue}
+											buttons={['text', 'array'].includes(type)
+												? []
+												: [
+														{
+															icon: 'mdi:star-outline',
+															title: 'edit symbols',
+															onclick: () => onSwitchSymbols(row)
+														}
+													]}
+										/>
+									{:else}
+										<span class="font-mon max-w-40 break-all">{row.value}</span>
+									{/if}
+								{/snippet}
+							</TableAutoCard>
+						{/if}
 					{/snippet}
 				</Accordion.Item>
 			{/each}
@@ -241,18 +332,14 @@
 <style lang="postcss">
 	@reference "../../../app.css";
 
-	:global([data-selected] > [data-part='branch-text']) {
-		@apply rounded-base preset-filled-primary-100-900 px-low;
+	:global([data-part='branch-control'][data-selected]),
+	:global([data-part='item'][data-selected]) {
+		@apply preset-filled-primary-200-800 pr-2;
 	}
 
-	.closed {
-		rotate: 0deg;
-		transition: rotate 0.2s ease-in-out;
-	}
-
-	.opened {
-		rotate: 90deg;
-		transition: rotate 0.2s ease-in-out;
+	:global([data-part='branch-control'][data-selected] [data-part='branch-text']),
+	:global([data-part='item'][data-selected] [data-part='item-text']) {
+		@apply font-semibold;
 	}
 
 	:global([data-scope='accordion']) {

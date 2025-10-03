@@ -219,8 +219,8 @@
 	/>
 	<TableAutoCard
 		definition={[
-			{ name: 'Actions', custom: true },
-			{ name: 'Project', key: 'name', class: 'font-normal' },
+			{ name: 'Actions', custom: true, class: 'w-44' },
+			{ name: 'Project', key: 'name', class: 'font-normal w-80' },
 			{ name: 'Comment', key: 'comment' },
 			{
 				name: 'Version',

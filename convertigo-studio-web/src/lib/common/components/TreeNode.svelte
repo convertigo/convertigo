@@ -18,6 +18,13 @@
 	} = $props();
 
 	let nodeState = $derived(api.getNodeState({ node, indexPath }));
+
+	const toggleBranch = (event) => {
+		event?.preventDefault?.();
+		event?.stopPropagation?.();
+		if (!nodeState.isBranch) return;
+		api[nodeState.expanded ? 'collapse' : 'expand'](nodeState.value);
+	};
 </script>
 
 {#snippet nodeCommon({ node, indexPath })}
@@ -45,7 +52,11 @@
 
 {#if nodeState.isBranch}
 	<div {...api.getBranchProps({ node, indexPath })} class={nodeClass}>
-		<div {...api.getBranchControlProps({ node, indexPath })} class={controlClass}>
+		<div
+			{...api.getBranchControlProps({ node, indexPath })}
+			class={controlClass}
+			ondblclick={toggleBranch}
+		>
 			{@render nodeCommon({ node, indexPath })}
 			<span {...api.getBranchIndicatorProps({ node, indexPath })} class={indicatorClass}>
 				{#if !!nodeIndicator}
@@ -85,7 +96,11 @@
 		{/if}
 	</div>
 {:else}
-	<div {...api.getItemProps({ node, indexPath })} class="{controlClass} {nodeClass}">
+	<div
+		{...api.getItemProps({ node, indexPath })}
+		class="{controlClass} {nodeClass}"
+		ondblclick={() => api.setSelectedValue([nodeState.value])}
+	>
 		{@render nodeCommon({ node, indexPath })}
 	</div>
 {/if}

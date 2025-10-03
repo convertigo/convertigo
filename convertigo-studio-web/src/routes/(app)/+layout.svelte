@@ -47,7 +47,7 @@
 			</aside>
 		{/if}
 		{#key page.route.id}
-			<main class="min-h-full w-full grow py px" in:fade>
+			<main class="min-h-full w-full min-w-0 grow py px" in:fade>
 				{@render children?.()}
 			</main>
 		{/key}

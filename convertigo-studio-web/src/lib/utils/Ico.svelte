@@ -18,6 +18,7 @@
 	import MdiCalendarRange from '~icons/mdi/calendar-range?raw';
 	import MdiCertificate from '~icons/mdi/certificate?raw';
 	import MdiCheckAll from '~icons/mdi/check-all?raw';
+	import MdiChevronRight from '~icons/mdi/chevron-right?raw';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
 	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline?raw';
 	import MdiCloudOutline from '~icons/mdi/cloud-outline?raw';
@@ -108,6 +109,7 @@
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:arrow-right': MdiArrowRight,
 		'mdi:arrow-right-thick': MdiArrowRightThick,
+		'mdi:chevron-right': MdiChevronRight,
 		'mdi:arrow-left': MdiArrowLeft,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:book-multiple': MdiBookMultiple,

@@ -53,6 +53,14 @@
 	export function setSelectedValue(value) {
 		return api.setSelectedValue(value);
 	}
+
+	export function getExpandedValue() {
+		return api.expandedValue;
+	}
+
+	export function setExpandedValue(value) {
+		return api.setExpandedValue(value);
+	}
 </script>
 
 <div {...api.getRootProps()} class="{base} {classes}" data-testid="tree-view">
