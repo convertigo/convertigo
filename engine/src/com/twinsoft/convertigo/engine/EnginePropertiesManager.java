@@ -361,7 +361,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		ZIP_BACKUP_OLD_PROJECT ("project.zip_backup_old", "true", "Automatically performs a dated zip backup of replaced projects", PropertyCategory.Main),
+		ZIP_BACKUP_OLD_PROJECT ("project.zip_backup_old", "false", "Automatically performs a dated zip backup of replaced projects", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
