@@ -34,10 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -57,11 +56,10 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.NgxConverter;
+import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class BeansDoc {
-	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|\\s*(.*))?");
-
 	private int max;
 	private int count = 0;
 	private File outputDirectory;
@@ -365,22 +363,14 @@ public class BeansDoc {
 				+ "\n" + "---\n");
 
 		if (bEnable) {
-			String description = databaseObjectBeanDescriptor.getShortDescription();
+			DocumentationHelper.Documentation documentation = DocumentationHelper.parse(databaseObjectBeanDescriptor.getShortDescription());
+			String shortMarkdown = StringUtils.defaultIfBlank(documentation.getShortMarkdown(), "Not yet documented.");
+			String longMarkdown = documentation.getLongMarkdown();
 
-			String shortDescription = description;
-
-			String longDescription = "";
-
-			Matcher mDescription = pDescription.matcher(description);
-			if (mDescription.matches()) {
-				shortDescription = mDescription.group(1);
-				if (mDescription.group(2) != null) {
-					longDescription = mDescription.group(2);
-					longDescription.replaceAll("\\n", "\n\n");
-				}
+			sb.append("##### ").append(shortMarkdown).append("\n\n");
+			if (StringUtils.isNotBlank(longMarkdown)) {
+				sb.append(longMarkdown).append("\n\n");
 			}
-
-			sb.append("##### " + shortDescription + "\n\n" + longDescription + "\n");
 
 			SortedMap<String, String> properties = new TreeMap<>();
 
@@ -388,7 +378,6 @@ public class BeansDoc {
 
 			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
 				boolean skip = false;
-				longDescription = "";
 
 				// Don't display hidden property descriptors
 				if (databaseObjectPropertyDescriptor.isHidden()) {
@@ -430,15 +419,12 @@ public class BeansDoc {
 					category = "expert";
 				}
 
-				description = databaseObjectPropertyDescriptor.getShortDescription();
-
-				mDescription = pDescription.matcher(description);
-
-				if (mDescription.matches()) {
-					description = mDescription.group(1).trim();
-					if (mDescription.group(2) != null) {
-						description += "<br/>" + mDescription.group(2).trim();
-					}
+				DocumentationHelper.Documentation propertyDoc = DocumentationHelper.parse(databaseObjectPropertyDescriptor.getShortDescription());
+				String description = StringUtils.defaultIfBlank(propertyDoc.getShortMarkdown(), StringUtils.EMPTY);
+				String propertyLongMarkdown = propertyDoc.getLongMarkdown();
+				if (StringUtils.isNotBlank(propertyLongMarkdown)) {
+					String rendered = propertyLongMarkdown.replace("\n", "<br/>");
+					description = description.isEmpty() ? rendered : description + "<br/>" + rendered;
 				}
 
 				String type = databaseObjectPropertyDescriptor.getPropertyType().getSimpleName();

@@ -87,7 +87,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
-import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -118,7 +117,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.RegexpUtils;
+import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 
 public class PaletteView extends ViewPart implements IPartListener2, ISelectionListener, TreeObjectListener {
 	private static final int MAX_USED_HISTORY = 50;
@@ -141,27 +140,33 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private ComponentManager latestComponentManager;
 
 	private abstract class Item implements Comparable<Item> {
+		private String rawDescription;
 		private String shortDescription;
 		private String longDescription;
 		private String searchText;
 		private DatabaseObject dbo;
 
 		Item() {
-			String[] beanDescriptions = description().split("\\|");
-			shortDescription = BeansUtils.cleanDescription(beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a", true);
-			longDescription = BeansUtils.cleanDescription(beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a", true);
-			searchText = name().toLowerCase() + " " + shortDescription.toLowerCase();
+			rawDescription = description();
+			DocumentationHelper.Documentation doc = DocumentationHelper.parse(rawDescription);
+			shortDescription = StringUtils.defaultIfBlank(doc.getShortHtml(), "n/a");
+			longDescription = doc.getLongHtml();
+			searchText = name().toLowerCase() + " " + StringUtils.defaultIfBlank(doc.getShortText(), shortDescription).toLowerCase();
 		}
 
-		private String shortDescription() {
+		String rawDescription() {
+			return rawDescription;
+		}
+
+		String shortDescription() {
 			return shortDescription;
 		}
 
-		private String longDescription() {
+		String longDescription() {
 			return longDescription;
 		}
 
-		private String searchText() {
+		String searchText() {
 			return searchText;
 		}
 
@@ -552,56 +557,35 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			};
 
 			if (item == null || sash.getWeights()[1] < 100) {
-				browser.setText("<html>" +
-						"<head>" +
-						"<script type=\"text/javascript\">" +
-						"document.oncontextmenu = new Function(\"return false\");" +
-						"</script>" +
-						"<style type=\"text/css\">" +
-						"html {" +
-						"padding: 0px; margin: 0px;" + 
-						"border-left: lightgrey solid 2px;" +
-						"}\n" + 
-						"body {" +
-						"font-family: Courrier new, sans-serif;" +
-						"font-size: 14px;" +
-						"padding-left: 5px;" +
-						"color: $foreground$;" +
-						"background-color: $background$ } \n" +
-						"a { color: $link$; }" +
-						"</style>" +
-						"</head><body></body></html>");
+				browser.setText(DocumentationHelper.buildEmptyHtmlDocument());
 				bag.setData("LatestDoc", null);
 			} else {
 				var lastItem = (Item) bag.getData("LatestDoc");
 				if (item.compareTo(lastItem) != 0) {
 					var propertiesDescription = item.propertiesDescription();
-					browser.setText("<html>" +
-							"<head>" +
-							"<script type=\"text/javascript\">" +
-							"document.oncontextmenu = new Function(\"return false\");" +
-							"</script>" +
-							"<style type=\"text/css\">" +
-							"@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');\n" +
-							"html {" +
-							"padding: 0px; margin: 0px;" + 
-							"border-left: lightgrey solid 2px;" +
-							"}\n" + 
-							"body {" +
-							"font-family: 'Inter', sans-serif;" +
-							"padding-left: 0.3em;" +
-							"color: $foreground$;" +
-							"background-color: $background$ } \n" +
-							"a { color: $link$; }" +
-							"li { margin-bottom: 10px }" +
-							"</style>" +
-							"</head><body><p>"
-							+ "<b style=\"font-size: 24pt\">" + item.name() + "</b>" + "<br><br>"
-							+ "<i>" + item.shortDescription() + "</i>" + "<br><br>"
-							+ item.longDescription() + "<br>"
-							+ (propertiesDescription.isEmpty() ? "" : "<h4><b>Properties:</b></h4>")
-							+ propertiesDescription
-							+ "</p></body></html>");
+					StringBuilder body = new StringBuilder();
+					body.append("<div class=\"doc\">");
+					body.append("<p><b style=\\\"font-size: 24pt\\\">")
+						.append(item.name())
+						.append("</b></p>");
+
+					if (StringUtils.isNotBlank(item.shortDescription())) {
+						body.append("<p><i>")
+							.append(item.shortDescription())
+							.append("</i></p>");
+					}
+
+					if (StringUtils.isNotBlank(item.longDescription())) {
+						body.append(item.longDescription());
+					}
+
+					if (StringUtils.isNotBlank(propertiesDescription)) {
+						body.append("<h4><b>Properties:</b></h4>")
+							.append(propertiesDescription);
+					}
+
+					body.append("</div>");
+					browser.setText(DocumentationHelper.buildHtmlDocument(body.toString(), true));
 					bag.setData("LatestDoc", item);
 				}
 			}
@@ -741,8 +725,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 										String propertiesDescription = "";
 										for (PropertyDescriptor dbopd : propertyDescriptors) {
 											if (!dbopd.isHidden()) {
-												propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
-												propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
+												String doc = DocumentationHelper.fullDescription(dbopd.getShortDescription(), true);
+												propertiesDescription += "<li><i>" + dbopd.getDisplayName() + "</i>";
+												if (StringUtils.isNotBlank(doc)) {
+													propertiesDescription += "<br/>" + doc;
+												}
+												propertiesDescription += "</li>";
 											}
 										}
 										return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
@@ -1167,7 +1155,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			clabel.setImage(item.image());
 			clabel.setText(text);
 			clabel.setAlignment(SWT.LEFT);
-			clabel.setToolTipText(RegexpUtils.removeTag.matcher(item.shortDescription()).replaceAll(""));
+			clabel.setToolTipText(DocumentationHelper.shortDescription(item.rawDescription(), false));
 			clabel.setCursor(handCursor);
 			clabel.setData("Item", item);
 			clabel.setData("style", "color: inherit; background-color: inherit");

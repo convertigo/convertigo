@@ -69,7 +69,8 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.util.RegexpUtils;
+import com.twinsoft.convertigo.engine.util.DocumentationHelper;
+import org.apache.commons.lang3.StringUtils;
 
 class ComponentExplorerComposite extends Composite {
 
@@ -218,7 +219,7 @@ class ComponentExplorerComposite extends Composite {
 		label.setImage(image);
 		label.setText(component.getLabel());
 		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(RegexpUtils.removeTag.matcher(getShortDescription(component)).replaceAll(""));
+		label.setToolTipText(DocumentationHelper.shortDescription(component.getDescription(), false));
 		label.setCursor(handCursor);
 		label.setLayoutData(new RowData());
 
@@ -460,71 +461,39 @@ class ComponentExplorerComposite extends Composite {
 
 	}
 
-	private String cleanDescription(String description, boolean bHtml) {
-		String cleanDescription = description;
-		// Replace first space
-		if (cleanDescription.charAt(0) == ' ') {
-			cleanDescription = cleanDescription.substring(1);
-		}
-
-		// replace orangetwinsoft class by text color style
-		cleanDescription = cleanDescription.replace("class=\"orangetwinsoft\"", (bHtml ? "style=\"color=#FC870A;\"" : ""));
-
-		// replace computer class by new font
-		cleanDescription = cleanDescription.replace("class=\"computer\"", (bHtml ? "style=\"font-family: lucida Console;\"" : ""));
-
-		// Double BR tags
-		cleanDescription = cleanDescription.replaceAll("<br/>(?:<br/>)?", (bHtml ? "<br/><br/>" : ""));
-
-		return cleanDescription;
-	}
-
-	private String getShortDescription(Component component) {
-		String beanDescription = component.getDescription();
-		String[] beanDescriptions = beanDescription.split("\\|");
-		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
-
-		beanShortDescription = cleanDescription(beanShortDescription,true);
-
-		return beanShortDescription;
-	}
-
 	private void updateHelpText(Component component) {
 		String beanDisplayName = component.getLabel();
 
-		String beanDescription = component.getDescription();
-		String[] beanDescriptions = beanDescription.split("\\|");
-		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
-		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
-
-		beanShortDescription = cleanDescription(beanShortDescription,true);
-		beanLongDescription = cleanDescription(beanLongDescription,true);
+		DocumentationHelper.Documentation documentation = DocumentationHelper.parse(component.getDescription());
+		String beanShortDescription = documentation.getShortHtml();
+		String beanLongDescription = documentation.getLongHtml();
 
 		String propertiesDescription = component.getPropertiesDescription();
 
 		if (helpBrowser != null) {
-			helpBrowser.setText(
-					"<head>" +
-							"<script type=\"text/javascript\">" +
-							"document.oncontextmenu = new Function(\"return false\");" +
-							"</script>" +
-							"<style type=\"text/css\">" +
-							"body {" +
-							"font-family: Courrier new, sans-serif;" +
-							"font-size: 14px;" +
-							"padding-left: 0.3em;" +
-							"color: $foreground$;" +
-							"background-color: $background$; } \n" +
-							"li { margin-top: 10px; } \n" +
-							"a { color: $link$; }" +
-							"</style>" +
-							"</head><body><p>" 
-							+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
-							+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
-							+ beanLongDescription + "<br><br>"
-							+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
-							+ propertiesDescription
-							+ "</p></body>");
+			StringBuilder body = new StringBuilder();
+			body.append("<div class=\"doc\">");
+			body.append("<p><font size=\\\"4.5\\\"><u><b>")
+				.append(beanDisplayName)
+				.append("</b></u></font></p>");
+
+			if (StringUtils.isNotBlank(beanShortDescription)) {
+				body.append("<p><i>")
+					.append(beanShortDescription)
+					.append("</i></p>");
+			}
+
+			if (StringUtils.isNotBlank(beanLongDescription)) {
+				body.append(beanLongDescription);
+			}
+
+			if (StringUtils.isNotBlank(propertiesDescription)) {
+				body.append("<h4><b>Properties:</b></h4>")
+					.append(propertiesDescription);
+			}
+
+			body.append("</div>");
+			helpBrowser.setText(DocumentationHelper.buildHtmlDocument(body.toString(), true));
 		}
 	}
 }

@@ -54,7 +54,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 
-import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -68,7 +67,8 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.RegexpUtils;
+import com.twinsoft.convertigo.engine.util.DocumentationHelper;
+import org.apache.commons.lang3.StringUtils;
 
 public class ObjectsExplorerComposite extends Composite {
 
@@ -275,9 +275,6 @@ public class ObjectsExplorerComposite extends Composite {
 					boolean isDocumented = documentedDboList.contains(beanClass.getName());
 					String beanName = beanInfo.getBeanDescriptor().getDisplayName();
 					String beanDescription = isDocumented ? beanInfo.getBeanDescriptor().getShortDescription():"Not yet documented |";
-					String[] beanDescriptions = beanDescription.split("\\|");
-					String beanShortDescription = BeansUtils.cleanDescription(beanDescriptions[0], false);
-
 					Image beanImage = ConvertigoPlugin.getDefault().getBeanIcon(beanInfo, BeanInfo.ICON_COLOR_32x32);
 
 					if (isDefault) {
@@ -285,7 +282,7 @@ public class ObjectsExplorerComposite extends Composite {
 						defaultDboFound = true;
 					}
 
-					addLabelEx(beanImage, beanClass, beanName, beanShortDescription, bSelected, beanInfo, beanCategory);
+					addLabelEx(beanImage, beanClass, beanName, beanDescription, bSelected, beanInfo, beanCategory);
 
 					bSelected = false;
 				}
@@ -416,40 +413,37 @@ public class ObjectsExplorerComposite extends Composite {
 	private void updateHelpText(BeanInfo bi) {
 		BeanDescriptor beanDescriptor = bi.getBeanDescriptor();
 		boolean isDocumented = documentedDboList.contains(beanDescriptor.getBeanClass().getName());
-		String beanDescription = isDocumented ? beanDescriptor.getShortDescription():"Not yet documented. |";
-		String[] beanDescriptions = beanDescription.split("\\|");
+		String beanDescription = isDocumented ? beanDescriptor.getShortDescription() : "Not yet documented |";
 		String beanDisplayName = beanDescriptor.getDisplayName();
-		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
-		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
-
-		beanShortDescription = BeansUtils.cleanDescription(beanShortDescription, true);
-		beanLongDescription = BeansUtils.cleanDescription(beanLongDescription, true);
+		DocumentationHelper.Documentation documentation = DocumentationHelper.parse(beanDescription);
+		String beanShortDescription = StringUtils.defaultIfBlank(documentation.getShortHtml(), "n/a");
+		String beanLongDescription = documentation.getLongHtml();
 
 		helpBrowser.setBackground(getBackground());
-		helpBrowser.setText("<html>" +
-				"<head>" +
-				"<script type=\"text/javascript\">" +
-				"document.oncontextmenu = new Function(\"return false\");" +
-				"</script>" +
-				"<style type=\"text/css\">" +
-				"body {" +
-				"font-family: Courrier new, sans-serif;" +
-				"font-size: 14px;" +
-				"padding-left: 0.3em;" +
-				"color: $foreground$;" +
-				"background-color: $background$ } \n" +
-				"a { color: $link$; }" +
-				"</style>" +
-				"</head><p>" 
-				+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
-				+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
-				+ beanLongDescription + "</p></html>");
+		StringBuilder body = new StringBuilder();
+		body.append("<div class=\"doc\">");
+		body.append("<p><font size=\\\"4.5\\\"><u><b>")
+			.append(beanDisplayName)
+			.append("</b></u></font></p>");
+
+		if (StringUtils.isNotBlank(beanShortDescription)) {
+			body.append("<p><i>")
+				.append(beanShortDescription)
+				.append("</i></p>");
+		}
+
+		if (StringUtils.isNotBlank(beanLongDescription)) {
+			body.append(beanLongDescription);
+		}
+
+		body.append("</div>");
+		helpBrowser.setText(DocumentationHelper.buildHtmlDocument(body.toString(), true));
 	}
 
 	
 
 	private void addLabelEx(Image beanImage, Class<DatabaseObject> beanClass, String beanName,
-			String beanShortDescription, boolean selected, Object object, DboBeans beansCategory) {
+			String beanDescription, boolean selected, Object object, DboBeans beansCategory) {
 
 		if("".equals(beansCategory.getName())) {
 			composite = composites[0];
@@ -461,11 +455,14 @@ public class ObjectsExplorerComposite extends Composite {
 			}
 		}
 
+		DocumentationHelper.Documentation doc = DocumentationHelper.parse(beanDescription);
+		String shortDescriptionText = StringUtils.defaultIfBlank(doc.getShortText(), beanName);
+
 		CLabel label = new CLabel(composite, SWT.NONE);
 		label.setImage(beanImage);
 		label.setText(beanName);
 		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(RegexpUtils.removeTag.matcher(beanShortDescription).replaceAll(""));
+		label.setToolTipText(shortDescriptionText);
 		label.setCursor(handCursor);
 
 		label.setLayoutData(new RowData());

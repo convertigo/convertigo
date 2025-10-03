@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Get extends JSonService {
@@ -115,6 +116,7 @@ public class Get extends JSonService {
 						BeanInfo bi = (BeanInfo) beanInfoClass.getConstructor().newInstance();
 						BeanDescriptor bd = bi.getBeanDescriptor();
 						String description = b.isDocumented() ? bd.getShortDescription() : "Not yet documented |";
+						DocumentationHelper.Documentation documentation = DocumentationHelper.parse(description);
 
 						JSONObject jsonItem = new JSONObject();
 						jsonItem.put("type", "Dbo");
@@ -122,6 +124,10 @@ public class Get extends JSonService {
 						jsonItem.put("name", bd.getDisplayName());
 						jsonItem.put("classname", cn);
 						jsonItem.put("description", description);
+						jsonItem.put("shortDescriptionHtml", documentation.getShortHtml());
+						jsonItem.put("shortDescriptionText", documentation.getShortText());
+						jsonItem.put("longDescriptionHtml", documentation.getLongHtml());
+						jsonItem.put("longDescriptionText", documentation.getLongText());
 						jsonItem.put("icon", MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32));
 						jsonItem.put("builtin", true);
 						jsonItem.put("additional", false);
@@ -162,12 +168,19 @@ public class Get extends JSonService {
 						continue;
 					}
 
+					String componentDescription = component.getDescription();
+					DocumentationHelper.Documentation componentDoc = DocumentationHelper.parse(componentDescription);
+
 					JSONObject jsonItem = new JSONObject();
 					jsonItem.put("type", "Ion");
 					jsonItem.put("id", "ngx " + component.getName());
 					jsonItem.put("name", component.getLabel());
 					jsonItem.put("classname", cn);
-					jsonItem.put("description", component.getDescription());
+					jsonItem.put("description", componentDescription);
+					jsonItem.put("shortDescriptionHtml", componentDoc.getShortHtml());
+					jsonItem.put("shortDescriptionText", componentDoc.getShortText());
+					jsonItem.put("longDescriptionHtml", componentDoc.getLongHtml());
+					jsonItem.put("longDescriptionText", componentDoc.getLongText());
 					jsonItem.put("icon", component.getImagePath());
 					jsonItem.put("builtin", component.isBuiltIn());
 					jsonItem.put("additional", component.isAdditional());

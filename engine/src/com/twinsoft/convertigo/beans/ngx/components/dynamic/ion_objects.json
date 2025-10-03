@@ -3508,7 +3508,7 @@
 "A sliding tab has to be inserted in a <i>Sliding Tabs Container</i> component.<br/>",
 "A sliding tab is associated to a page you can specify through its properties.<br/>",
 "<br/>",
-"<span class='orangetwinsoft'><u>Note:</u></span> Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in tab.<br/>",
+"<strong><u>Note:</u></strong> Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in tab.<br/>",
 " For more information: <a href='https://github.com/zyra/ionic2-super-tabs'>Swipeable Tabs</a>."],
       "group": "Components",
       "icon16": "slidingtab_color_16x16.png",
@@ -3620,7 +3620,7 @@
 				"ion-tab-button| Defines a <i>Tab Button</i> component.<br/>",
 				"A <i>Tab Button</i> has to be inserted in a <i>Tab Bar</i> component.<br/>",
 				"It is associated to a page you can specify through its properties.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in a <i>Tab Button</i>.<br/>",
+				"<strong><u>Note:</u></strong> Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in a <i>Tab Button</i>.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/tab-button'>Tab Button</a>."
 			],
 			"group": "Components",
@@ -3685,7 +3685,7 @@
 				"A menu helps to navigate through pages. It may contains, or/and:<br/>",
 				" \u2022 a <i>MenuAutoItems</i> component to automatically add all your pages<br/>",
 				" \u2022 several <i>MenuItem</i> components to add specific pages.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> different menus may be added to an application but only the first one is used by default.<br/>",
+				"<strong><u>Note:</u></strong> different menus may be added to an application but only the first one is used by default.<br/>",
 				"If you'd like to use a specific menu for a given page, simply specify it in the <i>Menu id</i> property of your <i>Page</i> component.<br/>",
 				"For more information: <a href='https://ionicframework.com/docs/api/menu'>Menu</a>."
 			],
@@ -4952,7 +4952,7 @@
 				"Segments provide functionality similar to tabs, selecting one will unselect all others.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				"For more information: <a href='https://ionicframework.com/docs/api/segment'>Segment</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "segment_color_16x16.png",
@@ -6227,7 +6227,7 @@
 				"This component acts as the standard HTML label tag.<br/>",
 				"It lets you give a label to a form field.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/label'>Label</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "label_16x16.png",
@@ -6337,7 +6337,7 @@
 				"Use the <i>Default value</i> property to set its default value. If an option has the same value it will be selected by default, otherwise the first option is selected.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				"For more information: <a href='https://ionicframework.com/docs/api/select'>Select</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "select_color_16x16.png",
@@ -6588,7 +6588,7 @@
 				"Add as many <i>Radio Button</i> you want under your <i>Radio Group</i> component.<br/>",
 				"Use the <i>Default value</i> property to set its default value. If a radio button has the same value it will be checked by default.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/radio-group'>Radio Group</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add each <i>Radio Button</i> under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add each <i>Radio Button</i> under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "radiolist_16x16.png",
@@ -6686,7 +6686,7 @@
 				"When radio buttons are inside a <i>Radio List</i> component, exactly one <i>Radio Button</i> in the list can be checked at any time.<br/>",
 				"Use the <i>Value</i> property to set its value, and the <i>Disabled</i> property to prevent the user from checking it.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/radio'>Radio</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "radio_16x16.png",
@@ -6814,7 +6814,7 @@
 				"This component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/toggle'>Toggle</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "toggle_16x16.png",
@@ -6999,7 +6999,7 @@
 				"Use the <i>Value</i> property to set its value, and the <i>Disabled</i> property to prevent the user from changing the value.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/input'>Input</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "input_16x16.png",
@@ -7482,7 +7482,7 @@
 				"This component is meant for multiline text type inputs only, such as text, password, email, number, search, tel, and url.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/textarea'>TextArea</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "textarea_16x16.png",
@@ -7877,7 +7877,7 @@
 				"Use the <i>Checked</i> property to set its default value, and the <i>Disabled</i> property to prevent the user from changing the value.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				" For more information: <a href='https://ionicframework.com/docs/api/checkbox'>Checkbox</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "inputcheckbox_16x16.png",
@@ -8041,7 +8041,7 @@
 				"Use the <i>Value</i> property to set its value.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				"For more information: <a href='https://ionicframework.com/docs/api/datetime'>DateTime</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "datetime_16x16.png",
@@ -8369,7 +8369,7 @@
 				"It can accept dual knobs, but by default one knob controls the value of the range.<br/>",
 				"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 				"For more information: <a href='https://ionicframework.com/docs/api/range'>Range</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."
 			],
 			"group": "Forms",
 			"icon16": "range_16x16.png",
@@ -10288,7 +10288,7 @@
 			"description": [
 				"c8o-signature. | Displays a Signature pad. This component uses an Angular2 component based on the Signature Pad JavaScript library.<br/>",
 				"For more information: <a href='https://github.com/szimek/signature_pad'>signature_pad</a>.<br/><br/>",
-				"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>"
+				"<strong><u>Note:</u></strong> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>"
 			],
 			"group": "Forms",
 			"icon16": "signature_16x16.png",
@@ -14279,7 +14279,7 @@
 						"The unique ID for this post.<br/>",
 						"Posted data can be retrieved later on with a <i>Get Data</i> action, providing the same ID, or using a <i>Query View</i> action providing a valid key for the view queried.<br/>",
 						"Data will be automatically replicated to Convertigo server if a <i>Sync Data</i> action has been previously executed in <code>continuous</code> mode.<br/>",
-						"<span class='orangetwinsoft'><u>Note:</u></span> If ID is not set, the system will compute automatically an UUID as unique ID for this post."
+						"<strong><u>Note:</u></strong> If ID is not set, the system will compute automatically an UUID as unique ID for this post."
 					],
 					"category": "@Properties",
 					"type": "string",
