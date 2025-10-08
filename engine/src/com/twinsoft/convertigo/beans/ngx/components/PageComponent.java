@@ -751,9 +751,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return false;
 	}
 	
-	private String computeNgInit() {
+	private String computeNgInit(String fname) {
 		String computed = "";
-		computed += "\tngOnInit() {"+ System.lineSeparator();
+		computed += "\t"+fname+"() {"+ System.lineSeparator();
 		if (hasEvent(ViewEvent.onWillLoad)) {
 			computed += "\t\tthis."+ ViewEvent.onWillLoad.event + "()" + System.lineSeparator();
 		}
@@ -762,9 +762,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return computed;
 	}
 	
-	private String computeNgAfterViewInit() {
+	private String computeNgAfterViewInit(String fname) {
 		String computed = "";
-		computed += "ngAfterViewInit() {"+ System.lineSeparator();
+		computed += fname+"() {"+ System.lineSeparator();
 		if (hasEvent(ViewEvent.onDidLoad)) {
 			computed += "\t\tthis."+ ViewEvent.onDidLoad.event + "()" + System.lineSeparator();
 		}
@@ -773,9 +773,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return computed;
 	}
 	
-	private String computeNgDestroy() {
+	private String computeNgDestroy(String fname) {
 		String computed = "";
-		computed += "ngOnDestroy() {"+ System.lineSeparator();
+		computed += fname+"() {"+ System.lineSeparator();
 		if (hasEvent(ViewEvent.onWillUnload)) {
 			computed += "\t\tthis."+ ViewEvent.onWillUnload.event + "()" + System.lineSeparator();
 		}
@@ -786,8 +786,10 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 				computed += desctructor.isEmpty() ? "" : desctructor;
 			}
 		}
-		computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
-		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+		if ("ngOnDestroy".equals(fname)) {
+			computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+		}
 		computed += "\t}"+ System.lineSeparator();
 		computed += "\t";
 		return computed;
@@ -873,10 +875,13 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		
 		// ngOnInit, ngAfterViewInit, ngOnDestroy
+		//   since tpl 8.4.0.4: already written inside tpl with begin/end customization markers
+		//   for use of Angular's @Input in custom code (avoid use of NavParams)
+		boolean isTpl8404 = compareToTplVersion("8.4.0.4") >= 0;
 		try {
 			String functions = jsonScripts.getString("functions");
-			String fname = "ngOnInit";
-			String fcode = computeNgInit();
+			String fname = isTpl8404 ? "onInit" : "ngOnInit";
+			String fcode = computeNgInit(fname);
 			if (addFunction(fname, fcode)) {
 				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
 			}
@@ -886,8 +891,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		try {
 			String functions = jsonScripts.getString("functions");
-			String fname = "ngAfterViewInit";
-			String fcode = computeNgAfterViewInit();
+			String fname = isTpl8404 ? "afterViewInit" : "ngAfterViewInit";
+			String fcode = computeNgAfterViewInit(fname);
 			if (addFunction(fname, fcode)) {
 				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
 			}
@@ -897,8 +902,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		try {
 			String functions = jsonScripts.getString("functions");
-			String fname = "ngOnDestroy";
-			String fcode = computeNgDestroy();
+			String fname = isTpl8404 ? "onDestroy" : "ngOnDestroy";
+			String fcode = computeNgDestroy(fname);
 			if (addFunction(fname, fcode)) {
 				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
 			}
