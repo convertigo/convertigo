@@ -3396,7 +3396,7 @@ public class NgxBuilder extends MobileBuilder {
 					String entry = cleanImport(app, tpl_ts_imports, comp, from, true);
 					if (!entry.isBlank()) {
 						if (from.startsWith("/components") || from.startsWith("/pages")) {
-							from = ".";
+							from = "." + from;
 						}
 						c8o_ModuleTsImports += "import "+ entry +" from '"+ from +"';" + System.lineSeparator();
 					}

@@ -354,6 +354,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								}
 							}
 						}
+
+						// Special case for Standalone
+						// TODO: see if migration is needed instead ?
+						//   PopoverAction, hidden property event
+						//   in TPL 840 default value is: (event == undefined ? $event:event)
+						//   in TPL 843 default value is: event
+						if (tplIsStandalone) {
+							if ("PopoverAction".equals(getActionName())) {
+								if ("event".equals(p_name)) {
+									smartValue = "event";
+								}
+							}
+						}
+						
 						
 						// Case ts code in HTML template (single action)
 						if (forTemplate) {
