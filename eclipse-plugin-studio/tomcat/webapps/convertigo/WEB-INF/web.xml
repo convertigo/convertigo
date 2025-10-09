@@ -16,14 +16,23 @@
     </servlet>
 
     
-    <session-config> 
-       <!-- <session-timeout>1</session-timeout> -->
-        <cookie-config>
-            <http-only>true</http-only>
-            <secure>false</secure>
-        </cookie-config> 
-    </session-config>
+	<session-config> 
+	   <!-- <session-timeout>1</session-timeout> -->
+		<cookie-config>
+			<http-only>true</http-only>
+			<secure>false</secure>
+		</cookie-config> 
+	</session-config>
     
+	<filter>
+		<filter-name>ProjectScopedAliasFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.ProjectScopedAliasFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ProjectScopedAliasFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
+
     <filter>
 		<filter-name>FallbackFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.FallbackFilter</filter-class>
@@ -60,7 +69,7 @@
 		<url-pattern>/projects/*</url-pattern>
 		<url-pattern>/system/projects/*</url-pattern>
 	</filter-mapping>
-    
+
     <!-- Server XSLT entry point -->
     <servlet>
         <servlet-name>ConvertigoXsltServlet</servlet-name>

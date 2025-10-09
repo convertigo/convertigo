@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -46,12 +48,23 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
-	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(:?mobile|pwas/.*?)/).+");
+	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(?:mobile|pwas/.*?)/)(.*)");
+	private static final Pattern p_base = Pattern.compile("(<base\\s+[^>]*href\\s*=\\s*)(['\"])([^'\"]*)(\\2)([^>]*>)", Pattern.CASE_INSENSITIVE);
+	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 			HttpUtils.applyCorsHeaders(request, response);
+
+			var normalizedPath = file.getPath().replace('\\', '/');
+			byte[] rewritten = null;
+			var matcher = p_mobile.matcher(normalizedPath);
+			Integer depthOverride = null;
+			var depthAttr = request.getAttribute(ATTR_BASE_DEPTH);
+			if (depthAttr instanceof Integer depthValue) {
+				depthOverride = depthValue;
+			}
 
 			// Warning date comparison: 'If-Modified-Since' header precision is second,
 			// although file date precision is milliseconds on Windows
@@ -67,18 +80,42 @@ public class ServletUtils {
 				long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
 
 				// Serve static files if they exist in the projects repository.
+			if ("index.html".equalsIgnoreCase(file.getName()) && matcher.matches()) {
+				var depth = depthOverride != null ? depthOverride : computeDepth(request);
+				if (depth != null) {
+					var baseHref = buildBaseHref(depth);
+					var content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+					var baseMatcher = p_base.matcher(content);
+					if (baseMatcher.find()) {
+						var buffer = new StringBuffer();
+						var attrs = baseMatcher.group(5);
+						if (!attrs.contains("data-c8o-mode")) {
+							attrs = attrs.replaceFirst("/?>", " data-c8o-mode=\"web\"$0");
+						}
+						baseMatcher.appendReplacement(buffer, baseMatcher.group(1) + baseMatcher.group(2) + Matcher.quoteReplacement(baseHref) + baseMatcher.group(4) + attrs);
+						baseMatcher.appendTail(buffer);
+						rewritten = buffer.toString().getBytes(StandardCharsets.UTF_8);
+					}
+				}
+			}
+
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
 				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
-				HeaderName.ContentLength.setHeader(response, "" + file.length());
+				var length = rewritten != null ? rewritten.length : file.length();
+				HeaderName.ContentLength.setHeader(response, "" + length);
 				response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 
 				FileInputStream fileInputStream = null;
 				OutputStream output = response.getOutputStream();
 				try {
-					fileInputStream = new FileInputStream(file);
-					IOUtils.copy(fileInputStream, output);
+					if (rewritten != null) {
+						output.write(rewritten);
+					} else {
+						fileInputStream = new FileInputStream(file);
+						IOUtils.copy(fileInputStream, output);
+					}
 				}
 				finally {
 					if (fileInputStream != null) {
@@ -89,9 +126,14 @@ public class ServletUtils {
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
 			if (m.matches()) {
+				var depth = computeDepth(request);
+				if (depth != null) {
+					request.setAttribute(ATTR_BASE_DEPTH, depth);
+				}
 				File index = new File(m.group(1), "index.html");
 				if (!index.equals(file)) {
 					handleFileFilter(index, request, response, filterConfig, chain);
+					request.removeAttribute(ATTR_BASE_DEPTH);
 					return;
 				}
 			}
@@ -144,4 +186,34 @@ public class ServletUtils {
 		}
 	}
 
+private static Integer computeDepth(HttpServletRequest request) {
+		var uri = request.getRequestURI();
+		var matcher = p_mobile.matcher(uri);
+		if (!matcher.matches()) {
+			return null;
+		}
+		var suffix = uri.substring(matcher.group(1).length());
+		if (suffix.isEmpty()) {
+			return 0;
+		}
+		if (suffix.endsWith("/")) {
+			suffix = suffix.substring(0, suffix.length() - 1);
+		}
+		if (suffix.isEmpty()) {
+			return 0;
+		}
+		var segments = suffix.split("/");
+		return Math.max(segments.length - 1, 0);
+	}
+
+	private static String buildBaseHref(int depth) {
+		if (depth <= 0) {
+			return "./";
+		}
+		var builder = new StringBuilder(depth * 3);
+		for (var i = 0; i < depth; i++) {
+			builder.append("../");
+		}
+		return builder.toString();
+	}
 }
