@@ -227,26 +227,12 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			
 			StringBuilder sb = new StringBuilder();
 			if (compareToTplVersion("7.9.0.2") >= 0) {
-/* 
- * Ionic issue using ion-menu-toggle in menu
- * Occurs when enabling/disabling different menus for different pages
- * Commented until issues are fixed : #19676, #20092, #17600
- */
-//				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\""+ (pageIsEnabled ? "":" disabled") +">")
-//				.append(System.lineSeparator())
-//				.append("<ion-item routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\">")
-//				.append(System.lineSeparator())
-//				.append("<ion-icon name=\""+ icon + "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") +"></ion-icon>")
-//				.append(System.lineSeparator())
-//				.append("<ion-label>"+ title +"</ion-label>")
-//				.append(System.lineSeparator())
-//				.append("</ion-item>")
-//				.append(System.lineSeparator())
-//				.append("</ion-menu-toggle>")
-//				.append(System.lineSeparator());
-				
-				sb.append("<ion-item "+ attrclass +" routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+'"+pageSegment+"')\" >")
-				.append(System.lineSeparator())
+				if (compareToTplVersion("8.4.0.6") >= 0) {// #983
+					sb.append("<ion-item "+ attrclass +" routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\" [class.selected]=\"(selectedPath$ | async)?.startsWith('/'+'"+pageSegment+"')\" >");
+				} else {
+					sb.append("<ion-item "+ attrclass +" routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+'"+pageSegment+"')\" >");
+				}
+				sb.append(System.lineSeparator())
 				.append("<ion-icon name=\""+ icon + "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") +"></ion-icon>")
 				.append(System.lineSeparator())
 				.append("<ion-label>"+ title +"</ion-label>")
