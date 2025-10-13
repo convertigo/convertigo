@@ -4,6 +4,7 @@ node_modules
 /.svelte-kit
 /.cache
 /package
+/static/monaco/
 .env
 .env.*
 !.env.example

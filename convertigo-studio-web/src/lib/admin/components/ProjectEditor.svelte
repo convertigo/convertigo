@@ -10,7 +10,7 @@
 	import { getContext, onMount, tick, untrack } from 'svelte';
 	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
-	import ResponsiveButtons from './ResponsiveButtons.svelte';
+	import SaveCancelButtons from './SaveCancelButtons.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
 
 	let { project, class: cls = '' } = $props();
@@ -207,34 +207,21 @@
 	<div class="layout-y-low w-full items-stretch">
 		<span data-spacer class="max-lg:hidden"></span>
 		{#snippet saveCancel()}
-			<ResponsiveButtons
+			<SaveCancelButtons
 				class="w-full max-w-100"
-				buttons={[
-					{
-						label: 'Save changes',
-						icon: 'mdi:content-save-edit-outline',
-						cls: 'button-success',
-						disabled: !hasChanges,
-						onclick: async () => {
-							const len = getChanges().length;
-							if (
-								await modalYesNo.open({
-									title: 'Do you confirm saving?',
-									message: `Are will save ${len} propert${len > 1 ? 'ies' : 'y'}?`
-								})
-							) {
-								await save();
-							}
-						}
-					},
-					{
-						label: 'Cancel changes',
-						icon: 'mdi:close-circle-outline',
-						cls: 'button-error',
-						disabled: !hasChanges,
-						onclick: cancel
+				onSave={async () => {
+					const len = getChanges().length;
+					if (
+						await modalYesNo.open({
+							title: 'Do you confirm saving?',
+							message: `Are will save ${len} propert${len > 1 ? 'ies' : 'y'}?`
+						})
+					) {
+						await save();
 					}
-				]}
+				}}
+				onCancel={cancel}
+				changesPending={hasChanges}
 				disabled={properties.length == 0}
 			/>
 		{/snippet}

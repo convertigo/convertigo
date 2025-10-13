@@ -231,7 +231,8 @@
 	/>
 
 	{#if showClock}
-		<div
+		<button
+			type="button"
 			class="clock cursor-pointer select-none"
 			style="width: {size}px; height: {size}px; position: absolute; top: 35px; z-index: 1000; box-shadow: 5px 5px 10px 0px #404040;"
 			onmousedown={handleMouseDown}
@@ -244,6 +245,7 @@
 			ontouchstart={handleTouchStart}
 			ontouchmove={handleTouchMove}
 			ontouchend={handleTouchEnd}
+			aria-label="Time picker clock"
 			transition:fly={{ x: 0, y: -30, duration: 300 }}
 		>
 			<svg width={size} height={size}>
@@ -271,7 +273,7 @@
 					{time[units[selectedUnit].name]}
 				</text>
 			</svg>
-		</div>
+		</button>
 	{/if}
 </div>
 

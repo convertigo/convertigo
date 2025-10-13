@@ -698,7 +698,12 @@
 					class="px-1 py-0 {cls} max-h-[18px] overflow-hidden text-nowrap"
 					animate:grabFlip={{ duration }}
 				>
-					<button class="cursor-help font-semibold" onclick={doPulse} onmouseover={doPulse}>
+					<button
+						class="cursor-help font-semibold"
+						onclick={doPulse}
+						onmouseover={doPulse}
+						onfocus={doPulse}
+					>
 						{name}
 					</button>
 				</div>
@@ -720,7 +725,7 @@
 				on:afterScroll={afterScroll}
 				bind:this={virtualList}
 			>
-				{#snippet item({ style, index })}
+				<svelte:fragment slot="item" let:style let:index>
 					{@const log = logs[index]}
 					<div {style}>
 						<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
@@ -755,16 +760,16 @@
 								{#if founds.length > 0}
 									{@const _founds = founds.filter((f) => f.index == index)}
 									{#if _founds.length > 0}
-										{#each _founds as found, index}
+										{#each _founds as found, idx}
 											{@const { start, end } = found}
-											{#if index == 0}
+											{#if idx == 0}
 												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
 													use:scrollIntoView
 													class="searchedCurrent">{log[4].substring(start, end)}</span
 												>{:else}<span class="searched">{log[4].substring(start, end)}</span
-												>{/if}{#if index < _founds.length - 1}{log[4].substring(
+												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
 													end,
-													_founds[index + 1].start
+													_founds[idx + 1].start
 												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
 										{log[4]}
 									{/if}
@@ -774,7 +779,7 @@
 							</div>
 						</div>
 					</div>
-				{/snippet}
+				</svelte:fragment>
 			</VirtualList>
 		</MaxRectangle>
 	</div>

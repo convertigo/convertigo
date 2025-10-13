@@ -1,9 +1,5 @@
 <script>
-	import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-	import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-	import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-	import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-	import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 
 	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean}} */
@@ -27,26 +23,70 @@
 			globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), language);
 		}
 	});
-	onMount(() => {
-		self.MonacoEnvironment = {
-			getWorker: function (_moduleId, label) {
-				if (label === 'json') {
-					return new jsonWorker();
-				}
-				if (label === 'css' || label === 'scss' || label === 'less') {
-					return new cssWorker();
-				}
-				if (label === 'html' || label === 'handlebars' || label === 'razor' || label === 'xml') {
-					return new htmlWorker();
-				}
-				if (label === 'typescript' || label === 'javascript') {
-					return new tsWorker();
-				}
-				return new editorWorker();
-			}
-		};
 
-		import('monaco-editor').then((Monaco) => {
+	const monacoBase = (
+		import.meta.env.VITE_MONACO_BASE ?? `${base.replace(/\/$/, '')}/monaco/vs`
+	).replace(/\/$/, '');
+
+	/** @type {Promise<any> | null} */
+	let monacoLoader = null;
+
+	function loadScript(src) {
+		return new Promise((resolve, reject) => {
+			const existing = document.querySelector(`script[data-monaco="${src}"]`);
+			if (existing) {
+				existing.addEventListener('load', resolve, { once: true });
+				existing.addEventListener('error', reject, { once: true });
+				if (existing.dataset.loaded === 'true') {
+					resolve();
+				}
+				return;
+			}
+			const script = document.createElement('script');
+			script.src = src;
+			script.async = true;
+			script.dataset.monaco = src;
+			script.addEventListener('load', () => {
+				script.dataset.loaded = 'true';
+				resolve();
+			});
+			script.addEventListener('error', reject);
+			document.head.appendChild(script);
+		});
+	}
+
+	function loadMonaco() {
+		if (globalThis.monaco) {
+			return Promise.resolve(globalThis.monaco);
+		}
+		if (!monacoLoader) {
+			monacoLoader = loadScript(`${monacoBase}/loader.js`)
+				.then(() => {
+					const require = globalThis.require;
+					if (!require) {
+						throw new Error('Monaco loader not available');
+					}
+					require.config({ paths: { vs: monacoBase } });
+					return new Promise((resolve, reject) => {
+						require(['vs/editor/editor.main'], () => {
+							if (globalThis.monaco) {
+								resolve(globalThis.monaco);
+							} else {
+								reject(new Error('Monaco failed to initialize'));
+							}
+						});
+					});
+				})
+				.catch((error) => {
+					monacoLoader = null;
+					throw error;
+				});
+		}
+		return monacoLoader;
+	}
+
+	onMount(() => {
+		loadMonaco().then((Monaco) => {
 			globalThis.monaco = Monaco;
 			editor = Monaco.editor.create(divEl, {
 				value: content,
@@ -58,11 +98,12 @@
 		});
 
 		return () => {
-			editor.dispose();
+			editor?.dispose();
 		};
 	});
 
 	function resize() {
+		if (!editor) return;
 		editor.layout({ width: 0, height: 0 });
 		window.requestAnimationFrame(() => {
 			const rect = divEl.parentElement.getBoundingClientRect();

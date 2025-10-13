@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
@@ -54,7 +54,7 @@
 	});
 
 	$effect(() => {
-		Last.category = page.params.category;
+		Last.category = page.params.category ?? '_';
 	});
 
 	async function saveChanges(event) {
@@ -108,23 +108,10 @@
 	<div class="layout-y-stretch" in:fade>
 		<Card title={category.displayName}>
 			{#snippet cornerOption()}
-				<ResponsiveButtons
-					buttons={[
-						{
-							label: 'Save changes',
-							icon: 'mdi:content-save-edit-outline',
-							cls: 'button-success',
-							disabled: !hasChanges,
-							onclick: saveChanges
-						},
-						{
-							label: 'Cancel changes',
-							icon: 'mdi:close-circle-outline',
-							cls: 'button-error',
-							disabled: !hasChanges,
-							onclick: refresh
-						}
-					]}
+				<SaveCancelButtons
+					onSave={saveChanges}
+					onCancel={refresh}
+					changesPending={hasChanges}
 					disabled={!init}
 				/>
 			{/snippet}

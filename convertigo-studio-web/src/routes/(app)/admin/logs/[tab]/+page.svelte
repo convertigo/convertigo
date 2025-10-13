@@ -9,6 +9,7 @@
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
@@ -65,7 +66,13 @@
 		config: { name: 'Log Levels', icon: 'mdi:cog-outline' }
 	};
 
-	let tabSet = $derived(Object.keys(tabs).includes(page.params.tab) ? page.params.tab : 'view');
+	const tabKeys = Object.keys(tabs);
+	let tabSet = $state('view');
+
+	$effect(() => {
+		const current = page.params.tab ?? 'view';
+		tabSet = tabKeys.includes(current) ? current : 'view';
+	});
 	let dates = $state([
 		toCalendarDate(now(getLocalTimeZone()).subtract({ minutes: 10 })),
 		toCalendarDate(today(getLocalTimeZone()))
@@ -83,7 +90,9 @@
 	let live = $state(false);
 
 	async function refreshLogs() {
-		await logViewer.list(true);
+		if (logViewer?.list) {
+			await logViewer.list(true);
+		}
 	}
 
 	function setDatesTimes(start, end) {
@@ -270,23 +279,10 @@
 							]}
 						/>
 					{:else if tabSet == 'config'}
-						<ResponsiveButtons
-							buttons={[
-								{
-									label: 'Save changes',
-									icon: 'mdi:content-save-edit-outline',
-									cls: 'button-success',
-									disabled: !hasChanges,
-									onclick: saveChanges
-								},
-								{
-									label: 'Cancel changes',
-									icon: 'mdi:close-circle-outline',
-									cls: 'button-error',
-									disabled: !hasChanges,
-									onclick: Configuration.refresh
-								}
-							]}
+						<SaveCancelButtons
+							onSave={saveChanges}
+							onCancel={Configuration.refresh}
+							changesPending={hasChanges}
 						/>
 					{/if}
 				</div>

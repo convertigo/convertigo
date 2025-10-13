@@ -1,7 +1,7 @@
 <script>
 	import { getQuery, getUrl } from '$lib/utils/service';
 
-	/** @type {{href: any, contentType?: string, e?: string, s?: string, link?: boolean, target?: string, class?: string}} */
+	/** @type {{href: any, contentType?: string, e?: string, s?: string, link?: boolean, target?: string, class?: string, label?: string, alt?: string}} */
 	let {
 		href,
 		contentType = 'image/png',
@@ -9,7 +9,9 @@
 		s = '4',
 		link = true,
 		target = '_blank',
-		class: cls = ''
+		class: cls = '',
+		label = 'Open QR code',
+		alt = 'QR code'
 	} = $props();
 
 	let src = $derived(
@@ -24,7 +26,9 @@
 </script>
 
 {#if link}
-	<a rel="external" class={cls} {href} {target}> <img class={cls} {src} /></a>
+	<a rel="external" class={cls} {href} {target} aria-label={label}>
+		<img class={cls} {src} {alt} />
+	</a>
 {:else}
-	<img class={cls} {src} />
+	<img class={cls} {src} {alt} />
 {/if}

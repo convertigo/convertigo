@@ -43,13 +43,15 @@
 	}
 
 	const id = $props.id();
-	const service = useMachine(tree.machine, () => ({
-		id,
-		collection,
-		onLoadChildrenComplete,
-		...zagProps
-	}));
-	const api = $derived(tree.connect(service, normalizeProps));
+	const service = /** @type {any} */ (
+		useMachine(/** @type {any} */ (tree.machine), () => ({
+			id,
+			collection,
+			onLoadChildrenComplete,
+			...zagProps
+		}))
+	);
+	const api = /** @type {any} */ ($derived(tree.connect(service, normalizeProps)));
 	export function setSelectedValue(value) {
 		return api.setSelectedValue(value);
 	}

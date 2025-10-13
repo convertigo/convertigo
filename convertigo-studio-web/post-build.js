@@ -1,17 +1,14 @@
-import { readdir } from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fsExtra from 'fs-extra';
 
-// 📍 Pour obtenir __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Dossiers
 const tmpDir = path.resolve(__dirname, '../eclipse-plugin-studio/tomcat/webapps/convertigo/tmp');
 const targetDir = path.resolve(__dirname, '../eclipse-plugin-studio/tomcat/webapps/convertigo');
 
-// Fichiers et dossiers à **ne pas écraser**
 const PRESERVE = new Set([
 	'axis2-web',
 	'WEB-INF',
@@ -30,31 +27,35 @@ const PRESERVE = new Set([
 	'scripts'
 ]);
 
-const run = async () => {
-	const tmpFiles = await readdir(tmpDir);
+async function main() {
+	if (!fs.existsSync(tmpDir)) {
+		throw new Error(`Temporary build directory missing: ${tmpDir}`);
+	}
 
-	for (const file of tmpFiles) {
-		if (PRESERVE.has(file)) {
-			console.log(`🟡 Skip preserved: ${file}`);
+	const entries = await fs.promises.readdir(tmpDir);
+
+	for (const entry of entries) {
+		if (PRESERVE.has(entry)) {
+			console.log(`🟡 Skip preserved: ${entry}`);
 			continue;
 		}
 
-		const src = path.join(tmpDir, file);
-		const dest = path.join(targetDir, file);
+		const src = path.join(tmpDir, entry);
+		const dest = path.join(targetDir, entry);
 
 		if (await fsExtra.pathExists(dest)) {
 			await fsExtra.remove(dest);
 		}
 
-		await fsExtra.move(src, dest);
-		console.log(`✅ Moved: ${file}`);
+		await fsExtra.copy(src, dest, { overwrite: true, dereference: true });
+		console.log(`✅ Copied: ${entry}`);
 	}
 
 	await fsExtra.remove(tmpDir);
 	console.log('🧹 Cleaned tmp directory.');
-};
+}
 
-run().catch((err) => {
+main().catch((err) => {
 	console.error('❌ Error during post-build:', err);
 	process.exit(1);
 });

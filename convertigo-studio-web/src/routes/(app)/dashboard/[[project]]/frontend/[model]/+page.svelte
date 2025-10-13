@@ -503,19 +503,3 @@
 	<!-- </div>
 	</div> -->
 </MaxRectangle>
-
-<style>
-	.device-iframe {
-		position: relative;
-		border: none;
-		z-index: 1;
-		border-radius: 60px;
-		-ms-overflow-style: none; /* For Internet Explorer and Edge */
-		scrollbar-width: none; /* For Firefox */
-	}
-
-	/* For Webkit browsers like Chrome, Safari, and Opera */
-	.device-iframe::-webkit-scrollbar {
-		display: none;
-	}
-</style>

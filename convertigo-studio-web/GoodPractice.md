@@ -8,6 +8,7 @@
 - Keep visuals coherent by leaning on the existing utilities (`button-*`, `layout-*`, `preset-*`) and theme tokens defined in `convertigo.theme.css`.
 - The class priority order is `src/app.css` utilities first, `convertigo.utilities.css` second, and only then Skeleton/Tailwind primitives if no dedicated helper exists.
 - When a pattern appears twice, factorise it (component, snippet or helper) instead of copy/pasting class stacks or logic.
+- Après une série de modifications, exécute `npm run format` avant de valider pour garantir l’alignement Prettier/Svelte.
 
 ## Layout & Spacing Utilities
 

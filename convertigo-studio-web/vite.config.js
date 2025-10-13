@@ -29,7 +29,18 @@ export default defineConfig(({ command }) => {
 				autoInstall: true,
 				defaultClass: 'ico'
 			})
-		]
+		],
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks(id) {
+						if (id.includes('@xyflow/svelte')) {
+							return 'xyflow';
+						}
+					}
+				}
+			}
+		}
 	};
 	if (command === 'serve') {
 		conf.server = {

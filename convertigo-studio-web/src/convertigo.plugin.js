@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -176,8 +177,38 @@ function generateLayoutCss() {
 	return css;
 }
 
+let lastUtilitiesHash = '';
+let lastMonacoHash = '';
+
 export default function GenerateLayoutCssPlugin(options = {}) {
 	let generate = true;
+	const cwd = process.cwd();
+
+	function ensureMonacoAssets() {
+		const monacoSource = path.resolve(cwd, 'node_modules/monaco-editor/min/vs');
+		const monacoTarget = path.resolve(cwd, 'static/monaco/vs');
+		if (!fs.existsSync(monacoSource)) {
+			return;
+		}
+		const targetRoot = path.dirname(monacoTarget);
+		if (!fs.existsSync(targetRoot)) {
+			fs.mkdirSync(targetRoot, { recursive: true });
+		}
+		const monacoPkg = path.resolve(cwd, 'node_modules/monaco-editor/package.json');
+		const hash = crypto
+			.createHash('sha1')
+			.update(fs.readFileSync(monacoPkg, 'utf-8'))
+			.digest('hex');
+		if (hash === lastMonacoHash && fs.existsSync(monacoTarget)) {
+			return;
+		}
+		if (fs.existsSync(monacoTarget)) {
+			fs.rmSync(monacoTarget, { recursive: true, force: true });
+		}
+		fs.cpSync(monacoSource, monacoTarget, { recursive: true });
+		lastMonacoHash = hash;
+		console.log(`Copied Monaco assets → ${monacoTarget}`);
+	}
 
 	return {
 		name: 'convertigo-utilities-css-plugin',
@@ -190,8 +221,13 @@ export default function GenerateLayoutCssPlugin(options = {}) {
 			}
 			const css = generateLayoutCss();
 			const outPath = path.resolve(process.cwd(), 'src/convertigo.utilities.css');
-			fs.writeFileSync(outPath, css, 'utf-8');
-			console.log(`Generated Convertigo CSS utilities: ${outPath}`);
+			const hash = crypto.createHash('sha1').update(css).digest('hex');
+			if (!fs.existsSync(outPath) || hash !== lastUtilitiesHash) {
+				fs.writeFileSync(outPath, css, 'utf-8');
+				lastUtilitiesHash = hash;
+				console.log(`Generated Convertigo CSS utilities: ${outPath}`);
+			}
+			ensureMonacoAssets();
 		}
 	};
 }
