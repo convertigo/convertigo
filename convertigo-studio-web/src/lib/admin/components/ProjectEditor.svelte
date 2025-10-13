@@ -1,5 +1,6 @@
 <script>
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import TreeView from '$lib/common/components/TreeView.svelte';
 	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
@@ -238,17 +239,17 @@
 			/>
 		{/snippet}
 		{@render saveCancel()}
-		<Accordion
+		<AccordionGroup
 			value={openedCategories}
 			onValueChange={({ value }) => (openedCategories = clickedCategories = value)}
 			multiple
 		>
 			{#each categories as { category, properties }}
-				<Accordion.Item
+				<AccordionSection
 					value={category}
 					classes="rounded-container preset-filled-surface-50-950 shadow-follow"
 					controlClasses="flex items-center justify-between gap-low rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
-					controlPadding="p-0"
+					controlPadding="p-none"
 					panelPadding="px-3 pb-4"
 					panelClasses="bg-transparent"
 					disabled={properties.length == 0}
@@ -322,9 +323,9 @@
 							</TableAutoCard>
 						{/if}
 					{/snippet}
-				</Accordion.Item>
+				</AccordionSection>
 			{/each}
-		</Accordion>
+		</AccordionGroup>
 		{@render saveCancel()}
 	</div>
 </div>

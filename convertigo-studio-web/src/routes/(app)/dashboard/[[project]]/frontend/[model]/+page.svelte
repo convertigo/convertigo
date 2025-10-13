@@ -1,16 +1,18 @@
 <script>
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
 	import { asset } from '$app/paths';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
+	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import { getFrontendUrl } from '$lib/utils/service';
 	import { onDestroy, tick } from 'svelte';
 	import { Spring } from 'svelte/motion';
-	import { fade, fly } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -110,8 +112,9 @@
 	let projectUrl = $derived.by(() =>
 		(page.params.project ?? '_') == '_' ? '#' : getFrontendUrl(page.params.project)
 	);
-	let iframeUrl = $state(projectUrl);
-	let addressBar = $state(projectUrl);
+	let iframeUrl = $state('');
+	let addressBar = $state('');
+	let lastProjectUrl = $state('');
 	const trimmedAddress = $derived.by(() => addressBar?.trim?.() ?? '');
 	let angle = Spring.of(() => (orientation == 'horizontal' ? 1 : 0));
 
@@ -138,6 +141,24 @@
 		}
 		rotationSteps = (rotationSteps + 1) % 4;
 	};
+
+	$effect(() => {
+		const currentUrl = projectUrl;
+		if (currentUrl !== lastProjectUrl) {
+			iframeUrl = currentUrl;
+			addressBar = currentUrl;
+			lastProjectUrl = currentUrl;
+		}
+	});
+
+	$effect(() => {
+		const currentUrl = projectUrl;
+		if (currentUrl !== lastProjectUrl) {
+			iframeUrl = currentUrl;
+			addressBar = currentUrl;
+			lastProjectUrl = currentUrl;
+		}
+	});
 
 	const toggleStatusBar = () => {
 		showStatusBar = !showStatusBar;
@@ -279,22 +300,23 @@
 
 {#snippet rightPart()}
 	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 p-low max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px]"
 	>
-		<Accordion
+		<AccordionGroup
 			value={openGroups}
 			collapsible
 			onValueChange={({ value }) => {
 				openGroups = value;
 			}}
-			classes=""
 		>
 			{#each groupedDevices as { id, title, devices }}
-				<Accordion.Item
+				<AccordionSection
 					value={id}
 					classes="border-b border-surface-200-800 last:border-none"
 					controlClasses="flex items-center justify-between px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600-400 hover:text-surface-900-100"
-					panelClasses="px-low pb-2"
+					controlPadding="p-low"
+					panelPadding="p-none"
+					panelClasses="px-none pb-2"
 				>
 					{#snippet control()}
 						<div class="flex w-full items-center justify-between gap-2">
@@ -305,7 +327,7 @@
 						</div>
 					{/snippet}
 					{#snippet panel()}
-						<div class="layout-y gap-1 pt-1">
+						<div class="layout-y-stretch gap-1 pt-1">
 							{#each devices as device}
 								{@const {
 									id,
@@ -323,11 +345,7 @@
 									class="relative layout-x-p-low min-w-36 items-center! gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
 								>
 									{#if isSelected}
-										<span
-											in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
-											out:fade
-											class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
-										></span>
+										<SelectionHighlight delta={selectedIndexLast - selectedIndex} />
 									{/if}
 									{#if id != 'none'}
 										<picture
@@ -357,9 +375,9 @@
 							{/each}
 						</div>
 					{/snippet}
-				</Accordion.Item>
+				</AccordionSection>
 			{/each}
-		</Accordion>
+		</AccordionGroup>
 	</nav>
 {/snippet}
 <InputGroup

@@ -92,7 +92,7 @@
 						onValueChange={(e) => (value = e.value ?? '')}
 						indicatorBg="preset-filled-primary-200-800"
 						indicatorText="color-primary-200-800"
-						padding="p-0"
+						padding="p-none"
 					>
 						{#each item as option}
 							{@const val = option.value ?? option}

@@ -1,15 +1,17 @@
 <script>
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onDestroy } from 'svelte';
-	import { fade, fly } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -80,23 +82,21 @@
 
 {#snippet rightPart()}
 	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 p-low max-md:layout-grid-[100px] md:text-right"
+		class="layout-y-stretch-none h-full border-l-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px] md:text-right"
 	>
 		{#each categories as { name, displayName }, i}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative layout-x-p-low min-w-36 gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
+				class="relative layout-x-p-low w-full min-w-36 justify-end !gap rounded py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
 			>
 				{#if i == selectedIndex}
-					<span
-						in:fly={{ y: (selectedIndexLast - selectedIndex) * 50 }}
-						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
-					></span>
+					<SelectionHighlight delta={selectedIndexLast - selectedIndex} />
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>
-					<span class="z-10 w-full text-[13px] font-{i == selectedIndex ? 'medium' : 'normal'}"
-						>{displayName}</span
+					<span
+						class="z-10 w-full text-right text-[13px] font-{i == selectedIndex
+							? 'medium'
+							: 'normal'}">{displayName}</span
 					>
 				</AutoPlaceholder>
 			</a>
@@ -144,16 +144,18 @@
 
 		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
 			<Card class="pt-low">
-				<Accordion
+				<AccordionGroup
 					collapsible
 					value={Last.advanced}
 					onValueChange={(e) => (Last.advanced = e.value)}
 				>
-					<Accordion.Item
+					<AccordionSection
 						value=""
+						surface="bg-transparent border-t border-surface-200-800/40"
 						panelPadding="py"
 						controlPadding="p-low"
-						controlHover="hover:bg-surface-100-900 rounded-base"
+						controlHover="hover:bg-surface-50-950/60 rounded-base"
+						panelClasses="bg-transparent"
 					>
 						{#snippet lead()}<Ico icon="mdi:star-three-points-outline" />{/snippet}
 						{#snippet control()}Advanced Properties{/snippet}
@@ -170,8 +172,8 @@
 								{/each}
 							</div>
 						{/snippet}
-					</Accordion.Item>
-				</Accordion>
+					</AccordionSection>
+				</AccordionGroup>
 			</Card>
 		{/if}
 	</div>

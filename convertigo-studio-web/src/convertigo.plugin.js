@@ -83,6 +83,16 @@ function addUtilities(utilities) {
 	}
 }
 
+function layoutRule(axis, align, version) {
+	const alignValue = align == '' ? 'center' : align;
+	return {
+		display: 'flex',
+		'flex-direction': axis == 'y' ? 'column' : 'row',
+		'align-items': alignValue,
+		...getVersion('gap', version)
+	};
+}
+
 let css;
 
 function generateLayoutCss() {
@@ -101,12 +111,7 @@ function generateLayoutCss() {
 		['', 'start', 'end', 'center', 'baseline', 'stretch'].forEach((align) => {
 			Object.keys(versions).forEach((version) => {
 				const rule = {
-					[`layout-${axis}${dash(align)}${dash(version)}`]: {
-						display: 'flex',
-						'flex-direction': axis == 'y' ? 'column' : 'row',
-						'align-items': align == '' ? 'center' : align,
-						...getVersion('gap', version)
-					}
+					[`layout-${axis}${dash(align)}${dash(version)}`]: layoutRule(axis, align, version)
 				};
 				addUtilities(rule);
 				['m', 'p'].forEach((prop) => {
@@ -117,6 +122,29 @@ function generateLayoutCss() {
 						)
 					});
 				});
+			});
+		});
+
+		const justifies = {
+			between: 'space-between',
+			around: 'space-around',
+			evenly: 'space-evenly'
+		};
+		Object.keys(versions).forEach((version) => {
+			const baseRule = layoutRule(axis, '', version);
+			Object.entries(justifies).forEach(([name, value]) => {
+				addUtilities({
+					[`layout-${axis}-${name}${dash(version)}`]: {
+						...baseRule,
+						'justify-content': value
+					}
+				});
+			});
+			addUtilities({
+				[`layout-${axis}-wrap${dash(version)}`]: {
+					...baseRule,
+					'flex-wrap': 'wrap'
+				}
 			});
 		});
 	});

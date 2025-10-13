@@ -1,8 +1,9 @@
 <script>
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { fade, fly, slide } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
 
 	/** @type {{parts: any}} */
 	let { parts: _parts } = $props();
@@ -36,11 +37,7 @@
 				transition:slide={{ axis: 'y' }}
 			>
 				{#if i == 0 && j == activeIndex}
-					<span
-						in:fly={{ y: (activeIndexLast - activeIndex) * 50 }}
-						out:fade
-						class="absolute inset-0 rounded-sm preset-filled-primary-500 opacity-40 shadow-md/30 shadow-primary-900-100"
-					></span>
+					<SelectionHighlight delta={activeIndexLast - activeIndex} />
 				{/if}
 				<Ico size="5" {icon} class="z-10" />
 				<span class="z-10 text-[14px] font-{i == 0 && j == activeIndex ? 'medium' : 'normal'}"

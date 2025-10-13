@@ -1,9 +1,10 @@
 <script>
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import QrCode from '$lib/common/components/QrCode.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -14,6 +15,24 @@
 	let project = $state(TestPlatform(page.params.project));
 	let app = $derived(project?.mobileapplication);
 	let platforms = $derived(app?.mobileplatform ?? []);
+	/** @type {string[]} */
+	let openedPlatforms = $state([]);
+
+	$effect(() => {
+		if (!platforms.length) {
+			if (openedPlatforms.length) {
+				openedPlatforms = [];
+			}
+			return;
+		}
+
+		if (
+			openedPlatforms.length === 0 ||
+			!platforms.some((platform) => platform.name === openedPlatforms[0])
+		) {
+			openedPlatforms = [platforms[0].name];
+		}
+	});
 </script>
 
 <Card title={project?.name ?? null}>
@@ -27,9 +46,14 @@
 			{ key: 'Version', val: app?.applicationVersion }
 		]}
 	/>
-	<Accordion classes="-mx" width="" value={[platforms[0]?.name ?? '']}>
+	<AccordionGroup
+		value={openedPlatforms}
+		onValueChange={({ value }) => {
+			openedPlatforms = value;
+		}}
+	>
 		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build }}
-			<Accordion.Item value={name}>
+			<AccordionSection value={name}>
 				{#snippet control()}
 					<div class="layout-x justify-between border-b-[0.5px]">
 						<span class="layout-x-low text-lg font-semibold"
@@ -113,7 +137,7 @@
 						</div>
 					</div>
 				{/snippet}
-			</Accordion.Item>
+			</AccordionSection>
 		{/each}
-	</Accordion>
+	</AccordionGroup>
 </Card>
