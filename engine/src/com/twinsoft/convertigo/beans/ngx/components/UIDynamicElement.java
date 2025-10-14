@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.beans.BeanInfo;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -508,6 +509,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	protected Contributor getContributor() {
 		final boolean isTplLowerThan8400 = this.compareToTplVersion("8.4.0.0") < 0;
+		final boolean tplIsStandalone = UIDynamicElement.this.isTplStandalone();
+
 		return new Contributor() {
 			
 			private boolean doit() {
@@ -517,6 +520,29 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 					e.printStackTrace();
 				}
 				return false;
+			}
+			
+			private boolean usesRouterLink(String propertyName) {
+				IonProperty prop = ionBean.getProperty(propertyName);
+				if (prop != null && !prop.getValue().equals(false)) {
+					if (!prop.getSmartValue().isBlank()) {
+						return true;
+					}
+				}
+				return false;
+			}
+			
+			private void addMapImport(Map<String, List<String>> map, String name, String path) {
+				if (map != null) {
+					List<String> list = map.get(path);
+					if (list == null) {
+						list = new ArrayList<String>();
+					}
+					if (!list.contains(name)) {
+						list.add(name);
+						map.put(path, list);
+					}
+				}
 			}
 			
 			@Override
@@ -554,7 +580,19 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						}
 						if (isContainer((MobileComponent)getMainScriptComponent())) {
 							map.putAll(ionConfig.getLocalModuleTsImports());
+							
+							if (tplIsStandalone) {
+								if (usesRouterLink("LinkRouterPath")) {
+									addMapImport(map, "{ RouterLink }", "@angular/router");
+									addMapImport(map, "{ IonRouterLink }", "@ionic/angular/standalone");
+								}
+								if (usesRouterLink("LinkUrl")) {
+									addMapImport(map, "{ RouterLink }", "@angular/router");
+									addMapImport(map, "{ IonRouterLinkWithHref }", "@ionic/angular/standalone");
+								}
+							}
 						}
+						
 						if (map.size() > 0) {
 							for (String from : map.keySet()) {
 								for (String component: map.get(from)) {
@@ -586,7 +624,19 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						}
 						if (isContainer((MobileComponent)getMainScriptComponent())) {
 							set.addAll(ionConfig.getLocalModuleNgImports());
+							
+							if (tplIsStandalone) {
+								if (usesRouterLink("LinkRouterPath")) {
+									set.add("RouterLink");
+									set.add("IonRouterLink");
+								}
+								if (usesRouterLink("LinkUrl")) {
+									set.add("RouterLink");
+									set.add("IonRouterLinkWithHref ");
+								}
+							}
 						}
+						
 						return set;
 					}
 				}

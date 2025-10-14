@@ -688,6 +688,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	@Override
 	protected Contributor getContributor() {
 		final boolean isTplLowerThan8400 = this.compareToTplVersion("8.4.0.0") < 0;
+		final boolean tplIsStandalone = UIDynamicAction.this.isTplStandalone();
 		
 		Contributor contributor = super.getContributor();
 		return new Contributor() {
@@ -778,7 +779,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
-							boolean tplIsStandalone = UIDynamicAction.this.isTplStandalone();
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
@@ -801,9 +801,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Set<String> imports = contributor.getModuleNgImports();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
+					if (!tplIsStandalone && isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
-							boolean tplIsStandalone = UIDynamicAction.this.isTplStandalone();
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);

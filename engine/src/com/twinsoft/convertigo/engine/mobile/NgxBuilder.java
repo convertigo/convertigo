@@ -71,7 +71,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NgxBuilder extends MobileBuilder {
 	private Map<String,String> tpl_appCompTsImports = null;
-	private Map<String,String> tpl_MainTsImports = null;
+	private Map<String,String> tpl_mainTsImports = null;
 	private Map<String,String> tpl_pageTsImports = null;
 	private Map<String,String> tpl_compTsImports = null;
 
@@ -681,9 +681,9 @@ public class NgxBuilder extends MobileBuilder {
 				tpl_appCompTsImports = null;
 			}
 			
-			if (tpl_MainTsImports != null) {
-				tpl_MainTsImports.clear();
-				tpl_MainTsImports = null;
+			if (tpl_mainTsImports != null) {
+				tpl_mainTsImports.clear();
+				tpl_mainTsImports = null;
 			}
 			
 			if (tpl_pageTsImports != null) {
@@ -1544,10 +1544,10 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	protected Map<String,String> getTplMainTsImports() {
-		if (tpl_appCompTsImports == null) {
-			tpl_appCompTsImports = initTplImports(new File(ionicTplDir, "src/main.ts"));
+		if (tpl_mainTsImports == null) {
+			tpl_mainTsImports = initTplImports(new File(ionicTplDir, "src/main.ts"));
 		}
-		return tpl_appCompTsImports;
+		return tpl_mainTsImports;
 	}
 
 	@Override
@@ -1848,7 +1848,8 @@ public class NgxBuilder extends MobileBuilder {
 					page_ts_imports.putAll(contributor.getActionTsImports());
 				});
 			}
-			Map<String, String> tpl_page_ts_imports = getTplPageTsImports();
+			Map<String, String> tpl_page_ts_imports = new HashMap<String, String>();
+			tpl_page_ts_imports.putAll(getTplPageTsImports());
 			if (!page_ts_imports.isEmpty()) {
 				for (String comp : page_ts_imports.keySet()) {
 					String from = page_ts_imports.get(comp);
@@ -1885,7 +1886,8 @@ public class NgxBuilder extends MobileBuilder {
 			module_ts_imports.remove("BrowserAnimationsModule");
 			module_ng_imports.remove("BrowserAnimationsModule");
 			
-			Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
+			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+			tpl_ts_imports.putAll(getTplPageModuleTsImports());
 			if (!module_ts_imports.isEmpty()) {
 				for (String comp : module_ts_imports.keySet()) {
 					String from = module_ts_imports.get(comp);
@@ -1999,7 +2001,8 @@ public class NgxBuilder extends MobileBuilder {
 					comp_ts_imports.putAll(contributor.getActionTsImports());
 				});
 			}
-			Map<String, String> tpl_comp_ts_imports = getTplCompTsImports();
+			Map<String, String> tpl_comp_ts_imports = new HashMap<String, String>();
+			tpl_comp_ts_imports.putAll(getTplCompTsImports());
 			if (!comp_ts_imports.isEmpty()) {
 				for (String compo : comp_ts_imports.keySet()) {
 					String from = comp_ts_imports.get(compo);
@@ -2038,7 +2041,8 @@ public class NgxBuilder extends MobileBuilder {
 			module_ng_imports.remove("BrowserAnimationsModule");
 			
 			
-			Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
+			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+			tpl_ts_imports.putAll(getTplPageModuleTsImports());
 			if (!module_ts_imports.isEmpty()) {
 				for (String comps : module_ts_imports.keySet()) {
 					String from = module_ts_imports.get(comps);
@@ -2144,7 +2148,8 @@ public class NgxBuilder extends MobileBuilder {
 		module_ng_imports.remove("BrowserAnimationsModule");
 
 		String c8o_ModuleTsImports = "";
-		Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
+		Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+		tpl_ts_imports.putAll(getTplPageModuleTsImports());
 		if (!module_ts_imports.isEmpty()) {
 			for (String comp : module_ts_imports.keySet()) {
 				String from = module_ts_imports.get(comp);
@@ -2285,7 +2290,8 @@ public class NgxBuilder extends MobileBuilder {
 		module_ng_imports.remove("BrowserAnimationsModule");
 
 		String c8o_ModuleTsImports = "";
-		Map<String, String> tpl_ts_imports = getTplCompModuleTsImports();
+		Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+		tpl_ts_imports.putAll(getTplCompModuleTsImports());
 		if (!module_ts_imports.isEmpty()) {
 			for (String compo : module_ts_imports.keySet()) {
 				String from = module_ts_imports.get(compo);
@@ -2431,7 +2437,8 @@ public class NgxBuilder extends MobileBuilder {
 		module_ng_imports.remove("BrowserAnimationsModule");
 
 		String c8o_ModuleTsImports = "";
-		Map<String, String> tpl_ts_imports = getTplCompModuleTsImports();
+		Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+		tpl_ts_imports.putAll(getTplCompModuleTsImports());
 		if (!module_ts_imports.isEmpty()) {
 			for (String compo : module_ts_imports.keySet()) {
 				String from = module_ts_imports.get(compo);
@@ -2922,9 +2929,11 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				String c8o_ActionTsImports = "";
+				Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+				tpl_ts_imports.putAll(getTplServiceActionTsImports());
 				for (String comp : action_ts_imports.keySet()) {
 					String from = action_ts_imports.get(comp);
-					String entry = cleanImport(app, getTplServiceActionTsImports(), comp, from, false);
+					String entry = cleanImport(app, tpl_ts_imports, comp, from, false);
 					if (!entry.isBlank()) {
 						if (from.startsWith("/components") || from.startsWith("/pages")) {
 							from = ".." + from;
@@ -3079,7 +3088,8 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				String c8o_ModuleTsImports = "";
-				Map<String, String> tpl_ts_imports = getTplAppModuleTsImports();
+				Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+				tpl_ts_imports.putAll(getTplAppModuleTsImports());
 				if (!module_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						String from = module_ts_imports.get(comp);
@@ -3227,7 +3237,8 @@ public class NgxBuilder extends MobileBuilder {
 			
 			module_ts_imports.remove("BrowserAnimationsModule");
 			String c8o_ModuleTsImports = "";
-			Map<String, String> tpl_ts_imports = getTplMainTsImports();
+			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+			tpl_ts_imports.putAll(getTplMainTsImports());
 			if (!module_ts_imports.isEmpty()) {
 				for (String comp : module_ts_imports.keySet()) {
 					String from = module_ts_imports.get(comp);
@@ -3309,7 +3320,9 @@ public class NgxBuilder extends MobileBuilder {
 					app_ts_imports.putAll(contributor.getActionTsImports());
 				});
 			}
-			Map<String, String> tpl_app_ts_imports = getTplAppCompTsImports();
+			
+			Map<String, String> tpl_app_ts_imports = new HashMap<String, String>();
+			tpl_app_ts_imports.putAll(getTplAppCompTsImports());
 			if (!app_ts_imports.isEmpty()) {
 				for (String comp : app_ts_imports.keySet()) {
 					String from = app_ts_imports.get(comp);
@@ -3389,7 +3402,8 @@ public class NgxBuilder extends MobileBuilder {
 			module_ts_imports.remove("BrowserAnimationsModule");
 			module_ng_imports.remove("BrowserAnimationsModule");
 			
-			Map<String, String> tpl_ts_imports = getTplAppCompTsImports();
+			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
+			tpl_ts_imports.putAll(getTplAppCompTsImports());
 			if (!module_ts_imports.isEmpty()) {
 				for (String comp : module_ts_imports.keySet()) {
 					String from = module_ts_imports.get(comp);
@@ -3954,6 +3968,8 @@ public class NgxBuilder extends MobileBuilder {
 							}
 							Engine.logEngine.trace("["+project.getName()+"] For "+ oname +" removed " + name + " from " + entry);
 						}
+					} else {
+						tpl_imports.put(name, path);
 					}
 				}
 			}
