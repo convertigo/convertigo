@@ -3,7 +3,7 @@
 </script>
 
 <script>
-	import { Segment, Switch } from '@skeletonlabs/skeleton-svelte';
+	import { SegmentedControl, Switch } from '@skeletonlabs/skeleton-svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray } from '$lib/utils/service';
@@ -66,14 +66,18 @@
 				{...rest}
 				{name}
 				{value}
-				controlClasses="min-w-10"
-				thumbInactive="bg-white"
-				thumbActive="bg-white"
-				controlActive="preset-filled-success-200-800"
-				controlInactive="preset-filled-error-200-800 motif-error"
+				class="items-start gap-low"
 				{checked}
-				onCheckedChange={(e) => (checked = e.checked)}>{label}</Switch
+				onCheckedChange={(e) => (checked = e.checked)}
 			>
+				<Switch.Control class="preset-filled-error-200-800 motif-error min-w-12 rounded-full p-1 transition-colors duration-150 data-[state=checked]:preset-filled-success-200-800">
+					<Switch.Thumb class="grid h-5 w-5 place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5">
+						<Ico icon={checked ? 'mdi:check' : 'mdi:close'} />
+					</Switch.Thumb>
+				</Switch.Control>
+				<span class="block cursor-pointer break-words leading-tight">{label}</span>
+				<Switch.HiddenInput />
+			</Switch>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-stretch-none" class:border-common={type != 'segment'}>
@@ -85,23 +89,27 @@
 					</AutoPlaceholder>
 				{/if}
 				{#if type == 'segment'}
-					<Segment
+					<SegmentedControl
 						{...rest}
 						name={name ?? []}
 						{value}
 						onValueChange={(e) => (value = e.value ?? '')}
-						indicatorBg="preset-filled-primary-200-800"
-						indicatorText="color-primary-200-800"
-						padding="p-none"
+						class="w-full"
 					>
-						{#each item as option}
-							{@const val = option.value ?? option}
-							{@const txt = option.text ?? option['#text'] ?? val}
-							<Segment.Item value={val}>
-								{txt}
-							</Segment.Item>
-						{/each}
-					</Segment>
+						<SegmentedControl.Control class="relative flex w-full gap-none overflow-hidden rounded-full border border-surface-200-800 bg-surface-50 dark:border-surface-700 dark:bg-surface-900">
+							<SegmentedControl.Indicator class="preset-filled-primary-200-800 text-primary-contrast-200-800" />
+							{#each item as option}
+								{@const val = option.value ?? option}
+								{@const txt = option.text ?? option['#text'] ?? val}
+								<SegmentedControl.Item value={val} class="flex-1">
+									<SegmentedControl.ItemText class="block w-full px-low py-2 text-center text-sm font-medium">
+										{txt}
+									</SegmentedControl.ItemText>
+									<SegmentedControl.ItemHiddenInput />
+								</SegmentedControl.Item>
+							{/each}
+						</SegmentedControl.Control>
+					</SegmentedControl>
 				{:else if type == 'combo'}
 					<select {name} class="select input-common overflow-auto" {id} {...rest} bind:value>
 						{#each item as option}

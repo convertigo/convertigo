@@ -6,12 +6,15 @@
 
 <Switch
 	name="mode"
-	controlActive="bg-surface-300"
-	controlInactive="bg-surface-700"
-	classes="gap-0!"
+	aria-label="Toggle light mode"
+	class="gap-none!"
 	checked={Light.light}
 	onCheckedChange={(e) => (Light.light = e.checked)}
 >
-	{#snippet inactiveChild()}<Ico icon="mdi:moon-and-stars" />{/snippet}
-	{#snippet activeChild()}<Ico icon="mdi:weather-sunny" />{/snippet}
+	<Switch.Control class="preset-filled-surface-300-700 flex h-7 w-12 items-center rounded-full p-1 transition-colors duration-150 data-[state=checked]:preset-filled-primary-200-800">
+		<Switch.Thumb class="grid h-full aspect-square place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5">
+			<Ico icon={Light.light ? 'mdi:weather-sunny' : 'mdi:moon-and-stars'} />
+		</Switch.Thumb>
+	</Switch.Control>
+	<Switch.HiddenInput />
 </Switch>

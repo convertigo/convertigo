@@ -1,5 +1,5 @@
 <script>
-	import { Modal } from '@skeletonlabs/skeleton-svelte';
+	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
@@ -20,22 +20,18 @@
 	let showDrawer = $state(false);
 </script>
 
-<Modal
-	open={showDrawer}
-	contentBase="w-fit h-screen"
-	triggerBase="hidden"
-	positionerJustify="justify-start"
-	positionerAlign=""
-	positionerPadding=""
-	transitionsPositionerIn={{ x: -480, duration: 200 }}
-	transitionsPositionerOut={{ x: -480, duration: 200 }}
-	onInteractOutside={() => (showDrawer = false)}
->
-	{#snippet content()}
-		<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! pl-5" />
-		<PagesRail {parts} />
-	{/snippet}
-</Modal>
+<Dialog open={showDrawer} onOpenChange={(e) => (showDrawer = e.open)}>
+	<Dialog.Trigger class="hidden" />
+	<Portal>
+		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/30 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 flex justify-start">
+			<Dialog.Content class="h-full max-h-screen w-80 max-w-full -translate-x-full overflow-y-auto bg-surface-50-950 p-low transition-transform duration-200 data-[state=open]:translate-x-0 dark:bg-surface-900">
+				<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! pl-5" />
+				<PagesRail {parts} />
+			</Dialog.Content>
+		</Dialog.Positioner>
+	</Portal>
+</Dialog>
 
 <div class="flex min-h-screen flex-col" class:blur-xs={!browser}>
 	<Topbar bind:showLeft bind:showDrawer />

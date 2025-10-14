@@ -607,38 +607,39 @@
 							doSearch();
 						}
 					}}
-					arrow
-					arrowBackground="bg-surface-50-950"
-					triggerBase="block"
 					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
-					zIndex="51"
 				>
-					{#snippet trigger()}<Ico icon="mdi:search" />{/snippet}
-					{#snippet content()}
-						<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
-							<div class="layout-x-stretch-low">
-								<input
-									type="text"
-									class="rounded-md border-none bg-transparent"
-									bind:this={searchInput}
-									bind:value={searched}
-									onkeyup={doSearch}
-								/>
-								<input
-									type="text"
-									class="rounded-md border-none bg-transparent"
-									style="field-sizing: content;"
-									readonly={true}
-									value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
-								/>
-								<button class="button-primary" onclick={doSearchPrev}>↑</button>
-								<button class="button-primary" onclick={doSearchNext}>↓</button>
-								<button class="button-error p-2" onclick={doSearchClear}
-									><Ico icon="mdi:delete-outline" /></button
-								>
-							</div>
-						</Card>
-					{/snippet}
+					<Popover.Trigger class="button-primary h-7 w-7 items-center justify-center p-0">
+						<Ico icon="mdi:search" />
+					</Popover.Trigger>
+					<Popover.Positioner class="z-50">
+						<Popover.Content class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow dark:bg-surface-900">
+							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
+								<div class="layout-x-stretch-low">
+									<input
+										type="text"
+										class="rounded-md border-none bg-transparent"
+										bind:this={searchInput}
+										bind:value={searched}
+										onkeyup={doSearch}
+									/>
+									<input
+										type="text"
+										class="rounded-md border-none bg-transparent"
+										style="field-sizing: content;"
+										readonly={true}
+										value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
+									/>
+									<button class="button-primary" onclick={doSearchPrev}>↑</button>
+									<button class="button-primary" onclick={doSearchNext}>↓</button>
+									<button class="button-error p-2" onclick={doSearchClear}
+										><Ico icon="mdi:delete-outline" /></button
+									>
+								</div>
+							</Card>
+							<Popover.Arrow class="fill-surface-50-950 dark:fill-surface-900" />
+						</Popover.Content>
+					</Popover.Positioner>
 				</Popover>
 			</div>
 			<div

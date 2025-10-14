@@ -1,5 +1,8 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { getContext } from 'svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { accordionIconsKey } from './AccordionGroup.svelte';
 
 	/** @type {{
 		value?: any,
@@ -43,43 +46,82 @@
 		...rest
 	} = $props();
 
+	const { iconClosed, iconOpen } = getContext(accordionIconsKey) ?? {};
+	const resolvedClosed = iconClosed ?? fallbackIconClosed;
+	const resolvedOpen = iconOpen ?? fallbackIconOpen;
+
 	const itemClasses = [surface, cls].filter(Boolean).join(' ');
-	const controlClasses = ['group', 'text-left', interactive ? hoverClass : '', controlClass]
+	const triggerClasses = [
+		'group flex w-full items-center justify-between gap-3 text-left',
+		controlPadding,
+		interactive ? hoverClass : '',
+		controlClass
+	]
 		.filter(Boolean)
 		.join(' ');
 	const bodyClasses = [bodyBase, bodyClass, panelClass].filter(Boolean).join(' ');
+	const contentClasses = [panelPadding, 'w-full'].filter(Boolean).join(' ');
 	const resolvedPanel = panelSnippet ?? children;
 </script>
 
-<Accordion.Item
-	{value}
-	classes={itemClasses}
-	{controlClasses}
-	{controlPadding}
-	{panelPadding}
-	panelClasses={bodyClasses}
-	{...rest}
->
-	{#snippet control()}
-		{#if controlSnippet}
-			{@render controlSnippet()}
-		{:else}
-			<div class={layout}>
-				<div class="layout-y-low">
-					{@render titleSnippet?.()}
-					{#if subtitleSnippet}
-						<span class="text-surface-500-300 text-xs">{@render subtitleSnippet()}</span>
-					{/if}
-				</div>
-				{#if metaSnippet}
-					<div class="layout-x-low items-center">{@render metaSnippet()}</div>
+{#snippet fallbackIconClosed({ attributes })}
+	{@const merged = {
+		...attributes,
+		class: [attributes?.class, 'transition-transform duration-200'].filter(Boolean).join(' ')
+	}}
+	<span {...merged}>
+		<Ico icon="mdi:chevron-right" size={3} />
+	</span>
+{/snippet}
+
+{#snippet fallbackIconOpen({ attributes })}
+	{@const merged = {
+		...attributes,
+		class: [attributes?.class, 'transition-transform duration-200 rotate-90'].filter(Boolean).join(' ')
+	}}
+	<span {...merged}>
+		<Ico icon="mdi:chevron-right" size={3} />
+	</span>
+{/snippet}
+
+{#snippet indicator({ attributes })}
+	{@const state = attributes?.['data-state']}
+	{@const merged = {
+		...attributes,
+		class: [attributes?.class, 'flex items-center text-surface-500 transition-transform duration-200'].filter(Boolean).join(' ')
+	}}
+	{@const icon = state === 'open' ? resolvedOpen : resolvedClosed}
+	{@render icon({ attributes: merged })}
+{/snippet}
+
+<Accordion.Item {value} class={itemClasses} {...rest}>
+	<Accordion.ItemTrigger class={triggerClasses}>
+		<div class="flex w-full items-center justify-between gap-3">
+			<div class="grow">
+				{#if controlSnippet}
+					{@render controlSnippet()}
+				{:else}
+					<div class={layout}>
+						<div class="layout-y-low">
+							{@render titleSnippet?.()}
+							{#if subtitleSnippet}
+								<span class="text-surface-500-300 text-xs">{@render subtitleSnippet()}</span>
+							{/if}
+						</div>
+						{#if metaSnippet}
+							<div class="layout-x-low items-center">{@render metaSnippet()}</div>
+						{/if}
+					</div>
 				{/if}
 			</div>
-		{/if}
-	{/snippet}
-	{#snippet panel()}
+			<Accordion.ItemIndicator element={indicator} />
+		</div>
+	</Accordion.ItemTrigger>
+	<Accordion.ItemContent class={contentClasses}>
 		{#if resolvedPanel}
-			{@render resolvedPanel()}
+			<div class={bodyClasses}>
+				{@render resolvedPanel()}
+			</div>
 		{/if}
-	{/snippet}
+	</Accordion.ItemContent>
 </Accordion.Item>

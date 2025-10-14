@@ -1,6 +1,6 @@
 <script>
 	import '../app.css';
-	import { Toaster } from '@skeletonlabs/skeleton-svelte';
+	import { Toast } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -82,5 +82,24 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
-<Toaster {toaster}></Toaster>
+{#snippet toastItem(toast)}
+	<Toast toast={toast} class="pointer-events-auto relative w-full">
+		<div class="layout-y-low pr-7">
+			{#if toast.title}
+				<Toast.Title class="text-sm font-semibold">{toast.title}</Toast.Title>
+			{/if}
+			{#if toast.description}
+				<Toast.Description class="text-sm leading-snug">{toast.description}</Toast.Description>
+			{/if}
+		</div>
+		<Toast.CloseTrigger class="button-ico-error absolute right-2 top-2 h-7 w-7">
+			<span aria-hidden="true">✕</span>
+		</Toast.CloseTrigger>
+	</Toast>
+{/snippet}
+<Toast.Group {toaster} class="pointer-events-none fixed right-4 top-4 z-50 flex w-full max-w-sm flex-col gap-low">
+	{#snippet children(toast)}
+		{@render toastItem(toast)}
+	{/snippet}
+</Toast.Group>
 {@render children?.()}

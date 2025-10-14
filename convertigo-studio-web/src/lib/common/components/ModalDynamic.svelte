@@ -1,5 +1,5 @@
 <script>
-	import { Modal } from '@skeletonlabs/skeleton-svelte';
+	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 	import { onDestroy } from 'svelte';
 
 	/** @type {{class?: string, children?: import('svelte').Snippet<[any]>}} */
@@ -46,13 +46,14 @@
 	}
 </script>
 
-<Modal
-	open={opened}
-	onOpenChange={(e) => (opened = e.open)}
-	triggerBase="hidden"
-	contentBase={`max-h-full overflow-auto ${cls}`}
->
-	{#snippet content()}
-		{@render children?.({ setResult, close, params })}
-	{/snippet}
-</Modal>
+<Dialog open={opened} onOpenChange={(e) => (opened = e.open)}>
+	<Dialog.Trigger class="hidden" />
+	<Portal>
+		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/60 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 flex items-center justify-center p-low">
+			<Dialog.Content class={`max-h-full overflow-auto ${cls}`}>
+				<!-- {@render children?.({ setResult, close, params })} -->
+			</Dialog.Content>
+		</Dialog.Positioner>
+	</Portal>
+</Dialog>

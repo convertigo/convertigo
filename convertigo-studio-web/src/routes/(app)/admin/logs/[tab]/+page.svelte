@@ -246,81 +246,67 @@
 	let modalYesNo = getContext('modalYesNo');
 </script>
 
-<MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
-		{#snippet cornerOption()}
-			<div class="layout-x-low w-full">
-				<Tabs
-					value={tabSet}
-					onValueChange={(e) => goto(`../${e.value}/`)}
-					listClasses="mb-0! flex-wrap"
-					classes="w-fit!"
-				>
-					{#snippet list()}
+<Tabs value={tabSet} onValueChange={(e) => goto(`../${e.value}/`)} class="h-full">
+	<MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
+		<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
+			{#snippet cornerOption()}
+				<div class="layout-x-low w-full">
+					<Tabs.List class="mb-0! flex-wrap gap-low">
 						{#each Object.entries(tabs) as [value, { name, icon }]}
-							<Tabs.Control {value} stateLabelActive="preset-filled-primary-100-900" padding="">
-								{#snippet lead()}<Ico {icon} />{/snippet}{name}
-							</Tabs.Control>
+							<Tabs.Trigger
+								{value}
+								class={`layout-x-low items-center rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-surface-600 transition-colors duration-150 data-[state=active]:preset-filled-primary-100-900 data-[state=active]:text-primary-contrast-100-900 ${tabSet == value ? 'preset-filled-primary-100-900 text-primary-contrast-100-900' : 'bg-surface-200-800/40 dark:bg-surface-800/40'}`}
+							>
+								<Ico {icon} class="text-primary-500" />
+								{name}
+							</Tabs.Trigger>
 						{/each}
-					{/snippet}
-				</Tabs>
-				<div class="grow">
-					{#if tabSet == 'purge'}
-						<ResponsiveButtons
-							buttons={[
-								{
-									label: 'Purge',
-									icon: 'mdi:content-save-edit-outline',
-									cls: 'button-error',
-									disabled: LogsPurge.value[0] == -1,
-									onclick: async (event) => {
-										if (
-											await modalYesNo.open({
-												event,
-												title: 'Delete logs files older than',
-												message: `${LogsPurge.date} ?`
-											})
-										) {
-											LogsPurge.purge();
+					</Tabs.List>
+					<div class="grow">
+						{#if tabSet == 'purge'}
+							<ResponsiveButtons
+								buttons={[
+									{
+										label: 'Purge',
+										icon: 'mdi:content-save-edit-outline',
+										cls: 'button-error',
+										disabled: LogsPurge.value[0] == -1,
+										onclick: async (event) => {
+											if (
+												await modalYesNo.open({
+													event,
+													title: 'Delete logs files older than',
+													message: `${LogsPurge.date} ?`
+												})
+											) {
+												LogsPurge.purge();
+											}
 										}
 									}
-								}
-							]}
-						/>
-					{:else if tabSet == 'config'}
-						<SaveCancelButtons
-							onSave={saveChanges}
-							onCancel={Configuration.refresh}
-							changesPending={hasChanges}
-						/>
-					{/if}
+								]}
+							/>
+						{:else if tabSet == 'config'}
+							<SaveCancelButtons
+								onSave={saveChanges}
+								onCancel={Configuration.refresh}
+								changesPending={hasChanges}
+							/>
+						{/if}
+					</div>
 				</div>
-			</div>
-		{/snippet}
-		<Tabs
-			value={tabSet}
-			listClasses="hidden"
-			classes="h-full layout-y-stretch-none"
-			contentClasses="grow"
-		>
-			{#snippet content()}
-				{#if tabs[tabSet].viewer}
+			{/snippet}
+			<div class="h-full">
+				<Tabs.Content value="view" class="h-full">
 					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
-						{#if tabSet == 'view'}
-							<div transition:slide={{ axis: 'y' }}>
+						<div transition:slide={{ axis: 'y' }}>
+							<div class="layout-x-end-low flex-wrap">
 								<div class="layout-x-end-low flex-wrap">
-									<div class="layout-x-end-low flex-wrap">
-										<Popover
-											triggerBase="button-primary"
-											arrow
-											arrowBackground="var(--color-primary-200-800)"
-											open={presetOpened}
-											onOpenChange={(e) => (presetOpened = e.open)}
-										>
-											{#snippet trigger()}Preset<Ico
-													icon="mdi:clock-star-four-points-outline"
-												/>{/snippet}
-											{#snippet content()}
+									<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
+										<Popover.Trigger class="button-primary flex items-center gap-low">
+											Preset<Ico icon="mdi:clock-star-four-points-outline" />
+										</Popover.Trigger>
+										<Popover.Positioner class="z-40">
+											<Popover.Content class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow">
 												<Card bg="preset-glass-primary" class="p-low!">
 													<div class="layout-y-stretch-low">
 														{#each presets as { label, onclick }}
@@ -332,68 +318,69 @@
 														{/each}
 													</div>
 												</Card>
-											{/snippet}
-										</Popover>
-										<TimePicker bind:inputValue={times[0]} />
-										<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
-										{#if !live}
-											<span transition:slide={{ axis: 'x' }}
-												><TimePicker bind:inputValue={times[1]} /></span
-											>
-										{/if}
-									</div>
-									<Button
-										size={4}
-										label="Server filter"
-										icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
-										onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
-										class="button-secondary h-7! w-fit!"
-									/>
-									{#if serverFilterVisible}
-										<Button
-											size={4}
-											icon="mdi:cloud-sync-outline"
-											onmousedown={copyFilters}
-											class="button-tertiary h-7! w-fit!"
-											label="Copy client filters"
-											disabled={Object.keys(filters).length == 0}
-										/>
-									{/if}
-									<Button
-										label="Server search"
-										size={4}
-										icon="mdi:receipt-text-send-outline"
-										class="button-success w-fit!"
-										onclick={refreshLogs}
-									/>
-									{#if serverFilterVisible}
-										<InputGroup
-											type="search"
-											placeholder="Server filter…"
-											icon="mdi:filter"
-											class="bg-surface-200-800"
-											inputClass="light:bg-white"
-											bind:value={serverFilter}
-											onkeyup={(e) => {
-												if (e?.key == 'Enter') refreshLogs();
-											}}
+												<Popover.Arrow class="fill-surface-50-950" />
+											</Popover.Content>
+										</Popover.Positioner>
+									</Popover>
+									<TimePicker bind:inputValue={times[0]} />
+									<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
+									{#if !live}
+										<span transition:slide={{ axis: 'x' }}
+											><TimePicker bind:inputValue={times[1]} /></span
 										>
-											{#snippet actions({ value, setValue })}
-												{#if value?.length}
-													<button
-														type="button"
-														class="button-ico-error h-6 w-6"
-														onclick={() => setValue('')}
-													>
-														<Ico icon="mdi:close-circle-outline" size="nav" />
-													</button>
-												{/if}
-											{/snippet}
-										</InputGroup>
 									{/if}
 								</div>
+								<Button
+									size={4}
+									label="Server filter"
+									icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
+									onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
+									class="button-secondary h-7! w-fit!"
+								/>
+								{#if serverFilterVisible}
+									<Button
+										size={4}
+										icon="mdi:cloud-sync-outline"
+										onmousedown={copyFilters}
+										class="button-tertiary h-7! w-fit!"
+										label="Copy client filters"
+										disabled={Object.keys(filters).length == 0}
+									/>
+								{/if}
+								<Button
+									label="Server search"
+									size={4}
+									icon="mdi:receipt-text-send-outline"
+									class="button-success w-fit!"
+									onclick={refreshLogs}
+								/>
+								{#if serverFilterVisible}
+									<InputGroup
+										type="search"
+										placeholder="Server filter…"
+										icon="mdi:filter"
+										class="bg-surface-200-800"
+										inputClass="light:bg-white"
+										bind:value={serverFilter}
+										onkeyup={(e) => {
+											if (e?.key == 'Enter') refreshLogs();
+										}}
+									>
+										{#snippet actions({ value, setValue })}
+											{#if value?.length}
+												<button
+													type="button"
+													class="button-ico-error h-6 w-6"
+													onclick={() => setValue('')}
+												>
+													<Ico icon="mdi:close-circle-outline" size="nav" />
+												</button>
+											{/if}
+										{/snippet}
+									</InputGroup>
+								{/if}
 							</div>
-						{/if}
+						</div>
 						<div class="-mx -mb h-full">
 							<LogViewer
 								bind:this={logViewer}
@@ -406,7 +393,8 @@
 							/>
 						</div>
 					</div>
-				{:else if tabSet == 'purge'}
+				</Tabs.Content>
+				<Tabs.Content value="purge" class="h-full">
 					{@const {
 						loading,
 						dates,
@@ -424,7 +412,14 @@
 									min={-1}
 									max={dates.length - 1}
 									step={1}
-								/>
+								>
+									<Slider.Control class="relative w-full">
+										<Slider.Track class="h-1 w-full rounded-full bg-surface-200-800">
+											<Slider.Range class="h-full rounded-full bg-primary-500" />
+										</Slider.Track>
+										<Slider.Thumb index={0} class="h-5 w-5 rounded-full bg-primary-500" />
+									</Slider.Control>
+								</Slider>
 							</AutoPlaceholder>
 						</div>
 						<AutoPlaceholder {loading}>
@@ -438,7 +433,8 @@
 							</div>
 						</AutoPlaceholder>
 					</div>
-				{:else if tabSet == 'config'}
+				</Tabs.Content>
+				<Tabs.Content value="config" class="h-full">
 					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
 						{#each logsCategory?.property as property}
 							{#if property.name?.startsWith('LOG4J')}
@@ -446,8 +442,8 @@
 							{/if}
 						{/each}
 					</div>
-				{/if}
-			{/snippet}
-		</Tabs>
-	</Card>
-</MaxRectangle>
+				</Tabs.Content>
+			</div>
+		</Card>
+	</MaxRectangle>
+</Tabs>
