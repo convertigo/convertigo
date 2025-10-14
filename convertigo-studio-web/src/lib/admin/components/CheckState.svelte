@@ -11,7 +11,6 @@
 		children
 	} = $props();
 	let classes = $derived(cls);
-	$inspect('classes', classes);
 </script>
 
 <Switch

@@ -1,17 +1,23 @@
-let category = $state('Main');
-let advanced = $state([]);
+import { persistedState } from 'svelte-persisted-state';
+
+let categoryState = persistedState('admin.config.category', 'Main', { syncTabs: false });
+let advancedState = persistedState('admin.config.advanced', false, { syncTabs: false });
 
 export default {
 	get category() {
-		return category;
+		const next = categoryState.current ?? 'Main';
+		if (categoryState.current !== next) {
+			categoryState.current = next;
+		}
+		return next;
 	},
 	set category(value) {
-		category = value;
+		categoryState.current = value ?? 'Main';
 	},
 	get advanced() {
-		return advanced;
+		return advancedState.current;
 	},
 	set advanced(value) {
-		advanced = value;
+		advancedState.current = value;
 	}
 };

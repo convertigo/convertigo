@@ -7,8 +7,8 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
-	import { onDestroy, tick } from 'svelte';
-	import { persisted } from 'svelte-persisted-store';
+	import { getContext, onDestroy, tick } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
@@ -40,8 +40,10 @@
 		{ name: 'clienthostname', show: true, width: 100 }
 	];
 
-	let columnsOrder = $state(_columnsOrder);
-	//let columnsOrder = fromStore(persisted('adminLogsColumnsOrder', _columnsOrder, { syncTabs: false }));
+	const columnsOrderState = persistedState('admin.logs.columns', _columnsOrder, {
+		syncTabs: false
+	});
+	let columnsOrder = $derived(columnsOrderState.current);
 
 	const columnsConfiguration = {
 		Date: { idx: 1, cls: '', fn: (v) => v.split(' ')[0] }, //'font-medium'
@@ -65,6 +67,8 @@
 		Message: { idx: 4 }
 	};
 
+	let modalYesNo = getContext('modalYesNo');
+
 	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean}} */
 	let {
 		autoScroll = $bindable(false),
@@ -74,7 +78,9 @@
 		endDate = $bindable(''),
 		live = $bindable(false)
 	} = $props();
-	let extraLines = $state(1);
+	const extraLinesState = persistedState('admin.logs.extraLines', 1, { syncTabs: false });
+	let extraLines = $derived(extraLinesState.current);
+
 	let isDragging = $state(false);
 	let virtualList = $state();
 	let pulsedCategory = $state();
@@ -85,7 +91,7 @@
 
 	function doPulse(e) {
 		if (e.type == 'click') {
-			$showFilters = true;
+			showFilters.current = true;
 		}
 		clearTimeout(pulsedCategoryTimeout);
 		pulsedCategory = e.target.innerText;
@@ -150,7 +156,7 @@
 			: logValue;
 	}
 
-	const showFilters = persisted('adminLogsShowFilters', false, { syncTabs: false });
+	const showFilters = persistedState('admin.logs.showFilters', false, { syncTabs: false });
 
 	const filtersFlat = $derived.by(() => {
 		const result = [];
@@ -184,6 +190,7 @@
 		if (filters[category].length == 0) {
 			delete filters[category];
 		}
+		filters = { ...filters };
 	}
 
 	const logs = $derived.by(() => {
@@ -349,9 +356,23 @@
 			array.push(val);
 		}
 		filters[category] = array;
+		filters = { ...filters };
 		modalFilter.close();
 	};
 	const size = '4';
+
+	async function restoreColumns(event) {
+		const confirmed = modalYesNo
+			? await modalYesNo.open({
+					event,
+					title: 'Restore log columns?',
+					message: 'Reset column visibility and widths to their defaults?'
+				})
+			: true;
+		if (confirmed) {
+			columnsOrder = _columnsOrder.map((conf) => ({ ...conf }));
+		}
+	}
 
 	function dragscroll(node) {
 		let lastClickTime = 0;
@@ -521,7 +542,7 @@
 </ModalDynamic>
 <div class="layout-y-stretch-none h-full w-full text-xs" class:fullscreen>
 	<div class="layout-y-stretch-low">
-		{#if $showFilters}
+		{#if showFilters.current}
 			<div
 				class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1"
 				transition:slide={{ axis: 'y' }}
@@ -541,7 +562,10 @@
 								<Button
 									{size}
 									icon={show ? 'mdi:eye' : 'mdi:eye-off'}
-									onclick={() => (conf.show = !show)}
+									onclick={() => {
+										conf.show = !show;
+										columnsOrder = [...columnsOrder];
+									}}
 								/>
 								<DraggableValue
 									class="cursor-col-resize"
@@ -559,6 +583,10 @@
 						</MovableContent>
 					</div>
 				{/each}
+				<div class="mini-card preset-filled-warning-100-900 motif-warning">
+					<span>Restore</span>
+					<Button {size} icon="mdi:backup-restore" onclick={(event) => restoreColumns(event)} />
+				</div>
 			</div>
 		{/if}
 		<div class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1">
@@ -616,19 +644,19 @@
 			<div
 				class={{
 					'mini-card': true,
-					'preset-filled-secondary-100-900': !$showFilters,
-					'preset-filled-warning-200-800': $showFilters,
-					'motif-secondary': !$showFilters,
-					'motif-warning': $showFilters
+					'preset-filled-secondary-100-900': !showFilters.current,
+					'preset-filled-warning-200-800': showFilters.current,
+					'motif-secondary': !showFilters.current,
+					'motif-warning': showFilters.current
 				}}
 			>
 				<Button
 					{size}
-					icon="mdi:filter-cog{$showFilters ? '' : '-outline'}"
-					onmousedown={() => ($showFilters = !$showFilters)}
+					icon="mdi:filter-cog{showFilters.current ? '' : '-outline'}"
+					onmousedown={() => (showFilters.current = !showFilters.current)}
 				/>
 			</div>
-			{#if $showFilters}
+			{#if showFilters.current}
 				<div class="mini-card preset-filled-secondary-100-900">
 					<Button {size} icon="mdi:plus" onclick={() => addExtraLines(1)} />
 					{#if extraLines > 0}

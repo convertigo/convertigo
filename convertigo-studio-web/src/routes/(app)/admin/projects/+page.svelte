@@ -13,6 +13,7 @@
 	import Projects from '$lib/common/Projects.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onDestroy } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 
 	let {
 		projects,
@@ -38,7 +39,9 @@
 	let modalDeployURL = $state();
 	let modalSymbols;
 
-	let filter = $state('');
+	const filterState = persistedState('admin.projects.filter', '', { syncTabs: false });
+	let filter = $state(filterState.current);
+
 	let fprojects = $derived(
 		projects.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
 	);
@@ -215,7 +218,7 @@
 		placeholder="Filter projects..."
 		class="bg-surface-200-800"
 		icon="mdi:magnify"
-		bind:value={filter}
+		bind:value={filterState.current}
 	/>
 	<TableAutoCard
 		definition={[

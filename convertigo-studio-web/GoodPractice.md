@@ -48,6 +48,7 @@
 - All HTTP calls go through `call`/`callRequestable` in `src/lib/utils/service.js` to benefit from XSRF headers, file handling and toaster integration. Avoid raw `fetch` unless there is no backend service.
 - Arrays coming from SOAP/XML responses must pass through `checkArray` to keep Svelte loops stable.
 - Long-running panels should expose `values.delay` to refresh regularly and call `values.stop()` in `onDestroy` (see Projects page) to prevent orphaned timers.
+- Persisted UI preferences (filters, last-open panels, etc.) should rely on `persistedState` from `svelte-persisted-state`. Instantiate once per key (`const theme = persistedState(...)`) and read/write through its `current` rune-aware property so the state flows reactively without manual subscriptions or structured clones.
 
 ## Routing & Layout
 

@@ -10,7 +10,7 @@
 	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getContext, onDestroy } from 'svelte';
+	import { getContext, onDestroy, onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
@@ -30,6 +30,10 @@
 	onDestroy(() => {
 		RightPart.snippet = undefined;
 		Configuration.stop();
+	});
+
+	onMount(() => {
+		page.params.category = Last.category ?? '_';
 	});
 
 	beforeNavigate(async (nav) => {
@@ -133,11 +137,13 @@
 			<Card class="pt-low">
 				<AccordionGroup
 					collapsible
-					value={Last.advanced}
-					onValueChange={(e) => (Last.advanced = e.value)}
+					value={Last.advanced ? ['advanced'] : []}
+					onValueChange={({ value }) => {
+						Last.advanced = value.length > 0;
+					}}
 				>
 					<AccordionSection
-						value=""
+						value="advanced"
 						surface="bg-transparent border-t border-surface-200-800/40"
 						panelPadding="py"
 						controlPadding="p-low"

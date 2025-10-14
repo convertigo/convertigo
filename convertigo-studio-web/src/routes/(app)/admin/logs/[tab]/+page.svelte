@@ -14,11 +14,14 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 	import { slide } from 'svelte/transition';
+	import Last from '../Last.svelte';
 
 	let logViewer = $state();
 	onMount(() => {
@@ -54,8 +57,15 @@
 	});
 
 	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
-	let serverFilter = $state('');
-	let filters = $state({}); //fromStore(persisted('adminLogsFilters', {}, { syncTabs: false })).current;
+	const serverFilterState = persistedState('admin.logs.serverFilter', '', { syncTabs: false });
+	let serverFilter = $derived(serverFilterState.current);
+	const serverFilterVisibleState = persistedState('admin.logs.serverFilterVisible', false, {
+		syncTabs: false
+	});
+	let serverFilterVisible = $derived(serverFilterVisibleState.current);
+
+	const filtersState = persistedState('admin.logs.filters', {}, { syncTabs: false });
+	let filters = $derived(filtersState.current);
 	let presetOpened = $state(false);
 
 	const tzOffset = new Date().getTimezoneOffset() * 60000;
@@ -72,6 +82,7 @@
 	$effect(() => {
 		const current = page.params.tab ?? 'view';
 		tabSet = tabKeys.includes(current) ? current : 'view';
+		Last.tab = tabSet;
 	});
 	let dates = $state([
 		toCalendarDate(now(getLocalTimeZone()).subtract({ minutes: 10 })),
@@ -233,8 +244,6 @@
 	);
 
 	let modalYesNo = getContext('modalYesNo');
-
-	let showFilters = $state(false);
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
@@ -336,18 +345,11 @@
 									<Button
 										size={4}
 										label="Server filter"
-										icon="mdi:filter-cog{showFilters ? '' : '-outline'}"
-										onmousedown={() => (showFilters = !showFilters)}
+										icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
+										onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
 										class="button-secondary h-7! w-fit!"
 									/>
-									{#if showFilters}
-										<Button
-											size={4}
-											icon="mdi:delete-outline"
-											onmousedown={() => (serverFilter = '')}
-											class="button-error h-7! w-fit!"
-											label="Clear"
-										/>
+									{#if serverFilterVisible}
 										<Button
 											size={4}
 											icon="mdi:cloud-sync-outline"
@@ -364,16 +366,30 @@
 										class="button-success w-fit!"
 										onclick={refreshLogs}
 									/>
-									{#if showFilters}
-										<PropertyType
+									{#if serverFilterVisible}
+										<InputGroup
+											type="search"
 											placeholder="Server filter…"
+											icon="mdi:filter"
+											class="bg-surface-200-800"
+											inputClass="light:bg-white"
 											bind:value={serverFilter}
 											onkeyup={(e) => {
 												if (e?.key == 'Enter') refreshLogs();
 											}}
-											class="input-text input-common preset-filled-surface-200-800 light:bg-white"
-											type="text"
-										/>
+										>
+											{#snippet actions({ value, setValue })}
+												{#if value?.length}
+													<button
+														type="button"
+														class="button-ico-error h-6 w-6"
+														onclick={() => setValue('')}
+													>
+														<Ico icon="mdi:close-circle-outline" size="nav" />
+													</button>
+												{/if}
+											{/snippet}
+										</InputGroup>
 									{/if}
 								</div>
 							</div>

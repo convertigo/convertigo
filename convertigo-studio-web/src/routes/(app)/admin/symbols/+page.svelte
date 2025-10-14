@@ -11,6 +11,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 	import { slide } from 'svelte/transition';
 
 	let {
@@ -25,7 +26,8 @@
 	} = $derived(Symbols);
 
 	let modalYesNo = getContext('modalYesNo');
-	let filter = $state('');
+	let filterState = persistedState('admin.symbols.filter', '', { syncTabs: false });
+	let filter = $derived(filterState.current);
 	let secretName = $state('');
 	let exporting = $state(false);
 	let modalImport = $state();
@@ -268,7 +270,7 @@
 		placeholder="Filter symbols..."
 		class="bg-surface-200-800"
 		icon="mdi:magnify"
-		bind:value={filter}
+		bind:value={filterState.current}
 	/>
 	<TableAutoCard
 		definition={[
