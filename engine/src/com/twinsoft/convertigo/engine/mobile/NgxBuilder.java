@@ -1868,7 +1868,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_ModuleTsImports = "";
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleNgProviders = "";
-		if(tplIsStandalone) {
+		if (tplIsStandalone && page.isEnabled()) {
 			Map<String, String> module_ts_imports = new HashMap<>();
 			Set<String> module_ng_imports =  new HashSet<String>();
 			Set<String> module_ng_providers =  new HashSet<String>();
@@ -1903,6 +1903,9 @@ public class NgxBuilder extends MobileBuilder {
 			String tpl_ng_imports = getTplPageModuleNgImports();
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
+					try {
+						module = module.substring(0, module.indexOf("."));
+					} catch (Exception e) {}
 					if (!tpl_ng_imports.contains(module)) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}
@@ -2021,7 +2024,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_ModuleTsImports = "";
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleNgProviders = "";
-		if(tplIsStandalone) {
+		if (tplIsStandalone && comp.isEnabled()) {
 			Map<String, String> module_ts_imports = new HashMap<>();
 			Set<String> module_ng_imports =  new HashSet<String>();
 			Set<String> module_ng_providers =  new HashSet<String>();
@@ -2059,6 +2062,9 @@ public class NgxBuilder extends MobileBuilder {
 			String tpl_ng_imports = getTplPageModuleNgImports();
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
+					try {
+						module = module.substring(0, module.indexOf("."));
+					} catch (Exception e) {}
 					if (!tpl_ng_imports.contains(module)) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}
@@ -3379,7 +3385,7 @@ public class NgxBuilder extends MobileBuilder {
 
 					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 				}
-				if(tplIsStandalone) {
+				if (tplIsStandalone) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
 						contributor.forContainer(app, () -> {
@@ -3397,7 +3403,7 @@ public class NgxBuilder extends MobileBuilder {
 		}
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleTsImports = "";
-		if(tplIsStandalone) {
+		if (tplIsStandalone) {
 			// fix for BrowserAnimationsModule until it will be handled in config
 			module_ts_imports.remove("BrowserAnimationsModule");
 			module_ng_imports.remove("BrowserAnimationsModule");
@@ -3420,6 +3426,9 @@ public class NgxBuilder extends MobileBuilder {
 			String tpl_ng_imports = getTplAppNgImports("src/app/app.component.ts");
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
+					try {
+						module = module.substring(0, module.indexOf("."));
+					} catch (Exception e) {}
 					if (!tpl_ng_imports.contains(module)) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}

@@ -1122,7 +1122,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			String projectName = getProject().getName();
 			for (UISharedComponent comp: getSharedComponentList()) {
 				if (!ComponentRefManager.isCompUsedBy(comp.getQName(), projectName)) {
-					comp.addContributors(done, contributors);
+					if (!isTplStandalone()) {
+						comp.addContributors(done, contributors);
+					}
 				}
 			}
 		}
