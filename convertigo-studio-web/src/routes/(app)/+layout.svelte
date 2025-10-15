@@ -25,7 +25,9 @@
 	<Portal>
 		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/30 backdrop-blur-sm" />
 		<Dialog.Positioner class="fixed inset-0 flex justify-start">
-			<Dialog.Content class="h-full max-h-screen w-80 max-w-full -translate-x-full overflow-y-auto bg-surface-50-950 p-low transition-transform duration-200 data-[state=open]:translate-x-0 dark:bg-surface-900">
+			<Dialog.Content
+				class="h-full max-h-screen w-80 max-w-full -translate-x-full overflow-y-auto bg-surface-50-950 p-low transition-transform duration-200 data-[state=open]:translate-x-0 dark:bg-surface-900"
+			>
 				<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! pl-5" />
 				<PagesRail {parts} />
 			</Dialog.Content>

@@ -70,12 +70,16 @@
 				{checked}
 				onCheckedChange={(e) => (checked = e.checked)}
 			>
-				<Switch.Control class="preset-filled-error-200-800 motif-error min-w-12 rounded-full p-1 transition-colors duration-150 data-[state=checked]:preset-filled-success-200-800">
-					<Switch.Thumb class="grid h-5 w-5 place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5">
+				<Switch.Control
+					class="min-w-12 rounded-full preset-filled-error-200-800 motif-error p-1 transition-colors duration-150 data-[state=checked]:preset-filled-success-200-800"
+				>
+					<Switch.Thumb
+						class="grid h-5 w-5 place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5"
+					>
 						<Ico icon={checked ? 'mdi:check' : 'mdi:close'} />
 					</Switch.Thumb>
 				</Switch.Control>
-				<span class="block cursor-pointer break-words leading-tight">{label}</span>
+				<span class="block cursor-pointer leading-tight break-words">{label}</span>
 				<Switch.HiddenInput />
 			</Switch>
 		{:else}
@@ -93,16 +97,22 @@
 						{...rest}
 						name={name ?? []}
 						{value}
-						onValueChange={(e) => (value = e.value ?? '')}
+						onValueChange={(event) => (value = event.value ?? '')}
 						class="w-full"
 					>
-						<SegmentedControl.Control class="relative flex w-full gap-none overflow-hidden rounded-full border border-surface-200-800 bg-surface-50 dark:border-surface-700 dark:bg-surface-900">
-							<SegmentedControl.Indicator class="preset-filled-primary-200-800 text-primary-contrast-200-800" />
+						<SegmentedControl.Control
+							class="relative flex w-full gap-none overflow-hidden border border-surface-200-800 bg-surface-50 dark:border-surface-700 dark:bg-surface-900"
+						>
+							<SegmentedControl.Indicator
+								class="preset-filled-primary-200-800 text-primary-contrast-200-800"
+							/>
 							{#each item as option}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
 								<SegmentedControl.Item value={val} class="flex-1">
-									<SegmentedControl.ItemText class="block w-full px-low py-2 text-center text-sm font-medium">
+									<SegmentedControl.ItemText
+										class="block w-full py-2 px-low text-center text-sm font-medium"
+									>
 										{txt}
 									</SegmentedControl.ItemText>
 									<SegmentedControl.ItemHiddenInput />

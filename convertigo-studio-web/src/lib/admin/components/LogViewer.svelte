@@ -613,7 +613,9 @@
 						<Ico icon="mdi:search" />
 					</Popover.Trigger>
 					<Popover.Positioner class="z-50">
-						<Popover.Content class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow dark:bg-surface-900">
+						<Popover.Content
+							class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow dark:bg-surface-900"
+						>
 							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
 								<div class="layout-x-stretch-low">
 									<input

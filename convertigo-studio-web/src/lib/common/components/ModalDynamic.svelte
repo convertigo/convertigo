@@ -49,10 +49,12 @@
 <Dialog open={opened} onOpenChange={(e) => (opened = e.open)}>
 	<Dialog.Trigger class="hidden" />
 	<Portal>
-		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/60 backdrop-blur-sm" />
-		<Dialog.Positioner class="fixed inset-0 flex items-center justify-center p-low">
-			<Dialog.Content class={`max-h-full overflow-auto ${cls}`}>
-				<!-- {@render children?.({ setResult, close, params })} -->
+		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/60 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-low">
+			<Dialog.Content class={`relative max-h-full overflow-auto ${cls}`}>
+				{#if params}
+					{@render children?.({ setResult, close, params })}
+				{/if}
 			</Dialog.Content>
 		</Dialog.Positioner>
 	</Portal>

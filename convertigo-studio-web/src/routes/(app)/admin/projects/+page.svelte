@@ -90,7 +90,7 @@
 		<form
 			onsubmit={async (event) => {
 				await deploy(event);
-				modalDeployUpload.close();
+				modalDeployUpload?.close();
 			}}
 		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
@@ -102,32 +102,39 @@
 					allowDrop
 					class="w-full"
 				>
-					{@const fileUpload = FileUpload.Context.consume()}
 					<FileUpload.Dropzone
 						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-colors duration-150 data-[dragging=true]:preset-filled-primary-100-900"
 					>
 						<Ico icon="mdi:application-outline" size="8" class="mx-auto text-primary-500" />
 						<p class="text-base font-semibold">Drop or choose a .car/.zip file</p>
 						<p class="text-xs text-surface-600 dark:text-surface-300">then press Deploy</p>
-						<FileUpload.Trigger class="button-secondary mx-auto mt-2 w-fit!">Browse</FileUpload.Trigger>
+						<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
+							>Browse</FileUpload.Trigger
+						>
 					</FileUpload.Dropzone>
 					<FileUpload.HiddenInput />
-					<FileUpload.ItemGroup class="layout-y-low">
-						{#each fileUpload().acceptedFiles as file (file.name)}
-							<FileUpload.Item {file} class="layout-x-between items-center rounded-sm bg-surface-50-950 px-low py-2 shadow-xs">
-								<div class="layout-x-low items-center gap-low">
-									<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
-									<FileUpload.ItemName />
-								</div>
-								<div class="layout-x-low items-center gap-low text-xs text-surface-500">
-									<FileUpload.ItemSizeText />
-									<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
-										<Ico icon="mdi:delete-outline" size="3" />
-									</FileUpload.ItemDeleteTrigger>
-								</div>
-							</FileUpload.Item>
-						{/each}
-					</FileUpload.ItemGroup>
+					{#snippet ProjectUploadPreview(fileUpload)}
+						<FileUpload.ItemGroup class="layout-y-low">
+							{#each fileUpload().acceptedFiles as file (file.name)}
+								<FileUpload.Item
+									{file}
+									class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
+								>
+									<div class="layout-x-low items-center gap-low">
+										<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
+										<FileUpload.ItemName />
+									</div>
+									<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+										<FileUpload.ItemSizeText />
+										<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+											<Ico icon="mdi:delete-outline" size="3" />
+										</FileUpload.ItemDeleteTrigger>
+									</div>
+								</FileUpload.Item>
+							{/each}
+						</FileUpload.ItemGroup>
+					{/snippet}
+					<FileUpload.Context children={ProjectUploadPreview} />
 				</FileUpload>
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
@@ -143,7 +150,7 @@
 						label="Cancel"
 						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
-						onclick={modalDeployUpload.close}
+						onclick={modalDeployUpload?.close}
 					/>
 				</div>
 			</fieldset>
@@ -156,7 +163,7 @@
 		<form
 			onsubmit={async (event) => {
 				await importURL(event);
-				modalDeployURL.close();
+				modalDeployURL?.close();
 			}}
 		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
@@ -176,7 +183,7 @@
 						label="Cancel"
 						icon="mdi:close-circle-outline"
 						class="button-error w-fit!"
-						onclick={modalDeployURL.close}
+						onclick={modalDeployURL?.close}
 					/>
 				</div>
 			</fieldset>

@@ -118,7 +118,7 @@
 			writeOutput,
 			context,
 			parallelJob = 1,
-			jobsname,
+			jobsname = [],
 			cron
 		} = row ?? {}}
 		<Card title="{row ? 'Edit' : 'New'} {jobTypes[mode].name}" class="max-w-full">

@@ -306,7 +306,9 @@
 											Preset<Ico icon="mdi:clock-star-four-points-outline" />
 										</Popover.Trigger>
 										<Popover.Positioner class="z-40">
-											<Popover.Content class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow">
+											<Popover.Content
+												class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow"
+											>
 												<Card bg="preset-glass-primary" class="p-low!">
 													<div class="layout-y-stretch-low">
 														{#each presets as { label, onclick }}

@@ -28,14 +28,22 @@
 </script>
 
 {#snippet defaultIconClosed({ attributes })}
-	{@const attr = { ...attributes, class: [attributes?.class, 'transition-transform duration-200'].filter(Boolean).join(' ') }}
+	{@const attr = {
+		...attributes,
+		class: [attributes?.class, 'transition-transform duration-200'].filter(Boolean).join(' ')
+	}}
 	<span {...attr}>
 		<Ico icon="mdi:chevron-right" size={3} />
 	</span>
 {/snippet}
 
 {#snippet defaultIconOpen({ attributes })}
-	{@const attr = { ...attributes, class: [attributes?.class, 'transition-transform duration-200 rotate-90'].filter(Boolean).join(' ') }}
+	{@const attr = {
+		...attributes,
+		class: [attributes?.class, 'transition-transform duration-200 rotate-90']
+			.filter(Boolean)
+			.join(' ')
+	}}
 	<span {...attr}>
 		<Ico icon="mdi:chevron-right" size={3} />
 	</span>

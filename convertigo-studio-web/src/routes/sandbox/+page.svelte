@@ -6,10 +6,12 @@
 		toCalendarDate,
 		toTime
 	} from '@internationalized/date';
+	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import TreeView from '$lib/common/components/TreeView.svelte';
+	import { tick } from 'svelte';
 	import VirtualList from 'svelte-tiny-virtual-list';
 
 	let data = $state([
@@ -28,6 +30,7 @@
 	function itemSize(index) {
 		return 50;
 	}
+	let value = $state('item-2');
 </script>
 
 <LightSwitch></LightSwitch>
@@ -64,3 +67,28 @@ foot
 
 <div class="max-w-96"><PropertyType></PropertyType></div>
 <!-- <DateRangePicker></DateRangePicker> -->
+{value}
+<SegmentedControl
+	defaultValue="item-1"
+	{value}
+	onValueChange={async (event) => {
+		await tick();
+		value = event.value ?? '';
+	}}
+>
+	<SegmentedControl.Control>
+		<SegmentedControl.Indicator />
+		<SegmentedControl.Item value="item-1">
+			<SegmentedControl.ItemText>Item 1</SegmentedControl.ItemText>
+			<SegmentedControl.ItemHiddenInput />
+		</SegmentedControl.Item>
+		<SegmentedControl.Item value="item-2">
+			<SegmentedControl.ItemText>Item 2</SegmentedControl.ItemText>
+			<SegmentedControl.ItemHiddenInput />
+		</SegmentedControl.Item>
+		<SegmentedControl.Item value="item-3">
+			<SegmentedControl.ItemText>Item 3</SegmentedControl.ItemText>
+			<SegmentedControl.ItemHiddenInput />
+		</SegmentedControl.Item>
+	</SegmentedControl.Control>
+</SegmentedControl>

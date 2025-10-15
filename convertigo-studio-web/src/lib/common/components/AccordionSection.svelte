@@ -1,7 +1,7 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import { getContext } from 'svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { getContext } from 'svelte';
 	import { accordionIconsKey } from './AccordionGroup.svelte';
 
 	/** @type {{
@@ -77,7 +77,9 @@
 {#snippet fallbackIconOpen({ attributes })}
 	{@const merged = {
 		...attributes,
-		class: [attributes?.class, 'transition-transform duration-200 rotate-90'].filter(Boolean).join(' ')
+		class: [attributes?.class, 'transition-transform duration-200 rotate-90']
+			.filter(Boolean)
+			.join(' ')
 	}}
 	<span {...merged}>
 		<Ico icon="mdi:chevron-right" size={3} />
@@ -88,7 +90,12 @@
 	{@const state = attributes?.['data-state']}
 	{@const merged = {
 		...attributes,
-		class: [attributes?.class, 'flex items-center text-surface-500 transition-transform duration-200'].filter(Boolean).join(' ')
+		class: [
+			attributes?.class,
+			'flex items-center text-surface-500 transition-transform duration-200'
+		]
+			.filter(Boolean)
+			.join(' ')
 	}}
 	{@const icon = state === 'open' ? resolvedOpen : resolvedClosed}
 	{@render icon({ attributes: merged })}
@@ -117,11 +124,28 @@
 			<Accordion.ItemIndicator element={indicator} />
 		</div>
 	</Accordion.ItemTrigger>
-	<Accordion.ItemContent class={contentClasses}>
+	<Accordion.ItemContent class={`${contentClasses} overflow-hidden`}>
 		{#if resolvedPanel}
-			<div class={bodyClasses}>
+			<div class={`${bodyClasses} origin-top animate-acrd-expand`}>
 				{@render resolvedPanel()}
 			</div>
 		{/if}
 	</Accordion.ItemContent>
 </Accordion.Item>
+
+<style>
+	@keyframes acrd-expand {
+		from {
+			transform: scaleY(0.96);
+			opacity: 0;
+		}
+		to {
+			transform: scaleY(1);
+			opacity: 1;
+		}
+	}
+
+	.animate-acrd-expand {
+		animation: acrd-expand 160ms ease-out;
+	}
+</style>

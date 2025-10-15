@@ -66,8 +66,10 @@
 			{#snippet cornerOption()}
 				<div class="text-end">{exception}</div>
 			{/snippet}
-			<pre class="text-wrap">{message}</pre>
-			{#if modalAlert.showStack}
+			{#if message}
+				<pre class="text-wrap">{message}</pre>
+			{/if}
+			{#if modalAlert?.showStack}
 				<pre transition:slide class="text-wrap">{stacktrace}</pre>
 			{/if}
 			<div class="layout-x w-full justify-end">
@@ -83,7 +85,7 @@
 	{/snippet}
 </ModalDynamic>
 {#snippet toastItem(toast)}
-	<Toast toast={toast} class="pointer-events-auto relative w-full">
+	<Toast {toast}>
 		<div class="layout-y-low pr-7">
 			{#if toast.title}
 				<Toast.Title class="text-sm font-semibold">{toast.title}</Toast.Title>
@@ -92,12 +94,12 @@
 				<Toast.Description class="text-sm leading-snug">{toast.description}</Toast.Description>
 			{/if}
 		</div>
-		<Toast.CloseTrigger class="button-ico-error absolute right-2 top-2 h-7 w-7">
+		<Toast.CloseTrigger class="absolute right-2 text-error-500">
 			<span aria-hidden="true">✕</span>
 		</Toast.CloseTrigger>
 	</Toast>
 {/snippet}
-<Toast.Group {toaster} class="pointer-events-none fixed right-4 top-4 z-50 flex w-full max-w-sm flex-col gap-low">
+<Toast.Group {toaster}>
 	{#snippet children(toast)}
 		{@render toastItem(toast)}
 	{/snippet}
