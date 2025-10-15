@@ -522,8 +522,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				return false;
 			}
 			
-			private boolean usesRouterLink(String propertyName) {
-				IonProperty prop = ionBean.getProperty(propertyName);
+			private boolean usesRouterLink() {
+				IonProperty prop = ionBean.getProperty("LinkRouterPath");
 				if (prop != null && !prop.getValue().equals(false)) {
 					if (!prop.getSmartValue().isBlank()) {
 						return true;
@@ -582,13 +582,9 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 							map.putAll(ionConfig.getLocalModuleTsImports());
 							
 							if (tplIsStandalone) {
-								if (usesRouterLink("LinkRouterPath")) {
+								if (usesRouterLink()) {
 									addMapImport(map, "{ RouterLink }", "@angular/router");
 									addMapImport(map, "{ IonRouterLink }", "@ionic/angular/standalone");
-								}
-								if (usesRouterLink("LinkUrl")) {
-									addMapImport(map, "{ RouterLink }", "@angular/router");
-									addMapImport(map, "{ IonRouterLinkWithHref }", "@ionic/angular/standalone");
 								}
 							}
 						}
@@ -626,17 +622,12 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 							set.addAll(ionConfig.getLocalModuleNgImports());
 							
 							if (tplIsStandalone) {
-								if (usesRouterLink("LinkRouterPath")) {
+								if (usesRouterLink()) {
 									set.add("RouterLink");
 									set.add("IonRouterLink");
 								}
-								if (usesRouterLink("LinkUrl")) {
-									set.add("RouterLink");
-									set.add("IonRouterLinkWithHref ");
-								}
 							}
 						}
-						
 						return set;
 					}
 				}

@@ -19,9 +19,13 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -317,7 +321,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 				sb.append(">").append(System.getProperty("line.separator"))
 					.append(needNgTemplate() ? "<ng-template>"+ System.getProperty("line.separator"):"")
 						.append(children.length()>0 ? children:"")
-						.append(StringUtils.endsWith(children, System.getProperty("line.separator")) ? "":System.getProperty("line.separator"))
+						.append(children.toString().endsWith(System.getProperty("line.separator")) ? "":System.getProperty("line.separator"))
 					.append(needNgTemplate() ? "</ng-template>"+ System.getProperty("line.separator"):"")
 				.append("</").append(getTagName())
 				.append(">").append(System.getProperty("line.separator"));
@@ -390,4 +394,113 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	public String[] getTagsForProperty(String propertyName) {
 		return new String[0];
 	}
+
+	@Override
+	protected Contributor getContributor() {
+		final boolean tplIsStandalone = UIElement.this.isTplStandalone();
+		
+		return new Contributor() {
+
+			private boolean usesRouterLink() {
+				if ("a".equalsIgnoreCase(UIElement.this.getTagName())) {
+					for (UIComponent uic: getUIComponentList()) {
+						if (uic instanceof UIAttribute) {
+							String attrname = ((UIAttribute)uic).getAttrName();
+							if ("[routerLink]".equalsIgnoreCase(attrname) ||
+								"routerLink".equalsIgnoreCase(attrname)) {
+								return true;
+							}
+						}
+					}
+				}
+				return false;
+			}
+			
+			@Override
+			public Map<String, File> getCompBeanDir() {
+				return new HashMap<String, File>();
+			}
+
+			@Override
+			public Map<String, String> getActionTsFunctions() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getActionTsImports() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getModuleTsImports() {
+				Map<String, String> imports = new HashMap<String, String>();
+				if (tplIsStandalone) {
+					if (usesRouterLink()) {
+						imports.put("{ RouterLink }", "@angular/router");
+						imports.put("{ IonRouterLinkWithHref }", "@ionic/angular/standalone");
+					}
+				}
+				return imports;
+			}
+
+			@Override
+			public Map<String, String> getPackageDependencies() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getConfigPlugins() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildScripts() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildStyles() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgImports() {
+				Set<String> set = new HashSet<String>();
+				if (tplIsStandalone) {
+					if (usesRouterLink()) {
+						set.add("RouterLink");
+						set.add("IonRouterLinkWithHref ");
+					}
+				}
+				return set;
+			}
+
+			@Override
+			public Set<String> getModuleNgProviders() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return new HashSet<String>();
+			}
+		};
+	}
+	
+	
 }
