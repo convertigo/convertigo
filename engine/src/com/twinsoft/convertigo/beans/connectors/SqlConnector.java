@@ -40,9 +40,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
@@ -1136,6 +1138,7 @@ public class SqlConnector extends Connector {
 		if (sqlConnector != null && !tableName.isEmpty()) {
 			sqlConnector.open();
 
+			var identifierQuoter = getIdentifierQuoter(sqlConnector.jdbcDriverClassName);
 			var dmd = sqlConnector.connection.getMetaData();
 			var catalog = sqlConnector.connection.getCatalog();
 			var columns = new LinkedList<String>();
@@ -1171,7 +1174,9 @@ public class SqlConnector extends Connector {
 					var insertableCols = columns.stream()
 							.filter(c -> !autoinc.contains(c))
 							.collect(Collectors.toList());
-					var cols = String.join(", ", insertableCols);
+					var cols = insertableCols.stream()
+							.map(c -> formatColumnName(c, identifierQuoter))
+							.collect(Collectors.joining(", "));
 					var vals = insertableCols.stream()
 							.map(c -> "{" + c + "}")
 							.collect(Collectors.joining(", "));
@@ -1179,10 +1184,12 @@ public class SqlConnector extends Connector {
 				}
 				case "SELECT", "LIST" -> {
 					var bList = "LIST".equals(verb);
-					var cols = String.join(", ", columns);
+					var cols = columns.stream()
+							.map(c -> formatColumnName(c, identifierQuoter))
+							.collect(Collectors.joining(", "));
 					var where = bList || primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> pk + " = {" + pk + "}")
+						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
 						.collect(Collectors.joining("\nAND "));
 					sqlQuery = "SELECT " + cols + "\nFROM " + tableName + where;
 					if (bList) {
@@ -1204,18 +1211,18 @@ function onTransactionStarted() {
 				case "UPDATE" -> {
 					var setClause = columns.stream()
 							.filter(c -> !primaryKeys.contains(c))
-							.map(c -> c + " = {" + c + "}")
+							.map(c -> formatColumnName(c, identifierQuoter) + " = {" + c + "}")
 							.collect(Collectors.joining(", "));
 					var where = primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> pk + " = {" + pk + "}")
+						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
 						.collect(Collectors.joining("\nAND "));
 					sqlQuery = "UPDATE " + tableName + "\nSET " + setClause + where;
 				}
 				case "DELETE" -> {
 					var where = primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> pk + " = {" + pk + "}")
+						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
 						.collect(Collectors.joining("\nAND "));
 					sqlQuery = "DELETE FROM " + tableName + where;
 				}
@@ -1228,5 +1235,37 @@ function onTransactionStarted() {
 			sqlConnector.close();
 		}
 		return sqlTransactions;
+	}
+
+	private static UnaryOperator<String> getIdentifierQuoter(String driverClassName) {
+		if (driverClassName == null) {
+			return UnaryOperator.identity();
+		}
+		var normalized = driverClassName.toLowerCase(Locale.ROOT);
+
+		if (normalized.contains("postgresql") || normalized.contains("hsqldb") || normalized.contains("db2")
+				|| normalized.contains("oracle") || normalized.contains("as400")) {
+			return SqlConnector::quoteWithDoubleQuotes;
+		}
+		if (normalized.contains("sqlserver") || normalized.contains("jtds")) {
+			return SqlConnector::quoteWithBrackets;
+		}
+		// MySQL & MariaDB use backticks by default; keeping identifiers as-is avoids ANSI_QUOTES dependency.
+		return UnaryOperator.identity();
+	}
+
+	private static String formatColumnName(String columnName, UnaryOperator<String> quoter) {
+		if (columnName == null || columnName.isEmpty() || quoter == null) {
+			return columnName;
+		}
+		return quoter.apply(columnName);
+	}
+
+	private static String quoteWithDoubleQuotes(String identifier) {
+		return "\"" + identifier.replace("\"", "\"\"") + "\"";
+	}
+
+	private static String quoteWithBrackets(String identifier) {
+		return "[" + identifier.replace("]", "]]") + "]";
 	}
 }
