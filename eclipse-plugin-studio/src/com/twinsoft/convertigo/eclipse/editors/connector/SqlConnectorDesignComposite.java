@@ -442,7 +442,7 @@ class SqlConnectorDesignComposite extends Composite {
 		var xmlCopyStep = new XMLCopyStep();
 		var source = new XMLVector<String>();
 		source.add(Long.toString(transactionStep.priority));
-		source.add("./document/error|./document/sql_output[row]/*|./document/sql_output[not(row)]");
+		source.add("./document/sql_output[row]/*|./document/sql_output[not(row)]|./document/error");
 		xmlCopyStep.setSourceDefinition(source);
 		sequence.add(xmlCopyStep);
 
