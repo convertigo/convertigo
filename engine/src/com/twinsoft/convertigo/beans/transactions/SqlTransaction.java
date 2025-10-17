@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -1663,5 +1664,19 @@ public class SqlTransaction extends TransactionWithVariables {
 			Engine.logBeans.warn("[WriteFileStep] The object \"" + getName()+ "\" has been updated to 7.4.7 version");
 		}
 	}
-}
 
+	private transient String pendingSchemaTypes;
+
+	public void setPendingSchemaTypes(String schemaTypes) {
+		this.pendingSchemaTypes = schemaTypes;
+	}
+
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		if (databaseObject != null && pendingSchemaTypes != null) {
+			writeSchemaToFile(pendingSchemaTypes);
+			pendingSchemaTypes = null;
+		}
+	}
+}

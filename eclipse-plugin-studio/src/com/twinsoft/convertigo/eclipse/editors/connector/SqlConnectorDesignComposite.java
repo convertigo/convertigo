@@ -70,7 +70,6 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 
@@ -377,7 +376,6 @@ class SqlConnectorDesignComposite extends Composite {
 									if (mOrder.find()) {
 										order = mOrder.group(1);
 									}
-									pev.fireTreeObjectPropertyChanged(new TreeObjectEvent(dbot, "sqlQuery", "", query, TreeObjectEvent.UPDATE_NONE));
 									pev.setSelectedTreeObject(dbot);
 									if (sqlTransaction.getName().endsWith("_LIST")) {
 										if (sqlTransaction.getVariable("order_by") instanceof RequestableVariable v && v != null) {

@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -1138,14 +1139,17 @@ public class SqlConnector extends Connector {
 			var dmd = sqlConnector.connection.getMetaData();
 			var catalog = sqlConnector.connection.getCatalog();
 			var columns = new LinkedList<String>();
+			var columnSqlTypes = new LinkedHashMap<String, Integer>();
 			var autoinc = new HashSet<String>();
 			var primaryKeys = new LinkedList<String>();
 
 			var rs = dmd.getColumns(catalog, null, tableName, "%");
 			while (rs.next()) {
-				columns.add(rs.getString("COLUMN_NAME"));
+				var columnName = rs.getString("COLUMN_NAME");
+				columns.add(columnName);
+				columnSqlTypes.put(columnName, rs.getInt("DATA_TYPE"));
 				if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
-					autoinc.add(rs.getString("COLUMN_NAME"));
+					autoinc.add(columnName);
 				}
 			}
 
@@ -1224,8 +1228,14 @@ function onTransactionStarted() {
 				}
 				}
 
-				sqlTransaction.setSqlQuery(sqlQuery);
-				sqlTransactions.add(sqlTransaction);
+				if (sqlQuery != null) {
+					sqlTransaction.setSqlQuery(sqlQuery);
+					sqlTransaction.initializeQueries(true);
+					prepareCrudTransaction(sqlConnector, sqlTransaction, verb, columns, columnSqlTypes);
+					sqlTransactions.add(sqlTransaction);
+				} else {
+					Engine.logBeans.warn("Skipping SQL transaction generation for verb '" + verb + "' on table '" + tableName + "' due to missing SQL query");
+				}
 			}
 
 			sqlConnector.close();
@@ -1263,5 +1273,74 @@ function onTransactionStarted() {
 
 	private static String quoteWithBrackets(String identifier) {
 		return "[" + identifier.replace("]", "]]") + "]";
+	}
+
+	private static void prepareCrudTransaction(SqlConnector connector, SqlTransaction transaction, String verb,
+			List<String> columns, Map<String, Integer> columnSqlTypes) {
+		transaction.setParent(connector);
+
+		try {
+			var sampleDocument = createSampleDocument(transaction, verb, columns, columnSqlTypes);
+			var xsdTypes = transaction.generateXsdTypes(sampleDocument, true);
+			transaction.setPendingSchemaTypes(xsdTypes);
+		} catch (Exception e) {
+			Engine.logBeans.warn("Unable to generate schema for SQL transaction '" + transaction.getName() + "'", e);
+		} finally {
+			transaction.setParent(null);
+		}
+	}
+
+	private static Document createSampleDocument(SqlTransaction transaction, String verb, List<String> columns,
+			Map<String, Integer> columnSqlTypes) throws Exception {
+		var doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = doc.createElement("document");
+		doc.appendChild(root);
+		if ("SELECT".equals(verb) || "LIST".equals(verb)) {
+			var sqlOutput = doc.createElement("sql_output");
+			sqlOutput.setAttribute("type", "array");
+			root.appendChild(sqlOutput);
+			var rowTag = StringUtils.normalize(transaction.getXmlDefaultRowTagname());
+			var rowCount = "LIST".equals(verb) ? 2 : 1;
+			for (int i = 0; i < rowCount; i++) {
+				var row = doc.createElement(rowTag.isEmpty() ? "row" : rowTag);
+				row.setAttribute("type", "object");
+				sqlOutput.appendChild(row);
+				for (var column : columns) {
+					var columnName = StringUtils.normalize(column);
+					if (columnName.isEmpty()) {
+						columnName = "column";
+					}
+					var columnElement = doc.createElement(columnName);
+					var jsonType = sqlTypeToJsonType(columnSqlTypes.getOrDefault(column, Types.VARCHAR));
+					columnElement.setAttribute("type", jsonType);
+					columnElement.setTextContent(sampleValueForJsonType(jsonType, i));
+					row.appendChild(columnElement);
+				}
+			}
+		} else {
+			var sqlOutput = doc.createElement("sql_output");
+			sqlOutput.setAttribute("type", "string");
+			sqlOutput.setTextContent("1");
+			root.appendChild(sqlOutput);
+		}
+		return doc;
+	}
+
+	private static String sqlTypeToJsonType(int sqlType) {
+		return switch (sqlType) {
+		case Types.INTEGER, Types.SMALLINT, Types.TINYINT, Types.BIGINT -> "integer";
+		case Types.FLOAT, Types.REAL, Types.DOUBLE, Types.NUMERIC, Types.DECIMAL -> "number";
+		case Types.BIT, Types.BOOLEAN -> "boolean";
+		default -> "string";
+		};
+	}
+
+	private static String sampleValueForJsonType(String jsonType, int index) {
+		return switch (jsonType) {
+		case "integer" -> String.valueOf(index);
+		case "number" -> index == 0 ? "0.0" : "1.0";
+		case "boolean" -> index == 0 ? "false" : "true";
+		default -> index == 0 ? "sample" : "sample2";
+		};
 	}
 }
