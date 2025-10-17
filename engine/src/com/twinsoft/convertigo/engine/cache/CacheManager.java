@@ -287,8 +287,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				response = XMLUtils.copyDocumentWithoutNamespace(response);
 				
 				if (Engine.logEngine.isDebugEnabled()) {
-					String result = XMLUtils.prettyPrintDOM(response);
-					Engine.logEngine.debug("Namespaces removed:\n" + result);
+					XMLUtils.logXml(response, Engine.logEngine, "Namespaces removed:");
 				}
 			} catch (ParserConfigurationException e) {
 				Engine.logCacheManager.error("(CacheManager) Failed to remove namespaces!", e);
