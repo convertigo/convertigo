@@ -10,8 +10,9 @@
 	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { F } from 'caniuse-lite/data/agents';
 	import { getContext, onDestroy, onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -134,7 +135,7 @@
 		</Card>
 
 		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
-			<Card class="pt-low">
+			<Card class="py-low">
 				<AccordionGroup
 					collapsible
 					value={Last.advanced ? ['advanced'] : []}

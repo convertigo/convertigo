@@ -2,7 +2,8 @@
 
 ## Philosophy
 
-- Build on Svelte 5 with Skeleton 3 and Tailwind 4; respect their patterns but always route through our thin abstraction layer before falling back to raw classes.
+- Build on Svelte 5 with Skeleton 4 and Tailwind 4; respect their patterns but always route through our thin abstraction layer before falling back to raw classes.
+- Skeleton 4 components are **composed** (`<Tabs.List>`, `<Dialog.Content>`, etc.). Stick to our wrappers or reproduce the same sub-tree so animation, accessibility and house styling continue to work.
 - Default to the custom utility system; it encodes the responsive rhythm (mobile/desktop) so we rarely hand-write raw Tailwind recipes.
 - Prefer KISS structures: small Svelte files, explicit data flow, reuse shared snippets/components before creating new variants.
 - Keep visuals coherent by leaning on the existing utilities (`button-*`, `layout-*`, `preset-*`) and theme tokens defined in `convertigo.theme.css`.
@@ -28,10 +29,11 @@
 
 - **Buttons**: use `$lib/admin/components/Button.svelte` for any clickable element that needs consistent spacing/ARIA. Pass `cls` with one of the `button-*` utilities. Use `ResponsiveButtons` when aligning multiple actions.
 - **Card**: wrap admin panels/forms in `Card` to inherit padding, border, shadow and optional title slot. Prefer `cornerOption` snippet for right-aligned header content.
-- **AccordionGroup/AccordionSection**: thin wrappers over Skeleton’s accordion to enforce Convertigo spacing, rounded surfaces and header layout. Pass snippets via `title`/`subtitle`/`meta`/`panel` rather than Svelte 4 slots.
+- **AccordionGroup/AccordionSection**: thin wrappers over Skeleton’s accordion to enforce Convertigo spacing, rounded surfaces and header layout. Pass snippets via `title`/`subtitle`/`meta`/`panel` rather than Svelte 4 slots and keep the default indicator so `data-state` driven rotations and animations continue to work.
 - **TableAutoCard**: default for tabular data. Supplies responsive card-mode automatically (`layout-grid-low-*`), placeholders via `AutoPlaceholder`, and custom cell snippets.
 - **InputGroup / PropertyType / CheckState**: base form controls with built-in label/icon layout and standardised classes. Reach for them before rolling new inputs.
-- **ModalDynamic**: promise-based modal that pairs with Skeleton's `<Modal>`. Opens with `await modal.open(params)`; always call `close()` or update `setResult` to resolve.
+- **SegmentedControl**: when using Skeleton’s segmented control (e.g. via `PropertyType`), wire listeners with `onvaluechange` and include `SegmentedControl.ItemHiddenInput` so native forms and keyboard navigation keep working.
+- **ModalDynamic**: promise-based modal built on Skeleton's `<Dialog>` parts. Opens with `await modal.open(params)`; always call `close()` or update `setResult` to resolve.
 - **Ico**: central icon registry mapping `mdi:*` ids → raw SVG. Use this component so tree-shaking continues to work; do not import `@iconify` directly in feature code.
 - **ServiceHelper**: pattern for calling backend services. Provides lazy loading (`values.refresh()`), auto refresh delay, array normalisation and error handling. Call `onDestroy(Service.stop)` after destructuring helpers from it.
 
@@ -42,6 +44,7 @@
 - When destructuring `$props()`, avoid defaulting to `undefined`; omit the default and let absence propagate naturally.
 - Group snippets (`{#snippet ...}`) so reusable UI blocks stay colocated with their logic (e.g. modal contents, row renderers). Reviewers should ensure snippets remain pure and small.
 - Optional snippets can be rendered inline with `{@render snippet?.()}` rather than an explicit `{#if}` wrapper.
+- Skeleton 4 emits DOM events from its parts (`onopenchange`, `onvaluechange`, …) — always bind them as lowercase DOM attributes, never camelCase props.
 
 ## Data & Services
 

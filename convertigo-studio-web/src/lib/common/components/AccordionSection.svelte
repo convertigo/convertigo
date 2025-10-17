@@ -2,6 +2,7 @@
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext } from 'svelte';
+	import { slide } from 'svelte/transition';
 	import { accordionIconsKey } from './AccordionGroup.svelte';
 
 	/** @type {{
@@ -124,28 +125,13 @@
 			<Accordion.ItemIndicator element={indicator} />
 		</div>
 	</Accordion.ItemTrigger>
-	<Accordion.ItemContent class={`${contentClasses} overflow-hidden`}>
-		{#if resolvedPanel}
-			<div class={`${bodyClasses} origin-top animate-acrd-expand`}>
-				{@render resolvedPanel()}
-			</div>
-		{/if}
+	<Accordion.ItemContent class={contentClasses}>
+		{#snippet element(attributes)}
+			{#if !attributes.hidden}
+				<div {...attributes} class={bodyClasses} transition:slide>
+					{@render resolvedPanel?.()}
+				</div>
+			{/if}
+		{/snippet}
 	</Accordion.ItemContent>
 </Accordion.Item>
-
-<style>
-	@keyframes acrd-expand {
-		from {
-			transform: scaleY(0.96);
-			opacity: 0;
-		}
-		to {
-			transform: scaleY(1);
-			opacity: 1;
-		}
-	}
-
-	.animate-acrd-expand {
-		animation: acrd-expand 160ms ease-out;
-	}
-</style>

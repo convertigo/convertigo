@@ -247,6 +247,14 @@ count++; // reactive wherever consumed
 - `class:` and `class={expr}`; `style:` bindings.
 - `{@html}` (unsafe HTML; sanitize first), `{@const}`, `{@debug}`, `{@attach}`.
 
+### 2.5 Skeleton 4 components (quick rules)
+
+- Components are **composed**: import the `Root` and its parts (`Dialog.Trigger`, `Tabs.List`, `Popover.Content`, …). Don’t rely on removed v3 props.
+- Events dispatched by these parts are lowercase DOM attributes (`onopenchange`, `onvaluechange`, `ondismiss`). Subscribe using the DOM name; the payload lives in `event.detail`.
+- When you must customise the inner markup, use the provided `element` snippet and spread the attributes (`{@render element?.({ attributes })}`) so `data-state` toggles, focus and animations keep working.
+- Keep the supplied hidden inputs (`SegmentedControl.ItemHiddenInput`, etc.) for form controls — they synchronise the Zag.js machine with native form submission.
+- Toasts, dialogs, popovers and other overlays require their wrapper parts (`<Toast.Group>`, `<Portal>`, `<Dialog.Backdrop>`). Omitting them breaks z-index/focus management.
+
 ---
 
 ## 3) Special elements
