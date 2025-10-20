@@ -285,6 +285,12 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		return Collections.unmodifiableSet(set);
 	}
 	
+	static public synchronized boolean areCircular(String compQName1, String compQName2) {
+		Set<String> dep1 = Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getDependencies(new HashSet<String>(), compQName1));
+		Set<String> dep2 = Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getDependencies(new HashSet<String>(), compQName2));
+		return dep1.contains(compQName2) && dep2.contains(compQName1);
+	}
+	
 	private Set<String> getDependencies(Set<String> done, String compQName) {
 		try {
 			done.add(compQName);

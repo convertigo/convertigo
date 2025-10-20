@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent.ComponentEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -867,7 +868,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 						return tplIsStandalone ? use.isEnabled() : true;
 					}
 					
-					if (mc instanceof UISharedComponent && isCompContainer()) {
+					if (!tplIsStandalone && mc instanceof UISharedComponent && isCompContainer()) {
 						String mainSharedModule = ((UISharedRegularComponent)mc).getSharedModule();
 						if (!mainSharedModule.isBlank()) {
 							return true;
@@ -884,7 +885,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			}
 			
 			private boolean inSharedModule() {
-				if (isCompContainer()) {
+				if (!tplIsStandalone && isCompContainer()) {
 					UISharedRegularComponent container = (UISharedRegularComponent)getContainer();
 					String containerSharedModule = container.getSharedModule();
 					if (!containerSharedModule.isBlank()) {
@@ -893,6 +894,15 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 							return true;
 						}
 					}
+				}
+				return false;
+			}
+			
+			private boolean isCircularWithContainer() {
+				if (isCompContainer()) {
+					String compQName1 = getContainer().getQName();
+					String compQName2 = UISharedRegularComponent.this.getQName();
+					return ComponentRefManager.areCircular(compQName1, compQName2);
 				}
 				return false;
 			}
@@ -916,7 +926,16 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
-					imports.put("{ "+ getModuleName()+" }", getModulePath());
+					if (tplIsStandalone) {
+						if (!isContainer(UISharedRegularComponent.this)) {
+							if (isCircularWithContainer()) {
+								imports.put("{ forwardRef }", "@angular/core");
+							}
+							imports.put("{ "+ getCompName()+" }", getCompPath());
+						}
+					} else {
+						imports.put("{ "+ getModuleName()+" }", getModulePath());
+					}
 				}
 				if (inSharedModule()) {
 					imports.put("{ "+ getCompName()+" }", getCompPath());
@@ -928,7 +947,17 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 			public Set<String> getModuleNgImports() {
 				Set<String> ngImports = new HashSet<String>();
 				if (accept()) {
-					ngImports.add(getModuleName());
+					if (tplIsStandalone) {
+						if (!isContainer(UISharedRegularComponent.this)) {
+							if (isCircularWithContainer()) {
+								ngImports.add("forwardRef(() => " + getCompName() + ")");
+							} else {
+								ngImports.add(getCompName());
+							}
+						}
+					} else {
+						ngImports.add(getModuleName());
+					}
 				}
 				return ngImports;
 			}
