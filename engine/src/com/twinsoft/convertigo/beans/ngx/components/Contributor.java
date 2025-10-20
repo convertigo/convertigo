@@ -25,13 +25,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class Contributor {
-	private MobileComponent container = null;
-	
+
 	public void forContainer(final MobileComponent container, ILambda lambda) {
+		forContainer(container, false, lambda);
+	}
+	
+	public void forContainer(final MobileComponent container, boolean isMainTs, ILambda lambda) {
 		setContainer(container);
+		setMainTs(isMainTs);
 		lambda.apply();
+		setMainTs(false);
 		setContainer(null);
 	}
+	
+	private MobileComponent container = null;
 	
 	protected void setContainer(MobileComponent container) {
 		this.container = container;
@@ -40,7 +47,17 @@ public abstract class Contributor {
 	protected MobileComponent getContainer() {
 		return container;
 	}
-		
+	
+	private boolean isMainTs = false;
+	
+	protected void setMainTs(boolean isMainTs) {
+		this.isMainTs = isMainTs;
+	}
+	
+	protected boolean isMainTs() {
+		return this.isMainTs;
+	}
+	
 	private UIComponent link = null;
 	
 	protected UIComponent getLink() {

@@ -1011,7 +1011,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ts_imports);
 					}
-					if (isMainScriptContainer()) {
+					if (!isMainTs() && isMainScriptContainer()) {
 						xmlv.addAll(local_module_ts_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
@@ -1035,7 +1035,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ng_imports);
 					}
-					if (isMainScriptContainer()) {
+					if (!isMainTs() && isMainScriptContainer()) {
 						xmlv.addAll(local_module_ng_imports);
 					}
 					for (XMLVector<String> v : xmlv) {
@@ -1058,7 +1058,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					if (isAppContainer()) {
 						xmlv.addAll(module_ng_providers);
 					}
-					if (isMainScriptContainer()) {
+					if (!isMainTs() && isMainScriptContainer()) {
 						xmlv.addAll(local_module_ng_providers);
 					}
 					for (XMLVector<String> v : xmlv) {

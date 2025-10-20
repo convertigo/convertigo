@@ -852,6 +852,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	}
 	
 	protected Contributor getContributor(UIUseShared uiUse) {
+		final boolean tplIsStandalone = UISharedRegularComponent.this.isTplStandalone();
 		final UIUseShared use = uiUse;
 		
 		return new Contributor() {
@@ -863,7 +864,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 				else if (use != null) {
 					MobileComponent mc = (MobileComponent)use.getMainScriptComponent();
 					if (mc.equals(getContainer())) {
-						return true;
+						return tplIsStandalone ? use.isEnabled() : true;
 					}
 					
 					if (mc instanceof UISharedComponent && isCompContainer()) {

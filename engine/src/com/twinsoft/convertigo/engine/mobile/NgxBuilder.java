@@ -3211,7 +3211,7 @@ public class NgxBuilder extends MobileBuilder {
 	
 			//App contributors
 			for (Contributor contributor : app.getContributors()) {
-				contributor.forContainer(app, () -> {
+				contributor.forContainer(app, true, () -> {
 					comp_beans_dirs.putAll(contributor.getCompBeanDir());
 					module_ts_imports.putAll(contributor.getModuleTsImports());
 					module_ng_imports.addAll(contributor.getModuleNgImports());
@@ -3225,7 +3225,7 @@ public class NgxBuilder extends MobileBuilder {
 				synchronized (page) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
-						contributor.forContainer(app, () -> {
+						contributor.forContainer(app, true, () -> {
 							if (contributor.isNgModuleForApp()) {
 								comp_beans_dirs.putAll(contributor.getCompBeanDir());
 								module_ts_imports.putAll(contributor.getModuleTsImports());
@@ -3260,15 +3260,26 @@ public class NgxBuilder extends MobileBuilder {
 			
 			String c8o_ModuleNgProviders = "";
 			String tpl_ng_providers = getTplAppNgProviders("src/main.ts");
+			// modules
+			if (!module_ng_imports.isEmpty()) {
+				c8o_ModuleNgProviders += "\t\timportProvidersFrom(" + System.lineSeparator();
+				for (String module: module_ng_imports) {
+					if (!tpl_ng_providers.contains(module)) {
+						c8o_ModuleNgProviders += "\t\t\t" + module + "," + System.lineSeparator();
+					}
+				}
+				c8o_ModuleNgProviders += "\t\t)," + System.lineSeparator();
+			}
+			//providers
 			if (!module_ng_providers.isEmpty()) {
 				for (String provider: module_ng_providers) {
 					if (!tpl_ng_providers.contains(provider)) {
 						c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
 					}
 				}
-				if (!c8o_ModuleNgProviders.isEmpty()) {
-					c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
-				}
+			}
+			if (!c8o_ModuleNgProviders.isEmpty()) {
+				c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
 			}
 			
 			File mainTsFile = new File(ionicTplDir, "src/main.ts");

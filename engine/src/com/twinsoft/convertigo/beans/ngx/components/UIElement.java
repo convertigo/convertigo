@@ -435,7 +435,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				if (tplIsStandalone) {
-					if (usesRouterLink()) {
+					if (!isMainTs() && usesRouterLink()) {
 						imports.put("{ RouterLink }", "@angular/router");
 						imports.put("{ IonRouterLinkWithHref }", "@ionic/angular/standalone");
 					}
@@ -472,7 +472,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			public Set<String> getModuleNgImports() {
 				Set<String> set = new HashSet<String>();
 				if (tplIsStandalone) {
-					if (usesRouterLink()) {
+					if (!isMainTs() && usesRouterLink()) {
 						set.add("RouterLink");
 						set.add("IonRouterLinkWithHref ");
 					}

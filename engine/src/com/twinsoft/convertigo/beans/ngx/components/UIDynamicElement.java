@@ -578,7 +578,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						if (isAppContainer()) {
 							map.putAll(ionConfig.getModuleTsImports());
 						}
-						if (isContainer((MobileComponent)getMainScriptComponent())) {
+						if (!isMainTs() && isContainer((MobileComponent)getMainScriptComponent())) {
 							map.putAll(ionConfig.getLocalModuleTsImports());
 							
 							if (tplIsStandalone) {
@@ -618,7 +618,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						if (isAppContainer()) {
 							set.addAll(ionConfig.getModuleNgImports());
 						}
-						if (isContainer((MobileComponent)getMainScriptComponent())) {
+						if (!isMainTs() && isContainer((MobileComponent)getMainScriptComponent())) {
 							set.addAll(ionConfig.getLocalModuleNgImports());
 							
 							if (tplIsStandalone) {
@@ -643,7 +643,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						if (isAppContainer()) {
 							set.addAll(ionConfig.getModuleNgProviders());
 						}
-						if (isContainer((MobileComponent)getMainScriptComponent())) {
+						if (!isMainTs() && isContainer((MobileComponent)getMainScriptComponent())) {
 							set.addAll(ionConfig.getLocalModuleNgProviders());
 						}
 						return set;
