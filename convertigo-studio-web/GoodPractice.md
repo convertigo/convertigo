@@ -1,5 +1,10 @@
 # Convertigo Admin UI Good Practices
 
+> **Important:** before working on the admin UI, read both of our living references:
+>
+> - [`svelte5-sveltekit-AtoZ-en.md`](svelte5-sveltekit-AtoZ-en.md) — runes, snippets, SvelteKit data-flow.
+> - [Skeleton “LLMs + Svelte” guide](https://www.skeleton.dev/llms-svelte.txt) — official composed-component rules, attribute expectations, and design tokens. Keep the guide open while coding; Skeleton 4 behaviour (events, parts, state data attributes) comes straight from this document.
+
 ## Philosophy
 
 - Build on Svelte 5 with Skeleton 4 and Tailwind 4; respect their patterns but always route through our thin abstraction layer before falling back to raw classes.
@@ -10,6 +15,7 @@
 - The class priority order is `src/app.css` utilities first, `convertigo.utilities.css` second, and only then Skeleton/Tailwind primitives if no dedicated helper exists.
 - When a pattern appears twice, factorise it (component, snippet or helper) instead of copy/pasting class stacks or logic.
 - Après une série de modifications, exécute `npm run format` avant de valider pour garantir l’alignement Prettier/Svelte.
+- Pour un lint rapide de l'UI admin, lance `npm run check:admin` (ignore les prototypes `studio` et les pages FileUpload legacy).
 
 ## Layout & Spacing Utilities
 

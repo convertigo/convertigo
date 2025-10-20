@@ -1,54 +1,30 @@
-<script module>
-	export const accordionIconsKey = Symbol('convertigo-accordion-icons');
-</script>
-
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { setContext } from 'svelte';
 
-	/** @type {{ children?: import('svelte').Snippet, iconClosed?: import('svelte').Snippet, iconOpen?: import('svelte').Snippet } & Record<string, any>} */
+	/** @type {{
+		children?: import('svelte').Snippet;
+		class?: string;
+		multiple?: boolean;
+		value?: string[];
+	} & Record<string, any>} */
 	let {
 		multiple = false,
-		value,
+		value = $bindable([]),
 		class: cls = '',
-		width,
-		iconClosed,
-		iconOpen,
 		children,
+		onValueChange,
 		...rest
 	} = $props();
 
 	const content = children ?? (() => null);
+	const groupClasses = [cls].filter(Boolean).join(' ');
 
-	const resolvedClosed = iconClosed ?? defaultIconClosed;
-	const resolvedOpen = iconOpen ?? defaultIconOpen;
-
-	setContext(accordionIconsKey, { iconClosed: resolvedClosed, iconOpen: resolvedOpen });
+	function handleValueChange(details) {
+		value = details?.value ?? [];
+		onValueChange?.({ ...details });
+	}
 </script>
 
-{#snippet defaultIconClosed({ attributes })}
-	{@const attr = {
-		...attributes,
-		class: [attributes?.class, 'transition-transform duration-200'].filter(Boolean).join(' ')
-	}}
-	<span {...attr}>
-		<Ico icon="mdi:chevron-right" size={3} />
-	</span>
-{/snippet}
-
-{#snippet defaultIconOpen({ attributes })}
-	{@const attr = {
-		...attributes,
-		class: [attributes?.class, 'transition-transform duration-200 rotate-90']
-			.filter(Boolean)
-			.join(' ')
-	}}
-	<span {...attr}>
-		<Ico icon="mdi:chevron-right" size={3} />
-	</span>
-{/snippet}
-
-<Accordion {multiple} {value} class={[cls, width].filter(Boolean).join(' ')} {...rest}>
+<Accordion {multiple} {value} class={groupClasses} onValueChange={handleValueChange} {...rest}>
 	{@render content()}
 </Accordion>

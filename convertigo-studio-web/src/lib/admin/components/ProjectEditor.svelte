@@ -31,22 +31,6 @@
 	let clickedCategories = $state([]);
 	let modalYesNo = getContext('modalYesNo');
 
-	$effect(() => {
-		// properties;
-
-		// openedCategories = [];
-		// window.setTimeout(() => {
-		let open = categories.filter(
-			({ category, properties }) => clickedCategories.includes(category) && properties.length > 0
-		);
-		if (open.length == 0) {
-			const some = categories.find(({ properties }) => properties.length > 0);
-			open = some ? [some] : [];
-		}
-		openedCategories = open.map(({ category }) => category);
-		// }, 200);
-	});
-
 	async function onSelectionChange(e) {
 		if (e.selectedValue[0] == id) {
 			return;
@@ -162,6 +146,26 @@
 		row.symbols = true;
 	}
 
+	function getDefaultOpenedCategories() {
+		const open = categories.filter(
+			({ category, properties }) => clickedCategories.includes(category) && properties.length > 0
+		);
+		if (open.length > 0) {
+			return open.map(({ category }) => category);
+		}
+		const first = categories.find(({ properties }) => properties.length > 0);
+		return first ? [first.category] : [];
+	}
+
+	const propertyTableDefinition = [
+		{
+			key: 'displayName',
+			name: 'Name',
+			class: 'min-w-40 text-xs uppercase text-surface-600-400'
+		},
+		{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
+	];
+
 	let treeview = $state();
 </script>
 
@@ -227,18 +231,21 @@
 		{/snippet}
 		{@render saveCancel()}
 		<AccordionGroup
-			value={openedCategories}
-			onValueChange={({ value }) => (openedCategories = clickedCategories = value)}
+			bind:value={
+				() => (openedCategories.length ? openedCategories : getDefaultOpenedCategories()),
+				(v) => {
+					openedCategories = v;
+					clickedCategories = v;
+				}
+			}
 			multiple
 		>
-			{#each categories as { category, properties }}
+			{#each categories as { category, properties } (category)}
 				<AccordionSection
 					value={category}
-					classes="rounded-container preset-filled-surface-50-950 shadow-follow"
-					controlClasses="flex items-center justify-between gap-low rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
-					controlPadding="p-none"
-					panelPadding="px-3 pb-4"
-					panelClasses="bg-transparent"
+					class="rounded-container preset-filled-surface-50-950 shadow-follow"
+					triggerClass="flex items-center justify-between gap-low rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
+					panelClass="px-3 pb-4 bg-transparent"
 					disabled={properties.length == 0}
 				>
 					{#snippet control()}
@@ -271,14 +278,7 @@
 								showHeaders={false}
 								showNothing={false}
 								trClass="transition-colors duration-150 hover:bg-surface-200-800"
-								definition={[
-									{
-										key: 'displayName',
-										name: 'Name',
-										class: 'min-w-40 text-xs uppercase text-surface-600-400'
-									},
-									{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
-								]}
+								definition={propertyTableDefinition}
 								animationProps={{ duration: 120 }}
 								data={properties}
 							>

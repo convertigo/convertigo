@@ -3,6 +3,7 @@
 > **Goal**: Make a codegen model (e.g. “Codex”) **reliable** on Svelte 5 and SvelteKit 2.  
 > **Scope**: Full reference (+ patterns & anti‑patterns) for the **runes** model, **snippets + {@render}**, modern **events**, and SvelteKit 2 data‑flow (load, actions, remote functions, streaming).  
 > **Mode**: This document assumes **Svelte 5 runes** (not legacy). It includes migration notes where useful.
+> **Skeleton**: Pair this guide with [Skeleton’s “LLMs + Svelte” reference](https://www.skeleton.dev/llms-svelte.txt). That file defines the composed-part APIs, data/state attributes and event names used throughout Skeleton 4.
 
 ---
 
@@ -564,7 +565,104 @@ When using another component (`<Card ... />`), **open the component source** and
 <Child bind:value={name} oncommit={(v) => save(v)} />
 ```
 
-### 8.2 List with customizable row snippet
+### 8.2 Controlled binding with a getter/setter pair
+
+### 8.3 Wrapper components with default headers
+
+When you wrap Skeleton components (AccordionSection, Card, etc.), keep the wrapper thin.
+Expose optional props (title, count, trailingText…) but fall back to the documented
+Skeleton markup when nothing is set. That way all consumers share the same structure
+and styling.
+
+```svelte
+<Accordion.ItemTrigger class={triggerClass}>
+	{#if control}
+		{@render control()}
+	{:else if title || typeof count === 'number'}
+		<div class="flex items-center justify-between">
+			<div class="min-w-0">
+				{#if title}<span class="text-sm font-semibold">{title}</span>{/if}
+				{#if subtitle}<span class="text-xs text-neutral-500">{subtitle}</span>{/if}
+			</div>
+			{#if typeof count === 'number'}
+				<span class="badge">{countLabel(count)}</span>
+			{/if}
+		</div>
+	{:else}
+		{@render defaultHeader()}
+	{/if}
+</Accordion.ItemTrigger>
+```
+
+Guidelines:
+
+- One shared wrapper; no per-page forks.
+- Styles come from Skeleton docs (`px-low`, `py-low`, etc.).
+- Snippets stay optional via `{@render snippet?.()}`.
+- Éviter la multiplication des headers recopiés.
+
+### 8.3 Wrapper components with default headers
+
+When you wrap Skeleton components (AccordionSection, Card, etc.), keep the wrapper thin.
+Expose optional props (title, count, trailingText…) but fall back to the documented
+Skeleton markup when nothing is set. That way all consumers share the same structure
+and styling.
+
+```svelte
+<Accordion.ItemTrigger class={triggerClass}>
+	{#if control}
+		{@render control()}
+	{:else if title || typeof count === 'number'}
+		<div class="flex items-center justify-between">
+			<div class="min-w-0">
+				{#if title}<span class="text-sm font-semibold">{title}</span>{/if}
+				{#if subtitle}<span class="text-xs text-neutral-500">{subtitle}</span>{/if}
+			</div>
+			{#if typeof count === 'number'}
+				<span class="badge">{countLabel(count)}</span>
+			{/if}
+		</div>
+	{:else}
+		{@render defaultHeader()}
+	{/if}
+</Accordion.ItemTrigger>
+```
+
+Guidelines:
+
+- One shared wrapper; no per-page forks.
+- Styles come from Skeleton docs (`px-low`, `py-low`, etc.).
+- Snippets stay optional via `{@render snippet?.()}`.
+- Éviter la multiplication des headers recopiés.
+
+Svelte lets you treat any binding as a controlled value by passing a pair of functions instead of a single reference. The first function is the **getter** (called to read the current value) and the second is the **setter** (called whenever the child emits a change). This is perfect when the source of truth lives outside `$state()` — e.g. a persisted singleton, a store, or a component that expects an array even in single‑select mode.
+
+```svelte
+<script>
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+
+	// persist the flag globally; anything truthy means "open"
+	let settings = persistedState('ui.advanced.open', false);
+</script>
+
+<AccordionGroup
+	collapsible
+	bind:value={
+		() => (settings.current ? ['advanced'] : []), // getter
+		(v) => (settings.current = v.length > 0)
+	}
+>
+	<!-- Accordion sections ... -->
+</AccordionGroup>
+```
+
+Guidelines:
+
+- **Always** return/accept the shape expected by the child. Skeleton’s accordion, for example, deals in `string[]`, even in single-select mode.
+- Keep the getter **pure**; it must not mutate anything.
+- Use the setter to project the child output into your domain (toggle a boolean, write to `persistedState`, dispatch an event, etc.).
+
+### 8.3 List with customizable row snippet
 
 ```svelte
 <!-- List.svelte -->
@@ -581,7 +679,7 @@ When using another component (`<Card ... />`), **open the component source** and
 </ul>
 ```
 
-### 8.3 Error/pending isolation
+### 8.4 Error/pending isolation
 
 ```svelte
 <svelte:boundary onerror={(e, reset) => (console.error(e), /* show toast */)}>
@@ -594,7 +692,7 @@ When using another component (`<Card ... />`), **open the component source** and
 </svelte:boundary>
 ```
 
-### 8.4 SvelteKit form with `use:enhance`
+### 8.5 SvelteKit form with `use:enhance`
 
 ```svelte
 <!-- +page.svelte -->
@@ -622,7 +720,7 @@ export const actions = {
 };
 ```
 
-### 8.5 Remote Function + inline await
+### 8.6 Remote Function + inline await
 
 ```ts
 // src/routes/blog/data.remote.ts
@@ -643,7 +741,7 @@ export async function query() {
 </ul>
 ```
 
-### 8.6 Reusable state in `.svelte.ts`
+### 8.7 Reusable state in `.svelte.ts`
 
 ```ts
 // theme.svelte.ts

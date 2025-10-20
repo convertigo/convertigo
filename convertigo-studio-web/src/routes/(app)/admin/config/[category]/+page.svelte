@@ -10,9 +10,8 @@
 	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { F } from 'caniuse-lite/data/agents';
 	import { getContext, onDestroy, onMount } from 'svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -138,21 +137,20 @@
 			<Card class="py-low">
 				<AccordionGroup
 					collapsible
-					value={Last.advanced ? ['advanced'] : []}
-					onValueChange={({ value }) => {
-						Last.advanced = value.length > 0;
-					}}
+					bind:value={
+						() => (Last.advanced ? ['advanced'] : []),
+						(v) => {
+							Last.advanced = v.length > 0;
+						}
+					}
 				>
-					<AccordionSection
-						value="advanced"
-						surface="bg-transparent border-t border-surface-200-800/40"
-						panelPadding="py"
-						controlPadding="p-low"
-						controlHover="hover:bg-surface-50-950/60 rounded-base"
-						panelClasses="bg-transparent"
-					>
-						{#snippet lead()}<Ico icon="mdi:star-three-points-outline" />{/snippet}
-						{#snippet control()}Advanced Properties{/snippet}
+					<AccordionSection value="advanced">
+						{#snippet control()}
+							<div class="flex items-center gap text-lg font-medium">
+								<Ico icon="mdi:star-three-points-outline" />
+								<span>Advanced Properties</span>
+							</div>
+						{/snippet}
 						{#snippet panel()}
 							<div class="layout-cols-2 w-full">
 								{#each category.property as property}

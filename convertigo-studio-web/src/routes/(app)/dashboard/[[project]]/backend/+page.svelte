@@ -162,237 +162,241 @@
 	</AutoPlaceholder>
 
 	<AccordionGroup
+		class="-mx-low"
 		multiple
-		value={searchQuery.length ? parts.map(({ name }) => name) : partsOpened}
-		onValueChange={(e) => {
-			partsOpened = e.value;
-		}}
+		bind:value={
+			() => (searchQuery.length ? parts.map(({ name }) => name) : partsOpened),
+			(v) => (partsOpened = v)
+		}
 	>
 		{#each parts as part, partIdx (part.name)}
 			{@const { name, requestables, comment } = part}
 			<div transition:fly={{ duration, y }}>
 				<AccordionSection
 					value={part.name}
-					panelPadding="px-low pb-low"
-					bodyBase="layout-y-stretch gap-3"
+					class="rounded-container bg-surface-100-900 shadow-follow"
+					triggerClass="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
+					panelClass="px-low pb-low"
 				>
-					{#snippet title()}
-						<span
-							class="text-base leading-tight font-semibold text-surface-900 dark:text-surface-50"
-							>{name}</span
-						>
-					{/snippet}
-					{#if comment?.length}
-						{#snippet subtitle()}
-							<span class="text-surface-500-300 text-xs">{comment}</span>
-						{/snippet}
-					{/if}
-					{#snippet meta()}
-						<span
-							class="text-surface-500-300 rounded-full border border-dashed border-surface-400-600/60 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase"
-						>
-							{requestables.length} item{requestables.length > 1 ? 's' : ''}
-						</span>
+					{#snippet control()}
+						<div class="flex w-full flex-wrap items-center justify-between gap-3">
+							<div class="flex min-w-0 flex-col">
+								<span
+									class="text-base leading-tight font-semibold text-surface-900 dark:text-surface-50"
+									>{name}</span
+								>
+								{#if comment?.length}
+									<span class="text-surface-500-300 text-xs">{comment}</span>
+								{/if}
+							</div>
+							<span
+								class="text-surface-500-300 rounded-full border border-dashed border-surface-400-600/60 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase"
+							>
+								{requestables.length} item{requestables.length > 1 ? 's' : ''}
+							</span>
+						</div>
 					{/snippet}
 					{#snippet panel()}
-						<AccordionGroup multiple>
-							{#each requestables as requestable, requestableIdx (requestable.name)}
-								{@const { name, accessibility, comment } = requestable}
-								<div
-									animate:flip={{ duration }}
-									transition:fly={{ duration, y }}
-									class="group/requestable"
-								>
-									<AccordionSection
-										value={`${part.name}.${name}`}
-										classes="group relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-colors duration-200 data-[state=open]:border-surface-300-700"
-										controlClasses="group w-full rounded-xl text-left"
-										controlPadding="p-none"
-										panelPadding="p-none"
-										panelClasses="bg-transparent"
+						<div class="space-y-3">
+							<AccordionGroup multiple>
+								{#each requestables as requestable, requestableIdx (requestable.name)}
+									{@const { name, accessibility, comment } = requestable}
+									<div
+										animate:flip={{ duration }}
+										transition:fly={{ duration, y }}
 									>
-										{#snippet control()}
-											<div
-												class="flex w-full items-stretch gap-3 rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40 dark:group-data-[state=open]:bg-surface-900/40"
-											>
-												<span
-													aria-hidden="true"
-													class={`hidden w-1.5 shrink-0 rounded-full ${accessibilities[accessibility].accent} sm:block`}
-												></span>
-												<span
-													class={`grid h-10 w-10 shrink-0 place-content-center rounded-full border border-surface-200-800/50 bg-surface-100-900 shadow-sm ${accessibilities[accessibility].chip}`}
-												>
-													<Ico
-														icon={accessibilities[accessibility].icon}
-														size={4}
-														class={accessibilities[accessibility].tone}
-													/>
-												</span>
-												<div class="flex min-w-0 flex-1 flex-col justify-center gap-1 text-left">
-													<span
-														class="text-sm leading-tight font-semibold text-surface-900 dark:text-surface-50"
-														>{name}</span
-													>
-													{#if comment?.length}
-														<span
-															class="text-surface-500-300 truncate text-xs transition-opacity duration-150 group-data-[state=open]:opacity-70"
-															>{comment}</span
-														>
-													{/if}
-												</div>
-												<span
-													class={`hidden items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold tracking-wide uppercase ${accessibilities[accessibility].soft} sm:flex`}
-												>
-													<Ico
-														icon={accessibilities[accessibility].icon}
-														size={3}
-														class={accessibilities[accessibility].tone}
-													/>
-													<span>{accessibility}</span>
-												</span>
-											</div>
-										{/snippet}
-										{#snippet panel()}
-											<form
-												onsubmit={async (e) => {
-													run(requestable, e);
-												}}
-												class="layout-y-stretch-low gap-4 px-3 pt-3 pb-4"
-											>
-												{#if part.name == 'Sequences'}
-													<input type="hidden" name="__sequence" value={name} />
-												{:else}
-													<input type="hidden" name="__connector" value={part.name} />
-													<input type="hidden" name="__transaction" value={name} />
-												{/if}
-												{#if comment.length}
-													<p
-														class="text-surface-500-300 rounded-md border border-dashed border-surface-200-800/60 bg-surface-50-950/70 px-3 py-2 text-sm"
-													>
-														{comment}
-													</p>
-												{/if}
-												{#if requestable.variable?.length > 0}
-													<RequestableVariables
-														bind:requestable={parts[partIdx].requestables[requestableIdx]}
-													/>
-												{/if}
-												{#if requestable.testcase.length > 0}
-													<AccordionGroup
-														collapsible
-														base="rounded-lg border border-surface-200-800/40 bg-surface-50-950/50"
-													>
-														<AccordionSection
-															value={`${requestableIdx}`}
-															classes="rounded-lg"
-															controlClasses="group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-500-300"
-															controlPadding="p-none"
-															panelPadding="px-3 pb-3 pt-0"
-															panelClasses="bg-transparent"
-														>
-															{#snippet control()}
-																<div
-																	class="flex w-full flex-wrap items-center justify-between gap-2"
-																>
-																	<div class="flex items-center gap-2">
-																		<span
-																			aria-hidden="true"
-																			class={`h-2 w-2 rounded-full ${accessibilities[accessibility].accent}`}
-																		></span>
-																		<span>
-																			{requestable.testcase.length} Test Case{requestable.testcase
-																				.length > 1
-																				? 's'
-																				: ''} available
-																		</span>
-																	</div>
-																	<span
-																		class={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${accessibilities[accessibility].soft}`}
-																	>
-																		{accessibility}
-																	</span>
-																</div>
-															{/snippet}
-															{#snippet panel()}
-																<div class="grid gap-3 sm:grid-cols-2">
-																	{#each requestable.testcase as testcase}
-																		<Card title={testcase.name} bg="bg-surface-50-950/70">
-																			{#snippet cornerOption()}
-																				<ResponsiveButtons
-																					buttons={[
-																						{
-																							label: 'Execute',
-																							type: 'submit',
-																							value: testcase.name,
-																							class: 'button-success',
-																							icon: 'mdi:play-circle-outline'
-																						},
-																						{
-																							label: 'Edit',
-																							class: 'button-tertiary',
-																							icon: 'mdi:edit-outline',
-																							onclick: () => {
-																								requestable.tc = { ...testcase };
-																							}
-																						}
-																					]}
-																				/>
-																			{/snippet}
-																			<TableAutoCard
-																				showHeaders={false}
-																				definition={[
-																					{ key: 'name', class: 'font-medium' },
-																					{ key: 'value' }
-																				]}
-																				data={testcase.variable}
-																			/>
-																		</Card>
-																	{/each}
-																</div>
-															{/snippet}
-														</AccordionSection>
-													</AccordionGroup>
-												{/if}
+										<AccordionSection
+											value={`${part.name}.${name}`}
+											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-colors duration-200 data-[state=open]:border-surface-300-700"
+											triggerClass="w-full rounded-xl text-left px-0 py-0"
+											panelClass="px-0 py-0 bg-transparent"
+										>
+											{#snippet control()}
 												<div
-													class="flex flex-col gap-3 rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/60 p-3 md:flex-row md:items-center md:justify-between"
+													class="flex w-full items-stretch gap-3 rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40 dark:group-data-[state=open]:bg-surface-900/40"
 												>
-													<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
-													<div class="flex flex-wrap items-center justify-end gap-2">
-														<Button
-															label="Execute"
-															type="submit"
-															class="button-success"
-															icon="mdi:play-circle-outline"
+													<span
+														aria-hidden="true"
+														class={`hidden w-1.5 shrink-0 rounded-full ${accessibilities[accessibility].accent} sm:block`}
+													></span>
+													<span
+														class={`grid h-10 w-10 shrink-0 place-content-center rounded-full border border-surface-200-800/50 bg-surface-100-900 shadow-sm ${accessibilities[accessibility].chip}`}
+													>
+														<Ico
+															icon={accessibilities[accessibility].icon}
+															size={4}
+															class={accessibilities[accessibility].tone}
 														/>
-														{#if requestable.response?.length > 0}
-															<Button
-																label="Clear"
-																type="submit"
-																class="button-error"
-																icon="mdi:broom"
-															/>
+													</span>
+													<div class="flex min-w-0 flex-1 flex-col justify-center gap-1 text-left">
+														<span
+															class="text-sm leading-tight font-semibold text-surface-900 dark:text-surface-50"
+															>{name}</span
+														>
+														{#if comment?.length}
+															<span
+																class="text-surface-500-300 truncate text-xs transition-opacity duration-150 group-data-[state=open]:opacity-70"
+																>{comment}</span
+															>
 														{/if}
 													</div>
-												</div>
-												{#if requestable.response?.length > 0}
-													<div
-														class="h-[480px] overflow-hidden rounded-lg border border-surface-200-800/60 bg-surface-50-950 shadow-inner"
-														class:animate-pulse={requestable.loading}
-														transition:fly={{ duration, y }}
+													<span
+														class={`hidden items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold tracking-wide uppercase ${accessibilities[accessibility].soft} sm:flex`}
 													>
-														<Editor
-															content={requestable.response}
-															language={requestable.language}
-															theme={LightSvelte.light ? '' : 'vs-dark'}
+														<Ico
+															icon={accessibilities[accessibility].icon}
+															size={3}
+															class={accessibilities[accessibility].tone}
 														/>
+														<span>{accessibility}</span>
+													</span>
+												</div>
+											{/snippet}
+											{#snippet panel()}
+												<form
+													onsubmit={async (e) => {
+														run(requestable, e);
+													}}
+													class="layout-y-stretch-low gap-4 px-3 pt-3 pb-4"
+												>
+													{#if part.name == 'Sequences'}
+														<input type="hidden" name="__sequence" value={name} />
+													{:else}
+														<input type="hidden" name="__connector" value={part.name} />
+														<input type="hidden" name="__transaction" value={name} />
+													{/if}
+													{#if comment.length}
+														<p
+															class="text-surface-500-300 rounded-md border border-dashed border-surface-200-800/60 bg-surface-50-950/70 px-3 py-2 text-sm"
+														>
+															{comment}
+														</p>
+													{/if}
+													{#if requestable.variable?.length > 0}
+														<RequestableVariables
+															bind:requestable={parts[partIdx].requestables[requestableIdx]}
+														/>
+													{/if}
+													{#if requestable.testcase.length > 0}
+														<AccordionGroup
+															collapsible
+															base="rounded-lg border border-surface-200-800/40 bg-surface-50-950/50"
+														>
+															<AccordionSection
+																value={`${requestableIdx}`}
+																class="rounded-lg"
+																triggerClass="group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-500-300"
+																panelClass="px-3 pb-3 pt-0 bg-transparent"
+															>
+																{#snippet control()}
+																	<div
+																		class="flex w-full flex-wrap items-center justify-between gap-2"
+																	>
+																		<div class="flex items-center gap-2">
+																			<span
+																				aria-hidden="true"
+																				class={`h-2 w-2 rounded-full ${accessibilities[accessibility].accent}`}
+																			></span>
+																			<span>
+																				{requestable.testcase.length} Test Case{requestable.testcase
+																					.length > 1
+																					? 's'
+																					: ''} available
+																			</span>
+																		</div>
+																		<span
+																			class={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${accessibilities[accessibility].soft}`}
+																		>
+																			{accessibility}
+																		</span>
+																	</div>
+																{/snippet}
+																{#snippet panel()}
+																	<div class="grid gap-3 sm:grid-cols-2">
+																		{#each requestable.testcase as testcase}
+																			<Card title={testcase.name} bg="bg-surface-50-950/70">
+																				{#snippet cornerOption()}
+																					<ResponsiveButtons
+																						buttons={[
+																							{
+																								label: 'Execute',
+																								type: 'submit',
+																								value: testcase.name,
+																								class: 'button-success',
+																								icon: 'mdi:play-circle-outline'
+																							},
+																							{
+																								label: 'Edit',
+																								class: 'button-tertiary',
+																								icon: 'mdi:edit-outline',
+																								onclick: () => {
+																									requestable.tc = { ...testcase };
+																								}
+																							}
+																						]}
+																					/>
+																				{/snippet}
+																				<TableAutoCard
+																					showHeaders={false}
+																					definition={[
+																						{ key: 'name', class: 'font-medium' },
+																						{ key: 'value' }
+																					]}
+																					data={testcase.variable}
+																				/>
+																			</Card>
+																		{/each}
+																	</div>
+																{/snippet}
+															</AccordionSection>
+														</AccordionGroup>
+													{/if}
+													<div
+														class="flex flex-col gap-3 rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/60 p-3 md:flex-row md:items-center md:justify-between"
+													>
+														<PropertyType
+															type="segment"
+															bind:value={mode}
+															item={modes}
+															fit={true}
+														/>
+														<div class="flex flex-wrap items-center justify-end gap-2">
+															<Button
+																label="Execute"
+																type="submit"
+																class="button-success"
+																icon="mdi:play-circle-outline"
+															/>
+															{#if requestable.response?.length > 0}
+																<Button
+																	label="Clear"
+																	type="submit"
+																	class="button-error"
+																	icon="mdi:broom"
+																/>
+															{/if}
+														</div>
 													</div>
-												{/if}
-											</form>
-										{/snippet}
-									</AccordionSection>
-								</div>
-							{/each}
-						</AccordionGroup>
+													{#if requestable.response?.length > 0}
+														<div
+															class="h-[480px] overflow-hidden rounded-lg border border-surface-200-800/60 bg-surface-50-950 shadow-inner"
+															class:animate-pulse={requestable.loading}
+															transition:fly={{ duration, y }}
+														>
+															<Editor
+																content={requestable.response}
+																language={requestable.language}
+																theme={LightSvelte.light ? '' : 'vs-dark'}
+															/>
+														</div>
+													{/if}
+												</form>
+											{/snippet}
+										</AccordionSection>
+									</div>
+								{/each}
+							</AccordionGroup>
+						</div>
 					{/snippet}
 				</AccordionSection>
 			</div>

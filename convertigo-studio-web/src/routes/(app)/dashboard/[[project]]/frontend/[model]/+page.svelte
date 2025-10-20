@@ -10,9 +10,8 @@
 	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import { getFrontendUrl } from '$lib/utils/service';
-	import { onDestroy, tick } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { Spring } from 'svelte/motion';
-	import { fade } from 'svelte/transition';
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -91,15 +90,22 @@
 		}
 		return map;
 	});
-	let openGroups = $state([]);
-	let lastSelectedGroup = $state();
+	let openGroup = $state([]);
+	let lastDeviceId = $state();
 
 	$effect(() => {
 		const targetGroup = deviceGroupMap.get(selectedDevice.id);
 		if (!targetGroup) return;
-		if (targetGroup === lastSelectedGroup) return;
-		lastSelectedGroup = targetGroup;
-		openGroups = [targetGroup];
+
+		if (selectedDevice.id !== lastDeviceId) {
+			openGroup = [targetGroup];
+			lastDeviceId = selectedDevice.id;
+			return;
+		}
+
+		if (openGroup.length === 0) {
+			openGroup = [targetGroup];
+		}
 	});
 
 	$effect(() => {
@@ -302,30 +308,18 @@
 	<nav
 		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px]"
 	>
-		<AccordionGroup
-			value={openGroups}
-			collapsible
-			onValueChange={({ value }) => {
-				openGroups = value;
-			}}
-		>
+		<AccordionGroup bind:value={openGroup} collapsible>
 			{#each groupedDevices as { id, title, devices }}
 				<AccordionSection
 					value={id}
-					classes="border-b border-surface-200-800 last:border-none"
-					controlClasses="flex items-center justify-between px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600-400 hover:text-surface-900-100"
-					controlPadding="p-low"
-					panelPadding="p-none"
-					panelClasses="px-none pb-2"
+					class="border-b border-surface-200-800 last:border-none"
+					triggerClass="px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600-400 hover:text-surface-900-100"
+					panelClass="px-0 pb-2"
+					{title}
+					titleClass="text-sm font-semibold uppercase tracking-wide"
+					count={devices.length}
+					countLabel={(value) => `${value}`}
 				>
-					{#snippet control()}
-						<div class="flex w-full items-center justify-between gap-2">
-							<span>{title}</span>
-							<span class="text-xs font-medium text-surface-500" aria-hidden="true"
-								>{devices.length}</span
-							>
-						</div>
-					{/snippet}
 					{#snippet panel()}
 						<div class="layout-y-stretch gap-1 pt-1">
 							{#each devices as device}

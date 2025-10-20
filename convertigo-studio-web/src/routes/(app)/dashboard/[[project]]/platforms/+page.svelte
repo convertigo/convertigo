@@ -9,30 +9,13 @@
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getQuery, getUrl } from '$lib/utils/service';
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 
 	let modalAlert = getContext('modalAlert');
 	let project = $state(TestPlatform(page.params.project));
 	let app = $derived(project?.mobileapplication);
 	let platforms = $derived(app?.mobileplatform ?? []);
-	/** @type {string[]} */
-	let openedPlatforms = $state([]);
-
-	$effect(() => {
-		if (!platforms.length) {
-			if (openedPlatforms.length) {
-				openedPlatforms = [];
-			}
-			return;
-		}
-
-		if (
-			openedPlatforms.length === 0 ||
-			!platforms.some((platform) => platform.name === openedPlatforms[0])
-		) {
-			openedPlatforms = [platforms[0].name];
-		}
-	});
+	let openedPlatform = $state([]);
 </script>
 
 <Card title={project?.name ?? null}>
@@ -47,10 +30,10 @@
 		]}
 	/>
 	<AccordionGroup
-		value={openedPlatforms}
-		onValueChange={({ value }) => {
-			openedPlatforms = value;
-		}}
+		bind:value={
+			() => (openedPlatform.length ? openedPlatform : [platforms[0]?.name]),
+			(v) => (openedPlatform = v)
+		}
 	>
 		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build }}
 			<AccordionSection value={name}>
