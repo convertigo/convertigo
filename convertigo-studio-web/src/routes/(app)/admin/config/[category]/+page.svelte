@@ -144,12 +144,9 @@
 						}
 					}
 				>
-					<AccordionSection value="advanced">
-						{#snippet control()}
-							<div class="layout-x text-lg font-medium">
-								<Ico icon="mdi:star-three-points-outline" />
-								<span>Advanced Properties</span>
-							</div>
+					<AccordionSection value="advanced" title="Advanced Properties">
+						{#snippet lead()}
+							<Ico icon="mdi:star-three-points-outline" class="text-lg" />
 						{/snippet}
 						{#snippet panel()}
 							<div class="layout-cols-2 w-full">

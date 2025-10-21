@@ -36,19 +36,27 @@
 		}
 	>
 		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build }}
-			<AccordionSection value={name}>
-				{#snippet control()}
-					<div class="layout-x justify-between border-b-[0.5px]">
-						<span class="layout-x-low text-lg font-semibold"
-							><span
-								class:text-success-500={status == 'complete'}
-								class:text-error-500={status == 'error'}
-								class:text-warning-500={status == 'pending' || status == 'none'}
-								class:animate-pulse={!status || status == 'pending'}>⬤</span
-							>
-							{displayName}</span
-						><span class="truncate text-xs">{comment}</span>
-					</div>
+			<AccordionSection
+				value={name}
+				triggerClass="border-b-[0.5px] px-low py-low text-left"
+				title={displayName}
+			>
+				{#snippet lead()}
+					<span class="inline-flex items-center text-lg font-semibold">
+						<span
+							class:text-success-500={status == 'complete'}
+							class:text-error-500={status == 'error'}
+							class:text-warning-500={status == 'pending' || status == 'none'}
+							class:animate-pulse={!status || status == 'pending'}
+						>
+							⬤
+						</span>
+					</span>
+				{/snippet}
+				{#snippet trail()}
+					{#if comment}
+						<span class="text-surface-500-300 max-w-52 truncate text-xs">{comment}</span>
+					{/if}
 				{/snippet}
 				{#snippet panel()}
 					<div class="layout-y-stretch md:layout-x-stretch">

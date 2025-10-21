@@ -318,7 +318,7 @@
 					{title}
 					titleClass="text-sm font-semibold uppercase tracking-wide"
 					count={devices.length}
-					countLabel={(value) => `${value}`}
+					countVariant="number"
 				>
 					{#snippet panel()}
 						<div class="layout-y-stretch gap-1 pt-1">

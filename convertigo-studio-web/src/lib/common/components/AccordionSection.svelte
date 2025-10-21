@@ -16,7 +16,11 @@
 	subtitle?: string;
 	meta?: string;
 	count?: number;
-	countLabel?: (value: number) => string;
+	countVariant?: 'items' | 'number' | 'none';
+	countItemLabel?: string;
+	countEmptyLabel?: string;
+	lead?: import('svelte').Snippet;
+	trail?: import('svelte').Snippet;
 	leadingIcon?: string;
 	leadingIconClass?: string;
 	trailingText?: string;
@@ -35,7 +39,11 @@
 		subtitle,
 		meta,
 		count,
-		countLabel = (value) => `${value} item${value === 1 ? '' : 's'}`,
+		countVariant = 'items',
+		countItemLabel = 'Item',
+		countEmptyLabel = 'Empty',
+		lead,
+		trail,
 		leadingIcon,
 		leadingIconClass = 'text-surface-500',
 		trailingText,
@@ -43,19 +51,28 @@
 		...rest
 	} = $props();
 
-	const triggerClasses = [
-		'layout-x-between w-full rounded-sm px-low py-low text-left',
-		triggerClass
-	]
-		.filter(Boolean)
-		.join(' ');
+	const countClass =
+		'rounded-full border border-primary-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase text-surface-500';
+	const countText = $derived(
+		typeof count === 'number' && countVariant !== 'none'
+			? countVariant === 'number'
+				? `${count}`
+				: count === 0
+					? countEmptyLabel
+					: `${count} ${count === 1 ? countItemLabel : `${countItemLabel}s`}`
+			: null
+	);
 
-	const panelClasses = ['px-low pb-low', panelClass].filter(Boolean).join(' ');
+	const triggerClasses = $derived(
+		['layout-x-between w-full px-low py-low text-left', triggerClass].filter(Boolean).join(' ')
+	);
+
+	const panelClasses = $derived(['px-low pb-low', panelClass].filter(Boolean).join(' '));
 	const header = control ?? defaultHeader;
 	const body = panel ?? children;
-	const showDefaultHeader =
-		!control &&
-		(title || subtitle || typeof count === 'number' || meta || leadingIcon || trailingText);
+	const resolvedLead = $derived(lead ?? (leadingIcon ? defaultLead : undefined));
+	const resolvedTrail = $derived(trail ?? defaultTrail);
+	const hasTrailContent = $derived(Boolean(countText || trailingText));
 </script>
 
 {#snippet indicator(attrs)}
@@ -78,6 +95,21 @@
 	<span class="font-semibold">Section</span>
 {/snippet}
 
+{#snippet defaultLead({ leadingIcon, leadingIconClass })}
+	<span aria-hidden="true" class={`mt-0.5 ${leadingIconClass}`}>{leadingIcon}</span>
+{/snippet}
+
+{#snippet defaultTrail({ count, countText, countClass, trailingText, trailingTextClass })}
+	{#if countText}
+		<span class={`${countClass} ${count === 0 ? 'text-surface-500-300 border-dashed' : ''}`}
+			>{countText}</span
+		>
+	{/if}
+	{#if trailingText}
+		<span class={trailingTextClass}>{trailingText}</span>
+	{/if}
+{/snippet}
+
 <Accordion.Item
 	{value}
 	class={cls}
@@ -95,17 +127,18 @@
 					<Accordion.ItemIndicator element={indicator} />
 				</span>
 			</div>
-		{:else if showDefaultHeader}
+		{:else if !control && (Boolean(resolvedLead) || title || subtitle || meta || hasTrailContent || Boolean(trail))}
 			<div class="layout-x-between w-full">
-				<div class="layout-x-start-low min-w-0 grow">
-					{#if leadingIcon}
-						<span aria-hidden="true" class={`mt-0.5 ${leadingIconClass}`}>{leadingIcon}</span>
-					{/if}
+				<div class="layout-x-start-low min-w-0 grow items-center">
+					{@render resolvedLead?.({
+						leadingIcon,
+						leadingIconClass
+					})}
 					<div class="layout-y-low min-w-0">
 						{#if title}
-							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50"
-								>{title}</span
-							>
+							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50">
+								{title}
+							</span>
 						{/if}
 						{#if subtitle}
 							<span class="text-surface-500-300 text-xs">{subtitle}</span>
@@ -115,17 +148,14 @@
 						{/if}
 					</div>
 				</div>
-				<div class="layout-x-low shrink-0">
-					{#if typeof count === 'number'}
-						<span
-							class="rounded-full border border-surface-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide text-surface-500 uppercase"
-						>
-							{countLabel(count)}
-						</span>
-					{/if}
-					{#if trailingText}
-						<span class={trailingTextClass}>{trailingText}</span>
-					{/if}
+				<div class="layout-x-low shrink-0 items-center">
+					{@render resolvedTrail?.({
+						count,
+						countText,
+						countClass,
+						trailingText,
+						trailingTextClass
+					})}
 					<span class="shrink-0 text-surface-500">
 						<Accordion.ItemIndicator element={indicator} />
 					</span>

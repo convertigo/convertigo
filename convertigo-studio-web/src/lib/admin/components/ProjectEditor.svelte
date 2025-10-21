@@ -239,33 +239,18 @@
 			multiple
 		>
 			{#each categories as { category, properties } (category)}
+				{@const total = properties.length}
 				<AccordionSection
 					value={category}
 					class="rounded-container preset-filled-surface-50-950 shadow-follow"
-					triggerClass="layout-x-low items-center justify-between rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
+					triggerClass="rounded-container px py-low text-left"
 					panelClass="px-3 pb-4 bg-transparent"
-					disabled={properties.length == 0}
+					disabled={total == 0}
+					title={category}
+					count={total}
 				>
-					{#snippet control()}
-						<div class="layout-x-wrap w-full items-center justify-between">
-							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50"
-								>{category}</span
-							>
-							{#if properties.length}
-								<span
-									class="rounded-full border border-surface-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide text-surface-500 uppercase"
-									>{properties.length} item{properties.length > 1 ? 's' : ''}</span
-								>
-							{:else}
-								<span
-									class="text-surface-500-300 rounded-full border border-dashed border-surface-300-700/60 px-2 py-1 text-[11px] tracking-wide uppercase"
-									>Empty</span
-								>
-							{/if}
-						</div>
-					{/snippet}
 					{#snippet panel()}
-						{#if properties.length === 0}
+						{#if total === 0}
 							<p
 								class="rounded-xl border border-dashed border-surface-300-700/60 bg-surface-100-900/40 px-4 py-6 text-center text-sm text-surface-500"
 							>

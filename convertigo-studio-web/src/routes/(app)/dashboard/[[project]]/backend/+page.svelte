@@ -177,27 +177,12 @@
 				<AccordionSection
 					value={part.name}
 					class="rounded-container bg-surface-100-900 shadow-follow"
-					triggerClass="layout-x-between w-full rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
+					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
 					panelClass="px-low pb-low"
+					title={name}
+					subtitle={comment}
+					count={requestables.length}
 				>
-					{#snippet control()}
-						<div class="layout-x-wrap w-full justify-between">
-							<div class="layout-y-start-low min-w-0">
-								<span
-									class="text-base leading-tight font-semibold text-surface-900 dark:text-surface-50"
-									>{name}</span
-								>
-								{#if comment?.length}
-									<span class="text-surface-500-300 text-xs">{comment}</span>
-								{/if}
-							</div>
-							<span
-								class="text-surface-500-300 rounded-full border border-dashed border-surface-400-600/60 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase"
-							>
-								{requestables.length} item{requestables.length > 1 ? 's' : ''}
-							</span>
-						</div>
-					{/snippet}
 					{#snippet panel()}
 						<div class="space-y-3">
 							<AccordionGroup multiple>
