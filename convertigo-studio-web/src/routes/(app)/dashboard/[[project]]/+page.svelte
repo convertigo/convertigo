@@ -130,7 +130,7 @@
 				</div>
 				<div class="relative">
 					<div
-						class="img-hover-zoom flex justify-center rounded-lg dark:opacity-70"
+						class="img-hover-zoom layout-x-none justify-center rounded-lg dark:opacity-70"
 						style="background-color: {stringToColor(
 							name ?? `_${i}`,
 							LightSvelte.dark

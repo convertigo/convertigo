@@ -231,25 +231,23 @@
 		{/snippet}
 		{@render saveCancel()}
 		<AccordionGroup
-			bind:value={
-				() => (openedCategories.length ? openedCategories : getDefaultOpenedCategories()),
-				(v) => {
-					openedCategories = v;
-					clickedCategories = v;
-				}
-			}
+			value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
+			onValueChange={({ value }) => {
+				openedCategories = value;
+				clickedCategories = value;
+			}}
 			multiple
 		>
 			{#each categories as { category, properties } (category)}
 				<AccordionSection
 					value={category}
 					class="rounded-container preset-filled-surface-50-950 shadow-follow"
-					triggerClass="flex items-center justify-between gap-low rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
+					triggerClass="layout-x-low items-center justify-between rounded-container px py-low text-left transition-colors duration-200 hover:bg-surface-200-800"
 					panelClass="px-3 pb-4 bg-transparent"
 					disabled={properties.length == 0}
 				>
 					{#snippet control()}
-						<div class="flex w-full flex-wrap items-center justify-between gap-3">
+						<div class="layout-x-wrap w-full items-center justify-between">
 							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50"
 								>{category}</span
 							>

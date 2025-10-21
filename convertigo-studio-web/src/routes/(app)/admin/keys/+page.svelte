@@ -71,7 +71,7 @@
 					<tr class="preset-filled-surface-100-900">
 						<th {colspan}>
 							<AutoPlaceholder {loading}>
-								<div class="layout-x flex-wrap justify-between p-low">
+								<div class="layout-x-wrap justify-between p-low">
 									<div>
 										{name}
 										{#if overflow == 'true'}

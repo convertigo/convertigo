@@ -21,7 +21,9 @@
 
 - `src/convertigo.plugin.js` generates `convertigo.utilities.css`; spacing tokens are `''` (standard), `-low`, and `-none`, and auto-scale with the `md` breakpoint.
 - Use the semantic utilities (`gap`, `px`, `layout-x`, `layout-y`, `layout-grid`, etc.). They already expose negative forms (`-px`, `-gap`) and margin/padding variants (`layout-x-m`, `layout-y-p`, ...), so avoid reintroducing raw Tailwind spacing values.
+- Always start from `layout-*` wrappers before reaching for Tailwind `flex`/`grid` classes. The utilities carry our responsive spacing and alignment defaults; manual `flex`, `gap-*`, `items-*` or `justify-*` should only appear when no equivalent helper exists.
 - `layout-x*` → horizontal flex wrappers, `layout-y*` → vertical stacks, `layout-grid*` → responsive auto-fit grids. The suffix sets spacing: `layout-x-low`, `layout-grid-[300px]`, `layout-y-stretch` (with alignment suffixes like `-start`, `-end`, `-stretch`).
+- Use the variants instead of stacking multiple layout helpers: e.g. `layout-x-wrap-low` for wrapping horizontal flows, `layout-y-start-low` for vertical stacks aligned to the start, `layout-x-between-none` for evenly spaced headers with tight gaps.
 - Do not sprinkle `md:` prefixes for spacing; the utilities already inject the desktop spacing. Add responsive modifiers only for behaviour (visibility, order, width).
 - When we need tight spacing on one axis only, combine the utilities: e.g. `layout-x gap-none` or `layout-y-low mt`.
 

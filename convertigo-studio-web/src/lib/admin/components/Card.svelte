@@ -27,7 +27,7 @@
 	{...rest}
 >
 	{#if title == null || title?.length > 0 || cornerOption}
-		<div class="layout-x w-full flex-wrap">
+		<div class="layout-x-wrap w-full">
 			{#if title == null}
 				<AutoPlaceholder class="max-w-48" loading={true} />
 			{/if}

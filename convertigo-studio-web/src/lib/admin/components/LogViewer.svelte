@@ -496,7 +496,7 @@
 <ModalDynamic bind:this={modalFilter}>
 	{@const { mode, category, value, not, sensitive } = modalFilterParams}
 	<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
-		<form onsubmit={modalFilterSubmit} class="flex flex-col gap-2">
+		<form onsubmit={modalFilterSubmit} class="layout-y-low">
 			{#if category == 'Message'}
 				<textarea
 					class="textarea overflow-auto"
@@ -507,7 +507,7 @@
 			{:else}
 				<input class="input" bind:value={modalFilterParams.value} />
 			{/if}
-			<div class="flex flex-wrap justify-between gap">
+			<div class="layout-x-wrap justify-between gap">
 				<PropertyType
 					name="negate"
 					type="check"
@@ -523,7 +523,7 @@
 					bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
 				/>
 			</div>
-			<div class="flex flex-wrap gap-2">
+			<div class="layout-x-wrap-low">
 				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
 					<button
 						type="submit"
@@ -544,7 +544,7 @@
 	<div class="layout-y-stretch-low">
 		{#if showFilters.current}
 			<div
-				class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1"
+				class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 p-1"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -589,7 +589,7 @@
 				</div>
 			</div>
 		{/if}
-		<div class="mx-low layout-x-low flex-wrap rounded-sm preset-filled-surface-200-800 p-1">
+		<div class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 p-1">
 			<div class="mini-card preset-filled-primary-100-900">
 				<Button
 					{size}
@@ -683,7 +683,7 @@
 			</div>
 			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index }, idx (ts)}
 				<div
-					class="flex flex-row"
+					class="layout-x-none"
 					animate:flip={{ duration }}
 					transition:slide={{ axis: 'x', duration }}
 				>
@@ -720,7 +720,7 @@
 			{/each}
 		</div>
 		<div
-			class="flex flex-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
+			class="layout-x-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
 			style="height: {2 + extraLines * 18}px"
 		>
 			{#each columns as { name, cls, style } (name)}
@@ -762,8 +762,7 @@
 						<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
 							<div
 								class={[
-									'flex',
-									'flex-wrap',
+									'layout-x-wrap',
 									'overflow-y-hidden',
 									'items-baseline',
 									'opacity-90',

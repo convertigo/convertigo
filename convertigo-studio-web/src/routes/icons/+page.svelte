@@ -19,13 +19,13 @@
 	>
 		{#each Object.keys(data) as pkg}
 			<div
-				class="col-span-full card border-[1px] border-surface-300-700 preset-filled-surface-200-800 p-2"
+				class="col-span-full card border border-surface-300-700 preset-filled-surface-200-800 p-2"
 			>
 				{pkg}
 			</div>
 			{#each data[pkg] as name}
 				<div
-					class="flex flex-col items-center gap-2 card border-[1px] border-surface-300-700 preset-filled-surface-200-800 p-2"
+					class="layout-y-low items-center card border border-surface-300-700 preset-filled-surface-200-800 p-2"
 				>
 					<Ico icon="{pkg}:{name}" size="10" />
 					<!-- <Ico icon="{pkg}:{name}" animate={{ duration: 1000 }} repeat={true} size="10" /> -->

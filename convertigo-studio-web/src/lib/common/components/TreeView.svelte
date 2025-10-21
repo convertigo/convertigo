@@ -17,7 +17,7 @@
 			name: 'Root',
 			children: []
 		},
-		controlClass = 'flex items-center gap-2 cursor-pointer',
+		controlClass = 'layout-x-low cursor-pointer',
 		textClass = 'text-sm',
 		indicatorClass = 'ml-auto text-muted',
 		childrenClass = 'pl-4',

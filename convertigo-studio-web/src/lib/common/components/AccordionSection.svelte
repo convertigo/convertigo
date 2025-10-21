@@ -44,7 +44,7 @@
 	} = $props();
 
 	const triggerClasses = [
-		'flex w-full items-center justify-between gap-3 rounded-sm px-low py-low text-left',
+		'layout-x-between w-full rounded-sm px-low py-low text-left',
 		triggerClass
 	]
 		.filter(Boolean)
@@ -87,7 +87,7 @@
 >
 	<Accordion.ItemTrigger class={triggerClasses} {disabled}>
 		{#if control}
-			<div class="flex w-full items-center justify-between gap-3">
+			<div class="layout-x-between w-full">
 				<div class="min-w-0 grow">
 					{@render control?.()}
 				</div>
@@ -96,8 +96,8 @@
 				</span>
 			</div>
 		{:else if showDefaultHeader}
-			<div class="flex w-full items-center justify-between gap-3">
-				<div class="flex min-w-0 grow items-start gap-2">
+			<div class="layout-x-between w-full">
+				<div class="layout-x-start-low min-w-0 grow">
 					{#if leadingIcon}
 						<span aria-hidden="true" class={`mt-0.5 ${leadingIconClass}`}>{leadingIcon}</span>
 					{/if}
@@ -115,7 +115,7 @@
 						{/if}
 					</div>
 				</div>
-				<div class="flex shrink-0 items-center gap-2">
+				<div class="layout-x-low shrink-0">
 					{#if typeof count === 'number'}
 						<span
 							class="rounded-full border border-surface-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide text-surface-500 uppercase"

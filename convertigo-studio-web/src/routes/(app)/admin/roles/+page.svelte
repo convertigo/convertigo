@@ -206,7 +206,7 @@
 					{/snippet}
 				</TableAutoCard>
 
-				<div class="layout-x max-sm:flex-wrap">
+				<div class="layout-x-wrap">
 					{@render roleCard({
 						roles: rowSelected.roles,
 						role: tpSelected == ' ' ? 'TEST_PLATFORM' : tpSelected
@@ -287,11 +287,11 @@
 									{file}
 									class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
 								>
-									<div class="layout-x-low items-center gap-low">
+									<div class="layout-x-low">
 										<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
 										<FileUpload.ItemName />
 									</div>
-									<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+									<div class="layout-x-low text-xs text-surface-500">
 										<FileUpload.ItemSizeText />
 										<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
 											<Ico icon="mdi:delete-outline" size="3" />
@@ -476,7 +476,7 @@
 					{/if}
 				</fieldset>
 			{:else}
-				<div class="layout-x-low flex-wrap text-xs">
+				<div class="layout-x-wrap-low text-xs">
 					{#each row.roles as role}
 						{@render roleCard({ roles: row.roles, role })}
 					{/each}

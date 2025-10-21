@@ -143,7 +143,7 @@
 				{#each Object.values(accessibilities) as accessibility, idx}
 					<button
 						type="button"
-						class="flex h-full items-center rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 {accessibility.chip}"
+						class="layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 {accessibility.chip}"
 						class:rounded-l={idx === 0}
 						class:rounded-r={idx === 2}
 						class:opacity-50={!accessibility.enabled}
@@ -164,10 +164,12 @@
 	<AccordionGroup
 		class="-mx-low"
 		multiple
-		bind:value={
-			() => (searchQuery.length ? parts.map(({ name }) => name) : partsOpened),
-			(v) => (partsOpened = v)
-		}
+		value={searchQuery.length ? parts.map(({ name }) => name) : partsOpened}
+		onValueChange={({ value }) => {
+			if (!searchQuery.length) {
+				partsOpened = value;
+			}
+		}}
 	>
 		{#each parts as part, partIdx (part.name)}
 			{@const { name, requestables, comment } = part}
@@ -175,12 +177,12 @@
 				<AccordionSection
 					value={part.name}
 					class="rounded-container bg-surface-100-900 shadow-follow"
-					triggerClass="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
+					triggerClass="layout-x-between w-full rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
 					panelClass="px-low pb-low"
 				>
 					{#snippet control()}
-						<div class="flex w-full flex-wrap items-center justify-between gap-3">
-							<div class="flex min-w-0 flex-col">
+						<div class="layout-x-wrap w-full justify-between">
+							<div class="layout-y-start-low min-w-0">
 								<span
 									class="text-base leading-tight font-semibold text-surface-900 dark:text-surface-50"
 									>{name}</span
@@ -201,10 +203,7 @@
 							<AccordionGroup multiple>
 								{#each requestables as requestable, requestableIdx (requestable.name)}
 									{@const { name, accessibility, comment } = requestable}
-									<div
-										animate:flip={{ duration }}
-										transition:fly={{ duration, y }}
-									>
+									<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 										<AccordionSection
 											value={`${part.name}.${name}`}
 											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-colors duration-200 data-[state=open]:border-surface-300-700"
@@ -213,7 +212,7 @@
 										>
 											{#snippet control()}
 												<div
-													class="flex w-full items-stretch gap-3 rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40 dark:group-data-[state=open]:bg-surface-900/40"
+													class="layout-x-stretch w-full rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40"
 												>
 													<span
 														aria-hidden="true"
@@ -228,7 +227,7 @@
 															class={accessibilities[accessibility].tone}
 														/>
 													</span>
-													<div class="flex min-w-0 flex-1 flex-col justify-center gap-1 text-left">
+													<div class="layout-y-start-low min-w-0 flex-1 justify-center text-left">
 														<span
 															class="text-sm leading-tight font-semibold text-surface-900 dark:text-surface-50"
 															>{name}</span
@@ -241,7 +240,7 @@
 														{/if}
 													</div>
 													<span
-														class={`hidden items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold tracking-wide uppercase ${accessibilities[accessibility].soft} sm:flex`}
+														class={`hidden rounded-full px-2 py-1 text-[11px] font-semibold tracking-wide uppercase ${accessibilities[accessibility].soft} sm:layout-x-low sm:items-center`}
 													>
 														<Ico
 															icon={accessibilities[accessibility].icon}
@@ -254,10 +253,10 @@
 											{/snippet}
 											{#snippet panel()}
 												<form
-													onsubmit={async (e) => {
+													onsubmit={(e) => {
 														run(requestable, e);
 													}}
-													class="layout-y-stretch-low gap-4 px-3 pt-3 pb-4"
+													class="layout-y-stretch px-3 pt-3 pb-4"
 												>
 													{#if part.name == 'Sequences'}
 														<input type="hidden" name="__sequence" value={name} />
@@ -285,14 +284,12 @@
 															<AccordionSection
 																value={`${requestableIdx}`}
 																class="rounded-lg"
-																triggerClass="group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-500-300"
+																triggerClass="group layout-x-low w-full justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-500-300"
 																panelClass="px-3 pb-3 pt-0 bg-transparent"
 															>
 																{#snippet control()}
-																	<div
-																		class="flex w-full flex-wrap items-center justify-between gap-2"
-																	>
-																		<div class="flex items-center gap-2">
+																	<div class="layout-x-wrap-low w-full justify-between">
+																		<div class="layout-x-low">
 																			<span
 																				aria-hidden="true"
 																				class={`h-2 w-2 rounded-full ${accessibilities[accessibility].accent}`}
@@ -312,7 +309,7 @@
 																	</div>
 																{/snippet}
 																{#snippet panel()}
-																	<div class="grid gap-3 sm:grid-cols-2">
+																	<div class="layout-grid-[240px] sm:layout-grid-[280px]">
 																		{#each requestable.testcase as testcase}
 																			<Card title={testcase.name} bg="bg-surface-50-950/70">
 																				{#snippet cornerOption()}
@@ -352,7 +349,7 @@
 														</AccordionGroup>
 													{/if}
 													<div
-														class="flex flex-col gap-3 rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/60 p-3 md:flex-row md:items-center md:justify-between"
+														class="layout-y-low rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/60 p-3 md:layout-x-low md:items-center md:justify-between"
 													>
 														<PropertyType
 															type="segment"
@@ -360,7 +357,7 @@
 															item={modes}
 															fit={true}
 														/>
-														<div class="flex flex-wrap items-center justify-end gap-2">
+														<div class="layout-x-wrap-low justify-end">
 															<Button
 																label="Execute"
 																type="submit"

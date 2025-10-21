@@ -195,7 +195,7 @@
 	{#snippet children({ close, params: { symbols, project } })}
 		<Card title="Undefined Global Symbols" class="w-full">
 			<p>Find here the undefined Global Symbols for the project <b>{project}</b>:</p>
-			<div class="layout-x w-full flex-wrap">
+			<div class="layout-x-wrap w-full">
 				{#each symbols as symbol}
 					<div class="rounded-sm preset-filled-secondary-200-800 px-low">{symbol}</div>
 				{/each}

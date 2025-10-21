@@ -28,7 +28,7 @@
 				/>
 			{/snippet}
 			<p>Choose the desired cache type</p>
-			<div class="layout-x w-full flex-wrap justify-around!">
+			<div class="layout-x-wrap-low w-full justify-around!">
 				<PropertyType
 					name="cacheType"
 					item={[

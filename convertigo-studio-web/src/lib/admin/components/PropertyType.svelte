@@ -100,19 +100,13 @@
 						onValueChange={(event) => (value = event.value ?? '')}
 						class="w-full"
 					>
-						<SegmentedControl.Control
-							class="relative flex w-full gap-none overflow-hidden border border-surface-200-800 bg-surface-50 dark:border-surface-700 dark:bg-surface-900"
-						>
-							<SegmentedControl.Indicator
-								class="preset-filled-primary-200-800 text-primary-contrast-200-800"
-							/>
+						<SegmentedControl.Control>
+							<SegmentedControl.Indicator class="preset-filled-primary-200-800" />
 							{#each item as option}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
 								<SegmentedControl.Item value={val} class="flex-1">
-									<SegmentedControl.ItemText
-										class="block w-full py-2 px-low text-center text-sm font-medium"
-									>
+									<SegmentedControl.ItemText class=" px-2 py-2 text-sm font-medium">
 										{txt}
 									</SegmentedControl.ItemText>
 									<SegmentedControl.ItemHiddenInput />

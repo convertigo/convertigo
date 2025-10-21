@@ -29,7 +29,9 @@
 
 <DateRangePicker.Root bind:value weekdayFormat="short" weekStartsOn={1} locale="fr-FR">
 	<div class="max-w-92 border-common">
-		<div class="input-text button flex input-common preset-filled-surface-200-800 light:bg-white">
+		<div
+			class="input-text button layout-x-none input-common preset-filled-surface-200-800 light:bg-white"
+		>
 			<DateRangePicker.Trigger class="-m-1 rounded-base p-1 hover:bg-black/30">
 				<Ico size="6" icon="mdi:calendar-range" />
 			</DateRangePicker.Trigger>
@@ -69,7 +71,7 @@
 			class="mt-6 inline-block card border border-surface-200-800 preset-filled-surface-200-800 p-4 shadow-xl"
 		>
 			{#snippet children({ months, weekdays })}
-				<DateRangePicker.Header class="flex items-center justify-between">
+				<DateRangePicker.Header class="layout-x-between">
 					<DateRangePicker.PrevButton class="btn-icon preset-filled-primary-500"
 						>❮</DateRangePicker.PrevButton
 					>
@@ -78,11 +80,11 @@
 						>❯</DateRangePicker.NextButton
 					>
 				</DateRangePicker.Header>
-				<div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+				<div class="layout-y-stretch pt-4 sm:layout-x-stretch">
 					{#each months as month (month.value)}
 						<DateRangePicker.Grid class="w-full border-collapse space-y-1 select-none">
 							<DateRangePicker.GridHead>
-								<DateRangePicker.GridRow class="mb-1 flex w-full justify-between">
+								<DateRangePicker.GridRow class="mb-1 layout-x-between w-full">
 									{#each weekdays as day (day)}
 										<DateRangePicker.HeadCell
 											class="w-10 text-xs font-normal! odd:preset-filled-primary-400-600 even:preset-filled-primary-500"
@@ -94,7 +96,7 @@
 							</DateRangePicker.GridHead>
 							<DateRangePicker.GridBody>
 								{#each month.weeks as weekDates (weekDates)}
-									<DateRangePicker.GridRow class="flex w-full">
+									<DateRangePicker.GridRow class="layout-x-stretch-none w-full">
 										{#each weekDates as date (date)}
 											<DateRangePicker.Cell
 												{date}

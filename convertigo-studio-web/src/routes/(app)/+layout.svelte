@@ -24,7 +24,7 @@
 	<Dialog.Trigger class="hidden" />
 	<Portal>
 		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/30 backdrop-blur-sm" />
-		<Dialog.Positioner class="fixed inset-0 flex justify-start">
+		<Dialog.Positioner class="fixed inset-0 layout-x-stretch-none justify-start">
 			<Dialog.Content
 				class="h-full max-h-screen w-80 max-w-full -translate-x-full overflow-y-auto bg-surface-50-950 p-low transition-transform duration-200 data-[state=open]:translate-x-0 dark:bg-surface-900"
 			>
@@ -35,7 +35,7 @@
 	</Portal>
 </Dialog>
 
-<div class="flex min-h-screen flex-col" class:blur-xs={!browser}>
+<div class="layout-y-stretch-none min-h-screen" class:blur-xs={!browser}>
 	<Topbar bind:showLeft bind:showDrawer />
 
 	<div class="layout-y-stretch grow gap-0! md:layout-x-stretch">

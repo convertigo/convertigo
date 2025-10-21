@@ -146,7 +146,7 @@
 				>
 					<AccordionSection value="advanced">
 						{#snippet control()}
-							<div class="flex items-center gap text-lg font-medium">
+							<div class="layout-x text-lg font-medium">
 								<Ico icon="mdi:star-three-points-outline" />
 								<span>Advanced Properties</span>
 							</div>

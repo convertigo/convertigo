@@ -106,7 +106,7 @@
 	});
 </script>
 
-<div class="layout-x-low flex-wrap">
+<div class="layout-x-wrap-low">
 	{#each def as { title, values, labels }, i}
 		<div class="w-fit">
 			<PropertyType

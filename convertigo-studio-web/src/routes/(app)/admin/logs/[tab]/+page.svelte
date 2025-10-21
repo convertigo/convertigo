@@ -302,7 +302,7 @@
 							<div class="layout-x-end-low flex-wrap">
 								<div class="layout-x-end-low flex-wrap">
 									<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
-										<Popover.Trigger class="button-primary flex items-center gap-low">
+										<Popover.Trigger class="button-primary layout-x-low">
 											Preset<Ico icon="mdi:clock-star-four-points-outline" />
 										</Popover.Trigger>
 										<Popover.Positioner class="z-40">

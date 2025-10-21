@@ -343,7 +343,7 @@
 									{/if}
 									{#if id != 'none'}
 										<picture
-											class="z-10 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-sm"
+											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center overflow-hidden rounded-sm"
 											aria-hidden="true"
 										>
 											<source srcset={asset(`/bezels/thumbnails/${id}.webp`)} type="image/webp" />
@@ -356,7 +356,7 @@
 										</picture>
 									{:else}
 										<div
-											class="z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-surface-500 uppercase"
+											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-surface-500 uppercase"
 											aria-hidden="true"
 										>
 											No frame
@@ -465,11 +465,11 @@
 				></iframe>
 				{#if showStatusBar && selectedDevice.type === 'phone' && orientation === 'vertical'}
 					<div
-						class="absolute top-[min(18px,5%)] left-1/2 z-10 flex w-[min(260px,70%)] -translate-x-1/2 items-center justify-between rounded-full bg-gradient-to-b from-surface-900/80 to-surface-900/55 px-3 py-[4px] text-[10px] font-semibold tracking-[0.08em] text-white/90 shadow-md/40 shadow-surface-900-100 backdrop-blur-lg"
+						class="absolute top-[min(18px,5%)] left-1/2 z-10 layout-x-between w-[min(260px,70%)] -translate-x-1/2 items-center rounded-full bg-gradient-to-b from-surface-900/80 to-surface-900/55 px-3 py-[4px] text-[10px] font-semibold tracking-[0.08em] text-white/90 shadow-md/40 shadow-surface-900-100 backdrop-blur-lg"
 						aria-hidden="true"
 					>
 						<span class="[font-variant-numeric:tabular-nums]">9:41</span>
-						<div class="flex items-center gap-1.5">
+						<div class="layout-x-low">
 							<span class="inline-block h-[5px] w-[34px] rounded-full bg-white/75"></span>
 							<span class="inline-block h-[5px] w-[5px] rounded-full bg-white/75"></span>
 							<span
