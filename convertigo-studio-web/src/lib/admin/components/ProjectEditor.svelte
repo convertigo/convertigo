@@ -183,7 +183,7 @@
 		textClass="text-sm font-medium"
 		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
 		childrenClass="border-l border-surface-200-800 pl-2"
-		controlClass="layout-x-low rounded-base py-1 transition-colors duration-200 hover:bg-surface-200-800"
+		controlClass="layout-x-low rounded-base py-1 transition-soft hover:bg-surface-200-800"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
 			{#if node.icon?.includes('?')}
@@ -260,7 +260,7 @@
 							<TableAutoCard
 								showHeaders={false}
 								showNothing={false}
-								trClass="transition-colors duration-150 hover:bg-surface-200-800"
+								trClass="transition-surface hover:bg-surface-200-800"
 								definition={propertyTableDefinition}
 								animationProps={{ duration: 120 }}
 								data={properties}

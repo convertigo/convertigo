@@ -71,7 +71,7 @@
 				onCheckedChange={(e) => (checked = e.checked)}
 			>
 				<Switch.Control
-					class="min-w-12 rounded-full preset-filled-error-200-800 motif-error p-1 transition-colors duration-150 data-[state=checked]:preset-filled-success-200-800"
+					class="min-w-12 rounded-full preset-filled-error-200-800 motif-error p-1 transition-surface data-[state=checked]:preset-filled-success-200-800"
 				>
 					<Switch.Thumb
 						class="grid h-5 w-5 place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5"

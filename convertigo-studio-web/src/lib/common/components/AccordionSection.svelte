@@ -64,10 +64,14 @@
 	);
 
 	const triggerClasses = $derived(
-		['layout-x-between w-full px-low py-low text-left', triggerClass].filter(Boolean).join(' ')
+		['layout-x-between w-full px-low py-low text-left transition-surface', triggerClass]
+			.filter(Boolean)
+			.join(' ')
 	);
 
-	const panelClasses = $derived(['px-low pb-low', panelClass].filter(Boolean).join(' '));
+	const panelClasses = $derived(
+		['px-low pb-low transition-surface', panelClass].filter(Boolean).join(' ')
+	);
 	const header = control ?? defaultHeader;
 	const body = panel ?? children;
 	const resolvedLead = $derived(lead ?? (leadingIcon ? defaultLead : undefined));
@@ -134,7 +138,7 @@
 						leadingIcon,
 						leadingIconClass
 					})}
-					<div class="layout-y-low min-w-0">
+					<div class="layout-y-start-low min-w-0">
 						{#if title}
 							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50">
 								{title}

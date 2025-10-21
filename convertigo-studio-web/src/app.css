@@ -119,6 +119,24 @@
 	@apply button text-success-700-300;
 }
 
+@utility transition-surface {
+	transition-property: background-color, color, border-color, box-shadow;
+	transition-duration: 160ms;
+	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+@utility transition-soft {
+	transition-property: background-color, color, border-color, box-shadow, transform;
+	transition-duration: 200ms;
+	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+:root {
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-surface-duration: 160ms;
+	--transition-soft-duration: 200ms;
+}
+
 @utility button-ico-warning {
 	@apply button text-warning-500;
 }

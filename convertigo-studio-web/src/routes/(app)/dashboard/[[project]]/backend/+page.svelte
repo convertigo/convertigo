@@ -177,7 +177,7 @@
 				<AccordionSection
 					value={part.name}
 					class="rounded-container bg-surface-100-900 shadow-follow"
-					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-colors duration-200 hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
+					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-surface hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
 					panelClass="px-low pb-low"
 					title={name}
 					subtitle={comment}
@@ -191,13 +191,13 @@
 									<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
 										<AccordionSection
 											value={`${part.name}.${name}`}
-											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-colors duration-200 data-[state=open]:border-surface-300-700"
+											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-surface data-[state=open]:border-surface-300-700"
 											triggerClass="w-full rounded-xl text-left px-0 py-0"
 											panelClass="px-0 py-0 bg-transparent"
 										>
 											{#snippet control()}
 												<div
-													class="layout-x-stretch w-full rounded-xl px-3 py-3 transition-colors duration-200 group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40"
+													class="layout-x-stretch w-full rounded-xl px-3 py-3 transition-soft group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40"
 												>
 													<span
 														aria-hidden="true"
