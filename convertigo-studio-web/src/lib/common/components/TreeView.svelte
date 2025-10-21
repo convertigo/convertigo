@@ -1,6 +1,9 @@
 <script>
-	import { normalizeProps, useMachine } from '@zag-js/svelte';
-	import * as tree from '@zag-js/tree-view';
+	import {
+		createTreeViewCollection,
+		TreeView as SkeletonTreeView,
+		useTreeView
+	} from '@skeletonlabs/skeleton-svelte';
 	import TreeNode from './TreeNode.svelte';
 
 	/** @type {any} */
@@ -30,7 +33,7 @@
 	} = $props();
 
 	let collection = $state(
-		tree.collection({
+		createTreeViewCollection({
 			nodeToValue: (node) => node.id,
 			nodeToString: (node) => node.name,
 			rootNode
@@ -38,20 +41,18 @@
 	);
 
 	function onLoadChildrenComplete({ collection: c }) {
-		console.log('Load children complete', c);
 		collection = c;
 	}
 
 	const id = $props.id();
-	const service = /** @type {any} */ (
-		useMachine(/** @type {any} */ (tree.machine), () => ({
-			id,
-			collection,
-			onLoadChildrenComplete,
-			...zagProps
-		}))
-	);
-	const api = /** @type {any} */ ($derived(tree.connect(service, normalizeProps)));
+	const treeView = useTreeView(() => ({
+		id,
+		collection,
+		onLoadChildrenComplete,
+		...zagProps
+	}));
+	const api = $derived(treeView());
+
 	export function setSelectedValue(value) {
 		return api.setSelectedValue(value);
 	}
@@ -63,17 +64,19 @@
 	export function setExpandedValue(value) {
 		return api.setExpandedValue(value);
 	}
+
+	const rootClass = ['convertigo-treeview', base, classes].filter(Boolean).join(' ').trim();
 </script>
 
-<div {...api.getRootProps()} class="{base} {classes}" data-testid="tree-view">
+<SkeletonTreeView.Provider value={treeView} class={rootClass} data-testid="tree-view">
 	{#if !!label}
-		<h3 {...api.getLabelProps()} class={labelBase}>{@render label()}</h3>
+		<SkeletonTreeView.Label class={labelBase}>{@render label()}</SkeletonTreeView.Label>
 	{/if}
-	<div {...api.getTreeProps()} class={treeBase}>
+	<SkeletonTreeView.Tree class={treeBase}>
 		{#each collection.rootNode.children as node, index}
 			<TreeNode
 				{node}
-				{api}
+				{treeView}
 				indexPath={[index]}
 				{nodeIcon}
 				{nodeText}
@@ -86,5 +89,25 @@
 				{nodeClass}
 			/>
 		{/each}
-	</div>
-</div>
+	</SkeletonTreeView.Tree>
+</SkeletonTreeView.Provider>
+
+<style lang="postcss">
+	@reference '../../../app.css';
+
+	:global(.convertigo-treeview) {
+		--convertigo-tree-indent: 0.75;
+	}
+
+	:global(.convertigo-treeview [data-part='branch-control']) {
+		padding-inline-start: calc(var(--depth) * var(--spacing) * var(--convertigo-tree-indent));
+	}
+
+	:global(.convertigo-treeview [data-part='branch-indent-guide']) {
+		margin-inline-start: calc(var(--depth) * var(--spacing) * var(--convertigo-tree-indent));
+	}
+
+	:global(.convertigo-treeview [data-part='item']) {
+		padding-inline-start: calc(var(--depth) * var(--spacing) * var(--convertigo-tree-indent));
+	}
+</style>

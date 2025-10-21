@@ -1,4 +1,5 @@
 <script>
+	import { TreeView as SkeletonTreeView } from '@skeletonlabs/skeleton-svelte';
 	import { slide } from 'svelte/transition';
 	import TreeNode from './TreeNode.svelte';
 
@@ -6,7 +7,7 @@
 		animationConfig,
 		node,
 		indexPath,
-		api,
+		treeView,
 		controlClass,
 		textClass,
 		indicatorClass,
@@ -17,90 +18,106 @@
 		nodeClass
 	} = $props();
 
-	let nodeState = $derived(api.getNodeState({ node, indexPath }));
+	const api = $derived(treeView());
+	const nodeProps = $derived({ node, indexPath });
+	const nodeState = $derived(api.getNodeState(nodeProps));
 
-	const toggleBranch = (event) => {
+	const isBranch = $derived(nodeState.isBranch);
+
+	function toggleBranch(event) {
 		event?.preventDefault?.();
 		event?.stopPropagation?.();
 		if (!nodeState.isBranch) return;
 		api[nodeState.expanded ? 'collapse' : 'expand'](nodeState.value);
-	};
+	}
+
+	function selectLeaf() {
+		api.setSelectedValue([nodeState.value]);
+	}
+
+	const itemClass = $derived([controlClass, nodeClass].filter(Boolean).join(' ').trim());
 </script>
 
-{#snippet nodeCommon({ node, indexPath })}
-	{#if !!nodeIcon}
-		{@render nodeIcon({
-			api,
-			node,
-			nodeState,
-			indexPath
-		})}
-	{/if}
-	<span {...api.getBranchTextProps({ node, indexPath })} class={textClass}>
-		{#if !!nodeText}
-			{@render nodeText({
-				api,
-				node,
-				nodeState,
-				indexPath
-			})}
-		{:else}
-			{node.name}
-		{/if}
-	</span>
-{/snippet}
-
-{#if nodeState.isBranch}
-	<div {...api.getBranchProps({ node, indexPath })} class={nodeClass}>
-		<div
-			{...api.getBranchControlProps({ node, indexPath })}
-			class={controlClass}
-			ondblclick={toggleBranch}
-		>
-			{@render nodeCommon({ node, indexPath })}
-			<span {...api.getBranchIndicatorProps({ node, indexPath })} class={indicatorClass}>
-				{#if !!nodeIndicator}
-					{@render nodeIndicator({
+<SkeletonTreeView.NodeProvider value={nodeProps}>
+	{#if isBranch}
+		<SkeletonTreeView.Branch class={nodeClass}>
+			<SkeletonTreeView.BranchControl class={controlClass} ondblclick={toggleBranch}>
+				{#if !!nodeIcon}
+					{@render nodeIcon({
 						api,
 						node,
 						nodeState,
 						indexPath
 					})}
-				{/if}</span
-			>
-		</div>
-		{#if nodeState.expanded}
-			<div
-				{...api.getBranchContentProps({ node, indexPath })}
-				class={childrenClass}
-				transition:slide={animationConfig}
-			>
-				<div {...api.getBranchIndentGuideProps({ node, indexPath })}></div>
-				{#each node.children as child, index}
-					<TreeNode
-						{api}
-						{animationConfig}
-						node={child}
-						indexPath={[...indexPath, index]}
-						{nodeIcon}
-						{nodeText}
-						{nodeIndicator}
-						{controlClass}
-						{textClass}
-						{indicatorClass}
-						{childrenClass}
-						{nodeClass}
-					/>
-				{/each}
-			</div>
-		{/if}
-	</div>
-{:else}
-	<div
-		{...api.getItemProps({ node, indexPath })}
-		class="{controlClass} {nodeClass}"
-		ondblclick={() => api.setSelectedValue([nodeState.value])}
-	>
-		{@render nodeCommon({ node, indexPath })}
-	</div>
-{/if}
+				{/if}
+				<SkeletonTreeView.BranchText class={textClass}>
+					{#if !!nodeText}
+						{@render nodeText({
+							api,
+							node,
+							nodeState,
+							indexPath
+						})}
+					{:else}
+						{node.name}
+					{/if}
+				</SkeletonTreeView.BranchText>
+				<SkeletonTreeView.BranchIndicator class={indicatorClass}>
+					{#if !!nodeIndicator}
+						{@render nodeIndicator({
+							api,
+							node,
+							nodeState,
+							indexPath
+						})}
+					{/if}
+				</SkeletonTreeView.BranchIndicator>
+			</SkeletonTreeView.BranchControl>
+			<SkeletonTreeView.BranchContent class={childrenClass}>
+				{#if Array.isArray(node.children) && node.children.length}
+					<div transition:slide={animationConfig}>
+						{#each node.children as child, index}
+							<TreeNode
+								{treeView}
+								{animationConfig}
+								node={child}
+								indexPath={[...indexPath, index]}
+								{nodeIcon}
+								{nodeText}
+								{nodeIndicator}
+								{controlClass}
+								{textClass}
+								{indicatorClass}
+								{childrenClass}
+								{nodeClass}
+							/>
+						{/each}
+					</div>
+				{/if}
+			</SkeletonTreeView.BranchContent>
+		</SkeletonTreeView.Branch>
+	{:else}
+		<SkeletonTreeView.Item class={itemClass} ondblclick={selectLeaf}>
+			{#if !!nodeIcon}
+				{@render nodeIcon({
+					api,
+					node,
+					nodeState,
+					indexPath
+				})}
+			{/if}
+			<span class={textClass}>
+				{#if !!nodeText}
+					{@render nodeText({
+						api,
+						node,
+						nodeState,
+						indexPath
+					})}
+				{:else}
+					{node.name}
+				{/if}
+			</span>
+		</SkeletonTreeView.Item>
+	{/if}
+</SkeletonTreeView.NodeProvider>
