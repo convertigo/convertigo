@@ -400,7 +400,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "300000", "Max log message length before truncation (-1 disables)", PropertyCategory.Logs),
+		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "16383", "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1211,8 +1211,7 @@ public class EnginePropertiesManager {
 		public Throwable getThrown() {
 			return delegate.getThrown();
 		}
-
-		@SuppressWarnings("deprecation")
+		
 		@Override
 		public ThrowableProxy getThrownProxy() {
 			return delegate.getThrownProxy();
