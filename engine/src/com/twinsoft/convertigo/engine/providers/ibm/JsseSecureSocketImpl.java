@@ -49,15 +49,6 @@ public class JsseSecureSocketImpl extends SecureSocket implements HandshakeCompl
 
 	}
 
-	@SuppressWarnings({ "removal" })
-	@Override
-	protected void finalize() throws Throwable {
-		if (secureSocket != null) {
-			((SSLSocket)secureSocket).removeHandshakeCompletedListener(this);
-		}
-		super.finalize();
-	}
-
 
 	@SuppressWarnings("rawtypes")
 	@Override

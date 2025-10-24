@@ -140,12 +140,6 @@ public class SapJcoConnector extends Connector {
 		
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-	}
-	
 	@Override
 	protected void addTransaction(Transaction transaction) throws EngineException {
 		if (!(transaction instanceof SapJcoTransaction))

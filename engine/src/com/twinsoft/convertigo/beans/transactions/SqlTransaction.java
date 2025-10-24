@@ -348,15 +348,6 @@ public class SqlTransaction extends TransactionWithVariables {
 		return clonedObject;
 	}
 
-	@SuppressWarnings("removal")
-	@Override
-	protected void finalize() throws Throwable {
-		if (preparedStatement != null)
-			preparedStatement.close();
-
-		super.finalize();
-	}
-
 	@Override
 	public void setStatisticsOfRequestFromCache() {
 		// Nothing to do

@@ -52,6 +52,7 @@ public class CicsConnector extends Connector {
 		if (javaGatewayObject == null) {
 			javaGatewayObject = new JavaGateway(mainframeName, port);
 			Engine.logBeans.debug("(CicsConnector) The address of the Cics Transaction Gateway has been set to "+ mainframeName + ", port:" + port);
+			registerGatewayCleanup(javaGatewayObject);
 		}
 		else {
 			if (!javaGatewayObject.isOpen())
@@ -68,6 +69,16 @@ public class CicsConnector extends Connector {
 			if (javaGatewayObject.isOpen())
 				javaGatewayObject.close();
 		}
+	}
+
+	private void registerGatewayCleanup(JavaGateway gateway) {
+		if (gateway == null) {
+			return;
+		}
+		if (gatewayCleanable != null) {
+			gatewayCleanable.clean();
+		}
+		gatewayCleanable = Engine.RESOURCE_CLEANER.register(this, new GatewayCleanup(gateway));
 	}
 	
 	public boolean existGateway() {
@@ -87,12 +98,20 @@ public class CicsConnector extends Connector {
 	/**
 	 * 
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
-	protected void finalize() throws Throwable {
-		closeGateway();
-		javaGatewayObject = null;
-		super.finalize();
+	public void release() {
+		super.release();
+		try {
+			closeGateway();
+		} catch (IOException e) {
+			Engine.logBeans.warn("(CicsConnector) Unable to close the gateway", e);
+		} finally {
+			if (gatewayCleanable != null) {
+				gatewayCleanable.clean();
+				gatewayCleanable = null;
+			}
+			javaGatewayObject = null;
+		}
 	}
 
 	/**
@@ -158,8 +177,30 @@ public class CicsConnector extends Connector {
 		Engine.logBeans.debug("(CicsConnector) Request on CICS Gateway: "+ mainframeName);
 	}
 
+	private static final class GatewayCleanup implements Runnable {
+		private final JavaGateway gateway;
+
+		GatewayCleanup(JavaGateway gateway) {
+			this.gateway = gateway;
+		}
+
+		@Override
+		public void run() {
+			if (gateway != null) {
+				try {
+					if (gateway.isOpen()) {
+						gateway.close();
+					}
+				} catch (IOException e) {
+					Engine.logBeans.warn("(CicsConnector) Unable to close the gateway from cleaner", e);
+				}
+			}
+		}
+	}
+
 	/** The JavaGateway object to flow data to the Gateway. */
 	transient private JavaGateway javaGatewayObject;
+	transient private java.lang.ref.Cleaner.Cleanable gatewayCleanable;
 	    
 	/** Holds value of property mainframeName. */
 	private String mainframeName = "localhost";

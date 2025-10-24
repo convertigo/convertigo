@@ -454,13 +454,6 @@ public class ComponentManager {
 		components = null;
 	}
 	
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void finalize() throws Throwable {
-		clear();
-		super.finalize();
-	}
-	
 	private void readPropertyModels(JSONObject root) {
 		try {
 			JSONObject props = root.getJSONObject("Props");

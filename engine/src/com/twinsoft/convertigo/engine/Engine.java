@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.ref.Cleaner;
 import java.lang.reflect.Constructor;
 import java.security.Provider;
 import java.security.Security;
@@ -108,6 +109,8 @@ public class Engine {
 	public static String WEBAPP_PATH = "";
 	public static String CACHE_PATH = "";
 	public static String CONFIGURATION_PATH = "";
+
+	public static final Cleaner RESOURCE_CLEANER = Cleaner.create();
 
 	static {
 		// Do not forget to retrieve the canonical paths, i.e. the path

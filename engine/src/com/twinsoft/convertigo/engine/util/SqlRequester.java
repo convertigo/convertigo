@@ -43,6 +43,7 @@ public class SqlRequester {
 	 * The database connection.
 	 */
 	public Connection connection;
+	private transient java.lang.ref.Cleaner.Cleanable connectionCleanable;
 
 	/**
 	 * Constructs a SqlRequester object.
@@ -101,6 +102,7 @@ public class SqlRequester {
 		Engine.logEngine.debug("[SqlRequester] User password: " + jdbcUserPassword);
 
 		connection = DriverManager.getConnection(jdbcURL, jdbcUserName, jdbcUserPassword);
+		registerConnectionCleanup(connection);
 
 		Engine.logEngine.debug("[SqlRequester] " + text);
 	}
@@ -128,13 +130,41 @@ public class SqlRequester {
 			Engine.logEngine.error("[SqlRequester] Unable to close the database!", e);
 		}
 		connection = null;
+		if (connectionCleanable != null) {
+			connectionCleanable.clean();
+			connectionCleanable = null;
+		}
 	}
 
-	@SuppressWarnings({ "removal" })
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-		super.finalize();
+	private void registerConnectionCleanup(Connection connection) {
+		if (connection == null) {
+			return;
+		}
+		if (connectionCleanable != null) {
+			connectionCleanable.clean();
+		}
+		connectionCleanable = Engine.RESOURCE_CLEANER.register(this, new SqlRequesterCleanup(connection));
+	}
+
+	private static final class SqlRequesterCleanup implements Runnable {
+		private final Connection connection;
+
+		SqlRequesterCleanup(Connection connection) {
+			this.connection = connection;
+		}
+
+		@Override
+		public void run() {
+			if (connection != null) {
+				try {
+					if (!connection.isClosed()) {
+						connection.close();
+					}
+				} catch (SQLException e) {
+					Engine.logEngine.warn("[SqlRequester] Unable to close the database from cleaner", e);
+				}
+			}
+		}
 	}
 
 }

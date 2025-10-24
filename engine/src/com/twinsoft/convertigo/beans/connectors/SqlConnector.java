@@ -83,6 +83,7 @@ public class SqlConnector extends Connector {
 
 	/** The database connection. */
 	transient public Connection connection = null;
+	transient private java.lang.ref.Cleaner.Cleanable connectionCleanable;
 
 	transient private boolean needReset = false;
 
@@ -259,6 +260,8 @@ public class SqlConnector extends Connector {
 			}
 		}
 
+		registerConnectionCleanup(connection);
+
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
 
 		needReset = false;
@@ -305,6 +308,10 @@ public class SqlConnector extends Connector {
 			Engine.logBeans.warn("(SqlConnector) Unable to close the connection on database, it may have been already closed.", e);
 		}
 		finally {
+			if (connectionCleanable != null) {
+				connectionCleanable.clean();
+				connectionCleanable = null;
+			}
 			connection = null;
 			overJdbcUrl = null;
 			needReset = false;
@@ -432,14 +439,6 @@ public class SqlConnector extends Connector {
 
 	public void setData(List<List<String>> data, List<String> columnHeaders) {
 		fireDataChanged(new ConnectorEvent(this, new SqlData(data, columnHeaders)));
-	}
-
-	@SuppressWarnings("removal")
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-		connection = null;
-		super.finalize();
 	}
 
 	/**
@@ -591,6 +590,16 @@ public class SqlConnector extends Connector {
 		if (Engine.theApp != null && Engine.theApp.sqlConnectionManager != null) {
 			Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
 		}
+	}
+
+	private void registerConnectionCleanup(Connection connection) {
+		if (connection == null) {
+			return;
+		}
+		if (connectionCleanable != null) {
+			connectionCleanable.clean();
+		}
+		connectionCleanable = Engine.RESOURCE_CLEANER.register(this, new SqlConnectionCleanup(connection));
 	}
 
 	@Override
@@ -1346,5 +1355,26 @@ function onTransactionStarted() {
 		case "boolean" -> index == 0 ? "false" : "true";
 		default -> index == 0 ? "sample" : "sample2";
 		};
+	}
+
+	private static final class SqlConnectionCleanup implements Runnable {
+		private final Connection connection;
+
+		SqlConnectionCleanup(Connection connection) {
+			this.connection = connection;
+		}
+
+		@Override
+		public void run() {
+			if (connection != null) {
+				try {
+					if (!connection.isClosed()) {
+						connection.close();
+					}
+				} catch (SQLException e) {
+					Engine.logBeans.warn("(SqlConnector) Unable to close connection from cleaner", e);
+				}
+			}
+		}
 	}
 }
