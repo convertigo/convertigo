@@ -103,7 +103,7 @@
 					class="w-full"
 				>
 					<FileUpload.Dropzone
-						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-colors duration-150 data-[dragging=true]:preset-filled-primary-100-900"
+						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-soft data-[dragging=true]:preset-filled-primary-100-900"
 					>
 						<Ico icon="mdi:application-outline" size="8" class="mx-auto text-primary-500" />
 						<p class="text-base font-semibold">Drop or choose a .car/.zip file</p>

@@ -266,7 +266,7 @@
 					class="w-full"
 				>
 					<FileUpload.Dropzone
-						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-colors duration-150 data-[dragging=true]:preset-filled-primary-100-900"
+						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-soft data-[dragging=true]:preset-filled-primary-100-900"
 					>
 						<Ico
 							icon="mdi:account-supervisor-circle-outline"

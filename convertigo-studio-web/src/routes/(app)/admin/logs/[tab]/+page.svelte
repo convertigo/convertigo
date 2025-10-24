@@ -255,7 +255,7 @@
 						{#each Object.entries(tabs) as [value, { name, icon }]}
 							<Tabs.Trigger
 								{value}
-								class={`layout-x-low items-center rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-surface-600 transition-colors duration-150 data-[state=active]:preset-filled-primary-100-900 data-[state=active]:text-primary-contrast-100-900 ${tabSet == value ? 'preset-filled-primary-100-900 text-primary-contrast-100-900' : 'bg-surface-200-800/40 dark:bg-surface-800/40'}`}
+								class={`layout-x-low items-center rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-surface-600 transition-surface data-[state=active]:preset-filled-primary-100-900 data-[state=active]:text-primary-contrast-100-900 ${tabSet == value ? 'preset-filled-primary-100-900 text-primary-contrast-100-900' : 'bg-surface-200-800/40 dark:bg-surface-800/40'}`}
 							>
 								<Ico {icon} class="text-primary-500" />
 								{name}
