@@ -1025,17 +1025,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						try {
 							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-							ProjectExplorer pe;
-							if ((pe = (ProjectExplorer) activePage.findView("org.eclipse.ui.navigator.ProjectExplorer")) != null) {
-								CommonViewer cv = pe.getCommonViewer();
-								ITreeSelection ts = new TreeSelection(new org.eclipse.jface.viewers.TreePath(resObj));
-								cv.setSelection(ts, false);
-								cv.setExpandedElements(resObj);
-								Tree tree = cv.getTree();
-								tree.setTopItem(tree.getSelection()[0]);
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
+					ProjectExplorer pe;
+					if ((pe = (ProjectExplorer) activePage.findView("org.eclipse.ui.navigator.ProjectExplorer")) != null) {
+						CommonViewer cv = pe.getCommonViewer();
+						ITreeSelection ts = new TreeSelection(new org.eclipse.jface.viewers.TreePath(resObj));
+						cv.setSelection(ts, false);
+						for (Object segment : resObj) {
+							cv.expandToLevel(segment, 1);
+						}
+						cv.reveal(resObj[resObj.length - 1]);
+						Tree tree = cv.getTree();
+						tree.setTopItem(tree.getSelection()[0]);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 						}
 					}
 
