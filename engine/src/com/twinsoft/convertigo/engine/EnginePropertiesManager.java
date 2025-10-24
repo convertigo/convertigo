@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
@@ -43,13 +44,22 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.MDC;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
+import org.apache.logging.log4j.core.impl.Log4jLogEvent;
+import org.apache.logging.log4j.core.impl.ThrowableProxy;
+import org.apache.logging.log4j.core.time.Instant;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.SimpleMessage;
+import org.apache.logging.log4j.util.ReadOnlyStringMap;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
@@ -389,6 +399,8 @@ public class EnginePropertiesManager {
 		LOG_FILE_ENABLE("log.file.enable", "true", "Log into files", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "300000", "Max log message length before truncation (-1 disables)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1030,12 +1042,207 @@ public class EnginePropertiesManager {
 		return msg;
 	}
 
+	// Limit message size before appenders to avoid multi-megabyte log entries.
+	private static final int DEFAULT_LOG_MESSAGE_MAX_LENGTH = 300_000;
+	private static final String LOG_MESSAGE_SUFFIX = " [truncated]";
+	private static final String MDC_TRUNCATE_KEY = "truncate.in.progress";
+
 	private static final Filter filterLog4J = new AbstractFilter() {
 		@Override
 		public Result filter(LogEvent event) {
-			return Boolean.TRUE.equals(MDC.get("nolog")) ? Result.DENY : Result.NEUTRAL;
+			int maxLength = getLogTruncateLimit();
+			if (Boolean.TRUE.equals(MDC.get("nolog"))) {
+				return Result.DENY;
+			}
+
+			if (maxLength < 0 || Boolean.TRUE.equals(MDC.get(MDC_TRUNCATE_KEY))) {
+				return Result.NEUTRAL;
+			}
+
+			String formatted = getFormattedMessage(event);
+			if (formatted == null || formatted.length() <= maxLength) {
+				return Result.NEUTRAL;
+			}
+
+			handleOversizedEvent(event, formatted, maxLength);
+			return Result.DENY;
 		}
 	};
+
+	private static String getFormattedMessage(LogEvent event) {
+		if (event == null) {
+			return null;
+		}
+
+		Message message = event.getMessage();
+		if (message == null) {
+			return null;
+		}
+
+		try {
+			return message.getFormattedMessage();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static void handleOversizedEvent(LogEvent event, String formattedMessage, int maxLength) {
+		int end = Math.max(0, maxLength - LOG_MESSAGE_SUFFIX.length());
+		String truncated = (end > 0 ? formattedMessage.substring(0, end) : "") + LOG_MESSAGE_SUFFIX;
+
+		MDC.put(MDC_TRUNCATE_KEY, Boolean.TRUE);
+		try {
+			LoggerContext context = (LoggerContext) LogManager.getContext(false);
+			Configuration configuration = context.getConfiguration();
+			String loggerName = event.getLoggerName();
+			LoggerConfig loggerConfig = configuration.getLoggerConfig(loggerName != null ? loggerName : LoggerConfig.ROOT);
+			loggerConfig.log(new TruncatedLogEvent(event, truncated));
+		} catch (Exception e) {
+			// Best effort: swallow to avoid breaking logging in case of unexpected failures.
+		} finally {
+			MDC.remove(MDC_TRUNCATE_KEY);
+		}
+	}
+
+	private static int getLogTruncateLimit() {
+		try {
+			return getPropertyAsInt(PropertyName.LOG4J_MESSAGE_TRUNCATE);
+		} catch (Exception e) {
+			return DEFAULT_LOG_MESSAGE_MAX_LENGTH;
+		}
+	}
+
+	private static final class TruncatedLogEvent implements LogEvent {
+		private static final long serialVersionUID = 1L;
+
+		private final LogEvent delegate;
+		private final Message truncatedMessage;
+
+		TruncatedLogEvent(LogEvent delegate, String truncatedPayload) {
+			this.delegate = delegate;
+			this.truncatedMessage = new SimpleMessage(truncatedPayload);
+		}
+
+		@Override
+		public LogEvent toImmutable() {
+			LogEvent immutable = delegate.toImmutable();
+			if (immutable instanceof Log4jLogEvent) {
+				return ((Log4jLogEvent) immutable).asBuilder()
+					.setMessage(truncatedMessage)
+					.build();
+			}
+			return new Log4jLogEvent.Builder(immutable)
+				.setMessage(truncatedMessage)
+				.build();
+		}
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public Map<String, String> getContextMap() {
+			return delegate.getContextMap();
+		}
+
+		@Override
+		public ReadOnlyStringMap getContextData() {
+			return delegate.getContextData();
+		}
+
+		@Override
+		public ThreadContext.ContextStack getContextStack() {
+			return delegate.getContextStack();
+		}
+
+		@Override
+		public String getLoggerFqcn() {
+			return delegate.getLoggerFqcn();
+		}
+
+		@Override
+		public Level getLevel() {
+			return delegate.getLevel();
+		}
+
+		@Override
+		public String getLoggerName() {
+			return delegate.getLoggerName();
+		}
+
+		@Override
+		public Marker getMarker() {
+			return delegate.getMarker();
+		}
+
+		@Override
+		public Message getMessage() {
+			return truncatedMessage;
+		}
+
+		@Override
+		public long getTimeMillis() {
+			return delegate.getTimeMillis();
+		}
+
+		@Override
+		public Instant getInstant() {
+			return delegate.getInstant();
+		}
+
+		@Override
+		public StackTraceElement getSource() {
+			return delegate.getSource();
+		}
+
+		@Override
+		public String getThreadName() {
+			return delegate.getThreadName();
+		}
+
+		@Override
+		public long getThreadId() {
+			return delegate.getThreadId();
+		}
+
+		@Override
+		public int getThreadPriority() {
+			return delegate.getThreadPriority();
+		}
+
+		@Override
+		public Throwable getThrown() {
+			return delegate.getThrown();
+		}
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public ThrowableProxy getThrownProxy() {
+			return delegate.getThrownProxy();
+		}
+
+		@Override
+		public boolean isEndOfBatch() {
+			return delegate.isEndOfBatch();
+		}
+
+		@Override
+		public void setEndOfBatch(boolean endOfBatch) {
+			delegate.setEndOfBatch(endOfBatch);
+		}
+
+		@Override
+		public boolean isIncludeLocation() {
+			return delegate.isIncludeLocation();
+		}
+
+		@Override
+		public void setIncludeLocation(boolean locationRequired) {
+			delegate.setIncludeLocation(locationRequired);
+		}
+
+		@Override
+		public long getNanoTime() {
+			return delegate.getNanoTime();
+		}
+	}
 
 	private static void configureLog4J() {
 		Properties log4jProperties = new Properties();
