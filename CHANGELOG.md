@@ -1,5 +1,21 @@
 # Changelog
 
+## 8.3.10
+
+#### Improvements:
+
+- [#986](https://github.com/convertigo/convertigo/issues/986) [NGX] A usage hint has been added to the Select container (back-ported to all templates)
+- [#987](https://github.com/convertigo/convertigo/issues/987) [Studio] The CRUD SQLTransaction generator now also produces the corresponding SQLTransaction schema
+
+#### Bug Fixes:
+
+- [#984](https://github.com/convertigo/convertigo/issues/984) [Studio] Fixed, the CRUD SQLTransaction generator now properly quotes PostgreSQL column names, avoiding issues with reserved words and casing
+- [#988](https://github.com/convertigo/convertigo/issues/988) [Engine] Fixed, the "Namespaces removed:" message now uses the standard truncation helper (even in DEBUG) to prevent oversized log entries
+- [#989](https://github.com/convertigo/convertigo/issues/989) [Engine] Fixed, log message truncation is configurable via settings, allowing you to control maximum logged payload size
+- [#990](https://github.com/convertigo/convertigo/issues/990) [Studio] Fixed, revealing nodes preserves the Project Explorer expansion state instead of collapsing the tree
+
+---
+
 ## 8.3.9
 
 #### Improvements:
