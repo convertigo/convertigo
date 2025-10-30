@@ -16,12 +16,12 @@
 FROM tomcat:9-jdk21-temurin-jammy
 
 
-MAINTAINER Nicolas Albert nicolasa@convertigo.com
+LABEL maintainer="Nicolas Albert <nicolasa@convertigo.com>"
 
 ## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
-ENV SWT_GTK3 0
+ENV SWT_GTK3=0
 
-ENV CATALINA_HOME /usr/local/tomcat
+ENV CATALINA_HOME=/usr/local/tomcat
 RUN mkdir -p "$CATALINA_HOME"
 WORKDIR $CATALINA_HOME
 
@@ -34,7 +34,7 @@ RUN apt-get update -y \
     sudo \
     tini \
     unzip \
-  && apt-get remove -y --purge wget libfreetype6 \
+  && apt-get remove -y --purge libfreetype6 \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 
@@ -82,11 +82,11 @@ RUN sed -i.bak \
     && chmod -w conf/* \
     && chmod 777 conf/context.xml conf/server.xml
 
-ENV CONVERTIGO_VERSION 8.3.10
+ENV CONVERTIGO_VERSION=8.3.10
 
-ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
+ENV CONVERTIGO_WAR_URL=https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
-ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
+ENV CONVERTIGO_GPG_KEYS=6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 
 
 ## download and extract the convertigo webapps

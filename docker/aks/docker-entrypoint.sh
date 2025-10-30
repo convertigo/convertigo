@@ -102,11 +102,11 @@ if [ "$1" = "convertigo" ]; then
         --add-opens=java.base/java.lang=ALL-UNNAMED \
         --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
         --add-opens=java.base/java.io=ALL-UNNAMED \
-        --add-opens java.base/java.net=ALL-UNNAMED \
-        --add-opens java.base/java.util=ALL-UNNAMED \
-        --add-opens java.base/sun.security.util=ALL-UNNAMED \
-        --add-opens java.base/sun.security.x509=ALL-UNNAMED \
-        --add-opens java.desktop/sun.awt.image=ALL-UNNAMED \
+        --add-opens=java.base/java.net=ALL-UNNAMED \
+        --add-opens=java.base/java.util=ALL-UNNAMED \
+        --add-opens=java.base/sun.security.util=ALL-UNNAMED \
+        --add-opens=java.base/sun.security.x509=ALL-UNNAMED \
+        --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED \
         -XX:+UseG1GC \
         -XX:+UseStringDeduplication \
         -Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true \
