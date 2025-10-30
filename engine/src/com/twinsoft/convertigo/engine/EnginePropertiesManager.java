@@ -400,7 +400,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "300000", "Max log message length before truncation (-1 disables)", PropertyCategory.Logs),
+		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "" + DEFAULT_LOG_MESSAGE_MAX_LENGTH, "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", RootLogLevels.INFO.getValue(), "Root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -1043,8 +1043,7 @@ public class EnginePropertiesManager {
 	}
 
 	// Limit message size before appenders to avoid multi-megabyte log entries.
-	private static final int DEFAULT_LOG_MESSAGE_MAX_LENGTH = 300_000;
-	private static final String LOG_MESSAGE_SUFFIX = " [truncated]";
+	private static final int DEFAULT_LOG_MESSAGE_MAX_LENGTH = 16383;
 	private static final String MDC_TRUNCATE_KEY = "truncate.in.progress";
 
 	private static final Filter filterLog4J = new AbstractFilter() {
@@ -1087,15 +1086,19 @@ public class EnginePropertiesManager {
 	}
 
 	private static void handleOversizedEvent(LogEvent event, String formattedMessage, int maxLength) {
-		int end = Math.max(0, maxLength - LOG_MESSAGE_SUFFIX.length());
-		String truncated = (end > 0 ? formattedMessage.substring(0, end) : "") + LOG_MESSAGE_SUFFIX;
+		var mLen = formattedMessage.length();
+		var suffix = " [cut.../" + mLen + "]";
+		var sLen = suffix.length();
+		int end = Math.max(0, maxLength - sLen);
+		var truncated = end >= mLen ? formattedMessage :
+			((end > 0 ? formattedMessage.substring(0, end) : "") + suffix);
 
 		MDC.put(MDC_TRUNCATE_KEY, Boolean.TRUE);
 		try {
-			LoggerContext context = (LoggerContext) LogManager.getContext(false);
-			Configuration configuration = context.getConfiguration();
-			String loggerName = event.getLoggerName();
-			LoggerConfig loggerConfig = configuration.getLoggerConfig(loggerName != null ? loggerName : LoggerConfig.ROOT);
+			var context = (LoggerContext) LogManager.getContext(false);
+			var configuration = context.getConfiguration();
+			var loggerName = event.getLoggerName();
+			var loggerConfig = configuration.getLoggerConfig(loggerName != null ? loggerName : LoggerConfig.ROOT);
 			loggerConfig.log(new TruncatedLogEvent(event, truncated));
 		} catch (Exception e) {
 			// Best effort: swallow to avoid breaking logging in case of unexpected failures.
