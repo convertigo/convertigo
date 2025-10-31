@@ -25,13 +25,19 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.io.Serial;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,9 +88,10 @@ import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.twinj.Javelin;
 
-public class Context extends AbstractContext implements Cloneable {
+public class Context extends AbstractContext implements Cloneable, Serializable {
+	private static final long serialVersionUID = 1L;
 
-	public LogParameters logParameters = new LogParameters();
+	public transient LogParameters logParameters = new LogParameters();
 
 	public String name;
 
@@ -107,7 +114,7 @@ public class Context extends AbstractContext implements Cloneable {
 	public long documentSignatureSent = 0;
 	public long documentSignatureReceived = 0;
 
-	public final EngineStatistics statistics = new EngineStatistics();
+	public transient EngineStatistics statistics = new EngineStatistics();
 
 	public Map<String, Block> previousFields = new HashMap<String, Block>();
 
@@ -116,44 +123,44 @@ public class Context extends AbstractContext implements Cloneable {
 	public String contentType;
 	public String cacheControl;
 
-	public Project project;
-	public Connector connector;
-	public Pool pool;
+	public transient Project project;
+	public transient Connector connector;
+	public transient Pool pool;
 	public int poolContextNumber;
 	public String projectName;
 	public String sequenceName;
 	public String transactionName;
 	public String connectorName;
-	public RequestableObject requestedObject;
-	public ISheetContainer lastDetectedObject;
+	public transient RequestableObject requestedObject;
+	public transient ISheetContainer lastDetectedObject;
 
 	public boolean removeNamespaces = false;
 
 	// compatibility with older versions
-	public ScreenClass lastDetectedScreenClass = null;
-	public Transaction transaction = null;//
+	public transient ScreenClass lastDetectedScreenClass = null;
+	public transient Transaction transaction = null;//
 
 	public String subPath = "";
 
-	public HttpState httpState = null;
-	private Header[] responseHeaders = new Header[]{};
-	private TwsCachedXPathAPI xpathApi = null;
+	public transient HttpState httpState = null;
+	private transient Header[] responseHeaders = new Header[]{};
+	private transient TwsCachedXPathAPI xpathApi = null;
 
 	public boolean tasSessionKeyVerified = false;
 
-	public SimpleMap server = Engine.theApp.getShareServerMap();
+	public transient SimpleMap server = Engine.theApp.getShareServerMap();
 
-	private Map<String, Connector> used_connectors = new HashMap<String, Connector>();
-	private Set<Connector> opened_connectors = new HashSet<Connector>();
+	private transient Map<String, Connector> used_connectors = new HashMap<String, Connector>();
+	private transient Set<Connector> opened_connectors = new HashSet<Connector>();
 
 	private boolean requireRemoval = false;
 
-	private Map<String, List<String>> requestHeaders = null;
+	private transient Map<String, List<String>> requestHeaders = null;
 
-	private Scriptable sharedScope = null;
+	private transient Scriptable sharedScope = null;
 
-	private HttpClient httpClient3 = null;
-	private HttpClientInterface httpClient = null;
+	private transient HttpClient httpClient3 = null;
+	private transient HttpClientInterface httpClient = null;
 
 	public Context(String contextID) {
 		this.contextID = contextID;
@@ -741,5 +748,158 @@ public class Context extends AbstractContext implements Cloneable {
 			httpSession.setAttribute("fileToDeleteAtEndOfContext", files);
 		}
 		files.add(file);
+	}
+
+	@Serial
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		try {
+			if (Engine.logEngine.isDebugEnabled()) {
+				Engine.logEngine.debug("(Context) writeObject [" + contextID + "]");
+			}
+		} catch (Exception e) {
+			// ignore logging issues
+		}
+		out.defaultWriteObject();
+		out.writeObject(StoredHttpState.from(httpState));
+	}
+
+	@Serial
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		var storedState = (StoredHttpState) in.readObject();
+		httpState = storedState != null ? storedState.toHttpState() : null;
+		logParameters = new LogParameters();
+		statistics = new EngineStatistics();
+		server = Engine.theApp != null ? Engine.theApp.getShareServerMap() : new SimpleMap();
+		responseHeaders = new Header[]{};
+		requestHeaders = null;
+		xpathApi = null;
+		sharedScope = null;
+		used_connectors = new HashMap<String, Connector>();
+		opened_connectors = new HashSet<Connector>();
+		httpClient3 = null;
+		httpClient = null;
+	}
+
+	private static final class StoredHttpState implements Serializable {
+		@Serial
+		private static final long serialVersionUID = 1L;
+		private final List<StoredCookie> cookies;
+		private final Integer cookiePolicy;
+
+		private StoredHttpState(List<StoredCookie> cookies, Integer cookiePolicy) {
+			this.cookies = cookies;
+			this.cookiePolicy = cookiePolicy;
+		}
+
+		static StoredHttpState from(HttpState state) {
+			if (state == null) {
+				return null;
+			}
+			var cookies = new ArrayList<StoredCookie>();
+			for (Cookie cookie : state.getCookies()) {
+				var storedCookie = StoredCookie.from(cookie);
+				if (storedCookie != null) {
+					cookies.add(storedCookie);
+				}
+			}
+			Integer storedPolicy = null;
+			try {
+				storedPolicy = Integer.valueOf(state.getCookiePolicy());
+			} catch (Exception e) {
+				// ignore and keep null
+			}
+			if (cookies.isEmpty() && storedPolicy == null) {
+				return null;
+			}
+			return new StoredHttpState(cookies, storedPolicy);
+		}
+
+		HttpState toHttpState() {
+			if ((cookies == null || cookies.isEmpty()) && cookiePolicy == null) {
+				return null;
+			}
+			var state = new HttpState();
+			if (cookiePolicy != null) {
+				try {
+					state.setCookiePolicy(cookiePolicy.intValue());
+				} catch (Exception e) {
+					// ignore if policy cannot be applied
+				}
+			}
+			if (cookies != null) {
+				for (var storedCookie : cookies) {
+					var cookie = storedCookie.toCookie();
+					if (cookie != null) {
+						state.addCookie(cookie);
+					}
+				}
+			}
+			return state;
+		}
+	}
+
+	private static final class StoredCookie implements Serializable {
+		@Serial
+		private static final long serialVersionUID = 1L;
+		private final String name;
+		private final String value;
+		private final String domain;
+		private final String path;
+		private final Long expiry;
+		private final boolean secure;
+		private final int version;
+		private final String comment;
+
+		private StoredCookie(String name, String value, String domain, String path, Long expiry, boolean secure, int version, String comment) {
+			this.name = name;
+			this.value = value;
+			this.domain = domain;
+			this.path = path;
+			this.expiry = expiry;
+			this.secure = secure;
+			this.version = version;
+			this.comment = comment;
+		}
+
+		static StoredCookie from(Cookie cookie) {
+			if (cookie == null) {
+				return null;
+			}
+			var expiryDate = cookie.getExpiryDate();
+			return new StoredCookie(
+				cookie.getName(),
+				cookie.getValue(),
+				cookie.getDomain(),
+				cookie.getPath(),
+				expiryDate != null ? expiryDate.getTime() : null,
+				cookie.getSecure(),
+				cookie.getVersion(),
+				cookie.getComment()
+			);
+		}
+
+		Cookie toCookie() {
+			if (name == null || domain == null) {
+				return null;
+			}
+			try {
+				var cookie = new Cookie(domain, name, value);
+				if (path != null) {
+					cookie.setPath(path);
+				}
+				if (expiry != null) {
+					cookie.setExpiryDate(new Date(expiry));
+				}
+				cookie.setSecure(secure);
+				cookie.setVersion(version);
+				if (comment != null) {
+					cookie.setComment(comment);
+				}
+				return cookie;
+			} catch (Exception e) {
+				return null;
+			}
+		}
 	}
 }

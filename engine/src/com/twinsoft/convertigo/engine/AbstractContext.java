@@ -19,6 +19,11 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +37,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.util.DomSerializationSupport;
+import com.twinsoft.convertigo.engine.util.DomSerializationSupport.SerializedDom;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
-public abstract class AbstractContext {
+public abstract class AbstractContext implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The context unique identifier.
@@ -61,12 +69,12 @@ public abstract class AbstractContext {
 	/**
 	 * The HTTP servlet request object.
 	 */
-	public HttpServletRequest httpServletRequest;
+	public transient HttpServletRequest httpServletRequest;
 	
 	/**
 	 * The HTTP session object.
 	 */
-	public HttpSession httpSession;
+	public transient HttpSession httpSession;
 	
 	/**
 	 * The servlet path for the current request.
@@ -207,7 +215,7 @@ public abstract class AbstractContext {
 	public AbstractContext() {
 	}
 	
-	private Map<String, Object> internalTable = new HashMap<String, Object>(256);
+	private transient Map<String, Object> internalTable = new HashMap<String, Object>(256);
 	
 	/**
 	 * Gets a stored variable from the context.
@@ -219,7 +227,7 @@ public abstract class AbstractContext {
 	public Object get(String key) {
 		return internalTable.get(key);
 	}
-	
+
 	/**
 	 * Stores a variable value into the context.
 	 * 
@@ -245,6 +253,57 @@ public abstract class AbstractContext {
 	 */
 	public Set<String> keys() {
 		return internalTable.keySet();
+	}
+	
+	@Serial
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		try {
+			if (Engine.logEngine.isDebugEnabled()) {
+				Engine.logEngine.debug("(AbstractContext) writeObject [" + contextID + "]");
+			}
+		} catch (Exception e) {
+			// ignore logging issues
+		}
+		out.defaultWriteObject();
+		var serializableEntries = new HashMap<String, Serializable>();
+		for (var entry : internalTable.entrySet()) {
+			var value = entry.getValue();
+			if (value == null || value instanceof Serializable) {
+				serializableEntries.put(entry.getKey(), (Serializable) value);
+			} else {
+				var serializedDom = DomSerializationSupport.serialize(value);
+				if (serializedDom != null) {
+					serializableEntries.put(entry.getKey(), serializedDom);
+					continue;
+				}
+				try {
+					if (Engine.logEngine.isDebugEnabled()) {
+						Engine.logEngine.debug("(AbstractContext) Skipping non-serializable attribute '" + entry.getKey() + "' of type " + value.getClass().getName());
+					}
+				} catch (Exception e) {
+					// ignore logging issues
+				}
+			}
+		}
+		out.writeObject(serializableEntries);
+	}
+
+	@Serial
+	@SuppressWarnings("unchecked")
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		internalTable = new HashMap<String, Object>(256);
+		Map<String, Object> stored = (Map<String, Object>) in.readObject();
+		if (stored != null) {
+			for (var entry : stored.entrySet()) {
+				var restored = entry.getValue();
+				if (restored instanceof SerializedDom dom) {
+					restored = DomSerializationSupport.deserialize(dom);
+				}
+				entry.setValue(restored);
+			}
+			internalTable.putAll(stored);
+		}
 	}
 	
 	/**
@@ -416,3 +475,4 @@ public abstract class AbstractContext {
 	 */
 	public abstract void setResponseStatus(Integer code, String text);
 }
+

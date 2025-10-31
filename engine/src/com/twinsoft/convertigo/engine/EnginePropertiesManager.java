@@ -399,6 +399,10 @@ public class EnginePropertiesManager {
 		LOG_FILE_ENABLE("log.file.enable", "true", "Log into files", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_SERIALIZATION_DEBUG("session.serialization.debug", "0", "Dump serialized HTTP sessions to JSON files for debugging (0=disabled, >0=depth)", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_SERIALIZATION_REPORT("session.serialization.report", "false", "Record non-serializable session attributes into cache/session-debug/<sessionId>.failures.log", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "" + DEFAULT_LOG_MESSAGE_MAX_LENGTH, "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)

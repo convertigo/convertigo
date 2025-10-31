@@ -36,6 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
+import java.io.Serial;
+import java.io.Serializable;
+
 import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.io.FileUtils;
@@ -59,7 +62,9 @@ import com.twinsoft.tas.TASException;
  * start and end, because of lack of specification from the Servlet
  * 2.2 API.
  */
-public class HttpSessionListener implements HttpSessionBindingListener {
+public class HttpSessionListener implements HttpSessionBindingListener, Serializable {
+	@Serial
+	private static final long serialVersionUID = 1L;
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
 	private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
 	private static final Set<String> devices = Collections.synchronizedSet(new HashSet<>());
