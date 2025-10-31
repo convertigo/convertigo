@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.PathSensitivity
+
 group = 'com.convertigo'
 
 apply plugin: 'war'
@@ -85,28 +87,53 @@ jar {
 	exclude 'com/twinsoft/beans/**/*.svg'
 }
 
-task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
+def dependenciesIndex = layout.buildDirectory.file("tmp/allJars.txt")
+
+tasks.register("generateDependenciesIndex") {
 	group = 'convertigo'
-	
-	zip64 = true
-	archiveBaseName = 'dependencies'
-	duplicatesStrategy = 'exclude'
-	def allJars = file('build/tmp/allJars.txt')
-	doFirst {
+
+	outputs.cacheIf("Cache dependencies index") { true }
+	outputs.file(dependenciesIndex)
+	inputs.files({ configurations.compileFlat })
+		.withPropertyName("compileFlatArtifacts")
+		.withPathSensitivity(PathSensitivity.RELATIVE)
+
+	doLast {
 		def buf = []
 		def substr = System.getProperty("user.home").length() + 1
 		configurations.compileFlat.each {
 			buf += it.toString().substring(substr)
 		}
 		buf.sort()
-		allJars.text = buf.join('\n')
+		def file = dependenciesIndex.get().asFile
+		file.parentFile.mkdirs()
+		file.text = buf.join('\n')
 	}
+}
+
+task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
+	group = 'convertigo'
+	
+	zip64 = true
+	archiveBaseName = 'dependencies'
+	duplicatesStrategy = 'exclude'
+
+	dependsOn tasks.named("generateDependenciesIndex")
+	outputs.cacheIf("Always cache dependencies archive") { true }
+	inputs.files({ configurations.compileFlat })
+		.withPropertyName("compileFlatArtifacts")
+		.withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.file(dependenciesIndex)
+		.withPropertyName("dependenciesIndex")
+		.withPathSensitivity(PathSensitivity.RELATIVE)
+		.optional()
+
 	from {
 		configurations.compileFlat.collect {
 			it.isDirectory() ? it : zipTree(it)
 		}
 	}
-	from allJars
+	from(dependenciesIndex)
 	exclude 'org/w3c/dom/**', 'org/xml/sax/**', 'javax/xml/catalog/**', 'javax/xml/datatype/**', 'javax/xml/namespace/**'
 	exclude 'javax/xml/parsers/**', 'javax/xml/stream/**', 'javax/xml/transform/**', 'javax/xml/validation/**'
 	exclude 'javax/xml/xpath/**', 'javax/xml/XMLConstants.class'
