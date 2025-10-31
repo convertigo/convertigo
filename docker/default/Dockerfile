@@ -15,9 +15,6 @@
 
 FROM tomcat:9-jdk21-temurin-jammy
 
-
-LABEL maintainer="Nicolas Albert <nicolasa@convertigo.com>"
-
 ## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
 ENV SWT_GTK3=0
 
