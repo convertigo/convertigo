@@ -442,7 +442,7 @@ public class ClipboardAction extends MyAbstractAction {
 			importArchiveFilename = importDirectoryPath + "/" + projectName +".car";
 
 			// Deploy archive to target project
-			Project importedProject = Engine.theApp.databaseObjectsManager.deployProject(importArchiveFilename, targetProjectName, true, true);
+			Project importedProject = Engine.theApp.databaseObjectsManager.deployProject(importArchiveFilename, targetProjectName, true, true, true);
 
 			// Try to delete archive
 			try { new File(importArchiveFilename).delete(); }

@@ -313,7 +313,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 		monitor.setTaskName("Loading the projet");
 		monitor.worked(1);
 		projectUrlParser.setProjectName(projectName);
-		Project newProject = Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true);
+		Project newProject = Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true, true);
 		monitor.worked(1);
 
 		try {
@@ -572,7 +572,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			try {
 				mon.beginTask("Loading " + projectName, IProgressMonitor.UNKNOWN);
 				try {
-					Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true);
+					Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true, false);
 				} catch (Exception e) {
 					// Catch exception because part of project could have been
 					// deployed

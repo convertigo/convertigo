@@ -918,9 +918,17 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 
 				if (updateReferences) {
+					MobileBuilder mb = MobileBuilder.getBuilderOf(projectTreeObject.getObject());
+					if (mb != null) {
+						mb.prepareBatchBuild();
+					}
+					Engine.logStudio.info("---------------------- Update references started   ----------------------");
+					BatchOperationHelper.start();
 					treeObjectEvent.update = update;
 					fireTreeObjectPropertyChanged(treeObjectEvent);
 					projectTreeObject.save(false);
+					BatchOperationHelper.stop();
+					Engine.logStudio.info("---------------------- Update references ended   ----------------------");
 				}
 			}
 

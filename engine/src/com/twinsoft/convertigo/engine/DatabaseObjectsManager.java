@@ -780,13 +780,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return deployProject(projectArchiveFilename, targetProjectName, bForce, false);
 	}
 
-	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences)
+	private Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences, boolean newPriorities)
 			throws Exception {
 		File archive = File.createTempFile("convertigoImportFromHttp", ".car");
 		archive.deleteOnExit();
 		try {
 			HttpUtils.downloadFile(projectUrl.toString(), archive);
-			return deployProject(archive.getAbsolutePath(), targetProjectName, bForce, keepOldReferences);
+			return deployProject(archive.getAbsolutePath(), targetProjectName, bForce, keepOldReferences, newPriorities);
 		} finally {
 			archive.delete();
 		}
@@ -794,16 +794,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce,
 			boolean keepOldReferences) throws EngineException {
+		return deployProject(projectArchiveFilename, targetProjectName, bForce, keepOldReferences, false);
+	}
+	
+	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce,
+			boolean keepOldReferences, boolean newPriorities) throws EngineException {
 		if (projectArchiveFilename.matches("https?://.+")) {
 			try {
-				return deployProject(new URI(projectArchiveFilename).toURL(), targetProjectName, bForce, keepOldReferences);
+				return deployProject(new URI(projectArchiveFilename).toURL(), targetProjectName, bForce, keepOldReferences, newPriorities);
 			} catch (HttpResponseException e) {
 				throw new EngineException(e.getMessage(), e);
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename
 						+ "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());
 				try {
-					return deployProject(new URI(projectArchiveFilename).toURL(), targetProjectName, bForce, keepOldReferences);
+					return deployProject(new URI(projectArchiveFilename).toURL(), targetProjectName, bForce, keepOldReferences, newPriorities);
 				} catch (Exception e2) {
 					throw new EngineException("Failed to load project from '" + projectArchiveFilename
 							+ "' because of [" + e2.getClass().getSimpleName() + "] " + e2.getMessage(), e2);
@@ -869,9 +874,20 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		try {
 			File xmlFile = new File(projectDirPath + "/" + archiveProjectName + ".xml");
+			
 			// Rename project and files if necessary
 			if (!targetProjectName.equals(archiveProjectName)) {
 				xmlFile = ProjectUtils.renameProjectFile(xmlFile, targetProjectName, keepOldReferences);
+				
+				// change project priorities if needed
+				if (newPriorities) {
+					try {
+						xmlFile = ProjectUtils.changePiorities(xmlFile);
+						Engine.logDatabaseObjectManager.debug("Successully changed project's priorities.");
+					} catch (Exception e) {
+						Engine.logDatabaseObjectManager.warn("Could not change project's priorities: "+ e.getMessage());
+					}
+				}
 			}
 
 			if (getProjectLoadingData().projectName == null) {

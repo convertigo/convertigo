@@ -20,19 +20,31 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
@@ -847,4 +859,116 @@ public class ProjectUtils {
 		}
 		return result;
 	}
+	
+    private static final Pattern ID_YAML_PATTERN = Pattern.compile("-(\\d+)]\\:");
+    private static final Pattern ID_XML_PATTERN = Pattern.compile("priority=\"(\\d+)\"");
+
+    private static final AtomicLong lastTime = new AtomicLong(System.currentTimeMillis());
+	
+    private static long getNewPriority() {
+        while (true) {
+            long current = System.currentTimeMillis();
+            long last = lastTime.get();
+            long next = Math.max(current, last + 1);
+            if (lastTime.compareAndSet(last, next)) {
+                return next;
+            }
+        }
+    }
+    
+	public static File changePiorities(File oldXml) throws Exception {
+		File oldYaml = oldXml.getName().equals("c8oProject.yaml") ? oldXml : new File(oldXml.getParentFile(), "c8oProject.yaml");
+
+		if (!oldXml.exists() && !oldYaml.exists()) {
+			throw new Exception("File \"" + oldXml.getAbsolutePath() + "\" does not exist");
+		}
+
+		File newFile = null;
+
+		if (!oldYaml.exists()) {
+			newFile = oldXml;
+			
+			Map<String, String> priorities = new HashMap<String, String>(10);
+			Path xmlPath = Path.of(newFile.getAbsolutePath());
+			extractAndMapPriorities(xmlPath, priorities);
+			replacePrioritiesInFile(xmlPath, priorities);
+			priorities.clear();
+		} else {
+			newFile = oldYaml;
+			
+	        Path yamlPath = Path.of(newFile.getAbsolutePath());
+	        Path c8oPath = Path.of(new File(newFile.getParentFile(), "_c8oProject").getAbsolutePath());	        
+	        try (Stream<Path> paths = getC8oFiles(c8oPath, yamlPath)) {
+	            paths.filter(Files::isRegularFile)
+	                 .filter(path -> path.toString().endsWith(".yaml"))
+	                 .parallel()
+	                 .forEach(path -> {
+	                	try {
+	                		Map<String, String> p = new HashMap<String, String>(10);
+	                		extractAndMapPriorities(path, p);
+	                		replacePrioritiesInFile(path, p);
+	                		p.clear();
+						} catch (Exception e) {
+							Engine.logDatabaseObjectManager.warn("Unable to update priorities in file \"" + path + "\"");
+						}
+	                 });
+	        }
+	        
+		}
+		return newFile;
+	}
+	
+    private static Stream<Path> getC8oFiles(Path dirPath, Path filePath) throws IOException {
+        Stream<Path> streamDir = Files.exists(dirPath)
+                ? Files.walk(dirPath)
+                : Stream.empty();
+
+        Stream<Path> streamFile = (filePath != null && Files.exists(filePath))
+                ? Stream.of(filePath)
+                : Stream.empty();
+
+        return Stream.concat(streamDir, streamFile).distinct();
+    }
+    
+    private static void extractAndMapPriorities(Path filePath, Map<String, String> priorities) throws IOException {
+    	boolean isYaml = filePath.toString().endsWith(".yaml");
+        String content = Files.readString(filePath);
+        Matcher matcher = isYaml ? ID_YAML_PATTERN.matcher(content) : ID_XML_PATTERN.matcher(content);
+        while (matcher.find()) {
+            Long originalId = Long.parseLong(matcher.group(1));
+            priorities.put(String.valueOf(originalId), String.valueOf(getNewPriority()));					
+        }
+    }
+
+    private static void replacePrioritiesInFile(Path inputPath, Map<String, String> priorities) throws IOException {
+        Path tempPath = inputPath.resolveSibling(inputPath.getFileName() + ".tmp");
+
+        try (Stream<String> lines = Files.lines(inputPath, StandardCharsets.UTF_8);
+             BufferedWriter writer = Files.newBufferedWriter(
+                     tempPath,
+                     StandardCharsets.UTF_8,
+                     StandardOpenOption.CREATE,
+                     StandardOpenOption.TRUNCATE_EXISTING)) {
+
+            lines.forEach(line -> {
+                String nouvelleLigne = applyReplacements(line, priorities);
+                try {
+                    writer.write(nouvelleLigne);
+                    writer.newLine();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        }
+
+        Files.move(tempPath, inputPath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private static String applyReplacements(String text, Map<String, String> priorities) {
+        for (Map.Entry<String, String> e : priorities.entrySet()) {
+            text = text.replace(e.getKey(), e.getValue());
+        }
+        return text;
+    }
+	
 }

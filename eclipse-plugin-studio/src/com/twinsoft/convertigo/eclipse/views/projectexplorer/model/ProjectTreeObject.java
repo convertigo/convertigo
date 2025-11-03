@@ -351,6 +351,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		
 //		final ProjectTreeObject projectTreeObject = this;
 		final String projectName = getName();
+		if (projectName == null) return;
 		IPath path = new Path(projectName);
 		IResourceDelta projectDelta = event.getDelta().findMember(path);
 		if (projectDelta == null) {
@@ -418,7 +419,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 			
 			if (this.equals(treeObject.getProjectTreeObject())) {
-				checkMissingProjects();
+				boolean isCopy = treeObjectEvent.oldValue != null;
+				if (!isCopy) {
+					checkMissingProjects();
+				}
 				
 				Engine.theApp.schemaManager.clearCache(getName());
 			}

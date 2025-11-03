@@ -155,6 +155,10 @@ public class ReferencedProjectManager {
 	}
 
 	public Project importProject(ProjectUrlParser parser, boolean force) throws Exception {
+		return importProject(parser, force, false);
+	}
+	
+	public Project importProject(ProjectUrlParser parser, boolean force, boolean newPriorities) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		File dir = null;
@@ -164,7 +168,7 @@ public class ReferencedProjectManager {
 			if ((!force && project != null) || parser.getGitUrl() == null) {
 				return project;
 			} else {
-				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), projectName, true);
+				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), projectName, true, false, newPriorities);
 			}
 		}
 		if (project != null) {
