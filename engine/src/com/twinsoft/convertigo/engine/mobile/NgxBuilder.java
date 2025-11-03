@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -3259,7 +3260,8 @@ public class NgxBuilder extends MobileBuilder {
 			}
 			
 			String c8o_ModuleNgProviders = "";
-			String tpl_ng_providers = getTplAppNgProviders("src/main.ts");
+			//String tpl_ng_providers = getTplAppNgProviders("src/main.ts");
+			List<String> tpl_ng_providers = Arrays.asList(getTplAppNgProviders("src/main.ts").split(","));
 			// modules
 			if (!module_ng_imports.isEmpty()) {
 				c8o_ModuleNgProviders += "\t\timportProvidersFrom(" + System.lineSeparator();
