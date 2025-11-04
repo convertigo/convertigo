@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -896,24 +897,39 @@ public class ProjectUtils {
 		} else {
 			newFile = oldYaml;
 			
+	        Map<String, String> priorities = new ConcurrentHashMap<String, String>(10);        
 	        Path yamlPath = Path.of(newFile.getAbsolutePath());
-	        Path c8oPath = Path.of(new File(newFile.getParentFile(), "_c8oProject").getAbsolutePath());	        
+	        Path c8oPath = Path.of(new File(newFile.getParentFile(), "_c8oProject").getAbsolutePath());	  
+	        
+	        // extract priorities and map to new ones
 	        try (Stream<Path> paths = getC8oFiles(c8oPath, yamlPath)) {
 	            paths.filter(Files::isRegularFile)
 	                 .filter(path -> path.toString().endsWith(".yaml"))
 	                 .parallel()
 	                 .forEach(path -> {
 	                	try {
-	                		Map<String, String> p = new HashMap<String, String>(10);
-	                		extractAndMapPriorities(path, p);
-	                		replacePrioritiesInFile(path, p);
-	                		p.clear();
+	                		extractAndMapPriorities(path, priorities);
+						} catch (Exception e) {
+							Engine.logDatabaseObjectManager.warn("Unable to extract priorities from file \"" + path + "\"");
+						}
+	                 });
+	        }
+	        
+	        // replace priorities in files
+	        try (Stream<Path> paths = getC8oFiles(c8oPath, yamlPath)) {
+	            paths.filter(Files::isRegularFile)
+	                 .filter(path -> path.toString().endsWith(".yaml"))
+	                 .parallel()
+	                 .forEach(path -> {
+	                	try {
+	                		replacePrioritiesInFile(path, priorities);
 						} catch (Exception e) {
 							Engine.logDatabaseObjectManager.warn("Unable to update priorities in file \"" + path + "\"");
 						}
 	                 });
 	        }
 	        
+	        priorities.clear();
 		}
 		return newFile;
 	}
