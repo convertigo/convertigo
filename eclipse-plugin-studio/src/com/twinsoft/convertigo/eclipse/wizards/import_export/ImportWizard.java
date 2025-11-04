@@ -71,7 +71,10 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		try {
 			if (explorerView != null) {
 				if (filePath != null) {
-					explorerView.importProject(filePath, getTargetProjectName());
+					String defaultProjectName = getDefaultProjectName();
+					String targetProjectName = getTargetProjectName();
+					boolean newPriorities = !targetProjectName.equals(defaultProjectName);
+					explorerView.importProject(filePath, targetProjectName, newPriorities);
 				}
 			}
 		} catch (Exception e) {

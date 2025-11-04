@@ -3218,6 +3218,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
+		return importProject(filePath, targetProjectName, false);
+	}
+	
+	public boolean importProject(String filePath, String targetProjectName, boolean newPriorities) throws EngineException, IOException, CoreException {
 		TreeObject[] projectTreeObject = {null};
 		if (targetProjectName != null) {
 			projectTreeObject[0] = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
@@ -3252,7 +3256,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (doImport) {
 					Engine.theApp.databaseObjectsManager.importProject(filePath, true);
 				} else {
-					Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
+					Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true, false, newPriorities);
 				}
 			} catch (Exception e) {
 				ConvertigoPlugin.syncExec(() -> {
