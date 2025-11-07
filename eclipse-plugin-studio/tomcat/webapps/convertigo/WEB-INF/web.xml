@@ -1,66 +1,86 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<web-app id="ConvertigoServer" version="2.5" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_5.xsd">
+<web-app id="ConvertigoServer" version="2.5"
+	xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_5.xsd">
 	<display-name>Convertigo Enterprise Mobility Server</display-name>
-	
-    <servlet-mapping>
-        <servlet-name>default</servlet-name>
-        <url-pattern>*.jsp</url-pattern>
-        <url-pattern>/</url-pattern>
-    </servlet-mapping>
 
-    <!-- Startup servlet for C-EMS engine -->  
-    <servlet>
-        <servlet-name>EngineServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.EngineServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.jsp</url-pattern>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
 
-    
-	<session-config> 
-	   <!-- <session-timeout>1</session-timeout> -->
+	<!-- Startup servlet for C-EMS engine -->
+	<servlet>
+		<servlet-name>EngineServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.EngineServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+
+	<session-config>
+		<!-- <session-timeout>1</session-timeout> -->
 		<cookie-config>
 			<http-only>true</http-only>
 			<secure>false</secure>
-		</cookie-config> 
+		</cookie-config>
 	</session-config>
-    
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
 	<filter>
 		<filter-name>ProjectScopedAliasFilter</filter-name>
-		<filter-class>com.twinsoft.convertigo.engine.servlets.ProjectScopedAliasFilter</filter-class>
+		<filter-class>
+			com.twinsoft.convertigo.engine.servlets.ProjectScopedAliasFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>ProjectScopedAliasFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-    <filter>
+	<filter>
 		<filter-name>FallbackFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.FallbackFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>FallbackFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-    
-    <filter>
+
+	<filter>
 		<filter-name>CompressionFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.CompressionFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>CompressionFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
-    <filter>
+
+	<filter>
 		<filter-name>SecurityFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.SecurityFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>SecurityFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-    
-    <filter>
+
+	<filter>
 		<filter-name>ProjectsDataFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.ProjectsDataFilter</filter-class>
 	</filter>
@@ -70,201 +90,205 @@
 		<url-pattern>/system/projects/*</url-pattern>
 	</filter-mapping>
 
-    <!-- Server XSLT entry point -->
-    <servlet>
-        <servlet-name>ConvertigoXsltServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.ConvertigoXsltServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ConvertigoXsltServlet</servlet-name>
-        <url-pattern>*.cxml</url-pattern>
-    </servlet-mapping>
+	<!-- Server XSLT entry point -->
+	<servlet>
+		<servlet-name>ConvertigoXsltServlet</servlet-name>
+		<servlet-class>
+			com.twinsoft.convertigo.engine.servlets.ConvertigoXsltServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ConvertigoXsltServlet</servlet-name>
+		<url-pattern>*.cxml</url-pattern>
+	</servlet-mapping>
 
-    <!-- Client XSLT entry point -->
-    <servlet>
-        <servlet-name>ClientXsltServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.ClientXsltServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ClientXsltServlet</servlet-name>
-        <url-pattern>*.xml</url-pattern>
-    </servlet-mapping>
+	<!-- Client XSLT entry point -->
+	<servlet>
+		<servlet-name>ClientXsltServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.ClientXsltServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ClientXsltServlet</servlet-name>
+		<url-pattern>*.xml</url-pattern>
+	</servlet-mapping>
 
-    <!-- Proxy entry point -->
-    <servlet>
-        <servlet-name>ProxyServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.ProxyServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ProxyServlet</servlet-name>
-        <url-pattern>*.proxy</url-pattern>
-    </servlet-mapping>
+	<!-- Proxy entry point -->
+	<servlet>
+		<servlet-name>ProxyServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.ProxyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ProxyServlet</servlet-name>
+		<url-pattern>*.proxy</url-pattern>
+	</servlet-mapping>
 
-    <!-- Reverse proxy entry point -->
-    <servlet>
-        <servlet-name>ReverseProxyServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.ReverseProxyServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ReverseProxyServlet</servlet-name>
-        <url-pattern>/rproxy/*</url-pattern>
-    </servlet-mapping>
+	<!-- Reverse proxy entry point -->
+	<servlet>
+		<servlet-name>ReverseProxyServlet</servlet-name>
+		<servlet-class>
+			com.twinsoft.convertigo.engine.servlets.ReverseProxyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ReverseProxyServlet</servlet-name>
+		<url-pattern>/rproxy/*</url-pattern>
+	</servlet-mapping>
 
-    <!-- Axis entry point -->
-<!--     <servlet> -->
-<!--         <servlet-name>AxisServlet</servlet-name> -->
-<!--         <servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class> -->
-<!--         <load-on-startup>1</load-on-startup> -->
-<!--     </servlet> -->
-<!--     <servlet-mapping> -->
-<!--             <servlet-name>AxisServlet</servlet-name> -->
-<!--             <url-pattern>/servlet/AxisServlet</url-pattern> -->
-<!--     </servlet-mapping> -->
-<!--     <servlet-mapping> -->
-<!--             <servlet-name>AxisServlet</servlet-name> -->
-<!--             <url-pattern>*.jws</url-pattern> -->
-<!--     </servlet-mapping> -->
-<!--     <servlet-mapping> -->
-<!--             <servlet-name>AxisServlet</servlet-name> -->
-<!--             <url-pattern>/services/*</url-pattern> -->
-<!--     </servlet-mapping> -->
+	<!-- Axis entry point -->
+	<!--     <servlet> -->
+	<!--         <servlet-name>AxisServlet</servlet-name> -->
+	<!--
+	<servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class> -->
+	<!--         <load-on-startup>1</load-on-startup> -->
+	<!--     </servlet> -->
+	<!--     <servlet-mapping> -->
+	<!--             <servlet-name>AxisServlet</servlet-name> -->
+	<!--             <url-pattern>/servlet/AxisServlet</url-pattern> -->
+	<!--     </servlet-mapping> -->
+	<!--     <servlet-mapping> -->
+	<!--             <servlet-name>AxisServlet</servlet-name> -->
+	<!--             <url-pattern>*.jws</url-pattern> -->
+	<!--     </servlet-mapping> -->
+	<!--     <servlet-mapping> -->
+	<!--             <servlet-name>AxisServlet</servlet-name> -->
+	<!--             <url-pattern>/services/*</url-pattern> -->
+	<!--     </servlet-mapping> -->
 
-<!--     <servlet> -->
-<!--         <servlet-name>AxisAdminServlet</servlet-name> -->
-<!--         <servlet-class>org.apache.axis2.webapp.AxisAdminServlet</servlet-class> -->
-<!--     </servlet> -->
-<!--     <servlet-mapping> -->
-<!--         <servlet-name>AxisAdminServlet</servlet-name> -->
-<!--         <url-pattern>/axis2-admin/*</url-pattern> -->
-<!--     </servlet-mapping> -->
+	<!--     <servlet> -->
+	<!--         <servlet-name>AxisAdminServlet</servlet-name> -->
+	<!--         <servlet-class>org.apache.axis2.webapp.AxisAdminServlet</servlet-class> -->
+	<!--     </servlet> -->
+	<!--     <servlet-mapping> -->
+	<!--         <servlet-name>AxisAdminServlet</servlet-name> -->
+	<!--         <url-pattern>/axis2-admin/*</url-pattern> -->
+	<!--     </servlet-mapping> -->
 
-    <!-- Web service entry point -->
+	<!-- Web service entry point -->
 	<servlet>
 		<servlet-name>WebServiceServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.WebServiceServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>WebServiceServlet</servlet-name>
-        <url-pattern>*.ws</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>WebServiceServlet</servlet-name>
-        <url-pattern>*.wsr</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>WebServiceServlet</servlet-name>
-        <url-pattern>*.wsl</url-pattern>
-    </servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>WebServiceServlet</servlet-name>
+		<url-pattern>*.ws</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>WebServiceServlet</servlet-name>
+		<url-pattern>*.wsr</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>WebServiceServlet</servlet-name>
+		<url-pattern>*.wsl</url-pattern>
+	</servlet-mapping>
 
-    <!-- PDF entry point -->
+	<!-- PDF entry point -->
 	<servlet>
 		<servlet-name>PdfServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.PdfServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>PdfServlet</servlet-name>
-        <url-pattern>*.cpdf</url-pattern>
-    </servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>PdfServlet</servlet-name>
+		<url-pattern>*.cpdf</url-pattern>
+	</servlet-mapping>
 
-    <!-- Pure XML entry point -->
+	<!-- Pure XML entry point -->
 	<servlet>
 		<servlet-name>XmlServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.XmlServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>XmlServlet</servlet-name>
-        <url-pattern>*.pxml</url-pattern>
-    </servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>XmlServlet</servlet-name>
+		<url-pattern>*.pxml</url-pattern>
+	</servlet-mapping>
 
-    <!-- Binary files entry point -->
+	<!-- Binary files entry point -->
 	<servlet>
 		<servlet-name>BinaryServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.BinaryServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>BinaryServlet</servlet-name>
-        <url-pattern>*.bin</url-pattern>
-    </servlet-mapping>
-    
-    <!-- JSON entry point -->
+	<servlet-mapping>
+		<servlet-name>BinaryServlet</servlet-name>
+		<url-pattern>*.bin</url-pattern>
+	</servlet-mapping>
+
+	<!-- JSON entry point -->
 	<servlet>
 		<servlet-name>JsonServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.JsonServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>JsonServlet</servlet-name>
-        <url-pattern>*.json</url-pattern>
-    </servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>JsonServlet</servlet-name>
+		<url-pattern>*.json</url-pattern>
+	</servlet-mapping>
 
-    <!-- JSONP entry point -->
+	<!-- JSONP entry point -->
 	<servlet>
 		<servlet-name>JsonPServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.JsonPServlet</servlet-class>
-	</servlet>	
-    <servlet-mapping>
-        <servlet-name>JsonPServlet</servlet-name>
-        <url-pattern>*.jsonp</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
-		<servlet-name>RsaPublicKeyServlet</servlet-name>
-		<servlet-class>com.twinsoft.convertigo.engine.servlets.RsaPublicKeyServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>RsaPublicKeyServlet</servlet-name>
-        <url-pattern>/rsa/publickey</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
+	<servlet-mapping>
+		<servlet-name>JsonPServlet</servlet-name>
+		<url-pattern>*.jsonp</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>RsaPublicKeyServlet</servlet-name>
+		<servlet-class>
+			com.twinsoft.convertigo.engine.servlets.RsaPublicKeyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RsaPublicKeyServlet</servlet-name>
+		<url-pattern>/rsa/publickey</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>QRCodeServlet</servlet-name>
 		<servlet-class>com.d_project.qrcode.web.QRCodeServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>QRCodeServlet</servlet-name>
-        <url-pattern>/qrcode</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
+	<servlet-mapping>
+		<servlet-name>QRCodeServlet</servlet-name>
+		<url-pattern>/qrcode</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>DelegateServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.DelegateServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>DelegateServlet</servlet-name>
-        <url-pattern>/delegate</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
+	<servlet-mapping>
+		<servlet-name>DelegateServlet</servlet-name>
+		<url-pattern>/delegate</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>FullSyncServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.FullSyncServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>FullSyncServlet</servlet-name>
-        <url-pattern>/fullsync/*</url-pattern>
-    </servlet-mapping>
-	
-    <servlet>
+	<servlet-mapping>
+		<servlet-name>FullSyncServlet</servlet-name>
+		<url-pattern>/fullsync/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>RestApiServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.RestApiServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>RestApiServlet</servlet-name>
-        <url-pattern>/api/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>RestApiServlet</servlet-name>
-        <url-pattern>/openapi/*</url-pattern>
-    </servlet-mapping>
-	
-    <servlet>
+	<servlet-mapping>
+		<servlet-name>RestApiServlet</servlet-name>
+		<url-pattern>/api/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>RestApiServlet</servlet-name>
+		<url-pattern>/openapi/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>GatewayServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.GatewayServlet</servlet-class>
 	</servlet>
-    <servlet-mapping>
-        <servlet-name>GatewayServlet</servlet-name>
-        <url-pattern>/gw/*</url-pattern>
-    </servlet-mapping>
-	
-    <!-- HTTP print entry point -->
+	<servlet-mapping>
+		<servlet-name>GatewayServlet</servlet-name>
+		<url-pattern>/gw/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- HTTP print entry point -->
 	<!--  Disabled in this version
 	<servlet>
 		<servlet-name>HttpPrintServlet</servlet-name>
@@ -273,30 +297,30 @@
 		</servlet-class>
 	</servlet>
 	-->
-	
+
 	<!--  Disabled in this version
 	<servlet-mapping>
 		<servlet-name>HttpPrintServlet</servlet-name>
 		<url-pattern>*.prn</url-pattern>
 	</servlet-mapping>
 	-->
-	
-    <!-- Web Admin console -->  
-    <servlet>
-        <servlet-name>AdminServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.admin.AdminServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminServlet</servlet-name>
-        <url-pattern>/system/admin/services/*</url-pattern>
-        <url-pattern>/admin/services/*</url-pattern>
-        <url-pattern>/services/*</url-pattern>
-    </servlet-mapping>
 
-    <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
-    </welcome-file-list>
-    
+	<!-- Web Admin console -->
+	<servlet>
+		<servlet-name>AdminServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.admin.AdminServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AdminServlet</servlet-name>
+		<url-pattern>/system/admin/services/*</url-pattern>
+		<url-pattern>/admin/services/*</url-pattern>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+
 	<!-- MIME mappings -->
 	<mime-mapping>
 		<extension>wml</extension>
@@ -322,13 +346,13 @@
 		<extension>xsl</extension>
 		<mime-type>text/xml</mime-type>
 	</mime-mapping>
-    <mime-mapping>
-        <extension>inc</extension>
-        <mime-type>text/plain</mime-type>
-    </mime-mapping>
-    
-    <error-page>
-        <error-code>404</error-code>
-        <location>/404.html</location>
-    </error-page>
+	<mime-mapping>
+		<extension>inc</extension>
+		<mime-type>text/plain</mime-type>
+	</mime-mapping>
+
+	<error-page>
+		<error-code>404</error-code>
+		<location>/404.html</location>
+	</error-page>
 </web-app>
