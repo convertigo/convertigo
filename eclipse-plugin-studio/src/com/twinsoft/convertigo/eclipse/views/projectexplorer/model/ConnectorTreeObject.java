@@ -283,7 +283,9 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 				folder.getParent().refreshLocal(IResource.DEPTH_ONE, null);
 				if (folder.exists()) {
 					// rename folder (xsd/internal/connector)
-					folder.move(new Path((String)newValue), true, null);
+					if (!oldPath.equals(newPath)) {
+						folder.move(new Path((String)newValue), true, null);
+					}
 
 					// make replacements in schema file
 					List<Replacement> replacements = new ArrayList<Replacement>();
