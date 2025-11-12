@@ -57,8 +57,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -78,7 +76,6 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IPartListener2;
@@ -101,6 +98,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.ClearableText;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -127,7 +125,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private Composite parent, topBag, bag;
 	private Control lastUsedlabel, favoriteslabel;
 	private Cursor handCursor;
-	private Text searchText;
+	private ClearableText searchText;
 	private Map<String, Image> imageCache = new HashMap<>();
 	private HashMap<String, Item> all = new HashMap<>();
 	private HashMap<String, Item> commons = new HashMap<>();
@@ -317,20 +315,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 		ToolItem fav = new ToolItem(bar, SWT.PUSH);
 
-		searchText = new Text(top, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL);
+		searchText = new ClearableText(top, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH);
 		searchText.setMessage("Search…");
 		searchText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		searchText.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.character == SWT.ESC) {
-					e.doit = false;
-					if (!searchText.getText().isEmpty()) {
-						searchText.setText("");
-					}
-				}
-			}
-		});
 
 		selectionListener = new ISelectionChangedListener() {
 			@Override
