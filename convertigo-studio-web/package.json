@@ -20,7 +20,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.43.4"
+			"svelte": "^5.43.6"
 		}
 	},
 	"devDependencies": {
@@ -29,15 +29,15 @@
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify/svelte": "^5.1.0",
 		"@playwright/test": "^1.56.1",
-		"@skeletonlabs/skeleton": "^4.2.4",
-		"@skeletonlabs/skeleton-svelte": "^4.2.4",
+		"@skeletonlabs/skeleton": "^4.3.2",
+		"@skeletonlabs/skeleton-svelte": "^4.3.2",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.48.4",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/forms": "0.5.10",
 		"@tailwindcss/typography": "0.5.19",
-		"@types/node": "^24.10.0",
+		"@types/node": "^24.10.1",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.13.0",
@@ -46,8 +46,8 @@
 		"prettier-plugin-svelte": "^3.4.0",
 		"prettier-plugin-tailwindcss": "^0.7.1",
 		"sharp": "^0.34.5",
-		"svelte": "^5.43.4",
-		"svelte-check": "^4.3.3",
+		"svelte": "^5.43.6",
+		"svelte-check": "^4.3.4",
 		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
 		"unplugin-icons": "^22.5.0",
@@ -63,7 +63,7 @@
 		"@xyflow/svelte": "^1.4.1",
 		"@zag-js/tree-view": "^1.27.1",
 		"apexcharts": "^5.3.6",
-		"bits-ui": "^2.14.2",
+		"bits-ui": "^2.14.3",
 		"caniuse-lite": "^1.0.30001754",
 		"chart.js": "^4.5.1",
 		"elkjs": "^0.11.0",

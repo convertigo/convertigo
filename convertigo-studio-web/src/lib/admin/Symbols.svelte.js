@@ -2,10 +2,13 @@ import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 import { call } from '$lib/utils/service';
 
 const defValues = {
-	symbols: new Array(5).fill({
-		name: null,
-		value: null
-	})
+	symbols: new Array(5)
+		.fill({
+			name: null,
+			value: null,
+			index: 0
+		})
+		.map((s, i) => ({ ...s, index: i }))
 };
 
 let waiting = $state(false);
@@ -72,9 +75,10 @@ export default ServiceHelper({
 			res.symbols.push(d);
 		}
 		res.symbols.sort((a, b) => a.name.localeCompare(b.name));
-		for (const s of res.symbols) {
+		res.symbols.forEach((s, i) => {
+			s.index = i;
 			s.export = false;
-		}
+		});
 		delete res.defaults;
 	}
 });
