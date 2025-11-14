@@ -64,6 +64,7 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -230,6 +231,7 @@ public class EnginePropertiesManager {
 
 	public enum PropertyCategory {
 		Main ("Main Parameters"),
+		Session ("Session Management"),
 		Account ("Accounts and Security"),
 		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
 		Logs ("Logs"),
@@ -399,10 +401,6 @@ public class EnginePropertiesManager {
 		LOG_FILE_ENABLE("log.file.enable", "true", "Log into files", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		SESSION_SERIALIZATION_DEBUG("session.serialization.debug", "0", "Dump serialized HTTP sessions to JSON files for debugging (0=disabled, >0=depth)", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		SESSION_SERIALIZATION_REPORT("session.serialization.report", "false", "Record non-serializable session attributes into cache/session-debug/<sessionId>.failures.log", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "" + DEFAULT_LOG_MESSAGE_MAX_LENGTH, "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
@@ -491,6 +489,33 @@ public class EnginePropertiesManager {
 		LOG4J_ADDITIVITY_CEMS ("log4j.additivity.cems", "false", "Root logger additivity", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_START_OF_LINE_CHARACTER ("log.start_of_line_character", "!", "Start-of-line character", PropertyCategory.Logs),
+
+		/** SESSION */
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_SERIALIZATION_DEBUG("session.serialization.debug", "0", "Dump serialized HTTP sessions to JSON files for debugging (0=disabled, >0=depth)", PropertyCategory.Logs),
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.Combo, combo = SessionStoreMode.class)
+		SESSION_STORE_MODE("session.store.mode", SessionStoreMode.tomcat.name(), "Server-side store for session data (tomcat, redis)", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_HOST("session.redis.host", "localhost", "Redis hostname used by the session manager", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_PORT("session.redis.port", "6379", "Redis port used by the session manager", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_USERNAME("session.redis.username", "", "Redis username (optional)", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.PasswordPlain)
+		SESSION_REDIS_PASSWORD("session.redis.password", "", "Redis password (optional)", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_DATABASE("session.redis.database", "0", "Redis logical database index", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.Boolean)
+		SESSION_REDIS_SSL("session.redis.ssl", "false", "Enable SSL/TLS for the Redis connection", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_TIMEOUT("session.redis.timeout", "5000", "Redis command timeout in milliseconds", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_REDIS_PREFIX("session.redis.prefix", "convertigo:session", "Redis key prefix for stored sessions", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_COOKIE_NAME("session.cookie.name", "JSESSIONID", "Name of the HTTP cookie carrying the session token", PropertyCategory.Session),
+		SESSION_REDIS_DEFAULT_TTL("session.redis.default.ttl", "1800", "Default session TTL in seconds when no timeout is specified", PropertyCategory.Session),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		SESSION_SERIALIZATION_REPORT("session.serialization.report", "false", "Record non-serializable session attributes into cache/session-debug/<sessionId>.failures.log", PropertyCategory.Logs),
 
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

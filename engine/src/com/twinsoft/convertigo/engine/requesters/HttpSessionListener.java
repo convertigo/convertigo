@@ -51,11 +51,14 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
+import com.twinsoft.convertigo.engine.util.HttpSessionTwsWrapper;
 
 /**
  * This class is a workaround class, allowing to detect HTTP session
@@ -199,7 +202,10 @@ public class HttpSessionListener implements HttpSessionBindingListener, Serializ
 	}
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
-		HttpSession httpSession = request.getSession(true);
+		var manager = ConvertigoHttpSessionManager.getInstance();
+		HttpSession httpSession = manager.getStoreMode() == SessionStoreMode.tomcat
+				? request.getSession(true)
+				: HttpSessionTwsWrapper.wrap(manager.getSession(request, true));
 
 		var lock = LockRegistry.lock(httpSession.getId());
 		try {

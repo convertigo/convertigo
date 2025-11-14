@@ -35,11 +35,13 @@ import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
 	private Map<String, String[]> parameters = new HashMap<String, String[]>();
 	private String query = null;
 	private HttpSession session = null;
+	private final ConvertigoHttpSessionManager sessionManager = ConvertigoHttpSessionManager.getInstance();
 	
 	public HttpServletRequestTwsWrapper(HttpServletRequest request) {
 		super(request);
@@ -122,7 +124,8 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	@Override
 	public HttpSession getSession() {
 		if (session == null) {
-			session = HttpSessionTwsWrapper.wrap(super.getSession());
+			var rawRequest = (HttpServletRequest) super.getRequest();
+			session = HttpSessionTwsWrapper.wrap(sessionManager.getSession(rawRequest, true));
 		}
 		return session;
 	}
@@ -130,7 +133,8 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	@Override
 	public HttpSession getSession(boolean create) {
 		if (session == null) {
-			session = HttpSessionTwsWrapper.wrap(super.getSession(create));
+			var rawRequest = (HttpServletRequest) super.getRequest();
+			session = HttpSessionTwsWrapper.wrap(sessionManager.getSession(rawRequest, create));
 		}
 		return session;
 	}

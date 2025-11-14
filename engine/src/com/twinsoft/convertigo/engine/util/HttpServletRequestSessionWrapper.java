@@ -23,20 +23,52 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+
 public class HttpServletRequestSessionWrapper extends HttpServletRequestWrapper {
+	private final ConvertigoHttpSessionManager sessionManager = ConvertigoHttpSessionManager.getInstance();
+	private volatile HttpSession cachedSession;
+
 	public HttpServletRequestSessionWrapper(HttpServletRequest request) {
 		super(request);
 	}
 
 	@Override
 	public HttpSession getSession() {
-		var session = super.getSession();
-		return HttpSessionTwsWrapper.wrap(session);
+		return getSession(true);
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		var session = super.getSession(create);
-		return HttpSessionTwsWrapper.wrap(session);
+		var current = cachedSession;
+		if (current != null) {
+			if (current instanceof HttpSessionTwsWrapper wrapper) {
+				if (wrapper.isInvalidatedInternal()) {
+					clearCachedSession();
+				} else if (current == cachedSession) {
+					return current;
+				}
+			} else if (current == cachedSession) {
+				return current;
+			}
+		}
+
+		var rawRequest = (HttpServletRequest) super.getRequest();
+		var session = sessionManager.getSession(rawRequest, create);
+		if (session == null) {
+			clearCachedSession();
+			return null;
+		}
+
+		var wrapped = HttpSessionTwsWrapper.wrap(session);
+		cachedSession = wrapped;
+		if (wrapped instanceof HttpSessionTwsWrapper wrapper) {
+			wrapper.onInvalidate(this::clearCachedSession);
+		}
+		return wrapped;
+	}
+
+	private void clearCachedSession() {
+		cachedSession = null;
 	}
 }

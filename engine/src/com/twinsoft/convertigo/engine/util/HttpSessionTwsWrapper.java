@@ -40,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
@@ -65,9 +66,12 @@ public class HttpSessionTwsWrapper implements HttpSession {
 private static final int DEFAULT_DEBUG_DEPTH = 2;
 private static final int MAX_DEBUG_DEPTH = 6;
 	private static final int DEBUG_ARRAY_PREVIEW = 20;
+	private static final String TECHNICAL_ATTRIBUTE_PREFIX = "session:";
 
 	private final HttpSession session;
 	private String id = "sessionTerminated";
+	private final AtomicBoolean invalidated = new AtomicBoolean(false);
+	private volatile Runnable invalidateCallback;
 
 	private HttpSessionTwsWrapper(HttpSession session) {
 		this.session = session;
@@ -199,6 +203,7 @@ private static final int MAX_DEBUG_DEPTH = 6;
 			onException(e);
 		} finally {
 			cleanTransientAttributes(sessionId);
+			markInvalidated();
 		}
 	}
 
@@ -296,6 +301,10 @@ private static final int MAX_DEBUG_DEPTH = 6;
 			}
 		} catch (Exception ex) {
 			// ignore if log fail
+		} finally {
+			if (e instanceof IllegalStateException) {
+				markInvalidated();
+			}
 		}
 	}
 
@@ -451,6 +460,9 @@ private static final int MAX_DEBUG_DEPTH = 6;
 				var attributes = new JSONObject();
 				for (var enumeration = session.getAttributeNames(); enumeration.hasMoreElements();) {
 					var name = enumeration.nextElement();
+					if (isTechnicalAttribute(name)) {
+						continue;
+					}
 					var value = session.getAttribute(name);
 					if (value instanceof SerializedDom dom) {
 						var local = getTransientAttribute(name);
@@ -475,21 +487,12 @@ private static final int MAX_DEBUG_DEPTH = 6;
 		}
 	}
 
-	private JSONObject toDebugEntry(Object value, int depth) {
-		var entry = new JSONObject();
-		if (value == null) {
-			put(entry, "class", JSONObject.NULL);
-			put(entry, "value", JSONObject.NULL);
-			return entry;
-		}
-		put(entry, "class", value.getClass().getName());
+	private Object toDebugEntry(Object value, int depth) {
 		try {
-			var visited = Collections.newSetFromMap(new IdentityHashMap<>());
-			put(entry, "value", debugValue(value, depth, visited));
+			return debugValue(value, depth, Collections.newSetFromMap(new IdentityHashMap<>()));
 		} catch (Exception e) {
-			put(entry, "value", "[error:" + e.getClass().getSimpleName() + "]");
+			return "[error:" + e.getClass().getSimpleName() + "]";
 		}
-		return entry;
 	}
 
 	private Object debugValue(Object value, int depth, Set<Object> visited) {
@@ -499,6 +502,9 @@ private static final int MAX_DEBUG_DEPTH = 6;
 		if (value instanceof SerializedDom dom) {
 			var restored = DomSerializationSupport.deserialize(dom);
 			return restored != null ? debugValue(restored, depth, visited) : "[dom:null]";
+		}
+		if (value.getClass().isEnum()) {
+			return ((Enum<?>) value).name();
 		}
 		if (value instanceof byte[] bytes) {
 			return "[blob:" + bytes.length + "]";
@@ -830,6 +836,10 @@ private static final int MAX_DEBUG_DEPTH = 6;
 		array.put(value);
 	}
 
+	private static boolean isTechnicalAttribute(String name) {
+		return name != null && name.startsWith(TECHNICAL_ATTRIBUTE_PREFIX);
+	}
+
 	public static void cleanTransientAttributes(String sessionId) {
 		if (sessionId != null) {
 			transientAttributes.remove(sessionId);
@@ -847,6 +857,34 @@ private static final int MAX_DEBUG_DEPTH = 6;
 		var wrapper = new HttpSessionTwsWrapper(session);
 		wrapper.writeDebugSnapshot();
 		return wrapper;
+	}
+
+	void onInvalidate(Runnable callback) {
+		this.invalidateCallback = callback;
+		if (invalidated.get() && callback != null) {
+			try {
+				callback.run();
+			} catch (Exception ignore) {
+				// nothing else to do
+			}
+		}
+	}
+
+	boolean isInvalidatedInternal() {
+		return invalidated.get();
+	}
+
+	private void markInvalidated() {
+		if (invalidated.compareAndSet(false, true)) {
+			var callback = invalidateCallback;
+			if (callback != null) {
+				try {
+					callback.run();
+				} catch (Exception ignore) {
+					// no-op
+				}
+			}
+		}
 	}
 
 	private enum TransientAttributeHolder {

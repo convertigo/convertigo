@@ -87,6 +87,7 @@ public class AdminServlet extends HttpServlet {
 		}
 
 		try {
+			request.setAttribute("response", response);
 			LogServiceHelper.aliveAdminInstance(request);
 			String serviceName = "";
 			String isAdmin = "";

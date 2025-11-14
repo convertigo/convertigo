@@ -229,6 +229,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
+	compileFlat 'org.redisson:redisson:3.23.4'
 	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.20.0'
 	compileFlat    'com.google.gcm:gcm-server:1.0.0'
 	compileFlat    'com.opencsv:opencsv:5.12.0'

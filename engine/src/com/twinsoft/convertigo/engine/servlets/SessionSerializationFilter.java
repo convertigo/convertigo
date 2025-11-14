@@ -28,7 +28,10 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestSessionWrapper;
 
 public class SessionSerializationFilter implements Filter {
@@ -43,7 +46,21 @@ public class SessionSerializationFilter implements Filter {
 			var effectiveRequest = httpRequest instanceof HttpServletRequestSessionWrapper
 					? httpRequest
 					: new HttpServletRequestSessionWrapper(httpRequest);
-			chain.doFilter(effectiveRequest, response);
+			if (response instanceof HttpServletResponse httpResponse) {
+				var cookieName = EnginePropertiesManager.getProperty(PropertyName.SESSION_COOKIE_NAME);
+				var responseWrapper = (cookieName == null || cookieName.isEmpty())
+						? httpResponse
+						: new SessionCookieResponseWrapper(httpResponse, cookieName);
+				try {
+					chain.doFilter(effectiveRequest, responseWrapper);
+				} finally {
+					if (responseWrapper instanceof SessionCookieResponseWrapper wrapper) {
+						wrapper.flushSessionCookie();
+					}
+				}
+			} else {
+				chain.doFilter(effectiveRequest, response);
+			}
 		} else {
 			chain.doFilter(request, response);
 		}
