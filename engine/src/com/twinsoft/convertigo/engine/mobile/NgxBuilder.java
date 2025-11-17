@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
@@ -167,6 +167,50 @@ public class NgxBuilder extends MobileBuilder {
 			return source.replaceAll(regex, Matcher.quoteReplacement(replacement));
 		}
 		return source;
+	}
+	
+	static private String asCleanString(String entry) {
+		try {
+			return entry.replaceAll("\\s", "");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entry;
+	}
+	
+	static private List<String> asCleanList(String tplMarkerContent) {
+		try {
+			List<String> entries = new ArrayList<>();
+			StringBuilder current = new StringBuilder();
+			int depth = 0;
+
+			for (char c : tplMarkerContent.toCharArray()) {
+			    if (c == '(' || c == '{' || c == '[') depth++;
+			    if (c == ')' || c == '}' || c == ']') depth--;
+
+			    if (c == ',' && depth == 0) {
+			        entries.add(current.toString().trim());
+			        current.setLength(0);
+			        continue;
+			    }
+
+			    current.append(c);
+			}
+
+			if (current.length() > 0) {
+			    entries.add(current.toString().trim());
+			}
+
+			List<String> cleaned = entries.stream()
+			        .map(e -> e.replaceAll("\\s+", ""))
+			        .filter(e -> !e.isEmpty())
+			        .collect(Collectors.toList());
+			//System.out.println(cleaned);
+			return cleaned;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
 	}
 	
 	protected NgxBuilder(Project project) {
@@ -1878,6 +1922,7 @@ public class NgxBuilder extends MobileBuilder {
 			for (Contributor contributor : contributors) {
 				contributor.forContainer(page, () -> {
 					comp_beans_dirs.putAll(contributor.getCompBeanDir());
+					module_ts_imports.putAll(contributor.getActionTsImports());
 					module_ts_imports.putAll(contributor.getModuleTsImports());
 					module_ng_imports.addAll(contributor.getModuleNgImports());
 					module_ng_providers.addAll(contributor.getModuleNgProviders());
@@ -1901,13 +1946,14 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 			}
-			String tpl_ng_imports = getTplPageModuleNgImports();
+			//String tpl_ng_imports = getTplPageModuleNgImports();
+			List<String> tpl_ng_imports = asCleanList(getTplPageModuleNgImports());
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
 					try {
 						module = module.substring(0, module.indexOf("."));
 					} catch (Exception e) {}
-					if (!tpl_ng_imports.contains(module)) {
+					if (!tpl_ng_imports.contains(asCleanString(module))) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}
 				}
@@ -1915,10 +1961,11 @@ public class NgxBuilder extends MobileBuilder {
 					c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();
 				}
 			}
-			String tpl_ng_providers = getTplPageModuleNgProviders();
+			//String tpl_ng_providers = getTplPageModuleNgProviders();
+			List<String> tpl_ng_providers = asCleanList(getTplPageModuleNgProviders());
 			if (!module_ng_providers.isEmpty()) {
 				for (String provider: module_ng_providers) {
-					if (!tpl_ng_providers.contains(provider)) {
+					if (!tpl_ng_providers.contains(asCleanString(provider))) {
 						c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
 					}
 				}
@@ -1951,6 +1998,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
 		if(tplIsStandalone) {
 			tsContent = replaceAll(tsContent, "/\\*c8o_StandAloneNgModules\\*/", c8o_ModuleNgImports);
+			tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+			tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
 		}
 
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -2060,13 +2109,14 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			String tpl_ng_imports = getTplPageModuleNgImports();
+			//String tpl_ng_imports = getTplPageModuleNgImports();
+			List<String> tpl_ng_imports = asCleanList(getTplPageModuleNgImports());
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
 					try {
 						module = module.substring(0, module.indexOf("."));
 					} catch (Exception e) {}
-					if (!tpl_ng_imports.contains(module)) {
+					if (!tpl_ng_imports.contains(asCleanString(module))) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}
 				}
@@ -2075,10 +2125,11 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			String tpl_ng_providers = getTplPageModuleNgProviders();
+			//String tpl_ng_providers = getTplPageModuleNgProviders();
+			List<String> tpl_ng_providers = asCleanList(getTplPageModuleNgProviders());
 			if (!module_ng_providers.isEmpty()) {
 				for (String provider: module_ng_providers) {
-					if (!tpl_ng_providers.contains(provider)) {
+					if (!tpl_ng_providers.contains(asCleanString(provider))) {
 						c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
 					}
 				}
@@ -2107,6 +2158,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
 		if(tplIsStandalone) {
 			tsContent = replaceAll(tsContent, "/\\*c8o_StandAloneNgModules\\*/",c8o_ModuleNgImports);
+			tsContent = replaceAll(tsContent, "/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+			tsContent = replaceAll(tsContent, "/\\*End_c8o_NgProviders\\*/","");
 		}
 		
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -3261,12 +3314,12 @@ public class NgxBuilder extends MobileBuilder {
 			
 			String c8o_ModuleNgProviders = "";
 			//String tpl_ng_providers = getTplAppNgProviders("src/main.ts");
-			List<String> tpl_ng_providers = Arrays.asList(getTplAppNgProviders("src/main.ts").split(","));
+			List<String> tpl_ng_providers = asCleanList(getTplAppNgProviders("src/main.ts"));
 			// modules
 			if (!module_ng_imports.isEmpty()) {
 				c8o_ModuleNgProviders += "\t\timportProvidersFrom(" + System.lineSeparator();
 				for (String module: module_ng_imports) {
-					if (!tpl_ng_providers.contains(module)) {
+					if (!tpl_ng_providers.contains(asCleanString(module))) {
 						c8o_ModuleNgProviders += "\t\t\t" + module + "," + System.lineSeparator();
 					}
 				}
@@ -3275,7 +3328,7 @@ public class NgxBuilder extends MobileBuilder {
 			//providers
 			if (!module_ng_providers.isEmpty()) {
 				for (String provider: module_ng_providers) {
-					if (!tpl_ng_providers.contains(provider)) {
+					if (!tpl_ng_providers.contains(asCleanString(provider))) {
 						c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
 					}
 				}
@@ -3359,10 +3412,12 @@ public class NgxBuilder extends MobileBuilder {
 		if(tplIsStandalone) {
 			//App contributors
 			for (Contributor contributor : app.getContributors()) {
+				contributor.forContainer(null, () -> {
+					module_ts_imports.putAll(contributor.getActionTsImports());
+				});
 				contributor.forContainer(app, () -> {
 					module_ng_imports.addAll(contributor.getModuleNgImports());
 					module_ts_imports.putAll(contributor.getModuleTsImports());
-					module_ts_imports.putAll(contributor.getActionTsImports());
 				});
 			}
 		}
@@ -3401,11 +3456,13 @@ public class NgxBuilder extends MobileBuilder {
 				if (tplIsStandalone) {
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
+						contributor.forContainer(null, () -> {
+							module_ts_imports.putAll(contributor.getActionTsImports());
+						});
 						contributor.forContainer(app, () -> {
 							if (contributor.isNgModuleForApp()) {
 								module_ng_imports.addAll(contributor.getModuleNgImports());
 								module_ts_imports.putAll(contributor.getModuleTsImports());
-								module_ts_imports.putAll(contributor.getActionTsImports());
 							}
 						});
 					}
@@ -3414,6 +3471,7 @@ public class NgxBuilder extends MobileBuilder {
 				i++;
 			}
 		}
+		
 		String c8o_ModuleNgImports = "";
 		String c8o_ModuleTsImports = "";
 		if (tplIsStandalone) {
@@ -3436,13 +3494,14 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			String tpl_ng_imports = getTplAppNgImports("src/app/app.component.ts");
+			//String tpl_ng_imports = getTplAppNgImports("src/app/app.component.ts");
+			List<String> tpl_ng_imports = asCleanList(getTplAppNgImports("src/app/app.component.ts"));
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
 					try {
 						module = module.substring(0, module.indexOf("."));
 					} catch (Exception e) {}
-					if (!tpl_ng_imports.contains(module)) {
+					if (!tpl_ng_imports.contains(asCleanString(module))) {
 						c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 					}
 				}
