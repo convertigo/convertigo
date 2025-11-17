@@ -332,6 +332,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 			computed += "\t"+ functionName + "(data) {" + System.lineSeparator();
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionKey+": '"+topic+"' received\");" + System.lineSeparator();
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
+			computed += "\t\tlet page : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();

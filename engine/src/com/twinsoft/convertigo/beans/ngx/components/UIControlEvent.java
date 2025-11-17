@@ -316,6 +316,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
+			computed += "\t\tlet page : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
