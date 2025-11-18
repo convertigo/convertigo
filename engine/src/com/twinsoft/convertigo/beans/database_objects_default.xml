@@ -1,4 +1,131 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   4   0">
+        <property name="attrName">
+            <java.lang.String value="(click)"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onClick"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="throttleTime">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICompEvent" priority="0" version="   8   4   0">
+        <property name="attrName">
+            <java.lang.String value="SharedComponent_BindingEvent"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="throttleTime">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAttribute" priority="0" version="   8   4   0">
+        <property name="attrName">
+            <java.lang.String value="attr"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="throttleTime">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAnimation" priority="0" version="   8   4   0">
+        <property name="animationName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="attrName">
+            <java.lang.String value="class"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isInfinite">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="throttleTime">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   8   4   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="componentScriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="isPWA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="splitPaneLayout">
+            <java.lang.String value="not set"/>
+        </property>
+        <property name="throttleEvents">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="tplProjectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="useClickForTap">
+            <java.lang.Boolean value="false"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems" priority="0" version="   8   4   0">
         <property name="beanData">
             <java.lang.String value=""/>
