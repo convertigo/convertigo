@@ -19,6 +19,11 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
@@ -107,11 +112,134 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	        	return attrVal.isEmpty() ? "":" "+ attrVal;
 	        }
 	        else {
-	        	return (" "+attrName+"=\""+ attrVal +"\"");
+	        	if (isThrottleEvent(attrName)) {
+	        		return (" throttleEvent [throttleTime]=\""+ getThrottleTime(attrName) +"\"" + 
+	        				" throttleType=\""+ getThrottleType(attrName) +"\"" +
+	        				" (throttleEvent)=\""+ attrVal +"\"");
+	        	} else {	        	
+	        		return (" "+attrName+"=\""+ attrVal +"\"");
+	        	}
 	        }
 		}
 		else
 			return "";
+	}
+
+	protected boolean isThrottleEvent(String attr) {
+		return getApplication().isThrottleEvent(attr);
+	}
+	
+	protected String getThrottleType(String attr) {
+		return attr.replace("(", "").replace(")", "");
+	}
+	
+	protected String throttleTime = "";
+	
+	public String getThrottleTime() {
+		return throttleTime;
+	}
+
+	public void setThrottleTime(String throttleTime) {
+		this.throttleTime = throttleTime;
+	}
+
+	protected String getThrottleTime(String attr) {
+		long time = getApplication().getThrottleTime(attr);
+		if (!throttleTime.isBlank()) {
+			try {
+				time = Long.valueOf(throttleTime);
+			} catch (Exception e) {}
+		}
+		return String.valueOf(time);
+	}
+	
+	
+	@Override
+	protected Contributor getContributor() {
+		return new Contributor() {
+
+			@Override
+			public Map<String, File> getCompBeanDir() {
+				return new HashMap<String, File>();
+			}
+
+			@Override
+			public Map<String, String> getActionTsFunctions() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getActionTsImports() {
+				Map<String, String> imports = new HashMap<String, String>();
+				if (isThrottleEvent(getAttrName())) {
+					if (!isMainTs() && isContainer((MobileComponent)getMainScriptComponent())) {
+						imports.put("{ ThrottleEventDirective }", "/directives/throttle-event.directive");
+					}
+				}
+				return imports;
+			}
+
+			@Override
+			public Map<String, String> getModuleTsImports() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getPackageDependencies() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Map<String, String> getConfigPlugins() {
+				return new HashMap<String, String>();
+			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildScripts() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildStyles() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgImports() {
+				Set<String> imports = new HashSet<String>();
+				if (isThrottleEvent(getAttrName())) {
+					if (!isMainTs() && isContainer((MobileComponent)getMainScriptComponent())) {
+						imports.add("ThrottleEventDirective");
+					}
+				}
+				return imports;
+			}
+
+			@Override
+			public Set<String> getModuleNgProviders() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return new HashSet<String>();
+			}
+		};
 	}
 
 	@Override

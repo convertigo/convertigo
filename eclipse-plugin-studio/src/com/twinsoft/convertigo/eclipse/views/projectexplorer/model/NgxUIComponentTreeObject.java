@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
+import com.twinsoft.convertigo.beans.ngx.components.UIAttribute;
 import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
@@ -1088,6 +1089,19 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			try {
 				if (propertyName.equals("name")) {
 					handlesBeanNameChanged(treeObjectEvent);
+				}
+				
+				// NgxApp throttleTime or useClickForTap changed
+				if (propertyName.equals("throttleEvents") || propertyName.equals("useClickForTap")) {
+					if (getObject() instanceof UIAttribute) {
+						IScriptComponent isc = getObject().getMainScriptComponent();
+						if (isc instanceof PageComponent) {
+							getObject().getPage().reset();
+						}
+						if (isc instanceof UISharedComponent) {
+							getObject().getSharedComponent().reset();
+						}
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

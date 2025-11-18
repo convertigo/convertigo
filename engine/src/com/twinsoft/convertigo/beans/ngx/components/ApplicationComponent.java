@@ -132,6 +132,42 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return cloned;
 	}
 
+	/*
+	 * The throttle events
+	 */
+	private XMLVector<XMLVector<String>> throttleEvents = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getThrottleEvents() {
+		return throttleEvents;
+	}
+	
+	public void setThrottleEvents(XMLVector<XMLVector<String>> throttleEvents) {
+		this.throttleEvents = throttleEvents;
+	}
+	
+	protected boolean isThrottleEvent(String attr) {
+		if (isTplStandalone()) {
+			for (XMLVector<String> v: getThrottleEvents()) {
+				if (v.get(0).equals(attr)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	protected long getThrottleTime(String attr) {
+		if (isTplStandalone()) {
+			for (XMLVector<String> v: getThrottleEvents()) {
+				if (v.get(0).equals(attr)) {
+					try {
+						return Long.valueOf(v.get(1));
+					} catch (Exception e) {}
+				}
+			}
+		}
+		return 0;
+	}
 	
 	@Override
 	public void preconfigure(Element element) throws Exception {
@@ -1250,6 +1286,12 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		
 		sb.append("<ion-router-outlet id=\"main-content\"></ion-router-outlet>");
+		if (isTplStandalone()) {
+			sb.append("<ion-loading\n"
+	                + "      [isOpen]=\"this.global.c8oLoading()\"\n"
+	                + "      [spinner]=\"this.router.loadingFamily ?? 'lines'\"\n"
+	                + "    ></ion-loading>");
+		}
 		sb.append(System.lineSeparator());
 		
 		if (hasSplitPane) {

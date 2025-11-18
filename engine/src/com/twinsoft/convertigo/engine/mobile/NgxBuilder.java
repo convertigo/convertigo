@@ -1939,7 +1939,7 @@ public class NgxBuilder extends MobileBuilder {
 					String from = module_ts_imports.get(comp);
 					String entry = cleanImport(page, tpl_ts_imports, comp, from, true);
 					if (!entry.isBlank()) {
-						if (from.startsWith("/components") || from.startsWith("/pages")) {
+						if (from.startsWith("/components") || from.startsWith("/pages") || from.startsWith("/directives")) {
 							from = "../.." + from;
 						}
 						c8o_ModuleTsImports += "import "+ entry +" from '"+ from +"';" + System.lineSeparator();
@@ -2101,7 +2101,7 @@ public class NgxBuilder extends MobileBuilder {
 					String from = module_ts_imports.get(comps);
 					String entry = cleanImport(((UISharedRegularComponent) comp), tpl_ts_imports, comps, from, true);
 					if (!entry.isBlank()) {
-						if (from.startsWith("/components") || from.startsWith("/pages")) {
+						if (from.startsWith("/components") || from.startsWith("/pages") || from.startsWith("/directives")) {
 							from = "../.." + from;
 						}
 						c8o_ModuleTsImports += "import "+ entry +" from '"+ from +"';" + System.lineSeparator();
@@ -3486,7 +3486,7 @@ public class NgxBuilder extends MobileBuilder {
 					String from = module_ts_imports.get(comp);
 					String entry = cleanImport(app, tpl_ts_imports, comp, from, true);
 					if (!entry.isBlank()) {
-						if (from.startsWith("/components") || from.startsWith("/pages")) {
+						if (from.startsWith("/components") || from.startsWith("/pages") || from.startsWith("/directives")) {
 							from = "." + from;
 						}
 						c8o_ModuleTsImports += "import "+ entry +" from '"+ from +"';" + System.lineSeparator();

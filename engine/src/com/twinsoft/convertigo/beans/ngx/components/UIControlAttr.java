@@ -39,7 +39,7 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 		UIControlAttr cloned = (UIControlAttr) super.clone();
 		return cloned;
 	}
-	
+
 	@Override
 	public String getAttrValue() {
 		if (isEnabled()) {
@@ -68,9 +68,16 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 	        	return "";
 	        }
 	        else {
-	        	return (" "+attr+"=\""+val+"\"");
+	        	if (isThrottleEvent(attr)) {
+	        		return (" throttleEvent [throttleTime]=\""+ getThrottleTime(attr) +"\"" + 
+	        				" throttleType=\""+ getThrottleType(attr) +"\"" +
+	        				" (throttleEvent)=\""+ val +"\"");
+	        	} else {
+	        		return (" "+attr+"=\""+ val +"\"");
+	        	}
 	        }
 		}
 		return "";
 	}
+	
 }

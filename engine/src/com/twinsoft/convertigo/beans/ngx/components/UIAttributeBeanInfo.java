@@ -38,7 +38,7 @@ public class UIAttributeBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("attrName", beanClass, "getAttrName", "setAttrName");
 			properties[0].setDisplayName(getExternalizedString("property.attrName.display_name"));
@@ -48,6 +48,10 @@ public class UIAttributeBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.attrValue.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.attrValue.short_description"));
 			properties[1].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
+
+			properties[2] = new PropertyDescriptor("throttleTime", beanClass, "getThrottleTime", "setThrottleTime");
+			properties[2].setDisplayName(getExternalizedString("property.throttleTime.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.throttleTime.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

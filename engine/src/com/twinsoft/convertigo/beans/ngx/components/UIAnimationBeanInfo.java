@@ -51,7 +51,7 @@ public class UIAnimationBeanInfo extends MySimpleBeanInfo {
 
 			getPropertyDescriptor("attrName").setHidden(true);
 			getPropertyDescriptor("attrValue").setHidden(true);
-			
+			getPropertyDescriptor("throttleTime").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
