@@ -1301,6 +1301,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 	}
 
+	public boolean isHiddenProperty(String propertyName) {
+		return false;
+	}
+	
+	public boolean checkForHiddenProperty(PropertyDescriptor propertyDescriptor) {
+		if ("isHiddenProperty".equals(propertyDescriptor.getValue(MySimpleBeanInfo.HIDDEN_PROPERTY))) {
+			return isHiddenProperty(propertyDescriptor.getName());
+		}
+		return false;
+	}
+	
 	public boolean checkBlackListParentClass(PropertyDescriptor propertyDescriptor) {
 		return parent != null && parent.getClass().getCanonicalName()
 				.equals(propertyDescriptor.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS));

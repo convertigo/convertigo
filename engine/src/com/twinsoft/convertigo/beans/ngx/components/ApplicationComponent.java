@@ -146,7 +146,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 	
 	protected boolean isThrottleEvent(String attr) {
-		if (isTplStandalone()) {
+		if (hasThrottleDirective()) {
 			for (XMLVector<String> v: getThrottleEvents()) {
 				if (v.get(0).equals(attr)) {
 					return true;
@@ -157,7 +157,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 	
 	protected long getThrottleTime(String attr) {
-		if (isTplStandalone()) {
+		if (hasThrottleDirective()) {
 			for (XMLVector<String> v: getThrottleEvents()) {
 				if (v.get(0).equals(attr)) {
 					try {
@@ -1883,6 +1883,14 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	public boolean isHiddenProperty(String propertyName) {
+		if (propertyName.equals("throttleEvents")) {
+			return !hasThrottleDirective();
+		}
+		return super.isHiddenProperty(propertyName);
 	}
 	
 }

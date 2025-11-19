@@ -325,6 +325,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			if (databaseObjectPropertyDescriptor.isHidden()) {
 				continue;
 			}
+			if (databaseObject.checkForHiddenProperty(databaseObjectPropertyDescriptor)) {
+				continue;
+			}
 
 			if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
 				continue;

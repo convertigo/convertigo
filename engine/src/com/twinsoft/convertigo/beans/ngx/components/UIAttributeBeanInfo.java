@@ -52,6 +52,7 @@ public class UIAttributeBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("throttleTime", beanClass, "getThrottleTime", "setThrottleTime");
 			properties[2].setDisplayName(getExternalizedString("property.throttleTime.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.throttleTime.short_description"));
+			properties[2].setValue(HIDDEN_PROPERTY, "isHiddenProperty");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

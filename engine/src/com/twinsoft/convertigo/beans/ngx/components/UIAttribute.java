@@ -286,4 +286,13 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		}
 		return updated;
 	}
+	
+	@Override
+	public boolean isHiddenProperty(String propertyName) {
+		if (propertyName.equals("throttleTime")) {
+			return !hasThrottleDirective();
+		}
+		return super.isHiddenProperty(propertyName);
+	}
+	
 }

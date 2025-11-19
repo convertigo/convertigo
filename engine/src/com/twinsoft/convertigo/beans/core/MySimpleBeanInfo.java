@@ -48,6 +48,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String NILLABLE = "nillable";
 	public static final String SCRIPTABLE = "scriptable";
 	public static final String MULTILINE = "multiline";
+	public static final String HIDDEN_PROPERTY = "hiddenProperty";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
 	protected Class<? extends DatabaseObject> additionalBeanClass = null;

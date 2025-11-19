@@ -425,6 +425,14 @@ public abstract class MobileBuilder {
 		return "true".equalsIgnoreCase(standalone);
 	}
 	
+	public boolean hasFile(String filePath) {
+		if (filePath != null && !filePath.isBlank()) {
+			File f = new File(ionicWorkDir, filePath);
+			return f.exists();
+		}
+		return false;
+	}
+	
 	public boolean hasTplAppCompTsImport(String name) {
 		return getTplAppCompTsImports().containsKey(name);
 	}

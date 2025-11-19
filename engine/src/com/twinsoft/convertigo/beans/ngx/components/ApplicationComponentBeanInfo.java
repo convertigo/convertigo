@@ -69,6 +69,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[5].setShortDescription(getExternalizedString("property.throttleEvents.short_description"));
 			properties[5].setPropertyEditorClass(getEditorClass("NgxThrottleEventsEditor"));
 			properties[5].setExpert(true);
+			properties[5].setValue(HIDDEN_PROPERTY, "isHiddenProperty");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -122,4 +122,10 @@ public abstract class MobileObject extends DatabaseObject implements IMobileObje
 		}
 		return isStandalone;
 	}
+	
+	public boolean hasThrottleDirective() {
+		Project p = getProject();
+		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
+		return mb == null ? false : mb.hasFile("src/app/directives/throttle-event.directive.ts");
+	}
 }
