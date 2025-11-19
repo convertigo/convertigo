@@ -173,8 +173,8 @@
 	>
 		{#each parts as part, partIdx (part.name)}
 			{@const { name, requestables, comment } = part}
-			<div transition:fly={{ duration, y }}>
-				<AccordionSection
+				<div transition:fly={{ duration, y }}>
+					<AccordionSection
 					value={part.name}
 					class="rounded-container bg-surface-100-900 shadow-follow"
 					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-surface hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
@@ -188,7 +188,10 @@
 							<AccordionGroup multiple>
 								{#each requestables as requestable, requestableIdx (requestable.name)}
 									{@const { name, accessibility, comment } = requestable}
-									<div animate:flip={{ duration }} transition:fly={{ duration, y }}>
+				<div
+					animate:flip={{ duration }}
+					transition:fly={{ duration, y }}
+				>
 										<AccordionSection
 											value={`${part.name}.${name}`}
 											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-surface data-[state=open]:border-surface-300-700"

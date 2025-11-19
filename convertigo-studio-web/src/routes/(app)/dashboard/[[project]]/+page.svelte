@@ -115,11 +115,11 @@
 			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
-			<div
-				class="layout-y-stretch-none rounded-container bg-surface-50-950 p-low shadow-follow"
-				animate:flip={{ duration: 500 }}
-				transition:fade
-			>
+		<div
+			class="layout-y-stretch-none rounded-container bg-surface-50-950 p-low shadow-follow"
+			animate:flip={loading ? undefined : { duration: 400 }}
+			transition:fade
+		>
 				<div class="layout-x-p-low justify-between! py-1!">
 					<span class="text-md truncate font-semibold"
 						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span

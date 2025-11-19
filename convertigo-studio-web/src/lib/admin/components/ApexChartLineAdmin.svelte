@@ -19,10 +19,19 @@
 			offsetX: 8,
 			offsetY: 8
 		},
-		chart: {
-			type: 'line',
-			height: 300,
-			zoom: {
+	chart: {
+		type: 'line',
+		height: 300,
+		animations: {
+			enabled: false,
+			animateGradually: {
+				enabled: false
+			},
+			dynamicAnimation: {
+				enabled: false
+			}
+		},
+		zoom: {
 				enabled: false
 			},
 			toolbar: {
