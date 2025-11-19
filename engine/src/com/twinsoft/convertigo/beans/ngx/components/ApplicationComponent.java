@@ -1288,8 +1288,19 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		sb.append("<ion-router-outlet id=\"main-content\"></ion-router-outlet>");
 		if (isTplStandalone()) {
 			sb.append("<ion-loading\n"
-	                + "      [isOpen]=\"this.global.c8oLoading()\"\n"
-	                + "      [spinner]=\"this.router.loadingFamily ?? 'lines'\"\n"
+	                + "      [isOpen]=\"this.global.c8oLoadingOptions.isOpen()\"\n"
+	                + "      [mode]=\"this.global.c8oLoadingOptions.mode()\"\n"
+	                + "      [spinner]=\"this.router.loadingFamily ?? this.global.c8oLoadingOptions.spinner()\"\n"
+	                + "      [message]=\"this.global.c8oLoadingOptions.message()\"\n"
+	                + "      [duration]=\"this.global.c8oLoadingOptions.duration()\"\n"
+	                + "      [keyboardClose]=\"this.global.c8oLoadingOptions.keyboardClose()\"\n"
+	                + "      [showBackdrop]=\"this.global.c8oLoadingOptions.showBackdrop()\"\n"
+	                + "      [backdropDismiss]=\"this.global.c8oLoadingOptions.backdropDismiss()\"\n"
+	                + "      [animated]=\"this.global.c8oLoadingOptions.animated()\"\n"
+	                + "      [enterAnimation]=\"this.global.c8oLoadingOptions.enterAnimation()\"\n"
+	                + "      [leaveAnimation]=\"this.global.c8oLoadingOptions.leaveAnimation()\"\n"
+	                + "      [cssClass]=\"this.global.c8oLoadingOptions.cssClass()\"\n"
+	                + "      [translucent]=\"this.global.c8oLoadingOptions.translucent()\"\n"
 	                + "    ></ion-loading>");
 		}
 		sb.append(System.lineSeparator());
