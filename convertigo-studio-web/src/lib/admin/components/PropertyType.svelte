@@ -66,20 +66,18 @@
 				{...rest}
 				{name}
 				{value}
-				class="items-start gap-low"
 				{checked}
 				onCheckedChange={(e) => (checked = e.checked)}
+				class="inline-flex items-center gap-low"
 			>
 				<Switch.Control
-					class="min-w-12 rounded-full preset-filled-error-200-800 motif-error p-1 transition-surface data-[state=checked]:preset-filled-success-200-800"
+					class="layout-x-none h-6 w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
 				>
 					<Switch.Thumb
-						class="grid h-5 w-5 place-items-center rounded-full bg-white text-surface-900 transition-transform duration-150 data-[state=checked]:translate-x-5"
-					>
-						<Ico icon={checked ? 'mdi:check' : 'mdi:close'} />
-					</Switch.Thumb>
+						class="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 data-[state=checked]:translate-x-5"
+					/>
 				</Switch.Control>
-				<span class="block cursor-pointer leading-tight break-words">{label}</span>
+				<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label>
 				<Switch.HiddenInput />
 			</Switch>
 		{:else}

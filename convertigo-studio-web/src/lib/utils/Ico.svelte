@@ -18,9 +18,11 @@
 	import MdiCalendarRange from '~icons/mdi/calendar-range?raw';
 	import MdiCertificate from '~icons/mdi/certificate?raw';
 	import MdiCheckAll from '~icons/mdi/check-all?raw';
+	import MdiCheck from '~icons/mdi/check?raw';
 	import MdiChevronRight from '~icons/mdi/chevron-right?raw';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
 	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline?raw';
+	import MdiClose from '~icons/mdi/close?raw';
 	import MdiCloudOutline from '~icons/mdi/cloud-outline?raw';
 	import MdiCloudSyncOutline from '~icons/mdi/cloud-sync-outline?raw';
 	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces?raw';
@@ -121,8 +123,10 @@
 		'mdi:calendar-clock': MdiCalendarClock,
 		'mdi:calendar-range': MdiCalendarRange,
 		'mdi:certificate': MdiCertificate,
+		'mdi:check': MdiCheck,
 		'mdi:check-all': MdiCheckAll,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
+		'mdi:close': MdiClose,
 		'mdi:close-circle-outline': MdiCloseCircleOutline,
 		'mdi:cloud-outline': MdiCloudOutline,
 		'mdi:cloud-sync-outline': MdiCloudSyncOutline,

@@ -155,7 +155,7 @@
 }
 
 @utility mini-card {
-	@apply flex gap-2 rounded-sm p-1 text-nowrap select-none;
+	@apply flex items-center gap-2 rounded-sm p-1 text-nowrap select-none;
 }
 
 @utility chip {

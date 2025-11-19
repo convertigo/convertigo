@@ -7,7 +7,9 @@
 		toTime
 	} from '@internationalized/date';
 	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
+	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import TreeView from '$lib/common/components/TreeView.svelte';
@@ -21,6 +23,13 @@
 		['D', '4']
 	]);
 
+	let data2 = $state(
+		Array.from({ length: 10 }, (_, i) => ({
+			name: `Item ${i + 1}`,
+			value: `Value for item ${i + 1}`
+		}))
+	);
+
 	let filter = $state('');
 
 	let lines = $derived(data.filter((item) => item[0].toLowerCase().includes(filter.toLowerCase())));
@@ -31,6 +40,8 @@
 		return 50;
 	}
 	let value = $state('item-2');
+	let propertyChecked = $state(true);
+	let booleanValue = $state('true');
 </script>
 
 <LightSwitch></LightSwitch>
@@ -66,6 +77,23 @@ foot
 </VirtualList> -->
 
 <div class="max-w-96"><PropertyType></PropertyType></div>
+<section class="layout-y-low max-w-96 rounded-base bg-surface-100-900 p-low">
+	<h3 class="text-sm font-semibold text-surface-500">Toggle comparison</h3>
+	<div class="layout-y-low">
+		<PropertyType
+			label="PropertyType (type=check)"
+			type="check"
+			name="sandbox-check"
+			bind:checked={propertyChecked}
+		/>
+		<CheckState name="boolean-check" values={['false', 'true']} bind:value={booleanValue}>
+			CheckState (boolean)
+		</CheckState>
+		<div class="text-xs text-surface-500">
+			PropertyType checked: {propertyChecked ? 'true' : 'false'} — CheckState value: {booleanValue}
+		</div>
+	</div>
+</section>
 <!-- <DateRangePicker></DateRangePicker> -->
 {value}
 <SegmentedControl
@@ -92,3 +120,11 @@ foot
 		</SegmentedControl.Item>
 	</SegmentedControl.Control>
 </SegmentedControl>
+<TableAutoCard
+	definition={[
+		{ name: 'Name', key: 'name', class: 'break-all min-w-48' },
+		{ name: 'Value', key: 'value', class: 'break-all min-w-48' }
+	]}
+	data={data2}
+	class="max-h-[80vh]"
+></TableAutoCard>

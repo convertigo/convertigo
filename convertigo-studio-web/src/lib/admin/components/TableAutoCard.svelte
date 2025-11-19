@@ -3,7 +3,6 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { onMount, tick } from 'svelte';
-	import { fade } from 'svelte/transition';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
 	let {
@@ -14,10 +13,9 @@
 		title = '',
 		comment = '',
 		class: cls = '',
-		thClass = 'preset-filled-surface-100-900',
-		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 hover:preset-filled-surface-300-700',
+		thClass = 'preset-filled-surface-100-900 text-left',
+		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:preset-filled-surface-300-700',
 		fnRowId = (row, i) => row.name ?? i,
-		animationProps = { duration: 100 },
 		children,
 		rowChildren,
 		thead
@@ -77,7 +75,7 @@
 		{#if data && data.length > 0}
 			<tbody>
 				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
-					<tr class={trClass} data-custom={row.name} transition:fade={animationProps}>
+					<tr class={trClass} data-custom={row.name}>
 						{#snippet rowRender()}
 							{#each definition as def}
 								<td
