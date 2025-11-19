@@ -612,16 +612,27 @@ public class Engine {
 							Class<?> sunPKCS11Class = Class.forName("sun.security.pkcs11.SunPKCS11");
 							String file;
 
+							boolean hasStringConstructor = false;
+							try {
+								hasStringConstructor = sunPKCS11Class.getConstructor(new Class[] { String.class }) != null;
+							} catch (Exception e) {}
+							
 							for (int i = 0; i < files.length; i++) {
 								file = Engine.CERTIFICATES_PATH + "/" + files[i];
 								try {
-									Constructor<?> constructor = sunPKCS11Class
-											.getConstructor(new Class[] { String.class });
-									Provider provider = (Provider) constructor
-											.newInstance(new Object[] { file });
-									Security.addProvider(provider);
-									Engine.logEngine.info("Provider '" + provider.getName()
-									+ "' has been successfully registered.");
+									if (hasStringConstructor) {
+										Constructor<?> constructor = sunPKCS11Class.getConstructor(new Class[] { String.class });
+										Provider provider = (Provider) constructor.newInstance(new Object[] { file });
+										Security.addProvider(provider);
+										Engine.logEngine.info("Provider '" + provider.getName()
+											+ "' has been successfully registered.");
+									} else {
+										Provider provider = java.security.Security.getProvider("SunPKCS11");
+										provider = provider.configure(file);
+										Security.addProvider(provider);
+										Engine.logEngine.info("Provider '" + provider.getName()
+											+ "' has been successfully registered.");
+									}
 								} catch (Exception e) {
 									Engine.logEngine
 									.error("Unable to register security provider from file: "
