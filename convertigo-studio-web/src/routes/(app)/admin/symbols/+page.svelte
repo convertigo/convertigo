@@ -61,11 +61,19 @@
 				{#if edit}
 					<input type="hidden" name="oldSymbolName" value={row?.name} />
 				{/if}
-				{#if sec && !row}
-					<input type="hidden" name="symbolName" value="{secretName}.secret" />
-					<div class="layout-x-end-low">
-						<PropertyType label="Name" bind:value={secretName} /><span>.secret</span>
-					</div>
+				{#if sec}
+					{#if row}
+						<input type="hidden" name="symbolName" value={row?.name} />
+						<div class="layout-x-end-low">
+							<PropertyType label="Name" value={row?.name?.replace(/\.secret$/, '')} disabled />
+							<span>.secret</span>
+						</div>
+					{:else}
+						<input type="hidden" name="symbolName" value="{secretName}.secret" />
+						<div class="layout-x-end-low">
+							<PropertyType label="Name" bind:value={secretName} /><span>.secret</span>
+						</div>
+					{/if}
 				{:else}
 					<PropertyType name="symbolName" label="Name" value={row?.name} />
 				{/if}

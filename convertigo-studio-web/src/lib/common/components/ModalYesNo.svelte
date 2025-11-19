@@ -1,4 +1,5 @@
 <script>
+	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import ModalDynamic from './ModalDynamic.svelte';
 
@@ -19,8 +20,18 @@
 			<span>{message}</span>
 		{/if}
 		<div class="layout-x w-full justify-end">
-			<button onclick={() => modal.close(true)} class="button-success">Yes</button>
-			<button onclick={() => modal.close(false)} class="button-error">No</button>
+			<Button
+				onclick={() => modal.close(true)}
+				class="button-success w-fit!"
+				icon="mdi:check"
+				label="Yes"
+			/>
+			<Button
+				onclick={() => modal.close(false)}
+				class="button-error w-fit!"
+				icon="mdi:close-circle-outline"
+				label="No"
+			/>
 		</div>
 	</Card>
 </ModalDynamic>

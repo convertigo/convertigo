@@ -22,12 +22,24 @@
 	}
 }
 
+@utility transition-surface {
+	transition-property: background-color, color, border-color, box-shadow, filter;
+	transition-duration: 160ms;
+	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+@utility transition-soft {
+	transition-property: background-color, color, border-color, box-shadow, transform;
+	transition-duration: 200ms;
+	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
 @utility fullscreen {
 	@apply fixed top-0 left-0 z-50 h-full min-w-full bg-surface-50-950;
 }
 
 @utility button {
-	@apply btn flex items-center rounded-base px-3 py-1 text-[13px] font-normal text-white;
+	@apply btn flex items-center rounded-base px-3 py-1 text-[13px] font-normal text-white transition-surface;
 }
 
 @utility motif-primary {
@@ -117,18 +129,6 @@
 
 @utility button-ico-success {
 	@apply button text-success-700-300;
-}
-
-@utility transition-surface {
-	transition-property: background-color, color, border-color, box-shadow;
-	transition-duration: 160ms;
-	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
-}
-
-@utility transition-soft {
-	transition-property: background-color, color, border-color, box-shadow, transform;
-	transition-duration: 200ms;
-	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 :root {

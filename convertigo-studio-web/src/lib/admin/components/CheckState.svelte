@@ -21,7 +21,7 @@
 	onCheckedChange={(e) => (value = e.checked ? values[1] : values[0])}
 >
 	<Switch.Control
-		class="layout-x-none h-6 w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
+		class="layout-x-none h-6 min-w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
 	>
 		<Switch.Thumb
 			class="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 data-[state=checked]:translate-x-5"

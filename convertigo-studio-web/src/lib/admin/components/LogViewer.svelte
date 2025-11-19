@@ -597,7 +597,7 @@
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
 			</div>
-			<div class="mini-card preset-filled-success-100-900">
+			<div class="mini-card">
 				<Popover
 					open={searchBoxOpened}
 					onOpenChange={(e) => {
@@ -609,7 +609,7 @@
 					}}
 					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
 				>
-					<Popover.Trigger class="button-primary h-7 w-7 items-center justify-center p-0">
+					<Popover.Trigger class="button-success h-7 w-7 items-center justify-center p-0">
 						<Ico icon="mdi:search" />
 					</Popover.Trigger>
 					<Popover.Positioner class="z-50">

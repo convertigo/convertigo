@@ -1,6 +1,6 @@
 <script>
 	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
-	import { Popover, Slider, Tabs } from '@skeletonlabs/skeleton-svelte';
+	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -246,206 +246,201 @@
 	let modalYesNo = getContext('modalYesNo');
 </script>
 
-<Tabs value={tabSet} onValueChange={(e) => goto(`../${e.value}/`)} class="h-full">
-	<MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-		<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
-			{#snippet cornerOption()}
-				<div class="layout-x-low w-full">
-					<Tabs.List class="mb-0! flex-wrap gap-low">
-						{#each Object.entries(tabs) as [value, { name, icon }]}
-							<Tabs.Trigger
-								{value}
-								class={`layout-x-low items-center rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-surface-600 transition-surface data-[state=active]:preset-filled-primary-100-900 data-[state=active]:text-primary-contrast-100-900 ${tabSet == value ? 'preset-filled-primary-100-900 text-primary-contrast-100-900' : 'bg-surface-200-800/40 dark:bg-surface-800/40'}`}
-							>
-								<Ico {icon} class="text-primary-500" />
-								{name}
-							</Tabs.Trigger>
-						{/each}
-					</Tabs.List>
-					<div class="grow">
-						{#if tabSet == 'purge'}
-							<ResponsiveButtons
-								buttons={[
-									{
-										label: 'Purge',
-										icon: 'mdi:content-save-edit-outline',
-										cls: 'button-error',
-										disabled: LogsPurge.value[0] == -1,
-										onclick: async (event) => {
-											if (
-												await modalYesNo.open({
-													event,
-													title: 'Delete logs files older than',
-													message: `${LogsPurge.date} ?`
-												})
-											) {
-												LogsPurge.purge();
-											}
+<MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
+	<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
+		{#snippet cornerOption()}
+			<div class="layout-x-wrap w-full items-center gap">
+				<PropertyType
+					type="segment"
+					name="logs-tabs"
+					item={Object.entries(tabs).map(([value, { name, icon }]) => ({
+						text: name,
+						value,
+						icon
+					}))}
+					bind:value={() => tabSet, (v) => goto(`/admin/logs/${v}`)}
+					fit={true}
+				/>
+
+				<div class="grow">
+					{#if tabSet == 'purge'}
+						<ResponsiveButtons
+							buttons={[
+								{
+									label: 'Purge',
+									icon: 'mdi:content-save-edit-outline',
+									cls: 'button-error',
+									disabled: LogsPurge.value[0] == -1,
+									onclick: async (event) => {
+										if (
+											await modalYesNo.open({
+												event,
+												title: 'Delete logs files older than',
+												message: `${LogsPurge.date} ?`
+											})
+										) {
+											LogsPurge.purge();
 										}
 									}
-								]}
+								}
+							]}
+						/>
+					{:else if tabSet == 'config'}
+						<SaveCancelButtons
+							onSave={saveChanges}
+							onCancel={Configuration.refresh}
+							changesPending={hasChanges}
+						/>
+					{/if}
+				</div>
+			</div>
+		{/snippet}
+		<div class="h-full">
+			{#if tabSet == 'view'}
+				<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
+					<div transition:slide={{ axis: 'y' }}>
+						<div class="relative z-30 layout-x-end-low flex-wrap">
+							<div class="layout-x-end-low flex-wrap">
+								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
+									<Popover.Trigger class="button-primary layout-x-low">
+										Preset<Ico icon="mdi:clock-star-four-points-outline" />
+									</Popover.Trigger>
+									<Popover.Positioner class="z-60">
+										<Popover.Content class="border-none bg-transparent p-0 shadow-none">
+											<Card bg="preset-glass-primary" class="border-none! p-low! shadow-follow">
+												<div class="layout-y-stretch-low">
+													{#each presets as { label, onclick }, idx (label)}
+														<Button
+															{label}
+															class="button-primary bg-primary-50-950 text-black odd:bg-primary-50-950/75 dark:text-white"
+															{onclick}
+														/>
+													{/each}
+												</div>
+											</Card>
+											<Popover.Arrow class="fill-primary-200-800" />
+										</Popover.Content>
+									</Popover.Positioner>
+								</Popover>
+								<TimePicker bind:inputValue={times[0]} />
+								<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
+								{#if !live}
+									<span transition:slide={{ axis: 'x' }}
+										><TimePicker bind:inputValue={times[1]} /></span
+									>
+								{/if}
+							</div>
+							<Button
+								size={4}
+								label="Server filter"
+								icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
+								onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
+								class="button-secondary h-7! w-fit!"
 							/>
-						{:else if tabSet == 'config'}
-							<SaveCancelButtons
-								onSave={saveChanges}
-								onCancel={Configuration.refresh}
-								changesPending={hasChanges}
+							{#if serverFilterVisible}
+								<Button
+									size={4}
+									icon="mdi:cloud-sync-outline"
+									onmousedown={copyFilters}
+									class="button-tertiary h-7! w-fit!"
+									label="Copy client filters"
+									disabled={Object.keys(filters).length == 0}
+								/>
+							{/if}
+							<Button
+								label="Server search"
+								size={4}
+								icon="mdi:receipt-text-send-outline"
+								class="button-success w-fit!"
+								onclick={refreshLogs}
 							/>
-						{/if}
+							{#if serverFilterVisible}
+								<InputGroup
+									type="search"
+									placeholder="Server filter…"
+									icon="mdi:filter"
+									class="bg-surface-200-800"
+									inputClass="light:bg-white"
+									bind:value={serverFilter}
+									onkeyup={(e) => {
+										if (e?.key == 'Enter') refreshLogs();
+									}}
+								>
+									{#snippet actions({ value, setValue })}
+										{#if value?.length}
+											<button
+												type="button"
+												class="button-ico-error h-6 w-6"
+												onclick={() => setValue('')}
+											>
+												<Ico icon="mdi:close-circle-outline" size="nav" />
+											</button>
+										{/if}
+									{/snippet}
+								</InputGroup>
+							{/if}
+						</div>
+					</div>
+					<div class="-mx -mb h-full">
+						<LogViewer
+							bind:this={logViewer}
+							{autoScroll}
+							{startDate}
+							{endDate}
+							{live}
+							{serverFilter}
+							bind:filters
+						/>
 					</div>
 				</div>
-			{/snippet}
-			<div class="h-full">
-				<Tabs.Content value="view" class="h-full">
-					<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
-						<div transition:slide={{ axis: 'y' }}>
-							<div class="layout-x-end-low flex-wrap">
-								<div class="layout-x-end-low flex-wrap">
-									<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
-										<Popover.Trigger class="button-primary layout-x-low">
-											Preset<Ico icon="mdi:clock-star-four-points-outline" />
-										</Popover.Trigger>
-										<Popover.Positioner class="z-40">
-											<Popover.Content
-												class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow"
-											>
-												<Card bg="preset-glass-primary" class="p-low!">
-													<div class="layout-y-stretch-low">
-														{#each presets as { label, onclick }}
-															<Button
-																{label}
-																class="button-primary bg-primary-50-950 text-black odd:bg-primary-50-950/75 dark:text-white"
-																{onclick}
-															/>
-														{/each}
-													</div>
-												</Card>
-												<Popover.Arrow class="fill-surface-50-950" />
-											</Popover.Content>
-										</Popover.Positioner>
-									</Popover>
-									<TimePicker bind:inputValue={times[0]} />
-									<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
-									{#if !live}
-										<span transition:slide={{ axis: 'x' }}
-											><TimePicker bind:inputValue={times[1]} /></span
-										>
-									{/if}
-								</div>
-								<Button
-									size={4}
-									label="Server filter"
-									icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
-									onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
-									class="button-secondary h-7! w-fit!"
-								/>
-								{#if serverFilterVisible}
-									<Button
-										size={4}
-										icon="mdi:cloud-sync-outline"
-										onmousedown={copyFilters}
-										class="button-tertiary h-7! w-fit!"
-										label="Copy client filters"
-										disabled={Object.keys(filters).length == 0}
-									/>
-								{/if}
-								<Button
-									label="Server search"
-									size={4}
-									icon="mdi:receipt-text-send-outline"
-									class="button-success w-fit!"
-									onclick={refreshLogs}
-								/>
-								{#if serverFilterVisible}
-									<InputGroup
-										type="search"
-										placeholder="Server filter…"
-										icon="mdi:filter"
-										class="bg-surface-200-800"
-										inputClass="light:bg-white"
-										bind:value={serverFilter}
-										onkeyup={(e) => {
-											if (e?.key == 'Enter') refreshLogs();
-										}}
-									>
-										{#snippet actions({ value, setValue })}
-											{#if value?.length}
-												<button
-													type="button"
-													class="button-ico-error h-6 w-6"
-													onclick={() => setValue('')}
-												>
-													<Ico icon="mdi:close-circle-outline" size="nav" />
-												</button>
-											{/if}
-										{/snippet}
-									</InputGroup>
-								{/if}
-							</div>
-						</div>
-						<div class="-mx -mb h-full">
-							<LogViewer
-								bind:this={logViewer}
-								{autoScroll}
-								{startDate}
-								{endDate}
-								{live}
-								{serverFilter}
-								bind:filters
-							/>
-						</div>
-					</div>
-				</Tabs.Content>
-				<Tabs.Content value="purge" class="h-full">
-					{@const {
-						loading,
-						dates,
-						date,
-						value: [idx]
-					} = LogsPurge}
-					<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
-						<div class="mt">Logs are split into multiple files, each step is a file.</div>
-						<div class="rounded-sm preset-filled-surface-300-700 p-5">
-							<AutoPlaceholder {loading}>
-								<Slider
-									name="range-slider"
-									value={LogsPurge.value}
-									onValueChange={(e) => (LogsPurge.value = e.value)}
-									min={-1}
-									max={dates.length - 1}
-									step={1}
-								>
-									<Slider.Control class="relative w-full">
-										<Slider.Track class="h-1 w-full rounded-full bg-surface-200-800">
-											<Slider.Range class="h-full rounded-full bg-primary-500" />
-										</Slider.Track>
-										<Slider.Thumb index={0} class="h-5 w-5 rounded-full bg-primary-500" />
-									</Slider.Control>
-								</Slider>
-							</AutoPlaceholder>
-						</div>
+			{:else if tabSet == 'purge'}
+				{@const {
+					loading,
+					dates,
+					date,
+					value: [idx]
+				} = LogsPurge}
+				<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
+					<div class="mt">Logs are split into multiple files, each step is a file.</div>
+					<div class="rounded-sm preset-filled-surface-300-700 p-5">
 						<AutoPlaceholder {loading}>
-							<div class="layout-x justify-between">
-								{#if idx >= 0}
-									<div class="font-medium">Delete logs files older than {date}</div>
-								{:else}
-									<div class="font-medium">No selected date</div>
-								{/if}
-								<div class="text-xs">{idx + 1} / {dates.length}</div>
-							</div>
+							<Slider
+								name="range-slider"
+								value={LogsPurge.value}
+								onValueChange={(e) => (LogsPurge.value = e.value)}
+								min={-1}
+								max={dates.length - 1}
+								step={1}
+							>
+								<Slider.Control class="relative w-full">
+									<Slider.Track class="h-1 w-full rounded-full bg-surface-200-800">
+										<Slider.Range class="h-full rounded-full bg-primary-500" />
+									</Slider.Track>
+									<Slider.Thumb index={0} class="h-5 w-5 rounded-full bg-primary-500" />
+								</Slider.Control>
+							</Slider>
 						</AutoPlaceholder>
 					</div>
-				</Tabs.Content>
-				<Tabs.Content value="config" class="h-full">
-					<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
-						{#each logsCategory?.property as property}
-							{#if property.name?.startsWith('LOG4J')}
-								<PropertyType {...property} bind:value={property.value} />
+					<AutoPlaceholder {loading}>
+						<div class="layout-x justify-between">
+							{#if idx >= 0}
+								<div class="font-medium">Delete logs files older than {date}</div>
+							{:else}
+								<div class="font-medium">No selected date</div>
 							{/if}
-						{/each}
-					</div>
-				</Tabs.Content>
-			</div>
-		</Card>
-	</MaxRectangle>
-</Tabs>
+							<div class="text-xs">{idx + 1} / {dates.length}</div>
+						</div>
+					</AutoPlaceholder>
+				</div>
+			{:else}
+				<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
+					{#each logsCategory?.property as property}
+						{#if property.name?.startsWith('LOG4J')}
+							<PropertyType {...property} bind:value={property.value} />
+						{/if}
+					{/each}
+				</div>
+			{/if}
+		</div>
+	</Card>
+</MaxRectangle>

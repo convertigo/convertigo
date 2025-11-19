@@ -71,7 +71,7 @@
 				class="inline-flex items-center gap-low"
 			>
 				<Switch.Control
-					class="layout-x-none h-6 w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
+					class="layout-x-none h-6 min-w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
 				>
 					<Switch.Thumb
 						class="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 data-[state=checked]:translate-x-5"
@@ -154,18 +154,29 @@
 	{#if restores.length > 0 || buttons.length > 0}
 		<div class="layout-x-low justify-around! sm:layout-y-low sm:h-full">
 			{#each restores as { icon, val, title }}
+				{@const displayVal = val == null ? '' : String(val)}
+				{@const label = displayVal.length ? `${title}: ${displayVal}` : title}
 				<button
 					disabled={value == val}
 					type="button"
 					onclick={() => (value = val)}
-					title="{title}:{val}"
+					title={label}
+					aria-label={label}
 					class="btn bg-surface-200-800 btn-sm"
 				>
 					<Ico {icon} />
 				</button>
 			{/each}
 			{#each buttons as { disabled, onclick, title, icon }}
-				<button {disabled} type="button" {onclick} {title} class="btn bg-surface-200-800 btn-sm">
+				{@const label = title ?? icon ?? 'action'}
+				<button
+					{disabled}
+					type="button"
+					{onclick}
+					title={label}
+					aria-label={label}
+					class="btn bg-surface-200-800 btn-sm"
+				>
 					<Ico {icon} />
 				</button>
 			{/each}

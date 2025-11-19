@@ -6,8 +6,8 @@
 		label,
 		icon,
 		size = 'btn',
-		cls,
-		class: _cls,
+		cls: _cls,
+		class: _cls2,
 		disabled,
 		value,
 		hidden,
@@ -17,7 +17,7 @@
 		ariaLabel = title,
 		...rest
 	} = $props();
-	cls ??= _cls;
+	let cls = $derived(_cls ?? _cls2 ?? '');
 </script>
 
 {#if !hidden}
