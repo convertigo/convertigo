@@ -2,6 +2,7 @@
 	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -169,6 +170,7 @@
 				const todayDate = today(timezone);
 				setDatesTimes(todayDate, todayDate.add({ days: 1 }));
 				live = true;
+				refreshLogs();
 			}
 		},
 		{
@@ -258,7 +260,7 @@
 						value,
 						icon
 					}))}
-					bind:value={() => tabSet, (v) => goto(`/admin/logs/${v}`)}
+					bind:value={() => tabSet, (v) => goto(resolve(`/admin/logs/${v}`))}
 					fit={true}
 				/>
 

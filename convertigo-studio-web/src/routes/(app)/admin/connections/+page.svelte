@@ -1,4 +1,6 @@
 <script>
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import Card from '$lib/admin/components/Card.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -37,6 +39,13 @@
 		httpTimeout;
 		return stop;
 	});
+
+	function openLogsWithServerFilter(filter) {
+		if (!filter) return;
+		// persistedState('admin.logs.serverFilter', ...) stores plain JSON string
+		localStorage.setItem('admin.logs.serverFilter', JSON.stringify(filter));
+		goto(resolve('/admin/logs/view/'));
+	}
 
 	let modalYesNo = getContext('modalYesNo');
 </script>
@@ -104,9 +113,7 @@
 							{
 								icon: 'mdi:magnify',
 								cls: 'button-ico-primary',
-								onclick: () => {
-									alert('TODO: filter in log viewer');
-								}
+								onclick: () => openLogsWithServerFilter(`sessionid == '${sessionID}'`)
 							},
 							{
 								icon: 'mdi:filter',
@@ -191,7 +198,7 @@
 							{
 								icon: 'mdi:magnify',
 								cls: 'button-ico-primary',
-								onclick: () => {}
+								onclick: () => openLogsWithServerFilter(`contextid == '${contextName}'`)
 							},
 							{
 								icon: 'mdi:delete-outline',
