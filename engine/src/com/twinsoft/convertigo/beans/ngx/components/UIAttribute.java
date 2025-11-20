@@ -115,6 +115,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	        	if (isThrottleEvent(attrName)) {
 	        		return (" throttleEvent [throttleTime]=\""+ getThrottleTime(attrName) +"\"" + 
 	        				" throttleType=\""+ getThrottleType(attrName) +"\"" +
+	        				" #refThrottle"+ getParent().priority + "=\"throttleEvent\"" +
 	        				" (throttleEvent)=\""+ attrVal +"\"");
 	        	} else {	        	
 	        		return (" "+attrName+"=\""+ attrVal +"\"");

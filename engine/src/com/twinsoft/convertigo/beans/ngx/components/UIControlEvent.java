@@ -295,7 +295,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			if(tplIsStandalone) {
 				String scopeBis = getScope(true, true);
 				scopeBis = scopeBis.replaceAll("$", "");
-				parameters.append(scopeBis != "" ? (", " + scopeBis) : "");
+				parameters.append(!scopeBis.isEmpty() ? (", " + scopeBis) : "");
 			}
 			
 			StringBuilder cartridge = new StringBuilder();
@@ -368,9 +368,16 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionKey+": ended\"); resolveP(res)});" + System.lineSeparator();
 			// zoneless support
 			if (compareToTplVersion("8.3.2.0") >= 0) {
-				computed += "\t\t}).finally(() => {this.ref.markForCheck();});"+System.lineSeparator();
+				//computed += "\t\t}).finally(() => {this.ref.markForCheck();});"+System.lineSeparator();
+				computed += "\t\t}).finally(() => {"+System.lineSeparator();
+				computed += "\t\t\tthis.ref.markForCheck();"+System.lineSeparator();
+				computed += "\t\t\tif (scope.refThrottle) {scope.refThrottle.unlock();}"+System.lineSeparator();
+				computed += "\t\t});"+System.lineSeparator();
 			}
 			else {
+				//computed += "\t\t});"+System.lineSeparator();
+				computed += "\t\t}).finally(() => {"+System.lineSeparator();
+				computed += "\t\t\tif (scope.refThrottle) {scope.refThrottle.unlock();}"+System.lineSeparator();
 				computed += "\t\t});"+System.lineSeparator();
 			}
 			computed += "\t}";
@@ -575,11 +582,22 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 					scope += !scope.isEmpty() ? ", ":"";
 //					scope += identifier+ ": "+ identifier;
 					scope += identifier + (justStr ? (withType ? " : any": "") : ": "+ identifier);
-				}			
+				}
 			}
 			
 			parent = parent.getParent();
 		}
+
+		if (isThrottleEvent(getAttrName())) {
+			String throttleIdentifier = "refThrottle"+getParent().priority;
+			if (justStr) {
+				//scope += throttleIdentifier + (withType ? " : any": "");
+			} else {
+				scope += !scope.isEmpty() ? ", ":"";
+				scope += "refThrottle" + (withType ? " : any": "") + ": "+ throttleIdentifier;				
+			}
+		}
+		
 		if(justStr) {
 			return scope;
 		}
@@ -621,7 +639,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			String scope = getScope();
 			String scopeBis = getScope(true, false);
 			String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
-			attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}}" + (scopeBis != "" ? ", " + scopeBis : "") + ")";
+			attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}}" + (!scopeBis.isEmpty() ? ", " + scopeBis : "") + ")";
 		}
 		
 		return attrValue;

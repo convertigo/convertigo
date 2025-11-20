@@ -71,6 +71,7 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 	        	if (isThrottleEvent(attr)) {
 	        		return (" throttleEvent [throttleTime]=\""+ getThrottleTime(attr) +"\"" + 
 	        				" throttleType=\""+ getThrottleType(attr) +"\"" +
+	        				" #refThrottle"+ getParent().priority + "=\"throttleEvent\"" +
 	        				" (throttleEvent)=\""+ val +"\"");
 	        	} else {
 	        		return (" "+attr+"=\""+ val +"\"");
