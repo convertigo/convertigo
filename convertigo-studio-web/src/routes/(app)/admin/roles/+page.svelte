@@ -280,28 +280,29 @@
 						>
 					</FileUpload.Dropzone>
 					<FileUpload.HiddenInput />
-					{#snippet RolesUploadPreview(fileUpload)}
-						<FileUpload.ItemGroup class="layout-y-low">
-							{#each fileUpload().acceptedFiles as file (file.name)}
-								<FileUpload.Item
-									{file}
-									class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
-								>
-									<div class="layout-x-low">
-										<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
-										<FileUpload.ItemName />
-									</div>
-									<div class="layout-x-low text-xs text-surface-500">
-										<FileUpload.ItemSizeText />
-										<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
-											<Ico icon="mdi:delete-outline" size="3" />
-										</FileUpload.ItemDeleteTrigger>
-									</div>
-								</FileUpload.Item>
-							{/each}
-						</FileUpload.ItemGroup>
-					{/snippet}
-					<FileUpload.Context children={RolesUploadPreview} />
+					<FileUpload.Context>
+						{#snippet children(fileUpload)}
+							<FileUpload.ItemGroup class="layout-y-low">
+								{#each fileUpload().acceptedFiles as file (file.name)}
+									<FileUpload.Item
+										{file}
+										class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
+									>
+										<div class="layout-x-low">
+											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
+											<FileUpload.ItemName />
+										</div>
+										<div class="layout-x-low text-xs text-surface-500">
+											<FileUpload.ItemSizeText />
+											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+												<Ico icon="mdi:delete-outline" size="3" />
+											</FileUpload.ItemDeleteTrigger>
+										</div>
+									</FileUpload.Item>
+								{/each}
+							</FileUpload.ItemGroup>
+						{/snippet}
+					</FileUpload.Context>
 				</FileUpload>
 				<div>
 					Import policy:
