@@ -76,19 +76,19 @@ const parts = $derived([
 		{
 			title: 'Swagger',
 			icon: 'mdi:code-braces',
-			url: getUrl(`/swagger/dist/index.html?url=${encodeURIComponent(getUrl('/openapi?YAML'))}`),
+			url: getUrl(`swagger/dist/index.html?url=${encodeURIComponent(getUrl('openapi?YAML'))}`),
 			external: true
 		},
 		{
 			title: 'Test Platform',
 			icon: 'mdi:home-alert-outline',
-			url: getUrl('/testplatform.html'),
+			url: getUrl('testplatform.html'),
 			external: true
 		},
 		{
 			title: 'Old Admin',
 			icon: 'mdi:home-alert-outline',
-			url: getUrl('/admin_/'),
+			url: getUrl('admin_/'),
 			external: true
 		},
 		{

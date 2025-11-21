@@ -304,6 +304,7 @@ async function main() {
 
 		const metrics = await readMetrics(sourcePath);
 		const scaled = scaleMetrics(metrics, spec.viewport.width);
+		const borderRadius = spec.borderRadius ?? scaled.borderRadius;
 
 		const targetWebp = path.join(staticDir, `${spec.id}${OUTPUT_IMAGE_EXT}`);
 		await sharp(sourcePath).webp({ quality: 95 }).toFile(targetWebp);
@@ -446,7 +447,7 @@ async function main() {
 				height: scaled.iframeHeight,
 				marginTop: scaled.marginTop,
 				marginLeft: scaled.marginLeft,
-				borderRadius: scaled.borderRadius
+				borderRadius
 			},
 			bezel: {
 				width: scaled.bezelWidth,
