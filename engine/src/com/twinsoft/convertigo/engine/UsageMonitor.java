@@ -51,6 +51,26 @@ public class UsageMonitor implements Runnable, AbstractManager {
 		        setUsageCounter("[Memory] Non heap memory usage", memoryUsageNonHeap);
 		        setUsageCounter("[Memory] Total used", (memoryUsageHeap.getUsed() + memoryUsageNonHeap.getUsed()) / 1024 + "K");
 		        
+		        java.lang.management.OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
+		        double loadAvg = osMxBean.getSystemLoadAverage();
+		        if (loadAvg >= 0) {
+		        	setUsageCounter("[System] Load average (1m)", String.format("%.2f", loadAvg));
+		        }
+		        try {
+		        	@SuppressWarnings("restriction")
+		        	com.sun.management.OperatingSystemMXBean sunOs = (com.sun.management.OperatingSystemMXBean) osMxBean;
+		        	double processCpu = sunOs.getProcessCpuLoad();
+		        	double systemCpu = sunOs.getSystemCpuLoad();
+		        	if (processCpu >= 0) {
+		        		setUsageCounter("[System] CPU load (process)", formatPercent(processCpu));
+		        	}
+		        	if (systemCpu >= 0) {
+		        		setUsageCounter("[System] CPU load (system)", formatPercent(systemCpu));
+		        	}
+		        } catch (Exception e) {
+		        	// best effort; ignore if not available
+		        }
+		        
 				synchronized (usageCounters) {
 					List<String> ls = new ArrayList<String>();
 					ls.addAll(usageCounters.keySet());
@@ -86,4 +106,7 @@ public class UsageMonitor implements Runnable, AbstractManager {
 		usageCounters = new HashMap<String, Object>();
 	}
 
+	private static String formatPercent(double value) {
+		return String.format("%.1f%%", value * 100d);
+	}
 }
