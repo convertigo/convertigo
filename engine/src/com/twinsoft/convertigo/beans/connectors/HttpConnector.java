@@ -649,7 +649,11 @@ public class HttpConnector extends Connector {
 			
 			
 			if (httpVariable.isBlank()) {
-				httpVariable = variable;
+				if (isFormUrlEncoded) {
+					httpVariable = variable;
+				} else {
+					bIgnoreVariable = true;
+				}
 			}
 			
 			if (variable.startsWith(DynamicHttpVariable.__header_.name())) {

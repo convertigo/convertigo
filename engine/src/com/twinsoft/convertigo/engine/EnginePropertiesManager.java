@@ -541,7 +541,7 @@ public class EnginePropertiesManager {
 		DOCUMENT_INCLUDE_STATISTICS ("document.include_statistics", "false", "Insert statistics in the generated document", PropertyCategory.XmlGeneration),
 
 		/** XML GENERATION ADVANCE */
-		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class)
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class, visibility = Visibility.HIDDEN)
 		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", XsltEngine.xalan_xsltc.getValue(), "XSLT engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_NAMESPACE_AWARE("document.namespace.aware", "false", "Set namespace aware", PropertyCategory.XmlGeneration),

@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,25 +32,19 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 import org.apache.regexp.RE;
 import org.apache.regexp.REUtil;
-import org.apache.xml.resolver.tools.CatalogResolver;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -79,6 +71,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XSLTUtils;
 
 public abstract class GenericRequester extends Requester {
 	
@@ -873,103 +866,21 @@ public abstract class GenericRequester extends Requester {
         	
             Engine.logContext.debug("Sheet absolute URL: " + context.absoluteSheetUrl);
     		if (context.absoluteSheetUrl == null) throw new EngineException("You have required an XSLT process, but Convertigo has been unable to find a stylesheet for your request. Verify your project's settings.");
-
-            String xsltEngine = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XSLT_ENGINE);
-            Engine.logContext.debug("Required XSLT engine: " + xsltEngine);
             
-            // Xalan XSLT engine
-            if (xsltEngine.startsWith("xalan")) {
-            	
-                //StreamSource streamSource = null;
-                InputSource inputSource = null;
-                TransformerFactory tFactory = null;
-                try {
-                    // XSLT
-                    if (xsltEngine.equals("xalan/xslt")) {
-                        tFactory = new org.apache.xalan.processor.TransformerFactoryImpl();
-                        Engine.logContext.debug("XSLT engine class: org.apache.xalan.processor.TransformerFactoryImpl");
-
-                        //streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
-                        inputSource = new InputSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
-                    }
-                    // XSLTC
-                    else if (xsltEngine.equals("xalan/xsltc") || xsltEngine.equals("xalan")) {
-                    	tFactory = new org.apache.xalan.xsltc.trax.TransformerFactoryImpl();
-                        Engine.logContext.debug("XSLT engine class: org.apache.xalan.xsltc.trax.TransformerFactoryImpl");
-
-                    	String transletName = computeTransletName(context.absoluteSheetUrl);
-                        Engine.logContext.debug("Translet name: " + transletName);
-
-                        tFactory.setAttribute("translet-name", transletName);
-                        tFactory.setAttribute("debug", (Engine.logContext.isDebugEnabled() ? Boolean.TRUE : Boolean.FALSE));
-                        tFactory.setAttribute("generate-translet", Boolean.TRUE);
-                        tFactory.setAttribute("auto-translet", Boolean.TRUE);
-                        tFactory.setAttribute("enable-inlining", Boolean.FALSE);
-
-                        //String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc/";
-                        //transletOutput = new File(transletOutput).toURI().toASCIIString();
-                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : context.getProjectDirectory()) + "/_private/xsltc";
-                        transletOutput = new File(transletOutput).getCanonicalPath();
-                        tFactory.setAttribute("destination-directory", transletOutput);
-                        Engine.logContext.debug("Translet output: " + transletOutput);
-
-                        //streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
-                        inputSource = new InputSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
-                    }
-                    else {
-                        throw new EngineException("Unknown XSLT engine (" + xsltEngine + "), please check your Convertigo engine properties!");
-                    }
-                    
-                    CatalogResolver cr = XMLUtils.getCatalogResolver();
-                    
-                    tFactory.setURIResolver(cr); // set URI resolver (for xsl include or import)
-                    
-                    SAXParserFactory spf = SAXParserFactory.newInstance();
-                    SAXParser sp = spf.newSAXParser();
-                    XMLReader xmlr = sp.getXMLReader();
-                    xmlr.setEntityResolver(cr);	// set Entity resolver (for dtd)
-                    
-                    SAXSource ss = new SAXSource(xmlr, inputSource);
-                    
-                    //Transformer transformer = tFactory.newTransformer(streamSource);
-                    Transformer transformer = tFactory.newTransformer(ss);
-                    
-                    StringWriter sw = new StringWriter();
-                    Element element = document.getDocumentElement();                    
-                    
-                    /** Don't use DomSource because it makes a strange output, but work fine with StreamSource */
-                    Engine.logContext.trace("Start to transform document to byteArray ...");
-                    Transformer docToByte = new org.apache.xalan.processor.TransformerFactoryImpl().newTransformer();
-                    ByteArrayOutputStream byteout = new ByteArrayOutputStream();
-                    StreamResult stream = new StreamResult(byteout);
-                    docToByte.transform(new DOMSource(element), stream);
-                    ByteArrayInputStream byteInput = new ByteArrayInputStream(byteout.toByteArray());
-                    Engine.logContext.trace("...finish to transform document to byteArray");
-                    
-        			transformer.transform(new StreamSource(byteInput), new StreamResult(sw));
-
-                    result = sw.getBuffer().toString();
-                    
-                }
-                catch (Exception e) {
-                	throw e;
-                }
-                finally {
-                    //if (streamSource != null) {
-                    //    InputStream inputStream = streamSource.getInputStream();
-                    //    if (inputStream != null) inputStream.close();
-                    //}
-                    if (inputSource != null) {
-                        InputStream inputStream = inputSource.getByteStream();
-                        if (inputStream != null) inputStream.close();
-                    }
-                }
-            } else {
-                throw new EngineException("Unknown XSLT engine (" + xsltEngine + "), please check your Convertigo engine properties!");
-            }
-            
-            Engine.logContext.trace("XSLT result:\n" + result);
-            
+    		try {
+	    		Engine.logContext.debug("XSLT engine: xalan/xslt");
+	            Templates templates = XSLTUtils.getTemplates(new File(context.absoluteSheetUrl).getCanonicalPath());
+	            Transformer transformer = templates.newTransformer();    		
+	    		
+	            StringWriter sw = new StringWriter();
+	            transformer.transform(new DOMSource(document), new StreamResult(sw));
+	            result = sw.toString();
+    		} catch (Exception e) {
+    			throw new EngineException("Unable to perform XSLT for "+ context.absoluteSheetUrl, e);
+    		}
+    		
+   			Engine.logContext.trace("XSLT result:\n" + result);
+    		
             return result;
         }
         finally {
@@ -977,15 +888,6 @@ public abstract class GenericRequester extends Requester {
 			context.statistics.stop(t1);
         }
     }
-
-	private static String computeTransletName(String originalName) {
-		int len = originalName.length() - 1;
-		long computedNumber = (originalName.charAt(0) * originalName.charAt(len)) << 16;
-		for (int i = 1 ; i < len ; i++) {
-			computedNumber += i * originalName.charAt(i) * originalName.charAt(i+1);
-		}
-		return "_" + Long.toHexString(computedNumber) + Integer.toHexString(originalName.hashCode());
-	}
 	
 	public void checkParentContext() throws EngineException {
     	if (context.parentContext != null && context.parentContext.requestedObject != null && !((Sequence) context.parentContext.requestedObject).isRunning()) {
