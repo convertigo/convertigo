@@ -167,7 +167,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
 			computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
-					+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+					+ "async (data) => {return await this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
 		}
 		return computed;
 	}
