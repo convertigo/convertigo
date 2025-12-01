@@ -15,7 +15,7 @@
 	} = $props();
 
 	let src = $derived(
-		getUrl('/qrcode') +
+		getUrl('qrcode') +
 			getQuery({
 				o: contentType,
 				e,

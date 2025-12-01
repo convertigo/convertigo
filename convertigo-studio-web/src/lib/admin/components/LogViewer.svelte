@@ -164,6 +164,7 @@
 			array.forEach((filter, index) => {
 				result.push({
 					category,
+					disabled: !!filter.disabled,
 					...filter,
 					index
 				});
@@ -179,9 +180,10 @@
 		mode = false,
 		ts = new Date().getTime(),
 		not = false,
-		sensitive = false
+		sensitive = false,
+		disabled = false
 	}) {
-		modalFilterParams = { category, value, mode, ts, not, sensitive };
+		modalFilterParams = { category, value, mode, ts, not, sensitive, disabled };
 		modalFilter.open({ event });
 	}
 
@@ -198,15 +200,17 @@
 			? Logs.logs
 			: Logs.logs.filter((log, index) => {
 					return Object.entries(filters).every(([name, array]) => {
-						return array.length == 0
+						const active = array?.filter((f) => !f?.disabled) ?? [];
+						return active.length == 0
 							? true
-							: array.some(({ mode, value, not, sensitive }) => {
+							: active.some(({ mode, value, not, sensitive }) => {
 									let logValue = getValue(name, log, index);
+									let _value = value;
 									if (!sensitive) {
 										logValue = logValue.toLowerCase();
-										value = value.toLowerCase();
+										_value = _value.toLowerCase();
 									}
-									let ret = mode == 'equals' ? logValue == value : logValue[mode](value);
+									let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
 									return not ? !ret : ret;
 								});
 					});
@@ -341,14 +345,15 @@
 	let modalFilterParams = $state({});
 	let modalFilterSubmit = (e) => {
 		e.preventDefault();
-		const { mode, category, value, not, ts, sensitive } = modalFilterParams;
+		const { mode, category, value, not, ts, sensitive, disabled } = modalFilterParams;
 		let array = checkArray(filters[category]);
 		const val = {
 			mode: e.submitter.value,
 			value,
 			not,
 			ts,
-			sensitive
+			sensitive,
+			disabled: !!disabled
 		};
 		if (mode) {
 			array[array.findIndex((o) => o.ts == ts)] = val;
@@ -589,7 +594,7 @@
 				</div>
 			</div>
 		{/if}
-		<div class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 p-1">
+		<div class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 px-low">
 			<div class="mini-card preset-filled-primary-100-900">
 				<Button
 					{size}
@@ -681,7 +686,7 @@
 						})}
 				/>
 			</div>
-			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index }, idx (ts)}
+			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index, disabled }, idx (ts)}
 				<div
 					class="layout-x-none"
 					animate:flip={{ duration }}
@@ -695,19 +700,35 @@
 					{/if}
 					<div
 						class="mini-card"
-						class:preset-filled-secondary-100-900={!not}
-						class:motif-secondary={!not}
-						class:preset-filled-error-100-900={not}
-						class:motif-error={not}
+						class:preset-filled-secondary-100-900={!not && !disabled}
+						class:motif-secondary={!not && !disabled}
+						class:preset-filled-error-100-900={not && !disabled}
+						class:motif-error={not && !disabled}
+						class:preset-filled-warning-100-900={disabled}
+						class:motif-warning={disabled}
 					>
 						<span class="max-w-xs overflow-hidden"
 							>{category} {not ? 'not' : ''} {mode} {sensitive ? value : value.toLowerCase()}</span
 						>
 						<Button
 							{size}
+							icon={disabled ? 'mdi:eye-off' : 'mdi:eye'}
+							class="w-fit!"
+							onclick={() => {
+								const arr = checkArray(filters[category]);
+								const current = arr[index];
+								if (!current) return;
+								arr[index] = { ...current, disabled: !current.disabled };
+								filters[category] = arr;
+								filters = { ...filters };
+							}}
+						/>
+						<Button
+							{size}
 							icon="mdi:edit-outline"
 							class="w-fit!"
-							onclick={(event) => addFilter({ event, category, value, mode, ts, not, sensitive })}
+							onclick={(event) =>
+								addFilter({ event, category, value, mode, ts, not, sensitive, disabled })}
 						/>
 						<Button
 							{size}

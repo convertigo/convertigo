@@ -101,7 +101,7 @@ export async function call(service, data = {}) {
 }
 
 export async function callRequestable(mode, project, data = {}) {
-	let url = getUrl(`/projects/${project}/.${mode.toLowerCase()}`);
+	let url = getUrl(`projects/${project}/.${mode.toLowerCase()}`);
 	let body;
 	let headers = {
 		'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
@@ -272,10 +272,10 @@ function handleStateMessage(res, service) {
 	}
 }
 
-export function getUrl(path = '/admin/services/') {
+export function getUrl(path = 'admin/services/') {
 	let prefix = resolve('/');
 	if (dev) {
-		prefix += 'convertigo';
+		prefix += 'convertigo/';
 	}
 	return `${prefix}${path}`;
 }
@@ -285,7 +285,7 @@ export function getQuery(query) {
 }
 
 export function getFrontendUrl(projectName) {
-	return getUrl(`/projects/${projectName}/DisplayObjects/mobile/index.html`);
+	return getUrl(`projects/${projectName}/DisplayObjects/mobile/index.html`);
 }
 
 export function getThumbnailUrl(projectName) {

@@ -1,38 +1,51 @@
 [
 	{
-		"id": "iPhone-16",
-		"title": "iPhone 16",
-		"type": "phone",
-		"viewport": { "width": 393, "height": 852 },
-		"source": "Exports/iOS/iPhone 16/16 - Black.png"
-	},
-	{
-		"id": "iPhone-16-Plus",
-		"title": "iPhone 16 Plus",
-		"type": "phone",
-		"viewport": { "width": 430, "height": 932 },
-		"source": "Exports/iOS/iPhone 16 Plus/16 Plus - Black.png"
-	},
-	{
-		"id": "iPhone-16-Pro",
-		"title": "iPhone 16 Pro",
+		"id": "iPhone-17-Pro",
+		"title": "iPhone 17 Pro",
 		"type": "phone",
 		"viewport": { "width": 402, "height": 874 },
-		"source": "Exports/iOS/iPhone 16 Pro/16 Pro - Black Titanium.png"
+		"borderRadius": 60,
+		"source": "Exports/iOS/iPhone 17 Pro/17 Pro - Cosmic Orange.png"
+	},
+	{
+		"id": "iPhone-17-Pro-Max",
+		"title": "iPhone 17 Pro Max",
+		"type": "phone",
+		"viewport": { "width": 440, "height": 956 },
+		"borderRadius": 60,
+		"source": "Exports/iOS/iPhone 17 Pro Max/17 Pro Max - Cosmic Orange.png"
 	},
 	{
 		"id": "iPhone-16-Pro-Max",
 		"title": "iPhone 16 Pro Max",
 		"type": "phone",
 		"viewport": { "width": 440, "height": 956 },
+		"borderRadius": 58,
 		"source": "Exports/iOS/iPhone 16 Pro Max/16 Pro Max - Black Titanium.png"
 	},
 	{
-		"id": "Google-Pixel-9-Pro",
-		"title": "Google Pixel 9 Pro",
+		"id": "iPhone-16-Pro",
+		"title": "iPhone 16 Pro",
 		"type": "phone",
-		"viewport": { "width": 411, "height": 915 },
-		"source": "Exports/Android Phone/Pixel 9 Pro/Pixel 9 Pro - Obsidian.png"
+		"viewport": { "width": 402, "height": 874 },
+		"borderRadius": 58,
+		"source": "Exports/iOS/iPhone 16 Pro/16 Pro - Black Titanium.png"
+	},
+	{
+		"id": "iPhone-16-Plus",
+		"title": "iPhone 16 Plus",
+		"type": "phone",
+		"viewport": { "width": 430, "height": 932 },
+		"borderRadius": 52,
+		"source": "Exports/iOS/iPhone 16 Plus/16 Plus - Black.png"
+	},
+	{
+		"id": "iPhone-16",
+		"title": "iPhone 16",
+		"type": "phone",
+		"viewport": { "width": 393, "height": 852 },
+		"borderRadius": 52,
+		"source": "Exports/iOS/iPhone 16/16 - Black.png"
 	},
 	{
 		"id": "Google-Pixel-9-Pro-XL",
@@ -42,18 +55,18 @@
 		"source": "Exports/Android Phone/Pixel 9 Pro XL/Pixel 9 Pro XL Obsidian.png"
 	},
 	{
-		"id": "Google-Pixel-8-Pro",
-		"title": "Google Pixel 8 Pro",
+		"id": "Google-Pixel-9-Pro",
+		"title": "Google Pixel 9 Pro",
 		"type": "phone",
-		"viewport": { "width": 412, "height": 915 },
-		"source": "assets/bezel-sources/Google-Pixel-8-Pro.png"
+		"viewport": { "width": 411, "height": 917 },
+		"source": "Exports/Android Phone/Pixel 9 Pro/Pixel 9 Pro - Obsidian.png"
 	},
 	{
-		"id": "Galaxy-S24",
-		"title": "Galaxy S24",
+		"id": "Galaxy-S24-Ultra",
+		"title": "Galaxy S24 Ultra",
 		"type": "phone",
-		"viewport": { "width": 360, "height": 780 },
-		"source": "assets/bezel-sources/Galaxy-S24.png"
+		"viewport": { "width": 384, "height": 833 },
+		"source": "assets/bezel-sources/Galaxy-S24-Ultra.png"
 	},
 	{
 		"id": "Galaxy-S24-Plus",
@@ -63,25 +76,11 @@
 		"source": "assets/bezel-sources/Galaxy-S24-Plus.png"
 	},
 	{
-		"id": "Galaxy-S24-Ultra",
-		"title": "Galaxy S24 Ultra",
+		"id": "Galaxy-S24",
+		"title": "Galaxy S24",
 		"type": "phone",
-		"viewport": { "width": 384, "height": 824 },
-		"source": "assets/bezel-sources/Galaxy-S24-Ultra.png"
-	},
-	{
-		"id": "iPad-Air-11-M2",
-		"title": "iPad Air 11\" (M2)",
-		"type": "tablet",
-		"viewport": { "width": 820, "height": 1180 },
-		"source": "Exports/iPadOS/iPad Air 11 M2/iPad Air 11 M2 - Portrait - Space Gray.png"
-	},
-	{
-		"id": "iPad-Pro-11-M4",
-		"title": "iPad Pro 11\" (M4)",
-		"type": "tablet",
-		"viewport": { "width": 834, "height": 1210 },
-		"source": "Exports/iPadOS/iPad Pro 11 M4/iPad Pro 11 M4 - Portrait - Space Black.png"
+		"viewport": { "width": 360, "height": 779 },
+		"source": "assets/bezel-sources/Galaxy-S24.png"
 	},
 	{
 		"id": "iPad-Pro-13-M4",
@@ -91,25 +90,25 @@
 		"source": "Exports/iPadOS/iPad Pro 13 M4/iPad Pro 13 M4 - Portrait - Space Black.png"
 	},
 	{
-		"id": "iPhone-15",
-		"title": "iPhone 15",
-		"type": "phone",
-		"viewport": { "width": 393, "height": 852 },
-		"source": "assets/bezel-sources/iPhone-15.png"
+		"id": "iPad-Pro-11-M4",
+		"title": "iPad Pro 11\" (M4)",
+		"type": "tablet",
+		"viewport": { "width": 834, "height": 1210 },
+		"source": "Exports/iPadOS/iPad Pro 11 M4/iPad Pro 11 M4 - Portrait - Space Black.png"
 	},
 	{
-		"id": "iPhone-15-Plus",
-		"title": "iPhone 15 Plus",
-		"type": "phone",
-		"viewport": { "width": 430, "height": 932 },
-		"source": "assets/bezel-sources/iPhone-15-Plus.png"
+		"id": "iPad-Air-13-M2",
+		"title": "iPad Air 13\" (M2)",
+		"type": "tablet",
+		"viewport": { "width": 1024, "height": 1366 },
+		"source": "Exports/iPadOS/iPad Air 13 M2/iPad Air 13 M2 - Portrait - Space Gray.png"
 	},
 	{
-		"id": "MacBook-Pro-16",
-		"title": "MacBook Pro 16\"",
-		"type": "desktop",
-		"viewport": { "width": 1728, "height": 1117 },
-		"source": "Exports/MacBook/MacBook Pro 16.png"
+		"id": "iPad-Air-11-M2",
+		"title": "iPad Air 11\" (M2)",
+		"type": "tablet",
+		"viewport": { "width": 820, "height": 1180 },
+		"source": "Exports/iPadOS/iPad Air 11 M2/iPad Air 11 M2 - Portrait - Space Gray.png"
 	},
 	{
 		"id": "MacBook-Air-13",
@@ -122,8 +121,38 @@
 		"id": "Dell-XPS-13",
 		"title": "Dell XPS 13",
 		"type": "desktop",
-		"viewport": { "width": 1920, "height": 1200 },
+		"viewport": { "width": 1920, "height": 1199 },
 		"source": "Exports/Windows Laptop/Dell XPS/2024 XPS 13 OLED Graphite.png"
+	},
+	{
+		"id": "Google-Pixel-8-Pro",
+		"title": "Google Pixel 8 Pro",
+		"type": "phone",
+		"viewport": { "width": 412, "height": 917 },
+		"source": "assets/bezel-sources/Google-Pixel-8-Pro.png"
+	},
+	{
+		"id": "iPhone-15-Plus",
+		"title": "iPhone 15 Plus",
+		"type": "phone",
+		"viewport": { "width": 430, "height": 931 },
+		"borderRadius": 50,
+		"source": "assets/bezel-sources/iPhone-15-Plus.png"
+	},
+	{
+		"id": "iPhone-15",
+		"title": "iPhone 15",
+		"type": "phone",
+		"viewport": { "width": 393, "height": 849 },
+		"borderRadius": 50,
+		"source": "assets/bezel-sources/iPhone-15.png"
+	},
+	{
+		"id": "MacBook-Pro-16",
+		"title": "MacBook Pro 16\"",
+		"type": "desktop",
+		"viewport": { "width": 1728, "height": 1117 },
+		"source": "Exports/MacBook/MacBook Pro 16.png"
 	},
 	{
 		"id": "iMac-24",

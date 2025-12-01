@@ -280,14 +280,19 @@ function updateGlobalSymbolsList(xml) {
 		$("#defaultSymbolsList").jqGrid('clearGridData');
 	}
 	
-	var symbolName = "";
 	$(xml).find("symbol").each(function(index) {
+		var symbolName = $(this).attr("name");
+		var checkbox = $("<input/>", {
+			type: "checkbox",
+			"class": "selected-symbols",
+			value: symbolName
+		}).prop("outerHTML");
 		$("#symbolsList").jqGrid(
 			"addRowData",
 			"symbolsRow" + index,
 			{
-				checkboxes: "<input type='checkbox' class='selected-symbols' value='"+$(this).attr("name")+"'/>",
-				name : $(this).attr("name"),
+				checkboxes: checkbox,
+				name : symbolName,
 				value : $(this).attr("value"),
 				btnEdit : "<a class=\"symbolEdit\" href=\"#edit\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
 				btnDelete : "<a class=\"symbolDelete\" href=\"#delete\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>"

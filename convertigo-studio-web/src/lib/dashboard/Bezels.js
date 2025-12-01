@@ -3,56 +3,39 @@
  * Update config/device-catalog.json then rerun the script.
  */
 const devices = {
-	'iPhone-16': {
-		title: 'iPhone 16',
-		type: 'phone',
-		iframe: {
-			width: 393,
-			height: 852,
-			marginTop: 52,
-			marginLeft: 55,
-			borderRadius: 35
-		},
-		bezel: {
-			width: 503,
-			height: 955
-		},
-		id: 'iPhone-16',
-		index: 0
-	},
-	'iPhone-16-Plus': {
-		title: 'iPhone 16 Plus',
-		type: 'phone',
-		iframe: {
-			width: 430,
-			height: 932,
-			marginTop: 33,
-			marginLeft: 33,
-			borderRadius: 35
-		},
-		bezel: {
-			width: 497,
-			height: 999
-		},
-		id: 'iPhone-16-Plus',
-		index: 1
-	},
-	'iPhone-16-Pro': {
-		title: 'iPhone 16 Pro',
+	'iPhone-17-Pro': {
+		title: 'iPhone 17 Pro',
 		type: 'phone',
 		iframe: {
 			width: 402,
 			height: 874,
 			marginTop: 33,
-			marginLeft: 34,
-			borderRadius: 19
+			marginLeft: 33,
+			borderRadius: 60
 		},
 		bezel: {
 			width: 469,
 			height: 941
 		},
-		id: 'iPhone-16-Pro',
-		index: 2
+		id: 'iPhone-17-Pro',
+		index: 0
+	},
+	'iPhone-17-Pro-Max': {
+		title: 'iPhone 17 Pro Max',
+		type: 'phone',
+		iframe: {
+			width: 440,
+			height: 956,
+			marginTop: 33,
+			marginLeft: 33,
+			borderRadius: 60
+		},
+		bezel: {
+			width: 507,
+			height: 1023
+		},
+		id: 'iPhone-17-Pro-Max',
+		index: 1
 	},
 	'iPhone-16-Pro-Max': {
 		title: 'iPhone 16 Pro Max',
@@ -62,31 +45,65 @@ const devices = {
 			height: 956,
 			marginTop: 52,
 			marginLeft: 56,
-			borderRadius: 19
+			borderRadius: 58
 		},
 		bezel: {
 			width: 550,
 			height: 1059
 		},
 		id: 'iPhone-16-Pro-Max',
-		index: 3
+		index: 2
 	},
-	'Google-Pixel-9-Pro': {
-		title: 'Google Pixel 9 Pro',
+	'iPhone-16-Pro': {
+		title: 'iPhone 16 Pro',
 		type: 'phone',
 		iframe: {
-			width: 411,
-			height: 917,
-			marginTop: 46,
-			marginLeft: 55,
-			borderRadius: 31
+			width: 402,
+			height: 874,
+			marginTop: 33,
+			marginLeft: 34,
+			borderRadius: 58
 		},
 		bezel: {
-			width: 520,
-			height: 1007
+			width: 469,
+			height: 941
 		},
-		id: 'Google-Pixel-9-Pro',
+		id: 'iPhone-16-Pro',
+		index: 3
+	},
+	'iPhone-16-Plus': {
+		title: 'iPhone 16 Plus',
+		type: 'phone',
+		iframe: {
+			width: 430,
+			height: 932,
+			marginTop: 33,
+			marginLeft: 33,
+			borderRadius: 52
+		},
+		bezel: {
+			width: 497,
+			height: 999
+		},
+		id: 'iPhone-16-Plus',
 		index: 4
+	},
+	'iPhone-16': {
+		title: 'iPhone 16',
+		type: 'phone',
+		iframe: {
+			width: 393,
+			height: 852,
+			marginTop: 52,
+			marginLeft: 55,
+			borderRadius: 52
+		},
+		bezel: {
+			width: 503,
+			height: 955
+		},
+		id: 'iPhone-16',
+		index: 5
 	},
 	'Google-Pixel-9-Pro-XL': {
 		title: 'Google Pixel 9 Pro XL',
@@ -103,58 +120,24 @@ const devices = {
 			height: 1047
 		},
 		id: 'Google-Pixel-9-Pro-XL',
-		index: 5
-	},
-	'Google-Pixel-8-Pro': {
-		title: 'Google Pixel 8 Pro',
-		type: 'phone',
-		iframe: {
-			width: 412,
-			height: 917,
-			marginTop: 18,
-			marginLeft: 17,
-			borderRadius: 30
-		},
-		bezel: {
-			width: 452,
-			height: 954
-		},
-		id: 'Google-Pixel-8-Pro',
 		index: 6
 	},
-	'Galaxy-S24': {
-		title: 'Galaxy S24',
+	'Google-Pixel-9-Pro': {
+		title: 'Google Pixel 9 Pro',
 		type: 'phone',
 		iframe: {
-			width: 360,
-			height: 779,
-			marginTop: 12,
-			marginLeft: 14,
-			borderRadius: 24
+			width: 411,
+			height: 917,
+			marginTop: 46,
+			marginLeft: 55,
+			borderRadius: 31
 		},
 		bezel: {
-			width: 391,
-			height: 805
+			width: 520,
+			height: 1007
 		},
-		id: 'Galaxy-S24',
+		id: 'Google-Pixel-9-Pro',
 		index: 7
-	},
-	'Galaxy-S24-Plus': {
-		title: 'Galaxy S24 Plus',
-		type: 'phone',
-		iframe: {
-			width: 384,
-			height: 832,
-			marginTop: 14,
-			marginLeft: 15,
-			borderRadius: 23
-		},
-		bezel: {
-			width: 416,
-			height: 861
-		},
-		id: 'Galaxy-S24-Plus',
-		index: 8
 	},
 	'Galaxy-S24-Ultra': {
 		title: 'Galaxy S24 Ultra',
@@ -171,41 +154,41 @@ const devices = {
 			height: 857
 		},
 		id: 'Galaxy-S24-Ultra',
+		index: 8
+	},
+	'Galaxy-S24-Plus': {
+		title: 'Galaxy S24 Plus',
+		type: 'phone',
+		iframe: {
+			width: 384,
+			height: 832,
+			marginTop: 14,
+			marginLeft: 15,
+			borderRadius: 23
+		},
+		bezel: {
+			width: 416,
+			height: 861
+		},
+		id: 'Galaxy-S24-Plus',
 		index: 9
 	},
-	'iPad-Air-11-M2': {
-		title: 'iPad Air 11" (M2)',
-		type: 'tablet',
+	'Galaxy-S24': {
+		title: 'Galaxy S24',
+		type: 'phone',
 		iframe: {
-			width: 820,
-			height: 1180,
-			marginTop: 107,
-			marginLeft: 107,
-			borderRadius: 20
+			width: 360,
+			height: 779,
+			marginTop: 12,
+			marginLeft: 14,
+			borderRadius: 24
 		},
 		bezel: {
-			width: 1034,
-			height: 1394
+			width: 391,
+			height: 805
 		},
-		id: 'iPad-Air-11-M2',
+		id: 'Galaxy-S24',
 		index: 10
-	},
-	'iPad-Pro-11-M4': {
-		title: 'iPad Pro 11" (M4)',
-		type: 'tablet',
-		iframe: {
-			width: 834,
-			height: 1210,
-			marginTop: 92,
-			marginLeft: 100,
-			borderRadius: 31
-		},
-		bezel: {
-			width: 1034,
-			height: 1394
-		},
-		id: 'iPad-Pro-11-M4',
-		index: 11
 	},
 	'iPad-Pro-13-M4': {
 		title: 'iPad Pro 13" (M4)',
@@ -222,58 +205,58 @@ const devices = {
 			height: 1554
 		},
 		id: 'iPad-Pro-13-M4',
+		index: 11
+	},
+	'iPad-Pro-11-M4': {
+		title: 'iPad Pro 11" (M4)',
+		type: 'tablet',
+		iframe: {
+			width: 834,
+			height: 1210,
+			marginTop: 92,
+			marginLeft: 100,
+			borderRadius: 31
+		},
+		bezel: {
+			width: 1034,
+			height: 1394
+		},
+		id: 'iPad-Pro-11-M4',
 		index: 12
 	},
-	'iPhone-15': {
-		title: 'iPhone 15',
-		type: 'phone',
+	'iPad-Air-13-M2': {
+		title: 'iPad Air 13" (M2)',
+		type: 'tablet',
 		iframe: {
-			width: 393,
-			height: 849,
-			marginTop: 20,
-			marginLeft: 24,
-			borderRadius: 30
+			width: 1024,
+			height: 1366,
+			marginTop: 100,
+			marginLeft: 100,
+			borderRadius: 18
 		},
 		bezel: {
-			width: 443,
-			height: 895
+			width: 1224,
+			height: 1566
 		},
-		id: 'iPhone-15',
+		id: 'iPad-Air-13-M2',
 		index: 13
 	},
-	'iPhone-15-Plus': {
-		title: 'iPhone 15 Plus',
-		type: 'phone',
+	'iPad-Air-11-M2': {
+		title: 'iPad Air 11" (M2)',
+		type: 'tablet',
 		iframe: {
-			width: 430,
-			height: 931,
-			marginTop: 22,
-			marginLeft: 25,
-			borderRadius: 46
+			width: 820,
+			height: 1180,
+			marginTop: 107,
+			marginLeft: 107,
+			borderRadius: 20
 		},
 		bezel: {
-			width: 487,
-			height: 985
+			width: 1034,
+			height: 1394
 		},
-		id: 'iPhone-15-Plus',
+		id: 'iPad-Air-11-M2',
 		index: 14
-	},
-	'MacBook-Pro-16': {
-		title: 'MacBook Pro 16"',
-		type: 'desktop',
-		iframe: {
-			width: 1728,
-			height: 1117,
-			marginTop: 157,
-			marginLeft: 222,
-			borderRadius: 23
-		},
-		bezel: {
-			width: 2171,
-			height: 1431
-		},
-		id: 'MacBook-Pro-16',
-		index: 15
 	},
 	'MacBook-Air-13': {
 		title: 'MacBook Air 13"',
@@ -290,7 +273,7 @@ const devices = {
 			height: 1206
 		},
 		id: 'MacBook-Air-13',
-		index: 16
+		index: 15
 	},
 	'Dell-XPS-13': {
 		title: 'Dell XPS 13',
@@ -307,7 +290,75 @@ const devices = {
 			height: 1483
 		},
 		id: 'Dell-XPS-13',
+		index: 16
+	},
+	'Google-Pixel-8-Pro': {
+		title: 'Google Pixel 8 Pro',
+		type: 'phone',
+		iframe: {
+			width: 412,
+			height: 917,
+			marginTop: 18,
+			marginLeft: 17,
+			borderRadius: 30
+		},
+		bezel: {
+			width: 452,
+			height: 954
+		},
+		id: 'Google-Pixel-8-Pro',
 		index: 17
+	},
+	'iPhone-15-Plus': {
+		title: 'iPhone 15 Plus',
+		type: 'phone',
+		iframe: {
+			width: 430,
+			height: 931,
+			marginTop: 22,
+			marginLeft: 25,
+			borderRadius: 50
+		},
+		bezel: {
+			width: 487,
+			height: 985
+		},
+		id: 'iPhone-15-Plus',
+		index: 18
+	},
+	'iPhone-15': {
+		title: 'iPhone 15',
+		type: 'phone',
+		iframe: {
+			width: 393,
+			height: 849,
+			marginTop: 20,
+			marginLeft: 24,
+			borderRadius: 50
+		},
+		bezel: {
+			width: 443,
+			height: 895
+		},
+		id: 'iPhone-15',
+		index: 19
+	},
+	'MacBook-Pro-16': {
+		title: 'MacBook Pro 16"',
+		type: 'desktop',
+		iframe: {
+			width: 1728,
+			height: 1117,
+			marginTop: 157,
+			marginLeft: 222,
+			borderRadius: 23
+		},
+		bezel: {
+			width: 2171,
+			height: 1431
+		},
+		id: 'MacBook-Pro-16',
+		index: 20
 	},
 	'iMac-24': {
 		title: 'iMac 24"',
@@ -324,7 +375,7 @@ const devices = {
 			height: 4140
 		},
 		id: 'iMac-24',
-		index: 18
+		index: 21
 	},
 	'Dell-UltraSharp-5K': {
 		title: 'Dell UltraSharp 5K 27"',
@@ -341,7 +392,7 @@ const devices = {
 			height: 4436
 		},
 		id: 'Dell-UltraSharp-5K',
-		index: 19
+		index: 22
 	},
 	none: {
 		title: 'None',
@@ -349,7 +400,7 @@ const devices = {
 		bezel: { width: '100%', height: '100%', position: 'relative' },
 		type: 'desktop',
 		id: 'none',
-		index: 20
+		index: 23
 	}
 };
 

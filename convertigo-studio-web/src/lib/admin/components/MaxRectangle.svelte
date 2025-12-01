@@ -5,6 +5,7 @@
 	let {
 		clientHeight = $bindable(),
 		clientWidth = $bindable(),
+		minHeight = 100,
 		enabled = true,
 		delay = -1,
 		children,
@@ -13,6 +14,7 @@
 	let calc = $state(false);
 	let div = $state();
 
+	const marginBottom = 8;
 	function toInt(val) {
 		return Math.floor(val.replace('px', ''));
 	}
@@ -21,14 +23,17 @@
 		if (!div) {
 			return;
 		}
-		div.style.display = 'none';
 		tick().then(() => {
 			const { paddingTop, paddingBottom, paddingLeft, paddingRight, height, width } =
 				getComputedStyle(div.parentElement);
+			const parentHeight = toInt(height) - toInt(paddingTop) - toInt(paddingBottom);
+			const parentWidth = toInt(width) - toInt(paddingLeft) - toInt(paddingRight);
 
-			clientHeight = toInt(height) - toInt(paddingTop) - toInt(paddingBottom);
-			clientWidth = toInt(width) - toInt(paddingLeft) - toInt(paddingRight);
-			div.style.display = null;
+			const rect = div.getBoundingClientRect();
+			const viewportAvail = Math.max(0, Math.floor(window.innerHeight - rect.top - marginBottom));
+			const nHeight = Math.min(parentHeight, viewportAvail || parentHeight);
+			clientHeight = nHeight < clientHeight ? minHeight : nHeight;
+			clientWidth = parentWidth;
 			calc = false;
 		});
 	}, delay);
@@ -55,7 +60,9 @@
 		const observer = new ResizeObserver(() => (calc = true));
 		observer.observe(div.parentElement);
 		observer.observe(window.document.body);
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+		};
 	});
 </script>
 

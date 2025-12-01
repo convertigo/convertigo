@@ -45,13 +45,13 @@
 			</aside>
 		{/if}
 		{#key page.route.id}
-			<main class="min-h-full w-full min-w-0 grow py px" in:fade>
+			<main class="relative z-0 min-h-full w-full min-w-0 grow py px" in:fade>
 				{@render children?.()}
 			</main>
 		{/key}
 		{#if RightPart.snippet}
 			<aside
-				class="max-md:order-first"
+				class="relative z-30 max-md:order-first"
 				transition:slide={{ axis: window?.matchMedia('(min-width: 768px)').matches ? 'x' : 'y' }}
 			>
 				{@render RightPart.snippet()}

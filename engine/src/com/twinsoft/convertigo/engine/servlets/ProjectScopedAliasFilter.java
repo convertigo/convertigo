@@ -22,12 +22,10 @@ package com.twinsoft.convertigo.engine.servlets;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -59,9 +57,6 @@ private static final Set<String> REQUESTER_EXTENSIONS = Set.of(
 	".wsl"
 );
 
-private static final Pattern PROJECT_NAME = Pattern.compile("[A-Za-z0-9_.\\-]+");
-private static final Pattern PROJECT_IN_PATH = Pattern.compile("/projects/([^/]+)/");
-
 	@Override
 	public void destroy() {
 	}
@@ -73,24 +68,24 @@ private static final Pattern PROJECT_IN_PATH = Pattern.compile("/projects/([^/]+
 			return;
 		}
 
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		var httpRequest = (HttpServletRequest) request;
 
 		if (httpRequest.getAttribute(ATTRIBUTE_FORWARDED) != null) {
 			chain.doFilter(request, response);
 			return;
 		}
 
-		String contextPath = httpRequest.getContextPath();
-		String requestUri = httpRequest.getRequestURI();
-		String path = requestUri.substring(contextPath.length());
+		var contextPath = httpRequest.getContextPath();
+		var requestUri = httpRequest.getRequestURI();
+		var path = requestUri.substring(contextPath.length());
 
 		if (handleRequesterAlias(httpRequest, (HttpServletResponse) response, path)) {
 			return;
 		}
 
-		AliasMatch match = findAlias(path);
+		var match = findAlias(path);
 		if (match != null) {
-			RequestDispatcher dispatcher = httpRequest.getRequestDispatcher(match.targetPath);
+			var dispatcher = httpRequest.getRequestDispatcher(match.targetPath);
 			if (dispatcher != null) {
 				if (Engine.logEngine.isDebugEnabled()) {
 					Engine.logEngine.debug("(ProjectScopedAliasFilter) Forward " + path + " -> " + match.targetPath);
@@ -109,8 +104,8 @@ private static final Pattern PROJECT_IN_PATH = Pattern.compile("/projects/([^/]+
 	}
 
 	private AliasMatch findAlias(String path) {
-		for (Alias alias : ALIASES) {
-			AliasMatch match = alias.match(path);
+		for (var alias : ALIASES) {
+			var match = alias.match(path);
 			if (match != null) {
 				return match;
 			}
@@ -132,40 +127,15 @@ private static final Pattern PROJECT_IN_PATH = Pattern.compile("/projects/([^/]+
 		if (!REQUESTER_EXTENSIONS.contains(extension)) {
 			return false;
 		}
-		var project = request.getParameter("__project");
-		if (project == null || project.isEmpty()) {
-			project = detectProjectFromAlias(path, request.getRequestURI());
-		}
-		if (project == null || project.isEmpty()) {
-			return false;
-		}
-		if (!PROJECT_NAME.matcher(project).matches()) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid project name");
-			return true;
-		}
-		var target = "/projects/" + project + "/" + extension;
-		var dispatcher = request.getRequestDispatcher(target);
+		
+		var dispatcher = request.getRequestDispatcher(path);
 		if (dispatcher == null) {
 			return false;
 		}
-		if (Engine.logEngine.isDebugEnabled()) {
-			Engine.logEngine.debug("(ProjectScopedAliasFilter) Forward " + path + " -> " + target);
-		}
+		
 		request.setAttribute(ATTRIBUTE_FORWARDED, Boolean.TRUE);
 		dispatcher.forward(request, response);
 		return true;
-	}
-
-	private String detectProjectFromAlias(String path, String uri) {
-		var matcher = PROJECT_IN_PATH.matcher(uri);
-		if (matcher.find()) {
-			return matcher.group(1);
-		}
-		var matcherPath = PROJECT_IN_PATH.matcher(path);
-		if (matcherPath.find()) {
-			return matcherPath.group(1);
-		}
-		return null;
 	}
 
 	private static class Alias {
@@ -201,7 +171,7 @@ private static final Pattern PROJECT_IN_PATH = Pattern.compile("/projects/([^/]+
 				return null;
 			}
 
-			String suffix = path.substring(endIndex);
+			var suffix = path.substring(endIndex);
 			return new AliasMatch(target + suffix);
 		}
 	}

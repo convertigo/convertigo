@@ -641,7 +641,14 @@ function domToString2(xmlNode) {
 }
 
 function htmlEncode(html) {
+	if (html === null || typeof html === "undefined") {
+		return html;
+	}
 	var txt = $.jgrid.htmlEncode(html);
+	if (typeof txt === "string") {
+		// Escape single quotes as well to keep strings safe inside both text and attribute contexts.
+		txt = txt.replace(/'/g, "&#39;");
+	}
 	return txt;
 }
 

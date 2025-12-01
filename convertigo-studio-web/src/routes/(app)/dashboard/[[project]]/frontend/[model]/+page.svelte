@@ -220,6 +220,25 @@
 
 	$effect(() => {
 		if (!bezel || !iframe) return;
+		// Ensure the frameless preview fills the available viewport.
+		if (selectedDevice.id === 'none' && clientWidth && clientHeight) {
+			const autoSize = `${clientWidth}px`;
+			const autoHeight = `${clientHeight}px`;
+			bezel.setAttribute('style', '');
+			iframe.setAttribute('style', '');
+			bezel.style.position = 'relative';
+			iframe.style.position = 'relative';
+			for (const [prop, value] of [
+				['width', autoSize],
+				['height', autoHeight],
+				['minWidth', autoSize],
+				['minHeight', autoHeight]
+			]) {
+				bezel.style[prop] = value;
+				iframe.style[prop] = value;
+			}
+			return;
+		}
 		const previousScale = bezel.style.scale;
 		for (const elt of [iframe, bezel]) {
 			elt.attributeStyleMap.clear();

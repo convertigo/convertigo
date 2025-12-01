@@ -113,28 +113,29 @@
 						>
 					</FileUpload.Dropzone>
 					<FileUpload.HiddenInput />
-					{#snippet ProjectUploadPreview(fileUpload)}
-						<FileUpload.ItemGroup class="layout-y-low">
-							{#each fileUpload().acceptedFiles as file (file.name)}
-								<FileUpload.Item
-									{file}
-									class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
-								>
-									<div class="layout-x-low items-center gap-low">
-										<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
-										<FileUpload.ItemName />
-									</div>
-									<div class="layout-x-low items-center gap-low text-xs text-surface-500">
-										<FileUpload.ItemSizeText />
-										<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
-											<Ico icon="mdi:delete-outline" size="3" />
-										</FileUpload.ItemDeleteTrigger>
-									</div>
-								</FileUpload.Item>
-							{/each}
-						</FileUpload.ItemGroup>
-					{/snippet}
-					<FileUpload.Context children={ProjectUploadPreview} />
+					<FileUpload.Context>
+						{#snippet children(fileUpload)}
+							<FileUpload.ItemGroup class="layout-y-low">
+								{#each fileUpload().acceptedFiles as file (file.name)}
+									<FileUpload.Item
+										{file}
+										class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
+									>
+										<div class="layout-x-low items-center gap-low">
+											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
+											<FileUpload.ItemName />
+										</div>
+										<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+											<FileUpload.ItemSizeText />
+											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+												<Ico icon="mdi:delete-outline" size="3" />
+											</FileUpload.ItemDeleteTrigger>
+										</div>
+									</FileUpload.Item>
+								{/each}
+							</FileUpload.ItemGroup>
+						{/snippet}
+					</FileUpload.Context>
 				</FileUpload>
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
