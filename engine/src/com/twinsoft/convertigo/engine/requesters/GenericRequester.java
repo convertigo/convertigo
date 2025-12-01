@@ -94,7 +94,9 @@ public abstract class GenericRequester extends Requester {
 		if (context.httpSession != null) {
 			Object controller = context.httpSession.getAttribute("customController");
 			if (controller != null && controller instanceof CustomController) {
-				((CustomController)controller).checkAuthenticatedContext(context);
+				if (!context.isStubRequested) {
+					((CustomController)controller).checkAuthenticatedContext(context);
+				}
 			}
 		}
 		
