@@ -22,33 +22,65 @@ package com.twinsoft.convertigo.engine.enums;
 import javax.servlet.http.HttpSession;
 
 public enum SessionAttribute {
-	authenticatedUser,
-	authenticatedUserGrp,
-	authenticatedUserGrpCheck,
-	clientIP,
-	contexts,
-	deviceUUID,
-	exception,
-	fullSyncRequests,
-	isNew,
-	httpClient3("__httpClient3__"),
-	httpClient4("__httpClient4__"),
-	sessionListener,
-	xsrfToken,
-	userAgent;
+	authenticatedUser(String.class),
+	authenticatedUserGrp(String.class),
+	authenticatedUserGrpCheck(String.class),
+	clientIP(String.class, KeepMode.NEVER),
+	contexts(java.util.List.class, KeepMode.ON_DEMAND),
+	deviceUUID(String.class),
+	exception(Throwable.class),
+	fullSyncRequests(Object.class),
+	isNew(Boolean.class, KeepMode.NEVER),
+	httpClient3("__httpClient3__", Object.class),
+	httpClient4("__httpClient4__", Object.class),
+	sessionListener(com.twinsoft.convertigo.engine.requesters.HttpSessionListener.class, KeepMode.NEVER),
+	xsrfToken(String.class),
+	userAgent(String.class, KeepMode.NEVER);
 	
 	String value;
+	Class<?> expectedClass;
+	KeepMode keepMode;
 	
 	SessionAttribute() {
-		value = "__c8o:" + name() + "__";
+		this(null, null, KeepMode.ALWAYS, true);
+	}
+	
+	SessionAttribute(Class<?> expectedClass) {
+		this(null, expectedClass, KeepMode.ALWAYS, true);
+	}
+	
+	SessionAttribute(Class<?> expectedClass, KeepMode keepMode) {
+		this(null, expectedClass, keepMode, true);
 	}
 	
 	SessionAttribute(String value) {
-		this.value = value;
+		this(value, null, KeepMode.ALWAYS, false);
+	}
+
+	SessionAttribute(String value, Class<?> expectedClass) {
+		this(value, expectedClass, KeepMode.ALWAYS, false);
+	}
+
+	SessionAttribute(String value, Class<?> expectedClass, KeepMode keepMode) {
+		this(value, expectedClass, keepMode, false);
+	}
+
+	SessionAttribute(String value, Class<?> expectedClass, KeepMode keepMode, boolean autoPrefix) {
+		this.value = autoPrefix ? "__c8o:" + this.name() + "__" : value;
+		this.expectedClass = expectedClass;
+		this.keepMode = keepMode == null ? KeepMode.ALWAYS : keepMode;
 	}
 	
 	public String value() {
 		return value;
+	}
+
+	public Class<?> expectedClass() {
+		return expectedClass;
+	}
+
+	public KeepMode keepMode() {
+		return keepMode;
 	}
 	
 	public void set(HttpSession session, Object value) {
@@ -88,5 +120,25 @@ public enum SessionAttribute {
 	public String string(HttpSession session, String defaultValue) {
 		Object res = session == null ? null : session.getAttribute(value());
 		return res == null ? defaultValue : res.toString();
+	}
+
+	public static SessionAttribute fromValue(String value) {
+		if (value == null) {
+			return null;
+		}
+		for (var attr : values()) {
+			if (attr.value.equals(value)) {
+				return attr;
+			}
+		}
+		return null;
+	}
+
+	public enum KeepMode {
+		ALWAYS, NEVER, ON_DEMAND;
+
+		public boolean shouldKeep(boolean enableOnDemand) {
+			return this == ALWAYS || (this == ON_DEMAND && enableOnDemand);
+		}
 	}
 }

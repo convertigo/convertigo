@@ -24,4 +24,11 @@ import javax.servlet.http.HttpSession;
 
 public interface SessionProvider {
 	HttpSession getSession(HttpServletRequest request, boolean create);
+
+	/**
+	 * Optional hook for providers that buffer session writes. Default is no-op.
+	 */
+	default void flushBuffers() {
+		// no-op
+	}
 }

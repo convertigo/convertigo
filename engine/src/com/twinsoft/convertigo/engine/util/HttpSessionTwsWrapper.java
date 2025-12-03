@@ -257,6 +257,7 @@ private static final int MAX_DEBUG_DEPTH = 6;
 					clearSerializationFailure(name, null);
 				}
 				session.setAttribute(name, dom);
+				writeDebugSnapshot(); // keep existing behavior for DOM
 				return;
 			}
 
@@ -265,6 +266,7 @@ private static final int MAX_DEBUG_DEPTH = 6;
 				setTransientAttribute(name, value);
 				session.setAttribute(name, serializedDom);
 				clearSerializationFailure(name, value);
+				writeDebugSnapshot();
 				return;
 			}
 

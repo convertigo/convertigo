@@ -33,9 +33,10 @@ final class RedisSessionConfiguration {
 	private final String keyPrefix;
 	private final int defaultTtlSeconds;
 	private final String cookieName;
+	private final boolean hashExperimental;
 
 	private RedisSessionConfiguration(String host, int port, String username, String password, int database,
-			boolean ssl, int timeoutMillis, String keyPrefix, int defaultTtlSeconds) {
+			boolean ssl, int timeoutMillis, String keyPrefix, int defaultTtlSeconds, boolean hashExperimental) {
 		this.host = host;
 		this.port = port;
 		this.username = username;
@@ -46,6 +47,7 @@ final class RedisSessionConfiguration {
 		this.keyPrefix = keyPrefix.endsWith(":") ? keyPrefix : keyPrefix + ':';
 		this.defaultTtlSeconds = defaultTtlSeconds;
 		this.cookieName = EnginePropertiesManager.getProperty(PropertyName.SESSION_COOKIE_NAME);
+		this.hashExperimental = hashExperimental;
 	}
 
 	static RedisSessionConfiguration fromProperties() {
@@ -58,7 +60,10 @@ final class RedisSessionConfiguration {
 		var timeoutMillis = parseInt(PropertyName.SESSION_REDIS_TIMEOUT, 5000);
 		var prefix = EnginePropertiesManager.getProperty(PropertyName.SESSION_REDIS_PREFIX);
 		var ttl = parseInt(PropertyName.SESSION_REDIS_DEFAULT_TTL, 1800);
-		return new RedisSessionConfiguration(host, port, username, password, database, ssl, timeoutMillis, prefix, ttl);
+		var hashExperimental = Boolean.parseBoolean(
+				System.getProperty("convertigo.engine.session.redis.hash.experimental", "false"));
+		return new RedisSessionConfiguration(host, port, username, password, database, ssl, timeoutMillis, prefix, ttl,
+				hashExperimental);
 	}
 
 	private static int parseInt(PropertyName property, int defaultValue) {
@@ -100,5 +105,9 @@ final class RedisSessionConfiguration {
 
 	String getCookieName() {
 		return cookieName;
+	}
+
+	boolean isHashExperimental() {
+		return hashExperimental;
 	}
 }

@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestSessionWrapper;
 
 public class SessionSerializationFilter implements Filter {
@@ -54,6 +55,11 @@ public class SessionSerializationFilter implements Filter {
 				try {
 					chain.doFilter(effectiveRequest, responseWrapper);
 				} finally {
+					try {
+						ConvertigoHttpSessionManager.getInstance().flushBuffers();
+					} catch (Exception ignored) {
+						// ignore
+					}
 					if (responseWrapper instanceof SessionCookieResponseWrapper wrapper) {
 						wrapper.flushSessionCookie();
 					}

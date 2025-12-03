@@ -63,6 +63,16 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		return storeMode;
 	}
 
+	public void flushBuffers() {
+		try {
+			if (provider != null) {
+				provider.flushBuffers();
+			}
+		} catch (Exception e) {
+			debug("flushBuffers failed: " + e.getMessage());
+		}
+	}
+
 	private SessionStoreMode computeStoreMode() {
 		var raw = EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE);
 		var result = SessionStoreMode.fromProperty(raw);
