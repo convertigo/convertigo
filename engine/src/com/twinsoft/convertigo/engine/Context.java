@@ -25,9 +25,6 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -79,7 +76,6 @@ import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
-import com.twinsoft.convertigo.engine.enums.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -90,8 +86,7 @@ import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.twinj.Javelin;
 
-public class Context extends AbstractContext implements Cloneable, Serializable {
-	private static final long serialVersionUID = 1L;
+public class Context extends AbstractContext implements Cloneable {
 
 	public transient LogParameters logParameters = new LogParameters();
 
@@ -750,41 +745,6 @@ public class Context extends AbstractContext implements Cloneable, Serializable 
 			httpSession.setAttribute("fileToDeleteAtEndOfContext", files);
 		}
 		files.add(file);
-	}
-
-	@Serial
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		var mode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_STORE_MODE);
-		if (!SessionStoreMode.redis.name().equalsIgnoreCase(mode)) {
-			throw new NotSerializableException("Context serialization disabled for mode=" + mode);
-		}
-		try {
-			if (Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(Context) writeObject [" + contextID + "]");
-			}
-		} catch (Exception e) {
-			// ignore logging issues
-		}
-		out.defaultWriteObject();
-		out.writeObject(StoredHttpState.from(httpState));
-	}
-
-	@Serial
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		var storedState = (StoredHttpState) in.readObject();
-		httpState = storedState != null ? storedState.toHttpState() : null;
-		logParameters = new LogParameters();
-		statistics = new EngineStatistics();
-		server = Engine.theApp != null ? Engine.theApp.getShareServerMap() : new SimpleMap();
-		responseHeaders = new Header[]{};
-		requestHeaders = null;
-		xpathApi = null;
-		sharedScope = null;
-		used_connectors = new HashMap<String, Connector>();
-		opened_connectors = new HashSet<Connector>();
-		httpClient3 = null;
-		httpClient = null;
 	}
 
 	private static final class StoredHttpState implements Serializable {

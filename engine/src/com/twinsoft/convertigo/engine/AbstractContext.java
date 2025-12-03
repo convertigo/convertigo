@@ -19,12 +19,6 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +31,12 @@ import javax.servlet.http.HttpSession;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
-import com.twinsoft.convertigo.engine.enums.SessionStoreMode;
-import com.twinsoft.convertigo.engine.util.DomSerializationSupport;
-import com.twinsoft.convertigo.engine.util.DomSerializationSupport.SerializedDom;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
-public abstract class AbstractContext implements Serializable {
-	private static final long serialVersionUID = 1L;
+public abstract class AbstractContext {
 
 	/**
 	 * The context unique identifier.
@@ -257,62 +246,7 @@ public abstract class AbstractContext implements Serializable {
 	public Set<String> keys() {
 		return internalTable.keySet();
 	}
-	
-	@Serial
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		var mode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_STORE_MODE);
-		if (!SessionStoreMode.redis.name().equalsIgnoreCase(mode)) {
-			throw new NotSerializableException("Context serialization disabled for mode=" + mode);
-		}
-		try {
-			if (Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(AbstractContext) writeObject [" + contextID + "]");
-			}
-		} catch (Exception e) {
-			// ignore logging issues
-		}
-		out.defaultWriteObject();
-		var serializableEntries = new HashMap<String, Serializable>();
-		for (var entry : internalTable.entrySet()) {
-			var value = entry.getValue();
-			if (value == null || value instanceof Serializable) {
-				serializableEntries.put(entry.getKey(), (Serializable) value);
-			} else {
-				var serializedDom = DomSerializationSupport.serialize(value);
-				if (serializedDom != null) {
-					serializableEntries.put(entry.getKey(), serializedDom);
-					continue;
-				}
-				try {
-					if (Engine.logEngine.isDebugEnabled()) {
-						Engine.logEngine.debug("(AbstractContext) Skipping non-serializable attribute '" + entry.getKey() + "' of type " + value.getClass().getName());
-					}
-				} catch (Exception e) {
-					// ignore logging issues
-				}
-			}
-		}
-		out.writeObject(serializableEntries);
-	}
 
-	@Serial
-	@SuppressWarnings("unchecked")
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		internalTable = new HashMap<String, Object>(256);
-		Map<String, Object> stored = (Map<String, Object>) in.readObject();
-		if (stored != null) {
-			for (var entry : stored.entrySet()) {
-				var restored = entry.getValue();
-				if (restored instanceof SerializedDom dom) {
-					restored = DomSerializationSupport.deserialize(dom);
-				}
-				entry.setValue(restored);
-			}
-			internalTable.putAll(stored);
-		}
-	}
-	
 	/**
 	 * @return Getter for the absolute requested URL
 	 */

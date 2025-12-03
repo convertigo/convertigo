@@ -26,8 +26,7 @@ import javax.servlet.http.HttpSession;
 import com.twinsoft.convertigo.engine.Engine;
 
 final class RedisSessionProvider implements SessionProvider {
-	private final RedisSessionStore store;
-	private final SessionStore hashStore;
+	private final SessionStore store;
 	private final BufferedSessionStore bufferedStore;
 	private final RedisSessionConfiguration configuration;
 	private final SessionCookieHelper cookieHelper = new SessionCookieHelper();
@@ -35,17 +34,8 @@ final class RedisSessionProvider implements SessionProvider {
 
 	RedisSessionProvider() {
 		configuration = RedisSessionConfiguration.fromProperties();
-		var rawStore = configuration.isHashExperimental()
-				? (SessionStore) new RedisHashSessionStore(configuration)
-				: (SessionStore) new RedisSessionStore(configuration);
-		if (rawStore instanceof RedisSessionStore s) {
-			store = s;
-			hashStore = null;
-		} else {
-			store = null;
-			hashStore = rawStore;
-		}
-		bufferedStore = new BufferedSessionStore(rawStore);
+		store = new RedisHashSessionStore(configuration);
+		bufferedStore = new BufferedSessionStore(store);
 		registerShutdownHook();
 	}
 
