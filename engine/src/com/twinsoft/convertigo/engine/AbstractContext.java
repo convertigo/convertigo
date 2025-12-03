@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
@@ -36,7 +37,9 @@ import javax.servlet.http.HttpSession;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.DomSerializationSupport;
 import com.twinsoft.convertigo.engine.util.DomSerializationSupport.SerializedDom;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -257,6 +260,10 @@ public abstract class AbstractContext implements Serializable {
 	
 	@Serial
 	private void writeObject(ObjectOutputStream out) throws IOException {
+		var mode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_STORE_MODE);
+		if (!SessionStoreMode.redis.name().equalsIgnoreCase(mode)) {
+			throw new NotSerializableException("Context serialization disabled for mode=" + mode);
+		}
 		try {
 			if (Engine.logEngine.isDebugEnabled()) {
 				Engine.logEngine.debug("(AbstractContext) writeObject [" + contextID + "]");
@@ -475,4 +482,3 @@ public abstract class AbstractContext implements Serializable {
 	 */
 	public abstract void setResponseStatus(Integer code, String text);
 }
-

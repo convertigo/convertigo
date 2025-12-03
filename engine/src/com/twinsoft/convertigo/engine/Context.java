@@ -25,10 +25,11 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.io.Serial;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -78,6 +79,7 @@ import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -752,6 +754,10 @@ public class Context extends AbstractContext implements Cloneable, Serializable 
 
 	@Serial
 	private void writeObject(ObjectOutputStream out) throws IOException {
+		var mode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_STORE_MODE);
+		if (!SessionStoreMode.redis.name().equalsIgnoreCase(mode)) {
+			throw new NotSerializableException("Context serialization disabled for mode=" + mode);
+		}
 		try {
 			if (Engine.logEngine.isDebugEnabled()) {
 				Engine.logEngine.debug("(Context) writeObject [" + contextID + "]");
