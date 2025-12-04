@@ -176,7 +176,7 @@
 			project="true">
 			<description>Creates a NGX Builder application project based on
 			Ionic and Convertigo Angular frameworks.</description> { "url":
-			"template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.3.0.zip",
+			"template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.4.0.zip",
 			"doPage1": true } </wizard>
 		<primaryWizard
 			id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"></primaryWizard>
