@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.engine.sessions;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -143,18 +144,10 @@ final class RedisHashSessionStore implements SessionStore {
 				return existing;
 			});
 			pendingEntry.dirty = true;
-			scheduleFlush(sessionId, pendingEntry);
+			// Flush synchronously to avoid read-after-write gaps between consecutive requests.
+			flushPending(sessionId, pendingEntry);
 		} catch (Exception e) {
 			log("(RedisHashSessionStore) Failed to save session " + session.getId(), e);
-		}
-	}
-
-	private void scheduleFlush(String sessionId, Pending p) {
-		synchronized (p) {
-			if (p.future != null && !p.future.isDone()) {
-				p.future.cancel(false);
-			}
-			p.future = scheduler.schedule(() -> flushPending(sessionId, p), 20, TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -166,7 +159,6 @@ final class RedisHashSessionStore implements SessionStore {
 			}
 			data = SessionData.copyOf(p.data);
 			p.dirty = false;
-			p.future = null;
 		}
 		try {
 			var bulk = new java.util.HashMap<String, String>();
@@ -275,6 +267,11 @@ final class RedisHashSessionStore implements SessionStore {
 	}
 
 	private String serialize(String key, Object value) throws Exception {
+		var hintAttr = SessionAttribute.fromValue(key);
+		if (hintAttr != null && hintAttr.expectedClass() != null) {
+			// For known types, store the raw value (no wrapper) to keep JSON lean and avoid parsing issues.
+			return MAPPER.writeValueAsString(value);
+		}
 		var wrapper = new TypedValue(value);
 		return MAPPER.writeValueAsString(wrapper);
 	}
@@ -286,7 +283,9 @@ final class RedisHashSessionStore implements SessionStore {
 		try {
 			var hintAttr = SessionAttribute.fromValue(key);
 			if (hintAttr != null && hintAttr.expectedClass() != null) {
-				return MAPPER.readValue(value, MAPPER.getTypeFactory().constructType(hintAttr.expectedClass()));
+				var tree = MAPPER.readTree(value);
+				var node = tree.has("value") ? tree.get("value") : tree;
+				return MAPPER.convertValue(node, MAPPER.getTypeFactory().constructType(hintAttr.expectedClass()));
 			}
 			var node = MAPPER.readTree(value);
 			var clazzNode = node.get("clazz");
@@ -297,10 +296,17 @@ final class RedisHashSessionStore implements SessionStore {
 			var className = clazzNode.asText();
 			try {
 				var cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
-				return MAPPER.convertValue(valNode, cls);
-			} catch (ClassNotFoundException e) {
-				return MAPPER.convertValue(valNode, Object.class);
-			}
+				// Special-case collections to avoid LinkedHashMap casting issues
+                if (Set.class.isAssignableFrom(cls)) {
+                    @SuppressWarnings("unchecked")
+                    var list = (java.util.List<Object>) MAPPER.convertValue(valNode, MAPPER.getTypeFactory()
+                            .constructCollectionType(java.util.ArrayList.class, Object.class));
+                    return new java.util.HashSet<Object>(list);
+                }
+                return MAPPER.convertValue(valNode, cls);
+            } catch (ClassNotFoundException e) {
+                return MAPPER.convertValue(valNode, Object.class);
+            }
 		} catch (Exception e) {
 			log("(RedisHashSessionStore) Failed to deserialize attribute", e);
 			return null;

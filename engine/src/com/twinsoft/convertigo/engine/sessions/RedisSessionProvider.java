@@ -66,7 +66,7 @@ final class RedisSessionProvider implements SessionProvider {
 			// Touch & persist immediately to avoid losing the first attribute write on a fresh session.
 			data.touch();
 			currentStore().save(data);
-			debug("Created new session " + sessionId + " (touched+saved)" + (configuration.isHashExperimental() ? " [hash]" : ""));
+			debug("Created new session " + sessionId + " (touched+saved) [redis-hash]");
 			request.setAttribute(REQUEST_SESSION_ATTR, sessionId);
 		}
 		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());

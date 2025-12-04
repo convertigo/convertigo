@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.enums;
 
+import java.util.HashSet;
+
 import javax.servlet.http.HttpSession;
 
 public enum SessionAttribute {
@@ -29,10 +31,10 @@ public enum SessionAttribute {
 	contexts(java.util.List.class, KeepMode.ON_DEMAND),
 	deviceUUID(String.class),
 	exception(Throwable.class),
-	fullSyncRequests(Object.class),
+	fullSyncRequests(HashSet.class),
 	isNew(Boolean.class, KeepMode.NEVER),
-	httpClient3("__httpClient3__", Object.class),
-	httpClient4("__httpClient4__", Object.class),
+	httpClient3("__httpClient3__", null),
+	httpClient4("__httpClient4__", null),
 	sessionListener(com.twinsoft.convertigo.engine.requesters.HttpSessionListener.class, KeepMode.NEVER),
 	xsrfToken(String.class),
 	userAgent(String.class, KeepMode.NEVER);

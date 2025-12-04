@@ -51,6 +51,15 @@ final class SessionCookieHelper {
 			return;
 		}
 		if (request != null) {
+			// If the request already carries the same cookie value, avoid sending a duplicate Set-Cookie.
+			var cookies = request.getCookies();
+			if (cookies != null) {
+				for (var c : cookies) {
+					if (cookieName.equals(c.getName()) && sessionId.equals(c.getValue())) {
+						return;
+					}
+				}
+			}
 			var attributeName = "convertigo.session.cookieSent." + cookieName;
 			var already = request.getAttribute(attributeName);
 			if (already instanceof String sent && sent.equals(sessionId)) {
