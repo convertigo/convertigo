@@ -380,8 +380,10 @@ public class Date extends JavelinExtractionRule {
 		Engine.logBeans.debug("Date: trying to find a date block according to the pattern '" + format + "'");
 
 		try {
-			sdf = new SimpleDateFormat(format, new Locale(language, Locale
-					.getDefault().getDisplayCountry()));
+			sdf = new SimpleDateFormat(format, new Locale.Builder()
+					.setLanguage(language)
+					.setRegion(Locale.getDefault().getCountry())
+					.build());
 		} catch (IllegalArgumentException e) {
 			Engine.logBeans.debug("Error: the format '" + format
 					+ "' is not valid. Please see help for more information.");

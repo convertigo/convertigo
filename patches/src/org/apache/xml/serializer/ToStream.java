@@ -2748,7 +2748,7 @@ abstract public class ToStream extends SerializerBase
         if (null != s)
         {
             // Vector of URI/LocalName pairs
-            Vector v = new Vector();
+            Vector<String> v = new Vector<String>();
             int l = s.length();
             boolean inCurly = false;
             StringBuffer buf = new StringBuffer();
@@ -2798,7 +2798,7 @@ abstract public class ToStream extends SerializerBase
      * 
      * @return a QName object
      */
-    private void addCdataSectionElement(String URI_and_localName, Vector v)
+    private void addCdataSectionElement(String URI_and_localName, Vector<String> v)
     {
 
         StringTokenizer tokenizer =

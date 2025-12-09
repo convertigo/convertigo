@@ -1265,8 +1265,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return res;
 	}
 
-	public <E extends DatabaseObject> List<E> getAllChildren() {
-		return new ArrayList<E>();
+	public List<DatabaseObject> getAllChildren() {
+		return new ArrayList<>();
 	}
 
 	public void changed() {

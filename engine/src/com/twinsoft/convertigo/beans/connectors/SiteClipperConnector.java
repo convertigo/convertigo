@@ -1048,7 +1048,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				hostConfiguration.setHost(host, shuttle.getRequestPort());
 			}
 
-			URL requestUrl = new URL(shuttle.getRequestUrl());
+			URL requestUrl = java.net.URI.create(shuttle.getRequestUrl()).toURL();
 
 			Engine.theApp.proxyManager.setProxy(hostConfiguration, context.httpState, requestUrl);
 		}

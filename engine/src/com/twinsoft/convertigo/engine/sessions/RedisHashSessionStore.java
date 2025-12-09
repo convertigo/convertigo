@@ -2,7 +2,6 @@
  * Decompiled with CFR 0.152.
  * 
  * Could not load the following classes:
- *  com.fasterxml.jackson.databind.JavaType
  *  com.fasterxml.jackson.databind.JsonNode
  *  com.fasterxml.jackson.databind.ObjectMapper
  *  com.twinsoft.convertigo.engine.Engine
@@ -19,15 +18,10 @@
  */
 package com.twinsoft.convertigo.engine.sessions;
 
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
-import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
-import com.twinsoft.convertigo.engine.sessions.SessionAttributeSanitizer;
-import com.twinsoft.convertigo.engine.sessions.SessionData;
-import com.twinsoft.convertigo.engine.sessions.SessionStore;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +49,7 @@ implements SessionStore {
     private static final String LUA_HSET_DEL_AND_TOUCH = "local key=KEYS[1]; local ttl=tonumber(ARGV[1]); local setCount=tonumber(ARGV[2]);\nlocal idx=3;\nif setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\nlocal delCount=tonumber(ARGV[idx]); idx = idx + 1;\nif delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); end\nif ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\nreturn true\n";
     private final RedissonClient client;
     private final RedisSessionConfiguration configuration;
-    private final ConcurrentHashMap<String, Pending> pending = new ConcurrentHashMap();
+    private final ConcurrentHashMap<String, Pending> pending = new ConcurrentHashMap<>();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     RedisHashSessionStore(RedisSessionConfiguration configuration) {
@@ -85,7 +79,7 @@ implements SessionStore {
     public SessionData read(String sessionId) {
         try {
             long ttlMillis = this.configuration.getDefaultTtlSeconds() > 0 ? (long)this.configuration.getDefaultTtlSeconds() * 1000L : 0L;
-            List entries = (List)this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HGETALL_AND_TOUCH, RScript.ReturnType.MULTI, Collections.singletonList(this.configuration.key(sessionId)), new Object[]{ttlMillis});
+            List<Object> entries = this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HGETALL_AND_TOUCH, RScript.ReturnType.MULTI, Collections.singletonList(this.configuration.key(sessionId)), new Object[]{ttlMillis});
             if (entries == null || entries.isEmpty()) {
                 this.debug("MISS " + sessionId);
                 return null;
@@ -103,10 +97,10 @@ implements SessionStore {
             data.setLastAccessedTime(lastAccess > 0L ? lastAccess : now);
             data.setMaxInactiveInterval(maxInactive);
             data.setNew(false);
-            for (Map.Entry entry : mapSnapshot.entrySet()) {
-                String key = (String)entry.getKey();
+            for (Map.Entry<String, String> entry : mapSnapshot.entrySet()) {
+                String key = entry.getKey();
                 if (key.startsWith("__meta:")) continue;
-                Object val = this.deserialize(key, (String)entry.getValue());
+                Object val = this.deserialize(key, entry.getValue());
                 if (SessionAttribute.contexts.value().equals(key)) {
                     val = SessionAttributeSanitizer.restoreContexts(val);
                 }
@@ -167,12 +161,14 @@ implements SessionStore {
             meta.put(META_CREATION, this.writeLong(data.getCreationTime()));
             meta.put(META_LAST_ACCESS, this.writeLong(data.getLastAccessedTime()));
             meta.put(META_MAX_INACTIVE, this.writeInt(data.getMaxInactiveInterval()));
-            for (Map.Entry entry : meta.entrySet()) {
-                String previous;
-                String string = (String)entry.getKey();
-                String v = (String)entry.getValue();
-                if (v.equals(previous = p.lastMeta.get(string))) continue;
-                bulk.put(string, v);
+            for (Map.Entry<String, String> entry : meta.entrySet()) {
+                String key = entry.getKey();
+                String v = entry.getValue();
+                String previous = p.lastMeta.get(key);
+                if (v.equals(previous)) {
+                    continue;
+                }
+                bulk.put(key, v);
             }
             HashMap<String, String> newAttrsSnapshot = new HashMap<String, String>();
             for (Map.Entry<String, Object> entry : data.getAttributes().entrySet()) {
@@ -207,7 +203,7 @@ implements SessionStore {
                 ArrayList<Object> args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
                 args.add(l);
                 args.add(setCount);
-                for (Map.Entry e : bulk.entrySet()) {
+                for (Map.Entry<String, String> e : bulk.entrySet()) {
                     args.add(e.getKey());
                     args.add(e.getValue());
                 }
@@ -219,8 +215,8 @@ implements SessionStore {
                 p.lastAttrs.clear();
                 p.lastAttrs.putAll(newAttrsSnapshot);
             }
-            int n = data.getMaxInactiveInterval() > 0 ? data.getMaxInactiveInterval() : this.configuration.getDefaultTtlSeconds();
-            this.debug("SAVE(hash/coalesce) " + sessionId + ", ttl=" + n + ", fields=" + bulk.size());
+            int ttlSeconds = data.getMaxInactiveInterval() > 0 ? data.getMaxInactiveInterval() : this.configuration.getDefaultTtlSeconds();
+            this.debug("SAVE(hash/coalesce) " + sessionId + ", ttl=" + ttlSeconds + ", fields=" + bulk.size());
         }
         catch (Exception e) {
             this.log("(RedisHashSessionStore) Failed to flush session " + sessionId, e);
@@ -266,25 +262,25 @@ implements SessionStore {
             if (hintAttr != null && hintAttr.expectedClass() != null) {
                 JsonNode tree = MAPPER.readTree(value);
                 JsonNode node = tree.has("value") ? tree.get("value") : tree;
-                return MAPPER.convertValue((Object)node, MAPPER.getTypeFactory().constructType((Type)hintAttr.expectedClass()));
+                return MAPPER.convertValue(node, MAPPER.getTypeFactory().constructType((Type)hintAttr.expectedClass()));
             }
             JsonNode node = MAPPER.readTree(value);
             JsonNode clazzNode = node.get("clazz");
             JsonNode valNode = node.get("value");
             if (clazzNode == null || valNode == null) {
-                return MAPPER.convertValue((Object)node, Object.class);
+                return MAPPER.convertValue(node, Object.class);
             }
             String className = clazzNode.asText();
             try {
                 Class<?> cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
                 if (Set.class.isAssignableFrom(cls)) {
-                    List list = (List)MAPPER.convertValue((Object)valNode, (JavaType)MAPPER.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
-                    return new HashSet(list);
+                    List<Object> list = MAPPER.convertValue(valNode, MAPPER.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
+                    return new HashSet<Object>(list);
                 }
-                return MAPPER.convertValue((Object)valNode, cls);
+                return MAPPER.convertValue(valNode, cls);
             }
             catch (ClassNotFoundException e) {
-                return MAPPER.convertValue((Object)valNode, Object.class);
+                return MAPPER.convertValue(valNode, Object.class);
             }
         }
         catch (Exception e) {
@@ -364,7 +360,9 @@ implements SessionStore {
     }
 
     private static final class TypedValue {
+        @SuppressWarnings("unused")
         public String clazz;
+        @SuppressWarnings("unused")
         public Object value;
 
         TypedValue(Object value) {

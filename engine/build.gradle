@@ -305,13 +305,8 @@ task dependenciesSourceJar(type: Jar) {
 	def sourceConfig = configurations.create('sources')
 	configurations.compileFlat.allDependencies.each { dependency ->
 		if (dependency instanceof ExternalModuleDependency) {
-			sourceConfig.dependencies.add(dependencies.create(
-				group: dependency.group, 
-				name: dependency.name, 
-				version: dependency.version, 
-				classifier: 'sources',
-				ext: 'jar'
-			))
+			def sourceNotation = "${dependency.group}:${dependency.name}:${dependency.version}:sources@jar"
+			sourceConfig.dependencies.add(dependencies.create(sourceNotation))
 		}
 	}
 

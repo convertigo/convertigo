@@ -14,9 +14,6 @@ package com.twinsoft.convertigo.engine.sessions;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
-import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
-import com.twinsoft.convertigo.engine.sessions.SessionData;
-import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -117,7 +114,7 @@ final class SessionAttributeSanitizer {
     private static void sanitizeContexts(Map<String, Object> attributes) {
         Object ctxValue = attributes.get("__c8o:contexts__");
         if (ctxValue instanceof List) {
-            List list = (List)ctxValue;
+            List<?> list = (List<?>) ctxValue;
             ArrayList<ContextSnapshot> lightContexts = new ArrayList<ContextSnapshot>(list.size());
             for (Object item : list) {
                 ContextSnapshot snap = SessionAttributeSanitizer.toSnapshot(item);
@@ -142,6 +139,7 @@ final class SessionAttributeSanitizer {
         return contexts;
     }
 
+    @SuppressWarnings("deprecation")
     public static ContextSnapshot toSnapshot(Object item) {
         if (item instanceof Context) {
             Context ctx = (Context)item;
@@ -156,9 +154,13 @@ final class SessionAttributeSanitizer {
             light.isErrorDocument = ctx.isErrorDocument;
             light.isNewSession = ctx.isNewSession;
             if (ctx.httpState != null) {
-                light.httpStateCookiePolicy = ctx.httpState.getCookiePolicy();
+                try {
+                    light.httpStateCookiePolicy = ctx.httpState.getCookiePolicy();
+                } catch (Exception e) {
+                    // ignore
+                }
                 Cookie[] cookies = ctx.httpState.getCookies();
-                int n = light.httpStateCookies = cookies != null ? cookies.length : 0;
+                light.httpStateCookies = cookies != null ? cookies.length : 0;
                 if (cookies != null && cookies.length > 0) {
                     light.cookies = new ArrayList<CookieSnapshot>(cookies.length);
                     for (Cookie c : cookies) {
@@ -183,7 +185,7 @@ final class SessionAttributeSanitizer {
             return snapshot;
         }
         if (item instanceof Map) {
-            Map map = (Map)item;
+            Map<?, ?> map = (Map<?, ?>)item;
             ContextSnapshot snap = new ContextSnapshot();
             snap.contextId = SessionAttributeSanitizer.string(map.get("contextId"));
             snap.name = SessionAttributeSanitizer.string(map.get("name"));
@@ -256,7 +258,7 @@ final class SessionAttributeSanitizer {
         public boolean isDestroying;
         public boolean isErrorDocument;
         public boolean isNewSession;
-        public int httpStateCookiePolicy;
+        public Integer httpStateCookiePolicy;
         public int httpStateCookies;
         public List<CookieSnapshot> cookies;
 
@@ -281,6 +283,7 @@ final class SessionAttributeSanitizer {
             }
         }
 
+        @SuppressWarnings("deprecation")
         Context toContext() {
             Context ctx = new Context(this.contextId);
             ctx.name = this.name;
@@ -291,9 +294,15 @@ final class SessionAttributeSanitizer {
             ctx.isDestroying = this.isDestroying;
             ctx.isErrorDocument = this.isErrorDocument;
             ctx.isNewSession = this.isNewSession;
-            if (this.httpStateCookiePolicy != 0 || this.httpStateCookies != 0 || this.cookies != null && !this.cookies.isEmpty()) {
+            if (this.httpStateCookiePolicy != null || this.httpStateCookies != 0 || this.cookies != null && !this.cookies.isEmpty()) {
                 HttpState state = new HttpState();
-                state.setCookiePolicy(this.httpStateCookiePolicy);
+                if (this.httpStateCookiePolicy != null) {
+                    try {
+                        state.setCookiePolicy(this.httpStateCookiePolicy);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
                 if (this.cookies != null) {
                     for (CookieSnapshot c : this.cookies) {
                         try {

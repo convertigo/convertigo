@@ -747,6 +747,7 @@ public class Context extends AbstractContext implements Cloneable {
 		files.add(file);
 	}
 
+	@SuppressWarnings("unused")
 	private static final class StoredHttpState implements Serializable {
 		@Serial
 		private static final long serialVersionUID = 1L;
@@ -758,6 +759,7 @@ public class Context extends AbstractContext implements Cloneable {
 			this.cookiePolicy = cookiePolicy;
 		}
 
+		@SuppressWarnings("deprecation")
 		static StoredHttpState from(HttpState state) {
 			if (state == null) {
 				return null;
@@ -771,9 +773,9 @@ public class Context extends AbstractContext implements Cloneable {
 			}
 			Integer storedPolicy = null;
 			try {
-				storedPolicy = Integer.valueOf(state.getCookiePolicy());
+				storedPolicy = state.getCookiePolicy();
 			} catch (Exception e) {
-				// ignore and keep null
+				// ignore
 			}
 			if (cookies.isEmpty() && storedPolicy == null) {
 				return null;
@@ -781,6 +783,7 @@ public class Context extends AbstractContext implements Cloneable {
 			return new StoredHttpState(cookies, storedPolicy);
 		}
 
+		@SuppressWarnings("deprecation")
 		HttpState toHttpState() {
 			if ((cookies == null || cookies.isEmpty()) && cookiePolicy == null) {
 				return null;
@@ -788,9 +791,9 @@ public class Context extends AbstractContext implements Cloneable {
 			var state = new HttpState();
 			if (cookiePolicy != null) {
 				try {
-					state.setCookiePolicy(cookiePolicy.intValue());
+					state.setCookiePolicy(cookiePolicy);
 				} catch (Exception e) {
-					// ignore if policy cannot be applied
+					// ignore if policy can't be applied
 				}
 			}
 			if (cookies != null) {

@@ -17,9 +17,6 @@ package com.twinsoft.convertigo.engine.sessions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.sessions.ContextStore;
-import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
-import com.twinsoft.convertigo.engine.sessions.SessionAttributeSanitizer;
 import java.time.Duration;
 import org.redisson.Redisson;
 import org.redisson.api.RBucket;
@@ -55,16 +52,16 @@ implements ContextStore {
         return this.configuration.contextKey(contextId);
     }
 
-    @Override
-    public Context read(String contextId) {
-        try {
-            RBucket bucket = this.client.getBucket(this.key(contextId));
-            String json = (String)bucket.get();
-            if (json == null) {
-                return null;
-            }
-            SessionAttributeSanitizer.ContextSnapshot snap = (SessionAttributeSanitizer.ContextSnapshot)this.mapper.readValue(json, SessionAttributeSanitizer.ContextSnapshot.class);
-            return snap.toContext();
+	@Override
+	public Context read(String contextId) {
+		try {
+			RBucket<String> bucket = this.client.getBucket(this.key(contextId));
+			String json = bucket.get();
+			if (json == null) {
+				return null;
+			}
+			SessionAttributeSanitizer.ContextSnapshot snap = (SessionAttributeSanitizer.ContextSnapshot)this.mapper.readValue(json, SessionAttributeSanitizer.ContextSnapshot.class);
+			return snap.toContext();
         }
         catch (Exception e) {
             this.log("(RedisContextStore) Failed to read context " + contextId, e);
@@ -78,18 +75,18 @@ implements ContextStore {
             return;
         }
         try {
-            SessionAttributeSanitizer.ContextSnapshot snap = SessionAttributeSanitizer.toSnapshot(context);
-            if (snap == null) {
-                return;
-            }
-            String json = this.mapper.writeValueAsString((Object)snap);
-            RBucket bucket = this.client.getBucket(this.key(context.contextID));
-            int ttl = ttlSeconds > 0 ? ttlSeconds : this.configuration.getDefaultTtlSeconds();
-            if (ttl > 0) {
-                bucket.set((Object)json, Duration.ofSeconds(ttl));
-            } else {
-                bucket.set((Object)json);
-            }
+			SessionAttributeSanitizer.ContextSnapshot snap = SessionAttributeSanitizer.toSnapshot(context);
+			if (snap == null) {
+				return;
+			}
+			String json = this.mapper.writeValueAsString((Object)snap);
+			RBucket<String> bucket = this.client.getBucket(this.key(context.contextID));
+			int ttl = ttlSeconds > 0 ? ttlSeconds : this.configuration.getDefaultTtlSeconds();
+			if (ttl > 0) {
+				bucket.set(json, Duration.ofSeconds(ttl));
+			} else {
+				bucket.set(json);
+			}
         }
         catch (Exception e) {
             this.log("(RedisContextStore) Failed to save context " + context.contextID, e);

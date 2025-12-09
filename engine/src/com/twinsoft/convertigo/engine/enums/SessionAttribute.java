@@ -13,6 +13,7 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import java.util.HashSet;
 import java.util.List;
 import javax.servlet.http.HttpSession;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public enum SessionAttribute {
     authenticatedUser(String.class),
@@ -88,7 +89,11 @@ public enum SessionAttribute {
 
     public <E> E get(HttpSession session, E defaultValue) {
         Object res = session == null ? null : session.getAttribute(this.value());
-        return (E)(res == null ? defaultValue : res);
+        Object value = res == null ? defaultValue : res;
+        if (this.expectedClass != null && value != null && !this.expectedClass.isInstance(value)) {
+            return defaultValue;
+        }
+        return GenericUtils.cast(value);
     }
 
     public boolean has(HttpSession session) {

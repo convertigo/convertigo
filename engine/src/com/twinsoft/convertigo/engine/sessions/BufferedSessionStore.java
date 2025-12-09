@@ -3,8 +3,6 @@
  */
 package com.twinsoft.convertigo.engine.sessions;
 
-import com.twinsoft.convertigo.engine.sessions.SessionData;
-import com.twinsoft.convertigo.engine.sessions.SessionStore;
 import java.util.HashMap;
 import java.util.Map;
 

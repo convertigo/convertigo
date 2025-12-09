@@ -36,6 +36,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 
 	private final SessionStore store;
 	private final ServletContext servletContext;
+	@SuppressWarnings("unused")
 	private final RedisSessionConfiguration configuration;
 	private final AtomicBoolean invalidated = new AtomicBoolean(false);
 	private final Object mutex = new Object();

@@ -57,10 +57,9 @@ public class UsageMonitor implements Runnable, AbstractManager {
 		        	setUsageCounter("[System] Load average (1m)", String.format("%.2f", loadAvg));
 		        }
 		        try {
-		        	@SuppressWarnings("restriction")
 		        	com.sun.management.OperatingSystemMXBean sunOs = (com.sun.management.OperatingSystemMXBean) osMxBean;
 		        	double processCpu = sunOs.getProcessCpuLoad();
-		        	double systemCpu = sunOs.getSystemCpuLoad();
+		        	double systemCpu = sunOs.getCpuLoad();
 		        	if (processCpu >= 0) {
 		        		setUsageCounter("[System] CPU load (process)", formatPercent(processCpu));
 		        	}

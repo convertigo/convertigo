@@ -25,10 +25,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -154,18 +156,14 @@ public class ProcessExecStep extends Step {
 
 		try {
 			// Environment parameters (name/value pairs)
-			String[] envp = null;
+			Map<String, String> envMap = null;
 			if (envParameters.size() > 0) {
 				// Retrieve current environment parameters and overrides
-				Map<String, String> envmap = new HashMap<String, String>();
-				envmap.putAll(System.getenv());
-				for (List<String> parameter : envParameters)
-					envmap.put(parameter.get(0), parameter.get(1));
-				// Fill parameters array
-				int i = 0;
-				envp = new String[envmap.size()];
-				for (Map.Entry<String, String> entry : envmap.entrySet())
-					envp[i++] = entry.getKey() + "=" + entry.getValue();
+				envMap = new HashMap<String, String>();
+				envMap.putAll(System.getenv());
+				for (List<String> parameter : envParameters) {
+					envMap.put(parameter.get(0), parameter.get(1));
+				}
 			}
 
 			// Execution directory
@@ -206,16 +204,24 @@ public class ProcessExecStep extends Step {
 			// if dir is null, current execution directory is used
 //			final Process process = Runtime.getRuntime().exec(command, envp, dir);	
 			
-			
-			final Process process;
+			ProcessBuilder builder;
 			if (command != null) {
 				Engine.logBeans.debug("Launching ProcessExec command : " + Arrays.toString(command) + " In directory: " + dir);
-				process = Runtime.getRuntime().exec(command, envp, dir);
+				builder = new ProcessBuilder(command);
 			} else {
 				Engine.logBeans.debug("Launching ProcessExec command : " + cmd + " In directory: " + dir);
-				process = Runtime.getRuntime().exec(cmd, envp, dir);
+				builder = new ProcessBuilder(tokenize(cmd));
 			}
-			
+
+			if (dir != null) {
+				builder.directory(dir);
+			}
+			if (envMap != null) {
+				builder.environment().clear();
+				builder.environment().putAll(envMap);
+			}
+
+			final Process process = builder.start();
 
 			// Create and launch process stream reader threads
 			stderrThread = new ProcessStreamReaderThread(process.getErrorStream(), errorNode);
@@ -327,6 +333,15 @@ public class ProcessExecStep extends Step {
 				}
 			}
 		}
+	}
+	
+	private List<String> tokenize(String cmd) {
+		StringTokenizer tokenizer = new StringTokenizer(cmd);
+		ArrayList<String> parts = new ArrayList<String>(tokenizer.countTokens());
+		while (tokenizer.hasMoreTokens()) {
+			parts.add(tokenizer.nextToken());
+		}
+		return parts;
 	}
 	
 	@Override

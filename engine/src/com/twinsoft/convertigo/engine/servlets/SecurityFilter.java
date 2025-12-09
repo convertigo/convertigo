@@ -20,7 +20,7 @@
 package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,20 +28,16 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -334,152 +330,27 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 			sf.config = Paths.get(Engine.CONFIGURATION_PATH, "security_filter.json");
 			sf.parse(true);
 			
-			sf.doFilter(_request, new HttpServletResponse() {
-
-				@Override
-				public void setLocale(Locale arg0) {}
-
-				@Override
-				public void setContentType(String arg0) {
-				}
-
-				@Override
-				public void setContentLength(int arg0) {}
-
-				@Override
-				public void setCharacterEncoding(String arg0) {}
-
-				@Override
-				public void setBufferSize(int arg0) {}
-
-				@Override
-				public void resetBuffer() {}
-
-				@Override
-				public void reset() {}
-
-				@Override
-				public boolean isCommitted() {
-					return false;
-				}
-
-				@Override
-				public PrintWriter getWriter() throws IOException {
-					return null;
-				}
-
-				@Override
-				public ServletOutputStream getOutputStream() throws IOException {
-					return null;
-				}
-
-				@Override
-				public Locale getLocale() {
-					return null;
-				}
-
-				@Override
-				public String getContentType() {
-					return null;
-				}
-
-				@Override
-				public String getCharacterEncoding() {
-					return null;
-				}
-
-				@Override
-				public int getBufferSize() {
-					return 0;
-				}
-
-				@Override
-				public void flushBuffer() throws IOException {}
-
-				@Override
-				public void setStatus(int arg0, String arg1) {}
-
-				@Override
-				public void setStatus(int arg0) {}
-
-				@Override
-				public void setIntHeader(String arg0, int arg1) {}
-
-				@Override
-				public void setHeader(String arg0, String arg1) {}
-
-				@Override
-				public void setDateHeader(String arg0, long arg1) {}
-
-				@Override
-				public void sendRedirect(String arg0) throws IOException {}
-
-				@Override
-				public void sendError(int arg0, String arg1) throws IOException {}
-
-				@Override
-				public void sendError(int arg0) throws IOException {}
-
-				@Override
-				public int getStatus() {
-					return 0;
-				}
-
-				@Override
-				public Collection<String> getHeaders(String arg0) {
-					return null;
-				}
-
-				@Override
-				public Collection<String> getHeaderNames() {
-					return null;
-				}
-
-				@Override
-				public String getHeader(String arg0) {
-					return null;
-				}
-
-				@Override
-				public String encodeUrl(String arg0) {
-					return null;
-				}
-
-				@Override
-				public String encodeURL(String arg0) {
-					return null;
-				}
-
-				@Override
-				public String encodeRedirectUrl(String arg0) {
-					return null;
-				}
-
-				@Override
-				public String encodeRedirectURL(String arg0) {
-					return null;
-				}
-
-				@Override
-				public boolean containsHeader(String arg0) {
-					return false;
-				}
-
-				@Override
-				public void addIntHeader(String arg0, int arg1) {}
-
-				@Override
-				public void addHeader(String arg0, String arg1) {}
-
-				@Override
-				public void addDateHeader(String arg0, long arg1) {}
-
-				@Override
-				public void addCookie(Cookie arg0) {}
-
-				@Override
-				public void setContentLengthLong(long length) {}
-			}, new FilterChain() {
+			sf.doFilter(_request, (HttpServletResponse) Proxy.newProxyInstance(
+					HttpServletResponse.class.getClassLoader(),
+					new Class<?>[] { HttpServletResponse.class },
+					(proxy, method, args) -> {
+						String name = method.getName();
+						if ("setStatus".equals(name)) {
+							return null;
+						}
+						Class<?> returnType = method.getReturnType();
+						if (returnType == boolean.class) {
+							return false;
+						}
+						if (returnType == int.class) {
+							return 0;
+						}
+						if (returnType == long.class) {
+							return 0L;
+						}
+						return null;
+					}),
+					new FilterChain() {
 
 				@Override
 				public void doFilter(ServletRequest arg0, ServletResponse arg1) throws IOException, ServletException {

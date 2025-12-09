@@ -298,7 +298,6 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		return sb.toString();
 	}
 	private String getNewIfSignature() {
-		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName();
 		String src      = getSourceSmartType().getValue(); // ex : "items"
 		String expr     = getDirectiveExpression();        // ex : "track item.name"
 		
