@@ -228,7 +228,7 @@
 					/>
 				</div>
 
-				<fieldset class="layout-x justify-end" disabled={waiting}>
+				<fieldset class="layout-x-low justify-end" disabled={waiting}>
 					<Button
 						type="submit"
 						class="button-success w-fit!"
@@ -334,7 +334,7 @@
 					<div>Current users will be kept.</div>
 				{/if}
 				<div>Actual users list will be saved aside in a backup file.</div>
-				<div class="layout-x w-full justify-end">
+				<div class="layout-x-low w-full justify-end">
 					<Button
 						label="Import"
 						icon="mdi:account-supervisor-circle-outline"

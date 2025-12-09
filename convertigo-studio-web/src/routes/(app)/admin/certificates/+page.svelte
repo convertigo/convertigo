@@ -94,7 +94,7 @@
 						{/snippet}
 					</FileUpload.Context>
 				</FileUpload>
-				<div class="layout-x w-full justify-end">
+				<div class="layout-x-low w-full justify-end">
 					<Button
 						label="Install"
 						icon="mdi:certificate"
@@ -129,7 +129,7 @@
 					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
 					value=""
 				/>
-				<div class="layout-x w-full justify-end">
+				<div class="layout-x-low w-full justify-end">
 					<Button
 						label="Remove"
 						icon="mdi:certificate"

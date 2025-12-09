@@ -82,7 +82,7 @@
 				{:else}
 					<PropertyType type="textarea" name="symbolValue" label="Value" value={row?.value} />
 				{/if}
-				<fieldset class="layout-x w-full justify-end" disabled={waiting}>
+				<fieldset class="layout-x-low w-full justify-end" disabled={waiting}>
 					<Button
 						type="submit"
 						class="{sec ? 'button-tertiary' : 'button-success'} w-fit!"

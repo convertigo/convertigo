@@ -19,7 +19,7 @@
 		{#if message}
 			<span>{message}</span>
 		{/if}
-		<div class="layout-x w-full justify-end">
+		<div class="layout-x-low w-full justify-end">
 			<Button
 				onclick={() => modal.close(true)}
 				class="button-success w-fit!"

@@ -71,11 +71,9 @@
 				class="inline-flex items-center gap-low"
 			>
 				<Switch.Control
-					class="layout-x-none h-6 min-w-11 rounded-full bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
+					class="bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
 				>
-					<Switch.Thumb
-						class="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 data-[state=checked]:translate-x-5"
-					/>
+					<Switch.Thumb />
 				</Switch.Control>
 				<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label>
 				<Switch.HiddenInput />

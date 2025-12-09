@@ -201,7 +201,7 @@
 					<div class="rounded-sm preset-filled-secondary-200-800 px-low">{symbol}</div>
 				{/each}
 			</div>
-			<div class="layout-x w-full justify-end">
+			<div class="layout-x-low w-full justify-end">
 				<Button
 					label="Create symbols"
 					icon="mdi:wrench"

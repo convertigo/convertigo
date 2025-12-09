@@ -72,7 +72,7 @@
 			{#if modalAlert?.showStack}
 				<pre transition:slide class="text-wrap">{stacktrace}</pre>
 			{/if}
-			<div class="layout-x w-full justify-end">
+			<div class="layout-x-low w-full justify-end">
 				{#if stacktrace}
 					<button
 						onclick={() => (modalAlert.showStack = !modalAlert.showStack)}

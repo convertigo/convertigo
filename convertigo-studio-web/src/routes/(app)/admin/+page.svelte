@@ -188,7 +188,7 @@
 				class="max-h-[80vh]"
 			></TableAutoCard>
 
-			<div class="layout-x w-full justify-end">
+			<div class="layout-x-low w-full justify-end">
 				<Button label="Close" onclick={close} class="button-error w-fit!" />
 			</div>
 		</Card>
