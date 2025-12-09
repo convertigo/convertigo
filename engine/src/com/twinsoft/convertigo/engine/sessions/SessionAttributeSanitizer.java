@@ -76,6 +76,9 @@ final class SessionAttributeSanitizer {
                         }
                         int ttl = sessionTtl > 0 && projectContextTtl > 0 ? Math.min(sessionTtl, projectContextTtl)
                                 : (sessionTtl > 0 ? sessionTtl : projectContextTtl);
+                        if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
+                            Engine.logEngine.debug("(SessionAttributeSanitizer) saveContexts ttl=" + ttl + " sessionTtl=" + sessionTtl + " projectTtl=" + projectContextTtl);
+                        }
                         Engine.theApp.contextManager.saveContexts(GenericUtils.cast((List<?>)ctxValue), ttl);
                     } catch (Exception e) {
                         Engine.logEngine.warn("(SessionAttributeSanitizer) Failed to persist contexts for redis store", e);

@@ -389,6 +389,9 @@ public class ContextManager extends AbstractRunnableManager {
 		} else if (ttl <= 0) {
 			ttl = projectTtl;
 		}
+		if (Engine.logContextManager.isDebugEnabled()) {
+			Engine.logContextManager.debug("(ContextManager) saveContexts ttl=" + ttl + " projectTtl=" + projectTtl + " httpSessionTtl=" + httpSessionTtl + " ttlSecondsArg=" + ttlSeconds);
+		}
 		for (Context c : ctxs) {
 			if (c != null) {
 				try {
