@@ -57,6 +57,11 @@ import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.sessions.ContextStore;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
+import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.tas.Key;
@@ -86,6 +91,7 @@ public class ContextManager extends AbstractRunnableManager {
 	private Map<String, DevicePool> devicePools;
 	private long manage_poll_timeout = -1;
 
+	private ContextStore contextStore;
 	private final Object contextCreationMutex = new Object();
 
 	public void init() throws EngineException {
@@ -94,6 +100,10 @@ public class ContextManager extends AbstractRunnableManager {
 		try {
 			contexts = new ConcurrentHashMap<String, Context>();
 			currentContextNum = 0;
+			if (ConvertigoHttpSessionManager.getInstance().getStoreMode() == SessionStoreMode.redis) {
+				contextStore = new RedisContextStore(RedisSessionConfiguration.fromProperties());
+				Engine.logContextManager.info("(ContextManager) Using Redis context store");
+			}
 
 			devicePools = new HashMap<String, DevicePool>();
 			Engine.theApp.eventManager.addListener(myPropertyChangeEventListener = new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
@@ -109,6 +119,14 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.info("Destroying ContextManager...");
 
 		super.destroy();
+
+		if (contextStore != null) {
+			try {
+				contextStore.shutdown();
+			} catch (Exception e) {
+				Engine.logContextManager.warn("Failed to shutdown context store", e);
+			}
+		}
 
 		// remove all contexts
 		removeAll();
@@ -215,6 +233,13 @@ public class ContextManager extends AbstractRunnableManager {
 
 	private Context get(String contextID, String contextName, String projectName) throws EngineException {
 		Context context = get(contextID);
+		if (context == null && contextStore != null) {
+			context = contextStore.read(contextID);
+			if (context != null) {
+				contexts.put(contextID, context);
+				return context;
+			}
+		}
 		// Create a new context
 		if (context == null) {
 			long numberOfContext = contexts.size();
@@ -313,8 +338,66 @@ public class ContextManager extends AbstractRunnableManager {
 		return res;
 	}
 
+	public void evictFromCache(Context context) {
+		if (context == null) {
+			return;
+		}
+		contexts.remove(context.contextID, context);
+		if (contextStore != null) {
+			int ttl = context.httpSession != null ? context.httpSession.getMaxInactiveInterval() : -1;
+			contextStore.save(context, ttl);
+		}
+	}
+
 	public int getNumberOfContexts() {
 		return contexts.size();
+	}
+
+	public void saveContexts(List<Context> ctxs, int ttlSeconds) {
+		if (contextStore == null || ctxs == null) {
+			return;
+		}
+		int ttl = ttlSeconds;
+		int projectTtl = 0;
+		int httpSessionTtl = 0;
+		if (!ctxs.isEmpty()) {
+			Context first = ctxs.get(0);
+			try {
+				if (first.project != null) {
+					projectTtl = first.project.getContextTimeout();
+				} else if (first.projectName != null) {
+					var project = Engine.theApp.databaseObjectsManager.getProjectByName(first.projectName);
+					if (project != null) {
+						projectTtl = project.getContextTimeout();
+					}
+				}
+				if (first.httpSession != null) {
+					httpSessionTtl = first.httpSession.getMaxInactiveInterval();
+				}
+			} catch (Exception e) {
+				Engine.logContextManager.debug("Failed to resolve project for context TTL, using defaults", e);
+			}
+		}
+		if (ttl <= 0) {
+			ttl = httpSessionTtl > 0 ? httpSessionTtl : ttl;
+		}
+		if (ttl > 0 && httpSessionTtl > 0) {
+			ttl = Math.min(ttl, httpSessionTtl);
+		}
+		if (ttl > 0 && projectTtl > 0) {
+			ttl = Math.min(ttl, projectTtl);
+		} else if (ttl <= 0) {
+			ttl = projectTtl;
+		}
+		for (Context c : ctxs) {
+			if (c != null) {
+				try {
+					contextStore.save(c, ttl);
+				} catch (Exception e) {
+					Engine.logContextManager.warn("Failed to save context " + c.contextID, e);
+				}
+			}
+		}
 	}
 
 	public void remove(String contextID) {
@@ -342,6 +425,9 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.info("Removing context " + contextID);
 
 			contexts.remove(contextID, context);
+			if (contextStore != null) {
+				contextStore.delete(contextID);
+			}
 
 			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
@@ -451,6 +537,9 @@ public class ContextManager extends AbstractRunnableManager {
 		HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 		if (httpSession != null) {
 			removeAll(httpSession);
+			if (contextStore != null) {
+				contextStore.deleteBySessionPrefix(sessionID + "_");
+			}
 		}
 	}
 
