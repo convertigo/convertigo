@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -140,7 +141,7 @@
 			bind:value={searchQuery}
 		>
 			{#snippet actions()}
-				{#each Object.values(accessibilities) as accessibility, idx}
+				{#each Object.values(accessibilities) as accessibility, idx (idx)}
 					<button
 						type="button"
 						class="layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 {accessibility.chip}"
@@ -224,16 +225,6 @@
 															>
 														{/if}
 													</div>
-													<span
-														class={`hidden rounded-full px-2 py-1 text-[11px] font-semibold tracking-wide uppercase ${accessibilities[accessibility].soft} sm:layout-x-low sm:items-center`}
-													>
-														<Ico
-															icon={accessibilities[accessibility].icon}
-															size={3}
-															class={accessibilities[accessibility].tone}
-														/>
-														<span>{accessibility}</span>
-													</span>
 												</div>
 											{/snippet}
 											{#snippet panel()}
@@ -286,16 +277,11 @@
 																					: ''} available
 																			</span>
 																		</div>
-																		<span
-																			class={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${accessibilities[accessibility].soft}`}
-																		>
-																			{accessibility}
-																		</span>
 																	</div>
 																{/snippet}
 																{#snippet panel()}
 																	<div class="layout-grid-[240px] sm:layout-grid-[280px]">
-																		{#each requestable.testcase as testcase}
+																		{#each requestable.testcase as testcase (testcase.name)}
 																			<Card title={testcase.name} bg="bg-surface-50-950/70">
 																				{#snippet cornerOption()}
 																					<ResponsiveButtons
@@ -342,7 +328,7 @@
 															item={modes}
 															fit={true}
 														/>
-														<div class="layout-x-wrap-low justify-end">
+														<ActionBar wrap full={false}>
 															<Button
 																label="Execute"
 																type="submit"
@@ -357,7 +343,7 @@
 																	icon="mdi:broom"
 																/>
 															{/if}
-														</div>
+														</ActionBar>
 													</div>
 													{#if requestable.response?.length > 0}
 														<div

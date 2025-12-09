@@ -1,5 +1,6 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -228,7 +229,7 @@
 					/>
 				</div>
 
-				<fieldset class="layout-x-low justify-end" disabled={waiting}>
+				<ActionBar disabled={waiting}>
 					<Button
 						type="submit"
 						class="button-success w-fit!"
@@ -242,7 +243,7 @@
 						icon="mdi:close-circle-outline"
 						label="Cancel"
 					/>
-				</fieldset>
+				</ActionBar>
 			</form>
 		</Card>
 	{/snippet}
@@ -334,7 +335,7 @@
 					<div>Current users will be kept.</div>
 				{/if}
 				<div>Actual users list will be saved aside in a backup file.</div>
-				<div class="layout-x-low w-full justify-end">
+				<ActionBar>
 					<Button
 						label="Import"
 						icon="mdi:account-supervisor-circle-outline"
@@ -347,7 +348,7 @@
 						class="button-error w-fit!"
 						onclick={modalImport.close}
 					/>
-				</div>
+				</ActionBar>
 			</fieldset>
 		</form>
 	</Card>
@@ -478,7 +479,7 @@
 				</fieldset>
 			{:else}
 				<div class="layout-x-wrap-low text-xs">
-					{#each row.roles as role}
+					{#each row.roles as role (role)}
 						{@render roleCard({ roles: row.roles, role })}
 					{/each}
 				</div>

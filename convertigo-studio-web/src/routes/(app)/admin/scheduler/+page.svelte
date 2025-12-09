@@ -1,4 +1,5 @@
 <script>
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
@@ -183,7 +184,7 @@
 									starts: 'Se'
 								}
 							].filter((type) => !type.starts || mode.startsWith(type.starts))}
-							{#each types as { name, values = [] }}
+							{#each types as { name, values = [] } (name)}
 								<PropertyType
 									type="combo"
 									{name}
@@ -235,7 +236,7 @@
 								{ label: 'Schedule', name: 'scheduleName', store: schedules }
 							]}
 							<div class="flew-wrap layout-x">
-								{#each def as { label, name, store }}
+								{#each def as { label, name, store } (name)}
 									<PropertyType
 										type="segment"
 										{name}
@@ -254,7 +255,7 @@
 						{#if requestable?.variable}
 							<div class="layout-y">
 								<p class="font-medium">Variables</p>
-								{#each Object.keys(requestable?.variable) as name}
+								{#each Object.keys(requestable?.variable) as name (name)}
 									<label class="border-common">
 										<p class="label-common">{name}</p>
 										<input
@@ -269,7 +270,7 @@
 						{/if}
 					{/if}
 				</div>
-				<div class="layout-x justify-end">
+				<ActionBar>
 					<Button
 						label="Save"
 						type="submit"
@@ -285,7 +286,7 @@
 						class="button-error w-fit!"
 						onclick={close}
 					/>
-				</div>
+				</ActionBar>
 			</form>
 		</Card>
 	{/snippet}
@@ -299,26 +300,26 @@
 		}
 	})}
 		<Card title="Next Schedules" class="max-w-xs">
-			<p class="break-words"><b>Now</b> {Time.server}</p>
+			<p class="break-break-word"><b>Now</b> {Time.server}</p>
 			<ul>
-				{#each next as n}
+				{#each next as n, i (i)}
 					<li>{n}</li>
 				{/each}
 			</ul>
-			<div class="layout-x w-full justify-end">
+			<ActionBar>
 				<Button
 					label="Close"
 					icon="mdi:close-circle-outline"
 					class="button-error"
 					onclick={close}
 				/>
-			</div>
+			</ActionBar>
 		</Card>
 	{/snippet}
 </ModalDynamic>
 
 <div class="layout-y-stretch">
-	{#each cards as { title, range, next, data, size = "6" }}
+	{#each cards as { title, range, next, data, size = "6" } (title)}
 		<Card {title}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons

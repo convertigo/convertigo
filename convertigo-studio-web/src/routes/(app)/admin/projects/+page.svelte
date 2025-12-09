@@ -1,6 +1,7 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import { resolve } from '$app/paths';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
@@ -52,7 +53,7 @@
 <ModalDynamic bind:this={modalExport}>
 	{#snippet children({ close, params: { options, project } })}
 		<Card title="Exporting {project}">
-			{#each options as { name, display }}
+			{#each options as { name, display } (name)}
 				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
 			{/each}
 			<ResponsiveButtons
@@ -140,7 +141,7 @@
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
-				<div class="layout-x justify-end">
+				<ActionBar>
 					<Button
 						label="Deploy"
 						icon="mdi:application-outline"
@@ -153,7 +154,7 @@
 						class="button-error w-fit!"
 						onclick={modalDeployUpload?.close}
 					/>
-				</div>
+				</ActionBar>
 			</fieldset>
 		</form>
 	</Card>
@@ -170,7 +171,8 @@
 			<fieldset disabled={waiting} class="layout-y-stretch">
 				<p>Import a project from url like:</p>
 				<p class="font-medium">
-					{'<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]'}
+					&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional
+					subpath&gt;][:branch=&lt;optional branch&gt;]
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<PropertyType
@@ -178,7 +180,7 @@
 					placeholder="<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]"
 					required
 				/>
-				<div class="layout-x justify-end">
+				<ActionBar>
 					<Button label="Import" icon="mdi:import" type="submit" class="button-secondary w-fit!" />
 					<Button
 						label="Cancel"
@@ -186,7 +188,7 @@
 						class="button-error w-fit!"
 						onclick={modalDeployURL?.close}
 					/>
-				</div>
+				</ActionBar>
 			</fieldset>
 		</form>
 	</Card>
@@ -197,11 +199,11 @@
 		<Card title="Undefined Global Symbols" class="w-full">
 			<p>Find here the undefined Global Symbols for the project <b>{project}</b>:</p>
 			<div class="layout-x-wrap w-full">
-				{#each symbols as symbol}
+				{#each symbols as symbol (symbol)}
 					<div class="rounded-sm preset-filled-secondary-200-800 px-low">{symbol}</div>
 				{/each}
 			</div>
-			<div class="layout-x-low w-full justify-end">
+			<ActionBar>
 				<Button
 					label="Create symbols"
 					icon="mdi:wrench"
@@ -214,7 +216,7 @@
 					class="button-error"
 					onclick={() => close(false)}
 				/>
-			</div>
+			</ActionBar>
 		</Card>
 	{/snippet}
 </ModalDynamic>

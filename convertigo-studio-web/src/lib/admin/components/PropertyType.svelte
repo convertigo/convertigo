@@ -96,7 +96,9 @@
 						onValueChange={(event) => (value = event.value ?? '')}
 						class="w-full"
 					>
-						<SegmentedControl.Control class="p-0">
+						<SegmentedControl.Control
+							class={['p-0', rest?.orientation == 'vertical' ? 'flew-col' : 'flex-row']}
+						>
 							<SegmentedControl.Indicator class="preset-filled-primary-300-700" />
 							{#each item as option}
 								{@const val = option.value ?? option}

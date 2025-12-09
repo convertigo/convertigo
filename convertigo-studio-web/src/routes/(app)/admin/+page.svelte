@@ -1,4 +1,5 @@
 <script>
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -55,13 +56,13 @@
 				{
 					label: 'Java Properties',
 					icon: 'mdi:language-java',
-					cls: 'button-primary',
+					cls: 'button-primary text-xs w-34',
 					onclick: (e) => modal(e, 'props')
 				},
 				{
 					label: 'Environment Variables',
 					icon: 'mdi:code-block-braces',
-					cls: 'button-secondary',
+					cls: 'button-secondary text-xs w-34',
 					onclick: (e) => modal(e, 'env')
 				}
 			],
@@ -188,9 +189,9 @@
 				class="max-h-[80vh]"
 			></TableAutoCard>
 
-			<div class="layout-x-low w-full justify-end">
+			<ActionBar>
 				<Button label="Close" onclick={close} class="button-error w-fit!" />
-			</div>
+			</ActionBar>
 		</Card>
 	{/snippet}
 </ModalDynamic>
@@ -199,7 +200,7 @@
 	<div
 		class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:max-w-[400px] md:min-w-[350px] md:auto-rows-min md:grid-cols-1"
 	>
-		{#each tables as { title, buttons, data }}
+		{#each tables as { title, buttons, data } (title)}
 			<Card {title} class="statusTable">
 				{#snippet cornerOption()}
 					<ResponsiveButtons {buttons} disabled={!init} />
@@ -230,7 +231,7 @@
 	</div>
 
 	<div class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
-		{#each charts as chart}
+		{#each charts as chart (chart.title)}
 			<Card class="p-none!">
 				<ApexChartLineAdmin {...chart} {categories} />
 			</Card>

@@ -15,6 +15,7 @@
 		type = 'button',
 		title = label,
 		ariaLabel = title,
+		full = true,
 		...rest
 	} = $props();
 	let cls = $derived(_cls ?? _cls2 ?? '');
@@ -24,7 +25,7 @@
 	{#if href && !disabled}
 		<a
 			{href}
-			class="{cls} h-full min-h-fit w-full text-wrap"
+			class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 			{title}
 			aria-label={ariaLabel}
 			{...rest}
@@ -34,7 +35,7 @@
 	{:else}
 		<button
 			{disabled}
-			class="{cls} h-full min-h-fit w-full text-wrap"
+			class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 			{type}
 			{value}
 			{title}

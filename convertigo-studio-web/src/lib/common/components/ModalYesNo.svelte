@@ -1,4 +1,5 @@
 <script>
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import ModalDynamic from './ModalDynamic.svelte';
@@ -19,7 +20,7 @@
 		{#if message}
 			<span>{message}</span>
 		{/if}
-		<div class="layout-x-low w-full justify-end">
+		<ActionBar>
 			<Button
 				onclick={() => modal.close(true)}
 				class="button-success w-fit!"
@@ -32,6 +33,6 @@
 				icon="mdi:close-circle-outline"
 				label="No"
 			/>
-		</div>
+		</ActionBar>
 	</Card>
 </ModalDynamic>

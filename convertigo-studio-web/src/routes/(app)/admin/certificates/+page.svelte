@@ -1,6 +1,7 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Certificates from '$lib/admin/Certificates.svelte';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -94,7 +95,7 @@
 						{/snippet}
 					</FileUpload.Context>
 				</FileUpload>
-				<div class="layout-x-low w-full justify-end">
+				<ActionBar>
 					<Button
 						label="Install"
 						icon="mdi:certificate"
@@ -107,7 +108,7 @@
 						class="button-error w-fit!"
 						onclick={modalCertInstall.close}
 					/>
-				</div>
+				</ActionBar>
 			</fieldset>
 		</form>
 	</Card>
@@ -129,7 +130,7 @@
 					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
 					value=""
 				/>
-				<div class="layout-x-low w-full justify-end">
+				<ActionBar>
 					<Button
 						label="Remove"
 						icon="mdi:certificate"
@@ -142,7 +143,7 @@
 						class="button-error w-fit!"
 						onclick={modalCertRemove.close}
 					/>
-				</div>
+				</ActionBar>
 			</fieldset>
 		</form>
 	</Card>

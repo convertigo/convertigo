@@ -23,8 +23,8 @@
 <Dialog open={showDrawer} onOpenChange={(e) => (showDrawer = e.open)}>
 	<Dialog.Trigger class="hidden" />
 	<Portal>
-		<Dialog.Backdrop class="fixed inset-0 bg-surface-50-950/30 backdrop-blur-sm" />
-		<Dialog.Positioner class="fixed inset-0 layout-x-stretch-none justify-start">
+		<Dialog.Backdrop class="fixed inset-0 z-30 bg-surface-50-950/30 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 z-30 layout-x-stretch-none justify-start">
 			<Dialog.Content
 				class="h-full max-h-screen w-80 max-w-full -translate-x-full overflow-y-auto bg-surface-50-950 p-low transition-transform duration-200 data-[state=open]:translate-x-0 dark:bg-surface-900"
 			>
@@ -45,7 +45,7 @@
 			</aside>
 		{/if}
 		{#key page.route.id}
-			<main class="relative z-0 min-h-full w-full min-w-0 grow py px" in:fade>
+			<main class="relative min-h-full w-full min-w-0 grow py px" in:fade>
 				{@render children?.()}
 			</main>
 		{/key}

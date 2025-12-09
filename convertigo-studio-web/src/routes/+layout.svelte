@@ -4,6 +4,7 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
@@ -72,7 +73,7 @@
 			{#if modalAlert?.showStack}
 				<pre transition:slide class="text-wrap">{stacktrace}</pre>
 			{/if}
-			<div class="layout-x-low w-full justify-end">
+			<ActionBar>
 				{#if stacktrace}
 					<button
 						onclick={() => (modalAlert.showStack = !modalAlert.showStack)}
@@ -80,7 +81,7 @@
 					>
 				{/if}
 				<button onclick={close} class="button-error">Close</button>
-			</div>
+			</ActionBar>
 		</Card>
 	{/snippet}
 </ModalDynamic>

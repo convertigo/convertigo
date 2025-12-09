@@ -1,6 +1,6 @@
 {
 	"name": "convertigo-studio-web",
-	"version": "0.0.1",
+	"version": "8.4.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
