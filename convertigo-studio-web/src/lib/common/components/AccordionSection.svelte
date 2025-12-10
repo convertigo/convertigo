@@ -72,8 +72,8 @@
 	const panelClasses = $derived(
 		['px-low pb-low transition-surface', panelClass].filter(Boolean).join(' ')
 	);
-	const header = control ?? defaultHeader;
-	const body = panel ?? children;
+	const header = $derived(control ?? defaultHeader);
+	const body = $derived(panel ?? children);
 	const resolvedLead = $derived(lead ?? (leadingIcon ? defaultLead : undefined));
 	const resolvedTrail = $derived(trail ?? defaultTrail);
 	const hasTrailContent = $derived(Boolean(countText || trailingText));

@@ -249,6 +249,7 @@
 		id="projectsFilter"
 		type="search"
 		placeholder="Filter projects..."
+		autofocus
 		class="bg-surface-200-800"
 		icon="mdi:magnify"
 		bind:value={filterState.current}

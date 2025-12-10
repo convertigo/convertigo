@@ -81,6 +81,7 @@
 		actionsClass="layout-y-none"
 		icon="mdi:magnify"
 		disabled={rootProject}
+		autofocus
 		bind:value={searchQuery}
 	>
 		{#snippet actions()}

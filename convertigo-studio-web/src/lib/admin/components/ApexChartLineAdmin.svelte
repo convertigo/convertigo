@@ -5,12 +5,27 @@
 	/** @type {{categories: any, series: any, title: any}} */
 	let { categories, series, title } = $props();
 	let chart = $state();
-	let isLoading = $derived(!series?.[0]?.data?.length);
-
 	let chartEl;
-	const colors = { light: [], dark: [] };
-	/** @type {any} */
-	let options = $state({
+	let colors = $state({ light: [], dark: [] });
+
+	let options = $state({});
+
+	const normalizedSeries = $derived.by(() =>
+		(series ?? []).map(({ name, data }) => ({
+			name,
+			data: Array.isArray(data) ? [...data] : []
+		}))
+	);
+
+	const normalizedCategories = $derived.by(() =>
+		Array.isArray(categories) ? [...categories] : []
+	);
+
+	const resolvedColors = $derived.by(() => [...(colors[Light.mode] ?? [])]);
+
+	let isLoading = $derived(!normalizedSeries?.[0]?.data?.length);
+
+	const baseOptions = $derived.by(() => ({
 		theme: {
 			mode: Light.mode
 		},
@@ -38,9 +53,9 @@
 				show: false
 			}
 		},
-		series,
+		series: normalizedSeries,
 		xaxis: {
-			categories,
+			categories: normalizedCategories,
 			type: 'datetime',
 			labels: {
 				format: 'HH:mm:ss',
@@ -74,38 +89,42 @@
 			offsetY: -25,
 			offsetX: 0
 		}
+	}));
+
+	const buildOptions = () => ({
+		...baseOptions,
+		series: normalizedSeries.map(({ name, data }) => ({ name, data: [...data] })),
+		xaxis: {
+			...baseOptions.xaxis,
+			categories: [...normalizedCategories]
+		},
+		colors: [...resolvedColors]
 	});
 
 	$effect(() => {
-		if (series && series.length > 0 && categories && categories.length > 0 && chart != undefined) {
-			delete options.chart.foreColor;
-			delete options.chart.background;
-			delete options.theme.palette;
-
-			options.theme.mode = Light.mode;
-			options.xaxis.categories = categories;
-			options.series = series;
-			options.colors = colors[Light.mode];
+		options = buildOptions();
+		if (chart && normalizedSeries.length > 0 && normalizedCategories.length > 0) {
 			untrack(() => {
-				chart.updateOptions(options);
+				chart.updateOptions(options, true, true);
 			});
 		}
 	});
 
 	onMount(() => {
 		let styles = window.getComputedStyle(chartEl);
+		const newColors = { light: [], dark: [] };
 		for (let m of [
 			['light', 200],
 			['dark', 600]
 		]) {
-			colors[m[0]] = [];
 			['warning', 'primary', 'success'].forEach((color) => {
-				colors[m[0]].push(styles.getPropertyValue(`--color-${color}-${m[1]}`));
+				newColors[m[0]].push(styles.getPropertyValue(`--color-${color}-${m[1]}`));
 			});
 		}
+		colors = newColors;
 
 		import('apexcharts').then(({ default: ApexCharts }) => {
-			chart = new ApexCharts(chartEl, options);
+			chart = new ApexCharts(chartEl, buildOptions());
 			chart.render();
 		});
 		return () => {

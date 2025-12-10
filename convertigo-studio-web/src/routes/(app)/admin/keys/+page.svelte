@@ -38,7 +38,7 @@
 			}}
 		>
 			<fieldset class="layout-x max-sm:flex-wrap" disabled={calling || loading}>
-				<PropertyType type="text" name="key" placeholder="Enter a new key" />
+				<PropertyType type="text" name="key" placeholder="Enter a new key" autofocus />
 				<Button label="Add" class="button-primary sm:w-fit!" icon="mdi:key-outline" type="submit" />
 			</fieldset>
 		</form>

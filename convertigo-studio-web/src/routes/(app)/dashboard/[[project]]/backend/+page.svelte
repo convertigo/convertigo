@@ -22,11 +22,7 @@
 	import type { PageProps } from './$types';
 
 	let { params }: PageProps = $props();
-	let project = $state(TestPlatform(params.project));
-
-	$effect(() => {
-		project = TestPlatform(params.project);
-	});
+	let project = $derived.by(() => TestPlatform(params.project));
 
 	let searchQuery = $state('');
 
@@ -135,6 +131,7 @@
 			id="search"
 			type="search"
 			placeholder="Search requestable..."
+			autofocus
 			class="bg-surface-200-800"
 			actionsClass="pr-1"
 			icon="mdi:magnify"

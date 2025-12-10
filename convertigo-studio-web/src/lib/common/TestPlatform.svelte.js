@@ -45,7 +45,7 @@ const defValues = {
 	}),
 	mobileapplication: null
 };
-let projects = $state({});
+const projects = {};
 
 export default function (projectName) {
 	if (!projects[projectName]) {

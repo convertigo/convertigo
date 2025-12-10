@@ -223,11 +223,7 @@
 		...props
 	} = $props();
 
-	if (size == 'btn') {
-		size = 6;
-	} else if (['nav', 'dashboard'].includes(size)) {
-		size = 5;
-	}
+	const resolvedSize = $derived(size == 'btn' ? 6 : ['nav', 'dashboard'].includes(size) ? 5 : size);
 
 	// let _animate = $state({ duration: 2000 });
 	// let svg = $state(null);
@@ -263,7 +259,7 @@
 {#if html}
 	<svg
 		class="ico {cls}"
-		style="width: calc(var(--spacing)*{size});height: calc(var(--spacing)*{size});"
+		style="width: calc(var(--spacing)*{resolvedSize});height: calc(var(--spacing)*{resolvedSize});"
 		viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}
 	>
 		{#if browser}
@@ -273,7 +269,12 @@
 		{/if}
 	</svg>
 {:else}
-	<img src={asset(`/${icon}`)} class={cls} style="width: calc(var(--spacing)*{size});" {...props} />
+	<img
+		src={asset(`/${icon}`)}
+		class={cls}
+		style="width: calc(var(--spacing)*{resolvedSize});"
+		{...props}
+	/>
 {/if}
 
 <!-- {#if !svg || !animate}

@@ -305,6 +305,7 @@
 		id="symbolsFilter"
 		type="search"
 		placeholder="Filter symbols..."
+		autofocus
 		class="bg-surface-200-800"
 		icon="mdi:magnify"
 		bind:value={filterState.current}

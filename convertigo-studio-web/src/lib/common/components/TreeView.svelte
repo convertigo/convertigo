@@ -32,13 +32,27 @@
 		...zagProps
 	} = $props();
 
+	const defaultRoot = {
+		id: 'root',
+		name: 'Root',
+		children: []
+	};
+
 	let collection = $state(
 		createTreeViewCollection({
 			nodeToValue: (node) => node.id,
 			nodeToString: (node) => node.name,
-			rootNode
+			rootNode: defaultRoot
 		})
 	);
+
+	$effect(() => {
+		collection = createTreeViewCollection({
+			nodeToValue: (node) => node.id,
+			nodeToString: (node) => node.name,
+			rootNode
+		});
+	});
 
 	function onLoadChildrenComplete({ collection: c }) {
 		collection = c;
@@ -65,7 +79,9 @@
 		return api.setExpandedValue(value);
 	}
 
-	const rootClass = ['convertigo-treeview', base, classes].filter(Boolean).join(' ').trim();
+	const rootClass = $derived(
+		['convertigo-treeview', base, classes].filter(Boolean).join(' ').trim()
+	);
 </script>
 
 <SkeletonTreeView.Provider value={treeView} class={rootClass} data-testid="tree-view">
@@ -73,22 +89,24 @@
 		<SkeletonTreeView.Label class={labelBase}>{@render label()}</SkeletonTreeView.Label>
 	{/if}
 	<SkeletonTreeView.Tree class={treeBase}>
-		{#each collection.rootNode.children as node, index}
-			<TreeNode
-				{node}
-				{treeView}
-				indexPath={[index]}
-				{nodeIcon}
-				{nodeText}
-				{nodeIndicator}
-				{controlClass}
-				{textClass}
-				{indicatorClass}
-				{childrenClass}
-				{animationConfig}
-				{nodeClass}
-			/>
-		{/each}
+		{#if collection}
+			{#each collection.rootNode.children as node, index (node.id ?? index)}
+				<TreeNode
+					{node}
+					{treeView}
+					indexPath={[index]}
+					{nodeIcon}
+					{nodeText}
+					{nodeIndicator}
+					{controlClass}
+					{textClass}
+					{indicatorClass}
+					{childrenClass}
+					{animationConfig}
+					{nodeClass}
+				/>
+			{/each}
+		{/if}
 	</SkeletonTreeView.Tree>
 </SkeletonTreeView.Provider>
 

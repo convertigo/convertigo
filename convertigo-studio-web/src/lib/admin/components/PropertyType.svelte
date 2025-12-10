@@ -68,7 +68,7 @@
 				{value}
 				{checked}
 				onCheckedChange={(e) => (checked = e.checked)}
-				class="inline-flex items-center gap-low"
+				class="inline-flex min-w-10 items-center gap-low"
 			>
 				<Switch.Control
 					class="bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"

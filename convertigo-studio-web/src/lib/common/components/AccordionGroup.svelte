@@ -16,8 +16,8 @@
 		...rest
 	} = $props();
 
-	const content = children ?? (() => null);
-	const groupClasses = [cls].filter(Boolean).join(' ');
+	const content = $derived(children ?? (() => null));
+	const groupClasses = $derived([cls].filter(Boolean).join(' '));
 
 	function handleValueChange(details) {
 		value = details?.value ?? [];

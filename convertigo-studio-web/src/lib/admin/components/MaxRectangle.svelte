@@ -19,24 +19,26 @@
 		return Math.floor(val.replace('px', ''));
 	}
 
-	const doCalc = debounce(() => {
-		if (!div) {
-			return;
-		}
-		tick().then(() => {
-			const { paddingTop, paddingBottom, paddingLeft, paddingRight, height, width } =
-				getComputedStyle(div.parentElement);
-			const parentHeight = toInt(height) - toInt(paddingTop) - toInt(paddingBottom);
-			const parentWidth = toInt(width) - toInt(paddingLeft) - toInt(paddingRight);
+	const doCalc = $derived(
+		debounce(() => {
+			if (!div) {
+				return;
+			}
+			tick().then(() => {
+				const { paddingTop, paddingBottom, paddingLeft, paddingRight, height, width } =
+					getComputedStyle(div.parentElement);
+				const parentHeight = toInt(height) - toInt(paddingTop) - toInt(paddingBottom);
+				const parentWidth = toInt(width) - toInt(paddingLeft) - toInt(paddingRight);
 
-			const rect = div.getBoundingClientRect();
-			const viewportAvail = Math.max(0, Math.floor(window.innerHeight - rect.top - marginBottom));
-			const nHeight = Math.min(parentHeight, viewportAvail || parentHeight);
-			clientHeight = nHeight < clientHeight ? minHeight : nHeight;
-			clientWidth = parentWidth;
-			calc = false;
-		});
-	}, delay);
+				const rect = div.getBoundingClientRect();
+				const viewportAvail = Math.max(0, Math.floor(window.innerHeight - rect.top - marginBottom));
+				const nHeight = Math.min(parentHeight, viewportAvail || parentHeight);
+				clientHeight = nHeight < clientHeight ? minHeight : nHeight;
+				clientWidth = parentWidth;
+				calc = false;
+			});
+		}, delay)
+	);
 
 	$effect(() => {
 		if (!div) {
