@@ -61,7 +61,6 @@ import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
 import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
-import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.tas.Key;
@@ -100,7 +99,7 @@ public class ContextManager extends AbstractRunnableManager {
 		try {
 			contexts = new ConcurrentHashMap<String, Context>();
 			currentContextNum = 0;
-			if (ConvertigoHttpSessionManager.getInstance().getStoreMode() == SessionStoreMode.redis) {
+			if (ConvertigoHttpSessionManager.isRedisMode()) {
 				contextStore = new RedisContextStore(RedisSessionConfiguration.fromProperties());
 				Engine.logContextManager.info("(ContextManager) Using Redis context store");
 			}

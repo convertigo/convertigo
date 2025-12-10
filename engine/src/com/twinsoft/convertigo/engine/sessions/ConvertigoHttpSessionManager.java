@@ -63,6 +63,14 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		return storeMode;
 	}
 
+	public static boolean isRedisMode() {
+		return getInstance().getStoreMode() == SessionStoreMode.redis;
+	}
+
+	public static boolean isTomcatMode() {
+		return getInstance().getStoreMode() == SessionStoreMode.tomcat;
+	}
+
 	public void flushBuffers() {
 		try {
 			if (provider != null) {

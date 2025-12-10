@@ -51,7 +51,6 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
-import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
@@ -202,7 +201,7 @@ public class HttpSessionListener implements HttpSessionBindingListener, Serializ
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
 		var manager = ConvertigoHttpSessionManager.getInstance();
-		HttpSession httpSession = manager.getStoreMode() == SessionStoreMode.tomcat
+		HttpSession httpSession = ConvertigoHttpSessionManager.isTomcatMode()
 				? request.getSession(true)
 				: HttpSessionTwsWrapper.wrap(manager.getSession(request, true));
 

@@ -30,8 +30,8 @@ public final class RedisSessionConfiguration {
         this.database = database;
         this.ssl = ssl;
         this.timeoutMillis = timeoutMillis;
-        String normalized = keyPrefix == null ? "" : keyPrefix.replaceAll(":+$", "");
-        String ctxPrefix = this.keyPrefix = normalized.isEmpty() ? "" : normalized + ":";
+        var normalized = keyPrefix == null ? "" : keyPrefix.replaceAll(":+$", "");
+        var ctxPrefix = this.keyPrefix = normalized.isEmpty() ? "" : normalized + ":";
         if (ctxPrefix.endsWith("session:")) {
             ctxPrefix = ctxPrefix.substring(0, ctxPrefix.length() - "session:".length());
         }
@@ -44,15 +44,15 @@ public final class RedisSessionConfiguration {
     }
 
     public static RedisSessionConfiguration fromProperties() {
-        String host = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_HOST);
-        int port = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_PORT, 6379);
-        String username = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_USERNAME);
-        String password = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_PASSWORD);
-        int database = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DATABASE, 0);
-        boolean ssl = EnginePropertiesManager.getPropertyAsBoolean((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_SSL);
-        int timeoutMillis = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_TIMEOUT, 5000);
-        String prefix = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_PREFIX);
-        int ttl = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DEFAULT_TTL, 1800);
+        var host = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_HOST);
+        var port = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_PORT, 6379);
+        var username = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_USERNAME);
+        var password = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_PASSWORD);
+        var database = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DATABASE, 0);
+        var ssl = EnginePropertiesManager.getPropertyAsBoolean((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_SSL);
+        var timeoutMillis = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_TIMEOUT, 5000);
+        var prefix = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_PREFIX);
+        var ttl = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DEFAULT_TTL, 1800);
         return new RedisSessionConfiguration(host, port, username, password, database, ssl, timeoutMillis, prefix, ttl);
     }
 

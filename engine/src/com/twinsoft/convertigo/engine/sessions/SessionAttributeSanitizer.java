@@ -39,19 +39,19 @@ final class SessionAttributeSanitizer {
             return null;
         }
         try {
-            SessionData copy = SessionData.copyOf(session);
-            Map<String, Object> attributes = copy.getAttributes();
+            var copy = SessionData.copyOf(session);
+            var attributes = copy.getAttributes();
             attributes.keySet().removeIf(SessionAttributeSanitizer::isTechnicalAttribute);
             attributes.keySet().removeIf(name -> !SessionAttributeSanitizer.shouldKeep(name));
-            if (ConvertigoHttpSessionManager.getInstance().getStoreMode() == SessionStoreMode.redis) {
-                Object ctxValue = attributes.get(SessionAttribute.contexts.value());
+            if (ConvertigoHttpSessionManager.isRedisMode()) {
+                var ctxValue = attributes.get(SessionAttribute.contexts.value());
                 if (ctxValue instanceof List<?>) {
                     try {
-                        int sessionTtl = session.getMaxInactiveInterval(); // httpSessionTimeout (tomcat mode)
-                        int projectContextTtl = 0;
-                        List<?> list = (List<?>) ctxValue;
+                        var sessionTtl = session.getMaxInactiveInterval(); // httpSessionTimeout (tomcat mode)
+                        var projectContextTtl = 0;
+                        var list = (List<?>) ctxValue;
                         if (!list.isEmpty()) {
-                            Object first = list.get(0);
+                            var first = list.get(0);
                             String projectName = null;
                             if (first instanceof ContextSnapshot cs) {
                                 projectName = cs.projectName;
@@ -71,7 +71,7 @@ final class SessionAttributeSanitizer {
                                 }
                             }
                         }
-                        int ttl = sessionTtl > 0 && projectContextTtl > 0 ? Math.min(sessionTtl, projectContextTtl)
+                        var ttl = sessionTtl > 0 && projectContextTtl > 0 ? Math.min(sessionTtl, projectContextTtl)
                                 : (sessionTtl > 0 ? sessionTtl : projectContextTtl);
                         if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
                             Engine.logEngine.debug("(SessionAttributeSanitizer) saveContexts ttl=" + ttl + " sessionTtl=" + sessionTtl + " projectTtl=" + projectContextTtl);
@@ -112,12 +112,12 @@ final class SessionAttributeSanitizer {
     }
 
     private static void sanitizeContexts(Map<String, Object> attributes) {
-        Object ctxValue = attributes.get("__c8o:contexts__");
+        var ctxValue = attributes.get("__c8o:contexts__");
         if (ctxValue instanceof List) {
-            List<?> list = (List<?>) ctxValue;
-            ArrayList<ContextSnapshot> lightContexts = new ArrayList<ContextSnapshot>(list.size());
-            for (Object item : list) {
-                ContextSnapshot snap = SessionAttributeSanitizer.toSnapshot(item);
+            var list = (List<?>) ctxValue;
+            var lightContexts = new ArrayList<ContextSnapshot>(list.size());
+            for (var item : list) {
+                var snap = SessionAttributeSanitizer.toSnapshot(item);
                 if (snap == null) continue;
                 lightContexts.add(snap);
             }
@@ -130,8 +130,8 @@ final class SessionAttributeSanitizer {
         if (!(value instanceof List)) {
             return value;
         }
-        List<?> list = (List<?>) value;
-        ArrayList<Context> contexts = list.stream()
+        var list = (List<?>) value;
+        var contexts = list.stream()
                 .map(SessionAttributeSanitizer::toSnapshot)
                 .filter(snap -> snap != null && snap.contextId != null)
                 .map(ContextSnapshot::toContext)
@@ -143,7 +143,7 @@ final class SessionAttributeSanitizer {
     public static ContextSnapshot toSnapshot(Object item) {
         if (item instanceof Context) {
             Context ctx = (Context)item;
-            ContextSnapshot light = new ContextSnapshot();
+            var light = new ContextSnapshot();
             light.contextId = ctx.contextID;
             light.name = ctx.name;
             light.projectName = ctx.projectName;
@@ -164,7 +164,7 @@ final class SessionAttributeSanitizer {
                 if (cookies != null && cookies.length > 0) {
                     light.cookies = new ArrayList<CookieSnapshot>(cookies.length);
                     for (Cookie c : cookies) {
-                        CookieSnapshot snap = new CookieSnapshot();
+                        var snap = new CookieSnapshot();
                         snap.name = c.getName();
                         snap.value = c.getValue();
                         snap.domain = c.getDomain();
@@ -181,12 +181,12 @@ final class SessionAttributeSanitizer {
             return light;
         }
         if (item instanceof ContextSnapshot) {
-            ContextSnapshot snapshot = (ContextSnapshot)item;
+            var snapshot = (ContextSnapshot)item;
             return snapshot;
         }
         if (item instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>)item;
-            ContextSnapshot snap = new ContextSnapshot();
+            var map = (Map<?, ?>)item;
+            var snap = new ContextSnapshot();
             snap.contextId = SessionAttributeSanitizer.string(map.get("contextId"));
             snap.name = SessionAttributeSanitizer.string(map.get("name"));
             snap.projectName = SessionAttributeSanitizer.string(map.get("projectName"));

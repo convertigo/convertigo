@@ -14,16 +14,17 @@
  */
 package com.twinsoft.convertigo.engine.sessions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.Engine;
 import java.time.Duration;
+
 import org.redisson.Redisson;
-import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.Engine;
 
 public final class RedisContextStore
 implements ContextStore {
@@ -37,8 +38,8 @@ implements ContextStore {
     }
 
     private RedissonClient createClient(RedisSessionConfiguration cfg) {
-        Config config = new Config();
-        SingleServerConfig singleServer = (SingleServerConfig)config.useSingleServer().setAddress(cfg.getAddress()).setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
+        var config = new Config();
+        var singleServer = (SingleServerConfig)config.useSingleServer().setAddress(cfg.getAddress()).setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
         if (cfg.getUsername() != null) {
             singleServer.setUsername(cfg.getUsername());
         }
@@ -55,12 +56,12 @@ implements ContextStore {
 	@Override
 	public Context read(String contextId) {
 		try {
-			RBucket<String> bucket = this.client.getBucket(this.key(contextId));
-			String json = bucket.get();
+			var bucket = this.client.<String>getBucket(this.key(contextId));
+			var json = bucket.get();
 			if (json == null) {
 				return null;
 			}
-			SessionAttributeSanitizer.ContextSnapshot snap = (SessionAttributeSanitizer.ContextSnapshot)this.mapper.readValue(json, SessionAttributeSanitizer.ContextSnapshot.class);
+			var snap = (SessionAttributeSanitizer.ContextSnapshot)this.mapper.readValue(json, SessionAttributeSanitizer.ContextSnapshot.class);
 			return snap.toContext();
         }
         catch (Exception e) {
@@ -75,13 +76,13 @@ implements ContextStore {
             return;
         }
         try {
-			SessionAttributeSanitizer.ContextSnapshot snap = SessionAttributeSanitizer.toSnapshot(context);
+			var snap = SessionAttributeSanitizer.toSnapshot(context);
 			if (snap == null) {
 				return;
 			}
-			String json = this.mapper.writeValueAsString((Object)snap);
-			RBucket<String> bucket = this.client.getBucket(this.key(context.contextID));
-			int ttl = ttlSeconds > 0 ? ttlSeconds : this.configuration.getDefaultTtlSeconds();
+			var json = this.mapper.writeValueAsString((Object)snap);
+			var bucket = this.client.<String>getBucket(this.key(context.contextID));
+			var ttl = ttlSeconds > 0 ? ttlSeconds : this.configuration.getDefaultTtlSeconds();
 			if (ttl > 0) {
 				bucket.set(json, Duration.ofSeconds(ttl));
 			} else {
@@ -106,9 +107,9 @@ implements ContextStore {
     @Override
     public void deleteBySessionPrefix(String sessionIdPrefix) {
         try {
-            String prefix = this.configuration.getContextKeyPrefix() + "context:" + sessionIdPrefix;
-            KeysScanOptions options = KeysScanOptions.defaults().pattern(prefix + "*");
-            for (String key : this.client.getKeys().getKeys(options)) {
+            var prefix = this.configuration.getContextKeyPrefix() + "context:" + sessionIdPrefix;
+            var options = KeysScanOptions.defaults().pattern(prefix + "*");
+            for (var key : this.client.getKeys().getKeys(options)) {
                 this.client.getBucket(key).delete();
             }
         }

@@ -18,10 +18,6 @@
  */
 package com.twinsoft.convertigo.engine.sessions;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
@@ -39,6 +36,10 @@ import org.redisson.client.codec.Codec;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisHashSessionStore
 implements SessionStore {
@@ -59,9 +60,9 @@ implements SessionStore {
 
     private RedissonClient createClient(RedisSessionConfiguration cfg) {
         String password;
-        Config config = new Config();
-        SingleServerConfig singleServer = (SingleServerConfig)config.useSingleServer().setAddress(cfg.getAddress()).setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
-        String username = cfg.getUsername();
+        var config = new Config();
+        var singleServer = (SingleServerConfig)config.useSingleServer().setAddress(cfg.getAddress()).setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
+        var username = cfg.getUsername();
         if (username != null) {
             singleServer.setUsername(username);
         }
@@ -78,29 +79,30 @@ implements SessionStore {
     @Override
     public SessionData read(String sessionId) {
         try {
-            long ttlMillis = this.configuration.getDefaultTtlSeconds() > 0 ? (long)this.configuration.getDefaultTtlSeconds() * 1000L : 0L;
-            List<Object> entries = this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HGETALL_AND_TOUCH, RScript.ReturnType.MULTI, Collections.singletonList(this.configuration.key(sessionId)), new Object[]{ttlMillis});
+            var ttlMillis = this.configuration.getDefaultTtlSeconds() > 0 ? (long)this.configuration.getDefaultTtlSeconds() * 1000L : 0L;
+            @SuppressWarnings("unchecked")
+            var entries = (List<Object>) this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HGETALL_AND_TOUCH, RScript.ReturnType.MULTI, Collections.singletonList(this.configuration.key(sessionId)), new Object[]{ttlMillis});
             if (entries == null || entries.isEmpty()) {
                 this.debug("MISS " + sessionId);
                 return null;
             }
-            HashMap<String, String> mapSnapshot = new HashMap<String, String>(entries.size() / 2);
+            var mapSnapshot = new HashMap<String, String>(entries.size() / 2);
             for (int i = 0; i < entries.size(); i += 2) {
                 mapSnapshot.put((String)entries.get(i), (String)entries.get(i + 1));
             }
-            long creationTime = this.readLong((String)mapSnapshot.get(META_CREATION));
-            long lastAccess = this.readLong((String)mapSnapshot.get(META_LAST_ACCESS));
-            int maxInactive = this.readInt((String)mapSnapshot.get(META_MAX_INACTIVE), this.configuration.getDefaultTtlSeconds());
-            SessionData data = SessionData.newSession(sessionId, this.configuration.getDefaultTtlSeconds());
-            long now = System.currentTimeMillis();
+            var creationTime = this.readLong((String)mapSnapshot.get(META_CREATION));
+            var lastAccess = this.readLong((String)mapSnapshot.get(META_LAST_ACCESS));
+            var maxInactive = this.readInt((String)mapSnapshot.get(META_MAX_INACTIVE), this.configuration.getDefaultTtlSeconds());
+            var data = SessionData.newSession(sessionId, this.configuration.getDefaultTtlSeconds());
+            var now = System.currentTimeMillis();
             data.setCreationTime(creationTime > 0L ? creationTime : now);
             data.setLastAccessedTime(lastAccess > 0L ? lastAccess : now);
             data.setMaxInactiveInterval(maxInactive);
             data.setNew(false);
-            for (Map.Entry<String, String> entry : mapSnapshot.entrySet()) {
-                String key = entry.getKey();
+            for (var entry : mapSnapshot.entrySet()) {
+                var key = entry.getKey();
                 if (key.startsWith("__meta:")) continue;
-                Object val = this.deserialize(key, entry.getValue());
+                var val = this.deserialize(key, entry.getValue());
                 if (SessionAttribute.contexts.value().equals(key)) {
                     val = SessionAttributeSanitizer.restoreContexts(val);
                 }
@@ -125,9 +127,9 @@ implements SessionStore {
             if (!session.getAttributes().containsKey(SessionAttribute.contexts.value())) {
                 this.log("(RedisHashSessionStore) save(): session " + session.getId() + " has no contexts attribute before sanitize", null);
             }
-            SessionData sanitized = SessionAttributeSanitizer.sanitize(session);
-            String sessionId = sanitized.getId();
-            Pending pendingEntry = this.pending.compute(sessionId, (id, existing) -> {
+            var sanitized = SessionAttributeSanitizer.sanitize(session);
+            var sessionId = sanitized.getId();
+            var pendingEntry = this.pending.compute(sessionId, (id, existing) -> {
                 if (existing == null) {
                     return new Pending(SessionData.copyOf(sanitized));
                 }
@@ -147,7 +149,7 @@ implements SessionStore {
      */
     private void flushPending(String sessionId, Pending p) {
         SessionData data;
-        Pending pending = p;
+        var pending = p;
         synchronized (pending) {
             if (!p.dirty) {
                 return;
@@ -156,38 +158,38 @@ implements SessionStore {
             p.dirty = false;
         }
         try {
-            HashMap<String, String> bulk = new HashMap<String, String>();
-            HashMap<String, String> meta = new HashMap<String, String>();
+            var bulk = new HashMap<String, String>();
+            var meta = new HashMap<String, String>();
             meta.put(META_CREATION, this.writeLong(data.getCreationTime()));
             meta.put(META_LAST_ACCESS, this.writeLong(data.getLastAccessedTime()));
             meta.put(META_MAX_INACTIVE, this.writeInt(data.getMaxInactiveInterval()));
-            for (Map.Entry<String, String> entry : meta.entrySet()) {
-                String key = entry.getKey();
-                String v = entry.getValue();
-                String previous = p.lastMeta.get(key);
+            for (var entry : meta.entrySet()) {
+                var key = entry.getKey();
+                var v = entry.getValue();
+                var previous = p.lastMeta.get(key);
                 if (v.equals(previous)) {
                     continue;
                 }
                 bulk.put(key, v);
             }
-            HashMap<String, String> newAttrsSnapshot = new HashMap<String, String>();
-            for (Map.Entry<String, Object> entry : data.getAttributes().entrySet()) {
-                String name = entry.getKey();
-                Object value = entry.getValue();
+            var newAttrsSnapshot = new HashMap<String, String>();
+            for (var entry : data.getAttributes().entrySet()) {
+                var name = entry.getKey();
+                var value = entry.getValue();
                 if (value == null) continue;
-                String serialized = this.serialize(name, value);
+                var serialized = this.serialize(name, value);
                 newAttrsSnapshot.put(name, serialized);
-                String previous = p.lastAttrs.get(name);
+                var previous = p.lastAttrs.get(name);
                 if (serialized.equals(previous)) continue;
                 bulk.put(name, serialized);
             }
-            ArrayList<String> arrayList = new ArrayList<String>();
-            for (String prevKey : p.lastAttrs.keySet()) {
+            var arrayList = new ArrayList<String>();
+            for (var prevKey : p.lastAttrs.keySet()) {
                 if (SessionAttribute.contexts.value().equals(prevKey) || newAttrsSnapshot.containsKey(prevKey)) continue;
                 arrayList.add(prevKey);
             }
             if (p.lastAttrs.containsKey(SessionAttribute.contexts.value()) && !newAttrsSnapshot.containsKey(SessionAttribute.contexts.value())) {
-                String string = p.lastAttrs.get(SessionAttribute.contexts.value());
+                var string = p.lastAttrs.get(SessionAttribute.contexts.value());
                 if (string != null) {
                     newAttrsSnapshot.put(SessionAttribute.contexts.value(), string);
                     bulk.put(SessionAttribute.contexts.value(), string);
@@ -197,25 +199,25 @@ implements SessionStore {
                 }
             }
             if (!bulk.isEmpty() || !arrayList.isEmpty()) {
-                long l = data.getMaxInactiveInterval() > 0 ? (long)data.getMaxInactiveInterval() * 1000L : (long)this.configuration.getDefaultTtlSeconds() * 1000L;
-                int setCount = bulk.size();
-                int delCount = arrayList.size();
-                ArrayList<Object> args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
+                var l = data.getMaxInactiveInterval() > 0 ? (long)data.getMaxInactiveInterval() * 1000L : (long)this.configuration.getDefaultTtlSeconds() * 1000L;
+                var setCount = bulk.size();
+                var delCount = arrayList.size();
+                var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
                 args.add(l);
                 args.add(setCount);
-                for (Map.Entry<String, String> e : bulk.entrySet()) {
+                for (var e : bulk.entrySet()) {
                     args.add(e.getKey());
                     args.add(e.getValue());
                 }
                 args.add(delCount);
-                args.addAll(arrayList);
-                this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE, Collections.singletonList(this.configuration.key(sessionId)), args.toArray());
-                p.lastMeta.clear();
-                p.lastMeta.putAll(meta);
-                p.lastAttrs.clear();
-                p.lastAttrs.putAll(newAttrsSnapshot);
-            }
-            int ttlSeconds = data.getMaxInactiveInterval() > 0 ? data.getMaxInactiveInterval() : this.configuration.getDefaultTtlSeconds();
+            args.addAll(arrayList);
+            this.client.getScript((Codec)StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE, Collections.singletonList(this.configuration.key(sessionId)), args.toArray());
+            p.lastMeta.clear();
+            p.lastMeta.putAll(meta);
+            p.lastAttrs.clear();
+            p.lastAttrs.putAll(newAttrsSnapshot);
+        }
+            var ttlSeconds = data.getMaxInactiveInterval() > 0 ? data.getMaxInactiveInterval() : this.configuration.getDefaultTtlSeconds();
             this.debug("SAVE(hash/coalesce) " + sessionId + ", ttl=" + ttlSeconds + ", fields=" + bulk.size());
         }
         catch (Exception e) {
@@ -245,11 +247,11 @@ implements SessionStore {
     }
 
     private String serialize(String key, Object value) throws Exception {
-        SessionAttribute hintAttr = SessionAttribute.fromValue((String)key);
+        var hintAttr = SessionAttribute.fromValue((String)key);
         if (hintAttr != null && hintAttr.expectedClass() != null) {
             return MAPPER.writeValueAsString(value);
         }
-        TypedValue wrapper = new TypedValue(value);
+        var wrapper = new TypedValue(value);
         return MAPPER.writeValueAsString((Object)wrapper);
     }
 
@@ -258,23 +260,23 @@ implements SessionStore {
             return null;
         }
         try {
-            SessionAttribute hintAttr = SessionAttribute.fromValue((String)key);
+            var hintAttr = SessionAttribute.fromValue((String)key);
             if (hintAttr != null && hintAttr.expectedClass() != null) {
-                JsonNode tree = MAPPER.readTree(value);
-                JsonNode node = tree.has("value") ? tree.get("value") : tree;
+                var tree = MAPPER.readTree(value);
+                var node = tree.has("value") ? tree.get("value") : tree;
                 return MAPPER.convertValue(node, MAPPER.getTypeFactory().constructType((Type)hintAttr.expectedClass()));
             }
-            JsonNode node = MAPPER.readTree(value);
-            JsonNode clazzNode = node.get("clazz");
-            JsonNode valNode = node.get("value");
+            var node = MAPPER.readTree(value);
+            var clazzNode = node.get("clazz");
+            var valNode = node.get("value");
             if (clazzNode == null || valNode == null) {
                 return MAPPER.convertValue(node, Object.class);
             }
-            String className = clazzNode.asText();
+            var className = clazzNode.asText();
             try {
-                Class<?> cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
+                var cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
                 if (Set.class.isAssignableFrom(cls)) {
-                    List<Object> list = MAPPER.convertValue(valNode, MAPPER.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
+                    var list = MAPPER.<List<Object>>convertValue(valNode, MAPPER.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
                     return new HashSet<Object>(list);
                 }
                 return MAPPER.convertValue(valNode, cls);
@@ -298,9 +300,9 @@ implements SessionStore {
     }
 
     private long readLong(String value) {
-        Object o = this.deserialize(null, value);
+        var o = this.deserialize(null, value);
         if (o instanceof Number) {
-            Number n = (Number)o;
+            var n = (Number)o;
             return n.longValue();
         }
         try {
@@ -312,9 +314,9 @@ implements SessionStore {
     }
 
     private int readInt(String value, int defaultValue) {
-        Object o = this.deserialize(null, value);
+        var o = this.deserialize(null, value);
         if (o instanceof Number) {
-            Number n = (Number)o;
+            var n = (Number)o;
             return n.intValue();
         }
         try {

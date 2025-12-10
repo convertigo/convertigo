@@ -17,12 +17,12 @@ implements SessionStore {
 
     @Override
     public SessionData read(String sessionId) {
-        Map<String, Buffer> map = this.local.get();
-        Buffer buf = map.get(sessionId);
+        var map = this.local.get();
+        var buf = map.get(sessionId);
         if (buf != null) {
             return buf.data;
         }
-        SessionData data = this.delegate.read(sessionId);
+        var data = this.delegate.read(sessionId);
         if (data != null) {
             map.put(sessionId, new Buffer(data));
         }
@@ -34,8 +34,8 @@ implements SessionStore {
         if (session == null) {
             return;
         }
-        Map<String, Buffer> map = this.local.get();
-        Buffer existing = map.get(session.getId());
+        var map = this.local.get();
+        var existing = map.get(session.getId());
         if (existing != null) {
             existing.data = session;
             existing.dirty = true;
@@ -56,12 +56,12 @@ implements SessionStore {
     }
 
     void flushThread() {
-        Map<String, Buffer> map = this.local.get();
+        var map = this.local.get();
         if (map.isEmpty()) {
             return;
         }
-        for (Map.Entry<String, Buffer> entry : map.entrySet()) {
-            Buffer buf = entry.getValue();
+        for (var entry : map.entrySet()) {
+            var buf = entry.getValue();
             if (!buf.dirty) continue;
             this.delegate.save(buf.data);
         }

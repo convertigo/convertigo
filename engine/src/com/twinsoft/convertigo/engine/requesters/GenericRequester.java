@@ -68,7 +68,6 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
-import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
@@ -319,7 +318,7 @@ public abstract class GenericRequester extends Requester {
 			}
 			context.waitingRequests--;
     		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
-    		if (ConvertigoHttpSessionManager.getInstance().getStoreMode() == SessionStoreMode.redis) {
+    		if (ConvertigoHttpSessionManager.isRedisMode()) {
     			Engine.theApp.contextManager.evictFromCache(context);
     		}
 		}
