@@ -41,10 +41,11 @@
 	let modalSymbols;
 
 	const filterState = persistedState('admin.projects.filter', '', { syncTabs: false });
-	let filter = $state(filterState.current);
 
 	let fprojects = $derived(
-		projects.filter((s) => JSON.stringify(s).toLowerCase().includes(filter.toLowerCase()))
+		projects.filter((s) =>
+			JSON.stringify(s).toLowerCase().includes(filterState.current.toLowerCase())
+		)
 	);
 
 	let editedProject = $state('');
