@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
-import com.twinsoft.convertigo.engine.util.HttpSessionTwsWrapper;
 
 /**
  * This class is a workaround class, allowing to detect HTTP session
@@ -201,9 +200,7 @@ public class HttpSessionListener implements HttpSessionBindingListener, Serializ
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
 		var manager = ConvertigoHttpSessionManager.getInstance();
-		HttpSession httpSession = ConvertigoHttpSessionManager.isTomcatMode()
-				? request.getSession(true)
-				: HttpSessionTwsWrapper.wrap(manager.getSession(request, true));
+		HttpSession httpSession = manager.getSession(request, true);
 
 		var lock = LockRegistry.lock(httpSession.getId());
 		try {

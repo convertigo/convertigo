@@ -153,7 +153,7 @@ public abstract class GenericServlet extends HttpServlet {
 
 	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setAttribute("response", response);
-		com.twinsoft.convertigo.engine.util.HttpUtils.applyCorsHeaders(request, response);
+		HttpUtils.applyCorsHeaders(request, response);
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
 

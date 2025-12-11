@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.HttpSessionTwsWrapper;
 
 final class RedisSessionProvider implements SessionProvider {
 	private final SessionStore store;
@@ -72,7 +73,7 @@ final class RedisSessionProvider implements SessionProvider {
 		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
 		var session = new RedisHttpSession(currentStore(), data, request.getServletContext(), configuration);
 		session.markAccessed();
-		return session;
+		return HttpSessionTwsWrapper.wrap(session);
 	}
 
 	private void registerShutdownHook() {

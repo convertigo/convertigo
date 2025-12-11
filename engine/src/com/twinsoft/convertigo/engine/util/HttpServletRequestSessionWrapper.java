@@ -60,17 +60,11 @@ public class HttpServletRequestSessionWrapper extends HttpServletRequestWrapper 
 			return null;
 		}
 
-		if (ConvertigoHttpSessionManager.isTomcatMode()) {
-			cachedSession = session;
-			return session;
-		}
-
-		var wrapped = HttpSessionTwsWrapper.wrap(session);
-		cachedSession = wrapped;
-		if (wrapped instanceof HttpSessionTwsWrapper wrapper) {
+		cachedSession = session;
+		if (session instanceof HttpSessionTwsWrapper wrapper) {
 			wrapper.onInvalidate(this::clearCachedSession);
 		}
-		return wrapped;
+		return session;
 	}
 
 	private void clearCachedSession() {

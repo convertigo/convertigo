@@ -123,20 +123,13 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession() {
-		if (session == null) {
-			var rawRequest = (HttpServletRequest) super.getRequest();
-			var resolved = sessionManager.getSession(rawRequest, true);
-			session = ConvertigoHttpSessionManager.isTomcatMode() ? resolved : HttpSessionTwsWrapper.wrap(resolved);
-		}
-		return session;
+		return getSession(true);
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
 		if (session == null) {
-			var rawRequest = (HttpServletRequest) super.getRequest();
-			var resolved = sessionManager.getSession(rawRequest, create);
-			session = ConvertigoHttpSessionManager.isTomcatMode() ? resolved : HttpSessionTwsWrapper.wrap(resolved);
+			session = sessionManager.getSession(this, create);
 		}
 		return session;
 	}

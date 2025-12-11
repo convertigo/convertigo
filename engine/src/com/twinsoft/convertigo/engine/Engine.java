@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
@@ -205,6 +206,11 @@ public class Engine {
 	 * The usage monitor.
 	 */
 	public UsageMonitor usageMonitor;
+
+	/**
+	 * The HTTP session manager (tomcat/redis).
+	 */
+	public com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager httpSessionManager;
 
 	/**
 	 * The biller token manager
@@ -483,6 +489,9 @@ public class Engine {
 
 				Engine.theApp.eventManager = new EventManager();
 				Engine.theApp.eventManager.init();
+
+				Engine.theApp.httpSessionManager = ConvertigoHttpSessionManager.getInstance();
+				Engine.theApp.httpSessionManager.init();
 
 				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 				Engine.theApp.databaseObjectsManager.init();
@@ -870,6 +879,12 @@ public class Engine {
 					Engine.logEngine.info("Closing the session manager");
 					Engine.theApp.sessionManager.removeAllSessions();
 					Engine.theApp.sessionManager = null;
+				}
+
+				if (Engine.theApp.httpSessionManager != null) {
+					Engine.logEngine.info("Removing the HTTP session manager");
+					Engine.theApp.httpSessionManager.destroy();
+					Engine.theApp.httpSessionManager = null;
 				}
 
 				Engine.logEngine.info("Resetting the key manager");

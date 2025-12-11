@@ -20,15 +20,17 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.convertigo.engine.AbstractManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 
-public final class ConvertigoHttpSessionManager implements PropertyChangeEventListener {
+public final class ConvertigoHttpSessionManager implements PropertyChangeEventListener, AbstractManager {
 	private static volatile ConvertigoHttpSessionManager instance;
 
 	private final Object mutex = new Object();
@@ -36,26 +38,12 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	private volatile SessionStoreMode storeMode;
 
 	private ConvertigoHttpSessionManager() {
-		reload(computeStoreMode());
-		try {
-			Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
-		} catch (Exception ignored) {
-			// Engine not fully started yet
-		}
-	}
-
-	public static ConvertigoHttpSessionManager getInstance() {
-		if (instance == null) {
-			synchronized (ConvertigoHttpSessionManager.class) {
-				if (instance == null) {
-					instance = new ConvertigoHttpSessionManager();
-				}
-			}
-		}
-		return instance;
 	}
 
 	public HttpSession getSession(HttpServletRequest request, boolean create) {
+		if (request instanceof HttpServletRequestWrapper wrapper) {
+			request = (HttpServletRequest) wrapper.getRequest();
+		}
 		return provider.getSession(request, create);
 	}
 
@@ -156,5 +144,42 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		} catch (Exception ignore) {
 			// ignore logging failures
 		}
+	}
+
+	@Override
+	public void init() {
+		reload(computeStoreMode());
+		try {
+			if (Engine.theApp != null && Engine.theApp.eventManager != null) {
+				Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
+			}
+		} catch (Exception ignored) {
+			// Engine not fully started yet
+		}
+	}
+
+	@Override
+	public void destroy() {
+		try {
+			if (Engine.theApp != null && Engine.theApp.eventManager != null) {
+				Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
+			}
+		} catch (Exception ignored) {
+			// ignore
+		}
+		synchronized (mutex) {
+			provider = null;
+		}
+	}
+
+	public static ConvertigoHttpSessionManager getInstance() {
+		if (instance == null) {
+			synchronized (ConvertigoHttpSessionManager.class) {
+				if (instance == null) {
+					instance = new ConvertigoHttpSessionManager();
+				}
+			}
+		}
+		return instance;
 	}
 }
