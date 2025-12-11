@@ -24,14 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.HttpSessionTwsWrapper;
 
 final class RedisSessionProvider implements SessionProvider {
 	private final SessionStore store;
 	private final BufferedSessionStore bufferedStore;
 	private final RedisSessionConfiguration configuration;
 	private final SessionCookieHelper cookieHelper = new SessionCookieHelper();
-	private static final String REQUEST_SESSION_ATTR = "convertigo.redis.sessionId";
+	private static final String REQUEST_SESSION_OBJECT_ATTR = "convertigo.redis.session";
 
 	RedisSessionProvider() {
 		configuration = RedisSessionConfiguration.fromProperties();
@@ -44,13 +43,19 @@ final class RedisSessionProvider implements SessionProvider {
 		if (request == null) {
 			return null;
 		}
+
+		var cachedSession = (HttpSession) request.getAttribute(REQUEST_SESSION_OBJECT_ATTR);
+		if (cachedSession instanceof RedisHttpSession redisSession) {
+			if (!redisSession.isInvalidatedInternal()) {
+				return redisSession;
+			}
+			// Invalidation occurred in this request: drop and recreate.
+			request.removeAttribute(REQUEST_SESSION_OBJECT_ATTR);
+		}
+
 		var response = (HttpServletResponse) request.getAttribute("response");
 		// Reuse session created earlier in the same request to avoid double-creation.
-		var cachedSessionId = (String) request.getAttribute(REQUEST_SESSION_ATTR);
 		var sessionId = cookieHelper.resolveSessionId(request, configuration.getCookieName());
-		if (cachedSessionId != null && !cachedSessionId.isEmpty()) {
-			sessionId = cachedSessionId;
-		}
 		debug("Incoming sessionId=" + sessionId + ", create=" + create);
 		SessionData data = null;
 		if (sessionId != null) {
@@ -68,12 +73,12 @@ final class RedisSessionProvider implements SessionProvider {
 			data.touch();
 			currentStore().save(data);
 			debug("Created new session " + sessionId + " (touched+saved) [redis-hash]");
-			request.setAttribute(REQUEST_SESSION_ATTR, sessionId);
 		}
 		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
 		var session = new RedisHttpSession(currentStore(), data, request.getServletContext(), configuration);
 		session.markAccessed();
-		return HttpSessionTwsWrapper.wrap(session);
+		request.setAttribute(REQUEST_SESSION_OBJECT_ATTR, session);
+		return session;
 	}
 
 	private void registerShutdownHook() {

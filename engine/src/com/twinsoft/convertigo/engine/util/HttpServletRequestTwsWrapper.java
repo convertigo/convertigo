@@ -35,13 +35,11 @@ import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
 	private Map<String, String[]> parameters = new HashMap<String, String[]>();
 	private String query = null;
 	private HttpSession session = null;
-	private final ConvertigoHttpSessionManager sessionManager = ConvertigoHttpSessionManager.getInstance();
 	
 	public HttpServletRequestTwsWrapper(HttpServletRequest request) {
 		super(request);
@@ -123,13 +121,16 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession() {
-		return getSession(true);
+		if (session == null) {
+			session = HttpSessionTwsWrapper.wrap(super.getSession());
+		}
+		return session;
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
 		if (session == null) {
-			session = sessionManager.getSession(this, create);
+			session = HttpSessionTwsWrapper.wrap(super.getSession(create));
 		}
 		return session;
 	}

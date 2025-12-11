@@ -27,10 +27,6 @@
 		</cookie-config>
 	</session-config>
 
-	<listener>
-		<listener-class>com.twinsoft.convertigo.engine.servlets.SessionSerializationListener</listener-class>
-	</listener>
-
 	<filter>
 		<filter-name>SessionSerializationFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.SessionSerializationFilter</filter-class>

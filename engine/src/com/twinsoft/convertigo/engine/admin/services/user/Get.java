@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -50,25 +49,11 @@ public class Get extends JSonService {
 		response.put("authenticated", false);
 		if (session != null) {
 			String user = null;
-			// If admin roles are present, trust them to declare authentication.
-			var rolesAttr = session.getAttribute(AuthenticatedSessionManager.SessionKey.ADMIN_ROLES.toString());
-			if (rolesAttr != null) {
-				user = SessionAttribute.authenticatedUser.string(session);
-				if (StringUtils.isBlank(user)) {
-					var adminUserAttr = session.getAttribute(AuthenticatedSessionManager.SessionKey.ADMIN_USER.toString());
-					if (adminUserAttr != null) {
-						user = adminUserAttr.toString();
-					}
-				}
-			}
 			try {
 				FullSyncAuthentication fsauth = Engine.theApp.couchDbManager.getFullSyncAuthentication(session);
 				user = fsauth.getAuthenticatedUser();
 				response.put("groups", new JSONArray(fsauth.getGroups()));
 			} catch (Exception e) {
-				// ignore and fallback below
-			}
-			if (StringUtils.isBlank(user)) {
 				user = SessionAttribute.authenticatedUser.string(session);
 				if (StringUtils.isBlank(user)) {
 					user = null;

@@ -195,6 +195,10 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 	}
 
+	boolean isInvalidatedInternal() {
+		return invalidated.get();
+	}
+
 	private void log(String message, Exception e) {
 		try {
 			if (Engine.logEngine != null) {

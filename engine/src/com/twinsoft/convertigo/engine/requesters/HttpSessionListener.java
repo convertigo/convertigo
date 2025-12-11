@@ -21,8 +21,6 @@ package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serial;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,7 +48,6 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
-import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
@@ -62,9 +59,7 @@ import com.twinsoft.tas.TASException;
  * start and end, because of lack of specification from the Servlet
  * 2.2 API.
  */
-public class HttpSessionListener implements HttpSessionBindingListener, Serializable {
-	@Serial
-	private static final long serialVersionUID = 1L;
+public class HttpSessionListener implements HttpSessionBindingListener {
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
 	private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
 	private static final Set<String> devices = Collections.synchronizedSet(new HashSet<>());
@@ -199,8 +194,7 @@ public class HttpSessionListener implements HttpSessionBindingListener, Serializ
 	}
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
-		var manager = ConvertigoHttpSessionManager.getInstance();
-		HttpSession httpSession = manager.getSession(request, true);
+		HttpSession httpSession = request.getSession(true);
 
 		var lock = LockRegistry.lock(httpSession.getId());
 		try {
