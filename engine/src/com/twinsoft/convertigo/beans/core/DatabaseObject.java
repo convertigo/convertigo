@@ -975,6 +975,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			String message = "Unable to set the object properties from the serialized XML data.\n" + "Object class: '"
 					+ objectClassName + "'\n" + "XML analyzed node: " + childNodeName + "\n" + "Property name: "
 					+ propertyName + "\n" + "Property value: " + propertyValue;
+			if (node instanceof Element elt) {
+				message += "\nDatabaseObject priority:" + elt.getAttribute("priority");
+			}
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
