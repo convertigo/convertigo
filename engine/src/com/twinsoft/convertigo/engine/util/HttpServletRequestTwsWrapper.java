@@ -125,7 +125,8 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	public HttpSession getSession() {
 		if (session == null) {
 			var rawRequest = (HttpServletRequest) super.getRequest();
-			session = HttpSessionTwsWrapper.wrap(sessionManager.getSession(rawRequest, true));
+			var resolved = sessionManager.getSession(rawRequest, true);
+			session = ConvertigoHttpSessionManager.isTomcatMode() ? resolved : HttpSessionTwsWrapper.wrap(resolved);
 		}
 		return session;
 	}
@@ -134,7 +135,8 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	public HttpSession getSession(boolean create) {
 		if (session == null) {
 			var rawRequest = (HttpServletRequest) super.getRequest();
-			session = HttpSessionTwsWrapper.wrap(sessionManager.getSession(rawRequest, create));
+			var resolved = sessionManager.getSession(rawRequest, create);
+			session = ConvertigoHttpSessionManager.isTomcatMode() ? resolved : HttpSessionTwsWrapper.wrap(resolved);
 		}
 		return session;
 	}
