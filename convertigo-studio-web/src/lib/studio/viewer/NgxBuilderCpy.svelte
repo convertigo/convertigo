@@ -23,7 +23,7 @@
 			`${getUrl().replace(
 				/^http/,
 				'ws'
-			)}studio.ngxbuilder.WsBuilder?__xsrfToken=${localStorage.getItem('x-xsrf')}`
+			)}studio.ngxbuilder.WsBuilder?__xsrfToken=${localStorage.getItem('x-xsrf-token')}`
 		);
 		ws.onopen = () => {
 			ws = ws;

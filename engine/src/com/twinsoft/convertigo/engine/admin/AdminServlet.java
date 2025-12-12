@@ -143,8 +143,7 @@ public class AdminServlet extends HttpServlet {
 				
 				if (service.isXsrfCheck()) {
 					try {
-						boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
-						if (xsrfAdmin) {
+						if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN)) {
 							if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
 								HttpUtils.checkXSRF(request, response);
 							}

@@ -80,4 +80,9 @@ public class Thumbnail extends DownloadService {
 		}
 		response.flushBuffer();
 	}
+	
+	@Override
+	public boolean isXsrfCheck() {
+		return false;
+	}
 }

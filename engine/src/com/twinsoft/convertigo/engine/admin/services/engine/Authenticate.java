@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.w3c.dom.Document;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -42,6 +44,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 
 @ServiceDefinition(
@@ -229,6 +232,15 @@ public class Authenticate extends XmlService {
 					SessionAttribute.xsrfToken.set(httpSession, token);
 				}
 				httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
+				if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN)
+						&& request.getAttribute("response") instanceof HttpServletResponse response) {
+					try {
+						HttpUtils.checkXSRF(request, response);
+					} catch (EngineException e) {
+						SessionAttribute.xsrfToken.set(httpSession, null);
+						HttpUtils.checkXSRF(request, response);
+					}
+				}
 				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, roles);
 
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
@@ -247,5 +259,10 @@ public class Authenticate extends XmlService {
 			SessionAttribute.authenticatedUser.remove(httpSession);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
+	}
+
+	@Override
+	public boolean isXsrfCheck() {
+		return false;
 	}
 }

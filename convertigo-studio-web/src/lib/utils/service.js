@@ -26,7 +26,7 @@ export async function call(service, data = {}) {
 		let url = getUrl() + service;
 		let body;
 		let headers = {
-			'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
+			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
 		if (data instanceof FormData) {
 			let files = new FormData();
@@ -65,9 +65,9 @@ export async function call(service, data = {}) {
 			credentials: 'include'
 		});
 		currentCalls--;
-		var xsrf = res.headers.get('x-xsrf');
+		var xsrf = res.headers.get('x-xsrf-token');
 		if (xsrf != null) {
-			localStorage.setItem('x-xsrf', xsrf);
+			localStorage.setItem('x-xsrf-token', xsrf);
 		}
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
@@ -104,7 +104,7 @@ export async function callRequestable(mode, project, data = {}) {
 	let url = getUrl(`projects/${project}/.${mode.toLowerCase()}`);
 	let body;
 	let headers = {
-		'x-xsrf': localStorage.getItem('x-xsrf') ?? 'Fetch'
+		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 	};
 	if (data instanceof FormData) {
 		let files = new FormData();
@@ -137,9 +137,9 @@ export async function callRequestable(mode, project, data = {}) {
 		credentials: 'include'
 	});
 
-	var xsrf = res.headers.get('x-xsrf');
+	var xsrf = res.headers.get('x-xsrf-token');
 	if (xsrf != null) {
-		localStorage.setItem('x-xsrf', xsrf);
+		localStorage.setItem('x-xsrf-token', xsrf);
 	}
 
 	return res;
