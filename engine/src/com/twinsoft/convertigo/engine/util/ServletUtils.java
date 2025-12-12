@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -51,6 +50,7 @@ public class ServletUtils {
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(?:mobile|pwas/.*?)/)(.*)");
 	private static final Pattern p_base = Pattern.compile("(<base\\s+[^>]*href\\s*=\\s*)(['\"])([^'\"]*)(\\2)([^>]*>)", Pattern.CASE_INSENSITIVE);
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
+	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=(\\d*)-(\\d*)");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -103,25 +103,7 @@ public class ServletUtils {
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
 				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
-				var length = rewritten != null ? rewritten.length : file.length();
-				HeaderName.ContentLength.setHeader(response, "" + length);
-				response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
-
-				FileInputStream fileInputStream = null;
-				OutputStream output = response.getOutputStream();
-				try {
-					if (rewritten != null) {
-						output.write(rewritten);
-					} else {
-						fileInputStream = new FileInputStream(file);
-						IOUtils.copy(fileInputStream, output);
-					}
-				}
-				finally {
-					if (fileInputStream != null) {
-						fileInputStream.close();
-					}
-				}
+				writeFile(request, response, file, rewritten, mimeType);
 			}
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
@@ -140,6 +122,18 @@ public class ServletUtils {
 			Engine.logContext.debug("Convertigo request => follow the normal filter chain");
 			chain.doFilter(request, response);
 		}
+	}
+
+	/**
+	 * Serve a static file with optional rewritten content. Supports Range (single range) and 304.
+	 */
+	public static void serveFile(File file, HttpServletRequest request, HttpServletResponse response, String mimeType) throws IOException {
+		if (file == null || !file.exists()) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
+		HttpUtils.applyCorsHeaders(request, response);
+		writeFile(request, response, file, null, mimeType);
 	}
 
 	public static void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
@@ -215,5 +209,93 @@ private static Integer computeDepth(HttpServletRequest request) {
 			builder.append("../");
 		}
 		return builder.toString();
+	}
+
+	private static void writeFile(HttpServletRequest request, HttpServletResponse response, File file, byte[] rewritten, String mimeType) throws IOException {
+		long fileLength = rewritten != null ? rewritten.length : file.length();
+
+		// Only honor If-Modified-Since when not a range request.
+		var rangeHeader = HeaderName.Range.getHeader(request);
+		boolean hasRange = rangeHeader != null && !rangeHeader.isBlank();
+
+		if (!hasRange) {
+			long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
+			long fileDate = file.lastModified() / 1000;
+			if (clientDate == fileDate && fileDate > 0) {
+				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+				return;
+			}
+		}
+
+		if (mimeType != null) {
+			HeaderName.ContentType.setHeader(response, mimeType);
+		}
+		long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
+		HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
+		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+		HeaderName.AcceptRanges.setHeader(response, "bytes");
+
+		long start = 0;
+		long end = fileLength - 1;
+		if (hasRange) {
+			var m = RANGE_PATTERN.matcher(rangeHeader);
+			if (!m.matches()) {
+				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
+				return;
+			}
+			var startGroup = m.group(1);
+			var endGroup = m.group(2);
+			try {
+				if (!startGroup.isEmpty()) {
+					start = Long.parseLong(startGroup);
+				}
+				if (!endGroup.isEmpty()) {
+					end = Long.parseLong(endGroup);
+				} else {
+					end = fileLength - 1;
+				}
+			} catch (NumberFormatException e) {
+				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
+				return;
+			}
+			if (start < 0 || end < start || end >= fileLength) {
+				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
+				return;
+			}
+			var rangeLength = end - start + 1;
+			response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+			HeaderName.ContentRange.setHeader(response, "bytes " + start + "-" + end + "/" + fileLength);
+			HeaderName.ContentLength.setHeader(response, Long.toString(rangeLength));
+		} else {
+			HeaderName.ContentLength.setHeader(response, Long.toString(fileLength));
+		}
+
+		OutputStream output = response.getOutputStream();
+		if (rewritten != null) {
+			if (hasRange) {
+				int offset = (int) start;
+				int len = (int) (end - start + 1);
+				output.write(rewritten, offset, len);
+			} else {
+				output.write(rewritten);
+			}
+			return;
+		}
+
+		try (var fis = new FileInputStream(file)) {
+			if (hasRange && start > 0) {
+				fis.skip(start);
+			}
+			byte[] buffer = new byte[8192];
+			long remaining = hasRange ? (end - start + 1) : Long.MAX_VALUE;
+			int read;
+			while (remaining > 0 && (read = fis.read(buffer, 0, (int) Math.min(buffer.length, remaining))) != -1) {
+				output.write(buffer, 0, read);
+				remaining -= read;
+			}
+		}
 	}
 }

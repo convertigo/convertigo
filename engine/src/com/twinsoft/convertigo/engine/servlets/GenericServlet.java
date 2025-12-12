@@ -73,35 +73,34 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	private void handleStaticData(HttpServletRequest request, HttpServletResponse response) {
-		String resourceUri = request.getServletPath();
-		Engine.logContext.debug("Serving static ressource: " + resourceUri);
-		HttpUtils.applyCorsHeaders(request, response);
-
-		// TODO: enhance to support content types according to file extension
-		if (resourceUri.endsWith(".xml") || resourceUri.endsWith(".cxml") || resourceUri.endsWith(".pxml"))
-			response.setContentType(MimeType.TextXml.value());
-		else
-			response.setContentType(MimeType.Html.value());
-
-		try {
-			InputStream is = getServletContext().getResourceAsStream(resourceUri);
-			if (is == null) {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Static resource " + resourceUri
-						+ " not found");
+		var resourceUri = request.getServletPath();
+		Engine.logContext.debug("Serving static resource: " + resourceUri);
+		var realPath = getServletContext().getRealPath(resourceUri);
+		if (realPath == null) {
+			try (InputStream is = getServletContext().getResourceAsStream(resourceUri)) {
+				if (is == null) {
+					response.sendError(HttpServletResponse.SC_NOT_FOUND, "Static resource " + resourceUri + " not found");
+					return;
+				}
+				// fallback stream without range when realPath is unavailable
+				HttpUtils.applyCorsHeaders(request, response);
+				var ct = getServletContext().getMimeType(resourceUri);
+				if (ct != null) {
+					response.setContentType(ct);
+				}
+				is.transferTo(response.getOutputStream());
+				return;
+			} catch (IOException e) {
+				Engine.logContext.trace("Error serving static resource: " + resourceUri);
 				return;
 			}
-
-			byte array[] = new byte[4096];
-
-			OutputStream os = response.getOutputStream();
-			while (is.available() != 0) {
-				int nb = is.read(array);
-				os.write(array, 0, nb);
-			}
-			os.flush();
-
+		}
+		var file = new File(realPath);
+		var mimeType = getServletContext().getMimeType(resourceUri);
+		try {
+			ServletUtils.serveFile(file, request, response, mimeType);
 		} catch (IOException e) {
-			Engine.logContext.trace("Error serving static resource: " + resourceUri);
+			Engine.logContext.trace("Error serving static resource: " + resourceUri, e);
 		}
 	}
 
