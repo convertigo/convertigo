@@ -1,106 +1,109 @@
 <script module>
-	import MdiAccountOutline from '~icons/mdi/account-outline?raw';
-	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline?raw';
-	import MdiApi from '~icons/mdi/api?raw';
-	import MdiApplicationOutline from '~icons/mdi/application-outline?raw';
-	import MdiArrowLeft from '~icons/mdi/arrow-left?raw';
-	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick?raw';
-	import MdiArrowRight from '~icons/mdi/arrow-right?raw';
-	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top?raw';
-	import MdiBackupRestore from '~icons/mdi/backup-restore?raw';
-	import MdiBookMultiple from '~icons/mdi/book-multiple?raw';
-	import MdiBookOpenVariant from '~icons/mdi/book-open-variant?raw';
-	import MdiBookmarkCheckOutline from '~icons/mdi/bookmark-check-outline?raw';
-	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline?raw';
-	import MdiBroom from '~icons/mdi/broom?raw';
-	import MdiCached from '~icons/mdi/cached?raw';
-	import MdiCalendarClock from '~icons/mdi/calendar-clock?raw';
-	import MdiCalendarRange from '~icons/mdi/calendar-range?raw';
-	import MdiCertificate from '~icons/mdi/certificate?raw';
-	import MdiCheckAll from '~icons/mdi/check-all?raw';
-	import MdiCheck from '~icons/mdi/check?raw';
-	import MdiChevronRight from '~icons/mdi/chevron-right?raw';
-	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline?raw';
-	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline?raw';
-	import MdiClose from '~icons/mdi/close?raw';
-	import MdiCloudOutline from '~icons/mdi/cloud-outline?raw';
-	import MdiCloudSyncOutline from '~icons/mdi/cloud-sync-outline?raw';
-	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces?raw';
-	import MdiCodeBraces from '~icons/mdi/code-braces?raw';
-	import MdiCoffee from '~icons/mdi/coffee?raw';
-	import MdiCogOutline from '~icons/mdi/cog-outline?raw';
-	import MdiCog from '~icons/mdi/cog?raw';
-	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline?raw';
-	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline?raw';
-	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline?raw';
-	import MdiDatabase from '~icons/mdi/database?raw';
-	import MdiDeleteOutline from '~icons/mdi/delete-outline?raw';
-	import MdiDotsVertical from '~icons/mdi/dots-vertical?raw';
-	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline?raw';
-	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline?raw';
-	import MdiEditOutline from '~icons/mdi/edit-outline?raw';
-	import MdiEmailOutline from '~icons/mdi/email-outline?raw';
-	import MdiEmoticonHappyOutline from '~icons/mdi/emoticon-happy-outline?raw';
-	import MdiExport from '~icons/mdi/export?raw';
-	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline?raw';
-	import MdiEyeOff from '~icons/mdi/eye-off?raw';
-	import MdiEyeOutline from '~icons/mdi/eye-outline?raw';
-	import MdiEye from '~icons/mdi/eye?raw';
-	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline?raw';
-	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline?raw';
-	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline?raw';
-	import MdiFilterCog from '~icons/mdi/filter-cog?raw';
-	import MdiFilter from '~icons/mdi/filter?raw';
-	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline?raw';
-	import MdiFolderOutline from '~icons/mdi/folder-outline?raw';
-	import MdiFullscreen from '~icons/mdi/fullscreen?raw';
-	import MdiGithub from '~icons/mdi/github?raw';
-	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline?raw';
-	import MdiHomeOutline from '~icons/mdi/home-outline?raw';
-	import MdiHub from '~icons/mdi/hub?raw';
-	import MdiImport from '~icons/mdi/import?raw';
-	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline?raw';
-	import MdiKeyOutline from '~icons/mdi/key-outline?raw';
-	import MdiLanConnect from '~icons/mdi/lan-connect?raw';
-	import MdiLandPlots from '~icons/mdi/land-plots?raw';
-	import MdiLanguageJava from '~icons/mdi/language-java?raw';
-	import MdiLanguageRuby from '~icons/mdi/language-ruby?raw';
-	import MdiLayersOutline from '~icons/mdi/layers-outline?raw';
-	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant?raw';
-	import MdiLockOutline from '~icons/mdi/lock-outline?raw';
-	import MdiLock from '~icons/mdi/lock?raw';
-	import MdiMagnifyMinusOutline from '~icons/mdi/magnify-minus-outline?raw';
-	import MdiMagnifyPlusOutline from '~icons/mdi/magnify-plus-outline?raw';
-	import MdiMagnify from '~icons/mdi/magnify?raw';
-	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline?raw';
-	import MdiMenu from '~icons/mdi/menu?raw';
-	import MdiMinus from '~icons/mdi/minus?raw';
-	import MdiMoonAndStars from '~icons/mdi/moon-and-stars?raw';
-	import MdiOpenInNew from '~icons/mdi/open-in-new?raw';
-	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed?raw';
-	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape?raw';
-	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline?raw';
-	import MdiPlus from '~icons/mdi/plus?raw';
-	import MdiPowerPlug from '~icons/mdi/power-plug?raw';
-	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline?raw';
-	import MdiReload from '~icons/mdi/reload?raw';
-	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal?raw';
-	import MdiSearch from '~icons/mdi/search?raw';
-	import MdiSmartphoneLink from '~icons/mdi/smartphone-link?raw';
-	import MdiStarOutline from '~icons/mdi/star-outline?raw';
-	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline?raw';
-	import MdiSync from '~icons/mdi/sync?raw';
-	import MdiTable from '~icons/mdi/table?raw';
-	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline?raw';
-	import MdiToggleSwitch from '~icons/mdi/toggle-switch?raw';
-	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal?raw';
-	import MdiUpdate from '~icons/mdi/update?raw';
-	import MdiVideoOutline from '~icons/mdi/video-outline?raw';
-	import MdiViewDashboardOutline from '~icons/mdi/view-dashboard-outline?raw';
-	import MdiWarningOutline from '~icons/mdi/warning-outline?raw';
-	import MdiWeatherSunny from '~icons/mdi/weather-sunny?raw';
-	import MdiWrench from '~icons/mdi/wrench?raw';
-	import ConvertigoLogo from './icons/logo.svg?raw';
+	import MdiAccountOutline from '~icons/mdi/account-outline';
+	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
+	import MdiApi from '~icons/mdi/api';
+	import MdiApplicationOutline from '~icons/mdi/application-outline';
+	import MdiArrowLeft from '~icons/mdi/arrow-left';
+	import MdiArrowRight from '~icons/mdi/arrow-right';
+	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick';
+	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top';
+	import MdiBackupRestore from '~icons/mdi/backup-restore';
+	import MdiBookMultiple from '~icons/mdi/book-multiple';
+	import MdiBookOpenVariant from '~icons/mdi/book-open-variant';
+	import MdiBookmarkCheckOutline from '~icons/mdi/bookmark-check-outline';
+	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline';
+	import MdiBroom from '~icons/mdi/broom';
+	import MdiCached from '~icons/mdi/cached';
+	import MdiCalendarClock from '~icons/mdi/calendar-clock';
+	import MdiCalendarRange from '~icons/mdi/calendar-range';
+	import MdiCertificate from '~icons/mdi/certificate';
+	import MdiCheck from '~icons/mdi/check';
+	import MdiCheckAll from '~icons/mdi/check-all';
+	import MdiChevronRight from '~icons/mdi/chevron-right';
+	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline';
+	import MdiClose from '~icons/mdi/close';
+	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
+	import MdiCloudOutline from '~icons/mdi/cloud-outline';
+	import MdiCloudSyncOutline from '~icons/mdi/cloud-sync-outline';
+	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces';
+	import MdiCodeBraces from '~icons/mdi/code-braces';
+	import MdiCodeTags from '~icons/mdi/code-tags';
+	import MdiCoffee from '~icons/mdi/coffee';
+	import MdiCog from '~icons/mdi/cog';
+	import MdiCogOutline from '~icons/mdi/cog-outline';
+	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
+	import MdiDatabase from '~icons/mdi/database';
+	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
+	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
+	import MdiDeleteOutline from '~icons/mdi/delete-outline';
+	import MdiDotsVertical from '~icons/mdi/dots-vertical';
+	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
+	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
+	import MdiEditOutline from '~icons/mdi/edit-outline';
+	import MdiEmailOutline from '~icons/mdi/email-outline';
+	import MdiEmoticonHappyOutline from '~icons/mdi/emoticon-happy-outline';
+	import MdiExport from '~icons/mdi/export';
+	import MdiEye from '~icons/mdi/eye';
+	import MdiEyeOff from '~icons/mdi/eye-off';
+	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline';
+	import MdiEyeOutline from '~icons/mdi/eye-outline';
+	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
+	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
+	import MdiFilter from '~icons/mdi/filter';
+	import MdiFilterCog from '~icons/mdi/filter-cog';
+	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
+	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
+	import MdiFolderOutline from '~icons/mdi/folder-outline';
+	import MdiFullscreen from '~icons/mdi/fullscreen';
+	import MdiGithub from '~icons/mdi/github';
+	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
+	import MdiHomeOutline from '~icons/mdi/home-outline';
+	import MdiHub from '~icons/mdi/hub';
+	import MdiImport from '~icons/mdi/import';
+	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
+	import MdiKeyOutline from '~icons/mdi/key-outline';
+	import MdiLanConnect from '~icons/mdi/lan-connect';
+	import MdiLandPlots from '~icons/mdi/land-plots';
+	import MdiLanguageJava from '~icons/mdi/language-java';
+	import MdiLanguageRuby from '~icons/mdi/language-ruby';
+	import MdiLayersOutline from '~icons/mdi/layers-outline';
+	import MdiLock from '~icons/mdi/lock';
+	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
+	import MdiLockOutline from '~icons/mdi/lock-outline';
+	import MdiMagnify from '~icons/mdi/magnify';
+	import MdiMagnifyMinusOutline from '~icons/mdi/magnify-minus-outline';
+	import MdiMagnifyPlusOutline from '~icons/mdi/magnify-plus-outline';
+	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline';
+	import MdiMenu from '~icons/mdi/menu';
+	import MdiMinus from '~icons/mdi/minus';
+	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
+	import MdiOpenInNew from '~icons/mdi/open-in-new';
+	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
+	import MdiPaletteOutline from '~icons/mdi/palette-outline';
+	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
+	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
+	import MdiPlus from '~icons/mdi/plus';
+	import MdiPowerPlug from '~icons/mdi/power-plug';
+	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
+	import MdiReload from '~icons/mdi/reload';
+	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
+	import MdiSearch from '~icons/mdi/search';
+	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
+	import MdiStarOutline from '~icons/mdi/star-outline';
+	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
+	import MdiSync from '~icons/mdi/sync';
+	import MdiTable from '~icons/mdi/table';
+	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
+	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline';
+	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
+	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
+	import MdiUpdate from '~icons/mdi/update';
+	import MdiVideoOutline from '~icons/mdi/video-outline';
+	import MdiViewDashboardOutline from '~icons/mdi/view-dashboard-outline';
+	import MdiWarningOutline from '~icons/mdi/warning-outline';
+	import MdiWeatherSunny from '~icons/mdi/weather-sunny';
+	import MdiWrench from '~icons/mdi/wrench';
+	import ConvertigoLogo from './icons/ConvertigoLogo.svelte';
 
 	export const ico = {
 		'convertigo:logo': ConvertigoLogo,
@@ -132,6 +135,7 @@
 		'mdi:cloud-sync-outline': MdiCloudSyncOutline,
 		'mdi:code-block-braces': MdiCodeBlockBraces,
 		'mdi:code-braces': MdiCodeBraces,
+		'mdi:code-tags': MdiCodeTags,
 		'mdi:coffee': MdiCoffee,
 		'mdi:cog-outline': MdiCogOutline,
 		'mdi:cog': MdiCog,
@@ -181,6 +185,7 @@
 		'mdi:minus': MdiMinus,
 		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
+		'mdi:palette-outline': MdiPaletteOutline,
 		'mdi:open-in-new-variant': MdiOpenInNew,
 		'mdi:fit-to-page-outline': MdiFitToPageOutline,
 		'mdi:camera-rotate-outline': MdiPhoneRotateLandscape,
@@ -198,6 +203,7 @@
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,
 		'mdi:table': MdiTable,
+		'mdi:tune-vertical-variant': MdiTuneVerticalVariant,
 		'mdi:unfold-more-horizontal': MdiUnfoldMoreHorizontal,
 		'mdi:update': MdiUpdate,
 		'mdi:video-outline': MdiVideoOutline,
@@ -209,7 +215,6 @@
 </script>
 
 <script>
-	import { browser } from '$app/environment';
 	import { asset } from '$app/paths';
 
 	/** @type {{icon: string, size?: string|number, class?: string, animate?: boolean|import('svelte/transition').DrawParams , repeat?: boolean, strokeWidth?: any} | any} */
@@ -224,6 +229,10 @@
 	} = $props();
 
 	const resolvedSize = $derived(size == 'btn' ? 6 : ['nav', 'dashboard'].includes(size) ? 5 : size);
+	const iconStyle = $derived(
+		`width: calc(var(--spacing)*${resolvedSize});height: calc(var(--spacing)*${resolvedSize});`
+	);
+	const IconComponent = $derived(icon?.includes(':') ? ico[icon] : undefined);
 
 	// let _animate = $state({ duration: 2000 });
 	// let svg = $state(null);
@@ -253,21 +262,10 @@
 	// }
 	// console.log('ConvertigoLogo', ConvertigoLogo);
 	// console.log('MdiScanner', MdiScanner);
-	let html = $derived(icon.includes(':') ? ico[icon]?.match(/>(.*)</)?.[1] : undefined);
 </script>
 
-{#if html}
-	<svg
-		class="ico {cls}"
-		style="width: calc(var(--spacing)*{resolvedSize});height: calc(var(--spacing)*{resolvedSize});"
-		viewBox={ico[icon].match(/viewBox="([^"]+)"/)?.[1]}
-	>
-		{#if browser}
-			{@html html}
-		{:else}
-			{@html html}
-		{/if}
-	</svg>
+{#if IconComponent}
+	<IconComponent class={`ico ${cls}`.trim()} style={iconStyle} {...props} />
 {:else}
 	<img
 		src={asset(`/${icon}`)}
@@ -276,27 +274,3 @@
 		{...props}
 	/>
 {/if}
-
-<!-- {#if !svg || !animate}
-	{@html ico[icon].replace('class="', `class="w-${size} h-${size} ${cls} `)}
-{:else}
-	<svg {...attrToObj(svg)} class={`${svg.getAttribute('class') ?? ''} w-${size} h-${size} ${cls} `}>
-		{#each svg.children as child}
-			{#if ['path', 'polyline'].includes(child.tagName)}
-				{#if show}
-					<svelte:element
-						this={child.tagName}
-						transition:draw={_animate}
-						{...attrToObj(child)}
-						fill="none"
-						stroke="currentColor"
-						stroke-linejoin="round"
-						stroke-width={strokeWidth}
-					/>
-				{/if}
-			{:else}
-				{@html child.outerHTML}
-			{/if}
-		{/each}
-	</svg>
-{/if} -->

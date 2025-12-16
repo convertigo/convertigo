@@ -1,88 +1,55 @@
 <script>
-	import { ListBox, ListBoxItem, popup } from '@skeletonlabs/skeleton';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
-	/** @type {{Record<string, any>}} */
-	let { name, value, values = [], editable = false, ...rest } = $props();
+	/** @type {{name?: string, value?: any, values?: any[], editable?: boolean}} */
+	let { name = '', value = '', values = [], editable = false } = $props();
 
-	let input = $state(),
-		select = $state();
-	let groupValue = $state(value);
-
-	if (rest) {
-	}
-
-	function combo(id) {
-		return {
-			event: 'focus-click',
-			target: id,
-			placement: 'bottom',
-			closeQuery: '.listbox-item'
-		};
-	}
-
-	function groupChange() {
-		input.value = groupValue;
-		onChange();
-	}
-
-	function onChange() {
-		let node = editable ? input : select;
-		let val = node.value;
-		groupValue = val;
-
+	function commit(next) {
 		dispatch('valueChanged', {
-			name: name,
-			value: val
+			name,
+			value: next
 		});
 	}
 </script>
 
-<div class="flex">
+<div class="list-editor">
 	{#if editable}
 		<input
-			bind:this={input}
+			class="list-editor__input input"
 			type="text"
 			autocomplete="off"
 			aria-autocomplete="none"
-			class="select w-full form-select rounded-sm border-[0.5px] py-0 text-[11.5px]"
-			id={name + '-input'}
-			{value}
-			onchange={onChange}
-			use:popup={combo(name + '-popup')}
+			value={value ?? ''}
+			onchange={(e) => commit(e.currentTarget.value)}
+			list={`${name}-list`}
 		/>
-		<div
-			class="w-48 card bg-surface-200 py-2 shadow-xl dark:bg-surface-700"
-			data-popup={name + '-popup'}
-		>
-			<ListBox
-				rounded="rounded-none dark:bg-surface-700 bg-surface-200 text-[11.5px] dark:text-secondary-100 relative z-50"
-			>
-				{#each values as v}
-					<ListBoxItem
-						bind:group={groupValue}
-						name="medium"
-						on:change={groupChange}
-						value={v}
-						class="border-b border-surface-300 dark:border-surface-800"
-						active="dark:text-secondary-300">{v}</ListBoxItem
-					>
-				{/each}
-			</ListBox>
-		</div>
+		<datalist id={`${name}-list`}>
+			{#each values as v (String(v))}
+				<option value={v}></option>
+			{/each}
+		</datalist>
 	{:else}
 		<select
-			bind:this={select}
-			class="dark:bginput select w-full rounded-[4px] border-[0.5px] py-0 text-[11.5px]"
-			id={name + '-select'}
-			{value}
-			onchange={onChange}
+			class="list-editor__select select"
+			value={value ?? ''}
+			onchange={(e) => commit(e.currentTarget.value)}
 		>
-			{#each values as v}
+			{#each values as v (String(v))}
 				<option value={v}>{v}</option>
 			{/each}
 		</select>
 	{/if}
 </div>
+
+<style>
+	.list-editor {
+		display: flex;
+	}
+	.list-editor__input,
+	.list-editor__select {
+		width: 100%;
+		font-size: 12px;
+	}
+</style>

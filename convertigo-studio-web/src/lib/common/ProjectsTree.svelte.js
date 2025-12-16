@@ -1,12 +1,31 @@
 import { call } from '$lib/utils/service';
 
 export function createProjectTree() {
+	/** @param {any} node */
+	function normalizeNode(node) {
+		if (!node || typeof node !== 'object') return node;
+		if (node.name == null && node.label != null) node.name = node.label;
+		if (node.label == null && node.name != null) node.label = node.name;
+		return node;
+	}
+
+	/** @param {any} children */
+	function normalizeChildren(children) {
+		if (!Array.isArray(children)) return [];
+		return children.map((child) => normalizeNode(child));
+	}
+
 	/** @type {any} */
 	let rootNode = $state({
 		id: 'ROOT',
 		name: '',
 		children: []
 	});
+
+	async function loadRoot() {
+		const tree = await call('studio.treeview.Get', {});
+		rootNode.children = normalizeChildren(tree?.children);
+	}
 
 	async function addProject(project) {
 		if (!rootNode.children.some((child) => child.id === project)) {
@@ -33,7 +52,7 @@ export function createProjectTree() {
 			});
 			for (let id in updates) {
 				if (toUpdate[id]) {
-					toUpdate[id].children = updates[id];
+					toUpdate[id].children = normalizeChildren(updates[id]);
 				}
 			}
 		}
@@ -49,6 +68,7 @@ export function createProjectTree() {
 		get rootNode() {
 			return rootNode;
 		},
+		loadRoot,
 		addProject,
 		checkChildren,
 		onExpandedChange

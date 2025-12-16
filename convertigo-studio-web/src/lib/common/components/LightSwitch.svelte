@@ -2,6 +2,8 @@
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import Light from '../Light.svelte';
+
+	const icon = $derived.by(() => (Light.light ? 'mdi:weather-sunny' : 'mdi:moon-and-stars'));
 </script>
 
 <Switch
@@ -12,7 +14,7 @@
 >
 	<Switch.Control>
 		<Switch.Thumb>
-			<Ico icon={Light.light ? 'mdi:weather-sunny' : 'mdi:moon-and-stars'} />
+			<Ico {icon} />
 		</Switch.Thumb>
 	</Switch.Control>
 	<Switch.HiddenInput />

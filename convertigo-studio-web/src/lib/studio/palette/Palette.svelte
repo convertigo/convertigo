@@ -1,310 +1,255 @@
 <script>
-	import Icon from '@iconify/svelte';
-	import { Accordion, AccordionItem, localStorageStore, popup } from '@skeletonlabs/skeleton';
-	// @ts-ignore
-	import IconArrangeOn from '~icons/mdi/arrange-bring-forward';
-	// @ts-ignore
-	import IconArrangeOff from '~icons/mdi/arrange-send-backward';
-	// @ts-ignore
-	import IconLinkOn from '~icons/mdi/arrow-left-right-bold';
-	// @ts-ignore
-	import IconLinkOff from '~icons/mdi/arrow-left-right-bold-outline';
-	// @ts-ignore
-	import IconDownOn from '~icons/mdi/chevron-down-box';
-	// @ts-ignore
-	import IconDownOff from '~icons/mdi/chevron-down-box-outline';
-	// @ts-ignore
-	import IconStarOff from '~icons/mdi/star-outline';
-	import { categories, reusables } from '$lib/studio/palette/paletteStore';
+	import { browser } from '$app/environment';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import PaletteItem from './PaletteItem.svelte';
+	import { categories, reusables } from './paletteStore';
 
-	let favorites = localStorageStore('palette.favorites', {});
-	let storeCategories = [];
-	let localCategories = $state([]);
-	let favoritesItems = $state([]);
-	let usedItems = $state([]);
-	let selectedItem = $state();
+	const FAVORITES_KEY = 'palette.favorites';
 
 	let search = $state('');
-	let textInput;
-
 	let linkOn = $state(true);
 	let builtinOn = $state(true);
 	let additionalOn = $state(true);
+	let selectedItem = $state();
 
-	onMount(() => {});
+	let localCategories = $state([]);
+	let favoritesById = $state(/** @type {Record<string, any>} */ ({}));
+	let favoritesLoaded = $state(false);
+	const serializedFavorites = $derived(JSON.stringify(favoritesById));
 
-	const unsubscribeFavorites = favorites.subscribe(() => update());
+	onMount(() => {
+		if (!browser) return;
+		try {
+			const raw = localStorage.getItem(FAVORITES_KEY);
+			if (raw) {
+				favoritesById = JSON.parse(raw) ?? {};
+			}
+		} catch (e) {}
+		favoritesLoaded = true;
+	});
+
+	$effect(() => {
+		if (!browser || !favoritesLoaded) return;
+		try {
+			localStorage[FAVORITES_KEY] = serializedFavorites;
+		} catch (e) {}
+	});
 
 	const unsubscribeCategories = categories.subscribe((value) => {
-		storeCategories = value;
-		update();
-	});
-
-	const unsubscribeReusables = reusables.subscribe((value) => {
-		update();
-	});
-
-	onDestroy(() => {
-		unsubscribeFavorites;
-		unsubscribeCategories;
-		unsubscribeReusables;
-	});
-
-	function update() {
-		selectedItem = undefined;
-		favoritesItems = [];
-		usedItems = [];
-
-		// link to selection in tree: get categories from store
 		if (linkOn) {
-			localCategories = storeCategories;
+			localCategories = value ?? [];
 		}
+	});
 
-		// localCategories filtered on button state
-		let filtered = localCategories.map(({ type, name, items }) => {
-			return {
-				type,
-				name,
-				items: items.filter((item) => {
-					let key = item.name.toLowerCase() + ' ' + item.description.toLowerCase().split('|')[0];
-					let found = search.trim() !== '' ? key.indexOf(search.toLowerCase()) != -1 : true;
-					let ret =
-						found &&
-						((builtinOn && item.builtin === builtinOn) ||
-							(additionalOn && item.additional === additionalOn));
+	onDestroy(() => unsubscribeCategories());
 
-					// favoritesItems & usedItems update
-					if (ret) {
-						let favItem = $favorites[item.id];
-						if (favItem != undefined && favItem.id == item.id) {
-							favoritesItems.push(favItem);
-						}
-						let useItem = $reusables[item.id];
-						if (useItem != undefined && useItem.id == item.id) {
-							usedItems.push(useItem);
-						}
-					}
-					return ret;
-				})
-			};
+	const computed = $derived.by(() => {
+		const query = search.trim().toLowerCase();
+		const currentFavorites = favoritesById ?? {};
+		const used = $reusables ?? {};
+
+		/** @type {any[]} */
+		const favoritesItems = [];
+		/** @type {any[]} */
+		const usedItems = [];
+
+		const filteredCategories = (localCategories ?? []).map(({ type, name, items }) => {
+			const filteredItems = (items ?? []).filter((item) => {
+				const key = `${item.name ?? ''} ${(item.description ?? '').split('|')[0]}`.toLowerCase();
+				const found = query ? key.includes(query) : true;
+				const visibleType =
+					(found && builtinOn && item.builtin) || (found && additionalOn && item.additional);
+
+				if (visibleType) {
+					const favItem = currentFavorites[item.id];
+					if (favItem) favoritesItems.push(favItem);
+					const usedItem = used[item.id];
+					if (usedItem) usedItems.push(usedItem);
+				}
+
+				return visibleType;
+			});
+
+			return { type, name, items: filteredItems };
 		});
-		localCategories = filtered;
 
-		//console.log('localCategories', localCategories);
-		//console.log('favoritesItems', favoritesItems);
-		//console.log('usedItems', usedItems);
-	}
+		return {
+			categories: filteredCategories.filter((c) => c.items?.length),
+			favoritesItems,
+			usedItems
+		};
+	});
 
-	function handleLink(e) {
-		linkOn = !linkOn;
-		update();
-	}
-
-	function handleBuiltin(e) {
-		builtinOn = !builtinOn;
-		update();
-	}
-
-	function handleAdditional(e) {
-		additionalOn = !additionalOn;
-		update();
-	}
-
-	function handleFavorite(e) {
-		if (selectedItem != undefined) {
-			if (isFavorite(selectedItem)) {
-				delete $favorites[selectedItem.id];
-				$favorites = $favorites;
-			} else {
-				$favorites[selectedItem.id] = { ...selectedItem };
-			}
-			update();
+	function toggleFavorite() {
+		if (!selectedItem?.id) return;
+		const next = { ...(favoritesById ?? {}) };
+		if (next[selectedItem.id]) {
+			delete next[selectedItem.id];
+		} else {
+			next[selectedItem.id] = { ...selectedItem };
 		}
+		favoritesById = next;
 	}
 
 	function isFavorite(item) {
-		return item != undefined ? $favorites[item.id] != undefined : false;
-	}
-
-	function doSearch() {
-		update();
-	}
-
-	function tooltip(id) {
-		return {
-			event: 'hover',
-			target: id,
-			placement: 'bottom'
-		};
+		return item?.id ? favoritesById?.[item.id] != null : false;
 	}
 
 	function itemClicked(event) {
 		selectedItem = event.detail.item;
 	}
-
-	let value = 0;
 </script>
 
-<div class="palette bg-surface-50 dark:bg-surface-800">
-	<div class="header">
-		<div
-			class="flex w-[100%] flex-row justify-center rounded-[4px] border-[0.5px] border-surface-500 bg-surface-50 dark:bg-surface-900"
-		>
+<div class="palette">
+	<div class="palette__header">
+		<div class="palette__actions">
 			<button
 				type="button"
-				class="btn *:pointer-events-none"
-				onclick={handleLink}
-				use:popup={tooltip('tooltip-link')}
+				class="button-ico-secondary"
+				aria-pressed={linkOn}
+				title="Link with the tree selection"
+				onclick={() => {
+					linkOn = !linkOn;
+					if (linkOn) localCategories = $categories ?? [];
+				}}
 			>
-				<div class="card p-1" data-popup="tooltip-link">
-					<p class="px-2 text-[11.5px]">Link with the project's tree selection 2</p>
-					<div class="arrow"></div>
-				</div>
-				{#if linkOn}
-					<IconLinkOn class="xl" />
-				{:else}
-					<IconLinkOff class="xl" />
-				{/if}
+				<Ico icon="mdi:smartphone-link" />
 			</button>
-
 			<button
 				type="button"
-				class="btn *:pointer-events-none"
-				onclick={handleBuiltin}
-				use:popup={tooltip('tooltip-builtin')}
+				class="button-ico-secondary"
+				aria-pressed={builtinOn}
+				title="Built-in objects visibility"
+				onclick={() => (builtinOn = !builtinOn)}
 			>
-				<div class="card p-4" data-popup="tooltip-builtin">
-					<p class="px-2 text-[11.5px]">Built-in objects visibility</p>
-					<div class="arrow"></div>
-				</div>
-				{#if builtinOn}
-					<IconArrangeOn class="xl" />
-				{:else}
-					<IconArrangeOff class="xl" />
-				{/if}
+				<Ico icon="mdi:layers-outline" />
 			</button>
-
 			<button
 				type="button"
-				class="btn *:pointer-events-none"
-				onclick={handleAdditional}
-				use:popup={tooltip('tooltip-additional')}
+				class="button-ico-secondary"
+				aria-pressed={additionalOn}
+				title="Shared objects visibility"
+				onclick={() => (additionalOn = !additionalOn)}
 			>
-				<div class="card p-1" data-popup="tooltip-additional">
-					<p class="px-2 text-[11.5px]">Shared objects visibility</p>
-					<div class="arrow"></div>
-				</div>
-				{#if additionalOn}
-					<IconDownOn class="xl" />
-				{:else}
-					<IconDownOff class="xl" />
-				{/if}
+				<Ico icon="mdi:download-off-outline" />
 			</button>
-
 			<button
 				type="button"
-				class="btn *:pointer-events-none"
-				onclick={handleFavorite}
-				use:popup={tooltip('tooltip-favorite')}
+				class="button-ico-secondary"
+				disabled={!selectedItem}
+				title={isFavorite(selectedItem) ? 'Remove from favorites' : 'Add to favorites'}
+				onclick={toggleFavorite}
 			>
-				<div class="card p-4" data-popup="tooltip-favorite">
-					<p class="text-white">
-						{isFavorite(selectedItem) ? 'Remove from favorites' : 'Add to favorites'}
-					</p>
-					<div class="arrow"></div>
-				</div>
-				{#if isFavorite(selectedItem)}
-					<IconStarOff class="xl" />
-				{:else}
-					<Icon icon="fluent-mdl2:add-favorite" />
-				{/if}
+				<Ico
+					icon={isFavorite(selectedItem) ? 'mdi:star-three-points-outline' : 'mdi:star-outline'}
+				/>
 			</button>
 		</div>
 
-		<div class="mt-2 w-[100%] rounded-[4px] border-[0.5px] border-surface-500">
-			<input
-				id="inputSearch"
-				class="dark:searchbar input"
-				type="search"
-				placeholder="Search..."
-				bind:value={search}
-				oninput={doSearch}
-			/>
-		</div>
+		<input
+			class="palette__search input"
+			type="search"
+			placeholder="Search…"
+			autocomplete="off"
+			aria-label="Search palette"
+			bind:value={search}
+		/>
 	</div>
 
-	<div class="mt-2 border-[1px] border-surface-600"></div>
+	<div class="palette__content">
+		<details class="section" open>
+			<summary class="section__summary">Favorites</summary>
+			<div class="items">
+				{#each computed.favoritesItems as item (item.id)}
+					<PaletteItem {item} on:itemClicked={itemClicked} />
+				{/each}
+			</div>
+		</details>
 
-	<div class="content">
-		<Accordion caretOpen="rotate-0" caretClosed="-rotate-90">
-			{#if localCategories.length > 0}
-				<AccordionItem open>
-					<svelte:fragment slot="summary">
-						<span class="font-extralight">Favorites</span>
-					</svelte:fragment>
-					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-50 dark:bg-surface-900">
-							{#each favoritesItems as item}
-								<PaletteItem {item} on:itemClicked={itemClicked} />
-							{/each}
-						</div>
-					</svelte:fragment>
-				</AccordionItem>
-				<AccordionItem open>
-					<svelte:fragment slot="summary">
-						<span class="font-extralight"> Last used </span>
-					</svelte:fragment>
-					<svelte:fragment slot="content">
-						<div class="items-container bg-surface-50 dark:bg-surface-900">
-							{#each usedItems as item}
-								<PaletteItem {item} on:itemClicked={itemClicked} />
-							{/each}
-						</div>
-					</svelte:fragment>
-				</AccordionItem>
-			{/if}
-			{#each localCategories as category}
-				{#if category.items.length > 0}
-					<AccordionItem open>
-						<svelte:fragment slot="summary">
-							<span class="font-extralight">
-								{category.name}
-							</span>
-						</svelte:fragment>
-						<svelte:fragment slot="content">
-							<div class="items-container bg-surface-50 p-4 dark:bg-surface-900">
-								{#each category.items as item}
-									<PaletteItem {item} on:itemClicked={itemClicked} />
-								{/each}
-							</div>
-						</svelte:fragment>
-					</AccordionItem>
-				{/if}
-			{/each}
-		</Accordion>
+		<details class="section" open>
+			<summary class="section__summary">Last used</summary>
+			<div class="items">
+				{#each computed.usedItems as item (item.id)}
+					<PaletteItem {item} on:itemClicked={itemClicked} />
+				{/each}
+			</div>
+		</details>
+
+		{#each computed.categories as cat (`${cat.type ?? ''}:${cat.name ?? ''}`)}
+			<details class="section" open>
+				<summary class="section__summary">{cat.name}</summary>
+				<div class="items">
+					{#each cat.items as item (item.id)}
+						<PaletteItem {item} on:itemClicked={itemClicked} />
+					{/each}
+				</div>
+			</details>
+		{/each}
 	</div>
 </div>
 
 <style>
 	.palette {
+		height: 100%;
 		display: flex;
 		flex-direction: column;
+		overflow: hidden;
 	}
-
-	.header {
+	.palette__header {
+		padding: 10px;
+		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-900, #0f172a) 10%, transparent);
+		display: grid;
+		gap: 8px;
+	}
+	.palette__actions {
 		display: flex;
-		flex-flow: row wrap;
-		margin: 10px;
+		gap: 6px;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
 	}
-
-	.content {
-		margin-top: 5px;
+	.palette__search {
+		width: 100%;
 	}
-
-	.items-container {
-		display: flex;
-		flex-flow: row wrap;
+	.palette__content {
+		flex: 1;
+		min-height: 0;
+		overflow: auto;
+		padding: 8px;
+	}
+	.section {
+		border: 1px solid color-mix(in oklab, var(--color-surface-900, #0f172a) 10%, transparent);
+		border-radius: 10px;
+		background: color-mix(in oklab, var(--color-surface-50, #f8fafc) 92%, transparent);
+		overflow: hidden;
+	}
+	:global(.dark) .section {
+		border-color: color-mix(in oklab, var(--color-surface-50, #f8fafc) 14%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900, #0f172a) 65%, transparent);
+	}
+	.section + .section {
+		margin-top: 8px;
+	}
+	.section__summary {
+		cursor: pointer;
+		list-style: none;
+		padding: 8px 10px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-surface-800, #1e293b);
+		background: color-mix(in oklab, var(--color-surface-50, #f8fafc) 80%, transparent);
+		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-900, #0f172a) 8%, transparent);
+	}
+	:global(.dark) .section__summary {
+		color: var(--color-surface-100, #f1f5f9);
+		background: color-mix(in oklab, var(--color-surface-900, #0f172a) 75%, transparent);
+		border-color: color-mix(in oklab, var(--color-surface-50, #f8fafc) 14%, transparent);
+	}
+	.items {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+		gap: 6px;
+		padding: 8px;
 	}
 </style>

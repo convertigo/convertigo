@@ -1,6 +1,6 @@
 <script>
 	import { base } from '$app/paths';
-	import { onMount } from 'svelte';
+	import { fromAction } from 'svelte/attachments';
 
 	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean}} */
 	let {
@@ -10,19 +10,7 @@
 		readOnly = true
 	} = $props();
 
-	let divEl = $state();
-	let editor = $state();
-
-	$effect.pre(() => {
-		if (editor) {
-			editor.updateOptions({
-				theme,
-				readOnly
-			});
-			editor.setValue(content);
-			globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), language);
-		}
-	});
+	const editorOptions = $derived.by(() => ({ content, language, theme, readOnly }));
 
 	const monacoBase = (
 		import.meta.env.VITE_MONACO_BASE ?? `${base.replace(/\/$/, '')}/monaco/vs`
@@ -85,33 +73,75 @@
 		return monacoLoader;
 	}
 
-	onMount(() => {
-		loadMonaco().then((Monaco) => {
-			globalThis.monaco = Monaco;
-			editor = Monaco.editor.create(divEl, {
-				value: content,
-				language: language,
-				theme: theme,
-				readOnly: readOnly
-			});
-			resize();
-		});
-
-		return () => {
-			editor?.dispose();
+	function normalizeOptions(value) {
+		return {
+			content: value?.content ?? '/* Loading... */',
+			language: value?.language ?? 'json',
+			theme: value?.theme ?? 'vs-dark',
+			readOnly: value?.readOnly ?? true
 		};
-	});
-
-	function resize() {
-		if (!editor) return;
-		editor.layout({ width: 0, height: 0 });
-		window.requestAnimationFrame(() => {
-			const rect = divEl.parentElement.getBoundingClientRect();
-			editor.layout(rect);
-		});
 	}
+
+	/**
+	 * @param {HTMLDivElement} node
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean}} value
+	 */
+	function mountMonaco(node, value) {
+		/** @type {any} */
+		let editor;
+		/** @type {ResizeObserver | undefined} */
+		let resizeObserver;
+		let disposed = false;
+		let pending = normalizeOptions(value);
+
+		function layout() {
+			if (!editor) return;
+			const rect = node.getBoundingClientRect();
+			editor.layout({ width: rect.width, height: rect.height });
+		}
+
+		function apply(nextValue) {
+			pending = normalizeOptions(nextValue);
+			if (!editor) return;
+			editor.updateOptions({ theme: pending.theme, readOnly: pending.readOnly });
+			if (editor.getValue() !== pending.content) {
+				editor.setValue(pending.content);
+			}
+			globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), pending.language);
+			layout();
+		}
+
+		loadMonaco()
+			.then((Monaco) => {
+				if (disposed) return;
+				globalThis.monaco = Monaco;
+				editor = Monaco.editor.create(node, {
+					value: pending.content,
+					language: pending.language,
+					theme: pending.theme,
+					readOnly: pending.readOnly,
+					automaticLayout: false
+				});
+
+				resizeObserver = new ResizeObserver(() => layout());
+				resizeObserver.observe(node);
+				apply(pending);
+			})
+			.catch(() => {});
+
+		return {
+			update(next) {
+				apply(next);
+			},
+			destroy() {
+				disposed = true;
+				resizeObserver?.disconnect();
+				editor?.dispose();
+			}
+		};
+	}
+
+	const attachEditor = $derived(fromAction(mountMonaco, () => editorOptions));
 </script>
 
-<div bind:this={divEl} style:width="100%"></div>
-
-<svelte:window onresize={resize} />
+<div class="h-full w-full" {@attach attachEditor}></div>

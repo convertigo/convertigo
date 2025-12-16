@@ -6,6 +6,13 @@
 	} from '@skeletonlabs/skeleton-svelte';
 	import TreeNode from './TreeNode.svelte';
 
+	/** @type {{ id: string; name: string; children: any[] }} */
+	const defaultRoot = {
+		id: 'root',
+		name: 'Root',
+		children: []
+	};
+
 	/** @type {any} */
 	const {
 		animationConfig = {
@@ -15,11 +22,7 @@
 		classes = '',
 		labelBase = 'text-lg font-semibold mb-2',
 		treeBase = '',
-		rootNode = {
-			id: 'root',
-			name: 'Root',
-			children: []
-		},
+		rootNode = defaultRoot,
 		controlClass = 'layout-x-low cursor-pointer',
 		textClass = 'text-sm',
 		indicatorClass = 'ml-auto text-muted',
@@ -32,22 +35,13 @@
 		...zagProps
 	} = $props();
 
-	const defaultRoot = {
-		id: 'root',
-		name: 'Root',
-		children: []
-	};
+	const rootKey = $derived.by(() => rootNode?.id ?? defaultRoot.id);
+	let loadedKey = $state('');
+	let loadedCollection = $state.raw(null);
 
-	let collection = $state(
-		createTreeViewCollection({
-			nodeToValue: (node) => node.id,
-			nodeToString: (node) => node.name,
-			rootNode: defaultRoot
-		})
-	);
-
-	$effect(() => {
-		collection = createTreeViewCollection({
+	const collection = $derived.by(() => {
+		if (loadedCollection && loadedKey === rootKey) return loadedCollection;
+		return createTreeViewCollection({
 			nodeToValue: (node) => node.id,
 			nodeToString: (node) => node.name,
 			rootNode
@@ -55,7 +49,8 @@
 	});
 
 	function onLoadChildrenComplete({ collection: c }) {
-		collection = c;
+		loadedKey = rootKey;
+		loadedCollection = c;
 	}
 
 	const id = $props.id();
@@ -127,5 +122,17 @@
 
 	:global(.convertigo-treeview [data-part='item']) {
 		padding-inline-start: calc(var(--depth) * var(--spacing) * var(--convertigo-tree-indent));
+	}
+
+	:global(.convertigo-treeview [data-part='branch-control'][data-selected]),
+	:global(.convertigo-treeview [data-part='item'][data-selected]) {
+		@apply preset-filled-primary-200-800 pr-2;
+	}
+
+	:global(
+		.convertigo-treeview [data-part='branch-control'][data-selected] [data-part='branch-text']
+	),
+	:global(.convertigo-treeview [data-part='item'][data-selected] [data-part='item-text']) {
+		@apply font-semibold;
 	}
 </style>

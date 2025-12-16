@@ -1,157 +1,141 @@
 <script>
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
 	import { selectedId } from '$lib/studio/treeview/treeStore';
-	import { onDestroy } from 'svelte';
-	import BooleanEditor from './editors/BooleanEditor.svelte';
-	import ListEditor from './editors/ListEditor.svelte';
-	import StaticEditor from './editors/StaticEditor.svelte';
-	import StringEditor from './editors/StringEditor.svelte';
-	import { dboProp, ionProp, properties, setDboProp } from './propertiesStore';
+	import { onDestroy, onMount, untrack } from 'svelte';
 
-	//import IonSmartEditor from './editors/IonSmartEditor.svelte.disable';
+	let openedCategories = $state(/** @type {string[]} */ ([]));
+	let clickedCategories = $state(/** @type {string[]} */ ([]));
 
-	let categories = $state({});
+	let { id, properties, categories, onSelectionChange, hasChanges, save, cancel } = $derived(
+		createDatabaseObjectProperties()
+	);
 
-	const unsubscribeProperties = properties.subscribe((value) => {
-		let cats = [
-			...new Set(
-				Object.values(value)
-					.map((item) => item['category'])
-					.sort()
-			)
-		];
+	let unsubscribeSelectedId;
 
-		categories = {};
-		cats.forEach((cat) => {
-			categories[cat] = [];
-		});
-		Object.entries($properties).forEach((entry) => {
-			let category = entry[1].category;
-			categories[category].push(entry);
-			categories[category].sort();
+	onMount(() => {
+		unsubscribeSelectedId = selectedId.subscribe((nextId) => {
+			if (!nextId || nextId === id) return;
+			void onSelectionChange({ selectedValue: [nextId] });
 		});
 	});
 
-	onDestroy(() => {
-		unsubscribeProperties;
-	});
+	onDestroy(() => unsubscribeSelectedId?.());
 
-	/**
-	 * @param {dboProp | ionProp} prop
-	 */
-	function getEditor(prop) {
-		if (prop) {
-			let propType = prop.kind === 'ion' ? prop.type : prop.class;
+	const propertyTableDefinition = [
+		{
+			key: 'displayName',
+			name: 'Name',
+			class: 'min-w-40 text-xs uppercase text-surface-600-400'
+		},
+		{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
+	];
 
-			let propValues = prop.values
-				? prop.values.filter((value) => {
-						return typeof value != 'boolean' && value != 'false' && value != 'true';
-					})
-				: [];
-
-			let propDisabled = prop.isDisabled ?? false;
-
-			// if (prop.kind === 'ion' || prop.editorClass === 'NgxSmartSourcePropertyDescriptor') {
-			// 	return IonSmartEditor;
-			// }
-
-			if (propValues.length > 0) {
-				return ListEditor;
-			}
-
-			switch (propType) {
-				case 'boolean':
-				case 'java.lang.Boolean':
-					return BooleanEditor;
-				default:
-					return propDisabled ? StaticEditor : StringEditor;
-			}
+	function getDefaultOpenedCategories() {
+		const open = categories.filter(
+			({ category, properties: rows }) => clickedCategories.includes(category) && rows.length > 0
+		);
+		if (open.length > 0) {
+			return open.map(({ category }) => category);
 		}
+		const first = categories.find(({ properties: rows }) => rows.length > 0);
+		return first ? [first.category] : [];
 	}
 
-	function findStoreProperty(propertyName) {
-		for (const [key, value] of Object.entries($properties)) {
-			if (value.name === propertyName) {
-				return value;
-			}
+	function getType(row) {
+		let { class: cls, value, values } = row;
+		if (row.symbols && value != row.originalValue) {
+			return 'text';
+		} else {
+			untrack(() => (row.symbols = false));
 		}
-		return undefined;
-	}
-
-	async function valueChanged(e) {
-		let propertyName = e.detail.name;
-		if (propertyName) {
-			let property = findStoreProperty(propertyName);
-			let oldProp = { ...property };
-			let newProp = { ...property, ...e.detail };
-
-			//console.log('@Properties valueChanged', newProp);
-			//let b = JSON.parse(JSON.stringify($properties))
-			//console.log('@Properties before', b);
-
-			let result = await setDboProp($selectedId, JSON.stringify(newProp));
-			if (result.done) {
-				let key = newProp.kind === 'dbo' ? newProp.displayName : newProp.label;
-				properties.update((m) => Object.assign({}, m, { [key]: newProp }));
-			} else {
-				let key = oldProp.kind === 'dbo' ? oldProp.displayName : oldProp.label;
-				properties.update((m) => Object.assign({}, m, { [key]: oldProp }));
-			}
-			//let a = JSON.parse(JSON.stringify($properties));
-			//console.log('@Properties after', a);
+		if (values && values.includes(value)) {
+			return values.length < 4 ? 'segment' : 'combo';
+		} else if (row.isMultiline) {
+			return 'array';
+		} else if (cls?.endsWith('Boolean')) {
+			return 'boolean';
+		} else if (cls?.endsWith('Integer') || cls?.endsWith('Long')) {
+			return 'number';
 		}
+		return 'text';
 	}
 </script>
 
-<!--<div class="table-container">
-	<table class="table table-hover table-compact">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Value</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each Object.entries($properties) as [name, prop] (JSON.stringify(prop))}
-				<tr>
-					<td>{name}</td>
-					<td
-						><svelte:component
-							this={getEditor(prop)}
-							{...prop}
-							on:valueChanged={valueChanged}
-						/></td
-					>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>-->
+<div class="layout-y-none h-full min-h-0 items-stretch">
+	<div class="pt-low px-low">
+		<SaveCancelButtons
+			class="w-full"
+			onSave={save}
+			onCancel={cancel}
+			changesPending={hasChanges}
+			disabled={properties.length == 0}
+		/>
+	</div>
 
-<div class="flex bg-surface-50 dark:bg-surface-800">
-	<Accordion caretOpen="rotate-0" caretClosed="-rotate-90" regionControl="preset-soft-primary">
-		<div>
-			{#each Object.entries(categories) as [category, items] (category)}
-				<AccordionItem open rounded="none">
-					<svelte:fragment slot="summary"
-						><b class="mt-5 text-[11.5px] font-light dark:text-surface-200">{category}</b
-						></svelte:fragment
-					>
-					<svelte:fragment slot="content">
-						{#each items as item (JSON.stringify(item[1]))}
-							{@const Editor = getEditor(item[1])}
-							<div
-								class="flex flex-row flex-nowrap text-[11.5px] text-surface-900 dark:font-light dark:text-surface-200"
+	<div class="min-h-0 grow overflow-auto px-low pb-low">
+		<AccordionGroup
+			class="w-full items-stretch !gap-0 !space-y-0"
+			value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
+			onValueChange={({ value }) => {
+				openedCategories = value;
+				clickedCategories = value;
+			}}
+			multiple
+		>
+			{#each categories as { category, properties: rows } (category)}
+				{@const total = rows.length}
+				<AccordionSection
+					value={category}
+					class="w-full rounded-container preset-filled-surface-50-950 shadow-follow"
+					triggerClass="rounded-container px py-low text-left"
+					panelClass="px-3 pb-4 bg-transparent"
+					disabled={total == 0}
+					title={category}
+					count={total}
+				>
+					{#snippet panel()}
+						{#if total === 0}
+							<p
+								class="rounded-xl border border-dashed border-surface-300-700/60 bg-surface-100-900/40 px-4 py-6 text-center text-sm text-surface-500"
 							>
-								<div class="ml-2.5 basis-1/3">{item[0]}</div>
-								<div class="basis-2/3 pl-1">
-									<Editor {...item[1]} onvalueChanged={valueChanged} />
-								</div>
-							</div>
-						{/each}
-					</svelte:fragment>
-				</AccordionItem>
+								No properties available for this section.
+							</p>
+						{:else}
+							<TableAutoCard
+								showHeaders={false}
+								showNothing={false}
+								trClass="transition-surface hover:bg-surface-200-800"
+								definition={propertyTableDefinition}
+								animationProps={{ duration: 120 }}
+								data={rows}
+							>
+								{#snippet children({ row })}
+									{@const { class: cls, value, originalValue, values } = row}
+									{#if category == 'Information'}
+										<span>{value}</span>
+									{:else if cls?.startsWith('java.lang.')}
+										{@const type = getType(row)}
+										<PropertyType
+											{type}
+											bind:value={() => value, (v) => (row.value = v)}
+											item={values}
+											{originalValue}
+											buttons={[]}
+										/>
+									{:else}
+										<span class="font-mon max-w-40 break-all">{row.value}</span>
+									{/if}
+								{/snippet}
+							</TableAutoCard>
+						{/if}
+					{/snippet}
+				</AccordionSection>
 			{/each}
-		</div>
-	</Accordion>
+		</AccordionGroup>
+	</div>
 </div>

@@ -42,31 +42,47 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<span
-	class="item-center hover:preset-filled-surface m-1 chip flex h-18 w-24 flex-col justify-center border-b border-surface-500 text-left hover:shadow-lg {item ===
-	selected
-		? 'preset-filled-primary'
-		: ''}"
+<button
+	type="button"
+	class={`palette-item ${item === selected ? 'palette-item--selected' : ''}`}
 	draggable="true"
 	ondragstart={handleDragStart}
 	ondragend={(event) => ($draggedData = undefined)}
 	onclick={onClick}
 >
-	{#if item.icon.includes('/')}
-		<span class="">
+	<div class="palette-item__iconWrap">
+		{#if item.icon?.includes('/')}
 			<AutoSvg
-				src="{getUrl()}studio.dbo.GetIcon?iconPath={item.icon}"
-				height="35px"
-				width="35px"
+				src={`${getUrl()}studio.dbo.GetIcon?iconPath=${item.icon}`}
+				class="h-10 w-10 object-contain"
 				fill="currentColor"
+				alt=""
 			/>
-		</span>
-	{/if}
-	<span class="mt-3 text-center whitespace-normal">
-		<span class="text-center text-[11.5px] font-extralight text-surface-900 dark:text-gray-100">
-			{item.name}
-		</span>
-	</span>
-</span>
+		{/if}
+	</div>
+	<span class="palette-item__name">{item.name}</span>
+</button>
+
+<style lang="postcss">
+	@reference "../../../app.css";
+
+	.palette-item {
+		@apply layout-y-none h-24 w-full items-center overflow-hidden rounded-base border border-surface-300-700 bg-surface-100-900/40 p-2 text-center transition-surface hover:bg-surface-200-800/60 hover:shadow-follow;
+	}
+
+	.palette-item--selected {
+		@apply border-primary-300-700/60 preset-filled-primary-200-800;
+	}
+
+	.palette-item__iconWrap {
+		@apply grid h-10 w-full place-items-center overflow-hidden;
+	}
+
+	.palette-item__name {
+		@apply mt-1 w-full text-[11px] leading-tight font-light text-surface-900 dark:text-gray-100;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+</style>
