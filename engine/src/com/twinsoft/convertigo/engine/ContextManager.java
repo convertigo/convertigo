@@ -287,7 +287,12 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public Context get(String contextID) {
-		return contexts.get(contextID);
+		var ctx = contexts.get(contextID);
+		if (ctx != null && ctx.isDestroying) {
+			contexts.remove(contextID, ctx);
+			return null;
+		}
+		return ctx;
 	}
 
 	private DevicePool getDevicePool(String poolID) {
@@ -550,14 +555,18 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
 		try {
 			Object o = SessionAttribute.contexts.get(httpSession);
-			if (o == null) {
-				return;
-			}
+			if (o != null) {
+				List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
 
-			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
-
-			for (Context context: contextList) {
-				remove(context);
+				for (Context context: contextList) {
+					remove(context);
+				}
+			} else {
+				for (String contextID: contexts.keySet()) {
+					if (contextID.startsWith(sessionID)) {
+						remove(contextID);
+					}
+				}
 			}
 		} catch (Exception e) {
 			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
@@ -570,6 +579,15 @@ public class ContextManager extends AbstractRunnableManager {
 				} catch (Exception e2) {
 					Engine.logContextManager.debug("Failed to removeAll for " + sessionID, e2);
 					// prevent exception propagation
+				}
+			}
+		} finally {
+			if (contextStore != null) {
+				try {
+					String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+					contextStore.deleteBySessionPrefix(prefix);
+				} catch (Exception e) {
+					Engine.logContextManager.debug("Failed to cleanup context store for " + sessionID, e);
 				}
 			}
 		}

@@ -66,7 +66,7 @@ public final class RedisSessionConfiguration {
     }
 
     String getAddress() {
-        String protocol = this.ssl ? "rediss" : "redis";
+        var protocol = this.ssl ? "rediss" : "redis";
         return protocol + "://" + this.host + ":" + this.port;
     }
 

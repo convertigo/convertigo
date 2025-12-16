@@ -22,6 +22,10 @@ package com.twinsoft.convertigo.engine.sessions;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
@@ -33,28 +37,130 @@ import com.twinsoft.convertigo.engine.Engine;
 @SuppressWarnings("deprecation")
 final class RedisHttpSession implements HttpSession, Serializable {
 	private static final long serialVersionUID = 1L;
+	private static final Object NULL = new Object();
 
-	private final SessionStore store;
-	private final ServletContext servletContext;
-	@SuppressWarnings("unused")
-	private final RedisSessionConfiguration configuration;
-	private final AtomicBoolean invalidated = new AtomicBoolean(false);
-	private final Object mutex = new Object();
-	private SessionData sessionData;
+	private final transient SessionStore store;
+	private final transient RedisSessionConfiguration configuration;
+	private final transient ServletContext servletContext;
+	private final transient SessionValueCodec codec = new SessionValueCodec();
+	private final transient AtomicBoolean invalidated = new AtomicBoolean(false);
+	private final transient Object mutex = new Object();
 
-	RedisHttpSession(SessionStore store, SessionData sessionData, ServletContext servletContext,
-			RedisSessionConfiguration configuration) {
+	private final String id;
+	private final long creationTime;
+	private long lastAccessedTime;
+	private int maxInactiveInterval;
+	private boolean isNew;
+
+	private boolean dirtyCreation;
+	private boolean dirtyLastAccess;
+	private boolean dirtyMaxInactive;
+
+	private final Map<String, Object> cache = new HashMap<>();
+	private final Set<String> dirtyAttributes = new HashSet<>();
+	private final Set<String> removedAttributes = new HashSet<>();
+
+	private RedisHttpSession(SessionStore store, RedisSessionConfiguration configuration, ServletContext servletContext, String id,
+			long creationTime, long lastAccessedTime, int maxInactiveInterval, boolean isNew) {
 		this.store = store;
-		this.sessionData = sessionData;
-		this.servletContext = servletContext;
 		this.configuration = configuration;
+		this.servletContext = servletContext;
+		this.id = id;
+		this.creationTime = creationTime;
+		this.lastAccessedTime = lastAccessedTime;
+		this.maxInactiveInterval = maxInactiveInterval;
+		this.isNew = isNew;
+	}
+
+	static RedisHttpSession newSession(SessionStore store, ServletContext servletContext,
+			RedisSessionConfiguration configuration, String id) {
+		var now = System.currentTimeMillis();
+		var session = new RedisHttpSession(store, configuration, servletContext, id, now, now, configuration.getDefaultTtlSeconds(),
+				true);
+		session.dirtyCreation = true;
+		session.dirtyLastAccess = true;
+		session.dirtyMaxInactive = true;
+		return session;
+	}
+
+	static RedisHttpSession fromMeta(SessionStore store, ServletContext servletContext, RedisSessionConfiguration configuration,
+			String id, SessionStoreMeta meta) {
+		return new RedisHttpSession(store, configuration, servletContext, id, meta.creationTime(), meta.lastAccessedTime(),
+				meta.maxInactiveInterval(), false);
 	}
 
 	void markAccessed() {
 		synchronized (mutex) {
 			ensureValid();
-			sessionData.touch();
-			store.save(sessionData);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
+		}
+	}
+
+	void flush() {
+		synchronized (mutex) {
+			if (invalidated.get()) {
+				return;
+			}
+			var hset = new HashMap<String, String>();
+			var hdel = new HashSet<String>();
+
+			if (dirtyCreation) {
+				hset.put(SessionStoreKeys.META_CREATION, Long.toString(creationTime));
+			}
+			if (dirtyLastAccess) {
+				hset.put(SessionStoreKeys.META_LAST_ACCESS, Long.toString(lastAccessedTime));
+			}
+			if (dirtyMaxInactive) {
+				hset.put(SessionStoreKeys.META_MAX_INACTIVE, Integer.toString(maxInactiveInterval));
+			}
+
+			for (var name : removedAttributes) {
+				if (name != null) {
+					hdel.add(name);
+				}
+			}
+
+			for (var name : dirtyAttributes) {
+				if (name == null) {
+					continue;
+				}
+				if (removedAttributes.contains(name)) {
+					continue;
+				}
+				var value = cache.get(name);
+				value = value == NULL ? null : value;
+				value = SessionAttributeFilter.sanitizeValue(this, name, value);
+				if (value == null) {
+					hdel.add(name);
+					cache.put(name, NULL);
+					continue;
+				}
+				try {
+					hset.put(name, codec.serialize(name, value));
+				} catch (Exception e) {
+					log("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
+					hdel.add(name);
+					cache.put(name, NULL);
+				}
+			}
+
+			hdel.remove(SessionStoreKeys.META_CREATION);
+			hdel.remove(SessionStoreKeys.META_LAST_ACCESS);
+			hdel.remove(SessionStoreKeys.META_MAX_INACTIVE);
+
+			var ttlSeconds = maxInactiveInterval > 0 ? maxInactiveInterval : configuration.getDefaultTtlSeconds();
+			var ttlMillis = ttlSeconds > 0 ? ttlSeconds * 1000L : 0L;
+			if (!hset.isEmpty() || !hdel.isEmpty() || ttlMillis > 0) {
+				store.writeDelta(id, hset, hdel, ttlMillis);
+			}
+
+			dirtyCreation = false;
+			dirtyLastAccess = false;
+			dirtyMaxInactive = false;
+			dirtyAttributes.clear();
+			removedAttributes.clear();
+			isNew = false;
 		}
 	}
 
@@ -62,23 +168,20 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public long getCreationTime() {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.getCreationTime();
+			return creationTime;
 		}
 	}
 
 	@Override
 	public String getId() {
-		synchronized (mutex) {
-			ensureValid();
-			return sessionData.getId();
-		}
+		return id;
 	}
 
 	@Override
 	public long getLastAccessedTime() {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.getLastAccessedTime();
+			return lastAccessedTime;
 		}
 	}
 
@@ -91,8 +194,8 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public void setMaxInactiveInterval(int interval) {
 		synchronized (mutex) {
 			ensureValid();
-			sessionData.setMaxInactiveInterval(interval);
-			store.save(sessionData);
+			maxInactiveInterval = interval;
+			dirtyMaxInactive = true;
 		}
 	}
 
@@ -100,7 +203,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public int getMaxInactiveInterval() {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.getMaxInactiveInterval();
+			return maxInactiveInterval;
 		}
 	}
 
@@ -113,7 +216,30 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public Object getAttribute(String name) {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.getAttribute(name);
+			if (name == null) {
+				return null;
+			}
+			if (removedAttributes.contains(name)) {
+				return null;
+			}
+			if (cache.containsKey(name)) {
+				var v = cache.get(name);
+				return v == NULL ? null : v;
+			}
+			var raw = store.readAttribute(id, name);
+			if (raw == null) {
+				cache.put(name, NULL);
+				return null;
+			}
+			try {
+				var value = codec.deserialize(name, raw);
+				cache.put(name, value != null ? value : NULL);
+				return value;
+			} catch (Exception e) {
+				log("(RedisHttpSession) Failed to deserialize attribute '" + name + "'", e);
+				cache.put(name, NULL);
+				return null;
+			}
 		}
 	}
 
@@ -126,26 +252,40 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public Enumeration<String> getAttributeNames() {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.getAttributeNames();
+			var names = new HashSet<String>();
+			try {
+				names.addAll(store.readAttributeNames(id));
+			} catch (Exception ignore) {
+				// ignore
+			}
+			for (var entry : cache.entrySet()) {
+				if (entry.getKey() != null && entry.getValue() != NULL) {
+					names.add(entry.getKey());
+				}
+			}
+			names.removeAll(removedAttributes);
+			names.removeIf(name -> name == null || name.startsWith(SessionStoreKeys.META_PREFIX));
+			return Collections.enumeration(names);
 		}
 	}
 
 	@Override
 	public String[] getValueNames() {
-		synchronized (mutex) {
-			ensureValid();
-			var enumeration = sessionData.getAttributeNames();
-			return Collections.list(enumeration).toArray(String[]::new);
-		}
+		return Collections.list(getAttributeNames()).toArray(String[]::new);
 	}
 
 	@Override
 	public void setAttribute(String name, Object value) {
 		synchronized (mutex) {
 			ensureValid();
-			sessionData.setAttribute(name, value);
-			sessionData.touch();
-			store.save(sessionData);
+			if (name == null) {
+				return;
+			}
+			cache.put(name, value != null ? value : NULL);
+			dirtyAttributes.add(name);
+			removedAttributes.remove(name);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
 		}
 	}
 
@@ -158,9 +298,14 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public void removeAttribute(String name) {
 		synchronized (mutex) {
 			ensureValid();
-			sessionData.removeAttribute(name);
-			sessionData.touch();
-			store.save(sessionData);
+			if (name == null) {
+				return;
+			}
+			cache.put(name, NULL);
+			removedAttributes.add(name);
+			dirtyAttributes.remove(name);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
 		}
 	}
 
@@ -173,10 +318,15 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public void invalidate() {
 		if (invalidated.compareAndSet(false, true)) {
 			try {
-				store.delete(sessionData.getId());
-				sessionData = null;
+				store.delete(id);
 			} catch (Exception e) {
 				log("(RedisHttpSession) Failed to invalidate session", e);
+			} finally {
+				synchronized (mutex) {
+					cache.clear();
+					dirtyAttributes.clear();
+					removedAttributes.clear();
+				}
 			}
 		}
 	}
@@ -185,8 +335,12 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	public boolean isNew() {
 		synchronized (mutex) {
 			ensureValid();
-			return sessionData.isNew();
+			return isNew;
 		}
+	}
+
+	boolean isInvalidatedInternal() {
+		return invalidated.get();
 	}
 
 	private void ensureValid() {
@@ -195,17 +349,17 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 	}
 
-	boolean isInvalidatedInternal() {
-		return invalidated.get();
-	}
-
 	private void log(String message, Exception e) {
 		try {
 			if (Engine.logEngine != null) {
-				Engine.logEngine.warn(message, e);
+				if (e == null) {
+					Engine.logEngine.warn(message);
+				} else {
+					Engine.logEngine.warn(message, e);
+				}
 			}
 		} catch (Exception ignore) {
-			// ignore logging failures
+			// ignore
 		}
 	}
 }

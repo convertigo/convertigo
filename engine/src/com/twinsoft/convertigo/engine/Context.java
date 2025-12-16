@@ -93,64 +93,64 @@ public class Context extends AbstractContext implements Cloneable {
 	public String name;
 
 	public CacheEntry cacheEntry;
-	public boolean noCache = false;
+	public transient boolean noCache = false;
 
-	public boolean isDestroying = false;
-	public boolean isErrorDocument = false;
+	public transient boolean isDestroying = false;
+	public transient boolean isErrorDocument = false;
 
-	public boolean isXsltRequest = false;
+	public transient boolean isXsltRequest = false;
 
-	public boolean isAsync;
-	public boolean isStubRequested;
-	public int waitingRequests = 0;
+	public transient boolean isAsync;
+	public transient boolean isStubRequested;
+	public transient int waitingRequests = 0;
 
-	public boolean isNewSession;
-	public boolean isRequestFromVic = false;
-	public boolean isTrustedRequest = false;
+	public transient boolean isNewSession;
+	public transient boolean isRequestFromVic = false;
+	public transient boolean isTrustedRequest = false;
 
-	public long documentSignatureSent = 0;
-	public long documentSignatureReceived = 0;
+	public transient long documentSignatureSent = 0;
+	public transient long documentSignatureReceived = 0;
 
 	public transient EngineStatistics statistics = new EngineStatistics();
 
-	public Map<String, Block> previousFields = new HashMap<String, Block>();
+	public transient Map<String, Block> previousFields = new HashMap<String, Block>();
 
 	public String absoluteSheetUrl;
 	public String sheetUrl;
-	public String contentType;
-	public String cacheControl;
+	public transient String contentType;
+	public transient String cacheControl;
 
 	public transient Project project;
 	public transient Connector connector;
 	public transient Pool pool;
-	public int poolContextNumber;
-	public String projectName;
-	public String sequenceName;
-	public String transactionName;
-	public String connectorName;
+	public transient int poolContextNumber;
+	public transient String projectName;
+	public transient String sequenceName;
+	public transient String transactionName;
+	public transient String connectorName;
 	public transient RequestableObject requestedObject;
 	public transient ISheetContainer lastDetectedObject;
 
-	public boolean removeNamespaces = false;
+	public transient boolean removeNamespaces = false;
 
 	// compatibility with older versions
 	public transient ScreenClass lastDetectedScreenClass = null;
 	public transient Transaction transaction = null;//
 
-	public String subPath = "";
+	public transient String subPath = "";
 
 	public transient HttpState httpState = null;
 	private transient Header[] responseHeaders = new Header[]{};
 	private transient TwsCachedXPathAPI xpathApi = null;
 
-	public boolean tasSessionKeyVerified = false;
+	public transient boolean tasSessionKeyVerified = false;
 
 	public transient SimpleMap server = Engine.theApp.getShareServerMap();
 
 	private transient Map<String, Connector> used_connectors = new HashMap<String, Connector>();
 	private transient Set<Connector> opened_connectors = new HashSet<Connector>();
 
-	private boolean requireRemoval = false;
+	private transient boolean requireRemoval = false;
 
 	private transient Map<String, List<String>> requestHeaders = null;
 
@@ -561,11 +561,37 @@ public class Context extends AbstractContext implements Cloneable {
 	public void requireRemoval(boolean remove) {
 		this.requireRemoval = remove;
 	}
-
+	
 	public boolean removalRequired() {
 		return this.requireRemoval && !this.isDestroying;
 	}
 
+	public boolean isMarkedForRemoval() {
+		return this.isDestroying || this.requireEndOfContext || removalRequired();
+	}
+
+	public boolean willRemoveContext(String removeContextParam) {
+		if (this.isDestroying || this.requireEndOfContext) {
+			return true;
+		}
+		if (removeContextParam != null) {
+			return !"false".equals(removeContextParam);
+		}
+		return removalRequired();
+	}
+
+	public boolean willRemoveContext() {
+		String removeContextParam = null;
+		try {
+			if (httpServletRequest != null) {
+				removeContextParam = httpServletRequest.getParameter(Parameter.RemoveContext.getName());
+			}
+		} catch (Exception ignore) {
+			// ignore
+		}
+		return willRemoveContext(removeContextParam);
+	}
+	
 	public String getLogFilename(){
 		Timestamp ts = new Timestamp(System.currentTimeMillis());
 		String escapedContextID = contextID;

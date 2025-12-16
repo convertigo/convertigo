@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.HashMap;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -27,15 +29,14 @@ import com.twinsoft.convertigo.engine.Engine;
 
 final class RedisSessionProvider implements SessionProvider {
 	private final SessionStore store;
-	private final BufferedSessionStore bufferedStore;
 	private final RedisSessionConfiguration configuration;
 	private final SessionCookieHelper cookieHelper = new SessionCookieHelper();
 	private static final String REQUEST_SESSION_OBJECT_ATTR = "convertigo.redis.session";
+	private final ThreadLocal<HashMap<String, RedisHttpSession>> threadSessions = ThreadLocal.withInitial(HashMap::new);
 
 	RedisSessionProvider() {
 		configuration = RedisSessionConfiguration.fromProperties();
-		store = new RedisHashSessionStore(configuration);
-		bufferedStore = new BufferedSessionStore(store);
+		store = new RedisSessionStore(configuration);
 		registerShutdownHook();
 	}
 
@@ -57,26 +58,27 @@ final class RedisSessionProvider implements SessionProvider {
 		// Reuse session created earlier in the same request to avoid double-creation.
 		var sessionId = cookieHelper.resolveSessionId(request, configuration.getCookieName());
 		debug("Incoming sessionId=" + sessionId + ", create=" + create);
-		SessionData data = null;
+		SessionStoreMeta meta = null;
 		if (sessionId != null) {
-			data = currentStore().read(sessionId);
-			debug("Read session " + sessionId + ": " + (data != null ? "hit" : "miss"));
+			meta = store.readMeta(sessionId);
+			debug("Read session meta " + sessionId + ": " + (meta != null ? "hit" : "miss"));
 		}
-		if (data == null) {
+		RedisHttpSession session = null;
+		if (meta != null) {
+			session = RedisHttpSession.fromMeta(store, request.getServletContext(), configuration, sessionId, meta);
+		}
+		if (session == null) {
 			if (!create) {
 				debug("No existing session and create=false");
 				return null;
 			}
 			sessionId = cookieHelper.generateSessionId();
-			data = SessionData.newSession(sessionId, configuration.getDefaultTtlSeconds());
-			// Touch & persist immediately to avoid losing the first attribute write on a fresh session.
-			data.touch();
-			currentStore().save(data);
-			debug("Created new session " + sessionId + " (touched+saved) [redis-hash]");
+			session = RedisHttpSession.newSession(store, request.getServletContext(), configuration, sessionId);
+			debug("Created new session " + sessionId + " [redis-hash]");
 		}
-		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
-		var session = new RedisHttpSession(currentStore(), data, request.getServletContext(), configuration);
 		session.markAccessed();
+		threadSessions.get().put(session.getId(), session);
+		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
 		request.setAttribute(REQUEST_SESSION_OBJECT_ATTR, session);
 		return session;
 	}
@@ -84,7 +86,7 @@ final class RedisSessionProvider implements SessionProvider {
 	private void registerShutdownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
-				currentStore().shutdown();
+				store.shutdown();
 			} catch (Exception e) {
 				if (Engine.logEngine != null) {
 					Engine.logEngine.error("(RedisSessionProvider) Failed to shutdown cleanly", e);
@@ -103,14 +105,22 @@ final class RedisSessionProvider implements SessionProvider {
 		}
 	}
 
-	private SessionStore currentStore() {
-		return bufferedStore;
-	}
-
 	@Override
 	public void flushBuffers() {
-		if (bufferedStore != null) {
-			bufferedStore.flushThread();
+		var sessions = threadSessions.get();
+		if (sessions.isEmpty()) {
+			return;
+		}
+		try {
+			for (var session : sessions.values()) {
+				try {
+					session.flush();
+				} catch (Exception e) {
+					debug("flush session failed: " + e.getMessage());
+				}
+			}
+		} finally {
+			sessions.clear();
 		}
 	}
 }

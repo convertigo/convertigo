@@ -19,19 +19,16 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-import java.util.Map;
-import java.util.Set;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface SessionStore {
-	SessionStoreMeta readMeta(String sessionId);
-
-	String readAttribute(String sessionId, String name);
-
-	Set<String> readAttributeNames(String sessionId);
-
-	void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis);
-
-	void delete(String sessionId);
-
-	void shutdown();
+/**
+ * Overrides the persisted field name for reflective serialization.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface StoreName {
+	String value();
 }

@@ -19,19 +19,12 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public interface SessionStore {
-	SessionStoreMeta readMeta(String sessionId);
+final class JsonCodec {
+	static final ObjectMapper MAPPER = new ObjectMapper();
 
-	String readAttribute(String sessionId, String name);
-
-	Set<String> readAttributeNames(String sessionId);
-
-	void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis);
-
-	void delete(String sessionId);
-
-	void shutdown();
+	private JsonCodec() {
+	}
 }
+

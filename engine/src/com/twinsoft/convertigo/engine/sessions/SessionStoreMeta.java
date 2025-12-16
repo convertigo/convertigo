@@ -19,19 +19,6 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-import java.util.Map;
-import java.util.Set;
-
-public interface SessionStore {
-	SessionStoreMeta readMeta(String sessionId);
-
-	String readAttribute(String sessionId, String name);
-
-	Set<String> readAttributeNames(String sessionId);
-
-	void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis);
-
-	void delete(String sessionId);
-
-	void shutdown();
+public record SessionStoreMeta(long creationTime, long lastAccessedTime, int maxInactiveInterval) {
 }
+

@@ -208,18 +208,19 @@ public abstract class GenericRequester extends Requester {
     }
 
 	@Override
-    public final Object processRequest(Object inputData) throws Exception {
-        if (Engine.theApp == null) throw new EngineException("Unable to process the request: the Convertigo engine is not started!");
+	public final Object processRequest(Object inputData) throws Exception {
+	        if (Engine.theApp == null) throw new EngineException("Unable to process the request: the Convertigo engine is not started!");
 
-		Object result = null;
-		boolean needRetry;
-		boolean addStatistics = false;
+			Object result = null;
+			boolean needRetry;
+			boolean addStatistics = false;
+			boolean shouldEvictFromCache = false;
 
-    	try {
-    		do {
-    			needRetry = false;
-				this.inputData = inputData;
-				context = getContext();
+	    	try {
+	    		do {
+	    			needRetry = false;
+					this.inputData = inputData;
+					context = getContext();
 	
 				Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
 	
@@ -279,25 +280,28 @@ public abstract class GenericRequester extends Requester {
 						
 						result = coreProcessRequest();
 						result = getTranslator().buildOutputData(context, result);
-		            } finally {
-	    				if (context != null) {
-	    					context.statistics.stop(t);
-	    				
-	    				// Bugfix for #853 (Tomcat looses parameters without any explanation)
-	    				// Remove the request and session references from the context
-	    				// Moved here by #2254
-		    				Engine.logContext.trace("Bugfix #853, #2254");
-		    				Engine.logContext.trace("context=" + context);
-	    					Engine.logContext.trace("Removing request and session objects from the context");
-	    					if (context.requestedObject != null) {
-	    						addStatistics = context.requestedObject.getAddStatistics();
-	    					}
-	    					context.clearRequest();
-	    				}
-		            }
-				}
-    		} while (needRetry);
-    	} finally {    		
+			            } finally {
+		    				if (context != null) {
+		    					context.statistics.stop(t);
+		    				
+		    				// Bugfix for #853 (Tomcat looses parameters without any explanation)
+		    				// Remove the request and session references from the context
+		    				// Moved here by #2254
+			    				Engine.logContext.trace("Bugfix #853, #2254");
+			    				Engine.logContext.trace("context=" + context);
+		    					Engine.logContext.trace("Removing request and session objects from the context");
+		    					if (context.requestedObject != null) {
+		    						addStatistics = context.requestedObject.getAddStatistics();
+		    					}
+		    					if (ConvertigoHttpSessionManager.isRedisMode()) {
+		    						shouldEvictFromCache = !context.willRemoveContext();
+		    					}
+		    					context.clearRequest();
+		    				}
+			            }
+					}
+	    		} while (needRetry);
+	    	} finally {    		
     		if (context != null) {
     			String stats = null;
     			
@@ -312,18 +316,18 @@ public abstract class GenericRequester extends Requester {
     				result = addStatisticsAsText(stats, result);
     			}
     			
-			if (addStatistics) {
-				// Requestable data statistics
-				addStatisticsAsData(result);
+				if (addStatistics) {
+					// Requestable data statistics
+					addStatisticsAsData(result);
+				}
+				context.waitingRequests--;
+	    		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
+	    		if (shouldEvictFromCache) {
+	    			Engine.theApp.contextManager.evictFromCache(context);
+	    		}
 			}
-			context.waitingRequests--;
-    		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
-    		if (ConvertigoHttpSessionManager.isRedisMode()) {
-    			Engine.theApp.contextManager.evictFromCache(context);
-    		}
-		}
-		Engine.logContext.debug("[" + getName() + "] end of request");
-		
+			Engine.logContext.debug("[" + getName() + "] end of request");
+			
 		// Remove all MDC values for clean release of the thread
 		Log4jHelper.mdcClear();
     	}
