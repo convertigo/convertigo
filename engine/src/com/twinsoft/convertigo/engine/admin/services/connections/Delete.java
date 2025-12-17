@@ -28,7 +28,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
-import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 
 @ServiceDefinition(
 		name = "Delete",
@@ -37,22 +37,44 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 		returnValue = ""
 	)
 public class Delete extends XmlService {
+	private static final long TIMEOUT_MILLIS = 0L;
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		String contextName, sessionId;
-        if ((contextName = request.getParameter("contextName")) != null) {
-        	Engine.theApp.contextManager.remove(contextName);
-    		ServiceUtils.addMessage(document, "Context '" + contextName + "' removed", "success");
-        } else if ((sessionId = request.getParameter("sessionId")) != null) {
-        	HttpSessionListener.terminateSession(sessionId);
-    		ServiceUtils.addMessage(document, "Session '" + sessionId + "' removed", "success");
-        } else if ("true".equals(request.getParameter("removeAll"))) {
-        	HttpSessionListener.removeAllSession();
-        	Engine.theApp.contextManager.removeAll();
-    		ServiceUtils.addMessage(document, "All contexts and sessions removed", "success");
-        } else {
-        	throw new IllegalArgumentException();
-        }
-	}
+		String contextName = request.getParameter("contextName");
+		if (contextName != null) {
+			boolean ok = Engine.theApp.contextManager.tryRemove(contextName, TIMEOUT_MILLIS);
+			if (ok) {
+				ServiceUtils.addMessage(document, "Context '" + contextName + "' removed", "success");
+			} else if (Engine.theApp.contextManager.requestAbort(contextName)) {
+				ServiceUtils.addMessage(document, "Context '" + contextName + "' abort requested", "success");
+			} else {
+				ServiceUtils.addMessage(document, "Context '" + contextName + "' is busy", "warning");
+			}
+			return;
+		}
 
+		String sessionId = request.getParameter("sessionId");
+		if (sessionId != null) {
+			boolean ok = ConvertigoHttpSessionManager.getInstance().tryTerminateSession(sessionId, TIMEOUT_MILLIS);
+			if (ok) {
+				ServiceUtils.addMessage(document, "Session '" + sessionId + "' removed", "success");
+			} else if (Engine.theApp.contextManager.requestAbortAll(sessionId)) {
+				ServiceUtils.addMessage(document, "Session '" + sessionId + "' abort requested", "success");
+			} else {
+				ServiceUtils.addMessage(document, "Session '" + sessionId + "' is busy", "warning");
+			}
+			return;
+		}
+
+		if ("true".equals(request.getParameter("removeAll"))) {
+			Engine.theApp.contextManager.removeAll();
+			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().terminateAllSessions();
+			ServiceUtils.addMessage(document,
+					"All contexts removed, sessions removed: " + sessionsRemoved,
+					"success");
+			return;
+		}
+
+		throw new IllegalArgumentException();
+	}
 }

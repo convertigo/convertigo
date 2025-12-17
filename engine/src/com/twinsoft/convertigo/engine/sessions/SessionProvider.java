@@ -31,4 +31,18 @@ public interface SessionProvider {
 	default void flushBuffers() {
 		// no-op
 	}
+
+	/**
+	 * Optional hook to terminate a session by id (admin tools).
+	 */
+	default boolean terminateSession(String sessionId) {
+		return false;
+	}
+
+	/**
+	 * Optional hook to terminate all sessions (admin tools).
+	 */
+	default int terminateAllSessions() {
+		return 0;
+	}
 }

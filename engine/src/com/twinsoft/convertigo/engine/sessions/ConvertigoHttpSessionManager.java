@@ -59,6 +59,118 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		return getInstance().getStoreMode() == SessionStoreMode.tomcat;
 	}
 
+	public boolean tryTerminateSession(String sessionId, long timeoutMillis) {
+		if (sessionId == null || sessionId.isBlank()) {
+			return false;
+		}
+		try {
+			if (Engine.theApp != null && Engine.theApp.contextManager != null) {
+				boolean ok = Engine.theApp.contextManager.tryRemoveAll(sessionId, timeoutMillis);
+				if (!ok) {
+					return false;
+				}
+			}
+		} catch (Exception ignore) {
+			// ignore context cleanup failures
+		}
+		try {
+			if (provider == null) {
+				return false;
+			}
+			if (storeMode == SessionStoreMode.redis) {
+				return provider.terminateSession(sessionId);
+			}
+			return provider.terminateSession(sessionId);
+		} catch (Exception e) {
+			debug("tryTerminateSession failed: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public int terminateAllSessions() {
+		try {
+			if (provider == null) {
+				return 0;
+			}
+			if (storeMode != SessionStoreMode.redis) {
+				return provider.terminateAllSessions();
+			}
+			var cfg = RedisClients.getConfiguration();
+			var client = RedisClients.getClient();
+			String sessionsIndexKey = cfg.getContextKeyPrefix() + "index:sessions";
+			String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
+			org.redisson.api.RSet<String> sessionsIndex = client.getSet(sessionsIndexKey, org.redisson.client.codec.StringCodec.INSTANCE);
+			org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, org.redisson.client.codec.StringCodec.INSTANCE);
+
+			java.util.Set<String> sessionsToSkip = new java.util.HashSet<>();
+			try {
+				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
+					var allContextIds = new java.util.HashSet<String>(contextsIndex.readAll());
+					try {
+						String inflightKey = cfg.getContextKeyPrefix() + "inflight:contexts";
+						org.redisson.api.RMapCache<String, String> inflightContexts = client.getMapCache(inflightKey,
+								org.redisson.client.codec.StringCodec.INSTANCE);
+						allContextIds.addAll(inflightContexts.readAllKeySet());
+					} catch (Exception ignore) {
+						// ignore inflight read failures
+					}
+					for (String contextId : allContextIds) {
+						if (contextId == null || contextId.isBlank()) {
+							continue;
+						}
+						var sid = extractSessionId(contextId);
+						if (sid == null) {
+							continue;
+						}
+						var lock = Engine.theApp.contextManager.tryLockContext(contextId, 0L);
+						if (lock == null) {
+							sessionsToSkip.add(sid);
+						} else {
+							try {
+								lock.close();
+							} catch (Exception ignore) {
+							}
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore busy detection failures
+			}
+
+			int removed = 0;
+			for (String sessionId : sessionsIndex.readAll()) {
+				if (sessionId == null || sessionId.isBlank()) {
+					continue;
+				}
+				if (sessionsToSkip.contains(sessionId)) {
+					continue;
+				}
+				try {
+					if (provider.terminateSession(sessionId)) {
+						removed++;
+					}
+				} catch (Exception ignore) {
+					// ignore
+				}
+			}
+			return removed;
+		} catch (Exception e) {
+			debug("terminateAllSessions failed: " + e.getMessage());
+			return 0;
+		}
+	}
+
+	private static String extractSessionId(String contextId) {
+		if (contextId == null) {
+			return null;
+		}
+		int idx = contextId.indexOf('_');
+		if (idx <= 0) {
+			return null;
+		}
+		return contextId.substring(0, idx);
+	}
+
 	public void flushBuffers() {
 		try {
 			if (provider != null) {

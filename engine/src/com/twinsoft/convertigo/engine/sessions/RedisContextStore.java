@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 
 import org.apache.commons.httpclient.Cookie;
@@ -28,6 +27,7 @@ import org.apache.commons.httpclient.HttpState;
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 
 public final class RedisContextStore implements ContextStore {
+	private static final String INDEX_CONTEXTS = "index:contexts";
 	private static final String DATA_PREFIX = "__data:";
 
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
@@ -52,10 +53,12 @@ public final class RedisContextStore implements ContextStore {
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
 	private final StoreSerializer serializer = new StoreSerializer();
+	private final RSet<String> contextsIndex;
 
 	public RedisContextStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
 		this.client = createClient(configuration);
+		this.contextsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS, StringCodec.INSTANCE);
 	}
 
 	private RMap<String, String> map(String contextId) {
@@ -180,6 +183,7 @@ public final class RedisContextStore implements ContextStore {
 		}
 		try {
 			var snapshot = serializer.serialize(context);
+			addAdminMeta(context, snapshot);
 			persistContextData(context, snapshot);
 			var httpState = context.httpState;
 			if (httpState != null) {
@@ -257,9 +261,14 @@ public final class RedisContextStore implements ContextStore {
 			args.add(delCount);
 			args.addAll(toRemove);
 
-			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
-					RScript.ReturnType.VALUE, Collections.singletonList(configuration.contextKey(context.contextID)),
-					args.toArray());
+			String ctxKey = configuration.contextKey(context.contextID);
+			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE,
+					java.util.Collections.singletonList(ctxKey), args.toArray());
+			try {
+				contextsIndex.add(context.contextID);
+			} catch (Exception e) {
+				Engine.logEngine.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
+			}
 		} catch (Exception e) {
 			log("(RedisContextStore) Failed to save context " + context.contextID, e);
 		}
@@ -269,6 +278,11 @@ public final class RedisContextStore implements ContextStore {
 	public void delete(String contextId) {
 		try {
 			map(contextId).delete();
+			try {
+				contextsIndex.remove(contextId);
+			} catch (Exception e) {
+				Engine.logEngine.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
+			}
 		} catch (Exception e) {
 			log("(RedisContextStore) Failed to delete context " + contextId, e);
 		}
@@ -279,8 +293,16 @@ public final class RedisContextStore implements ContextStore {
 		try {
 			var prefix = this.configuration.getContextKeyPrefix() + "context:" + sessionIdPrefix;
 			var options = KeysScanOptions.defaults().pattern(prefix + "*");
+			var ctxKeyPrefix = this.configuration.getContextKeyPrefix() + "context:";
 			for (var key : this.client.getKeys().getKeys(options)) {
 				this.client.getMap(key, StringCodec.INSTANCE).delete();
+				try {
+					if (key != null && key.startsWith(ctxKeyPrefix)) {
+						contextsIndex.remove(key.substring(ctxKeyPrefix.length()));
+					}
+				} catch (Exception e) {
+					// ignore index cleanup failures
+				}
 			}
 		} catch (Exception e) {
 			log("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
@@ -352,6 +374,33 @@ public final class RedisContextStore implements ContextStore {
 				Engine.logEngine.debug("(RedisContextStore) Skip context value '" + key + "' (serialization failure) for context " + context.contextID, e);
 			}
 		}
+	}
+
+	private static void addAdminMeta(Context context, java.util.Map<String, String> snapshot) {
+		if (context == null || snapshot == null) {
+			return;
+		}
+		try {
+			putMeta(snapshot, "projectName", context.projectName);
+			putMeta(snapshot, "connectorName", context.connectorName);
+			putMeta(snapshot, "sequenceName", context.sequenceName);
+			putMeta(snapshot, "transactionName", context.transactionName);
+			putMeta(snapshot, "remoteHost", context.remoteHost);
+			putMeta(snapshot, "remoteAddr", context.remoteAddr);
+			putMeta(snapshot, "userAgent", context.userAgent);
+			putMeta(snapshot, "waitingRequests", context.waitingRequests);
+			String requested = context.transactionName != null ? context.transactionName : context.sequenceName;
+			putMeta(snapshot, "requested", requested);
+		} catch (Exception e) {
+			// ignore meta enrichment failures
+		}
+	}
+
+	private static void putMeta(java.util.Map<String, String> snapshot, String name, Object value) throws Exception {
+		if (name == null || name.isBlank() || value == null) {
+			return;
+		}
+		snapshot.put("__meta:" + name, JsonCodec.MAPPER.writeValueAsString(value));
 	}
 
 	private void log(String message, Exception e) {

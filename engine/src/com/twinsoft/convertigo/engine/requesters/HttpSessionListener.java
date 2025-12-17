@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
 
@@ -162,6 +163,14 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	}
 
 	static public void terminateSession(String httpSessionID) {
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				ConvertigoHttpSessionManager.getInstance().tryTerminateSession(httpSessionID, 0L);
+			} catch (Exception ignore) {
+				// ignore
+			}
+			return;
+		}
 		HttpSession session = httpSessions.get(httpSessionID);
 		if (session != null) {
 			HttpUtils.terminateSession(session, true);

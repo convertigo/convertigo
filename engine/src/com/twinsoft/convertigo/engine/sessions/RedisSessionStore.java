@@ -19,15 +19,17 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.redisson.Redisson;
+import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
@@ -36,21 +38,27 @@ import org.redisson.config.SingleServerConfig;
 import com.twinsoft.convertigo.engine.Engine;
 
 final class RedisSessionStore implements SessionStore {
+	private static final String INDEX_SESSIONS = "index:sessions";
+	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
-			+ "local key=KEYS[1]; local ttl=tonumber(ARGV[1]); local setCount=tonumber(ARGV[2]);\n"
+			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
+			+ "if redis.call('EXISTS', tomb) == 1 then return 0 end\n"
+			+ "local ttl=tonumber(ARGV[1]); local setCount=tonumber(ARGV[2]);\n"
 			+ "local idx=3;\n"
 			+ "if setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\n"
 			+ "local delCount=tonumber(ARGV[idx]); idx = idx + 1;\n"
 			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); end\n"
 			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
-			+ "return true\n";
+			+ "return 1\n";
 
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
+	private final RSet<String> sessionsIndex;
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
 		this.client = this.createClient(configuration);
+		this.sessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_SESSIONS, StringCodec.INSTANCE);
 	}
 
 	private RedissonClient createClient(RedisSessionConfiguration cfg) {
@@ -68,6 +76,14 @@ final class RedisSessionStore implements SessionStore {
 
 	private RMap<String, String> map(String sessionId) {
 		return this.client.getMap(this.configuration.key(sessionId), StringCodec.INSTANCE);
+	}
+
+	Set<String> readSessionIds() {
+		try {
+			return sessionsIndex.readAll();
+		} catch (Exception e) {
+			return Set.of();
+		}
 	}
 
 	@Override
@@ -148,8 +164,17 @@ final class RedisSessionStore implements SessionStore {
 				args.addAll(hdel);
 			}
 
-			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
-					RScript.ReturnType.VALUE, Collections.singletonList(configuration.key(sessionId)), args.toArray());
+			String key = configuration.key(sessionId);
+			String tombstone = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
+			Number written = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
+					RScript.ReturnType.INTEGER, java.util.List.of(key, tombstone), args.toArray());
+			try {
+				if (written != null && written.longValue() == 1L) {
+					sessionsIndex.add(sessionId);
+				}
+			} catch (Exception e) {
+				debug("Failed to update sessions index for " + sessionId + ": " + e.getMessage());
+			}
 			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
 				debug("FLUSH " + sessionId + " set=" + setCount + " del=" + delCount + " ttlMillis=" + ttlMillis);
 			}
@@ -161,7 +186,29 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public void delete(String sessionId) {
 		try {
+			try {
+				int ttlSeconds = configuration.getDefaultTtlSeconds();
+				try {
+					var raw = map(sessionId).get(SessionStoreKeys.META_MAX_INACTIVE);
+					if (raw != null) {
+						ttlSeconds = parseInt(raw, ttlSeconds);
+					}
+				} catch (Exception ignore) {
+					// ignore
+				}
+				ttlSeconds = Math.max(ttlSeconds, 60);
+				String tombstoneKey = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
+				RBucket<String> bucket = client.getBucket(tombstoneKey, StringCodec.INSTANCE);
+				bucket.set("1", Duration.ofSeconds(ttlSeconds));
+			} catch (Exception ignore) {
+				// ignore tombstone failures
+			}
 			map(sessionId).delete();
+			try {
+				sessionsIndex.remove(sessionId);
+			} catch (Exception e) {
+				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
+			}
 			debug("DEL(hash) " + sessionId);
 		} catch (Exception e) {
 			log("(RedisSessionStore) Failed to delete session " + sessionId, e);

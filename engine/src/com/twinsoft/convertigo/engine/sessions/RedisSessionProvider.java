@@ -123,4 +123,42 @@ final class RedisSessionProvider implements SessionProvider {
 			sessions.clear();
 		}
 	}
+
+	@Override
+	public boolean terminateSession(String sessionId) {
+		if (sessionId == null || sessionId.isBlank()) {
+			return false;
+		}
+		try {
+			store.delete(sessionId);
+			return true;
+		} catch (Exception e) {
+			debug("terminateSession failed: " + e.getMessage());
+			return false;
+		}
+	}
+
+	@Override
+	public int terminateAllSessions() {
+		if (!(store instanceof RedisSessionStore redisStore)) {
+			return 0;
+		}
+		int count = 0;
+		try {
+			for (var sessionId : redisStore.readSessionIds()) {
+				if (sessionId == null || sessionId.isBlank()) {
+					continue;
+				}
+				try {
+					store.delete(sessionId);
+					count++;
+				} catch (Exception e) {
+					debug("terminateAllSessions delete failed: " + e.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			debug("terminateAllSessions failed: " + e.getMessage());
+		}
+		return count;
+	}
 }

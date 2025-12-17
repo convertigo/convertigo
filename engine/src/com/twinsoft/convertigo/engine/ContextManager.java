@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,11 +38,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
+import org.redisson.api.RMapCache;
+import org.redisson.api.RLock;
+import org.redisson.api.RMap;
+import org.redisson.api.RTopic;
+import org.redisson.client.codec.StringCodec;
 
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -59,8 +69,10 @@ import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RedisClients;
 import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
 import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
+import com.twinsoft.convertigo.engine.sessions.StoreIgnore;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.tas.Key;
@@ -69,6 +81,8 @@ import com.twinsoft.twinj.iJavelin;
 import com.twinsoft.util.DevicePool;
 
 public class ContextManager extends AbstractRunnableManager {
+	private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+
 	private class MyPropertyChangeEventListener implements PropertyChangeEventListener{
 		public void onEvent(PropertyChangeEvent event) {
 			if (event.getKey() == PropertyName.POOL_MANAGER_TIMEOUT)
@@ -82,6 +96,9 @@ public class ContextManager extends AbstractRunnableManager {
 	public static final String CONTEXT_TYPE_UNKNOWN		= "";
 	public static final String CONTEXT_TYPE_TRANSACTION	= "C";
 	public static final String CONTEXT_TYPE_SEQUENCE 	= "S";
+	private static final String REDIS_CONTEXT_LOCK_PREFIX = "lock:context:";
+	private static final String REDIS_CONTEXT_ABORT_TOPIC = "topic:context:abort";
+	private static final String REDIS_CONTEXT_INFLIGHT_KEY = "inflight:contexts";
 
 
 	private Map<String, Context> contexts;
@@ -92,6 +109,15 @@ public class ContextManager extends AbstractRunnableManager {
 
 	private ContextStore contextStore;
 	private final Object contextCreationMutex = new Object();
+	private final ConcurrentHashMap<String, ContextLockEntry> contextLocks = new ConcurrentHashMap<>();
+	private transient RTopic abortTopic;
+	private transient int abortTopicListenerId = -1;
+	private transient RMapCache<String, String> inflightContexts;
+
+	private static final class ContextLockEntry {
+		final ReentrantLock lock = new ReentrantLock();
+		final AtomicInteger refs = new AtomicInteger();
+	}
 
 	public void init() throws EngineException {
 		Engine.logContextManager.info("ContextManager initialization...");
@@ -102,6 +128,8 @@ public class ContextManager extends AbstractRunnableManager {
 			if (ConvertigoHttpSessionManager.isRedisMode()) {
 				contextStore = new RedisContextStore(RedisSessionConfiguration.fromProperties());
 				Engine.logContextManager.info("(ContextManager) Using Redis context store");
+				initAbortListener();
+				initInflightIndex();
 			}
 
 			devicePools = new HashMap<String, DevicePool>();
@@ -118,6 +146,8 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.info("Destroying ContextManager...");
 
 		super.destroy();
+		shutdownAbortListener();
+		shutdownInflightIndex();
 
 		if (contextStore != null) {
 			try {
@@ -138,12 +168,532 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.theApp.eventManager.removeListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
 	}
 
+	private void initInflightIndex() {
+		try {
+			var cfg = RedisClients.getConfiguration();
+			String key = cfg.getContextKeyPrefix() + REDIS_CONTEXT_INFLIGHT_KEY;
+			inflightContexts = RedisClients.getClient().getMapCache(key, StringCodec.INSTANCE);
+			Engine.logContextManager.info("(ContextManager) Using Redis inflight index: " + key);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("(ContextManager) Failed to initialize inflight index", e);
+		}
+	}
+
+	private void shutdownInflightIndex() {
+		inflightContexts = null;
+	}
+
+	private RMapCache<String, String> inflightContexts() {
+		if (inflightContexts != null) {
+			return inflightContexts;
+		}
+		if (!ConvertigoHttpSessionManager.isRedisMode()) {
+			return null;
+		}
+		try {
+			var cfg = RedisClients.getConfiguration();
+			String key = cfg.getContextKeyPrefix() + REDIS_CONTEXT_INFLIGHT_KEY;
+			inflightContexts = RedisClients.getClient().getMapCache(key, StringCodec.INSTANCE);
+			return inflightContexts;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private int resolveInflightTtlSeconds(Context ctx) {
+		int ttl = 1800;
+		int sessionTtl = 0;
+		int projectTtl = 0;
+		try {
+			if (ctx != null && ctx.httpSession != null) {
+				sessionTtl = ctx.httpSession.getMaxInactiveInterval();
+			}
+		} catch (Exception ignore) {
+		}
+		try {
+			if (ctx != null) {
+				if (ctx.project != null) {
+					projectTtl = ctx.project.getContextTimeout();
+				} else if (ctx.projectName != null && Engine.theApp != null && Engine.theApp.databaseObjectsManager != null) {
+					var project = Engine.theApp.databaseObjectsManager.getProjectByName(ctx.projectName);
+					if (project != null) {
+						projectTtl = project.getContextTimeout();
+					}
+				}
+			}
+		} catch (Exception ignore) {
+		}
+		if (sessionTtl > 0) {
+			ttl = Math.max(ttl, sessionTtl);
+		}
+		if (projectTtl > 0) {
+			ttl = Math.max(ttl, projectTtl);
+		}
+		ttl = Math.max(ttl, 60);
+		return ttl + 60;
+	}
+
+	private static java.util.Map<String, Object> buildInflightSnapshot(Context ctx, String contextID) {
+		var snapshot = new java.util.HashMap<String, Object>(16);
+		snapshot.put("contextID", contextID);
+		if (ctx == null) {
+			snapshot.put("lastAccessTime", System.currentTimeMillis());
+			return snapshot;
+		}
+		snapshot.put("name", ctx.name);
+		snapshot.put("creationTime", ctx.creationTime);
+		snapshot.put("lastAccessTime", ctx.lastAccessTime);
+		snapshot.put("__meta:projectName", ctx.projectName);
+		snapshot.put("__meta:connectorName", ctx.connectorName);
+		snapshot.put("__meta:remoteHost", ctx.remoteHost);
+		snapshot.put("__meta:remoteAddr", ctx.remoteAddr);
+		snapshot.put("__meta:userAgent", ctx.userAgent);
+		snapshot.put("__meta:waitingRequests", Math.max(1, ctx.waitingRequests + 1));
+		String requested = ctx.transactionName != null ? ctx.transactionName : ctx.sequenceName;
+		snapshot.put("__meta:requested", requested);
+		return snapshot;
+	}
+
+	private void markInflight(String contextID) {
+		if (!ConvertigoHttpSessionManager.isRedisMode() || contextID == null || contextID.isBlank()) {
+			return;
+		}
+		var map = inflightContexts();
+		if (map == null) {
+			return;
+		}
+		try {
+			Context ctx = contexts != null ? contexts.get(contextID) : null;
+			int ttlSeconds = resolveInflightTtlSeconds(ctx);
+			var snapshot = buildInflightSnapshot(ctx, contextID);
+			String json = JSON.writeValueAsString(snapshot);
+			map.fastPut(contextID, json, ttlSeconds, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to mark inflight context " + contextID, e);
+		}
+	}
+
+	private void unmarkInflight(String contextID) {
+		if (!ConvertigoHttpSessionManager.isRedisMode() || contextID == null || contextID.isBlank()) {
+			return;
+		}
+		var map = inflightContexts();
+		if (map == null) {
+			return;
+		}
+		try {
+			map.fastRemove(contextID);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to unmark inflight context " + contextID, e);
+		}
+	}
+
+	private void initAbortListener() {
+		try {
+			var cfg = RedisClients.getConfiguration();
+			String topicKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_ABORT_TOPIC;
+			abortTopic = RedisClients.getClient().getTopic(topicKey, StringCodec.INSTANCE);
+			abortTopicListenerId = abortTopic.addListener(String.class, (channel, contextID) -> {
+				handleAbortRequest(contextID);
+			});
+			Engine.logContextManager.info("(ContextManager) Listening Redis context abort topic: " + topicKey);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("(ContextManager) Failed to subscribe Redis abort topic", e);
+		}
+	}
+
+	private void shutdownAbortListener() {
+		try {
+			if (abortTopic != null && abortTopicListenerId != -1) {
+				abortTopic.removeListener(abortTopicListenerId);
+			}
+		} catch (Exception ignore) {
+		} finally {
+			abortTopic = null;
+			abortTopicListenerId = -1;
+		}
+	}
+
+	private void handleAbortRequest(String contextID) {
+		if (contextID == null || contextID.isBlank() || contexts == null) {
+			return;
+		}
+		Context ctx = contexts.get(contextID);
+		if (ctx == null) {
+			return;
+		}
+		try {
+			ctx.requireRemoval(true);
+			ctx.abortRequestable();
+			Engine.logContextManager.info("(ContextManager) Abort requested for context " + contextID);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("(ContextManager) Failed to abort context " + contextID, e);
+		}
+	}
+
+	public boolean requestAbort(String contextID) {
+		if (contextID == null || contextID.isBlank() || contexts == null) {
+			return false;
+		}
+		if (contexts.containsKey(contextID)) {
+			handleAbortRequest(contextID);
+			return true;
+		}
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				if (abortTopic == null) {
+					var cfg = RedisClients.getConfiguration();
+					String topicKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_ABORT_TOPIC;
+					abortTopic = RedisClients.getClient().getTopic(topicKey, StringCodec.INSTANCE);
+				}
+				abortTopic.publish(contextID);
+				return true;
+			} catch (Exception e) {
+				Engine.logContextManager.warn("(ContextManager) Failed to publish abort for context " + contextID, e);
+			}
+		}
+		return false;
+	}
+
+	public boolean requestAbortAll(String sessionID) {
+		if (sessionID == null || sessionID.isBlank() || contexts == null) {
+			return false;
+		}
+		String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+		var contextIds = new java.util.HashSet<String>();
+
+		if (!sessionID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+			contextIds.add(sessionID + "_default");
+		}
+
+		try {
+			for (String cid : contexts.keySet()) {
+				if (cid != null && cid.startsWith(prefix)) {
+					contextIds.add(cid);
+				}
+			}
+		} catch (Exception ignore) {
+			// ignore
+		}
+
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				var client = RedisClients.getClient();
+				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
+				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
+				for (String cid : contextsIndex.readAll()) {
+					if (cid != null && cid.startsWith(prefix)) {
+						contextIds.add(cid);
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+			try {
+				var inflight = inflightContexts();
+				if (inflight != null) {
+					for (String cid : inflight.readAllKeySet()) {
+						if (cid != null && cid.startsWith(prefix)) {
+							contextIds.add(cid);
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+		}
+
+		if (contextIds.isEmpty()) {
+			return true;
+		}
+
+		boolean ok = true;
+		var sorted = new java.util.ArrayList<String>(contextIds);
+		java.util.Collections.sort(sorted);
+		for (String cid : sorted) {
+			ok = requestAbort(cid) && ok;
+		}
+		return ok;
+	}
+
 	private void loadParameters() {
 		try {
 			manage_poll_timeout = -1;
 			manage_poll_timeout = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.POOL_MANAGER_TIMEOUT));
 			manage_poll_timeout = manage_poll_timeout <=0 ? -1 : manage_poll_timeout * 1000;
 		} catch (Exception e) {}
+	}
+
+	private static final AutoCloseable NOOP_LOCK = () -> {
+	};
+
+	public AutoCloseable lockContext(Context context) {
+		return lockContext(context != null ? context.contextID : null);
+	}
+
+	public AutoCloseable lockContext(String contextID) {
+		if (contextID == null || contextID.isBlank()) {
+			return NOOP_LOCK;
+		}
+
+		var entry = contextLocks.computeIfAbsent(contextID, k -> new ContextLockEntry());
+		int refs = entry.refs.incrementAndGet();
+		entry.lock.lock();
+
+		RLock redisLock = null;
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				String lockKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_LOCK_PREFIX + contextID;
+				redisLock = RedisClients.getClient().getLock(lockKey);
+				redisLock.lock();
+			} catch (Exception e) {
+				Engine.logContextManager.warn("(ContextManager) Failed to acquire Redis lock for context " + contextID
+						+ ", continuing with local lock only", e);
+			}
+		}
+
+		if (refs == 1) {
+			markInflight(contextID);
+		}
+
+		final RLock finalRedisLock = redisLock;
+		return () -> {
+			try {
+				if (finalRedisLock != null && finalRedisLock.isHeldByCurrentThread()) {
+					finalRedisLock.unlock();
+				}
+			} catch (Exception ignore) {
+			} finally {
+				try {
+					entry.lock.unlock();
+				} catch (Exception ignore) {
+				}
+				try {
+					if (entry.refs.decrementAndGet() == 0) {
+						unmarkInflight(contextID);
+						contextLocks.remove(contextID, entry);
+					}
+				} catch (Exception ignore) {
+				}
+			}
+		};
+	}
+
+	public AutoCloseable tryLockContext(Context context, long timeoutMillis) {
+		return tryLockContext(context != null ? context.contextID : null, timeoutMillis);
+	}
+
+	public AutoCloseable tryLockContext(String contextID, long timeoutMillis) {
+		if (contextID == null || contextID.isBlank()) {
+			return NOOP_LOCK;
+		}
+
+		var entry = contextLocks.computeIfAbsent(contextID, k -> new ContextLockEntry());
+		int refs = entry.refs.incrementAndGet();
+
+		boolean localLocked = false;
+		try {
+			if (timeoutMillis <= 0) {
+				localLocked = entry.lock.tryLock();
+			} else {
+				localLocked = entry.lock.tryLock(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			localLocked = false;
+		}
+		if (!localLocked) {
+			try {
+				if (entry.refs.decrementAndGet() == 0) {
+					contextLocks.remove(contextID, entry);
+				}
+			} catch (Exception ignore) {
+			}
+			return null;
+		}
+
+		RLock redisLock = null;
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				String lockKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_LOCK_PREFIX + contextID;
+				redisLock = RedisClients.getClient().getLock(lockKey);
+				boolean ok;
+				if (timeoutMillis <= 0) {
+					ok = redisLock.tryLock();
+				} else {
+					ok = redisLock.tryLock(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+				}
+				if (!ok) {
+					entry.lock.unlock();
+					try {
+						if (entry.refs.decrementAndGet() == 0) {
+							contextLocks.remove(contextID, entry);
+						}
+					} catch (Exception ignore) {
+					}
+					return null;
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				try {
+					entry.lock.unlock();
+				} catch (Exception ignore) {
+				}
+				try {
+					if (entry.refs.decrementAndGet() == 0) {
+						contextLocks.remove(contextID, entry);
+					}
+				} catch (Exception ignore) {
+				}
+				return null;
+			} catch (Exception e) {
+				Engine.logContextManager.warn("(ContextManager) Failed to acquire Redis lock for context " + contextID, e);
+				try {
+					entry.lock.unlock();
+				} catch (Exception ignore) {
+				}
+				try {
+					if (entry.refs.decrementAndGet() == 0) {
+						contextLocks.remove(contextID, entry);
+					}
+				} catch (Exception ignore) {
+				}
+				return null;
+			}
+		}
+
+		if (refs == 1) {
+			markInflight(contextID);
+		}
+
+		final RLock finalRedisLock = redisLock;
+		return () -> {
+			try {
+				if (finalRedisLock != null && finalRedisLock.isHeldByCurrentThread()) {
+					finalRedisLock.unlock();
+				}
+			} catch (Exception ignore) {
+			} finally {
+				try {
+					entry.lock.unlock();
+				} catch (Exception ignore) {
+				}
+				try {
+					if (entry.refs.decrementAndGet() == 0) {
+						unmarkInflight(contextID);
+						contextLocks.remove(contextID, entry);
+					}
+				} catch (Exception ignore) {
+				}
+			}
+		};
+	}
+
+	public void deleteFromStore(String contextID) {
+		if (contextID == null || contextID.isBlank() || contextStore == null) {
+			return;
+		}
+		try {
+			contextStore.delete(contextID);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to delete context from store " + contextID, e);
+		}
+	}
+
+	public void refreshContextFromStore(Context context) {
+		if (context == null || contextStore == null) {
+			return;
+		}
+		try {
+			var stored = contextStore.read(context.contextID);
+			if (stored == null) {
+				return;
+			}
+			copyStoreFields(context, stored);
+			copyContextTable(context, stored);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to refresh context " + context.contextID, e);
+		}
+	}
+
+	public void refreshContextFromStoreIfNeeded(Context context) {
+		if (context == null || contextStore == null || !ConvertigoHttpSessionManager.isRedisMode()) {
+			return;
+		}
+		try {
+			long expectedLastAccess = context.lastAccessTime;
+			var cfg = RedisClients.getConfiguration();
+			RMap<String, String> map = RedisClients.getClient().getMap(cfg.contextKey(context.contextID), StringCodec.INSTANCE);
+			long storedLastAccess = parseJsonLong(map.get("lastAccessTime"), -1L);
+			if (storedLastAccess > 0 && storedLastAccess == expectedLastAccess) {
+				return;
+			}
+		} catch (Exception ignore) {
+			// fallback to full refresh
+		}
+		refreshContextFromStore(context);
+	}
+
+	private static long parseJsonLong(String raw, long defaultValue) {
+		if (raw == null) {
+			return defaultValue;
+		}
+		raw = raw.trim();
+		if (raw.isEmpty()) {
+			return defaultValue;
+		}
+		if (raw.length() >= 2 && raw.charAt(0) == '"' && raw.charAt(raw.length() - 1) == '"') {
+			raw = raw.substring(1, raw.length() - 1);
+		}
+		try {
+			return Long.parseLong(raw);
+		} catch (Exception ignore) {
+			return defaultValue;
+		}
+	}
+
+	private static void copyStoreFields(Context target, Context source) {
+		if (target == null || source == null) {
+			return;
+		}
+		Class<?> type = source.getClass();
+		while (type != null && type != Object.class) {
+			for (Field field : type.getDeclaredFields()) {
+				int mods = field.getModifiers();
+				if (Modifier.isStatic(mods) || Modifier.isTransient(mods) || Modifier.isFinal(mods)) {
+					continue;
+				}
+				if (field.isAnnotationPresent(StoreIgnore.class)) {
+					continue;
+				}
+				try {
+					field.setAccessible(true);
+					field.set(target, field.get(source));
+				} catch (Exception ignore) {
+					// ignore copy failures
+				}
+			}
+			type = type.getSuperclass();
+		}
+	}
+
+	private static void copyContextTable(Context target, Context source) {
+		if (target == null || source == null) {
+			return;
+		}
+		try {
+			for (String key : new HashSet<String>(target.keys())) {
+				target.remove(key);
+			}
+			for (String key : source.keys()) {
+				target.set(key, source.get(key));
+			}
+		} catch (Exception ignore) {
+			// ignore table copy failures
+		}
 	}
 
 	public void add(Context context) {
@@ -233,10 +783,17 @@ public class ContextManager extends AbstractRunnableManager {
 	private Context get(String contextID, String contextName, String projectName) throws EngineException {
 		Context context = get(contextID);
 		if (context == null && contextStore != null) {
-			context = contextStore.read(contextID);
-			if (context != null) {
-				contexts.put(contextID, context);
-				return context;
+			synchronized (contextCreationMutex) {
+				context = get(contextID);
+				if (context == null) {
+					context = contextStore.read(contextID);
+					if (context != null) {
+						contexts.put(contextID, context);
+						return context;
+					}
+				} else {
+					return context;
+				}
 			}
 		}
 		// Create a new context
@@ -408,10 +965,127 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void remove(String contextID) {
-		Context context;
-		context = contexts.remove(contextID);
-		if (context != null) {
-			remove(context);
+		if (contextID == null) {
+			return;
+		}
+		try (var lock = lockContext(contextID)) {
+			Context context = contexts.remove(contextID);
+			if (context != null) {
+				remove(context);
+			} else if (contextStore != null) {
+				contextStore.delete(contextID);
+			}
+		} catch (Exception e) {
+			Engine.logContextManager.warn("Failed to remove context " + contextID, e);
+		}
+	}
+
+	public boolean tryRemove(String contextID, long timeoutMillis) {
+		if (contextID == null || contextID.isBlank()) {
+			return false;
+		}
+		try {
+			AutoCloseable lock = tryLockContext(contextID, timeoutMillis);
+			if (lock == null) {
+				return false;
+			}
+			try (lock) {
+				Context context = contexts.remove(contextID);
+				if (context != null) {
+					remove(context);
+				} else if (contextStore != null) {
+					contextStore.delete(contextID);
+				}
+				return true;
+			}
+		} catch (Exception e) {
+			Engine.logContextManager.warn("Failed to tryRemove context " + contextID, e);
+			return false;
+		}
+	}
+
+	public boolean tryRemoveAll(String sessionID, long timeoutMillis) {
+		if (sessionID == null || sessionID.isBlank()) {
+			return false;
+		}
+		String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+		var contextIds = new java.util.HashSet<String>();
+
+		if (!sessionID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+			contextIds.add(sessionID + "_default");
+		}
+		try {
+			for (String cid : contexts.keySet()) {
+				if (cid != null && cid.startsWith(prefix)) {
+					contextIds.add(cid);
+				}
+			}
+		} catch (Exception ignore) {
+			// ignore
+		}
+
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				var client = RedisClients.getClient();
+				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
+				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
+				for (String cid : contextsIndex.readAll()) {
+					if (cid != null && cid.startsWith(prefix)) {
+						contextIds.add(cid);
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+			try {
+				var inflight = inflightContexts();
+				if (inflight != null) {
+					for (String cid : inflight.readAllKeySet()) {
+						if (cid != null && cid.startsWith(prefix)) {
+							contextIds.add(cid);
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+		}
+
+		if (contextIds.isEmpty()) {
+			return true;
+		}
+		var sorted = new java.util.ArrayList<String>(contextIds);
+		java.util.Collections.sort(sorted);
+		var locks = new java.util.ArrayList<AutoCloseable>(sorted.size());
+		try {
+			for (String cid : sorted) {
+				AutoCloseable lock = tryLockContext(cid, timeoutMillis);
+				if (lock == null) {
+					return false;
+				}
+				locks.add(lock);
+			}
+			for (String cid : sorted) {
+				try {
+					Context context = contexts.remove(cid);
+					if (context != null) {
+						remove(context);
+					} else if (contextStore != null) {
+						contextStore.delete(cid);
+					}
+				} catch (Exception ignore) {
+					// ignore
+				}
+			}
+			return true;
+		} finally {
+			for (int i = locks.size() - 1; i >= 0; i--) {
+				try {
+					locks.get(i).close();
+				} catch (Exception ignore) {
+				}
+			}
 		}
 	}
 
@@ -421,131 +1095,154 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("The context cannot be removed because it does not exist any more!");
 			return;
 		}
-		if (context.isDestroying) {
-			return;
-		}
-		context.isDestroying = true;
-		context.requireRemoval(false);
-
-		try {
-			String contextID = context.contextID;
-			Engine.logContextManager.info("Removing context " + contextID);
-
-			contexts.remove(contextID, context);
-			if (contextStore != null) {
-				contextStore.delete(contextID);
+		try (var lock = lockContext(context)) {
+			if (context.isDestroying) {
+				return;
 			}
-
-			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
-				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
-				//context.requestedObject.runningThread.bContinue = false;
-				context.abortRequestable();
-			}
-
-			// Trying to execute the end transaction (only in the engine mode)
-			if (Engine.isEngineMode()) {
-				for (Connector connector: context.getOpenedConnectors()) {
-					// Execute the end transaction
-					String endTransactionName = "n/a";
-					try {
-						endTransactionName = connector.getEndTransactionName();
-						if (endTransactionName != null && !endTransactionName.equals("")) {
-							Engine.logContextManager.debug("Trying to execute the end transaction: \"" + endTransactionName + "\"");
-							context.connectorName = connector.getName();
-							context.connector = connector;
-							context.transactionName = endTransactionName;
-							context.sequenceName = null;
-							DefaultRequester defaultRequester = new DefaultRequester();
-							// #4910 - prevent loop for destroying context renew
-							context.isDestroying = false;
-							context.requireRemoval(false);
-							defaultRequester.processRequest(context);
-							Engine.logContextManager.debug("End transaction successfull");
-						}
-					} catch (Throwable e) {
-						Engine.logContextManager.error("Unable to execute the end transaction; " +
-								"context: " + context.contextID + ", " +
-								"project: " + context.projectName + ", " +
-								"connector: " + context.connectorName + ", " +
-								"end transaction: " + endTransactionName,
-								e);
-					} finally {
-						context.isDestroying = true;
-					}
-					// Unlocks device if any
-					// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!
-					String connectorQName = connector.getQName();
-					DevicePool devicePool = getDevicePool(connectorQName);
-					if (devicePool != null) {
-						long contextNum = (Long.valueOf(Integer.toString(context.contextNum,10))).longValue();
-						Engine.logContextManager.trace("DevicePool for '"+ connectorQName +"' exist: unlocking device for context number "+ contextNum +".");
-						devicePool.unlockDevice(contextNum);
-					}
-
-					Engine.logContextManager.trace("Releasing " + connector.getName() + " connector (" + connector.getClass().getName() + ") for context id " + context.contextID);
-					Engine.execute(new Runnable() {
-						public void run() {
-							connector.release();
-						}
-					});
-				}
-			}
-
-			context.clearConnectors();
-
-			// Set TwsCachedXPathAPI to null
-			context.cleanXpathApi();
+			context.isDestroying = true;
+			context.requireRemoval(false);
 
 			try {
-				Set<File> files = GenericUtils.cast(context.get("fileToDeleteAtEndOfContext"));
-				if (files != null) {
-					for (File file: files) {
-						FileUtils.deleteQuietly(file);
+				String contextID = context.contextID;
+				Engine.logContextManager.info("Removing context " + contextID);
+
+				contexts.remove(contextID, context);
+				if (contextStore != null) {
+					contextStore.delete(contextID);
+				}
+
+				if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
+					Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
+					//context.requestedObject.runningThread.bContinue = false;
+					context.abortRequestable();
+				}
+
+				// Trying to execute the end transaction (only in the engine mode)
+				if (Engine.isEngineMode()) {
+					for (Connector connector: context.getOpenedConnectors()) {
+						// Execute the end transaction
+						String endTransactionName = "n/a";
+						try {
+							endTransactionName = connector.getEndTransactionName();
+							if (endTransactionName != null && !endTransactionName.equals("")) {
+								Engine.logContextManager.debug("Trying to execute the end transaction: \"" + endTransactionName + "\"");
+								context.connectorName = connector.getName();
+								context.connector = connector;
+								context.transactionName = endTransactionName;
+								context.sequenceName = null;
+								DefaultRequester defaultRequester = new DefaultRequester();
+								// #4910 - prevent loop for destroying context renew
+								context.isDestroying = false;
+								context.requireRemoval(false);
+								defaultRequester.processRequest(context);
+								Engine.logContextManager.debug("End transaction successfull");
+							}
+						} catch (Throwable e) {
+							Engine.logContextManager.error("Unable to execute the end transaction; " +
+									"context: " + context.contextID + ", " +
+									"project: " + context.projectName + ", " +
+									"connector: " + context.connectorName + ", " +
+									"end transaction: " + endTransactionName,
+									e);
+						} finally {
+							context.isDestroying = true;
+						}
+						// Unlocks device if any
+						// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!
+						String connectorQName = connector.getQName();
+						DevicePool devicePool = getDevicePool(connectorQName);
+						if (devicePool != null) {
+							long contextNum = (Long.valueOf(Integer.toString(context.contextNum,10))).longValue();
+							Engine.logContextManager.trace("DevicePool for '"+ connectorQName +"' exist: unlocking device for context number "+ contextNum +".");
+							devicePool.unlockDevice(contextNum);
+						}
+
+						Engine.logContextManager.trace("Releasing " + connector.getName() + " connector (" + connector.getClass().getName() + ") for context id " + context.contextID);
+						Engine.execute(new Runnable() {
+							public void run() {
+								connector.release();
+							}
+						});
 					}
 				}
-			} catch (Exception e) {
-			}
 
-			Engine.theApp.sessionManager.removeSession(contextID);
-			String projectName = (String) context.projectName;
+				context.clearConnectors();
 
-			/* Fix: #1754 - Slower transaction execution with many session */
-			// HTTP session maintain its own context list in order to
-			// improve context removal on session unbound process
-			// See also #4198 which fix a regression
-			String sessionID = context.httpSession != null ? context.httpSession.getId() :
-				context.contextID.substring(0,context.contextID.indexOf("_"));
-			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-			if (httpSession != null) {
-				synchronized (httpSession) {
-					try {
-						List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
-						if ((contextList != null) && contextList.contains(context)) {
-							contextList.remove(context);
-							Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+				// Set TwsCachedXPathAPI to null
+				context.cleanXpathApi();
+
+				try {
+					Set<File> files = GenericUtils.cast(context.get("fileToDeleteAtEndOfContext"));
+					if (files != null) {
+						for (File file: files) {
+							FileUtils.deleteQuietly(file);
 						}
 					}
-					catch (Exception e) {
-						// Ignore: HTTP session may have already been invalidated
+				} catch (Exception e) {
+				}
+
+				Engine.theApp.sessionManager.removeSession(contextID);
+				String projectName = (String) context.projectName;
+
+				/* Fix: #1754 - Slower transaction execution with many session */
+				// HTTP session maintain its own context list in order to
+				// improve context removal on session unbound process
+				// See also #4198 which fix a regression
+				String sessionID = context.httpSession != null ? context.httpSession.getId() :
+					context.contextID.substring(0,context.contextID.indexOf("_"));
+				HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
+				if (httpSession != null) {
+					synchronized (httpSession) {
+						try {
+							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
+							if ((contextList != null) && contextList.contains(context)) {
+								contextList.remove(context);
+								Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+							}
+						}
+						catch (Exception e) {
+							// Ignore: HTTP session may have already been invalidated
+						}
 					}
 				}
-			}
 
-			Engine.logContextManager.debug("Context " + contextID + " has been removed");
-			Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
-			Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
-			Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
+				Engine.logContextManager.debug("Context " + contextID + " has been removed");
+				Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
+				Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
+				Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
+			} catch (Exception e) {
+				Engine.logContextManager.warn("Failed to remove the context " + context.contextID, e);
+			}
 		} catch (Exception e) {
-			Engine.logContextManager.warn("Failed to remove the context " + context.contextID, e);
+			Engine.logContextManager.warn("Failed to lock context removal for " + context.contextID, e);
 		}
 	}
 
 	public void removeAll(String sessionID) {
+		if (sessionID == null) {
+			return;
+		}
 		HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 		if (httpSession != null) {
 			removeAll(httpSession);
-			if (contextStore != null) {
-				contextStore.deleteBySessionPrefix(sessionID + "_");
+		} else {
+			String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+			try {
+				for (String contextID : GenericUtils.clone(contexts.keySet())) {
+					if (contextID != null && contextID.startsWith(prefix)) {
+						remove(contextID);
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+		}
+		if (contextStore != null) {
+			try {
+				String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+				contextStore.deleteBySessionPrefix(prefix);
+			} catch (Exception e) {
+				Engine.logContextManager.debug("Failed to cleanup context store for " + sessionID, e);
 			}
 		}
 	}
@@ -599,8 +1296,24 @@ public class ContextManager extends AbstractRunnableManager {
 			for (String contextID : contexts.keySet()) {
 				remove(contextID);
 			}
-		} catch(NullPointerException e) {
+		} catch (NullPointerException e) {
 			// Nothing to do: the Engine object has yet been deleted
+		}
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				var client = RedisClients.getClient();
+				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
+				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
+				for (String cid : new java.util.HashSet<String>(contextsIndex.readAll())) {
+					if (cid == null || cid.isBlank()) {
+						continue;
+					}
+					tryRemove(cid, 0L);
+				}
+			} catch (Exception e) {
+				Engine.logContextManager.debug("Failed to cleanup global context store", e);
+			}
 		}
 	}
 

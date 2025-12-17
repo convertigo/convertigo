@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.sessions;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+
 final class LegacySessionProvider implements SessionProvider {
 	@Override
 	public HttpSession getSession(HttpServletRequest request, boolean create) {
@@ -29,5 +31,22 @@ final class LegacySessionProvider implements SessionProvider {
 			return null;
 		}
 		return request.getSession(create);
+	}
+
+	@Override
+	public boolean terminateSession(String sessionId) {
+		if (sessionId == null || sessionId.isBlank()) {
+			return false;
+		}
+		boolean existed = HttpSessionListener.getHttpSession(sessionId) != null;
+		HttpSessionListener.terminateSession(sessionId);
+		return existed;
+	}
+
+	@Override
+	public int terminateAllSessions() {
+		int count = HttpSessionListener.countSessions();
+		HttpSessionListener.removeAllSession();
+		return count;
 	}
 }
