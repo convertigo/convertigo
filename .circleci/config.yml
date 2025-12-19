@@ -343,7 +343,7 @@ jobs:
           fi
           
           if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-          	docker run --rm alpine/curl -m 30 "$BETA_KILL_URL"
+          	docker run --rm -d alpine/curl -m 10 "$BETA_KILL_URL" || true
           fi
           
   qualif_jmx_1:
