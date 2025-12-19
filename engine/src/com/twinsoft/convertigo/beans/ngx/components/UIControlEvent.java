@@ -372,6 +372,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 				computed += "\t\t}).finally(() => {"+System.lineSeparator();
 				computed += "\t\t\tthis.ref.markForCheck();"+System.lineSeparator();
 				computed += "\t\t\tif (scope.refThrottle) {scope.refThrottle.unlock();}"+System.lineSeparator();
+				computed += "\t\t\tif (stack.root?.out?.__c8oHandleSynchronousFinished) {stack.root?.out?.__c8oHandleSynchronousFinished();}"+System.lineSeparator();
 				computed += "\t\t});"+System.lineSeparator();
 			}
 			else {
