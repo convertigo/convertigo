@@ -1,6 +1,7 @@
 import { createToaster } from '@skeletonlabs/skeleton-svelte';
 import { browser, dev } from '$app/environment';
 import { resolve } from '$app/paths';
+import Instances from '$lib/admin/Instances.svelte';
 import Authentication from '$lib/common/Authentication.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
@@ -28,6 +29,7 @@ export async function call(service, data = {}) {
 		let headers = {
 			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
+		Instances.apply(headers);
 		if (data instanceof FormData) {
 			let files = new FormData();
 			for (let [key, value] of data.entries()) {
@@ -69,6 +71,7 @@ export async function call(service, data = {}) {
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
 		}
+		Instances.update(res);
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
 		if (disposition) {
@@ -106,6 +109,7 @@ export async function callRequestable(mode, project, data = {}) {
 	let headers = {
 		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 	};
+	Instances.apply(headers);
 	if (data instanceof FormData) {
 		let files = new FormData();
 		for (let [key, value] of data.entries()) {
@@ -141,6 +145,7 @@ export async function callRequestable(mode, project, data = {}) {
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf-token', xsrf);
 	}
+	Instances.update(res);
 
 	return res;
 }

@@ -85,6 +85,7 @@
 	import MdiPlus from '~icons/mdi/plus';
 	import MdiPowerPlug from '~icons/mdi/power-plug';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
+	import MdiRefresh from '~icons/mdi/refresh';
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MdiSearch from '~icons/mdi/search';
@@ -195,6 +196,7 @@
 		'mdi:plus': MdiPlus,
 		'mdi:power-plug': MdiPowerPlug,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
+		'mdi:refresh': MdiRefresh,
 		'mdi:reload': MdiReload,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:search': MdiSearch,

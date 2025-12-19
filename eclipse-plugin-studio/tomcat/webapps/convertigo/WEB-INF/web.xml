@@ -53,6 +53,16 @@
 	</filter-mapping>
 
 	<filter>
+		<filter-name>AdminInstanceForwardFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.AdminInstanceForwardFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AdminInstanceForwardFilter</filter-name>
+		<url-pattern>/admin/services/*</url-pattern>
+		<url-pattern>/system/admin/services/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
 		<filter-name>CompressionFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.CompressionFilter</filter-class>
 	</filter>

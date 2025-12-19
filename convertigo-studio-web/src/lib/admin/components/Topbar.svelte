@@ -1,8 +1,12 @@
 <script>
 	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import Instances from '$lib/admin/Instances.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { onMount } from 'svelte';
 	import PagesRailToggle from './PagesRailToggle.svelte';
 
 	let {
@@ -18,6 +22,16 @@
 				? 'Convertigo Studio'
 				: `Convertigo ${page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}`)
 	);
+
+	onMount(() => {
+		if (variant === 'studio') {
+			return;
+		}
+		Instances.refresh();
+	});
+
+	const instanceOptions = $derived(Instances.instances.map(({ instanceId }) => instanceId));
+	$inspect('current', Instances);
 </script>
 
 <header
@@ -59,6 +73,29 @@
 				<p class="font-medium">Star us on</p>
 				<Ico icon="mdi:github" size={8} />
 			</a>
+			{#if Instances.storeMode === 'redis' && ((Instances.current ?? '').trim() || Instances.instances.length)}
+				<div class="layout-x-low max-md:hidden">
+					<span class="text-xs font-medium opacity-70">Instance</span>
+					<PropertyType
+						type="combo"
+						multiple={false}
+						fit
+						item={instanceOptions}
+						disabled={Instances.loading}
+						class="select h-fit! input-common px-2 py-none text-sm"
+						bind:value={Instances.current}
+					/>
+					<Button
+						icon="mdi:refresh"
+						full={false}
+						disabled={Instances.loading}
+						cls="button-ico-secondary h-fit! px-2 py-none"
+						title="Refresh instances"
+						ariaLabel="Refresh instances"
+						onclick={Instances.refresh}
+					/>
+				</div>
+			{/if}
 			{#if Time.isSameTime}
 				<span class="monitor-time">{Time.browserTime}</span>
 			{:else}
