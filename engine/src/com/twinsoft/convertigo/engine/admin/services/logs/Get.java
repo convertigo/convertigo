@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.admin.services.logs;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
@@ -38,6 +37,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sessions.StatefulSessionAttributes;
 
 @ServiceDefinition(
 		name = "Get",
@@ -50,10 +50,11 @@ public class Get extends JSonService {
 	static private final String attr_appender = Get.class.getCanonicalName()+".appender.";
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		HttpSession session = request.getSession();
-		LogManager logmanager = LogServiceHelper.getLogManager(request);
-		Long start = System.currentTimeMillis();
-		session.setAttribute(attr_start, start);
+		var session = request.getSession();
+		var logmanager = LogServiceHelper.getLogManager(request);
+		var start = Long.valueOf(System.currentTimeMillis());
+		var adminInstance = ServiceUtils.getAdminInstance(request);
+		StatefulSessionAttributes.setStatefulAttribute(session, attr_start, start);
 
 		synchronized (logmanager) {
 			boolean realtime = false;
@@ -89,7 +90,8 @@ public class Get extends JSonService {
 					logmanager.setDateEnd(LogManager.date_last);
 					session.setAttribute("isRealtime", true);
 				}
-				Appender appender = (Appender) session.getAttribute(attr_appender + ServiceUtils.getAdminInstance(request));
+				var appenderKey = attr_appender + adminInstance;
+				Appender appender = (Appender) StatefulSessionAttributes.getStatefulAttribute(session, appenderKey);
 				if (appender == null) {
 					appender = new AppenderSkeleton() {
 
@@ -107,7 +109,7 @@ public class Get extends JSonService {
 							return false;
 						}
 					};
-					session.setAttribute(attr_appender + ServiceUtils.getAdminInstance(request), appender);
+					StatefulSessionAttributes.setStatefulAttribute(session, appenderKey, appender);
 				} else {
 					synchronized (appender) {
 						appender.notifyAll();
@@ -118,7 +120,8 @@ public class Get extends JSonService {
 
 					boolean interrupted = false;
 					JSONArray lines = logmanager.getLines();
-					while (lines.length() == 0 && !interrupted && session.getAttribute(attr_start) == start) {
+					while (lines.length() == 0 && !interrupted
+							&& StatefulSessionAttributes.getStatefulAttribute(session, attr_start) == start) {
 						synchronized (appender) {
 							try {
 								appender.wait(2000);
@@ -140,7 +143,8 @@ public class Get extends JSonService {
 
 				JSONArray lines = logmanager.getLines();
 				logmanager.setContinue(true);
-				while (lines.length() == 0 && logmanager.hasMoreResults() && session.getAttribute(attr_start) == start) {
+				while (lines.length() == 0 && logmanager.hasMoreResults()
+						&& StatefulSessionAttributes.getStatefulAttribute(session, attr_start) == start) {
 					lines = logmanager.getLines();
 				}
 

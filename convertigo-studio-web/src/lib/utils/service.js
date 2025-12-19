@@ -8,6 +8,10 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 export const toaster = createToaster();
 
 let currentCalls = 0;
+const adminInstance = browser
+	? // @ts-ignore
+		(globalThis.__c8oAdminInstance ??= `${Date.now()}-${Math.random().toString(16).slice(2)}`)
+	: '';
 
 let modalAlert;
 export function setModalAlert(alert) {
@@ -27,6 +31,7 @@ export async function call(service, data = {}) {
 		let url = getUrl() + service;
 		let body;
 		let headers = {
+			'Admin-Instance': adminInstance,
 			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
 		Instances.apply(headers);
@@ -107,6 +112,7 @@ export async function callRequestable(mode, project, data = {}) {
 	let url = getUrl(`projects/${project}/.${mode.toLowerCase()}`);
 	let body;
 	let headers = {
+		'Admin-Instance': adminInstance,
 		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 	};
 	Instances.apply(headers);

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
@@ -38,6 +39,7 @@ import com.twinsoft.convertigo.engine.Engine;
 final class RedisHttpSession implements HttpSession, Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final Object NULL = new Object();
+	private static final LocalAttributeStore LOCAL_STORE = new LocalAttributeStore();
 
 	private final transient SessionStore store;
 	private final transient RedisSessionConfiguration configuration;
@@ -94,6 +96,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			ensureValid();
 			lastAccessedTime = System.currentTimeMillis();
 			dirtyLastAccess = true;
+			LOCAL_STORE.touchSession(id, resolveLocalTtlSeconds());
 		}
 	}
 
@@ -196,6 +199,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			ensureValid();
 			maxInactiveInterval = interval;
 			dirtyMaxInactive = true;
+			LOCAL_STORE.touchSession(id, resolveLocalTtlSeconds());
 		}
 	}
 
@@ -218,6 +222,10 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			ensureValid();
 			if (name == null) {
 				return null;
+			}
+			var localValue = LOCAL_STORE.getAttribute(id, name, resolveLocalTtlSeconds());
+			if (localValue != null) {
+				return localValue;
 			}
 			if (removedAttributes.contains(name)) {
 				return null;
@@ -258,6 +266,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			} catch (Exception ignore) {
 				// ignore
 			}
+			names.addAll(LOCAL_STORE.getAttributeNames(id, resolveLocalTtlSeconds()));
 			for (var entry : cache.entrySet()) {
 				if (entry.getKey() != null && entry.getValue() != NULL) {
 					names.add(entry.getKey());
@@ -281,6 +290,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			if (name == null) {
 				return;
 			}
+			LOCAL_STORE.removeAttribute(id, name, resolveLocalTtlSeconds());
 			cache.put(name, value != null ? value : NULL);
 			dirtyAttributes.add(name);
 			removedAttributes.remove(name);
@@ -301,6 +311,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			if (name == null) {
 				return;
 			}
+			LOCAL_STORE.removeAttribute(id, name, resolveLocalTtlSeconds());
 			cache.put(name, NULL);
 			removedAttributes.add(name);
 			dirtyAttributes.remove(name);
@@ -322,6 +333,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			} catch (Exception e) {
 				log("(RedisHttpSession) Failed to invalidate session", e);
 			} finally {
+				LOCAL_STORE.invalidate(id);
 				synchronized (mutex) {
 					cache.clear();
 					dirtyAttributes.clear();
@@ -343,6 +355,54 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		return invalidated.get();
 	}
 
+	private int resolveLocalTtlSeconds() {
+		return maxInactiveInterval > 0 ? maxInactiveInterval : configuration.getDefaultTtlSeconds();
+	}
+
+	Object getStatefulAttribute(String name) {
+		synchronized (mutex) {
+			ensureValid();
+			if (name == null) {
+				return null;
+			}
+			return LOCAL_STORE.getAttribute(id, name, resolveLocalTtlSeconds());
+		}
+	}
+
+	void setStatefulAttribute(String name, Object value) {
+		synchronized (mutex) {
+			ensureValid();
+			if (name == null) {
+				return;
+			}
+			if (value == null) {
+				LOCAL_STORE.removeAttribute(id, name, resolveLocalTtlSeconds());
+			} else {
+				LOCAL_STORE.setAttribute(id, name, value, resolveLocalTtlSeconds());
+			}
+			cache.put(name, NULL);
+			removedAttributes.add(name);
+			dirtyAttributes.remove(name);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
+		}
+	}
+
+	void removeStatefulAttribute(String name) {
+		synchronized (mutex) {
+			ensureValid();
+			if (name == null) {
+				return;
+			}
+			LOCAL_STORE.removeAttribute(id, name, resolveLocalTtlSeconds());
+			cache.put(name, NULL);
+			removedAttributes.add(name);
+			dirtyAttributes.remove(name);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
+		}
+	}
+
 	private void ensureValid() {
 		if (invalidated.get()) {
 			throw new IllegalStateException("Session has been invalidated");
@@ -360,6 +420,191 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			}
 		} catch (Exception ignore) {
 			// ignore
+		}
+	}
+
+	private static final class LocalAttributeStore {
+		private static final long CLEANUP_INTERVAL_MILLIS = 10000L;
+		private final ConcurrentHashMap<String, LocalSessionData> sessions = new ConcurrentHashMap<>();
+
+		LocalAttributeStore() {
+			var cleaner = new Thread(this::cleanupLoop);
+			cleaner.setDaemon(true);
+			cleaner.setName("RedisSession LocalAttributeStore Cleaner");
+			cleaner.start();
+		}
+
+		void touchSession(String sessionId, int ttlSeconds) {
+			if (sessionId == null) {
+				return;
+			}
+			getSessionIfPresent(sessionId, ttlSeconds);
+		}
+
+		Object getAttribute(String sessionId, String name, int ttlSeconds) {
+			if (sessionId == null || name == null) {
+				return null;
+			}
+			var data = getSessionIfPresent(sessionId, ttlSeconds);
+			if (data == null) {
+				return null;
+			}
+			return data.attributes.get(name);
+		}
+
+		void setAttribute(String sessionId, String name, Object value, int ttlSeconds) {
+			if (sessionId == null || name == null) {
+				return;
+			}
+			if (value == null) {
+				removeAttribute(sessionId, name, ttlSeconds);
+				return;
+			}
+			var data = getOrCreateSession(sessionId, ttlSeconds);
+			var previous = data.attributes.put(name, value);
+			if (previous != null && previous != value) {
+				closeValue(previous);
+			}
+		}
+
+		void removeAttribute(String sessionId, String name, int ttlSeconds) {
+			if (sessionId == null || name == null) {
+				return;
+			}
+			var data = getSessionIfPresent(sessionId, ttlSeconds);
+			if (data == null) {
+				return;
+			}
+			var previous = data.attributes.remove(name);
+			if (previous != null) {
+				closeValue(previous);
+			}
+		}
+
+		Set<String> getAttributeNames(String sessionId, int ttlSeconds) {
+			if (sessionId == null) {
+				return Collections.emptySet();
+			}
+			var data = getSessionIfPresent(sessionId, ttlSeconds);
+			if (data == null) {
+				return Collections.emptySet();
+			}
+			return new HashSet<>(data.attributes.keySet());
+		}
+
+		void invalidate(String sessionId) {
+			if (sessionId == null) {
+				return;
+			}
+			var data = sessions.remove(sessionId);
+			if (data != null) {
+				closeSession(data);
+			}
+		}
+
+		private LocalSessionData getSessionIfPresent(String sessionId, int ttlSeconds) {
+			var data = sessions.get(sessionId);
+			if (data == null) {
+				return null;
+			}
+			var now = System.currentTimeMillis();
+			if (data.isExpired(now)) {
+				if (sessions.remove(sessionId, data)) {
+					closeSession(data);
+				}
+				return null;
+			}
+			data.touch(now, ttlSeconds);
+			return data;
+		}
+
+		private LocalSessionData getOrCreateSession(String sessionId, int ttlSeconds) {
+			var now = System.currentTimeMillis();
+			while (true) {
+				var data = sessions.get(sessionId);
+				if (data == null) {
+					var created = new LocalSessionData(now, ttlSeconds);
+					var previous = sessions.putIfAbsent(sessionId, created);
+					if (previous == null) {
+						return created;
+					}
+					data = previous;
+				}
+				if (data.isExpired(now)) {
+					if (sessions.remove(sessionId, data)) {
+						closeSession(data);
+					}
+					continue;
+				}
+				data.touch(now, ttlSeconds);
+				return data;
+			}
+		}
+
+		private void cleanupLoop() {
+			while (true) {
+				try {
+					Thread.sleep(CLEANUP_INTERVAL_MILLIS);
+					cleanupExpired();
+				} catch (InterruptedException ignore) {
+					Thread.currentThread().interrupt();
+					return;
+				} catch (Exception ignore) {
+					// ignore
+				}
+			}
+		}
+
+		private void cleanupExpired() {
+			var now = System.currentTimeMillis();
+			for (var entry : sessions.entrySet()) {
+				var data = entry.getValue();
+				if (data == null || !data.isExpired(now)) {
+					continue;
+				}
+				if (sessions.remove(entry.getKey(), data)) {
+					closeSession(data);
+				}
+			}
+		}
+
+		private void closeSession(LocalSessionData data) {
+			for (var value : data.attributes.values()) {
+				closeValue(value);
+			}
+			data.attributes.clear();
+		}
+
+		private void closeValue(Object value) {
+			if (value instanceof AutoCloseable closeable) {
+				try {
+					closeable.close();
+				} catch (Exception e) {
+					if (Engine.logEngine != null) {
+						Engine.logEngine.warn("(RedisHttpSession) Failed to close local session attribute", e);
+					}
+				}
+			}
+		}
+	}
+
+	private static final class LocalSessionData {
+		private final ConcurrentHashMap<String, Object> attributes = new ConcurrentHashMap<>();
+		private volatile long lastAccessTime;
+		private volatile int ttlSeconds;
+
+		private LocalSessionData(long now, int ttlSeconds) {
+			this.lastAccessTime = now;
+			this.ttlSeconds = ttlSeconds;
+		}
+
+		private void touch(long now, int ttlSeconds) {
+			this.lastAccessTime = now;
+			this.ttlSeconds = ttlSeconds;
+		}
+
+		private boolean isExpired(long now) {
+			return ttlSeconds > 0 && (now - lastAccessTime) > ttlSeconds * 1000L;
 		}
 	}
 }

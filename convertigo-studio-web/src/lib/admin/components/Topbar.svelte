@@ -31,7 +31,6 @@
 	});
 
 	const instanceOptions = $derived(Instances.instances.map(({ instanceId }) => instanceId));
-	$inspect('current', Instances);
 </script>
 
 <header

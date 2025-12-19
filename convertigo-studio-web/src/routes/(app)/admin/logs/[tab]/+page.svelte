@@ -13,6 +13,7 @@
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
+	import Instances from '$lib/admin/Instances.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
@@ -25,7 +26,9 @@
 	import Last from '../Last.svelte';
 
 	let logViewer = $state();
+	let currentInstance = $state('');
 	onMount(() => {
+		currentInstance = Instances.current;
 		return () => {
 			Configuration.stop();
 			LogsPurge.stop();
@@ -205,6 +208,16 @@
 	$effect(() => {
 		if (tabSet != 'purge') {
 			LogsPurge.stop();
+		}
+	});
+
+	$effect(() => {
+		if (currentInstance == '' && Instances.current) {
+			currentInstance = Instances.current;
+		}
+		if (Instances.current != currentInstance) {
+			currentInstance = Instances.current;
+			refreshLogs();
 		}
 	});
 

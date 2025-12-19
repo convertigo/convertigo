@@ -30,9 +30,13 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.redisson.client.codec.StringCodec;
 
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sessions.StatefulSessionAttributes;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RedisClients;
 
 public class LogServiceHelper {
 	public enum LogManagerParameter {
@@ -48,38 +52,43 @@ public class LogServiceHelper {
 	private static final Thread logmanagerCleaner = new Thread(() -> {
 		while(true) {
 			try {
-				Thread.sleep(10000);
+				boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();
+				Thread.sleep(redisMode ? 60000 : 10000);
 				synchronized (activeInstance) {
-					long old = System.currentTimeMillis() - 10000;
-					activeInstance.entrySet().removeIf(e -> {
-						try {
-							String id = e.getKey();
-							long last = e.getValue().getLeft();
-							if (last < old) {
+					if (redisMode) {
+						activeInstance.entrySet().removeIf(e -> {
+							try {
+								String id = e.getKey();
 								HttpSession session = e.getValue().getRight();
-								Enumeration<String> names = session.getAttributeNames();
-								while (names.hasMoreElements()) {
-									try {
-										String name = names.nextElement();
-										if (name.endsWith(id)) {
-											Object obj = session.getAttribute(name);
-											if (obj instanceof LogManager) {
-												LogManager lm = (LogManager) obj;
-												lm.close();
-											}
-											session.removeAttribute(name);
-										}
-									} catch (Exception ex) {
-										System.err.println("[LogServiceHelper] Check failed: " + ex.getMessage());
-									}
+								if (session == null) {
+									return true;
 								}
+								if (!sessionExistsInRedis(session)) {
+									cleanupSession(id, session);
+									return true;
+								}
+							} catch (Exception ex) {
+								return false;
+							}
+							return false;
+						});
+					} else {
+						long old = System.currentTimeMillis() - 10000;
+						activeInstance.entrySet().removeIf(e -> {
+							try {
+								String id = e.getKey();
+								long last = e.getValue().getLeft();
+								if (last < old) {
+									HttpSession session = e.getValue().getRight();
+									cleanupSession(id, session);
+									return true;
+								}
+							} catch (Exception ex) {
 								return true;
 							}
-						} catch (Exception ex) {
-							return true;
-						}
-						return false;
-					});
+							return false;
+						});
+					}
 				}
 			} catch (Exception e) {
 				System.err.println("[LogServiceHelper] Loop failed: " + e.getMessage());
@@ -106,14 +115,55 @@ public class LogServiceHelper {
 	}
 	
 	public static LogManager getLogManager(HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		String logmanager_id = LogServiceHelper.class.getCanonicalName() + ".logmanager_" + ServiceUtils.getAdminInstance(request);
-		LogManager logmanager = (LogManager) session.getAttribute(logmanager_id);
+		var session = request.getSession();
+		var logmanager_id = LogServiceHelper.class.getCanonicalName() + ".logmanager_" + ServiceUtils.getAdminInstance(request);
+		var logmanager = (LogManager) StatefulSessionAttributes.getStatefulAttribute(session, logmanager_id);
 		if (logmanager == null) {
 			logmanager = new LogManager();
-			session.setAttribute(logmanager_id, logmanager);
+			StatefulSessionAttributes.setStatefulAttribute(session, logmanager_id, logmanager);
 		}
 		return logmanager;
+	}
+
+	private static boolean sessionExistsInRedis(HttpSession session) {
+		try {
+			String sessionId = session.getId();
+			if (sessionId == null || sessionId.isBlank()) {
+				return false;
+			}
+			var configuration = RedisClients.getConfiguration();
+			var client = RedisClients.getClient();
+			String key = configuration.getKeyPrefix() + sessionId;
+			return client.getMap(key, StringCodec.INSTANCE).isExists();
+		} catch (Exception e) {
+			return true;
+		}
+	}
+
+	private static void cleanupSession(String id, HttpSession session) {
+		if (session == null) {
+			return;
+		}
+		try {
+			Enumeration<String> names = session.getAttributeNames();
+			while (names.hasMoreElements()) {
+				try {
+					String name = names.nextElement();
+					if (name != null && name.endsWith(id)) {
+						Object obj = session.getAttribute(name);
+						if (obj instanceof LogManager) {
+							LogManager lm = (LogManager) obj;
+							lm.close();
+						}
+						session.removeAttribute(name);
+					}
+				} catch (Exception ex) {
+					System.err.println("[LogServiceHelper] Check failed: " + ex.getMessage());
+				}
+			}
+		} catch (Exception ex) {
+			System.err.println("[LogServiceHelper] Cleanup failed: " + ex.getMessage());
+		}
 	}
 
 	public static void prepareLogManager(HttpServletRequest request, LogManager logmanager, LogManagerParameter ... parameters) throws ServiceException {
