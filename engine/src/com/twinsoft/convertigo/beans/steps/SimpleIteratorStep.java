@@ -310,7 +310,7 @@ public class SimpleIteratorStep extends LoopStep {
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(StringUtils.normalize(expression))) {
+		if (oldName.equals(StringUtils.normalize(expression))) {
 			expression = newName;
 			hasChanged = true;
 		}
