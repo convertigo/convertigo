@@ -55,27 +55,27 @@ public enum Visibility {
 	Studio(0x02),	// for Studio UI
 	Platform(0x04),	// for Platform UI
 	XmlFile(0x08);	// for project's XML files
-	
+
 	int mask;
 	Visibility(int mask) {
 		this.mask = mask;
 	}
-	
+
 	public static final String STRING_MASK = "******";
-	
+
 	public int getMask() {
 		return mask;
 	}
-	
+
 	public boolean isMasked(int visibility) {
 		return (visibility & mask) != 0 ? true : false;
 	}
-	
+
 	public String printValue(int visibility, Object value) {
 		if (value == null) return null;
 		return (visibility & mask) == 0 ? toString(value) : maskValue(value);
 	}
-	
+
 	private String toString(Object object) {
 		String s = null;
 		if (object != null) {
@@ -106,12 +106,12 @@ public enum Visibility {
 		}
 		return s;
 	}
-	
+
 	public Object replaceValues(List<String> hiddenValues, Object object) {
 		if (object == null) return null;
 		if (hiddenValues == null) return object;
 		if (hiddenValues.isEmpty()) return object;
-		
+
 		try {
 			// Case of postQuery from XML requestTemplate
 			if (object instanceof String) {
@@ -126,11 +126,11 @@ public enum Visibility {
 		catch (Exception e) {}
 		return object;
 	}
-	
+
 	public Object replaceVariables(List<? extends Variable> variableList, Object object) {
 		if (object == null) return null;
 		if (variableList == null) return object;
-		
+
 		try {
 			// Case of queryString | postQuery : variable_name=variable_value&variable_name=variable_value
 			if (object instanceof String) {
@@ -146,15 +146,15 @@ public enum Visibility {
 			// Case of soapEnvelope (jmc 25/05/2012)
 			if (object instanceof HttpServletRequest) {				
 				SOAPMessage requestMessage = (SOAPMessage)((HttpServletRequest)object).getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);				
-				
+
 				SOAPPart sp = requestMessage.getSOAPPart();
 				SOAPEnvelope se = sp.getEnvelope();
 				SOAPBody sb = se.getBody();
-								
+
 				SOAPElement method, parameter;
 				Iterator<?> iterator = sb.getChildElements();
 				Object element;
-				
+
 				while (iterator.hasNext()) {
 					element = iterator.next();
 					if (element instanceof SOAPElement) {
@@ -173,28 +173,28 @@ public enum Visibility {
 									if (variable != null && isMasked(variable.getVisibility())) {
 										for (String key : getVariableKeyNames(variable)) {
 											if (parameterName.equals(key) ) {
-												
+
 												//We delete parent node and re-create to permit to remove all child nodes
 												if (parameter.hasChildNodes()) {
 													SOAPElement parent = parameter.getParentElement();
 													parent.removeChild(parameter);
 													parameter = parent.addChildElement(parameterName);
 												} 
-												
+
 												parameter.setValue(STRING_MASK);
-												
+
 											}
 										}
 									}
-								}									
+								}
 							}
 						}
 					}
 				}
-				
+
 				return SOAPUtils.toString(requestMessage, ((HttpServletRequest)object).getCharacterEncoding());
 			}
-			
+
 			// Case of variables Map : {variable_name,variable_value}
 			if (object instanceof Map<?, ?>) {
 				Map<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
@@ -212,17 +212,17 @@ public enum Visibility {
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
 				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(), true));
-				NodeList variableNodeList = XPathAPI.selectNodeList(toPrint, ".//*[@name and @value]");
-				
+				NodeList variableNodeList = XPathAPI.selectNodeList(toPrint, ".//*[@name]");
+
 				Element variableElement;
 				NodeList valueNodeList;
 				Attr valueAttrNode;
 				String variableName;
 				Node node;
 				//Permit to identify if we have an input document or a XSL requestTemplate
-				
+
 				boolean isInputDoc = XPathAPI.selectSingleNode(toPrint, "/input/transaction-variables") != null;
-				
+
 				for (int i=0; i<variableNodeList.getLength(); i++) {
 					variableElement = (Element) variableNodeList.item(i);
 					variableName = variableElement.getAttribute("name");
@@ -249,11 +249,11 @@ public enum Visibility {
 											for (int j=0; j<valueNodeList.getLength(); j++) {
 												node = valueNodeList.item(j);
 												if (node.getNodeType() == Node.ELEMENT_NODE && 
-													((Element)node).getNodeName().equals("value")) {
-														((Element)node).setTextContent(STRING_MASK);
+														((Element)node).getNodeName().equals("value")) {
+													((Element)node).setTextContent(STRING_MASK);
 												}
 											}
-										}										
+										}
 									}
 								}
 							}
@@ -266,7 +266,7 @@ public enum Visibility {
 		catch (Exception e) {}
 		return object;
 	}
-	
+
 	public static String maskValue(Object value) {
 		if (value == null) return null;
 		if (value.equals("")) return "";
@@ -276,7 +276,7 @@ public enum Visibility {
 		} catch (Exception e) {}
 		return STRING_MASK;
 	}
-	
+
 	private static List<String> getVariableKeyNames(Variable variable) {
 		List<String> keys = new ArrayList<String>();
 		try {
@@ -294,16 +294,16 @@ public enum Visibility {
 		} catch (Exception e) {}
 		return keys;
 	}
-	
+
 	public static String maskQueryValues(String queryString) {
 		if (queryString == null) return null;
-        var params = queryString.split("&");
-        for (int i = 0; i < params.length; i++) {
-            var param = params[i].split("=", 2);
-            if (param.length > 1) {
-                params[i] = param[0] + "=" + STRING_MASK;
-            }
-        }
-        return String.join("&", params);
+		var params = queryString.split("&");
+		for (int i = 0; i < params.length; i++) {
+			var param = params[i].split("=", 2);
+			if (param.length > 1) {
+				params[i] = param[0] + "=" + STRING_MASK;
+			}
+		}
+		return String.join("&", params);
 	}
 }

@@ -92,7 +92,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(StringUtils.normalize(expression))) {
+		if (oldName.equals(StringUtils.normalize(expression))) {
 			expression = newName;
 			hasChanged = true;
 		}

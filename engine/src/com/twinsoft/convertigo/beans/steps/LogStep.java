@@ -185,7 +185,7 @@ public class LogStep extends Step implements ITagsProperty {
 	
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (oldName.startsWith(com.twinsoft.convertigo.engine.util.StringUtils.normalize(expression))) {
+		if (oldName.equals(com.twinsoft.convertigo.engine.util.StringUtils.normalize(expression))) {
 			expression = newName;
 			hasChanged = true;
 		}
