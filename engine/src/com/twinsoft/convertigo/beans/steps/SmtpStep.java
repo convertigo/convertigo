@@ -253,18 +253,18 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					evaluate(javascriptContext, scope, this.smtpSubject, "smtpSubject", false);
-					sSubject = evaluated instanceof Undefined ? "" : evaluated.toString();
+					sSubject = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 					
 					evaluate(javascriptContext, scope, this.smtpRecipients, "smtpRecipients", false);
-					sRecipients = evaluated instanceof Undefined ? "" : evaluated.toString();
+					sRecipients = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 					
 					evaluate(javascriptContext, scope, this.smtpSender, "smtpSender", false);
-					sSender = evaluated instanceof Undefined ? "" : evaluated.toString();
+					sSender = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 					
 					evaluate(javascriptContext, scope, this.xslFilepath, "xslFilepath", false);
-					String xslFilepath = evaluated instanceof Undefined ? "" : evaluated.toString();
+					String xslFilepath = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 					evaluate(javascriptContext, scope, contentType, "contentType", false);
-					sContentType = evaluated instanceof Undefined ? "" : evaluated.toString();
+					sContentType = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 					File fileXSL = null;
 					if (xslFilepath.length() > 0) {
 						fileXSL = new File(Engine.theApp.filePropertyManager.getFilepathFromProperty(xslFilepath, getProject().getName()));
@@ -321,14 +321,14 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 						String filepath = attachment.get(0);
 						try {
 							evaluate(javascriptContext, scope, filepath, "filepath", false);
-							filepath = evaluated instanceof Undefined ? "" : evaluated.toString();
+							filepath = evaluated instanceof Undefined ? "" : Context.toString(evaluated);
 							if (filepath.length() > 0) {
 								File file = new File(Engine.theApp.filePropertyManager.getFilepathFromProperty(filepath, getProject().getName()));
 								if (file.exists()) {
 									if (file.isFile()) {
 										String filename = attachment.get(1);
 										evaluate(javascriptContext, scope, filename, "filename", false);
-										filename = evaluated instanceof Undefined ? file.getName() : evaluated.toString();
+										filename = evaluated instanceof Undefined ? file.getName() : Context.toString(evaluated);
 										
 										MimeBodyPart bodyPart = new MimeBodyPart();
 										bodyPart.attachFile(file);

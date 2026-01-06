@@ -171,7 +171,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 						DateFormat dateFormat;
 						
 						if ( evaluated != null && !evaluated.equals("") ){
-							dateFormat = new SimpleDateFormat( evaluated.toString() );
+							dateFormat = new SimpleDateFormat( Context.toString(evaluated) );
 						} else {
 							dateFormat = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 						}

@@ -155,7 +155,7 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 				nodeValue = Arrays.toString((Object[])evaluated);
 			}
 			else
-				nodeValue = evaluated.toString();
+				nodeValue = Context.toString(evaluated);
 		}
 		Node text = doc.createTextNode(nodeValue);
 		stepNode.appendChild(text);

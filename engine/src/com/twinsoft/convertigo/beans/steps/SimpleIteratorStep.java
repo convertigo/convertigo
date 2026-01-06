@@ -249,7 +249,7 @@ public class SimpleIteratorStep extends LoopStep {
 					list = Arrays.asList((Object[])evaluated);
 				}
 				else
-					list = Arrays.asList(new Object[] {evaluated.toString()});
+					list = Arrays.asList(new Object[] {Context.toString(evaluated)});
 			}
 		}
 		

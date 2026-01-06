@@ -185,7 +185,7 @@ public class ProcessExecStep extends Step {
 					command[i] = "" + ((org.mozilla.javascript.NativeArray) evaluated).get(i, null);
 				}
 			} else {
-				cmd = evaluated.toString();
+				cmd = Context.toString(evaluated);
 			}
 
 			// Check if encoding is supported

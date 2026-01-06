@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -55,7 +56,7 @@ public class ParameterUtils {
 			} else if (ob instanceof Node) {
 				parameterToString = nodeToString((Node)ob);
 			} else {
-				parameterToString = ob.toString();
+				parameterToString = Context.toString(ob);
 			}
 		} else {
 			parameterToString = null;

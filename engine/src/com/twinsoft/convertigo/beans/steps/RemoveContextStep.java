@@ -75,7 +75,7 @@ public class RemoveContextStep extends Step {
 					
 					if (evaluated != null) {
 						// contextID = JSESSIONID_contexName
-						String contextID = sequence.getSessionId() + "_" + evaluated.toString();
+						String contextID = sequence.getSessionId() + "_" + Context.toString(evaluated);
 						if (contextID.equals(sequence.context.contextID)) {
 							throw new Exception("The removal of current sequence's context is forbidden.");
 						}

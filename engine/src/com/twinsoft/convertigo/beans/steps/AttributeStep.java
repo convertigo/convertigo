@@ -155,7 +155,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 				nodeValue = Arrays.toString((Object[])evaluated);
 			}
 			else
-				nodeValue = evaluated.toString();
+				nodeValue = Context.toString(evaluated);
 		}
 		
 		Document doc = getOutputDocument();

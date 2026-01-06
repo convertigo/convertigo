@@ -757,7 +757,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		String value = null;
 		evaluate(javascriptContext, scope, source, sourceName, true);
 		if (!Undefined.isUndefined(evaluated)) {
-			value = String.valueOf(evaluated);
+			value = Context.toString(evaluated);
 		}
 		if (value == null) {
 			EngineException ee = new EngineException(

@@ -238,7 +238,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 				evaluated = null;
 				Engine.logBeans.trace("(SequenceStep) " + e.getMessage());
 			}
-			ctxName = (evaluated != null) ? evaluated.toString():(useSameJSessionForSteps ? "error_"+priority:"default");
+			ctxName = (evaluated != null) ? Context.toString(evaluated):(useSameJSessionForSteps ? "error_"+priority:"default");
 		}
 		return ctxName;
 	}

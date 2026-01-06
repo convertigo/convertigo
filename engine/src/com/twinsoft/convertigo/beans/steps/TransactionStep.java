@@ -301,7 +301,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 				evaluated = null;
 				Engine.logBeans.trace("(TransactionStep) " + e.getMessage());
 			}
-			ctxName = (evaluated != null) ? evaluated.toString() : (useSameJSessionForSteps ? "error_"
+			ctxName = (evaluated != null) ? Context.toString(evaluated) : (useSameJSessionForSteps ? "error_"
 					+ priority : "default");
 		}
 		return ctxName;
