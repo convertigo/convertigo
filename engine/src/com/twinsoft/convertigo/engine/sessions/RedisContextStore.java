@@ -32,7 +32,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
-import org.redisson.config.SingleServerConfig;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -67,14 +66,14 @@ public final class RedisContextStore implements ContextStore {
 
 	private static RedissonClient createClient(RedisSessionConfiguration cfg) {
 		var config = new Config();
-		var singleServer = (SingleServerConfig) config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		if (cfg.getUsername() != null) {
-			singleServer.setUsername(cfg.getUsername());
+			config.setUsername(cfg.getUsername());
 		}
 		if (cfg.getPassword() != null) {
-			singleServer.setPassword(cfg.getPassword());
+			config.setPassword(cfg.getPassword());
 		}
+		config.useSingleServer().setAddress(cfg.getAddress())
+				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		return Redisson.create(config);
 	}
 	

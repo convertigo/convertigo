@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.sessions;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
-import org.redisson.config.SingleServerConfig;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -63,14 +62,14 @@ public final class RedisClients {
 
 	private static RedissonClient createClient(RedisSessionConfiguration cfg) {
 		var config = new Config();
-		var singleServer = (SingleServerConfig) config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		if (cfg.getUsername() != null) {
-			singleServer.setUsername(cfg.getUsername());
+			config.setUsername(cfg.getUsername());
 		}
 		if (cfg.getPassword() != null) {
-			singleServer.setPassword(cfg.getPassword());
+			config.setPassword(cfg.getPassword());
 		}
+		config.useSingleServer().setAddress(cfg.getAddress())
+				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		return Redisson.create(config);
 	}
 
@@ -92,4 +91,3 @@ public final class RedisClients {
 		}
 	}
 }
-

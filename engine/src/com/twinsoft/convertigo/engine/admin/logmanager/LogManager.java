@@ -105,7 +105,7 @@ public class LogManager implements Closeable {
 				"String.prototype.startsWith = function(str) {return this.indexOf(str)==0};"
 					+ "String.prototype.endsWith = function(str) {return this.lastIndexOf(str)+str.length==this.length};"
 					+ "String.prototype.contains = function(str) {return this.indexOf(str)!=-1};"
-				, "utils", 0, null).exec(js_context, js_utils);
+				, "utils", 0, null).exec(js_context, js_utils, js_utils);
 		} finally {
 			Context.exit();
 		}
@@ -290,7 +290,7 @@ public class LogManager implements Closeable {
 						scope.put("extra", scope, extra.substring(0, extra.length() - 1));
 					}
 					scope.setParentScope(js_utils);
-					if (Context.toBoolean(js_filter.exec(js_context, scope))) {
+					if (Context.toBoolean(js_filter.exec(js_context, scope, scope))) {
 						result.put(candidate);
 					}
 				} catch (Exception e) {

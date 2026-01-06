@@ -33,7 +33,6 @@ import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
-import org.redisson.config.SingleServerConfig;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -63,14 +62,14 @@ final class RedisSessionStore implements SessionStore {
 
 	private RedissonClient createClient(RedisSessionConfiguration cfg) {
 		var config = new Config();
-		var singleServer = (SingleServerConfig) config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		if (cfg.getUsername() != null) {
-			singleServer.setUsername(cfg.getUsername());
+			config.setUsername(cfg.getUsername());
 		}
 		if (cfg.getPassword() != null) {
-			singleServer.setPassword(cfg.getPassword());
+			config.setPassword(cfg.getPassword());
 		}
+		config.useSingleServer().setAddress(cfg.getAddress())
+				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
 		return Redisson.create(config);
 	}
 
@@ -167,7 +166,7 @@ final class RedisSessionStore implements SessionStore {
 			String key = configuration.key(sessionId);
 			String tombstone = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
 			Number written = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
-					RScript.ReturnType.INTEGER, java.util.List.of(key, tombstone), args.toArray());
+					RScript.ReturnType.LONG, java.util.List.of(key, tombstone), args.toArray());
 			try {
 				if (written != null && written.longValue() == 1L) {
 					sessionsIndex.add(sessionId);

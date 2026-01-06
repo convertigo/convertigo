@@ -68,7 +68,7 @@ public class RhinoUtils {
 			script = cx.compileString(source, sourceName, lineno, securityDomain);
 			compiledScript.put(source, script);
 		}
-		Object result = script.exec(cx, scope);
+		Object result = script.exec(cx, scope, scope);
 		return result;
 	}
 
