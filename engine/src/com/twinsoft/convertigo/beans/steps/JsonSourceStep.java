@@ -46,7 +46,7 @@ public class JsonSourceStep extends SourceStep {
 				String variableName = getVariableName();
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				if (list.getLength() == 0) {
-					scope.delete(variableName);
+					scope.put(variableName, scope, null);
 					return true;
 				}
 				boolean isArray = list.getLength() > 1;
