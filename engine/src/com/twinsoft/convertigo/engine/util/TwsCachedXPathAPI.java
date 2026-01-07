@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.jxpath.FunctionLibrary;
 import org.apache.commons.jxpath.JXPathContext;
 import org.apache.xerces.dom.DocumentImpl;
 import org.apache.xerces.dom.events.MutationEventImpl;
@@ -76,7 +77,7 @@ public class TwsCachedXPathAPI implements EventListener {
 		@SuppressWarnings("rawtypes")
 		List nodes;
 		try {
-			nodes = JXPathContext.newContext(contextNode).selectNodes(xpath);
+			nodes = newSafeContext(contextNode).selectNodes(xpath);
 			int i = 0;
 			for (Object node: nodes) {
 				if (node instanceof Number) {
@@ -106,7 +107,7 @@ public class TwsCachedXPathAPI implements EventListener {
 	public Node selectNode(Node contextNode, String xpath) {
 		Node node;
 		try {
-			node = (Node) JXPathContext.newContext(contextNode).selectSingleNode(xpath);
+			node = (Node) newSafeContext(contextNode).selectSingleNode(xpath);
 		} catch (Exception e) {
 			node = null;
 		}
@@ -260,6 +261,12 @@ public class TwsCachedXPathAPI implements EventListener {
 	@Override
 	public void handleEvent(Event arg0) {
 		resetCache();
+	}
+
+	private static JXPathContext newSafeContext(Node contextNode) {
+		JXPathContext context = JXPathContext.newContext(contextNode);
+		context.setFunctions(new FunctionLibrary());
+		return context;
 	}
 	
 	private class JXPathNodeList implements NodeList {
