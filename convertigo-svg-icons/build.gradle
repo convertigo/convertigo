@@ -14,8 +14,8 @@ sourceSets {
 }
 
 dependencies {
-	implementation 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
-	implementation 'org.apache.xmlgraphics:batik-codec:1.18'
+	implementation 'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
+	implementation 'org.apache.xmlgraphics:batik-codec:1.19'
 }
 
 application {

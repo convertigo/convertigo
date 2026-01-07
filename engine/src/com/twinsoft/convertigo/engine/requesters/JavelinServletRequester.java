@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.util.FopUtils;
 
 public class JavelinServletRequester extends ServletRequester {
 
@@ -74,12 +75,11 @@ public class JavelinServletRequester extends ServletRequester {
     		StreamSource streamSource = null;
     		try {
     			// Construct/Configure a FopFactory
-    			FopFactory fopFactory = FopFactory.newInstance();
-    			fopFactory.setBaseURL(Engine.TEMPLATES_PATH);
+    			FopFactory fopFactory = FopUtils.newFopFactory(context.getProjectDirectory(),
+    					Engine.TEMPLATES_PATH);
 
     			// Configure foUserAgent as desired
 	        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-	        	foUserAgent.setBaseURL(context.getProjectDirectory());
 	        	foUserAgent.setAuthor("Convertigo EMS");
 	        	
 	        	// Setup output

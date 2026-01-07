@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.util.FopUtils;
 
 public class PdfServletRequester extends ServletRequester {
 
@@ -65,8 +66,8 @@ public class PdfServletRequester extends ServletRequester {
 	protected Object performXSLT(Document document) throws Exception {
 		String t1 = context.statistics.start(EngineStatistics.XSLT);
 
-        try {
-            Engine.logEngine.debug("XSL/FO process is beginning");
+	        try {
+	            Engine.logEngine.debug("XSL/FO process is beginning");
             
         	Object result = null;
         	
@@ -74,18 +75,22 @@ public class PdfServletRequester extends ServletRequester {
     		if (context.absoluteSheetUrl == null) throw new EngineException("You have required an XSL/FO process, but Convertigo has been unable to find a stylesheet for your request. Verify your project's settings.");
 
     		// XSL/FO engine
-    		StreamSource streamSource = null;
+			StreamSource streamSource = null;
     		try {
 	        	// Configure foUserAgent as desired
-	        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-	        	foUserAgent.setBaseURL(new File(context.getProjectDirectory()).toURI().toASCIIString());
+	        	FopFactory requestFopFactory = fopFactory;
+	        	String projectDirectory = context.getProjectDirectory();
+	        	if (projectDirectory != null && !projectDirectory.isEmpty()) {
+	        		requestFopFactory = FopUtils.newFopFactory(projectDirectory, Engine.TEMPLATES_PATH);
+	        	}
+	        	FOUserAgent foUserAgent = requestFopFactory.newFOUserAgent();
 	        	foUserAgent.setAuthor("Convertigo EMS");
 	        	
 	        	// Setup output
 	        	org.apache.commons.io.output.ByteArrayOutputStream out = new org.apache.commons.io.output.ByteArrayOutputStream();
 	        	
 				// Construct fop with desired output format
-				Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
+				Fop fop = requestFopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 				
 				// Setup XSLT
 				streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
@@ -95,10 +100,10 @@ public class PdfServletRequester extends ServletRequester {
 				// Setup input for XSLT transformation
 				Element element = document.getDocumentElement();
 				DOMSource src = new DOMSource(element);
-				
+
 				// Resulting SAX events (the generated FO) must be piped through to FOP
 				Result res = new SAXResult(fop.getDefaultHandler());
-				
+
 				// Start XSLT transformation and FOP processing
 				transformer.transform(src, res);
 				
@@ -111,7 +116,10 @@ public class PdfServletRequester extends ServletRequester {
     			}
     		}
     		
-            Engine.logEngine.trace("XSLT result:\n" + result);
+            if (Engine.logEngine.isTraceEnabled() && result instanceof byte[]) {
+            	byte[] bytes = (byte[]) result;
+            	Engine.logEngine.trace("XSLT result size: " + bytes.length + " bytes");
+            }
             
             return result;
         }

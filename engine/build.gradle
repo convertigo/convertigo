@@ -265,7 +265,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:1.4.7'
 	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.83'
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
-	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.5.0.202512021534-r'

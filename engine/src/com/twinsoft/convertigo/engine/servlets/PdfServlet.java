@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
-import java.net.MalformedURLException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -30,24 +28,21 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.PdfServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.FopUtils;
 
 public class PdfServlet extends GenericServlet {
 
 	private static final long serialVersionUID = -851070384164515957L;
 	
-	private FopFactory fopFactory = FopFactory.newInstance(); // The reusable fop factory instance
+	private FopFactory fopFactory; // The reusable fop factory instance
 
 	public PdfServlet() {
     }
 
-    @Override
+	@Override
 	public void init() throws ServletException {
 		super.init();
-		try {
-			// Configure fop factory
-			fopFactory.setBaseURL(Engine.TEMPLATES_PATH);
-		} catch (MalformedURLException e) {
-		}
+		fopFactory = FopUtils.newFopFactory(null, Engine.TEMPLATES_PATH);
 	}
 
 	@Override
