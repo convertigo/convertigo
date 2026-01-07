@@ -15,6 +15,7 @@ buildscript {
 
 plugins {
   id 'com.github.ben-manes.versions' version '0.53.0'
+  id 'org.owasp.dependencycheck' version '12.1.9'
 }
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
@@ -24,6 +25,8 @@ import groovy.xml.XmlUtil
 
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+
+ext.nvdApiKey = findProperty('nvdApiKey') ?: System.getenv('NVD_API_KEY')
 
 ext.convertigoVersion = '8.4.0'
 ext.convertigoTag = 'beta'
@@ -66,6 +69,12 @@ eclipse {
 }
 
 allprojects {
+	apply plugin: 'org.owasp.dependencycheck'
+	dependencyCheck {
+		nvd {
+			apiKey = rootProject.ext.nvdApiKey
+		}
+	}
 	version = convertigoVersionFull
 	
 	repositories {
