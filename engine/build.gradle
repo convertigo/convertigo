@@ -102,6 +102,9 @@ tasks.register("generateDependenciesIndex") {
 		def buf = []
 		def substr = System.getProperty("user.home").length() + 1
 		configurations.compileFlat.each {
+			if (it.isFile() && it.getName().endsWith('.pom')) {
+				return
+			}
 			buf += it.toString().substring(substr)
 		}
 		buf.sort()
@@ -109,6 +112,15 @@ tasks.register("generateDependenciesIndex") {
 		file.parentFile.mkdirs()
 		file.text = buf.join('\n')
 	}
+}
+
+tasks.register('soapuiSmokeTest', JavaExec) {
+	group = 'verification'
+	description = 'Runs a minimal SoapUI initialization to validate the light dependencies.'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.util.SoapUiSmokeTest'
+	dependsOn tasks.named('classes')
+	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
 }
 
 task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
@@ -129,9 +141,22 @@ task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 		.optional()
 
 	from {
-		configurations.compileFlat.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
+		configurations.compileFlat.collect { dep ->
+			if (dep.isFile() && dep.getName().endsWith('.pom')) {
+				return null
+			}
+			dep.isDirectory() ? dep : zipTree(dep)
+		}.findAll { it != null }
+	} {
+		exclude 'META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat'
+		exclude 'com/eviware/soapui/explorer/**'
+	}
+	// Ensure log4j2 plugin cache comes from log4j-core, not a dependency that overrides it (e.g. SoapUI).
+	from {
+		def log4jCoreJar = configurations.compileFlat.find { it.name.startsWith('log4j-core-') }
+		log4jCoreJar != null ? zipTree(log4jCoreJar) : []
+	} {
+		include 'META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat'
 	}
 	from(dependenciesIndex)
 	exclude 'org/w3c/dom/**', 'org/xml/sax/**', 'javax/xml/catalog/**', 'javax/xml/datatype/**', 'javax/xml/namespace/**'
@@ -207,11 +232,10 @@ dependencies {
 	compileFlat    ('org.apache.logging.log4j:log4j-core:2.25.3') {
 		exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
 	}
-	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
+	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.17'
 	compileFlat    'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
-	compileFlat    'com.convertigo.lib:soapui-xmlbeans:3.5.1'
-	compileFlat    'com.convertigo.lib:soapui:3.5.1'
+	compileFlat    'com.convertigo.lib:soapui:' + soapuiVersion + '-light'
 	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.7'
 	implementation('com.convertigo.provider:convertigo-provider-plugins:8.1.0-SNAPSHOT') {
 		exclude group: 'xml-apis', module: 'xml-apis'
@@ -230,7 +254,10 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
 	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.20.1'
-	compileFlat    'com.google.gcm:gcm-server:1.0.0'
+	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
+		exclude group: 'junit', module: 'junit'
+	}
+	compileFlat    'junit:junit:4.13.2'
 	compileFlat    'com.opencsv:opencsv:5.12.0'
 	compileFlat    'com.sun.xml.bind:jaxb-xjc:2.2.11'
 	compileFlat    'commons-beanutils:commons-beanutils:1.11.0'

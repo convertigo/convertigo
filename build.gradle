@@ -41,6 +41,7 @@ ext.eclipseVersion = '2025-12'
 ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
+ext.soapuiVersion = '5.9.1'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
@@ -88,6 +89,9 @@ allprojects {
 		mavenCentral()
 		maven {
 			url = "https://oss.sonatype.org/content/repositories/snapshots"
+		}
+		maven {
+			url = "https://rapi.tools.ops.smartbear.io/nexus/content/groups/public"
 		}
 	}
 	
@@ -195,6 +199,27 @@ allprojects {
 	}
 }
 
+configurations {
+	soapuiLightBase
+}
+
+dependencies {
+	soapuiLightBase("com.smartbear.soapui:soapui:${soapuiVersion}") {
+		transitive = false
+	}
+}
+
+tasks.register('soapuiLightJar', Jar) {
+	group = 'convertigo'
+	description = 'Build a SoapUI light jar without explorer UI assets.'
+	destinationDirectory = layout.buildDirectory.dir('libs')
+	archiveFileName = "soapui-5.9.1-light.jar"
+	from {
+		configurations.soapuiLightBase.files.collect { zipTree(it) }
+	}
+	exclude 'com/eviware/soapui/explorer/**'
+}
+
 publishing {
 	publications {
 		engineApi (MavenPublication) {
@@ -226,6 +251,35 @@ publishing {
 						dependency.appendNode('version', values[2])
 					}
 				}
+			}
+		}
+		soapuiLight (MavenPublication) {
+			groupId = 'com.convertigo.lib'
+			artifactId = 'soapui'
+			version = '5.9.1-light'
+			artifact tasks.named('soapuiLightJar')
+			pom {
+				name = 'SoapUI light'
+				description = 'SoapUI jar with jquery assets removed and no transitive dependencies.'
+			}
+			pom.withXml {
+				def dependencies = asNode().appendNode('dependencies')
+				def dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'com.btr')
+				dependency.appendNode('artifactId', 'proxy-vole')
+				dependency.appendNode('version', '20131209')
+				dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'org.reflections')
+				dependency.appendNode('artifactId', 'reflections')
+				dependency.appendNode('version', '0.9.9-RC1')
+				dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'org.codehaus.groovy')
+				dependency.appendNode('artifactId', 'groovy-all')
+				dependency.appendNode('version', '3.0.19')
+				dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'com.fifesoft')
+				dependency.appendNode('artifactId', 'rsyntaxtextarea')
+				dependency.appendNode('version', '2.5.0')
 			}
 		}
 /*		

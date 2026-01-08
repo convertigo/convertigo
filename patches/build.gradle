@@ -15,8 +15,7 @@ sourceSets {
 }
 
 dependencies {
-	compileOnly 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
-	compileOnly 'com.convertigo.lib:soapui:3.5.1'
+	compileOnly 'com.convertigo.lib:soapui:' + soapuiVersion + '-light'
 	compileOnly('com.convertigo.lib:xmlbeans:2.6.0') { exclude group: 'stax', module: 'stax-api' }
 	compileOnly 'commons-jxpath:commons-jxpath:1.4.0'
 	compileOnly 'xalan:serializer:2.7.3'
