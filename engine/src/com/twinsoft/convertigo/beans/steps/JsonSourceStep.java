@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -47,6 +48,7 @@ public class JsonSourceStep extends SourceStep {
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				if (list.getLength() == 0) {
 					scope.put(variableName, scope, null);
+					Engine.logBeans.warn("(JsonSourceStep) Since 8.4, empty result is set to null instead of being removed from the scope.");
 					return true;
 				}
 				boolean isArray = list.getLength() > 1;
