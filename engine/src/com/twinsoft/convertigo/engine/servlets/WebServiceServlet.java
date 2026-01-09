@@ -68,8 +68,9 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNode;
-import org.apache.axiom.om.impl.dom.TextImpl;
+import org.apache.axiom.om.OMText;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -702,25 +703,29 @@ public class WebServiceServlet extends GenericServlet {
 	
 	private void handleMTOMUploads(String sessionID, SOAPElement soapElement) throws FileNotFoundException, IOException, SOAPException {
 		if (soapElement instanceof org.apache.axis2.saaj.SOAPElementImpl) {
-			org.apache.axis2.saaj.SOAPElementImpl el = (org.apache.axis2.saaj.SOAPElementImpl)soapElement;
-			final OMNode firstOMChild = el.getElement().getFirstOMChild();
-			if (firstOMChild instanceof TextImpl) {
-	        	TextImpl ti = ((TextImpl)firstOMChild);
-	        	boolean isBinary = ti.isBinary();
-	        	boolean isOptimized = ti.isOptimized();
-	            String contentID = ti.getContentID();
-	            if (isBinary && isOptimized && contentID != null) {
-	            	// Write file
-	            	javax.activation.DataHandler dh = (javax.activation.DataHandler)ti.getDataHandler();
-	            	String filePath = getUploadFilePath(sessionID, el.getLocalName(), dh.getContentType());
-	            	dh.writeTo(new FileOutputStream(new File(filePath)));
+			org.apache.axis2.saaj.SOAPElementImpl<?> el = (org.apache.axis2.saaj.SOAPElementImpl<?>) soapElement;
+			Object omTarget = el.getOMTarget();
+			if (!(omTarget instanceof OMElement)) {
+				return;
+			}
+			final OMNode firstOMChild = ((OMElement) omTarget).getFirstOMChild();
+			if (firstOMChild instanceof OMText) {
+				OMText text = (OMText) firstOMChild;
+				boolean isBinary = text.isBinary();
+				boolean isOptimized = text.isOptimized();
+				String contentID = text.getContentID();
+				if (isBinary && isOptimized && contentID != null) {
+					// Write file
+					javax.activation.DataHandler dh = text.getDataHandler();
+					String filePath = getUploadFilePath(sessionID, el.getLocalName(), dh.getContentType());
+					dh.writeTo(new FileOutputStream(new File(filePath)));
 					
-	            	// Modify value in soap envelope (replace the base64 encoded value with the filepath value)
-	            	ti.detach();
+					// Modify value in soap envelope (replace the base64 encoded value with the filepath value)
+					text.detach();
 					el.addTextNode(filePath);
 					
 					Engine.logEngine.trace("(WebServiceServlet) File successfully uploaded :"+ filePath);
-	            }
+				}
 			}
 		}
 	}

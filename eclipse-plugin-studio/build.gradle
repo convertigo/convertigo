@@ -53,7 +53,6 @@ dependencies {
 	toSync "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
 	toSync "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
 	toSync 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
-	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	toSync project.property('sapjco3Version')
 	toSync 'com.convertigo.lib:jxbrowser-license:2025.04.17'
 	toSync 'com.formdev:flatlaf:3.7:no-natives'
