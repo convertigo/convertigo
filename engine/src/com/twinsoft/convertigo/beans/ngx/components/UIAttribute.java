@@ -158,4 +158,17 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		}
 		return updated;
 	}
+	
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		try {
+			// set attrName to newName
+			if (this.getClass().equals(UIAttribute.class)) {
+				if (oldName.toLowerCase().startsWith(attrName)) {
+					setAttrName(com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName.toLowerCase()));
+				}
+			}
+		} catch (Exception e) {}
+	}
+	
 }
