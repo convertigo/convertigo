@@ -57,7 +57,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector;

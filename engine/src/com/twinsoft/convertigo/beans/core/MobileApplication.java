@@ -27,7 +27,8 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
@@ -277,7 +278,7 @@ public class MobileApplication extends DatabaseObject {
 			String[] applicationIdParts = applicationId.split("\\.");
 			for (int i = 0; i < applicationIdParts.length; i++) {
 				applicationIdParts[i] = com.twinsoft.convertigo.engine.util.StringUtils.normalize(applicationIdParts[i]);
-				applicationIdParts[i] = StringUtils.remove(applicationIdParts[i], "_");
+				applicationIdParts[i] = Strings.CS.remove(applicationIdParts[i], "_");
 			}
 			applicationId = com.twinsoft.convertigo.engine.util.StringUtils.join(applicationIdParts, ".");
 		}

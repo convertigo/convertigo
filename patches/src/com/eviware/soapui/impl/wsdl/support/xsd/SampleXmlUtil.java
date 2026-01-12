@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -53,7 +54,6 @@ import org.apache.xmlbeans.XmlInteger;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.XmlTime;
-import org.apache.xmlbeans.impl.util.Base64;
 import org.apache.xmlbeans.impl.util.HexBin;
 import org.apache.xmlbeans.soap.SOAPArrayType;
 import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
@@ -129,9 +129,9 @@ public class SampleXmlUtil
 		cursor.dispose();
 
 		XmlOptions options = new XmlOptions();
-		options.put( XmlOptions.SAVE_PRETTY_PRINT );
-		options.put( XmlOptions.SAVE_PRETTY_PRINT_INDENT, 3 );
-		options.put( XmlOptions.SAVE_AGGRESSIVE_NAMESPACES );
+		options.setSavePrettyPrint();
+		options.setSavePrettyPrintIndent( 3 );
+		options.setSaveAggressiveNamespaces();
 		options.setSaveOuter();
 		String result = object.xmlText( options );
 
@@ -151,9 +151,9 @@ public class SampleXmlUtil
 		c.dispose();
 
 		XmlOptions options = new XmlOptions();
-		options.put( XmlOptions.SAVE_PRETTY_PRINT );
-		options.put( XmlOptions.SAVE_PRETTY_PRINT_INDENT, 3 );
-		options.put( XmlOptions.SAVE_AGGRESSIVE_NAMESPACES );
+		options.setSavePrettyPrint();
+		options.setSavePrettyPrintIndent( 3 );
+		options.setSaveAggressiveNamespaces();
 		options.setSaveOuter();
 		String result = xml.xmlText( options );
 
@@ -176,9 +176,9 @@ public class SampleXmlUtil
 
 		cursor.dispose();
 		XmlOptions options = new XmlOptions();
-		options.put( XmlOptions.SAVE_PRETTY_PRINT );
-		options.put( XmlOptions.SAVE_PRETTY_PRINT_INDENT, 3 );
-		options.put( XmlOptions.SAVE_AGGRESSIVE_NAMESPACES );
+		options.setSavePrettyPrint();
+		options.setSavePrettyPrintIndent( 3 );
+		options.setSaveAggressiveNamespaces();
 		options.setSaveOuter();
 		String result = object.xmlText( options );
 
@@ -356,7 +356,8 @@ public class SampleXmlUtil
 			String result = null;
 			try
 			{
-				result = new String( Base64.encode( formatToLength( pick( WORDS ), sType ).getBytes( "utf-8" ) ) );
+				result = Base64.getEncoder()
+					.encodeToString( formatToLength( pick( WORDS ), sType ).getBytes( "utf-8" ) );
 			}
 			catch( java.io.UnsupportedEncodingException e )
 			{

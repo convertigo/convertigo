@@ -42,6 +42,9 @@ ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 ext.soapuiVersion = '5.9.1'
+ext.log4jVersion = '2.25.3'
+ext.commonsIo = '2.21.0'
+ext.commonsLang3 = '3.20.0'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
@@ -213,7 +216,7 @@ tasks.register('soapuiLightJar', Jar) {
 	group = 'convertigo'
 	description = 'Build a SoapUI light jar without explorer UI assets.'
 	destinationDirectory = layout.buildDirectory.dir('libs')
-	archiveFileName = "soapui-5.9.1-light.jar"
+	archiveFileName = "soapui-light-${soapuiVersion}.jar"
 	from {
 		configurations.soapuiLightBase.files.collect { zipTree(it) }
 	}
@@ -231,16 +234,16 @@ publishing {
 				pom.withXml {
 					def dependencies = asNode().appendNode('dependencies')
 					[
-						'org.apache.logging.log4j:log4j-core:2.20.0',
-						'org.apache.logging.log4j:log4j-1.2-api:2.20.0',
+						'org.apache.logging.log4j:log4j-core:' + log4jVersion,
+						'org.apache.logging.log4j:log4j-1.2-api:' + log4jVersion,
 						'com.convertigo.twinsoft:api:2017.12.29',
 						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
 						'com.fasterxml.jackson.core:jackson-core:2.15.0',
-						'commons-io:commons-io:2.11.0',
+						'commons-io:commons-io:' + commonsIo,
 						'javax.mail:mail:1.4.7',
 						'javax.servlet:servlet-api:2.5',
-						'org.apache.commons:commons-lang3:3.7',
+						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
 						'org.codehaus.jettison:jettison:1.5.4'
 					].each {
@@ -254,9 +257,9 @@ publishing {
 			}
 		}
 		soapuiLight (MavenPublication) {
-			groupId = 'com.convertigo.lib'
-			artifactId = 'soapui'
-			version = '5.9.1-light'
+			groupId = 'com.smartbear.soapui'
+			artifactId = 'soapui-light'
+			version = soapuiVersion
 			artifact tasks.named('soapuiLightJar')
 			pom {
 				name = 'SoapUI light'
@@ -269,11 +272,23 @@ publishing {
 				dependency.appendNode('artifactId', 'proxy-vole')
 				dependency.appendNode('version', '20131209')
 				dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'commons-lang')
+				dependency.appendNode('artifactId', 'commons-lang')
+				dependency.appendNode('version', '2.6')
+				dependency = dependencies.appendNode('dependency')
+				dependency.appendNode('groupId', 'org.apache.xmlbeans')
+				dependency.appendNode('artifactId', 'xmlbeans')
+				dependency.appendNode('version', '3.1.1-sb-fixed')
+				def exclusions = dependency.appendNode('exclusions')
+				def exclusion = exclusions.appendNode('exclusion')
+				exclusion.appendNode('groupId', 'stax')
+				exclusion.appendNode('artifactId', 'stax-api')
+				dependency = dependencies.appendNode('dependency')
 				dependency.appendNode('groupId', 'org.reflections')
 				dependency.appendNode('artifactId', 'reflections')
 				dependency.appendNode('version', '0.9.9-RC1')
-				def exclusions = dependency.appendNode('exclusions')
-				def exclusion = exclusions.appendNode('exclusion')
+				exclusions = dependency.appendNode('exclusions')
+				exclusion = exclusions.appendNode('exclusion')
 				exclusion.appendNode('groupId', 'dom4j')
 				exclusion.appendNode('artifactId', 'dom4j')
 				dependency = dependencies.appendNode('dependency')

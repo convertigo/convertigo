@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;

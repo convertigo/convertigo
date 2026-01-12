@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;

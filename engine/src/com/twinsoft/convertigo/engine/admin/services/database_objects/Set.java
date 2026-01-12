@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
