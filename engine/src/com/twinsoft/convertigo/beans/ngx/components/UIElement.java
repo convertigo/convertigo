@@ -501,6 +501,16 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			}
 		};
 	}
-	
-	
+
+	@Override
+	protected void onBeanNameChanged(String oldName, String newName) {
+		try {
+			// set tagName to newName
+			if (this.getClass().equals(UIElement.class)) {
+				if (oldName.toLowerCase().startsWith(tagName)) {
+					setTagName(com.twinsoft.convertigo.engine.util.StringUtils.normalize(newName.toLowerCase()));
+				}
+			}
+		} catch (Exception e) {}
+	}
 }
