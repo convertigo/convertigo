@@ -192,16 +192,16 @@ publishing {
 				pom.withXml {
 					def dependencies = asNode().appendNode('dependencies')
 					[
-						'org.apache.logging.log4j:log4j-core:2.20.0',
-						'org.apache.logging.log4j:log4j-1.2-api:2.20.0',
+						'org.apache.logging.log4j:log4j-core:2.23.0',
+						'org.apache.logging.log4j:log4j-1.2-api:2.23.0',
 						'com.convertigo.twinsoft:api:2017.12.29',
 						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
-						'com.fasterxml.jackson.core:jackson-core:2.15.0',
-						'commons-io:commons-io:2.11.0',
+						'com.fasterxml.jackson.core:jackson-core:2.16.1',
+						'commons-io:commons-io:2.15.1',
 						'javax.mail:mail:1.4.7',
 						'javax.servlet:servlet-api:2.5',
-						'org.apache.commons:commons-lang3:3.7',
+						'org.apache.commons:commons-lang3:3.14.0',
 						'org.apache.httpcomponents:httpclient:4.5.14',
 						'org.codehaus.jettison:jettison:1.5.4'
 					].each {

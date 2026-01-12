@@ -185,12 +185,12 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat    'com.convertigo.lib:soapui:3.5.1'
-	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.7'
-	implementation('com.convertigo.provider:convertigo-provider-plugins:8.1.0-SNAPSHOT') {
+	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.11'
+	implementation('com.convertigo.provider:convertigo-provider-plugins:8.3.11') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
 	}	
-	implementation 'com.convertigo.provider:convertigo-provider-sap:8.2.5'
+	implementation 'com.convertigo.provider:convertigo-provider-sap:8.3.11'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'
 	compileFlat    'com.convertigo.twinsoft.lib:ms:2002.01.03'
