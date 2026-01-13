@@ -101,6 +101,18 @@ public class ClearableText extends Composite {
     public void addKeyListener(KeyListener l) { text.addKeyListener(l); }
     public void setEditable(boolean editable) { text.setEditable(editable); }
 
+    @Override public void notifyListeners(int eventType, Event event) {
+        if (eventType == SWT.Modify) {
+            Event e = event == null ? new Event() : event;
+            if (e.widget == null || e.widget == this) {
+                e.widget = text;
+            }
+            text.notifyListeners(eventType, e);
+            return;
+        }
+        super.notifyListeners(eventType, event);
+    }
+
     @Override public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         text.setEnabled(enabled);
