@@ -42,6 +42,7 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
+import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.engine.Theme;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
@@ -50,6 +51,7 @@ import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
@@ -101,11 +103,31 @@ public class AssistantView extends ViewPart {
 		browser.addToolItemOpenExternal(tb);
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.setUseExternalBrowser(false);
+		browser.setUseExternalBrowser(true);
+		browser.onClick(ev -> {
+			try {
+				Element elt = (Element) ev.target().get();
+				while (!elt.nodeName().equalsIgnoreCase("a")) {
+					elt = (Element) elt.parent().get();
+				}
+				String href = elt.attributes().get("href");
+				if (href.equals("#opentutorialview")) {
+					ConvertigoPlugin.asyncExec(() -> {
+						new OpenTutorialView().run(null);
+					});
+					ev.preventDefault();
+					return true;
+				} else if (href.startsWith("#") || elt.attributes().get("id").startsWith("weglot")) {
+					return true;
+				}
+			} catch (Exception e) {
+			}
+			return false;
+		});
 		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
-		//url = "http://localhost:49678/path-to-xfirst";
+		//url = "http://localhost:47563/path-to-xfirst";
 		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
