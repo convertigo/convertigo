@@ -25,7 +25,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 ext.convertigoVersion = '8.3.11'
-ext.convertigoTag = 'beta'
+ext.convertigoTag = ''
 ext.convertigoCodename = 'bismuth'
 ext.convertigoCode = 'Bi'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''

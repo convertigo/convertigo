@@ -1,5 +1,26 @@
 # Changelog
 
+## 8.3.11
+
+#### Improvements:
+
+- [#998](https://github.com/convertigo/convertigo/issues/998) [Engine] The usage monitor log now includes the current session count for better runtime visibility
+- [#1006](https://github.com/convertigo/convertigo/issues/1006) [Studio] Naming a component now correctly initializes its main property value for all affected Convertigo components
+
+#### Bug Fixes:
+
+- [#898](https://github.com/convertigo/convertigo/issues/898) [Security] Fixed, expression injection vectors have been removed and inputs are now properly sanitized
+- [#993](https://github.com/convertigo/convertigo/issues/993) [Security] Fixed, the “Add Symbol” feature is now protected against XSS attacks
+- [#994](https://github.com/convertigo/convertigo/issues/994) [Studio] Fixed, adding an HTTP Connector via drag-and-drop from the Palette no longer triggers an unexpected popup message
+- [#995](https://github.com/convertigo/convertigo/issues/995) [Studio] Fixed, clearing the Palette search field on macOS now works with a single click
+- [#1000](https://github.com/convertigo/convertigo/issues/1000) [Engine] Fixed, deprecated Xalan-XSLTC usage has been removed to prevent warnings and future incompatibilities
+- [#1001](https://github.com/convertigo/convertigo/issues/1001) [Engine] Fixed, the HttpConnector now works correctly again when used with XML templates (regression resolved)
+- [#1003](https://github.com/convertigo/convertigo/issues/1003) [Studio] Fixed, renaming an empty Sequence_JS step no longer inserts the step name on the first line of code
+- [#1004](https://github.com/convertigo/convertigo/issues/1004) [Documentation] Fixed, the documentation for the “SharedAction Variable” Palette component has been corrected
+- [#1007](https://github.com/convertigo/convertigo/issues/1007) [NGX] Fixed, the `ion-range` component now correctly accepts a `pinFormatter` function
+
+---
+
 ## 8.3.10
 
 #### Improvements:
