@@ -23,6 +23,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Base64;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -127,8 +128,13 @@ public class AssistantView extends ViewPart {
 		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
 		
 		String url = STARTUP_URL;
-		//url = "http://localhost:47563/path-to-xfirst";
-		//url = "http://localhost:28080/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url = u;
+			}
+		} catch (Exception e) {
+		}
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
