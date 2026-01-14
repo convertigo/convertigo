@@ -78,6 +78,13 @@ If you want to make a vertical image ready to start with your application inside
     COPY myProject.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
     COPY myDependency.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
 
+## Make image with pre-deployed configuration
+
+ou can add to your image a set of pre-configured symbols by copying the `global_symbols.properties`, you have to have this file next to your `Dockerfile`:
+
+    FROM convertigo
+    COPY global_symbols.properties /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/configuration/global_symbols.properties
+
 ## Migrate from an earlier version of Convertigo Low Code Platform
 
 -	Stop the container to perform a backup. And just back the workspace directory. This will backup all the projects definitions and some project data.
@@ -227,9 +234,9 @@ The default `ENABLE_JDWP_DEBUG` value is **false** and can be defined this way:
 
 ## Pre configurated Docker compose stack
 
-You can use this [stack](https://github.com/convertigo/docker/blob/master/compose/mbaas/docker-compose.yml) to run a complete Convertigo Low Code server with FullSync repository and MySQL analytics in a few command lines.
+You can use this [README](https://github.com/convertigo/docker/tree/compose) to run a complete Convertigo Low Code server.
 
-	mkdir c8oMBaaS
-	cd c8oMBaaS
-	wget https://raw.githubusercontent.com/convertigo/docker/master/compose/mbaas/docker-compose.yml
+	mkdir convertigo
+	cd convertigo
+	curl -sL https://github.com/convertigo/docker/archive/refs/heads/compose.tar.gz | tar xvz --strip-components=1
 	docker-compose up -d
