@@ -165,6 +165,7 @@ task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 	exclude 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/DEPENDENCIES'
 	exclude 'META-INF/MANIFEST.MF', 'META-INF/INDEX.LIST', 'META-INF/EVIWARE.*', 'META-INF/license.txt'
 	exclude 'META-INF/notice.txt', 'META-INF/README*', 'META-INF/spring*', 'overview.html', 'externs.zip'
+	exclude 'META-INF/maven/commons-lang/**'
 	exclude 'META-INF/mailcap*', 'META-INF/MANIFEST.MF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'META-INF/*.SF'
 }
 
