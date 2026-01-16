@@ -16,22 +16,17 @@
 		return i == -1 ? 0 : i;
 	});
 
-	let activeIndexLast = $state(0);
-	$effect(() => {
-		activeIndexLast = activeIndex;
-	});
+	let activeIndexLast = $derived(activeIndex);
 </script>
 
-<nav
-	class="layout-y-stretch-none h-full border-r-[0.5px] border-color preset-filled-surface-50-950"
->
-	{#each parts as tiles, i}
-		{#each tiles as { title, icon, url, page, params, loading, external }, j}
+<nav class="layout-y-stretch-none h-full border-r border-color preset-filled-surface-50-950">
+	{#each parts as tiles, i (i)}
+		{#each tiles as { title, icon, url, page, params, loading, external }, j (page ?? url ?? title ?? j)}
 			{@const href = loading ? undefined : page ? resolve(page, params) : url}
 			<a
 				{href}
 				rel={external ? 'external' : undefined}
-				class="relative layout-x-p-low min-w-36 !gap rounded shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10 {loading
+				class="relative layout-x-p-low min-w-36 !gap rounded-base border border-transparent transition-soft hover:border-surface-200-800 hover:bg-surface-100-900 {loading
 					? 'blur-sm'
 					: ''}"
 				transition:slide={{ axis: 'y' }}
@@ -48,7 +43,7 @@
 
 		{#if i < parts.length - 1}
 			<div class="w-full py-3">
-				<div class="border-[0.1px] border-surface-400-600"></div>
+				<div class="border-b border-surface-200-800"></div>
 			</div>
 		{/if}
 	{/each}

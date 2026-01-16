@@ -117,7 +117,7 @@
 							},
 							{
 								icon: 'mdi:filter',
-								cls: 'button-ico-tertiary',
+								cls: 'button-ico-primary',
 								onclick: () => {
 									Connections.selectedSession = sessionID;
 								}

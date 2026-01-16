@@ -35,10 +35,10 @@
 	expandOnClick={false}
 	base="w-full"
 	classes="break-words select-none"
-	textClass="text-sm font-medium"
+	textClass="text-sm font-medium text-surface-700 dark:text-surface-100"
 	indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
-	childrenClass="border-l border-surface-200-800 pl-2"
-	controlClass="layout-x-low rounded-base py-1 transition-soft hover:bg-surface-200-800"
+	childrenClass="border-l border-surface-200-800 pl-3"
+	controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 transition-soft hover:bg-surface-200-800"
 >
 	{#snippet nodeIcon({ node })}
 		{#if typeof node.icon === 'string' && node.icon.includes('?')}

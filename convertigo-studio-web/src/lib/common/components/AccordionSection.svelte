@@ -52,7 +52,7 @@
 	} = $props();
 
 	const countClass =
-		'rounded-full border border-primary-300-700/60 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase text-surface-500';
+		'rounded-full border border-surface-200-800 bg-surface-100-900/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase text-surface-600-400';
 	const countText = $derived(
 		typeof count === 'number' && countVariant !== 'none'
 			? countVariant === 'number'

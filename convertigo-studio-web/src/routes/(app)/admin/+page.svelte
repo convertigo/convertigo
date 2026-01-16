@@ -3,7 +3,6 @@
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
 	import Monitor from '$lib/admin/Monitor.svelte';
@@ -54,15 +53,17 @@
 			title: 'Status',
 			buttons: [
 				{
-					label: 'Java Properties',
+					label: 'Java Props',
+					title: 'Java Properties',
 					icon: 'mdi:language-java',
-					cls: 'button-primary text-xs w-34',
+					cls: 'button-primary text-[11px] px-2! whitespace-nowrap',
 					onclick: (e) => modal(e, 'props')
 				},
 				{
-					label: 'Environment Variables',
+					label: 'Env Vars',
+					title: 'Environment Variables',
 					icon: 'mdi:code-block-braces',
-					cls: 'button-secondary text-xs w-34',
+					cls: 'button-secondary text-[11px] px-2! whitespace-nowrap',
 					onclick: (e) => modal(e, 'env')
 				}
 			],
@@ -203,19 +204,31 @@
 		{#each tables as { title, buttons, data } (title)}
 			<Card {title} class="statusTable">
 				{#snippet cornerOption()}
-					<ResponsiveButtons {buttons} disabled={!init} />
+					<ActionBar full={false} wrap={false} class="ml-auto" disabled={!init}>
+						{#each buttons as button (button.label)}
+							<Button {...button} full={false} />
+						{/each}
+					</ActionBar>
 				{/snippet}
 				<TableAutoCard
 					showHeaders={false}
 					definition={[
-						{ key: 'Name', custom: true, class: 'min-w-32' },
-						{ key: 'Value', custom: true, class: 'text-right! break' }
+						{
+							key: 'Name',
+							custom: true,
+							class: 'min-w-32 text-xs uppercase tracking-wide text-surface-600-400 font-medium'
+						},
+						{
+							key: 'Value',
+							custom: true,
+							class: 'text-right! break text-surface-800-200 font-normal'
+						}
 					]}
 					{data}
 				>
 					{#snippet children({ row, def })}
 						{#if def.key === 'Name'}
-							<span class="font-normal">{row.Name}</span>
+							<span>{row.Name}</span>
 						{:else}
 							{#if row[def.key] == 'Running'}
 								<span class="on"></span>

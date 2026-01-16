@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { onMount, tick } from 'svelte';
+	import { fromAction } from 'svelte/attachments';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
 	let {
@@ -23,28 +23,35 @@
 
 	const duration = 50;
 	let isCardView = $state(false);
-	let container;
+	const attachContainer = $derived(fromAction(observeContainer));
 
-	function checkOverflow() {
-		isCardView = container.scrollWidth > container.clientWidth;
-		tick().then(() => {
-			isCardView = isCardView || container?.scrollWidth > container?.clientWidth;
-		});
+	/** @param {HTMLDivElement} node */
+	function observeContainer(node) {
+		const update = () => {
+			const next = node.scrollWidth > node.clientWidth;
+			if (next !== isCardView) {
+				isCardView = next;
+			}
+		};
+
+		update();
+
+		const resizeObserver = new ResizeObserver(update);
+		resizeObserver.observe(node);
+
+		const mutationObserver = new MutationObserver(update);
+		mutationObserver.observe(node, { childList: true, subtree: true, characterData: true });
+
+		return {
+			destroy() {
+				resizeObserver.disconnect();
+				mutationObserver.disconnect();
+			}
+		};
 	}
-
-	onMount(() => {
-		window.addEventListener('resize', checkOverflow);
-		return () => window.removeEventListener('resize', checkOverflow);
-	});
-
-	$effect(() => {
-		if (data) {
-			checkOverflow();
-		}
-	});
 </script>
 
-<div bind:this={container} class="table-container {cls}" class:autocard={isCardView}>
+<div class="table-container {cls}" class:autocard={isCardView} {@attach attachContainer}>
 	{#if title.length > 0}
 		<h1 class="ztext-surface-800-200 text-[16px] font-normal">{title}</h1>
 	{/if}
@@ -59,7 +66,7 @@
 			{:else}
 				<thead>
 					<tr class={thClass}>
-						{#each definition as def}
+						{#each definition as def (def.key ?? def.name ?? def)}
 							<th class={def.th}>
 								{#if def.icon}
 									<Icon icon={def.icon} class="h-7 w-7" />
@@ -77,7 +84,7 @@
 				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
 					<tr class={trClass} data-custom={row.name}>
 						{#snippet rowRender()}
-							{#each definition as def}
+							{#each definition as def (def.key ?? def.name ?? def)}
 								<td
 									class={def.class
 										? typeof def.class == 'function'

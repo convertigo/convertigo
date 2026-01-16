@@ -3,7 +3,7 @@
 @plugin '@tailwindcss/typography';
 @import '@skeletonlabs/skeleton-svelte';
 @source './';
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/ibm-plex-sans';
 @import '@skeletonlabs/skeleton';
 @import './convertigo.theme.css';
 @import './convertigo.utilities.css';
@@ -19,6 +19,24 @@
 	::backdrop,
 	::file-selector-button {
 		border-color: var(--color-gray-200, currentColor);
+	}
+
+	html[data-theme='convertigo']:not(.dark) body {
+		background-color: var(--body-background-color);
+		background-image:
+			radial-gradient(1200px 600px at 0% -10%, oklch(98.5% 0.03 225deg / 0.7), transparent 60%),
+			radial-gradient(900px 500px at 100% 0%, oklch(98% 0.025 250deg / 0.4), transparent 55%),
+			linear-gradient(180deg, oklch(99% 0.006 230deg), oklch(96% 0.008 230deg));
+		background-attachment: fixed;
+	}
+
+	html[data-theme='convertigo'].dark body {
+		background-color: var(--body-background-color-dark);
+		background-image:
+			radial-gradient(1200px 700px at 0% -10%, oklch(18% 0.03 240deg / 0.35), transparent 60%),
+			radial-gradient(900px 600px at 100% 0%, oklch(16% 0.02 210deg / 0.3), transparent 55%),
+			linear-gradient(180deg, oklch(9% 0.01 230deg), oklch(6% 0.01 230deg));
+		background-attachment: fixed;
 	}
 }
 
@@ -39,7 +57,7 @@
 }
 
 @utility button {
-	@apply btn flex items-center rounded-base px-3 py-1 text-[13px] font-normal text-white transition-surface;
+	@apply btn flex items-center gap-2 rounded-base border border-transparent px-3 py-1 text-[13px] font-medium tracking-[0.01em] transition-surface;
 }
 
 @utility motif-primary {
@@ -88,47 +106,47 @@
 }
 
 @utility shadow-follow {
-	@apply shadow-md/10 shadow-primary-500 hover:shadow-md/15;
+	@apply shadow-sm/10 shadow-surface-900-100 hover:shadow-md/15 dark:shadow-sm/25 dark:hover:shadow-md/35;
 }
 
 @utility button-primary {
-	@apply button preset-filled-primary-200-800 motif-primary shadow-follow shadow-primary-900-100;
+	@apply button border-primary-600 bg-primary-600 text-white shadow-follow hover:border-primary-500 hover:bg-primary-500;
 }
 
 @utility button-secondary {
-	@apply button preset-filled-secondary-200-800 motif-secondary shadow-follow shadow-secondary-900-100;
+	@apply button-primary;
 }
 
 @utility button-tertiary {
-	@apply button preset-filled-tertiary-200-800 motif-tertiary shadow-follow shadow-tertiary-900-100;
+	@apply button-primary;
 }
 
 @utility button-success {
-	@apply button preset-filled-success-200-800 shadow-follow shadow-success-900-100;
+	@apply button-primary;
 }
 
 @utility button-warning {
-	@apply button preset-filled-warning-200-800 motif-warning shadow-follow shadow-warning-900-100;
+	@apply button border-warning-200 bg-warning-50 text-warning-900 shadow-none hover:border-warning-300 hover:bg-warning-100;
 }
 
 @utility button-error {
-	@apply button preset-filled-error-200-800 motif-error shadow-follow shadow-error-900-100;
+	@apply button border-error-200 bg-error-50 text-error-700 shadow-none hover:border-error-300 hover:bg-error-100;
 }
 
 @utility button-ico-primary {
-	@apply button text-primary-500;
+	@apply button border-transparent bg-transparent text-primary-600 shadow-none hover:border-transparent hover:bg-primary-50 active:bg-primary-100/70 dark:text-primary-300 dark:hover:bg-primary-900/30 dark:active:bg-primary-900/45;
 }
 
 @utility button-ico-secondary {
-	@apply button text-secondary-500;
+	@apply button border-transparent bg-transparent text-surface-600 shadow-none hover:border-transparent hover:bg-surface-100 active:bg-surface-200/70 dark:text-surface-300 dark:hover:bg-surface-800 dark:active:bg-surface-700/50;
 }
 
 @utility button-ico-tertiary {
-	@apply button text-tertiary-500;
+	@apply button border-transparent bg-transparent text-surface-600 shadow-none hover:border-transparent hover:bg-surface-100 active:bg-surface-200/70 dark:text-surface-300 dark:hover:bg-surface-800 dark:active:bg-surface-700/50;
 }
 
 @utility button-ico-success {
-	@apply button text-success-700-300;
+	@apply button-ico-primary;
 }
 
 :root {
@@ -138,11 +156,11 @@
 }
 
 @utility button-ico-warning {
-	@apply button text-warning-500;
+	@apply button border-transparent bg-transparent text-warning-800 shadow-none hover:border-transparent hover:bg-warning-50 active:bg-warning-100/70;
 }
 
 @utility button-ico-error {
-	@apply button text-error-500;
+	@apply button border-transparent bg-transparent text-error-600 shadow-none hover:border-transparent hover:bg-error-50 active:bg-error-100/70;
 }
 
 @utility preset-gradient-one {
@@ -159,18 +177,18 @@
 }
 
 @utility chip {
-	@apply button bg-gray-200 shadow-xs dark:bg-gray-700 dark:text-surface-200;
+	@apply button border-surface-200 bg-surface-100 text-surface-700 shadow-none;
 
 	& :hover {
-		@apply bg-gray-300 dark:bg-gray-600;
+		@apply border-surface-300 bg-surface-200;
 	}
 }
 
 @utility more-chip {
-	@apply chip cursor-pointer bg-yellow-400 text-surface-900 dark:bg-yellow-500;
+	@apply chip cursor-pointer border-warning-300 bg-warning-200 text-warning-900;
 
 	&:hover {
-		@apply bg-yellow-300 dark:bg-yellow-400;
+		@apply border-warning-400 bg-warning-300;
 	}
 }
 
@@ -179,14 +197,14 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-sm border-none bg-surface-100-900 font-normal placeholder:text-[16px] placeholder:font-light placeholder:text-surface-200 dark:placeholder:text-surface-500;
+	@apply w-full rounded-base border border-surface-300 bg-white font-normal text-surface-900 placeholder:text-[15px] placeholder:font-light placeholder:text-surface-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:placeholder:text-surface-500 dark:focus:border-primary-400 dark:focus:ring-primary-400/35;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-sm border-none font-normal placeholder:text-[12px] placeholder:font-light placeholder:text-surface-200 dark:bg-surface-800 dark:placeholder:text-surface-500;
+	@apply rounded-base border border-surface-300 bg-white font-normal text-surface-900 placeholder:text-[12px] placeholder:font-light placeholder:text-surface-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:placeholder:text-surface-500 dark:focus:border-primary-400 dark:focus:ring-primary-400/35;
 }
 
 @utility input-text {
@@ -194,7 +212,7 @@
 }
 
 @utility border-common {
-	@apply border-b-[1px] border-surface-400-600;
+	@apply border-b border-surface-300-700;
 }
 
 @utility select {
@@ -206,7 +224,7 @@
 }
 
 @utility border-color {
-	@apply border-surface-300-700;
+	@apply border-surface-200-800 dark:border-surface-700;
 }
 
 @utility layout-cols-2 {

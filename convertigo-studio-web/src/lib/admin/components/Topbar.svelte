@@ -34,7 +34,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-20 layout-x-between border-b-[0.5px] border-color preset-filled-surface-50-950 shadow-md/20 shadow-primary-100-900 hover:shadow-md/40"
+	class="sticky top-0 z-20 layout-x-between border-b border-color preset-filled-surface-50-950 shadow-sm/10 shadow-surface-900-100 backdrop-blur-md"
 >
 	{#if variant === 'studio'}
 		<section class="layout-x pl-5">

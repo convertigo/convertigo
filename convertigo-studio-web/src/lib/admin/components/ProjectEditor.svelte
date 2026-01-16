@@ -8,6 +8,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
 	import { getContext, onMount, tick, untrack } from 'svelte';
+	import { fromAction } from 'svelte/attachments';
 	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 	import SaveCancelButtons from './SaveCancelButtons.svelte';
@@ -30,6 +31,17 @@
 	let openedCategories = $state([]);
 	let clickedCategories = $state([]);
 	let modalYesNo = getContext('modalYesNo');
+	const attachRoot = $derived(fromAction(setRoot));
+
+	/** @param {HTMLDivElement} node */
+	function setRoot(node) {
+		root = node;
+		return {
+			destroy() {
+				if (root === node) root = undefined;
+			}
+		};
+	}
 
 	async function onSelectionChange(e) {
 		if (e.selectedValue[0] == id) {
@@ -98,8 +110,8 @@
 	async function autoExpandNodes(nodes = []) {
 		if (!nodes.length) return;
 		const view = await ensureTreeviewReady();
-		if (!view?.getExpandedValue || !view?.setExpandedValue) return;
-		const expandedSet = new Set(view.getExpandedValue() ?? []);
+		if (!view?.setExpandedValue) return;
+		const expandedSet = new Set(view.expandedValue ?? []);
 		const visited = new Set();
 		let mutated = false;
 		for (const node of nodes) {
@@ -169,21 +181,21 @@
 	let treeview = $state();
 </script>
 
-<div bind:this={root} class="m-low layout-y items-stretch lg:layout-x lg:items-start {cls}">
+<div class="m-low layout-y items-stretch lg:layout-x lg:items-start {cls}" {@attach attachRoot}>
 	<TreeView
-		bind:this={treeview}
+		bind:apiRef={treeview}
 		{rootNode}
 		onExpandedChange={handleExpandedChange}
 		{onSelectionChange}
 		expandOnClick={false}
 		defaultExpandedValue={[project]}
 		defaultSelectedValue={[project]}
-		base="rounded-container preset-filled-surface-50-950 p-3 shadow-follow min-w-fit"
+		base="rounded-container border border-surface-200-800 preset-filled-surface-50-950 p-3 shadow-follow min-w-fit"
 		classes="overflow-hidden break-words select-none"
-		textClass="text-sm font-medium"
+		textClass="text-sm font-medium text-surface-700 dark:text-surface-100"
 		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
-		childrenClass="border-l border-surface-200-800 pl-2"
-		controlClass="layout-x-low rounded-base py-1 transition-soft hover:bg-surface-200-800"
+		childrenClass="border-l border-surface-200-800 pl-3"
+		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 transition-soft hover:bg-surface-200-800"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
 			{#if node.icon?.includes('?')}
@@ -231,6 +243,7 @@
 		{/snippet}
 		{@render saveCancel()}
 		<AccordionGroup
+			class="space-y-3"
 			value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
 			onValueChange={({ value }) => {
 				openedCategories = value;
@@ -242,9 +255,9 @@
 				{@const total = properties.length}
 				<AccordionSection
 					value={category}
-					class="rounded-container preset-filled-surface-50-950 shadow-follow"
-					triggerClass="rounded-container px py-low text-left"
-					panelClass="px-3 pb-4 bg-transparent"
+					class="overflow-hidden rounded-container border border-surface-200-800 preset-filled-surface-50-950 shadow-follow"
+					triggerClass="px py text-left bg-surface-100-900/70 border-b border-surface-200-800 data-[state=open]:bg-surface-100-900/90"
+					panelClass="px pb pt-low bg-surface-50-950"
 					disabled={total == 0}
 					title={category}
 					count={total}
@@ -260,7 +273,7 @@
 							<TableAutoCard
 								showHeaders={false}
 								showNothing={false}
-								trClass="transition-surface hover:bg-surface-200-800"
+								trClass="border-b border-surface-200-800/70 last:border-0 transition-surface hover:bg-surface-100-900/70"
 								definition={propertyTableDefinition}
 								animationProps={{ duration: 120 }}
 								data={properties}
@@ -302,16 +315,6 @@
 
 <style lang="postcss">
 	@reference "../../../app.css";
-
-	:global([data-part='branch-control'][data-selected]),
-	:global([data-part='item'][data-selected]) {
-		@apply preset-filled-primary-200-800 pr-2;
-	}
-
-	:global([data-part='branch-control'][data-selected] [data-part='branch-text']),
-	:global([data-part='item'][data-selected] [data-part='item-text']) {
-		@apply font-semibold;
-	}
 
 	:global([data-scope='accordion']) {
 		transition: margin-top 0.3s ease-in-out;

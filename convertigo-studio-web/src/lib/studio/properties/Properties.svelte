@@ -79,7 +79,7 @@
 
 	<div class="min-h-0 grow overflow-auto px-low pb-low">
 		<AccordionGroup
-			class="w-full items-stretch !gap-0 !space-y-0"
+			class="w-full space-y-3"
 			value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
 			onValueChange={({ value }) => {
 				openedCategories = value;
@@ -91,9 +91,9 @@
 				{@const total = rows.length}
 				<AccordionSection
 					value={category}
-					class="w-full rounded-container preset-filled-surface-50-950 shadow-follow"
-					triggerClass="rounded-container px py-low text-left"
-					panelClass="px-3 pb-4 bg-transparent"
+					class="w-full overflow-hidden rounded-container border border-surface-200-800 preset-filled-surface-50-950 shadow-follow"
+					triggerClass="px py text-left bg-surface-100-900/70 border-b border-surface-200-800 data-[state=open]:bg-surface-100-900/90"
+					panelClass="px pb pt-low bg-surface-50-950"
 					disabled={total == 0}
 					title={category}
 					count={total}
@@ -109,7 +109,7 @@
 							<TableAutoCard
 								showHeaders={false}
 								showNothing={false}
-								trClass="transition-surface hover:bg-surface-200-800"
+								trClass="border-b border-surface-200-800/70 last:border-0 transition-surface hover:bg-surface-100-900/70"
 								definition={propertyTableDefinition}
 								animationProps={{ duration: 120 }}
 								data={rows}

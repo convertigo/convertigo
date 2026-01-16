@@ -312,13 +312,13 @@
 						},
 						{
 							icon: 'mdi:edit-outline',
-							cls: `button-ico-warning ${editedProject == project ? 'opacity-50' : ''}`,
+							cls: `button-ico-primary ${editedProject == project ? 'opacity-50' : ''}`,
 							onclick: () => (editedProject = editedProject == project ? '' : project),
 							disabled: false
 						},
 						{
 							icon: 'mdi:cog',
-							cls: 'button-ico-tertiary',
+							cls: 'button-ico-primary',
 							href: resolve(`/dashboard/${project}/backend/`),
 							disabled: false
 						},

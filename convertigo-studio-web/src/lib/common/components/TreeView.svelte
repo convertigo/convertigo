@@ -14,7 +14,7 @@
 	};
 
 	/** @type {any} */
-	const {
+	let {
 		animationConfig = {
 			duration: 200
 		},
@@ -32,6 +32,7 @@
 		nodeIcon,
 		nodeText,
 		nodeIndicator,
+		apiRef = $bindable(),
 		...zagProps
 	} = $props();
 
@@ -61,6 +62,9 @@
 		...zagProps
 	}));
 	const api = $derived(treeView());
+	$effect(() => {
+		apiRef = api;
+	});
 
 	export function setSelectedValue(value) {
 		return api.setSelectedValue(value);
@@ -124,9 +128,15 @@
 		padding-inline-start: calc(var(--depth) * var(--spacing) * var(--convertigo-tree-indent));
 	}
 
+	:global(.convertigo-treeview [data-part='branch-control']),
+	:global(.convertigo-treeview [data-part='item']) {
+		@apply w-full;
+	}
+
 	:global(.convertigo-treeview [data-part='branch-control'][data-selected]),
 	:global(.convertigo-treeview [data-part='item'][data-selected]) {
-		@apply preset-filled-primary-200-800 pr-2;
+		@apply border border-l-2 border-primary-200/70 border-l-primary-500 bg-primary-50/80 text-surface-900 shadow-sm/10 shadow-surface-900-100;
+		@apply dark:border-primary-700/60 dark:border-l-primary-400 dark:bg-primary-900/30 dark:text-primary-50;
 	}
 
 	:global(

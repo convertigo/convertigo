@@ -23,7 +23,7 @@
 </script>
 
 <div
-	class="layout-y-p-stretch {bg} rounded-container border-[0.5px] border-color shadow-follow {cls}"
+	class="layout-y-p-stretch {bg} rounded-container border border-color shadow-follow {cls}"
 	{...rest}
 >
 	{#if title == null || title?.length > 0 || cornerOption}
@@ -32,7 +32,7 @@
 				<AutoPlaceholder class="max-w-48" loading={true} />
 			{/if}
 			{#if title?.length > 0}
-				<span class="text-xl font-normal">{title}</span>
+				<span class="text-lg font-medium">{title}</span>
 			{/if}
 			{#if cornerOption}
 				<div class="grow">
