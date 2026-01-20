@@ -1089,6 +1089,70 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
+	public int tryRemoveAllBestEffort(String sessionID, long timeoutMillis) {
+		if (sessionID == null || sessionID.isBlank() || contexts == null) {
+			return 0;
+		}
+		String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
+		var contextIds = new java.util.HashSet<String>();
+
+		if (!sessionID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+			contextIds.add(sessionID + "_default");
+		}
+		try {
+			for (String cid : contexts.keySet()) {
+				if (cid != null && cid.startsWith(prefix)) {
+					contextIds.add(cid);
+				}
+			}
+		} catch (Exception ignore) {
+			// ignore
+		}
+
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			try {
+				var cfg = RedisClients.getConfiguration();
+				var client = RedisClients.getClient();
+				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
+				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
+				for (String cid : contextsIndex.readAll()) {
+					if (cid != null && cid.startsWith(prefix)) {
+						contextIds.add(cid);
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+			try {
+				var inflight = inflightContexts();
+				if (inflight != null) {
+					for (String cid : inflight.readAllKeySet()) {
+						if (cid != null && cid.startsWith(prefix)) {
+							contextIds.add(cid);
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+		}
+
+		if (contextIds.isEmpty()) {
+			return 0;
+		}
+		int removed = 0;
+		var sorted = new java.util.ArrayList<String>(contextIds);
+		java.util.Collections.sort(sorted);
+		for (String cid : sorted) {
+			if (tryRemove(cid, timeoutMillis)) {
+				removed++;
+			} else {
+				requestAbort(cid);
+			}
+		}
+		return removed;
+	}
+
 	public void remove(Context context) {
 		if (context == null) {
 			// Silently ignore
@@ -1222,21 +1286,7 @@ public class ContextManager extends AbstractRunnableManager {
 		if (sessionID == null) {
 			return;
 		}
-		HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-		if (httpSession != null) {
-			removeAll(httpSession);
-		} else {
-			String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
-			try {
-				for (String contextID : GenericUtils.clone(contexts.keySet())) {
-					if (contextID != null && contextID.startsWith(prefix)) {
-						remove(contextID);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
-		}
+		tryRemoveAllBestEffort(sessionID, 0L);
 		if (contextStore != null) {
 			try {
 				String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
@@ -1248,46 +1298,12 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void removeAll(HttpSession httpSession) {
+		if (httpSession == null) {
+			return;
+		}
 		String sessionID = httpSession.getId();
 		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
-		try {
-			Object o = SessionAttribute.contexts.get(httpSession);
-			if (o != null) {
-				List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
-
-				for (Context context: contextList) {
-					remove(context);
-				}
-			} else {
-				for (String contextID: contexts.keySet()) {
-					if (contextID.startsWith(sessionID)) {
-						remove(contextID);
-					}
-				}
-			}
-		} catch (Exception e) {
-			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
-				try {
-					for (String contextID: contexts.keySet()) {
-						if (contextID.startsWith(sessionID)) {
-							remove(contextID);
-						}
-					}
-				} catch (Exception e2) {
-					Engine.logContextManager.debug("Failed to removeAll for " + sessionID, e2);
-					// prevent exception propagation
-				}
-			}
-		} finally {
-			if (contextStore != null) {
-				try {
-					String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
-					contextStore.deleteBySessionPrefix(prefix);
-				} catch (Exception e) {
-					Engine.logContextManager.debug("Failed to cleanup context store for " + sessionID, e);
-				}
-			}
-		}
+		removeAll(sessionID);
 	}
 
 	public void removeAll() {

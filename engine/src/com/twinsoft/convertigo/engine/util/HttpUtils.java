@@ -336,7 +336,8 @@ public class HttpUtils {
 				httpSession.setMaxInactiveInterval(1);
 				HttpSessionListener.removeSession(httpSession.getId());
 				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
-					Engine.theApp.contextManager.removeAll(httpSession);
+					String sessionId = httpSession.getId();
+					Engine.theApp.contextManager.tryRemoveAllBestEffort(sessionId, 0L);
 				}
 			}
 		}
