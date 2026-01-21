@@ -22,16 +22,25 @@ package com.twinsoft.convertigo.engine;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
 public class LogParameters {
 
-	private Map<String, Object> parametersMap = new TreeMap<String, Object>();
+	private final Map<String, String> parametersMap = new TreeMap<String, String>();
 
 	public synchronized void clear() {
 		parametersMap.clear();
 	}
 	
+	@JsonAnySetter
 	public synchronized void put(String key, Object value) {
-		parametersMap.put(key, value);
+		parametersMap.put(key, value == null ? null : value.toString());
+	}
+
+	@JsonAnyGetter
+	public synchronized Map<String, String> asMap() {
+		return new TreeMap<String, String>(parametersMap);
 	}
 	
 	@Override

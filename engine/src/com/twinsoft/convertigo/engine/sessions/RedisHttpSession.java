@@ -245,6 +245,8 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				return value;
 			} catch (Exception e) {
 				log("(RedisHttpSession) Failed to deserialize attribute '" + name + "'", e);
+				removedAttributes.add(name);
+				dirtyAttributes.remove(name);
 				cache.put(name, NULL);
 				return null;
 			}

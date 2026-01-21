@@ -21,8 +21,11 @@ package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,41 +57,45 @@ public class LogServiceHelper {
 			try {
 				boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();
 				Thread.sleep(redisMode ? 60000 : 10000);
+				List<Pair<String, HttpSession>> toCleanup = new ArrayList<>();
 				synchronized (activeInstance) {
 					if (redisMode) {
-						activeInstance.entrySet().removeIf(e -> {
+						Iterator<Map.Entry<String, Pair<Long, HttpSession>>> it = activeInstance.entrySet().iterator();
+						while (it.hasNext()) {
+							Map.Entry<String, Pair<Long, HttpSession>> entry = it.next();
 							try {
-								String id = e.getKey();
-								HttpSession session = e.getValue().getRight();
-								if (session == null) {
-									return true;
-								}
-								if (!sessionExistsInRedis(session)) {
-									cleanupSession(id, session);
-									return true;
+								String id = entry.getKey();
+								HttpSession session = entry.getValue().getRight();
+								if (session == null || !sessionExistsInRedis(session)) {
+									toCleanup.add(Pair.of(id, session));
+									it.remove();
 								}
 							} catch (Exception ex) {
-								return false;
+								// keep entry on redis errors
 							}
-							return false;
-						});
+						}
 					} else {
 						long old = System.currentTimeMillis() - 10000;
-						activeInstance.entrySet().removeIf(e -> {
+						Iterator<Map.Entry<String, Pair<Long, HttpSession>>> it = activeInstance.entrySet().iterator();
+						while (it.hasNext()) {
+							Map.Entry<String, Pair<Long, HttpSession>> entry = it.next();
 							try {
-								String id = e.getKey();
-								long last = e.getValue().getLeft();
+								String id = entry.getKey();
+								long last = entry.getValue().getLeft();
 								if (last < old) {
-									HttpSession session = e.getValue().getRight();
-									cleanupSession(id, session);
-									return true;
+									HttpSession session = entry.getValue().getRight();
+									toCleanup.add(Pair.of(id, session));
+									it.remove();
 								}
 							} catch (Exception ex) {
-								return true;
+								toCleanup.add(Pair.of(entry.getKey(), entry.getValue().getRight()));
+								it.remove();
 							}
-							return false;
-						});
+						}
 					}
+				}
+				for (Pair<String, HttpSession> entry : toCleanup) {
+					cleanupSession(entry.getLeft(), entry.getRight());
 				}
 			} catch (Exception e) {
 				System.err.println("[LogServiceHelper] Loop failed: " + e.getMessage());
@@ -153,7 +160,9 @@ public class LogServiceHelper {
 						Object obj = session.getAttribute(name);
 						if (obj instanceof LogManager) {
 							LogManager lm = (LogManager) obj;
-							lm.close();
+							synchronized (lm) {
+								lm.close();
+							}
 						}
 						session.removeAttribute(name);
 					}
