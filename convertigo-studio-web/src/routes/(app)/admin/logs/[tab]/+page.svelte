@@ -1,7 +1,7 @@
 <script>
 	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
-	import { beforeNavigate, goto } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -29,7 +29,32 @@
 	let currentInstance = $state('');
 	onMount(() => {
 		currentInstance = Instances.current;
+
+		let timezoneInitialized = false;
+		const syncTimezonePreset = () => {
+			if (timezoneInitialized || !Time.serverTimezone) return false;
+			timezoneInitialized = true;
+			presets[1].onclick();
+			return true;
+		};
+
+		syncTimezonePreset();
+		const timezoneInterval = setInterval(() => {
+			if (syncTimezonePreset()) {
+				clearInterval(timezoneInterval);
+			}
+		}, 200);
+
+		const instanceInterval = setInterval(() => {
+			if (Instances.current != currentInstance) {
+				currentInstance = Instances.current;
+				refreshLogs();
+			}
+		}, 500);
+
 		return () => {
+			clearInterval(instanceInterval);
+			clearInterval(timezoneInterval);
 			Configuration.stop();
 			LogsPurge.stop();
 		};
@@ -53,8 +78,6 @@
 				skip = true;
 				await goto(nav.to?.url ?? '');
 			} else {
-				tabSet = 'view';
-				tabSet = 'config';
 				return;
 			}
 		}
@@ -62,11 +85,17 @@
 
 	let logsCategory = $derived(Configuration.categories.find(({ name }) => name == 'Logs'));
 	const serverFilterState = persistedState('admin.logs.serverFilter', '', { syncTabs: false });
-	let serverFilter = $derived(serverFilterState.current);
+	let serverFilter = $state(serverFilterState.current);
 	const serverFilterVisibleState = persistedState('admin.logs.serverFilterVisible', false, {
 		syncTabs: false
 	});
-	let serverFilterVisible = $derived(serverFilterVisibleState.current);
+	let serverFilterVisible = $derived.by(
+		() => serverFilterVisibleState.current || (serverFilter?.length ?? 0) > 0
+	);
+
+	$effect(() => {
+		serverFilterState.current = serverFilter;
+	});
 
 	const filtersState = persistedState('admin.logs.filters', {}, { syncTabs: false });
 	let filters = $derived(filtersState.current);
@@ -81,12 +110,9 @@
 	};
 
 	const tabKeys = Object.keys(tabs);
-	let tabSet = $state('view');
-
-	$effect(() => {
+	const tabSet = $derived.by(() => {
 		const current = page.params.tab ?? 'view';
-		tabSet = tabKeys.includes(current) ? current : 'view';
-		Last.tab = tabSet;
+		return tabKeys.includes(current) ? current : 'view';
 	});
 	let dates = $state([
 		toCalendarDate(now(getLocalTimeZone()).subtract({ minutes: 10 })),
@@ -120,13 +146,12 @@
 		presetOpened = false;
 	}
 
-	let _tz_init = $state(false);
 	let timezone = $derived(Time.serverTimezone ? Time.serverTimezone : getLocalTimeZone());
-
-	$effect(() => {
-		if (_tz_init || !Time.serverTimezone) return;
-		_tz_init = true;
-		presets[1].onclick();
+	afterNavigate(() => {
+		Last.tab = tabSet;
+		if (tabSet != 'purge') {
+			LogsPurge.stop();
+		}
 	});
 
 	const presets = [
@@ -204,22 +229,6 @@
 			}
 		}
 	];
-
-	$effect(() => {
-		if (tabSet != 'purge') {
-			LogsPurge.stop();
-		}
-	});
-
-	$effect(() => {
-		if (currentInstance == '' && Instances.current) {
-			currentInstance = Instances.current;
-		}
-		if (Instances.current != currentInstance) {
-			currentInstance = Instances.current;
-			refreshLogs();
-		}
-	});
 
 	async function saveChanges(event) {
 		const toSave = logsCategory.property
@@ -314,7 +323,7 @@
 			{#if tabSet == 'view'}
 				<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 					<div transition:slide={{ axis: 'y' }}>
-						<div class="relative z-30 layout-x-end-low flex-wrap">
+						<div class="relative z-10 layout-x-end-low flex-wrap">
 							<div class="layout-x-end-low flex-wrap">
 								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
 									<Popover.Trigger class="button-primary layout-x-low">
@@ -340,24 +349,25 @@
 								<TimePicker bind:inputValue={times[0]} />
 								<DateRangePicker bind:start={dates[0]} bind:end={dates[1]} bind:live />
 								{#if !live}
-									<span transition:slide={{ axis: 'x' }}
-										><TimePicker bind:inputValue={times[1]} /></span
-									>
+									<span transition:slide={{ axis: 'x' }}>
+										<TimePicker bind:inputValue={times[1]} />
+									</span>
 								{/if}
 							</div>
 							<Button
 								size={4}
 								label="Server filter"
 								icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
-								onmousedown={() => (serverFilterVisible = !serverFilterVisible)}
-								class="button-secondary h-7! w-fit!"
+								onmousedown={() =>
+									(serverFilterVisibleState.current = !serverFilterVisibleState.current)}
+								class="button-primary h-7! w-fit!"
 							/>
 							{#if serverFilterVisible}
 								<Button
 									size={4}
 									icon="mdi:cloud-sync-outline"
 									onmousedown={copyFilters}
-									class="button-tertiary h-7! w-fit!"
+									class="button-primary h-7! w-fit!"
 									label="Copy client filters"
 									disabled={Object.keys(filters).length == 0}
 								/>
@@ -366,7 +376,7 @@
 								label="Server search"
 								size={4}
 								icon="mdi:receipt-text-send-outline"
-								class="button-success w-fit!"
+								class="button-primary h-7! w-fit!"
 								onclick={refreshLogs}
 							/>
 							{#if serverFilterVisible}
@@ -449,7 +459,7 @@
 				</div>
 			{:else}
 				<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
-					{#each logsCategory?.property as property}
+					{#each logsCategory?.property as property (property.name)}
 						{#if property.name?.startsWith('LOG4J')}
 							<PropertyType {...property} bind:value={property.value} />
 						{/if}

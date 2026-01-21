@@ -15,8 +15,6 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { callRequestable } from '$lib/utils/service';
-	import { decode } from 'html-entities';
-	import { marked } from 'marked';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
 	import type { PageProps } from './$types';
@@ -34,7 +32,7 @@
 			accent: 'preset-filled-success-200-800',
 			chip: 'preset-filled-success-50-950 odd:preset-filled-success-100-900',
 			soft: 'preset-outlined-success-50-950',
-			tone: 'text-success-600-300',
+			tone: 'text-success-600-400',
 			icon: 'mdi:lock',
 			enabled: true
 		},
@@ -42,7 +40,7 @@
 			accent: 'preset-filled-warning-200-800',
 			chip: 'preset-filled-warning-50-950 odd:preset-filled-warning-100-900',
 			soft: 'preset-outlined-warning-50-950',
-			tone: 'text-warning-600-300',
+			tone: 'text-warning-600-400',
 			icon: 'mdi:eye-off',
 			enabled: true
 		},
@@ -50,19 +48,11 @@
 			accent: 'preset-filled-error-200-800',
 			chip: 'preset-filled-error-50-950 odd:preset-filled-error-100-900',
 			soft: 'preset-outlined-error-50-950',
-			tone: 'text-error-600-300',
+			tone: 'text-error-600-400',
 			icon: 'mdi:lock-open-variant',
 			enabled: true
 		}
 	});
-
-	/**
-	 * @param {string} markdown
-	 */
-	function convertMarkdownToHtml(markdown) {
-		const cleanedMarkdown = decode(markdown);
-		return marked(cleanedMarkdown);
-	}
 
 	async function run(requestable, event) {
 		event.preventDefault?.();
@@ -156,7 +146,7 @@
 		</InputGroup>
 	{/snippet}
 	<AutoPlaceholder loading={!project}>
-		{@html convertMarkdownToHtml(project.comment)}
+		<div class="whitespace-pre-wrap">{project?.comment}</div>
 	</AutoPlaceholder>
 
 	<AccordionGroup
@@ -217,7 +207,7 @@
 														>
 														{#if comment?.length}
 															<span
-																class="text-surface-500-300 truncate text-xs transition-opacity duration-150 group-data-[state=open]:opacity-70"
+																class="truncate text-xs text-surface-600-400 transition-opacity duration-150 group-data-[state=open]:opacity-70"
 																>{comment}</span
 															>
 														{/if}
@@ -239,7 +229,7 @@
 													{/if}
 													{#if comment.length}
 														<p
-															class="text-surface-500-300 rounded-md border border-dashed border-surface-200-800/60 bg-surface-50-950/70 px-3 py-2 text-sm"
+															class="rounded-md border border-dashed border-surface-200-800/60 bg-surface-50-950/70 px-3 py-2 text-sm text-surface-600-400"
 														>
 															{comment}
 														</p>
@@ -257,7 +247,7 @@
 															<AccordionSection
 																value={`${requestableIdx}`}
 																class="rounded-lg"
-																triggerClass="group layout-x-low w-full justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-500-300"
+																triggerClass="group layout-x-low w-full justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-600-400"
 																panelClass="px-3 pb-3 pt-0 bg-transparent"
 															>
 																{#snippet control()}

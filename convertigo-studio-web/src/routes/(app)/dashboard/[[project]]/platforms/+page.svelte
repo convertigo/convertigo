@@ -35,7 +35,7 @@
 			(v) => (openedPlatform = v)
 		}
 	>
-		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build }}
+		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build } (name)}
 			<AccordionSection
 				value={name}
 				triggerClass="border-b-[0.5px] px-low py-low text-left"
@@ -55,7 +55,7 @@
 				{/snippet}
 				{#snippet trail()}
 					{#if comment}
-						<span class="text-surface-500-300 max-w-52 truncate text-xs">{comment}</span>
+						<span class="max-w-52 truncate text-xs text-surface-600-400">{comment}</span>
 					{/if}
 				{/snippet}
 				{#snippet panel()}

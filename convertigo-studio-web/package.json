@@ -13,6 +13,7 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
+		"check:palette": "node scripts/check-skeleton-pairs.mjs",
 		"update:bezels": "node scripts/update-bezels.mjs",
 		"generate:thumbnails": "node scripts/generate-thumbnails.mjs",
 		"check:admin": "svelte-check --no-tsconfig --ignore \"src/lib/studio/**,src/routes/(app)/admin/certificates/**,src/routes/(app)/admin/projects/**,src/routes/(app)/admin/roles/**,src/routes/(app)/admin/symbols/**\""
@@ -20,7 +21,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.46.4"
+			"svelte": "^5.47.1"
 		}
 	},
 	"devDependencies": {
@@ -29,11 +30,11 @@
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify/svelte": "^5.2.1",
 		"@playwright/test": "^1.57.0",
-		"@skeletonlabs/skeleton": "^4.9.0",
-		"@skeletonlabs/skeleton-svelte": "^4.9.0",
+		"@skeletonlabs/skeleton": "^4.10.0",
+		"@skeletonlabs/skeleton-svelte": "^4.10.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.49.5",
+		"@sveltejs/kit": "^2.50.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.19",
@@ -46,7 +47,7 @@
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"sharp": "^0.34.5",
-		"svelte": "^5.46.4",
+		"svelte": "^5.47.1",
 		"svelte-check": "^4.3.5",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.3",
@@ -64,7 +65,7 @@
 		"@zag-js/tree-view": "^1.32.0",
 		"apexcharts": "^5.3.6",
 		"bits-ui": "^2.15.4",
-		"caniuse-lite": "^1.0.30001764",
+		"caniuse-lite": "^1.0.30001765",
 		"chart.js": "^4.5.1",
 		"elkjs": "^0.11.0",
 		"fast-xml-parser": "^5.3.3",

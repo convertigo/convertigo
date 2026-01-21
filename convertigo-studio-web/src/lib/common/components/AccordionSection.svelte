@@ -105,7 +105,7 @@
 
 {#snippet defaultTrail({ count, countText, countClass, trailingText, trailingTextClass })}
 	{#if countText}
-		<span class={`${countClass} ${count === 0 ? 'text-surface-500-300 border-dashed' : ''}`}
+		<span class={`${countClass} ${count === 0 ? 'border-dashed text-surface-600-400' : ''}`}
 			>{countText}</span
 		>
 	{/if}
@@ -145,10 +145,10 @@
 							</span>
 						{/if}
 						{#if subtitle}
-							<span class="text-surface-500-300 text-xs">{subtitle}</span>
+							<span class="text-xs text-surface-600-400">{subtitle}</span>
 						{/if}
 						{#if meta}
-							<span class="text-surface-500-300 text-xs">{meta}</span>
+							<span class="text-xs text-surface-600-400">{meta}</span>
 						{/if}
 					</div>
 				</div>

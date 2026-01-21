@@ -27,6 +27,7 @@
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
+	let labelLines = $derived.by(() => (label ? String(label).split('\n') : []));
 	let restores = $derived.by(() => {
 		const r = [];
 		if (originalValue != null) {
@@ -84,7 +85,10 @@
 				{#if label}
 					<AutoPlaceholder {loading}>
 						<label class="label-common" for={id}>
-							{@html label.replace(/\n/g, '<br>')}
+							{#each labelLines as line, idx (line + idx)}
+								{line}
+								{#if idx < labelLines.length - 1}<br />{/if}
+							{/each}
 						</label>
 					</AutoPlaceholder>
 				{/if}
@@ -97,15 +101,32 @@
 						class="w-full"
 					>
 						<SegmentedControl.Control
-							class={['p-0', rest?.orientation == 'vertical' ? 'flew-col' : 'flex-row']}
+							class={[
+								'relative',
+								'gap-0.5',
+								'rounded-base',
+								'border',
+								'border-surface-200-800',
+								'bg-surface-50-950',
+								'p-0.5',
+								'shadow-sm/10',
+								'shadow-surface-900-100',
+								'overflow-hidden',
+								rest?.orientation == 'vertical' ? 'flex-col' : 'flex-row'
+							]}
 						>
-							<SegmentedControl.Indicator class="preset-filled-primary-300-700" />
-							{#each item as option}
+							<SegmentedControl.Indicator
+								class="rounded-[0.3rem] bg-primary-600 shadow-sm/15 shadow-primary-900/30"
+							/>
+							{#each item as option (option.value ?? option)}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
-								<SegmentedControl.Item value={val} class="flex-1">
+								<SegmentedControl.Item value={val} class="relative flex-1">
 									<SegmentedControl.ItemText
-										class={[value == val && 'text-black', 'px-2 py-2 text-sm font-medium']}
+										class={[
+											value == val ? 'text-white' : 'text-surface-700 dark:text-surface-300',
+											'px-3 py-1.5 text-sm font-medium'
+										]}
 									>
 										{txt}
 									</SegmentedControl.ItemText>
@@ -116,7 +137,7 @@
 					</SegmentedControl>
 				{:else if type == 'combo'}
 					<select {name} class="select input-common overflow-auto" {id} {...rest} bind:value>
-						{#each item as option}
+						{#each item as option (option.value ?? option)}
 							{@const val = option.value ?? option}
 							{@const txt = option.text ?? option['#text'] ?? val}
 							{#if rest.multiple ?? true}
@@ -155,7 +176,7 @@
 	</div>
 	{#if restores.length > 0 || buttons.length > 0}
 		<div class="layout-x-low justify-around! sm:layout-y-low sm:h-full">
-			{#each restores as { icon, val, title }}
+			{#each restores as { icon, val, title }, idx (idx)}
 				{@const displayVal = val == null ? '' : String(val)}
 				{@const label = displayVal.length ? `${title}: ${displayVal}` : title}
 				<button
@@ -169,7 +190,7 @@
 					<Ico {icon} />
 				</button>
 			{/each}
-			{#each buttons as { disabled, onclick, title, icon }}
+			{#each buttons as { disabled, onclick, title, icon }, idx (idx)}
 				{@const label = title ?? icon ?? 'action'}
 				<button
 					{disabled}

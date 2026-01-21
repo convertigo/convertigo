@@ -85,7 +85,7 @@
 		bind:value={searchQuery}
 	>
 		{#snippet actions()}
-			{#each filters as { icon, count }, i}
+			{#each filters as { icon, count }, i (icon)}
 				<span class="layout-x-none gap-[1px]!">
 					<button
 						class="btn rounded-none p-1"
@@ -154,7 +154,7 @@
 					<div class="absolute top-0 layout-y-start-none overflow-clip rounded-tl-lg rounded-br-lg">
 						<a
 							href={resolve('/(app)/dashboard/[[project]]/backend', params)}
-							class="hover:preset-filled-warning-300-70 icon-link preset-filled-warning-100-900"
+							class="icon-link preset-filled-warning-100-900 hover:preset-filled-warning-300-700"
 						>
 							<Ico icon="mdi:cog" size="nav" />
 							<span class="icon-link-text">Backend</span>

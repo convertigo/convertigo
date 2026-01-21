@@ -11,6 +11,7 @@
 	import { persistedState } from 'svelte-persisted-state';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { flip } from 'svelte/animate';
+	import { fromAction } from 'svelte/attachments';
 	import { slide } from 'svelte/transition';
 	import Button from './Button.svelte';
 	import Card from './Card.svelte';
@@ -18,8 +19,9 @@
 	import PropertyType from './PropertyType.svelte';
 
 	const duration = 400;
-	const lineHeight = 14.1; // px
-	const headerHeight = 16; // px
+	let lineHeight = $state(14.1); // px
+	let headerHeight = $state(16); // px
+	let messagePaddingY = $state(8); // px
 
 	const _columnsOrder = [
 		{ name: 'Date', show: true, width: 85 },
@@ -88,6 +90,75 @@
 	let showedLines = $state({ start: 0, end: 0 });
 	let clientHeight = $state(200);
 	let fullscreen = $state(false);
+	const attachHeaderMetrics = $derived(fromAction(measureHeaderMetrics));
+	const attachMessageMetrics = $derived(fromAction(measureMessageMetrics));
+	const attachScrollIntoView = $derived(fromAction(scrollIntoView));
+
+	/** @param {HTMLDivElement} node */
+	function measureHeaderMetrics(node) {
+		const update = () => {
+			const next = node.getBoundingClientRect().height;
+			if (next && Math.abs(next - headerHeight) > 0.1) {
+				headerHeight = next;
+				virtualList?.recomputeSizes?.(0);
+			}
+		};
+
+		update();
+
+		if (document?.fonts?.ready) {
+			document.fonts.ready.then(update);
+		}
+
+		const resizeObserver = new ResizeObserver(update);
+		resizeObserver.observe(node);
+
+		return {
+			destroy() {
+				resizeObserver.disconnect();
+			}
+		};
+	}
+
+	/** @param {HTMLDivElement} node */
+	function measureMessageMetrics(node) {
+		const update = () => {
+			const styles = getComputedStyle(node);
+			const nextLineHeight = Number.parseFloat(styles.lineHeight) || lineHeight;
+			const nextPaddingY =
+				Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
+			let changed = false;
+
+			if (Math.abs(nextLineHeight - lineHeight) > 0.1) {
+				lineHeight = nextLineHeight;
+				changed = true;
+			}
+
+			if (!Number.isNaN(nextPaddingY) && Math.abs(nextPaddingY - messagePaddingY) > 0.1) {
+				messagePaddingY = nextPaddingY;
+				changed = true;
+			}
+
+			if (changed) {
+				virtualList?.recomputeSizes?.(0);
+			}
+		};
+
+		update();
+
+		if (document?.fonts?.ready) {
+			document.fonts.ready.then(update);
+		}
+
+		const resizeObserver = new ResizeObserver(update);
+		resizeObserver.observe(node);
+
+		return {
+			destroy() {
+				resizeObserver.disconnect();
+			}
+		};
+	}
 
 	function doPulse(e) {
 		if (e.type == 'click') {
@@ -123,14 +194,19 @@
 		}
 	}
 
-	async function afterScroll() {}
+	async function afterScroll({ detail }) {
+		const offset = detail?.offset;
+		const isUserScroll = detail?.event?.isTrusted;
+		if (typeof offset !== 'number') return;
+		if (autoScroll && isUserScroll && offset < lastScrollOffset - 2) {
+			autoScroll = false;
+		}
+		lastScrollOffset = offset;
+	}
 
 	function itemSize(index) {
-		let height =
-			4 +
-			extraLines * headerHeight +
-			Math.max(lineHeight, logs[index][logs[index].length - 1] * lineHeight);
-		return height;
+		const lines = Math.max(1, logs[index][logs[index].length - 1]);
+		return extraLines * headerHeight + messagePaddingY + Math.max(lineHeight, lines * lineHeight);
 	}
 
 	function grabFlip(node, elts, options) {
@@ -173,6 +249,81 @@
 		return result;
 	});
 
+	function buildActiveFilters() {
+		return Object.entries(filters)
+			.map(([category, array]) => ({
+				category,
+				active: (array ?? [])
+					.filter((filter) => !filter?.disabled)
+					.map((filter) => ({
+						...filter,
+						valueLower: filter?.value?.toLowerCase?.() ?? filter?.value
+					}))
+			}))
+			.filter(({ active }) => active.length > 0);
+	}
+
+	let logs = $state.raw([]);
+	let filterRunId = 0;
+
+	function scheduleFiltering() {
+		const baseLogs = Logs.logs;
+		const filtersSnapshot = buildActiveFilters();
+		const runId = ++filterRunId;
+		const total = baseLogs.length;
+
+		if (filtersSnapshot.length === 0) {
+			logs = baseLogs;
+			return;
+		}
+
+		logs = [];
+		let index = 0;
+		let lastLength = 0;
+		const results = [];
+		const chunkSize = 1000;
+		const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
+
+		const processChunk = () => {
+			if (runId !== filterRunId) return;
+
+			const end = Math.min(index + chunkSize, total);
+			for (; index < end; index++) {
+				const log = baseLogs[index];
+				const matches = filtersSnapshot.every(({ category, active }) => {
+					return active.some(({ mode, value, valueLower, not, sensitive }) => {
+						let logValue = getValue(category, log, index);
+						let _value = value;
+						if (!sensitive) {
+							logValue = logValue.toLowerCase();
+							_value = valueLower ?? _value.toLowerCase();
+						}
+						let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
+						return not ? !ret : ret;
+					});
+				});
+				if (matches) {
+					results.push(log);
+				}
+			}
+
+			if (runId !== filterRunId) return;
+
+			if (results.length !== lastLength) {
+				logs = results.slice();
+				lastLength = results.length;
+			}
+
+			if (index < total) {
+				schedule(processChunk);
+			} else if (results.length === 0) {
+				logs = results;
+			}
+		};
+
+		processChunk();
+	}
+
 	function addFilter({
 		event,
 		category,
@@ -193,29 +344,8 @@
 			delete filters[category];
 		}
 		filters = { ...filters };
+		scheduleFiltering();
 	}
-
-	const logs = $derived.by(() => {
-		return Object.entries(filters).length == 0
-			? Logs.logs
-			: Logs.logs.filter((log, index) => {
-					return Object.entries(filters).every(([name, array]) => {
-						const active = array?.filter((f) => !f?.disabled) ?? [];
-						return active.length == 0
-							? true
-							: active.some(({ mode, value, not, sensitive }) => {
-									let logValue = getValue(name, log, index);
-									let _value = value;
-									if (!sensitive) {
-										logValue = logValue.toLowerCase();
-										_value = _value.toLowerCase();
-									}
-									let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
-									return not ? !ret : ret;
-								});
-					});
-				});
-	});
 
 	let columns = $derived(
 		columnsOrder
@@ -325,6 +455,18 @@
 
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
+	let lastScrollOffset = 0;
+	const attachSearchInput = $derived(fromAction(setSearchInput));
+
+	/** @param {HTMLInputElement} node */
+	function setSearchInput(node) {
+		searchInput = node;
+		return {
+			destroy() {
+				if (searchInput === node) searchInput = undefined;
+			}
+		};
+	}
 
 	let recenter;
 
@@ -362,6 +504,7 @@
 		}
 		filters[category] = array;
 		filters = { ...filters };
+		scheduleFiltering();
 		modalFilter.close();
 	};
 	const size = '4';
@@ -464,11 +607,12 @@
 		if (renew) {
 			_scrollToIndex = undefined;
 		}
-		let len = renew ? 0 : logs.length;
+		let len = renew ? 0 : Logs.logs.length;
 		await Logs.list(renew);
+		scheduleFiltering();
 		// If no new lines arrived but we are in tailing mode (live) or server says moreResults,
 		// schedule a delayed retry instead of immediate recursion to prevent UI freeze.
-		if (logs.length == len && (live || Logs.moreResults)) {
+		if (Logs.logs.length == len && (live || Logs.moreResults)) {
 			if (retryTimer) clearTimeout(retryTimer);
 			retryTimer = setTimeout(async () => {
 				if (live || Logs.moreResults) {
@@ -529,7 +673,7 @@
 				/>
 			</div>
 			<div class="layout-x-wrap-low">
-				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode}
+				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode (_mode)}
 					<button
 						type="submit"
 						class="btn"
@@ -546,10 +690,21 @@
 	</Card>
 </ModalDynamic>
 <div class="layout-y-stretch-none h-full w-full text-xs" class:fullscreen>
+	<div
+		aria-hidden="true"
+		style="position: absolute; left: -9999px; top: -9999px; visibility: hidden;"
+	>
+		<div class="text-xs">
+			<div class="px-1 pt-1 text-left leading-none text-nowrap" {@attach attachHeaderMetrics}>
+				Ag
+			</div>
+			<div class="p-1 font-mono leading-4 whitespace-pre" {@attach attachMessageMetrics}>Ag</div>
+		</div>
+	</div>
 	<div class="layout-y-stretch-low">
 		{#if showFilters.current}
 			<div
-				class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 p-1"
+				class="mx-low layout-x-wrap-none gap-1 rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -557,7 +712,7 @@
 					<div animate:flip={{ duration }}>
 						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
 							<div
-								class="mini-card"
+								class="log-columns-chip mini-card"
 								class:preset-filled-success-100-900={show}
 								class:preset-filled-warning-100-900={!show}
 								class:motif-warning={!show}
@@ -588,21 +743,24 @@
 						</MovableContent>
 					</div>
 				{/each}
-				<div class="mini-card preset-filled-warning-100-900 motif-warning">
+				<div class="log-columns-chip mini-card preset-filled-warning-100-900 motif-warning">
 					<span>Restore</span>
 					<Button {size} icon="mdi:backup-restore" onclick={(event) => restoreColumns(event)} />
 				</div>
 			</div>
 		{/if}
-		<div class="mx-low layout-x-wrap-low rounded-sm preset-filled-surface-200-800 px-low">
-			<div class="mini-card preset-filled-primary-100-900">
+		<div
+			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 px-low"
+		>
+			<div class="log-toolbar-chip mini-card">
 				<Button
 					{size}
 					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
+					cls="log-toolbar-button"
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
 			</div>
-			<div class="mini-card">
+			<div class="log-toolbar-chip mini-card">
 				<Popover
 					open={searchBoxOpened}
 					onOpenChange={(e) => {
@@ -614,21 +772,19 @@
 					}}
 					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
 				>
-					<Popover.Trigger class="button-success h-7 w-7 items-center justify-center p-0">
+					<Popover.Trigger class="log-toolbar-button">
 						<Ico icon="mdi:search" />
 					</Popover.Trigger>
-					<Popover.Positioner class="z-50">
-						<Popover.Content
-							class="rounded-base border border-surface-200-800 bg-surface-50-950 p-low shadow-follow dark:bg-surface-900"
-						>
+					<Popover.Positioner class="log-search-positioner" style="z-index: 20;">
+						<Popover.Content class="border-none bg-transparent p-0 shadow-none">
 							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
-								<div class="layout-x-stretch-low">
+								<div class="layout-x-center-low">
 									<input
 										type="text"
 										class="rounded-md border-none bg-transparent"
-										bind:this={searchInput}
 										bind:value={searched}
 										onkeyup={doSearch}
+										{@attach attachSearchInput}
 									/>
 									<input
 										type="text"
@@ -637,9 +793,13 @@
 										readonly={true}
 										value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
 									/>
-									<button class="button-primary" onclick={doSearchPrev}>↑</button>
-									<button class="button-primary" onclick={doSearchNext}>↓</button>
-									<button class="button-error p-2" onclick={doSearchClear}
+									<button class="log-toolbar-button log-search-button" onclick={doSearchPrev}
+										>↑</button
+									>
+									<button class="log-toolbar-button log-search-button" onclick={doSearchNext}
+										>↓</button
+									>
+									<button class="log-toolbar-button-error log-search-button" onclick={doSearchClear}
 										><Ico icon="mdi:delete-outline" /></button
 									>
 								</div>
@@ -649,30 +809,33 @@
 					</Popover.Positioner>
 				</Popover>
 			</div>
-			<div
-				class={{
-					'mini-card': true,
-					'preset-filled-secondary-100-900': !showFilters.current,
-					'preset-filled-warning-200-800': showFilters.current,
-					'motif-secondary': !showFilters.current,
-					'motif-warning': showFilters.current
-				}}
-			>
+			<div class="log-toolbar-chip mini-card">
 				<Button
 					{size}
 					icon="mdi:filter-cog{showFilters.current ? '' : '-outline'}"
+					cls={showFilters.current ? 'log-toolbar-button-active' : 'log-toolbar-button'}
 					onmousedown={() => (showFilters.current = !showFilters.current)}
 				/>
 			</div>
 			{#if showFilters.current}
-				<div class="mini-card preset-filled-secondary-100-900">
-					<Button {size} icon="mdi:plus" onclick={() => addExtraLines(1)} />
+				<div class="log-toolbar-chip mini-card">
+					<Button
+						{size}
+						icon="mdi:plus"
+						cls="log-toolbar-button"
+						onclick={() => addExtraLines(1)}
+					/>
 					{#if extraLines > 0}
-						<Button {size} icon="mdi:minus" onclick={() => addExtraLines(-1)} />
+						<Button
+							{size}
+							icon="mdi:minus"
+							cls="log-toolbar-button"
+							onclick={() => addExtraLines(-1)}
+						/>
 					{/if}
 				</div>
 			{/if}
-			<div class="mini-card preset-filled-tertiary-100-900 motif-tertiary">
+			<div class="log-filter-chip mini-card preset-filled-tertiary-100-900 motif-tertiary">
 				<span>Message</span>
 				<Button
 					{size}
@@ -688,18 +851,18 @@
 			</div>
 			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index, disabled }, idx (ts)}
 				<div
-					class="layout-x-none"
+					class="log-filter-group"
 					animate:flip={{ duration }}
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="mini-card preset-filled-surface-200-800">AND</div>
+						<div class="log-filter-chip mini-card preset-filled-surface-200-800">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="mini-card preset-filled-surface-200-800">OR</div>
+						<div class="log-filter-chip mini-card preset-filled-surface-200-800">OR</div>
 					{/if}
 					<div
-						class="mini-card"
+						class="log-filter-chip mini-card"
 						class:preset-filled-secondary-100-900={!not && !disabled}
 						class:motif-secondary={!not && !disabled}
 						class:preset-filled-error-100-900={not && !disabled}
@@ -721,6 +884,7 @@
 								arr[index] = { ...current, disabled: !current.disabled };
 								filters[category] = arr;
 								filters = { ...filters };
+								scheduleFiltering();
 							}}
 						/>
 						<Button
@@ -741,13 +905,13 @@
 			{/each}
 		</div>
 		<div
-			class="layout-x-wrap overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
-			style="height: {2 + extraLines * 18}px"
+			class="layout-x-wrap content-start overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
+			style="height: {2 + extraLines * headerHeight}px; column-gap: 1px; row-gap: 0;"
 		>
 			{#each columns as { name, cls, style } (name)}
 				<div
 					{style}
-					class="px-1 py-0 {cls} max-h-[18px] overflow-hidden text-nowrap"
+					class="px-px py-0 {cls} max-h-4.5 overflow-hidden text-nowrap"
 					animate:grabFlip={{ duration }}
 				>
 					<button
@@ -780,22 +944,27 @@
 				<svelte:fragment slot="item" let:style let:index>
 					{@const log = logs[index]}
 					<div {style}>
-						<div class="{log[2]} rounded-sm" class:odd={index % 2 == 0} class:even={index % 2 == 1}>
+						<div
+							class="{log[2]} log-row rounded-sm"
+							class:odd={index % 2 == 0}
+							class:even={index % 2 == 1}
+						>
 							<div
 								class={[
 									'layout-x-wrap',
 									'overflow-y-hidden',
 									'items-baseline',
-									'opacity-90',
+									'content-start',
+									'log-meta',
 									log[log.length - 1] > 1 && 'sticky'
 								]}
-								style="height: {extraLines * headerHeight}px"
+								style="height: {extraLines * headerHeight}px; column-gap: 2px; row-gap: 0;"
 							>
 								{#each columns as { name, cls, style } (name)}
 									{@const value = getValue(name, log, index)}
 									<button
 										{style}
-										class="px-1 {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none font-semibold text-nowrap"
+										class="px-[2px] {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 										animate:grabFlip={{ duration }}
 										onclick={(event) => addFilter({ event, category: name, value })}
 									>
@@ -804,18 +973,18 @@
 								{/each}
 							</div>
 							<div
-								class="overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre text-black dark:text-white"
+								class="log-message overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre"
 								style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
 								{@attach dragscroll}
 							>
 								{#if founds.length > 0}
 									{@const _founds = founds.filter((f) => f.index == index)}
 									{#if _founds.length > 0}
-										{#each _founds as found, idx}
+										{#each _founds as found, idx (found.start)}
 											{@const { start, end } = found}
 											{#if idx == 0}
 												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-													use:scrollIntoView
+													{@attach attachScrollIntoView}
 													class="searchedCurrent">{log[4].substring(start, end)}</span
 												>{:else}<span class="searched">{log[4].substring(start, end)}</span
 												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
@@ -882,51 +1051,124 @@
 		background-color: yellow;
 		box-shadow: 2px 2px 5px 0px yellow;
 	}
-	.FATAL {
-		@apply preset-filled-secondary-100-900 motif-secondary;
+
+	.log-columns-chip {
+		@apply border border-surface-200-800 shadow-sm/10 shadow-surface-900-100;
 	}
 
-	.FATAL.even {
-		@apply bg-secondary-100-900/80;
+	.log-toolbar-row {
+		@apply flex flex-wrap items-center gap-1;
+	}
+
+	.log-filter-group {
+		@apply flex items-center gap-1;
+	}
+
+	.log-filter-chip {
+		@apply border border-surface-200-800 shadow-sm/10 shadow-surface-900-100;
+	}
+
+	.log-toolbar-chip {
+		@apply gap-1 rounded-sm border border-surface-200-800 bg-surface-50-950 p-0.5;
+	}
+
+	:global(.log-toolbar-button) {
+		@apply button-primary h-7 w-7 justify-center p-0;
+	}
+
+	:global(.log-toolbar-button-active) {
+		@apply button-primary h-7 w-7 justify-center p-0 ring-1 ring-primary-400/40;
+	}
+
+	:global(.log-toolbar-button-error) {
+		@apply button-error h-7 w-7 justify-center p-0;
+	}
+
+	:global(.log-search-button) {
+		@apply min-w-7;
+	}
+
+	:global(.log-search-positioner) {
+		z-index: 20;
+	}
+
+	.log-meta {
+		@apply text-surface-600-400;
+	}
+
+	.log-message {
+		@apply font-medium text-surface-950-50;
+	}
+
+	.log-row {
+		--log-tint: var(--color-surface-400);
+		--log-tint-weak: 12%;
+		--log-tint-strong: 18%;
+		background-color: color-mix(
+			in oklab,
+			var(--log-tint) var(--log-tint-weak),
+			var(--color-surface-50)
+		);
+		box-shadow: inset 0 -1px color-mix(in oklab, var(--color-surface-900) 18%, transparent);
+	}
+
+	.log-row.even {
+		background-color: color-mix(
+			in oklab,
+			var(--log-tint) var(--log-tint-strong),
+			var(--color-surface-50)
+		);
+	}
+
+	:global(.dark) .log-row {
+		background-color: color-mix(
+			in oklab,
+			var(--log-tint) var(--log-tint-weak),
+			var(--color-surface-950)
+		);
+		box-shadow: inset 0 -1px color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+	}
+
+	:global(.dark) .log-row.even {
+		background-color: color-mix(
+			in oklab,
+			var(--log-tint) var(--log-tint-strong),
+			var(--color-surface-950)
+		);
+	}
+	.FATAL {
+		--log-tint: var(--color-error-600);
+		--log-tint-weak: 34%;
+		--log-tint-strong: 44%;
 	}
 
 	.ERROR {
-		@apply preset-filled-error-100-900 motif-error;
-	}
-
-	.ERROR.even {
-		@apply bg-error-100-900/80;
+		--log-tint: var(--color-error-500);
+		--log-tint-weak: 24%;
+		--log-tint-strong: 32%;
 	}
 
 	.WARN {
-		@apply preset-filled-warning-100-900 motif-warning;
-	}
-
-	.WARN.even {
-		@apply bg-warning-100-900/80;
+		--log-tint: var(--color-warning-500);
+		--log-tint-weak: 22%;
+		--log-tint-strong: 30%;
 	}
 
 	.INFO {
-		@apply preset-filled-success-100-900;
-	}
-
-	.INFO.even {
-		@apply bg-success-100-900/80;
+		--log-tint: var(--color-success-500);
+		--log-tint-weak: 20%;
+		--log-tint-strong: 26%;
 	}
 
 	.DEBUG {
-		@apply preset-filled-primary-100-900 motif-primary;
-	}
-
-	.DEBUG.even {
-		@apply bg-primary-100-900/80;
+		--log-tint: var(--color-primary-500);
+		--log-tint-weak: 20%;
+		--log-tint-strong: 26%;
 	}
 
 	.TRACE {
-		@apply preset-filled-tertiary-100-900 motif-tertiary;
-	}
-
-	.TRACE.even {
-		@apply bg-tertiary-100-900/80;
+		--log-tint: var(--color-surface-500);
+		--log-tint-weak: 12%;
+		--log-tint-strong: 18%;
 	}
 </style>

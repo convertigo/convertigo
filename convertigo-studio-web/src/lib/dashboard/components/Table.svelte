@@ -4,11 +4,11 @@
 </script>
 
 <table class="min-w-full divide-y divide-surface-200 dark:divide-surface-600">
-	<thead class="bg-surface-100-800">
+	<thead class="bg-surface-100-900">
 		<tr>
 			{#each columns as column (column)}
 				<th
-					class="text text-surface-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+					class="text px-6 py-3 text-left text-xs font-medium tracking-wider text-surface-500 uppercase"
 					>{column}</th
 				>
 			{/each}
