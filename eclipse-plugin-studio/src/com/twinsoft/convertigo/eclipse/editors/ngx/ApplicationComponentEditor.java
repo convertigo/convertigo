@@ -40,6 +40,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -329,6 +332,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
+	private static final int BUILD_TASK_TOTAL = 100;
 
 	private static final Set<Integer> usedPort = new HashSet<>();
 	private int portNode;
@@ -1684,6 +1688,80 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		disableEdition();
 	}
 
+	private static final class BuildTask {
+		private final CountDownLatch done = new CountDownLatch(1);
+		private final AtomicReference<IProgressMonitor> monitorRef = new AtomicReference<>();
+		private final AtomicInteger targetProgress = new AtomicInteger(0);
+		private final AtomicInteger workedProgress = new AtomicInteger(0);
+		private final AtomicReference<String> status = new AtomicReference<>();
+
+		private final Job job;
+
+		private BuildTask(String name, String initialStatus) {
+			status.set(initialStatus);
+			job = Job.create(name, monitor -> {
+				monitorRef.set(monitor);
+				monitor.beginTask(initialStatus, BUILD_TASK_TOTAL);
+				String pending = status.get();
+				if (StringUtils.isNotBlank(pending)) {
+					monitor.subTask(pending);
+				}
+				applyProgress(monitor, targetProgress.get());
+				try {
+					done.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				monitor.done();
+			});
+			job.setUser(true);
+			job.schedule();
+		}
+
+		void updateStatus(String newStatus) {
+			if (StringUtils.isBlank(newStatus)) {
+				return;
+			}
+			status.set(newStatus);
+			IProgressMonitor monitor = monitorRef.get();
+			if (monitor != null) {
+				monitor.subTask(newStatus);
+			}
+		}
+
+		void updateProgress(int progress) {
+			int clamped = Math.max(0, Math.min(BUILD_TASK_TOTAL, progress));
+			targetProgress.set(clamped);
+			IProgressMonitor monitor = monitorRef.get();
+			if (monitor != null) {
+				applyProgress(monitor, clamped);
+			}
+		}
+
+		void done() {
+			done.countDown();
+		}
+
+		private void applyProgress(IProgressMonitor monitor, int progress) {
+			int previous = workedProgress.get();
+			if (progress > previous) {
+				workedProgress.set(progress);
+				monitor.worked(progress - previous);
+			}
+		}
+	}
+
+	private static void finishBuildTask(BuildTask task, String status) {
+		if (task == null) {
+			return;
+		}
+		if (StringUtils.isNotBlank(status)) {
+			task.updateStatus(status);
+		}
+		task.updateProgress(100);
+		task.done();
+	}
+
 	private void error(String msg) {
 		C8oBrowser.run(() -> {
 			try {
@@ -1849,6 +1927,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private void build(final String path, final int buildCount, final MobileBuilder mb) {
 		Object mutex = new Object();
 		mb.setBuildMutex(mutex);
+		String appName = StringUtils.defaultIfBlank(applicationEditorInput.application.getParent().getComputedApplicationName(),
+				project.getName());
+		String taskName = "Live build for " + appName;
+		String buildLabel = mb.isStandalone() ? "Standalone build in progress" : "Webpack build in progress";
+		BuildTask buildTask = null;
+		boolean buildActive = false;
+		int syntheticProgress = 0;
 		try {
 			ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 		} catch (CoreException ce) {}
@@ -1907,7 +1992,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			Process p = pb.start();
 			processes.add(p);
 
-
 			Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
@@ -1933,18 +2017,33 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 						matcher.reset(line);
 						if (matcher.find()) {
+							if (!buildActive) {
+								buildActive = true;
+								buildTask = new BuildTask(taskName, buildLabel);
+							}
 							progress(Integer.parseInt(matcher.group(1)));
 							appendOutput(matcher.group(2));
+							if (buildTask != null) {
+								buildTask.updateProgress(Integer.parseInt(matcher.group(1)));
+								buildTask.updateStatus(matcher.group(2));
+							}
 						} else {
 							appendOutput(line);
 						}
 						if (line.matches(".*Compiled .*successfully.*")) {
 							progress(100);
 							error(null);
+							finishBuildTask(buildTask, "Build finished");
+							buildTask = null;
+							buildActive = false;
 							synchronized (mutex) {
 								mutex.notify();
 							}
 							mb.buildFinished();
+						} else if (line.contains("Failed to compile.")) {
+							finishBuildTask(buildTask, "Build failed");
+							buildTask = null;
+							buildActive = false;
 						}
 
 						Matcher m = pIsBrowserOpenable.matcher(line);
@@ -1961,6 +2060,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					if (StringUtils.isNotBlank(line)) {
 						Engine.logStudio.info(line);
+						boolean isBuildStart = line.startsWith("❯")
+								|| line.contains("Changes detected. Rebuilding")
+								|| line.contains("Initial chunk files");
+						boolean isBuildEnd = line.startsWith("✔")
+								|| line.contains("Application bundle generation complete")
+								|| line.contains("Page reload sent to client");
 						if (line.startsWith("✘")) {
 							sb = new StringBuilder();
 						}
@@ -1971,19 +2076,42 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 
 						matcher.reset(line);
-						if (line.startsWith("❯")) {
-							progress(0);
-							appendOutput(line);
-						} else {
-							appendOutput(line);
+						if (isBuildStart && !buildActive) {
+							buildActive = true;
+							syntheticProgress = 1;
+							buildTask = new BuildTask(taskName, buildLabel);
+							buildTask.updateStatus(line);
+							buildTask.updateProgress(syntheticProgress);
+							progress(syntheticProgress);
+						} else if (buildActive && !isBuildEnd) {
+							syntheticProgress = Math.min(99, syntheticProgress + 1);
+							if (buildTask != null) {
+								buildTask.updateStatus(line);
+								buildTask.updateProgress(syntheticProgress);
+							}
+							progress(syntheticProgress);
 						}
-						if (line.startsWith("✔")) {
+						appendOutput(line);
+						if (isBuildEnd && (buildActive || buildTask != null)) {
+							if (buildTask != null && syntheticProgress < 99) {
+								buildTask.updateProgress(99);
+								progress(99);
+							}
 							progress(100);
 							error(null);
+							finishBuildTask(buildTask, "Build finished");
+							buildTask = null;
+							buildActive = false;
+							syntheticProgress = 0;
 							synchronized (mutex) {
 								mutex.notify();
 							}
 							mb.buildFinished();
+						} else if (line.startsWith("✘")) {
+							finishBuildTask(buildTask, "Build failed");
+							buildTask = null;
+							buildActive = false;
+							syntheticProgress = 0;
 						}
 
 						Matcher m = pIsBrowserOpenable84.matcher(line);
@@ -2008,6 +2136,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			synchronized (mutex) {
 				mutex.notify();
 			}
+			finishBuildTask(buildTask, "Build stopped");
 			mb.setBuildMutex(null);
 			mb.buildFinished();
 			try {
