@@ -323,21 +323,21 @@
 			{#if tabSet == 'view'}
 				<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
 					<div transition:slide={{ axis: 'y' }}>
-						<div class="relative z-10 layout-x-end-low flex-wrap">
-							<div class="layout-x-end-low flex-wrap">
+						<div class="relative z-10 layout-x-end-low flex-wrap items-center">
+							<div class="layout-x-end-low flex-wrap items-center">
 								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
-									<Popover.Trigger class="button-primary layout-x-low">
+									<Popover.Trigger class="button-primary layout-x-low h-9">
 										Preset<Ico icon="mdi:clock-star-four-points-outline" />
 									</Popover.Trigger>
 									<Popover.Positioner class="z-60">
 										<Popover.Content class="border-none bg-transparent p-0 shadow-none">
 											<Card bg="preset-glass-primary" class="border-none! p-low! shadow-follow">
 												<div class="layout-y-stretch-low">
-													{#each presets as { label, onclick }, idx (label)}
+													{#each presets as preset (preset.label)}
 														<Button
-															{label}
+															label={preset.label}
 															class="button-primary bg-primary-50-950 text-black odd:bg-primary-50-950/75 dark:text-white"
-															{onclick}
+															onclick={preset.onclick}
 														/>
 													{/each}
 												</div>
@@ -360,14 +360,14 @@
 								icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
 								onmousedown={() =>
 									(serverFilterVisibleState.current = !serverFilterVisibleState.current)}
-								class="button-primary h-7! w-fit!"
+								class="button-primary h-9! w-fit!"
 							/>
 							{#if serverFilterVisible}
 								<Button
 									size={4}
 									icon="mdi:cloud-sync-outline"
 									onmousedown={copyFilters}
-									class="button-primary h-7! w-fit!"
+									class="button-primary h-9! w-fit!"
 									label="Copy client filters"
 									disabled={Object.keys(filters).length == 0}
 								/>
@@ -376,7 +376,7 @@
 								label="Server search"
 								size={4}
 								icon="mdi:receipt-text-send-outline"
-								class="button-primary h-7! w-fit!"
+								class="button-primary h-9! w-fit!"
 								onclick={refreshLogs}
 							/>
 							{#if serverFilterVisible}
@@ -384,25 +384,13 @@
 									type="search"
 									placeholder="Server filter…"
 									icon="mdi:filter"
-									class="bg-surface-200-800"
-									inputClass="light:bg-white"
+									class="h-9 bg-surface-200-800"
+									inputClass="h-9 text-[13px] placeholder:text-[13px]"
 									bind:value={serverFilter}
 									onkeyup={(e) => {
 										if (e?.key == 'Enter') refreshLogs();
 									}}
-								>
-									{#snippet actions({ value, setValue })}
-										{#if value?.length}
-											<button
-												type="button"
-												class="button-ico-error h-6 w-6"
-												onclick={() => setValue('')}
-											>
-												<Ico icon="mdi:close-circle-outline" size="nav" />
-											</button>
-										{/if}
-									{/snippet}
-								</InputGroup>
+								></InputGroup>
 							{/if}
 						</div>
 					</div>
@@ -459,7 +447,7 @@
 				</div>
 			{:else}
 				<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
-					{#each logsCategory?.property as property (property.name)}
+					{#each logsCategory?.property ?? [] as property (property.name)}
 						{#if property.name?.startsWith('LOG4J')}
 							<PropertyType {...property} bind:value={property.value} />
 						{/if}

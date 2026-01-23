@@ -1,25 +1,25 @@
 <script>
-	import { onMount, tick, untrack } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { fromAction } from 'svelte/attachments';
 	import { cubicOut } from 'svelte/easing';
-	import { tweened } from 'svelte/motion';
+	import { Tween } from 'svelte/motion';
 	import { fly } from 'svelte/transition';
 
 	/** @type {{inputValue?: string}} */
 	let { inputValue = $bindable('00:00:00,000') } = $props();
 	const size = 150;
+	const centerX = size / 2;
+	const centerY = size / 2;
+	const radius = size / 2 - 15;
 	let showClock = $state(false);
 	let time = $state({ hour: 0, minute: 0, second: 0, millisecond: 0 });
 	let selectedUnit = $state(0);
 	let isDragging = $state(false);
-	let handCoords = $state({ x: 0, y: 0 });
-
-	const centerX = size / 2;
-	const centerY = size / 2;
-	const radius = size / 2 - 15;
-
-	let root = $state(),
-		input = $state(),
-		timeout;
+	let root = $state();
+	let input = $state();
+	let timeout;
+	const attachRoot = $derived(fromAction(bindRoot));
+	const attachInput = $derived(fromAction(bindInput));
 
 	const units = [
 		{ name: 'hour', count: 24, markers: 12, prefix: '' },
@@ -33,8 +33,11 @@
 		length: String(unit.count - 1).length
 	}));
 
-	const handPosition = tweened({ angle: 0 }, { duration: 300, easing: cubicOut });
-	const unitPosition = tweened(-13, { duration: 300, easing: cubicOut });
+	const handPosition = new Tween({ angle: 0 }, { duration: 300, easing: cubicOut });
+	const unitPosition = new Tween(-13, { duration: 300, easing: cubicOut });
+	let handCoords = $derived.by(() =>
+		polarToCartesian(centerX, centerY, radius, handPosition.current.angle)
+	);
 
 	function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
 		const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
@@ -105,11 +108,11 @@
 
 	function updateHandPosition() {
 		const adjustedAngle = time[units[selectedUnit].name] * units[selectedUnit].devided;
-		handPosition.update(({ angle }) => {
-			const diff = adjustedAngle - (angle % 360);
-			angle = (diff > 180 ? angle - 360 : diff < -180 ? angle + 360 : angle) + diff;
-			return { angle };
-		});
+		const currentAngle = handPosition.current.angle;
+		const diff = adjustedAngle - (currentAngle % 360);
+		const nextAngle =
+			(diff > 180 ? currentAngle - 360 : diff < -180 ? currentAngle + 360 : currentAngle) + diff;
+		handPosition.target = { angle: nextAngle };
 	}
 
 	async function updateInputValue() {
@@ -201,6 +204,26 @@
 		showClock = false;
 	}
 
+	/** @param {HTMLDivElement} node */
+	function bindRoot(node) {
+		root = node;
+		return {
+			destroy() {
+				if (root === node) root = undefined;
+			}
+		};
+	}
+
+	/** @param {HTMLInputElement} node */
+	function bindInput(node) {
+		input = node;
+		return {
+			destroy() {
+				if (input === node) input = undefined;
+			}
+		};
+	}
+
 	onMount(() => {
 		document.addEventListener('click', handleDocumentClick);
 		return () => document.removeEventListener('click', handleDocumentClick);
@@ -208,20 +231,17 @@
 
 	updateTimeValue();
 	$effect(() => {
-		handCoords = polarToCartesian(centerX, centerY, radius, $handPosition.angle);
-		untrack(() => {
-			$unitPosition = handCoords.y > centerY ? -13 : 13;
-		});
+		unitPosition.target = handCoords.y > centerY ? -13 : 13;
 	});
 </script>
 
-<div class="relative h-full border-common" bind:this={root}>
+<div class="relative flex h-9 justify-center" {@attach attachRoot}>
 	<input
 		type="text"
-		class="input-text button input-common w-[14ch] max-w-fit preset-filled-surface-200-800 light:bg-white"
+		class="h-9 input-common w-[14ch] max-w-fit preset-filled-surface-200-800 text-[13px] leading-none placeholder:text-[13px] light:bg-white"
 		maxlength="12"
 		size="11"
-		bind:this={input}
+		{@attach attachInput}
 		bind:value={inputValue}
 		onclick={inputClick}
 		onkeydown={inputKeyDown}
@@ -250,7 +270,7 @@
 		>
 			<svg width={size} height={size}>
 				<circle cx={centerX} cy={centerY} r={size / 2} class="shell" />
-				<text class="unit-text" x={centerX} y={centerY + $unitPosition}>
+				<text class="unit-text" x={centerX} y={centerY + unitPosition.current}>
 					{units[selectedUnit].name}
 				</text>
 				{#each markers[selectedUnit] as marker (marker.inc)}
@@ -267,8 +287,8 @@
 					</g>
 				{/each}
 				<line class="hand" x1={centerX} y1={centerY} x2={handCoords.x} y2={handCoords.y} />
-				<circle class="value-circle" cx={centerX} cy={centerY} r="5" />
-				<circle class="value-circle" cx={handCoords.x} cy={handCoords.y} r="13" />
+				<circle class="value-circle value-circle-center" cx={centerX} cy={centerY} r="5" />
+				<circle class="value-circle value-circle-end" cx={handCoords.x} cy={handCoords.y} r="13" />
 				<text class="value-text" x={handCoords.x} y={handCoords.y}>
 					{time[units[selectedUnit].name]}
 				</text>
@@ -277,42 +297,51 @@
 	{/if}
 </div>
 
-<style>
+<style lang="postcss">
+	@reference "../../../app.css";
+
 	.shell {
-		fill: grey;
+		@apply fill-surface-50-950 stroke-surface-200-800;
+		stroke-width: 1;
 	}
 	.clock {
-		border-radius: 50%;
+		@apply rounded-full border border-surface-200-800 bg-surface-50-950 shadow-lg shadow-surface-900/15;
 		position: relative;
 		overflow: hidden;
-		/* touch-action: none; */
 	}
 	.hand {
-		stroke: white;
+		@apply stroke-primary-500;
 		stroke-linecap: round;
 		stroke-width: 4;
 		transition: transform 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 	}
 	.value-circle {
-		fill: white;
+		@apply fill-primary-500;
+	}
+	.value-circle-center {
+		@apply fill-surface-50-950 stroke-surface-200-800;
+		stroke-width: 1;
+	}
+	.value-circle-end {
+		@apply fill-primary-500 shadow-sm;
 	}
 	.value-text {
-		font-size: 12px;
+		@apply fill-white text-[11px] font-semibold;
 		text-anchor: middle;
 		alignment-baseline: middle;
 	}
 	.marker-circle {
-		fill: lightgray;
+		@apply fill-surface-200-800;
 	}
 	.marker-text {
-		font-size: 10px;
+		@apply fill-surface-700-300 text-[10px] font-medium;
 		text-anchor: middle;
 		alignment-baseline: middle;
 	}
 	.unit-text {
-		font-size: 18px;
+		@apply fill-surface-900-100 text-[14px] font-semibold tracking-wide;
 		text-anchor: middle;
 		alignment-baseline: middle;
-		fill: black;
+		text-transform: uppercase;
 	}
 </style>

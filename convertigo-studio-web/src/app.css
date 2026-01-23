@@ -216,9 +216,13 @@
 }
 
 @utility select {
-	& option:focus:checked,
-	& option:checked {
-		@apply preset-filled-primary-50-950 dark:preset-filled-primary-950-50;
+	& option:checked,
+	& option:checked:focus,
+	& option:checked:hover {
+		@apply bg-primary-600 text-white;
+	}
+	& option:checked:active {
+		@apply bg-primary-700 text-white;
 	}
 	@apply bg-white dark:bg-surface-800;
 }

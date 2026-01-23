@@ -6,10 +6,12 @@
 	import Ico from '$lib/utils/Ico.svelte';
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
-	const baseGroup = 'input-group w-full grid-cols-[auto_1fr_auto] items-center';
-	const baseLabel = 'px-3 text-surface-500';
-	const baseInput = 'placeholder:text-surface-500 focus-visible:outline-none focus:ring-0';
-	const baseActions = 'layout-x-none items-center gap-[1px]!';
+	const baseGroup =
+		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-surface-300 bg-white text-surface-900 transition-surface focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:focus-within:border-primary-400 dark:focus-within:ring-primary-400/35';
+	const baseLabel = 'flex h-full items-center px-3 text-surface-500';
+	const baseInput =
+		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-500 focus-visible:outline-none focus:ring-0';
+	const baseActions = 'layout-x-none h-full items-center gap-[1px]! border-l-0!';
 
 	let {
 		class: className = '',
@@ -34,6 +36,10 @@
 	} = $props();
 	let inputId = $derived(id ?? name ?? `input-group-${ids++}`);
 	const setValue = (next) => (value = next);
+	const showClear = $derived(
+		type === 'search' && (value?.length ?? 0) > 0 && !actions && !rightIcon
+	);
+	const hasActions = $derived(!!actions || !!rightIcon || showClear);
 </script>
 
 <div class={join(baseGroup, className)}>
@@ -54,16 +60,39 @@
 		bind:value
 		{...rest}
 	/>
-	<span class={join('ig-actions', baseActions, actionsClass)}>
-		{@render actions?.({ value, setValue, disabled })}
-		{#if rightIcon}
-			<Ico icon={rightIcon} size={rightIconSize} class={rightIconClass} />
-		{/if}
-	</span>
+	{#if hasActions}
+		<span class={join('ig-actions', baseActions, actionsClass)}>
+			{@render actions?.({ value, setValue, disabled })}
+			{#if rightIcon}
+				<Ico icon={rightIcon} size={rightIconSize} class={rightIconClass} />
+			{/if}
+			{#if showClear}
+				<button
+					type="button"
+					class="button-ico-secondary h-7 w-7 p-0!"
+					onclick={() => setValue('')}
+				>
+					<Ico icon="mdi:close" size="nav" />
+				</button>
+			{/if}
+		</span>
+	{/if}
 </div>
 
 <style>
 	:global(.ig-actions:empty) {
+		display: none;
+	}
+	:global(.input-group .ig-actions) {
+		border-left: 0 !important;
+	}
+	:global(.input-group input[type='search']::-webkit-search-cancel-button),
+	:global(.input-group input[type='search']::-webkit-search-decoration),
+	:global(.input-group input[type='search']::-webkit-search-results-button),
+	:global(.input-group input[type='search']::-webkit-search-results-decoration) {
+		display: none;
+	}
+	:global(.input-group input[type='search']::-ms-clear) {
 		display: none;
 	}
 	:global(.input-group .ig-input:focus-visible) {

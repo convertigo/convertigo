@@ -1,21 +1,23 @@
 <script>
 	import { debounce } from '$lib/utils/service';
 	import { onMount, tick } from 'svelte';
-	import { tweened } from 'svelte/motion';
+	import { fromAction } from 'svelte/attachments';
+	import { Tween } from 'svelte/motion';
 
 	/** @type {{height: any, children?: import('svelte').Snippet}} */
 	let { height = $bindable(), children } = $props();
 
-	const tHeight = tweened(height, {
+	const tHeight = new Tween(height, {
 		duration: 100,
 		easing: (t) => t
 	});
 
-	tHeight.subscribe((value) => {
-		height = value;
+	$effect(() => {
+		height = tHeight.current;
 	});
 
 	let element = $state();
+	const attachElement = $derived(fromAction(bindElement));
 
 	async function updateHeight(e) {
 		if (element) {
@@ -48,7 +50,7 @@
 					}
 				}
 			} while (ancestor && lastHeight != height);
-			tHeight.set(height);
+			tHeight.target = height;
 		}
 	}
 
@@ -73,8 +75,20 @@
 			clearInterval(poll);
 		};
 	});
+
+	/** @param {HTMLDivElement} node */
+	function bindElement(node) {
+		element = node;
+		return {
+			destroy() {
+				if (element === node) {
+					element = undefined;
+				}
+			}
+		};
+	}
 </script>
 
-<div class="min-w-full" bind:this={element}>
+<div class="min-w-full" {@attach attachElement}>
 	{@render children?.()}
 </div>

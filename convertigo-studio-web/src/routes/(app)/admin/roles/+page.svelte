@@ -55,15 +55,17 @@
 		{ text: 'Private', value: 'TEST_PLATFORM_PRIVATE' }
 	];
 
-	let tpSelected = $derived.by(() => {
+	const getTpSelected = (list = []) => {
 		let lastFound;
 		for (const { value } of tpItems) {
-			if (rowSelected.roles?.includes(value)) {
+			if (list.includes(value)) {
 				lastFound = value;
 			}
 		}
 		return lastFound ?? ' ';
-	});
+	};
+
+	let tpSelected = $derived.by(() => getTpSelected(rowSelected.roles ?? []));
 </script>
 
 {#snippet roleCard({ roles, role, cls = '' })}
@@ -178,15 +180,13 @@
 							<PropertyType
 								type="check"
 								size="sm"
-								bind:checked={
-									() => subRoles.every((r) => rowSelected.roles.includes(r)),
-									(v) => {
-										for (const value of subRoles) {
-											if (v) addInArray(rowSelected.roles, value);
-											else removeInArray(rowSelected.roles, value);
-										}
+								checked={subRoles.every((r) => rowSelected.roles.includes(r))}
+								onCheckedChange={(e) => {
+									for (const value of subRoles) {
+										if (e.checked) addInArray(rowSelected.roles, value);
+										else removeInArray(rowSelected.roles, value);
 									}
-								}
+								}}
 							/>
 						{:else}
 							{@const value = def.name == 'View' ? role : role.replace('_VIEW', '_CONFIG')}
@@ -195,13 +195,11 @@
 								type="check"
 								size="sm"
 								{value}
-								bind:checked={
-									() => rowSelected.roles.includes(value),
-									(v) => {
-										if (v) addInArray(rowSelected.roles, value);
-										else removeInArray(rowSelected.roles, value);
-									}
-								}
+								checked={rowSelected.roles.includes(value)}
+								onCheckedChange={(e) => {
+									if (e.checked) addInArray(rowSelected.roles, value);
+									else removeInArray(rowSelected.roles, value);
+								}}
 							/>
 						{/if}
 					{/snippet}
@@ -216,16 +214,16 @@
 						type="segment"
 						name="roles"
 						item={tpItems}
-						bind:value={
-							() => tpSelected,
-							(v) => {
-								const other = rowSelected.roles.filter((r) => !r.startsWith('TEST_PLATFORM'));
-								if (v != ' ') {
-									other.push(v);
-								}
-								rowSelected.roles = other;
+						fit={true}
+						value={tpSelected}
+						onValueChange={(e) => {
+							const value = e.value ?? ' ';
+							const other = (rowSelected.roles ?? []).filter((r) => !r.startsWith('TEST_PLATFORM'));
+							if (value != ' ') {
+								other.push(value);
 							}
-						}
+							rowSelected.roles = other;
+						}}
 					/>
 				</div>
 

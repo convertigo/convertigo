@@ -28,6 +28,7 @@
 	} = $props();
 	let label = $derived(description ?? _label);
 	let labelLines = $derived.by(() => (label ? String(label).split('\n') : []));
+	let isMultiSelect = $derived.by(() => Boolean(rest.multiple) || Number(rest.size) > 1);
 	let restores = $derived.by(() => {
 		const r = [];
 		if (originalValue != null) {
@@ -68,7 +69,10 @@
 				{name}
 				{value}
 				{checked}
-				onCheckedChange={(e) => (checked = e.checked)}
+				onCheckedChange={(e) => {
+					checked = e.checked;
+					rest.onCheckedChange?.(e);
+				}}
 				class="inline-flex min-w-10 items-center gap-low"
 			>
 				<Switch.Control
@@ -81,7 +85,7 @@
 			</Switch>
 		{:else}
 			{@const autocomplete = 'one-time-code'}
-			<div class="layout-y-stretch-none" class:border-common={type != 'segment'}>
+			<div class="layout-y-stretch-none gap-1">
 				{#if label}
 					<AutoPlaceholder {loading}>
 						<label class="label-common" for={id}>
@@ -97,8 +101,11 @@
 						{...rest}
 						name={name ?? []}
 						{value}
-						onValueChange={(event) => (value = event.value ?? '')}
-						class="w-full"
+						onValueChange={(event) => {
+							value = event.value ?? '';
+							rest.onValueChange?.(event);
+						}}
+						class={fit ? 'w-fit' : 'w-full'}
 					>
 						<SegmentedControl.Control
 							class={[
@@ -136,7 +143,15 @@
 						</SegmentedControl.Control>
 					</SegmentedControl>
 				{:else if type == 'combo'}
-					<select {name} class="select input-common overflow-auto" {id} {...rest} bind:value>
+					<select
+						{name}
+						class={`select input-common overflow-auto px-3 text-sm ${
+							isMultiSelect ? 'h-auto min-h-24 py-2' : 'h-9'
+						}`}
+						{id}
+						{...rest}
+						bind:value
+					>
 						{#each item as option (option.value ?? option)}
 							{@const val = option.value ?? option}
 							{@const txt = option.text ?? option['#text'] ?? val}
@@ -154,7 +169,7 @@
 						{autocomplete}
 						{placeholder}
 						{...rest}
-						class="input-text input-common placeholder:pl-1"
+						class="min-h-24 input-common px-3 py-2 text-sm"
 						bind:value
 					></textarea>
 				{:else}
@@ -166,7 +181,7 @@
 						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
-						class="input-text input-common placeholder:pl-1 placeholder:text-surface-500"
+						class="h-9 input-common px-3 text-sm placeholder:text-surface-500"
 						{...rest}
 						bind:value
 					/>

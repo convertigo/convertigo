@@ -22,28 +22,54 @@
 	} = $props();
 
 	const duration = 50;
+	const overflowThreshold = 8;
 	let isCardView = $state(false);
+	let tableMinWidth = $state(0);
 	const attachContainer = $derived(fromAction(observeContainer));
 
 	/** @param {HTMLDivElement} node */
 	function observeContainer(node) {
+		let rafId = 0;
 		const update = () => {
-			const next = node.scrollWidth > node.clientWidth;
-			if (next !== isCardView) {
-				isCardView = next;
+			if (!node.isConnected) return;
+			const table = node.querySelector('table');
+			if (!table) return;
+			const containerWidth = Math.floor(node.clientWidth);
+			if (!isCardView) {
+				const measured = Math.ceil(table.scrollWidth);
+				if (measured > 0) {
+					tableMinWidth = measured;
+				}
+			} else if (tableMinWidth === 0) {
+				tableMinWidth = Math.ceil(table.scrollWidth);
 			}
+			if (!isCardView && containerWidth + overflowThreshold < tableMinWidth) {
+				isCardView = true;
+			} else if (isCardView && containerWidth >= tableMinWidth + overflowThreshold) {
+				isCardView = false;
+			}
+		};
+		const schedule = () => {
+			if (rafId) return;
+			rafId = requestAnimationFrame(() => {
+				rafId = 0;
+				update();
+			});
 		};
 
 		update();
 
-		const resizeObserver = new ResizeObserver(update);
+		const resizeObserver = new ResizeObserver(schedule);
 		resizeObserver.observe(node);
 
-		const mutationObserver = new MutationObserver(update);
+		const mutationObserver = new MutationObserver(schedule);
 		mutationObserver.observe(node, { childList: true, subtree: true, characterData: true });
 
 		return {
 			destroy() {
+				if (rafId) {
+					cancelAnimationFrame(rafId);
+				}
 				resizeObserver.disconnect();
 				mutationObserver.disconnect();
 			}

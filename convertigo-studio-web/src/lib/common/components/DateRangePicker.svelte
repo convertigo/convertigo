@@ -2,37 +2,48 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { DateRangePicker } from 'bits-ui';
 
-	/** @type {{ start?: any, end?: any, live?: boolean }} */
+	/** @type {{ start?: any, end?: any, live?: boolean}} */
 	let { start = $bindable(), end = $bindable(), live = $bindable(false) } = $props();
 
 	/** @type {("start" | "end")[]} */
 	let dateTypes = $derived(live ? ['start'] : ['start', 'end']);
 
-	let value = $state({ start, end });
+	let value = $derived.by(() => ({ start, end: live ? start : end }));
+
+	const handleValueChange = (next) => {
+		if (!next) return;
+		const startChanged = next.start && next.start !== start;
+		if (startChanged) {
+			start = next.start;
+		}
+		if (!live) {
+			if (next.end && next.end !== end) {
+				end = next.end;
+			} else if (startChanged && !next.end) {
+				end = undefined;
+			}
+		}
+	};
 
 	$effect(() => {
-		value = { start, end: live ? start : end };
-	});
-
-	$effect(() => {
-		if (value?.start && value.start !== start) {
-			start = value.start;
-		}
-		if (!live && value?.end && value.end !== end) {
-			end = value.end;
-		}
 		if (live && end !== start) {
 			end = start;
 		}
 	});
 </script>
 
-<DateRangePicker.Root bind:value weekdayFormat="short" weekStartsOn={1} locale="fr-FR">
-	<div class="max-w-92 border-common">
+<DateRangePicker.Root
+	{value}
+	onValueChange={handleValueChange}
+	weekdayFormat="short"
+	weekStartsOn={1}
+	locale="fr-FR"
+>
+	<div class="flex h-9 max-w-92 justify-center">
 		<div
-			class="input-text button layout-x-none input-common preset-filled-surface-200-800 light:bg-white"
+			class="layout-x-none h-9 input-common items-center preset-filled-surface-200-800 text-[13px] leading-none placeholder:text-[13px] light:bg-white"
 		>
-			<DateRangePicker.Trigger class="-m-1 rounded-base p-1 hover:bg-black/30">
+			<DateRangePicker.Trigger class="rounded-base p-1 hover:bg-black/10">
 				<Ico size="6" icon="mdi:calendar-range" />
 			</DateRangePicker.Trigger>
 			{#each dateTypes as type (type)}
@@ -58,7 +69,7 @@
 				{/if}
 			{/each}
 			<button
-				class="-m-1 cursor-pointer rounded-base p-1 hover:bg-black/30"
+				class="cursor-pointer rounded-base px-1.5 py-0.5 hover:bg-black/10"
 				class:hover:line-through={live}
 				class:hover:no-underline={!live}
 				class:line-through={!live}
@@ -82,12 +93,12 @@
 				</DateRangePicker.Header>
 				<div class="layout-y-stretch pt-4 sm:layout-x-stretch">
 					{#each months as month (month.value)}
-						<DateRangePicker.Grid class="w-full border-collapse space-y-1 select-none">
+						<DateRangePicker.Grid class="w-full select-none">
 							<DateRangePicker.GridHead>
-								<DateRangePicker.GridRow class="mb-1 layout-x-between w-full">
+								<DateRangePicker.GridRow class="grid w-full grid-cols-7 gap-1">
 									{#each weekdays as day (day)}
 										<DateRangePicker.HeadCell
-											class="w-10 text-xs font-normal! odd:preset-filled-primary-400-600 even:preset-filled-primary-500"
+											class="flex h-8 w-10 items-center justify-center text-xs font-normal! odd:preset-filled-primary-400-600 even:preset-filled-primary-500"
 										>
 											<div>{day.slice(0, 2)}</div>
 										</DateRangePicker.HeadCell>
@@ -96,7 +107,7 @@
 							</DateRangePicker.GridHead>
 							<DateRangePicker.GridBody>
 								{#each month.weeks as weekDates (weekDates)}
-									<DateRangePicker.GridRow class="layout-x-stretch-none w-full">
+									<DateRangePicker.GridRow class="grid w-full grid-cols-7 gap-1">
 										{#each weekDates as date (date)}
 											<DateRangePicker.Cell
 												{date}
