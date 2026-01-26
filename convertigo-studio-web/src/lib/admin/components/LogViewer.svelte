@@ -643,51 +643,63 @@
 	}}
 />
 <ModalDynamic bind:this={modalFilter}>
-	{@const { mode, category, value, not, sensitive } = modalFilterParams}
-	<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}">
-		<form onsubmit={modalFilterSubmit} class="layout-y-low">
-			{#if category == 'Message'}
-				<textarea
-					class="textarea overflow-auto"
-					bind:value={modalFilterParams.value}
-					wrap={null}
-					rows={Math.min(10, value.split('\n').length)}
-				></textarea>
-			{:else}
-				<input class="input" bind:value={modalFilterParams.value} />
-			{/if}
-			<div class="layout-x-wrap justify-between gap">
-				<PropertyType
-					name="negate"
-					type="check"
-					label={not ? 'not' : 'is'}
-					fit={true}
-					bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
-				/>
-				<PropertyType
-					name="case"
-					type="check"
-					label={sensitive ? 'case' : 'ignore case'}
-					fit={true}
-					bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
-				/>
-			</div>
-			<div class="layout-x-wrap-low">
-				{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode (_mode)}
+	{#snippet children({ close })}
+		{@const { mode, category, value, not, sensitive } = modalFilterParams}
+		<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}" class="log-filter-card gap-low p-4">
+			{#snippet cornerOption()}
+				<div class="layout-x-end">
 					<button
-						type="submit"
-						class="btn"
-						class:preset-filled-primary-100-900={mode != _mode}
-						class:motif-primary={mode != _mode}
-						class:preset-filled-success-100-900={mode == _mode}
-						value={_mode}
+						type="button"
+						class="button-ico-secondary h-7 w-7 justify-center"
+						onclick={() => close()}
+						aria-label="Close log filter dialog"
 					>
-						{_mode}
+						<Ico icon="mdi:close" />
 					</button>
-				{/each}
-			</div>
-		</form>
-	</Card>
+				</div>
+			{/snippet}
+			<form onsubmit={modalFilterSubmit} class="layout-y-low">
+				{#if category == 'Message'}
+					<textarea
+						class="input-common min-h-[120px] resize-y overflow-auto"
+						bind:value={modalFilterParams.value}
+						wrap={null}
+						rows={Math.min(10, value.split('\n').length)}
+					></textarea>
+				{:else}
+					<input class="input-common h-10 text-[15px]" bind:value={modalFilterParams.value} />
+				{/if}
+				<div class="layout-x-wrap justify-between gap">
+					<PropertyType
+						name="negate"
+						type="check"
+						label={not ? 'not' : 'is'}
+						fit={true}
+						bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
+					/>
+					<PropertyType
+						name="case"
+						type="check"
+						label={sensitive ? 'case' : 'ignore case'}
+						fit={true}
+						bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
+					/>
+				</div>
+				<div class="layout-x-wrap-low">
+					{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode (_mode)}
+						<button
+							type="submit"
+							class="log-filter-mode"
+							class:log-filter-mode-active={mode == _mode}
+							value={_mode}
+						>
+							{_mode}
+						</button>
+					{/each}
+				</div>
+			</form>
+		</Card>
+	{/snippet}
 </ModalDynamic>
 <div class="layout-y-stretch-none h-full w-full text-xs" class:fullscreen>
 	<div
@@ -1070,6 +1082,18 @@
 
 	.log-toolbar-chip {
 		@apply gap-1 rounded-sm border border-surface-200-800 bg-surface-50-950 p-0.5;
+	}
+
+	.log-filter-card {
+		@apply bg-surface-50-950;
+	}
+
+	.log-filter-mode {
+		@apply button h-10 px-4 text-[14px] font-medium border border-surface-200-800 bg-surface-100-900 text-surface-900-100 shadow-sm/10 shadow-surface-900-100 hover:bg-surface-200-800;
+	}
+
+	.log-filter-mode-active {
+		@apply border-primary-600 bg-primary-600 text-white shadow-follow hover:border-primary-500 hover:bg-primary-500;
 	}
 
 	:global(.log-toolbar-button) {
