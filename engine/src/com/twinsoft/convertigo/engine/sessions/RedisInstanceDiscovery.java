@@ -127,10 +127,7 @@ public final class RedisInstanceDiscovery {
 			if (port <= 0) {
 				port = request.getServerPort();
 			}
-			var scheme = trimToNull(request.getScheme());
-			if (scheme == null) {
-				scheme = "http";
-			}
+			var scheme = resolveActualScheme(request);
 			var hostName = resolveHostName();
 			if (hostName == null || port <= 0) {
 				return;
@@ -176,6 +173,40 @@ public final class RedisInstanceDiscovery {
 		} catch (Exception ignore) {
 			// ignore
 		}
+	}
+
+	private static String resolveActualScheme(HttpServletRequest request) {
+		if (request == null) {
+			return "http";
+		}
+		if (isTlsConnection(request)) {
+			return "https";
+		}
+		return "http";
+	}
+
+	private static boolean isTlsConnection(HttpServletRequest request) {
+		try {
+			if (request == null) {
+				return false;
+			}
+			Object cipher = request.getAttribute("javax.servlet.request.cipher_suite");
+			if (cipher instanceof String s && !s.isBlank()) {
+				return true;
+			}
+			if (request.getAttribute("javax.servlet.request.ssl_session") != null) {
+				return true;
+			}
+			if (request.getAttribute("javax.servlet.request.ssl_session_id") != null) {
+				return true;
+			}
+			if (request.getAttribute("javax.servlet.request.key_size") != null) {
+				return true;
+			}
+		} catch (Exception ignore) {
+			// ignore
+		}
+		return false;
 	}
 
 	public static void stop() {

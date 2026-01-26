@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -40,6 +41,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -53,6 +61,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
 
@@ -74,6 +84,30 @@ public class AdminInstanceForwardFilter implements Filter {
 	private static final long MAX_CACHED_BODY_BYTES = 256L * 1024L * 1024L;
 	private static final int BODY_BUFFER_SIZE = 16 * 1024;
 	private static final int FORM_PARSE_MAX_BYTES = 1 * 1024 * 1024;
+	private static final Object SSL_MUTEX = new Object();
+	private static volatile SSLSocketFactory trustAllSocketFactory;
+	private static final HostnameVerifier TRUST_ALL_HOSTNAME = new HostnameVerifier() {
+		@Override
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+	};
+	private static final X509TrustManager TRUST_ALL_MANAGER = new X509TrustManager() {
+		@Override
+		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+			return new java.security.cert.X509Certificate[0];
+		}
+
+		@Override
+		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			// trust all
+		}
+
+		@Override
+		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			// trust all
+		}
+	};
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
@@ -215,6 +249,7 @@ public class AdminInstanceForwardFilter implements Filter {
 			}
 			var url = uri.toURL();
 			conn = (HttpURLConnection) url.openConnection();
+			applyTrustAllSslIfRequested(conn);
 			conn.setInstanceFollowRedirects(false);
 			conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
 			conn.setReadTimeout(READ_TIMEOUT_MS);
@@ -262,6 +297,41 @@ public class AdminInstanceForwardFilter implements Filter {
 				} catch (Exception ignore) {
 				}
 			}
+		}
+	}
+
+	private static void applyTrustAllSslIfRequested(HttpURLConnection conn) {
+		if (!(conn instanceof HttpsURLConnection httpsConn)) {
+			return;
+		}
+		if (!EnginePropertiesManager.getPropertyAsBoolean(PropertyName.SESSION_FORWARD_TRUST_ALL_SSL)) {
+			return;
+		}
+		try {
+			httpsConn.setSSLSocketFactory(getTrustAllSocketFactory());
+			httpsConn.setHostnameVerifier(TRUST_ALL_HOSTNAME);
+		} catch (Exception e) {
+			try {
+				if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
+					Engine.logEngine.debug("(AdminInstanceForwardFilter) Failed to apply trust-all SSL settings", e);
+				}
+			} catch (Exception ignore) {
+			}
+		}
+	}
+
+	private static SSLSocketFactory getTrustAllSocketFactory() throws Exception {
+		var factory = trustAllSocketFactory;
+		if (factory != null) {
+			return factory;
+		}
+		synchronized (SSL_MUTEX) {
+			if (trustAllSocketFactory == null) {
+				var context = SSLContext.getInstance("TLS");
+				context.init(null, new TrustManager[] { TRUST_ALL_MANAGER }, new SecureRandom());
+				trustAllSocketFactory = context.getSocketFactory();
+			}
+			return trustAllSocketFactory;
 		}
 	}
 

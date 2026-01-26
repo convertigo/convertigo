@@ -513,6 +513,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		SESSION_COOKIE_NAME("session.cookie.name", "JSESSIONID", "Name of the HTTP cookie carrying the session token", PropertyCategory.Session),
 		SESSION_REDIS_DEFAULT_TTL("session.redis.default.ttl", "1800", "Default session TTL in seconds when no timeout is specified", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SESSION_FORWARD_TRUST_ALL_SSL("session.forward.ssl.trust_all", "false", "Disable SSL certificate validation for internal admin forwarding", PropertyCategory.Session),
 
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
