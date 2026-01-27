@@ -193,6 +193,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_HIDE_LIB_PROJECTS = "hide.lib.projects";
 	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	public static final String PREFERENCE_ASSISTANT_URL = "assistant.url";
+	public static final String PREFERENCE_MARKETPLACE_URL = "marketplace.url";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 	

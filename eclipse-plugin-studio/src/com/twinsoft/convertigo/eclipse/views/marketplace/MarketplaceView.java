@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.marketplace;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -48,7 +49,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 public class MarketplaceView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView";
-	private static final String STARTUP_URL = "https://beta.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
+	public static final String STARTUP_URL = "https://backend-apps.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
 	
@@ -73,6 +74,15 @@ public class MarketplaceView extends ViewPart {
 		browser.addToolItemOpenExternal(tb);
 		
 		new ToolItem(tb, SWT.SEPARATOR);
+
+		String[] url = {STARTUP_URL};
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url[0] = u;
+			}
+		} catch (Exception e) {
+		}
 		
 		var ti = new ToolItem(tb, SWT.NONE);
 		try {
@@ -84,7 +94,7 @@ public class MarketplaceView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				browser.setUrl(STARTUP_URL);
+				browser.setUrl(url[0]);
 			}
 			
 		});
@@ -112,8 +122,6 @@ public class MarketplaceView extends ViewPart {
 			}
 			return false;
 		});
-		
-		String url = STARTUP_URL;
 		
 		var handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
@@ -186,7 +194,7 @@ public class MarketplaceView extends ViewPart {
 			}
 		});
 
-		browser.setUrl(url);
+		browser.setUrl(url[0]);
 	}
 
 	@Override

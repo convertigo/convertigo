@@ -36,6 +36,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.assistant.AssistantView;
+import com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class StudioPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
@@ -56,6 +57,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private StringFieldEditor localBuildFolder = null;
 	private StringFieldEditor mobileBuilderThreshold = null;
 	private StringFieldEditor assistantUrl = null;
+	private StringFieldEditor marketplaceUrl = null;
 	
 	public StudioPreferencePage() {
 		super();
@@ -208,6 +210,16 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		if (assistantUrl.getStringValue().isEmpty()) {
 			assistantUrl.setStringValue(AssistantView.STARTUP_URL);
 		}
+
+		marketplaceUrl = new StringFieldEditor(
+				ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL,
+				"Marketplace View URL (save empty to restore the default value)", groupLocalBuild);
+		marketplaceUrl.setPage(this);
+		marketplaceUrl.setPreferenceStore(getPreferenceStore());
+		marketplaceUrl.load();
+		if (marketplaceUrl.getStringValue().isEmpty()) {
+			marketplaceUrl.setStringValue(MarketplaceView.STARTUP_URL);
+		}
 		
 		/*
 		Group groupSystemProject = new Group(top, SWT.SHADOW_IN);
@@ -248,6 +260,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
 		assistantUrl.loadDefault();
+		marketplaceUrl.loadDefault();
 //		cbUseSystemFlowViewer.loadDefault();
 		
 		super.performDefaults();
@@ -285,6 +298,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
 		assistantUrl.store();
+		marketplaceUrl.store();
 //		cbUseSystemFlowViewer.store();
 		
 		return super.performOk();
