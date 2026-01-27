@@ -328,7 +328,7 @@
 		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px]"
 	>
 		<AccordionGroup bind:value={openGroup} collapsible>
-			{#each groupedDevices as { id, title, devices }}
+			{#each groupedDevices as { id, title, devices } (id)}
 				<AccordionSection
 					value={id}
 					class="border-b border-surface-200-800 last:border-none"
@@ -341,7 +341,7 @@
 				>
 					{#snippet panel()}
 						<div class="layout-y-stretch gap-1 pt-1">
-							{#each devices as device}
+							{#each devices as device (device.id)}
 								{@const {
 									id,
 									title,
@@ -375,7 +375,7 @@
 										</picture>
 									{:else}
 										<div
-											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-surface-500 uppercase"
+											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase"
 											aria-hidden="true"
 										>
 											No frame
@@ -444,7 +444,7 @@
 			onclick={() => adjustZoom(1)}
 			cls={iconButtonClasses}
 		/>
-		<span class="text-xs font-semibold text-surface-500"
+		<span class="text-xs font-semibold text-muted"
 			>{Math.round((zoomMode === 'fit' ? 1 : zoom) * 100)}%</span
 		>
 		<Button

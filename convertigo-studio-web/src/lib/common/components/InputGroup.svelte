@@ -7,10 +7,10 @@
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
 	const baseGroup =
-		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-surface-300 bg-white text-surface-900 transition-surface focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:focus-within:border-primary-400 dark:focus-within:ring-primary-400/35';
-	const baseLabel = 'flex h-full items-center px-3 text-surface-500';
+		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-transparent bg-surface-200-800 text-strong transition-surface focus-within:ring-2 focus-within:ring-primary-200/50';
+	const baseLabel = 'flex h-full items-center px-3 text-surface-600-400';
 	const baseInput =
-		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-500 focus-visible:outline-none focus:ring-0';
+		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-600-400 focus-visible:outline-none focus:ring-0';
 	const baseActions = 'layout-x-none h-full items-center gap-[1px]! border-l-0!';
 
 	let {

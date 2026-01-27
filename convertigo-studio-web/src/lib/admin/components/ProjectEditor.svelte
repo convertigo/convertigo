@@ -192,7 +192,7 @@
 		defaultSelectedValue={[project]}
 		base="rounded-container border border-surface-200-800 preset-filled-surface-50-950 p-3 shadow-follow min-w-fit"
 		classes="overflow-hidden break-words select-none"
-		textClass="text-sm font-medium text-surface-700 dark:text-surface-100"
+		textClass="text-sm font-medium text-strong"
 		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
 		childrenClass="border-l border-surface-200-800 pl-3"
 		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 transition-soft hover:bg-surface-200-800"
@@ -265,7 +265,7 @@
 					{#snippet panel()}
 						{#if total === 0}
 							<p
-								class="rounded-xl border border-dashed border-surface-300-700/60 bg-surface-100-900/40 px-4 py-6 text-center text-sm text-surface-500"
+								class="rounded-xl border border-dashed border-surface-300-700/60 bg-surface-100-900/40 px-4 py-6 text-center text-sm text-muted"
 							>
 								No properties available for this section.
 							</p>

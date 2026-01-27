@@ -79,7 +79,7 @@
 	}
 
 	.palette-item__name {
-		@apply mt-1 w-full text-[11px] leading-tight font-light text-surface-900 dark:text-gray-100;
+		@apply mt-1 w-full text-[11px] leading-tight font-light text-strong;
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;

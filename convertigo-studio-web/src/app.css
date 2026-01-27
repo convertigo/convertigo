@@ -23,20 +23,63 @@
 
 	html[data-theme='convertigo']:not(.dark) body {
 		background-color: var(--body-background-color);
-		background-image:
-			radial-gradient(1200px 600px at 0% -10%, oklch(98.5% 0.03 225deg / 0.7), transparent 60%),
-			radial-gradient(900px 500px at 100% 0%, oklch(98% 0.025 250deg / 0.4), transparent 55%),
-			linear-gradient(180deg, oklch(99% 0.006 230deg), oklch(96% 0.008 230deg));
+		background-image: none;
 		background-attachment: fixed;
+		color: var(--base-font-color);
+		font-size: var(--base-font-size);
 	}
 
 	html[data-theme='convertigo'].dark body {
 		background-color: var(--body-background-color-dark);
-		background-image:
-			radial-gradient(1200px 700px at 0% -10%, oklch(18% 0.03 240deg / 0.35), transparent 60%),
-			radial-gradient(900px 600px at 100% 0%, oklch(16% 0.02 210deg / 0.3), transparent 55%),
-			linear-gradient(180deg, oklch(9% 0.01 230deg), oklch(6% 0.01 230deg));
+		background-image: none;
 		background-attachment: fixed;
+		color: var(--base-font-color-dark);
+		font-size: var(--base-font-size);
+	}
+
+	h1 {
+		font-size: 32px;
+		font-weight: var(--heading-font-weight);
+		color: var(--base-font-color);
+	}
+
+	h2 {
+		font-size: 19px;
+		font-weight: var(--heading-font-weight);
+		color: var(--base-font-color);
+	}
+
+	h3 {
+		font-size: 16px;
+		font-weight: var(--heading-font-weight);
+		color: var(--base-font-color);
+	}
+
+	h4 {
+		font-size: 14px;
+		font-weight: var(--heading-font-weight);
+		color: var(--base-font-color);
+	}
+
+	html[data-theme='convertigo'].dark h1,
+	html[data-theme='convertigo'].dark h2,
+	html[data-theme='convertigo'].dark h3,
+	html[data-theme='convertigo'].dark h4 {
+		color: var(--base-font-color-dark);
+	}
+
+	.c8o-switch {
+		background-color: light-dark(var(--color-surface-200), var(--color-surface-800)) !important;
+		border: 1px solid transparent;
+	}
+
+	.c8o-switch[data-state='checked'] {
+		background-color: var(--color-primary-500) !important;
+		border-color: transparent;
+	}
+
+	.c8o-switch [data-part='thumb'] {
+		background-color: light-dark(var(--color-surface-100), var(--base-font-color-dark));
 	}
 }
 
@@ -50,6 +93,21 @@
 	transition-property: background-color, color, border-color, box-shadow, transform;
 	transition-duration: 200ms;
 	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+@utility table-frame {
+	border: 1px solid;
+	border-color: light-dark(var(--color-surface-300), var(--color-surface-700));
+	border-radius: var(--radius-base);
+	overflow: hidden;
+}
+
+@utility text-strong {
+	color: var(--convertigo-text-strong);
+}
+
+@utility text-muted {
+	color: var(--convertigo-text-muted-strong);
 }
 
 @utility fullscreen {
@@ -110,7 +168,7 @@
 }
 
 @utility button-primary {
-	@apply button border-primary-600 bg-primary-600 text-white shadow-follow hover:border-primary-500 hover:bg-primary-500;
+	@apply button border-primary-500 bg-primary-500 text-white shadow-follow hover:border-primary-600 hover:bg-primary-600;
 }
 
 @utility button-secondary {
@@ -138,11 +196,11 @@
 }
 
 @utility button-ico-secondary {
-	@apply button border-transparent bg-transparent text-surface-600 shadow-none hover:border-transparent hover:bg-surface-100 active:bg-surface-200/70 dark:text-surface-300 dark:hover:bg-surface-800 dark:active:bg-surface-700/50;
+	@apply button border-transparent bg-transparent text-muted shadow-none hover:border-transparent hover:bg-surface-100-900 active:bg-surface-200-800/70;
 }
 
 @utility button-ico-tertiary {
-	@apply button border-transparent bg-transparent text-surface-600 shadow-none hover:border-transparent hover:bg-surface-100 active:bg-surface-200/70 dark:text-surface-300 dark:hover:bg-surface-800 dark:active:bg-surface-700/50;
+	@apply button border-transparent bg-transparent text-muted shadow-none hover:border-transparent hover:bg-surface-100-900 active:bg-surface-200-800/70;
 }
 
 @utility button-ico-success {
@@ -197,14 +255,14 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-base border border-surface-300 bg-white font-normal text-surface-900 placeholder:text-[15px] placeholder:font-light placeholder:text-surface-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:placeholder:text-surface-500 dark:focus:border-primary-400 dark:focus:ring-primary-400/35;
+	@apply w-full rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus:ring-2 focus:ring-primary-200/50;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-base border border-surface-300 bg-white font-normal text-surface-900 placeholder:text-[12px] placeholder:font-light placeholder:text-surface-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-200/50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:placeholder:text-surface-500 dark:focus:border-primary-400 dark:focus:ring-primary-400/35;
+	@apply rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus:ring-2 focus:ring-primary-200/50;
 }
 
 @utility input-text {
@@ -224,11 +282,11 @@
 	& option:checked:active {
 		@apply bg-primary-700 text-white;
 	}
-	@apply bg-white dark:bg-surface-800;
+	@apply bg-surface-200-800;
 }
 
 @utility border-color {
-	@apply border-surface-200-800 dark:border-surface-700;
+	@apply border-surface-200-800;
 }
 
 @utility layout-cols-2 {

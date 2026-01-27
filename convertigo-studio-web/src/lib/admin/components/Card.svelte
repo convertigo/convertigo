@@ -15,7 +15,7 @@
 	let {
 		title = '',
 		class: cls = '',
-		bg = 'bg-surface-50-950',
+		bg = 'bg-surface-100-900',
 		cornerOption,
 		children,
 		...rest

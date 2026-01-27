@@ -216,12 +216,12 @@
 						{
 							key: 'Name',
 							custom: true,
-							class: 'min-w-32 text-xs uppercase tracking-wide text-surface-600-400 font-medium'
+							class: 'min-w-32 text-sm font-normal lowercase text-muted text-right'
 						},
 						{
 							key: 'Value',
 							custom: true,
-							class: 'text-right! break text-surface-800-200 font-normal'
+							class: 'text-sm text-right! break text-strong font-normal'
 						}
 					]}
 					{data}
@@ -256,7 +256,8 @@
 	@reference "../../../app.css";
 
 	:global(.statusTable td:has(> .on)) {
-		@apply preset-filled-success-200-800;
+		background-color: var(--convertigo-running);
+		color: var(--convertigo-text);
 	}
 	:global(.statusTable td:has(> .off)) {
 		@apply preset-filled-error-200-800;

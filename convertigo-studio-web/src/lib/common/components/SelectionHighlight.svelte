@@ -8,5 +8,5 @@
 <span
 	in:fly={{ y: delta * 50 }}
 	out:fade
-	class={`absolute inset-0 ${rounded} preset-filled-primary-200-800 opacity-25 shadow-sm/10 shadow-surface-900-100 ${extraClass}`.trim()}
+	class={`absolute inset-0 ${rounded} bg-surface-50-950 shadow-sm/10 shadow-surface-900-100 ${extraClass}`.trim()}
 ></span>

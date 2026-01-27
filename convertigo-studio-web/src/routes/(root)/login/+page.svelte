@@ -62,7 +62,7 @@
 					autocomplete="username"
 					placeholder="Your username"
 					icon="mdi:account-outline"
-					iconClass="text-surface-500"
+					iconClass="text-muted"
 					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
 					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
 					inputClass="text-base"
@@ -81,7 +81,7 @@
 					placeholder="Your password"
 					type={passwordVisible ? 'text' : 'password'}
 					icon="mdi:lock-outline"
-					iconClass="text-surface-500"
+					iconClass="text-muted"
 					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
 					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
 					inputClass="text-base"

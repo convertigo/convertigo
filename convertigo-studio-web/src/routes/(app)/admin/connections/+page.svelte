@@ -90,7 +90,6 @@
 	<Card title="Sessions">
 		<TableAutoCard
 			definition={[
-				{ name: 'Actions', custom: true },
 				{ name: 'ID', key: 'sessionID', class: 'break-all' },
 				{ name: 'User', key: 'authenticatedUser' },
 				{ name: 'Contexts', key: 'contexts' },
@@ -99,7 +98,8 @@
 				{ name: 'UUID', key: 'deviceUUID' },
 				{ name: 'Access', key: 'lastSessionAccessDate' },
 				{ name: 'Activity', key: 'sessionInactivityTime' },
-				{ name: 'Client IP', key: 'clientIP' }
+				{ name: 'Client IP', key: 'clientIP' },
+				{ name: 'Actions', custom: true }
 			]}
 			class="session-table"
 			data={sessions}
@@ -178,14 +178,14 @@
 		{/snippet}
 		<TableAutoCard
 			definition={[
-				{ name: 'Actions', custom: true },
 				{ name: 'Context', key: 'contextName', class: 'break-all min-w-40' },
 				{ name: 'Project', key: 'project', class: 'break-all min-w-40' },
 				{ name: 'Connector', key: 'connector', class: 'break-all min-w-40' },
 				{ name: 'Requested', key: 'requested', class: 'break-all min-w-40' },
 				{ name: 'Status', key: 'status' },
 				{ name: 'User', key: 'user' },
-				{ name: 'Client Computer', key: 'clientComputer' }
+				{ name: 'Client Computer', key: 'clientComputer' },
+				{ name: 'Actions', custom: true }
 			]}
 			data={connections}
 		>

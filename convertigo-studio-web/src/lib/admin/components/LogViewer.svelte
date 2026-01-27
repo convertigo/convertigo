@@ -645,7 +645,10 @@
 <ModalDynamic bind:this={modalFilter}>
 	{#snippet children({ close })}
 		{@const { mode, category, value, not, sensitive } = modalFilterParams}
-		<Card title="{mode ? 'Edit' : 'Add'} log filter for {category}" class="log-filter-card gap-low p-4">
+		<Card
+			title="{mode ? 'Edit' : 'Add'} log filter for {category}"
+			class="log-filter-card gap-low p-4"
+		>
 			{#snippet cornerOption()}
 				<div class="layout-x-end">
 					<button
@@ -661,13 +664,13 @@
 			<form onsubmit={modalFilterSubmit} class="layout-y-low">
 				{#if category == 'Message'}
 					<textarea
-						class="input-common min-h-[120px] resize-y overflow-auto"
+						class="min-h-[120px] input-common resize-y overflow-auto"
 						bind:value={modalFilterParams.value}
 						wrap={null}
 						rows={Math.min(10, value.split('\n').length)}
 					></textarea>
 				{:else}
-					<input class="input-common h-10 text-[15px]" bind:value={modalFilterParams.value} />
+					<input class="h-10 input-common text-[15px]" bind:value={modalFilterParams.value} />
 				{/if}
 				<div class="layout-x-wrap justify-between gap">
 					<PropertyType
@@ -682,7 +685,9 @@
 						type="check"
 						label={sensitive ? 'case' : 'ignore case'}
 						fit={true}
-						bind:checked={() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)}
+						bind:checked={
+							() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)
+						}
 					/>
 				</div>
 				<div class="layout-x-wrap-low">
@@ -1089,7 +1094,7 @@
 	}
 
 	.log-filter-mode {
-		@apply button h-10 px-4 text-[14px] font-medium border border-surface-200-800 bg-surface-100-900 text-surface-900-100 shadow-sm/10 shadow-surface-900-100 hover:bg-surface-200-800;
+		@apply button h-10 border border-surface-200-800 bg-surface-100-900 px-4 text-[14px] font-medium text-strong shadow-sm/10 shadow-surface-900-100 hover:bg-surface-200-800;
 	}
 
 	.log-filter-mode-active {

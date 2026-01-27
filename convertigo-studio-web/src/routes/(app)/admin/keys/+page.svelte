@@ -45,10 +45,11 @@
 	{/snippet}
 	<AutoPlaceholder {loading}>
 		You have {nbValidKeys} valid key{nbValidKeys > 1 ? 's' : ''}{#if nbInvalidKeys > 0}
-			{' and'} {nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
+			and
+			{nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
 			The first key was created the {new Date(firstStartDate).toISOString().split('T')[0]}.{/if}
 	</AutoPlaceholder>
-	{#each categories as { keys: data, name, total, remaining, overflow }, iCat}
+	{#each categories as { keys: data, name, total, remaining, overflow }, iCat (name)}
 		{@const classCat = [
 			['preset-filled-success-50-950', 'preset-filled-success-100-900'],
 			['preset-filled-warning-50-950', 'preset-filled-warning-100-900'],
@@ -59,10 +60,10 @@
 		<TableAutoCard
 			showHeaders={true}
 			definition={[
-				{ name: 'Actions', custom: true, class: 'w-14' },
 				{ name: 'Key', custom: true, class: expired },
 				{ name: 'Avalaible', key: 'value', class: expired },
-				{ name: 'Expiration Date', key: 'expiration', class: expired }
+				{ name: 'Expiration Date', key: 'expiration', class: expired },
+				{ name: 'Actions', custom: true, class: 'w-14' }
 			]}
 			{data}
 		>

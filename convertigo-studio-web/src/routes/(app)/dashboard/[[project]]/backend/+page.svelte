@@ -165,7 +165,7 @@
 				<AccordionSection
 					value={part.name}
 					class="rounded-container bg-surface-100-900 shadow-follow"
-					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-surface hover:bg-surface-100/60 dark:hover:bg-surface-800/40"
+					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-surface hover:bg-surface-100-900/60"
 					panelClass="px-low pb-low"
 					title={name}
 					subtitle={comment}
@@ -185,7 +185,7 @@
 										>
 											{#snippet control()}
 												<div
-													class="layout-x-stretch w-full rounded-xl px-3 py-3 transition-soft group-hover:bg-surface-100/70 group-data-[state=open]:bg-surface-100/60 dark:group-hover:bg-surface-800/40"
+													class="layout-x-stretch w-full rounded-xl px-3 py-3 transition-soft group-hover:bg-surface-100-900/70 group-data-[state=open]:bg-surface-100-900/60"
 												>
 													<span
 														aria-hidden="true"
@@ -201,8 +201,7 @@
 														/>
 													</span>
 													<div class="layout-y-start-low min-w-0 flex-1 justify-center text-left">
-														<span
-															class="text-sm leading-tight font-semibold text-surface-900 dark:text-surface-50"
+														<span class="text-sm leading-tight font-semibold text-strong"
 															>{name}</span
 														>
 														{#if comment?.length}

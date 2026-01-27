@@ -75,9 +75,7 @@
 				}}
 				class="inline-flex min-w-10 items-center gap-low"
 			>
-				<Switch.Control
-					class="bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
-				>
+				<Switch.Control class="c8o-switch transition-surface">
 					<Switch.Thumb />
 				</Switch.Control>
 				<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label>
@@ -131,7 +129,7 @@
 								<SegmentedControl.Item value={val} class="relative flex-1">
 									<SegmentedControl.ItemText
 										class={[
-											value == val ? 'text-white' : 'text-surface-700 dark:text-surface-300',
+											value == val ? 'text-white' : 'text-muted',
 											'px-3 py-1.5 text-sm font-medium'
 										]}
 									>
@@ -181,7 +179,7 @@
 						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
-						class="h-9 input-common px-3 text-sm placeholder:text-surface-500"
+						class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400"
 						{...rest}
 						bind:value
 					/>

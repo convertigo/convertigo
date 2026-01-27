@@ -13,8 +13,8 @@
 		title = '',
 		comment = '',
 		class: cls = '',
-		thClass = 'preset-filled-surface-100-900 text-left',
-		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:preset-filled-surface-300-700',
+		thClass = 'text-left text-surface-700-300 text-[14px] font-semibold',
+		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
 		fnRowId = (row, i) => row.name ?? i,
 		children,
 		rowChildren,
@@ -85,75 +85,77 @@
 		<h1 class="ztext-surface-700-300 p-3 font-medium">{comment}</h1>
 	{/if}
 
-	<table>
-		{#if showHeaders}
-			{#if thead}
-				{@render thead({ definition })}
-			{:else}
-				<thead>
-					<tr class={thClass}>
-						{#each definition as def (def.key ?? def.name ?? def)}
-							<th class={def.th}>
-								{#if def.icon}
-									<Icon icon={def.icon} class="h-7 w-7" />
-								{:else}
-									{def.name ?? ''}
-								{/if}
-							</th>
-						{/each}
-					</tr>
-				</thead>
-			{/if}
-		{/if}
-		{#if data && data.length > 0}
-			<tbody>
-				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
-					<tr class={trClass} data-custom={row.name}>
-						{#snippet rowRender()}
+	<div class="table-frame">
+		<table class="w-full border-separate border-spacing-0">
+			{#if showHeaders}
+				{#if thead}
+					{@render thead({ definition })}
+				{:else}
+					<thead>
+						<tr class={thClass}>
 							{#each definition as def (def.key ?? def.name ?? def)}
-								<td
-									class={def.class
-										? typeof def.class == 'function'
-											? def.class(row, def)
-											: def.class
-										: ''}
-									data-label={showHeaders ? (def.name ?? '') : ''}
-								>
-									{#if def.custom}
-										{#if children}
-											{@render children({ row, def, rowIdx })}
-										{:else}
-											{row[def.key] ?? ''}
-										{/if}
+								<th class={def.th}>
+									{#if def.icon}
+										<Icon icon={def.icon} class="h-7 w-7" />
 									{:else}
-										<AutoPlaceholder loading={row[def.key] == null}
-											>{row[def.key] ?? ''}</AutoPlaceholder
-										>
+										{def.name ?? ''}
 									{/if}
-								</td>
+								</th>
 							{/each}
-						{/snippet}
-						{#if rowChildren}
-							{@render rowChildren({ row, rowIdx, definition, rowRender })}
-						{:else}
-							{@render rowRender()}
-						{/if}
+						</tr>
+					</thead>
+				{/if}
+			{/if}
+			{#if data && data.length > 0}
+				<tbody>
+					{#each data as row, rowIdx (fnRowId(row, rowIdx))}
+						<tr class={trClass} data-custom={row.name}>
+							{#snippet rowRender()}
+								{#each definition as def (def.key ?? def.name ?? def)}
+									<td
+										class={def.class
+											? typeof def.class == 'function'
+												? def.class(row, def)
+												: def.class
+											: ''}
+										data-label={showHeaders ? (def.name ?? '') : ''}
+									>
+										{#if def.custom}
+											{#if children}
+												{@render children({ row, def, rowIdx })}
+											{:else}
+												{row[def.key] ?? ''}
+											{/if}
+										{:else}
+											<AutoPlaceholder loading={row[def.key] == null}
+												>{row[def.key] ?? ''}</AutoPlaceholder
+											>
+										{/if}
+									</td>
+								{/each}
+							{/snippet}
+							{#if rowChildren}
+								{@render rowChildren({ row, rowIdx, definition, rowRender })}
+							{:else}
+								{@render rowRender()}
+							{/if}
+						</tr>
+					{/each}
+				</tbody>
+			{:else if showNothing}
+				<tbody>
+					<tr>
+						<td colspan={definition.length}>
+							<div class="layout-x">
+								<Ico icon="mdi:coffee" size={20} />
+								<p class="ztext-surface-300 font-medium">There is no data to display ...</p>
+							</div>
+						</td>
 					</tr>
-				{/each}
-			</tbody>
-		{:else if showNothing}
-			<tbody>
-				<tr>
-					<td colspan={definition.length}>
-						<div class="layout-x">
-							<Ico icon="mdi:coffee" size={20} />
-							<p class="ztext-surface-300 font-medium">There is no data to display ...</p>
-						</div>
-					</td>
-				</tr>
-			</tbody>
-		{/if}
-	</table>
+				</tbody>
+			{/if}
+		</table>
+	</div>
 </div>
 
 <style lang="postcss">
@@ -161,19 +163,15 @@
 
 	table {
 		width: 100%;
-		border-collapse: collapse;
-		border: 4px;
-		@apply overflow-hidden rounded-base;
-	}
-	th {
-		@apply font-normal;
+		border-collapse: separate;
+		border-spacing: 0;
 	}
 	th,
 	td {
 		@apply p-2! align-middle!;
 	}
 	thead {
-		@apply border-b-[0.5px] border-surface-900-100;
+		@apply border-b border-surface-300-700;
 	}
 	.table-container {
 		overflow-x: auto;

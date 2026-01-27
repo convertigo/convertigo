@@ -65,7 +65,7 @@
 					>
 						<Ico icon="mdi:certificate" size="8" class="mx-auto text-primary-500" />
 						<p class="text-base font-semibold">Drop or choose a certificate file</p>
-						<p class="text-xs text-surface-600 dark:text-surface-300">then press Install</p>
+						<p class="text-xs text-muted">then press Install</p>
 						<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
 							>Browse</FileUpload.Trigger
 						>
@@ -83,7 +83,7 @@
 											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
 											<FileUpload.ItemName />
 										</div>
-										<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
 											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
@@ -299,11 +299,11 @@
 		<TableAutoCard
 			class="text-left"
 			definition={[
-				['Actions', 'w-20'],
 				['Certificate / Store', 'min-w-52'],
 				['Type', 'min-w-48'],
 				['Password', 'min-w-60'],
-				['Group', 'min-w-60']
+				['Group', 'min-w-60'],
+				['Actions', 'w-20']
 			].map(([name, cls]) => ({
 				name,
 				class: cls,
@@ -332,9 +332,9 @@
 			title="Mappings for anonymous users"
 			class="text-left"
 			definition={[
-				['Actions', 'w-20'],
 				['Project Name', 'min-w-52'],
-				['Certificate / Store', 'min-w-52']
+				['Certificate / Store', 'min-w-52'],
+				['Actions', 'w-20']
 			].map(([name, cls]) => ({
 				name,
 				class: cls,
@@ -362,12 +362,12 @@
 			title="Mappings for carioca users"
 			class="text-left"
 			definition={[
-				['Actions', 'w-20'],
 				['Project Name', 'min-w-52'],
 				['Virtual Server', 'min-w-60'],
 				['Authorization Group', 'min-w-60'],
 				['User', 'min-w-60'],
-				['Certificate / Store', 'min-w-52']
+				['Certificate / Store', 'min-w-52'],
+				['Actions', 'w-20']
 			].map(([name, cls]) => ({ name, class: cls, custom: true }))}
 			data={certificates.length && projects.length ? [...carioca, { last: true }] : carioca}
 		>

@@ -109,7 +109,7 @@
 					>
 						<Ico icon="mdi:application-outline" size="8" class="mx-auto text-primary-500" />
 						<p class="text-base font-semibold">Drop or choose a .car/.zip file</p>
-						<p class="text-xs text-surface-600 dark:text-surface-300">then press Deploy</p>
+						<p class="text-xs text-muted">then press Deploy</p>
 						<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
 							>Browse</FileUpload.Trigger
 						>
@@ -127,7 +127,7 @@
 											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
 											<FileUpload.ItemName />
 										</div>
-										<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
 											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
@@ -256,7 +256,6 @@
 	/>
 	<TableAutoCard
 		definition={[
-			{ name: 'Actions', custom: true, class: 'w-44' },
 			{ name: 'Project', key: 'name', class: 'font-normal w-80' },
 			{ name: 'Comment', key: 'comment' },
 			{
@@ -265,7 +264,8 @@
 				class: 'break-words text-[12px] min-w-34'
 			},
 			{ name: 'Exported', key: 'exported', class: 'text-[12px] min-w-34' },
-			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34' }
+			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34' },
+			{ name: 'Actions', custom: true, class: 'w-44' }
 		]}
 		data={fprojects}
 		class="rounded-sm"
@@ -276,23 +276,14 @@
 				<ResponsiveButtons
 					buttons={[
 						{
-							icon: 'mdi:delete-outline',
-							cls: 'button-ico-error',
-							onclick: async (event) => {
-								if (
-									await modalYesNo.open({
-										event,
-										title: 'Delete project',
-										message: `${project}?`
-									})
-								) {
-									remove(project);
-								}
-							}
+							icon: 'mdi:edit-outline',
+							cls: `button-ico-primary ${editedProject == project ? 'opacity-50' : ''}`,
+							onclick: () => (editedProject = editedProject == project ? '' : project),
+							disabled: false
 						},
 						{
 							icon: 'mdi:reload',
-							cls: 'button-ico-success',
+							cls: 'button-ico-primary',
 							onclick: () => {
 								reload(project);
 							}
@@ -311,16 +302,25 @@
 							}
 						},
 						{
-							icon: 'mdi:edit-outline',
-							cls: `button-ico-primary ${editedProject == project ? 'opacity-50' : ''}`,
-							onclick: () => (editedProject = editedProject == project ? '' : project),
-							disabled: false
-						},
-						{
 							icon: 'mdi:cog',
 							cls: 'button-ico-primary',
 							href: resolve(`/dashboard/${project}/backend/`),
 							disabled: false
+						},
+						{
+							icon: 'mdi:delete-outline',
+							cls: 'button-ico-primary',
+							onclick: async (event) => {
+								if (
+									await modalYesNo.open({
+										event,
+										title: 'Delete project',
+										message: `${project}?`
+									})
+								) {
+									remove(project);
+								}
+							}
 						},
 						{
 							icon: 'mdi:warning-outline',

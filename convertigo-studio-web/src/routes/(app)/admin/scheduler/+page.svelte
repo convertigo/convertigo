@@ -339,11 +339,6 @@
 			<TableAutoCard
 				class="text-left"
 				definition={[
-					{
-						name: 'Actions',
-						class: 'w-32',
-						custom: true
-					},
 					{ name: 'Name', key: 'name', class: 'w-50' },
 					{ name: 'Description', key: 'description', class: 'w-60 break-all' },
 					{
@@ -351,7 +346,12 @@
 						custom: true,
 						class: 'w-32'
 					},
-					{ name: 'Info', key: 'info', class: 'min-w-32 break-all' }
+					{ name: 'Info', key: 'info', class: 'min-w-32 break-all' },
+					{
+						name: 'Actions',
+						class: 'w-32',
+						custom: true
+					}
 				].filter((elt) => next || elt.name != 'Next')}
 				{data}
 			>

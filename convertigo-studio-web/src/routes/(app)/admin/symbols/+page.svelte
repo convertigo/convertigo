@@ -125,7 +125,7 @@
 					>
 						<Ico icon="mdi:star-outline" size="8" class="mx-auto text-primary-500" />
 						<p class="text-base font-semibold">Drop or choose a .properties file</p>
-						<p class="text-xs text-surface-600 dark:text-surface-300">then press Import</p>
+						<p class="text-xs text-muted">then press Import</p>
 						<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
 							>Browse</FileUpload.Trigger
 						>
@@ -143,7 +143,7 @@
 											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
 											<FileUpload.ItemName />
 										</div>
-										<div class="layout-x-low items-center gap-low text-xs text-surface-500">
+										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
 											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
@@ -312,9 +312,9 @@
 	/>
 	<TableAutoCard
 		definition={[
-			{ name: 'Actions', custom: true, class: 'max-w-28' },
 			{ name: 'Name', key: 'name' },
-			{ name: 'Value', key: 'value', class: 'truncate max-w-xl text-xs' }
+			{ name: 'Value', key: 'value', class: 'truncate max-w-xl text-xs' },
+			{ name: 'Actions', custom: true, class: 'max-w-28' }
 		]}
 		data={fsymbols.filter((s) => !exporting || !s.project)}
 		fnRowId={({ index }) => index}

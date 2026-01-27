@@ -135,7 +135,7 @@
 
 	:global(.convertigo-treeview [data-part='branch-control'][data-selected]),
 	:global(.convertigo-treeview [data-part='item'][data-selected]) {
-		@apply border border-l-2 border-primary-200/70 border-l-primary-500 bg-primary-50/80 text-surface-900 shadow-sm/10 shadow-surface-900-100;
+		@apply border border-l-2 border-primary-200/70 border-l-primary-500 bg-primary-50/80 text-strong shadow-sm/10 shadow-surface-900-100;
 		@apply dark:border-primary-700/60 dark:border-l-primary-400 dark:bg-primary-900/30 dark:text-primary-50;
 	}
 

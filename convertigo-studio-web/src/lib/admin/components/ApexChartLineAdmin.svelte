@@ -1,14 +1,23 @@
 <script>
 	import Light from '$lib/common/Light.svelte';
-	import { onMount, untrack } from 'svelte';
+	import { onMount } from 'svelte';
 
 	/** @type {{categories: any, series: any, title: any}} */
 	let { categories, series, title } = $props();
 	let chart = $state();
 	let chartEl;
+	/** @type {{ light: string[], dark: string[] }} */
 	let colors = $state({ light: [], dark: [] });
-
-	let options = $state({});
+	let chartTokens = $state({
+		fontFamily: '',
+		baseFontSize: '14px',
+		labelFontSize: '12px',
+		titleFontSize: '14px',
+		titleFontWeight: 500,
+		text: { light: '', dark: '' },
+		muted: { light: '', dark: '' },
+		grid: { light: '', dark: '' }
+	});
 
 	const normalizedSeries = $derived.by(() =>
 		(series ?? []).map(({ name, data }) => ({
@@ -22,6 +31,16 @@
 	);
 
 	const resolvedColors = $derived.by(() => [...(colors[Light.mode] ?? [])]);
+	const resolvedTokens = $derived.by(() => ({
+		fontFamily: chartTokens.fontFamily,
+		baseFontSize: chartTokens.baseFontSize,
+		labelFontSize: chartTokens.labelFontSize,
+		titleFontSize: chartTokens.titleFontSize,
+		titleFontWeight: chartTokens.titleFontWeight,
+		textColor: chartTokens.text[Light.mode],
+		mutedColor: chartTokens.muted[Light.mode],
+		gridColor: chartTokens.grid[Light.mode]
+	}));
 
 	let isLoading = $derived(!normalizedSeries?.[0]?.data?.length);
 
@@ -29,14 +48,11 @@
 		theme: {
 			mode: Light.mode
 		},
-		title: {
-			text: title,
-			offsetX: 8,
-			offsetY: 8
-		},
 		chart: {
 			type: 'line',
 			height: 300,
+			fontFamily: resolvedTokens.fontFamily,
+			foreColor: resolvedTokens.mutedColor,
 			animations: {
 				enabled: false,
 				animateGradually: {
@@ -53,26 +69,62 @@
 				show: false
 			}
 		},
+		title: {
+			text: title,
+			offsetX: 8,
+			offsetY: 8,
+			style: {
+				fontFamily: resolvedTokens.fontFamily,
+				fontSize: resolvedTokens.titleFontSize,
+				fontWeight: resolvedTokens.titleFontWeight,
+				color: resolvedTokens.textColor
+			}
+		},
 		series: normalizedSeries,
 		xaxis: {
 			categories: normalizedCategories,
 			type: 'datetime',
+			tickAmount: 5,
 			labels: {
 				format: 'HH:mm:ss',
-				datetimeUTC: false
+				datetimeUTC: false,
+				showDuplicates: false,
+				hideOverlappingLabels: true,
+				style: {
+					fontFamily: resolvedTokens.fontFamily,
+					fontSize: resolvedTokens.labelFontSize,
+					colors: resolvedTokens.textColor
+				}
 			}
 		},
 		yaxis: {
 			min: 0,
-			forceNiceScale: true
+			forceNiceScale: true,
+			labels: {
+				style: {
+					fontFamily: resolvedTokens.fontFamily,
+					fontSize: resolvedTokens.labelFontSize,
+					colors: resolvedTokens.textColor
+				}
+			}
 		},
 		noData: {
-			text: 'Loading…'
+			text: 'Loading…',
+			style: {
+				fontFamily: resolvedTokens.fontFamily,
+				fontSize: resolvedTokens.baseFontSize,
+				color: resolvedTokens.mutedColor
+			}
 		},
 		tooltip: {
+			theme: Light.mode,
 			x: {
 				show: true,
 				format: 'HH:mm:ss'
+			},
+			style: {
+				fontFamily: resolvedTokens.fontFamily,
+				fontSize: resolvedTokens.labelFontSize
 			}
 		},
 		dataLabels: {
@@ -80,14 +132,36 @@
 		},
 		stroke: {
 			curve: 'smooth',
-			width: 2
+			width: 3,
+			lineCap: 'round'
+		},
+		markers: {
+			size: 0,
+			strokeWidth: 0,
+			strokeColors: resolvedColors,
+			fillColors: resolvedColors,
+			hover: {
+				size: 0
+			}
+		},
+		grid: {
+			borderColor: resolvedTokens.gridColor,
+			strokeDashArray: 3
 		},
 		legend: {
 			position: 'top',
 			horizontalAlign: 'right',
 			floating: true,
 			offsetY: -25,
-			offsetX: 0
+			offsetX: 0,
+			fontFamily: resolvedTokens.fontFamily,
+			fontSize: resolvedTokens.labelFontSize,
+			labels: {
+				colors: resolvedTokens.textColor
+			},
+			markers: {
+				fillColors: resolvedColors
+			}
 		}
 	}));
 
@@ -101,30 +175,57 @@
 		colors: [...resolvedColors]
 	});
 
-	$effect(() => {
-		options = buildOptions();
+	const options = $derived.by(() => {
+		const nextOptions = buildOptions();
 		if (chart && normalizedSeries.length > 0 && normalizedCategories.length > 0) {
-			untrack(() => {
-				chart.updateOptions(options, true, true);
-			});
+			chart.updateOptions(nextOptions, true, true);
 		}
+		return nextOptions;
 	});
+
+	const attachChart = (node) => {
+		chartEl = node;
+		return {
+			destroy() {
+				if (chartEl === node) {
+					chartEl = undefined;
+				}
+			}
+		};
+	};
 
 	onMount(() => {
 		let styles = window.getComputedStyle(chartEl);
-		const newColors = { light: [], dark: [] };
-		for (let m of [
-			['light', 200],
-			['dark', 600]
-		]) {
-			['warning', 'primary', 'success'].forEach((color) => {
-				newColors[m[0]].push(styles.getPropertyValue(`--color-${color}-${m[1]}`));
-			});
-		}
-		colors = newColors;
+		const palette = [
+			styles.getPropertyValue('--color-primary-500').trim(),
+			styles.getPropertyValue('--color-success-500').trim(),
+			styles.getPropertyValue('--color-warning-500').trim()
+		].filter(Boolean);
+		colors = { light: palette, dark: palette };
+		const baseFontSize = parseFloat(styles.getPropertyValue('--base-font-size')) || 14;
+		const titleFontSize = Math.round(baseFontSize * 1.285);
+		chartTokens = {
+			fontFamily: styles.getPropertyValue('--base-font-family').trim() || 'IBM Plex Sans Variable',
+			baseFontSize: `${baseFontSize}px`,
+			labelFontSize: `${Math.max(baseFontSize - 2, 11)}px`,
+			titleFontSize: `${Math.max(titleFontSize, 16)}px`,
+			titleFontWeight: 500,
+			text: {
+				light: styles.getPropertyValue('--base-font-color').trim(),
+				dark: styles.getPropertyValue('--base-font-color-dark').trim()
+			},
+			muted: {
+				light: styles.getPropertyValue('--convertigo-text-muted').trim(),
+				dark: styles.getPropertyValue('--convertigo-text-muted-dark').trim()
+			},
+			grid: {
+				light: styles.getPropertyValue('--color-surface-400').trim(),
+				dark: styles.getPropertyValue('--color-surface-600').trim()
+			}
+		};
 
 		import('apexcharts').then(({ default: ApexCharts }) => {
-			chart = new ApexCharts(chartEl, buildOptions());
+			chart = new ApexCharts(chartEl, options);
 			chart.render();
 		});
 		return () => {
@@ -135,7 +236,8 @@
 </script>
 
 <div
-	bind:this={chartEl}
+	{@attach attachChart}
+	data-options={options ? 'ready' : ''}
 	class:placeholder={isLoading}
 	class:animate-pulse={isLoading}
 	class="h-[315px]"

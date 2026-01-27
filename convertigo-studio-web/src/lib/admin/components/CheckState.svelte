@@ -20,9 +20,7 @@
 	checked={value == values[1]}
 	onCheckedChange={(e) => (value = e.checked ? values[1] : values[0])}
 >
-	<Switch.Control
-		class="min-w-10 bg-error-600/60 transition-surface data-[state=checked]:bg-success-500"
-	>
+	<Switch.Control class="c8o-switch min-w-10 transition-surface">
 		<Switch.Thumb />
 	</Switch.Control>
 	<Switch.Label class="text-sm leading-tight font-medium text-current"

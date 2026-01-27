@@ -86,21 +86,19 @@
 
 {#snippet rightPart()}
 	<nav
-		class="layout-y-stretch-none h-full border-l-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px] md:text-right"
+		class="layout-y-stretch-none h-full border-l border-color bg-surface-100-900 max-md:layout-grid-[100px]"
 	>
-		{#each categories as { name, displayName }, i}
+		{#each categories as { name, displayName }, i (`${name ?? displayName ?? 'cat'}-${i}`)}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative layout-x-p-low w-full min-w-36 justify-end !gap rounded py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
+				class="relative flex w-full min-w-36 items-center gap-2 rounded-base border border-transparent py-2 pr-4 pl-5 transition-soft hover:border-surface-200-800 hover:bg-surface-100-900"
 			>
 				{#if i == selectedIndex}
 					<SelectionHighlight delta={selectedIndexLast - selectedIndex} />
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>
-					<span
-						class="z-10 w-full text-right text-[13px] font-{i == selectedIndex
-							? 'medium'
-							: 'normal'}">{displayName}</span
+					<span class="z-10 w-full text-[14px] font-{i == selectedIndex ? 'medium' : 'normal'}"
+						>{displayName}</span
 					>
 				</AutoPlaceholder>
 			</a>
@@ -121,7 +119,7 @@
 			{/snippet}
 
 			<div class="layout-cols-2 w-full">
-				{#each category.property as property}
+				{#each category.property as property (property.name ?? property.key ?? property)}
 					{#if property.isAdvanced != 'true'}
 						<PropertyType
 							{...property}
@@ -150,7 +148,7 @@
 						{/snippet}
 						{#snippet panel()}
 							<div class="layout-cols-2 w-full">
-								{#each category.property as property}
+								{#each category.property as property (property.name ?? property.key ?? property)}
 									{#if property.isAdvanced == 'true'}
 										<PropertyType
 											{...property}

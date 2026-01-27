@@ -1,130 +1,139 @@
 <script>
-	import {
-		getLocalTimeZone,
-		now,
-		toCalendar,
-		toCalendarDate,
-		toTime
-	} from '@internationalized/date';
-	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
-	import TreeView from '$lib/common/components/TreeView.svelte';
-	import { tick } from 'svelte';
-	import VirtualList from 'svelte-tiny-virtual-list';
 
-	let data = $state([
-		['A', '1'],
-		['B', '2'],
-		['C', '3'],
-		['D', '4']
-	]);
+	const palette = [
+		{
+			name: 'Primary',
+			class: 'bg-primary-500 text-primary-contrast-500'
+		},
+		{
+			name: 'Secondary',
+			class: 'bg-secondary-500 text-secondary-contrast-500'
+		},
+		{
+			name: 'Tertiary',
+			class: 'bg-tertiary-500 text-tertiary-contrast-500'
+		},
+		{
+			name: 'Success',
+			class: 'bg-success-500 text-success-contrast-500'
+		},
+		{
+			name: 'Danger',
+			class: 'bg-error-500 text-error-contrast-500'
+		}
+	];
 
-	let data2 = $state(
-		Array.from({ length: 10 }, (_, i) => ({
-			name: `Item ${i + 1}`,
-			value: `Value for item ${i + 1}`
-		}))
-	);
+	const sections = [
+		{
+			id: 'yx',
+			title: 'Surface y-x (light → dark)',
+			container: 'bg-surface-50-950 text-surface-900-100',
+			border: 'border-surface-200-800',
+			card: 'bg-surface-100-900',
+			muted: 'text-surface-600-400',
+			surfaceChip: 'bg-surface-100-900 text-surface-900-100 border-surface-200-800',
+			active: 'bg-primary-500 text-primary-contrast-500'
+		},
+		{
+			id: 'xy',
+			title: 'Surface x-y (dark → light)',
+			container: 'bg-surface-950-50 text-surface-100-900',
+			border: 'border-surface-800-200',
+			card: 'bg-surface-900-100',
+			muted: 'text-surface-400-600',
+			surfaceChip: 'bg-surface-900-100 text-surface-100-900 border-surface-800-200',
+			active: 'bg-primary-500 text-primary-contrast-500'
+		}
+	];
 
-	let filter = $state('');
-
-	let lines = $derived(data.filter((item) => item[0].toLowerCase().includes(filter.toLowerCase())));
-
-	let bug = $state(true);
-
-	function itemSize(index) {
-		return 50;
-	}
-	let value = $state('item-2');
-	let propertyChecked = $state(true);
-	let booleanValue = $state('true');
+	let inputA = $state('Sample input');
+	let inputB = $state('Sample input');
+	let switchA = $state('true');
+	let switchB = $state('false');
 </script>
 
-<LightSwitch></LightSwitch>
-<div>Bug: <input type="checkbox" bind:checked={bug} /></div>
-<div>Filter: <input type="text" placeholder="filter" bind:value={filter} /></div>
-<div>Now: {now(getLocalTimeZone()).toString()}</div>
-<div>Now: {toTime(now(getLocalTimeZone()))}</div>
-<div>Now: {toCalendarDate(now(getLocalTimeZone()))}</div>
-<!-- <VirtualList height={400} width="auto" itemCount={lines.length} itemSize={50}>
-	{#snippet children({ style, index })}
-		{@const line = lines[index]}
-		<div {style}>
-			{#if line || bug}
-				{line[0]} : {line[1]}
-			{:else}
-				<span>Loading...</span>
-			{/if}
-		</div>
-	{/snippet}
-{#snippet header()}
-head
-{/snippet}
-{#snippet footer()}
-foot
-{/snippet}
-</VirtualList> -->
+<LightSwitch />
 
-<!-- <VirtualList height={400} width="auto" itemCount={lines.length} itemSize={50}>
-	<div slot="item" let:index let:style {style}>
-		{@const line = lines[index]}
-		{line[0]} : {line[1]}
-	</div>
-</VirtualList> -->
+<main class="layout-y-stretch gap-8 p-6">
+	<header class="layout-y-low">
+		<h2 class="text-xl font-semibold">Theme showcase</h2>
+		<p class="text-sm text-muted">
+			Deux sections identiques pour valider les paires -y-x et -x-y. En changeant de thème, les
+			sections s’inversent.
+		</p>
+	</header>
 
-<div class="max-w-96"><PropertyType></PropertyType></div>
-<section class="layout-y-low max-w-96 rounded-base bg-surface-100-900 p-low">
-	<h3 class="text-sm font-semibold text-surface-500">Toggle comparison</h3>
-	<div class="layout-y-low">
-		<PropertyType
-			label="PropertyType (type=check)"
-			type="check"
-			name="sandbox-check"
-			bind:checked={propertyChecked}
-		/>
-		<CheckState name="boolean-check" values={['false', 'true']} bind:value={booleanValue}>
-			CheckState (boolean)
-		</CheckState>
-		<div class="text-xs text-surface-500">
-			PropertyType checked: {propertyChecked ? 'true' : 'false'} — CheckState value: {booleanValue}
-		</div>
+	<div class="grid gap-8 lg:grid-cols-2">
+		{#each sections as section (section.id)}
+			<section class="rounded-container border p-6 shadow-sm {section.container} {section.border}">
+				<div class="layout-x-between items-center">
+					<h3 class="text-base font-semibold">{section.title}</h3>
+					<span class="text-xs {section.muted}">{section.container}</span>
+				</div>
+
+				<div class="mt-4 layout-y-stretch gap-4">
+					<div class="layout-x-wrap gap-2">
+						{#each palette as item (item.name)}
+							<span class="rounded-base px-3 py-1 text-xs font-medium {item.class}">
+								{item.name}
+							</span>
+						{/each}
+						<span class="rounded-base border px-3 py-1 text-xs font-medium {section.surfaceChip}">
+							Surface
+						</span>
+						<span class="rounded-base px-3 py-1 text-xs font-medium {section.active}">
+							Active
+						</span>
+					</div>
+
+					<div class="rounded-base border p-4 {section.card} {section.border}">
+						<div class="layout-x-between items-center">
+							<div>
+								<p class="text-sm font-semibold">Card / Window</p>
+								<p class="text-xs {section.muted}">Secondary text & labels</p>
+							</div>
+							<div class="layout-x gap-2">
+								<button class="button-primary h-8 px-3 text-xs">Primary</button>
+								<button class="button-secondary h-8 px-3 text-xs">Secondary</button>
+							</div>
+						</div>
+
+						<div class="mt-3 layout-x-wrap gap-2">
+							<button class="button-tertiary h-8 px-3 text-xs">Tertiary</button>
+							<button class="button-success h-8 px-3 text-xs">Success</button>
+							<button class="button-error h-8 px-3 text-xs">Danger</button>
+						</div>
+					</div>
+
+					<div class="grid gap-3 sm:grid-cols-2">
+						<div class="rounded-base border p-3 {section.card} {section.border}">
+							<p class="text-xs font-medium {section.muted}">Input</p>
+							{#if section.id == 'yx'}
+								<PropertyType name="inputA" bind:value={inputA} />
+							{:else}
+								<PropertyType name="inputB" bind:value={inputB} />
+							{/if}
+						</div>
+						<div class="rounded-base border p-3 {section.card} {section.border}">
+							<p class="text-xs font-medium {section.muted}">Switches</p>
+							<div class="layout-y-low">
+								{#if section.id == 'yx'}
+									<CheckState name="switch-a" values={['false', 'true']} bind:value={switchA}>
+										Enabled
+									</CheckState>
+								{:else}
+									<CheckState name="switch-b" values={['false', 'true']} bind:value={switchB}>
+										Disabled
+									</CheckState>
+								{/if}
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		{/each}
 	</div>
-</section>
-<!-- <DateRangePicker></DateRangePicker> -->
-{value}
-<SegmentedControl
-	defaultValue="item-1"
-	{value}
-	onValueChange={async (event) => {
-		await tick();
-		value = event.value ?? '';
-	}}
->
-	<SegmentedControl.Control>
-		<SegmentedControl.Indicator />
-		<SegmentedControl.Item value="item-1">
-			<SegmentedControl.ItemText>Item 1</SegmentedControl.ItemText>
-			<SegmentedControl.ItemHiddenInput />
-		</SegmentedControl.Item>
-		<SegmentedControl.Item value="item-2">
-			<SegmentedControl.ItemText>Item 2</SegmentedControl.ItemText>
-			<SegmentedControl.ItemHiddenInput />
-		</SegmentedControl.Item>
-		<SegmentedControl.Item value="item-3">
-			<SegmentedControl.ItemText>Item 3</SegmentedControl.ItemText>
-			<SegmentedControl.ItemHiddenInput />
-		</SegmentedControl.Item>
-	</SegmentedControl.Control>
-</SegmentedControl>
-<TableAutoCard
-	definition={[
-		{ name: 'Name', key: 'name', class: 'break-all min-w-48' },
-		{ name: 'Value', key: 'value', class: 'break-all min-w-48' }
-	]}
-	data={data2}
-	class="max-h-[80vh]"
-></TableAutoCard>
+</main>

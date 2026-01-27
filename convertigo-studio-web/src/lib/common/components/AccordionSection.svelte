@@ -45,9 +45,9 @@
 		lead,
 		trail,
 		leadingIcon,
-		leadingIconClass = 'text-surface-500',
+		leadingIconClass = 'text-muted',
 		trailingText,
-		trailingTextClass = 'text-xs text-surface-500',
+		trailingTextClass = 'text-xs text-muted',
 		...rest
 	} = $props();
 
@@ -127,7 +127,7 @@
 				<div class="min-w-0 grow">
 					{@render control?.()}
 				</div>
-				<span class="shrink-0 text-surface-500">
+				<span class="shrink-0 text-muted">
 					<Accordion.ItemIndicator element={indicator} />
 				</span>
 			</div>
@@ -140,7 +140,7 @@
 					})}
 					<div class="layout-y-start-low min-w-0">
 						{#if title}
-							<span class="text-sm font-semibold text-surface-900 dark:text-surface-50">
+							<span class="text-sm font-semibold text-strong">
 								{title}
 							</span>
 						{/if}
@@ -160,14 +160,14 @@
 						trailingText,
 						trailingTextClass
 					})}
-					<span class="shrink-0 text-surface-500">
+					<span class="shrink-0 text-muted">
 						<Accordion.ItemIndicator element={indicator} />
 					</span>
 				</div>
 			</div>
 		{:else}
 			{@render header()}
-			<span class="shrink-0 text-surface-500">
+			<span class="shrink-0 text-muted">
 				<Accordion.ItemIndicator element={indicator} />
 			</span>
 		{/if}
