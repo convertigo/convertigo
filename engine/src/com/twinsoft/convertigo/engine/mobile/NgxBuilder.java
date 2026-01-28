@@ -3479,6 +3479,12 @@ public class NgxBuilder extends MobileBuilder {
 			module_ts_imports.remove("BrowserAnimationsModule");
 			module_ng_imports.remove("BrowserAnimationsModule");
 			
+			boolean hasSplitPane = !app.getSplitPaneLayout().equals("not set");
+			if (hasSplitPane) {
+				module_ts_imports.put("{ IonSplitPane }", "@ionic/angular/standalone");
+				module_ng_imports.add("IonSplitPane");
+			}
+			
 			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
 			tpl_ts_imports.putAll(getTplAppCompTsImports());
 			if (!module_ts_imports.isEmpty()) {
