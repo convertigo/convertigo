@@ -275,7 +275,7 @@
 						label="Save"
 						type="submit"
 						icon={jobTypes[mode].icon}
-						class="button-success w-fit!"
+						class="button-primary w-fit!"
 						disabled={!rowSelected.name ||
 							(mode == 'ScheduledJob' &&
 								(rowSelected.jobName == '…' || rowSelected.scheduleName == '…'))}
@@ -283,7 +283,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={close}
 					/>
 				</ActionBar>
@@ -310,7 +310,7 @@
 				<Button
 					label="Close"
 					icon="mdi:close-circle-outline"
-					class="button-error"
+					class="button-primary"
 					onclick={close}
 				/>
 			</ActionBar>
@@ -380,7 +380,7 @@
 								onclick={(event) => open({ event, mode: row.type, row })}
 							/>
 							<Button
-								class="button-ico-error"
+								class="button-ico-primary"
 								{size}
 								icon="mdi:delete-outline"
 								onclick={async (event) => {
@@ -399,7 +399,7 @@
 					{:else if row.next?.length > 1}
 						<Button
 							label={`${row.next?.[0]} …`}
-							class="button-ico-tertiary w-fit! p-none"
+							class="button-ico-primary w-fit! p-none"
 							icon="mdi:calendar-clock"
 							{size}
 							onclick={(event) => nextCron.open({ event, row })}

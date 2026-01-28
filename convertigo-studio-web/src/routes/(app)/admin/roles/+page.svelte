@@ -89,7 +89,7 @@
 
 	{#if draw}
 		<div
-			class="mini-card text-xs {cls}"
+			class="mini-card border border-surface-200-800 text-xs {cls}"
 			class:preset-filled-success-100-900={hasView && hasConfig}
 			class:preset-filled-primary-100-900={hasView && !hasConfig}
 			class:motif-primary={hasView && !hasConfig}
@@ -118,7 +118,7 @@
 
 	{#if draw}
 		<div
-			class="mini-card text-xs {cls}"
+			class="mini-card border border-surface-200-800 text-xs {cls}"
 			class:preset-filled-warning-100-900={hasTp && !hasTpHidden}
 			class:motif-warning={hasTp && !hasTpHidden}
 			class:preset-filled-primary-100-900={hasTpHidden && !hasTpPrivate}
@@ -158,9 +158,9 @@
 
 				<TableAutoCard
 					definition={[
-						{ name: 'Role', custom: true, class: 'py-0!' },
-						{ name: 'View', custom: true, class: 'py-0!' },
-						{ name: 'Config', custom: true, class: 'py-0!' }
+						{ name: 'Role', custom: true, class: '' },
+						{ name: 'View', custom: true, class: 'max-w-6' },
+						{ name: 'Config', custom: true, class: 'max-w-6' }
 					]}
 					data={['All', ...roles.filter((role) => role.endsWith('VIEW'))]}
 				>
@@ -180,6 +180,7 @@
 							<PropertyType
 								type="check"
 								size="sm"
+								class="border border-surface-100-900"
 								checked={subRoles.every((r) => rowSelected.roles.includes(r))}
 								onCheckedChange={(e) => {
 									for (const value of subRoles) {
@@ -194,6 +195,7 @@
 								name="roles"
 								type="check"
 								size="sm"
+								class="border border-surface-100-900"
 								{value}
 								checked={rowSelected.roles.includes(value)}
 								onCheckedChange={(e) => {
@@ -230,14 +232,14 @@
 				<ActionBar disabled={waiting}>
 					<Button
 						type="submit"
-						class="button-success w-fit!"
+						class="button-primary w-fit!"
 						icon={row ? 'mdi:edit-outline' : 'mdi:plus'}
 						size="btn"
 						label={row ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						icon="mdi:close-circle-outline"
 						label="Cancel"
 					/>
@@ -293,7 +295,7 @@
 										</div>
 										<div class="layout-x-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
-											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+											<FileUpload.ItemDeleteTrigger class="button-ico-secondary h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
 											</FileUpload.ItemDeleteTrigger>
 										</div>
@@ -343,7 +345,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalImport.close}
 					/>
 				</ActionBar>
@@ -360,28 +362,28 @@
 				{
 					label: 'Add User',
 					icon: 'mdi:plus',
-					cls: 'button-success',
+					cls: 'button-primary',
 					hidden: exporting,
 					onclick: (event) => openRoleModal({ event, mode: 'addRoles' })
 				},
 				{
 					label: 'Import',
 					icon: 'mdi:import',
-					cls: 'button-primary',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: modalImport?.open
 				},
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
-					cls: 'button-success',
+					cls: 'button-secondary',
 					hidden: !exporting || users.every((user) => user.export),
 					onclick: () => users.forEach((user) => (user.export = true))
 				},
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
-					cls: 'button-tertiary',
+					cls: 'button-secondary',
 					hidden: !exporting || users.every((user) => !user.export),
 					onclick: () => users.forEach((user) => (user.export = false))
 				},
@@ -397,7 +399,7 @@
 				{
 					label: `Export [${users.filter((user) => user.export).length}]`,
 					icon: 'mdi:export',
-					cls: 'button-success',
+					cls: 'button-primary',
 					hidden: !exporting,
 					disabled: users.every((user) => !user.export),
 					onclick: exportRoles
@@ -405,7 +407,7 @@
 				{
 					label: 'Cancel',
 					icon: 'mdi:close-circle-outline',
-					cls: 'button-error',
+					cls: 'button-secondary',
 					hidden: !exporting,
 					onclick: () => {
 						exporting = false;
@@ -414,7 +416,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mdi:delete-outline',
-					cls: 'button-error',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: async () => {
 						if (
@@ -459,7 +461,7 @@
 							onclick={(event) => openRoleModal({ event, row })}
 						/>
 						<Button
-							class="button-ico-error"
+							class="button-ico-primary"
 							{size}
 							icon="mdi:delete-outline"
 							onclick={async () => {

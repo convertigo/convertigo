@@ -7,8 +7,8 @@
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
 	const baseGroup =
-		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-transparent bg-surface-200-800 text-strong transition-surface focus-within:ring-2 focus-within:ring-primary-200/50';
-	const baseLabel = 'flex h-full items-center px-3 text-surface-600-400';
+		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-transparent bg-surface-200-800 text-strong transition-surface focus-within:outline focus-within:outline-1 focus-within:outline-primary-500 focus-within:outline-offset-[-1px]';
+	const baseLabel = 'flex h-full items-center px-3 text-surface-700-300 cursor-text';
 	const baseInput =
 		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-600-400 focus-visible:outline-none focus:ring-0';
 	const baseActions = 'layout-x-none h-full items-center gap-[1px]! border-l-0!';
@@ -34,7 +34,7 @@
 		actions = undefined,
 		...rest
 	} = $props();
-	let inputId = $derived(id ?? name ?? `input-group-${ids++}`);
+	let inputId = $derived(id || name || `input-group-${ids++}`);
 	const setValue = (next) => (value = next);
 	const showClear = $derived(
 		type === 'search' && (value?.length ?? 0) > 0 && !actions && !rightIcon
@@ -69,7 +69,7 @@
 			{#if showClear}
 				<button
 					type="button"
-					class="button-ico-secondary h-7 w-7 p-0!"
+					class="button-ico-secondary h-7 w-7 p-0! text-surface-700-300 hover:text-surface-800-200"
 					onclick={() => setValue('')}
 				>
 					<Ico icon="mdi:close" size="nav" />

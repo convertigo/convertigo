@@ -43,7 +43,7 @@
 		</section>
 
 		<section class="layout-x-p py-low!">
-			<a class="button-tertiary h-fit! py-none px-low text-sm" href="../admin/">Admin console</a>
+			<a class="button-primary h-fit! py-none px-low text-sm" href="../admin/">Admin console</a>
 			{#if Time.isSameTime}
 				<span class="monitor-time">{Time.browserTime}</span>
 			{:else}

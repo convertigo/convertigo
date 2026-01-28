@@ -2,6 +2,7 @@
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 
 	const palette = [
 		{
@@ -21,9 +22,22 @@
 			class: 'bg-success-500 text-success-contrast-500'
 		},
 		{
+			name: 'Warning',
+			class: 'bg-warning-500 text-warning-contrast-500'
+		},
+		{
 			name: 'Danger',
 			class: 'bg-error-500 text-error-contrast-500'
 		}
+	];
+
+	const iconButtons = [
+		{ name: 'Primary', class: 'button-ico-primary', icon: 'mdi:star-outline' },
+		{ name: 'Secondary', class: 'button-ico-secondary', icon: 'mdi:layers-outline' },
+		{ name: 'Tertiary', class: 'button-ico-tertiary', icon: 'mdi:palette-outline' },
+		{ name: 'Success', class: 'button-ico-success', icon: 'mdi:check' },
+		{ name: 'Warning', class: 'button-ico-warning', icon: 'mdi:warning-outline' },
+		{ name: 'Danger', class: 'button-ico-error', icon: 'mdi:close-circle-outline' }
 	];
 
 	const sections = [
@@ -104,7 +118,16 @@
 						<div class="mt-3 layout-x-wrap gap-2">
 							<button class="button-tertiary h-8 px-3 text-xs">Tertiary</button>
 							<button class="button-success h-8 px-3 text-xs">Success</button>
+							<button class="button-warning h-8 px-3 text-xs">Warning</button>
 							<button class="button-error h-8 px-3 text-xs">Danger</button>
+						</div>
+
+						<div class="mt-4 layout-x-wrap gap-2">
+							{#each iconButtons as item (item.name)}
+								<button class="{item.class} h-8 w-8 p-0!" title={item.name}>
+									<Ico icon={item.icon} size="nav" />
+								</button>
+							{/each}
 						</div>
 					</div>
 

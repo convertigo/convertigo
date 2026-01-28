@@ -1,9 +1,9 @@
 <script>
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Keys from '$lib/admin/Keys.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getContext } from 'svelte';
 
@@ -38,7 +38,14 @@
 			}}
 		>
 			<fieldset class="layout-x max-sm:flex-wrap" disabled={calling || loading}>
-				<PropertyType type="text" name="key" placeholder="Enter a new key" autofocus />
+				<InputGroup
+					type="search"
+					name="key"
+					icon="mdi:key-outline"
+					placeholder="Enter a new key"
+					size="40"
+					autofocus
+				/>
 				<Button label="Add" class="button-primary sm:w-fit!" icon="mdi:key-outline" type="submit" />
 			</fieldset>
 		</form>
@@ -49,7 +56,7 @@
 			{nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
 			The first key was created the {new Date(firstStartDate).toISOString().split('T')[0]}.{/if}
 	</AutoPlaceholder>
-	{#each categories as { keys: data, name, total, remaining, overflow }, iCat (name)}
+	{#each categories as { keys: data, name, total, remaining, overflow }, iCat (`${name ?? 'category'}-${iCat}`)}
 		{@const classCat = [
 			['preset-filled-success-50-950', 'preset-filled-success-100-900'],
 			['preset-filled-warning-50-950', 'preset-filled-warning-100-900'],
@@ -58,7 +65,6 @@
 		{@const ratioCat = total > 1 ? remaining / total : 1}
 		{@const iClass = ratioCat < 0.5 ? 1 : ratioCat < 0.2 ? 2 : 0}
 		<TableAutoCard
-			showHeaders={true}
 			definition={[
 				{ name: 'Key', custom: true, class: expired },
 				{ name: 'Avalaible', key: 'value', class: expired },
@@ -99,7 +105,7 @@
 					<Button
 						size="6"
 						icon="mdi:delete-outline"
-						class="button-ico-error"
+						class="button-ico-primary"
 						onclick={async (event) => {
 							if (
 								await modalYesNo.open({

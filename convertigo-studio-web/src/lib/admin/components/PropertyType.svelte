@@ -75,7 +75,7 @@
 				}}
 				class="inline-flex min-w-10 items-center gap-low"
 			>
-				<Switch.Control class="c8o-switch transition-surface">
+				<Switch.Control class="c8o-switch transition-surface {rest?.class ?? ''}">
 					<Switch.Thumb />
 				</Switch.Control>
 				<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label>
@@ -142,12 +142,12 @@
 					</SegmentedControl>
 				{:else if type == 'combo'}
 					<select
+						{...rest}
 						{name}
 						class={`select input-common overflow-auto px-3 text-sm ${
 							isMultiSelect ? 'h-auto min-h-24 py-2' : 'h-9'
-						}`}
+						} ${rest?.class ?? ''}`}
 						{id}
-						{...rest}
 						bind:value
 					>
 						{#each item as option (option.value ?? option)}
@@ -167,11 +167,12 @@
 						{autocomplete}
 						{placeholder}
 						{...rest}
-						class="min-h-24 input-common px-3 py-2 text-sm"
+						class="min-h-24 input-common px-3 py-2 text-sm {rest?.class ?? ''}"
 						bind:value
 					></textarea>
 				{:else}
 					<input
+						{...rest}
 						{id}
 						{name}
 						{autocomplete}
@@ -179,8 +180,8 @@
 						{type}
 						disabled={loading}
 						class:animate-pulse={loading}
-						class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400"
-						{...rest}
+						class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
+							''}"
 						bind:value
 					/>
 				{/if}

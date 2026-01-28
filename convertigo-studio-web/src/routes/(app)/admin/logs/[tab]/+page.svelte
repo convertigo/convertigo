@@ -293,7 +293,7 @@
 								{
 									label: 'Purge',
 									icon: 'mdi:content-save-edit-outline',
-									cls: 'button-error',
+									cls: 'button-primary',
 									disabled: LogsPurge.value[0] == -1,
 									onclick: async (event) => {
 										if (
@@ -326,17 +326,17 @@
 						<div class="relative z-10 layout-x-end-low flex-wrap items-center">
 							<div class="layout-x-end-low flex-wrap items-center">
 								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
-									<Popover.Trigger class="button-primary layout-x-low h-9">
+									<Popover.Trigger class="button-secondary layout-x-low h-9">
 										Preset<Ico icon="mdi:clock-star-four-points-outline" />
 									</Popover.Trigger>
 									<Popover.Positioner class="z-60">
 										<Popover.Content class="border-none bg-transparent p-0 shadow-none">
-											<Card bg="preset-glass-primary" class="border-none! p-low! shadow-follow">
+											<Card bg="preset-glass-surface" class="border-none! p-low! shadow-follow">
 												<div class="layout-y-stretch-low">
 													{#each presets as preset (preset.label)}
 														<Button
 															label={preset.label}
-															class="button-primary bg-primary-50-950 text-black odd:bg-primary-50-950/75 dark:text-white"
+															class="button-primary"
 															onclick={preset.onclick}
 														/>
 													{/each}
@@ -360,14 +360,14 @@
 								icon="mdi:filter-cog{serverFilterVisible ? '' : '-outline'}"
 								onmousedown={() =>
 									(serverFilterVisibleState.current = !serverFilterVisibleState.current)}
-								class="button-primary h-9! w-fit!"
+								class="button-secondary h-9! w-fit!"
 							/>
 							{#if serverFilterVisible}
 								<Button
 									size={4}
 									icon="mdi:cloud-sync-outline"
 									onmousedown={copyFilters}
-									class="button-primary h-9! w-fit!"
+									class="button-secondary h-9! w-fit!"
 									label="Copy client filters"
 									disabled={Object.keys(filters).length == 0}
 								/>

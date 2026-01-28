@@ -58,7 +58,7 @@
 					{
 						label: 'Delete all Sessions and Contexts',
 						icon: 'mdi:delete-outline',
-						cls: 'button-error',
+						cls: 'button-primary',
 						onclick: async (event) => {
 							if (
 								await modalYesNo.open({
@@ -124,7 +124,7 @@
 							},
 							{
 								icon: 'mdi:delete-outline',
-								cls: 'button-ico-error',
+								cls: 'button-ico-primary',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({
@@ -149,8 +149,8 @@
 						class={!init
 							? 'animate-pulse'
 							: isFullSyncActive == 'true'
-								? 'text-green-500'
-								: 'text-red-500'}
+								? 'text-success-500'
+								: 'text-warning-500'}
 						size="btn"
 					/>
 				{/if}
@@ -202,7 +202,7 @@
 							},
 							{
 								icon: 'mdi:delete-outline',
-								cls: 'button-ico-error',
+								cls: 'button-ico-primary',
 								onclick: async (event) => {
 									if (
 										await modalYesNo.open({

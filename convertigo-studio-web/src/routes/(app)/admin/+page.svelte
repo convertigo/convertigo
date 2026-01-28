@@ -56,7 +56,7 @@
 					label: 'Java Props',
 					title: 'Java Properties',
 					icon: 'mdi:language-java',
-					cls: 'button-primary text-[11px] px-2! whitespace-nowrap',
+					cls: 'button-secondary text-[11px] px-2! whitespace-nowrap',
 					onclick: (e) => modal(e, 'props')
 				},
 				{
@@ -93,7 +93,7 @@
 				{
 					label: 'Perform GC',
 					icon: 'mdi:broom',
-					cls: 'button-warning',
+					cls: 'button-secondary',
 					onclick: () => call('engine.PerformGC')
 				}
 			],
@@ -175,11 +175,11 @@
 	let modalHome;
 </script>
 
-<ModalDynamic bind:this={modalHome} class="w-full">
+<ModalDynamic bind:this={modalHome} class="w-full overflow-hidden">
 	{#snippet children({ close, params: { mode, data } })}
 		<Card
 			title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}
-			class="w-full preset-filled-surface-300-700!"
+			class="w-full preset-filled-surface-100-900"
 		>
 			<TableAutoCard
 				definition={[
@@ -187,11 +187,11 @@
 					{ name: 'Value', key: 'value', class: 'break-all min-w-48' }
 				]}
 				{data}
-				class="max-h-[80vh]"
+				class="max-h-[75vh] overflow-auto"
 			></TableAutoCard>
 
 			<ActionBar>
-				<Button label="Close" onclick={close} class="button-error w-fit!" />
+				<Button label="Close" onclick={close} class="button-primary w-fit!" />
 			</ActionBar>
 		</Card>
 	{/snippet}
@@ -216,7 +216,7 @@
 						{
 							key: 'Name',
 							custom: true,
-							class: 'min-w-32 text-sm font-normal lowercase text-muted text-right'
+							class: 'min-w-32 text-sm font-normal text-muted text-right'
 						},
 						{
 							key: 'Value',

@@ -422,7 +422,7 @@
 		<Button
 			label="Go"
 			title="Load URL"
-			cls="button-tertiary w-fit!"
+			cls="button-primary w-fit!"
 			disabled={!trimmedAddress || trimmedAddress === '#'}
 			onclick={applyAddressBar}
 		/>

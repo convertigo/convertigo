@@ -27,7 +27,7 @@
 	{...rest}
 >
 	{#if title == null || title?.length > 0 || cornerOption}
-		<div class="layout-x-wrap w-full">
+		<div class="layout-x-wrap w-full items-center gap-3">
 			{#if title == null}
 				<AutoPlaceholder class="max-w-48" loading={true} />
 			{/if}
@@ -35,7 +35,7 @@
 				<span class="text-lg font-medium">{title}</span>
 			{/if}
 			{#if cornerOption}
-				<div class="grow">
+				<div class="ml-auto flex items-center justify-end">
 					{@render cornerOption()}
 				</div>
 			{/if}

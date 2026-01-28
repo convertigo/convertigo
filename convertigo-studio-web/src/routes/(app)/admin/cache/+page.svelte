@@ -21,7 +21,7 @@
 						{
 							label: 'Clear entries',
 							icon: 'mdi:delete-outline',
-							cls: 'button-error',
+							cls: 'button-primary',
 							onclick: clear
 						}
 					]}
@@ -49,19 +49,19 @@
 							label: 'Apply',
 							type: 'submit',
 							icon: 'mdi:check-all',
-							cls: 'button-success'
+							cls: 'button-primary'
 						},
 						{
 							label: 'Create Table and Apply',
 							type: 'submit',
 							icon: 'mdi:table',
-							cls: 'button-secondary',
+							cls: 'button-primary',
 							hidden: !conf?.cacheType.endsWith('DatabaseCacheManager')
 						},
 						{
 							label: 'Cancel',
 							icon: 'mdi:close-circle-outline',
-							cls: 'button-error',
+							cls: 'button-secondary',
 							disabled: !hasChanged,
 							onclick: cancel
 						}

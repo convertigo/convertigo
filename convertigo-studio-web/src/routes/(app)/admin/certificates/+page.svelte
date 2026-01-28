@@ -85,7 +85,7 @@
 										</div>
 										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
-											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+											<FileUpload.ItemDeleteTrigger class="button-ico-secondary h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
 											</FileUpload.ItemDeleteTrigger>
 										</div>
@@ -105,7 +105,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalCertInstall.close}
 					/>
 				</ActionBar>
@@ -140,7 +140,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalCertRemove.close}
 					/>
 				</ActionBar>
@@ -166,6 +166,7 @@
 	},
 	def
 })}
+	{@const inputClass = 'border border-surface-100-900'}
 	{#if loading}
 		<AutoPlaceholder {loading} />
 	{:else if def.name == 'Certificate / Store' && def.setup}
@@ -173,6 +174,7 @@
 			<PropertyType
 				name="name_0"
 				type="combo"
+				class={inputClass}
 				item={candidates.map(({ name }) => ({ value: name, text: name }))}
 				value={candidates[0]?.name}
 			/>
@@ -185,6 +187,7 @@
 			<PropertyType
 				name="convProject_0"
 				type="combo"
+				class={inputClass}
 				item={projects.map(({ name }) => ({ value: name, text: name }))}
 				value={projects[0]?.name}
 			/>
@@ -197,6 +200,7 @@
 		<PropertyType
 			name="virtualServer_0"
 			type="text"
+			class={inputClass}
 			value={virtualServerName}
 			originalValue={virtualServerName}
 		/>
@@ -204,15 +208,23 @@
 		<PropertyType
 			name="group_0"
 			type="text"
+			class={inputClass}
 			value={imputationGroup}
 			originalValue={imputationGroup}
 		/>
 	{:else if def.name == 'User'}
-		<PropertyType name="user_0" type="text" value={userName} originalValue={userName} />
+		<PropertyType
+			name="user_0"
+			type="text"
+			class={inputClass}
+			value={userName}
+			originalValue={userName}
+		/>
 	{:else if def.name == 'Certificate / Store'}
 		<PropertyType
 			name="cert_0"
 			type="combo"
+			class={inputClass}
 			item={certificates.map(({ name }) => ({ value: name, text: name }))}
 			value={certificateName ?? certificates[0]?.name}
 		/>
@@ -220,6 +232,7 @@
 		<PropertyType
 			name="type_0"
 			type="combo"
+			class={inputClass}
 			item={[
 				{ value: 'server', text: 'Server' },
 				{ value: 'client', text: 'Client' }
@@ -235,6 +248,7 @@
 			<PropertyType
 				name="pwd_0"
 				type="password"
+				class={inputClass}
 				value={password}
 				originalValue={password}
 				placeholder="Enter certificate password …"
@@ -244,6 +258,7 @@
 		<PropertyType
 			name="group_0"
 			type="text"
+			class={inputClass}
 			value={group}
 			originalValue={group}
 			placeholder="Enter group value …"
@@ -253,13 +268,13 @@
 			buttons={[
 				{
 					icon: 'mdi:delete-outline',
-					cls: 'button-ico-error',
+					cls: 'button-ico-primary',
 					hidden: last,
 					onclick: def.setup ? del : mappingsDel
 				},
 				{
 					icon: 'mdi:update',
-					cls: 'button-ico-success',
+					cls: 'button-ico-primary',
 					onclick: def.setup ? configure : mappingsConfigure
 				}
 			]}
@@ -284,7 +299,7 @@
 					{
 						label: 'Remove a certificate',
 						icon: 'mdi:delete-outline',
-						cls: 'button-error',
+						cls: 'button-secondary',
 						disabled: !candidates.length,
 						onclick: modalCertRemove?.open
 					}

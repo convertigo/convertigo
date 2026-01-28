@@ -78,7 +78,7 @@
 					{
 						icon: 'mdi:close-circle-outline',
 						label: 'Cancel',
-						cls: 'button-error',
+						cls: 'button-secondary',
 						onclick: close
 					}
 				]}
@@ -129,7 +129,7 @@
 										</div>
 										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
-											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+											<FileUpload.ItemDeleteTrigger class="button-ico-secondary h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
 											</FileUpload.ItemDeleteTrigger>
 										</div>
@@ -152,7 +152,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalDeployUpload?.close}
 					/>
 				</ActionBar>
@@ -186,7 +186,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalDeployURL?.close}
 					/>
 				</ActionBar>
@@ -214,7 +214,7 @@
 				<Button
 					label="Cancel"
 					icon="mdi:close-circle-outline"
-					class="button-error"
+					class="button-secondary"
 					onclick={() => close(false)}
 				/>
 			</ActionBar>

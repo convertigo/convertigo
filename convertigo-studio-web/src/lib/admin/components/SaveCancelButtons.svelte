@@ -23,8 +23,8 @@
 		cancelLabel = 'Cancel changes',
 		saveIcon = 'mdi:content-save-edit-outline',
 		cancelIcon = 'mdi:close-circle-outline',
-		saveClass = 'button-success',
-		cancelClass = 'button-error',
+		saveClass = 'button-primary',
+		cancelClass = 'button-secondary',
 		class: cls = ''
 	} = $props();
 

@@ -86,14 +86,14 @@
 				<ActionBar disabled={waiting}>
 					<Button
 						type="submit"
-						class="{sec ? 'button-tertiary' : 'button-success'} w-fit!"
+						class="button-primary w-fit!"
 						icon={edit ? 'mdi:edit-outline' : sec ? 'mdi:key-outline' : 'mdi:plus'}
 						size="btn"
 						label={edit ? 'Edit' : 'Add'}
 					/>
 					<Button
 						onclick={close}
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						icon="mdi:close-circle-outline"
 						label="Cancel"
 					/>
@@ -145,7 +145,7 @@
 										</div>
 										<div class="layout-x-low items-center gap-low text-xs text-muted">
 											<FileUpload.ItemSizeText />
-											<FileUpload.ItemDeleteTrigger class="button-ico-error h-6 w-6">
+											<FileUpload.ItemDeleteTrigger class="button-ico-secondary h-6 w-6">
 												<Ico icon="mdi:delete-outline" size="3" />
 											</FileUpload.ItemDeleteTrigger>
 										</div>
@@ -195,7 +195,7 @@
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
-						class="button-error w-fit!"
+						class="button-secondary w-fit!"
 						onclick={modalImport?.close}
 					/>
 				</ActionBar>
@@ -212,35 +212,35 @@
 				{
 					label: 'Add',
 					icon: 'mdi:plus',
-					cls: 'button-success',
+					cls: 'button-primary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event })
 				},
 				{
 					label: 'Add Secret',
 					icon: 'mdi:key-outline',
-					cls: 'button-tertiary',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event, secret: true })
 				},
 				{
 					label: 'Import',
 					icon: 'mdi:import',
-					cls: 'button-primary',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: modalImport?.open
 				},
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
-					cls: 'button-success',
+					cls: 'button-secondary',
 					hidden: !exporting || fsymbols.every((user) => user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = true))
 				},
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
-					cls: 'button-tertiary',
+					cls: 'button-secondary',
 					hidden: !exporting || fsymbols.every((user) => !user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = false))
 				},
@@ -264,7 +264,7 @@
 				{
 					label: 'Cancel',
 					icon: 'mdi:close-circle-outline',
-					cls: 'button-error',
+					cls: 'button-secondary',
 					hidden: !exporting,
 					onclick: () => {
 						exporting = false;
@@ -273,7 +273,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mdi:delete-outline',
-					cls: 'button-error',
+					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: async () => {
 						if (
@@ -326,7 +326,7 @@
 					{#if row.project}
 						<Button
 							label={row.project}
-							class="button-success justify-start gap-1 overflow-hidden px-1 text-xs"
+							class="button-primary justify-start gap-1 overflow-hidden px-1 text-xs"
 							{size}
 							icon="mdi:plus"
 							onclick={(event) => modalOpen({ event, row })}
@@ -348,7 +348,7 @@
 							}}
 						/>
 						<Button
-							class="button-ico-error"
+							class="button-ico-primary"
 							{size}
 							icon="mdi:delete-outline"
 							onclick={async () => {

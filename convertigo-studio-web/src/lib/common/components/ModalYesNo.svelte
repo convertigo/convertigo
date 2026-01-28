@@ -23,13 +23,13 @@
 		<ActionBar>
 			<Button
 				onclick={() => modal.close(true)}
-				class="button-success w-fit!"
+				class="button-primary w-fit!"
 				icon="mdi:check"
 				label="Yes"
 			/>
 			<Button
 				onclick={() => modal.close(false)}
-				class="button-error w-fit!"
+				class="button-secondary w-fit!"
 				icon="mdi:close-circle-outline"
 				label="No"
 			/>

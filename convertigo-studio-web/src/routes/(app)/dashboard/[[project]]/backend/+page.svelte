@@ -276,12 +276,12 @@
 																								label: 'Execute',
 																								type: 'submit',
 																								value: testcase.name,
-																								class: 'button-success',
+																								class: 'button-primary',
 																								icon: 'mdi:play-circle-outline'
 																							},
 																							{
 																								label: 'Edit',
-																								class: 'button-tertiary',
+																								class: 'button-secondary',
 																								icon: 'mdi:edit-outline',
 																								onclick: () => {
 																									requestable.tc = { ...testcase };
@@ -318,14 +318,14 @@
 															<Button
 																label="Execute"
 																type="submit"
-																class="button-success"
+																class="button-primary"
 																icon="mdi:play-circle-outline"
 															/>
 															{#if requestable.response?.length > 0}
 																<Button
 																	label="Clear"
 																	type="submit"
-																	class="button-error"
+																	class="button-secondary"
 																	icon="mdi:broom"
 																/>
 															{/if}

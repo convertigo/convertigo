@@ -1,5 +1,6 @@
 <script>
 	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
+	import { browser } from '$app/environment';
 	import { onDestroy } from 'svelte';
 
 	/** @type {{class?: string, children?: import('svelte').Snippet<[any]>}} */
@@ -20,11 +21,23 @@
 		});
 	}
 
+	function finalize() {
+		if (!resolve) return;
+		resolve(result);
+		resolve = reject = undefined;
+	}
+
 	$effect(() => {
-		if (!opened && resolve) {
-			resolve(result);
-			resolve = reject = undefined;
+		if (!browser) return;
+		const previousOverflow = document.body.style.overflow;
+		if (opened) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
 		}
+		return () => {
+			document.body.style.overflow = previousOverflow;
+		};
 	});
 
 	onDestroy(() => {
@@ -43,10 +56,17 @@
 			result = value;
 		}
 		opened = false;
+		finalize();
 	}
 </script>
 
-<Dialog open={opened} onOpenChange={(e) => (opened = e.open)}>
+<Dialog
+	open={opened}
+	onOpenChange={(e) => {
+		opened = e.open;
+		if (!opened) finalize();
+	}}
+>
 	<Dialog.Trigger class="hidden" />
 	<Portal>
 		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/60 backdrop-blur-sm" />

@@ -922,7 +922,7 @@
 			{/each}
 		</div>
 		<div
-			class="layout-x-wrap content-start overflow-y-hidden rounded-sm rounded-b-none bg-surface-200-800"
+			class="layout-x-wrap content-start overflow-y-hidden rounded-sm rounded-b-none border-t border-surface-200-800"
 			style="height: {2 + extraLines * headerHeight}px; column-gap: 1px; row-gap: 0;"
 		>
 			{#each columns as { name, cls, style } (name)}
@@ -1021,7 +1021,7 @@
 		</MaxRectangle>
 	</div>
 	<div
-		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-200-800 py-1! px!"
+		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
 	>
 		<span class="h-fit"
 			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}

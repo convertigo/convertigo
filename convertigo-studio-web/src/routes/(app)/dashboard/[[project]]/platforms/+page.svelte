@@ -99,7 +99,7 @@
 									<Button
 										label="Show Error"
 										icon="mdi:briefcase-upload-outline"
-										class="button-error"
+										class="button-secondary"
 										onclick={() =>
 											modalAlert.open({
 												message: 'Build Error',
@@ -111,7 +111,7 @@
 								<Button
 									label="Source Package"
 									icon="mdi:briefcase-upload-outline"
-									class="button-tertiary"
+									class="button-secondary"
 									rel="external"
 									href={getUrl() +
 										'mobiles.GetSourcePackage' +

@@ -13,7 +13,7 @@
 		title = '',
 		comment = '',
 		class: cls = '',
-		thClass = 'text-left text-surface-700-300 text-[14px] font-semibold',
+		thClass = 'text-left text-strong text-[14px] font-semibold',
 		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
 		fnRowId = (row, i) => row.name ?? i,
 		children,
@@ -79,10 +79,10 @@
 
 <div class="table-container {cls}" class:autocard={isCardView} {@attach attachContainer}>
 	{#if title.length > 0}
-		<h1 class="ztext-surface-800-200 text-[16px] font-normal">{title}</h1>
+		<h1 class="text-[16px] font-normal">{title}</h1>
 	{/if}
 	{#if comment.length > 0}
-		<h1 class="ztext-surface-700-300 p-3 font-medium">{comment}</h1>
+		<h1 class="p-3 font-medium">{comment}</h1>
 	{/if}
 
 	<div class="table-frame">
@@ -143,12 +143,11 @@
 					{/each}
 				</tbody>
 			{:else if showNothing}
-				<tbody>
+				<tbody class="preset-filled-surface-200-800">
 					<tr>
 						<td colspan={definition.length}>
 							<div class="layout-x">
-								<Ico icon="mdi:coffee" size={20} />
-								<p class="ztext-surface-300 font-medium">There is no data to display ...</p>
+								<p class="font-medium">This table is empty</p>
 							</div>
 						</td>
 					</tr>
@@ -206,7 +205,9 @@
 		td[data-label]:not([data-label='']):before {
 			content: attr(data-label);
 			display: inline-block;
-			font-weight: bold;
+			color: var(--convertigo-text-strong);
+			font-size: 14px;
+			font-weight: 600;
 			line-height: 1.5;
 			width: 100%;
 			z-index: 1;

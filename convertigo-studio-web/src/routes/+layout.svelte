@@ -77,10 +77,10 @@
 				{#if stacktrace}
 					<button
 						onclick={() => (modalAlert.showStack = !modalAlert.showStack)}
-						class="button-tertiary">Show Details</button
+						class="button-secondary">Show Details</button
 					>
 				{/if}
-				<button onclick={close} class="button-error">Close</button>
+				<button onclick={close} class="button-primary">Close</button>
 			</ActionBar>
 		</Card>
 	{/snippet}

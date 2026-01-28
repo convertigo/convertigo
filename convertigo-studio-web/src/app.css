@@ -168,43 +168,43 @@
 }
 
 @utility button-primary {
-	@apply button border-primary-500 bg-primary-500 text-white shadow-follow hover:border-primary-600 hover:bg-primary-600;
+	@apply button preset-filled-primary-500 shadow-follow hover:border-primary-600-400 hover:bg-primary-600-400 hover:text-primary-contrast-600-400;
 }
 
 @utility button-secondary {
-	@apply button-primary;
+	@apply button preset-filled-secondary-500 shadow-follow hover:border-secondary-600-400 hover:bg-secondary-600-400 hover:text-secondary-contrast-600-400;
 }
 
 @utility button-tertiary {
-	@apply button-primary;
+	@apply button preset-filled-tertiary-500 shadow-follow hover:border-tertiary-600-400 hover:bg-tertiary-600-400 hover:text-tertiary-contrast-600-400;
 }
 
 @utility button-success {
-	@apply button-primary;
+	@apply button preset-filled-success-500 shadow-follow hover:border-success-600-400 hover:bg-success-600-400 hover:text-success-contrast-600-400;
 }
 
 @utility button-warning {
-	@apply button border-warning-200 bg-warning-50 text-warning-900 shadow-none hover:border-warning-300 hover:bg-warning-100;
+	@apply button preset-filled-warning-500 shadow-follow hover:border-warning-600-400 hover:bg-warning-600-400 hover:text-warning-contrast-600-400;
 }
 
 @utility button-error {
-	@apply button border-error-200 bg-error-50 text-error-700 shadow-none hover:border-error-300 hover:bg-error-100;
+	@apply button preset-filled-error-500 shadow-follow hover:border-error-600-400 hover:bg-error-600-400 hover:text-error-contrast-600-400;
 }
 
 @utility button-ico-primary {
-	@apply button border-transparent bg-transparent text-primary-600 shadow-none hover:border-transparent hover:bg-primary-50 active:bg-primary-100/70 dark:text-primary-300 dark:hover:bg-primary-900/30 dark:active:bg-primary-900/45;
+	@apply button border-transparent bg-transparent text-primary-500 shadow-none hover:text-primary-400-600;
 }
 
 @utility button-ico-secondary {
-	@apply button border-transparent bg-transparent text-muted shadow-none hover:border-transparent hover:bg-surface-100-900 active:bg-surface-200-800/70;
+	@apply button border-transparent bg-transparent text-secondary-500 shadow-none hover:text-secondary-400-600;
 }
 
 @utility button-ico-tertiary {
-	@apply button border-transparent bg-transparent text-muted shadow-none hover:border-transparent hover:bg-surface-100-900 active:bg-surface-200-800/70;
+	@apply button border-transparent bg-transparent text-tertiary-500 shadow-none hover:text-tertiary-400-600;
 }
 
 @utility button-ico-success {
-	@apply button-ico-primary;
+	@apply button border-transparent bg-transparent text-success-500 shadow-none hover:text-success-400-600;
 }
 
 :root {
@@ -214,11 +214,11 @@
 }
 
 @utility button-ico-warning {
-	@apply button border-transparent bg-transparent text-warning-800 shadow-none hover:border-transparent hover:bg-warning-50 active:bg-warning-100/70;
+	@apply button border-transparent bg-transparent text-warning-500 shadow-none hover:text-warning-400-600;
 }
 
 @utility button-ico-error {
-	@apply button border-transparent bg-transparent text-error-600 shadow-none hover:border-transparent hover:bg-error-50 active:bg-error-100/70;
+	@apply button border-transparent bg-transparent text-error-500 shadow-none hover:text-error-400-600;
 }
 
 @utility preset-gradient-one {
@@ -255,14 +255,14 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus:ring-2 focus:ring-primary-200/50;
+	@apply w-full rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus:ring-2 focus:ring-primary-200/50;
+	@apply rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 }
 
 @utility input-text {
@@ -299,7 +299,31 @@
 	}
 }
 
+@layer base {
+	:where(button, .button, [role='button'], a):focus-visible {
+		outline: 1px solid var(--color-primary-500);
+		outline-offset: -1px;
+		border-radius: var(--radius-base);
+	}
+	:where(label[data-scope='switch'][data-part='root']):focus-visible {
+		outline: none;
+	}
+	:where([data-scope='switch'][data-part='root'][data-focus-visible]) {
+		outline: 1px solid var(--color-primary-500) !important;
+		outline-offset: -1px !important;
+		border-radius: var(--radius-base);
+	}
+	:where(label[data-scope='switch'][data-part='root']):has(input:focus-visible) {
+		outline: 1px solid var(--color-primary-500);
+		outline-offset: -1px;
+		border-radius: var(--radius-base);
+	}
+}
+
 @layer utilities {
+	.placeholder {
+		background-color: var(--color-surface-400-600);
+	}
 	.preset-glass-neutral {
 		background: color-mix(in oklab, var(--color-surface-50-950) 30%, transparent);
 		box-shadow: 0 0px 30px color-mix(in oklab, var(--color-surface-50-950) 30%, transparent) inset;

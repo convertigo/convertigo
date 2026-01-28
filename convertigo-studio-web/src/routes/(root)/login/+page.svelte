@@ -43,7 +43,7 @@
 		</Progress>
 	</div>
 {:else}
-	<Card class="preset-filled-surface-50-950 max-md:w-[95%]" bg="">
+	<Card class="preset-filled-surface-100-900 max-md:w-[95%]" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
 			<Ico icon="convertigo:logo" class="-m-5 text-primary-500" size="32" />
 			<h1 class="text-center text-xl md:text-3xl">
@@ -63,8 +63,8 @@
 					placeholder="Your username"
 					icon="mdi:account-outline"
 					iconClass="text-muted"
-					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
-					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
+					class="rounded-xl bg-surface-200-800"
+					labelClass="rounded-l-xl bg-transparent"
 					inputClass="text-base"
 				/>
 			</div>
@@ -82,14 +82,14 @@
 					type={passwordVisible ? 'text' : 'password'}
 					icon="mdi:lock-outline"
 					iconClass="text-muted"
-					class="rounded-xl border border-surface-200-800 bg-surface-50-950"
-					labelClass="rounded-l-xl border-r border-surface-200-800 bg-transparent"
+					class="rounded-xl bg-surface-200-800"
+					labelClass="rounded-l-xl bg-transparent"
 					inputClass="text-base"
 				>
 					{#snippet actions()}
 						<button
 							type="button"
-							class="btn h-full rounded-r-xl border-l border-surface-200-800 bg-transparent px-3 text-primary-500 hover:text-primary-400"
+							class="btn h-full rounded-r-xl bg-transparent px-3 text-primary-500 hover:text-primary-400"
 							onclick={() => (passwordVisible = !passwordVisible)}
 							title={passwordVisible ? 'Hide password' : 'Show password'}
 						>
@@ -103,7 +103,7 @@
 				<p class="rounded-sm preset-filled-error-500 p-low">{error}</p>
 			{/if}
 			<span></span>
-			<button class="relative button-primary w-full preset-gradient-one py-5" type="submit">
+			<button class="relative button-primary w-full py-5" type="submit">
 				<span class="absolute left-1/2 inline-flex -translate-x-1/2 items-center gap-2">
 					<span>Login</span>
 					<span class="bounce"><Ico icon="mdi:arrow-right-thick" /></span>
