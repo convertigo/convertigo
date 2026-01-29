@@ -482,7 +482,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		String[][] defs = {
 				{"Start Low Code FullStack Web/Desktop or Mobile app project", "web_color_32x32.png", "NewNgxBuilderWizard"},
 				{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
-				{"Start Hello World sample project", "panel_color_32x32.gif", "NewSampleHelloWorldWizard"},
+				{"Start a sample project from Marketplace", "retail_store_color_32x32.png", "MarketplaceSamplesWizard"},
 				{"Start another type of project", "convertigo_logo_32x32.png", null}
 		};
 

@@ -52,6 +52,8 @@ public class MarketplaceView extends ViewPart {
 	public static final String STARTUP_URL = "https://backend-apps.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
+	private C8oBrowserPostMessageHelper postMessageHelper = null;
+	private String pendingTag = null;
 	
 	@Override
 	public void dispose() {
@@ -124,6 +126,7 @@ public class MarketplaceView extends ViewPart {
 		});
 		
 		var handler = new C8oBrowserPostMessageHelper(browser);
+		postMessageHelper = handler;
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("Marketplace onMessage: " + json);
 			try {
@@ -189,6 +192,7 @@ public class MarketplaceView extends ViewPart {
 				json.put("type", "init");
 				json.put("version", ProductVersion.productVersion);
 				handler.postMessage(json);
+				postOpenTag(pendingTag);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -199,6 +203,27 @@ public class MarketplaceView extends ViewPart {
 
 	@Override
 	public void setFocus() {
+	}
+
+	public void openTag(String tag) {
+		if (StringUtils.isBlank(tag)) {
+			return;
+		}
+		pendingTag = tag;
+		postOpenTag(tag);
+	}
+
+	private void postOpenTag(String tag) {
+		if (postMessageHelper == null || StringUtils.isBlank(tag)) {
+			return;
+		}
+		try {
+			var msg = new JSONObject();
+			msg.put("type", "openTag");
+			msg.put("tag", tag);
+			postMessageHelper.postMessage(msg);
+		} catch (Exception e) {
+		}
 	}
 
 }

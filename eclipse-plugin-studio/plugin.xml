@@ -163,7 +163,7 @@
 			id="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
 			name="Convertigo Legacy integration" />
 		<category
-			id="com.twinsoft.convertigo.eclipse.convertigolibraries"
+			id="com.twinsoft.convertigo.eclipse.convertigomarketplace"
 			name="Convertigo Libraries" />
 		<!-- Mobile projects -->
 		<wizard
@@ -370,247 +370,27 @@
 			file.</description> { "url":
 			"template_HTTP=https://github.com/convertigo/c8oprj-template-http/archive/7.9.0.zip",
 			"doPage1": true, "doPage10": true } </wizard>
-		<!-- Libraries projects -->
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_vonage_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryVonageWizard"
-			name="Vonage library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>This is the Convertigo connector to Vonage API for SMS,
-			Viber, Whatsapp, Facebook Messenger and MMS messaging services. The
-			library also provides APIs for Video Components.</description> {
-			"url":
-			"lib_Vonage_ui_ngx=https://github.com/convertigo/c8oprj-lib-vonage-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_usermanager_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
-			name="User Manager library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>The user manager library handling user/password or
-			OpenID / OAuth single signons.</description> { "url":
-			"lib_UserManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-user-manager-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_sigfox_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
-			name="Sigfox library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo Sigfox library project.</description>
-			{ "url":
-			"lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_saml_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
-			name="SAML SSO library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>This is the SAML 2.0 Authentication library for
-			Convertigo platform. Install this library to enable SAML 2.0 SSO to
-			your Convertigo applications.</description> { "url":
-			"lib_SAML_ui_ngx=https://github.com/convertigo/c8oprj-lib-saml-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_salesforce_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
-			name="Salesforce library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo Salesforce library project.</description>
-			{ "url":
-			"lib_Salesforce=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_pushManager_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
-			name="Push manager library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>This is the Firebase Cloud Messaging (FCM) Push
-			notifications library for the Convertigo Low Code Platform. This
-			library brings the server part and the client part for Firebase Push
-			Notifications support for Convertigo mobile builder apps.</description>
-			{ "url":
-			"lib_PushManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-push-manager-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_oauth_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
-			name="OAuth library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo OAuth library project.</description>
-			{ "url":
-			"lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_excel_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryMicrosoftExcelWizard"
-			name="Microsoft Excel library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Uses the Microsoft Excel connector for Convertigo
-			platform. Install this library to enable reading from Microsoft
-				Excel sheets on Office365 Cloud for your Convertigo
-				applications.</description> { "url":
-			"lib_MicrosoftExcel_ui_ngx=https://github.com/convertigo/c8oprj-lib-excel-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_googlesheets_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSheetWizard"
-			name="Google Sheets library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>This is the Google Sheets connector for Convertigo
-			platform. Install this library to enable writing and reading from
-			Google Sheets for your Convertigo applications.</description> {
-			"url":
-			"lib_GoogleSheet_ui_ngx=https://github.com/convertigo/c8oprj-lib-googlesheets-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_geocoding_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGeocodingWizard"
-			name="Geocoding library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Uses the geocoding library for Convertigo platform when
-			network is reachable. Install this library to geocode coordinates
-				for your Convertigo applications. It is based on Bing Maps
-			location
-				API. The shared component used in this library geocodes
-			automatically browser's coordinates when network is reachable.</description>
-			{ "url":
-			"lib_Geocoding_ui_ngx=https://github.com/convertigo/c8oprj-lib-geocoding-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_fullsyncgrp_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFullSyncGrpWizard"
-			name="FullSync Groups library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo FullSync Groups library project.</description>
-			{ "url":
-			"lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_filetransfer_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
-			name="FileTransfer library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports the Convertigo FileTransfer library project.</description>
-			{ "url":
-			"lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.9.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/angularjs_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryExtendedComponentsWizard"
-			name="Extended Components library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Set of shared components you can use in your projects:
-			agGrid, ngxTagInput, angularxQRCode, CardIO, ZXing ...</description>
-			{ "url":
-			"lib_ExtendedComponents_ui_ngx=https://github.com/convertigo/c8oprj-lib-extended-components-ui-ngx.git:branch=8.1.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/library_amazonLex_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
-			name="Amazon LEX library"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Library for interacting with Amazon Lex Chatbots. This
-			library Enables Convertigo to build conversational Apps for Mobile
-			Web and Desktop Apps by interacting with Amazon's ChatBot
-				Technology.</description> { "url":
-			"lib_AmazonLEX_ui_ngx=https://github.com/convertigo/c8oprj-lib-amazonlex-ui-ngx.git:branch=8.0.0",
-			"doPageSummarySampleProject": true } </wizard>
-		<!-- Mobile sample projects -->
+		<!-- Marketplace projects -->
 		<wizard
 			category="org.eclipse.ui.Examples"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/offchat_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewSampleOffChatWizard"
-			name="Convertigo OffChat sample project"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports a project creating a sampleOffChat application.
-			This application demonstrates FullSync technology used to an
-				"Offline Chat" application. This app enables users to establish
-			conversations between them and chat using text messages and photos.
-			When the device is online, messages will flow from one to the other
-			immediately, using FullSync “live” replications. If the device if
-			offline, posts will be secured in the local FullSync NoSQL database
-			and will be synced automatically when the device is online again.</description>
-			{ "url":
-			"sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/8.3.0.zip",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="org.eclipse.ui.Examples"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-			icon="icons/studio/panel_color_32x32.gif"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
-			name="Convertigo HelloWorld sample project"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Imports a project creating a sample_HelloWorld
-			application. Simple news reader application using the Convertigo
-			Mobile Builder.</description> { "url":
-			"sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/8.3.0.zip",
-			"doPageSummarySampleProject": true } </wizard>
-		<wizard
-			category="org.eclipse.ui.Examples"
-			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+			class="com.twinsoft.convertigo.eclipse.wizards.marketplace.MarketplaceWizard"
 			icon="icons/studio/retail_store_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.NewSampleRetailStoreWizard"
-			name="Convertigo RetailStore sample project"
+			id="com.twinsoft.convertigo.eclipse.wizards.MarketplaceSamplesWizard"
+			name="Convertigo Samples from Marketplace"
 			preferredPerspectives="convertigo"
 			project="true">
-			<description>Imports a project creating a sampleRetailStore
-			application. This application demonstrates FullSync technology used
-			for a mobile retail store application where the user can browse a
-			catalog of products downloaded on his mobile phone. For this demo,
-			the data come from a static XML file imported in the FullSync server
-			database. When the mobile application is launched, a first step will
-			be done to import the data in the server database, then the data
-				will be “synced” on the mobile device. Be sure to install a
-			CouchDB
-				server on your workstation before running this demo.</description>
-			{ "url":
-			"sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/8.3.0.zip",
-			"doPageSummarySampleProject": true } </wizard>
+			<description>Opens the Convertigo Marketplace and shows sample projects.</description>
+			{ "tag": "sample" } </wizard>
+		<wizard
+			category="com.twinsoft.convertigo.eclipse.convertigolibraries"
+			class="com.twinsoft.convertigo.eclipse.wizards.marketplace.MarketplaceWizard"
+			icon="icons/studio/retail_store_color_32x32.png"
+			id="com.twinsoft.convertigo.eclipse.wizards.MarketplaceLibrariesWizard"
+			name="Convertigo Libraries from Marketplace"
+			preferredPerspectives="convertigo"
+			project="true">
+			<description>Opens the Convertigo Marketplace and shows library projects.</description>
+			{ "tag": "library" } </wizard>
 	</extension>
 	<extension
 		point="org.eclipse.ui.perspectiveExtensions">
