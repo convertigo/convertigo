@@ -1,16 +1,15 @@
 <script>
-	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Certificates from '$lib/admin/Certificates.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
+	import FileUploadField from '$lib/admin/components/FileUploadField.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy } from 'svelte';
 
 	let {
@@ -37,6 +36,7 @@
 
 	let modalCertInstall = $state();
 	let modalCertRemove = $state();
+
 </script>
 
 <ModalDynamic bind:this={modalCertInstall}>
@@ -52,50 +52,23 @@
 				<b>certificates store files</b> (*.store)
 			</p>
 			<fieldset disabled={calling}>
-				<FileUpload
+				<FileUploadField
 					name="userfile"
-					accept={{ 'application/x-pkcs12': ['.pfx', '.p12'], 'application/pkix-cert': ['.cer'] }}
-					maxFiles={1}
+					accept={{
+						'application/x-pkcs12': ['.pfx', '.p12'],
+						'application/pkcs12': ['.pfx', '.p12'],
+						'application/pkix-cert': ['.cer'],
+						'application/x-x509-ca-cert': ['.cer'],
+						'application/octet-stream': ['.pfx', '.p12', '.cer', '.store']
+					}}
 					required
 					allowDrop
-					class="w-full"
-				>
-					<FileUpload.Dropzone
-						class="layout-y-stretch-low rounded-base border border-dashed border-surface-200-800 bg-surface-100-900 p-6 text-center transition-soft data-[dragging=true]:preset-filled-primary-100-900"
-					>
-						<Ico icon="mdi:certificate" size="8" class="mx-auto text-primary-500" />
-						<p class="text-base font-semibold">Drop or choose a certificate file</p>
-						<p class="text-xs text-muted">then press Install</p>
-						<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
-							>Browse</FileUpload.Trigger
-						>
-					</FileUpload.Dropzone>
-					<FileUpload.HiddenInput />
-					<FileUpload.Context>
-						{#snippet children(fileUpload)}
-							<FileUpload.ItemGroup class="layout-y-low">
-								{#each fileUpload().acceptedFiles as file (file.name)}
-									<FileUpload.Item
-										{file}
-										class="layout-x-between items-center rounded-sm bg-surface-50-950 py-2 px-low shadow-xs"
-									>
-										<div class="layout-x-low items-center gap-low">
-											<Ico icon="mdi:briefcase-upload-outline" size="4" class="text-primary-500" />
-											<FileUpload.ItemName />
-										</div>
-										<div class="layout-x-low items-center gap-low text-xs text-muted">
-											<FileUpload.ItemSizeText />
-											<FileUpload.ItemDeleteTrigger class="button-ico-secondary h-6 w-6">
-												<Ico icon="mdi:delete-outline" size="3" />
-											</FileUpload.ItemDeleteTrigger>
-										</div>
-									</FileUpload.Item>
-								{/each}
-							</FileUpload.ItemGroup>
-						{/snippet}
-					</FileUpload.Context>
-				</FileUpload>
-				<ActionBar>
+					dropIcon="mdi:certificate"
+					title="Drop or choose a certificate file"
+					hint="then press Install"
+					rejectedText="Unsupported file type. Please use .pfx, .p12, .cer, or .store."
+				/>
+				<ActionBar class="mt-4">
 					<Button
 						label="Install"
 						icon="mdi:certificate"
