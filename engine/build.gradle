@@ -123,6 +123,10 @@ tasks.register('soapuiSmokeTest', JavaExec) {
 	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
 }
 
+def patchesJarFileProvider = providers.provider {
+	project(':patches').tasks.named('jar').get().archiveFile.get().asFile
+}
+
 task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 	group = 'convertigo'
 	
@@ -140,9 +144,17 @@ task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 		.withPathSensitivity(PathSensitivity.RELATIVE)
 		.optional()
 
+	// Always include patches first so their classes override dependency duplicates.
 	from {
+		zipTree(patchesJarFileProvider.get())
+	}
+	from {
+		def patchesJarFile = patchesJarFileProvider.get()
 		configurations.compileFlat.collect { dep ->
 			if (dep.isFile() && dep.getName().endsWith('.pom')) {
+				return null
+			}
+			if (dep == patchesJarFile) {
 				return null
 			}
 			dep.isDirectory() ? dep : zipTree(dep)
@@ -243,6 +255,7 @@ dependencies {
 	implementation('com.convertigo.provider:convertigo-provider-plugins:8.3.11') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
+		exclude group: 'xalan', module: 'serializer'
 	}	
 	implementation 'com.convertigo.provider:convertigo-provider-sap:8.3.11'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
