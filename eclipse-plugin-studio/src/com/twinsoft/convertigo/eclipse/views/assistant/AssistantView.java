@@ -30,6 +30,8 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -98,8 +100,34 @@ public class AssistantView extends ViewPart {
 		browser = new C8oBrowser(parent, SWT.NONE);
 		
 		browser.getBrowser().engine().setTheme(Theme.LIGHT);
+
+		String[] url = {STARTUP_URL};
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url[0] = u;
+			}
+		} catch (Exception e) {
+		}
 		
 		browser.addToolItemNavigation(tb);
+		new ToolItem(tb, SWT.SEPARATOR);
+
+		var ti = new ToolItem(tb, SWT.NONE);
+		try {
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/setupwizard_16x16.gif"));
+		} catch (Exception e1) {
+		}
+		ti.setText("Home");
+		ti.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.setUrl(url[0]);
+			}
+
+		});
+
 		new ToolItem(tb, SWT.SEPARATOR);
 		browser.addToolItemOpenExternal(tb);
 		
@@ -126,15 +154,6 @@ public class AssistantView extends ViewPart {
 			return false;
 		});
 		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
-		
-		String url = STARTUP_URL;
-		try {
-			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
-			if (StringUtils.isNotBlank(u)) {
-				url = u;
-			}
-		} catch (Exception e) {
-		}
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
@@ -180,7 +199,7 @@ public class AssistantView extends ViewPart {
 			
 		});
 
-		browser.setUrl(url);
+		browser.setUrl(url[0]);
 		
 		Runnable initPev = () -> {
 			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();

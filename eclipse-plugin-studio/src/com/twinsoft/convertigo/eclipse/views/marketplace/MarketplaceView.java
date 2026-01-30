@@ -72,10 +72,6 @@ public class MarketplaceView extends ViewPart {
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		browser = new C8oBrowser(parent, SWT.NONE);
-		
-		browser.addToolItemOpenExternal(tb);
-		
-		new ToolItem(tb, SWT.SEPARATOR);
 
 		String[] url = {STARTUP_URL};
 		try {
@@ -85,6 +81,9 @@ public class MarketplaceView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
+
+		browser.addToolItemNavigation(tb);
+		new ToolItem(tb, SWT.SEPARATOR);
 		
 		var ti = new ToolItem(tb, SWT.NONE);
 		try {
@@ -100,6 +99,9 @@ public class MarketplaceView extends ViewPart {
 			}
 			
 		});
+
+		new ToolItem(tb, SWT.SEPARATOR);
+		browser.addToolItemOpenExternal(tb);
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
