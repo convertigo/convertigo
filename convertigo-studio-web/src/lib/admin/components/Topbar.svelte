@@ -60,7 +60,7 @@
 
 		<section class="layout-x">
 			<Ico icon="logo.png" alt="logo convertigo" size={7} />
-			<h1 class="font-medium max-md:hidden">{computedTitle}</h1>
+			<h2 class="font-medium max-md:hidden">{computedTitle}</h2>
 		</section>
 
 		<section class="layout-x-p py-low!">
@@ -81,7 +81,7 @@
 						fit
 						item={instanceOptions}
 						disabled={Instances.loading}
-						class="select h-fit! input-common px-2 py-none text-sm"
+						class="select h-fit! input-common w-100 px-2 py-none text-sm"
 						bind:value={Instances.current}
 					/>
 					<Button

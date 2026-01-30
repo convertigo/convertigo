@@ -111,18 +111,15 @@
 								'gap-0.5',
 								'rounded-base',
 								'border',
-								'border-surface-200-800',
-								'bg-surface-50-950',
+								'border-surface-100-900',
+								'bg-surface-200-800',
 								'p-0.5',
-								'shadow-sm/10',
-								'shadow-surface-900-100',
+								'shadow-none',
 								'overflow-hidden',
 								rest?.orientation == 'vertical' ? 'flex-col' : 'flex-row'
 							]}
 						>
-							<SegmentedControl.Indicator
-								class="rounded-[0.3rem] bg-primary-600 shadow-sm/15 shadow-primary-900/30"
-							/>
+							<SegmentedControl.Indicator class="rounded-[0.3rem] bg-primary-600 shadow-none" />
 							{#each item as option (option.value ?? option)}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}

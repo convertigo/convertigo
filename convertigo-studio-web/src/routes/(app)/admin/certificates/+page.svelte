@@ -36,7 +36,6 @@
 
 	let modalCertInstall = $state();
 	let modalCertRemove = $state();
-
 </script>
 
 <ModalDynamic bind:this={modalCertInstall}>
@@ -139,7 +138,6 @@
 	},
 	def
 })}
-	{@const inputClass = 'border border-surface-100-900'}
 	{#if loading}
 		<AutoPlaceholder {loading} />
 	{:else if def.name == 'Certificate / Store' && def.setup}
@@ -147,7 +145,6 @@
 			<PropertyType
 				name="name_0"
 				type="combo"
-				class={inputClass}
 				item={candidates.map(({ name }) => ({ value: name, text: name }))}
 				value={candidates[0]?.name}
 			/>
@@ -160,7 +157,6 @@
 			<PropertyType
 				name="convProject_0"
 				type="combo"
-				class={inputClass}
 				item={projects.map(({ name }) => ({ value: name, text: name }))}
 				value={projects[0]?.name}
 			/>
@@ -173,7 +169,6 @@
 		<PropertyType
 			name="virtualServer_0"
 			type="text"
-			class={inputClass}
 			value={virtualServerName}
 			originalValue={virtualServerName}
 		/>
@@ -181,23 +176,15 @@
 		<PropertyType
 			name="group_0"
 			type="text"
-			class={inputClass}
 			value={imputationGroup}
 			originalValue={imputationGroup}
 		/>
 	{:else if def.name == 'User'}
-		<PropertyType
-			name="user_0"
-			type="text"
-			class={inputClass}
-			value={userName}
-			originalValue={userName}
-		/>
+		<PropertyType name="user_0" type="text" value={userName} originalValue={userName} />
 	{:else if def.name == 'Certificate / Store'}
 		<PropertyType
 			name="cert_0"
 			type="combo"
-			class={inputClass}
 			item={certificates.map(({ name }) => ({ value: name, text: name }))}
 			value={certificateName ?? certificates[0]?.name}
 		/>
@@ -205,7 +192,6 @@
 		<PropertyType
 			name="type_0"
 			type="combo"
-			class={inputClass}
 			item={[
 				{ value: 'server', text: 'Server' },
 				{ value: 'client', text: 'Client' }
@@ -221,7 +207,6 @@
 			<PropertyType
 				name="pwd_0"
 				type="password"
-				class={inputClass}
 				value={password}
 				originalValue={password}
 				placeholder="Enter certificate password …"
@@ -231,7 +216,6 @@
 		<PropertyType
 			name="group_0"
 			type="text"
-			class={inputClass}
 			value={group}
 			originalValue={group}
 			placeholder="Enter group value …"

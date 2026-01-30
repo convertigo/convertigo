@@ -90,12 +90,12 @@
 	{#if draw}
 		<div
 			class="mini-card border border-surface-200-800 text-xs {cls}"
-			class:preset-filled-success-100-900={hasView && hasConfig}
-			class:preset-filled-primary-100-900={hasView && !hasConfig}
+			class:preset-filled-success-500={hasView && hasConfig}
+			class:preset-filled-primary-500={hasView && !hasConfig}
 			class:motif-primary={hasView && !hasConfig}
-			class:preset-filled-warning-100-900={!hasView && hasConfig}
+			class:preset-filled-warning-500={!hasView && hasConfig}
 			class:motif-warning={!hasView && hasConfig}
-			class:preset-filled-surface-100-900={!hasView && !hasConfig}
+			class:preset-filled-surface-600-400={!hasView && !hasConfig}
 			class:motif-surface={!hasView && !hasConfig}
 		>
 			{#if part}<Ico icon={part.icon} />{/if}
@@ -119,12 +119,12 @@
 	{#if draw}
 		<div
 			class="mini-card border border-surface-200-800 text-xs {cls}"
-			class:preset-filled-warning-100-900={hasTp && !hasTpHidden}
+			class:preset-filled-warning-500={hasTp && !hasTpHidden}
 			class:motif-warning={hasTp && !hasTpHidden}
-			class:preset-filled-primary-100-900={hasTpHidden && !hasTpPrivate}
+			class:preset-filled-primary-500={hasTpHidden && !hasTpPrivate}
 			class:motif-primary={hasTpHidden && !hasTpPrivate}
-			class:preset-filled-success-100-900={hasTpPrivate}
-			class:preset-filled-surface-100-900={!hasTp}
+			class:preset-filled-success-500={hasTpPrivate}
+			class:preset-filled-surface-600-400={!hasTp}
 			class:motif-surface={!hasTp}
 		>
 			<Ico {icon} />{formatRoleName(role)}
@@ -162,6 +162,7 @@
 						{ name: 'View', custom: true, class: 'max-w-6' },
 						{ name: 'Config', custom: true, class: 'max-w-6' }
 					]}
+					cardBreakpoint={640}
 					data={['All', ...roles.filter((role) => role.endsWith('VIEW'))]}
 				>
 					{#snippet children({ row: role, def })}
@@ -180,7 +181,6 @@
 							<PropertyType
 								type="check"
 								size="sm"
-								class="border border-surface-100-900"
 								checked={subRoles.every((r) => rowSelected.roles.includes(r))}
 								onCheckedChange={(e) => {
 									for (const value of subRoles) {
@@ -195,7 +195,6 @@
 								name="roles"
 								type="check"
 								size="sm"
-								class="border border-surface-100-900"
 								{value}
 								checked={rowSelected.roles.includes(value)}
 								onCheckedChange={(e) => {

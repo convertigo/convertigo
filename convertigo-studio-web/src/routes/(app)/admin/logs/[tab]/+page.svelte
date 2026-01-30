@@ -127,7 +127,7 @@
 
 	let startDate = $derived(dates[0].toString() + ' ' + times[0]);
 	let endDate = $derived(dates[1] ? dates[1].toString() + ' ' + times[1] : '');
-	let autoScroll = $state(false);
+	let autoScroll = $state(true);
 	let live = $state(false);
 
 	async function refreshLogs() {
@@ -415,7 +415,7 @@
 				} = LogsPurge}
 				<div class="layout-y-stretch" transition:slide={{ axis: 'y' }}>
 					<div class="mt">Logs are split into multiple files, each step is a file.</div>
-					<div class="rounded-sm preset-filled-surface-300-700 p-5">
+					<div class="p-5">
 						<AutoPlaceholder {loading}>
 							<Slider
 								name="range-slider"
@@ -426,7 +426,7 @@
 								step={1}
 							>
 								<Slider.Control class="relative w-full">
-									<Slider.Track class="h-1 w-full rounded-full bg-surface-200-800">
+									<Slider.Track class="h-1 w-full rounded-full bg-primary-200-800">
 										<Slider.Range class="h-full rounded-full bg-primary-500" />
 									</Slider.Track>
 									<Slider.Thumb index={0} class="h-5 w-5 rounded-full bg-primary-500" />

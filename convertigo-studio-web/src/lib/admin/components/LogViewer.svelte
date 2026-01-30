@@ -197,9 +197,16 @@
 	async function afterScroll({ detail }) {
 		const offset = detail?.offset;
 		const isUserScroll = detail?.event?.isTrusted;
+		const target = detail?.event?.target;
 		if (typeof offset !== 'number') return;
 		if (autoScroll && isUserScroll && offset < lastScrollOffset - 2) {
 			autoScroll = false;
+		}
+		if (!autoScroll && target) {
+			const maxOffset = Math.max(0, target.scrollHeight - target.clientHeight);
+			if (offset >= maxOffset - 2) {
+				autoScroll = true;
+			}
 		}
 		lastScrollOffset = offset;
 	}

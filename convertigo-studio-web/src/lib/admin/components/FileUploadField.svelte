@@ -59,21 +59,16 @@
 	const dropzoneClasses = $derived([dropzoneBase, dropzoneClass].filter(Boolean).join(' '));
 </script>
 
-<FileUpload
-	{name}
-	{accept}
-	{maxFiles}
-	{required}
-	{allowDrop}
-	class={rootClass}
->
+<FileUpload {name} {accept} {maxFiles} {required} {allowDrop} class={rootClass}>
 	<FileUpload.Dropzone class={dropzoneClasses}>
 		<Ico icon={dropIcon} size="8" class="mx-auto text-primary-500" />
 		<p class="text-base font-semibold">{title}</p>
 		{#if hint}
 			<p class="text-xs text-muted">{hint}</p>
 		{/if}
-		<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!">{triggerLabel}</FileUpload.Trigger>
+		<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
+			>{triggerLabel}</FileUpload.Trigger
+		>
 		<FileUpload.HiddenInput />
 	</FileUpload.Dropzone>
 	<FileUpload.Context>
@@ -82,11 +77,11 @@
 				{#each fileUpload().acceptedFiles as file (file.name)}
 					<FileUpload.Item
 						{file}
-						class="layout-x-between items-center rounded-sm border border-surface-200-800 bg-surface-50-950 px-low py-2 shadow-xs"
+						class="layout-x-between items-center rounded-sm border border-surface-200-800 bg-surface-50-950 py-2 px-low shadow-xs"
 					>
-						<div class="layout-x-low items-center gap-low min-w-0">
+						<div class="layout-x-low min-w-0 items-center gap-low">
 							<Ico icon={itemIcon} size="4" class="text-surface-600-400" />
-							<FileUpload.ItemName class="text-sm font-medium truncate">
+							<FileUpload.ItemName class="truncate text-sm font-medium">
 								{file.name}
 							</FileUpload.ItemName>
 						</div>

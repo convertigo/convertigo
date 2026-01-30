@@ -173,7 +173,7 @@
 		{
 			key: 'displayName',
 			name: 'Name',
-			class: 'min-w-40 text-xs uppercase text-surface-600-400'
+			class: 'min-w-40 text-xs text-right text-surface-600-400'
 		},
 		{ key: 'value', name: 'Value', custom: true, class: 'w-full' }
 	];
@@ -190,11 +190,11 @@
 		expandOnClick={false}
 		defaultExpandedValue={[project]}
 		defaultSelectedValue={[project]}
-		base="rounded-container border border-surface-200-800 preset-filled-surface-50-950 p-3 shadow-follow min-w-fit"
+		base="rounded-container border border-color preset-filled-surface-100-900 p-3 shadow-follow min-w-0 max-w-full w-full lg:flex-[0_1_35%] lg:max-w-[42%]"
 		classes="overflow-hidden break-words select-none"
 		textClass="text-sm font-medium text-strong"
 		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
-		childrenClass="border-l border-surface-200-800 pl-3"
+		childrenClass="border-l border-color pl-3"
 		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 transition-soft hover:bg-surface-200-800"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
@@ -220,7 +220,7 @@
 			/>
 		{/snippet}
 	</TreeView>
-	<div class="layout-y-low w-full items-stretch">
+	<div class="mb-low layout-y-low min-w-0 flex-1 items-stretch">
 		<span data-spacer class="max-lg:hidden"></span>
 		{#snippet saveCancel()}
 			<SaveCancelButtons
@@ -255,9 +255,9 @@
 				{@const total = properties.length}
 				<AccordionSection
 					value={category}
-					class="overflow-hidden rounded-container border border-surface-200-800 preset-filled-surface-50-950 shadow-follow"
-					triggerClass="px py text-left bg-surface-100-900/70 border-b border-surface-200-800 data-[state=open]:bg-surface-100-900/90"
-					panelClass="px pb pt-low bg-surface-50-950"
+					class="overflow-hidden rounded-container border border-color preset-filled-surface-100-900 shadow-follow"
+					triggerClass="px py text-left bg-surface-100-900 border-b border-color data-[state=open]:bg-surface-100-900"
+					panelClass="px pb pt-low bg-surface-100-900"
 					disabled={total == 0}
 					title={category}
 					count={total}
@@ -277,6 +277,7 @@
 								definition={propertyTableDefinition}
 								animationProps={{ duration: 120 }}
 								data={properties}
+								class="table-no-frame"
 							>
 								{#snippet children({ row })}
 									{@const { class: cls, value, originalValue, values } = row}
@@ -318,5 +319,10 @@
 
 	:global([data-scope='accordion']) {
 		transition: margin-top 0.3s ease-in-out;
+	}
+
+	:global(.table-no-frame .table-frame) {
+		border: 0;
+		border-radius: 0;
 	}
 </style>

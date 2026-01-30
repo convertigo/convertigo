@@ -4,7 +4,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { fromAction } from 'svelte/attachments';
 
-	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>}} */
+	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>, cardBreakpoint?: number}} */
 	let {
 		definition,
 		data,
@@ -16,6 +16,7 @@
 		thClass = 'text-left text-strong text-[14px] font-semibold',
 		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
 		fnRowId = (row, i) => row.name ?? i,
+		cardBreakpoint = 0,
 		children,
 		rowChildren,
 		thead
@@ -35,6 +36,7 @@
 			const table = node.querySelector('table');
 			if (!table) return;
 			const containerWidth = Math.floor(node.clientWidth);
+			if (containerWidth === 0) return;
 			if (!isCardView) {
 				const measured = Math.ceil(table.scrollWidth);
 				if (measured > 0) {
@@ -43,7 +45,9 @@
 			} else if (tableMinWidth === 0) {
 				tableMinWidth = Math.ceil(table.scrollWidth);
 			}
-			if (!isCardView && containerWidth + overflowThreshold < tableMinWidth) {
+			if (cardBreakpoint > 0 && containerWidth >= cardBreakpoint) {
+				isCardView = false;
+			} else if (!isCardView && containerWidth + overflowThreshold < tableMinWidth) {
 				isCardView = true;
 			} else if (isCardView && containerWidth >= tableMinWidth + overflowThreshold) {
 				isCardView = false;
@@ -61,6 +65,14 @@
 
 		const resizeObserver = new ResizeObserver(schedule);
 		resizeObserver.observe(node);
+		const intersectionObserver = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.isIntersecting) {
+					schedule();
+				}
+			}
+		});
+		intersectionObserver.observe(node);
 
 		const mutationObserver = new MutationObserver(schedule);
 		mutationObserver.observe(node, { childList: true, subtree: true, characterData: true });
@@ -71,6 +83,7 @@
 					cancelAnimationFrame(rafId);
 				}
 				resizeObserver.disconnect();
+				intersectionObserver.disconnect();
 				mutationObserver.disconnect();
 			}
 		};

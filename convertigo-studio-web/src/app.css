@@ -70,7 +70,7 @@
 
 	.c8o-switch {
 		background-color: light-dark(var(--color-surface-200), var(--color-surface-800)) !important;
-		border: 1px solid transparent;
+		border: 1px solid light-dark(var(--color-surface-100), var(--color-surface-900));
 	}
 
 	.c8o-switch[data-state='checked'] {
@@ -97,7 +97,7 @@
 
 @utility table-frame {
 	border: 1px solid;
-	border-color: light-dark(var(--color-surface-300), var(--color-surface-700));
+	border-color: light-dark(var(--color-surface-200), var(--color-surface-800));
 	border-radius: var(--radius-base);
 	overflow: hidden;
 }
@@ -255,14 +255,14 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply w-full rounded-base border border-surface-100-900 bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-base border border-transparent bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply rounded-base border border-surface-100-900 bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 }
 
 @utility input-text {
