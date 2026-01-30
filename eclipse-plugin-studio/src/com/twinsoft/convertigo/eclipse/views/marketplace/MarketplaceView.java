@@ -52,9 +52,8 @@ public class MarketplaceView extends ViewPart {
 	public static final String STARTUP_URL = "https://backend-apps.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
 
 	private C8oBrowser browser = null;
-	private C8oBrowserPostMessageHelper postMessageHelper = null;
-	private String pendingTag = null;
-	
+	private String startup_url = STARTUP_URL;
+
 	@Override
 	public void dispose() {
 		if (browser != null) {
@@ -66,28 +65,27 @@ public class MarketplaceView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		SwtUtils.refreshTheme();
-		
+
 		parent.setLayout(new GridLayout(1, true));
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		browser = new C8oBrowser(parent, SWT.NONE);
 
-		String[] url = {STARTUP_URL};
 		try {
 			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL);
 			if (StringUtils.isNotBlank(u)) {
-				url[0] = u;
+				startup_url = u;
 			}
 		} catch (Exception e) {
 		}
 
 		browser.addToolItemNavigation(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
-		
+
 		var ti = new ToolItem(tb, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/retail_store_color_16x16.png"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/png/mdi/store-outline_16x16.png"));
 		} catch (IOException e1) {
 		}
 		ti.setText("Home");
@@ -95,14 +93,14 @@ public class MarketplaceView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				browser.setUrl(url[0]);
+				browser.setUrl(startup_url);
 			}
-			
+
 		});
 
 		new ToolItem(tb, SWT.SEPARATOR);
 		browser.addToolItemOpenExternal(tb);
-		
+
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
 		Engine.logStudio.debug("Marketplace debug : "+ browser.getDebugUrl());
@@ -126,9 +124,8 @@ public class MarketplaceView extends ViewPart {
 			}
 			return false;
 		});
-		
+
 		var handler = new C8oBrowserPostMessageHelper(browser);
-		postMessageHelper = handler;
 		handler.onMessage(json -> {
 			Engine.logStudio.debug("Marketplace onMessage: " + json);
 			try {
@@ -169,7 +166,7 @@ public class MarketplaceView extends ViewPart {
 				} else if ("get".equals(json.getString("type"))) {
 					var projectName = json.getString("project");
 					var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-					
+
 					try {
 						var msg = new JSONObject();
 						msg.put("type", "postGet");
@@ -194,13 +191,12 @@ public class MarketplaceView extends ViewPart {
 				json.put("type", "init");
 				json.put("version", ProductVersion.productVersion);
 				handler.postMessage(json);
-				postOpenTag(pendingTag);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
 
-		browser.setUrl(url[0]);
+		browser.setUrl(startup_url);
 	}
 
 	@Override
@@ -211,21 +207,6 @@ public class MarketplaceView extends ViewPart {
 		if (StringUtils.isBlank(tag)) {
 			return;
 		}
-		pendingTag = tag;
-		postOpenTag(tag);
+		browser.setUrl(startup_url + "?topics=" + tag + "#results");
 	}
-
-	private void postOpenTag(String tag) {
-		if (postMessageHelper == null || StringUtils.isBlank(tag)) {
-			return;
-		}
-		try {
-			var msg = new JSONObject();
-			msg.put("type", "openTag");
-			msg.put("tag", tag);
-			postMessageHelper.postMessage(msg);
-		} catch (Exception e) {
-		}
-	}
-
 }

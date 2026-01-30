@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.marketplace;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -49,7 +50,6 @@ public class MarketplaceWizard extends Wizard implements INewWizard, IExecutable
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data)
 			throws CoreException {
-		if (config != null) {
 			String name = config.getAttribute("name");
 			if (StringUtils.isNotBlank(name)) {
 				setWindowTitle(name);
@@ -62,29 +62,12 @@ public class MarketplaceWizard extends Wizard implements INewWizard, IExecutable
 					pageDescription = value.trim();
 				}
 			}
-		}
-
-		if (data instanceof String) {
-			String payload = ((String) data).trim();
-			if (!payload.isEmpty()) {
-				try {
-					JSONObject json = new JSONObject(payload);
-					String parsedTag = json.optString("tag", null);
-					if (StringUtils.isNotBlank(parsedTag)) {
-						tag = parsedTag;
-					}
-					String parsedTitle = json.optString("title", null);
-					if (StringUtils.isNotBlank(parsedTitle)) {
-						pageTitle = parsedTitle;
-					}
-					String parsedDescription = json.optString("description", null);
-					if (StringUtils.isNotBlank(parsedDescription)) {
-						pageDescription = parsedDescription;
-					}
-				} catch (Exception e) {
-					tag = payload;
-				}
-			}
+		String value = config.getValue();
+		JSONObject json;
+		try {
+			json = new JSONObject(value);
+			tag = json.getString("tag");
+		} catch (JSONException e) {
 		}
 	}
 
