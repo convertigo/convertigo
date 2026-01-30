@@ -59,8 +59,8 @@
 	let rotationSteps = $state(0);
 	let showStatusBar = $state(false);
 	const iconButtonClasses =
-		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-surface-200-800/40 bg-surface-50-950/80 text-surface-600-400 transition hover:bg-surface-200-800/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
-	const iconButtonActiveClasses = 'bg-primary-100/70 text-primary-600-400';
+		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-surface-200-800 bg-surface-100-900 text-surface-700-300 transition hover:bg-surface-200-800/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
+	const iconButtonActiveClasses = 'bg-primary-100-900 text-primary-600-400';
 	let groupedDevices = $derived.by(() => {
 		const devices = Object.values(Bezels)
 			.filter(Boolean)
@@ -325,7 +325,7 @@
 
 {#snippet rightPart()}
 	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-50-950 max-md:layout-grid-[100px]"
+		class="h-full border-r-[0.5px] border-color preset-filled-surface-100-900 max-md:layout-grid-[100px]"
 	>
 		<AccordionGroup bind:value={openGroup} collapsible>
 			{#each groupedDevices as { id, title, devices } (id)}
@@ -394,7 +394,7 @@
 	</nav>
 {/snippet}
 <InputGroup
-	class="sticky top-[60px] z-10 -mt-low rounded-container preset-filled-surface-50-950 p-low shadow-follow backdrop-blur-sm"
+	class="sticky top-[60px] z-10 -mt-low rounded-container !border-surface-200-800 !bg-surface-100-900 p-low shadow-follow backdrop-blur-sm"
 	bind:value={addressBar}
 	onsubmit={(event) => {
 		event.preventDefault();

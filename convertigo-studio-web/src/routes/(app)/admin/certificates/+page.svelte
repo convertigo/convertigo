@@ -99,8 +99,8 @@
 					type="segment"
 					orientation="vertical"
 					name="certificateName"
-					item={Certificates.candidates.map(({ name }) => ({ value: name, text: name }))}
-					value=""
+					item={candidates.map(({ name }) => ({ value: name, text: name }))}
+					value={candidates[0]?.name ?? ''}
 				/>
 				<ActionBar>
 					<Button

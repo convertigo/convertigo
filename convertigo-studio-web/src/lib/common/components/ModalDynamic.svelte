@@ -27,6 +27,10 @@
 		resolve = reject = undefined;
 	}
 
+	function clearParams() {
+		params = undefined;
+	}
+
 	$effect(() => {
 		if (!browser) return;
 		const previousOverflow = document.body.style.overflow;
@@ -56,6 +60,7 @@
 			result = value;
 		}
 		opened = false;
+		clearParams();
 		finalize();
 	}
 </script>
@@ -64,7 +69,10 @@
 	open={opened}
 	onOpenChange={(e) => {
 		opened = e.open;
-		if (!opened) finalize();
+		if (!opened) {
+			clearParams();
+			finalize();
+		}
 	}}
 >
 	<Dialog.Trigger class="hidden" />

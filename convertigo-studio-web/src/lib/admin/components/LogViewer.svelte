@@ -175,15 +175,11 @@
 			_scrollToIndex = undefined;
 			await tick();
 			_scrollToIndex = logs.length - 1;
-			if (showedLines.end == _scrollToIndex && !Logs.moreResults && !live && !Logs.calling) {
-				autoScroll = false;
-			}
 		}
 	}
 
 	async function itemsUpdated({ detail }) {
 		showedLines = detail;
-
 		if (recenter) {
 			recenter();
 		} else {
@@ -199,13 +195,16 @@
 		const isUserScroll = detail?.event?.isTrusted;
 		const target = detail?.event?.target;
 		if (typeof offset !== 'number') return;
-		if (autoScroll && isUserScroll && offset < lastScrollOffset - 2) {
+		const tolerance = Math.max(2, Math.round(lineHeight * 0.6));
+		if (autoScroll && isUserScroll && offset < lastScrollOffset - tolerance) {
 			autoScroll = false;
+			autoScrollSuspendedByScroll = true;
 		}
-		if (!autoScroll && target) {
+		if (!autoScroll && autoScrollSuspendedByScroll && target) {
 			const maxOffset = Math.max(0, target.scrollHeight - target.clientHeight);
-			if (offset >= maxOffset - 2) {
+			if (offset >= maxOffset - tolerance) {
 				autoScroll = true;
+				autoScrollSuspendedByScroll = false;
 			}
 		}
 		lastScrollOffset = offset;
@@ -463,6 +462,7 @@
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
 	let lastScrollOffset = 0;
+	let autoScrollSuspendedByScroll = false;
 	const attachSearchInput = $derived(fromAction(setSearchInput));
 
 	/** @param {HTMLInputElement} node */
@@ -952,79 +952,89 @@
 	</div>
 	<div class="grow">
 		<MaxRectangle bind:clientHeight delay={300}>
-			<VirtualList
-				height={clientHeight}
-				width="auto"
-				itemCount={logs.length}
-				estimatedItemSize={100}
-				{scrollToIndex}
-				{itemSize}
-				scrollToAlignment="center"
-				scrollToBehaviour="instant"
-				on:itemsUpdated={itemsUpdated}
-				on:afterScroll={afterScroll}
-				bind:this={virtualList}
+			<div
+				class="h-full w-full"
+				onwheel={(event) => {
+					if (!autoScroll) return;
+					if (event.deltaY >= 0) return;
+					autoScroll = false;
+					autoScrollSuspendedByScroll = true;
+				}}
 			>
-				<svelte:fragment slot="item" let:style let:index>
-					{@const log = logs[index]}
-					<div {style}>
-						<div
-							class="{log[2]} log-row rounded-sm"
-							class:odd={index % 2 == 0}
-							class:even={index % 2 == 1}
-						>
+				<VirtualList
+					height={clientHeight}
+					width="auto"
+					itemCount={logs.length}
+					estimatedItemSize={100}
+					{scrollToIndex}
+					{itemSize}
+					scrollToAlignment="center"
+					scrollToBehaviour="instant"
+					on:itemsUpdated={itemsUpdated}
+					on:afterScroll={afterScroll}
+					bind:this={virtualList}
+				>
+					<svelte:fragment slot="item" let:style let:index>
+						{@const log = logs[index]}
+						<div {style}>
 							<div
-								class={[
-									'layout-x-wrap',
-									'overflow-y-hidden',
-									'items-baseline',
-									'content-start',
-									'log-meta',
-									log[log.length - 1] > 1 && 'sticky'
-								]}
-								style="height: {extraLines * headerHeight}px; column-gap: 2px; row-gap: 0;"
+								class="{log[2]} log-row rounded-sm"
+								class:odd={index % 2 == 0}
+								class:even={index % 2 == 1}
 							>
-								{#each columns as { name, cls, style } (name)}
-									{@const value = getValue(name, log, index)}
-									<button
-										{style}
-										class="px-[2px] {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
-										animate:grabFlip={{ duration }}
-										onclick={(event) => addFilter({ event, category: name, value })}
-									>
-										{value}
-									</button>
-								{/each}
-							</div>
-							<div
-								class="log-message overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre"
-								style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
-								{@attach dragscroll}
-							>
-								{#if founds.length > 0}
-									{@const _founds = founds.filter((f) => f.index == index)}
-									{#if _founds.length > 0}
-										{#each _founds as found, idx (found.start)}
-											{@const { start, end } = found}
-											{#if idx == 0}
-												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-													{@attach attachScrollIntoView}
-													class="searchedCurrent">{log[4].substring(start, end)}</span
-												>{:else}<span class="searched">{log[4].substring(start, end)}</span
-												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
-													end,
-													_founds[idx + 1].start
-												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+								<div
+									class={[
+										'layout-x-wrap',
+										'overflow-y-hidden',
+										'items-baseline',
+										'content-start',
+										'log-meta',
+										log[log.length - 1] > 1 && 'sticky'
+									]}
+									style="height: {extraLines * headerHeight}px; column-gap: 2px; row-gap: 0;"
+								>
+									{#each columns as { name, cls, style } (name)}
+										{@const value = getValue(name, log, index)}
+										<button
+											{style}
+											class="px-[2px] {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
+											animate:grabFlip={{ duration }}
+											onclick={(event) => addFilter({ event, category: name, value })}
+										>
+											{value}
+										</button>
+									{/each}
+								</div>
+								<div
+									class="log-message overflow-x-scroll rounded-sm p-1 font-mono leading-4 whitespace-pre"
+									style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
+									{@attach dragscroll}
+								>
+									{#if founds.length > 0}
+										{@const _founds = founds.filter((f) => f.index == index)}
+										{#if _founds.length > 0}
+											{#each _founds as found, idx (found.start)}
+												{@const { start, end } = found}
+												{#if idx == 0}
+													{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+														{@attach attachScrollIntoView}
+														class="searchedCurrent">{log[4].substring(start, end)}</span
+													>{:else}<span class="searched">{log[4].substring(start, end)}</span
+													>{/if}{#if idx < _founds.length - 1}{log[4].substring(
+														end,
+														_founds[idx + 1].start
+													)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
+											{log[4]}
+										{/if}
+									{:else}
 										{log[4]}
 									{/if}
-								{:else}
-									{log[4]}
-								{/if}
+								</div>
 							</div>
 						</div>
-					</div>
-				</svelte:fragment>
-			</VirtualList>
+					</svelte:fragment>
+				</VirtualList>
+			</div>
 		</MaxRectangle>
 	</div>
 	<div
@@ -1044,6 +1054,7 @@
 			onclick={async () => {
 				_scrollToIndex = undefined;
 				autoScroll = !autoScroll;
+				autoScrollSuspendedByScroll = false;
 				await doAutoScroll();
 			}}
 		>

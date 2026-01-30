@@ -170,6 +170,7 @@
 			onclick: () => {
 				const nowDate = now(timezone);
 				setDatesTimes(nowDate.copy().subtract({ minutes: 1 }), nowDate);
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}
@@ -179,6 +180,7 @@
 			onclick: () => {
 				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ minutes: 10 }), nowDate);
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}
@@ -188,6 +190,7 @@
 			onclick: () => {
 				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ hours: 1 }), nowDate);
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}
@@ -197,6 +200,7 @@
 			onclick: () => {
 				const todayDate = today(timezone);
 				setDatesTimes(todayDate, todayDate.add({ days: 1 }));
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}
@@ -215,6 +219,7 @@
 			onclick: () => {
 				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ days: 7 }), nowDate);
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}
@@ -224,6 +229,7 @@
 			onclick: () => {
 				const nowDate = now(timezone);
 				setDatesTimes(nowDate.subtract({ days: 30 }), nowDate);
+				autoScroll = true;
 				live = true;
 				refreshLogs();
 			}

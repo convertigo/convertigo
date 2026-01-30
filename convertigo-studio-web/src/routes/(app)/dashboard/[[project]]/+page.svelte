@@ -1,12 +1,12 @@
 <script>
+	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import LightSvelte from '$lib/common/Light.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getThumbnailUrl } from '$lib/utils/service';
+	import { getFrontendUrl, getThumbnailUrl } from '$lib/utils/service';
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
@@ -41,83 +41,139 @@
 		})
 	);
 
-	function stringToColor(str, isDark) {
+	const primaryShades = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+	function getPrimaryShade(str) {
 		let h = 2166136261; // FNV-1a 32bit offset basis
 		for (let i = 0; i < str.length; i++) {
 			h ^= str.charCodeAt(i);
 			h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
 		}
-		let hue = (h >>> 0) % 360;
-		let sat = 40 + ((h >> 10) % 30);
-
-		return hslToHex(hue, sat, isDark ? 30 : 70);
-	}
-
-	function hslToHex(h, s, l) {
-		s /= 100;
-		l /= 100;
-
-		const k = (n) => (n + h / 30) % 12;
-		const a = s * Math.min(l, 1 - l);
-		const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-
-		const toHex = (x) => {
-			const hex = Math.round(255 * x).toString(16);
-			return hex.length === 1 ? '0' + hex : hex;
-		};
-
-		return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+		return primaryShades[(h >>> 0) % primaryShades.length];
 	}
 
 	onDestroy(Projects.stop);
 </script>
 
-<div class="layout-y">
-	<InputGroup
-		id="search"
-		type="search"
-		placeholder="Search projects..."
-		class="bg-surface-50-950"
-		actionsClass="layout-y-none"
-		icon="mdi:magnify"
-		disabled={rootProject}
-		autofocus
-		bind:value={searchQuery}
-	>
-		{#snippet actions()}
-			{#each filters as { icon, count }, i (icon)}
-				<span class="layout-x-none gap-[1px]!">
-					<button
-						class="btn rounded-none p-1"
-						class:preset-filled-success-100-900={count != 1}
-						class:preset-filled-success-600-400={count == 1}
-						onclick={() => {
-							filters[i].count = count == 1 ? 0 : 1;
-						}}
-					>
-						<Ico {icon} size="nav" />
-					</button>
-					<button
-						class="btn rounded-none p-1"
-						class:preset-filled-warning-100-900={count != 2}
-						class:preset-filled-warning-600-400={count == 2}
-						onclick={() => {
-							filters[i].count = count == 2 ? 0 : 2;
-						}}
-					>
-						<Ico {icon} size="nav" />
-					</button>
-				</span>
-			{/each}
-		{/snippet}
-	</InputGroup>
+<div class="layout-y-stretch">
+	<div class="flex flex-wrap items-center gap-2">
+		<InputGroup
+			id="search"
+			type="search"
+			placeholder="Search projects..."
+			class="min-w-[240px] grow !border-surface-200-800 !bg-surface-100-900 md:flex-1"
+			inputClass="text-strong placeholder:text-surface-600-400"
+			iconClass="text-surface-700-300"
+			icon="mdi:magnify"
+			disabled={rootProject}
+			autofocus
+			bind:value={searchQuery}
+		/>
+		<div class="flex flex-wrap items-center gap-2 md:ml-auto">
+			<SegmentedControl
+				value={`${filters[0].count}`}
+				onValueChange={(event) => {
+					filters[0].count = Number(event.value);
+				}}
+				class="w-fit"
+			>
+				<SegmentedControl.Control
+					class="relative flex items-center gap-0.5 rounded-base border border-surface-200-800 bg-surface-100-900 p-0.5 shadow-none"
+				>
+					<SegmentedControl.Indicator
+						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
+					/>
+					{#each [2, 0, 1] as value (value)}
+						<SegmentedControl.Item value={`${value}`} class="relative">
+							<SegmentedControl.ItemText
+								class={[
+									filters[0].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
+									'px-2 py-1 text-[13px] font-medium'
+								]}
+							>
+								{#if value == 2}
+									<span class="layout-x-none gap-1">
+										<Ico icon="mdi:cog" size="nav" />
+										Backend
+									</span>
+								{:else if value == 0}
+									<span class="layout-x-none gap-1">
+										<span aria-hidden="true" class="text-base leading-none font-semibold"
+											>&harr;</span
+										>
+										<span class="sr-only">Both</span>
+									</span>
+								{:else}
+									<span class="layout-x-none gap-1">
+										Frontend
+										<Ico icon="mdi:smartphone-link" size="nav" />
+									</span>
+								{/if}
+							</SegmentedControl.ItemText>
+							<SegmentedControl.ItemHiddenInput />
+						</SegmentedControl.Item>
+					{/each}
+				</SegmentedControl.Control>
+			</SegmentedControl>
+			<SegmentedControl
+				value={`${filters[1].count}`}
+				onValueChange={(event) => {
+					filters[1].count = Number(event.value);
+				}}
+				class="w-fit"
+			>
+				<SegmentedControl.Control
+					class="relative flex items-center gap-0.5 rounded-base border border-surface-200-800 bg-surface-100-900 p-0.5 shadow-none"
+				>
+					<SegmentedControl.Indicator
+						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
+					/>
+					{#each [1, 0, 2] as value (value)}
+						<SegmentedControl.Item value={`${value}`} class="relative">
+							<SegmentedControl.ItemText
+								class={[
+									filters[1].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
+									'px-2 py-1 text-[13px] font-medium'
+								]}
+							>
+								{#if value == 1}
+									<span class="layout-x-none gap-1">
+										<Ico icon="mdi:book-open-variant" size="nav" />
+										Library
+									</span>
+								{:else if value == 0}
+									<span class="layout-x-none gap-1">
+										<span aria-hidden="true" class="text-base leading-none font-semibold"
+											>&harr;</span
+										>
+										<span class="sr-only">Both</span>
+									</span>
+								{:else}
+									<span class="layout-x-none gap-1">
+										Project
+										<Ico icon="mdi:folder-outline" size="nav" />
+									</span>
+								{/if}
+							</SegmentedControl.ItemText>
+							<SegmentedControl.ItemHiddenInput />
+						</SegmentedControl.Item>
+					{/each}
+				</SegmentedControl.Control>
+			</SegmentedControl>
+		</div>
+	</div>
 	<div class="grid grid-cols-1 gap sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredProjects as project, i (project.name ?? i)}
 			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
 			{@const loading = name == null}
 			{@const params = { project: name ? name : '_' }}
+			{@const hasFrontendProject = hasFrontend == 'true'}
+			{@const cardHref = hasFrontendProject
+				? getFrontendUrl(name)
+				: resolve('/(app)/dashboard/[[project]]/backend', params)}
+			{@const cardShade = getPrimaryShade(name ?? `_${i}`)}
+			{@const cardShadeInverse = 1000 - cardShade}
 			<div
-				class="layout-y-stretch-none rounded-container bg-surface-50-950 p-low shadow-follow"
+				class="layout-y-stretch-none rounded-container preset-filled-surface-100-900 p-low shadow-follow"
 				animate:flip={loading ? undefined : { duration: 400 }}
 				transition:fade
 			>
@@ -130,40 +186,63 @@
 					>
 				</div>
 				<div class="relative">
-					<div
-						class="img-hover-zoom layout-x-none justify-center rounded-lg dark:opacity-70"
-						style="background-color: {stringToColor(
-							name ?? `_${i}`,
-							LightSvelte.dark
-						)}; color: {stringToColor(name ?? `_${i}`, !LightSvelte.dark)}"
-					>
-						<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
-						<img
-							src={getThumbnailUrl(name)}
-							onload={(/** @type {any} */ e) => {
-								if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
-									e.target.remove();
-								} else {
-									e.target.previousElementSibling.remove();
-								}
-							}}
-							class="object-cover"
-							alt="project"
-						/>
-					</div>
-					<div class="absolute top-0 layout-y-start-none overflow-clip rounded-tl-lg rounded-br-lg">
+					{#if name}
 						<a
-							href={resolve('/(app)/dashboard/[[project]]/backend', params)}
-							class="icon-link preset-filled-warning-100-900 hover:preset-filled-warning-300-700"
+							href={cardHref}
+							target={hasFrontendProject ? '_blank' : undefined}
+							rel={hasFrontendProject ? 'noopener noreferrer' : undefined}
+							class="block"
+							title={hasFrontendProject ? 'Open frontend in new tab' : 'Open backend'}
+							aria-label={hasFrontendProject
+								? `Open ${name} frontend in new tab`
+								: `Open ${name} backend`}
 						>
+							<div
+								class="img-hover-zoom project-media layout-x-none justify-center rounded-lg dark:opacity-70"
+								style="--card-tint: var(--color-primary-{cardShade}); --card-tint-contrast: var(--color-primary-{cardShadeInverse});"
+							>
+								<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
+								<img
+									src={getThumbnailUrl(name)}
+									onload={(/** @type {any} */ e) => {
+										if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
+											e.target.remove();
+										} else {
+											e.target.previousElementSibling.remove();
+										}
+									}}
+									class="object-cover"
+									alt="project"
+								/>
+							</div>
+						</a>
+					{:else}
+						<div
+							class="img-hover-zoom project-media layout-x-none justify-center rounded-lg dark:opacity-70"
+							style="--card-tint: var(--color-primary-{cardShade}); --card-tint-contrast: var(--color-primary-{cardShadeInverse});"
+						>
+							<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
+							<img
+								src={getThumbnailUrl(name)}
+								onload={(/** @type {any} */ e) => {
+									if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
+										e.target.remove();
+									} else {
+										e.target.previousElementSibling.remove();
+									}
+								}}
+								class="object-cover"
+								alt="project"
+							/>
+						</div>
+					{/if}
+					<div class="absolute top-0 layout-y-start-none overflow-clip rounded-tl-lg rounded-br-lg">
+						<a href={resolve('/(app)/dashboard/[[project]]/backend', params)} class="icon-link">
 							<Ico icon="mdi:cog" size="nav" />
 							<span class="icon-link-text">Backend</span>
 						</a>
 						{#if hasFrontend == 'true'}
-							<a
-								href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
-								class="icon-link preset-filled-success-100-900 hover:preset-filled-success-300-700"
-							>
+							<a href={resolve('/(app)/dashboard/[[project]]/frontend', params)} class="icon-link">
 								<Ico icon="mdi:smartphone-link" size="nav" />
 								<span class="icon-link-text">Frontend</span>
 							</a>
@@ -174,19 +253,14 @@
 								href={rootProject == project
 									? resolve('/(app)/dashboard')
 									: resolve('/(app)/dashboard/[[project]]', params)}
-								class="icon-link hover:preset-filled-secondary-300-700"
-								class:preset-filled-secondary-100-900={rootProject != project}
-								class:preset-filled-secondary-400-600={rootProject == project}
+								class="icon-link"
 							>
 								<Ico icon="mdi:power-plug" size="nav" />
 								<span class="icon-link-text">References</span>
 							</a>
 						{/if}
 						{#if hasPlatform == 'true'}
-							<a
-								href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
-								class="icon-link preset-filled-primary-100-900 hover:preset-filled-primary-300-700"
-							>
+							<a href={resolve('/(app)/dashboard/[[project]]/platforms', params)} class="icon-link">
 								<Ico icon="mdi:package-variant-closed" size="nav" />
 								<span class="icon-link-text">Platforms</span>
 							</a>
@@ -216,6 +290,16 @@
 			height 0.5s;
 	}
 
+	.project-media {
+		background-color: color-mix(in oklab, var(--card-tint) 10%, var(--color-surface-100) 90%);
+		color: color-mix(in oklab, var(--card-tint-contrast) 70%, var(--color-surface-900) 30%);
+	}
+
+	:global(.dark) .project-media {
+		background-color: color-mix(in oklab, var(--card-tint) 18%, var(--color-surface-900) 82%);
+		color: color-mix(in oklab, var(--card-tint-contrast) 60%, var(--color-surface-50) 40%);
+	}
+
 	.img-hover-zoom img {
 		transform-origin: 50% 50%;
 		transition: transform 0.5s;
@@ -238,6 +322,8 @@
 		display: flex;
 		align-items: center;
 		padding: 0.5rem;
+		background-color: var(--convertigo-text);
+		color: #fff;
 	}
 
 	.icon-link-text {
