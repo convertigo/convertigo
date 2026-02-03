@@ -26,9 +26,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class SessionValueCodec {
+	private static final String FORMAT_POJO = "pojo";
+	private static final ObjectMapper POJO_MAPPER = createPojoMapper();
+
+	private static ObjectMapper createPojoMapper() {
+		var mapper = JsonCodec.MAPPER.copy();
+		mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+		mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+		return mapper;
+	}
+
 	String serialize(String name, Object value) throws Exception {
 		if (value == null) {
 			return null;
@@ -41,7 +54,12 @@ final class SessionValueCodec {
 				|| value instanceof List) {
 			return JsonCodec.MAPPER.writeValueAsString(value);
 		}
-		return JsonCodec.MAPPER.writeValueAsString(new TypedValue(value));
+		var typed = new TypedValue(value, null);
+		try {
+			return JsonCodec.MAPPER.writeValueAsString(typed);
+		} catch (Exception e) {
+			return POJO_MAPPER.writeValueAsString(new TypedValue(value, FORMAT_POJO));
+		}
 	}
 
 	Object deserialize(String name, String raw) throws Exception {
@@ -57,17 +75,20 @@ final class SessionValueCodec {
 			return JsonCodec.MAPPER.convertValue(valueNode, JsonCodec.MAPPER.getTypeFactory().constructType((Type) hint.expectedClass()));
 		}
 		if (isWrapped) {
+			var formatNode = node.get("format");
+			var format = formatNode != null ? formatNode.asText(null) : null;
+			var mapper = FORMAT_POJO.equals(format) ? POJO_MAPPER : JsonCodec.MAPPER;
 			var clazzNode = node.get("clazz");
 			if (clazzNode != null) {
 				var className = clazzNode.asText();
 				try {
 					var cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
 					if (Set.class.isAssignableFrom(cls)) {
-						var list = JsonCodec.MAPPER.<List<Object>>convertValue(valueNode, JsonCodec.MAPPER.getTypeFactory()
-								.constructCollectionType(ArrayList.class, Object.class));
+						var list = mapper.<List<Object>>convertValue(valueNode,
+								mapper.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
 						return new HashSet<>(list);
 					}
-					return JsonCodec.MAPPER.convertValue(valueNode, JsonCodec.MAPPER.getTypeFactory().constructType((Type) cls));
+					return mapper.convertValue(valueNode, mapper.getTypeFactory().constructType((Type) cls));
 				} catch (ClassNotFoundException e) {
 					// fall through
 				}
@@ -90,10 +111,13 @@ final class SessionValueCodec {
 		public final String clazz;
 		@SuppressWarnings("unused")
 		public final Object value;
+		@SuppressWarnings("unused")
+		public final String format;
 
-		TypedValue(Object value) {
+		TypedValue(Object value, String format) {
 			this.value = value;
 			this.clazz = value != null ? value.getClass().getName() : null;
+			this.format = format;
 		}
 	}
 }
