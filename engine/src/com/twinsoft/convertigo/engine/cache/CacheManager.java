@@ -167,16 +167,6 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 
 				if (context.noCache) {
 					Engine.logCacheManager.debug("Ignoring cache for request: " + requestString);
-					try {
-						cacheEntry = (CacheEntry) getCacheEntry(requestString);
-						if (cacheEntry != null) {
-							removeStoredResponse(cacheEntry);
-						}
-						cacheEntry = null;
-					}
-					catch(Exception e) {
-						Engine.logCacheManager.error("Unable to remove the stored response from the cache repository!", e);
-					}
 				}
 				else {
 					Engine.logCacheManager.debug("Searched request string: " + requestString);
