@@ -21,12 +21,12 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.49.1"
+			"svelte": "^5.49.2"
 		}
 	},
 	"devDependencies": {
 		"@fontsource-variable/ibm-plex-sans": "^5.2.8",
-		"@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify/svelte": "^5.2.1",
 		"@playwright/test": "^1.58.1",
@@ -47,7 +47,7 @@
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"sharp": "^0.34.5",
-		"svelte": "^5.49.1",
+		"svelte": "^5.49.2",
 		"svelte-check": "^4.3.6",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.3",
@@ -59,7 +59,7 @@
 	"dependencies": {
 		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.7.5",
-		"@internationalized/date": "^3.10.1",
+		"@internationalized/date": "^3.11.0",
 		"@tailwindcss/vite": "^4.1.18",
 		"@xyflow/svelte": "^1.5.0",
 		"@zag-js/tree-view": "^1.33.1",

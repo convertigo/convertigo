@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
@@ -75,12 +76,13 @@
 			{/if}
 			<ActionBar>
 				{#if stacktrace}
-					<button
+					<Button
 						onclick={() => (modalAlert.showStack = !modalAlert.showStack)}
-						class="button-secondary">Show Details</button
-					>
+						class="button-secondary"
+						label="Show Details"
+					/>
 				{/if}
-				<button onclick={close} class="button-primary">Close</button>
+				<Button onclick={close} class="button-primary" label="Close" />
 			</ActionBar>
 		</Card>
 	{/snippet}

@@ -56,32 +56,29 @@
 			{#each options as { name, display } (name)}
 				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
 			{/each}
-			<ResponsiveButtons
-				class="w-full"
-				buttons={[
-					{
-						icon: 'mdi:export',
-						label: 'Export',
-						cls: 'button-primary',
-						onclick: async () => {
-							if (
-								await exportProject({
-									projectName: project,
-									exportOptions: JSON.stringify(exportChoices)
-								})
-							) {
-								close();
-							}
+			<ActionBar>
+				<Button
+					icon="mdi:export"
+					label="Export"
+					class="button-primary w-fit!"
+					onclick={async () => {
+						if (
+							await exportProject({
+								projectName: project,
+								exportOptions: JSON.stringify(exportChoices)
+							})
+						) {
+							close();
 						}
-					},
-					{
-						icon: 'mdi:close-circle-outline',
-						label: 'Cancel',
-						cls: 'button-secondary',
-						onclick: close
-					}
-				]}
-			/>
+					}}
+				/>
+				<Button
+					icon="mdi:close-circle-outline"
+					label="Cancel"
+					class="button-secondary w-fit!"
+					onclick={close}
+				/>
+			</ActionBar>
 		</Card>
 	{/snippet}
 </ModalDynamic>
@@ -173,13 +170,13 @@
 				<Button
 					label="Create symbols"
 					icon="mdi:wrench"
-					class="button-primary"
+					class="button-primary w-fit!"
 					onclick={() => close(true)}
 				/>
 				<Button
 					label="Cancel"
 					icon="mdi:close-circle-outline"
-					class="button-secondary"
+					class="button-secondary w-fit!"
 					onclick={() => close(false)}
 				/>
 			</ActionBar>
@@ -230,7 +227,7 @@
 			},
 			{ name: 'Exported', key: 'exported', class: 'text-[12px] min-w-34' },
 			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34' },
-			{ name: 'Actions', custom: true, class: 'w-44' }
+			{ name: 'Actions', custom: true, class: 'w-56' }
 		]}
 		data={fprojects}
 		class="rounded-sm"
@@ -240,6 +237,24 @@
 			{#if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[
+						{
+							icon: 'mdi:warning-outline',
+							cls: undefined_symbols
+								? 'button-ico-warning'
+								: 'button-ico-warning opacity-0 pointer-events-none',
+							disabled: !undefined_symbols,
+							onclick: async (event) => {
+								if (!undefined_symbols) {
+									return;
+								}
+								event.currentTarget?.blur();
+								const symbols = await undefinedSymbols(project);
+								if (await modalSymbols.open({ project, symbols })) {
+									await createSymbols(project);
+									refresh();
+								}
+							}
+						},
 						{
 							icon: 'mdi:edit-outline',
 							cls: `button-ico-primary ${editedProject == project ? 'opacity-50' : ''}`,
@@ -286,23 +301,11 @@
 									remove(project);
 								}
 							}
-						},
-						{
-							icon: 'mdi:warning-outline',
-							cls: 'button-ico-warning',
-							hidden: !undefined_symbols,
-							onclick: async (event) => {
-								event.currentTarget?.blur();
-								const symbols = await undefinedSymbols(project);
-								if (await modalSymbols.open({ project, symbols })) {
-									await createSymbols(project);
-									refresh();
-								}
-							}
 						}
 					]}
 					size="6"
-					class="w-full min-w-40"
+					layout="layout-grid-low-6"
+					class="w-full min-w-56"
 					disabled={!init}
 				/>
 			{/if}
