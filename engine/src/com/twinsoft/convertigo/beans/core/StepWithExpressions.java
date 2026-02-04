@@ -39,6 +39,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.steps.ParallelStep;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -106,7 +107,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     }
     
 	public String getContextName() {
-		return "Container-"+executeTimeID;
+		return ContextManager.CONTAINER_CONTEXT_PREFIX + executeTimeID;
 	}
 	
 	public String getTransactionSessionId() {

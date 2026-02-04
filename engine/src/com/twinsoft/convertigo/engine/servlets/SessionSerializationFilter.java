@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestSessionWrapper;
 
@@ -47,6 +48,9 @@ public class SessionSerializationFilter implements Filter {
 			var effectiveRequest = httpRequest instanceof HttpServletRequestSessionWrapper
 					? httpRequest
 					: new HttpServletRequestSessionWrapper(httpRequest);
+			if (ConvertigoHttpSessionManager.isRedisMode()) {
+				ContextManager.initRequestContextCache(effectiveRequest);
+			}
 			if (response instanceof HttpServletResponse httpResponse) {
 				var cookieName = EnginePropertiesManager.getProperty(PropertyName.SESSION_COOKIE_NAME);
 				var responseWrapper = (cookieName == null || cookieName.isEmpty())
@@ -59,6 +63,9 @@ public class SessionSerializationFilter implements Filter {
 						ConvertigoHttpSessionManager.getInstance().flushBuffers();
 					} catch (Exception ignored) {
 						// ignore
+					}
+					if (ConvertigoHttpSessionManager.isRedisMode()) {
+						ContextManager.flushRequestContextCache(effectiveRequest);
 					}
 					if (responseWrapper instanceof SessionCookieResponseWrapper wrapper) {
 						wrapper.flushSessionCookie();

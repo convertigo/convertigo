@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -96,6 +97,8 @@ public class ContextManager extends AbstractRunnableManager {
 	public static final String CONTEXT_TYPE_UNKNOWN		= "";
 	public static final String CONTEXT_TYPE_TRANSACTION	= "C";
 	public static final String CONTEXT_TYPE_SEQUENCE 	= "S";
+	public static final String CONTAINER_CONTEXT_PREFIX = "Container-";
+	private static final String REQUEST_CONTEXT_CACHE_ATTRIBUTE = ContextManager.class.getName() + ".requestContextCache";
 	private static final String REDIS_CONTEXT_LOCK_PREFIX = "lock:context:";
 	private static final String REDIS_CONTEXT_ABORT_TOPIC = "topic:context:abort";
 	private static final String REDIS_CONTEXT_INFLIGHT_KEY = "inflight:contexts";
@@ -117,6 +120,85 @@ public class ContextManager extends AbstractRunnableManager {
 	private static final class ContextLockEntry {
 		final ReentrantLock lock = new ReentrantLock();
 		final AtomicInteger refs = new AtomicInteger();
+	}
+
+	public static boolean isContainerContextName(String name) {
+		return name != null && name.startsWith(CONTAINER_CONTEXT_PREFIX);
+	}
+
+	public static boolean isContainerContextId(String contextId) {
+		if (contextId == null || contextId.isBlank()) {
+			return false;
+		}
+		int idx = contextId.indexOf('_');
+		if (idx < 0 || idx + 1 >= contextId.length()) {
+			return false;
+		}
+		return isContainerContextName(contextId.substring(idx + 1));
+	}
+
+	private static Set<String> requestContextCache(HttpServletRequest request) {
+		if (request == null) {
+			return null;
+		}
+		Object value = request.getAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE);
+		if (value instanceof Set) {
+			return GenericUtils.cast(value);
+		}
+		return null;
+	}
+
+	public static void initRequestContextCache(HttpServletRequest request) {
+		if (request == null) {
+			return;
+		}
+		if (requestContextCache(request) == null) {
+			request.setAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE, ConcurrentHashMap.newKeySet());
+		}
+	}
+
+	public static boolean isRequestContextCacheActive(HttpServletRequest request) {
+		return requestContextCache(request) != null;
+	}
+
+	public static boolean registerRequestContext(HttpServletRequest request, Context context) {
+		if (request == null || context == null || isContainerContextName(context.name)) {
+			return false;
+		}
+		var cache = requestContextCache(request);
+		if (cache == null) {
+			return false;
+		}
+		return !cache.add(context.contextID);
+	}
+
+	public static void flushRequestContextCache(HttpServletRequest request) {
+		var cache = requestContextCache(request);
+		if (cache == null || cache.isEmpty()) {
+			return;
+		}
+		try {
+			var manager = Engine.theApp != null ? Engine.theApp.contextManager : null;
+			if (manager == null) {
+				return;
+			}
+			for (String contextId : cache) {
+				if (contextId == null || contextId.isBlank()) {
+					continue;
+				}
+				Context ctx = manager.get(contextId);
+				if (ctx == null || isContainerContextName(ctx.name) || ctx.isMarkedForRemoval()) {
+					continue;
+				}
+				boolean save = ctx.httpSession == null;
+				manager.evictFromCache(ctx, save);
+			}
+		} finally {
+			try {
+				request.removeAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE);
+			} catch (Exception ignore) {
+			}
+		}
 	}
 
 	public void init() throws EngineException {
@@ -429,10 +511,25 @@ public class ContextManager extends AbstractRunnableManager {
 	};
 
 	public AutoCloseable lockContext(Context context) {
-		return lockContext(context != null ? context.contextID : null);
+		if (context == null) {
+			return lockContext((String) null);
+		}
+		return lockContext(context.contextID, isContainerContextName(context.name));
 	}
 
 	public AutoCloseable lockContext(String contextID) {
+		if (contextID == null || contextID.isBlank()) {
+			return NOOP_LOCK;
+		}
+		boolean isContainer = isContainerContextId(contextID);
+		var existing = contexts.get(contextID);
+		if (existing != null && isContainerContextName(existing.name)) {
+			isContainer = true;
+		}
+		return lockContext(contextID, isContainer);
+	}
+
+	private AutoCloseable lockContext(String contextID, boolean isContainer) {
 		if (contextID == null || contextID.isBlank()) {
 			return NOOP_LOCK;
 		}
@@ -442,7 +539,7 @@ public class ContextManager extends AbstractRunnableManager {
 		entry.lock.lock();
 
 		RLock redisLock = null;
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (ConvertigoHttpSessionManager.isRedisMode() && !isContainer) {
 			try {
 				var cfg = RedisClients.getConfiguration();
 				String lockKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_LOCK_PREFIX + contextID;
@@ -454,7 +551,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 		}
 
-		if (refs == 1) {
+		if (refs == 1 && !isContainer) {
 			markInflight(contextID);
 		}
 
@@ -472,7 +569,9 @@ public class ContextManager extends AbstractRunnableManager {
 				}
 				try {
 					if (entry.refs.decrementAndGet() == 0) {
-						unmarkInflight(contextID);
+						if (!isContainer) {
+							unmarkInflight(contextID);
+						}
 						contextLocks.remove(contextID, entry);
 					}
 				} catch (Exception ignore) {
@@ -482,10 +581,25 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public AutoCloseable tryLockContext(Context context, long timeoutMillis) {
-		return tryLockContext(context != null ? context.contextID : null, timeoutMillis);
+		if (context == null) {
+			return tryLockContext((String) null, timeoutMillis);
+		}
+		return tryLockContext(context.contextID, timeoutMillis, isContainerContextName(context.name));
 	}
 
 	public AutoCloseable tryLockContext(String contextID, long timeoutMillis) {
+		if (contextID == null || contextID.isBlank()) {
+			return NOOP_LOCK;
+		}
+		boolean isContainer = isContainerContextId(contextID);
+		var existing = contexts.get(contextID);
+		if (existing != null && isContainerContextName(existing.name)) {
+			isContainer = true;
+		}
+		return tryLockContext(contextID, timeoutMillis, isContainer);
+	}
+
+	private AutoCloseable tryLockContext(String contextID, long timeoutMillis, boolean isContainer) {
 		if (contextID == null || contextID.isBlank()) {
 			return NOOP_LOCK;
 		}
@@ -515,7 +629,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		RLock redisLock = null;
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (ConvertigoHttpSessionManager.isRedisMode() && !isContainer) {
 			try {
 				var cfg = RedisClients.getConfiguration();
 				String lockKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_LOCK_PREFIX + contextID;
@@ -565,7 +679,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 		}
 
-		if (refs == 1) {
+		if (refs == 1 && !isContainer) {
 			markInflight(contextID);
 		}
 
@@ -583,7 +697,9 @@ public class ContextManager extends AbstractRunnableManager {
 				}
 				try {
 					if (entry.refs.decrementAndGet() == 0) {
-						unmarkInflight(contextID);
+						if (!isContainer) {
+							unmarkInflight(contextID);
+						}
 						contextLocks.remove(contextID, entry);
 					}
 				} catch (Exception ignore) {
@@ -620,7 +736,8 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void refreshContextFromStoreIfNeeded(Context context) {
-		if (context == null || contextStore == null || !ConvertigoHttpSessionManager.isRedisMode()) {
+		if (context == null || contextStore == null || !ConvertigoHttpSessionManager.isRedisMode()
+				|| isContainerContextName(context.name)) {
 			return;
 		}
 		try {
@@ -900,11 +1017,15 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void evictFromCache(Context context) {
-		if (context == null) {
+		evictFromCache(context, true);
+	}
+
+	public void evictFromCache(Context context, boolean save) {
+		if (context == null || isContainerContextName(context.name)) {
 			return;
 		}
 		contexts.remove(context.contextID, context);
-		if (contextStore != null) {
+		if (save && contextStore != null) {
 			int ttl = context.httpSession != null ? context.httpSession.getMaxInactiveInterval() : -1;
 			contextStore.save(context, ttl);
 		}
@@ -955,6 +1076,9 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		for (Context c : ctxs) {
 			if (c != null) {
+				if (isContainerContextName(c.name)) {
+					continue;
+				}
 				try {
 					contextStore.save(c, ttl);
 				} catch (Exception e) {

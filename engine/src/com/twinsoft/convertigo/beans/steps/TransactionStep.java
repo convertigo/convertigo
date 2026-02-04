@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -160,7 +161,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			if (parent instanceof ParallelStep) {
 				if (sequence.useSameJSessionForSteps()) {
 					String contextName = InternalRequester.getString(request, Parameter.Context.getName());
-					if (contextName.startsWith("Container-")) { // Only remove context automatically named
+					if (ContextManager.isContainerContextName(contextName)) { // Only remove context automatically named
 						String contextID = sequence.getSessionId() + "_" + contextName;
 						Engine.logBeans.debug("Executing deletion of transaction's context of TransactionStep \"" + getName() + "\"");
 						Engine.theApp.contextManager.remove(contextID);

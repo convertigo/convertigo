@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -897,9 +898,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	public String getContextName() {
 		if (useSameJSessionForSteps())
-			return "Container-"+ getProject().getName() + "-" + getName() + "." + cloneNumber;
+			return ContextManager.CONTAINER_CONTEXT_PREFIX + getProject().getName() + "-" + getName() + "." + cloneNumber;
 		else
-			return "Container-"+ getName() + "." + cloneNumber;
+			return ContextManager.CONTAINER_CONTEXT_PREFIX + getName() + "." + cloneNumber;
 	}
 	
 	public String getSessionId() {
@@ -1472,7 +1473,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    				String contextID = sessionID + "_" + contextName;
 	    				Context ctx = Engine.theApp.contextManager.get(contextID);	    				
 	    				if (ctx != null && ctx.transaction != null) {
-		    				if (contextName.startsWith("Container-")) { // Only remove context automatically named
+		    				if (ContextManager.isContainerContextName(contextName)) { // Only remove context automatically named
 			    				if (Engine.logBeans.isDebugEnabled())
 			    					Engine.logBeans.debug("(Sequence) Removing transaction's context \""+ contextID +"\"");
 			    				Engine.theApp.contextManager.remove(contextID);
@@ -1500,7 +1501,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     				Context ctx = Engine.theApp.contextManager.get(contextID);
     				if (ctx != null) {
     					String type = ctx.transaction != null ? "transaction's":"sequence's";
-		    			if (contextName.startsWith("Container-")) { // Only remove context automatically named
+		    			if (ContextManager.isContainerContextName(contextName)) { // Only remove context automatically named
 		    				if (Engine.logBeans.isDebugEnabled())
 		    					Engine.logBeans.debug("(Sequence) Removing "+ type +" context \""+ contextID +"\"");
 		    				Engine.theApp.contextManager.remove(contextID);
@@ -1528,7 +1529,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	private void removeSequenceContext() {
 		if (Engine.isEngineMode()) {
-			if (!context.isAsync && ("default".equals(context.name) || context.name.startsWith("Container-"))) {
+			if (!context.isAsync && ("default".equals(context.name) || ContextManager.isContainerContextName(context.name))) {
 				if (Engine.logBeans.isDebugEnabled()) {
 					Engine.logBeans.debug("(Sequence) Requires its context removal");
 				}

@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.CustomController;
 import com.twinsoft.convertigo.engine.Engine;
@@ -226,8 +227,20 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
 
 				try (var lock = Engine.theApp.contextManager.lockContext(context)) {
-					if (ConvertigoHttpSessionManager.isRedisMode() && !(inputData instanceof Context)) {
-						Engine.theApp.contextManager.refreshContextFromStoreIfNeeded(context);
+					boolean isContainerContext = ContextManager.isContainerContextName(context.name);
+					HttpServletRequest cacheRequest = context.httpServletRequest;
+					if (cacheRequest == null && this instanceof InternalRequester internalRequester) {
+						cacheRequest = internalRequester.getHttpServletRequest();
+					}
+					boolean requestCacheActive = ContextManager.isRequestContextCacheActive(cacheRequest);
+					boolean cachedAlready = false;
+					if (ConvertigoHttpSessionManager.isRedisMode() && requestCacheActive && !isContainerContext) {
+						cachedAlready = ContextManager.registerRequestContext(cacheRequest, context);
+					}
+					if (ConvertigoHttpSessionManager.isRedisMode() && !(inputData instanceof Context) && !isContainerContext) {
+						if (!requestCacheActive || !cachedAlready) {
+							Engine.theApp.contextManager.refreshContextFromStoreIfNeeded(context);
+						}
 					}
 
 					// #4910 : case of queued sequences, renew the context
@@ -303,7 +316,7 @@ public abstract class GenericRequester extends Requester {
 									addStatistics = context.requestedObject.getAddStatistics();
 								}
 								if (ConvertigoHttpSessionManager.isRedisMode()) {
-									shouldEvictFromCache = !context.willRemoveContext();
+									shouldEvictFromCache = !context.willRemoveContext() && !isContainerContext && !requestCacheActive;
 								}
 								context.clearRequest();
 							}

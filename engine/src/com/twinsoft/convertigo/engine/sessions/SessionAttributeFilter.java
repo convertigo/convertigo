@@ -26,6 +26,7 @@ import java.util.Set;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute.KeepMode;
@@ -70,6 +71,9 @@ final class SessionAttributeFilter {
 				for (var item : list) {
 					if (item instanceof Context ctx) {
 						if (ctx.isMarkedForRemoval()) {
+							continue;
+						}
+						if (ContextManager.isContainerContextName(ctx.name)) {
 							continue;
 						}
 						contexts.add(ctx);

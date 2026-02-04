@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -128,7 +129,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		
 		String ctxName = getContextName(javascriptContext, scope);
 		boolean useSequenceJSession = sequence.useSameJSessionForSteps();
-		boolean maintainContext = useSequenceJSession && !ctxName.startsWith("Container-");
+		boolean maintainContext = useSequenceJSession && !ContextManager.isContainerContextName(ctxName);
 		boolean maintainSession = useSequenceJSession;
 		
 		boolean inheritContex = inheritTransactionCtx && sequence.equals(getTransactionContextMaintainer());
