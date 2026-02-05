@@ -22,25 +22,59 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "Restart",
 		roles = { Role.WEB_ADMIN, Role.MANAGER, Role.HOME_CONFIG },
-		parameters = {},
+		parameters = {
+			@ServiceParameterDefinition(
+				name = "hard",
+				description = "if true, stops the engine and exits the JVM"
+			)
+		},
 		returnValue = "nothing"
 	)
 public class Restart extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		Engine.stop();
-		Engine.logAdmin.info("Engine stopped");
-		Engine.start();
-		Engine.logAdmin.info("Engine restarted");
+		boolean hard = "true".equalsIgnoreCase(request.getParameter("hard"));
+
+		try {
+			Engine.stop();
+			Engine.logAdmin.info("Engine stopped");
+		} catch (Exception e) {
+			Engine.logAdmin.error("Error while stopping engine", e);
+		}
+
+		Element root = document.getDocumentElement();
+		Element response = document.createElement("response");
+		response.setAttribute("state", "success");
+		response.setAttribute(
+			"message",
+			hard ? "Service will hard restart soon" : "Service will soft restart soon"
+		);
+		root.appendChild(response);
+
+		new Thread(() -> {
+			try {
+				if (hard) {
+					Engine.logAdmin.info("Engine hard restart requested");
+					System.exit(0);
+				} else {
+					Engine.start();
+					Engine.logAdmin.info("Engine restarted");
+				}
+			} catch (Throwable t) {
+				Engine.logAdmin.error("Error while restarting engine", t);
+			}
+		}, "engine-restart-thread").start();
 	}
 
 }

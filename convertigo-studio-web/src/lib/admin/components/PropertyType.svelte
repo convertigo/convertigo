@@ -55,7 +55,7 @@
 		setTimeout(() => {
 			select.scrollTop = scroll;
 		}, 1);
-		rest.onchange?.({ target: select });
+		rest.onchange?.({ target: select, detail: { value } });
 	}
 </script>
 

@@ -1,4 +1,5 @@
 import { call, checkArray } from '$lib/utils/service';
+import { formatDate, formatTime } from '$lib/utils/time';
 
 let logs = $state([]);
 let startDate = $state('');
@@ -10,16 +11,6 @@ let moreResults = $state(false);
 let calling = $state(false);
 
 let lastCall = 0;
-
-export function formatDate(timestamp) {
-	if (timestamp === null) return '';
-	return new Date(timestamp).toISOString().split('T')[0];
-}
-
-export function formatTime(timestamp) {
-	if (timestamp === null) return '';
-	return new Date(timestamp).toISOString().split('T')[1].split('Z')[0].replace('.', ',');
-}
 
 async function list(clear = false) {
 	if (!clear && live && calling) {

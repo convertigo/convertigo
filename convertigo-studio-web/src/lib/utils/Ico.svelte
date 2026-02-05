@@ -88,6 +88,7 @@
 	import MdiRefresh from '~icons/mdi/refresh';
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
+	import MdiRestartAlert from '~icons/mdi/restart-alert';
 	import MdiSearch from '~icons/mdi/search';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiStarOutline from '~icons/mdi/star-outline';
@@ -198,6 +199,7 @@
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
 		'mdi:reload': MdiReload,
+		'mdi:restart-alert': MdiRestartAlert,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:search': MdiSearch,
 		'mdi:smartphone-link': MdiSmartphoneLink,

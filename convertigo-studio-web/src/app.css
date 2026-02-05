@@ -318,6 +318,9 @@
 		outline-offset: -1px;
 		border-radius: var(--radius-base);
 	}
+	:where(.ig-select) {
+		padding-inline: 0.5rem;
+	}
 }
 
 @layer utilities {

@@ -115,14 +115,14 @@
 	const [duration, y] = [200, -50];
 </script>
 
-<Card title={project?.name ?? null}>
+<Card title={project?.name ?? null} cornerOptionClass="flex-1 min-w-[18rem] max-w-[72rem]">
 	{#snippet cornerOption()}
 		<InputGroup
 			id="search"
 			type="search"
 			placeholder="Search requestable..."
 			autofocus
-			class="bg-surface-200-800"
+			class="w-full bg-surface-200-800"
 			actionsClass="pr-1"
 			icon="mdi:magnify"
 			bind:value={searchQuery}

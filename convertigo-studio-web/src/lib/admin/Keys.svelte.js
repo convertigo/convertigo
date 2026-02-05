@@ -1,5 +1,6 @@
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 import { call, checkArray } from '$lib/utils/service';
+import { formatDate } from '$lib/utils/time';
 
 const defValues = {
 	categories: Array(12).fill({
@@ -71,7 +72,7 @@ export default ServiceHelper({
 				if (key.expiration == 0) {
 					key.expiration = 'Unlimited';
 				} else {
-					key.expiration = `Until ${new Date(key.expiration * 1000 * 3600 * 24).toISOString().split('T')[0]}`;
+					key.expiration = `Until ${formatDate(key.expiration * 1000 * 3600 * 24)}`;
 				}
 				key.value = `${key.value} ${category.name == 'Standard Edition' ? ' session' : 'connection'}${key.value > 1 ? 's' : ''}`;
 			}

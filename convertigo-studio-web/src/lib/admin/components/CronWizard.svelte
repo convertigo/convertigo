@@ -46,10 +46,13 @@
 		];
 	}
 
-	function onchange(index) {
-		selection[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
+	function onchange(index, values) {
+		const next = selection.map((sel, i) =>
+			i === index ? (Array.isArray(values) ? values.slice() : values ? [values] : []) : sel
+		);
+		next[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
 		let exp = '0';
-		for (let sel of selection) {
+		for (let sel of next) {
 			exp += ` ${createRange(sel)}`;
 		}
 		cronExpression = exp;
@@ -97,24 +100,23 @@
 		}
 	];
 
-	let selection = $state(Array(def.length).fill([]));
-	$effect(() => {
-		selection = cronExpression
+	let selection = $derived.by(() =>
+		cronExpression
 			.split(' ')
 			.slice(1, 6)
-			.map((v) => parseRange(v));
-	});
+			.map((v) => parseRange(v))
+	);
 </script>
 
 <div class="layout-x-wrap-low">
-	{#each def as { title, values, labels }, i}
+	{#each def as { title, values, labels }, i (title)}
 		<div class="w-fit">
 			<PropertyType
 				type="combo"
 				description={title}
-				size="8"
-				bind:value={selection[i]}
-				onchange={(e) => onchange(i)}
+				size="10"
+				value={selection[i]}
+				onchange={(e) => onchange(i, e.detail?.value ?? e.target?.value)}
 				multiple
 				item={values.map((value, j) => ({ value, text: labels[j] }))}
 			/>

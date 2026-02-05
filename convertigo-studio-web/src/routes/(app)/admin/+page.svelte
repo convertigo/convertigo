@@ -1,4 +1,5 @@
 <script>
+	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -10,8 +11,11 @@
 	import Status from '$lib/common/Status.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
+	import { formatDuration } from '$lib/utils/time';
 	import { onDestroy } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 
 	let {
 		product,
@@ -48,23 +52,62 @@
 
 	onDestroy(Status.stop);
 
+	const varsMode = persistedState('admin.status.variablesMode', 'env', { syncTabs: false });
+	const varsTabs = [
+		{ value: 'props', label: 'Java Props', icon: 'mdi:language-java' },
+		{ value: 'env', label: 'Env Vars', icon: 'mdi:code-block-braces' }
+	];
+	let javaProps = $state(Array(10).fill({ name: null, value: null }));
+	let javaPropsLoading = $state(false);
+	let javaPropsLoaded = $state(false);
+
+	async function loadJavaProps(force = false) {
+		if (javaPropsLoading || (javaPropsLoaded && !force)) {
+			return;
+		}
+		javaPropsLoading = true;
+		javaProps = Array(10).fill({ name: null, value: null });
+		const res = await call('engine.GetJavaSystemPropertiesJson');
+		javaProps = res?.properties ?? [];
+		javaPropsLoading = false;
+		javaPropsLoaded = true;
+	}
+
+	function onVarsTabChange(value) {
+		varsMode.current = value;
+		if (value == 'props') {
+			loadJavaProps();
+		}
+	}
+
+	function openVariables(event) {
+		modalHome.open({ event });
+		if (varsMode.current == 'props') {
+			loadJavaProps();
+		}
+	}
+
+	function openRestart(event) {
+		modalRestart.open({ event });
+	}
+
 	const tables = $derived([
 		{
 			title: 'Status',
 			buttons: [
 				{
-					label: 'Java Props',
-					title: 'Java Properties',
-					icon: 'mdi:language-java',
+					label: 'Variables',
+					title: 'Java Props / Env Vars',
+					icon: 'mdi:code-braces',
 					cls: 'button-secondary text-[11px] px-2! whitespace-nowrap',
-					onclick: (e) => modal(e, 'props')
+					onclick: openVariables
 				},
 				{
-					label: 'Env Vars',
-					title: 'Environment Variables',
-					icon: 'mdi:code-block-braces',
+					label: 'Restart',
+					title: 'Restart Engine',
+					icon: 'mdi:restart-alert',
 					cls: 'button-secondary text-[11px] px-2! whitespace-nowrap',
-					onclick: (e) => modal(e, 'env')
+					onclick: openRestart
 				}
 			],
 			data: [
@@ -79,7 +122,7 @@
 				},
 				{
 					Name: 'Uptime',
-					Value: startTime ? new Date(Time.server.getTime() - startTime).toLocaleTimeString() : null
+					Value: startTime ? formatDuration(Time.server.getTime() - startTime) : null
 				},
 				{ Name: 'License Type', Value: licenceType },
 				{ Name: 'License N°', Value: licenceNumber },
@@ -154,44 +197,105 @@
 	]);
 
 	let categories = $derived(labels);
-
-	async function modal(event, mode) {
-		let data = $state();
-		if (mode == 'props') {
-			data = Array(10).fill({ name: null, value: null });
-			call('engine.GetJavaSystemPropertiesJson').then((res) => {
-				data = res.properties;
-			});
-		}
-		modalHome.open({
-			event,
-			mode,
-			get data() {
-				return mode == 'props' ? data : EnvironmentVariables.variables;
-			}
-		});
-	}
-
+	const varsData = $derived(
+		varsMode.current == 'props' ? javaProps : EnvironmentVariables.variables
+	);
 	let modalHome;
+	let modalRestart;
 </script>
 
 <ModalDynamic bind:this={modalHome} class="w-full overflow-hidden">
-	{#snippet children({ close, params: { mode, data } })}
-		<Card
-			title={mode == 'env' ? 'Environment Variables' : 'Java System Properties'}
-			class="w-full preset-filled-surface-100-900"
-		>
+	{#snippet children({ close })}
+		<Card title="Variables" class="w-full preset-filled-surface-100-900">
+			{#snippet cornerOption()}
+				<SegmentedControl
+					value={varsMode.current}
+					onValueChange={(event) => onVarsTabChange(event.value ?? 'env')}
+				>
+					<SegmentedControl.Control
+						class={[
+							'relative',
+							'gap-0.5',
+							'rounded-base',
+							'border',
+							'border-surface-100-900',
+							'bg-surface-200-800',
+							'p-0.5',
+							'shadow-none',
+							'overflow-hidden'
+						]}
+					>
+						<SegmentedControl.Indicator class="rounded-[0.3rem] bg-primary-600 shadow-none" />
+						{#each varsTabs as tab (tab.value)}
+							<SegmentedControl.Item value={tab.value} class="relative flex-1">
+								<SegmentedControl.ItemText
+									class={[
+										varsMode.current == tab.value ? 'text-white' : 'text-muted',
+										'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium'
+									]}
+								>
+									<Ico icon={tab.icon} size={4} />
+									{tab.label}
+								</SegmentedControl.ItemText>
+								<SegmentedControl.ItemHiddenInput />
+							</SegmentedControl.Item>
+						{/each}
+					</SegmentedControl.Control>
+				</SegmentedControl>
+			{/snippet}
 			<TableAutoCard
 				definition={[
 					{ name: 'Name', key: 'name', class: 'break-all min-w-48' },
 					{ name: 'Value', key: 'value', class: 'break-all min-w-48' }
 				]}
-				{data}
+				data={varsData}
 				class="max-h-[75vh] overflow-auto"
 			></TableAutoCard>
 
 			<ActionBar>
 				<Button label="Close" onclick={close} class="button-primary w-fit!" />
+			</ActionBar>
+		</Card>
+	{/snippet}
+</ModalDynamic>
+
+<ModalDynamic bind:this={modalRestart}>
+	{#snippet children({ close })}
+		<Card title="Restart Engine" class="max-w-xl">
+			<div class="layout-y-stretch gap-3 text-sm">
+				<p>
+					<strong>Soft restart</strong> stops and restarts the Convertigo engine without killing the JVM.
+				</p>
+				<p class="preset-tonal-warning">
+					<strong>Hard restart</strong> stops the engine and exits the JVM.<br />
+					Restart will depend on your orchestrator or process supervisor (or completely shutdown).
+				</p>
+			</div>
+			<ActionBar>
+				<Button
+					label="Soft Restart"
+					icon="mdi:restart-alert"
+					class="button-primary w-fit!"
+					onclick={async () => {
+						await call('engine.Restart');
+						close();
+					}}
+				/>
+				<Button
+					label="Hard Restart"
+					icon="mdi:restart-alert"
+					class="button-warning w-fit!"
+					onclick={async () => {
+						await call('engine.Restart', { hard: 'true' });
+						close();
+					}}
+				/>
+				<Button
+					label="Cancel"
+					icon="mdi:close-circle-outline"
+					class="button-secondary w-fit!"
+					onclick={close}
+				/>
 			</ActionBar>
 		</Card>
 	{/snippet}

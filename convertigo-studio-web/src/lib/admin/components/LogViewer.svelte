@@ -7,6 +7,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
+	import { formatDuration } from '$lib/utils/time';
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import VirtualList from 'svelte-tiny-virtual-list';
@@ -60,7 +61,7 @@
 					? diff + 'ms'
 					: diff < 3600000
 						? (diff / 1000).toFixed(2) + 's'
-						: new Date(diff).toISOString().substring(11, 19);
+						: formatDuration(diff);
 			}
 		},
 		Category: { idx: 0 },

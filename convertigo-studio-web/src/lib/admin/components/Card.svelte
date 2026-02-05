@@ -16,6 +16,7 @@
 		title = '',
 		class: cls = '',
 		bg = 'bg-surface-100-900',
+		cornerOptionClass = '',
 		cornerOption,
 		children,
 		...rest
@@ -35,7 +36,7 @@
 				<span class="text-lg font-medium">{title}</span>
 			{/if}
 			{#if cornerOption}
-				<div class="ml-auto flex items-center justify-end">
+				<div class="ml-auto flex items-center justify-end {cornerOptionClass}">
 					{@render cornerOption()}
 				</div>
 			{/if}

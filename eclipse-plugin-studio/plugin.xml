@@ -1652,7 +1652,7 @@
 				enablesFor="1"
 				icon="icons/studio/open_test_platform_16x16.png"
 				id="convertigo.action.openProjectTestPlatform"
-				label="Open Test Platform"
+				label="Open Backend Dashboard"
 				menubarPath="tools">
 			</action>
 		</objectContribution>

@@ -5,6 +5,7 @@
 	import Keys from '$lib/admin/Keys.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { formatDate } from '$lib/utils/time';
 	import { getContext } from 'svelte';
 
 	let modalYesNo = getContext('modalYesNo');
@@ -54,7 +55,7 @@
 		You have {nbValidKeys} valid key{nbValidKeys > 1 ? 's' : ''}{#if nbInvalidKeys > 0}
 			and
 			{nbInvalidKeys} invalid key{nbInvalidKeys > 1 ? 's' : ''}{/if}. {#if firstStartDate > 0}
-			The first key was created the {new Date(firstStartDate).toISOString().split('T')[0]}.{/if}
+			The first key was created the {formatDate(firstStartDate)}.{/if}
 	</AutoPlaceholder>
 	{#each categories as { keys: data, name, total, remaining, overflow }, iCat (`${name ?? 'category'}-${iCat}`)}
 		{@const classCat = [

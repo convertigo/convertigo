@@ -54,7 +54,7 @@ public class OpenProjectTestPlatformAction extends MyAbstractAction {
 				if ((databaseObject != null) && (databaseObject instanceof Project)) {
 					Project project = (Project)treeObject.getObject();
 					Program.launch(
-							EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/project.html#" + project.getName());
+							EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/dashboard/" + project.getName() + "/");
 				}
 			}
 
