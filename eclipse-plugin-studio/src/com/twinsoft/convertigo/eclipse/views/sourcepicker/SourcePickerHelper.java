@@ -302,7 +302,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		gd.grabExcessVerticalSpace = true;
 		gd.grabExcessHorizontalSpace = true;
 
-		twsDomTree = new TwsDomTree(parent, SWT.BORDER | SWT.MULTI);
+		twsDomTree = new TwsDomTree(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		twsDomTree.getTree().setLayoutData(gd);
 
 		// Generates xpath when item is selected with mouse clic

@@ -37,10 +37,14 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileInPlaceEditorInput;
 
@@ -211,9 +215,41 @@ public class SmartTypeCellEditor extends TextMultiGenericCellEditor {
 			StepSourceEditorComposite[] editor = {null};
 			Dialog dialog = new Dialog(PlatformUI.getWorkbench().getModalDialogShellProvider()) {
 				@Override
+				protected int getShellStyle() {
+					return super.getShellStyle() | SWT.RESIZE | SWT.MAX;
+				}
+
+				@Override
+				protected Point getInitialSize() {
+					Point size = super.getInitialSize();
+					Shell parentShell = getParentShell();
+					Rectangle bounds = parentShell != null ? parentShell.getMonitor().getClientArea()
+							: getShell().getDisplay().getPrimaryMonitor().getClientArea();
+					int maxWidth = (int) Math.round(bounds.width * 0.9);
+					int maxHeight = (int) Math.round(bounds.height * 0.9);
+					return new Point(Math.min(size.x, maxWidth), Math.min(size.y, maxHeight));
+				}
+
+				@Override
+				protected Point getInitialLocation(Point initialSize) {
+					Shell parentShell = getParentShell();
+					Rectangle bounds = parentShell != null ? parentShell.getBounds()
+							: getShell().getDisplay().getPrimaryMonitor().getClientArea();
+					int x = bounds.x + Math.max(0, (bounds.width - initialSize.x) / 2);
+					int y = bounds.y + Math.max(0, (bounds.height - initialSize.y) / 2);
+					return new Point(x, y);
+				}
+
+				@Override
 				protected Control createDialogArea(Composite parent) {
-					editor[0] = new StepSourceEditorComposite(parent, SWT.NONE, (Step) databaseObjectTreeObject.getObject(), value.getSourceDefinition());
-					return editor[0];
+					Composite area = (Composite) super.createDialogArea(parent);
+					area.setLayout(new GridLayout(1, false));
+
+					editor[0] = new StepSourceEditorComposite(area, SWT.NONE, (Step) databaseObjectTreeObject.getObject(),
+							value.getSourceDefinition());
+					editor[0].setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+					return area;
 				}
 			};
 			

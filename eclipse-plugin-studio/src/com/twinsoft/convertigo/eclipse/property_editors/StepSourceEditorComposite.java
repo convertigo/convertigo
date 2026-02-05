@@ -335,7 +335,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		gd.grabExcessHorizontalSpace = true;
 		gd.grabExcessVerticalSpace = true;
 
-		tree = new Tree(treesSashForm, SWT.BORDER);
+		tree = new Tree(treesSashForm, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		tree.setLayoutData (gd);
 		tree.setEnabled(sourcePicker.getStepSourceDefinition().size()>0);
 		tree.addSelectionListener(
