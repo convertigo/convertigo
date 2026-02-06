@@ -332,7 +332,7 @@ dependencies {
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.7'
 	compileFlat    'org.postgresql:postgresql:42.7.9'
-	compileFlat    'org.redisson:redisson:4.1.0'
+	compileFlat    'org.redisson:redisson:4.2.0'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion

@@ -35,8 +35,8 @@ ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.16.1'
-ext.swaggerUiVersion = '5.11.10'
-ext.tomcatVersion = '9.0.113'
+ext.swaggerUiVersion = '5.31.0'
+ext.tomcatVersion = '9.0.115'
 ext.eclipseVersion = '2025-12'
 ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
@@ -570,7 +570,7 @@ task checkLicenseDate {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.3.0'
+	gradleVersion = '9.3.1'
 }
 
 // https://github.com/ben-manes/gradle-versions-plugin
