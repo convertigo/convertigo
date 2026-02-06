@@ -108,20 +108,31 @@ public class ProjectDeployOptionsComposite extends Composite {
 		if (list.getItemCount() > 0) {
 			String [] items = list.getItems();
 			boolean found = false;
-			for (int i=0; i < list.getItemCount(); i++) {
+			for (int i = 0; i < list.getItemCount(); i++) {
 				if (defaultDeploymentConfiguration != null) {
 					if (items[i].equals(defaultDeploymentConfiguration.getServer())) {
-						list.select(i);
-						DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
-						fillDialog(dc);
+						list.setSelection(i);
+						list.notifyListeners(SWT.Selection, new Event());
 						found = true;
+						break;
 					}
 				}
 			}
+			
 			if (!found) {
-				list.select(0);
-				DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
-				fillDialog(dc);
+				for (int i = 0; i < items.length; i++) {
+					if (items[i].contains(".convertigo.net/convertigo")) {
+						list.setSelection(i);
+						list.notifyListeners(SWT.Selection, new Event());
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (!found) {
+				list.setSelection(0);
+				list.notifyListeners(SWT.Selection, new Event());
 			}
 		} else {
 			list.add(messageList);
@@ -134,28 +145,9 @@ public class ProjectDeployOptionsComposite extends Composite {
 			convertigoServer.setText("");
 		}
 		
-		String[] items = list.getItems();
-		for (int i = 0; i < items.length; i++) {
-			if (items[i].contains(".convertigo.net/convertigo")) {
-				list.setSelection(i);
-				list.notifyListeners(SWT.Selection, new Event());
-				break;
-			}
-		}
-		
 		if (list.getSelectionIndex() == -1) {
 			delButton.setEnabled(false);
 		}
-	}
-
-	private void fillDialog(DeploymentConfiguration dc) {
-		convertigoAdmin.setText(dc.getUsername());
-		convertigoPassword.setText(dc.getUserpassword());
-		checkBox.setSelection(dc.isBHttps());
-		checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
-		convertigoServer.setText(dc.getServer());
-		assembleXsl.setSelection(dc.isBAssembleXsl());
-		delButton.setEnabled(!(dc instanceof DeploymentConfigurationReadOnly));
 	}
 	
 	private void initialize() {

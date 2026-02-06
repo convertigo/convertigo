@@ -67,7 +67,10 @@ class ProjectDeployResultComposite extends Composite {
 			public void run() {
 				try {
 					if (!label.isDisposed()) {
-						if (text != null) label.setText(text);
+						if (text != null) {
+							label.setText(text);
+							link.setText("");
+						}
 						ProjectDeployResultComposite.this.requestLayout();
 					}
 				} catch (Exception e) {
@@ -83,7 +86,10 @@ class ProjectDeployResultComposite extends Composite {
 			public void run() {
 				try {
 					if (!link.isDisposed()) {
-						if (text != null) link.setText(text);
+						if (text != null) {
+							label.setText("");
+							link.setText(text);
+						}
 						link.setVisible(text != null && !text.isEmpty());
 						ProjectDeployResultComposite.this.requestLayout();
 					}
