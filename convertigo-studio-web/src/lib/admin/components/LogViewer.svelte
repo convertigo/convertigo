@@ -14,6 +14,7 @@
 	import { flip } from 'svelte/animate';
 	import { fromAction } from 'svelte/attachments';
 	import { slide } from 'svelte/transition';
+	import ActionBar from './ActionBar.svelte';
 	import Button from './Button.svelte';
 	import Card from './Card.svelte';
 	import MaxRectangle from './MaxRectangle.svelte';
@@ -69,6 +70,13 @@
 		Thread: { idx: 3 },
 		Message: { idx: 4 }
 	};
+	const filterModeLabel = (value) =>
+		({
+			startsWith: 'Starts With',
+			equals: 'Equals',
+			includes: 'Includes',
+			endsWith: 'Ends With'
+		})[value] ?? value;
 
 	let modalYesNo = getContext('modalYesNo');
 
@@ -341,7 +349,17 @@
 		sensitive = false,
 		disabled = false
 	}) {
-		modalFilterParams = { category, value, mode, ts, not, sensitive, disabled };
+		const editing = Boolean(mode);
+		modalFilterParams = {
+			category,
+			value,
+			mode: mode || 'equals',
+			ts,
+			not,
+			sensitive,
+			disabled,
+			editing
+		};
 		modalFilter.open({ event });
 	}
 
@@ -495,17 +513,17 @@
 	let modalFilterParams = $state({});
 	let modalFilterSubmit = (e) => {
 		e.preventDefault();
-		const { mode, category, value, not, ts, sensitive, disabled } = modalFilterParams;
+		const { mode, category, value, not, ts, sensitive, disabled, editing } = modalFilterParams;
 		let array = checkArray(filters[category]);
 		const val = {
-			mode: e.submitter.value,
+			mode: mode || 'equals',
 			value,
 			not,
 			ts,
 			sensitive,
 			disabled: !!disabled
 		};
-		if (mode) {
+		if (editing) {
 			array[array.findIndex((o) => o.ts == ts)] = val;
 		} else {
 			array.push(val);
@@ -652,23 +670,11 @@
 />
 <ModalDynamic bind:this={modalFilter}>
 	{#snippet children({ close })}
-		{@const { mode, category, value, not, sensitive } = modalFilterParams}
+		{@const { mode, category, value, not, sensitive, editing } = modalFilterParams}
 		<Card
-			title="{mode ? 'Edit' : 'Add'} log filter for {category}"
+			title="{editing ? 'Edit' : 'Add'} log filter for {category}"
 			class="log-filter-card gap-low p-4"
 		>
-			{#snippet cornerOption()}
-				<div class="layout-x-end">
-					<button
-						type="button"
-						class="button-ico-secondary h-7 w-7 justify-center"
-						onclick={() => close()}
-						aria-label="Close log filter dialog"
-					>
-						<Ico icon="mdi:close" />
-					</button>
-				</div>
-			{/snippet}
 			<form onsubmit={modalFilterSubmit} class="layout-y-low">
 				{#if category == 'Message'}
 					<textarea
@@ -683,33 +689,54 @@
 				<div class="layout-x-wrap justify-between gap">
 					<PropertyType
 						name="negate"
-						type="check"
-						label={not ? 'not' : 'is'}
+						type="segment"
 						fit={true}
-						bind:checked={() => !modalFilterParams.not, (v) => (modalFilterParams.not = !v)}
+						item={[
+							{ value: 'match', text: 'Match' },
+							{ value: 'exclude', text: 'Exclude' }
+						]}
+						value={not ? 'exclude' : 'match'}
+						onValueChange={(event) => {
+							modalFilterParams.not = event.value === 'exclude';
+						}}
 					/>
 					<PropertyType
 						name="case"
-						type="check"
-						label={sensitive ? 'case' : 'ignore case'}
+						type="segment"
 						fit={true}
-						bind:checked={
-							() => modalFilterParams.sensitive, (v) => (modalFilterParams.sensitive = v)
-						}
+						item={[
+							{ value: 'sensitive', text: 'Case Sensitive' },
+							{ value: 'insensitive', text: 'Case Insensitive' }
+						]}
+						value={sensitive ? 'sensitive' : 'insensitive'}
+						onValueChange={(event) => {
+							modalFilterParams.sensitive = event.value === 'sensitive';
+						}}
 					/>
 				</div>
-				<div class="layout-x-wrap-low">
-					{#each ['startsWith', 'equals', 'includes', 'endsWith'] as _mode (_mode)}
-						<button
-							type="submit"
-							class="log-filter-mode"
-							class:log-filter-mode-active={mode == _mode}
-							value={_mode}
-						>
-							{_mode}
-						</button>
-					{/each}
-				</div>
+				<PropertyType
+					name="mode"
+					type="segment"
+					item={[
+						{ value: 'startsWith', text: 'Starts With' },
+						{ value: 'equals', text: 'Equals' },
+						{ value: 'includes', text: 'Includes' },
+						{ value: 'endsWith', text: 'Ends With' }
+					]}
+					value={mode || 'equals'}
+					onValueChange={(event) => {
+						modalFilterParams.mode = event.value;
+					}}
+				/>
+				<ActionBar>
+					<Button label="Filter" icon="mdi:filter" type="submit" class="button-primary w-fit!" />
+					<Button
+						label="Cancel"
+						icon="mdi:close-circle-outline"
+						class="button-secondary w-fit!"
+						onclick={() => close()}
+					/>
+				</ActionBar>
 			</form>
 		</Card>
 	{/snippet}
@@ -775,7 +802,7 @@
 			</div>
 		{/if}
 		<div
-			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 px-1"
+			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
 		>
 			<div class="log-toolbar-group">
 				<Button
@@ -890,7 +917,10 @@
 						class:motif-warning={disabled}
 					>
 						<span class="max-w-xs overflow-hidden"
-							>{category} {not ? 'not' : ''} {mode} {sensitive ? value : value.toLowerCase()}</span
+							>{category}
+							{not ? 'not' : ''}
+							{filterModeLabel(mode)}
+							{sensitive ? value : value.toLowerCase()}</span
 						>
 						<Button
 							{size}
@@ -1104,14 +1134,6 @@
 
 	.log-filter-card {
 		@apply bg-surface-50-950;
-	}
-
-	.log-filter-mode {
-		@apply button h-10 border border-surface-200-800 bg-surface-100-900 px-4 text-[14px] font-medium text-strong shadow-sm/10 shadow-surface-900-100 hover:bg-surface-200-800;
-	}
-
-	.log-filter-mode-active {
-		@apply border-primary-600 bg-primary-600 text-white shadow-follow hover:border-primary-500 hover:bg-primary-500;
 	}
 
 	:global(.log-toolbar-button) {
