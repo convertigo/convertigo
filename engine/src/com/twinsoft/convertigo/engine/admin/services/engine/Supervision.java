@@ -87,5 +87,9 @@ public class Supervision extends TextService {
 		
 		return result;
 	}
-
+	
+	@Override
+	public boolean isXsrfCheck() {
+		return false;
+	}
 }

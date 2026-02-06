@@ -485,24 +485,41 @@ public class HttpUtils {
 	}
 
 	public static void checkXSRF(HttpServletRequest request, HttpServletResponse response) throws EngineException {
-		HttpSession session = request.getSession(true);
-		String token = SessionAttribute.xsrfToken.get(session);
-		String header = HeaderName.XXsrfToken.getHeader(request);
-		if (token == null && header != null) {
-			token = Base64.encodeBytes(DigestUtils.sha256(session.getId() + Engine.startStopDate)).replaceAll("[^\\w\\d]", "-");
-			SessionAttribute.xsrfToken.set(session, token);
-			HeaderName.XXsrfToken.setHeader(response, token);
-		} else {
-			if (header == null) {
-				header = request.getParameter(Parameter.XsrfToken.getName());
-			}
-			if (token != null && !token.equals(header)) {
-				EngineException e = new EngineException("Invalid XSRF Token header for this session.");
-				e.setStackTrace(new StackTraceElement[0]);
-				throw e;
-			}
-		}
+	    // Read token from header or parameter (if any)
+	    String header = HeaderName.XXsrfToken.getHeader(request);
+	    if (header == null) {
+	        header = request.getParameter(Parameter.XsrfToken.getName());
+	    }
+
+	    // Do not create a session unless the client explicitly asks for a token
+	    var session = request.getSession(false);
+	    if (session == null) {
+	        if (header == null) {
+	            // No session and no token request -> do nothing
+	            return;
+	        }
+	        // Client requested a token (e.g., "Fetch") -> create session
+	        session = request.getSession(true);
+	    }
+
+	    String token = SessionAttribute.xsrfToken.get(session);
+
+	    if (token == null && header != null) {
+	        // Token missing in session, client asks for it -> generate and return it
+	        token = Base64.encodeBytes(DigestUtils.sha256(session.getId() + Engine.startStopDate))
+	                .replaceAll("[^\\w\\d]", "-");
+	        SessionAttribute.xsrfToken.set(session, token);
+	        HeaderName.XXsrfToken.setHeader(response, token);
+	    } else {
+	        // Token exists: validate against provided header/param
+	        if (token != null && !token.equals(header)) {
+	            EngineException e = new EngineException("Invalid XSRF Token header for this session.");
+	            e.setStackTrace(new StackTraceElement[0]);
+	            throw e;
+	        }
+	    }
 	}
+
 	
 	public static void downloadFile(String url, File file) throws ClientProtocolException, IOException {
 		var client = Engine.theApp != null ? Engine.theApp.httpClient4 : makeHttpClient(false);
