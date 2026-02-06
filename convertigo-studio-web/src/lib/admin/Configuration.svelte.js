@@ -1,5 +1,5 @@
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { call } from '$lib/utils/service';
+import { call, checkArray } from '$lib/utils/service';
 
 /** @type {any} */
 let defValues = {
@@ -25,5 +25,12 @@ export default ServiceHelper({
 	values,
 	defValues,
 	service: 'configuration.List',
-	mapping: { categories: 'admin.category' }
+	mapping: { categories: 'admin.category' },
+	beforeUpdate: (data) => ({
+		...data,
+		categories: checkArray(data.categories).map((category) => ({
+			...category,
+			property: checkArray(category.property)
+		}))
+	})
 });

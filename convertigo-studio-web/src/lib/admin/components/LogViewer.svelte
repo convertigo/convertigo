@@ -738,8 +738,8 @@
 						<MovableContent bind:items={columnsOrder} {index} grabClass="cursor-grab">
 							<div
 								class="log-columns-chip mini-card"
-								class:preset-filled-success-100-900={show}
-								class:preset-filled-warning-100-900={!show}
+								class:preset-filled-success-500={show}
+								class:preset-filled-warning-500={!show}
 								class:motif-warning={!show}
 								class:animate-pulse={name == pulsedCategory}
 							>
@@ -768,24 +768,22 @@
 						</MovableContent>
 					</div>
 				{/each}
-				<div class="log-columns-chip mini-card preset-filled-warning-100-900 motif-warning">
+				<div class="log-columns-chip mini-card preset-filled-warning-500 motif-warning">
 					<span>Restore</span>
 					<Button {size} icon="mdi:backup-restore" onclick={(event) => restoreColumns(event)} />
 				</div>
 			</div>
 		{/if}
 		<div
-			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 px-low"
+			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 px-1"
 		>
-			<div class="log-toolbar-chip mini-card">
+			<div class="log-toolbar-group">
 				<Button
 					{size}
 					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
 					cls="log-toolbar-button"
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
-			</div>
-			<div class="log-toolbar-chip mini-card">
 				<Popover
 					open={searchBoxOpened}
 					onOpenChange={(e) => {
@@ -833,17 +831,13 @@
 						</Popover.Content>
 					</Popover.Positioner>
 				</Popover>
-			</div>
-			<div class="log-toolbar-chip mini-card">
 				<Button
 					{size}
 					icon="mdi:filter-cog{showFilters.current ? '' : '-outline'}"
 					cls={showFilters.current ? 'log-toolbar-button-active' : 'log-toolbar-button'}
 					onmousedown={() => (showFilters.current = !showFilters.current)}
 				/>
-			</div>
-			{#if showFilters.current}
-				<div class="log-toolbar-chip mini-card">
+				{#if showFilters.current}
 					<Button
 						{size}
 						icon="mdi:plus"
@@ -858,9 +852,9 @@
 							onclick={() => addExtraLines(-1)}
 						/>
 					{/if}
-				</div>
-			{/if}
-			<div class="log-filter-chip mini-card preset-filled-tertiary-100-900 motif-tertiary">
+				{/if}
+			</div>
+			<div class="log-filter-chip mini-card preset-filled-tertiary-500 motif-tertiary">
 				<span>Message</span>
 				<Button
 					{size}
@@ -881,18 +875,18 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="log-filter-chip mini-card preset-filled-surface-200-800">AND</div>
+						<div class="log-filter-chip mini-card preset-filled-surface-600-400">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="log-filter-chip mini-card preset-filled-surface-200-800">OR</div>
+						<div class="log-filter-chip mini-card preset-filled-surface-600-400">OR</div>
 					{/if}
 					<div
 						class="log-filter-chip mini-card"
-						class:preset-filled-secondary-100-900={!not && !disabled}
+						class:preset-filled-secondary-500={!not && !disabled}
 						class:motif-secondary={!not && !disabled}
-						class:preset-filled-error-100-900={not && !disabled}
+						class:preset-filled-error-500={not && !disabled}
 						class:motif-error={not && !disabled}
-						class:preset-filled-warning-100-900={disabled}
+						class:preset-filled-warning-500={disabled}
 						class:motif-warning={disabled}
 					>
 						<span class="max-w-xs overflow-hidden"
@@ -1104,8 +1098,8 @@
 		@apply border border-surface-200-800 shadow-sm/10 shadow-surface-900-100;
 	}
 
-	.log-toolbar-chip {
-		@apply gap-1 rounded-sm border border-surface-200-800 bg-surface-50-950 p-0.5;
+	.log-toolbar-group {
+		@apply flex items-center gap-1;
 	}
 
 	.log-filter-card {

@@ -41,7 +41,7 @@
 >
 	<div class="flex h-9 max-w-92 justify-center">
 		<div
-			class="layout-x-none h-9 input-common items-center preset-filled-surface-200-800 text-[13px] leading-none placeholder:text-[13px] light:bg-white"
+			class="layout-x-none h-9 input-common items-center preset-filled-surface-200-800 text-[13px] leading-none placeholder:text-[13px]"
 		>
 			<DateRangePicker.Trigger class="rounded-base p-1 hover:bg-black/10">
 				<Ico size="6" icon="mdi:calendar-range" />
@@ -79,7 +79,7 @@
 	</div>
 	<DateRangePicker.Content sideOffset={6} class="z-50 select-none">
 		<DateRangePicker.Calendar
-			class="mt-6 inline-block card border border-surface-200-800 preset-filled-surface-200-800 p-4 shadow-xl"
+			class="mt-6 inline-block card border border-surface-300-700 preset-filled-surface-50-950 p-4 shadow-xl"
 		>
 			{#snippet children({ months, weekdays })}
 				<DateRangePicker.Header class="layout-x-between">
