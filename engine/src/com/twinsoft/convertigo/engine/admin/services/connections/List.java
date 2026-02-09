@@ -189,6 +189,7 @@ public class List extends XmlService{
 							? "finished"
 							: (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "(" + context.waitingRequests
 									+ ")");
+					connectionElement.setAttribute("running", "true");
 					connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
 					connectionElement.setAttribute("contextCreationDate",
 							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
@@ -226,6 +227,7 @@ public class List extends XmlService{
 								formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
 						Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
 						sessionElement.setAttribute("adminRoles", Integer.toString(r == null ? 0 : r.length));
+						sessionElement.setAttribute("running", "true");
 						if (session == currentSession) {
 							sessionElement.setAttribute("isCurrentSession", "true");
 						}
@@ -288,6 +290,37 @@ public class List extends XmlService{
 			String sessionToFilter = request.getParameter("session");
 			String contextPrefixFilter = StringUtils.isNotBlank(sessionToFilter) ? sessionToFilter + "_" : null;
 
+			var localContexts = new HashMap<String, Context>();
+			var localSessionIds = new HashSet<String>();
+			try {
+				for (var session : HttpSessionListener.getSessions()) {
+					if (session != null) {
+						localSessionIds.add(session.getId());
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+			try {
+				for (var context : Engine.theApp.contextManager.getContexts()) {
+					if (context == null || context.contextID == null || context.contextID.isBlank()) {
+						continue;
+					}
+					if (contextPrefixFilter != null && !context.contextID.startsWith(contextPrefixFilter)) {
+						continue;
+					}
+					localContexts.put(context.contextID, context);
+					contextIds.add(context.contextID);
+					var sid = extractSessionId(context.contextID);
+					if (sid != null && !sid.isBlank()) {
+						sessionIds.add(sid);
+						localSessionIds.add(sid);
+					}
+				}
+			} catch (Exception ignore) {
+				// ignore
+			}
+
 			var staleContexts = new ArrayList<String>();
 			var sessionAuthenticatedUsers = new HashMap<String, String>();
 			var requiredContextFields = Set.of("name", "contextID", "creationTime", "lastAccessTime", CONTEXT_META_PROJECT,
@@ -299,6 +332,44 @@ public class List extends XmlService{
 					continue;
 				}
 				if (contextId == null || contextId.isBlank()) {
+					continue;
+				}
+				Context localContext = localContexts.get(contextId);
+				if (localContext != null) {
+					Element connectionElement = document.createElement("connection");
+					String authenticatedUser = null;
+					try {
+						authenticatedUser = localContext.getAuthenticatedUser();
+					} catch (Exception e) {
+						Engine.logAdmin.trace("connection.List failed to get the authenticated user: " + e);
+					}
+					connectionElement.setAttribute("connected", Boolean.toString(false));
+					connectionElement.setAttribute("contextName", localContext.contextID);
+					connectionElement.setAttribute("project", localContext.projectName);
+					connectionElement.setAttribute("connector", localContext.connectorName);
+					connectionElement.setAttribute("requested",
+							(localContext.requestedObject instanceof Transaction) ? localContext.transactionName : localContext.sequenceName);
+					connectionElement.setAttribute("status", (localContext.requestedObject == null || localContext.requestedObject.runningThread == null
+							? "finished"
+							: (localContext.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "(" + localContext.waitingRequests
+									+ ")");
+					connectionElement.setAttribute("running", "true");
+					connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
+					connectionElement.setAttribute("contextCreationDate",
+							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(localContext.creationTime)));
+					connectionElement.setAttribute("lastContextAccessDate",
+							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(localContext.lastAccessTime)));
+					try {
+						connectionElement.setAttribute("contextInactivityTime",
+								formatTime((now - localContext.lastAccessTime) / 1000) + " / "
+										+ formatTime(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(localContext.projectName)
+												.getContextTimeout()));
+					} catch (Exception ignore) {
+						// ignore
+					}
+					connectionElement.setAttribute("clientComputer",
+							localContext.remoteHost + " (" + localContext.remoteAddr + "), " + localContext.userAgent);
+					connectionsListElement.appendChild(connectionElement);
 					continue;
 				}
 				boolean isPersisted = persistedContextIds.contains(contextId);
@@ -358,6 +429,7 @@ public class List extends XmlService{
 				connectionElement.setAttribute("connector", connectorName != null ? connectorName : "");
 				connectionElement.setAttribute("requested", requested != null ? requested : "");
 				connectionElement.setAttribute("status", (isInflight ? "in progress" : "finished") + "(" + waitingRequests + ")");
+				connectionElement.setAttribute("running", "false");
 				connectionElement.setAttribute("user", authenticatedUser != null ? authenticatedUser : "");
 				if (creationTime > 0) {
 					connectionElement.setAttribute("contextCreationDate",
@@ -459,6 +531,7 @@ public class List extends XmlService{
 						sessionElement.setAttribute("lastSessionAccessDate", "");
 						sessionElement.setAttribute("sessionInactivityTime", "");
 						sessionElement.setAttribute("adminRoles", Integer.toString(0));
+						sessionElement.setAttribute("running", Boolean.toString(localSessionIds.contains(sessionId)));
 						if (sessionId.equals(currentSessionId)) {
 							sessionElement.setAttribute("isCurrentSession", "true");
 							Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(currentSession);
@@ -494,6 +567,7 @@ public class List extends XmlService{
 						sessionElement.setAttribute("sessionInactivityTime", "");
 					}
 					sessionElement.setAttribute("adminRoles", Integer.toString(adminRoles));
+					sessionElement.setAttribute("running", Boolean.toString(localSessionIds.contains(sessionId)));
 					if (sessionId.equals(currentSessionId)) {
 						sessionElement.setAttribute("isCurrentSession", "true");
 						Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(currentSession);
