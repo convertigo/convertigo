@@ -7,7 +7,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
-	import { formatDuration } from '$lib/utils/time';
+	import { formatDuration, joinDateTime, parseDateTimeMs, splitDateTime } from '$lib/utils/time';
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import VirtualList from 'svelte-tiny-virtual-list';
@@ -19,6 +19,7 @@
 	import Card from './Card.svelte';
 	import MaxRectangle from './MaxRectangle.svelte';
 	import PropertyType from './PropertyType.svelte';
+	import TimePicker from './TimePicker.svelte';
 
 	const duration = 400;
 	let lineHeight = $state(14.1); // px
@@ -70,6 +71,15 @@
 		Thread: { idx: 3 },
 		Message: { idx: 4 }
 	};
+	const LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+	const dateTimeCategory = 'Date/Time';
+	const START_TIME_DEFAULT = '00:00:00,000';
+	const END_TIME_DEFAULT = '23:59:59,999';
+	const normalizeLevel = (value) => String(value ?? '').toLowerCase();
+	const normalizeLevels = (values = []) =>
+		[...new Set(values.map(normalizeLevel))].filter((lvl) => LEVELS.includes(lvl));
+	const defaultLevelSelection = (value) =>
+		LEVELS.slice(Math.max(LEVELS.indexOf(normalizeLevel(value)), LEVELS.indexOf('info')));
 	const filterModeLabel = (value) =>
 		({
 			startsWith: 'Starts With',
@@ -270,10 +280,23 @@
 				category,
 				active: (array ?? [])
 					.filter((filter) => !filter?.disabled)
-					.map((filter) => ({
-						...filter,
-						valueLower: filter?.value?.toLowerCase?.() ?? filter?.value
-					}))
+					.map((filter) => {
+						if (filter?.mode === 'range') {
+							const start = filter?.start ?? '';
+							const end = filter?.end ?? '';
+							const startMs = parseDateTimeMs(start);
+							const endMs = parseDateTimeMs(end);
+							return { ...filter, start, end, startMs, endMs };
+						}
+						return {
+							...filter,
+							valueLower: filter?.value?.toLowerCase?.() ?? filter?.value
+						};
+					})
+					.filter((filter) => {
+						if (filter?.mode !== 'range') return true;
+						return Boolean(filter.start || filter.end);
+					})
 			}))
 			.filter(({ active }) => active.length > 0);
 	}
@@ -292,11 +315,10 @@
 			return;
 		}
 
-		logs = [];
 		let index = 0;
-		let lastLength = 0;
 		const results = [];
-		const chunkSize = 1000;
+		const isLevelOnly = filtersSnapshot.length === 1 && filtersSnapshot[0].category === 'Level';
+		const chunkSize = isLevelOnly ? total : 1000;
 		const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
 
 		const processChunk = () => {
@@ -306,16 +328,30 @@
 			for (; index < end; index++) {
 				const log = baseLogs[index];
 				const matches = filtersSnapshot.every(({ category, active }) => {
-					return active.some(({ mode, value, valueLower, not, sensitive }) => {
-						let logValue = getValue(category, log, index);
-						let _value = value;
-						if (!sensitive) {
-							logValue = logValue.toLowerCase();
-							_value = valueLower ?? _value.toLowerCase();
+					return active.some(
+						({ mode, value, valueLower, not, sensitive, levels, startMs, endMs }) => {
+							let logValue = getValue(category, log, index);
+							if (mode === 'range' || category === dateTimeCategory) {
+								const logMs = parseDateTimeMs(log[1]);
+								if (logMs == null) return false;
+								if (startMs != null && logMs < startMs) return false;
+								if (endMs != null && logMs > endMs) return false;
+								return true;
+							}
+							if (category === 'Level' || mode === 'level' || (levels?.length ?? 0) > 0) {
+								const selected = normalizeLevels(levels?.length ? levels : value ? [value] : []);
+								if (selected.length === 0) return false;
+								return selected.includes(normalizeLevel(logValue));
+							}
+							let _value = value;
+							if (!sensitive) {
+								logValue = logValue.toLowerCase();
+								_value = valueLower ?? _value.toLowerCase();
+							}
+							let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
+							return not ? !ret : ret;
 						}
-						let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
-						return not ? !ret : ret;
-					});
+					);
 				});
 				if (matches) {
 					results.push(log);
@@ -324,14 +360,9 @@
 
 			if (runId !== filterRunId) return;
 
-			if (results.length !== lastLength) {
-				logs = results.slice();
-				lastLength = results.length;
-			}
-
 			if (index < total) {
 				schedule(processChunk);
-			} else if (results.length === 0) {
+			} else if (runId === filterRunId) {
 				logs = results;
 			}
 		};
@@ -344,21 +375,48 @@
 		category,
 		value = '',
 		mode = false,
+		start = '',
+		end = '',
 		ts = new Date().getTime(),
 		not = false,
 		sensitive = false,
-		disabled = false
+		disabled = false,
+		levels = [],
+		logDateTime = ''
 	}) {
-		const editing = Boolean(mode);
+		const isLevel = category === 'Level';
+		const isDateTime = category === 'Date' || category === 'Time' || category === dateTimeCategory;
+		const effectiveCategory = isDateTime ? dateTimeCategory : category;
+		const existingRange = isDateTime ? checkArray(filters[dateTimeCategory])[0] : null;
+		const serverRange = isDateTime
+			? {
+					start: startDate,
+					end: live ? '' : endDate
+				}
+			: null;
+		const baseRange = existingRange ?? (start || end ? { start, end } : serverRange);
+		const startParts = splitDateTime(baseRange?.start);
+		const endParts = splitDateTime(baseRange?.end);
+		const editing = Boolean(mode) || (isDateTime && !!existingRange);
 		modalFilterParams = {
-			category,
+			category: effectiveCategory,
 			value,
-			mode: mode || 'equals',
+			mode: isDateTime ? 'range' : isLevel ? 'level' : mode || 'equals',
 			ts,
-			not,
+			not: isLevel || isDateTime ? false : not,
 			sensitive,
 			disabled,
-			editing
+			editing,
+			levels: isLevel
+				? normalizeLevels(levels?.length ? levels : defaultLevelSelection(value))
+				: undefined,
+			startDate: startParts.date,
+			startTime: startParts.time,
+			endDate: endParts.date,
+			endTime: endParts.time,
+			clickedValue: isDateTime ? value : '',
+			clickedDateTime: isDateTime ? (logDateTime ?? '') : '',
+			clickedCategory: isDateTime ? category : ''
 		};
 		modalFilter.open({ event });
 	}
@@ -511,24 +569,92 @@
 	let modalFilter;
 	/** @type {any} */
 	let modalFilterParams = $state({});
+	const getRangeValue = (bound) => {
+		const dateKey = bound === 'start' ? 'startDate' : 'endDate';
+		const timeKey = bound === 'start' ? 'startTime' : 'endTime';
+		const fallback = bound === 'start' ? START_TIME_DEFAULT : END_TIME_DEFAULT;
+		return joinDateTime(
+			modalFilterParams?.[dateKey] ?? '',
+			modalFilterParams?.[timeKey] ?? '',
+			fallback
+		);
+	};
+	const applyClickedRange = (bound) => {
+		const { clickedDateTime, clickedCategory } = modalFilterParams ?? {};
+		if (!clickedDateTime) return;
+		const { date, time } = splitDateTime(clickedDateTime);
+		const dateKey = bound === 'start' ? 'startDate' : 'endDate';
+		const timeKey = bound === 'start' ? 'startTime' : 'endTime';
+		modalFilterParams[dateKey] = date;
+		if (clickedCategory === 'Date') {
+			modalFilterParams[timeKey] = bound === 'start' ? START_TIME_DEFAULT : END_TIME_DEFAULT;
+		} else {
+			modalFilterParams[timeKey] =
+				time || (bound === 'start' ? START_TIME_DEFAULT : END_TIME_DEFAULT);
+		}
+	};
+	const levelSelectionInvalid = $derived.by(() => {
+		if (modalFilterParams?.category !== 'Level') return false;
+		const selected = normalizeLevels(modalFilterParams.levels ?? []);
+		return selected.length === 0 || selected.length === LEVELS.length;
+	});
+	const rangeSelectionInvalid = $derived.by(() => {
+		if (modalFilterParams?.category !== dateTimeCategory) return false;
+		const startValue = getRangeValue('start');
+		const endValue = getRangeValue('end');
+		return !startValue && !endValue;
+	});
+	const rangeOrderInvalid = $derived.by(() => {
+		if (modalFilterParams?.category !== dateTimeCategory) return false;
+		const startValue = getRangeValue('start');
+		const endValue = getRangeValue('end');
+		const startMs = parseDateTimeMs(startValue);
+		const endMs = parseDateTimeMs(endValue);
+		return startMs != null && endMs != null && startMs > endMs;
+	});
+	const rangeInvalid = $derived.by(() => rangeSelectionInvalid || rangeOrderInvalid);
 	let modalFilterSubmit = (e) => {
 		e.preventDefault();
-		const { mode, category, value, not, ts, sensitive, disabled, editing } = modalFilterParams;
+		const { mode, category, value, not, ts, sensitive, disabled, editing, levels } =
+			modalFilterParams;
+		if (category === 'Level' && levelSelectionInvalid) return;
+		if (category === dateTimeCategory && rangeInvalid) return;
 		let array = checkArray(filters[category]);
-		const val = {
-			mode: mode || 'equals',
-			value,
-			not,
-			ts,
-			sensitive,
-			disabled: !!disabled
-		};
-		if (editing) {
-			array[array.findIndex((o) => o.ts == ts)] = val;
+		const val =
+			category === 'Level'
+				? {
+						mode: 'level',
+						levels: normalizeLevels(levels ?? []),
+						value: '',
+						ts,
+						disabled: !!disabled
+					}
+				: category === dateTimeCategory
+					? {
+							mode: 'range',
+							start: getRangeValue('start'),
+							end: getRangeValue('end'),
+							ts,
+							disabled: !!disabled
+						}
+					: {
+							mode: mode || 'equals',
+							value,
+							not,
+							ts,
+							sensitive,
+							disabled: !!disabled
+						};
+		if (category === 'Level' || category === dateTimeCategory) {
+			filters[category] = [val];
 		} else {
-			array.push(val);
+			if (editing) {
+				array[array.findIndex((o) => o.ts == ts)] = val;
+			} else {
+				array.push(val);
+			}
+			filters[category] = array;
 		}
-		filters[category] = array;
 		filters = { ...filters };
 		scheduleFiltering();
 		modalFilter.close();
@@ -668,7 +794,7 @@
 		}
 	}}
 />
-<ModalDynamic bind:this={modalFilter}>
+<ModalDynamic bind:this={modalFilter} class="!overflow-visible">
 	{#snippet children({ close })}
 		{@const { mode, category, value, not, sensitive, editing } = modalFilterParams}
 		<Card
@@ -683,53 +809,154 @@
 						wrap={null}
 						rows={Math.min(10, value.split('\n').length)}
 					></textarea>
+				{:else if category == dateTimeCategory}
+					{#if modalFilterParams.clickedValue}
+						<div class="layout-x-wrap items-center gap-2 text-sm">
+							<span>
+								Set "{modalFilterParams.clickedDateTime || modalFilterParams.clickedValue}" as
+							</span>
+							<Button
+								label="Start"
+								full={false}
+								class="button-secondary"
+								onclick={() => applyClickedRange('start')}
+							/>
+							<Button
+								label="End"
+								full={false}
+								class="button-secondary"
+								onclick={() => applyClickedRange('end')}
+							/>
+						</div>
+					{/if}
+					<div class="layout-y-low">
+						<div class="layout-x-wrap items-end gap-2">
+							<div class="layout-y-1">
+								<label class="text-xs" for="log-filter-start-date">Start</label>
+								<input
+									type="date"
+									id="log-filter-start-date"
+									class="h-9 input-common"
+									bind:value={modalFilterParams.startDate}
+								/>
+							</div>
+							<div class="layout-y-1">
+								<span class="text-xs">Time</span>
+								<TimePicker bind:inputValue={modalFilterParams.startTime} />
+							</div>
+							<Button
+								label="None"
+								full={false}
+								class={modalFilterParams.startDate ? 'button-secondary' : 'button-primary'}
+								onclick={() => {
+									modalFilterParams.startDate = '';
+									modalFilterParams.startTime = '';
+								}}
+							/>
+						</div>
+						<div class="layout-x-wrap items-end gap-2">
+							<div class="layout-y-1">
+								<label class="text-xs" for="log-filter-end-date">End</label>
+								<input
+									type="date"
+									id="log-filter-end-date"
+									class="h-9 input-common"
+									bind:value={modalFilterParams.endDate}
+								/>
+							</div>
+							<div class="layout-y-1">
+								<span class="text-xs">Time</span>
+								<TimePicker bind:inputValue={modalFilterParams.endTime} />
+							</div>
+							<Button
+								label="None"
+								full={false}
+								class={modalFilterParams.endDate ? 'button-secondary' : 'button-primary'}
+								onclick={() => {
+									modalFilterParams.endDate = '';
+									modalFilterParams.endTime = '';
+								}}
+							/>
+						</div>
+						{#if rangeOrderInvalid}
+							<p class="text-xs text-warning-600">Start must be before End.</p>
+						{/if}
+					</div>
+				{:else if category == 'Level'}
+					<div class="layout-x-wrap gap-1">
+						{#each LEVELS as level (level)}
+							{@const active = (modalFilterParams.levels ?? []).includes(level)}
+							<Button
+								full={false}
+								label={level}
+								cls="{active ? 'button-primary' : 'button-secondary'} capitalize"
+								aria-pressed={active}
+								onclick={() => {
+									const current = normalizeLevels(modalFilterParams.levels ?? []);
+									if (active) {
+										modalFilterParams.levels = current.filter((lvl) => lvl !== level);
+									} else {
+										modalFilterParams.levels = normalizeLevels([...current, level]);
+									}
+								}}
+							/>
+						{/each}
+					</div>
 				{:else}
 					<input class="h-10 input-common text-[15px]" bind:value={modalFilterParams.value} />
 				{/if}
-				<div class="layout-x-wrap justify-between gap">
+				{#if category !== 'Level' && category !== dateTimeCategory}
+					<div class="layout-x-wrap justify-between gap">
+						<PropertyType
+							name="negate"
+							type="segment"
+							fit={true}
+							item={[
+								{ value: 'match', text: 'Match' },
+								{ value: 'exclude', text: 'Exclude' }
+							]}
+							value={not ? 'exclude' : 'match'}
+							onValueChange={(event) => {
+								modalFilterParams.not = event.value === 'exclude';
+							}}
+						/>
+						<PropertyType
+							name="case"
+							type="segment"
+							fit={true}
+							item={[
+								{ value: 'sensitive', text: 'Case Sensitive' },
+								{ value: 'insensitive', text: 'Case Insensitive' }
+							]}
+							value={sensitive ? 'sensitive' : 'insensitive'}
+							onValueChange={(event) => {
+								modalFilterParams.sensitive = event.value === 'sensitive';
+							}}
+						/>
+					</div>
 					<PropertyType
-						name="negate"
+						name="mode"
 						type="segment"
-						fit={true}
 						item={[
-							{ value: 'match', text: 'Match' },
-							{ value: 'exclude', text: 'Exclude' }
+							{ value: 'startsWith', text: 'Starts With' },
+							{ value: 'equals', text: 'Equals' },
+							{ value: 'includes', text: 'Includes' },
+							{ value: 'endsWith', text: 'Ends With' }
 						]}
-						value={not ? 'exclude' : 'match'}
+						value={mode || 'equals'}
 						onValueChange={(event) => {
-							modalFilterParams.not = event.value === 'exclude';
+							modalFilterParams.mode = event.value;
 						}}
 					/>
-					<PropertyType
-						name="case"
-						type="segment"
-						fit={true}
-						item={[
-							{ value: 'sensitive', text: 'Case Sensitive' },
-							{ value: 'insensitive', text: 'Case Insensitive' }
-						]}
-						value={sensitive ? 'sensitive' : 'insensitive'}
-						onValueChange={(event) => {
-							modalFilterParams.sensitive = event.value === 'sensitive';
-						}}
-					/>
-				</div>
-				<PropertyType
-					name="mode"
-					type="segment"
-					item={[
-						{ value: 'startsWith', text: 'Starts With' },
-						{ value: 'equals', text: 'Equals' },
-						{ value: 'includes', text: 'Includes' },
-						{ value: 'endsWith', text: 'Ends With' }
-					]}
-					value={mode || 'equals'}
-					onValueChange={(event) => {
-						modalFilterParams.mode = event.value;
-					}}
-				/>
+				{/if}
 				<ActionBar>
-					<Button label="Filter" icon="mdi:filter" type="submit" class="button-primary w-fit!" />
+					<Button
+						label="Filter"
+						icon="mdi:filter"
+						type="submit"
+						class="button-primary w-fit!"
+						disabled={levelSelectionInvalid || rangeInvalid}
+					/>
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"
@@ -895,7 +1122,7 @@
 						})}
 				/>
 			</div>
-			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index, disabled }, idx (ts)}
+			{#each filtersFlat as { category, value, mode, ts, not, sensitive, index, disabled, levels, start, end }, idx (ts)}
 				<div
 					class="log-filter-group"
 					animate:flip={{ duration }}
@@ -916,12 +1143,21 @@
 						class:preset-filled-warning-500={disabled}
 						class:motif-warning={disabled}
 					>
-						<span class="max-w-xs overflow-hidden"
-							>{category}
-							{not ? 'not' : ''}
-							{filterModeLabel(mode)}
-							{sensitive ? value : value.toLowerCase()}</span
-						>
+						{#if category === 'Level'}
+							{@const levelList = normalizeLevels(levels ?? (value ? [value] : []))}
+							<span class="max-w-xs overflow-hidden capitalize">Level {levelList.join(', ')}</span>
+						{:else if category === dateTimeCategory}
+							<span class="max-w-xs overflow-hidden">
+								Date/Time {start || '…'} → {end || '…'}
+							</span>
+						{:else}
+							<span class="max-w-xs overflow-hidden"
+								>{category}
+								{not ? 'not' : ''}
+								{filterModeLabel(mode)}
+								{sensitive ? value : value.toLowerCase()}</span
+							>
+						{/if}
 						<Button
 							{size}
 							icon={disabled ? 'mdi:eye-off' : 'mdi:eye'}
@@ -941,7 +1177,19 @@
 							icon="mdi:edit-outline"
 							class="w-fit!"
 							onclick={(event) =>
-								addFilter({ event, category, value, mode, ts, not, sensitive, disabled })}
+								addFilter({
+									event,
+									category,
+									value,
+									mode,
+									ts,
+									not,
+									sensitive,
+									disabled,
+									levels,
+									start,
+									end
+								})}
 						/>
 						<Button
 							{size}
@@ -1024,7 +1272,8 @@
 											{style}
 											class="px-[2px] {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 											animate:grabFlip={{ duration }}
-											onclick={(event) => addFilter({ event, category: name, value })}
+											onclick={(event) =>
+												addFilter({ event, category: name, value, logDateTime: log[1] })}
 										>
 											{value}
 										</button>

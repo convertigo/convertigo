@@ -19,3 +19,19 @@ export function formatTime(timestamp) {
 	if (timestamp == null) return '';
 	return new Date(timestamp).toISOString().split('T')[1].split('Z')[0].replace('.', ',');
 }
+
+export function splitDateTime(value) {
+	if (!value) return { date: '', time: '' };
+	const [date, time = ''] = String(value).split(' ');
+	return { date, time };
+}
+
+export function joinDateTime(date, time, fallback) {
+	return date ? `${date} ${time || fallback}` : '';
+}
+
+export function parseDateTimeMs(value) {
+	if (!value) return undefined;
+	const ms = Date.parse(String(value).replace(',', '.'));
+	return Number.isNaN(ms) ? undefined : ms;
+}

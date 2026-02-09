@@ -252,18 +252,28 @@
 		}
 	}
 
+	const normalizeLevel = (value) => String(value ?? '').toUpperCase();
+
 	function copyFilters() {
 		let filterString = Object.entries(filters)
 			.filter(([_, array]) => array.length > 0)
-			.map(([name, array]) =>
-				array
-					.map(({ mode, value, not, sensitive }) =>
-						mode == 'equals'
-							? `${name.toLowerCase()}${sensitive ? '' : '.toLowerCase()'} ${not ? '!' : '='}= '${sensitive ? value : value.toLowerCase()}'`
-							: `${not ? '!' : ''}${name.toLowerCase()}${sensitive ? '' : '.toLowerCase()'}.${mode}('${sensitive ? value : value.toLowerCase()}')`
-					)
-					.join(' or ')
-			)
+			.map(([name, array]) => {
+				const field = name.toLowerCase();
+				return array
+					.map(({ mode, value, not, sensitive, levels }) => {
+						if (field === 'level' || mode === 'level' || (levels?.length ?? 0) > 0) {
+							const selected = [...new Set((levels ?? (value ? [value] : [])).map(normalizeLevel))];
+							if (selected.length === 0) return '';
+							return selected.map((lvl) => `${field} == '${lvl}'`).join(' or ');
+						}
+						return mode == 'equals'
+							? `${field}${sensitive ? '' : '.toLowerCase()'} ${not ? '!' : '='}= '${sensitive ? value : value.toLowerCase()}'`
+							: `${not ? '!' : ''}${field}${sensitive ? '' : '.toLowerCase()'}.${mode}('${sensitive ? value : value.toLowerCase()}')`;
+					})
+					.filter(Boolean)
+					.join(' or ');
+			})
+			.filter(Boolean)
 			.join(' and ');
 		serverFilter = filterString;
 	}
