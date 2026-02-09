@@ -74,6 +74,19 @@ public class AssistantView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
 	public static final String STARTUP_URL = "https://backend-apps.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+	private static final String WAITING_HTML = "<!doctype html><html><head><meta charset=\"utf-8\">"
+			+ "<style>"
+			+ "html,body{height:100%;margin:0;}"
+			+ "body{display:flex;align-items:center;justify-content:center;background:$background$;color:$foreground$;"
+			+ "font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;}"
+			+ ".c8o-wait{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:14px;}"
+			+ ".c8o-spin{width:28px;height:28px;border:3px solid rgba(127,127,127,0.35);border-top-color:$foreground$;"
+			+ "border-radius:50%;animation:spin 1s linear infinite;}"
+			+ "@keyframes spin{to{transform:rotate(360deg);}}"
+			+ "</style></head><body>"
+			+ "<div class=\"c8o-wait\"><div class=\"c8o-spin\"></div>"
+			+ "<div>Waiting for Convertigo Engine to be ready...</div></div>"
+			+ "</body></html>";
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper handler = null;
@@ -133,6 +146,10 @@ public class AssistantView extends ViewPart {
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);
+		if (!Engine.isStarted) {
+			setToolbarEnabled(tb, false);
+			browser.setText(WAITING_HTML);
+		}
 		browser.onClick(ev -> {
 			try {
 				Element elt = (Element) ev.target().get();
@@ -153,11 +170,11 @@ public class AssistantView extends ViewPart {
 			}
 			return false;
 		});
-		Engine.logStudio.debug("[Assistant] debug : "+ browser.getDebugUrl());
+		ConvertigoPlugin.logStudioDebug("[Assistant] debug : " + browser.getDebugUrl());
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
-			Engine.logStudio.debug("[Assistant] onMessage: " + json);
+			ConvertigoPlugin.logStudioDebug("[Assistant] onMessage: " + json);
 			try {
 				if ("create".equals(json.getString("type"))) {
 					ConvertigoPlugin.asyncExec(() -> {
@@ -199,7 +216,13 @@ public class AssistantView extends ViewPart {
 			
 		});
 
-		browser.setUrl(url[0]);
+		ConvertigoPlugin.runAtStartup(() -> {
+			if (browser == null || browser.isDisposed()) {
+				return;
+			}
+			setToolbarEnabled(tb, true);
+			browser.setUrl(url[0]);
+		});
 		
 		Runnable initPev = () -> {
 			ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -288,13 +311,13 @@ public class AssistantView extends ViewPart {
 					.put("filetype", "image/jpg")
 					.put("filedata", base64);
 					handler.postMessage(jo);
-					Engine.logStudio.info("[Assistant] capture component: image succesfully sent");
+					ConvertigoPlugin.logStudioInfo("[Assistant] capture component: image succesfully sent");
 				} else {
-					Engine.logStudio.warn("[Assistant] unable to make capture: editor not found");
+					ConvertigoPlugin.logStudioWarn("[Assistant] unable to make capture: editor not found");
 				}
 			}
 		} catch (Exception e) {
-			Engine.logStudio.error("[Assistant] unable to make capture", e);
+			ConvertigoPlugin.logStudioError("[Assistant] unable to make capture", e);
 		}
 	}
 
@@ -351,14 +374,14 @@ public class AssistantView extends ViewPart {
 					pev.objectChanged(new CompositeEvent(found, tto.getPath()));
 					TreeObjectEvent treeObjectEvent = new TreeObjectEvent(tto, "scriptContent", oldScriptContent, newScriptContent);
 					pev.fireTreeObjectPropertyChanged(treeObjectEvent);
-					Engine.logStudio.info("[Assistant] edit component: clipboard succesfully added");
+					ConvertigoPlugin.logStudioInfo("[Assistant] edit component: clipboard succesfully added");
 				} else {
-					Engine.logStudio.warn("[Assistant] component with threadid '"+threadid+"' not found, try to create it instead");
+					ConvertigoPlugin.logStudioWarn("[Assistant] component with threadid '"+threadid+"' not found, try to create it instead");
 					create(json);
 				}
 			}
 		} catch (Exception e) {
-			Engine.logStudio.error("[Assistant] unable to edit component", e);
+			ConvertigoPlugin.logStudioError("[Assistant] unable to edit component", e);
 		}
 	}
 
@@ -387,14 +410,14 @@ public class AssistantView extends ViewPart {
 						ConvertigoPlugin.clipboardManagerSystem.paste(sXml, app, true);
 						TreeObject tto = pev.findTreeObjectByUserObject(app);
 						pev.objectChanged(new CompositeEvent(app, tto.getPath()));
-						Engine.logStudio.info("[Assistant] create component: clipboard succesfully added");
+						ConvertigoPlugin.logStudioInfo("[Assistant] create component: clipboard succesfully added");
 					} else {
-						Engine.logStudio.info("[Assistant] unable to create component for non ngx application");
+						ConvertigoPlugin.logStudioInfo("[Assistant] unable to create component for non ngx application");
 					}
 				}
 			}
 		} catch (Exception e) {
-			Engine.logStudio.error("[Assistant] unable to create component from clipboard", e);
+			ConvertigoPlugin.logStudioError("[Assistant] unable to create component from clipboard", e);
 		}
 	}
 
@@ -412,7 +435,7 @@ public class AssistantView extends ViewPart {
 				FileUtils.writeByteArrayToFile(image, decodedBytes);
 			}
 		} catch (Exception e) {
-			Engine.logStudio.warn("[Assistant] could not add asset: "+ e.getMessage());
+			ConvertigoPlugin.logStudioWarn("[Assistant] could not add asset: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -426,9 +449,9 @@ public class AssistantView extends ViewPart {
 			String pname = p != null ? p.getName() : "";
 			jsonMessage.put("type", "select");
 			jsonMessage.put("projectName", pname);
-			Engine.logStudio.info("[Assistant] set json message: "+ jsonMessage.toString());
+			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
-			Engine.logStudio.warn("[Assistant] could not set json message: "+ e.getMessage());
+			ConvertigoPlugin.logStudioWarn("[Assistant] could not set json message: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -438,9 +461,9 @@ public class AssistantView extends ViewPart {
 			jsonMessage.put("type", "select");
 			jsonMessage.put("threadQname", qname);
 			jsonMessage.put("projectName", qname.substring(0, qname.indexOf('.')));
-			Engine.logStudio.info("[Assistant] set json message: "+ jsonMessage.toString());
+			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
-			Engine.logStudio.warn("[Assistant] could not set json message: "+ e.getMessage());
+			ConvertigoPlugin.logStudioWarn("[Assistant] could not set json message: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -461,8 +484,16 @@ public class AssistantView extends ViewPart {
 				burl = burl.substring(0, idy);
 			}
 			String url = burl + "/path-to-xfirst/" + threadId;
-			Engine.logStudio.info("[Assistant] url: "+ url);
+			ConvertigoPlugin.logStudioInfo("[Assistant] url: " + url);
 			browser.setUrl(url);			
 		}
 	}
+
+	private static void setToolbarEnabled(ToolBar toolbar, boolean enabled) {
+		if (toolbar == null || toolbar.isDisposed()) {
+			return;
+		}
+		toolbar.setEnabled(enabled);
+	}
+
 }

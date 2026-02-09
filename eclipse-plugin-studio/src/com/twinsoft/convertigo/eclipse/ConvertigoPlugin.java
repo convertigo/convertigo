@@ -366,6 +366,75 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		studioLog.debug3(message);
 	}
 
+	public static void logStudioDebug(String message) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.debug(message);
+		} else if (studioLog != null) {
+			studioLog.debug(message);
+		} else {
+			System.out.println(message);
+		}
+	}
+
+	public static void logStudioDebug(String message, Throwable error) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.debug(message, error);
+		} else if (studioLog != null) {
+			studioLog.debug(message);
+			if (error != null) {
+				error.printStackTrace();
+			}
+		} else {
+			System.out.println(message);
+			if (error != null) {
+				error.printStackTrace();
+			}
+		}
+	}
+
+	public static void logStudioInfo(String message) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.info(message);
+		} else if (studioLog != null) {
+			studioLog.message(message);
+		} else {
+			System.out.println(message);
+		}
+	}
+
+	public static void logStudioWarn(String message) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.warn(message);
+		} else if (studioLog != null) {
+			studioLog.warning(message);
+		} else {
+			System.err.println(message);
+		}
+	}
+
+	public static void logStudioError(String message) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.error(message);
+		} else if (studioLog != null) {
+			studioLog.error(message);
+		} else {
+			System.err.println(message);
+		}
+	}
+
+	public static void logStudioError(String message, Throwable error) {
+		if (Engine.logStudio != null) {
+			Engine.logStudio.error(message, error);
+		} else if (studioLog != null) {
+			studioLog.exception(error, message);
+		} else {
+			System.err.println(message);
+			if (error != null) {
+				error.printStackTrace();
+			}
+		}
+	}
+
 	public static void errorMessageBox(String message) {
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_ERROR);
 	}
@@ -1069,7 +1138,27 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public synchronized Image getStudioIcon(String iconPath) throws IOException {
 		Image image = icons.get(iconPath);
 		if (image == null) {
-			icons.put(iconPath, image = new Image(getDisplay(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
+			InputStream inputStream = null;
+			try {
+				URL url = FileLocator.find(getBundle(), new Path(iconPath), null);
+				if (url != null) {
+					inputStream = url.openStream();
+				} else {
+					inputStream = ConvertigoPlugin.class.getResourceAsStream("/" + iconPath);
+				}
+				if (inputStream != null) {
+					image = new Image(getDisplay(), inputStream);
+					icons.put(iconPath, image);
+				}
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (IOException e) {
+						// ignore close error
+					}
+				}
+			}
 		}
 		return image;
 	}

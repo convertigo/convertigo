@@ -50,6 +50,19 @@ public class MarketplaceView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView";
 	public static final String STARTUP_URL = "https://backend-apps.convertigo.net/convertigo/projects/marketplace/DisplayObjects/mobile/";
+	private static final String WAITING_HTML = "<!doctype html><html><head><meta charset=\"utf-8\">"
+			+ "<style>"
+			+ "html,body{height:100%;margin:0;}"
+			+ "body{display:flex;align-items:center;justify-content:center;background:$background$;color:$foreground$;"
+			+ "font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;}"
+			+ ".c8o-wait{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:14px;}"
+			+ ".c8o-spin{width:28px;height:28px;border:3px solid rgba(127,127,127,0.35);border-top-color:$foreground$;"
+			+ "border-radius:50%;animation:spin 1s linear infinite;}"
+			+ "@keyframes spin{to{transform:rotate(360deg);}}"
+			+ "</style></head><body>"
+			+ "<div class=\"c8o-wait\"><div class=\"c8o-spin\"></div>"
+			+ "<div>Waiting for Convertigo Engine to be ready...</div></div>"
+			+ "</body></html>";
 
 	private C8oBrowser browser = null;
 	private String startup_url = STARTUP_URL;
@@ -103,7 +116,11 @@ public class MarketplaceView extends ViewPart {
 
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
-		Engine.logStudio.debug("Marketplace debug : "+ browser.getDebugUrl());
+		if (!Engine.isStarted) {
+			setToolbarEnabled(tb, false);
+			browser.setText(WAITING_HTML);
+		}
+		ConvertigoPlugin.logStudioDebug("Marketplace debug : " + browser.getDebugUrl());
 		browser.onClick(ev -> {
 			try {
 				Element elt = (Element) ev.target().get();
@@ -127,7 +144,7 @@ public class MarketplaceView extends ViewPart {
 
 		var handler = new C8oBrowserPostMessageHelper(browser);
 		handler.onMessage(json -> {
-			Engine.logStudio.debug("Marketplace onMessage: " + json);
+			ConvertigoPlugin.logStudioDebug("Marketplace onMessage: " + json);
 			try {
 				if ("install".equals(json.getString("type"))) {
 					var importUrl = json.getString("url");
@@ -158,7 +175,7 @@ public class MarketplaceView extends ViewPart {
 									}
 								});
 							} catch (Exception e) {
-								Engine.logStudio.debug("Loading from remote URL failed", e);
+								ConvertigoPlugin.logStudioDebug("Loading from remote URL failed", e);
 							}
 							mon.done();
 						}).schedule();
@@ -196,7 +213,13 @@ public class MarketplaceView extends ViewPart {
 			}
 		});
 
-		browser.setUrl(startup_url);
+		ConvertigoPlugin.runAtStartup(() -> {
+			if (browser == null || browser.isDisposed()) {
+				return;
+			}
+			setToolbarEnabled(tb, true);
+			browser.setUrl(startup_url);
+		});
 	}
 
 	@Override
@@ -209,4 +232,12 @@ public class MarketplaceView extends ViewPart {
 		}
 		browser.setUrl(startup_url + "?topics=" + tag + "#results");
 	}
+
+	private static void setToolbarEnabled(ToolBar toolbar, boolean enabled) {
+		if (toolbar == null || toolbar.isDisposed()) {
+			return;
+		}
+		toolbar.setEnabled(enabled);
+	}
+
 }
