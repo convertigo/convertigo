@@ -111,6 +111,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 	}
 	
 	@Override
+	public boolean isHiddenProperty(String propertyName) {
+		if (propertyName.equals("sharedModule")) {
+			return isTplStandalone();
+		}
+		return super.isHiddenProperty(propertyName);
+	}
+	
+	@Override
 	public String getSharedModuleFullName() {
 		return getSharedModule();
 	}

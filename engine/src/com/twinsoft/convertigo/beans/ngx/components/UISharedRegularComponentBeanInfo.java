@@ -45,6 +45,7 @@ public class UISharedRegularComponentBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.sharedModule.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithValidatorEditor"));
 			properties[0].setExpert(true);
+			properties[0].setValue(HIDDEN_PROPERTY, "isHiddenProperty");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
