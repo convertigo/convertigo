@@ -3,10 +3,12 @@
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
+	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
 	import MdiArrowRight from '~icons/mdi/arrow-right';
 	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top';
+	import MdiArrowUpBoldOutline from '~icons/mdi/arrow-up-bold-outline';
 	import MdiBackupRestore from '~icons/mdi/backup-restore';
 	import MdiBookMultiple from '~icons/mdi/book-multiple';
 	import MdiBookOpenVariant from '~icons/mdi/book-open-variant';
@@ -113,11 +115,13 @@
 		'mdi:account-supervisor-circle-outline': MdiAccountSupervisorCircleOutline,
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
+		'mdi:arrow-down-bold-outline': MdiArrowDownBoldOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
 		'mdi:arrow-right': MdiArrowRight,
 		'mdi:arrow-right-thick': MdiArrowRightThick,
 		'mdi:chevron-right': MdiChevronRight,
 		'mdi:arrow-left': MdiArrowLeft,
+		'mdi:arrow-up-bold-outline': MdiArrowUpBoldOutline,
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:book-multiple': MdiBookMultiple,
 		'mdi:book-open-variant': MdiBookOpenVariant,

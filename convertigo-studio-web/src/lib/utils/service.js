@@ -1,5 +1,6 @@
 import { createToaster } from '@skeletonlabs/skeleton-svelte';
 import { browser, dev } from '$app/environment';
+import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import Instances from '$lib/admin/Instances.svelte';
 import Authentication from '$lib/common/Authentication.svelte';
@@ -8,6 +9,13 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 export const toaster = createToaster();
 
 let currentCalls = 0;
+let offlineUntil = 0;
+let offlineBackoff = 1000;
+let offlineToastAt = 0;
+let authToastAt = 0;
+const OFFLINE_BACKOFF_MAX = 30000;
+const OFFLINE_TOAST_COOLDOWN = 10000;
+const AUTH_TOAST_COOLDOWN = 10000;
 const adminInstance = browser
 	? // @ts-ignore
 		(globalThis.__c8oAdminInstance ??= `${Date.now()}-${Math.random().toString(16).slice(2)}`)
@@ -25,6 +33,9 @@ export function setModalAlert(alert) {
 export async function call(service, data = {}) {
 	if (!browser) {
 		return {};
+	}
+	if (offlineUntil && Date.now() < offlineUntil) {
+		return { error: 'Server unreachable', offline: true };
 	}
 	let dataContent;
 	try {
@@ -71,7 +82,8 @@ export async function call(service, data = {}) {
 			body,
 			credentials: 'include'
 		});
-		currentCalls--;
+		offlineUntil = 0;
+		offlineBackoff = 1000;
 		var xsrf = res.headers.get('x-xsrf-token');
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
@@ -88,20 +100,38 @@ export async function call(service, data = {}) {
 			return {};
 		}
 
-		const contentType = res.headers.get('content-type');
-		if (contentType?.includes('xml')) {
-			const parser = new XMLParser({
-				ignoreAttributes: false,
-				attributeNamePrefix: '',
-				processEntities: true
-			});
-			parser.addEntity('#10', '\n');
-			dataContent = parser.parse(await res.text());
+		if (res.status === 401 || res.status === 403) {
+			dataContent = { error: { message: 'Authentication failure' }, status: res.status };
 		} else {
-			dataContent = await res.json();
+			const contentType = res.headers.get('content-type');
+			if (contentType?.includes('xml')) {
+				const parser = new XMLParser({
+					ignoreAttributes: false,
+					attributeNamePrefix: '',
+					processEntities: true
+				});
+				parser.addEntity('#10', '\n');
+				dataContent = parser.parse(await res.text());
+			} else {
+				dataContent = await res.json();
+			}
 		}
 	} catch (err) {
-		dataContent = { error: err?.['message'] ?? err };
+		const message = String(err?.['message'] ?? err ?? '');
+		if (
+			message.includes('Failed to fetch') ||
+			message.includes('NetworkError') ||
+			message.includes('Load failed')
+		) {
+			const now = Date.now();
+			offlineBackoff = Math.min(OFFLINE_BACKOFF_MAX, Math.round(offlineBackoff * 1.5 + 250));
+			offlineUntil = now + offlineBackoff;
+			dataContent = { error: 'Server unreachable', offline: true };
+		} else {
+			dataContent = { error: message };
+		}
+	} finally {
+		currentCalls--;
 	}
 
 	handleStateMessage(dataContent, service);
@@ -220,6 +250,17 @@ function handleStateMessage(res, service) {
 		if (!toaster) {
 			return;
 		}
+		if (res?.offline) {
+			const now = Date.now();
+			if (now - offlineToastAt > OFFLINE_TOAST_COOLDOWN) {
+				toaster.error({
+					description: 'Server unreachable. Retrying…',
+					duration: 3000
+				});
+				offlineToastAt = now;
+			}
+			return;
+		}
 
 		let error = findDeepKeys(res, ['error', 'errorMessage']);
 		if (!error && findDeepKeys(res, ['state']) == 'error') {
@@ -230,6 +271,24 @@ function handleStateMessage(res, service) {
 				return;
 			}
 			res.isError = true;
+			const errorText = stringilight(error);
+			if (/authentication failure/i.test(errorText)) {
+				const now = Date.now();
+				if (now - authToastAt > AUTH_TOAST_COOLDOWN) {
+					toaster.error({
+						description: 'Authentication failure',
+						duration: 3000
+					});
+					authToastAt = now;
+				}
+				Authentication.checkAuthentication().finally(() => {
+					if (!Authentication.authenticated && browser && !location.pathname.includes('/login')) {
+						const redirect = encodeURIComponent(location.pathname + location.search);
+						goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+					}
+				});
+				return;
+			}
 
 			if (!Authentication.authenticated) {
 				return;
@@ -239,7 +298,7 @@ function handleStateMessage(res, service) {
 			if (stacktrace || exception) {
 				modalAlert.open({ message, exception, stacktrace });
 			} else {
-				error = stringilight(error);
+				error = errorText;
 				toaster.error({
 					description: error,
 					duration: 10000
@@ -249,7 +308,7 @@ function handleStateMessage(res, service) {
 		}
 
 		if (
-			/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|ShowProperties|\.Get.*)$/.exec(
+			/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|ShowProperties|ListInstances|\.Get.*)$/.exec(
 				service
 			)
 		) {

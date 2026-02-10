@@ -42,6 +42,13 @@ export default function ({
 		let res = {};
 		try {
 			res = await (typeof service == 'string' ? call(service, params) : service(params));
+			if (res?.offline) {
+				if (_needRefresh) {
+					values.delay = delay;
+					_needRefresh = false;
+				}
+				return;
+			}
 			if (res) {
 				if (res.isError) {
 					throw res;

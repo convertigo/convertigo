@@ -1,5 +1,12 @@
 <script>
-	import { getLocalTimeZone, now, toCalendarDate, today, toTime } from '@internationalized/date';
+	import {
+		getLocalTimeZone,
+		now,
+		parseDate,
+		toCalendarDate,
+		today,
+		toTime
+	} from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -20,6 +27,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { splitDateTime } from '$lib/utils/time';
 	import { getContext, onMount } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { slide } from 'svelte/transition';
@@ -146,6 +154,11 @@
 		presetOpened = false;
 	}
 
+	function normalizeTime(value) {
+		if (!value) return '';
+		return value.includes(',') ? value : value + ',000';
+	}
+
 	let timezone = $derived(Time.serverTimezone ? Time.serverTimezone : getLocalTimeZone());
 	afterNavigate(() => {
 		Last.tab = tabSet;
@@ -255,26 +268,56 @@
 	const normalizeLevel = (value) => String(value ?? '').toUpperCase();
 
 	function copyFilters() {
+		let rangeFilter = /** @type {{ start?: string, end?: string } | null} */ (null);
 		let filterString = Object.entries(filters)
 			.filter(([_, array]) => array.length > 0)
 			.map(([name, array]) => {
 				const field = name.toLowerCase();
 				return array
-					.map(({ mode, value, not, sensitive, levels }) => {
+					.map(({ mode, value, not, sensitive, levels, start, end }) => {
+						if (mode === 'range') {
+							rangeFilter ??= { start, end };
+							return '';
+						}
 						if (field === 'level' || mode === 'level' || (levels?.length ?? 0) > 0) {
 							const selected = [...new Set((levels ?? (value ? [value] : [])).map(normalizeLevel))];
 							if (selected.length === 0) return '';
 							return selected.map((lvl) => `${field} == '${lvl}'`).join(' or ');
 						}
+						const safeValue = String(value ?? '');
+						if (!safeValue) return '';
 						return mode == 'equals'
-							? `${field}${sensitive ? '' : '.toLowerCase()'} ${not ? '!' : '='}= '${sensitive ? value : value.toLowerCase()}'`
-							: `${not ? '!' : ''}${field}${sensitive ? '' : '.toLowerCase()'}.${mode}('${sensitive ? value : value.toLowerCase()}')`;
+							? `${field}${sensitive ? '' : '.toLowerCase()'} ${not ? '!' : '='}= '${sensitive ? safeValue : safeValue.toLowerCase()}'`
+							: `${not ? '!' : ''}${field}${sensitive ? '' : '.toLowerCase()'}.${mode}('${sensitive ? safeValue : safeValue.toLowerCase()}')`;
 					})
 					.filter(Boolean)
 					.join(' or ');
 			})
 			.filter(Boolean)
 			.join(' and ');
+		if (rangeFilter) {
+			const { date: startDay, time: startTime } = splitDateTime(rangeFilter.start);
+			const { date: endDay, time: endTime } = splitDateTime(rangeFilter.end);
+			if (startDay) {
+				const nextDates = [...dates];
+				nextDates[0] = parseDate(startDay);
+				dates = nextDates;
+				const nextTimes = [...times];
+				nextTimes[0] = normalizeTime(startTime);
+				times = nextTimes;
+			}
+			if (endDay) {
+				const nextDates = [...dates];
+				nextDates[1] = parseDate(endDay);
+				dates = nextDates;
+				const nextTimes = [...times];
+				nextTimes[1] = normalizeTime(endTime);
+				times = nextTimes;
+				live = false;
+			} else {
+				live = true;
+			}
+		}
 		serverFilter = filterString;
 	}
 

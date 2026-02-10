@@ -71,15 +71,15 @@
 		Thread: { idx: 3 },
 		Message: { idx: 4 }
 	};
-	const LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+	const LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'];
 	const dateTimeCategory = 'Date/Time';
 	const START_TIME_DEFAULT = '00:00:00,000';
 	const END_TIME_DEFAULT = '23:59:59,999';
 	const normalizeLevel = (value) => String(value ?? '').toLowerCase();
 	const normalizeLevels = (values = []) =>
-		[...new Set(values.map(normalizeLevel))].filter((lvl) => LEVELS.includes(lvl));
+		LEVELS.filter((level) => values.map(normalizeLevel).includes(level));
 	const defaultLevelSelection = (value) =>
-		LEVELS.slice(Math.max(LEVELS.indexOf(normalizeLevel(value)), LEVELS.indexOf('info')));
+		LEVELS.slice(0, Math.max(LEVELS.indexOf(normalizeLevel(value)), LEVELS.indexOf('info')) + 1);
 	const filterModeLabel = (value) =>
 		({
 			startsWith: 'Starts With',
@@ -218,8 +218,9 @@
 		if (autoScroll && isUserScroll && offset < lastScrollOffset - tolerance) {
 			autoScroll = false;
 			autoScrollSuspendedByScroll = true;
+			_scrollToIndex = undefined;
 		}
-		if (!autoScroll && autoScrollSuspendedByScroll && target) {
+		if (!autoScroll && autoScrollSuspendedByScroll && target && isUserScroll) {
 			const maxOffset = Math.max(0, target.scrollHeight - target.clientHeight);
 			if (offset >= maxOffset - tolerance) {
 				autoScroll = true;
@@ -304,14 +305,53 @@
 	let logs = $state.raw([]);
 	let filterRunId = 0;
 
-	function scheduleFiltering() {
+	const scheduleScrollTo = (index) => {
+		if (index == null || index < 0) return;
+		_scrollToIndex = undefined;
+		if (browser) {
+			requestAnimationFrame(() => {
+				_scrollToIndex = index;
+			});
+		} else {
+			_scrollToIndex = index;
+		}
+	};
+
+	const findClosestIndexByTime = (rows, targetMs) => {
+		if (targetMs == null) return -1;
+		let bestIndex = -1;
+		let bestDelta = Infinity;
+		for (let i = 0; i < rows.length; i++) {
+			const ms = parseDateTimeMs(rows[i]?.[1]);
+			if (ms == null) continue;
+			const delta = Math.abs(ms - targetMs);
+			if (delta < bestDelta) {
+				bestDelta = delta;
+				bestIndex = i;
+			}
+		}
+		return bestIndex;
+	};
+
+	function scheduleFiltering(keepAnchor = false) {
 		const baseLogs = Logs.logs;
 		const filtersSnapshot = buildActiveFilters();
 		const runId = ++filterRunId;
 		const total = baseLogs.length;
+		const anchorLog = keepAnchor && !autoScroll ? (logs?.[getCenterLine()] ?? null) : null;
+		const anchorMs = anchorLog ? parseDateTimeMs(anchorLog[1]) : null;
+		const applyAnchor = (rows) => {
+			if (!anchorLog || autoScroll) return;
+			let index = rows.indexOf(anchorLog);
+			if (index < 0) {
+				index = findClosestIndexByTime(rows, anchorMs);
+			}
+			scheduleScrollTo(index);
+		};
 
 		if (filtersSnapshot.length === 0) {
 			logs = baseLogs;
+			applyAnchor(baseLogs);
 			return;
 		}
 
@@ -364,6 +404,7 @@
 				schedule(processChunk);
 			} else if (runId === filterRunId) {
 				logs = results;
+				applyAnchor(results);
 			}
 		};
 
@@ -427,7 +468,7 @@
 			delete filters[category];
 		}
 		filters = { ...filters };
-		scheduleFiltering();
+		scheduleFiltering(true);
 	}
 
 	let columns = $derived(
@@ -566,7 +607,7 @@
 		}, 333);
 	}
 
-	let modalFilter;
+	let modalFilter = $state();
 	/** @type {any} */
 	let modalFilterParams = $state({});
 	const getRangeValue = (bound) => {
@@ -656,7 +697,7 @@
 			filters[category] = array;
 		}
 		filters = { ...filters };
-		scheduleFiltering();
+		scheduleFiltering(true);
 		modalFilter.close();
 	};
 	const size = '4';
@@ -889,7 +930,7 @@
 							<Button
 								full={false}
 								label={level}
-								cls="{active ? 'button-primary' : 'button-secondary'} capitalize"
+								cls={`${active ? 'button-primary' : 'button-secondary'} capitalize`}
 								aria-pressed={active}
 								onclick={() => {
 									const current = normalizeLevels(modalFilterParams.levels ?? []);
@@ -1169,7 +1210,7 @@
 								arr[index] = { ...current, disabled: !current.disabled };
 								filters[category] = arr;
 								filters = { ...filters };
-								scheduleFiltering();
+								scheduleFiltering(true);
 							}}
 						/>
 						<Button
@@ -1241,7 +1282,7 @@
 					estimatedItemSize={100}
 					{scrollToIndex}
 					{itemSize}
-					scrollToAlignment="center"
+					scrollToAlignment={autoScroll ? 'end' : 'center'}
 					scrollToBehaviour="instant"
 					on:itemsUpdated={itemsUpdated}
 					on:afterScroll={afterScroll}
@@ -1320,21 +1361,45 @@
 			{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
 			{#if Logs.calling}Calling…{/if}</span
 		>
-		<button
-			class="mini-card"
-			class:preset-filled-success-100-900={autoScroll}
-			class:preset-filled-warning-100-900={!autoScroll}
-			class:motif-warning={!autoScroll}
-			onclick={async () => {
-				_scrollToIndex = undefined;
-				autoScroll = !autoScroll;
-				autoScrollSuspendedByScroll = false;
-				await doAutoScroll();
-			}}
-		>
-			{autoScroll ? 'Enabled' : 'Disabled'} auto tail
-			<Ico icon="mdi:download-{autoScroll ? 'lock' : 'off'}-outline" />
-		</button>
+		<div class="layout-x items-center gap-2">
+			<button
+				class="mini-card preset-filled-primary-500"
+				title="Scroll to top"
+				onclick={() => {
+					_scrollToIndex = 0;
+					autoScroll = false;
+					autoScrollSuspendedByScroll = false;
+				}}
+			>
+				<Ico icon="mdi:arrow-up-bold-outline" />
+			</button>
+			<button
+				class="mini-card preset-filled-primary-500"
+				title="Scroll to bottom"
+				onclick={() => {
+					_scrollToIndex = logs.length - 1;
+					autoScroll = false;
+					autoScrollSuspendedByScroll = false;
+				}}
+			>
+				<Ico icon="mdi:arrow-down-bold-outline" />
+			</button>
+			<button
+				class="mini-card"
+				class:preset-filled-success-500={autoScroll}
+				class:preset-filled-warning-500={!autoScroll}
+				class:motif-warning={!autoScroll}
+				onclick={async () => {
+					_scrollToIndex = undefined;
+					autoScroll = !autoScroll;
+					autoScrollSuspendedByScroll = false;
+					await doAutoScroll();
+				}}
+			>
+				{autoScroll ? 'Enabled' : 'Disabled'} auto tail
+				<Ico icon="mdi:download-{autoScroll ? 'lock' : 'off'}-outline" />
+			</button>
+		</div>
 	</div>
 </div>
 

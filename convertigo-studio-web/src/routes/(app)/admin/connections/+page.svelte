@@ -47,6 +47,11 @@
 		goto(resolve('/admin/logs/view/'));
 	}
 
+	const isRunning = (row) =>
+		row?.running === true || row?.running === 'true' || row?.running === 1 || row?.running === '1';
+	const runningClass = (row, base = '') =>
+		[base, isRunning(row) ? 'border-l-2 border-success-500 pl-2' : ''].filter(Boolean).join(' ');
+
 	let modalYesNo = getContext('modalYesNo');
 </script>
 
@@ -90,7 +95,7 @@
 	<Card title="Sessions">
 		<TableAutoCard
 			definition={[
-				{ name: 'ID', key: 'sessionID', class: 'break-all' },
+				{ name: 'ID', key: 'sessionID', class: (row) => runningClass(row, 'break-all') },
 				{ name: 'User', key: 'authenticatedUser' },
 				{ name: 'Contexts', key: 'contexts' },
 				{ name: 'Roles', key: 'adminRoles' },
@@ -178,7 +183,11 @@
 		{/snippet}
 		<TableAutoCard
 			definition={[
-				{ name: 'Context', key: 'contextName', class: 'break-all min-w-40' },
+				{
+					name: 'Context',
+					key: 'contextName',
+					class: (row) => runningClass(row, 'break-all min-w-40')
+				},
 				{ name: 'Project', key: 'project', class: 'break-all min-w-40' },
 				{ name: 'Connector', key: 'connector', class: 'break-all min-w-40' },
 				{ name: 'Requested', key: 'requested', class: 'break-all min-w-40' },
