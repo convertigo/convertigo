@@ -1,12 +1,12 @@
 # What is Convertigo Low Code Platform ?
 
-Convertigo is an open source fullstack Low Code & No Code platform. The platform is used to build Enterprise Web & Mobile apps in a few days. Convertigo platform is composed of several components:
+Convertigo is an open source fullstack AI driven Low Code & No Code platform. The platform is used to build Enterprise Web & Mobile apps in a few days. Convertigo platform is composed of several components:
 
 1.	**Convertigo Server**: The back-end server part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Web & Mobile Web apps. Runs as a Docker container with the `convertigo` image
-2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program Back-end micro-services workflows and use the "Mobile Builder" edition to build Mobile & Web apps UIs in a MXDP (Multi eXperience Development Platform) Low code mode. Can be directly downloaded from [Convertigo](https://www.convertigo.com/get-started-page)
+2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program Back-end micro-services workflows and use the "Mobile Builder" edition to build Mobile & Web apps UIs with AI assistance Low code mode. Can be directly downloaded from [Convertigo](https://www.convertigo.com/get-started-page)
 3.	**Convertigo NoCode Studio**: The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers)
 
-Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 100K developers worldwide, building enterprise class mobile apps.
+Convertigo Community edition brought to you by Convertigo SA. The platform is currently used by more than 150K developers worldwide, building enterprise class business apps.
 
 > [www.convertigo.com](https://www.convertigo.com)
 
@@ -80,7 +80,7 @@ If you want to make a vertical image ready to start with your application inside
 
 ## Make image with pre-deployed configuration
 
-ou can add to your image a set of pre-configured symbols by copying the `global_symbols.properties`, you have to have this file next to your `Dockerfile`:
+You can add a set of preconfigured symbols to your image by copying the `global_symbols.properties` file. Make sure this file is located in the same directory as your `Dockerfile`:
 
     FROM convertigo
     COPY global_symbols.properties /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/configuration/global_symbols.properties
@@ -240,3 +240,7 @@ You can use this [README](https://github.com/convertigo/docker/tree/compose) to 
 	cd convertigo
 	curl -sL https://github.com/convertigo/docker/archive/refs/heads/compose.tar.gz | tar xvz --strip-components=1
 	docker compose up -d
+
+## Convertigo Helm chart
+
+You can find the [Convertigo Helm chart](https://artifacthub.io/packages/helm/convertigo/convertigo) and its documentation on ArtifactHUB. 
