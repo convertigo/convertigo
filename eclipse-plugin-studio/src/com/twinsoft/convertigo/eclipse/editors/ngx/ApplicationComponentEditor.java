@@ -339,6 +339,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
 	private static final int BUILD_TASK_TOTAL = 100;
+	private static final int TIME_TO_99_SECONDS = 60;
 
 	private static final Set<Integer> usedPort = new HashSet<>();
 	private int portNode;
@@ -557,11 +558,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					JsObject window = frame.executeJavaScript("window");
 					window.putProperty("java", browserInterface);
+					
+					ConvertigoPlugin.asyncExec(() -> {
+						boolean showGrid = showGrids.getSelection();
+						C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_showGrids(" + (showGrid ? "true":"false") +")"));
+					});
 				} catch (Exception e) {
 					Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 				}
 			}
-			//			browser.setZoomLevel(zoomFactor.zoomLevel());
+			// browser.setZoomLevel(zoomFactor.zoomLevel());
 			return Response.proceed();
 		});
 
@@ -1757,9 +1763,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
-	private static final class StandaloneBuildProgress {
-		private static final int TIME_TO_99_SECONDS = 60;
+	private static int computeTimeProgress(long startTimeMillis) {
+		if (startTimeMillis <= 0) {
+			return 0;
+		}
+		long elapsedSeconds = Math.max(0, (System.currentTimeMillis() - startTimeMillis) / 1000);
+		int timeProgress = (int) Math.floor(99 * Math.log(1 + elapsedSeconds) / Math.log(TIME_TO_99_SECONDS + 1));
+		return Math.max(1, Math.min(99, timeProgress));
+	}
 
+	private static final class StandaloneBuildProgress {
 		private final IntConsumer progressConsumer;
 		private final Runnable onStart;
 		private final AtomicBoolean active = new AtomicBoolean(false);
@@ -1819,14 +1832,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (!active.get()) {
 				return;
 			}
-			long start = startTime.get();
-			if (start <= 0) {
-				return;
-			}
-			long elapsedSeconds = Math.max(0, (System.currentTimeMillis() - start) / 1000);
-			int timeProgress = (int) Math.floor(99 * Math.log(1 + elapsedSeconds) / Math.log(TIME_TO_99_SECONDS + 1));
-			timeProgress = Math.max(1, Math.min(99, timeProgress));
-			int target = Math.max(stageProgress.get(), timeProgress);
+			int target = Math.max(stageProgress.get(), computeTimeProgress(startTime.get()));
 			pushProgress(target);
 		}
 
@@ -2073,6 +2079,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		String buildLabel = mb.isStandalone() ? "Standalone build in progress" : "Webpack build in progress";
 		AtomicReference<BuildTask> buildTaskRef = new AtomicReference<>(null);
 		boolean webpackBuildActive = false;
+		int lastWebpackProgress = 0;
+		long webpackStartTime = 0;
 		StandaloneBuildProgress standaloneProgress = null;
 		try {
 			ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -2160,13 +2168,29 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						if (matcher.find()) {
 							if (!webpackBuildActive) {
 								webpackBuildActive = true;
+								webpackStartTime = System.currentTimeMillis();
+								lastWebpackProgress = 0;
 								buildTaskRef.set(new BuildTask(taskName, buildLabel));
 							}
-							progress(Integer.parseInt(matcher.group(1)));
+							int parsedProgress = Integer.parseInt(matcher.group(1));
+							if (parsedProgress < lastWebpackProgress) {
+								if (parsedProgress <= 1 && lastWebpackProgress >= 90) {
+									webpackStartTime = System.currentTimeMillis();
+									lastWebpackProgress = 0;
+								} else {
+									parsedProgress = lastWebpackProgress;
+								}
+							}
+							int displayProgress = Math.max(lastWebpackProgress,
+									Math.max(parsedProgress, computeTimeProgress(webpackStartTime)));
+							if (displayProgress > lastWebpackProgress) {
+								lastWebpackProgress = displayProgress;
+								progress(displayProgress);
+							}
 							appendOutput(matcher.group(2));
 							BuildTask currentTask = buildTaskRef.get();
 							if (currentTask != null) {
-								currentTask.updateProgress(Integer.parseInt(matcher.group(1)));
+								currentTask.updateProgress(lastWebpackProgress);
 								currentTask.updateStatus(matcher.group(2));
 							}
 						} else {
@@ -2178,6 +2202,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							finishBuildTask(buildTaskRef.get(), "Build finished");
 							buildTaskRef.set(null);
 							webpackBuildActive = false;
+							lastWebpackProgress = 0;
+							webpackStartTime = 0;
 							synchronized (mutex) {
 								mutex.notify();
 							}
@@ -2186,6 +2212,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							finishBuildTask(buildTaskRef.get(), "Build failed");
 							buildTaskRef.set(null);
 							webpackBuildActive = false;
+							lastWebpackProgress = 0;
+							webpackStartTime = 0;
 						}
 
 						Matcher m = pIsBrowserOpenable.matcher(line);
@@ -2645,6 +2673,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 				Object progressMutex = new Object();
 				StandaloneBuildProgress standaloneProgress = null;
+				long webpackStartTime = 0;
 				if (isStandalone) {
 					standaloneProgress = new StandaloneBuildProgress(progressValue -> {
 						synchronized (progressMutex) {
@@ -2692,15 +2721,30 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							if (matcher.find()) {
 								if (lastProgress.get() == 0) {
 									monitor.beginTask("Webpack in progress", 200);
+									webpackStartTime = System.currentTimeMillis();
 								}
-								int progress = Integer.parseInt(matcher.group(1));
-								int diff = progress - lastProgress.get();
-								lastProgress.set(progress);
+								int parsedProgress = Integer.parseInt(matcher.group(1));
+								if (parsedProgress < lastProgress.get()) {
+									if (parsedProgress <= 1 && lastProgress.get() >= 90) {
+										lastProgress.set(0);
+										monitor.beginTask("Webpack in progress", 200);
+										webpackStartTime = System.currentTimeMillis();
+									} else {
+										parsedProgress = lastProgress.get();
+									}
+								}
+								int displayProgress = Math.max(lastProgress.get(),
+										Math.max(parsedProgress, computeTimeProgress(webpackStartTime)));
+								int diff = displayProgress - lastProgress.get();
+								if (diff > 0) {
+									lastProgress.set(displayProgress);
+									monitor.worked(diff);
+								}
 								monitor.subTask(matcher.group(2));
-								monitor.worked(diff);
-								if (progress == 100) {
+								if (displayProgress >= 100) {
 									lastProgress.set(0);
 									monitor.beginTask("Build almost finish", 200);
+									webpackStartTime = 0;
 								}
 							} else {
 								monitor.worked(1);
