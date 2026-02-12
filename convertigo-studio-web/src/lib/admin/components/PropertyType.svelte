@@ -108,26 +108,23 @@
 						<SegmentedControl.Control
 							class={[
 								'relative',
+								'input-common',
 								'gap-0.5',
-								'rounded-base',
-								'border',
-								'border-surface-100-900',
-								'bg-surface-200-800',
 								'p-0.5',
 								'shadow-none',
 								'overflow-hidden',
 								rest?.orientation == 'vertical' ? 'flex-col' : 'flex-row'
 							]}
 						>
-							<SegmentedControl.Indicator class="rounded-[0.3rem] bg-primary-600 shadow-none" />
+							<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
 							{#each item as option (option.value ?? option)}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
 								<SegmentedControl.Item value={val} class="relative flex-1">
 									<SegmentedControl.ItemText
 										class={[
-											value == val ? 'text-white' : 'text-muted',
-											'px-3 py-1.5 text-sm font-medium'
+											value == val ? 'text-white' : 'text-surface-700-300',
+											'px-3 py-1.5 text-[14px] font-medium'
 										]}
 									>
 										{txt}
@@ -196,7 +193,7 @@
 					onclick={() => (value = val)}
 					title={label}
 					aria-label={label}
-					class="btn bg-surface-200-800 btn-sm"
+					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
 				>
 					<Ico {icon} />
 				</button>
@@ -209,7 +206,7 @@
 					{onclick}
 					title={label}
 					aria-label={label}
-					class="btn bg-surface-200-800 btn-sm"
+					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
 				>
 					<Ico {icon} />
 				</button>

@@ -118,7 +118,7 @@
 				/>
 			{/snippet}
 
-			<div class="layout-cols-2 w-full">
+			<div class="config-properties layout-cols-2 w-full">
 				{#each category.property as property (property.name ?? property.key ?? property)}
 					{#if property.isAdvanced != 'true'}
 						<PropertyType
@@ -147,7 +147,7 @@
 							<Ico icon="mdi:star-three-points-outline" class="text-lg" />
 						{/snippet}
 						{#snippet panel()}
-							<div class="layout-cols-2 w-full">
+							<div class="config-properties layout-cols-2 w-full">
 								{#each category.property as property (property.name ?? property.key ?? property)}
 									{#if property.isAdvanced == 'true'}
 										<PropertyType
@@ -165,3 +165,25 @@
 		{/if}
 	</div>
 {/key}
+
+<style lang="postcss">
+	@reference "../../../../../app.css";
+
+	.config-properties {
+		position: relative;
+		--config-separator-color: light-dark(var(--color-surface-400), var(--color-surface-600));
+	}
+
+	@media (min-width: 1024px) {
+		.config-properties::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 50%;
+			width: 1px;
+			background-color: var(--config-separator-color);
+			pointer-events: none;
+		}
+	}
+</style>

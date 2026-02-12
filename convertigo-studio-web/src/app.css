@@ -69,17 +69,18 @@
 	}
 
 	.c8o-switch {
-		background-color: light-dark(var(--color-surface-200), var(--color-surface-800)) !important;
-		border: 1px solid light-dark(var(--color-surface-100), var(--color-surface-900));
+		background-color: light-dark(var(--color-surface-300), var(--color-surface-900)) !important;
+		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
 	}
 
 	.c8o-switch[data-state='checked'] {
 		background-color: var(--color-primary-500) !important;
-		border-color: transparent;
+		border-color: var(--color-primary-500);
 	}
 
 	.c8o-switch [data-part='thumb'] {
-		background-color: light-dark(var(--color-surface-100), var(--base-font-color-dark));
+		background-color: #fff;
+		border: 0;
 	}
 }
 
@@ -96,8 +97,7 @@
 }
 
 @utility table-frame {
-	border: 1px solid;
-	border-color: light-dark(var(--color-surface-200), var(--color-surface-800));
+	border: 0;
 	border-radius: var(--radius-base);
 	overflow: hidden;
 }
@@ -172,7 +172,7 @@
 }
 
 @utility button-secondary {
-	@apply button preset-filled-secondary-500 shadow-follow hover:border-secondary-600-400 hover:bg-secondary-600-400 hover:text-secondary-contrast-600-400;
+	@apply button preset-outlined-primary-50-950 border-primary-500 text-primary-500 shadow-follow hover:border-primary-600 hover:text-primary-600;
 }
 
 @utility button-tertiary {
@@ -255,14 +255,14 @@
 }
 
 @utility input-common {
-	@apply w-full rounded-base border border-surface-100-900 bg-surface-200-800 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply w-full rounded-base border border-surface-300-700 bg-surface-100-900 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-base border border-surface-100-900 bg-surface-200-800 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply rounded-base border border-surface-300-700 bg-surface-100-900 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
 }
 
 @utility input-text {
@@ -282,7 +282,7 @@
 	& option:checked:active {
 		@apply bg-primary-700 text-white;
 	}
-	@apply bg-surface-200-800;
+	@apply bg-surface-100-900;
 }
 
 @utility border-color {
@@ -290,7 +290,7 @@
 }
 
 @utility layout-cols-2 {
-	@apply grid grid-cols-1 justify-items-stretch gap-2 lg:grid-cols-2;
+	@apply grid grid-cols-1 justify-items-stretch gap-4 lg:grid-cols-2;
 }
 
 @layer components {

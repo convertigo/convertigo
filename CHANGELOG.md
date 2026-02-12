@@ -1,5 +1,47 @@
 # Changelog
 
+## 8.4.0
+
+#### New Features:
+
+- [#882](https://github.com/convertigo/convertigo/issues/882) [NGX] Support for direct import syntax, simplifying generated imports and improving compatibility with modern Angular patterns
+- [#884](https://github.com/convertigo/convertigo/issues/884) [Engine][SDK] New admin servlets are now available directly under the project path, easing integration and automation
+- [#914](https://github.com/convertigo/convertigo/issues/914) [Studio/NGX] Shared Components can now be generated and consumed through a dedicated shared Angular module
+- [#944](https://github.com/convertigo/convertigo/issues/944) [NGX] Introduction of the **Convertigo Assistant** project to create Shared Components using AI-assisted generation
+- [#945](https://github.com/convertigo/convertigo/issues/945) [Studio] A new **Marketplace** view allows easy discovery and import of library projects directly into Studio
+- [#959](https://github.com/convertigo/convertigo/issues/959) [Studio] Studio can now generate thumbnails and screenshots of NGX applications
+- [#997](https://github.com/convertigo/convertigo/issues/997) [Engine] Support for stateless session mode backed by Redis, enabling horizontal scalability without HTTP session affinity
+
+#### Improvements:
+
+- [#791](https://github.com/convertigo/convertigo/issues/791) [Admin] The Administration Console has been fully rewritten using Svelte for improved performance and maintainability
+- [#842](https://github.com/convertigo/convertigo/issues/842) Update of core dependencies (Eclipse, Tomcat, JVM, Node.js, etc.)
+- [#880](https://github.com/convertigo/convertigo/issues/880) [NGX] Support for Angular standalone application generation
+- [#881](https://github.com/convertigo/convertigo/issues/881) [NGX] Generated TypeScript code no longer relies on `eval`
+- [#893](https://github.com/convertigo/convertigo/issues/893) [NGX] Unused imports are now avoided in generated pages and components
+- [#948](https://github.com/convertigo/convertigo/issues/948) [Studio] New **AssistantView** to guide AI-based Shared Component creation
+- [#978](https://github.com/convertigo/convertigo/issues/978) [NGX] Ionic `NavParams` deprecation has been addressed
+- [#979](https://github.com/convertigo/convertigo/issues/979) [Engine] Automatic ZIP backup is no longer created during project deployment
+- [#980](https://github.com/convertigo/convertigo/issues/980) [Documentation] Bean descriptors and note handling have been harmonized
+- [#991](https://github.com/convertigo/convertigo/issues/991) [Engine] Legacy `finalize()` usage has been replaced with cleaner-backed resource cleanup
+- [#1002](https://github.com/convertigo/convertigo/issues/1002) [Engine] Static file serving has been consolidated and now supports HTTP Range requests
+- [#1013](https://github.com/convertigo/convertigo/issues/1013) [Studio] Studio now displays a dedicated task and improved status line while the Mobile Builder runs, including NGX standalone builds
+- [#1015](https://github.com/convertigo/convertigo/issues/1015) [Engine] Requests using `__nocache=true` no longer trigger deletion of previous cached results
+
+#### Bug Fixes:
+
+- [#857](https://github.com/convertigo/convertigo/issues/857) [Admin] Fixed, CORS Policy configuration now renders correctly in the Advanced Config widget
+- [#975](https://github.com/convertigo/convertigo/issues/975) [NGX] Fixed, creating or duplicating a project no longer alters bean priority
+- [#976](https://github.com/convertigo/convertigo/issues/976) [Studio] Fixed, enabling or disabling I18n recursively on an NgxApp now correctly triggers a build
+- [#983](https://github.com/convertigo/convertigo/issues/983) [NGX] Fixed, auto menu selection no longer causes runtime errors
+- [#992](https://github.com/convertigo/convertigo/issues/992) Fixed, `JsonSource` is now always defined in Sequence beans
+- [#999](https://github.com/convertigo/convertigo/issues/999) [Engine] Fixed, JavaScript numbers are now output as integers when applicable instead of always using decimals
+- [#1014](https://github.com/convertigo/convertigo/issues/1014) [Studio] Fixed, the Source Picker modal height no longer prevents access to the end of long objects
+- [#1016](https://github.com/convertigo/convertigo/issues/1016) Fixed, the Deploy wizard now remembers the previously used deployment URL
+- [#1019](https://github.com/convertigo/convertigo/issues/1019) [Engine] Fixed, XSRF checks on admin services no longer create sessions during Helm readiness and liveness probes
+
+---
+
 ## 8.3.11
 
 #### Improvements:

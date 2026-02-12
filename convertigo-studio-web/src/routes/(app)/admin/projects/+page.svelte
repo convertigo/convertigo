@@ -212,7 +212,6 @@
 		type="search"
 		placeholder="Filter projects..."
 		autofocus
-		class="bg-surface-200-800"
 		icon="mdi:magnify"
 		bind:value={filterState.current}
 	/>
@@ -230,7 +229,7 @@
 			{ name: 'Actions', custom: true, class: 'w-56' }
 		]}
 		data={fprojects}
-		class="rounded-sm"
+		class="projects-table rounded-sm"
 	>
 		{#snippet children({ row: { name, undefined_symbols }, def })}
 			{@const project = name ? name : '_'}
@@ -310,13 +309,9 @@
 				/>
 			{/if}
 		{/snippet}
-		{#snippet rowChildren({ row, rowIdx, definition, rowRender })}
+		{#snippet rowChildren({ row, definition, rowRender })}
 			{#if editedProject == row.name}
-				<td
-					colspan={definition.length}
-					class:preset-filled-surface-100-900={rowIdx % 2 == 1}
-					class:preset-filled-surface-200-800={rowIdx % 2 == 0}
-				>
+				<td colspan={definition.length}>
 					<table class="w-full">
 						<tbody>
 							<tr>{@render rowRender()}</tr>
@@ -332,3 +327,11 @@
 		{/snippet}
 	</TableAutoCard>
 </Card>
+
+<style lang="postcss">
+	@reference "../../../../app.css";
+
+	:global(.projects-table tbody tr:has(> td[colspan]):hover) {
+		background-color: transparent !important;
+	}
+</style>

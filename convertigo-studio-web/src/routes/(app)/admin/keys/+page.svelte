@@ -21,9 +21,13 @@
 		calling
 	} = $derived(Keys);
 
-	const expired = ({ expired }, { name }) =>
-		(expired == 'true' ? 'text-error-900-100 font-semibold ' : '') +
-		(name == 'Key' ? 'w-120' : name == 'Avalaible' ? 'w-40' : 'text-right');
+	const keyCellClass = ({ expired }, { name }) => {
+		const tone = expired == 'true' ? 'text-error-900-100 font-semibold ' : '';
+		if (name == 'Key') return tone + 'min-w-90 max-w-[64ch] break-all';
+		if (name == 'Avalaible') return tone + 'w-42 whitespace-nowrap text-left';
+		if (name == 'Expiration Date') return tone + 'w-44 whitespace-nowrap text-left';
+		return tone;
+	};
 </script>
 
 <Card title="Keys">
@@ -66,10 +70,11 @@
 		{@const ratioCat = total > 1 ? remaining / total : 1}
 		{@const iClass = ratioCat < 0.5 ? 1 : ratioCat < 0.2 ? 2 : 0}
 		<TableAutoCard
+			class="mb-2"
 			definition={[
-				{ name: 'Key', custom: true, class: expired },
-				{ name: 'Avalaible', key: 'value', class: expired },
-				{ name: 'Expiration Date', key: 'expiration', class: expired },
+				{ name: 'Key', custom: true, class: keyCellClass },
+				{ name: 'Avalaible', key: 'value', class: keyCellClass },
+				{ name: 'Expiration Date', key: 'expiration', class: keyCellClass },
 				{ name: 'Actions', custom: true, class: 'w-14' }
 			]}
 			{data}

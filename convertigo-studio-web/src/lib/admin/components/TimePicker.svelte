@@ -238,7 +238,7 @@
 <div class="relative flex h-9 justify-center" {@attach attachRoot}>
 	<input
 		type="text"
-		class="h-9 input-common w-[14ch] max-w-fit preset-filled-surface-200-800 text-[13px] leading-none placeholder:text-[13px]"
+		class="h-9 input-common w-[14ch] max-w-fit text-[13px] leading-none placeholder:text-[13px]"
 		maxlength="12"
 		size="11"
 		{@attach attachInput}

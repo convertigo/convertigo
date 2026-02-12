@@ -7,7 +7,7 @@
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
 	const baseGroup =
-		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-transparent bg-surface-200-800 text-strong transition-surface focus-within:outline focus-within:outline-1 focus-within:outline-primary-500 focus-within:outline-offset-[-1px]';
+		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-surface-300-700 bg-surface-100-900 text-strong transition-surface focus-within:outline focus-within:outline-1 focus-within:outline-primary-500 focus-within:outline-offset-[-1px]';
 	const baseLabel = 'flex h-full items-center px-3 text-surface-700-300 cursor-text';
 	const baseInput =
 		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-600-400 focus-visible:outline-none focus:ring-0';

@@ -63,7 +63,7 @@
 					placeholder="Your username"
 					icon="mdi:account-outline"
 					iconClass="text-muted"
-					class="rounded-xl bg-surface-200-800"
+					class="rounded-xl"
 					labelClass="rounded-l-xl bg-transparent"
 					inputClass="text-base"
 				/>
@@ -82,7 +82,7 @@
 					type={passwordVisible ? 'text' : 'password'}
 					icon="mdi:lock-outline"
 					iconClass="text-muted"
-					class="rounded-xl bg-surface-200-800"
+					class="rounded-xl"
 					labelClass="rounded-l-xl bg-transparent"
 					inputClass="text-base"
 				>

@@ -14,7 +14,7 @@
 		comment = '',
 		class: cls = '',
 		thClass = 'text-left text-strong text-[14px] font-semibold',
-		trClass = 'even:preset-filled-surface-100-900 odd:preset-filled-surface-200-800 transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
+		trClass = 'transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
 		fnRowId = (row, i) => row.name ?? i,
 		cardBreakpoint = 0,
 		children,
@@ -98,76 +98,74 @@
 		<h1 class="p-3 font-medium">{comment}</h1>
 	{/if}
 
-	<div class="table-frame">
-		<table class="w-full border-separate border-spacing-0">
-			{#if showHeaders}
-				{#if thead}
-					{@render thead({ definition })}
-				{:else}
-					<thead>
-						<tr class={thClass}>
-							{#each definition as def (def.key ?? def.name ?? def)}
-								<th class={def.th}>
-									{#if def.icon}
-										<Icon icon={def.icon} class="h-7 w-7" />
-									{:else}
-										{def.name ?? ''}
-									{/if}
-								</th>
-							{/each}
-						</tr>
-					</thead>
-				{/if}
-			{/if}
-			{#if data && data.length > 0}
-				<tbody>
-					{#each data as row, rowIdx (fnRowId(row, rowIdx))}
-						<tr class={trClass} data-custom={row.name}>
-							{#snippet rowRender()}
-								{#each definition as def (def.key ?? def.name ?? def)}
-									<td
-										class={def.class
-											? typeof def.class == 'function'
-												? def.class(row, def)
-												: def.class
-											: ''}
-										data-label={showHeaders ? (def.name ?? '') : ''}
-									>
-										{#if def.custom}
-											{#if children}
-												{@render children({ row, def, rowIdx })}
-											{:else}
-												{row[def.key] ?? ''}
-											{/if}
-										{:else}
-											<AutoPlaceholder loading={row[def.key] == null}
-												>{row[def.key] ?? ''}</AutoPlaceholder
-											>
-										{/if}
-									</td>
-								{/each}
-							{/snippet}
-							{#if rowChildren}
-								{@render rowChildren({ row, rowIdx, definition, rowRender })}
-							{:else}
-								{@render rowRender()}
-							{/if}
-						</tr>
-					{/each}
-				</tbody>
-			{:else if showNothing}
-				<tbody class="preset-filled-surface-200-800">
-					<tr>
-						<td colspan={definition.length}>
-							<div class="layout-x">
-								<p class="font-medium">This table is empty</p>
-							</div>
-						</td>
+	<table class="w-full">
+		{#if showHeaders}
+			{#if thead}
+				{@render thead({ definition })}
+			{:else}
+				<thead>
+					<tr class={thClass}>
+						{#each definition as def (def.key ?? def.name ?? def)}
+							<th class={def.th}>
+								{#if def.icon}
+									<Icon icon={def.icon} class="h-7 w-7" />
+								{:else}
+									{def.name ?? ''}
+								{/if}
+							</th>
+						{/each}
 					</tr>
-				</tbody>
+				</thead>
 			{/if}
-		</table>
-	</div>
+		{/if}
+		{#if data && data.length > 0}
+			<tbody>
+				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
+					<tr class={trClass} data-custom={row.name}>
+						{#snippet rowRender()}
+							{#each definition as def (def.key ?? def.name ?? def)}
+								<td
+									class={def.class
+										? typeof def.class == 'function'
+											? def.class(row, def)
+											: def.class
+										: ''}
+									data-label={showHeaders ? (def.name ?? '') : ''}
+								>
+									{#if def.custom}
+										{#if children}
+											{@render children({ row, def, rowIdx })}
+										{:else}
+											{row[def.key] ?? ''}
+										{/if}
+									{:else}
+										<AutoPlaceholder loading={row[def.key] == null}
+											>{row[def.key] ?? ''}</AutoPlaceholder
+										>
+									{/if}
+								</td>
+							{/each}
+						{/snippet}
+						{#if rowChildren}
+							{@render rowChildren({ row, rowIdx, definition, rowRender })}
+						{:else}
+							{@render rowRender()}
+						{/if}
+					</tr>
+				{/each}
+			</tbody>
+		{:else if showNothing}
+			<tbody class="preset-filled-surface-50-950">
+				<tr>
+					<td colspan={definition.length}>
+						<div class="layout-x">
+							<p class="font-medium">This table is empty</p>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		{/if}
+	</table>
 </div>
 
 <style lang="postcss">
@@ -175,21 +173,24 @@
 
 	table {
 		width: 100%;
-		border-collapse: separate;
-		border-spacing: 0;
+		border-collapse: collapse;
 	}
 	th,
 	td {
 		@apply p-2! align-middle!;
 	}
-	thead {
-		@apply border-b border-surface-300-700;
+	.table-container:not(.autocard) :global(thead th) {
+		border-bottom: 1px solid var(--table-separator-color);
+	}
+	.table-container:not(.autocard) :global(tbody tr > td) {
+		border-bottom: 1px solid var(--table-separator-color);
 	}
 	.table-container {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 		width: 100%;
 		container-type: inline-size;
+		--table-separator-color: light-dark(var(--color-surface-400), var(--color-surface-600));
 	}
 
 	.autocard {
@@ -204,7 +205,11 @@
 
 		tr {
 			display: block;
-			@apply layout-grid-low-48 rounded;
+			@apply layout-grid-low-48;
+		}
+
+		tbody tr:not(:last-child) {
+			border-bottom: 1px solid var(--table-separator-color);
 		}
 
 		thead {

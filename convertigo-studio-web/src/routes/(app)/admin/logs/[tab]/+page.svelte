@@ -443,7 +443,7 @@
 									type="search"
 									placeholder="Server filter…"
 									icon="mdi:filter"
-									class="h-9 bg-surface-200-800"
+									class="h-9"
 									inputClass="h-9 text-[13px] placeholder:text-[13px]"
 									bind:value={serverFilter}
 									onkeyup={(e) => {

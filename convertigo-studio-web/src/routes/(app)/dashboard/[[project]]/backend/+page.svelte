@@ -122,7 +122,7 @@
 			type="search"
 			placeholder="Search requestable..."
 			autofocus
-			class="w-full bg-surface-200-800"
+			class="w-full"
 			actionsClass="pr-1"
 			icon="mdi:magnify"
 			bind:value={searchQuery}

@@ -99,7 +99,7 @@
 					label: 'Variables',
 					title: 'Java Props / Env Vars',
 					icon: 'mdi:code-braces',
-					cls: 'button-secondary text-[11px] px-2! whitespace-nowrap',
+					cls: 'button-primary text-[11px] px-2! whitespace-nowrap',
 					onclick: openVariables
 				},
 				{
@@ -136,7 +136,7 @@
 				{
 					label: 'Perform GC',
 					icon: 'mdi:broom',
-					cls: 'button-secondary',
+					cls: 'button-primary',
 					onclick: () => call('engine.PerformGC')
 				}
 			],
@@ -216,22 +216,22 @@
 						class={[
 							'relative',
 							'gap-0.5',
-							'rounded-base',
+							'rounded-lg',
 							'border',
-							'border-surface-100-900',
-							'bg-surface-200-800',
+							'border-surface-300-700',
+							'bg-surface-100-900',
 							'p-0.5',
 							'shadow-none',
 							'overflow-hidden'
 						]}
 					>
-						<SegmentedControl.Indicator class="rounded-[0.3rem] bg-primary-600 shadow-none" />
+						<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
 						{#each varsTabs as tab (tab.value)}
 							<SegmentedControl.Item value={tab.value} class="relative flex-1">
 								<SegmentedControl.ItemText
 									class={[
-										varsMode.current == tab.value ? 'text-white' : 'text-muted',
-										'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium'
+										varsMode.current == tab.value ? 'text-white' : 'text-surface-700-300',
+										'inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-medium'
 									]}
 								>
 									<Ico icon={tab.icon} size={4} />
