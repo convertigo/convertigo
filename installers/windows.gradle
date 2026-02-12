@@ -54,7 +54,7 @@ task unzipWin64ServerJdk {
 	
 	doLast {
 		file('build/tmp').mkdirs()
-		def url = file('installers/nsis/download-jdk.sh').text.replaceFirst('(?s).*?JDK_URL=(.*?\\.zip).*', '$1')
+		def url = file('installers/nsis/download-jdk.sh').text.replaceFirst('(?m)^JDK_URL_WIN=(.*?\\.zip)$', '$1')
 		new URL(url).withInputStream{ i -> zip.withOutputStream{ it << i }}
 		project.delete(dist)
 		copy {
