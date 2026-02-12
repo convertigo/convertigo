@@ -43,6 +43,7 @@ final class SessionValueCodec {
 	}
 
 	String serialize(String name, Object value) throws Exception {
+		value = unwrap(value);
 		if (value == null) {
 			return null;
 		}
@@ -104,6 +105,49 @@ final class SessionValueCodec {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	private static Object unwrap(Object value) {
+		while (value != null) {
+			if (value instanceof org.mozilla.javascript.ScriptableObject scriptable) {
+				String className;
+				try {
+					className = scriptable.getClassName();
+				} catch (Exception e) {
+					className = null;
+				}
+				if ("String".equals(className)) {
+					try {
+						return org.mozilla.javascript.Context.toString(value);
+					} catch (Exception e) {
+						return value.toString();
+					}
+				}
+				if ("Number".equals(className)) {
+					try {
+						return org.mozilla.javascript.Context.toNumber(value);
+					} catch (Exception e) {
+						return null;
+					}
+				}
+				if ("Boolean".equals(className)) {
+					try {
+						return org.mozilla.javascript.Context.toBoolean(value);
+					} catch (Exception e) {
+						return null;
+					}
+				}
+			}
+			if (value instanceof org.mozilla.javascript.Wrapper wrapper) {
+				value = wrapper.unwrap();
+				continue;
+			}
+			if (value instanceof org.mozilla.javascript.Undefined || value instanceof org.mozilla.javascript.UniqueTag) {
+				return null;
+			}
+			break;
+		}
+		return value;
 	}
 
 	private static final class TypedValue {
