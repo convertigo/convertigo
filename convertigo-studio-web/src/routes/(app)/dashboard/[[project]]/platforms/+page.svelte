@@ -38,7 +38,9 @@
 		{#each platforms as { name, displayName, packageType, local, built: { status, revision, version, phonegap_version, endpoint, waiting, error }, classname, comment, build } (name)}
 			<AccordionSection
 				value={name}
-				triggerClass="border-b-[0.5px] px-low py-low text-left"
+				class="accordion-item"
+				triggerClass="accordion-trigger"
+				panelClass="accordion-panel"
 				title={displayName}
 			>
 				{#snippet lead()}
@@ -55,7 +57,11 @@
 				{/snippet}
 				{#snippet trail()}
 					{#if comment}
-						<span class="max-w-52 truncate text-xs text-surface-600-400">{comment}</span>
+						<span
+							class="inline-flex max-w-60 items-center rounded-full border border-surface-200-800 bg-surface-100-900/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-surface-600-400"
+						>
+							<span class="truncate">{comment}</span>
+						</span>
 					{/if}
 				{/snippet}
 				{#snippet panel()}

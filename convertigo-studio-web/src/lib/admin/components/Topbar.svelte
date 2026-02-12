@@ -13,7 +13,8 @@
 		showLeft = $bindable(),
 		showDrawer = $bindable(),
 		variant = 'app',
-		title = undefined
+		title = undefined,
+		hasSecondaryRail = false
 	} = $props();
 
 	const computedTitle = $derived(
@@ -22,6 +23,19 @@
 				? 'Convertigo Studio'
 				: `Convertigo ${page.route.id?.includes('dashboard') ? 'Dashboard' : 'Admin Console'}`)
 	);
+	const leftOffsetClass = $derived.by(() => {
+		if (variant === 'studio') return '';
+		if (showLeft && hasSecondaryRail) {
+			return 'md:w-92';
+		}
+		if (showLeft) {
+			return 'md:w-40';
+		}
+		if (hasSecondaryRail) {
+			return 'md:w-52';
+		}
+		return 'md:w-auto';
+	});
 
 	onMount(() => {
 		if (variant === 'studio') {
@@ -34,7 +48,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-20 layout-x-between border-b border-color bg-surface-100-900 shadow-sm/10 shadow-surface-900-100 backdrop-blur-md"
+	class="sticky top-0 z-20 grid grid-cols-[auto_1fr_auto] items-center border-b border-color bg-surface-100-900 shadow-sm/10 shadow-surface-900-100 backdrop-blur-md"
 >
 	{#if variant === 'studio'}
 		<section class="layout-x pl-5">
@@ -53,7 +67,7 @@
 			<LightSwitch />
 		</section>
 	{:else}
-		<section class="layout-x pl-5">
+		<section class="layout-x pl-5 {leftOffsetClass}">
 			<PagesRailToggle class="md:hidden" bind:state={showDrawer} />
 			<PagesRailToggle class="max-md:hidden" bind:state={showLeft} />
 		</section>
@@ -88,7 +102,7 @@
 						icon="mdi:refresh"
 						full={false}
 						disabled={Instances.loading}
-						cls="button-ico-secondary h-fit! px-2 py-none"
+						cls="button-ico-primary h-fit! px-2 py-none"
 						title="Refresh instances"
 						ariaLabel="Refresh instances"
 						onclick={Instances.refresh}

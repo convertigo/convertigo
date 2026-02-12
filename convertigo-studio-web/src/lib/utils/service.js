@@ -282,7 +282,11 @@ function handleStateMessage(res, service) {
 					authToastAt = now;
 				}
 				Authentication.checkAuthentication().finally(() => {
-					if (!Authentication.authenticated && browser && !location.pathname.includes('/login')) {
+					if (
+						!Authentication.canAccessDashboard &&
+						browser &&
+						!location.pathname.includes('/login')
+					) {
 						const redirect = encodeURIComponent(location.pathname + location.search);
 						goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
 					}
@@ -290,7 +294,7 @@ function handleStateMessage(res, service) {
 				return;
 			}
 
-			if (!Authentication.authenticated) {
+			if (!Authentication.canAccessDashboard) {
 				return;
 			}
 

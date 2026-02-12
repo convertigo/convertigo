@@ -16,6 +16,8 @@
 	let parts = $derived(
 		page.route?.id?.startsWith('/(app)/admin') ? partsAdmin.parts : partsDashboard.parts
 	);
+	let rightPartSnippet = $derived(RightPart.snippet);
+	let hasSecondaryRail = $derived(Boolean(rightPartSnippet));
 	let showLeft = $state(true);
 	let showDrawer = $state(false);
 </script>
@@ -36,12 +38,20 @@
 </Dialog>
 
 <div class="layout-y-stretch-none min-h-screen" class:blur-xs={!browser}>
-	<Topbar bind:showLeft bind:showDrawer />
+	<Topbar bind:showLeft bind:showDrawer {hasSecondaryRail} />
 
 	<div class="layout-y-stretch grow gap-0! md:layout-x-stretch">
 		{#if showLeft}
-			<aside class="max-md:hidden" transition:slide={{ axis: 'x' }}>
+			<aside class="shrink-0 max-md:hidden" transition:slide={{ axis: 'x' }}>
 				<PagesRail {parts} />
+			</aside>
+		{/if}
+		{#if hasSecondaryRail}
+			<aside
+				class="w-full shrink-0 border-b border-color bg-surface-100-900 md:w-auto md:border-r md:border-b-0"
+				transition:slide={{ axis: window?.matchMedia('(min-width: 768px)').matches ? 'x' : 'y' }}
+			>
+				{@render rightPartSnippet?.()}
 			</aside>
 		{/if}
 		{#key page.route.id}
@@ -49,13 +59,5 @@
 				{@render children?.()}
 			</main>
 		{/key}
-		{#if RightPart.snippet}
-			<aside
-				class="relative z-30 max-md:order-first"
-				transition:slide={{ axis: window?.matchMedia('(min-width: 768px)').matches ? 'x' : 'y' }}
-			>
-				{@render RightPart.snippet()}
-			</aside>
-		{/if}
 	</div>
 </div>

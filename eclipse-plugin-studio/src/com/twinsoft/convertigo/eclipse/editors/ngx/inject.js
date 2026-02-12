@@ -240,7 +240,19 @@ document.addEventListener("DOMContentLoaded", function () {
 	document.body.appendChild(prg);
 	
 	var _init_doProgress = false;
+	var _last_doProgress = 0;
 	window.doProgress = (progress) => {
+		if (progress < _last_doProgress) {
+			if (_last_doProgress == 100 && progress <= 5) {
+				_last_doProgress = 0;
+				_init_doProgress = false;
+			} else {
+				return;
+			}
+		}
+		if (progress > _last_doProgress) {
+			_last_doProgress = progress;
+		}
 		_c8o_remove_all_overlay();
 		back.style["display"] = "block";
 		var context = canvas.getContext("2d");
@@ -263,6 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			back.style["display"] = prg.style["display"] = "none";
 			msg.textContent = "";
 			_init_doProgress = false;
+			_last_doProgress = 100;
 		} else {
 			msg.textContent = progress + "%";
 			prg.style["display"] = "block";

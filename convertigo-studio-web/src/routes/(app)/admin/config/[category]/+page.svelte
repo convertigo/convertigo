@@ -7,7 +7,6 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
-	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onDestroy, onMount } from 'svelte';
@@ -23,7 +22,6 @@
 			categories.findIndex(({ name }) => name == page.params.category)
 		)
 	);
-	let selectedIndexLast = $state(-1);
 	let category = $derived(categories[selectedIndex] ?? {});
 
 	RightPart.snippet = rightPart;
@@ -54,7 +52,6 @@
 				return;
 			}
 		}
-		selectedIndexLast = selectedIndex;
 	});
 
 	$effect(() => {
@@ -86,19 +83,23 @@
 
 {#snippet rightPart()}
 	<nav
-		class="layout-y-stretch-none h-full border-l border-color bg-surface-100-900 max-md:layout-grid-[100px]"
+		class="h-full w-full bg-surface-100-900 max-md:grid max-md:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] max-md:gap-1 md:layout-y-stretch-none md:w-52"
 	>
 		{#each categories as { name, displayName }, i (`${name ?? displayName ?? 'cat'}-${i}`)}
+			{@const isSelected = i == selectedIndex}
 			<a
 				href="../{name ? name : '_'}/"
-				class="relative flex w-full min-w-36 items-center gap-2 rounded-base border border-transparent py-2 pr-4 pl-5 transition-soft hover:border-surface-200-800 hover:bg-surface-100-900"
+				aria-current={isSelected ? 'page' : undefined}
+				class="rail-link"
 			>
-				{#if i == selectedIndex}
-					<SelectionHighlight delta={selectedIndexLast - selectedIndex} />
+				{#if isSelected}
+					<span class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"></span>
 				{/if}
 				<AutoPlaceholder loading={displayName == null}>
-					<span class="z-10 w-full text-[14px] font-{i == selectedIndex ? 'medium' : 'normal'}"
-						>{displayName}</span
+					<span
+						class="z-10 w-full text-[14px] {isSelected
+							? 'font-medium rail-active'
+							: 'font-normal text-strong'}">{displayName}</span
 					>
 				</AutoPlaceholder>
 			</a>
@@ -132,36 +133,40 @@
 		</Card>
 
 		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
-			<Card class="py-low">
-				<AccordionGroup
-					collapsible
-					bind:value={
-						() => (Last.advanced ? ['advanced'] : []),
-						(v) => {
-							Last.advanced = v.length > 0;
-						}
+			<AccordionGroup
+				collapsible
+				bind:value={
+					() => (Last.advanced ? ['advanced'] : []),
+					(v) => {
+						Last.advanced = v.length > 0;
 					}
+				}
+			>
+				<AccordionSection
+					value="advanced"
+					class="accordion-item"
+					triggerClass="accordion-trigger"
+					panelClass="accordion-panel"
+					title="Advanced Properties"
 				>
-					<AccordionSection value="advanced" title="Advanced Properties">
-						{#snippet lead()}
-							<Ico icon="mdi:star-three-points-outline" class="text-lg" />
-						{/snippet}
-						{#snippet panel()}
-							<div class="config-properties layout-cols-2 w-full">
-								{#each category.property as property (property.name ?? property.key ?? property)}
-									{#if property.isAdvanced == 'true'}
-										<PropertyType
-											{...property}
-											bind:value={property.value}
-											loading={property.description == null}
-										/>
-									{/if}
-								{/each}
-							</div>
-						{/snippet}
-					</AccordionSection>
-				</AccordionGroup>
-			</Card>
+					{#snippet lead()}
+						<Ico icon="mdi:star-three-points-outline" class="text-lg" />
+					{/snippet}
+					{#snippet panel()}
+						<div class="config-properties layout-cols-2 w-full">
+							{#each category.property as property (property.name ?? property.key ?? property)}
+								{#if property.isAdvanced == 'true'}
+									<PropertyType
+										{...property}
+										bind:value={property.value}
+										loading={property.description == null}
+									/>
+								{/if}
+							{/each}
+						</div>
+					{/snippet}
+				</AccordionSection>
+			</AccordionGroup>
 		{/if}
 	</div>
 {/key}

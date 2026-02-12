@@ -155,9 +155,6 @@ public class Authenticate extends XmlService {
 			if (authToken != null || (EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME).equals(user) &&
 					EnginePropertiesManager.checkProperty(PropertyName.ADMIN_PASSWORD, password))) {
 				roles = AuthenticatedSessionManager.toRoles(Role.WEB_ADMIN, Role.TEST_PLATFORM, Role.AUTHENTICATED);
-			} else if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).equals(user)
-					&& EnginePropertiesManager.checkProperty(PropertyName.TEST_PLATFORM_PASSWORD, password)) {
-				roles = AuthenticatedSessionManager.toRoles(Role.TEST_PLATFORM, Role.AUTHENTICATED);
 			} else if ((rolesSet = Engine.authenticatedSessionManager.checkUser(user, password)) != null) {
 				roles = new Role[rolesSet.size() + 1];
 				rolesSet.toArray(roles);

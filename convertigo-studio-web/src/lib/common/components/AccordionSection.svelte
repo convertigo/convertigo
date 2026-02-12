@@ -23,6 +23,9 @@
 	trail?: import('svelte').Snippet;
 	leadingIcon?: string;
 	leadingIconClass?: string;
+	titleClass?: string;
+	subtitleClass?: string;
+	metaClass?: string;
 	trailingText?: string;
 	trailingTextClass?: string;
 } & Record<string, any>} */
@@ -46,6 +49,9 @@
 		trail,
 		leadingIcon,
 		leadingIconClass = 'text-muted',
+		titleClass = 'text-sm font-semibold text-strong',
+		subtitleClass = 'text-xs text-surface-600-400',
+		metaClass = 'text-xs text-surface-600-400',
 		trailingText,
 		trailingTextClass = 'text-xs text-muted',
 		...rest
@@ -64,14 +70,10 @@
 	);
 
 	const triggerClasses = $derived(
-		['layout-x-between w-full px-low py-low text-left transition-surface', triggerClass]
-			.filter(Boolean)
-			.join(' ')
+		['layout-x-between w-full text-left transition-surface', triggerClass].filter(Boolean).join(' ')
 	);
 
-	const panelClasses = $derived(
-		['px-low pb-low transition-surface', panelClass].filter(Boolean).join(' ')
-	);
+	const panelClasses = $derived(['transition-surface', panelClass].filter(Boolean).join(' '));
 	const header = $derived(control ?? defaultHeader);
 	const body = $derived(panel ?? children);
 	const resolvedLead = $derived(lead ?? (leadingIcon ? defaultLead : undefined));
@@ -140,15 +142,15 @@
 					})}
 					<div class="layout-y-start-low min-w-0">
 						{#if title}
-							<span class="text-sm font-semibold text-strong">
+							<span class={titleClass}>
 								{title}
 							</span>
 						{/if}
 						{#if subtitle}
-							<span class="text-xs text-surface-600-400">{subtitle}</span>
+							<span class={subtitleClass}>{subtitle}</span>
 						{/if}
 						{#if meta}
-							<span class="text-xs text-surface-600-400">{meta}</span>
+							<span class={metaClass}>{meta}</span>
 						{/if}
 					</div>
 				</div>

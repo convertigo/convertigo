@@ -135,14 +135,14 @@
 
 	:global(.convertigo-treeview [data-part='branch-control'][data-selected]),
 	:global(.convertigo-treeview [data-part='item'][data-selected]) {
-		@apply border border-l-2 border-primary-200/70 border-l-primary-500 bg-primary-50/80 text-strong shadow-sm/10 shadow-surface-900-100;
-		@apply dark:border-primary-700/60 dark:border-l-primary-400 dark:bg-primary-900/30 dark:text-primary-50;
+		@apply border border-transparent bg-primary-100/70 text-primary-500 shadow-none;
+		@apply dark:bg-primary-500/20 dark:text-primary-300;
 	}
 
 	:global(
 		.convertigo-treeview [data-part='branch-control'][data-selected] [data-part='branch-text']
 	),
 	:global(.convertigo-treeview [data-part='item'][data-selected] [data-part='item-text']) {
-		@apply font-semibold;
+		@apply font-semibold text-primary-500 dark:text-primary-300;
 	}
 </style>

@@ -164,9 +164,9 @@
 			<div transition:fly={{ duration, y }}>
 				<AccordionSection
 					value={part.name}
-					class="rounded-container bg-surface-100-900 shadow-follow"
-					triggerClass="w-full rounded-2xl px-3 py-3 text-left transition-surface hover:bg-surface-100-900/60"
-					panelClass="px-low pb-low"
+					class="accordion-item"
+					triggerClass="accordion-trigger"
+					panelClass="accordion-panel"
 					title={name}
 					subtitle={comment}
 					count={requestables.length}

@@ -1,12 +1,27 @@
-import { call } from '$lib/utils/service';
+import { call, checkArray } from '$lib/utils/service';
 import Time from './Time.svelte';
 
 /** @type {any} */
 let result = $state({});
 
+const parseRole = (role) =>
+	typeof role == 'string' ? role : (role?.name ?? role?.['@_name'] ?? role?.['#text'] ?? '');
+
 export default {
 	get authenticated() {
 		return result.authenticated ?? false;
+	},
+	get roles() {
+		return checkArray(result?.roles?.role).map(parseRole).filter(Boolean);
+	},
+	hasRole(role) {
+		return this.roles.includes(role);
+	},
+	get canAccessAdmin() {
+		return this.hasRole('WEB_ADMIN');
+	},
+	get canAccessDashboard() {
+		return this.canAccessAdmin || this.roles.some((role) => role.startsWith('TEST_PLATFORM'));
 	},
 	get user() {
 		return result.user ?? '';

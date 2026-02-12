@@ -7,10 +7,9 @@
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import { getFrontendUrl } from '$lib/utils/service';
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import Last from '../Last.svelte';
@@ -109,12 +108,17 @@
 	});
 
 	$effect(() => {
+		if (openGroup.length > 1) {
+			openGroup = [openGroup[openGroup.length - 1]];
+		}
+	});
+
+	$effect(() => {
 		selectedDevice.id;
 		zoomMode = 'fit';
 		zoom = 1;
 		rotationSteps = 0;
 	});
-	let selectedIndexLast = $state(-1);
 	let projectUrl = $derived.by(() =>
 		(page.params.project ?? '_') == '_' ? '#' : getFrontendUrl(page.params.project)
 	);
@@ -206,13 +210,6 @@
 		Last.model = selectedDevice.id;
 		Last.orientation = orientation.substring(0, 1);
 		angle.target = orientation == 'horizontal' ? 1 : 0;
-	});
-
-	$effect(() => {
-		selectedIndex;
-		tick().then(() => {
-			selectedIndexLast = selectedIndex;
-		});
 	});
 
 	let iframe = $state();
@@ -324,23 +321,23 @@
 </script>
 
 {#snippet rightPart()}
-	<nav
-		class="h-full border-r-[0.5px] border-color preset-filled-surface-100-900 max-md:layout-grid-[100px]"
-	>
-		<AccordionGroup bind:value={openGroup} collapsible>
+	<nav class="h-full w-full bg-surface-100-900 md:w-52">
+		<AccordionGroup bind:value={openGroup} multiple collapsible class="flex flex-col gap-0">
 			{#each groupedDevices as { id, title, devices } (id)}
 				<AccordionSection
 					value={id}
-					class="border-b border-surface-200-800 last:border-none"
-					triggerClass="px-low py-2 text-sm font-semibold uppercase tracking-wide text-surface-600-400 hover:text-surface-900-100"
-					panelClass="px-0 pb-2"
+					class="accordion-rail-item"
+					triggerClass="accordion-rail-trigger"
+					panelClass="accordion-rail-panel"
 					{title}
-					titleClass="text-sm font-semibold uppercase tracking-wide"
+					titleClass="text-sm font-semibold text-strong"
 					count={devices.length}
 					countVariant="number"
 				>
 					{#snippet panel()}
-						<div class="layout-y-stretch gap-1 pt-1">
+						<div
+							class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0 pt-0 md:flex md:flex-col md:gap-0"
+						>
 							{#each devices as device (device.id)}
 								{@const {
 									id,
@@ -355,14 +352,14 @@
 								<a
 									{href}
 									aria-current={isSelected ? 'true' : undefined}
-									class="relative layout-x-p-low min-w-36 items-center! gap! rounded-sm py-2 shadow-surface-900-100 hover:bg-surface-200-800 hover:shadow-md/10"
+									class="relative flex min-w-0 items-center gap-2 border-b border-surface-200-800/60 px-2 py-2 transition-surface hover:bg-primary-100/60 md:min-w-40 md:border-b md:px-3 dark:hover:bg-primary-500/15"
 								>
 									{#if isSelected}
-										<SelectionHighlight delta={selectedIndexLast - selectedIndex} />
+										<span class="absolute inset-0 bg-primary-100/70 dark:bg-primary-500/20"></span>
 									{/if}
 									{#if id != 'none'}
 										<picture
-											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center overflow-hidden rounded-sm"
+											class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center overflow-hidden rounded-sm md:h-16 md:w-16"
 											aria-hidden="true"
 										>
 											<source srcset={asset(`/bezels/thumbnails/${id}.webp`)} type="image/webp" />
@@ -375,13 +372,16 @@
 										</picture>
 									{:else}
 										<div
-											class="z-10 layout-x-none h-16 w-16 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase"
+											class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase md:h-16 md:w-16"
 											aria-hidden="true"
 										>
 											No frame
 										</div>
 									{/if}
-									<span class="z-10 text-[13px] font-{isSelected ? 'medium' : 'normal'}"
+									<span
+										class="z-10 text-[13px] leading-tight {isSelected
+											? 'font-medium rail-active'
+											: 'font-normal text-strong'}"
 										>{title}<br /><small>{width} x {height}</small></span
 									>
 								</a>

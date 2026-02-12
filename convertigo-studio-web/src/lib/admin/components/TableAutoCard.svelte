@@ -14,7 +14,7 @@
 		comment = '',
 		class: cls = '',
 		thClass = 'text-left text-strong text-[14px] font-semibold',
-		trClass = 'transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15',
+		trClass = 'row-hover',
 		fnRowId = (row, i) => row.name ?? i,
 		cardBreakpoint = 0,
 		children,
@@ -155,8 +155,8 @@
 				{/each}
 			</tbody>
 		{:else if showNothing}
-			<tbody class="preset-filled-surface-50-950">
-				<tr>
+			<tbody>
+				<tr class="table-empty-row row-hover">
 					<td colspan={definition.length}>
 						<div class="layout-x">
 							<p class="font-medium">This table is empty</p>
@@ -184,6 +184,10 @@
 	}
 	.table-container:not(.autocard) :global(tbody tr > td) {
 		border-bottom: 1px solid var(--table-separator-color);
+	}
+	.table-container :global(.table-empty-row > td) {
+		border-bottom: 1px solid var(--table-separator-color);
+		background-color: transparent;
 	}
 	.table-container {
 		overflow-x: auto;

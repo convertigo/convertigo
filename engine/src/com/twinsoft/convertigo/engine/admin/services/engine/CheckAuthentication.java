@@ -51,8 +51,8 @@ public class CheckAuthentication extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		HttpSession httpSession = request.getSession(false);
 		
-		// Handle anonymous access for test platform user
-		if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).length() == 0) {
+		// Handle anonymous access for dashboard
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANONYMOUS_DASHBOARD)) {
 			if (httpSession == null) {
 				httpSession = request.getSession(true);
 			}

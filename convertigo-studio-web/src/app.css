@@ -96,6 +96,42 @@
 	transition-timing-function: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
+@utility row-hover {
+	@apply transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15;
+}
+
+@utility rail-link {
+	@apply relative flex w-full items-center gap-2 rounded-base border border-transparent row-hover py-2 pr-4 pl-5 text-[14px] transition-soft;
+}
+
+@utility rail-active {
+	@apply text-primary-500;
+}
+
+@utility accordion-item {
+	@apply w-full overflow-hidden rounded-container border border-color bg-surface-100-900 shadow-follow;
+}
+
+@utility accordion-trigger {
+	@apply w-full border-b border-color bg-surface-100-900 py px text-left transition-surface hover:bg-primary-100/45 data-[state=open]:bg-surface-100-900 data-[state=open]:hover:bg-primary-100/45 dark:hover:bg-primary-500/12 dark:data-[state=open]:hover:bg-primary-500/12;
+}
+
+@utility accordion-panel {
+	@apply bg-surface-100-900 pt-low px pb;
+}
+
+@utility accordion-rail-item {
+	@apply overflow-hidden;
+}
+
+@utility accordion-rail-trigger {
+	@apply relative z-10 w-full cursor-pointer rounded-none border-b border-surface-200-800 py-2 px-low text-sm font-medium text-strong transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15;
+}
+
+@utility accordion-rail-panel {
+	@apply px-0 pt-0 pb-0;
+}
+
 @utility table-frame {
 	border: 0;
 	border-radius: var(--radius-base);

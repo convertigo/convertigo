@@ -387,9 +387,8 @@ public class EnginePropertiesManager {
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", encodeValue(PropertyType.PasswordHash, "admin"), "Admin password", PropertyCategory.Account),
-		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
-		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		TEST_PLATFORM_PASSWORD ("testplatform.password", encodeValue(PropertyType.PasswordHash, ""), "Test Platform password", PropertyCategory.Account),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		ANONYMOUS_DASHBOARD ("anonymous.dashboard", Engine.isStudioMode() ? "true" : "false", "Allow anonymous access to /dashboard", PropertyCategory.Account),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SECURITY_FILTER ("security.filter", "false", "Security Filter", PropertyCategory.Account),
 		@PropertyOptions(advance = true)

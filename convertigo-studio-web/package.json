@@ -21,7 +21,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.50.1"
+			"svelte": "^5.50.2"
 		}
 	},
 	"devDependencies": {
@@ -47,7 +47,7 @@
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"sharp": "^0.34.5",
-		"svelte": "^5.50.1",
+		"svelte": "^5.50.2",
 		"svelte-check": "^4.3.6",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.3",
@@ -71,7 +71,7 @@
 		"fast-xml-parser": "^5.3.5",
 		"fs-extra": "^11.3.3",
 		"html-entities": "^2.6.0",
-		"marked": "^17.0.1",
+		"marked": "^17.0.2",
 		"monaco-editor": "^0.55.1",
 		"svelte-persisted-state": "^1.4.0",
 		"svelte-persisted-store": "^0.12.0",

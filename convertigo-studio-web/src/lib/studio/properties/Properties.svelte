@@ -91,9 +91,9 @@
 				{@const total = rows.length}
 				<AccordionSection
 					value={category}
-					class="w-full overflow-hidden rounded-container border border-surface-200-800 preset-filled-surface-50-950 shadow-follow"
-					triggerClass="px py text-left bg-surface-100-900/70 border-b border-surface-200-800 data-[state=open]:bg-surface-100-900/90"
-					panelClass="px pb pt-low bg-surface-50-950"
+					class="accordion-item"
+					triggerClass="accordion-trigger"
+					panelClass="accordion-panel"
 					disabled={total == 0}
 					title={category}
 					count={total}

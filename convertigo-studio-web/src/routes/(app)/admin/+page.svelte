@@ -333,12 +333,21 @@
 					{#snippet children({ row, def })}
 						{#if def.key === 'Name'}
 							<span>{row.Name}</span>
+						{:else if row[def.key] == 'Running'}
+							<span class="inline-flex items-center justify-end gap-2">
+								<span class="inline-block size-4 rounded-full bg-success-500"></span>
+								<AutoPlaceholder loading={row[def.key] == null}
+									>{row[def.key] ?? ''}</AutoPlaceholder
+								>
+							</span>
+						{:else if row[def.key] == 'Stopped'}
+							<span class="inline-flex items-center justify-end gap-2">
+								<span class="inline-block size-4 rounded-full bg-error-500"></span>
+								<AutoPlaceholder loading={row[def.key] == null}
+									>{row[def.key] ?? ''}</AutoPlaceholder
+								>
+							</span>
 						{:else}
-							{#if row[def.key] == 'Running'}
-								<span class="on"></span>
-							{:else if row[def.key] == 'Stopped'}
-								<span class="off"></span>
-							{/if}
 							<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>
 						{/if}
 					{/snippet}
@@ -359,13 +368,6 @@
 <style lang="postcss">
 	@reference "../../../app.css";
 
-	:global(.statusTable td:has(> .on)) {
-		background-color: var(--convertigo-running);
-		color: var(--convertigo-text);
-	}
-	:global(.statusTable td:has(> .off)) {
-		@apply preset-filled-error-200-800;
-	}
 	:global(.statusTable td.break) {
 		@apply wrap-break-word;
 		word-break: break-word;

@@ -44,17 +44,27 @@
 		} else {
 			await Authentication.checkAuthentication();
 		}
-		if (!Authentication.authenticated && page.route.id != '/(root)/login') {
+		const routeId = page.route.id;
+		const isLoginRoute = routeId == '/(root)/login';
+		const isRootRoute = routeId == null || routeId == '/(root)';
+		const isAdminRoute = page.url.pathname.startsWith(resolve('/admin/'));
+		if (!Authentication.canAccessDashboard && !isLoginRoute) {
 			if (page.url.pathname.endsWith('.html/') || page.error) {
 				goto(resolve('/login/'));
 			} else {
 				goto(`${resolve('/login/')}?redirect=${encodeURIComponent(page.url.pathname)}`);
 			}
-		} else if (
-			Authentication.authenticated &&
-			(page.route.id == null || page.route.id == '/(root)' || page.route.id == '/(root)/login')
-		) {
-			goto(resolve('/admin/'));
+			return;
+		}
+		if (Authentication.canAccessDashboard && (isRootRoute || isLoginRoute)) {
+			const target = Authentication.canAccessAdmin ? resolve('/admin/') : resolve('/dashboard/');
+			if (page.url.pathname != target) {
+				goto(target);
+			}
+			return;
+		}
+		if (Authentication.canAccessDashboard && !Authentication.canAccessAdmin && isAdminRoute) {
+			goto(resolve('/dashboard/'));
 		}
 	});
 

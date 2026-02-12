@@ -12,7 +12,7 @@
 	checked={Light.light}
 	onCheckedChange={(e) => (Light.light = e.checked)}
 >
-	<Switch.Control>
+	<Switch.Control class="c8o-switch transition-surface">
 		<Switch.Thumb>
 			<Ico {icon} />
 		</Switch.Thumb>

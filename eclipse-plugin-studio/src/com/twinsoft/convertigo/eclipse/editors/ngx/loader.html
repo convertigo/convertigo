@@ -38,6 +38,12 @@ a {
 	background-color: black;
 	color: white;
 	font-family: monospace;
+	display: inline-block;
+	white-space: pre-wrap;
+	text-align: left;
+	max-width: 90%;
+	padding: 2px 6px;
+	margin: 0;
 }
 
 #logs {
@@ -67,8 +73,121 @@ canvas {
 }
 </style>
 <script>
+var _loaderHasError = false;
+var _loaderErrorLines = [];
+var _progressDoneTimer = null;
+function _loaderHideBusy() {
+	if (_progressDoneTimer != null) {
+		clearTimeout(_progressDoneTimer);
+		_progressDoneTimer = null;
+	}
+	var load = document.getElementById("load");
+	if (load) {
+		load.style.display = "none";
+		load.innerHTML = "";
+	}
+	var progress = document.getElementById("progress");
+	if (progress) {
+		progress.style.display = "none";
+	}
+	var progressMsg = document.getElementById("progressMsg");
+	if (progressMsg) {
+		progressMsg.textContent = "";
+	}
+	document.querySelectorAll("#main img").forEach(function (img) {
+		img.style.display = "none";
+	});
+	var message = document.getElementById("Message");
+	if (message) {
+		message.style.display = "none";
+	}
+}
+function _loaderNormalizeErrorLine(line) {
+	var normalized = line.replace(/\r$/, "");
+	if (/^\[ERROR\]\s+x\s+\[ERROR\]/i.test(normalized)) {
+		normalized = normalized.replace(/^\[ERROR\]\s+/i, "");
+	}
+	return normalized;
+}
+function _loaderIsErrorStartLine(line) {
+	return /^\s*✘\s+\[ERROR\]/i.test(line)
+		|| /^\s*x\s+\[ERROR\]/i.test(line)
+		|| /^\s*\[ERROR\]/i.test(line);
+}
+function _loaderIsErrorDetailLine(line) {
+	return /^\s*src\//.test(line)
+		|| /^\s*\d+\s*[|│]/.test(line)
+		|| /^\s*[|│]\s*~+/.test(line)
+		|| line.indexOf("Error occurs in the template") >= 0;
+}
+function _loaderIsWatchNoiseLine(line) {
+	return /watch mode enabled\. watching for file changes/i.test(line);
+}
+function _loaderPushErrorLine(line) {
+	if (!line.length) {
+		return;
+	}
+	var normalized = _loaderNormalizeErrorLine(line);
+	if (_loaderIsWatchNoiseLine(normalized)) {
+		return;
+	}
+	if (_loaderErrorLines.length == 0 || _loaderErrorLines[_loaderErrorLines.length - 1] !== normalized) {
+		_loaderErrorLines.push(normalized);
+	}
+	document.getElementById("l1").textContent = _loaderErrorLines.join("\n");
+}
 function loader_log(msg) {
-	document.getElementById("l1").textContent = msg;
+	if (msg == null) {
+		return;
+	}
+	var line = ("" + msg).replace(/\r$/, "");
+	if (!line.trim().length) {
+		return;
+	}
+	if (!_loaderHasError && _loaderIsErrorStartLine(line)) {
+		_loaderHasError = true;
+		_loaderErrorLines = [];
+		_loaderHideBusy();
+	}
+	if (_loaderHasError) {
+		_loaderHideBusy();
+		_loaderPushErrorLine(line);
+		return;
+	}
+	document.getElementById("l1").textContent = line.trim();
+}
+
+function showError(msg) {
+	if (msg == null) {
+		return;
+	}
+	var lines = ("" + msg).split(/\r?\n/);
+	while (lines.length > 0 && !lines[lines.length - 1].trim().length) {
+		lines.pop();
+	}
+	if (!lines.length) {
+		return;
+	}
+	if (!_loaderHasError) {
+		_loaderHasError = true;
+		_loaderErrorLines = [];
+	}
+	_loaderHideBusy();
+	lines.forEach(_loaderPushErrorLine);
+}
+
+function _c8o_error(msg) {
+	if (msg == null) {
+		_loaderHasError = false;
+		_loaderErrorLines = [];
+		document.getElementById("l1").textContent = "";
+		var message = document.getElementById("Message");
+		if (message) {
+			message.style.display = "";
+		}
+		return;
+	}
+	showError(msg);
 }
 
 function _c8o_toast(msg) {
@@ -106,8 +225,27 @@ function _c8o_doLoad(url) {
 		'<a href="' + url + '">Click here to launch with your external default browser</a>';
 }
 
-_init_doProgress = false;
+var _init_doProgress = false;
+var _last_doProgress = 0;
 function doProgress(progress) {
+	if (_loaderHasError) {
+		return;
+	}
+	if (progress < _last_doProgress) {
+		if (_last_doProgress == 100 && progress <= 5) {
+			_last_doProgress = 0;
+			_init_doProgress = false;
+		} else {
+			return;
+		}
+	}
+	if (progress > _last_doProgress) {
+		_last_doProgress = progress;
+	}
+	if (_progressDoneTimer != null) {
+		clearTimeout(_progressDoneTimer);
+		_progressDoneTimer = null;
+	}
 	var msg = document.getElementById("progressMsg");
 	var prg = document.getElementById("progress");
 	var canvas = document.getElementById("progressGauge");
@@ -127,7 +265,11 @@ function doProgress(progress) {
 	context.arc(50, 50, 40, 1.5 * Math.PI, (2 * progress / 100 + 1.5) * Math.PI, false);
 	context.stroke();
 	if (progress == 100) {
-		window.setTimeout(function() {
+		_progressDoneTimer = window.setTimeout(function() {
+			_progressDoneTimer = null;
+			if (_loaderHasError) {
+				return;
+			}
 			prg.style["display"] = "none";	
 			document.getElementById("load").style["display"] = "block";
 			context.strokeStyle = "#333333";
@@ -139,6 +281,7 @@ function doProgress(progress) {
 			
 			context.strokeStyle = "#33b5e5";
 			msg.textContent = "";
+			_last_doProgress = 100;
 		}, 1000);
 	} else {
 		msg.textContent = progress + "%";
@@ -161,9 +304,9 @@ function doProgress(progress) {
 			<canvas id="progressGauge" width="100" height="100"></canvas>
 			<div id="progressMsg"></div>
 		</div>
-		<div id="logs">
-			<span id="l1"></span>
-		</div>
+			<div id="logs">
+				<pre id="l1"></pre>
+			</div>
 	</div>
 </body>
 </html>

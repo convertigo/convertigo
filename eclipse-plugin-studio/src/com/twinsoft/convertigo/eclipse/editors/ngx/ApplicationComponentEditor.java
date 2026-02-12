@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -1772,13 +1773,45 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		return Math.max(1, Math.min(99, timeProgress));
 	}
 
+	private static boolean isStandaloneRebuildStartLine(String lowerLine) {
+		return lowerLine.contains("❯") || lowerLine.contains("changes detected. rebuilding");
+	}
+
+	private static boolean isStandaloneWatchNoiseLine(String lowerLine) {
+		return lowerLine.contains("watch mode enabled. watching for file changes")
+				|| lowerLine.startsWith("watch mode enabled");
+	}
+
+	private static boolean isStandaloneErrorStartLine(String normalizedLine, String lowerLine) {
+		return normalizedLine.startsWith("✘")
+				|| lowerLine.startsWith("x [error]")
+				|| lowerLine.contains("✘ [error]");
+	}
+
+	private static boolean isStandaloneFailureDetailLine(String normalizedLine, String lowerLine) {
+		return lowerLine.contains("[error]")
+				|| lowerLine.startsWith("src/")
+				|| lowerLine.contains("error occurs in the template")
+				|| normalizedLine.contains("~~~")
+				|| normalizedLine.matches("\\d+\\s+[\\|│].*")
+				|| normalizedLine.startsWith("|")
+				|| normalizedLine.startsWith("│");
+	}
+
 	private static final class StandaloneBuildProgress {
+		private static enum CycleResult {
+			NONE,
+			SUCCESS,
+			FAILED
+		}
+
 		private final IntConsumer progressConsumer;
 		private final Runnable onStart;
 		private final AtomicBoolean active = new AtomicBoolean(false);
 		private final AtomicInteger syntheticProgress = new AtomicInteger(0);
 		private final AtomicInteger stageProgress = new AtomicInteger(0);
 		private final AtomicLong startTime = new AtomicLong(0);
+		private final AtomicLong cycleToken = new AtomicLong(0);
 		private ScheduledExecutorService ticker;
 
 		private StandaloneBuildProgress(IntConsumer progressConsumer, Runnable onStart) {
@@ -1786,28 +1819,31 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			this.onStart = onStart;
 		}
 
-		boolean onLine(String normalizedLine) {
-			if (isBuildStartLine(normalizedLine)) {
+		CycleResult onLine(String normalizedLine) {
+			String lowerLine = normalizedLine.toLowerCase(Locale.ROOT);
+			boolean wasActive = active.get();
+			if (isBuildStartLine(lowerLine)) {
 				startIfNeeded();
 			}
 			if (active.get()) {
-				updateStage(normalizedLine);
+				updateStage(lowerLine);
 				pushProgress(Math.max(stageProgress.get(), syntheticProgress.get()));
 			}
-			if (isBuildEndLine(normalizedLine)) {
+			if (isBuildHardEndLine(lowerLine)) {
 				startIfNeeded();
 				finish();
-				return true;
+				return isBuildFailureEndLine(lowerLine) ? CycleResult.FAILED : CycleResult.SUCCESS;
 			}
-			return false;
-		}
-
-		void fail() {
-			stopTicker();
-			reset();
+			if (isBuildSoftEndLine(lowerLine) && wasActive) {
+				finish();
+				return CycleResult.SUCCESS;
+			}
+			return CycleResult.NONE;
 		}
 
 		void shutdown() {
+			active.set(false);
+			cycleToken.incrementAndGet();
 			stopTicker();
 		}
 
@@ -1816,6 +1852,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				return;
 			}
 			active.set(true);
+			long token = cycleToken.incrementAndGet();
 			startTime.set(System.currentTimeMillis());
 			stageProgress.set(1);
 			syntheticProgress.set(0);
@@ -1824,26 +1861,31 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			if (ticker == null) {
 				ticker = Executors.newSingleThreadScheduledExecutor();
-				ticker.scheduleAtFixedRate(this::tick, 1, 1, TimeUnit.SECONDS);
+				ticker.scheduleAtFixedRate(() -> tick(token), 1, 1, TimeUnit.SECONDS);
 			}
 		}
 
-		private void tick() {
-			if (!active.get()) {
+		private void tick(long token) {
+			if (!active.get() || token != cycleToken.get()) {
 				return;
 			}
 			int target = Math.max(stageProgress.get(), computeTimeProgress(startTime.get()));
+			if (!active.get() || token != cycleToken.get()) {
+				return;
+			}
 			pushProgress(target);
 		}
 
-		private void updateStage(String normalizedLine) {
-			if (normalizedLine.contains("Application bundle generation complete")) {
+		private void updateStage(String lowerLine) {
+			if (lowerLine.contains("application bundle generation complete")) {
 				stageProgress.set(Math.max(stageProgress.get(), 99));
-			} else if (normalizedLine.contains("Lazy chunk files")) {
+			} else if (isBuildFailureEndLine(lowerLine)) {
+				stageProgress.set(Math.max(stageProgress.get(), 99));
+			} else if (lowerLine.contains("lazy chunk files")) {
 				stageProgress.set(Math.max(stageProgress.get(), 80));
-			} else if (normalizedLine.contains("Initial chunk files")) {
+			} else if (lowerLine.contains("initial chunk files")) {
 				stageProgress.set(Math.max(stageProgress.get(), 60));
-			} else if (normalizedLine.contains("✔")) {
+			} else if (lowerLine.contains("✔")) {
 				stageProgress.set(Math.max(stageProgress.get(), 35));
 			}
 		}
@@ -1857,18 +1899,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		private void finish() {
-			stopTicker();
-			if (syntheticProgress.get() < 99) {
-				progressConsumer.accept(99);
-			}
-			progressConsumer.accept(100);
-			reset();
-		}
-
-		private void reset() {
 			active.set(false);
-			syntheticProgress.set(0);
-			stageProgress.set(0);
+			cycleToken.incrementAndGet();
+			stopTicker();
+			syntheticProgress.set(100);
+			stageProgress.set(100);
+			progressConsumer.accept(100);
 		}
 
 		private void stopTicker() {
@@ -1878,21 +1914,27 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 
-		private static boolean isBuildStartLine(String normalizedLine) {
-			return normalizedLine.contains("❯")
-					|| normalizedLine.contains("Changes detected. Rebuilding")
-					|| normalizedLine.contains("Initial chunk files")
-					|| normalizedLine.contains("Lazy chunk files")
-					|| normalizedLine.contains("Application bundle generation complete")
-					|| normalizedLine.contains("Watch mode enabled")
-					|| normalizedLine.contains("Page reload sent to client")
-					|| normalizedLine.contains("✔");
+		private static boolean isBuildStartLine(String lowerLine) {
+			return lowerLine.contains("❯")
+					|| lowerLine.contains("changes detected. rebuilding")
+					|| lowerLine.contains("initial chunk files")
+					|| lowerLine.contains("lazy chunk files")
+					|| lowerLine.contains("application bundle generation complete")
+					|| lowerLine.contains("✔");
 		}
 
-		private static boolean isBuildEndLine(String normalizedLine) {
-			return normalizedLine.contains("Application bundle generation complete")
-					|| normalizedLine.contains("Page reload sent to client")
-					|| normalizedLine.contains("Watch mode enabled");
+		private static boolean isBuildSoftEndLine(String lowerLine) {
+			return lowerLine.contains("page reload sent to client")
+					|| lowerLine.contains("watch mode enabled");
+		}
+
+		private static boolean isBuildHardEndLine(String lowerLine) {
+			return lowerLine.contains("application bundle generation complete")
+					|| isBuildFailureEndLine(lowerLine);
+		}
+
+		private static boolean isBuildFailureEndLine(String lowerLine) {
+			return lowerLine.contains("bundle generation failed");
 		}
 	}
 
@@ -2224,63 +2266,83 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 				}
-			}
-			else {
-				standaloneProgress = new StandaloneBuildProgress(progressValue -> {
-					progress(progressValue);
-					BuildTask currentTask = buildTaskRef.get();
-					if (currentTask != null) {
-						currentTask.updateProgress(progressValue);
-					}
-				}, () -> {
-					if (buildTaskRef.get() == null) {
-						buildTaskRef.set(new BuildTask(taskName, buildLabel));
-					}
-				});
-				while ((line = br.readLine()) != null) {
-					line = pRemoveEchap.matcher(line).replaceAll("");
-					line = line.replaceAll("[\\p{Cntrl}&&[^\\t]]", "");
-					if (StringUtils.isNotBlank(line)) {
-						String normalizedLine = line.replace('\u00A0', ' ').replaceAll("\\s+", " ").trim();
-						Engine.logStudio.info(line);
-						if (normalizedLine.startsWith("✘")) {
-							sb = new StringBuilder();
-						}
-						if (sb != null) {
-							sb.append(line);
-							error(sb.toString());
-							sb = null;
-						}
-
+				} else {
+					boolean standaloneFailedCycle = false;
+					standaloneProgress = new StandaloneBuildProgress(progressValue -> {
+						progress(progressValue);
 						BuildTask currentTask = buildTaskRef.get();
 						if (currentTask != null) {
-							currentTask.updateStatus(line);
+							currentTask.updateProgress(progressValue);
 						}
-						boolean finished = standaloneProgress.onLine(normalizedLine);
-						appendOutput(line);
-						if (finished) {
-							error(null);
-							finishBuildTask(buildTaskRef.get(), "Build finished");
-							buildTaskRef.set(null);
-							synchronized (mutex) {
-								mutex.notify();
+					}, () -> {
+						if (buildTaskRef.get() == null) {
+							buildTaskRef.set(new BuildTask(taskName, buildLabel));
+						}
+					});
+					while ((line = br.readLine()) != null) {
+						line = pRemoveEchap.matcher(line).replaceAll("");
+						line = line.replaceAll("[\\p{Cntrl}&&[^\\t]]", "");
+						if (StringUtils.isNotBlank(line)) {
+							String normalizedLine = line.replace('\u00A0', ' ').replaceAll("\\s+", " ").trim();
+							String lowerLine = normalizedLine.toLowerCase(Locale.ROOT);
+							Engine.logStudio.info(line);
+							if (isStandaloneRebuildStartLine(lowerLine)) {
+								standaloneFailedCycle = false;
+								error(null);
 							}
-							mb.buildFinished();
-						} else if (normalizedLine.startsWith("✘")) {
-							standaloneProgress.fail();
-							finishBuildTask(buildTaskRef.get(), "Build failed");
-							buildTaskRef.set(null);
-						}
+							boolean errorStartLine = isStandaloneErrorStartLine(normalizedLine, lowerLine);
+							if (errorStartLine) {
+								standaloneFailedCycle = true;
+							}
 
-						Matcher m = pIsBrowserOpenable84.matcher(line);
-						if (m.matches()) {
-							String sGroup = m.group(1);
-							baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
-							doLoad();
+							BuildTask currentTask = buildTaskRef.get();
+							if (currentTask != null) {
+								currentTask.updateStatus(line);
+							}
+							StandaloneBuildProgress.CycleResult cycleResult = standaloneProgress.onLine(normalizedLine);
+							boolean explicitFailureLine = lowerLine.contains("bundle generation failed");
+							if (explicitFailureLine) {
+								standaloneFailedCycle = true;
+							}
+							boolean keepErrorVisible = standaloneFailedCycle
+									&& (errorStartLine || isStandaloneFailureDetailLine(normalizedLine, lowerLine));
+							boolean hideWatchNoise = isStandaloneWatchNoiseLine(lowerLine);
+							if (!hideWatchNoise && (!standaloneFailedCycle || keepErrorVisible || !isStandaloneRebuildStartLine(lowerLine))) {
+								appendOutput(line);
+							}
+							if (cycleResult != StandaloneBuildProgress.CycleResult.NONE) {
+								boolean failedCycle = cycleResult == StandaloneBuildProgress.CycleResult.FAILED;
+								standaloneFailedCycle = failedCycle;
+								Engine.logStudio.debug("(NgxBuilder) standalone cycle end detected in live build: "
+										+ (failedCycle ? "failed" : "success") + " line: " + normalizedLine);
+								if (!failedCycle) {
+									error(null);
+								}
+								finishBuildTask(buildTaskRef.get(), failedCycle ? "Build failed" : "Build finished");
+								buildTaskRef.set(null);
+								synchronized (mutex) {
+									mutex.notify();
+								}
+								mb.buildFinished();
+							} else if (explicitFailureLine) {
+								progress(100);
+								finishBuildTask(buildTaskRef.get(), "Build failed");
+								buildTaskRef.set(null);
+								synchronized (mutex) {
+									mutex.notify();
+								}
+								mb.buildFinished();
+							}
+
+							Matcher m = pIsBrowserOpenable84.matcher(line);
+							if (m.matches()) {
+								String sGroup = m.group(1);
+								baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
+								doLoad();
+							}
 						}
 					}
 				}
-			}
 
 
 			if (buildCount == this.buildCount) {
@@ -2703,18 +2765,20 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					if (StringUtils.isNotBlank(line)) {
 						String normalizedLine = line.replace('\u00A0', ' ').replaceAll("\\s+", " ").trim();
 						if (isStandalone) {
-							boolean finished = standaloneProgress.onLine(normalizedLine);
+							StandaloneBuildProgress.CycleResult cycleResult = standaloneProgress.onLine(normalizedLine);
 							Engine.logStudio.debug(line);
-							if (finished) {
+							if (cycleResult != StandaloneBuildProgress.CycleResult.NONE) {
+								boolean failedCycle = cycleResult == StandaloneBuildProgress.CycleResult.FAILED;
+								Engine.logStudio.debug("(NgxBuilder) standalone cycle end detected in " + buildMode.label()
+										+ " build: " + (failedCycle ? "failed" : "success") + " line: " + normalizedLine);
 								synchronized (progressMutex) {
 									if (buildMode == NgxBuilderBuildMode.watch) {
-										monitor.subTask("Build finished, waiting for changes or build cancel");
+										monitor.subTask((failedCycle ? "Build failed" : "Build finished")
+												+ ", waiting for changes or build cancel");
 									} else {
-										monitor.subTask("Build finished");
+										monitor.subTask(failedCycle ? "Build failed" : "Build finished");
 									}
 								}
-							} else if (normalizedLine.startsWith("✘")) {
-								standaloneProgress.fail();
 							}
 						} else {
 							matcher.reset(line);

@@ -1,7 +1,6 @@
 <script>
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import SelectionHighlight from '$lib/common/components/SelectionHighlight.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
 
@@ -15,28 +14,28 @@
 		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
 		return i == -1 ? 0 : i;
 	});
-
-	let activeIndexLast = $derived(activeIndex);
 </script>
 
-<nav class="layout-y-stretch-none h-full border-r border-color bg-surface-100-900">
+<nav class="layout-y-stretch-none h-full w-40 border-r border-color bg-surface-100-900">
 	{#each parts as tiles, i (i)}
 		{#each tiles as { title, icon, url, page, params, loading, external }, j (page ?? url ?? title ?? j)}
 			{@const href = loading ? undefined : page ? resolve(page, params) : url}
+			{@const isSelected = i == 0 && j == activeIndex}
 			<a
 				{href}
 				rel={external ? 'external' : undefined}
-				class="relative flex w-full min-w-36 items-center gap-2 rounded-base border border-transparent py-2 pr-4 pl-5 transition-soft hover:border-surface-200-800 hover:bg-surface-100-900 {loading
-					? 'blur-sm'
-					: ''}"
+				aria-current={isSelected ? 'page' : undefined}
+				class="rail-link {loading ? 'blur-sm' : ''}"
 				transition:slide={{ axis: 'y' }}
 			>
-				{#if i == 0 && j == activeIndex}
-					<SelectionHighlight delta={activeIndexLast - activeIndex} extraClass="inset-[-1px]" />
+				{#if isSelected}
+					<span class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"></span>
 				{/if}
-				<Ico size="5" {icon} class="nav-ico z-10" />
-				<span class="z-10 text-[14px] font-{i == 0 && j == activeIndex ? 'medium' : 'normal'}"
-					>{title}</span
+				<Ico size="5" {icon} class="nav-ico z-10 {isSelected ? 'rail-active' : 'text-strong'}" />
+				<span
+					class="z-10 text-[14px] {isSelected
+						? 'font-medium rail-active'
+						: 'font-normal text-strong'}">{title}</span
 				>
 			</a>
 		{/each}

@@ -93,7 +93,7 @@ You can add a set of preconfigured symbols to your image by copying the `global_
 
 ## Security
 
-The default administration account of a Convertigo server is **admin** / **admin** and the **testplatform** is anonymous.
+The default administration account of a Convertigo server is **admin** / **admin**.
 
 These accounts can be configured through the **administration console** and saved in the **workspace**.
 
@@ -103,11 +103,11 @@ You can change the default administration account :
 
     docker run -d --name C8O -e CONVERTIGO_ADMIN_USER=administrator -e CONVERTIGO_ADMIN_PASSWORD=s3cret -p 28080:28080 convertigo
 
-### `CONVERTIGO_TESTPLATFORM_USER` and `CONVERTIGO_TESTPLATFORM_PASSWORD` Environment variables
+### `CONVERTIGO_ANONYMOUS_DASHBOARD` Environment variable
 
-You can lock the **testplatform** by setting the account :
+You can allow anonymous access to `/convertigo/dashboard/` by setting:
 
-    docker run -d --name C8O -e CONVERTIGO_TESTPLATFORM_USER=tp_user -e CONVERTIGO_TESTPLATFORM_PASSWORD=s3cret -p 28080:28080 convertigo
+    docker run -d --name C8O -e CONVERTIGO_ANONYMOUS_DASHBOARD=true -p 28080:28080 convertigo
 
 ## HTTPS / SSL Configuration
 

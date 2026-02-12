@@ -190,12 +190,12 @@
 		expandOnClick={false}
 		defaultExpandedValue={[project]}
 		defaultSelectedValue={[project]}
-		base="rounded-container border border-color preset-filled-surface-100-900 p-3 shadow-follow min-w-0 max-w-full w-full lg:flex-[0_1_35%] lg:max-w-[42%]"
+		base="preset-filled-surface-100-900 p-2 min-w-0 max-w-full w-full lg:flex-[0_1_35%] lg:max-w-[42%]"
 		classes="overflow-hidden break-words select-none"
 		textClass="text-sm font-medium text-strong"
 		indicatorClass="order-first transition-transform duration-200 data-[state=open]:rotate-90"
 		childrenClass="border-l border-color pl-3"
-		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 transition-soft hover:bg-surface-200-800"
+		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 text-sm font-medium text-strong transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15"
 	>
 		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
 			{#if node.icon?.includes('?')}
@@ -255,9 +255,9 @@
 				{@const total = properties.length}
 				<AccordionSection
 					value={category}
-					class="overflow-hidden rounded-container border border-color preset-filled-surface-100-900 shadow-follow"
-					triggerClass="px py text-left bg-surface-100-900 border-b border-color data-[state=open]:bg-surface-100-900"
-					panelClass="px pb pt-low bg-surface-100-900"
+					class="accordion-item"
+					triggerClass="accordion-trigger"
+					panelClass="accordion-panel"
 					disabled={total == 0}
 					title={category}
 					count={total}

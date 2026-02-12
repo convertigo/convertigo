@@ -10,7 +10,7 @@ if [ "$1" = "convertigo" ]; then
         echo "System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))" | jshell --class-path $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -
     }
         
-    ## if needed, force the admin and testplatform accounts
+    ## if needed, force admin account and dashboard anonymous mode
     
     if [ "$CONVERTIGO_ADMIN_USER" != "" ]; then
         if ! grep -q '^admin\.username=' /workspace/configuration/engine.properties 2>/dev/null; then
@@ -30,22 +30,13 @@ if [ "$1" = "convertigo" ]; then
         unset CONVERTIGO_ADMIN_PASSWORD
     fi
     
-    if [ "$CONVERTIGO_TESTPLATFORM_USER" != "" ]; then
-        if ! grep -q '^testplatform\.username=' /workspace/configuration/engine.properties 2>/dev/null; then
-            export JAVA_OPTS="-Dconvertigo.engine.testplatform.username=$CONVERTIGO_TESTPLATFORM_USER $JAVA_OPTS"
+    if [ "$CONVERTIGO_ANONYMOUS_DASHBOARD" != "" ]; then
+        if ! grep -q '^anonymous\.dashboard=' /workspace/configuration/engine.properties 2>/dev/null; then
+            export JAVA_OPTS="-Dconvertigo.engine.anonymous.dashboard=$CONVERTIGO_ANONYMOUS_DASHBOARD $JAVA_OPTS"
         else
-            echo 'Ignore $CONVERTIGO_TESTPLATFORM_USER because /workspace/configuration/engine.properties defines testplatform.username' 
+            echo 'Ignore $CONVERTIGO_ANONYMOUS_DASHBOARD because /workspace/configuration/engine.properties defines anonymous.dashboard' 
         fi
-        unset CONVERTIGO_TESTPLATFORM_USER
-    fi
-    
-    if [ "$CONVERTIGO_TESTPLATFORM_PASSWORD" != "" ]; then
-        if ! grep -q '^testplatform\.password=' /workspace/configuration/engine.properties 2>/dev/null; then
-            export JAVA_OPTS="-Dconvertigo.engine.testplatform.password=$(toHash $CONVERTIGO_TESTPLATFORM_PASSWORD) $JAVA_OPTS"
-        else
-            echo 'Ignore $CONVERTIGO_TESTPLATFORM_PASSWORD because /workspace/configuration/engine.properties define testplatform.password' 
-        fi
-        unset CONVERTIGO_TESTPLATFORM_PASSWORD
+        unset CONVERTIGO_ANONYMOUS_DASHBOARD
     fi
     
     ## enable log to stdout or file

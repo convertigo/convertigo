@@ -1363,7 +1363,7 @@
 		>
 		<div class="layout-x items-center gap-2">
 			<button
-				class="mini-card preset-filled-primary-500"
+				class="button-ico-primary h-7 w-7 justify-center p-0!"
 				title="Scroll to top"
 				onclick={() => {
 					_scrollToIndex = 0;
@@ -1374,7 +1374,7 @@
 				<Ico icon="mdi:arrow-up-bold-outline" />
 			</button>
 			<button
-				class="mini-card preset-filled-primary-500"
+				class="button-ico-primary h-7 w-7 justify-center p-0!"
 				title="Scroll to bottom"
 				onclick={() => {
 					_scrollToIndex = logs.length - 1;
@@ -1385,10 +1385,9 @@
 				<Ico icon="mdi:arrow-down-bold-outline" />
 			</button>
 			<button
-				class="mini-card"
-				class:preset-filled-success-500={autoScroll}
-				class:preset-filled-warning-500={!autoScroll}
-				class:motif-warning={!autoScroll}
+				class="mini-card {autoScroll
+					? 'preset-filled-primary-500'
+					: 'preset-outlined-primary-50-950 border-primary-500 text-primary-500'}"
 				onclick={async () => {
 					_scrollToIndex = undefined;
 					autoScroll = !autoScroll;
