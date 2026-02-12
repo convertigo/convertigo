@@ -3,6 +3,7 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import Instances from '$lib/admin/Instances.svelte';
+	import Authentication from '$lib/common/Authentication.svelte';
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -41,6 +42,12 @@
 		if (variant === 'studio') {
 			return;
 		}
+	});
+
+	$effect(() => {
+		if (variant === 'studio' || !Authentication.authenticated) {
+			return;
+		}
 		Instances.refresh();
 	});
 
@@ -67,12 +74,12 @@
 			<LightSwitch />
 		</section>
 	{:else}
-		<section class="layout-x pl-5 {leftOffsetClass}">
+		<section class="layout-x pl-2 md:pl-5 {leftOffsetClass}">
 			<PagesRailToggle class="md:hidden" bind:state={showDrawer} />
 			<PagesRailToggle class="max-md:hidden" bind:state={showLeft} />
 		</section>
 
-		<section class="layout-x">
+		<section class="layout-x justify-center md:justify-start md:pl-3">
 			<Ico icon="logo.png" alt="logo convertigo" size={7} />
 			<h2 class="font-medium max-md:hidden">{computedTitle}</h2>
 		</section>
@@ -86,7 +93,7 @@
 				<p class="font-medium">Star us on</p>
 				<Ico icon="mdi:github" size={8} />
 			</a>
-			{#if Instances.storeMode === 'redis' && ((Instances.current ?? '').trim() || Instances.instances.length)}
+			{#if Authentication.authenticated && Instances.storeMode === 'redis' && ((Instances.current ?? '').trim() || Instances.instances.length)}
 				<div class="layout-x-low max-md:hidden">
 					<span class="text-xs font-medium opacity-70">Instance</span>
 					<PropertyType
@@ -105,7 +112,7 @@
 						cls="button-ico-primary h-fit! px-2 py-none"
 						title="Refresh instances"
 						ariaLabel="Refresh instances"
-						onclick={Instances.refresh}
+						onclick={() => Instances.refresh(true)}
 					/>
 				</div>
 			{/if}

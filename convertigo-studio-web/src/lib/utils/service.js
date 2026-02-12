@@ -273,22 +273,28 @@ function handleStateMessage(res, service) {
 			res.isError = true;
 			const errorText = stringilight(error);
 			if (/authentication failure/i.test(errorText)) {
-				const now = Date.now();
-				if (now - authToastAt > AUTH_TOAST_COOLDOWN) {
-					toaster.error({
-						description: 'Authentication failure',
-						duration: 3000
-					});
-					authToastAt = now;
-				}
 				Authentication.checkAuthentication().finally(() => {
-					if (
-						!Authentication.canAccessDashboard &&
-						browser &&
-						!location.pathname.includes('/login')
-					) {
+					if (!browser) {
+						return;
+					}
+					const isLoginRoute = location.pathname.includes('/login');
+					const isAdminRoute = location.pathname.startsWith(resolve('/admin/'));
+					const mustRedirectToLogin =
+						!Authentication.canAccessDashboard || (isAdminRoute && !Authentication.canAccessAdmin);
+
+					if (!isLoginRoute && mustRedirectToLogin) {
 						const redirect = encodeURIComponent(location.pathname + location.search);
 						goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+						return;
+					}
+
+					const now = Date.now();
+					if (now - authToastAt > AUTH_TOAST_COOLDOWN) {
+						toaster.error({
+							description: 'Authentication failure',
+							duration: 3000
+						});
+						authToastAt = now;
 					}
 				});
 				return;

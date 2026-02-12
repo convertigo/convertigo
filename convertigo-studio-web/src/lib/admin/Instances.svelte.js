@@ -44,7 +44,9 @@ export default {
 		const normalized = normalizeInstance(header);
 		if (normalized) state.current = normalized;
 	},
-	async refresh() {
+	async refresh(force = false) {
+		if (state.loading) return;
+		if (!force && (state.storeMode || state.instances.length)) return;
 		state.loading = true;
 		try {
 			const res = await call('engine.ListInstances');

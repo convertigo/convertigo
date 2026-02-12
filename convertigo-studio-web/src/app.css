@@ -129,7 +129,7 @@
 }
 
 @utility accordion-rail-panel {
-	@apply px-0 pt-0 pb-0;
+	@apply m-0 -mt-px px-0 pt-0 pb-0;
 }
 
 @utility table-frame {
@@ -332,6 +332,10 @@
 @layer components {
 	form {
 		@apply rounded-sm;
+	}
+
+	.accordion-rail-group [data-part='item'] {
+		gap: 0 !important;
 	}
 }
 

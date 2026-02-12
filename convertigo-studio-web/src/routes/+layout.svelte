@@ -48,6 +48,21 @@
 		const isLoginRoute = routeId == '/(root)/login';
 		const isRootRoute = routeId == null || routeId == '/(root)';
 		const isAdminRoute = page.url.pathname.startsWith(resolve('/admin/'));
+		if (isRootRoute) {
+			if (Authentication.canAccessAdmin) {
+				goto(resolve('/admin/'));
+			} else if (Authentication.canAccessDashboard) {
+				goto(resolve('/dashboard/'));
+			} else {
+				goto(resolve('/login/'));
+			}
+			return;
+		}
+		if (isAdminRoute && !Authentication.canAccessAdmin) {
+			const redirect = encodeURIComponent(page.url.pathname + page.url.search);
+			goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+			return;
+		}
 		if (!Authentication.canAccessDashboard && !isLoginRoute) {
 			if (page.url.pathname.endsWith('.html/') || page.error) {
 				goto(resolve('/login/'));
@@ -56,15 +71,8 @@
 			}
 			return;
 		}
-		if (Authentication.canAccessDashboard && (isRootRoute || isLoginRoute)) {
-			const target = Authentication.canAccessAdmin ? resolve('/admin/') : resolve('/dashboard/');
-			if (page.url.pathname != target) {
-				goto(target);
-			}
-			return;
-		}
-		if (Authentication.canAccessDashboard && !Authentication.canAccessAdmin && isAdminRoute) {
-			goto(resolve('/dashboard/'));
+		if (isLoginRoute && Authentication.canAccessAdmin) {
+			goto(resolve('/admin/'));
 		}
 	});
 

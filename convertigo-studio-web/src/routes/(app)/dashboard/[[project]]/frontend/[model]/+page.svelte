@@ -56,10 +56,9 @@
 	let zoom = $state(1);
 	let fitScale = $state(1);
 	let rotationSteps = $state(0);
-	let showStatusBar = $state(false);
 	const iconButtonClasses =
-		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-surface-200-800 bg-surface-100-900 text-surface-700-300 transition hover:bg-surface-200-800/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
-	const iconButtonActiveClasses = 'bg-primary-100-900 text-primary-600-400';
+		'grid h-[2.25rem]! w-[2.25rem]! place-items-center rounded-full border border-transparent bg-transparent text-surface-700-300 shadow-none transition-surface hover:bg-surface-200-800/70 hover:text-surface-800-200 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45';
+	const iconButtonActiveClasses = 'bg-primary-100-900/70 text-primary-600-400';
 	let groupedDevices = $derived.by(() => {
 		const devices = Object.values(Bezels)
 			.filter(Boolean)
@@ -169,10 +168,6 @@
 			lastProjectUrl = currentUrl;
 		}
 	});
-
-	const toggleStatusBar = () => {
-		showStatusBar = !showStatusBar;
-	};
 
 	const openInNewTab = (url = iframeUrl) => {
 		const target = url?.trim?.() ?? '';
@@ -322,7 +317,12 @@
 
 {#snippet rightPart()}
 	<nav class="h-full w-full bg-surface-100-900 md:w-52">
-		<AccordionGroup bind:value={openGroup} multiple collapsible class="flex flex-col gap-0">
+		<AccordionGroup
+			bind:value={openGroup}
+			multiple
+			collapsible
+			class="accordion-rail-group flex flex-col gap-0"
+		>
 			{#each groupedDevices as { id, title, devices } (id)}
 				<AccordionSection
 					value={id}
@@ -395,6 +395,7 @@
 {/snippet}
 <InputGroup
 	class="sticky top-[60px] z-10 -mt-low rounded-container !border-surface-200-800 !bg-surface-100-900 p-low shadow-follow backdrop-blur-sm"
+	labelClass="px-0!"
 	bind:value={addressBar}
 	onsubmit={(event) => {
 		event.preventDefault();
@@ -402,7 +403,7 @@
 	}}
 >
 	{#snippet leading()}
-		<div class="gap-xs layout-x">
+		<div class="layout-x-none h-full items-center gap-[1px]!">
 			<Button
 				icon="mdi:arrow-left"
 				title="Go back"
@@ -454,12 +455,6 @@
 			cls={iconButtonClasses}
 		/>
 		<Button
-			icon={showStatusBar ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off-outline'}
-			title="Toggle status bar"
-			onclick={toggleStatusBar}
-			cls={`${iconButtonClasses} ${showStatusBar ? iconButtonActiveClasses : ''}`}
-		/>
-		<Button
 			icon="mdi:open-in-new-variant"
 			title="Open in new tab"
 			onclick={() => openInNewTab(trimmedAddress)}
@@ -482,21 +477,6 @@
 					class="absolute overflow-hidden"
 					class:hidden={!iframe}
 				></iframe>
-				{#if showStatusBar && selectedDevice.type === 'phone' && orientation === 'vertical'}
-					<div
-						class="absolute top-[min(18px,5%)] left-1/2 z-10 layout-x-between w-[min(260px,70%)] -translate-x-1/2 items-center rounded-full bg-gradient-to-b from-surface-900/80 to-surface-900/55 px-3 py-[4px] text-[10px] font-semibold tracking-[0.08em] text-white/90 shadow-md/40 shadow-surface-900-100 backdrop-blur-lg"
-						aria-hidden="true"
-					>
-						<span class="[font-variant-numeric:tabular-nums]">9:41</span>
-						<div class="layout-x-low">
-							<span class="inline-block h-[5px] w-[34px] rounded-full bg-white/75"></span>
-							<span class="inline-block h-[5px] w-[5px] rounded-full bg-white/75"></span>
-							<span
-								class="clip-path-[polygon(0%_100%,15%_35%,45%_60%,65%_20%,100%_100%)] inline-block h-[9px] w-[10px] bg-white/75"
-							></span>
-						</div>
-					</div>
-				{/if}
 				{#if selectedDevice.id != 'none'}
 					{#key `${selectedDevice.id}-${orientation}`}
 						<picture class="pointer-events-none absolute inset-0 select-none" aria-hidden="true">

@@ -1,15 +1,19 @@
 <script>
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import Authentication from '$lib/common/Authentication.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { slide } from 'svelte/transition';
 
 	/** @type {{parts: any}} */
 	let { parts: _parts } = $props();
-	let parts = $derived([
-		..._parts,
-		[{ title: 'Logout', icon: 'mdi:close-circle-outline', page: '/(app)/logout' }]
-	]);
+	let parts = $derived.by(() => {
+		const groups = _parts.map((group) => [...group]);
+		if (Authentication.authenticated) {
+			groups.push([{ title: 'Logout', icon: 'mdi:close-circle-outline', page: '/(app)/logout' }]);
+		}
+		return groups;
+	});
 	let activeIndex = $derived.by(() => {
 		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
 		return i == -1 ? 0 : i;
