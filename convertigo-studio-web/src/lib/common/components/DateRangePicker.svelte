@@ -1,4 +1,5 @@
 <script>
+	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { DateRangePicker } from 'bits-ui';
 
@@ -9,6 +10,11 @@
 	let dateTypes = $derived(live ? ['start'] : ['start', 'end']);
 
 	let value = $derived.by(() => ({ start, end: live ? start : end }));
+	let liveTooltip = $derived(
+		live
+			? 'Live mode enabled: the end date automatically follows the start date.'
+			: 'Enable live mode: keep the end date synchronized with the start date.'
+	);
 
 	const handleValueChange = (next) => {
 		if (!next) return;
@@ -43,7 +49,11 @@
 		<div
 			class="layout-x-none h-9 input-common items-center text-[13px] leading-none placeholder:text-[13px]"
 		>
-			<DateRangePicker.Trigger class="rounded-base p-1 hover:bg-black/10">
+			<DateRangePicker.Trigger
+				class="rounded-base p-1 hover:bg-black/10"
+				title="Open date range calendar"
+				aria-label="Open date range calendar"
+			>
 				<Ico size="6" icon="mdi:calendar-range" />
 			</DateRangePicker.Trigger>
 			{#each dateTypes as type (type)}
@@ -68,13 +78,33 @@
 					<div aria-hidden="true" class="px-1">⇒</div>
 				{/if}
 			{/each}
-			<button
-				class="cursor-pointer rounded-base px-1.5 py-0.5 hover:bg-black/10"
-				class:hover:line-through={live}
-				class:hover:no-underline={!live}
-				class:line-through={!live}
-				onclick={() => (live = !live)}>live</button
-			>
+			<Tooltip positioning={{ placement: 'top' }}>
+				<Tooltip.Trigger>
+					{#snippet element(attributes)}
+						<button
+							{...attributes}
+							class="cursor-pointer rounded-base px-1.5 py-0.5 hover:bg-black/10"
+							class:hover:line-through={live}
+							class:hover:no-underline={!live}
+							class:line-through={!live}
+							aria-label={liveTooltip}
+							onclick={() => (live = !live)}>live</button
+						>
+					{/snippet}
+				</Tooltip.Trigger>
+				<Portal>
+					<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+						<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
+							<span>{liveTooltip}</span>
+							<Tooltip.Arrow
+								class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+							>
+								<Tooltip.ArrowTip />
+							</Tooltip.Arrow>
+						</Tooltip.Content>
+					</Tooltip.Positioner>
+				</Portal>
+			</Tooltip>
 		</div>
 	</div>
 	<DateRangePicker.Content sideOffset={6} class="z-50 select-none">
@@ -83,12 +113,16 @@
 		>
 			{#snippet children({ months, weekdays })}
 				<DateRangePicker.Header class="layout-x-between">
-					<DateRangePicker.PrevButton class="btn-icon preset-filled-primary-500"
-						>❮</DateRangePicker.PrevButton
+					<DateRangePicker.PrevButton
+						class="btn-icon preset-filled-primary-500"
+						title="Previous month"
+						aria-label="Previous month">❮</DateRangePicker.PrevButton
 					>
 					<DateRangePicker.Heading class="text-lg font-medium" />
-					<DateRangePicker.NextButton class="btn-icon preset-filled-primary-500"
-						>❯</DateRangePicker.NextButton
+					<DateRangePicker.NextButton
+						class="btn-icon preset-filled-primary-500"
+						title="Next month"
+						aria-label="Next month">❯</DateRangePicker.NextButton
 					>
 				</DateRangePicker.Header>
 				<div class="layout-y-stretch pt-4 sm:layout-x-stretch">

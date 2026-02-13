@@ -117,11 +117,13 @@
 						buttons={[
 							{
 								icon: 'mdi:magnify',
+								title: 'Open logs for this session',
 								cls: 'button-ico-primary',
 								onclick: () => openLogsWithServerFilter(`sessionid == '${sessionID}'`)
 							},
 							{
 								icon: 'mdi:filter',
+								title: 'Filter contexts by this session',
 								cls: 'button-ico-primary',
 								onclick: () => {
 									Connections.selectedSession = sessionID;
@@ -129,6 +131,7 @@
 							},
 							{
 								icon: 'mdi:delete-outline',
+								title: 'Delete session',
 								cls: 'button-ico-primary',
 								onclick: async (event) => {
 									if (
@@ -151,6 +154,7 @@
 				{:else if def.name == 'FS'}
 					<Ico
 						icon="mdi:sync"
+						title={isFullSyncActive == 'true' ? 'FullSync active' : 'FullSync inactive'}
 						class={!init
 							? 'animate-pulse'
 							: isFullSyncActive == 'true'
@@ -206,11 +210,13 @@
 						buttons={[
 							{
 								icon: 'mdi:magnify',
+								title: 'Open logs for this context',
 								cls: 'button-ico-primary',
 								onclick: () => openLogsWithServerFilter(`contextid == '${contextName}'`)
 							},
 							{
 								icon: 'mdi:delete-outline',
+								title: 'Delete context',
 								cls: 'button-ico-primary',
 								onclick: async (event) => {
 									if (

@@ -1,5 +1,5 @@
 <script>
-	import { Popover } from '@skeletonlabs/skeleton-svelte';
+	import { Popover, Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -1042,6 +1042,7 @@
 								<Button
 									{size}
 									icon={show ? 'mdi:eye' : 'mdi:eye-off'}
+									title={show ? `Hide ${name}` : `Show ${name}`}
 									onclick={() => {
 										conf.show = !show;
 										columnsOrder = [...columnsOrder];
@@ -1055,17 +1056,23 @@
 								<Button
 									{size}
 									icon="mdi:filter"
+									title={`Filter ${name}`}
 									class="cursor-cell"
 									onclick={(event) => addFilter({ event, category: name })}
 								/>
-								<Button {size} icon="mdi:dots-vertical" class="cursor-grab" />
+								<Button {size} icon="mdi:dots-vertical" title="Drag column" class="cursor-grab" />
 							</div>
 						</MovableContent>
 					</div>
 				{/each}
 				<div class="log-columns-chip mini-card preset-filled-warning-500 motif-warning">
 					<span>Restore</span>
-					<Button {size} icon="mdi:backup-restore" onclick={(event) => restoreColumns(event)} />
+					<Button
+						{size}
+						icon="mdi:backup-restore"
+						title="Restore columns"
+						onclick={(event) => restoreColumns(event)}
+					/>
 				</div>
 			</div>
 		{/if}
@@ -1076,6 +1083,7 @@
 				<Button
 					{size}
 					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
+					title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
 					cls="log-toolbar-button"
 					onmousedown={() => (fullscreen = !fullscreen)}
 				/>
@@ -1090,9 +1098,31 @@
 					}}
 					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
 				>
-					<Popover.Trigger class="log-toolbar-button">
-						<Ico icon="mdi:search" />
-					</Popover.Trigger>
+					<Tooltip positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}>
+						<Tooltip.Trigger>
+							{#snippet element(attributes)}
+								<Popover.Trigger
+									{...attributes}
+									class="log-toolbar-button"
+									aria-label="Search in loaded logs"
+								>
+									<Ico icon="mdi:search" />
+								</Popover.Trigger>
+							{/snippet}
+						</Tooltip.Trigger>
+						<Portal>
+							<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+								<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
+									<span>Search in loaded logs (Ctrl/Cmd+F)</span>
+									<Tooltip.Arrow
+										class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+									>
+										<Tooltip.ArrowTip />
+									</Tooltip.Arrow>
+								</Tooltip.Content>
+							</Tooltip.Positioner>
+						</Portal>
+					</Tooltip>
 					<Popover.Positioner class="log-search-positioner" style="z-index: 20;">
 						<Popover.Content class="border-none bg-transparent p-0 shadow-none">
 							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
@@ -1111,15 +1141,33 @@
 										readonly={true}
 										value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
 									/>
-									<button class="log-toolbar-button log-search-button" onclick={doSearchPrev}
-										>↑</button
-									>
-									<button class="log-toolbar-button log-search-button" onclick={doSearchNext}
-										>↓</button
-									>
-									<button class="log-toolbar-button-error log-search-button" onclick={doSearchClear}
-										><Ico icon="mdi:delete-outline" /></button
-									>
+									<Button
+										full={false}
+										size={4}
+										icon="mdi:arrow-up-bold-outline"
+										class="log-toolbar-button log-search-button"
+										title="Previous match"
+										ariaLabel="Previous match"
+										onclick={doSearchPrev}
+									/>
+									<Button
+										full={false}
+										size={4}
+										icon="mdi:arrow-down-bold-outline"
+										class="log-toolbar-button log-search-button"
+										title="Next match"
+										ariaLabel="Next match"
+										onclick={doSearchNext}
+									/>
+									<Button
+										full={false}
+										size={4}
+										icon="mdi:delete-outline"
+										class="log-toolbar-button-error log-search-button"
+										title="Clear search"
+										ariaLabel="Clear search"
+										onclick={doSearchClear}
+									/>
 								</div>
 							</Card>
 							<Popover.Arrow class="fill-surface-50-950 dark:fill-surface-900" />
@@ -1129,6 +1177,7 @@
 				<Button
 					{size}
 					icon="mdi:filter-cog{showFilters.current ? '' : '-outline'}"
+					title={showFilters.current ? 'Hide filters panel' : 'Show filters panel'}
 					cls={showFilters.current ? 'log-toolbar-button-active' : 'log-toolbar-button'}
 					onmousedown={() => (showFilters.current = !showFilters.current)}
 				/>
@@ -1136,6 +1185,7 @@
 					<Button
 						{size}
 						icon="mdi:plus"
+						title="Increase message lines"
 						cls="log-toolbar-button"
 						onclick={() => addExtraLines(1)}
 					/>
@@ -1143,6 +1193,7 @@
 						<Button
 							{size}
 							icon="mdi:minus"
+							title="Decrease message lines"
 							cls="log-toolbar-button"
 							onclick={() => addExtraLines(-1)}
 						/>
@@ -1154,6 +1205,7 @@
 				<Button
 					{size}
 					icon="mdi:filter"
+					title="Filter message selection"
 					class="cursor-cell"
 					onclick={(event) =>
 						addFilter({
@@ -1202,6 +1254,7 @@
 						<Button
 							{size}
 							icon={disabled ? 'mdi:eye-off' : 'mdi:eye'}
+							title={disabled ? 'Enable filter' : 'Disable filter'}
 							class="w-fit!"
 							onclick={() => {
 								const arr = checkArray(filters[category]);
@@ -1216,6 +1269,7 @@
 						<Button
 							{size}
 							icon="mdi:edit-outline"
+							title="Edit filter"
 							class="w-fit!"
 							onclick={(event) =>
 								addFilter({
@@ -1235,6 +1289,7 @@
 						<Button
 							{size}
 							icon="mdi:delete-outline"
+							title="Remove filter"
 							class="w-fit!"
 							onclick={() => removeFilter(category, index)}
 						/>
@@ -1362,42 +1417,50 @@
 			{#if Logs.calling}Calling…{/if}</span
 		>
 		<div class="layout-x items-center gap-2">
-			<button
+			<Button
+				full={false}
+				size={4}
+				icon="mdi:arrow-up-bold-outline"
 				class="button-ico-primary h-7 w-7 justify-center p-0!"
 				title="Scroll to top"
+				ariaLabel="Scroll to top"
 				onclick={() => {
 					_scrollToIndex = 0;
 					autoScroll = false;
 					autoScrollSuspendedByScroll = false;
 				}}
-			>
-				<Ico icon="mdi:arrow-up-bold-outline" />
-			</button>
-			<button
+			/>
+			<Button
+				full={false}
+				size={4}
+				icon="mdi:arrow-down-bold-outline"
 				class="button-ico-primary h-7 w-7 justify-center p-0!"
 				title="Scroll to bottom"
+				ariaLabel="Scroll to bottom"
 				onclick={() => {
 					_scrollToIndex = logs.length - 1;
 					autoScroll = false;
 					autoScrollSuspendedByScroll = false;
 				}}
-			>
-				<Ico icon="mdi:arrow-down-bold-outline" />
-			</button>
-			<button
-				class="mini-card {autoScroll
+			/>
+			<Button
+				full={false}
+				class="mini-card flex-row-reverse {autoScroll
 					? 'preset-filled-primary-500'
 					: 'preset-outlined-primary-50-950 border-primary-500 text-primary-500'}"
+				title={autoScroll
+					? 'Auto tail enabled: the viewer follows incoming logs and stays on the newest entries.'
+					: 'Auto tail disabled: the viewer keeps your current scroll position.'}
+				ariaLabel={autoScroll ? 'Disable auto tail' : 'Enable auto tail'}
+				label={`${autoScroll ? 'Enabled' : 'Disabled'} auto tail`}
+				icon={`mdi:download-${autoScroll ? 'lock' : 'off'}-outline`}
 				onclick={async () => {
 					_scrollToIndex = undefined;
 					autoScroll = !autoScroll;
 					autoScrollSuspendedByScroll = false;
 					await doAutoScroll();
 				}}
-			>
-				{autoScroll ? 'Enabled' : 'Disabled'} auto tail
-				<Ico icon="mdi:download-{autoScroll ? 'lock' : 'off'}-outline" />
-			</button>
+			/>
 		</div>
 	</div>
 </div>

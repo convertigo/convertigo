@@ -15,19 +15,42 @@
 		return groups;
 	});
 	let activeIndex = $derived.by(() => {
-		const i = parts[0].findIndex((part) => page.route.id == part.page || page.route.id == part.id);
-		return i == -1 ? 0 : i;
+		const routeId = page.route.id ?? '';
+		let bestIndex = -1;
+		let bestScore = -1;
+		parts[0].forEach((part, i) => {
+			let score = -1;
+			if (routeId == part.page || routeId == part.id) {
+				score = 10_000 + Math.max(part.page?.length ?? 0, part.id?.length ?? 0);
+			} else if (part.page && routeId.startsWith(`${part.page}/`)) {
+				score = part.page.length;
+			} else if (part.id && routeId.startsWith(`${part.id}/`)) {
+				score = part.id.length;
+			}
+			if (score > bestScore) {
+				bestScore = score;
+				bestIndex = i;
+			}
+		});
+		return bestIndex == -1 ? 0 : bestIndex;
 	});
 </script>
 
 <nav class="layout-y-stretch-none h-full w-40 border-r border-color bg-surface-100-900">
 	{#each parts as tiles, i (i)}
-		{#each tiles as { title, icon, url, page, params, loading, external }, j (page ?? url ?? title ?? j)}
+		{#each tiles as { title, icon, url, page, params, loading, external, targetBlank }, j (page ?? url ?? title ?? j)}
 			{@const href = loading ? undefined : page ? resolve(page, params) : url}
 			{@const isSelected = i == 0 && j == activeIndex}
 			<a
 				{href}
-				rel={external ? 'external' : undefined}
+				rel={targetBlank
+					? external
+						? 'external noopener noreferrer'
+						: 'noopener noreferrer'
+					: external
+						? 'external'
+						: undefined}
+				target={targetBlank ? '_blank' : undefined}
 				aria-current={isSelected ? 'page' : undefined}
 				class="rail-link {loading ? 'blur-sm' : ''}"
 				transition:slide={{ axis: 'y' }}

@@ -7,7 +7,7 @@
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
 	const baseGroup =
-		'input-group w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 rounded-base border border-surface-300-700 bg-surface-100-900 text-strong transition-surface focus-within:outline focus-within:outline-1 focus-within:outline-primary-500 focus-within:outline-offset-[-1px]';
+		'c8o-input-group field-shell grid w-full min-h-9 grid-cols-[auto_1fr_auto] items-center gap-0 overflow-hidden transition-surface';
 	const baseLabel = 'flex h-full items-center px-3 text-surface-700-300 cursor-text';
 	const baseInput =
 		'h-full w-full min-w-0 border-none bg-transparent px-3 text-sm text-inherit placeholder:text-surface-600-400 focus-visible:outline-none focus:ring-0';
@@ -80,22 +80,28 @@
 </div>
 
 <style>
+	:global(.c8o-input-group:has(:focus-visible)) {
+		border-color: var(--color-primary-500);
+		outline: none;
+		box-shadow: none;
+	}
+
 	:global(.ig-actions:empty) {
 		display: none;
 	}
-	:global(.input-group .ig-actions) {
+	:global(.c8o-input-group .ig-actions) {
 		border-left: 0 !important;
 	}
-	:global(.input-group input[type='search']::-webkit-search-cancel-button),
-	:global(.input-group input[type='search']::-webkit-search-decoration),
-	:global(.input-group input[type='search']::-webkit-search-results-button),
-	:global(.input-group input[type='search']::-webkit-search-results-decoration) {
+	:global(.c8o-input-group input[type='search']::-webkit-search-cancel-button),
+	:global(.c8o-input-group input[type='search']::-webkit-search-decoration),
+	:global(.c8o-input-group input[type='search']::-webkit-search-results-button),
+	:global(.c8o-input-group input[type='search']::-webkit-search-results-decoration) {
 		display: none;
 	}
-	:global(.input-group input[type='search']::-ms-clear) {
+	:global(.c8o-input-group input[type='search']::-ms-clear) {
 		display: none;
 	}
-	:global(.input-group .ig-input:focus-visible) {
+	:global(.c8o-input-group .ig-input:focus-visible) {
 		outline: none;
 		box-shadow: none;
 	}

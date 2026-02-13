@@ -1,33 +1,79 @@
 <script>
-	import { Switch } from '@skeletonlabs/skeleton-svelte';
+	import { Portal, Switch, Tooltip } from '@skeletonlabs/skeleton-svelte';
 
-	/** @type {{name?: string, values?: any[], value: string, class?: string, disabled?: boolean, onchange?: any, children?: import('svelte').Snippet}}*/
+	/** @type {{name?: string, values?: any[], value: string, class?: string, disabled?: boolean, title?: string, ariaLabel?: string, 'aria-label'?: string, onchange?: any, children?: import('svelte').Snippet} | any}*/
 	let {
 		name = '',
 		values = ['false', 'true'],
 		value = $bindable(values[0]),
 		class: cls = '',
 		disabled = false,
-		children
+		title,
+		tooltip,
+		ariaLabel,
+		tooltipPlacement = 'top',
+		children,
+		...rest
 	} = $props();
+
+	let tooltipText = $derived((tooltip ?? title ?? '').trim());
+	let hasTooltip = $derived(tooltipText.length > 0);
+	let nativeTitle = $derived(title);
+	let computedAriaLabel = $derived(ariaLabel ?? rest?.['aria-label'] ?? title ?? tooltipText);
 </script>
 
-<Switch
-	{name}
-	{disabled}
-	value={values[1]}
-	class={cls}
-	checked={value == values[1]}
-	onCheckedChange={(e) => (value = e.checked ? values[1] : values[0])}
->
-	<Switch.Control class="c8o-switch min-w-10 transition-surface">
-		<Switch.Thumb />
-	</Switch.Control>
-	<Switch.Label class="text-sm leading-tight font-medium text-current"
-		>{@render children?.()}</Switch.Label
+{#snippet switchElement(attributes = {})}
+	<Switch
+		{...attributes}
+		{...rest}
+		{name}
+		{disabled}
+		value={values[1]}
+		class={cls}
+		checked={value == values[1]}
+		title={nativeTitle}
+		aria-label={computedAriaLabel}
+		onCheckedChange={(e) => {
+			value = e.checked ? values[1] : values[0];
+			rest.onCheckedChange?.(e);
+		}}
 	>
-	<Switch.HiddenInput />
-	{#if value != values[1] && Array.isArray(values)}
-		<input type="hidden" {name} value={values[0]} />
-	{/if}
-</Switch>
+		<Switch.Control class="c8o-switch min-w-10 transition-surface">
+			<Switch.Thumb />
+		</Switch.Control>
+		<Switch.Label class="text-sm leading-tight font-medium text-current"
+			>{@render children?.()}</Switch.Label
+		>
+		<Switch.HiddenInput />
+		{#if value != values[1] && Array.isArray(values)}
+			<input type="hidden" {name} value={values[0]} />
+		{/if}
+	</Switch>
+{/snippet}
+
+{#if hasTooltip}
+	<Tooltip positioning={{ placement: tooltipPlacement }}>
+		<Tooltip.Trigger>
+			{#snippet element(attributes)}
+				{@const spanAttributes = /** @type {any} */ (attributes)}
+				<span {...spanAttributes} class="inline-flex">
+					{@render switchElement()}
+				</span>
+			{/snippet}
+		</Tooltip.Trigger>
+		<Portal>
+			<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+				<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
+					<span>{tooltipText}</span>
+					<Tooltip.Arrow
+						class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+					>
+						<Tooltip.ArrowTip />
+					</Tooltip.Arrow>
+				</Tooltip.Content>
+			</Tooltip.Positioner>
+		</Portal>
+	</Tooltip>
+{:else}
+	{@render switchElement()}
+{/if}

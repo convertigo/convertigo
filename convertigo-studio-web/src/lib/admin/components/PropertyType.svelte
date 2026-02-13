@@ -5,8 +5,8 @@
 <script>
 	import { SegmentedControl, Switch } from '@skeletonlabs/skeleton-svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray } from '$lib/utils/service';
+	import Button from './Button.svelte';
 	import CheckState from './CheckState.svelte';
 
 	/** @type {{value: string, checked?: boolean, label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
@@ -24,6 +24,7 @@
 		placeholder = 'Enter value …',
 		fit = false,
 		buttons = [],
+		actionsHorizontal = false,
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
@@ -32,14 +33,23 @@
 	let restores = $derived.by(() => {
 		const r = [];
 		if (originalValue != null) {
-			r.push({ icon: 'mdi:arrow-u-left-top', val: originalValue, title: 'reset' });
+			r.push({
+				icon: 'mdi:arrow-u-left-top',
+				val: originalValue,
+				title: 'Reset to original value'
+			});
 		}
 		if (defaultValue != null) {
-			r.push({ icon: 'mdi:backup-restore', val: defaultValue, title: 'restore' });
+			r.push({
+				icon: 'mdi:backup-restore',
+				val: defaultValue,
+				title: 'Restore default value'
+			});
 		}
 		return r;
 	});
 	let type = $derived(_type?.toLocaleLowerCase());
+	let isVerticalSegment = $derived(rest?.orientation == 'vertical');
 	let id = `property-input-${cpt++}`;
 
 	function handleMultiple(e) {
@@ -109,22 +119,27 @@
 							class={[
 								'relative',
 								'input-common',
+								isVerticalSegment ? 'h-auto' : 'h-9',
 								'gap-0.5',
-								'p-0.5',
+								'p-[1px]',
 								'shadow-none',
 								'overflow-hidden',
-								rest?.orientation == 'vertical' ? 'flex-col' : 'flex-row'
+								isVerticalSegment ? 'flex-col' : 'flex-row'
 							]}
 						>
 							<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
 							{#each item as option (option.value ?? option)}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
-								<SegmentedControl.Item value={val} class="relative flex-1">
+								<SegmentedControl.Item
+									value={val}
+									class={['relative', isVerticalSegment ? 'w-full flex-none' : 'flex-1']}
+								>
 									<SegmentedControl.ItemText
 										class={[
 											value == val ? 'text-white' : 'text-surface-700-300',
-											'px-3 py-1.5 text-[14px] font-medium'
+											'flex items-center px-3 py-1 text-[14px] leading-none font-medium',
+											!isVerticalSegment && 'h-full'
 										]}
 									>
 										{txt}
@@ -183,33 +198,37 @@
 		{/if}
 	</div>
 	{#if restores.length > 0 || buttons.length > 0}
-		<div class="layout-x-low justify-around! sm:layout-y-low sm:h-full">
+		<div
+			class={actionsHorizontal
+				? 'layout-x-low h-fit items-center justify-start'
+				: 'layout-x-low justify-around! sm:layout-y-low sm:h-full'}
+		>
 			{#each restores as { icon, val, title }, idx (idx)}
 				{@const displayVal = val == null ? '' : String(val)}
 				{@const label = displayVal.length ? `${title}: ${displayVal}` : title}
-				<button
+				<Button
+					full={false}
+					size={4}
 					disabled={value == val}
-					type="button"
-					onclick={() => (value = val)}
+					{icon}
 					title={label}
-					aria-label={label}
+					ariaLabel={label}
+					onclick={() => (value = val)}
 					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
-				>
-					<Ico {icon} />
-				</button>
+				/>
 			{/each}
 			{#each buttons as { disabled, onclick, title, icon }, idx (idx)}
 				{@const label = title ?? icon ?? 'action'}
-				<button
+				<Button
+					full={false}
+					size={4}
 					{disabled}
-					type="button"
-					{onclick}
+					{icon}
 					title={label}
-					aria-label={label}
+					ariaLabel={label}
+					{onclick}
 					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
-				>
-					<Ico {icon} />
-				</button>
+				/>
 			{/each}
 		</div>
 	{/if}

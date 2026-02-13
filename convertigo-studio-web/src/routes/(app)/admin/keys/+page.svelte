@@ -111,6 +111,7 @@
 					<Button
 						size="6"
 						icon="mdi:delete-outline"
+						title="Delete key"
 						class="button-ico-primary"
 						onclick={async (event) => {
 							if (

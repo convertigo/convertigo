@@ -129,9 +129,11 @@
 				<div class="min-w-0 grow">
 					{@render control?.()}
 				</div>
-				<span class="shrink-0 text-muted">
-					<Accordion.ItemIndicator element={indicator} />
-				</span>
+				<div class="layout-x-low shrink-0 items-center pr-2">
+					<span class="shrink-0 text-muted">
+						<Accordion.ItemIndicator element={indicator} />
+					</span>
+				</div>
 			</div>
 		{:else if !control && (Boolean(resolvedLead) || title || subtitle || meta || hasTrailContent || Boolean(trail))}
 			<div class="layout-x-between w-full">
@@ -154,7 +156,7 @@
 						{/if}
 					</div>
 				</div>
-				<div class="layout-x-low shrink-0 items-center">
+				<div class="layout-x-low shrink-0 items-center pr-2">
 					{@render resolvedTrail?.({
 						count,
 						countText,
@@ -169,7 +171,7 @@
 			</div>
 		{:else}
 			{@render header()}
-			<span class="shrink-0 text-muted">
+			<span class="shrink-0 pr-2 text-muted">
 				<Accordion.ItemIndicator element={indicator} />
 			</span>
 		{/if}

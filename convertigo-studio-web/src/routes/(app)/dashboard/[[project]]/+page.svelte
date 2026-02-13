@@ -2,6 +2,7 @@
 	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import Authentication from '$lib/common/Authentication.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
@@ -51,6 +52,17 @@
 		return primaryShades[(h >>> 0) % primaryShades.length];
 	}
 
+	const getSwaggerProjectUrl = (project) =>
+		`/convertigo/swagger/dist/index.html?url=${encodeURIComponent(
+			`/convertigo/openapi?YAML&__project=${project}`
+		)}`;
+
+	let canEditInAdmin = $derived(
+		Authentication.canAccessAdmin ||
+			Authentication.hasRole('PROJECT_DBO_VIEW') ||
+			Authentication.hasRole('PROJECT_DBO_CONFIG')
+	);
+
 	onDestroy(Projects.stop);
 </script>
 
@@ -60,7 +72,7 @@
 			id="search"
 			type="search"
 			placeholder="Search projects..."
-			class="min-w-[240px] grow !border-surface-200-800 !bg-surface-100-900 md:flex-1"
+			class="min-w-[240px] grow !bg-surface-100-900 md:flex-1"
 			inputClass="text-strong placeholder:text-surface-600-400"
 			iconClass="text-surface-700-300"
 			icon="mdi:magnify"
@@ -68,7 +80,9 @@
 			autofocus
 			bind:value={searchQuery}
 		/>
-		<div class="flex flex-wrap items-center gap-2 md:ml-auto">
+		<div
+			class="flex w-full flex-wrap items-center justify-center gap-2 md:ml-auto md:w-auto md:justify-end"
+		>
 			<SegmentedControl
 				value={`${filters[0].count}`}
 				onValueChange={(event) => {
@@ -77,17 +91,17 @@
 				class="w-fit"
 			>
 				<SegmentedControl.Control
-					class="relative flex items-center gap-0.5 rounded-base border border-surface-200-800 bg-surface-100-900 p-0.5 shadow-none"
+					class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
 				>
 					<SegmentedControl.Indicator
 						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
 					/>
 					{#each [2, 0, 1] as value (value)}
-						<SegmentedControl.Item value={`${value}`} class="relative">
+						<SegmentedControl.Item value={`${value}`} class="relative h-full">
 							<SegmentedControl.ItemText
 								class={[
 									filters[0].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
-									'px-2 py-1 text-[13px] font-medium'
+									'flex h-full items-center px-2 text-[13px] leading-none font-medium'
 								]}
 							>
 								{#if value == 2}
@@ -122,17 +136,17 @@
 				class="w-fit"
 			>
 				<SegmentedControl.Control
-					class="relative flex items-center gap-0.5 rounded-base border border-surface-200-800 bg-surface-100-900 p-0.5 shadow-none"
+					class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
 				>
 					<SegmentedControl.Indicator
 						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
 					/>
 					{#each [1, 0, 2] as value (value)}
-						<SegmentedControl.Item value={`${value}`} class="relative">
+						<SegmentedControl.Item value={`${value}`} class="relative h-full">
 							<SegmentedControl.ItemText
 								class={[
 									filters[1].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
-									'px-2 py-1 text-[13px] font-medium'
+									'flex h-full items-center px-2 text-[13px] leading-none font-medium'
 								]}
 							>
 								{#if value == 1}
@@ -161,7 +175,9 @@
 			</SegmentedControl>
 		</div>
 	</div>
-	<div class="grid grid-cols-1 gap sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+	<div
+		class="grid grid-cols-1 justify-start gap sm:grid-cols-[repeat(auto-fill,minmax(19rem,19rem))]"
+	>
 		{#each filteredProjects as project, i (project.name ?? i)}
 			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
 			{@const loading = name == null}
@@ -173,7 +189,7 @@
 			{@const cardShade = getPrimaryShade(name ?? `_${i}`)}
 			{@const cardShadeInverse = 1000 - cardShade}
 			<div
-				class="layout-y-stretch-none rounded-container preset-filled-surface-100-900 p-low shadow-follow"
+				class="layout-y-stretch-none surface-card-shell bg-surface-100-900 p-low"
 				animate:flip={loading ? undefined : { duration: 400 }}
 				transition:fade
 			>
@@ -236,7 +252,7 @@
 							/>
 						</div>
 					{/if}
-					<div class="absolute top-0 layout-y-start-none overflow-clip rounded-tl-lg rounded-br-lg">
+					<div class="project-actions absolute top-0 bottom-0 left-0 layout-y-start-none">
 						<a href={resolve('/(app)/dashboard/[[project]]/backend', params)} class="icon-link">
 							<Ico icon="mdi:cog" size="nav" />
 							<span class="icon-link-text">Backend</span>
@@ -245,6 +261,15 @@
 							<a href={resolve('/(app)/dashboard/[[project]]/frontend', params)} class="icon-link">
 								<Ico icon="mdi:smartphone-link" size="nav" />
 								<span class="icon-link-text">Frontend</span>
+							</a>
+						{/if}
+						{#if canEditInAdmin && name}
+							<a
+								href={resolve('/(app)/admin/projects/[project]', { project: name })}
+								class="icon-link"
+							>
+								<Ico icon="mdi:edit-outline" size="nav" />
+								<span class="icon-link-text">Edit</span>
 							</a>
 						{/if}
 
@@ -265,6 +290,15 @@
 								<span class="icon-link-text">Platforms</span>
 							</a>
 						{/if}
+						<a
+							href={getSwaggerProjectUrl(name)}
+							target="_blank"
+							rel="external noopener noreferrer"
+							class="icon-link"
+						>
+							<Ico icon="mdi:swagger" size="nav" />
+							<span class="icon-link-text">Swagger</span>
+						</a>
 					</div>
 				</div>
 				<button
@@ -283,7 +317,10 @@
 
 <style>
 	.img-hover-zoom {
-		height: 200px;
+		/* Keep the media area aligned with the max action stack (6 icons). */
+		--project-actions-count: 6;
+		--project-action-height: 2.25rem;
+		height: calc(var(--project-actions-count) * var(--project-action-height));
 		overflow: hidden;
 		transition:
 			margin 0.5s,
@@ -318,15 +355,61 @@
 		transform: scale(1.1);
 	}
 
+	.project-actions {
+		overflow: visible;
+		z-index: 1;
+	}
+
 	.icon-link {
 		display: flex;
 		align-items: center;
-		padding: 0.5rem;
-		background-color: var(--convertigo-text);
-		color: #fff;
+		justify-content: center;
+		min-height: 2.25rem;
+		padding-inline: 0.5rem;
+		background-color: color-mix(in oklab, var(--color-surface-50) 92%, transparent);
+		color: var(--color-primary-500);
+		border: 1px solid var(--color-primary-500);
+		overflow: visible;
+	}
+
+	.icon-link + .icon-link {
+		margin-top: -1px;
+	}
+
+	.icon-link:first-child {
+		border-top-left-radius: 0.5rem;
+	}
+
+	.icon-link:last-child {
+		border-bottom-left-radius: 0.5rem;
+	}
+
+	:global(.dark) .icon-link {
+		background-color: color-mix(in oklab, var(--color-surface-900) 88%, transparent);
+		color: var(--color-primary-400);
+		border-color: var(--color-primary-400);
+	}
+
+	.icon-link:hover {
+		background-color: color-mix(
+			in oklab,
+			var(--color-primary-500) 12%,
+			var(--color-surface-50) 88%
+		);
+		color: var(--color-primary-600);
+	}
+
+	:global(.dark) .icon-link:hover {
+		background-color: color-mix(
+			in oklab,
+			var(--color-primary-400) 18%,
+			var(--color-surface-900) 82%
+		);
+		color: var(--color-primary-300);
 	}
 
 	.icon-link-text {
+		display: inline-block;
 		max-width: 0;
 		overflow: hidden;
 		white-space: nowrap;

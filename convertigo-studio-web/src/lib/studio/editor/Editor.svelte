@@ -4,13 +4,24 @@
 
 	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean}} */
 	let {
-		content = '/* Loading... */',
+		content = $bindable('/* Loading... */'),
 		language = 'json',
 		theme = 'vs-dark',
 		readOnly = true
 	} = $props();
 
-	const editorOptions = $derived.by(() => ({ content, language, theme, readOnly }));
+	function onEditorContentChange(nextContent) {
+		if (content === nextContent) return;
+		content = nextContent;
+	}
+
+	const editorOptions = $derived.by(() => ({
+		content,
+		language,
+		theme,
+		readOnly,
+		onContentChange: onEditorContentChange
+	}));
 
 	const monacoBase = (
 		import.meta.env.VITE_MONACO_BASE ?? `${base.replace(/\/$/, '')}/monaco/vs`
@@ -78,21 +89,26 @@
 			content: value?.content ?? '/* Loading... */',
 			language: value?.language ?? 'json',
 			theme: value?.theme ?? 'vs-dark',
-			readOnly: value?.readOnly ?? true
+			readOnly: value?.readOnly ?? true,
+			onContentChange:
+				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined
 		};
 	}
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, onContentChange?: (nextContent: string) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
 		let editor;
 		/** @type {ResizeObserver | undefined} */
 		let resizeObserver;
+		/** @type {{ dispose: () => void } | undefined} */
+		let changeSubscription;
 		let disposed = false;
 		let pending = normalizeOptions(value);
+		let applyingContent = false;
 
 		function layout() {
 			if (!editor) return;
@@ -103,11 +119,17 @@
 		function apply(nextValue) {
 			pending = normalizeOptions(nextValue);
 			if (!editor) return;
-			editor.updateOptions({ theme: pending.theme, readOnly: pending.readOnly });
+			editor.updateOptions({ readOnly: pending.readOnly });
+			globalThis.monaco?.editor?.setTheme(pending.theme || 'vs');
 			if (editor.getValue() !== pending.content) {
+				applyingContent = true;
 				editor.setValue(pending.content);
+				applyingContent = false;
 			}
-			globalThis.monaco?.editor?.setModelLanguage(editor.getModel(), pending.language);
+			const model = editor.getModel();
+			if (model && model.getLanguageId() !== pending.language) {
+				globalThis.monaco?.editor?.setModelLanguage(model, pending.language);
+			}
 			layout();
 		}
 
@@ -121,6 +143,13 @@
 					theme: pending.theme,
 					readOnly: pending.readOnly,
 					automaticLayout: false
+				});
+				changeSubscription = editor.onDidChangeModelContent(() => {
+					if (applyingContent) return;
+					const nextContent = editor.getValue();
+					if (pending.content === nextContent) return;
+					pending = { ...pending, content: nextContent };
+					pending.onContentChange?.(nextContent);
 				});
 
 				resizeObserver = new ResizeObserver(() => layout());
@@ -136,6 +165,7 @@
 			destroy() {
 				disposed = true;
 				resizeObserver?.disconnect();
+				changeSubscription?.dispose();
 				editor?.dispose();
 			}
 		};

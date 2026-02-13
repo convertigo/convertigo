@@ -290,12 +290,13 @@
 											bind:value={() => value, (v) => (row.value = v)}
 											item={values}
 											{originalValue}
+											actionsHorizontal={true}
 											buttons={['text', 'array'].includes(type)
 												? []
 												: [
 														{
 															icon: 'mdi:star-outline',
-															title: 'edit symbols',
+															title: 'Edit with symbol',
 															onclick: () => onSwitchSymbols(row)
 														}
 													]}

@@ -6,11 +6,12 @@
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
 	import { onDestroy, onMount } from 'svelte';
 	import { Spring } from 'svelte/motion';
+	import { slide } from 'svelte/transition';
 	import RightPart from '../../../../admin/RightPart.svelte';
 	import Last from '../Last.svelte';
 
@@ -209,6 +210,8 @@
 
 	let iframe = $state();
 	let bezel = $state();
+	let isNarrowViewport = $state(false);
+	let isDeviceRailCollapsed = $state(false);
 
 	$effect(() => {
 		if (!bezel || !iframe) return;
@@ -274,6 +277,20 @@
 	let clientHeight = $state(0);
 	let clientWidth = $state(0);
 
+	onMount(() => {
+		const mediaQuery = window.matchMedia('(max-width: 767px)');
+		const syncViewport = () => {
+			isNarrowViewport = mediaQuery.matches;
+			if (!mediaQuery.matches) {
+				isDeviceRailCollapsed = false;
+			}
+		};
+
+		syncViewport();
+		mediaQuery.addEventListener('change', syncViewport);
+		return () => mediaQuery.removeEventListener('change', syncViewport);
+	});
+
 	$effect(() => {
 		if (!bezel || !iframe) return;
 		let nextFit = 1;
@@ -316,153 +333,179 @@
 </script>
 
 {#snippet rightPart()}
-	<nav class="h-full w-full bg-surface-100-900 md:w-52">
-		<AccordionGroup
-			bind:value={openGroup}
-			multiple
-			collapsible
-			class="accordion-rail-group flex flex-col gap-0"
-		>
-			{#each groupedDevices as { id, title, devices } (id)}
-				<AccordionSection
-					value={id}
-					class="accordion-rail-item"
-					triggerClass="accordion-rail-trigger"
-					panelClass="accordion-rail-panel"
-					{title}
-					titleClass="text-sm font-semibold text-strong"
-					count={devices.length}
-					countVariant="number"
-				>
-					{#snippet panel()}
-						<div
-							class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0 pt-0 md:flex md:flex-col md:gap-0"
-						>
-							{#each devices as device (device.id)}
-								{@const {
-									id,
-									title,
-									type,
-									iframe: { height, width },
-									index: deviceIndex
-								} = device}
-								{@const href =
-									type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
-								{@const isSelected = selectedIndex == deviceIndex}
-								<a
-									{href}
-									aria-current={isSelected ? 'true' : undefined}
-									class="relative flex min-w-0 items-center gap-2 border-b border-surface-200-800/60 px-2 py-2 transition-surface hover:bg-primary-100/60 md:min-w-40 md:border-b md:px-3 dark:hover:bg-primary-500/15"
-								>
-									{#if isSelected}
-										<span class="absolute inset-0 bg-primary-100/70 dark:bg-primary-500/20"></span>
-									{/if}
-									{#if id != 'none'}
-										<picture
-											class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center overflow-hidden rounded-sm md:h-16 md:w-16"
-											aria-hidden="true"
-										>
-											<source srcset={asset(`/bezels/thumbnails/${id}.webp`)} type="image/webp" />
-											<img
-												src={asset(`/bezels/thumbnails/${id}.webp`)}
-												alt=""
-												class="max-h-full max-w-full"
-												loading="lazy"
-											/>
-										</picture>
-									{:else}
-										<div
-											class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase md:h-16 md:w-16"
-											aria-hidden="true"
-										>
-											No frame
-										</div>
-									{/if}
-									<span
-										class="z-10 text-[13px] leading-tight {isSelected
-											? 'font-medium rail-active'
-											: 'font-normal text-strong'}"
-										>{title}<br /><small>{width} x {height}</small></span
+	<div class="h-full w-full bg-surface-100-900 md:w-52">
+		<div class="md:hidden">
+			<button
+				type="button"
+				class="flex w-full items-center justify-between border-b border-surface-200-800 px-3 py-2 text-sm font-semibold text-strong transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15"
+				onclick={() => (isDeviceRailCollapsed = !isDeviceRailCollapsed)}
+			>
+				<span class="layout-x-none gap-2">
+					<Ico icon="mdi:devices" size="5" />
+					Devices
+				</span>
+				<Ico
+					icon="mdi:chevron-right"
+					size="5"
+					class={`transition-transform duration-200 ${isDeviceRailCollapsed ? 'rotate-0' : 'rotate-90'}`}
+				/>
+			</button>
+		</div>
+		{#if !isNarrowViewport || !isDeviceRailCollapsed}
+			<div transition:slide={{ axis: 'y', duration: 180 }}>
+				<nav class="h-full w-full">
+					<AccordionGroup
+						bind:value={openGroup}
+						multiple
+						collapsible
+						class="accordion-rail-group flex flex-col gap-0"
+					>
+						{#each groupedDevices as { id, title, devices } (id)}
+							<AccordionSection
+								value={id}
+								class="accordion-rail-item"
+								triggerClass="accordion-rail-trigger"
+								panelClass="accordion-rail-panel"
+								{title}
+								titleClass="text-sm font-semibold text-strong"
+								count={devices.length}
+								countVariant="number"
+							>
+								{#snippet panel()}
+									<div
+										class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0 pt-0 md:flex md:flex-col md:gap-0"
 									>
-								</a>
-							{/each}
-						</div>
-					{/snippet}
-				</AccordionSection>
-			{/each}
-		</AccordionGroup>
-	</nav>
+										{#each devices as device (device.id)}
+											{@const {
+												id,
+												title,
+												type,
+												iframe: { height, width },
+												index: deviceIndex
+											} = device}
+											{@const href =
+												type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
+											{@const isSelected = selectedIndex == deviceIndex}
+											<a
+												{href}
+												aria-current={isSelected ? 'true' : undefined}
+												class="relative flex min-w-0 items-center gap-2 border-b border-surface-200-800/60 px-2 py-2 transition-surface hover:bg-primary-100/60 md:min-w-40 md:border-b md:px-3 dark:hover:bg-primary-500/15"
+											>
+												{#if isSelected}
+													<span class="absolute inset-0 bg-primary-100/70 dark:bg-primary-500/20"
+													></span>
+												{/if}
+												{#if id != 'none'}
+													<picture
+														class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center overflow-hidden rounded-sm md:h-16 md:w-16"
+														aria-hidden="true"
+													>
+														<source
+															srcset={asset(`/bezels/thumbnails/${id}.webp`)}
+															type="image/webp"
+														/>
+														<img
+															src={asset(`/bezels/thumbnails/${id}.webp`)}
+															alt=""
+															class="max-h-full max-w-full"
+															loading="lazy"
+														/>
+													</picture>
+												{:else}
+													<div
+														class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase md:h-16 md:w-16"
+														aria-hidden="true"
+													>
+														No frame
+													</div>
+												{/if}
+												<span
+													class="z-10 text-[13px] leading-tight {isSelected
+														? 'font-medium rail-active'
+														: 'font-normal text-strong'}"
+													>{title}<br /><small>{width} x {height}</small></span
+												>
+											</a>
+										{/each}
+									</div>
+								{/snippet}
+							</AccordionSection>
+						{/each}
+					</AccordionGroup>
+				</nav>
+			</div>
+		{/if}
+	</div>
 {/snippet}
-<InputGroup
-	class="sticky top-[60px] z-10 -mt-low rounded-container !border-surface-200-800 !bg-surface-100-900 p-low shadow-follow backdrop-blur-sm"
-	labelClass="px-0!"
-	bind:value={addressBar}
+<form
+	class="sticky top-[60px] z-10 -mt-low flex flex-wrap items-center gap-2 rounded-container border border-surface-200-800 bg-surface-100-900 p-low shadow-follow backdrop-blur-sm md:flex-nowrap md:gap-[1px]"
 	onsubmit={(event) => {
 		event.preventDefault();
 		applyAddressBar();
 	}}
 >
-	{#snippet leading()}
-		<div class="layout-x-none h-full items-center gap-[1px]!">
-			<Button
-				icon="mdi:arrow-left"
-				title="Go back"
-				onclick={navigateBack}
-				cls={iconButtonClasses}
-			/>
-			<Button
-				icon="mdi:arrow-right"
-				title="Go forward"
-				onclick={navigateForward}
-				cls={iconButtonClasses}
-			/>
-			<Button icon="mdi:reload" title="Reload" onclick={reloadIframe} cls={iconButtonClasses} />
-		</div>
-	{/snippet}
-	{#snippet actions()}
+	<div class="order-1 flex shrink-0 items-center gap-[1px]">
+		<Button icon="mdi:arrow-left" title="Go back" onclick={navigateBack} cls={iconButtonClasses} />
+		<Button
+			icon="mdi:arrow-right"
+			title="Go forward"
+			onclick={navigateForward}
+			cls={iconButtonClasses}
+		/>
+		<Button icon="mdi:reload" title="Reload" onclick={reloadIframe} cls={iconButtonClasses} />
+	</div>
+	<input
+		type="text"
+		bind:value={addressBar}
+		placeholder="URL"
+		class="order-2 h-[2.25rem] input-common min-w-0 basis-full px-2 text-sm md:order-2 md:flex-1 md:basis-auto"
+	/>
+	<div class="order-1 ml-auto flex w-auto shrink-0 items-center gap-[1px] md:order-3">
 		<Button
 			label="Go"
 			title="Load URL"
-			cls="button-primary w-fit!"
+			cls="button-primary h-[2.25rem]! w-fit! px-3! shrink-0"
 			disabled={!trimmedAddress || trimmedAddress === '#'}
 			onclick={applyAddressBar}
 		/>
-		<Button
-			icon="mdi:magnify-minus-outline"
-			title="Zoom out"
-			onclick={() => adjustZoom(-1)}
-			cls={iconButtonClasses}
-		/>
-		<Button
-			icon="mdi:fit-to-page-outline"
-			title="Fit to screen"
-			onclick={resetZoomToFit}
-			cls={`${iconButtonClasses} ${zoomMode === 'fit' ? iconButtonActiveClasses : ''}`}
-		/>
-		<Button
-			icon="mdi:magnify-plus-outline"
-			title="Zoom in"
-			onclick={() => adjustZoom(1)}
-			cls={iconButtonClasses}
-		/>
-		<span class="text-xs font-semibold text-muted"
-			>{Math.round((zoomMode === 'fit' ? 1 : zoom) * 100)}%</span
-		>
-		<Button
-			icon="mdi:camera-rotate-outline"
-			title="Rotate"
-			onclick={rotateViewer}
-			cls={iconButtonClasses}
-		/>
-		<Button
-			icon="mdi:open-in-new-variant"
-			title="Open in new tab"
-			onclick={() => openInNewTab(trimmedAddress)}
-			disabled={!trimmedAddress || trimmedAddress === '#'}
-			cls={iconButtonClasses}
-		/>
-	{/snippet}
-</InputGroup>
+		<div class="flex items-center gap-[1px]">
+			<Button
+				icon="mdi:magnify-minus-outline"
+				title="Zoom out"
+				onclick={() => adjustZoom(-1)}
+				cls={iconButtonClasses}
+			/>
+			<Button
+				icon="mdi:fit-to-page-outline"
+				title="Fit to screen"
+				onclick={resetZoomToFit}
+				cls={`${iconButtonClasses} ${zoomMode === 'fit' ? iconButtonActiveClasses : ''}`}
+			/>
+			<Button
+				icon="mdi:magnify-plus-outline"
+				title="Zoom in"
+				onclick={() => adjustZoom(1)}
+				cls={iconButtonClasses}
+			/>
+			<span class="text-xs font-semibold text-muted"
+				>{Math.round((zoomMode === 'fit' ? 1 : zoom) * 100)}%</span
+			>
+			<Button
+				icon="mdi:camera-rotate-outline"
+				title="Rotate"
+				onclick={rotateViewer}
+				cls={iconButtonClasses}
+			/>
+			<Button
+				icon="mdi:open-in-new-variant"
+				title="Open in new tab"
+				onclick={() => openInNewTab(trimmedAddress)}
+				disabled={!trimmedAddress || trimmedAddress === '#'}
+				cls={iconButtonClasses}
+			/>
+		</div>
+	</div>
+</form>
 <MaxRectangle bind:clientHeight bind:clientWidth>
 	<div
 		class="layout-x justify-center"

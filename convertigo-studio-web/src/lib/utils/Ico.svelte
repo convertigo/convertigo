@@ -5,7 +5,9 @@
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
+	import MdiArrowLeftBoldOutline from '~icons/mdi/arrow-left-bold-outline';
 	import MdiArrowRight from '~icons/mdi/arrow-right';
+	import MdiArrowRightBoldOutline from '~icons/mdi/arrow-right-bold-outline';
 	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top';
 	import MdiArrowUpBoldOutline from '~icons/mdi/arrow-up-bold-outline';
@@ -21,7 +23,10 @@
 	import MdiCertificate from '~icons/mdi/certificate';
 	import MdiCheck from '~icons/mdi/check';
 	import MdiCheckAll from '~icons/mdi/check-all';
+	import MdiChevronDown from '~icons/mdi/chevron-down';
+	import MdiChevronLeft from '~icons/mdi/chevron-left';
 	import MdiChevronRight from '~icons/mdi/chevron-right';
+	import MdiChevronUp from '~icons/mdi/chevron-up';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline';
 	import MdiClose from '~icons/mdi/close';
 	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
@@ -33,11 +38,13 @@
 	import MdiCoffee from '~icons/mdi/coffee';
 	import MdiCog from '~icons/mdi/cog';
 	import MdiCogOutline from '~icons/mdi/cog-outline';
+	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline';
+	import MdiDevices from '~icons/mdi/devices';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
@@ -82,6 +89,7 @@
 	import MdiOpenInNew from '~icons/mdi/open-in-new';
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
+	import MdiPaperclip from '~icons/mdi/paperclip';
 	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
 	import MdiPlus from '~icons/mdi/plus';
@@ -91,6 +99,7 @@
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
+	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiSearch from '~icons/mdi/search';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiStarOutline from '~icons/mdi/star-outline';
@@ -116,7 +125,9 @@
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
 		'mdi:arrow-down-bold-outline': MdiArrowDownBoldOutline,
+		'mdi:arrow-left-bold-outline': MdiArrowLeftBoldOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
+		'mdi:arrow-right-bold-outline': MdiArrowRightBoldOutline,
 		'mdi:arrow-right': MdiArrowRight,
 		'mdi:arrow-right-thick': MdiArrowRightThick,
 		'mdi:chevron-right': MdiChevronRight,
@@ -134,6 +145,8 @@
 		'mdi:certificate': MdiCertificate,
 		'mdi:check': MdiCheck,
 		'mdi:check-all': MdiCheckAll,
+		'mdi:chevron-left': MdiChevronLeft,
+		'mdi:chevron-down': MdiChevronDown,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:close': MdiClose,
 		'mdi:close-circle-outline': MdiCloseCircleOutline,
@@ -141,15 +154,18 @@
 		'mdi:cloud-sync-outline': MdiCloudSyncOutline,
 		'mdi:code-block-braces': MdiCodeBlockBraces,
 		'mdi:code-braces': MdiCodeBraces,
+		'mdi:swagger': MdiCodeBraces,
 		'mdi:code-tags': MdiCodeTags,
 		'mdi:coffee': MdiCoffee,
 		'mdi:cog-outline': MdiCogOutline,
 		'mdi:cog': MdiCog,
 		'mdi:content-save-edit-outline': MdiContentSaveEditOutline,
+		'mdi:content-copy': MdiContentCopy,
 		'mdi:database-clock-outline': MdiDatabaseClockOutline,
 		'mdi:database-sync-outline': MdiDatabaseSyncOutline,
 		'mdi:database': MdiDatabase,
 		'mdi:delete-outline': MdiDeleteOutline,
+		'mdi:devices': MdiDevices,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,
@@ -191,6 +207,7 @@
 		'mdi:minus': MdiMinus,
 		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
+		'mdi:paperclip': MdiPaperclip,
 		'mdi:palette-outline': MdiPaletteOutline,
 		'mdi:open-in-new-variant': MdiOpenInNew,
 		'mdi:fit-to-page-outline': MdiFitToPageOutline,
@@ -205,6 +222,7 @@
 		'mdi:reload': MdiReload,
 		'mdi:restart-alert': MdiRestartAlert,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
+		'mdi:robot-outline': MdiRobotOutline,
 		'mdi:search': MdiSearch,
 		'mdi:smartphone-link': MdiSmartphoneLink,
 		'mdi:star-outline': MdiStarOutline,
@@ -218,6 +236,7 @@
 		'mdi:view-dashboard-outline': MdiViewDashboardOutline,
 		'mdi:warning-outline': MdiWarningOutline,
 		'mdi:weather-sunny': MdiWeatherSunny,
+		'mdi:chevron-up': MdiChevronUp,
 		'mdi:wrench': MdiWrench
 	};
 </script>

@@ -23,10 +23,7 @@
 	} = $props();
 </script>
 
-<div
-	class="layout-y-p-stretch {bg} rounded-container border border-color shadow-follow {cls}"
-	{...rest}
->
+<div class="layout-y-p-stretch surface-card-shell {bg} {cls}" {...rest}>
 	{#if title == null || title?.length > 0 || cornerOption}
 		<div class="layout-x-wrap w-full items-center gap-3">
 			{#if title == null}

@@ -1,5 +1,5 @@
 import { createToaster } from '@skeletonlabs/skeleton-svelte';
-import { browser, dev } from '$app/environment';
+import { browser, building, dev } from '$app/environment';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import Instances from '$lib/admin/Instances.svelte';
@@ -369,7 +369,11 @@ export function getFrontendUrl(projectName) {
 }
 
 export function getThumbnailUrl(projectName) {
-	return `${getUrl()}projects.Thumbnail?projectName=${projectName}`;
+	// Avoid prerender crawler hitting backend-only thumbnails during static build.
+	if (building) {
+		return '';
+	}
+	return `${getUrl()}projects.Thumbnail?projectName=${encodeURIComponent(projectName ?? '')}`;
 }
 
 // $lib/utils/xmlConverter.js

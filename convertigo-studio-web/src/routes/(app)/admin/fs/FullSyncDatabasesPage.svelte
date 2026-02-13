@@ -1,0 +1,427 @@
+<script>
+	import { goto } from '$app/navigation';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
+	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
+	import InputGroup from '$lib/common/components/InputGroup.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { toaster } from '$lib/utils/service';
+	import { getContext, onMount } from 'svelte';
+	import { fullSyncBaseUrl, getDatabaseInfo, listDatabases, removeDatabase } from './fullsync-api';
+	import { fullSyncDbHref } from './fullsync-route';
+
+	let modalYesNo;
+	try {
+		modalYesNo = getContext('modalYesNo');
+	} catch {
+		modalYesNo = undefined;
+	}
+
+	let loadingDatabases = $state(true);
+	let working = $state(false);
+	let lastError = $state('');
+
+	let databases = $state([]);
+	let databaseFilter = $state('');
+	let dbInfoByName = $state(/** @type {Record<string, any>} */ ({}));
+	let dbPage = $state(1);
+	let dbPerPage = $state(20);
+	let dbInfoRequestCounter = 0;
+	let dbSearchListId = $state('fullsync-db-search-list');
+
+	let filteredDatabases = $derived(
+		databases.filter((db) => db.toLowerCase().includes(databaseFilter.trim().toLowerCase()))
+	);
+	let dbTotalPages = $derived(Math.max(1, Math.ceil(filteredDatabases.length / dbPerPage)));
+	let dbPageSafe = $derived(Math.min(dbPage, dbTotalPages));
+	let visibleDatabaseNames = $derived(
+		filteredDatabases.slice((dbPageSafe - 1) * dbPerPage, dbPageSafe * dbPerPage)
+	);
+
+	let databaseRows = $derived.by(() => {
+		if (loadingDatabases && databases.length == 0) {
+			return Array.from({ length: 8 }, (_, i) => ({
+				name: `loading-${i}`,
+				sizeK: null,
+				seq: null,
+				docCount: null,
+				isLoading: true
+			}));
+		}
+
+		return visibleDatabaseNames.map((name) => {
+			const info = detailsForDb(name);
+			return {
+				name,
+				sizeK: formatSizeInK(info?.sizes?.active),
+				seq: extractSeq(info?.update_seq),
+				docCount: info?.doc_count ?? null,
+				isLoading: false
+			};
+		});
+	});
+
+	$effect(() => {
+		if (dbPage > dbTotalPages) {
+			dbPage = dbTotalPages;
+		}
+	});
+
+	$effect(() => {
+		const names = visibleDatabaseNames;
+		void loadDatabaseInfos(names);
+	});
+
+	function asErrorMessage(error) {
+		if (typeof error == 'string') return error;
+		if (error?.message) return error.message;
+		return 'Unknown FullSync error';
+	}
+
+	function showError(error) {
+		const message = asErrorMessage(error);
+		lastError = message;
+		toaster.error({
+			description: message,
+			duration: 4200
+		});
+	}
+
+	function showSuccess(message) {
+		toaster.success({
+			description: message,
+			duration: 2400
+		});
+	}
+
+	function formatSizeInK(bytes) {
+		if (bytes == null) return null;
+		const num = Number(bytes);
+		if (!Number.isFinite(num) || num < 0) return '?';
+		const kilo = num / 1024;
+		if (kilo >= 1000) {
+			const mega = kilo / 1000;
+			const roundedM = Math.round(mega * 10) / 10;
+			return `${roundedM % 1 == 0 ? roundedM.toFixed(0) : roundedM.toFixed(1)} M`;
+		}
+		const roundedK = Math.round(kilo * 10) / 10;
+		return `${roundedK % 1 == 0 ? roundedK.toFixed(0) : roundedK.toFixed(1)} k`;
+	}
+
+	function extractSeq(updateSeq) {
+		if (updateSeq == null) return null;
+		const raw = String(updateSeq);
+		const head = raw.split('-', 1)[0]?.trim();
+		if (!head) return '?';
+		const num = Number(head);
+		return Number.isFinite(num) ? String(Math.trunc(num)) : '?';
+	}
+
+	function detailsForDb(name) {
+		return dbInfoByName[name] ?? null;
+	}
+
+	async function askConfirmation(event, title, message) {
+		if (modalYesNo?.open) {
+			return await modalYesNo.open({ event, title, message });
+		}
+		return window.confirm(`${title}\n\n${message}`);
+	}
+
+	async function openDatabase(dbName) {
+		await goto(fullSyncDbHref(dbName));
+	}
+
+	async function openDatabaseFromFilter() {
+		const query = databaseFilter.trim().toLowerCase();
+		if (!query) return;
+		const exact = databases.find((db) => db.toLowerCase() == query);
+		const closest = filteredDatabases[0] ?? null;
+		const target = exact ?? closest;
+		if (!target) return;
+		await openDatabase(target);
+	}
+
+	async function refreshDatabases() {
+		loadingDatabases = true;
+		lastError = '';
+		try {
+			databases = await listDatabases();
+			dbInfoByName = {};
+			dbPage = 1;
+		} catch (error) {
+			showError(error);
+		} finally {
+			loadingDatabases = false;
+		}
+	}
+
+	async function loadDatabaseInfos(names) {
+		const missing = names.filter((name) => dbInfoByName[name] == null);
+		if (!missing.length) return;
+		const token = ++dbInfoRequestCounter;
+		const loaded = {};
+		await Promise.all(
+			missing.map(async (name) => {
+				try {
+					loaded[name] = await getDatabaseInfo(name);
+				} catch {
+					loaded[name] = {
+						doc_count: '?',
+						update_seq: '?',
+						sizes: { active: -1 },
+						partitioned: null,
+						isError: true
+					};
+				}
+			})
+		);
+		if (token != dbInfoRequestCounter) return;
+		dbInfoByName = { ...dbInfoByName, ...loaded };
+	}
+
+	async function removeDatabaseAction(event, dbName) {
+		const ok = await askConfirmation(
+			event,
+			'Delete database',
+			`Do you confirm deleting "${dbName}" and all its documents?`
+		);
+		if (!ok) return;
+
+		working = true;
+		lastError = '';
+		try {
+			await removeDatabase(dbName);
+			showSuccess(`Database "${dbName}" deleted`);
+			await refreshDatabases();
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	onMount(async () => {
+		await refreshDatabases();
+	});
+</script>
+
+<div class="layout-y-stretch">
+	<Card title="Databases" cornerOptionClass="w-full md:w-auto">
+		{#snippet cornerOption()}
+			<ActionBar full={false} wrap={false} class="db-card-actions">
+				<Button
+					full={false}
+					icon="mdi:refresh"
+					class="button-ico-primary h-9 w-9 min-w-9 justify-center p-0!"
+					title="Refresh databases"
+					ariaLabel="Refresh databases"
+					onclick={refreshDatabases}
+					disabled={loadingDatabases || working}
+				/>
+				<InputGroup
+					class="db-search-input h-9 min-w-0"
+					type="text"
+					placeholder="Search databases"
+					icon="mdi:magnify"
+					list={dbSearchListId}
+					bind:value={databaseFilter}
+					oninput={() => {
+						dbPage = 1;
+					}}
+					onkeydown={(event) => {
+						if (event.key === 'Enter') {
+							event.preventDefault();
+							void openDatabaseFromFilter();
+						}
+					}}
+				>
+					{#snippet actions()}
+						<button
+							type="button"
+							class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+							title="Open database"
+							aria-label="Open database"
+							disabled={databaseFilter.trim().length == 0}
+							onclick={() => void openDatabaseFromFilter()}
+						>
+							<Ico icon="mdi:arrow-right" size={5} />
+						</button>
+					{/snippet}
+				</InputGroup>
+				<datalist id={dbSearchListId}>
+					{#each filteredDatabases.slice(0, 200) as dbName (dbName)}
+						<option value={dbName}></option>
+					{/each}
+				</datalist>
+				<Button
+					label="JSON"
+					icon="mdi:code-braces"
+					class="db-json-btn button-secondary h-9 w-fit!"
+					href={`${fullSyncBaseUrl()}_all_dbs`}
+					target="_blank"
+					rel="noopener noreferrer"
+				/>
+				<Button
+					icon="mdi:book-open-variant"
+					class="db-doc-btn button-secondary h-9 w-fit! px-2!"
+					title="CouchDB documentation"
+					ariaLabel="CouchDB documentation"
+					href="https://docs.couchdb.org/en/stable/api/server/common.html#get--_all_dbs"
+					target="_blank"
+					rel="noopener noreferrer"
+				/>
+			</ActionBar>
+		{/snippet}
+
+		{#if lastError}
+			<div
+				class="mb-2 rounded-base border border-error-300-700 bg-error-100-900 px-3 py-2 text-sm text-error-900-100"
+			>
+				{lastError}
+			</div>
+		{/if}
+
+		<fieldset class="layout-y-stretch gap-3" disabled={loadingDatabases || working}>
+			<TableAutoCard
+				class="db-table"
+				cardBreakpoint={1}
+				definition={[
+					{ name: 'Name', key: 'name', custom: true, class: 'min-w-52 break-all' },
+					{ name: 'Docs', key: 'docCount', class: 'w-20' },
+					{ name: 'Size', key: 'sizeK', class: 'w-24' },
+					{ name: 'Seq', key: 'seq', class: 'w-20' },
+					{ name: 'Actions', key: 'actions', custom: true, class: 'w-16' }
+				]}
+				data={databaseRows}
+				fnRowId={(row) => row.name}
+			>
+				{#snippet children({ row, def })}
+					{#if def.key == 'name'}
+						{#if row.isLoading}
+							<span class="text-muted">...</span>
+						{:else}
+							<button
+								type="button"
+								class="text-left break-all text-primary-500 transition-surface hover:underline"
+								onclick={() => openDatabase(row.name)}
+							>
+								{row.name}
+							</button>
+						{/if}
+					{:else if def.key == 'actions'}
+						{#if !row.isLoading}
+							<ResponsiveButtons
+								class="w-full min-w-24"
+								size="6"
+								buttons={[
+									{
+										icon: 'mdi:delete-outline',
+										cls: 'button-ico-primary',
+										title: 'Delete database',
+										onclick: (event) => removeDatabaseAction(event, row.name)
+									}
+								]}
+							/>
+						{/if}
+					{/if}
+				{/snippet}
+			</TableAutoCard>
+
+			<div class="layout-x-wrap items-center justify-between gap-3 text-sm">
+				<div class="text-muted">
+					Showing {(dbPageSafe - 1) * dbPerPage + 1}–{Math.min(
+						dbPageSafe * dbPerPage,
+						filteredDatabases.length
+					)}
+					of {filteredDatabases.length} databases
+				</div>
+				<ActionBar full={false} wrap={false} class="items-center gap-2">
+					<label class="layout-x-low items-center text-sm text-muted">
+						<span>Per page</span>
+						<select
+							class="select h-9 input-common w-20 px-2 text-sm"
+							value={String(dbPerPage)}
+							onchange={(event) => {
+								dbPerPage = Number(event.currentTarget.value) || 20;
+								dbPage = 1;
+							}}
+						>
+							<option value="20">20</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</label>
+					<button
+						type="button"
+						class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+						title="Previous page"
+						aria-label="Previous page"
+						disabled={dbPageSafe <= 1}
+						onclick={() => (dbPage = dbPageSafe - 1)}
+					>
+						<Ico icon="mdi:arrow-left-bold-outline" />
+					</button>
+					<span class="min-w-6 text-center font-medium">{dbPageSafe}</span>
+					<button
+						type="button"
+						class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+						title="Next page"
+						aria-label="Next page"
+						disabled={dbPageSafe >= dbTotalPages}
+						onclick={() => (dbPage = dbPageSafe + 1)}
+					>
+						<Ico icon="mdi:arrow-right-bold-outline" />
+					</button>
+				</ActionBar>
+			</div>
+		</fieldset>
+	</Card>
+</div>
+
+<style lang="postcss">
+	@reference "../../../../app.css";
+
+	:global(.db-card-actions) {
+		display: grid;
+		grid-template-columns: auto minmax(13rem, 1fr) auto auto;
+		align-items: center;
+		gap: calc(var(--spacing) * 1.5);
+		width: min(100%, 40rem);
+	}
+
+	:global(.db-search-input) {
+		width: 100%;
+	}
+
+	:global(.db-table tr td:first-child button) {
+		line-height: 1.35;
+	}
+
+	@media (max-width: 860px) {
+		:global(.db-card-actions) {
+			width: 100%;
+			grid-template-columns: auto minmax(0, 1fr) auto auto;
+		}
+	}
+
+	@media (max-width: 560px) {
+		:global(.db-card-actions) {
+			grid-template-columns: auto minmax(0, 1fr) auto;
+		}
+
+		:global(.db-doc-btn) {
+			grid-column: 3;
+			grid-row: 2;
+			justify-self: end;
+		}
+
+		:global(.db-json-btn) {
+			grid-column: 2;
+			grid-row: 2;
+			justify-self: end;
+		}
+	}
+</style>

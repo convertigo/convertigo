@@ -8,6 +8,10 @@
 	import { onDestroy } from 'svelte';
 
 	let { children } = $props();
+	const getSwaggerProjectUrl = (project) =>
+		`/convertigo/swagger/dist/index.html?url=${encodeURIComponent(
+			`/convertigo/openapi?YAML&__project=${project}`
+		)}`;
 	$effect(() => {
 		Project.page = page;
 	});
@@ -48,6 +52,13 @@
 					params: { project }
 				});
 			}
+			extras.push({
+				title: 'Swagger',
+				icon: 'mdi:swagger',
+				url: getSwaggerProjectUrl(project),
+				external: true,
+				targetBlank: true
+			});
 		}
 		PagesRail.extras = extras;
 	});

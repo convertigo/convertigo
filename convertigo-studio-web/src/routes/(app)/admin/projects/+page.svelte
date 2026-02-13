@@ -1,5 +1,8 @@
 <script>
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -12,7 +15,7 @@
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Projects from '$lib/common/Projects.svelte';
-	import { getContext, onDestroy } from 'svelte';
+	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 
 	let {
@@ -48,6 +51,78 @@
 	);
 
 	let editedProject = $state('');
+	let scrollJob = 0;
+
+	const findProjectRow = (project) => {
+		return [...document.querySelectorAll('.projects-table tr[data-custom]')].find(
+			(row) => row.getAttribute('data-custom') === project
+		);
+	};
+
+	/** @param {Element} element @param {ScrollBehavior} [behavior='smooth'] */
+	const centerInViewport = (element, behavior = 'smooth') => {
+		const { top, height } = element.getBoundingClientRect();
+		const offset = Math.max(0, (window.innerHeight - height) / 2);
+		window.scrollTo({
+			top: Math.max(0, window.scrollY + top - offset),
+			behavior
+		});
+	};
+
+	/** @param {string} project @param {{behavior?: ScrollBehavior, retries?: number, delayMs?: number}} [options] */
+	const scrollToProjectRow = async (
+		project,
+		{ behavior = 'smooth', retries = 120, delayMs = 50 } = {}
+	) => {
+		if (!browser || !project) return false;
+		const currentJob = ++scrollJob;
+		for (let attempt = 0; attempt < retries; attempt++) {
+			if (currentJob !== scrollJob) return false;
+			await tick();
+			const row = findProjectRow(project);
+			if (row) {
+				const anchor = row.querySelector('table tbody tr') ?? row;
+				centerInViewport(anchor, behavior);
+				return true;
+			}
+			await new Promise((resolve) => setTimeout(resolve, delayMs));
+		}
+		return false;
+	};
+
+	const syncEditFromRoute = () => {
+		const fromRoute = page.params.project ?? '';
+		if (fromRoute === editedProject) return;
+		editedProject = fromRoute;
+		if (fromRoute) {
+			void scrollToProjectRow(fromRoute, { behavior: 'auto' });
+		}
+	};
+
+	const setEditedProject = async (project) => {
+		const next = editedProject == project ? '' : project;
+		editedProject = next;
+		const nextUrl = next
+			? resolve('/(app)/admin/projects/[project]', { project: next })
+			: resolve('/(app)/admin/projects');
+		const currentUrl = `${page.url.pathname}${page.url.search}${page.url.hash}`;
+		if (nextUrl !== currentUrl) {
+			await goto(nextUrl, {
+				replaceState: true,
+				noScroll: true,
+				keepFocus: true,
+				invalidateAll: false
+			});
+		}
+		if (next) {
+			void scrollToProjectRow(next);
+		}
+	};
+
+	$effect(() => {
+		page.params.project;
+		syncEditFromRoute();
+	});
 </script>
 
 <ModalDynamic bind:this={modalExport}>
@@ -238,6 +313,7 @@
 					buttons={[
 						{
 							icon: 'mdi:warning-outline',
+							title: 'Show undefined global symbols',
 							cls: undefined_symbols
 								? 'button-ico-warning'
 								: 'button-ico-warning opacity-0 pointer-events-none',
@@ -256,12 +332,14 @@
 						},
 						{
 							icon: 'mdi:edit-outline',
+							title: 'Edit project configuration',
 							cls: `button-ico-primary ${editedProject == project ? 'opacity-50' : ''}`,
-							onclick: () => (editedProject = editedProject == project ? '' : project),
+							onclick: () => setEditedProject(project),
 							disabled: false
 						},
 						{
 							icon: 'mdi:reload',
+							title: 'Reload project',
 							cls: 'button-ico-primary',
 							onclick: () => {
 								reload(project);
@@ -269,6 +347,7 @@
 						},
 						{
 							icon: 'mdi:export',
+							title: 'Export project',
 							cls: 'button-ico-primary',
 							onclick: async (event) => {
 								event.currentTarget?.blur();
@@ -282,12 +361,14 @@
 						},
 						{
 							icon: 'mdi:cog',
+							title: 'Open project dashboard',
 							cls: 'button-ico-primary',
 							href: resolve(`/dashboard/${project}/backend/`),
 							disabled: false
 						},
 						{
 							icon: 'mdi:delete-outline',
+							title: 'Delete project',
 							cls: 'button-ico-primary',
 							onclick: async (event) => {
 								if (

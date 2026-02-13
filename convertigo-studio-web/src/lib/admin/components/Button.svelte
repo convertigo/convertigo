@@ -1,4 +1,5 @@
 <script>
+	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{ label?: string, icon?: string, size?: string, cls?: string, class?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, type?: string } | any} */
@@ -13,21 +14,72 @@
 		hidden,
 		href,
 		type = 'button',
-		title = label,
-		ariaLabel = title,
+		title,
+		tooltip,
+		ariaLabel,
 		full = true,
+		tooltipPlacement = 'top',
 		...rest
 	} = $props();
 	let cls = $derived(_cls ?? _cls2 ?? '');
+	let tooltipText = $derived((tooltip ?? title ?? '').trim());
+	let hasTooltip = $derived(tooltipText.length > 0);
+	let isLink = $derived(Boolean(href && !disabled));
+	let useSkeletonTooltip = $derived(hasTooltip);
+	let nativeTitle = $derived(useSkeletonTooltip ? undefined : (title ?? label));
+	let computedAriaLabel = $derived(ariaLabel ?? (tooltipText || title || label));
 </script>
 
 {#if !hidden}
-	{#if href && !disabled}
+	{#if useSkeletonTooltip}
+		<Tooltip positioning={{ placement: tooltipPlacement }}>
+			<Tooltip.Trigger {...rest}>
+				{#snippet element(attributes)}
+					{#if isLink}
+						{@const linkAttributes = /** @type {any} */ (attributes)}
+						<a
+							{...linkAttributes}
+							{href}
+							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
+							aria-label={computedAriaLabel}
+						>
+							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span
+								>{/if}</a
+						>
+					{:else}
+						<button
+							{...attributes}
+							{disabled}
+							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
+							{type}
+							{value}
+							aria-label={computedAriaLabel}
+						>
+							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span
+								>{/if}</button
+						>
+					{/if}
+				{/snippet}
+			</Tooltip.Trigger>
+			<Portal>
+				<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+					<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
+						<span>{tooltipText}</span>
+						<Tooltip.Arrow
+							class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+						>
+							<Tooltip.ArrowTip />
+						</Tooltip.Arrow>
+					</Tooltip.Content>
+				</Tooltip.Positioner>
+			</Portal>
+		</Tooltip>
+	{:else if isLink}
 		<a
 			{href}
 			class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
-			{title}
-			aria-label={ariaLabel}
+			title={nativeTitle}
+			aria-label={computedAriaLabel}
 			{...rest}
 		>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</a
@@ -38,8 +90,8 @@
 			class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 			{type}
 			{value}
-			{title}
-			aria-label={ariaLabel}
+			title={nativeTitle}
+			aria-label={computedAriaLabel}
 			{...rest}
 		>
 			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</button

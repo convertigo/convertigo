@@ -385,7 +385,11 @@
 						<div class="relative z-10 layout-x-end-low flex-wrap items-center">
 							<div class="layout-x-end-low flex-wrap items-center">
 								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
-									<Popover.Trigger class="button-secondary layout-x-low h-9">
+									<Popover.Trigger
+										class="button-secondary layout-x-low h-9"
+										title="Select a date range preset"
+										aria-label="Select a date range preset"
+									>
 										Preset<Ico icon="mdi:clock-star-four-points-outline" />
 									</Popover.Trigger>
 									<Popover.Positioner class="z-60">

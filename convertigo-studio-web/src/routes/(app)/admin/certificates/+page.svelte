@@ -225,12 +225,14 @@
 			buttons={[
 				{
 					icon: 'mdi:delete-outline',
+					title: def.setup ? 'Delete certificate entry' : 'Delete mapping',
 					cls: 'button-ico-primary',
 					hidden: last,
 					onclick: def.setup ? del : mappingsDel
 				},
 				{
 					icon: 'mdi:update',
+					title: def.setup ? 'Update certificate entry' : 'Update mapping',
 					cls: 'button-ico-primary',
 					onclick: def.setup ? configure : mappingsConfigure
 				}

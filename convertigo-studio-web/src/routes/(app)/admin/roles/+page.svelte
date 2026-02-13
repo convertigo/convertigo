@@ -419,12 +419,14 @@
 							class="button-ico-primary"
 							{size}
 							icon="mdi:edit-outline"
+							title="Edit user"
 							onclick={(event) => openRoleModal({ event, row })}
 						/>
 						<Button
 							class="button-ico-primary"
 							{size}
 							icon="mdi:delete-outline"
+							title="Delete user"
 							onclick={async () => {
 								if (
 									await modalYesNo.open({

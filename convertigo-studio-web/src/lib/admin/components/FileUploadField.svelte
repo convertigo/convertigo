@@ -12,6 +12,7 @@
 		title?: string;
 		hint?: string;
 		triggerLabel?: string;
+		triggerIcon?: string;
 		dropIcon?: string;
 		itemIcon?: string;
 		deleteIcon?: string;
@@ -29,7 +30,8 @@
 		class: cls = '',
 		title = 'Drop or choose a file',
 		hint = '',
-		triggerLabel = 'Browse',
+		triggerLabel = 'Choose file',
+		triggerIcon = 'mdi:paperclip',
 		dropIcon = 'mdi:briefcase-upload-outline',
 		itemIcon = 'mdi:briefcase-upload-outline',
 		deleteIcon = 'mdi:delete-outline',
@@ -55,20 +57,44 @@
 
 	const rootClass = $derived(['w-full', cls].filter(Boolean).join(' '));
 	const dropzoneBase =
-		'card flex flex-col items-center gap-2 border border-dashed border-surface-300-700 bg-surface-200-800 p-6 text-center transition-soft data-[dragging=true]:preset-filled-primary-100-900';
+		'surface-card-shell flex cursor-pointer select-none flex-col items-center gap-2 border-dashed bg-surface-100-900 p-6 text-center transition-soft data-[dragging=true]:preset-filled-primary-100-900';
 	const dropzoneClasses = $derived([dropzoneBase, dropzoneClass].filter(Boolean).join(' '));
+	const acceptedExtensions = $derived(
+		[...new Set(Object.values(accept).flatMap((values) => values ?? []))]
+			.filter(Boolean)
+			.map((value) => String(value).trim())
+	);
+	const resolvedHint = $derived(
+		hint || (acceptedExtensions.length > 0 ? `Accepted: ${acceptedExtensions.join(', ')}` : '')
+	);
+	const resolvedRejectedText = $derived(
+		rejectedText ||
+			(acceptedExtensions.length > 0
+				? `Unsupported file type. Allowed: ${acceptedExtensions.join(', ')}`
+				: 'This file cannot be uploaded.')
+	);
 </script>
+
+{#snippet trigger(attrs)}
+	{@const triggerClass = [attrs?.class, 'mx-auto mt-2 button-primary w-fit!']
+		.filter(Boolean)
+		.join(' ')}
+	<button {...attrs} type="button" class={triggerClass}>
+		{#if triggerIcon}
+			<Ico icon={triggerIcon} size={4} />
+		{/if}
+		<span>{triggerLabel}</span>
+	</button>
+{/snippet}
 
 <FileUpload {name} {accept} {maxFiles} {required} {allowDrop} class={rootClass}>
 	<FileUpload.Dropzone class={dropzoneClasses}>
 		<Ico icon={dropIcon} size="8" class="mx-auto text-primary-500" />
 		<p class="text-base font-semibold">{title}</p>
-		{#if hint}
-			<p class="text-xs text-muted">{hint}</p>
+		{#if resolvedHint}
+			<p class="text-xs text-muted">{resolvedHint}</p>
 		{/if}
-		<FileUpload.Trigger class="mx-auto mt-2 button-secondary w-fit!"
-			>{triggerLabel}</FileUpload.Trigger
-		>
+		<FileUpload.Trigger element={trigger} />
 		<FileUpload.HiddenInput />
 	</FileUpload.Dropzone>
 	<FileUpload.Context>
@@ -93,8 +119,8 @@
 						</div>
 					</FileUpload.Item>
 				{/each}
-				{#if rejectedText && (fileUpload().rejectedFiles?.length ?? 0) > 0}
-					<p class="text-xs text-error-700-300">{rejectedText}</p>
+				{#if (fileUpload().rejectedFiles?.length ?? 0) > 0}
+					<p class="text-xs text-error-700-300">{resolvedRejectedText}</p>
 				{/if}
 			</FileUpload.ItemGroup>
 		{/snippet}

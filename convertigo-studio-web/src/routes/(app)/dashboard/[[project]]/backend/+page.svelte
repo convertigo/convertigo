@@ -128,19 +128,21 @@
 			bind:value={searchQuery}
 		>
 			{#snippet actions()}
-				{#each Object.values(accessibilities) as accessibility, idx (idx)}
-					<button
+				{#each Object.entries(accessibilities) as [name, accessibility], idx (name)}
+					<Button
+						full={false}
 						type="button"
-						class="layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 {accessibility.chip}"
-						class:rounded-l={idx === 0}
-						class:rounded-r={idx === 2}
-						class:opacity-50={!accessibility.enabled}
+						size={3}
+						icon={accessibility.icon}
+						class={`layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 ${accessibility.chip} ${accessibility.tone} ${
+							idx === 0 ? 'rounded-l' : ''
+						} ${idx === 2 ? 'rounded-r' : ''} ${!accessibility.enabled ? 'opacity-50' : ''}`}
+						title={`${accessibility.enabled ? 'Hide' : 'Show'} ${name} requestables`}
+						ariaLabel={`${accessibility.enabled ? 'Hide' : 'Show'} ${name} requestables`}
 						onclick={() => {
 							accessibility.enabled = !accessibility.enabled;
 						}}
-					>
-						<Ico icon={accessibility.icon} size={3} class={accessibility.tone} />
-					</button>
+					/>
 				{/each}
 			{/snippet}
 		</InputGroup>

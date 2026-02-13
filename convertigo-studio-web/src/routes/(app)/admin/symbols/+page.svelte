@@ -307,6 +307,7 @@
 							class="button-ico-primary"
 							{size}
 							icon="mdi:edit-outline"
+							title="Edit symbol"
 							onclick={(event) => {
 								modalOpen({ event, row });
 							}}
@@ -315,6 +316,7 @@
 							class="button-ico-primary"
 							{size}
 							icon="mdi:delete-outline"
+							title="Delete symbol"
 							onclick={async () => {
 								if (
 									await modalYesNo.open({

@@ -41,6 +41,11 @@ const parts = $derived([
 			page: '/(app)/admin/fullsync'
 		},
 		{
+			title: 'FS',
+			icon: 'mdi:database',
+			page: '/(app)/admin/fs'
+		},
+		{
 			title: 'Cache',
 			icon: 'mdi:database-clock-outline',
 			page: '/(app)/admin/cache'
@@ -65,6 +70,11 @@ const parts = $derived([
 			icon: 'mdi:key-outline',
 			page: '/(app)/admin/keys',
 			loading: Status.cloud == null
+		},
+		{
+			title: 'Assistant',
+			icon: 'mdi:robot-outline',
+			page: '/(app)/admin/assistant'
 		}
 	].filter(({ title }) => title != 'Keys' || Status.cloud != true),
 	[
@@ -97,7 +107,7 @@ const parts = $derived([
 			url: 'https://www.convertigo.com'
 		},
 		{
-			title: 'Dev Network',
+			title: 'Knowledge',
 			icon: 'mdi:hub',
 			url: 'https://convertigo.atlassian.net/wiki/spaces/CK/'
 		},

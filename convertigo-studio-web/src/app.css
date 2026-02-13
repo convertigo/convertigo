@@ -108,8 +108,12 @@
 	@apply text-primary-500;
 }
 
+@utility surface-card-shell {
+	@apply rounded-container border border-color shadow-follow;
+}
+
 @utility accordion-item {
-	@apply w-full overflow-hidden rounded-container border border-color bg-surface-100-900 shadow-follow;
+	@apply w-full overflow-hidden surface-card-shell bg-surface-100-900;
 }
 
 @utility accordion-trigger {
@@ -290,15 +294,23 @@
 	@apply cursor-pointer text-[14px];
 }
 
+@utility field-shell {
+	@apply rounded-base border border-surface-300-700 bg-surface-100-900 text-strong;
+}
+
+@utility field-focus-ring {
+	@apply focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+}
+
 @utility input-common {
-	@apply w-full rounded-base border border-surface-300-700 bg-surface-100-900 font-normal text-strong placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply w-full field-shell font-normal field-focus-ring placeholder:text-[15px] placeholder:font-light placeholder:text-surface-600-400;
 	&:focus {
 		box-shadow: none;
 	}
 }
 
 @utility select-common {
-	@apply rounded-base border border-surface-300-700 bg-surface-100-900 font-normal text-strong placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-1px] focus-visible:outline-primary-500;
+	@apply field-shell font-normal field-focus-ring placeholder:text-[12px] placeholder:font-light placeholder:text-surface-600-400;
 }
 
 @utility input-text {

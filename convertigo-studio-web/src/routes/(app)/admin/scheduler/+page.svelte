@@ -360,6 +360,12 @@
 						<fieldset class="layout-x-low" disabled={!init}>
 							<CheckState
 								name={row.name}
+								title={row.enabled == 'true' || row.enabled === true
+									? 'Disable schedule'
+									: 'Enable schedule'}
+								aria-label={row.enabled == 'true' || row.enabled === true
+									? 'Disable schedule'
+									: 'Enable schedule'}
 								bind:value={
 									() => row.enabled,
 									(enabled) =>
@@ -377,12 +383,14 @@
 								class="button-ico-primary"
 								{size}
 								icon="mdi:edit-outline"
+								title="Edit schedule"
 								onclick={(event) => open({ event, mode: row.type, row })}
 							/>
 							<Button
 								class="button-ico-primary"
 								{size}
 								icon="mdi:delete-outline"
+								title="Delete schedule"
 								onclick={async (event) => {
 									if (
 										await modalYesNo.open({
