@@ -1,7 +1,6 @@
 <script>
 	import Icon from '@iconify/svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { fromAction } from 'svelte/attachments';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>, cardBreakpoint?: number}} */
@@ -26,7 +25,25 @@
 	const overflowThreshold = 8;
 	let isCardView = $state(false);
 	let tableMinWidth = $state(0);
+	let sortKey = $state('');
+	/** @type {'asc' | 'desc' | ''} */
+	let sortDirection = $state(/** @type {'asc' | 'desc' | ''} */ (''));
 	const attachContainer = $derived(fromAction(observeContainer));
+	const sortableDefinition = $derived(definition.filter((def) => isDefSortable(def)));
+	const activeSortKey = $derived(
+		sortableDefinition.some((def) => def.key === sortKey) ? sortKey : ''
+	);
+	const sortedData = $derived.by(() => {
+		if (!Array.isArray(data) || data.length === 0 || sortDirection === '' || activeSortKey === '') {
+			return data;
+		}
+		const rows = [...data];
+		rows.sort((a, b) => {
+			const comparison = compareValues(a?.[activeSortKey], b?.[activeSortKey]);
+			return sortDirection === 'asc' ? comparison : -comparison;
+		});
+		return rows;
+	});
 
 	/** @param {HTMLDivElement} node */
 	function observeContainer(node) {
@@ -88,6 +105,118 @@
 			}
 		};
 	}
+
+	const normalizeValue = (value) => {
+		if (value == null || value === '') {
+			return { kind: 'empty', value: '' };
+		}
+		if (typeof value === 'number') {
+			return { kind: 'number', value };
+		}
+		if (typeof value === 'boolean') {
+			return { kind: 'number', value: value ? 1 : 0 };
+		}
+		if (value instanceof Date) {
+			return { kind: 'number', value: value.getTime() };
+		}
+		if (typeof value === 'string') {
+			const trimmed = value.trim();
+			const num = Number(trimmed);
+			if (trimmed !== '' && Number.isFinite(num)) {
+				return { kind: 'number', value: num };
+			}
+			return { kind: 'string', value: trimmed.toLocaleLowerCase() };
+		}
+		return { kind: 'string', value: String(value).toLocaleLowerCase() };
+	};
+
+	const compareValues = (left, right) => {
+		const a = normalizeValue(left);
+		const b = normalizeValue(right);
+		if (a.kind === 'empty' && b.kind === 'empty') return 0;
+		if (a.kind === 'empty') return 1;
+		if (b.kind === 'empty') return -1;
+		if (a.kind === 'number' && b.kind === 'number') {
+			return Number(a.value) - Number(b.value);
+		}
+		return String(a.value).localeCompare(String(b.value), undefined, {
+			numeric: true,
+			sensitivity: 'base'
+		});
+	};
+
+	const toggleSort = (def) => {
+		if (!isDefSortable(def)) return;
+		if (sortKey !== def.key) {
+			sortKey = def.key;
+			sortDirection = 'asc';
+			return;
+		}
+		if (sortDirection === 'asc') {
+			sortDirection = 'desc';
+			return;
+		}
+		if (sortDirection === 'desc') {
+			sortKey = '';
+			sortDirection = '';
+			return;
+		}
+		sortDirection = 'asc';
+	};
+
+	const getSortIndicator = (def) => {
+		if (activeSortKey !== def?.key || sortDirection === '') {
+			return '';
+		}
+		return sortDirection === 'asc' ? '↓' : '↑';
+	};
+
+	function isDefSortable(def) {
+		if (def?.sortable === true) return true;
+		if (def?.sortable === false) return false;
+		if (!def?.key || typeof def.key !== 'string' || def.key.length === 0) return false;
+		if (def?.custom) return false;
+		const label = String(def?.name ?? def.key)
+			.trim()
+			.toLowerCase();
+		if (label === 'action' || label === 'actions') return false;
+		return true;
+	}
+
+	/** @param {string} key @param {'asc' | 'desc' | ''} [direction='asc'] */
+	const setSort = (key, direction = 'asc') => {
+		if (!key) {
+			sortKey = '';
+			sortDirection = '';
+			return;
+		}
+		sortKey = key;
+		sortDirection = direction;
+	};
+
+	const cycleSortDirection = () => {
+		if (!activeSortKey) {
+			const first = sortableDefinition[0];
+			if (first?.key) {
+				setSort(first.key, 'asc');
+			}
+			return;
+		}
+		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+	};
+
+	const onCardSortKeyChange = (event) => {
+		const key = event?.currentTarget?.value ?? '';
+		if (!key) {
+			setSort('', '');
+			return;
+		}
+		setSort(key, 'asc');
+	};
+
+	const cardSortDirectionLabel = $derived(
+		getSortIndicator({ key: activeSortKey }) === '↑' ? '↑' : '↓'
+	);
 </script>
 
 <div class="table-container {cls}" class:autocard={isCardView} {@attach attachContainer}>
@@ -96,6 +225,34 @@
 	{/if}
 	{#if comment.length > 0}
 		<h1 class="p-3 font-medium">{comment}</h1>
+	{/if}
+	{#if isCardView && sortableDefinition.length > 0}
+		<div class="table-card-sort-controls">
+			<select
+				class="table-card-sort-select select select-common"
+				value={activeSortKey}
+				onchange={onCardSortKeyChange}
+				aria-label="Sort cards by"
+			>
+				<option value="">Sort by ...</option>
+				{#each sortableDefinition as def (def.key)}
+					<option value={def.key}>{def.name ?? def.key}</option>
+				{/each}
+			</select>
+			{#if activeSortKey}
+				<button
+					type="button"
+					class="table-card-sort-direction button-secondary"
+					onclick={cycleSortDirection}
+					title={cardSortDirectionLabel === '↓'
+						? 'Sort direction: ascending'
+						: 'Sort direction: descending'}
+					aria-label="Toggle sort direction"
+				>
+					{cardSortDirectionLabel}
+				</button>
+			{/if}
+		</div>
 	{/if}
 
 	<table class="w-full">
@@ -107,7 +264,24 @@
 					<tr class={thClass}>
 						{#each definition as def (def.key ?? def.name ?? def)}
 							<th class={def.th}>
-								{#if def.icon}
+								{#if isDefSortable(def)}
+									<button
+										type="button"
+										class="table-sort-button"
+										onclick={() => toggleSort(def)}
+										aria-label={`Sort by ${def.name ?? def.key}`}
+										title={`Sort by ${def.name ?? def.key}`}
+									>
+										{#if def.icon}
+											<Icon icon={def.icon} class="h-7 w-7" />
+										{:else}
+											{def.name ?? ''}
+										{/if}
+										{#if getSortIndicator(def) !== ''}
+											<span class="table-sort-indicator">{getSortIndicator(def)}</span>
+										{/if}
+									</button>
+								{:else if def.icon}
 									<Icon icon={def.icon} class="h-7 w-7" />
 								{:else}
 									{def.name ?? ''}
@@ -118,9 +292,9 @@
 				</thead>
 			{/if}
 		{/if}
-		{#if data && data.length > 0}
+		{#if sortedData && sortedData.length > 0}
 			<tbody>
-				{#each data as row, rowIdx (fnRowId(row, rowIdx))}
+				{#each sortedData as row, rowIdx (fnRowId(row, rowIdx))}
 					<tr class={trClass} data-custom={row.name}>
 						{#snippet rowRender()}
 							{#each definition as def (def.key ?? def.name ?? def)}
@@ -195,6 +369,37 @@
 		width: 100%;
 		container-type: inline-size;
 		--table-separator-color: light-dark(var(--color-surface-400), var(--color-surface-600));
+	}
+
+	.table-sort-button {
+		align-items: center;
+		background: transparent;
+		border: 0;
+		color: inherit;
+		cursor: pointer;
+		display: inline-flex;
+		font: inherit;
+		gap: 0.35rem;
+		padding: 0;
+		text-align: left;
+		width: 100%;
+	}
+
+	.table-sort-indicator {
+		font-size: 12px;
+		line-height: 1;
+	}
+
+	.table-card-sort-controls {
+		@apply mb-2 grid grid-cols-[1fr_auto] items-center gap-2;
+	}
+
+	.table-card-sort-select {
+		@apply h-9 w-full min-w-0 px-2 text-sm;
+	}
+
+	.table-card-sort-direction {
+		@apply h-9 min-w-9 justify-center px-2 text-sm leading-none;
 	}
 
 	.autocard {

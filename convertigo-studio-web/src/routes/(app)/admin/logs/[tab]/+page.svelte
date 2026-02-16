@@ -341,7 +341,7 @@
 						value,
 						icon
 					}))}
-					bind:value={() => tabSet, (v) => goto(resolve(`/admin/logs/${v}`))}
+					bind:value={() => tabSet, (v) => goto(resolve('/(app)/admin/logs/[tab]', { tab: v }))}
 					fit={true}
 				/>
 

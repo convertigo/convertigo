@@ -1,33 +1,46 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
+	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
+	import LightSvelte from '$lib/common/Light.svelte.js';
+	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { toaster } from '$lib/utils/service';
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {
+		createMangoIndex,
+		explainMangoQuery,
 		fullSyncBaseUrl,
+		getDesignDocument,
 		listDesignDocuments,
 		listDocuments,
+		listMangoIndexes,
+		removeDesignDocument,
 		removeDocuments,
+		removeMangoIndexes,
 		runMangoQuery,
-		runViewQuery
+		runViewQuery,
+		saveDesignDocument
 	} from './fullsync-api';
 	import {
+		fullSyncDbAllDocsHref,
+		fullSyncDbIndexHref,
+		fullSyncDbMangoHref,
 		fullSyncDbTabHref,
+		fullSyncDbViewEditHref,
 		fullSyncDbViewHref,
 		fullSyncDocHref,
 		fullSyncHomeHref
 	} from './fullsync-route';
 
-	/** @type {{database: string}} */
-	let { database = '' } = $props();
+	/** @type {{database: string, section?: 'all' | 'mango' | 'index', designDocId?: string, viewName?: string, mode?: string}} */
+	let { database = '', section = 'all', designDocId = '', viewName = '', mode = '' } = $props();
 
 	let modalYesNo;
 	try {
@@ -36,70 +49,252 @@
 		modalYesNo = undefined;
 	}
 
+	let cloneViewModal = $state(/** @type {any} */ (undefined));
+
 	let loadingDocuments = $state(false);
-	let working = $state(false);
 	let loadingDesignDocs = $state(false);
+	let working = $state(false);
+	let savingView = $state(false);
 	let lastError = $state('');
 
-	let documents = $state([]);
+	let documents = $state(/** @type {any[]} */ ([]));
 	let docsTotalRows = $state(0);
-	let mangoQueryText = $state('{\n  "selector": {},\n  "limit": 25\n}');
-	let mangoResultText = $state('');
-	let docsLimitValue = $state('20');
 	let docsSkip = $state(0);
-	let docsDescending = $state(true);
+	let docsPageSizeValue = $state('20');
+	let docsQueryLimitValue = $state('none');
+	let docsDescending = $state(false);
 	let docsIncludeDocs = $state(false);
+	let docsShowAllColumns = $state(false);
+	let docsColumnSelection = $state(/** @type {string[]} */ ([]));
+	let docsHasNextPage = $state(false);
 	let docsStable = $state(false);
 	let docsUpdate = $state('true');
 	let docsRequestCounter = 0;
-	let loadedDatabase = $state('');
-	let loadedQueryScope = $state('');
-
 	let queryOptionsOpen = $state(false);
+
 	let quickDocId = $state('');
 	let currentLayout = $state('metadata');
 	let selectedDocIds = $state(/** @type {Record<string, boolean>} */ ({}));
+	let loadedDatabase = $state('');
+	let loadedQueryScope = $state('');
+	let loadedMangoIndexScope = $state('');
 
-	let designDocs = $state([]);
+	let designDocs = $state(
+		/** @type {Array<{id: string, name: string, views: Array<{name: string, map?: string, reduce?: string}>, doc: any}>} */ ([])
+	);
 	let designDocExpanded = $state(/** @type {Record<string, boolean>} */ ({}));
 
-	let currentTab = $derived.by(() =>
-		page.url.searchParams.get('tab') == 'mango' ? 'mango' : 'all'
+	let mangoQueryText = $state(
+		'{\n  "selector": {\n    "_id": {\n      "$gt": null\n    }\n  },\n  "limit": 25\n}'
 	);
-	let selectedDesignDocId = $derived(page.url.searchParams.get('ddoc') ?? '');
-	let selectedViewName = $derived(page.url.searchParams.get('view') ?? '');
+	let mangoResult = $state(/** @type {any} */ (null));
+	let mangoExplainText = $state('');
+	let mangoResultLayout = $state('table');
+	let mangoShowAllColumns = $state(false);
+	let mangoColumnSelection = $state(/** @type {string[]} */ ([]));
+	let mangoSelectedDocIds = $state(/** @type {Record<string, boolean>} */ ({}));
+	let mangoSkip = $state(0);
+	let mangoLimitValue = $state('20');
+	let mangoLastRunMs = $state(0);
+	let mangoHistory = $state(/** @type {Array<{label: string, value: string}>} */ ([]));
+	let selectedMangoHistory = $state('');
+	let mangoIndexesLoading = $state(false);
+	let mangoIndexes = $state(/** @type {any[]} */ ([]));
+	let mangoIndexesSelection = $state(/** @type {Record<string, boolean>} */ ({}));
+	let mangoIndexText = $state(
+		'{\n  "index": {\n    "fields": [\n      "foo"\n    ]\n  },\n  "name": "foo-json-index",\n  "type": "json"\n}'
+	);
+	let mangoIndexExample = $state('example');
+	let mangoIndexSkip = $state(0);
+	let mangoIndexLimitValue = $state('20');
+
+	let cloneSourceDesignDocId = $state('');
+	let cloneSourceViewName = $state('');
+	let cloneTargetDesignDocId = $state('');
+	let cloneNewDesignDocName = $state('');
+	let cloneViewName = $state('');
+	let cloneViewError = $state('');
+
+	let viewEditorDesignDocId = $state('');
+	let viewEditorOriginalDesignDocId = $state('');
+	let viewEditorName = $state('');
+	let viewEditorOriginalName = $state('');
+	let viewEditorMap = $state('');
+	let viewEditorReduceOption = $state('NONE');
+	let viewEditorReduceCustom = $state(
+		'function (keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}'
+	);
+	let viewEditorNewDesignDocName = $state('');
+	let viewEditorLoadedKey = $state('');
+
+	let currentTab = $derived(section == 'mango' || section == 'index' ? section : 'all');
+	let currentMode = $derived(mode || '');
+	let selectedDesignDocId = $derived(normalizeDesignDocId((designDocId || '').trim()));
+	let selectedViewName = $derived((viewName || '').trim());
+	let isViewEditor = $derived(
+		currentTab == 'all' &&
+			currentMode == 'view-edit' &&
+			selectedDesignDocId.length > 0 &&
+			selectedViewName.length > 0
+	);
 	let isViewQuery = $derived(
-		currentTab == 'all' && selectedDesignDocId.length > 0 && selectedViewName.length > 0
+		currentTab == 'all' &&
+			currentMode != 'view-edit' &&
+			selectedDesignDocId.length > 0 &&
+			selectedViewName.length > 0
 	);
-	let hasLimit = $derived(docsLimitValue != 'none');
-	let docsLimitNumber = $derived(Math.max(1, Number(docsLimitValue) || 100));
-	let canGoPreviousDocs = $derived(hasLimit && docsSkip > 0);
+
+	let docsPageSize = $derived(Math.max(1, Number(docsPageSizeValue) || 20));
+	let docsQueryHasLimit = $derived(docsQueryLimitValue != 'none');
+	let docsQueryLimit = $derived(Math.max(1, Number(docsQueryLimitValue) || docsPageSize + 1));
+	let docsFetchLimit = $derived.by(() => {
+		const pageFetchLimit = docsPageSize + 1;
+		return docsQueryHasLimit ? Math.min(pageFetchLimit, docsQueryLimit) : pageFetchLimit;
+	});
+	let canGoPreviousDocs = $derived(docsSkip > 0);
 	let canGoNextDocs = $derived.by(() => {
-		if (!hasLimit) return false;
+		if (docsQueryHasLimit && docsSkip + docsPageSize >= docsQueryLimit) {
+			return false;
+		}
+		if (docsHasNextPage) return true;
 		const total = Number(docsTotalRows);
 		if (Number.isFinite(total) && total > 0) {
-			return docsSkip + docsLimitNumber < total;
+			return docsSkip + docsPageSize < total;
 		}
-		return documents.length >= docsLimitNumber;
+		return false;
 	});
+
 	let documentRows = $derived(
 		documents.map((row) => {
 			const value = row?.value ?? {};
 			const key = row?.key ?? row?.id ?? '';
 			const doc = row?.doc ?? null;
+			const raw = doc ?? row;
+			const rowId = row?.id ?? doc?._id ?? '';
+			const rowRev = value?.rev ?? doc?._rev ?? '';
+			const rowType = doc?.type ?? (rowId.startsWith('_design/') ? 'design' : '');
 			return {
-				id: row?.id ?? '',
+				id: rowId,
 				key: typeof key == 'string' ? key : JSON.stringify(key),
-				rev: value?.rev ?? doc?._rev ?? '',
-				type: doc?.type ?? (row?.id?.startsWith('_design/') ? 'design' : ''),
+				rev: rowRev,
+				type: rowType,
 				valueText: pretty(value),
 				valuePreview: JSON.stringify(value ?? {}),
-				jsonText: pretty(doc ?? row),
-				hasDocument: Boolean(row?.id),
-				raw: doc ?? row
+				jsonText: pretty(raw),
+				hasDocument: Boolean(rowId),
+				raw
 			};
 		})
 	);
+	let mangoRows = $derived.by(() => {
+		const docs = Array.isArray(mangoResult?.docs) ? mangoResult.docs : [];
+		return docs.map((doc) => ({
+			id: doc?._id ?? '',
+			rev: doc?._rev ?? '',
+			type: doc?.type ?? '',
+			jsonText: pretty(doc),
+			raw: doc
+		}));
+	});
+	let hasMangoDocs = $derived(mangoRows.length > 0);
+	let mangoHasLimit = $derived(mangoLimitValue != 'none');
+	let mangoLimitNumber = $derived(Math.max(1, Number(mangoLimitValue) || 20));
+	let mangoPagedRows = $derived.by(() => {
+		if (!mangoHasLimit) return mangoRows;
+		return mangoRows.slice(mangoSkip, mangoSkip + mangoLimitNumber);
+	});
+	let mangoSchemaDocs = $derived(
+		mangoPagedRows.map((row) => row?.raw).filter((doc) => Boolean(doc) && typeof doc == 'object')
+	);
+	let mangoSchema = $derived(getPseudoSchema(mangoSchemaDocs));
+	let mangoDisplayableColumns = $derived(
+		mangoSchema.filter((column) => typeof column == 'string' && column != '_attachments')
+	);
+	let mangoDefaultColumns = $derived(getPrioritizedFields(mangoSchemaDocs, 5));
+	let mangoVisibleColumnCount = $derived(
+		mangoShowAllColumns
+			? mangoDisplayableColumns.length
+			: Math.min(5, mangoDisplayableColumns.length)
+	);
+	let mangoVisibleColumns = $derived(
+		resolveVisibleColumns(
+			mangoDisplayableColumns,
+			mangoDefaultColumns,
+			mangoColumnSelection,
+			mangoVisibleColumnCount
+		)
+	);
+	let mangoCanGoPrevious = $derived(mangoHasLimit && mangoSkip > 0);
+	let mangoCanGoNext = $derived.by(() => {
+		if (!mangoHasLimit) return false;
+		return mangoSkip + mangoLimitNumber < mangoRows.length;
+	});
+	let mangoSelectableRows = $derived(
+		mangoPagedRows.filter((row) => Boolean(row?.id) && Boolean(row?.rev))
+	);
+	let isMangoExplainMode = $derived(mangoExplainText.trim().length > 0);
+	let mangoSelectedRows = $derived(
+		mangoRows.filter(
+			(row) => Boolean(mangoSelectedDocIds[row.id]) && Boolean(row?.id) && Boolean(row?.rev)
+		)
+	);
+	let mangoSelectedCount = $derived(mangoSelectedRows.length);
+	let mangoAllSelectableRowsSelected = $derived(
+		mangoSelectableRows.length > 0 &&
+			mangoSelectableRows.every((row) => Boolean(mangoSelectedDocIds[row.id]))
+	);
+	let mangoTableColspan = $derived(mangoVisibleColumns.length + 2);
+	let mangoIndexRows = $derived.by(() =>
+		mangoIndexes.map((index, indexPosition) => {
+			const ddoc = typeof index?.ddoc == 'string' ? index.ddoc : null;
+			const name = String(index?.name ?? '').trim();
+			const type = String(index?.type ?? '').trim() || 'json';
+			const id = type == 'special' ? '_all_docs' : ddoc || '';
+			const key = `${ddoc ?? '_all_docs'}::${name || indexPosition}`;
+			return {
+				key,
+				id,
+				ddoc,
+				name,
+				type,
+				isBulkDeletable: id.length > 0 && id != '_all_docs',
+				jsonText: pretty(index),
+				raw: index
+			};
+		})
+	);
+	let mangoIndexHasLimit = $derived(mangoIndexLimitValue != 'none');
+	let mangoIndexLimitNumber = $derived(Math.max(1, Number(mangoIndexLimitValue) || 20));
+	let mangoIndexPagedRows = $derived.by(() => {
+		if (!mangoIndexHasLimit) return mangoIndexRows;
+		return mangoIndexRows.slice(mangoIndexSkip, mangoIndexSkip + mangoIndexLimitNumber);
+	});
+	let mangoIndexCanGoPrevious = $derived(mangoIndexHasLimit && mangoIndexSkip > 0);
+	let mangoIndexCanGoNext = $derived.by(() => {
+		if (!mangoIndexHasLimit) return false;
+		return mangoIndexSkip + mangoIndexLimitNumber < mangoIndexRows.length;
+	});
+	let mangoIndexSelectableRows = $derived(mangoIndexPagedRows.filter((row) => row.isBulkDeletable));
+	let mangoIndexSelectedRows = $derived(
+		mangoIndexRows.filter((row) => row.isBulkDeletable && Boolean(mangoIndexesSelection[row.key]))
+	);
+	let mangoIndexSelectedCount = $derived(mangoIndexSelectedRows.length);
+	let mangoIndexAllSelectableRowsSelected = $derived(
+		mangoIndexSelectableRows.length > 0 &&
+			mangoIndexSelectableRows.every((row) => Boolean(mangoIndexesSelection[row.key]))
+	);
+
+	let designDocSelectItems = $derived(
+		designDocs.map((designDoc) => ({
+			value: designDoc.id,
+			text: designDoc.id
+		}))
+	);
+	let viewEditorDesignDocItems = $derived([
+		{ value: 'new-doc', text: 'Create new design document' },
+		...designDocSelectItems
+	]);
+
 	let selectableDocumentRows = $derived(
 		documentRows.filter((row) => Boolean(row?.id) && Boolean(row?.rev))
 	);
@@ -113,10 +308,37 @@
 		selectableDocumentRows.length > 0 &&
 			selectableDocumentRows.every((row) => Boolean(selectedDocIds[row.id]))
 	);
-	let tableColspan = $derived(currentLayout == 'metadata' ? 5 : currentLayout == 'table' ? 4 : 3);
+	let docsSchemaRows = $derived(
+		documentRows.map((row) => row?.raw).filter((doc) => Boolean(doc) && typeof doc == 'object')
+	);
+	let docsSchema = $derived(getPseudoSchema(docsSchemaRows));
+	let docsDisplayableColumns = $derived(
+		docsSchema.filter(
+			(column) => typeof column == 'string' && column != 'doc' && column != '_attachments'
+		)
+	);
+	let docsDefaultColumns = $derived(getPrioritizedFields(docsSchemaRows, 5));
+	let docsVisibleColumnCount = $derived(
+		docsShowAllColumns ? docsDisplayableColumns.length : Math.min(5, docsDisplayableColumns.length)
+	);
+	let docsVisibleColumns = $derived(
+		resolveVisibleColumns(
+			docsDisplayableColumns,
+			docsDefaultColumns,
+			docsColumnSelection,
+			docsVisibleColumnCount
+		)
+	);
+	let tableColspan = $derived(
+		currentLayout == 'metadata' ? 5 : currentLayout == 'table' ? docsVisibleColumns.length + 1 : 3
+	);
 	let quickDocDatalistId = $derived(`fullsync-doc-ids-${database.replace(/[^a-zA-Z0-9_-]/g, '-')}`);
+	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
+	let mangoHistoryStorageKey = $derived(
+		`fullsync:mango:${database.replace(/[^a-zA-Z0-9_-]/g, '_') || '_'}`
+	);
 	let rawJsonUrl = $derived.by(() => {
-		if (!database || currentTab != 'all') return '#';
+		if (!database || currentTab != 'all' || isViewEditor) return '#';
 		const query = buildDocsQuery();
 		const queryString = new URLSearchParams(
 			Object.entries(query)
@@ -127,6 +349,14 @@
 			? `${encodeURIComponent(database)}/${encodeDesignDocPath(selectedDesignDocId)}/_view/${encodeURIComponent(selectedViewName)}`
 			: `${encodeURIComponent(database)}/_all_docs`;
 		return `${fullSyncBaseUrl()}${path}${queryString ? `?${queryString}` : ''}`;
+	});
+	let mangoIndexesUrl = $derived.by(() => {
+		if (!database || currentTab != 'mango') return '#';
+		return fullSyncDbIndexHref(database);
+	});
+	let mangoIndexRawJsonUrl = $derived.by(() => {
+		if (!database || currentTab != 'index') return '#';
+		return `${fullSyncBaseUrl()}${encodeURIComponent(database)}/_index`;
 	});
 
 	function asErrorMessage(error) {
@@ -168,8 +398,92 @@
 		}
 	}
 
+	/**
+	 * @template T
+	 * @param {string} content
+	 * @param {T} fallback
+	 */
+	function parseJsonSilent(content, fallback = /** @type {T} */ (null)) {
+		try {
+			return JSON.parse(content);
+		} catch {
+			return fallback;
+		}
+	}
+
 	function pretty(value) {
 		return JSON.stringify(value ?? {}, null, 2);
+	}
+
+	function getPseudoSchema(docs = []) {
+		const cache = [];
+		for (const doc of docs) {
+			if (!doc || typeof doc != 'object') continue;
+			for (const key of Object.keys(doc)) {
+				cache.push(key);
+			}
+		}
+		const unique = Array.from(new Set(cache));
+		const idIndex = unique.indexOf('_id');
+		if (idIndex > 0) {
+			unique.splice(idIndex, 1);
+			unique.unshift('_id');
+		}
+		return unique;
+	}
+
+	function getPrioritizedFields(docs = [], max = 5) {
+		const counts = new Map();
+		for (const doc of docs) {
+			if (!doc || typeof doc != 'object') continue;
+			for (const key of Object.keys(doc)) {
+				counts.set(key, (counts.get(key) ?? 0) + 1);
+			}
+		}
+		counts.delete('id');
+		counts.delete('_rev');
+		return Array.from(counts.entries())
+			.sort((a, b) => {
+				if (a[1] != b[1]) return b[1] - a[1];
+				if (a[0] == b[0]) return 0;
+				return a[0] < b[0] ? -1 : 1;
+			})
+			.slice(0, Math.max(1, Number(max) || 5))
+			.map(([field]) => field);
+	}
+
+	function resolveVisibleColumns(available = [], preferred = [], selected = [], visibleCount = 5) {
+		const safeAvailable = Array.isArray(available) ? available : [];
+		const safePreferred = (Array.isArray(preferred) ? preferred : []).filter((column) =>
+			safeAvailable.includes(column)
+		);
+		const safeSelected = Array.isArray(selected) ? selected : [];
+		const used = new Set();
+		const columns = [];
+		for (let index = 0; index < Math.max(0, Number(visibleCount) || 0); index += 1) {
+			let next = safeSelected[index];
+			if (!next || !safeAvailable.includes(next) || used.has(next)) {
+				next =
+					safePreferred.find((column) => !used.has(column)) ??
+					safeAvailable.find((column) => !used.has(column)) ??
+					'';
+			}
+			if (!next) break;
+			columns.push(next);
+			used.add(next);
+		}
+		return columns;
+	}
+
+	function formatMangoCellValue(value) {
+		if (value == null) return '';
+		if (typeof value == 'string') return value;
+		if (typeof value == 'number' || typeof value == 'boolean') return String(value);
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
 	}
 
 	function encodeDesignDocPath(designDocId) {
@@ -177,23 +491,54 @@
 		return `_design/${encodeURIComponent(raw)}`;
 	}
 
+	function getDesignDocEntry(designDocId) {
+		return designDocs.find((designDoc) => designDoc.id == designDocId) ?? null;
+	}
+
+	function getDesignDocModel(designDocId) {
+		const entry = getDesignDocEntry(designDocId);
+		const doc = entry?.doc;
+		if (!doc || typeof doc != 'object') return null;
+		return parseJsonSilent(JSON.stringify(doc), null);
+	}
+
+	function normalizeDesignDocId(input) {
+		const raw = String(input ?? '').trim();
+		if (!raw) return '';
+		return raw.startsWith('_design/') ? raw : `_design/${raw}`;
+	}
+
+	function designDocIndexCount(doc) {
+		const containers = ['views', 'lists', 'shows', 'updates', 'filters', 'indexes', 'search'];
+		return containers.reduce((count, key) => {
+			const value = doc?.[key];
+			if (!value || typeof value != 'object') return count;
+			return count + Object.keys(value).length;
+		}, 0);
+	}
+
+	function defaultMapFunction() {
+		return 'function (doc) {\n  emit(doc._id, doc);\n}';
+	}
+
 	function buildDocsQuery() {
 		return {
-			include_docs: docsIncludeDocs,
-			descending: docsDescending,
+			include_docs: docsIncludeDocs ? true : undefined,
+			descending: docsDescending ? true : undefined,
 			stable: docsStable || undefined,
 			update: docsUpdate == 'true' ? undefined : docsUpdate,
-			limit: hasLimit ? docsLimitNumber : undefined,
-			skip: hasLimit ? docsSkip : undefined
+			limit: docsFetchLimit,
+			skip: docsSkip,
+			conflicts: docsIncludeDocs ? true : undefined,
+			reduce: isViewQuery ? false : undefined
 		};
 	}
 
 	function setLayout(layout) {
 		if (layout == currentLayout) return;
 		currentLayout = layout;
-		docsIncludeDocs = layout != 'metadata';
 		docsSkip = 0;
-		if (currentTab == 'all') {
+		if (currentTab == 'all' && !isViewEditor) {
 			void refreshDocuments();
 		}
 	}
@@ -231,7 +576,7 @@
 	}
 
 	async function openDocument(docId) {
-		if (!docId) return;
+		if (!database || !docId) return;
 		await goto(fullSyncDocHref(database, docId));
 	}
 
@@ -243,6 +588,12 @@
 	}
 
 	function openRawJson() {
+		if (isViewEditor) {
+			if (!database || !selectedDesignDocId || selectedDesignDocId == 'new-doc') return;
+			const url = `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDesignDocPath(selectedDesignDocId)}`;
+			window.open(url, '_blank', 'noopener');
+			return;
+		}
 		if (!rawJsonUrl || rawJsonUrl == '#') return;
 		window.open(rawJsonUrl, '_blank', 'noopener');
 	}
@@ -253,6 +604,26 @@
 			'_blank',
 			'noopener'
 		);
+	}
+
+	function openMangoDocumentation() {
+		window.open('https://docs.couchdb.org/en/stable/ddocs/mango.html', '_blank', 'noopener');
+	}
+
+	function openMangoResultJson() {
+		let payload = '{}';
+		if (mangoExplainText.trim().length > 0) {
+			payload = mangoExplainText;
+		} else if (mangoResult) {
+			payload = pretty(mangoResult);
+		}
+		const encoded = encodeURIComponent(payload);
+		window.open(`data:application/json;charset=utf-8,${encoded}`, '_blank', 'noopener,noreferrer');
+	}
+
+	function openMangoIndexJson() {
+		if (!mangoIndexRawJsonUrl || mangoIndexRawJsonUrl == '#') return;
+		window.open(mangoIndexRawJsonUrl, '_blank', 'noopener');
 	}
 
 	async function copyRow(row) {
@@ -267,37 +638,39 @@
 
 	function onIncludeDocsToggle(value) {
 		docsIncludeDocs = value;
-		if (value && currentLayout == 'metadata') {
-			currentLayout = 'table';
-		}
-		if (!value && currentLayout != 'metadata') {
-			currentLayout = 'metadata';
-		}
 	}
 
 	async function refreshDocuments() {
-		if (!database || currentTab != 'all') return;
+		if (!database || currentTab != 'all' || isViewEditor) return;
 		const requestId = ++docsRequestCounter;
 		loadingDocuments = true;
 		try {
 			const query = {
-				limit: hasLimit ? docsLimitNumber : undefined,
-				skip: hasLimit ? docsSkip : 0,
+				limit: docsFetchLimit,
+				skip: docsSkip,
 				includeDocs: docsIncludeDocs,
 				descending: docsDescending,
 				stable: docsStable,
-				update: docsUpdate
+				update: docsUpdate,
+				conflicts: docsIncludeDocs
 			};
 			const response = isViewQuery
-				? await runViewQuery(database, selectedDesignDocId, selectedViewName, query)
+				? await runViewQuery(database, selectedDesignDocId, selectedViewName, {
+						...query,
+						reduce: false
+					})
 				: await listDocuments(database, query);
 			if (requestId != docsRequestCounter) return;
-			documents = Array.isArray(response?.rows) ? response.rows : [];
+			const rows = Array.isArray(response?.rows) ? response.rows : [];
+			const reachedQueryLimit = docsQueryHasLimit && docsSkip + docsPageSize >= docsQueryLimit;
+			docsHasNextPage = !reachedQueryLimit && rows.length >= docsFetchLimit;
+			documents = docsHasNextPage ? rows.slice(0, docsPageSize) : rows;
 			docsTotalRows = Number(response?.total_rows ?? documents.length) || 0;
 			selectedDocIds = {};
 		} catch (error) {
 			documents = [];
 			docsTotalRows = 0;
+			docsHasNextPage = false;
 			selectedDocIds = {};
 			showError(error);
 		} finally {
@@ -344,22 +717,24 @@
 		if (!database) return;
 		loadingDesignDocs = true;
 		try {
-			const rows = await listDesignDocuments(database, {
-				limit: 1000,
-				includeDocs: true
-			});
+			const rows = await listDesignDocuments(database, { limit: 500, includeDocs: true });
 			designDocs = rows
 				.map((row) => {
 					const id = row?.id ?? row?.doc?._id ?? '';
 					const doc = row?.doc ?? {};
+					const views = Object.entries(doc?.views ?? {}).map(([name, view]) => ({
+						name,
+						map: typeof view?.map == 'string' ? view.map : undefined,
+						reduce: typeof view?.reduce == 'string' ? view.reduce : undefined
+					}));
 					return {
 						id,
 						name: id.replace('_design/', ''),
-						views: Object.keys(doc?.views ?? {}).sort((a, b) => a.localeCompare(b))
+						views,
+						doc
 					};
 				})
-				.filter((designDoc) => Boolean(designDoc.id))
-				.sort((a, b) => a.name.localeCompare(b.name));
+				.filter((designDoc) => Boolean(designDoc.id));
 		} catch {
 			designDocs = [];
 		} finally {
@@ -368,29 +743,344 @@
 	}
 
 	async function refreshAll() {
-		const jobs = [refreshDesignDocs()];
+		const jobs = [];
 		if (currentTab == 'all') {
+			jobs.push(refreshDesignDocs());
+		}
+		if (currentTab == 'all' && !isViewEditor) {
 			jobs.push(refreshDocuments());
 		}
 		await Promise.all(jobs);
 	}
 
+	function loadMangoHistory() {
+		try {
+			const raw = localStorage.getItem(mangoHistoryStorageKey);
+			const value = parseJsonSilent(
+				raw || '[]',
+				/** @type {Array<{label: string, value: string}>} */ ([])
+			);
+			if (!Array.isArray(value)) {
+				mangoHistory = [];
+				return;
+			}
+			mangoHistory = value
+				.filter((item) => item && typeof item.value == 'string')
+				.slice(0, 30)
+				.map((item, index) => ({
+					label: item.label || `Query ${index + 1}`,
+					value: item.value
+				}));
+		} catch {
+			mangoHistory = [];
+		}
+	}
+
+	function saveMangoHistory() {
+		try {
+			localStorage.setItem(mangoHistoryStorageKey, JSON.stringify(mangoHistory.slice(0, 30)));
+		} catch {
+			// ignore storage failures
+		}
+	}
+
+	function rememberMangoQuery(queryText) {
+		const value = String(queryText ?? '').trim();
+		if (!value) return;
+		const compact = value.replace(/\s+/g, ' ').trim();
+		const label = compact.length > 56 ? `${compact.slice(0, 56)}…` : compact;
+		const withoutCurrent = mangoHistory.filter((item) => item.value != value);
+		mangoHistory = [{ label, value }, ...withoutCurrent].slice(0, 30);
+		saveMangoHistory();
+	}
+
+	function onMangoHistorySelected(value) {
+		selectedMangoHistory = String(value ?? '');
+		const item = mangoHistory.find((entry) => entry.value == selectedMangoHistory);
+		if (item) {
+			mangoQueryText = item.value;
+		}
+	}
+
+	function setMangoColumn(index, value) {
+		const nextValue = String(value ?? '').trim();
+		if (!nextValue) return;
+		if (!mangoDisplayableColumns.includes(nextValue)) return;
+		const next = [...mangoColumnSelection];
+		next[index] = nextValue;
+		mangoColumnSelection = next;
+	}
+
+	function setDocsColumn(index, value) {
+		const nextValue = String(value ?? '').trim();
+		if (!nextValue) return;
+		if (!docsDisplayableColumns.includes(nextValue)) return;
+		const next = [...docsColumnSelection];
+		next[index] = nextValue;
+		docsColumnSelection = next;
+	}
+
+	function setMangoRowSelection(docId, checked) {
+		if (!docId) return;
+		const next = { ...mangoSelectedDocIds };
+		if (checked) {
+			next[docId] = true;
+		} else {
+			delete next[docId];
+		}
+		mangoSelectedDocIds = next;
+	}
+
+	function setAllMangoRowSelection(checked) {
+		if (!checked) {
+			mangoSelectedDocIds = {};
+			return;
+		}
+		const next = { ...mangoSelectedDocIds };
+		for (const row of mangoSelectableRows) {
+			next[row.id] = true;
+		}
+		mangoSelectedDocIds = next;
+	}
+
+	async function runMangoAction() {
+		if (!database || working) return;
+		const payload = parseJson(mangoQueryText, 'Mango editor');
+		if (!payload) return;
+
+		working = true;
+		lastError = '';
+		try {
+			const start = performance.now();
+			const result = await runMangoQuery(database, payload);
+			mangoResult = result;
+			mangoExplainText = '';
+			mangoResultLayout = 'table';
+			mangoSkip = 0;
+			mangoSelectedDocIds = {};
+			mangoLastRunMs = Math.max(0, Math.round(performance.now() - start));
+			rememberMangoQuery(mangoQueryText);
+			showSuccess('Mango query executed');
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	async function explainMangoAction() {
+		if (!database || working) return;
+		const payload = parseJson(mangoQueryText, 'Mango editor');
+		if (!payload) return;
+
+		working = true;
+		lastError = '';
+		try {
+			const start = performance.now();
+			const result = await explainMangoQuery(database, payload);
+			mangoExplainText = pretty(result);
+			mangoResult = null;
+			mangoResultLayout = 'json';
+			mangoSkip = 0;
+			mangoSelectedDocIds = {};
+			mangoLastRunMs = Math.max(0, Math.round(performance.now() - start));
+			rememberMangoQuery(mangoQueryText);
+			showSuccess('Mango explain executed');
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	function onMangoIndexExampleChange(value) {
+		mangoIndexExample = String(value ?? '');
+		if (mangoIndexExample == 'example') {
+			mangoIndexText =
+				'{\n  "index": {\n    "fields": [\n      "foo"\n    ]\n  },\n  "name": "foo-json-index",\n  "type": "json"\n}';
+			return;
+		}
+		if (mangoIndexExample == 'text') {
+			mangoIndexText =
+				'{\n  "index": {\n    "fields": [\n      {\n        "message": "asc"\n      }\n    ]\n  },\n  "name": "message-idx",\n  "type": "json"\n}';
+		}
+	}
+
+	function setMangoIndexRowSelection(rowKey, checked) {
+		if (!rowKey) return;
+		const next = { ...mangoIndexesSelection };
+		if (checked) {
+			next[rowKey] = true;
+		} else {
+			delete next[rowKey];
+		}
+		mangoIndexesSelection = next;
+	}
+
+	function setAllMangoIndexRowSelection(checked) {
+		if (!checked) {
+			mangoIndexesSelection = {};
+			return;
+		}
+		const next = { ...mangoIndexesSelection };
+		for (const row of mangoIndexSelectableRows) {
+			next[row.key] = true;
+		}
+		mangoIndexesSelection = next;
+	}
+
+	async function refreshMangoIndexes() {
+		if (!database || currentTab != 'index') return;
+		mangoIndexesLoading = true;
+		try {
+			const response = await listMangoIndexes(database);
+			mangoIndexes = Array.isArray(response?.indexes) ? response.indexes : [];
+			mangoIndexesSelection = {};
+		} catch (error) {
+			mangoIndexes = [];
+			mangoIndexesSelection = {};
+			showError(error);
+		} finally {
+			mangoIndexesLoading = false;
+		}
+	}
+
+	async function createMangoIndexAction(event) {
+		event?.preventDefault?.();
+		if (!database || working) return;
+		const payload = parseJson(mangoIndexText, 'Mango index editor');
+		if (!payload) return;
+
+		working = true;
+		lastError = '';
+		try {
+			await createMangoIndex(database, payload);
+			showSuccess('Index created');
+			await refreshMangoIndexes();
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	async function deleteSelectedMangoIndexes(event) {
+		if (!database || mangoIndexSelectedCount == 0 || working) return;
+
+		const docIds = Array.from(
+			new Set(
+				mangoIndexSelectedRows
+					.map((row) => row.id)
+					.filter((id) => typeof id == 'string' && id.trim().length > 0 && id != '_all_docs')
+			)
+		);
+		if (docIds.length == 0) return;
+
+		const ok = await askConfirmation(
+			event,
+			'Delete selected indexes',
+			`Do you confirm deleting ${docIds.length} selected index document(s)?`
+		);
+		if (!ok) return;
+
+		working = true;
+		lastError = '';
+		try {
+			await removeMangoIndexes(database, docIds);
+			showSuccess(`${docIds.length} index document(s) deleted`);
+			mangoIndexesSelection = {};
+			await refreshMangoIndexes();
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	function previousMangoIndexPage() {
+		if (!mangoIndexHasLimit) return;
+		mangoIndexSkip = Math.max(0, mangoIndexSkip - mangoIndexLimitNumber);
+	}
+
+	function nextMangoIndexPage() {
+		if (!mangoIndexHasLimit) return;
+		mangoIndexSkip += mangoIndexLimitNumber;
+	}
+
+	function previousMangoPage() {
+		if (!mangoHasLimit) return;
+		mangoSkip = Math.max(0, mangoSkip - mangoLimitNumber);
+	}
+
+	function nextMangoPage() {
+		if (!mangoHasLimit) return;
+		mangoSkip += mangoLimitNumber;
+	}
+
+	async function deleteSelectedMangoDocuments(event) {
+		if (!database || mangoSelectedCount == 0) return;
+
+		const docs = mangoSelectedRows.map((row) => ({
+			_id: row.id,
+			_rev: row.rev
+		}));
+		if (docs.length == 0) return;
+
+		const ok = await askConfirmation(
+			event,
+			'Delete selected documents',
+			`Do you confirm deleting ${docs.length} selected document(s)?`
+		);
+		if (!ok) return;
+
+		working = true;
+		lastError = '';
+		try {
+			const result = await removeDocuments(database, docs);
+			const errors = Array.isArray(result) ? result.filter((item) => item?.error) : [];
+			if (errors.length > 0) {
+				showError(`${errors.length} document(s) failed to delete`);
+			} else {
+				showSuccess(`${docs.length} document(s) deleted`);
+			}
+			mangoSelectedDocIds = {};
+			const removedIds = new Set(docs.map((doc) => doc._id));
+			if (Array.isArray(mangoResult?.docs)) {
+				const remaining = mangoResult.docs.filter((doc) => !removedIds.has(doc?._id ?? ''));
+				mangoResult = { ...(mangoResult ?? {}), docs: remaining };
+				mangoExplainText = '';
+				mangoResultLayout = 'table';
+				if (mangoHasLimit && mangoSkip >= remaining.length) {
+					mangoSkip = Math.max(0, mangoSkip - mangoLimitNumber);
+				}
+			} else {
+				const payload = parseJson(mangoQueryText, 'Mango editor');
+				if (payload) {
+					const refreshed = await runMangoQuery(database, payload);
+					mangoResult = refreshed;
+					mangoExplainText = '';
+					mangoResultLayout = 'table';
+					mangoSkip = 0;
+				}
+			}
+		} catch (error) {
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
 	async function previousDocsPage() {
-		if (!hasLimit) return;
-		docsSkip = Math.max(0, docsSkip - docsLimitNumber);
+		docsSkip = Math.max(0, docsSkip - docsPageSize);
 		await refreshDocuments();
 	}
 
 	async function nextDocsPage() {
-		if (!hasLimit) return;
-		docsSkip += docsLimitNumber;
+		docsSkip += docsPageSize;
 		await refreshDocuments();
 	}
 
 	async function executeOptionsQuery() {
-		if (!hasLimit) {
-			docsSkip = 0;
-		}
 		await refreshDocuments();
 		queryOptionsOpen = false;
 	}
@@ -400,21 +1090,286 @@
 		await goto(fullSyncDocHref(database, '_new'));
 	}
 
-	async function runMangoAction() {
+	async function createViewAction(designDocId = 'new-doc') {
 		if (!database) return;
-		const payload = parseJson(mangoQueryText, 'Mango editor');
-		if (!payload) return;
+		const targetDesignDoc = String(designDocId || 'new-doc');
+		await goto(fullSyncDbViewEditHref(database, targetDesignDoc, 'new-view'));
+	}
+
+	async function editViewAction(designDocId, viewName) {
+		if (!database) return;
+		await goto(fullSyncDbViewEditHref(database, designDocId, viewName));
+	}
+
+	async function deleteViewAction(event, designDocId, viewName) {
+		if (!database || !designDocId || !viewName || working) return;
+		const ok = await askConfirmation(
+			event,
+			'Delete view',
+			`Do you confirm deleting view "${viewName}" from "${designDocId}"?`
+		);
+		if (!ok) return;
 
 		working = true;
 		lastError = '';
 		try {
-			const result = await runMangoQuery(database, payload);
-			mangoResultText = pretty(result);
-			showSuccess('Mango query executed');
+			const designDoc = await getDesignDocument(database, designDocId);
+			const views = designDoc?.views ?? {};
+			if (!views?.[viewName]) {
+				throw new Error(`View "${viewName}" not found`);
+			}
+			delete views[viewName];
+			designDoc.views = views;
+
+			if (designDocIndexCount(designDoc) == 0) {
+				await removeDesignDocument(database, designDoc._id, designDoc._rev);
+			} else {
+				await saveDesignDocument(database, designDoc);
+			}
+
+			showSuccess(`View "${viewName}" deleted`);
+			await refreshDesignDocs();
+			if (isViewQuery && selectedDesignDocId == designDocId && selectedViewName == viewName) {
+				await goto(fullSyncDbTabHref(database, 'all'));
+			} else {
+				await refreshDocuments();
+			}
 		} catch (error) {
 			showError(error);
 		} finally {
 			working = false;
+		}
+	}
+
+	async function openCloneViewModal(event, designDocId, viewName) {
+		if (!designDocId || !viewName) return;
+		cloneSourceDesignDocId = designDocId;
+		cloneSourceViewName = viewName;
+		cloneTargetDesignDocId = designDocId;
+		cloneNewDesignDocName = designDocId.replace(/^_design\//, '');
+		cloneViewName = `${viewName}_copy`;
+		cloneViewError = '';
+		await cloneViewModal?.open({ event });
+	}
+
+	function closeCloneViewModal(value = false) {
+		cloneViewError = '';
+		cloneViewModal?.close(value);
+	}
+
+	async function cloneViewAction() {
+		if (!database || working) return;
+		const targetViewName = cloneViewName.trim();
+		if (!targetViewName) {
+			cloneViewError = 'Please provide a target view name.';
+			return;
+		}
+
+		let targetDesignDocId = cloneTargetDesignDocId;
+		if (targetDesignDocId == 'new-doc') {
+			targetDesignDocId = normalizeDesignDocId(cloneNewDesignDocName);
+			if (!targetDesignDocId) {
+				cloneViewError = 'Please provide a target design document name.';
+				return;
+			}
+		}
+
+		working = true;
+		cloneViewError = '';
+		lastError = '';
+		try {
+			const sourceDesignDoc = await getDesignDocument(database, cloneSourceDesignDocId);
+			const sourceView = sourceDesignDoc?.views?.[cloneSourceViewName];
+			if (!sourceView) {
+				throw new Error(`View "${cloneSourceViewName}" not found`);
+			}
+
+			let targetDesignDoc = null;
+			if (targetDesignDocId == cloneSourceDesignDocId) {
+				targetDesignDoc = sourceDesignDoc;
+			} else if (cloneTargetDesignDocId == 'new-doc') {
+				targetDesignDoc = {
+					_id: targetDesignDocId,
+					language: 'javascript',
+					views: {}
+				};
+			} else {
+				targetDesignDoc = await getDesignDocument(database, targetDesignDocId);
+			}
+
+			const views = targetDesignDoc?.views ?? {};
+			if (views[targetViewName]) {
+				throw new Error('That view name is already used in this design document.');
+			}
+
+			views[targetViewName] = parseJsonSilent(JSON.stringify(sourceView), {});
+			targetDesignDoc.views = views;
+			await saveDesignDocument(database, targetDesignDoc);
+			showSuccess('View cloned');
+			closeCloneViewModal(true);
+			await refreshDesignDocs();
+			await goto(fullSyncDbViewHref(database, targetDesignDocId, targetViewName));
+		} catch (error) {
+			cloneViewError = asErrorMessage(error);
+			showError(error);
+		} finally {
+			working = false;
+		}
+	}
+
+	async function loadViewEditorState() {
+		if (!database || !isViewEditor) return;
+		const stateKey = `${database}|${selectedDesignDocId}|${selectedViewName}`;
+		if (stateKey == viewEditorLoadedKey) return;
+		viewEditorLoadedKey = stateKey;
+
+		let designDocId = selectedDesignDocId;
+		let viewName = selectedViewName;
+		let designDoc = getDesignDocModel(designDocId);
+		if (!designDoc && designDocId != 'new-doc') {
+			try {
+				designDoc = await getDesignDocument(database, designDocId);
+			} catch {
+				designDoc = null;
+			}
+		}
+
+		const currentView = designDoc?.views?.[viewName] ?? {};
+		const mapCode =
+			typeof currentView?.map == 'string' && currentView.map.trim().length > 0
+				? currentView.map
+				: defaultMapFunction();
+		const reduceCode = typeof currentView?.reduce == 'string' ? currentView.reduce : '';
+		const reduceOption = !reduceCode
+			? 'NONE'
+			: ['_sum', '_count', '_stats'].includes(reduceCode)
+				? reduceCode
+				: 'CUSTOM';
+
+		viewEditorOriginalDesignDocId = designDocId;
+		viewEditorOriginalName = viewName;
+		viewEditorDesignDocId = designDocId == 'new-doc' ? 'new-doc' : designDocId;
+		viewEditorName = viewName == 'new-view' ? '' : viewName;
+		viewEditorMap = mapCode;
+		viewEditorReduceOption = reduceOption;
+		viewEditorReduceCustom =
+			reduceOption == 'CUSTOM'
+				? reduceCode
+				: 'function (keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}';
+		viewEditorNewDesignDocName =
+			designDocId && designDocId != 'new-doc'
+				? designDocId.replace(/^_design\//, '')
+				: 'new_design_doc';
+	}
+
+	function resolveViewReduceValue() {
+		if (viewEditorReduceOption == 'NONE') return null;
+		if (viewEditorReduceOption == 'CUSTOM') {
+			const code = viewEditorReduceCustom.trim();
+			return code || null;
+		}
+		return viewEditorReduceOption;
+	}
+
+	async function cancelViewEditor() {
+		if (!database) return;
+		if (typeof window != 'undefined' && window.history.length > 1) {
+			window.history.back();
+			return;
+		}
+		await goto(fullSyncDbTabHref(database, 'all'));
+	}
+
+	async function saveViewEditor(event) {
+		event?.preventDefault?.();
+		if (!database || savingView || working) return;
+
+		const nextViewName = viewEditorName.trim();
+		if (!nextViewName) {
+			showError('View name is required.');
+			return;
+		}
+
+		let targetDesignDocId = viewEditorDesignDocId;
+		if (targetDesignDocId == 'new-doc') {
+			targetDesignDocId = normalizeDesignDocId(viewEditorNewDesignDocName);
+			if (!targetDesignDocId) {
+				showError('Design document name is required.');
+				return;
+			}
+		}
+
+		const nextMap = viewEditorMap.trim() || defaultMapFunction();
+		const nextReduce = resolveViewReduceValue();
+		const sourceDesignDocId = viewEditorOriginalDesignDocId;
+		const sourceViewName = viewEditorOriginalName;
+
+		savingView = true;
+		lastError = '';
+		try {
+			let targetDesignDoc;
+			if (targetDesignDocId == sourceDesignDocId && sourceDesignDocId != 'new-doc') {
+				targetDesignDoc = await getDesignDocument(database, targetDesignDocId);
+			} else if (viewEditorDesignDocId == 'new-doc') {
+				targetDesignDoc = {
+					_id: targetDesignDocId,
+					language: 'javascript',
+					views: {}
+				};
+			} else {
+				targetDesignDoc = await getDesignDocument(database, targetDesignDocId);
+			}
+
+			const targetViews = targetDesignDoc?.views ?? {};
+			if (
+				targetDesignDocId != sourceDesignDocId &&
+				targetViews[nextViewName] &&
+				!(sourceViewName == nextViewName && sourceDesignDocId == targetDesignDocId)
+			) {
+				throw new Error('That view name is already used in this design document.');
+			}
+
+			if (
+				targetDesignDocId == sourceDesignDocId &&
+				sourceViewName &&
+				sourceViewName != 'new-view' &&
+				sourceViewName != nextViewName
+			) {
+				delete targetViews[sourceViewName];
+			}
+
+			targetViews[nextViewName] = {
+				map: nextMap,
+				...(nextReduce ? { reduce: nextReduce } : {})
+			};
+			targetDesignDoc.views = targetViews;
+
+			await saveDesignDocument(database, targetDesignDoc);
+
+			if (
+				sourceDesignDocId &&
+				sourceDesignDocId != 'new-doc' &&
+				(sourceDesignDocId != targetDesignDocId ||
+					(sourceViewName && sourceViewName != 'new-view' && sourceViewName != nextViewName))
+			) {
+				const sourceDesignDoc = await getDesignDocument(database, sourceDesignDocId);
+				if (sourceDesignDoc?.views?.[sourceViewName]) {
+					delete sourceDesignDoc.views[sourceViewName];
+					if (designDocIndexCount(sourceDesignDoc) == 0) {
+						await removeDesignDocument(database, sourceDesignDoc._id, sourceDesignDoc._rev);
+					} else {
+						await saveDesignDocument(database, sourceDesignDoc);
+					}
+				}
+			}
+
+			showSuccess('View saved');
+			await refreshDesignDocs();
+			await goto(fullSyncDbViewHref(database, targetDesignDocId, nextViewName));
+		} catch (error) {
+			showError(error);
+		} finally {
+			savingView = false;
 		}
 	}
 
@@ -423,29 +1378,65 @@
 		if (database == loadedDatabase) return;
 		loadedDatabase = database;
 		loadedQueryScope = '';
+		loadedMangoIndexScope = '';
 		docsSkip = 0;
 		documents = [];
 		docsTotalRows = 0;
+		docsHasNextPage = false;
 		designDocs = [];
 		designDocExpanded = {};
-		mangoResultText = '';
+		mangoResult = null;
+		mangoExplainText = '';
+		mangoResultLayout = 'table';
+		mangoShowAllColumns = false;
+		mangoColumnSelection = [];
+		docsShowAllColumns = false;
+		docsColumnSelection = [];
+		docsPageSizeValue = '20';
+		docsQueryLimitValue = 'none';
+		mangoSelectedDocIds = {};
+		mangoSkip = 0;
+		mangoLimitValue = '20';
+		mangoLastRunMs = 0;
+		mangoIndexes = [];
+		mangoIndexesSelection = {};
+		mangoIndexSkip = 0;
+		mangoIndexLimitValue = '20';
 		lastError = '';
 		queryOptionsOpen = false;
 		quickDocId = '';
 		selectedDocIds = {};
 		currentLayout = 'metadata';
-		docsIncludeDocs = false;
-		void refreshAll();
+		docsIncludeDocs = isViewQuery;
+		docsDescending = false;
+		viewEditorLoadedKey = '';
+		loadMangoHistory();
+		if (currentTab == 'all') {
+			void refreshDesignDocs();
+		}
+		if (currentTab == 'all' && !isViewEditor) {
+			loadedQueryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
+			void refreshDocuments();
+		}
+		if (currentTab == 'index') {
+			loadedMangoIndexScope = `${database}|index`;
+			void refreshMangoIndexes();
+		}
 	});
 
 	$effect(() => {
-		if (!database || currentTab != 'all') return;
-		const queryScope = `${database}|${selectedDesignDocId}|${selectedViewName}`;
+		if (!database || currentTab != 'all' || isViewEditor) return;
+		const queryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
 		if (queryScope == loadedQueryScope) return;
 		loadedQueryScope = queryScope;
 		docsSkip = 0;
 		quickDocId = '';
 		selectedDocIds = {};
+		docsShowAllColumns = false;
+		docsColumnSelection = [];
+		if (isViewQuery) {
+			docsIncludeDocs = true;
+		}
 		if (selectedDesignDocId) {
 			designDocExpanded = {
 				...designDocExpanded,
@@ -455,9 +1446,36 @@
 		void refreshDocuments();
 	});
 
+	$effect(() => {
+		if (!database || !isViewEditor) return;
+		void loadViewEditorState();
+	});
+
+	$effect(() => {
+		if (!database || currentTab != 'index') return;
+		const scope = `${database}|index`;
+		if (scope == loadedMangoIndexScope) return;
+		loadedMangoIndexScope = scope;
+		mangoIndexSkip = 0;
+		mangoIndexesSelection = {};
+		void refreshMangoIndexes();
+	});
+
+	$effect(() => {
+		if (currentTab == 'index') return;
+		loadedMangoIndexScope = '';
+	});
+
 	const rightPartOwner = Symbol('fullsync-database');
-	onMount(() => {
+	$effect(() => {
+		if (currentTab != 'all') {
+			RightPart.release(rightPartOwner);
+			return;
+		}
 		RightPart.claim(rightPartOwner, rightPart);
+	});
+	onMount(() => {
+		loadMangoHistory();
 	});
 	onDestroy(() => {
 		RightPart.release(rightPartOwner);
@@ -475,28 +1493,28 @@
 				title="Databases"
 				aria-label="Databases"
 			>
-				<Ico icon="mdi:arrow-left-bold-outline" size={5} />
+				<Ico icon="mdi:arrow-left" size={5} />
 			</a>
-			<div class="db-sidebar-name">{database}</div>
+			<div class="db-sidebar-name" title={database}>{database}</div>
 		</div>
 
 		<div class="sidebar-row-with-action">
 			<a
 				href={fullSyncDbTabHref(database, 'all')}
-				aria-current={currentTab == 'all' && !isViewQuery ? 'page' : undefined}
+				aria-current={currentTab == 'all' && !isViewQuery && !isViewEditor ? 'page' : undefined}
 				class="rail-link"
 			>
-				{#if currentTab == 'all' && !isViewQuery}
+				{#if currentTab == 'all' && !isViewQuery && !isViewEditor}
 					<span class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"></span>
 				{/if}
 				<Ico
 					icon="mdi:file-document-box-outline"
 					size={5}
-					class={`z-10 ${currentTab == 'all' && !isViewQuery ? 'rail-active' : 'text-strong'}`}
+					class={`z-10 ${currentTab == 'all' && !isViewQuery && !isViewEditor ? 'rail-active' : 'text-strong'}`}
 				/>
 				<span
 					class={`z-10 ${
-						currentTab == 'all' && !isViewQuery
+						currentTab == 'all' && !isViewQuery && !isViewEditor
 							? 'font-medium rail-active'
 							: 'font-normal text-strong'
 					}`}
@@ -507,8 +1525,8 @@
 			<button
 				type="button"
 				class="sidebar-action-btn"
-				title="Create Document"
-				aria-label="Create Document"
+				title="Create document"
+				aria-label="Create document"
 				onclick={createDocumentAction}
 			>
 				<Ico icon="mdi:plus" size={4} />
@@ -540,9 +1558,9 @@
 			<button
 				type="button"
 				class="sidebar-action-btn"
-				title="Create Design Document"
-				aria-label="Create Design Document"
-				onclick={createDocumentAction}
+				title="Create design document view"
+				aria-label="Create design document view"
+				onclick={() => createViewAction('new-doc')}
 			>
 				<Ico icon="mdi:plus" size={4} />
 			</button>
@@ -565,62 +1583,99 @@
 						>
 							<Ico icon={expanded ? 'mdi:chevron-down' : 'mdi:chevron-right'} size={4} />
 						</button>
-						<a href={fullSyncDocHref(database, designDoc.id)} class="design-doc-link">
-							{#if selectedDesignDoc}
+						<button
+							type="button"
+							class="design-doc-link text-left"
+							title={designDoc.id}
+							aria-expanded={expanded}
+							onclick={() => toggleDesignDoc(designDoc.id)}
+						>
+							{#if selectedDesignDoc || expanded}
 								<span class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"
 								></span>
 							{/if}
 							<Ico
 								icon="mdi:file-document-box-outline"
 								size={4}
-								class={`z-10 ${selectedDesignDoc ? 'rail-active' : 'text-strong'}`}
+								class={`z-10 ${selectedDesignDoc || expanded ? 'rail-active' : 'text-strong'}`}
 							/>
 							<span
 								class={`z-10 truncate text-[13px] ${
-									selectedDesignDoc ? 'font-medium rail-active' : 'text-strong'
+									selectedDesignDoc || expanded ? 'font-medium rail-active' : 'text-strong'
 								}`}
 							>
 								{designDoc.name}
 							</span>
-						</a>
+						</button>
 						<button
 							type="button"
 							class="sidebar-action-btn design-doc-action"
-							title="Open design document"
-							aria-label="Open design document"
-							onclick={() => openDocument(designDoc.id)}
+							title="Create view"
+							aria-label="Create view"
+							onclick={() => createViewAction(designDoc.id)}
 						>
 							<Ico icon="mdi:plus" size={4} />
 						</button>
 					</div>
 					{#if expanded}
-						<a href={fullSyncDocHref(database, designDoc.id)} class="design-doc-sub-link">
-							Metadata
-						</a>
 						{#if designDoc.views.length > 0}
 							<div class="design-doc-sub-title">Views</div>
-							{#each designDoc.views as viewName (viewName)}
+							{#each designDoc.views as view (view.name)}
 								{@const isCurrentView =
 									isViewQuery &&
 									selectedDesignDocId == designDoc.id &&
-									selectedViewName == viewName}
-								<a
-									href={fullSyncDbViewHref(database, designDoc.id, viewName)}
-									aria-current={isCurrentView ? 'page' : undefined}
-									class="design-doc-sub-link"
-								>
-									{#if isCurrentView}
-										<span
-											class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"
-										></span>
-									{/if}
-									<span
-										class={`z-10 truncate ${isCurrentView ? 'font-medium rail-active' : 'text-strong'}`}
+									selectedViewName == view.name}
+								<div class="design-doc-view-row" data-selected={isCurrentView ? 'true' : 'false'}>
+									<a
+										href={fullSyncDbViewHref(database, designDoc.id, view.name)}
+										aria-current={isCurrentView ? 'page' : undefined}
+										class="design-doc-sub-link"
+										title={view.name}
 									>
-										{viewName}
-									</span>
-								</a>
+										{#if isCurrentView}
+											<span
+												class="absolute inset-0 rounded-sm bg-primary-100/70 dark:bg-primary-500/20"
+											></span>
+										{/if}
+										<span
+											class={`z-10 truncate ${isCurrentView ? 'font-medium rail-active' : 'text-strong'}`}
+										>
+											{view.name}
+										</span>
+									</a>
+									<div class="design-doc-view-actions">
+										<button
+											type="button"
+											class="button-ico-primary h-6 w-6 justify-center p-0!"
+											title="Edit view"
+											aria-label="Edit view"
+											onclick={() => void editViewAction(designDoc.id, view.name)}
+										>
+											<Ico icon="mdi:edit-outline" size={4} />
+										</button>
+										<button
+											type="button"
+											class="button-ico-primary h-6 w-6 justify-center p-0!"
+											title="Clone view"
+											aria-label="Clone view"
+											onclick={(event) => void openCloneViewModal(event, designDoc.id, view.name)}
+										>
+											<Ico icon="mdi:cached" size={4} />
+										</button>
+										<button
+											type="button"
+											class="button-ico-primary h-6 w-6 justify-center p-0!"
+											title="Delete view"
+											aria-label="Delete view"
+											onclick={(event) => void deleteViewAction(event, designDoc.id, view.name)}
+										>
+											<Ico icon="mdi:delete-outline" size={4} />
+										</button>
+									</div>
+								</div>
 							{/each}
+						{:else}
+							<div class="design-doc-sub-link text-muted">No views</div>
 						{/if}
 					{/if}
 				</div>
@@ -639,111 +1694,850 @@
 	{/if}
 
 	{#if currentTab == 'all'}
-		<section class="fullsync-main-panel">
-			<div class="fullsync-toolbar">
-				<InputGroup
-					class="doc-open-form h-9 min-w-0"
-					type="text"
-					placeholder="Document ID"
-					icon="mdi:file-document-box-outline"
-					list={quickDocDatalistId}
-					bind:value={quickDocId}
-					onkeydown={(event) => {
-						if (event.key === 'Enter') {
-							event.preventDefault();
-							void openDocumentFromToolbar();
-						}
-					}}
-				>
-					{#snippet actions()}
-						<button
-							type="button"
-							class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
-							title="Open document"
-							aria-label="Open document"
-							disabled={quickDocId.trim().length == 0}
-							onclick={() => void openDocumentFromToolbar()}
-						>
-							<Ico icon="mdi:arrow-right" size={5} />
-						</button>
-					{/snippet}
-				</InputGroup>
-				<datalist id={quickDocDatalistId}>
-					{#each documents as row (row.id ?? row.key)}
-						{#if row?.id}
-							<option value={row.id}></option>
-						{/if}
-					{/each}
-				</datalist>
-				<div class="fullsync-toolbar-actions">
-					<Button
-						label="Options"
-						icon="mdi:cog-outline"
-						class={`${queryOptionsOpen ? 'button-primary' : 'button-secondary'} h-9 w-fit!`}
-						onclick={() => (queryOptionsOpen = !queryOptionsOpen)}
-					/>
-					<Button
-						label="JSON"
-						icon="mdi:code-braces"
-						class="button-secondary h-9 w-fit!"
-						onclick={openRawJson}
-					/>
-					<Button
-						icon="mdi:book-open-variant"
-						class="button-secondary h-9 w-fit!"
-						title="CouchDB documentation"
-						ariaLabel="CouchDB documentation"
-						onclick={openDocumentation}
-					/>
-				</div>
-			</div>
+		{#if isViewEditor}
+			<section class="fullsync-main-panel view-editor-panel">
+				<header class="view-editor-header">
+					<h3 class="text-xl font-semibold text-strong">
+						{selectedViewName == 'new-view' ? 'Create View' : 'Edit View'}
+					</h3>
+					<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
+						<Button
+							label="JSON"
+							icon="mdi:code-braces"
+							class="button-secondary h-9 w-fit!"
+							onclick={openRawJson}
+						/>
+						<Button
+							icon="mdi:book-open-variant"
+							class="button-secondary h-9 w-fit!"
+							title="CouchDB documentation"
+							ariaLabel="CouchDB documentation"
+							onclick={openDocumentation}
+						/>
+					</ActionBar>
+				</header>
 
-			{#if queryOptionsOpen}
-				<div class="query-options-panel query-options-floating">
-					<div class="layout-y-stretch gap-4">
-						<div class="layout-y-stretch gap-2">
-							<div class="text-sm font-medium text-strong">Query Options</div>
+				<form class="layout-y-stretch gap-4" onsubmit={saveViewEditor}>
+					<fieldset class="layout-y-stretch gap-3" disabled={savingView || working}>
+						<div class="view-editor-fields">
 							<PropertyType
-								type="check"
-								fit={true}
-								label="Include Docs"
-								checked={docsIncludeDocs}
-								onCheckedChange={(event) => onIncludeDocsToggle(event.checked)}
+								type="combo"
+								name="viewEditorDesignDoc"
+								label="Design Document"
+								item={viewEditorDesignDocItems}
+								bind:value={viewEditorDesignDocId}
+								onchange={() => {
+									if (viewEditorDesignDocId != 'new-doc') {
+										viewEditorNewDesignDocName = viewEditorDesignDocId.replace(/^_design\//, '');
+									}
+								}}
 							/>
-							<div class="layout-x-wrap items-center gap-2 text-sm">
+							{#if viewEditorDesignDocId == 'new-doc'}
+								<PropertyType
+									type="text"
+									name="viewEditorNewDesignDoc"
+									label="New design document name"
+									placeholder="new_design_doc"
+									bind:value={viewEditorNewDesignDocName}
+								/>
+							{/if}
+							<PropertyType
+								type="text"
+								name="viewEditorName"
+								label="Index name"
+								placeholder="myView"
+								bind:value={viewEditorName}
+							/>
+						</div>
+
+						<label class="layout-y-stretch gap-1">
+							<span class="label-common">Map function</span>
+							<div class="editor-shell view-editor-map-shell">
+								<Editor
+									bind:content={viewEditorMap}
+									language="javascript"
+									readOnly={savingView || working}
+									theme={editorTheme}
+								/>
+							</div>
+						</label>
+
+						<div class="view-editor-fields">
+							<PropertyType
+								type="combo"
+								name="viewEditorReduce"
+								label="Reduce (optional)"
+								item={[
+									{ value: 'NONE', text: 'NONE' },
+									{ value: '_sum', text: '_sum' },
+									{ value: '_count', text: '_count' },
+									{ value: '_stats', text: '_stats' },
+									{ value: 'CUSTOM', text: 'CUSTOM' }
+								]}
+								bind:value={viewEditorReduceOption}
+							/>
+						</div>
+
+						{#if viewEditorReduceOption == 'CUSTOM'}
+							<label class="layout-y-stretch gap-1">
+								<span class="label-common">Custom reduce function</span>
+								<div class="editor-shell view-editor-reduce-shell">
+									<Editor
+										bind:content={viewEditorReduceCustom}
+										language="javascript"
+										readOnly={savingView || working}
+										theme={editorTheme}
+									/>
+								</div>
+							</label>
+						{/if}
+
+						<ActionBar full={false} wrap={true} class="justify-start gap-2">
+							<Button
+								label="Save Document and then Build Index"
+								icon="mdi:content-save-edit-outline"
+								class="button-primary h-9 w-fit!"
+								disabled={savingView || working}
+								type="submit"
+							/>
+							<Button
+								label="Cancel"
+								icon="mdi:close-circle-outline"
+								class="button-secondary h-9 w-fit!"
+								disabled={savingView || working}
+								onclick={cancelViewEditor}
+							/>
+						</ActionBar>
+					</fieldset>
+				</form>
+			</section>
+		{:else}
+			<section class="fullsync-main-panel">
+				<div class="fullsync-toolbar">
+					<InputGroup
+						class="doc-open-form h-9 min-w-0"
+						type="text"
+						placeholder="Document ID"
+						icon="mdi:file-document-box-outline"
+						list={quickDocDatalistId}
+						bind:value={quickDocId}
+						onkeydown={(event) => {
+							if (event.key === 'Enter') {
+								event.preventDefault();
+								void openDocumentFromToolbar();
+							}
+						}}
+					>
+						{#snippet actions()}
+							<button
+								type="button"
+								class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+								title="Open document"
+								aria-label="Open document"
+								disabled={quickDocId.trim().length == 0}
+								onclick={() => void openDocumentFromToolbar()}
+							>
+								<Ico icon="mdi:arrow-right" size={5} />
+							</button>
+						{/snippet}
+					</InputGroup>
+					<datalist id={quickDocDatalistId}>
+						{#each documents as row, rowIndex (`${row?.id ?? row?.key ?? 'doc'}-${rowIndex}`)}
+							{#if row?.id}
+								<option value={row.id}></option>
+							{/if}
+						{/each}
+					</datalist>
+					<div class="fullsync-toolbar-actions">
+						<Button
+							label="Options"
+							icon="mdi:cog-outline"
+							class={`${queryOptionsOpen ? 'button-primary' : 'button-secondary'} h-9 w-fit!`}
+							onclick={() => (queryOptionsOpen = !queryOptionsOpen)}
+						/>
+						<Button
+							label="JSON"
+							icon="mdi:code-braces"
+							class="button-secondary h-9 w-fit!"
+							onclick={openRawJson}
+						/>
+						<Button
+							icon="mdi:book-open-variant"
+							class="button-secondary h-9 w-fit!"
+							title="CouchDB documentation"
+							ariaLabel="CouchDB documentation"
+							onclick={openDocumentation}
+						/>
+					</div>
+				</div>
+
+				{#if queryOptionsOpen}
+					<div class="query-options-panel query-options-floating">
+						<div class="layout-y-stretch gap-4">
+							<div class="layout-y-stretch gap-2">
+								<div class="text-sm font-medium text-strong">Query Options</div>
 								<PropertyType
 									type="check"
 									fit={true}
-									label="Stable"
-									checked={docsStable}
-									onCheckedChange={(event) => (docsStable = event.checked)}
+									label="Include Docs"
+									checked={docsIncludeDocs}
+									onCheckedChange={(event) => onIncludeDocsToggle(event.checked)}
 								/>
-								<label class="layout-x-low items-center text-strong">
-									<span>Update</span>
-									<select
-										class="h-9 input-common px-2 text-sm"
-										value={docsUpdate}
-										onchange={(event) => (docsUpdate = event.currentTarget.value)}
-									>
-										<option value="true">true</option>
-										<option value="lazy">lazy</option>
-										<option value="false">false</option>
-									</select>
-								</label>
+								<div class="layout-x-wrap items-center gap-2 text-sm">
+									<PropertyType
+										type="check"
+										fit={true}
+										label="Stable"
+										checked={docsStable}
+										onCheckedChange={(event) => (docsStable = event.checked)}
+									/>
+									<label class="layout-x-low items-center text-strong">
+										<span>Update</span>
+										<select
+											class="query-options-select query-options-select-update h-9 input-common px-2 pr-8 text-sm"
+											value={docsUpdate}
+											onchange={(event) => (docsUpdate = event.currentTarget.value)}
+										>
+											<option value="true">true</option>
+											<option value="lazy">lazy</option>
+											<option value="false">false</option>
+										</select>
+									</label>
+								</div>
+							</div>
+
+							<div class="layout-y-stretch gap-2 border-t border-surface-200-800 pt-3">
+								<div class="text-sm font-medium text-strong">Additional Parameters</div>
+								<div class="layout-x-wrap items-center gap-2 text-sm">
+									<label class="layout-x-low items-center text-strong">
+										<span>Limit</span>
+										<select
+											class="query-options-select query-options-select-limit h-9 input-common px-2 pr-8 text-sm"
+											value={docsQueryLimitValue}
+											onchange={(event) => {
+												docsQueryLimitValue = event.currentTarget.value;
+												docsSkip = 0;
+											}}
+										>
+											<option value="5">5</option>
+											<option value="10">10</option>
+											<option value="20">20</option>
+											<option value="30">30</option>
+											<option value="50">50</option>
+											<option value="100">100</option>
+											<option value="500">500</option>
+											<option value="none">None</option>
+										</select>
+									</label>
+									<label class="layout-x-low items-center text-strong">
+										<span>Skip</span>
+										<input
+											type="number"
+											min="0"
+											value={docsSkip}
+											class="h-9 input-common w-28 px-2 text-sm"
+											onchange={(event) => {
+												docsSkip = Math.max(0, Number(event.currentTarget.value) || 0);
+											}}
+										/>
+									</label>
+									<PropertyType
+										type="check"
+										fit={true}
+										label="Descending"
+										checked={docsDescending}
+										onCheckedChange={(event) => (docsDescending = event.checked)}
+									/>
+								</div>
+							</div>
+
+							<ActionBar full={false} wrap={false} class="justify-end gap-2">
+								<Button
+									label="Run Query"
+									icon="mdi:magnify"
+									class="button-primary h-9 w-fit!"
+									onclick={executeOptionsQuery}
+								/>
+								<Button
+									label="Cancel"
+									class="button-secondary h-9 w-fit!"
+									onclick={() => (queryOptionsOpen = false)}
+								/>
+							</ActionBar>
+						</div>
+					</div>
+				{/if}
+
+				<div class="fullsync-layout-bar">
+					<div class="layout-x-wrap items-center gap-2">
+						<Switch
+							name="select-all-documents"
+							aria-label="Select all documents"
+							checked={allSelectableRowsSelected}
+							disabled={selectableDocumentRows.length == 0 || working}
+							onCheckedChange={(event) => setAllRowSelection(event.checked)}
+						>
+							<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+								<Switch.Thumb />
+							</Switch.Control>
+							<Switch.HiddenInput />
+						</Switch>
+						{#if selectedDocumentCount > 0}
+							<Button
+								full={false}
+								icon="mdi:delete-outline"
+								class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+								title={`Delete ${selectedDocumentCount} selected document(s)`}
+								ariaLabel={`Delete ${selectedDocumentCount} selected document(s)`}
+								disabled={working}
+								onclick={deleteSelectedDocuments}
+							/>
+						{/if}
+					</div>
+					<PropertyType
+						type="segment"
+						fit={true}
+						name="layoutMode"
+						item={[
+							{ value: 'table', text: 'Table' },
+							{ value: 'metadata', text: 'Metadata' },
+							{ value: 'json', text: 'JSON' }
+						]}
+						value={currentLayout}
+						onValueChange={(event) => setLayout(event.value ?? 'metadata')}
+					/>
+					<Button
+						label="Create Document"
+						icon="mdi:plus"
+						class="create-doc-btn ml-auto button-primary h-9! w-fit!"
+						onclick={createDocumentAction}
+					/>
+				</div>
+
+				<div class="docs-table-wrap">
+					<table class={`docs-table ${currentLayout == 'metadata' ? 'docs-table-metadata' : ''}`}>
+						<thead>
+							{#if currentLayout == 'metadata'}
+								<tr>
+									<th class="col-select"></th>
+									<th class="col-copy"></th>
+									<th class="metadata-col-id">id</th>
+									<th class="metadata-col-key">key</th>
+									<th class="metadata-col-value">value</th>
+								</tr>
+							{:else if currentLayout == 'table'}
+								<tr>
+									<th class="col-select"></th>
+									{#each docsVisibleColumns as column, columnIndex (`docs-table-column-${column}-${columnIndex}`)}
+										<th class="mango-column-th">
+											<select
+												class="mango-column-select select h-9 input-common w-full min-w-0 px-2 text-sm"
+												value={column}
+												onchange={(event) => setDocsColumn(columnIndex, event.currentTarget.value)}
+											>
+												{#each docsDisplayableColumns as candidate (`docs-table-candidate-${candidate}`)}
+													<option value={candidate}>{candidate}</option>
+												{/each}
+											</select>
+										</th>
+									{/each}
+								</tr>
+							{:else}
+								<tr>
+									<th class="col-select"></th>
+									<th class="col-copy"></th>
+									<th>json</th>
+								</tr>
+							{/if}
+						</thead>
+						<tbody>
+							{#if loadingDocuments && documentRows.length == 0}
+								<tr>
+									<td colspan={tableColspan} class="empty-row">Loading documents...</td>
+								</tr>
+							{:else if documentRows.length == 0}
+								<tr>
+									<td colspan={tableColspan} class="empty-row">This table is empty</td>
+								</tr>
+							{:else}
+								{#each documentRows as row, rowIndex (`${row?.id || row?.key || 'row'}-${rowIndex}`)}
+									<tr>
+										<td class="col-select">
+											{#if row.id}
+												<Switch
+													name={`select-document-${row.id}`}
+													aria-label={`Select ${row.id}`}
+													checked={Boolean(selectedDocIds[row.id])}
+													disabled={!row.rev || working}
+													onCheckedChange={(event) => setRowSelection(row.id, event.checked)}
+												>
+													<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+														<Switch.Thumb />
+													</Switch.Control>
+													<Switch.HiddenInput />
+												</Switch>
+											{/if}
+										</td>
+										{#if currentLayout == 'metadata'}
+											<td class="col-copy">
+												<button
+													type="button"
+													class="button-ico-primary h-7 w-7 justify-center p-0!"
+													title="Copy row"
+													aria-label="Copy row"
+													onclick={() => copyRow(row)}
+												>
+													<Ico icon="mdi:content-copy" size={4.5} />
+												</button>
+											</td>
+											<td class="metadata-col-id">
+												<button
+													type="button"
+													class="metadata-link text-left text-primary-500 transition-surface hover:underline"
+													title={row.id}
+													onclick={() => openDocument(row.id)}
+												>
+													<span class="metadata-ellipsis">{row.id}</span>
+												</button>
+											</td>
+											<td class="metadata-col-key">
+												<span class="metadata-ellipsis" title={row.key}>{row.key}</span>
+											</td>
+											<td class="metadata-col-value">
+												<span class="metadata-ellipsis" title={row.valuePreview}
+													>{row.valuePreview}</span
+												>
+											</td>
+										{:else if currentLayout == 'table'}
+											{#each docsVisibleColumns as column (`docs-table-row-${column}-${rowIndex}`)}
+												<td>
+													{#if (column == '_id' || column == 'id') && row.id}
+														<button
+															type="button"
+															class="metadata-link text-left text-primary-500 transition-surface hover:underline"
+															title={formatMangoCellValue(row.raw?.[column]) || row.id}
+															onclick={() => openDocument(row.id)}
+														>
+															<span class="metadata-ellipsis"
+																>{formatMangoCellValue(row.raw?.[column]) || row.id}</span
+															>
+														</button>
+													{:else}
+														<span
+															class="metadata-ellipsis"
+															title={formatMangoCellValue(row.raw?.[column])}
+															>{formatMangoCellValue(row.raw?.[column])}</span
+														>
+													{/if}
+												</td>
+											{/each}
+										{:else}
+											<td class="col-copy">
+												<button
+													type="button"
+													class="button-ico-primary h-7 w-7 justify-center p-0!"
+													title="Copy row"
+													aria-label="Copy row"
+													onclick={() => copyRow(row)}
+												>
+													<Ico icon="mdi:content-copy" size={4.5} />
+												</button>
+											</td>
+											<td><pre class="text-xs leading-5">{row.jsonText}</pre></td>
+										{/if}
+									</tr>
+								{/each}
+							{/if}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="fullsync-footer">
+					<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
+						{#if currentLayout == 'table' && documentRows.length > 0}
+							<span
+								>Showing {docsVisibleColumns.length} of {docsDisplayableColumns.length} columns.</span
+							>
+							<Switch
+								name="docs-show-all-columns"
+								aria-label="Show all columns"
+								checked={docsShowAllColumns}
+								onCheckedChange={(event) => (docsShowAllColumns = event.checked)}
+							>
+								<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+									<Switch.Thumb />
+								</Switch.Control>
+								<Switch.HiddenInput />
+							</Switch>
+							<span>Show all columns.</span>
+						{/if}
+						<span
+							>Showing document {documentRows.length > 0 ? docsSkip + 1 : 0} - {docsSkip +
+								documentRows.length}.</span
+						>
+					</div>
+					<div class="layout-x-wrap items-center gap-2">
+						<label class="layout-x-low items-center text-sm text-muted">
+							<span>Documents per page:</span>
+							<select
+								class="h-9 input-common px-2 text-sm"
+								value={docsPageSizeValue}
+								onchange={(event) => {
+									docsPageSizeValue = event.currentTarget.value;
+									docsSkip = 0;
+									void refreshDocuments();
+								}}
+							>
+								<option value="5">5</option>
+								<option value="10">10</option>
+								<option value="20">20</option>
+								<option value="30">30</option>
+								<option value="50">50</option>
+								<option value="100">100</option>
+								<option value="500">500</option>
+							</select>
+						</label>
+						<button
+							type="button"
+							class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+							title="Previous page"
+							aria-label="Previous page"
+							disabled={!canGoPreviousDocs}
+							onclick={previousDocsPage}
+						>
+							<Ico icon="mdi:chevron-left" />
+						</button>
+						<button
+							type="button"
+							class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+							title="Next page"
+							aria-label="Next page"
+							disabled={!canGoNextDocs}
+							onclick={nextDocsPage}
+						>
+							<Ico icon="mdi:chevron-right" />
+						</button>
+					</div>
+				</div>
+			</section>
+		{/if}
+	{:else if currentTab == 'mango'}
+		<section class="mango-page-panel">
+			<header class="mango-page-header">
+				<div class="mango-title-row">
+					<a
+						href={fullSyncDbTabHref(database, 'all')}
+						class="mango-back-link"
+						title="All Documents"
+						aria-label="All Documents"
+					>
+						<Ico icon="mdi:arrow-left" size={5} />
+					</a>
+					<a href={fullSyncDbTabHref(database, 'all')} class="mango-db-link" title={database}
+						>{database}</a
+					>
+					<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
+					<span class="mango-title-text">Mango Query</span>
+				</div>
+				<div class="mango-header-actions">
+					<Button
+						label="JSON"
+						icon="mdi:code-braces"
+						class="button-secondary h-9 px-3"
+						full={false}
+						onclick={openMangoResultJson}
+					/>
+					<Button
+						icon="mdi:book-open-variant"
+						class="button-secondary h-9 w-9 justify-center p-0!"
+						title="CouchDB Mango documentation"
+						ariaLabel="CouchDB Mango documentation"
+						full={false}
+						onclick={openMangoDocumentation}
+					/>
+				</div>
+			</header>
+
+			<div class="mango-layout">
+				<aside class="mango-editor-panel">
+					<div class="layout-y-stretch gap-2">
+						<PropertyType
+							type="combo"
+							name="mango-history"
+							label="Query history"
+							item={[
+								{ value: '', text: 'Query history' },
+								...mangoHistory.map((entry) => ({ value: entry.value, text: entry.label }))
+							]}
+							bind:value={selectedMangoHistory}
+							onchange={() => onMangoHistorySelected(selectedMangoHistory)}
+						/>
+						<div class="layout-y-stretch gap-1">
+							<span class="label-common">Mango Query</span>
+							<div class="editor-shell mango-editor-shell">
+								<Editor
+									bind:content={mangoQueryText}
+									language="json"
+									readOnly={working}
+									theme={editorTheme}
+								/>
 							</div>
 						</div>
+					</div>
+					<div class="mango-editor-actions">
+						<Button
+							label="Run Query"
+							icon="mdi:magnify"
+							class="button-primary h-9 px-3"
+							full={false}
+							disabled={working}
+							onclick={runMangoAction}
+						/>
+						<Button
+							label="Explain"
+							icon="mdi:cog-outline"
+							class="button-secondary h-9 px-3"
+							full={false}
+							disabled={working}
+							onclick={explainMangoAction}
+						/>
+						<a
+							class="button-secondary inline-flex h-9 w-fit! items-center justify-center rounded-base px-3"
+							href={mangoIndexesUrl}
+							title="Manage Indexes"
+							aria-label="Manage Indexes"
+						>
+							Manage Indexes
+						</a>
+					</div>
+					{#if mangoLastRunMs > 0}
+						<div class="mango-run-meta">Executed in {mangoLastRunMs} ms</div>
+					{/if}
+				</aside>
 
-						<div class="layout-y-stretch gap-2 border-t border-surface-200-800 pt-3">
-							<div class="text-sm font-medium text-strong">Additional Parameters</div>
-							<div class="layout-x-wrap items-center gap-2 text-sm">
-								<label class="layout-x-low items-center text-strong">
-									<span>Limit</span>
+				<section class="mango-result-panel">
+					{#if !isMangoExplainMode}
+						<header class="mango-result-toolbar">
+							<div class="mango-result-toolbar-left">
+								<Switch
+									name="select-all-mango-documents"
+									aria-label="Select all documents"
+									checked={mangoAllSelectableRowsSelected}
+									disabled={mangoSelectableRows.length == 0 || working}
+									onCheckedChange={(event) => setAllMangoRowSelection(event.checked)}
+								>
+									<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+										<Switch.Thumb />
+									</Switch.Control>
+									<Switch.HiddenInput />
+								</Switch>
+								{#if mangoSelectedCount > 0}
+									<Button
+										full={false}
+										icon="mdi:delete-outline"
+										class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+										title={`Delete ${mangoSelectedCount} selected document(s)`}
+										ariaLabel={`Delete ${mangoSelectedCount} selected document(s)`}
+										disabled={working}
+										onclick={deleteSelectedMangoDocuments}
+									/>
+								{/if}
+								<PropertyType
+									type="segment"
+									fit={true}
+									name="mangoLayoutMode"
+									item={[
+										{ value: 'table', text: 'Table' },
+										{ value: 'json', text: 'JSON' }
+									]}
+									value={mangoResultLayout}
+									onValueChange={(event) => (mangoResultLayout = event.value ?? 'table')}
+								/>
+							</div>
+							<Button
+								label="Create Document"
+								icon="mdi:plus"
+								class="button-primary h-9 px-3"
+								full={false}
+								onclick={createDocumentAction}
+							/>
+						</header>
+					{/if}
+
+					{#if isMangoExplainMode}
+						<div class="mango-result-body">
+							<pre class="text-xs leading-5">{mangoExplainText}</pre>
+						</div>
+					{:else if mangoResultLayout == 'json'}
+						{#if mangoPagedRows.length == 0}
+							<div class="mango-empty">
+								<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
+								<div class="mango-empty-title">No Documents Found</div>
+							</div>
+						{:else}
+							<div class="mango-json-list">
+								{#each mangoPagedRows as row, rowIndex (`${row?.id || 'mango-json'}-${mangoSkip}-${rowIndex}`)}
+									<article class="mango-json-row">
+										<div class="mango-json-select">
+											{#if row.id}
+												<Switch
+													name={`select-mango-json-document-${row.id}`}
+													aria-label={`Select ${row.id}`}
+													checked={Boolean(mangoSelectedDocIds[row.id])}
+													disabled={!row.rev || working}
+													onCheckedChange={(event) => setMangoRowSelection(row.id, event.checked)}
+												>
+													<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+														<Switch.Thumb />
+													</Switch.Control>
+													<Switch.HiddenInput />
+												</Switch>
+											{/if}
+										</div>
+										<div class="mango-json-card">
+											<header class="mango-json-card-header">
+												<span class="mango-json-id" title={row.id}>id "{row.id}"</span>
+												<button
+													type="button"
+													class="button-ico-primary h-7 w-7 justify-center p-0!"
+													title="Open document"
+													aria-label="Open document"
+													onclick={() => openDocument(row.id)}
+												>
+													<Ico icon="mdi:pencil-outline" size={4.5} />
+												</button>
+											</header>
+											<pre class="mango-json-content">{row.jsonText}</pre>
+										</div>
+									</article>
+								{/each}
+							</div>
+						{/if}
+					{:else if hasMangoDocs}
+						<div class="docs-table-wrap">
+							<table class="docs-table docs-table-metadata mango-table">
+								<thead>
+									<tr>
+										<th class="col-select"></th>
+										<th class="col-copy"></th>
+										{#each mangoVisibleColumns as column, columnIndex (`${column}-${columnIndex}`)}
+											<th class="mango-column-th">
+												<select
+													class="mango-column-select select h-9 input-common w-full min-w-0 px-2 text-sm"
+													value={column}
+													onchange={(event) =>
+														setMangoColumn(columnIndex, event.currentTarget.value)}
+												>
+													{#each mangoDisplayableColumns as candidate (candidate)}
+														<option value={candidate}>{candidate}</option>
+													{/each}
+												</select>
+											</th>
+										{/each}
+									</tr>
+								</thead>
+								<tbody>
+									{#if mangoPagedRows.length == 0}
+										<tr>
+											<td colspan={mangoTableColspan} class="empty-row">This table is empty</td>
+										</tr>
+									{:else}
+										{#each mangoPagedRows as row, rowIndex (`${row?.id || 'mango'}-${mangoSkip}-${rowIndex}`)}
+											<tr>
+												<td class="col-select">
+													{#if row.id}
+														<Switch
+															name={`select-mango-document-${row.id}`}
+															aria-label={`Select ${row.id}`}
+															checked={Boolean(mangoSelectedDocIds[row.id])}
+															disabled={!row.rev || working}
+															onCheckedChange={(event) =>
+																setMangoRowSelection(row.id, event.checked)}
+														>
+															<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+																<Switch.Thumb />
+															</Switch.Control>
+															<Switch.HiddenInput />
+														</Switch>
+													{/if}
+												</td>
+												<td class="col-copy">
+													<button
+														type="button"
+														class="button-ico-primary h-7 w-7 justify-center p-0!"
+														title="Copy row"
+														aria-label="Copy row"
+														onclick={() => copyRow(row)}
+													>
+														<Ico icon="mdi:content-copy" size={4.5} />
+													</button>
+												</td>
+												{#each mangoVisibleColumns as column (`${column}-${rowIndex}`)}
+													<td>
+														{#if column == '_id'}
+															<button
+																type="button"
+																class="metadata-link text-left text-primary-500 transition-surface hover:underline"
+																title={formatMangoCellValue(row.raw?.[column])}
+																onclick={() => openDocument(row.id)}
+															>
+																<span class="metadata-ellipsis"
+																	>{formatMangoCellValue(row.raw?.[column])}</span
+																>
+															</button>
+														{:else}
+															<span
+																class="metadata-ellipsis"
+																title={formatMangoCellValue(row.raw?.[column])}
+																>{formatMangoCellValue(row.raw?.[column])}</span
+															>
+														{/if}
+													</td>
+												{/each}
+											</tr>
+										{/each}
+									{/if}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<div class="mango-empty">
+							<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
+							<div class="mango-empty-title">No Documents Found</div>
+						</div>
+					{/if}
+
+					{#if !isMangoExplainMode}
+						<footer class="fullsync-footer mango-footer">
+							<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
+								{#if hasMangoDocs && mangoResultLayout == 'table'}
+									<span
+										>Showing {mangoVisibleColumns.length} of {mangoDisplayableColumns.length} columns.</span
+									>
+									<Switch
+										name="mango-show-all-columns"
+										aria-label="Show all columns"
+										checked={mangoShowAllColumns}
+										onCheckedChange={(event) => (mangoShowAllColumns = event.checked)}
+									>
+										<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+											<Switch.Thumb />
+										</Switch.Control>
+										<Switch.HiddenInput />
+									</Switch>
+									<span>Show all columns.</span>
+								{/if}
+							</div>
+							<div class="layout-x-wrap items-center gap-2">
+								<label class="layout-x-low items-center text-sm text-muted">
+									<span>Documents per page:</span>
 									<select
 										class="h-9 input-common px-2 text-sm"
-										value={docsLimitValue}
+										value={mangoLimitValue}
 										onchange={(event) => {
-											docsLimitValue = event.currentTarget.value;
-											docsSkip = 0;
+											mangoLimitValue = event.currentTarget.value;
+											mangoSkip = 0;
+											mangoSelectedDocIds = {};
 										}}
 									>
 										<option value="5">5</option>
@@ -753,297 +2547,311 @@
 										<option value="50">50</option>
 										<option value="100">100</option>
 										<option value="500">500</option>
+										<option value="none">None</option>
 									</select>
 								</label>
-								<label class="layout-x-low items-center text-strong">
-									<span>Skip</span>
-									<input
-										type="number"
-										min="0"
-										value={docsSkip}
-										class="h-9 input-common w-28 px-2 text-sm"
-										onchange={(event) => {
-											docsSkip = Math.max(0, Number(event.currentTarget.value) || 0);
-										}}
-									/>
-								</label>
-								<PropertyType
-									type="check"
-									fit={true}
-									label="Descending"
-									checked={docsDescending}
-									onCheckedChange={(event) => (docsDescending = event.checked)}
+								<button
+									type="button"
+									class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+									title="Previous page"
+									aria-label="Previous page"
+									disabled={!mangoCanGoPrevious}
+									onclick={previousMangoPage}
+								>
+									<Ico icon="mdi:chevron-left" />
+								</button>
+								<button
+									type="button"
+									class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+									title="Next page"
+									aria-label="Next page"
+									disabled={!mangoCanGoNext}
+									onclick={nextMangoPage}
+								>
+									<Ico icon="mdi:chevron-right" />
+								</button>
+								<div class="text-sm text-muted">
+									Showing document {mangoPagedRows.length > 0 ? mangoSkip + 1 : 0} - {mangoSkip +
+										mangoPagedRows.length}.
+								</div>
+							</div>
+						</footer>
+					{/if}
+				</section>
+			</div>
+		</section>
+	{:else}
+		<section class="mango-page-panel">
+			<header class="mango-page-header">
+				<div class="mango-title-row">
+					<a href={fullSyncDbAllDocsHref(database)} class="mango-back-link" title="All Documents">
+						<Ico icon="mdi:arrow-left" size={5} />
+					</a>
+					<a href={fullSyncDbAllDocsHref(database)} class="mango-db-link" title={database}
+						>{database}</a
+					>
+					<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
+					<span class="mango-title-text">Mango</span>
+				</div>
+				<div class="mango-header-actions">
+					<Button
+						label="JSON"
+						icon="mdi:code-braces"
+						class="button-secondary h-9 px-3"
+						full={false}
+						onclick={openMangoIndexJson}
+					/>
+					<Button
+						icon="mdi:book-open-variant"
+						class="button-secondary h-9 w-9 justify-center p-0!"
+						title="CouchDB Mango documentation"
+						ariaLabel="CouchDB Mango documentation"
+						full={false}
+						onclick={openMangoDocumentation}
+					/>
+				</div>
+			</header>
+
+			<div class="mango-layout">
+				<aside class="mango-editor-panel">
+					<div class="layout-y-stretch gap-2">
+						<PropertyType
+							type="combo"
+							name="mango-index-example"
+							label="Examples"
+							item={[
+								{ value: 'example', text: 'Examples' },
+								{ value: 'text', text: 'message index' }
+							]}
+							bind:value={mangoIndexExample}
+							onchange={() => onMangoIndexExampleChange(mangoIndexExample)}
+						/>
+						<div class="layout-y-stretch gap-1">
+							<span class="label-common">Index</span>
+							<div class="editor-shell mango-editor-shell">
+								<Editor
+									bind:content={mangoIndexText}
+									language="json"
+									readOnly={working}
+									theme={editorTheme}
 								/>
 							</div>
 						</div>
-
-						<ActionBar full={false} wrap={false} class="justify-end gap-2">
-							<Button
-								label="Run Query"
-								icon="mdi:magnify"
-								class="button-primary h-9 w-fit!"
-								onclick={executeOptionsQuery}
-							/>
-							<Button
-								label="Cancel"
-								class="button-secondary h-9 w-fit!"
-								onclick={() => (queryOptionsOpen = false)}
-							/>
-						</ActionBar>
 					</div>
-				</div>
-			{/if}
-
-			<div class="fullsync-layout-bar">
-				<div class="layout-x-low items-center gap-2">
-					<Switch
-						name="select-all-documents"
-						aria-label="Select all documents"
-						checked={allSelectableRowsSelected}
-						disabled={selectableDocumentRows.length == 0 || working}
-						onCheckedChange={(event) => setAllRowSelection(event.checked)}
-					>
-						<Switch.Control class="c8o-switch transition-surface">
-							<Switch.Thumb />
-						</Switch.Control>
-						<Switch.HiddenInput />
-					</Switch>
-					{#if selectedDocumentCount > 0}
+					<div class="mango-editor-actions">
 						<Button
+							label="Create Index"
+							class="button-primary h-9 px-3"
 							full={false}
-							icon="mdi:delete-outline"
-							class="button-ico-primary h-9 w-9 min-w-9 justify-center p-0!"
-							title={`Delete ${selectedDocumentCount} selected document(s)`}
-							ariaLabel={`Delete ${selectedDocumentCount} selected document(s)`}
 							disabled={working}
-							onclick={deleteSelectedDocuments}
+							onclick={createMangoIndexAction}
 						/>
-					{/if}
-				</div>
-				<PropertyType
-					type="segment"
-					fit={true}
-					name="layoutMode"
-					item={[
-						{ value: 'table', text: 'Table' },
-						{ value: 'metadata', text: 'Metadata' },
-						{ value: 'json', text: 'JSON' }
-					]}
-					value={currentLayout}
-					onValueChange={(event) => setLayout(event.value ?? 'metadata')}
-				/>
-				<Button
-					label="Create Document"
-					icon="mdi:plus"
-					class="create-doc-btn ml-auto button-primary h-9! w-fit!"
-					onclick={createDocumentAction}
-				/>
-			</div>
+						<a
+							class="button-secondary flex h-9 items-center justify-center rounded-base px-3"
+							href={fullSyncDbMangoHref(database)}
+						>
+							Edit Query
+						</a>
+					</div>
+				</aside>
 
-			<div class="docs-table-wrap">
-				<table class={`docs-table ${currentLayout == 'metadata' ? 'docs-table-metadata' : ''}`}>
-					<thead>
-						{#if currentLayout == 'metadata'}
-							<tr>
-								<th class="col-select"></th>
-								<th class="col-copy"></th>
-								<th class="metadata-col-id">id</th>
-								<th class="metadata-col-key">key</th>
-								<th class="metadata-col-value">value</th>
-							</tr>
-						{:else if currentLayout == 'table'}
-							<tr>
-								<th class="col-select"></th>
-								<th>id</th>
-								<th>type</th>
-								<th>rev</th>
-							</tr>
-						{:else}
-							<tr>
-								<th class="col-select"></th>
-								<th class="col-copy"></th>
-								<th>json</th>
-							</tr>
-						{/if}
-					</thead>
-					<tbody>
-						{#if loadingDocuments && documentRows.length == 0}
-							<tr>
-								<td colspan={tableColspan} class="empty-row"> Loading documents... </td>
-							</tr>
-						{:else if documentRows.length == 0}
-							<tr>
-								<td colspan={tableColspan} class="empty-row"> This table is empty </td>
-							</tr>
-						{:else}
-							{#each documentRows as row (row.id || row.key)}
-								<tr>
-									<td class="col-select">
-										{#if row.id}
+				<section class="mango-result-panel">
+					<header class="mango-result-toolbar">
+						<div class="mango-result-toolbar-left">
+							<Switch
+								name="select-all-mango-indexes"
+								aria-label="Select all indexes"
+								checked={mangoIndexAllSelectableRowsSelected}
+								disabled={mangoIndexSelectableRows.length == 0 || working}
+								onCheckedChange={(event) => setAllMangoIndexRowSelection(event.checked)}
+							>
+								<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
+									<Switch.Thumb />
+								</Switch.Control>
+								<Switch.HiddenInput />
+							</Switch>
+							{#if mangoIndexSelectedCount > 0}
+								<Button
+									full={false}
+									icon="mdi:delete-outline"
+									class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+									title={`Delete ${mangoIndexSelectedCount} selected index document(s)`}
+									ariaLabel={`Delete ${mangoIndexSelectedCount} selected index document(s)`}
+									disabled={working}
+									onclick={deleteSelectedMangoIndexes}
+								/>
+							{/if}
+						</div>
+						<Button
+							label="Create Document"
+							icon="mdi:plus"
+							class="button-primary h-9 px-3"
+							full={false}
+							onclick={createDocumentAction}
+						/>
+					</header>
+
+					{#if mangoIndexesLoading}
+						<div class="mango-empty">
+							<div class="mango-empty-title">Loading indexes...</div>
+						</div>
+					{:else if mangoIndexPagedRows.length == 0}
+						<div class="mango-empty">
+							<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
+							<div class="mango-empty-title">No indexes found</div>
+						</div>
+					{:else}
+						<div class="mango-json-list">
+							{#each mangoIndexPagedRows as row (row.key)}
+								<article class="mango-json-row">
+									<div class="mango-json-select">
+										{#if row.isBulkDeletable}
 											<Switch
-												name={`select-document-${row.id}`}
-												aria-label={`Select ${row.id}`}
-												checked={Boolean(selectedDocIds[row.id])}
-												disabled={!row.rev || working}
-												onCheckedChange={(event) => setRowSelection(row.id, event.checked)}
+												name={`select-mango-index-${row.key}`}
+												aria-label={`Select ${row.name}`}
+												checked={Boolean(mangoIndexesSelection[row.key])}
+												disabled={working}
+												onCheckedChange={(event) =>
+													setMangoIndexRowSelection(row.key, event.checked)}
 											>
-												<Switch.Control class="c8o-switch transition-surface">
+												<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
 													<Switch.Thumb />
 												</Switch.Control>
 												<Switch.HiddenInput />
 											</Switch>
 										{/if}
-									</td>
-									{#if currentLayout == 'metadata'}
-										<td class="col-copy">
-											<button
-												type="button"
-												class="button-ico-primary h-8 w-8 justify-center p-0!"
-												title="Copy row"
-												aria-label="Copy row"
-												onclick={() => copyRow(row)}
+									</div>
+									<div class="mango-json-card">
+										<header class="mango-json-card-header">
+											<span class="mango-json-id" title={`${row.type}: ${row.name}`}
+												>{`"${row.type}: ${row.name}"`}</span
 											>
-												<Ico icon="mdi:content-copy" size={4.5} />
-											</button>
-										</td>
-										<td class="metadata-col-id">
-											<button
-												type="button"
-												class="metadata-link text-left text-primary-500 transition-surface hover:underline"
-												title={row.id}
-												onclick={() => openDocument(row.id)}
-											>
-												<span class="metadata-ellipsis">{row.id}</span>
-											</button>
-										</td>
-										<td class="metadata-col-key">
-											<span class="metadata-ellipsis" title={row.key}>{row.key}</span>
-										</td>
-										<td class="metadata-col-value">
-											<span class="metadata-ellipsis" title={row.valuePreview}
-												>{row.valuePreview}</span
-											>
-										</td>
-									{:else if currentLayout == 'table'}
-										<td class="break-all">
-											<button
-												type="button"
-												class="text-left break-all text-primary-500 transition-surface hover:underline"
-												onclick={() => openDocument(row.id)}
-											>
-												{row.id}
-											</button>
-										</td>
-										<td>{row.type || '-'}</td>
-										<td class="break-all">{row.rev || '-'}</td>
-									{:else}
-										<td class="col-copy">
-											<button
-												type="button"
-												class="button-ico-primary h-8 w-8 justify-center p-0!"
-												title="Copy row"
-												aria-label="Copy row"
-												onclick={() => copyRow(row)}
-											>
-												<Ico icon="mdi:content-copy" size={4.5} />
-											</button>
-										</td>
-										<td><pre class="text-xs leading-5">{row.jsonText}</pre></td>
-									{/if}
-								</tr>
+										</header>
+										<pre class="mango-json-content">{row.jsonText}</pre>
+									</div>
+								</article>
 							{/each}
-						{/if}
-					</tbody>
-				</table>
-			</div>
-
-			<div class="fullsync-footer">
-				<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
-					<span
-						>Showing document {documentRows.length > 0 ? docsSkip + 1 : 0} - {docsSkip +
-							documentRows.length}.</span
-					>
-				</div>
-				<div class="layout-x-wrap items-center gap-2">
-					<label class="layout-x-low items-center text-sm text-muted">
-						<span>Documents per page:</span>
-						<select
-							class="h-9 input-common px-2 text-sm"
-							value={docsLimitValue}
-							onchange={(event) => {
-								docsLimitValue = event.currentTarget.value;
-								docsSkip = 0;
-								void refreshDocuments();
-							}}
-						>
-							<option value="5">5</option>
-							<option value="10">10</option>
-							<option value="20">20</option>
-							<option value="30">30</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
-						</select>
-					</label>
-					<button
-						type="button"
-						class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
-						title="Previous page"
-						aria-label="Previous page"
-						disabled={!canGoPreviousDocs}
-						onclick={previousDocsPage}
-					>
-						<Ico icon="mdi:arrow-left-bold-outline" />
-					</button>
-					<button
-						type="button"
-						class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
-						title="Next page"
-						aria-label="Next page"
-						disabled={!canGoNextDocs}
-						onclick={nextDocsPage}
-					>
-						<Ico icon="mdi:arrow-right-bold-outline" />
-					</button>
-				</div>
-			</div>
-		</section>
-	{:else}
-		<Card title="Run A Query with Mango">
-			{#snippet cornerOption()}
-				<Button
-					label="Run Query"
-					icon="mdi:magnify"
-					class="button-primary w-fit!"
-					disabled={working}
-					onclick={runMangoAction}
-				/>
-			{/snippet}
-			<div class="layout-cols-2 w-full">
-				<label class="layout-y-low">
-					<span class="text-xs text-muted">Mango payload</span>
-					<textarea
-						class="min-h-[360px] input-common resize-y p-3 font-mono text-xs"
-						bind:value={mangoQueryText}
-					></textarea>
-				</label>
-				<label class="layout-y-low">
-					<span class="text-xs text-muted">Result</span>
-					{#if mangoResultText}
-						<pre
-							class="min-h-[360px] input-common overflow-auto p-3 text-xs leading-5">{mangoResultText}</pre>
-					{:else}
-						<div
-							class="layout-y-none min-h-[360px] input-common place-items-center gap-2 p-3 text-sm text-muted"
-						>
-							<Ico icon="mdi:magnify" size={6} />
-							<span>No result yet.</span>
 						</div>
 					{/if}
-				</label>
+
+					<footer class="fullsync-footer mango-footer">
+						<div class="text-sm text-muted">
+							Showing document {mangoIndexPagedRows.length > 0 ? mangoIndexSkip + 1 : 0} - {mangoIndexSkip +
+								mangoIndexPagedRows.length}.
+						</div>
+						<div class="layout-x-wrap items-center gap-2">
+							<label class="layout-x-low items-center text-sm text-muted">
+								<span>Documents per page:</span>
+								<select
+									class="h-9 input-common px-2 text-sm"
+									value={mangoIndexLimitValue}
+									onchange={(event) => {
+										mangoIndexLimitValue = event.currentTarget.value;
+										mangoIndexSkip = 0;
+										mangoIndexesSelection = {};
+									}}
+								>
+									<option value="5">5</option>
+									<option value="10">10</option>
+									<option value="20">20</option>
+									<option value="30">30</option>
+									<option value="50">50</option>
+									<option value="100">100</option>
+									<option value="none">None</option>
+								</select>
+							</label>
+							<button
+								type="button"
+								class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+								title="Previous page"
+								aria-label="Previous page"
+								disabled={!mangoIndexCanGoPrevious}
+								onclick={previousMangoIndexPage}
+							>
+								<Ico icon="mdi:chevron-left" />
+							</button>
+							<button
+								type="button"
+								class="button-ico-primary h-7 w-7 justify-center p-0! disabled:cursor-not-allowed disabled:opacity-35"
+								title="Next page"
+								aria-label="Next page"
+								disabled={!mangoIndexCanGoNext}
+								onclick={nextMangoIndexPage}
+							>
+								<Ico icon="mdi:chevron-right" />
+							</button>
+						</div>
+					</footer>
+				</section>
 			</div>
-		</Card>
+		</section>
 	{/if}
 </div>
+
+<ModalDynamic bind:this={cloneViewModal}>
+	{#snippet children({ close })}
+		<Card title="Clone View" style="width: min(42rem, calc(100vw - (var(--spacing) * 4)));">
+			<div class="layout-y-stretch gap-3">
+				<div class="text-sm text-strong">
+					Clone view <b>{cloneSourceViewName || '-'}</b> from
+					<b>{cloneSourceDesignDocId || '-'}</b>.
+				</div>
+
+				<PropertyType
+					type="combo"
+					name="cloneTargetDesignDoc"
+					label="Target design document"
+					item={[{ value: 'new-doc', text: 'Create new design document' }, ...designDocSelectItems]}
+					bind:value={cloneTargetDesignDocId}
+				/>
+				{#if cloneTargetDesignDocId == 'new-doc'}
+					<PropertyType
+						type="text"
+						name="cloneNewDesignDocName"
+						label="New design document name"
+						placeholder="new_design_doc"
+						bind:value={cloneNewDesignDocName}
+					/>
+				{/if}
+				<PropertyType
+					type="text"
+					name="cloneViewName"
+					label="Target view name"
+					placeholder="view_copy"
+					bind:value={cloneViewName}
+				/>
+
+				{#if cloneViewError}
+					<div
+						class="rounded-base border border-error-300-700 bg-error-100-900 px-3 py-2 text-sm text-error-900-100"
+					>
+						{cloneViewError}
+					</div>
+				{/if}
+
+				<ActionBar full={false} wrap={true} class="justify-end gap-2">
+					<Button
+						label="Cancel"
+						icon="mdi:close-circle-outline"
+						class="button-secondary w-fit!"
+						disabled={working}
+						onclick={() => {
+							cloneViewError = '';
+							close(false);
+						}}
+					/>
+					<Button
+						label="Clone View"
+						icon="mdi:cached"
+						class="button-primary w-fit!"
+						disabled={working || cloneViewName.trim().length == 0}
+						onclick={cloneViewAction}
+					/>
+				</ActionBar>
+			</div>
+		</Card>
+	{/snippet}
+</ModalDynamic>
 
 <style lang="postcss">
 	@reference "../../../../app.css";
@@ -1112,72 +2920,6 @@
 		color: var(--color-primary-500);
 	}
 
-	.fullsync-main-panel {
-		position: relative;
-		display: grid;
-		gap: calc(var(--spacing) * 1.25);
-		padding: calc(var(--spacing) * 2);
-		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
-		border-radius: var(--radius-container);
-		background: light-dark(var(--color-surface-100), var(--color-surface-900));
-	}
-
-	.fullsync-toolbar {
-		display: grid;
-		grid-template-columns: minmax(16rem, 1fr) auto;
-		gap: calc(var(--spacing) * 1.5);
-		align-items: center;
-		padding-bottom: calc(var(--spacing) * 1);
-		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
-	}
-
-	.fullsync-toolbar-actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: flex-end;
-		gap: calc(var(--spacing) * 1.25);
-	}
-
-	.fullsync-layout-bar {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: calc(var(--spacing) * 1.5);
-		padding-bottom: calc(var(--spacing) * 0.5);
-	}
-
-	.fullsync-footer {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: calc(var(--spacing) * 2);
-		padding-top: calc(var(--spacing) * 0.75);
-	}
-
-	.doc-open-form {
-		min-width: 0;
-		width: 100%;
-		max-width: none;
-	}
-
-	.query-options-panel {
-		border: 1px solid var(--color-surface-500);
-		background: light-dark(var(--color-surface-100), var(--color-surface-900));
-		border-radius: var(--radius-container);
-		padding: calc(var(--spacing) * 3);
-	}
-
-	.query-options-floating {
-		position: absolute;
-		top: calc(var(--spacing) * 7.4);
-		right: calc(var(--spacing) * 2);
-		width: min(30rem, calc(100% - (var(--spacing) * 4)));
-		z-index: 20;
-		box-shadow: var(--shadow-follow);
-	}
-
 	.design-doc-group {
 		border-top: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
 	}
@@ -1198,6 +2940,10 @@
 
 	.design-doc-link {
 		position: relative;
+		width: 100%;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
 		display: flex;
 		align-items: center;
 		gap: calc(var(--spacing) * 2);
@@ -1210,24 +2956,6 @@
 		width: 2.1rem;
 	}
 
-	.design-doc-sub-link {
-		position: relative;
-		display: flex;
-		align-items: center;
-		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5) calc(var(--spacing) * 1.5)
-			calc(var(--spacing) * 9);
-		font-size: 13px;
-		color: var(--convertigo-text-strong);
-	}
-
-	.design-doc-sub-link:hover,
-	.design-doc-link:hover {
-		background: light-dark(
-			color-mix(in srgb, var(--color-primary-300) 26%, transparent),
-			color-mix(in srgb, var(--color-primary-600) 24%, transparent)
-		);
-	}
-
 	.design-doc-sub-title {
 		padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2.5) calc(var(--spacing) * 1)
 			calc(var(--spacing) * 9);
@@ -1235,6 +2963,153 @@
 		color: var(--convertigo-text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.02em;
+	}
+
+	.design-doc-view-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+	}
+
+	.design-doc-sub-link {
+		position: relative;
+		display: flex;
+		align-items: center;
+		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 2) calc(var(--spacing) * 1.25)
+			calc(var(--spacing) * 9);
+		font-size: 13px;
+		min-width: 0;
+		color: var(--convertigo-text-strong);
+	}
+
+	.design-doc-view-actions {
+		display: inline-flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.25);
+		padding-right: calc(var(--spacing) * 1);
+	}
+
+	.design-doc-sub-link:hover,
+	.design-doc-link:hover,
+	.design-doc-view-row:hover {
+		background: light-dark(
+			color-mix(in srgb, var(--color-primary-300) 26%, transparent),
+			color-mix(in srgb, var(--color-primary-600) 24%, transparent)
+		);
+	}
+
+	.fullsync-main-panel {
+		position: relative;
+		display: grid;
+		gap: calc(var(--spacing) * 1.25);
+		padding: calc(var(--spacing) * 1.5);
+		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		border-radius: var(--radius-container);
+		background: light-dark(var(--color-surface-100), var(--color-surface-900));
+	}
+
+	.view-editor-panel {
+		padding: calc(var(--spacing) * 2);
+	}
+
+	.view-editor-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 1);
+		padding-bottom: calc(var(--spacing) * 1);
+		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+	}
+
+	.view-editor-fields {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+		gap: calc(var(--spacing) * 1);
+	}
+
+	.editor-shell {
+		height: 20rem;
+		min-height: 18rem;
+		min-width: 0;
+		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		border-radius: var(--radius-base);
+		overflow: hidden;
+	}
+
+	.view-editor-map-shell {
+		height: clamp(18rem, 44dvh, 34rem);
+	}
+
+	.view-editor-reduce-shell {
+		height: clamp(16rem, 34dvh, 28rem);
+	}
+
+	.fullsync-toolbar {
+		display: grid;
+		grid-template-columns: minmax(16rem, 1fr) auto;
+		gap: calc(var(--spacing) * 1.25);
+		align-items: center;
+	}
+
+	.fullsync-toolbar-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: calc(var(--spacing) * 1);
+	}
+
+	.fullsync-layout-bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: calc(var(--spacing) * 1.25);
+		padding-top: calc(var(--spacing) * 0.5);
+		padding-bottom: calc(var(--spacing) * 0.5);
+		border-top: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+	}
+
+	.fullsync-footer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 1.5);
+		padding-top: calc(var(--spacing) * 0.75);
+	}
+
+	.doc-open-form {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.query-options-panel {
+		border: 1px solid var(--color-surface-500);
+		background: light-dark(var(--color-surface-100), var(--color-surface-900));
+		border-radius: var(--radius-container);
+		padding: calc(var(--spacing) * 2);
+	}
+
+	.query-options-floating {
+		position: absolute;
+		top: calc(var(--spacing) * 6.5);
+		right: calc(var(--spacing) * 1.5);
+		width: min(30rem, calc(100% - (var(--spacing) * 3)));
+		z-index: 20;
+		box-shadow: var(--shadow-follow);
+	}
+
+	.query-options-select {
+		min-width: 5.75rem;
+	}
+
+	.query-options-select-update {
+		min-width: 6.25rem;
+	}
+
+	.query-options-select-limit {
+		min-width: 5.5rem;
 	}
 
 	.docs-table-wrap {
@@ -1248,7 +3123,7 @@
 
 	.docs-table th,
 	.docs-table td {
-		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 1.5);
+		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1.25);
 		vertical-align: top;
 	}
 
@@ -1308,7 +3183,7 @@
 	}
 
 	.col-copy {
-		width: 2.6rem;
+		width: 2.4rem;
 	}
 
 	.col-select {
@@ -1322,9 +3197,261 @@
 		justify-content: center;
 	}
 
+	.col-actions {
+		width: 4rem;
+	}
+
 	.empty-row {
-		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 1.5);
+		padding: calc(var(--spacing) * 3) calc(var(--spacing) * 1.5);
 		color: var(--convertigo-text-muted);
+	}
+
+	.mango-page-panel {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		border-radius: var(--radius-container);
+		background: light-dark(var(--color-surface-100), var(--color-surface-900));
+		min-height: calc(100dvh - 13rem);
+		overflow: hidden;
+	}
+
+	.mango-page-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 1);
+		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1.5);
+		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+	}
+
+	.mango-title-row {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.75);
+		min-width: 0;
+	}
+
+	.mango-back-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-primary-500);
+		transition: color 140ms ease;
+	}
+
+	.mango-back-link:hover {
+		color: var(--color-primary-600);
+	}
+
+	.mango-db-link,
+	.mango-title-text {
+		font-size: 1.2rem;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.mango-db-link {
+		max-width: min(20rem, 30vw);
+		font-weight: 600;
+		color: var(--color-primary-500);
+	}
+
+	.mango-title-text {
+		font-weight: 500;
+		color: var(--convertigo-text-strong);
+	}
+
+	.mango-layout {
+		display: grid;
+		grid-template-columns: minmax(19rem, 25rem) minmax(0, 1fr);
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.mango-header-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.5);
+	}
+
+	.mango-editor-panel,
+	.mango-result-panel {
+		display: grid;
+		min-height: 0;
+		align-content: start;
+		gap: calc(var(--spacing) * 1);
+		padding: calc(var(--spacing) * 1.25);
+	}
+
+	.mango-editor-panel {
+		border-right: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		grid-template-rows: auto auto auto;
+	}
+
+	.mango-editor-shell {
+		height: clamp(16rem, 36dvh, 22rem);
+		min-height: 16rem;
+	}
+
+	.mango-editor-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.5);
+		padding-top: calc(var(--spacing) * 0.75);
+		border-top: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+	}
+
+	.mango-run-meta {
+		font-size: 0.85rem;
+		color: var(--convertigo-text-muted);
+	}
+
+	.mango-result-panel {
+		grid-template-rows: auto minmax(0, 1fr) auto;
+	}
+
+	.mango-result-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 1);
+		padding-bottom: calc(var(--spacing) * 0.75);
+		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+	}
+
+	.mango-result-toolbar-left {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.75);
+		min-width: 0;
+	}
+
+	.mango-table {
+		table-layout: fixed;
+	}
+
+	.mango-column-th {
+		min-width: 9rem;
+	}
+
+	.mango-column-select {
+		display: block;
+		min-height: 2.25rem;
+		line-height: 1.2;
+	}
+
+	.mango-result-body {
+		min-height: 16rem;
+		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		border-radius: var(--radius-base);
+		overflow: auto;
+		padding: calc(var(--spacing) * 1);
+	}
+
+	.mango-result-body pre {
+		margin: 0;
+	}
+
+	.mango-json-list {
+		display: grid;
+		gap: calc(var(--spacing) * 0.75);
+		overflow: auto;
+	}
+
+	.mango-json-row {
+		display: grid;
+		grid-template-columns: 2.4rem minmax(0, 1fr);
+		gap: calc(var(--spacing) * 0.5);
+		align-items: start;
+	}
+
+	.mango-json-select {
+		display: inline-flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding-top: calc(var(--spacing) * 1);
+	}
+
+	.mango-json-card {
+		border: 1px solid light-dark(var(--color-surface-400), var(--color-surface-700));
+		border-radius: var(--radius-base);
+		background: light-dark(var(--color-surface-50), var(--color-surface-800));
+		overflow: hidden;
+	}
+
+	.mango-json-card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 0.75);
+		padding: calc(var(--spacing) * 0.6) calc(var(--spacing) * 0.9);
+		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		background: light-dark(var(--color-surface-200), var(--color-surface-900));
+	}
+
+	.mango-json-id {
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+			monospace;
+		font-size: 0.95rem;
+		color: var(--color-primary-500);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.mango-json-content {
+		margin: 0;
+		padding: calc(var(--spacing) * 0.9);
+		font-size: 0.8rem;
+		line-height: 1.45;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+			monospace;
+		overflow: auto;
+		max-height: 14rem;
+	}
+
+	.mango-empty {
+		display: grid;
+		place-items: center;
+		gap: calc(var(--spacing) * 0.5);
+		min-height: 22rem;
+		color: var(--convertigo-text-muted);
+	}
+
+	.mango-empty-icon {
+		opacity: 0.45;
+	}
+
+	.mango-empty-title {
+		font-size: 1.6rem;
+		font-weight: 500;
+	}
+
+	.mango-footer {
+		padding-top: calc(var(--spacing) * 1);
+		border-top: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		align-items: center;
+		gap: calc(var(--spacing) * 0.75);
+	}
+
+	@media (max-width: 1100px) {
+		.mango-layout {
+			grid-template-columns: 1fr;
+		}
+
+		.mango-editor-panel {
+			border-right: 0;
+			border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		}
 	}
 
 	@media (max-width: 960px) {
@@ -1352,6 +3479,21 @@
 
 		.db-sidebar-name {
 			font-size: 0.9rem;
+		}
+
+		.view-editor-header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.mango-page-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.mango-db-link,
+		.mango-title-text {
+			font-size: 1.05rem;
 		}
 	}
 </style>

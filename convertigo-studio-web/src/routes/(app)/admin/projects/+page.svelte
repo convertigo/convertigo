@@ -292,15 +292,16 @@
 	/>
 	<TableAutoCard
 		definition={[
-			{ name: 'Project', key: 'name', class: 'font-normal w-80' },
-			{ name: 'Comment', key: 'comment' },
+			{ name: 'Project', key: 'name', class: 'font-normal w-80', sortable: true },
+			{ name: 'Comment', key: 'comment', sortable: true },
 			{
 				name: 'Version',
 				key: 'version',
-				class: 'break-words text-[12px] min-w-34'
+				class: 'break-words text-[12px] min-w-34',
+				sortable: true
 			},
-			{ name: 'Exported', key: 'exported', class: 'text-[12px] min-w-34' },
-			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34' },
+			{ name: 'Exported', key: 'exported', class: 'text-[12px] min-w-34', sortable: true },
+			{ name: 'Deployment', key: 'deployDate', class: 'text-[12px] min-w-34', sortable: true },
 			{ name: 'Actions', custom: true, class: 'w-56' }
 		]}
 		data={fprojects}

@@ -108,6 +108,29 @@
 		await configure(e);
 		modal.close();
 	}
+
+	/**
+	 * Convert scheduler "next" textual date to a sortable timestamp.
+	 * Expected format starts with dd/mm/yyyy hh:mm:ss.
+	 * @param {string | undefined} nextValue
+	 * @returns {number | ''}
+	 */
+	function toNextSortValue(nextValue) {
+		const value = (nextValue ?? '').trim();
+		if (!value || value.toLowerCase() === 'n/a') return '';
+		const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+		if (!match) return '';
+		const [, dd, mm, yyyy, hh, mi, ss] = match;
+		const date = new Date(
+			Number(yyyy),
+			Number(mm) - 1,
+			Number(dd),
+			Number(hh),
+			Number(mi),
+			Number(ss)
+		);
+		return Number.isNaN(date.getTime()) ? '' : date.getTime();
+	}
 </script>
 
 <ModalDynamic bind:this={modal}>
@@ -336,6 +359,9 @@
 				/>
 			{/snippet}
 
+			{@const tableData = next
+				? data.map((row) => ({ ...row, nextSort: toNextSortValue(row.next?.[0]) }))
+				: data}
 			<TableAutoCard
 				class="text-left"
 				definition={[
@@ -343,6 +369,8 @@
 					{ name: 'Description', key: 'description', class: 'w-60 break-all' },
 					{
 						name: 'Next',
+						key: 'nextSort',
+						sortable: true,
 						custom: true,
 						class: 'w-32'
 					},
@@ -353,7 +381,7 @@
 						custom: true
 					}
 				].filter((elt) => next || elt.name != 'Next')}
-				{data}
+				data={tableData}
 			>
 				{#snippet children({ row, def })}
 					{#if def.name == 'Actions'}

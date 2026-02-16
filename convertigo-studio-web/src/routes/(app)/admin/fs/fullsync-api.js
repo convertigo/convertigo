@@ -7,7 +7,7 @@ const FULLSYNC_BASE = getUrl('fullsync/');
 function withQuery(path, query = {}) {
 	const params = new URLSearchParams();
 	for (const [key, value] of Object.entries(query)) {
-		if (value == null || value === '') {
+		if (value == null || value === '' || value === false) {
 			continue;
 		}
 		params.set(key, String(value));
@@ -163,18 +163,21 @@ export async function listDocuments(
 		limit = 100,
 		skip = 0,
 		includeDocs = true,
-		descending = true,
+		descending = false,
 		stable = false,
 		update = 'true',
 		startkey = undefined,
-		endkey = undefined
+		endkey = undefined,
+		conflicts = false,
+		omitSkip = false
 	} = {}
 ) {
 	const query = {
-		include_docs: includeDocs,
+		include_docs: includeDocs || undefined,
 		limit,
-		skip,
-		descending,
+		skip: omitSkip ? undefined : Math.max(0, Number(skip) || 0),
+		descending: descending || undefined,
+		conflicts: conflicts || undefined,
 		stable: stable || undefined,
 		update: update == 'true' ? undefined : update
 	};
@@ -202,17 +205,23 @@ export async function runViewQuery(
 		update = 'true',
 		key = undefined,
 		startkey = undefined,
-		endkey = undefined
+		endkey = undefined,
+		conflicts = false,
+		reduce = false
 	} = {}
 ) {
 	const query = {
-		include_docs: includeDocs,
+		include_docs: includeDocs || undefined,
 		limit,
-		skip,
-		descending,
+		skip: skip || 0,
+		descending: descending || undefined,
+		conflicts: conflicts || undefined,
 		stable: stable || undefined,
 		update: update == 'true' ? undefined : update
 	};
+	if (reduce !== undefined) {
+		query.reduce = reduce === false ? 'false' : reduce === true ? 'true' : String(reduce);
+	}
 	if (key !== undefined) {
 		query.key = JSON.stringify(key);
 	}
@@ -326,6 +335,33 @@ export async function runMangoQuery(dbName, content) {
 	return request(`${dbPath(dbName)}/_find`, { method: 'POST', body: content });
 }
 
+export async function explainMangoQuery(dbName, content) {
+	return request(`${dbPath(dbName)}/_explain`, { method: 'POST', body: content });
+}
+
+export async function listMangoIndexes(dbName) {
+	return request(`${dbPath(dbName)}/_index`);
+}
+
+export async function createMangoIndex(dbName, content) {
+	return request(`${dbPath(dbName)}/_index`, { method: 'POST', body: content });
+}
+
+export async function removeMangoIndexes(dbName, docIds = []) {
+	const ids = Array.from(
+		new Set(
+			(Array.isArray(docIds) ? docIds : [])
+				.map((id) => String(id ?? '').trim())
+				.filter((id) => id.length > 0 && id != '_all_docs')
+		)
+	);
+	if (ids.length == 0) return { ok: true };
+	return request(`${dbPath(dbName)}/_index/_bulk_delete`, {
+		method: 'POST',
+		body: { docids: ids }
+	});
+}
+
 export async function listActiveTasks() {
 	const data = await request('_active_tasks');
 	return Array.isArray(data) ? data : [];
@@ -345,14 +381,31 @@ export async function getClusterSetupStatus() {
 	return request('_cluster_setup');
 }
 
-export async function listDesignDocuments(dbName, { limit = 1000, includeDocs = false } = {}) {
+export async function listDesignDocuments(dbName, { limit = 500, includeDocs = true } = {}) {
+	const perPage = Math.max(1, Number(limit) || 500);
 	const response = await listDocuments(dbName, {
-		limit,
-		skip: 0,
+		limit: perPage + 1,
 		includeDocs,
-		descending: false,
 		startkey: '_design/',
-		endkey: '_design0'
+		endkey: '_design0',
+		omitSkip: true
 	});
-	return Array.isArray(response?.rows) ? response.rows : [];
+	const rows = Array.isArray(response?.rows) ? response.rows : [];
+	return rows.slice(0, perPage);
+}
+
+export async function getDesignDocument(dbName, designDocId) {
+	return getDocument(dbName, designDocId);
+}
+
+export async function saveDesignDocument(dbName, designDoc) {
+	const doc = designDoc && typeof designDoc == 'object' ? designDoc : {};
+	if (!doc?._id || !String(doc._id).startsWith('_design/')) {
+		throw new Error('Missing design document id');
+	}
+	return updateDocument(dbName, doc._id, doc);
+}
+
+export async function removeDesignDocument(dbName, designDocId, rev) {
+	return removeDocument(dbName, designDocId, rev);
 }

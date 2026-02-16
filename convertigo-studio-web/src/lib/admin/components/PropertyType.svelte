@@ -30,6 +30,9 @@
 	let label = $derived(description ?? _label);
 	let labelLines = $derived.by(() => (label ? String(label).split('\n') : []));
 	let isMultiSelect = $derived.by(() => Boolean(rest.multiple) || Number(rest.size) > 1);
+	let rawType = $derived((_type ?? 'text').toLocaleLowerCase());
+	let isPasswordType = $derived(rawType.startsWith('password'));
+	let type = $derived(isPasswordType ? 'password' : rawType);
 	let restores = $derived.by(() => {
 		const r = [];
 		if (originalValue != null) {
@@ -39,7 +42,7 @@
 				title: 'Reset to original value'
 			});
 		}
-		if (defaultValue != null) {
+		if (!isPasswordType && defaultValue != null) {
 			r.push({
 				icon: 'mdi:backup-restore',
 				val: defaultValue,
@@ -48,7 +51,6 @@
 		}
 		return r;
 	});
-	let type = $derived(_type?.toLocaleLowerCase());
 	let isVerticalSegment = $derived(rest?.orientation == 'vertical');
 	let id = `property-input-${cpt++}`;
 

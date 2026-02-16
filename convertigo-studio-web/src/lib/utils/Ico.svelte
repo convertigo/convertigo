@@ -57,6 +57,7 @@
 	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline';
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
+	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
 	import MdiFilter from '~icons/mdi/filter';
 	import MdiFilterCog from '~icons/mdi/filter-cog';
@@ -90,6 +91,7 @@
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
 	import MdiPaperclip from '~icons/mdi/paperclip';
+	import MdiPencilOutline from '~icons/mdi/pencil-outline';
 	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
 	import MdiPlus from '~icons/mdi/plus';
@@ -178,6 +180,7 @@
 		'mdi:eye-outline': MdiEyeOutline,
 		'mdi:eye-off-outline': MdiEyeOffOutline,
 		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
+		'mdi:file-outline': MdiFileOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
 		'mdi:filter-cog': MdiFilterCog,
@@ -208,6 +211,7 @@
 		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
 		'mdi:paperclip': MdiPaperclip,
+		'mdi:pencil-outline': MdiPencilOutline,
 		'mdi:palette-outline': MdiPaletteOutline,
 		'mdi:open-in-new-variant': MdiOpenInNew,
 		'mdi:fit-to-page-outline': MdiFitToPageOutline,

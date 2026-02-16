@@ -1,4 +1,5 @@
 <script>
+	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -48,10 +49,37 @@
 	let cloneDocId = $state('');
 	let cloneError = $state('');
 	let uploadError = $state('');
+	let attachmentsPopoverOpen = $state(false);
 
 	let isNewDocument = $derived(currentDocId == '_new');
 	let hasUnsavedChanges = $derived(documentText != originalDocumentText);
 	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
+	let attachmentItems = $derived.by(() => {
+		const parsedCurrent = parseJsonSilent(documentText);
+		const parsedOriginal = parseJsonSilent(originalDocumentText);
+		const attachments =
+			(parsedCurrent?._attachments && typeof parsedCurrent._attachments == 'object'
+				? parsedCurrent._attachments
+				: parsedOriginal?._attachments) ?? {};
+
+		if (!attachments || typeof attachments != 'object') {
+			return [];
+		}
+
+		return Object.entries(attachments)
+			.map(([name, meta]) => ({
+				name,
+				contentType:
+					typeof meta?.content_type == 'string' && meta.content_type.trim().length > 0
+						? meta.content_type
+						: 'application/octet-stream',
+				size:
+					typeof meta?.length == 'number' && Number.isFinite(meta.length) && meta.length >= 0
+						? meta.length
+						: 0
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name));
+	});
 	let rawDocumentUrl = $derived.by(() => {
 		if (!database || !currentDocId || isNewDocument) return '#';
 		return `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDocPath(currentDocId)}`;
@@ -99,6 +127,17 @@
 
 	function pretty(value) {
 		return JSON.stringify(value ?? {}, null, 2);
+	}
+
+	function formatAttachmentSize(bytes) {
+		const value = Math.max(0, Number(bytes) || 0);
+		if (value >= 1024 * 1024) {
+			return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+		}
+		if (value >= 1024) {
+			return `${(value / 1024).toFixed(1)} KB`;
+		}
+		return `${value} B`;
 	}
 
 	function encodeDocPath(docId) {
@@ -149,6 +188,15 @@
 		);
 	}
 
+	function openAttachment(attachmentName) {
+		if (!database || !currentDocId || isNewDocument) return;
+		const name = String(attachmentName ?? '').trim();
+		if (!name) return;
+		const url = `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDocPath(currentDocId)}/${encodeURIComponent(name)}`;
+		window.open(url, '_blank', 'noopener');
+		attachmentsPopoverOpen = false;
+	}
+
 	async function askConfirmation(event, title, message) {
 		if (modalYesNo?.open) {
 			return await modalYesNo.open({ event, title, message });
@@ -162,9 +210,17 @@
 		lastError = '';
 		try {
 			if (currentDocId == '_new') {
+				let generatedId = 'enter_document_id';
+				try {
+					const uuids = await getUuids(1);
+					if (uuids[0]) {
+						generatedId = uuids[0];
+					}
+				} catch {
+					// keep fallback id to let user proceed even if _uuids fails
+				}
 				originalDocumentText = pretty({
-					_id: 'sample-document',
-					type: 'sample'
+					_id: generatedId
 				});
 				documentText = originalDocumentText;
 				return;
@@ -179,8 +235,13 @@
 		}
 	}
 
-	function cancelDocumentEdit() {
-		documentText = originalDocumentText;
+	async function cancelDocumentEdit(event) {
+		event?.preventDefault?.();
+		if (typeof window != 'undefined' && window.history.length > 1) {
+			window.history.back();
+			return;
+		}
+		await goto(fullSyncDbTabHref(database, 'all'));
 	}
 
 	function closeCloneModal(value = false) {
@@ -342,6 +403,7 @@
 		cloneDocId = '';
 		cloneError = '';
 		uploadError = '';
+		attachmentsPopoverOpen = false;
 		void refreshDocument();
 	});
 </script>
@@ -395,12 +457,58 @@
 					label="Cancel"
 					icon="mdi:close-circle-outline"
 					class="button-secondary h-9 w-fit!"
-					disabled={working || uploadingAttachment || loadingDocument || !hasUnsavedChanges}
+					disabled={working || uploadingAttachment || loadingDocument}
 					onclick={cancelDocumentEdit}
 				/>
 			</ActionBar>
 
 			<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
+				<Popover
+					open={attachmentsPopoverOpen}
+					onOpenChange={(event) => (attachmentsPopoverOpen = event.open)}
+				>
+					<Popover.Trigger
+						class="button-secondary inline-flex h-9 items-center gap-2 px-3 text-sm"
+						title={attachmentItems.length > 0 ? 'View attachments' : 'No attachments'}
+						aria-label="View attachments"
+						disabled={isNewDocument || attachmentItems.length == 0}
+					>
+						<Ico icon="mdi:paperclip" size={4.4} />
+						<span>View Attachments</span>
+						<Ico icon="mdi:chevron-down" size={4} />
+					</Popover.Trigger>
+					<Portal>
+						<Popover.Positioner class="z-[250]" style="z-index: 250;">
+							<Popover.Content class="border-none bg-transparent p-0 shadow-none">
+								<Card
+									class="border-none! p-0! shadow-follow"
+									style="width: min(28rem, calc(100vw - (var(--spacing) * 4)));"
+								>
+									{#if attachmentItems.length == 0}
+										<div class="attachment-menu-empty">No attachments</div>
+									{:else}
+										<div class="attachment-menu-list">
+											{#each attachmentItems as attachment (attachment.name)}
+												<button
+													type="button"
+													class="attachment-menu-item"
+													title={`${attachment.name} - ${attachment.contentType}, ${formatAttachmentSize(attachment.size)}`}
+													onclick={() => openAttachment(attachment.name)}
+												>
+													<span class="attachment-menu-name">{attachment.name}</span>
+													<span class="attachment-menu-meta">
+														{attachment.contentType}, {formatAttachmentSize(attachment.size)}
+													</span>
+												</button>
+											{/each}
+										</div>
+									{/if}
+								</Card>
+								<Popover.Arrow class="fill-primary-100-900" />
+							</Popover.Content>
+						</Popover.Positioner>
+					</Portal>
+				</Popover>
 				<Button
 					label="Upload Attachment"
 					icon="mdi:briefcase-upload-outline"
@@ -588,6 +696,7 @@
 		display: flex;
 		align-items: center;
 		gap: calc(var(--spacing) * 1);
+		flex: 1 1 auto;
 		min-width: 0;
 	}
 
@@ -606,22 +715,24 @@
 	}
 
 	.doc-db-link {
-		font-size: 1.7rem;
+		font-size: 1.24rem;
 		font-weight: 600;
 		line-height: 1.1;
 		color: var(--color-primary-500);
-		max-width: min(20rem, 34vw);
+		max-width: min(18rem, 24vw);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
 	.doc-id-text {
-		font-size: 1.7rem;
+		flex: 1 1 auto;
+		min-width: 0;
+		font-size: 1.24rem;
 		font-weight: 500;
 		line-height: 1.1;
 		color: var(--convertigo-text-strong);
-		max-width: min(27rem, 46vw);
+		max-width: none;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -656,6 +767,48 @@
 		overflow: hidden;
 	}
 
+	.attachment-menu-empty {
+		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1.5);
+		color: var(--convertigo-text-muted);
+		font-size: 0.85rem;
+	}
+
+	.attachment-menu-list {
+		display: grid;
+	}
+
+	.attachment-menu-item {
+		display: grid;
+		gap: calc(var(--spacing) * 0.25);
+		padding: calc(var(--spacing) * 1) calc(var(--spacing) * 1.5);
+		text-align: left;
+		transition: background-color 140ms ease;
+	}
+
+	.attachment-menu-item:hover {
+		background: light-dark(
+			color-mix(in srgb, var(--color-primary-300) 18%, transparent),
+			color-mix(in srgb, var(--color-primary-600) 22%, transparent)
+		);
+	}
+
+	.attachment-menu-name {
+		color: var(--convertigo-text-strong);
+		font-size: 0.92rem;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.attachment-menu-meta {
+		color: var(--convertigo-text-muted);
+		font-size: 0.8rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	@media (max-width: 960px) {
 		.fullsync-doc-panel {
 			min-height: calc(100dvh - 10rem);
@@ -663,8 +816,7 @@
 
 		.doc-db-link,
 		.doc-id-text {
-			font-size: 1.24rem;
-			max-width: min(13rem, 42vw);
+			font-size: 1rem;
 		}
 
 		.doc-actions-row {
@@ -673,6 +825,14 @@
 
 		.doc-editor-shell {
 			min-height: 58dvh;
+		}
+
+		.doc-db-link {
+			max-width: min(10rem, 36vw);
+		}
+
+		.doc-id-text {
+			max-width: 56vw;
 		}
 	}
 </style>

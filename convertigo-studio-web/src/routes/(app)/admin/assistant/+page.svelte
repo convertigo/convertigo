@@ -1,8 +1,7 @@
 <script>
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 
-	const assistantUrl =
-		'https://backend-apps.convertigo.net/convertigo/projects/ConvertigoAssistant/DisplayObjects/mobile/';
+	const assistantUrl = 'https://assistant.convertigo.com/';
 </script>
 
 <MaxRectangle>

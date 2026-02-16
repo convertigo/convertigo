@@ -6,4 +6,4 @@
 	let database = $derived(decodeRouteParam(page.params.database ?? ''));
 </script>
 
-<FullSyncDatabasePage {database} />
+<FullSyncDatabasePage {database} section="all" />
