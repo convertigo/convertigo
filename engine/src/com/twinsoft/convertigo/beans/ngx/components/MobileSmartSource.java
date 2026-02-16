@@ -1613,7 +1613,16 @@ public class MobileSmartSource {
 						e.printStackTrace();
 					}
 				}
-
+			} else if (Filter.Local.equals(getFilter())) {
+				try {
+					String projectName = getProjectName();
+					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					
+					DatabaseObject dbo = (ApplicationComponent)project.getMobileApplication().getApplicationComponent();
+					return dbo;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else if (Filter.Database.equals(getFilter())) {
 				Matcher m = cafPattern.matcher(sourceInput);
 				if (m.find()) {
