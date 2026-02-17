@@ -186,7 +186,13 @@ async function generateThumbnail({ id, iframe, bezel }) {
 		top: screenTop
 	});
 
-	const frameBuffer = await bezelImage.resize({ height: THUMBNAIL_HEIGHT }).toBuffer();
+	const frameBuffer = await bezelImage
+		.resize({
+			width: targetWidth,
+			height: THUMBNAIL_HEIGHT,
+			fit: 'fill'
+		})
+		.toBuffer();
 	finalComposites.push({ input: frameBuffer, left: 0, top: 0 });
 
 	const thumbPath = path.join(thumbsDir, `${id}.webp`);

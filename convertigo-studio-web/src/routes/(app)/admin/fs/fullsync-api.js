@@ -73,6 +73,18 @@ function buildHeaders(accept = 'application/json') {
 	return headers;
 }
 
+async function ensureAuthenticated() {
+	try {
+		await fetch(getUrl('admin/services/engine.CheckAuthentication'), {
+			method: 'POST',
+			headers: buildHeaders(),
+			credentials: 'include'
+		});
+	} catch {
+		// Best effort: keep original request error if auth refresh fails.
+	}
+}
+
 function applyResponseMetadata(response) {
 	const xsrfToken = response.headers.get('x-xsrf-token');
 	if (xsrfToken != null) {
@@ -113,10 +125,22 @@ async function request(path = '', { method = 'GET', query = null, body = undefin
 
 	applyResponseMetadata(response);
 
-	const data = await parseResponse(response);
-	if (!response.ok) {
-		const error = new Error(getErrorMessage(data, response.status));
-		error.status = response.status;
+	let resolvedResponse = response;
+	if ((method == 'GET' || method == 'HEAD') && (response.status == 401 || response.status == 403)) {
+		await ensureAuthenticated();
+		resolvedResponse = await fetch(url, {
+			method,
+			headers,
+			body: payload,
+			credentials: 'include'
+		});
+		applyResponseMetadata(resolvedResponse);
+	}
+
+	const data = await parseResponse(resolvedResponse);
+	if (!resolvedResponse.ok) {
+		const error = new Error(getErrorMessage(data, resolvedResponse.status));
+		error.status = resolvedResponse.status;
 		error.payload = data;
 		throw error;
 	}
@@ -192,6 +216,25 @@ export async function listDocuments(
 	});
 }
 
+/**
+ * @param {string} dbName
+ * @param {string} designDocId
+ * @param {string} viewName
+ * @param {{
+ * 	limit?: number,
+ * 	skip?: number,
+ * 	includeDocs?: boolean,
+ * 	descending?: boolean,
+ * 	stable?: boolean,
+ * 	update?: string,
+ * 	key?: any,
+ * 	keys?: any[],
+ * 	startkey?: any,
+ * 	endkey?: any,
+ * 	conflicts?: boolean,
+ * 	reduce?: boolean
+ * }} [options]
+ */
 export async function runViewQuery(
 	dbName,
 	designDocId,
@@ -204,6 +247,7 @@ export async function runViewQuery(
 		stable = false,
 		update = 'true',
 		key = undefined,
+		keys = undefined,
 		startkey = undefined,
 		endkey = undefined,
 		conflicts = false,
@@ -232,12 +276,13 @@ export async function runViewQuery(
 		query.endkey = JSON.stringify(endkey);
 	}
 
-	return request(
-		`${dbPath(dbName)}/${encodeDesignDocPath(designDocId)}/_view/${encodeURIComponent(viewName)}`,
-		{
-			query
-		}
-	);
+	const path = `${dbPath(dbName)}/${encodeDesignDocPath(designDocId)}/_view/${encodeURIComponent(viewName)}`;
+	const usePostKeys = Array.isArray(keys) && keys.length > 0;
+	return request(path, {
+		method: usePostKeys ? 'POST' : 'GET',
+		query,
+		body: usePostKeys ? { keys } : undefined
+	});
 }
 
 export async function getDocument(dbName, docId, { rev = '' } = {}) {

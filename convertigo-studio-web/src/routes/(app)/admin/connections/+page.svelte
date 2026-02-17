@@ -35,6 +35,84 @@
 		}
 	]);
 
+	const parseAdminDateTime = (value) => {
+		const raw = String(value ?? '').trim();
+		if (!raw) return undefined;
+		const match = raw.match(
+			/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
+		);
+		if (!match) return undefined;
+		let [, dd, mm, yyyy, hh = '0', mi = '0', ss = '0'] = match;
+		let year = Number(yyyy);
+		if (year < 100) year += 2000;
+		const date = new Date(year, Number(mm) - 1, Number(dd), Number(hh), Number(mi), Number(ss));
+		return Number.isNaN(date.getTime()) ? undefined : date.getTime();
+	};
+
+	const compactDateTime = (value) => {
+		const raw = String(value ?? '').trim();
+		if (!raw) return '';
+		const ts = parseAdminDateTime(raw);
+		if (ts == null) return raw;
+		const date = new Date(ts);
+		const now = new Date();
+		const isToday =
+			date.getFullYear() === now.getFullYear() &&
+			date.getMonth() === now.getMonth() &&
+			date.getDate() === now.getDate();
+		const time = date.toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false
+		});
+		if (isToday) return time;
+		const d = String(date.getDate()).padStart(2, '0');
+		const m = String(date.getMonth() + 1).padStart(2, '0');
+		const y = date.getFullYear();
+		return `${d}/${m}/${y} ${time}`;
+	};
+
+	const compactIp = (value) => {
+		const ip = String(value ?? '').trim();
+		if (!ip) return '';
+		return ip === '0:0:0:0:0:0:0:1' ? '::1' : ip;
+	};
+
+	const compactClientComputer = (value) => {
+		const full = String(value ?? '').trim();
+		if (!full) return '';
+		const normalized = full.replaceAll('0:0:0:0:0:0:0:1', '::1');
+		const [host, detail] = normalized.split(',');
+		const hostPart = host?.trim() ?? '';
+		const detailPart = detail?.trim() ?? '';
+		if (!detailPart) return hostPart;
+		if (detailPart.toLocaleLowerCase() === 'convertigo engine internal requester') {
+			return `${hostPart}, internal`;
+		}
+		return `${hostPart}, ${detailPart}`;
+	};
+
+	let sessionRows = $derived.by(() =>
+		sessions.map((row) => ({
+			...row,
+			lastSessionAccessDateSort: parseAdminDateTime(row.lastSessionAccessDate) ?? '',
+			lastSessionAccessDateCompact: compactDateTime(row.lastSessionAccessDate),
+			clientIPCompact: compactIp(row.clientIP)
+		}))
+	);
+
+	let contextRows = $derived.by(() =>
+		connections.map((row) => ({
+			...row,
+			contextCreationDateSort: parseAdminDateTime(row.contextCreationDate) ?? '',
+			lastContextAccessDateSort: parseAdminDateTime(row.lastContextAccessDate) ?? '',
+			contextCreationDateCompact: compactDateTime(row.contextCreationDate),
+			lastContextAccessDateCompact: compactDateTime(row.lastContextAccessDate),
+			clientComputerCompact: compactClientComputer(row.clientComputer)
+		}))
+	);
+
 	onMount(() => {
 		httpTimeout;
 		return stop;
@@ -101,22 +179,23 @@
 				{ name: 'Roles', key: 'adminRoles' },
 				{ name: 'FS', custom: true, key: 'isFullSyncActive' },
 				{ name: 'UUID', key: 'deviceUUID' },
-				{ name: 'Access', key: 'lastSessionAccessDate' },
+				{ name: 'Access', custom: true, key: 'lastSessionAccessDateSort', sortable: true },
 				{ name: 'Activity', key: 'sessionInactivityTime' },
-				{ name: 'Client IP', key: 'clientIP' },
+				{ name: 'Client IP', custom: true, key: 'clientIP' },
 				{ name: 'Actions', custom: true }
 			]}
 			class="session-table"
-			data={sessions}
+			data={sessionRows}
 		>
-			{#snippet children({ row: { sessionID, isCurrentSession, isFullSyncActive }, def })}
+			{#snippet children({ row, def })}
+				{@const { sessionID, isCurrentSession, isFullSyncActive } = row}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="w-full min-w-24"
 						size="6"
 						buttons={[
 							{
-								icon: 'mdi:magnify',
+								icon: 'mdi:file-document-box-outline',
 								title: 'Open logs for this session',
 								cls: 'button-ico-primary',
 								onclick: () => openLogsWithServerFilter(`sessionid == '${sessionID}'`)
@@ -162,6 +241,10 @@
 								: 'text-warning-500'}
 						size="btn"
 					/>
+				{:else if def.name == 'Access'}
+					<span title={row.lastSessionAccessDate}>{row.lastSessionAccessDateCompact}</span>
+				{:else if def.name == 'Client IP'}
+					<span title={row.clientIP}>{row.clientIPCompact}</span>
 				{/if}
 			{/snippet}
 		</TableAutoCard>
@@ -197,19 +280,23 @@
 				{ name: 'Requested', key: 'requested', class: 'break-all min-w-40' },
 				{ name: 'Status', key: 'status' },
 				{ name: 'User', key: 'user' },
-				{ name: 'Client Computer', key: 'clientComputer' },
+				{ name: 'Created', custom: true, key: 'contextCreationDateSort', sortable: true },
+				{ name: 'Access', custom: true, key: 'lastContextAccessDateSort', sortable: true },
+				{ name: 'Activity', key: 'contextInactivityTime' },
+				{ name: 'Client Computer', custom: true, key: 'clientComputer' },
 				{ name: 'Actions', custom: true }
 			]}
-			data={connections}
+			data={contextRows}
 		>
-			{#snippet children({ row: { contextName }, def })}
+			{#snippet children({ row, def })}
+				{@const { contextName } = row}
 				{#if def.name == 'Actions'}
 					<ResponsiveButtons
 						class="w-full min-w-16"
 						size="6"
 						buttons={[
 							{
-								icon: 'mdi:magnify',
+								icon: 'mdi:file-document-box-outline',
 								title: 'Open logs for this context',
 								cls: 'button-ico-primary',
 								onclick: () => openLogsWithServerFilter(`contextid == '${contextName}'`)
@@ -233,6 +320,14 @@
 						]}
 						disabled={!init}
 					/>
+				{:else if def.name == 'Created'}
+					<span title={row.contextCreationDate}>{row.contextCreationDateCompact}</span>
+				{:else if def.name == 'Access'}
+					<span title={row.lastContextAccessDate}>{row.lastContextAccessDateCompact}</span>
+				{:else if def.name == 'Client Computer'}
+					<span class="inline-block max-w-72 truncate align-middle" title={row.clientComputer}
+						>{row.clientComputerCompact}</span
+					>
 				{/if}
 			{/snippet}
 		</TableAutoCard>

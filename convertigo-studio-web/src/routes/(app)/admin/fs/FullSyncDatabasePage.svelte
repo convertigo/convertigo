@@ -38,6 +38,7 @@
 		fullSyncDocHref,
 		fullSyncHomeHref
 	} from './fullsync-route';
+	import FullSyncRowsPanel from './FullSyncRowsPanel.svelte';
 
 	/** @type {{database: string, section?: 'all' | 'mango' | 'index', designDocId?: string, viewName?: string, mode?: string}} */
 	let { database = '', section = 'all', designDocId = '', viewName = '', mode = '' } = $props();
@@ -69,6 +70,10 @@
 	let docsHasNextPage = $state(false);
 	let docsStable = $state(false);
 	let docsUpdate = $state('true');
+	let docsKeyMode = $state('by-keys');
+	let docsKeyValue = $state('');
+	let docsStartKeyValue = $state('');
+	let docsEndKeyValue = $state('');
 	let docsRequestCounter = 0;
 	let queryOptionsOpen = $state(false);
 
@@ -93,6 +98,7 @@
 	let mangoShowAllColumns = $state(false);
 	let mangoColumnSelection = $state(/** @type {string[]} */ ([]));
 	let mangoSelectedDocIds = $state(/** @type {Record<string, boolean>} */ ({}));
+	let mangoHasNextPage = $state(false);
 	let mangoSkip = $state(0);
 	let mangoLimitValue = $state('20');
 	let mangoLastRunMs = $state(0);
@@ -169,7 +175,7 @@
 			const value = row?.value ?? {};
 			const key = row?.key ?? row?.id ?? '';
 			const doc = row?.doc ?? null;
-			const raw = doc ?? row;
+			const raw = isViewQuery ? row : (doc ?? row);
 			const rowId = row?.id ?? doc?._id ?? '';
 			const rowRev = value?.rev ?? doc?._rev ?? '';
 			const rowType = doc?.type ?? (rowId.startsWith('_design/') ? 'design' : '');
@@ -201,7 +207,7 @@
 	let mangoLimitNumber = $derived(Math.max(1, Number(mangoLimitValue) || 20));
 	let mangoPagedRows = $derived.by(() => {
 		if (!mangoHasLimit) return mangoRows;
-		return mangoRows.slice(mangoSkip, mangoSkip + mangoLimitNumber);
+		return mangoRows.slice(0, mangoLimitNumber);
 	});
 	let mangoSchemaDocs = $derived(
 		mangoPagedRows.map((row) => row?.raw).filter((doc) => Boolean(doc) && typeof doc == 'object')
@@ -227,14 +233,14 @@
 	let mangoCanGoPrevious = $derived(mangoHasLimit && mangoSkip > 0);
 	let mangoCanGoNext = $derived.by(() => {
 		if (!mangoHasLimit) return false;
-		return mangoSkip + mangoLimitNumber < mangoRows.length;
+		return mangoHasNextPage;
 	});
 	let mangoSelectableRows = $derived(
 		mangoPagedRows.filter((row) => Boolean(row?.id) && Boolean(row?.rev))
 	);
 	let isMangoExplainMode = $derived(mangoExplainText.trim().length > 0);
 	let mangoSelectedRows = $derived(
-		mangoRows.filter(
+		mangoPagedRows.filter(
 			(row) => Boolean(mangoSelectedDocIds[row.id]) && Boolean(row?.id) && Boolean(row?.rev)
 		)
 	);
@@ -249,6 +255,10 @@
 			const ddoc = typeof index?.ddoc == 'string' ? index.ddoc : null;
 			const name = String(index?.name ?? '').trim();
 			const type = String(index?.type ?? '').trim() || 'json';
+			const firstSpecialField =
+				typeof index?.def?.fields?.[0] == 'object' && index?.def?.fields?.[0] != null
+					? (Object.keys(index.def.fields[0])[0] ?? '')
+					: '';
 			const id = type == 'special' ? '_all_docs' : ddoc || '';
 			const key = `${ddoc ?? '_all_docs'}::${name || indexPosition}`;
 			return {
@@ -256,6 +266,7 @@
 				id,
 				ddoc,
 				name,
+				displayName: type == 'special' ? firstSpecialField || '_id' : name,
 				type,
 				isBulkDeletable: id.length > 0 && id != '_all_docs',
 				jsonText: pretty(index),
@@ -317,9 +328,23 @@
 			(column) => typeof column == 'string' && column != 'doc' && column != '_attachments'
 		)
 	);
-	let docsDefaultColumns = $derived(getPrioritizedFields(docsSchemaRows, 5));
+	let docsDefaultColumns = $derived.by(() => {
+		if (isViewQuery) {
+			const preferred = ['key', 'value'].filter((column) =>
+				docsDisplayableColumns.includes(column)
+			);
+			if (preferred.length > 0) {
+				return preferred;
+			}
+		}
+		return getPrioritizedFields(docsSchemaRows, 5);
+	});
 	let docsVisibleColumnCount = $derived(
-		docsShowAllColumns ? docsDisplayableColumns.length : Math.min(5, docsDisplayableColumns.length)
+		docsShowAllColumns
+			? docsDisplayableColumns.length
+			: isViewQuery
+				? Math.min(2, docsDisplayableColumns.length)
+				: Math.min(5, docsDisplayableColumns.length)
 	);
 	let docsVisibleColumns = $derived(
 		resolveVisibleColumns(
@@ -330,7 +355,7 @@
 		)
 	);
 	let tableColspan = $derived(
-		currentLayout == 'metadata' ? 5 : currentLayout == 'table' ? docsVisibleColumns.length + 1 : 3
+		currentLayout == 'metadata' ? 5 : currentLayout == 'table' ? docsVisibleColumns.length + 2 : 3
 	);
 	let quickDocDatalistId = $derived(`fullsync-doc-ids-${database.replace(/[^a-zA-Z0-9_-]/g, '-')}`);
 	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
@@ -415,6 +440,53 @@
 		return JSON.stringify(value ?? {}, null, 2);
 	}
 
+	function parseViewKeyValue(raw, label, reportErrors = false) {
+		const input = String(raw ?? '').trim();
+		if (!input) {
+			return { isSet: false };
+		}
+		const looksJson =
+			/^[\[{"]/.test(input) || /^-?\d/.test(input) || /^(true|false|null)\b/.test(input);
+		if (!looksJson) {
+			return { isSet: true, value: input };
+		}
+		try {
+			return { isSet: true, value: JSON.parse(input) };
+		} catch (error) {
+			if (reportErrors) {
+				const message = error instanceof Error ? error.message : String(error);
+				showError(`${label}: invalid JSON (${message})`);
+			}
+			return { isSet: false, invalid: true };
+		}
+	}
+
+	function buildViewKeyQuery(reportErrors = false) {
+		if (!isViewQuery) return {};
+		if (docsKeyMode == 'between-keys') {
+			const start = parseViewKeyValue(docsStartKeyValue, 'Start key', reportErrors);
+			const end = parseViewKeyValue(docsEndKeyValue, 'End key', reportErrors);
+			if (start.invalid || end.invalid) {
+				return null;
+			}
+			return {
+				startkey: start.isSet ? start.value : undefined,
+				endkey: end.isSet ? end.value : undefined
+			};
+		}
+		const keyValue = parseViewKeyValue(docsKeyValue, 'Key', reportErrors);
+		if (keyValue.invalid) {
+			return null;
+		}
+		if (!keyValue.isSet) {
+			return {};
+		}
+		if (Array.isArray(keyValue.value)) {
+			return { keys: keyValue.value };
+		}
+		return { key: keyValue.value };
+	}
+
 	function getPseudoSchema(docs = []) {
 		const cache = [];
 		for (const doc of docs) {
@@ -475,6 +547,39 @@
 		return columns;
 	}
 
+	function toggleSelectionMap(selection, key, checked) {
+		if (!key) return selection;
+		const next = { ...selection };
+		if (checked) {
+			next[key] = true;
+		} else {
+			delete next[key];
+		}
+		return next;
+	}
+
+	function selectAllFromRows(rows, checked, keyField, selection = {}) {
+		if (!checked) {
+			return {};
+		}
+		const next = { ...selection };
+		for (const row of rows) {
+			const key = String(row?.[keyField] ?? '');
+			if (!key) continue;
+			next[key] = true;
+		}
+		return next;
+	}
+
+	function setColumnSelection(selection, availableColumns, index, value) {
+		const nextValue = String(value ?? '').trim();
+		if (!nextValue) return selection;
+		if (!availableColumns.includes(nextValue)) return selection;
+		const next = [...selection];
+		next[index] = nextValue;
+		return next;
+	}
+
 	function formatMangoCellValue(value) {
 		if (value == null) return '';
 		if (typeof value == 'string') return value;
@@ -522,6 +627,7 @@
 	}
 
 	function buildDocsQuery() {
+		const viewKeyQuery = buildViewKeyQuery(false) ?? {};
 		return {
 			include_docs: docsIncludeDocs ? true : undefined,
 			descending: docsDescending ? true : undefined,
@@ -530,7 +636,8 @@
 			limit: docsFetchLimit,
 			skip: docsSkip,
 			conflicts: docsIncludeDocs ? true : undefined,
-			reduce: isViewQuery ? false : undefined
+			reduce: isViewQuery ? false : undefined,
+			...viewKeyQuery
 		};
 	}
 
@@ -544,26 +651,11 @@
 	}
 
 	function setRowSelection(docId, checked) {
-		if (!docId) return;
-		const next = { ...selectedDocIds };
-		if (checked) {
-			next[docId] = true;
-		} else {
-			delete next[docId];
-		}
-		selectedDocIds = next;
+		selectedDocIds = toggleSelectionMap(selectedDocIds, docId, checked);
 	}
 
 	function setAllRowSelection(checked) {
-		if (!checked) {
-			selectedDocIds = {};
-			return;
-		}
-		const next = /** @type {Record<string, boolean>} */ ({});
-		for (const row of selectableDocumentRows) {
-			next[row.id] = true;
-		}
-		selectedDocIds = next;
+		selectedDocIds = selectAllFromRows(selectableDocumentRows, checked, 'id');
 	}
 
 	function toggleDesignDoc(designDocId) {
@@ -645,6 +737,14 @@
 		const requestId = ++docsRequestCounter;
 		loadingDocuments = true;
 		try {
+			const viewKeyQuery = isViewQuery ? buildViewKeyQuery(true) : {};
+			if (isViewQuery && !viewKeyQuery) {
+				docsHasNextPage = false;
+				documents = [];
+				docsTotalRows = 0;
+				selectedDocIds = {};
+				return;
+			}
 			const query = {
 				limit: docsFetchLimit,
 				skip: docsSkip,
@@ -652,7 +752,8 @@
 				descending: docsDescending,
 				stable: docsStable,
 				update: docsUpdate,
-				conflicts: docsIncludeDocs
+				conflicts: docsIncludeDocs,
+				...viewKeyQuery
 			};
 			const response = isViewQuery
 				? await runViewQuery(database, selectedDesignDocId, selectedViewName, {
@@ -803,69 +904,95 @@
 	}
 
 	function setMangoColumn(index, value) {
-		const nextValue = String(value ?? '').trim();
-		if (!nextValue) return;
-		if (!mangoDisplayableColumns.includes(nextValue)) return;
-		const next = [...mangoColumnSelection];
-		next[index] = nextValue;
-		mangoColumnSelection = next;
+		mangoColumnSelection = setColumnSelection(
+			mangoColumnSelection,
+			mangoDisplayableColumns,
+			index,
+			value
+		);
 	}
 
 	function setDocsColumn(index, value) {
-		const nextValue = String(value ?? '').trim();
-		if (!nextValue) return;
-		if (!docsDisplayableColumns.includes(nextValue)) return;
-		const next = [...docsColumnSelection];
-		next[index] = nextValue;
-		docsColumnSelection = next;
+		docsColumnSelection = setColumnSelection(
+			docsColumnSelection,
+			docsDisplayableColumns,
+			index,
+			value
+		);
 	}
 
 	function setMangoRowSelection(docId, checked) {
-		if (!docId) return;
-		const next = { ...mangoSelectedDocIds };
-		if (checked) {
-			next[docId] = true;
-		} else {
-			delete next[docId];
-		}
-		mangoSelectedDocIds = next;
+		mangoSelectedDocIds = toggleSelectionMap(mangoSelectedDocIds, docId, checked);
 	}
 
 	function setAllMangoRowSelection(checked) {
-		if (!checked) {
-			mangoSelectedDocIds = {};
-			return;
-		}
-		const next = { ...mangoSelectedDocIds };
-		for (const row of mangoSelectableRows) {
-			next[row.id] = true;
-		}
-		mangoSelectedDocIds = next;
+		mangoSelectedDocIds = selectAllFromRows(
+			mangoSelectableRows,
+			checked,
+			'id',
+			mangoSelectedDocIds
+		);
 	}
 
-	async function runMangoAction() {
-		if (!database || working) return;
+	function buildMangoRequestPayload(sourcePayload) {
+		const payload =
+			sourcePayload && typeof sourcePayload == 'object' && !Array.isArray(sourcePayload)
+				? { ...sourcePayload }
+				: {};
+		payload.execution_stats = true;
+		if (mangoHasLimit) {
+			payload.limit = mangoLimitNumber + 1;
+			payload.skip = mangoSkip;
+		} else if (payload.skip == null) {
+			payload.skip = 0;
+		}
+		return payload;
+	}
+
+	async function executeMangoQuery({ resetSkip = false, showToast = false } = {}) {
+		if (!database || working) return false;
 		const payload = parseJson(mangoQueryText, 'Mango editor');
-		if (!payload) return;
+		if (!payload) return false;
+		if (resetSkip) {
+			mangoSkip = 0;
+		}
 
 		working = true;
 		lastError = '';
 		try {
 			const start = performance.now();
-			const result = await runMangoQuery(database, payload);
-			mangoResult = result;
+			const requestPayload = buildMangoRequestPayload(payload);
+			const result = await runMangoQuery(database, requestPayload);
+			let docs = Array.isArray(result?.docs) ? result.docs : [];
+			let hasNextPage = false;
+			if (mangoHasLimit && docs.length > mangoLimitNumber) {
+				hasNextPage = true;
+				docs = docs.slice(0, mangoLimitNumber);
+			}
+			mangoHasNextPage = hasNextPage;
+			mangoResult = { ...(result ?? {}), docs };
 			mangoExplainText = '';
 			mangoResultLayout = 'table';
-			mangoSkip = 0;
 			mangoSelectedDocIds = {};
-			mangoLastRunMs = Math.max(0, Math.round(performance.now() - start));
+			const serverMs = Number(result?.execution_stats?.execution_time_ms);
+			mangoLastRunMs = Number.isFinite(serverMs)
+				? Math.max(0, Math.round(serverMs))
+				: Math.max(0, Math.round(performance.now() - start));
 			rememberMangoQuery(mangoQueryText);
-			showSuccess('Mango query executed');
+			if (showToast) {
+				showSuccess('Mango query executed');
+			}
+			return true;
 		} catch (error) {
 			showError(error);
+			return false;
 		} finally {
 			working = false;
 		}
+	}
+
+	async function runMangoAction() {
+		await executeMangoQuery({ resetSkip: true, showToast: true });
 	}
 
 	async function explainMangoAction() {
@@ -880,6 +1007,7 @@
 			const result = await explainMangoQuery(database, payload);
 			mangoExplainText = pretty(result);
 			mangoResult = null;
+			mangoHasNextPage = false;
 			mangoResultLayout = 'json';
 			mangoSkip = 0;
 			mangoSelectedDocIds = {};
@@ -907,26 +1035,16 @@
 	}
 
 	function setMangoIndexRowSelection(rowKey, checked) {
-		if (!rowKey) return;
-		const next = { ...mangoIndexesSelection };
-		if (checked) {
-			next[rowKey] = true;
-		} else {
-			delete next[rowKey];
-		}
-		mangoIndexesSelection = next;
+		mangoIndexesSelection = toggleSelectionMap(mangoIndexesSelection, rowKey, checked);
 	}
 
 	function setAllMangoIndexRowSelection(checked) {
-		if (!checked) {
-			mangoIndexesSelection = {};
-			return;
-		}
-		const next = { ...mangoIndexesSelection };
-		for (const row of mangoIndexSelectableRows) {
-			next[row.key] = true;
-		}
-		mangoIndexesSelection = next;
+		mangoIndexesSelection = selectAllFromRows(
+			mangoIndexSelectableRows,
+			checked,
+			'key',
+			mangoIndexesSelection
+		);
 	}
 
 	async function refreshMangoIndexes() {
@@ -1009,12 +1127,16 @@
 
 	function previousMangoPage() {
 		if (!mangoHasLimit) return;
+		const previousSkip = mangoSkip;
 		mangoSkip = Math.max(0, mangoSkip - mangoLimitNumber);
+		if (mangoSkip == previousSkip) return;
+		void executeMangoQuery({ resetSkip: false, showToast: false });
 	}
 
 	function nextMangoPage() {
-		if (!mangoHasLimit) return;
+		if (!mangoHasLimit || !mangoHasNextPage) return;
 		mangoSkip += mangoLimitNumber;
+		void executeMangoQuery({ resetSkip: false, showToast: false });
 	}
 
 	async function deleteSelectedMangoDocuments(event) {
@@ -1054,14 +1176,7 @@
 					mangoSkip = Math.max(0, mangoSkip - mangoLimitNumber);
 				}
 			} else {
-				const payload = parseJson(mangoQueryText, 'Mango editor');
-				if (payload) {
-					const refreshed = await runMangoQuery(database, payload);
-					mangoResult = refreshed;
-					mangoExplainText = '';
-					mangoResultLayout = 'table';
-					mangoSkip = 0;
-				}
+				await executeMangoQuery({ resetSkip: true, showToast: false });
 			}
 		} catch (error) {
 			showError(error);
@@ -1406,9 +1521,13 @@
 		queryOptionsOpen = false;
 		quickDocId = '';
 		selectedDocIds = {};
-		currentLayout = 'metadata';
-		docsIncludeDocs = isViewQuery;
+		currentLayout = isViewQuery ? 'table' : 'metadata';
+		docsIncludeDocs = false;
 		docsDescending = false;
+		docsKeyMode = 'by-keys';
+		docsKeyValue = '';
+		docsStartKeyValue = '';
+		docsEndKeyValue = '';
 		viewEditorLoadedKey = '';
 		loadMangoHistory();
 		if (currentTab == 'all') {
@@ -1434,8 +1553,11 @@
 		selectedDocIds = {};
 		docsShowAllColumns = false;
 		docsColumnSelection = [];
-		if (isViewQuery) {
-			docsIncludeDocs = true;
+		if (!isViewQuery) {
+			docsKeyMode = 'by-keys';
+			docsKeyValue = '';
+			docsStartKeyValue = '';
+			docsEndKeyValue = '';
 		}
 		if (selectedDesignDocId) {
 			designDocExpanded = {
@@ -1906,7 +2028,61 @@
 								</div>
 							</div>
 
-							<div class="layout-y-stretch gap-2 border-t border-surface-200-800 pt-3">
+							{#if isViewQuery}
+								<div class="layout-y-stretch gap-2 border-t border-surface-200-800 pt-3">
+									<div class="text-sm font-medium text-strong">Keys</div>
+									<PropertyType
+										type="segment"
+										fit={true}
+										name="docsKeyMode"
+										item={[
+											{ value: 'by-keys', text: 'By Key(s)' },
+											{ value: 'between-keys', text: 'Between Keys' }
+										]}
+										value={docsKeyMode}
+										onValueChange={(event) => (docsKeyMode = event.value ?? 'by-keys')}
+									/>
+									{#if docsKeyMode == 'between-keys'}
+										<div class="layout-x-wrap items-center gap-2 text-sm">
+											<label class="layout-x-low items-center text-strong">
+												<span>Start key</span>
+												<input
+													type="text"
+													value={docsStartKeyValue}
+													placeholder="e.g. a"
+													class="query-options-key-input h-9 input-common px-2 text-sm"
+													oninput={(event) => (docsStartKeyValue = event.currentTarget.value)}
+												/>
+											</label>
+											<label class="layout-x-low items-center text-strong">
+												<span>End key</span>
+												<input
+													type="text"
+													value={docsEndKeyValue}
+													placeholder="e.g. z"
+													class="query-options-key-input h-9 input-common px-2 text-sm"
+													oninput={(event) => (docsEndKeyValue = event.currentTarget.value)}
+												/>
+											</label>
+										</div>
+									{:else}
+										<label class="layout-x-low items-center text-strong">
+											<span>Key</span>
+											<input
+												type="text"
+												value={docsKeyValue}
+												placeholder="e.g. alice or [alice,bob]"
+												class="query-options-key-input h-9 input-common px-2 text-sm"
+												oninput={(event) => (docsKeyValue = event.currentTarget.value)}
+											/>
+										</label>
+									{/if}
+								</div>
+							{/if}
+
+							<div
+								class={`layout-y-stretch gap-2 pt-3 ${isViewQuery ? 'border-t border-surface-200-800' : ''}`}
+							>
 								<div class="text-sm font-medium text-strong">Additional Parameters</div>
 								<div class="layout-x-wrap items-center gap-2 text-sm">
 									<label class="layout-x-low items-center text-strong">
@@ -2014,143 +2190,50 @@
 					/>
 				</div>
 
-				<div class="docs-table-wrap">
-					<table class={`docs-table ${currentLayout == 'metadata' ? 'docs-table-metadata' : ''}`}>
-						<thead>
-							{#if currentLayout == 'metadata'}
-								<tr>
-									<th class="col-select"></th>
-									<th class="col-copy"></th>
-									<th class="metadata-col-id">id</th>
-									<th class="metadata-col-key">key</th>
-									<th class="metadata-col-value">value</th>
-								</tr>
-							{:else if currentLayout == 'table'}
-								<tr>
-									<th class="col-select"></th>
-									{#each docsVisibleColumns as column, columnIndex (`docs-table-column-${column}-${columnIndex}`)}
-										<th class="mango-column-th">
-											<select
-												class="mango-column-select select h-9 input-common w-full min-w-0 px-2 text-sm"
-												value={column}
-												onchange={(event) => setDocsColumn(columnIndex, event.currentTarget.value)}
-											>
-												{#each docsDisplayableColumns as candidate (`docs-table-candidate-${candidate}`)}
-													<option value={candidate}>{candidate}</option>
-												{/each}
-											</select>
-										</th>
-									{/each}
-								</tr>
-							{:else}
-								<tr>
-									<th class="col-select"></th>
-									<th class="col-copy"></th>
-									<th>json</th>
-								</tr>
-							{/if}
-						</thead>
-						<tbody>
-							{#if loadingDocuments && documentRows.length == 0}
-								<tr>
-									<td colspan={tableColspan} class="empty-row">Loading documents...</td>
-								</tr>
-							{:else if documentRows.length == 0}
-								<tr>
-									<td colspan={tableColspan} class="empty-row">This table is empty</td>
-								</tr>
-							{:else}
-								{#each documentRows as row, rowIndex (`${row?.id || row?.key || 'row'}-${rowIndex}`)}
-									<tr>
-										<td class="col-select">
-											{#if row.id}
-												<Switch
-													name={`select-document-${row.id}`}
-													aria-label={`Select ${row.id}`}
-													checked={Boolean(selectedDocIds[row.id])}
-													disabled={!row.rev || working}
-													onCheckedChange={(event) => setRowSelection(row.id, event.checked)}
-												>
-													<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
-														<Switch.Thumb />
-													</Switch.Control>
-													<Switch.HiddenInput />
-												</Switch>
-											{/if}
-										</td>
-										{#if currentLayout == 'metadata'}
-											<td class="col-copy">
-												<button
-													type="button"
-													class="button-ico-primary h-7 w-7 justify-center p-0!"
-													title="Copy row"
-													aria-label="Copy row"
-													onclick={() => copyRow(row)}
-												>
-													<Ico icon="mdi:content-copy" size={4.5} />
-												</button>
-											</td>
-											<td class="metadata-col-id">
-												<button
-													type="button"
-													class="metadata-link text-left text-primary-500 transition-surface hover:underline"
-													title={row.id}
-													onclick={() => openDocument(row.id)}
-												>
-													<span class="metadata-ellipsis">{row.id}</span>
-												</button>
-											</td>
-											<td class="metadata-col-key">
-												<span class="metadata-ellipsis" title={row.key}>{row.key}</span>
-											</td>
-											<td class="metadata-col-value">
-												<span class="metadata-ellipsis" title={row.valuePreview}
-													>{row.valuePreview}</span
-												>
-											</td>
-										{:else if currentLayout == 'table'}
-											{#each docsVisibleColumns as column (`docs-table-row-${column}-${rowIndex}`)}
-												<td>
-													{#if (column == '_id' || column == 'id') && row.id}
-														<button
-															type="button"
-															class="metadata-link text-left text-primary-500 transition-surface hover:underline"
-															title={formatMangoCellValue(row.raw?.[column]) || row.id}
-															onclick={() => openDocument(row.id)}
-														>
-															<span class="metadata-ellipsis"
-																>{formatMangoCellValue(row.raw?.[column]) || row.id}</span
-															>
-														</button>
-													{:else}
-														<span
-															class="metadata-ellipsis"
-															title={formatMangoCellValue(row.raw?.[column])}
-															>{formatMangoCellValue(row.raw?.[column])}</span
-														>
-													{/if}
-												</td>
-											{/each}
-										{:else}
-											<td class="col-copy">
-												<button
-													type="button"
-													class="button-ico-primary h-7 w-7 justify-center p-0!"
-													title="Copy row"
-													aria-label="Copy row"
-													onclick={() => copyRow(row)}
-												>
-													<Ico icon="mdi:content-copy" size={4.5} />
-												</button>
-											</td>
-											<td><pre class="text-xs leading-5">{row.jsonText}</pre></td>
-										{/if}
-									</tr>
-								{/each}
-							{/if}
-						</tbody>
-					</table>
-				</div>
+				{#if currentLayout == 'json'}
+					<FullSyncRowsPanel
+						rows={documentRows}
+						layoutMode="json"
+						loading={loadingDocuments}
+						loadingTitle="Loading documents..."
+						emptyTitle="No Documents Found"
+						showEmptyIcon={false}
+						selectedIds={selectedDocIds}
+						selectionPrefix="select-document-json"
+						rowKeyPrefix="all-docs-json"
+						hideSelectWithoutRev={true}
+						disableSelectWithoutRev={false}
+						{working}
+						onSelectionChange={setRowSelection}
+						onOpenDocument={openDocument}
+						onCopyRow={copyRow}
+						formatCellValue={formatMangoCellValue}
+					/>
+				{:else}
+					<FullSyncRowsPanel
+						rows={documentRows}
+						layoutMode={currentLayout}
+						tableClass=""
+						loading={loadingDocuments}
+						loadingTitle="Loading documents..."
+						emptyTitle="This table is empty"
+						tableColspanValue={tableColspan}
+						visibleColumns={docsVisibleColumns}
+						displayableColumns={docsDisplayableColumns}
+						columnSelectionPrefix="all-docs"
+						rowKeyPrefix="all-docs-row"
+						selectedIds={selectedDocIds}
+						hideSelectWithoutRev={true}
+						disableSelectWithoutRev={false}
+						idColumnMode="id-or-_id"
+						{working}
+						onSelectionChange={setRowSelection}
+						onColumnSelect={setDocsColumn}
+						onOpenDocument={openDocument}
+						onCopyRow={copyRow}
+						formatCellValue={formatMangoCellValue}
+					/>
+				{/if}
 
 				<div class="fullsync-footer">
 					<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
@@ -2241,6 +2324,13 @@
 				</div>
 				<div class="mango-header-actions">
 					<Button
+						label="Create Document"
+						icon="mdi:plus"
+						class="button-primary h-9 px-3"
+						full={false}
+						onclick={createDocumentAction}
+					/>
+					<Button
 						label="JSON"
 						icon="mdi:code-braces"
 						class="button-secondary h-9 px-3"
@@ -2316,7 +2406,7 @@
 				</aside>
 
 				<section class="mango-result-panel">
-					{#if !isMangoExplainMode}
+					{#if !isMangoExplainMode && hasMangoDocs}
 						<header class="mango-result-toolbar">
 							<div class="mango-result-toolbar-left">
 								<Switch
@@ -2354,13 +2444,6 @@
 									onValueChange={(event) => (mangoResultLayout = event.value ?? 'table')}
 								/>
 							</div>
-							<Button
-								label="Create Document"
-								icon="mdi:plus"
-								class="button-primary h-9 px-3"
-								full={false}
-								onclick={createDocumentAction}
-							/>
 						</header>
 					{/if}
 
@@ -2369,137 +2452,48 @@
 							<pre class="text-xs leading-5">{mangoExplainText}</pre>
 						</div>
 					{:else if mangoResultLayout == 'json'}
-						{#if mangoPagedRows.length == 0}
-							<div class="mango-empty">
-								<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
-								<div class="mango-empty-title">No Documents Found</div>
-							</div>
-						{:else}
-							<div class="mango-json-list">
-								{#each mangoPagedRows as row, rowIndex (`${row?.id || 'mango-json'}-${mangoSkip}-${rowIndex}`)}
-									<article class="mango-json-row">
-										<div class="mango-json-select">
-											{#if row.id}
-												<Switch
-													name={`select-mango-json-document-${row.id}`}
-													aria-label={`Select ${row.id}`}
-													checked={Boolean(mangoSelectedDocIds[row.id])}
-													disabled={!row.rev || working}
-													onCheckedChange={(event) => setMangoRowSelection(row.id, event.checked)}
-												>
-													<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
-														<Switch.Thumb />
-													</Switch.Control>
-													<Switch.HiddenInput />
-												</Switch>
-											{/if}
-										</div>
-										<div class="mango-json-card">
-											<header class="mango-json-card-header">
-												<span class="mango-json-id" title={row.id}>id "{row.id}"</span>
-												<button
-													type="button"
-													class="button-ico-primary h-7 w-7 justify-center p-0!"
-													title="Open document"
-													aria-label="Open document"
-													onclick={() => openDocument(row.id)}
-												>
-													<Ico icon="mdi:pencil-outline" size={4.5} />
-												</button>
-											</header>
-											<pre class="mango-json-content">{row.jsonText}</pre>
-										</div>
-									</article>
-								{/each}
-							</div>
-						{/if}
+						<FullSyncRowsPanel
+							rows={mangoPagedRows}
+							layoutMode="json"
+							loading={false}
+							loadingTitle="Loading documents..."
+							emptyTitle="No Documents Found"
+							showEmptyIcon={true}
+							selectedIds={mangoSelectedDocIds}
+							selectionPrefix="select-mango-json-document"
+							rowKeyPrefix={`mango-json-${mangoSkip}`}
+							hideSelectWithoutRev={false}
+							disableSelectWithoutRev={true}
+							{working}
+							onSelectionChange={setMangoRowSelection}
+							onOpenDocument={openDocument}
+							onCopyRow={copyRow}
+							formatCellValue={formatMangoCellValue}
+						/>
 					{:else if hasMangoDocs}
-						<div class="docs-table-wrap">
-							<table class="docs-table docs-table-metadata mango-table">
-								<thead>
-									<tr>
-										<th class="col-select"></th>
-										<th class="col-copy"></th>
-										{#each mangoVisibleColumns as column, columnIndex (`${column}-${columnIndex}`)}
-											<th class="mango-column-th">
-												<select
-													class="mango-column-select select h-9 input-common w-full min-w-0 px-2 text-sm"
-													value={column}
-													onchange={(event) =>
-														setMangoColumn(columnIndex, event.currentTarget.value)}
-												>
-													{#each mangoDisplayableColumns as candidate (candidate)}
-														<option value={candidate}>{candidate}</option>
-													{/each}
-												</select>
-											</th>
-										{/each}
-									</tr>
-								</thead>
-								<tbody>
-									{#if mangoPagedRows.length == 0}
-										<tr>
-											<td colspan={mangoTableColspan} class="empty-row">This table is empty</td>
-										</tr>
-									{:else}
-										{#each mangoPagedRows as row, rowIndex (`${row?.id || 'mango'}-${mangoSkip}-${rowIndex}`)}
-											<tr>
-												<td class="col-select">
-													{#if row.id}
-														<Switch
-															name={`select-mango-document-${row.id}`}
-															aria-label={`Select ${row.id}`}
-															checked={Boolean(mangoSelectedDocIds[row.id])}
-															disabled={!row.rev || working}
-															onCheckedChange={(event) =>
-																setMangoRowSelection(row.id, event.checked)}
-														>
-															<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
-																<Switch.Thumb />
-															</Switch.Control>
-															<Switch.HiddenInput />
-														</Switch>
-													{/if}
-												</td>
-												<td class="col-copy">
-													<button
-														type="button"
-														class="button-ico-primary h-7 w-7 justify-center p-0!"
-														title="Copy row"
-														aria-label="Copy row"
-														onclick={() => copyRow(row)}
-													>
-														<Ico icon="mdi:content-copy" size={4.5} />
-													</button>
-												</td>
-												{#each mangoVisibleColumns as column (`${column}-${rowIndex}`)}
-													<td>
-														{#if column == '_id'}
-															<button
-																type="button"
-																class="metadata-link text-left text-primary-500 transition-surface hover:underline"
-																title={formatMangoCellValue(row.raw?.[column])}
-																onclick={() => openDocument(row.id)}
-															>
-																<span class="metadata-ellipsis"
-																	>{formatMangoCellValue(row.raw?.[column])}</span
-																>
-															</button>
-														{:else}
-															<span
-																class="metadata-ellipsis"
-																title={formatMangoCellValue(row.raw?.[column])}
-																>{formatMangoCellValue(row.raw?.[column])}</span
-															>
-														{/if}
-													</td>
-												{/each}
-											</tr>
-										{/each}
-									{/if}
-								</tbody>
-							</table>
-						</div>
+						<FullSyncRowsPanel
+							rows={mangoPagedRows}
+							layoutMode="table"
+							tableClass="mango-table"
+							loading={false}
+							loadingTitle="Loading documents..."
+							emptyTitle="This table is empty"
+							tableColspanValue={mangoTableColspan}
+							visibleColumns={mangoVisibleColumns}
+							displayableColumns={mangoDisplayableColumns}
+							columnSelectionPrefix="mango"
+							rowKeyPrefix={`mango-row-${mangoSkip}`}
+							selectedIds={mangoSelectedDocIds}
+							hideSelectWithoutRev={false}
+							disableSelectWithoutRev={true}
+							idColumnMode="_id-only"
+							{working}
+							onSelectionChange={setMangoRowSelection}
+							onColumnSelect={setMangoColumn}
+							onOpenDocument={openDocument}
+							onCopyRow={copyRow}
+							formatCellValue={formatMangoCellValue}
+						/>
 					{:else}
 						<div class="mango-empty">
 							<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
@@ -2595,6 +2589,13 @@
 				</div>
 				<div class="mango-header-actions">
 					<Button
+						label="Create Document"
+						icon="mdi:plus"
+						class="button-primary h-9 px-3"
+						full={false}
+						onclick={createDocumentAction}
+					/>
+					<Button
 						label="JSON"
 						icon="mdi:code-braces"
 						class="button-secondary h-9 px-3"
@@ -2682,57 +2683,31 @@
 								/>
 							{/if}
 						</div>
-						<Button
-							label="Create Document"
-							icon="mdi:plus"
-							class="button-primary h-9 px-3"
-							full={false}
-							onclick={createDocumentAction}
-						/>
 					</header>
 
-					{#if mangoIndexesLoading}
-						<div class="mango-empty">
-							<div class="mango-empty-title">Loading indexes...</div>
-						</div>
-					{:else if mangoIndexPagedRows.length == 0}
-						<div class="mango-empty">
-							<Ico icon="mdi:magnify" size={18} class="mango-empty-icon" />
-							<div class="mango-empty-title">No indexes found</div>
-						</div>
-					{:else}
-						<div class="mango-json-list">
-							{#each mangoIndexPagedRows as row (row.key)}
-								<article class="mango-json-row">
-									<div class="mango-json-select">
-										{#if row.isBulkDeletable}
-											<Switch
-												name={`select-mango-index-${row.key}`}
-												aria-label={`Select ${row.name}`}
-												checked={Boolean(mangoIndexesSelection[row.key])}
-												disabled={working}
-												onCheckedChange={(event) =>
-													setMangoIndexRowSelection(row.key, event.checked)}
-											>
-												<Switch.Control class="c8o-switch h-5 w-9 transition-surface">
-													<Switch.Thumb />
-												</Switch.Control>
-												<Switch.HiddenInput />
-											</Switch>
-										{/if}
-									</div>
-									<div class="mango-json-card">
-										<header class="mango-json-card-header">
-											<span class="mango-json-id" title={`${row.type}: ${row.name}`}
-												>{`"${row.type}: ${row.name}"`}</span
-											>
-										</header>
-										<pre class="mango-json-content">{row.jsonText}</pre>
-									</div>
-								</article>
-							{/each}
-						</div>
-					{/if}
+					<FullSyncRowsPanel
+						rows={mangoIndexPagedRows}
+						layoutMode="json"
+						loading={mangoIndexesLoading}
+						loadingTitle="Loading indexes..."
+						emptyTitle="No indexes found"
+						showEmptyIcon={true}
+						selectedIds={mangoIndexesSelection}
+						selectionPrefix="select-mango-index"
+						rowKeyPrefix={`mango-index-${mangoIndexSkip}`}
+						hideSelectWithoutRev={false}
+						disableSelectWithoutRev={false}
+						{working}
+						onSelectionChange={setMangoIndexRowSelection}
+						showJsonOpenButton={false}
+						jsonHeaderText={(row) => `"${row.type}: ${row.displayName}"`}
+						jsonHeaderTitle={(row) => `${row.type}: ${row.displayName}`}
+						getSelectionKey={(row) => String(row?.key ?? '')}
+						isRowSelectable={(row) => Boolean(row?.isBulkDeletable)}
+						onOpenDocument={openDocument}
+						onCopyRow={copyRow}
+						formatCellValue={formatMangoCellValue}
+					/>
 
 					<footer class="fullsync-footer mango-footer">
 						<div class="text-sm text-muted">
@@ -3112,98 +3087,8 @@
 		min-width: 5.5rem;
 	}
 
-	.docs-table-wrap {
-		overflow-x: auto;
-	}
-
-	.docs-table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-
-	.docs-table th,
-	.docs-table td {
-		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1.25);
-		vertical-align: top;
-	}
-
-	.docs-table thead th {
-		border-bottom: 1px solid light-dark(var(--color-surface-500), var(--color-surface-500));
-		font-size: 0.98rem;
-		font-weight: 600;
-		color: var(--convertigo-text-strong);
-		text-align: left;
-	}
-
-	.docs-table tbody tr {
-		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
-	}
-
-	.docs-table tbody tr:last-child {
-		border-bottom: 0;
-	}
-
-	.docs-table td pre {
-		margin: 0;
-	}
-
-	.docs-table-metadata {
-		table-layout: fixed;
-	}
-
-	.docs-table-metadata .metadata-col-id {
-		width: 30%;
-	}
-
-	.docs-table-metadata .metadata-col-key {
-		width: 30%;
-	}
-
-	.docs-table-metadata .metadata-col-value {
-		width: 40%;
-	}
-
-	.docs-table-metadata td {
-		overflow: hidden;
-	}
-
-	.metadata-link {
-		display: block;
-		width: 100%;
-		min-width: 0;
-	}
-
-	.metadata-ellipsis {
-		display: block;
-		max-width: 100%;
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.col-copy {
-		width: 2.4rem;
-	}
-
-	.col-select {
-		width: 3rem;
-		text-align: center;
-	}
-
-	.col-select :global([data-part='root']) {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.col-actions {
-		width: 4rem;
-	}
-
-	.empty-row {
-		padding: calc(var(--spacing) * 3) calc(var(--spacing) * 1.5);
-		color: var(--convertigo-text-muted);
+	.query-options-key-input {
+		min-width: 10.5rem;
 	}
 
 	.mango-page-panel {
@@ -3331,20 +3216,6 @@
 		align-items: center;
 		gap: calc(var(--spacing) * 0.75);
 		min-width: 0;
-	}
-
-	.mango-table {
-		table-layout: fixed;
-	}
-
-	.mango-column-th {
-		min-width: 9rem;
-	}
-
-	.mango-column-select {
-		display: block;
-		min-height: 2.25rem;
-		line-height: 1.2;
 	}
 
 	.mango-result-body {

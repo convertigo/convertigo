@@ -59,7 +59,7 @@
 >
 	{#if variant === 'studio'}
 		<section class="layout-x pl-5">
-			<Ico icon="logo.png" alt="logo convertigo" size={7} />
+			<Ico icon="convertigo:logo" alt="logo convertigo" size={7} />
 			<h1 class="font-medium">{computedTitle}</h1>
 		</section>
 
@@ -79,8 +79,8 @@
 			<PagesRailToggle class="max-md:hidden" bind:state={showLeft} />
 		</section>
 
-		<section class="layout-x justify-center md:justify-start md:pl-3">
-			<Ico icon="logo.png" alt="logo convertigo" size={7} />
+		<section class="layout-x justify-center md:justify-start md:pl-3 text-primary-500">
+			<Ico icon="convertigo:logo" alt="logo convertigo" size={7} />
 			<h2 class="font-medium max-md:hidden">{computedTitle}</h2>
 		</section>
 

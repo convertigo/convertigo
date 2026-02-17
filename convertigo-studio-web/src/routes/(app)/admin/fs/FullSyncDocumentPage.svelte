@@ -52,7 +52,9 @@
 	let attachmentsPopoverOpen = $state(false);
 
 	let isNewDocument = $derived(currentDocId == '_new');
+	let documentTitle = $derived(isNewDocument ? 'New Document' : currentDocId);
 	let hasUnsavedChanges = $derived(documentText != originalDocumentText);
+	let saveButtonLabel = $derived(isNewDocument ? 'Create Document' : 'Save Changes');
 	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let attachmentItems = $derived.by(() => {
 		const parsedCurrent = parseJsonSilent(documentText);
@@ -81,7 +83,8 @@
 			.sort((a, b) => a.name.localeCompare(b.name));
 	});
 	let rawDocumentUrl = $derived.by(() => {
-		if (!database || !currentDocId || isNewDocument) return '#';
+		if (!database || !currentDocId) return '#';
+		if (isNewDocument) return `${fullSyncBaseUrl()}${encodeURIComponent(database)}`;
 		return `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDocPath(currentDocId)}`;
 	});
 
@@ -163,6 +166,15 @@
 		return `${prefix}${now}${random}`;
 	}
 
+	function fallbackNewDocumentId() {
+		const alphabet = '0123456789abcdef';
+		let id = '';
+		for (let i = 0; i < 32; i += 1) {
+			id += alphabet[Math.floor(Math.random() * alphabet.length)];
+		}
+		return id;
+	}
+
 	async function suggestCloneId(prefix = '') {
 		try {
 			const uuids = await getUuids(1);
@@ -210,7 +222,7 @@
 		lastError = '';
 		try {
 			if (currentDocId == '_new') {
-				let generatedId = 'enter_document_id';
+				let generatedId = fallbackNewDocumentId();
 				try {
 					const uuids = await getUuids(1);
 					if (uuids[0]) {
@@ -237,6 +249,10 @@
 
 	async function cancelDocumentEdit(event) {
 		event?.preventDefault?.();
+		if (isNewDocument) {
+			await goto(fullSyncDbTabHref(database, 'all'));
+			return;
+		}
 		if (typeof window != 'undefined' && window.history.length > 1) {
 			window.history.back();
 			return;
@@ -350,7 +366,9 @@
 		try {
 			const response = await updateDocument(database, document._id, document);
 			const nextDocId = response?.id ?? document._id;
-			showSuccess(`Document "${nextDocId}" saved`);
+			showSuccess(
+				isNewDocument ? `Document "${nextDocId}" created` : `Document "${nextDocId}" saved`
+			);
 			if (nextDocId != currentDocId) {
 				await goto(fullSyncDocHref(database, nextDocId));
 			} else {
@@ -424,7 +442,7 @@
 					>{database}</a
 				>
 				<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
-				<span class="doc-id-text" title={currentDocId}>{currentDocId}</span>
+				<span class="doc-id-text" title={documentTitle}>{documentTitle}</span>
 			</div>
 			<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
 				<Button
@@ -447,10 +465,13 @@
 		<div class="doc-actions-row">
 			<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
 				<Button
-					label="Save Changes"
+					label={saveButtonLabel}
 					icon="mdi:content-save-edit-outline"
 					class="button-primary h-9 w-fit!"
-					disabled={working || uploadingAttachment || loadingDocument || !hasUnsavedChanges}
+					disabled={working ||
+						uploadingAttachment ||
+						loadingDocument ||
+						(!isNewDocument && !hasUnsavedChanges)}
 					onclick={saveDocument}
 				/>
 				<Button
@@ -462,75 +483,77 @@
 				/>
 			</ActionBar>
 
-			<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
-				<Popover
-					open={attachmentsPopoverOpen}
-					onOpenChange={(event) => (attachmentsPopoverOpen = event.open)}
-				>
-					<Popover.Trigger
-						class="button-secondary inline-flex h-9 items-center gap-2 px-3 text-sm"
-						title={attachmentItems.length > 0 ? 'View attachments' : 'No attachments'}
-						aria-label="View attachments"
-						disabled={isNewDocument || attachmentItems.length == 0}
+			{#if !isNewDocument}
+				<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
+					<Popover
+						open={attachmentsPopoverOpen}
+						onOpenChange={(event) => (attachmentsPopoverOpen = event.open)}
 					>
-						<Ico icon="mdi:paperclip" size={4.4} />
-						<span>View Attachments</span>
-						<Ico icon="mdi:chevron-down" size={4} />
-					</Popover.Trigger>
-					<Portal>
-						<Popover.Positioner class="z-[250]" style="z-index: 250;">
-							<Popover.Content class="border-none bg-transparent p-0 shadow-none">
-								<Card
-									class="border-none! p-0! shadow-follow"
-									style="width: min(28rem, calc(100vw - (var(--spacing) * 4)));"
-								>
-									{#if attachmentItems.length == 0}
-										<div class="attachment-menu-empty">No attachments</div>
-									{:else}
-										<div class="attachment-menu-list">
-											{#each attachmentItems as attachment (attachment.name)}
-												<button
-													type="button"
-													class="attachment-menu-item"
-													title={`${attachment.name} - ${attachment.contentType}, ${formatAttachmentSize(attachment.size)}`}
-													onclick={() => openAttachment(attachment.name)}
-												>
-													<span class="attachment-menu-name">{attachment.name}</span>
-													<span class="attachment-menu-meta">
-														{attachment.contentType}, {formatAttachmentSize(attachment.size)}
-													</span>
-												</button>
-											{/each}
-										</div>
-									{/if}
-								</Card>
-								<Popover.Arrow class="fill-primary-100-900" />
-							</Popover.Content>
-						</Popover.Positioner>
-					</Portal>
-				</Popover>
-				<Button
-					label="Upload Attachment"
-					icon="mdi:briefcase-upload-outline"
-					class="button-secondary h-9 w-fit!"
-					disabled={working || uploadingAttachment || loadingDocument || isNewDocument}
-					onclick={openUploadModal}
-				/>
-				<Button
-					label="Clone Document"
-					icon="mdi:cached"
-					class="button-secondary h-9 w-fit!"
-					disabled={working || uploadingAttachment || loadingDocument || isNewDocument}
-					onclick={openCloneModal}
-				/>
-				<Button
-					label="Delete"
-					icon="mdi:delete-outline"
-					class="button-secondary h-9 w-fit!"
-					disabled={working || uploadingAttachment || loadingDocument || isNewDocument}
-					onclick={deleteDocument}
-				/>
-			</ActionBar>
+						<Popover.Trigger
+							class="button-secondary inline-flex h-9 items-center gap-2 px-3 text-sm"
+							title={attachmentItems.length > 0 ? 'View attachments' : 'No attachments'}
+							aria-label="View attachments"
+							disabled={attachmentItems.length == 0}
+						>
+							<Ico icon="mdi:paperclip" size={4.4} />
+							<span>View Attachments</span>
+							<Ico icon="mdi:chevron-down" size={4} />
+						</Popover.Trigger>
+						<Portal>
+							<Popover.Positioner class="z-[250]" style="z-index: 250;">
+								<Popover.Content class="border-none bg-transparent p-0 shadow-none">
+									<Card
+										class="border-none! p-0! shadow-follow"
+										style="width: min(28rem, calc(100vw - (var(--spacing) * 4)));"
+									>
+										{#if attachmentItems.length == 0}
+											<div class="attachment-menu-empty">No attachments</div>
+										{:else}
+											<div class="attachment-menu-list">
+												{#each attachmentItems as attachment (attachment.name)}
+													<button
+														type="button"
+														class="attachment-menu-item"
+														title={`${attachment.name} - ${attachment.contentType}, ${formatAttachmentSize(attachment.size)}`}
+														onclick={() => openAttachment(attachment.name)}
+													>
+														<span class="attachment-menu-name">{attachment.name}</span>
+														<span class="attachment-menu-meta">
+															{attachment.contentType}, {formatAttachmentSize(attachment.size)}
+														</span>
+													</button>
+												{/each}
+											</div>
+										{/if}
+									</Card>
+									<Popover.Arrow class="fill-primary-100-900" />
+								</Popover.Content>
+							</Popover.Positioner>
+						</Portal>
+					</Popover>
+					<Button
+						label="Upload Attachment"
+						icon="mdi:briefcase-upload-outline"
+						class="button-secondary h-9 w-fit!"
+						disabled={working || uploadingAttachment || loadingDocument}
+						onclick={openUploadModal}
+					/>
+					<Button
+						label="Clone Document"
+						icon="mdi:cached"
+						class="button-secondary h-9 w-fit!"
+						disabled={working || uploadingAttachment || loadingDocument}
+						onclick={openCloneModal}
+					/>
+					<Button
+						label="Delete"
+						icon="mdi:delete-outline"
+						class="button-secondary h-9 w-fit!"
+						disabled={working || uploadingAttachment || loadingDocument}
+						onclick={deleteDocument}
+					/>
+				</ActionBar>
+			{/if}
 		</div>
 
 		{#if lastError}

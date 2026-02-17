@@ -43,13 +43,13 @@ const devices = {
 		iframe: {
 			width: 440,
 			height: 956,
-			marginTop: 52,
-			marginLeft: 56,
+			marginTop: 33,
+			marginLeft: 33,
 			borderRadius: 58
 		},
 		bezel: {
-			width: 550,
-			height: 1059
+			width: 507,
+			height: 1023
 		},
 		id: 'iPhone-16-Pro-Max',
 		index: 2
@@ -94,13 +94,13 @@ const devices = {
 		iframe: {
 			width: 393,
 			height: 852,
-			marginTop: 52,
-			marginLeft: 55,
+			marginTop: 33,
+			marginLeft: 33,
 			borderRadius: 52
 		},
 		bezel: {
-			width: 503,
-			height: 955
+			width: 460,
+			height: 919
 		},
 		id: 'iPhone-16',
 		index: 5
@@ -113,7 +113,7 @@ const devices = {
 			height: 957,
 			marginTop: 45,
 			marginLeft: 54,
-			borderRadius: 33
+			borderRadius: 34
 		},
 		bezel: {
 			width: 539,
@@ -196,13 +196,13 @@ const devices = {
 		iframe: {
 			width: 1024,
 			height: 1365,
-			marginTop: 94,
-			marginLeft: 95,
-			borderRadius: 29
+			marginTop: 50,
+			marginLeft: 50,
+			borderRadius: 34
 		},
 		bezel: {
-			width: 1215,
-			height: 1554
+			width: 1123,
+			height: 1465
 		},
 		id: 'iPad-Pro-13-M4',
 		index: 11
@@ -213,13 +213,13 @@ const devices = {
 		iframe: {
 			width: 834,
 			height: 1210,
-			marginTop: 92,
-			marginLeft: 100,
-			borderRadius: 31
+			marginTop: 50,
+			marginLeft: 50,
+			borderRadius: 35
 		},
 		bezel: {
-			width: 1034,
-			height: 1394
+			width: 934,
+			height: 1310
 		},
 		id: 'iPad-Pro-11-M4',
 		index: 12
@@ -230,13 +230,13 @@ const devices = {
 		iframe: {
 			width: 1024,
 			height: 1366,
-			marginTop: 100,
-			marginLeft: 100,
-			borderRadius: 18
+			marginTop: 50,
+			marginLeft: 50,
+			borderRadius: 22
 		},
 		bezel: {
-			width: 1224,
-			height: 1566
+			width: 1124,
+			height: 1466
 		},
 		id: 'iPad-Air-13-M2',
 		index: 13
@@ -247,13 +247,13 @@ const devices = {
 		iframe: {
 			width: 820,
 			height: 1180,
-			marginTop: 107,
-			marginLeft: 107,
-			borderRadius: 20
+			marginTop: 60,
+			marginLeft: 60,
+			borderRadius: 22
 		},
 		bezel: {
-			width: 1034,
-			height: 1394
+			width: 940,
+			height: 1300
 		},
 		id: 'iPad-Air-11-M2',
 		index: 14
@@ -264,13 +264,13 @@ const devices = {
 		iframe: {
 			width: 1470,
 			height: 956,
-			marginTop: 125,
-			marginLeft: 189,
+			marginTop: 144,
+			marginLeft: 201,
 			borderRadius: 30
 		},
 		bezel: {
-			width: 1849,
-			height: 1206
+			width: 1872,
+			height: 1243
 		},
 		id: 'MacBook-Air-13',
 		index: 15
@@ -366,13 +366,13 @@ const devices = {
 		iframe: {
 			width: 4480,
 			height: 2520,
-			marginTop: 200,
+			marginTop: 1600,
 			marginLeft: 200,
 			borderRadius: 0
 		},
 		bezel: {
 			width: 4880,
-			height: 4140
+			height: 5720
 		},
 		id: 'iMac-24',
 		index: 21
@@ -383,13 +383,13 @@ const devices = {
 		iframe: {
 			width: 5120,
 			height: 2880,
-			marginTop: 200,
-			marginLeft: 200,
+			marginTop: 1500,
+			marginLeft: 300,
 			borderRadius: 0
 		},
 		bezel: {
-			width: 5520,
-			height: 4436
+			width: 5720,
+			height: 5880
 		},
 		id: 'Dell-UltraSharp-5K',
 		index: 22

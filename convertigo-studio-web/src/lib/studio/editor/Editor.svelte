@@ -155,6 +155,12 @@
 				resizeObserver = new ResizeObserver(() => layout());
 				resizeObserver.observe(node);
 				apply(pending);
+				// Monaco can render with a stale tiny viewport when mounted during route/layout transitions.
+				// Trigger a few deferred layouts to stabilize height/width in dynamic containers.
+				layout();
+				requestAnimationFrame(() => layout());
+				setTimeout(() => layout(), 0);
+				setTimeout(() => layout(), 120);
 			})
 			.catch(() => {});
 

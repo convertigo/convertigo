@@ -246,7 +246,7 @@ public class EnginePropertiesManager {
 		Ssl ("SSL"),
 		@CategoryOptions(viewRoles = {Role.CACHE_VIEW, Role.CACHE_CONFIG}, configRoles = {Role.CACHE_CONFIG})
 		Cache ("Cache"),
-		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
+		@CategoryOptions(visibility = Visibility.HIDDEN)
 		Carioca ("Legacy Carioca Portal"),
 		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
 		Analytics ("Analytics"),

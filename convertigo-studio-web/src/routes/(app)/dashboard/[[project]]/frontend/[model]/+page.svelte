@@ -80,9 +80,13 @@
 		}
 		return orderedGroups;
 	});
+	let noFrameGroup = $derived.by(() => groupedDevices.find(({ id }) => id === 'no-frame'));
+	let accordionDeviceGroups = $derived.by(() =>
+		groupedDevices.filter(({ id }) => id !== 'no-frame')
+	);
 	let deviceGroupMap = $derived.by(() => {
 		const map = new Map();
-		for (const group of groupedDevices) {
+		for (const group of accordionDeviceGroups) {
 			for (const device of group.devices) {
 				map.set(device.id, group.id);
 			}
@@ -360,7 +364,7 @@
 						collapsible
 						class="accordion-rail-group flex flex-col gap-0"
 					>
-						{#each groupedDevices as { id, title, devices } (id)}
+						{#each accordionDeviceGroups as { id, title, devices } (id)}
 							<AccordionSection
 								value={id}
 								class="accordion-rail-item"
@@ -432,6 +436,48 @@
 							</AccordionSection>
 						{/each}
 					</AccordionGroup>
+					{#if noFrameGroup?.devices?.length}
+						<div class="border-t border-surface-200-800/70">
+							<div
+								class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0 pt-0 md:flex md:flex-col md:gap-0"
+							>
+								{#each noFrameGroup.devices as device (device.id)}
+									{@const {
+										id,
+										title,
+										type,
+										iframe: { height, width },
+										index: deviceIndex
+									} = device}
+									{@const href =
+										type == 'phone' ? `../${id}_${orientation.substring(0, 1)}/` : `../${id}/`}
+									{@const isSelected = selectedIndex == deviceIndex}
+									<a
+										{href}
+										aria-current={isSelected ? 'true' : undefined}
+										class="relative flex min-w-0 items-center gap-2 border-b border-surface-200-800/60 px-2 py-2 transition-surface hover:bg-primary-100/60 md:min-w-40 md:border-b md:px-3 dark:hover:bg-primary-500/15"
+									>
+										{#if isSelected}
+											<span class="absolute inset-0 bg-primary-100/70 dark:bg-primary-500/20"
+											></span>
+										{/if}
+										<div
+											class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center rounded-sm border border-dashed border-surface-200-800 text-[10px] tracking-wide text-muted uppercase md:h-16 md:w-16"
+											aria-hidden="true"
+										>
+											No frame
+										</div>
+										<span
+											class="z-10 text-[13px] leading-tight {isSelected
+												? 'font-medium rail-active'
+												: 'font-normal text-strong'}"
+											>{title}<br /><small>{width} x {height}</small></span
+										>
+									</a>
+								{/each}
+							</div>
+						</div>
+					{/if}
 				</nav>
 			</div>
 		{/if}
