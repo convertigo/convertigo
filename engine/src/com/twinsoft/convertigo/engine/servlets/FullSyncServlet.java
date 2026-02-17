@@ -150,7 +150,7 @@ public class FullSyncServlet extends HttpServlet {
 			boolean isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
 			boolean isUtilsRequest = false;
 			String referer = request.getHeader("Referer");
-			if (isUtilsSession || (referer != null &&  (referer.endsWith("/admin/_utils/") || referer.endsWith("/admin_/_utils/")))) {
+			if (isUtilsSession || (referer != null &&  (referer.endsWith("/admin/fs/") || referer.endsWith("/admin/fullsync/") || referer.endsWith("/admin/_utils/") || referer.endsWith("/admin_/_utils/")))) {
 				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG, Role.FULLSYNC_VIEW);
 				httpSession.setAttribute("__isUtilsSession", "true");
 				isUtilsRequest = !"_all_dbs".equals(requestParser.getSpecial());
@@ -478,18 +478,29 @@ public class FullSyncServlet extends HttpServlet {
 						}
 					}
 				} else {
-					InputStream is = null;
-					try {
+					boolean isBinaryUtilsPut = isUtilsRequest && method == HttpMethodType.PUT;
+					if (isBinaryUtilsPut) {
 						if ("gzip".equals(HeaderName.ContentEncoding.getHeader(request))) {
-							is = new GZIPInputStream(request.getInputStream());
+							httpEntity = new InputStreamEntity(new GZIPInputStream(request.getInputStream()));
+							debug.append("request Entity: binary stream (utils PUT, gzip decoded)\n");
 						} else {
-							is = request.getInputStream();
+							httpEntity = new InputStreamEntity(request.getInputStream());
+							debug.append("request Entity: binary stream (utils PUT)\n");
 						}
-						requestStringEntity = IOUtils.toString(is, "UTF-8");
-						debug.append("request Entity:\n" + requestStringEntity + "\n");
-					} finally {
-						if (is != null) {
-							is.close();
+					} else {
+						InputStream is = null;
+						try {
+							if ("gzip".equals(HeaderName.ContentEncoding.getHeader(request))) {
+								is = new GZIPInputStream(request.getInputStream());
+							} else {
+								is = request.getInputStream();
+							}
+							requestStringEntity = IOUtils.toString(is, "UTF-8");
+							debug.append("request Entity:\n" + requestStringEntity + "\n");
+						} finally {
+							if (is != null) {
+								is.close();
+							}
 						}
 					}
 				}
