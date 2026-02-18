@@ -9,11 +9,11 @@
 	import LightSvelte from '$lib/common/Light.svelte.js';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { toaster } from '$lib/utils/service';
-	import { getContext, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {
 		cloneDocument,
+		encodeFullSyncDocPath as encodeDocPath,
 		fullSyncBaseUrl,
 		getDocument,
 		getUuids,
@@ -21,6 +21,10 @@
 		updateDocument,
 		uploadAttachment
 	} from './fullsync-api';
+	import { createFullSyncFeedback, fullSyncErrorMessage } from './fullsync-feedback';
+	import { fullSyncPretty, parseFullSyncJson, parseFullSyncJsonSilent } from './fullsync-json';
+	import { FULLSYNC_DOCS, openFullSyncLink } from './fullsync-links';
+	import { getFullSyncConfirmModal, openFullSyncConfirmation } from './fullsync-modal';
 	import { fullSyncDbTabHref, fullSyncDocHref } from './fullsync-route';
 
 	/** @type {{database: string, docId: string}} */
@@ -28,12 +32,7 @@
 
 	RightPart.snippet = undefined;
 
-	let modalYesNo;
-	try {
-		modalYesNo = getContext('modalYesNo');
-	} catch {
-		modalYesNo = undefined;
-	}
+	const modalYesNo = getFullSyncConfirmModal();
 
 	let cloneModal;
 	let uploadModal;
@@ -51,6 +50,12 @@
 	let uploadError = $state('');
 	let uploadHasFile = $state(false);
 	let attachmentsPopoverOpen = $state(false);
+	const { showError, showSuccess } = createFullSyncFeedback((message) => {
+		lastError = message;
+	});
+	const parseJsonSilent = parseFullSyncJsonSilent;
+	const pretty = fullSyncPretty;
+	const parseJson = (content, label) => parseFullSyncJson(content, label, showError);
 
 	let isNewDocument = $derived(currentDocId == '_new');
 	let documentTitle = $derived(isNewDocument ? 'New Document' : currentDocId);
@@ -89,50 +94,6 @@
 		return `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDocPath(currentDocId)}`;
 	});
 
-	function asErrorMessage(error) {
-		if (typeof error == 'string') return error;
-		if (error?.message) return error.message;
-		return 'Unknown FullSync error';
-	}
-
-	function showError(error) {
-		const message = asErrorMessage(error);
-		lastError = message;
-		toaster.error({
-			description: message,
-			duration: 4200
-		});
-	}
-
-	function showSuccess(message) {
-		toaster.success({
-			description: message,
-			duration: 2400
-		});
-	}
-
-	function parseJson(content, label) {
-		try {
-			return JSON.parse(content);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			showError(`${label}: invalid JSON (${message})`);
-			return null;
-		}
-	}
-
-	function parseJsonSilent(content) {
-		try {
-			return JSON.parse(content);
-		} catch {
-			return null;
-		}
-	}
-
-	function pretty(value) {
-		return JSON.stringify(value ?? {}, null, 2);
-	}
-
 	function formatAttachmentSize(bytes) {
 		const value = Math.max(0, Number(bytes) || 0);
 		if (value >= 1024 * 1024) {
@@ -142,17 +103,6 @@
 			return `${(value / 1024).toFixed(1)} KB`;
 		}
 		return `${value} B`;
-	}
-
-	function encodeDocPath(docId) {
-		const raw = String(docId ?? '');
-		if (raw.startsWith('_design/')) {
-			return `_design/${encodeURIComponent(raw.slice('_design/'.length))}`;
-		}
-		return raw
-			.split('/')
-			.map((part) => encodeURIComponent(part))
-			.join('/');
 	}
 
 	function getPartitionPrefix(docId) {
@@ -189,16 +139,11 @@
 	}
 
 	function openRawJson() {
-		if (!rawDocumentUrl || rawDocumentUrl == '#') return;
-		window.open(rawDocumentUrl, '_blank', 'noopener');
+		openFullSyncLink(rawDocumentUrl);
 	}
 
 	function openDocumentation() {
-		window.open(
-			'https://docs.couchdb.org/en/stable/api/document/common.html',
-			'_blank',
-			'noopener'
-		);
+		openFullSyncLink(FULLSYNC_DOCS.documentApi);
 	}
 
 	function openAttachment(attachmentName) {
@@ -206,15 +151,8 @@
 		const name = String(attachmentName ?? '').trim();
 		if (!name) return;
 		const url = `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDocPath(currentDocId)}/${encodeURIComponent(name)}`;
-		window.open(url, '_blank', 'noopener');
+		openFullSyncLink(url);
 		attachmentsPopoverOpen = false;
-	}
-
-	async function askConfirmation(event, title, message) {
-		if (modalYesNo?.open) {
-			return await modalYesNo.open({ event, title, message });
-		}
-		return window.confirm(`${title}\n\n${message}`);
 	}
 
 	async function refreshDocument() {
@@ -323,7 +261,7 @@
 			showSuccess(`Document "${targetId}" cloned`);
 			await goto(fullSyncDocHref(database, targetId));
 		} catch (error) {
-			showError(`Could not duplicate document, reason: ${asErrorMessage(error)}.`);
+			showError(`Could not duplicate document, reason: ${fullSyncErrorMessage(error)}.`);
 		} finally {
 			working = false;
 		}
@@ -361,7 +299,7 @@
 			closeUploadModal(true);
 			await refreshDocument();
 		} catch (error) {
-			uploadError = asErrorMessage(error);
+			uploadError = fullSyncErrorMessage(error);
 			showError(error);
 		} finally {
 			uploadingAttachment = false;
@@ -413,7 +351,8 @@
 			return;
 		}
 
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete document',
 			`Do you confirm deleting "${sourceId}"?`

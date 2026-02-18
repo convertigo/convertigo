@@ -10,11 +10,11 @@
 	import LightSvelte from '$lib/common/Light.svelte.js';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { toaster } from '$lib/utils/service';
-	import { getContext, onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {
 		createMangoIndex,
+		encodeFullSyncDesignDocPath as encodeDesignDocPath,
 		explainMangoQuery,
 		fullSyncBaseUrl,
 		getDesignDocument,
@@ -28,6 +28,10 @@
 		runViewQuery,
 		saveDesignDocument
 	} from './fullsync-api';
+	import { createFullSyncFeedback, fullSyncErrorMessage } from './fullsync-feedback';
+	import { fullSyncPretty, parseFullSyncJson, parseFullSyncJsonSilent } from './fullsync-json';
+	import { FULLSYNC_DOCS, openFullSyncJsonPayload, openFullSyncLink } from './fullsync-links';
+	import { getFullSyncConfirmModal, openFullSyncConfirmation } from './fullsync-modal';
 	import {
 		fullSyncDbAllDocsHref,
 		fullSyncDbIndexHref,
@@ -38,17 +42,18 @@
 		fullSyncDocHref,
 		fullSyncHomeHref
 	} from './fullsync-route';
+	import {
+		FULLSYNC_PAGE_OPTIONS_BASE,
+		FULLSYNC_PAGE_OPTIONS_WITH_500,
+		FULLSYNC_PAGE_OPTIONS_WITH_500_AND_NONE,
+		fullSyncOptionLabel
+	} from './fullsync-ui';
 	import FullSyncRowsPanel from './FullSyncRowsPanel.svelte';
 
 	/** @type {{database: string, section?: 'all' | 'mango' | 'index', designDocId?: string, viewName?: string, mode?: string}} */
 	let { database = '', section = 'all', designDocId = '', viewName = '', mode = '' } = $props();
 
-	let modalYesNo;
-	try {
-		modalYesNo = getContext('modalYesNo');
-	} catch {
-		modalYesNo = undefined;
-	}
+	const modalYesNo = getFullSyncConfirmModal();
 
 	let cloneViewModal = $state(/** @type {any} */ (undefined));
 
@@ -57,6 +62,12 @@
 	let working = $state(false);
 	let savingView = $state(false);
 	let lastError = $state('');
+	const { showError, showSuccess } = createFullSyncFeedback((message) => {
+		lastError = message;
+	});
+	const parseJsonSilent = parseFullSyncJsonSilent;
+	const pretty = fullSyncPretty;
+	const parseJson = (content, label) => parseFullSyncJson(content, label, showError);
 
 	let documents = $state(/** @type {any[]} */ ([]));
 	let docsTotalRows = $state(0);
@@ -441,62 +452,6 @@
 		return `${fullSyncBaseUrl()}${encodeURIComponent(database)}/_index`;
 	});
 
-	function asErrorMessage(error) {
-		if (typeof error == 'string') return error;
-		if (error?.message) return error.message;
-		return 'Unknown FullSync error';
-	}
-
-	function showError(error) {
-		const message = asErrorMessage(error);
-		lastError = message;
-		toaster.error({
-			description: message,
-			duration: 4200
-		});
-	}
-
-	function showSuccess(message) {
-		toaster.success({
-			description: message,
-			duration: 2400
-		});
-	}
-
-	async function askConfirmation(event, title, message) {
-		if (modalYesNo?.open) {
-			return await modalYesNo.open({ event, title, message });
-		}
-		return window.confirm(`${title}\n\n${message}`);
-	}
-
-	function parseJson(content, label) {
-		try {
-			return JSON.parse(content);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			showError(`${label}: invalid JSON (${message})`);
-			return null;
-		}
-	}
-
-	/**
-	 * @template T
-	 * @param {string} content
-	 * @param {T} fallback
-	 */
-	function parseJsonSilent(content, fallback = /** @type {T} */ (null)) {
-		try {
-			return JSON.parse(content);
-		} catch {
-			return fallback;
-		}
-	}
-
-	function pretty(value) {
-		return JSON.stringify(value ?? {}, null, 2);
-	}
-
 	function parseViewKeyValue(raw, label, reportErrors = false) {
 		const input = String(raw ?? '').trim();
 		if (!input) {
@@ -700,11 +655,6 @@
 		return Number(row?.conflictCount) || 0;
 	}
 
-	function encodeDesignDocPath(designDocId) {
-		const raw = String(designDocId ?? '').replace(/^_design\//, '');
-		return `_design/${encodeURIComponent(raw)}`;
-	}
-
 	function getDesignDocEntry(designDocId) {
 		return designDocs.find((designDoc) => designDoc.id == designDocId) ?? null;
 	}
@@ -793,6 +743,7 @@
 		if (currentTab == 'all' && !isViewEditor) {
 			const nextIncludeDocs = layout != 'metadata';
 			docsIncludeDocs = isViewQuery && docsReduce ? false : nextIncludeDocs;
+			loadedQueryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
 			void refreshDocuments();
 		}
 	}
@@ -830,23 +781,18 @@
 		if (isViewEditor) {
 			if (!database || !selectedDesignDocId || selectedDesignDocId == 'new-doc') return;
 			const url = `${fullSyncBaseUrl()}${encodeURIComponent(database)}/${encodeDesignDocPath(selectedDesignDocId)}`;
-			window.open(url, '_blank', 'noopener');
+			openFullSyncLink(url);
 			return;
 		}
-		if (!rawJsonUrl || rawJsonUrl == '#') return;
-		window.open(rawJsonUrl, '_blank', 'noopener');
+		openFullSyncLink(rawJsonUrl);
 	}
 
 	function openDocumentation() {
-		window.open(
-			'https://docs.couchdb.org/en/stable/api/document/common.html',
-			'_blank',
-			'noopener'
-		);
+		openFullSyncLink(FULLSYNC_DOCS.documentApi);
 	}
 
 	function openMangoDocumentation() {
-		window.open('https://docs.couchdb.org/en/stable/ddocs/mango.html', '_blank', 'noopener');
+		openFullSyncLink(FULLSYNC_DOCS.mango);
 	}
 
 	function openMangoResultJson() {
@@ -856,13 +802,11 @@
 		} else if (mangoResult) {
 			payload = pretty(mangoResult);
 		}
-		const encoded = encodeURIComponent(payload);
-		window.open(`data:application/json;charset=utf-8,${encoded}`, '_blank', 'noopener,noreferrer');
+		openFullSyncJsonPayload(payload);
 	}
 
 	function openMangoIndexJson() {
-		if (!mangoIndexRawJsonUrl || mangoIndexRawJsonUrl == '#') return;
-		window.open(mangoIndexRawJsonUrl, '_blank', 'noopener');
+		openFullSyncLink(mangoIndexRawJsonUrl);
 	}
 
 	async function copyRow(row) {
@@ -931,9 +875,10 @@
 				: await listDocuments(database, query);
 			if (requestId != docsRequestCounter) return;
 			const rows = Array.isArray(response?.rows) ? response.rows : [];
+			const hasOverflowRows = rows.length > docsPageSize;
 			const reachedQueryLimit = docsQueryHasLimit && docsSkip + docsPageSize >= docsQueryLimit;
-			docsHasNextPage = !reachedQueryLimit && rows.length >= docsFetchLimit;
-			documents = docsHasNextPage ? rows.slice(0, docsPageSize) : rows;
+			docsHasNextPage = !reachedQueryLimit && hasOverflowRows;
+			documents = hasOverflowRows ? rows.slice(0, docsPageSize) : rows;
 			docsTotalRows = Number(response?.total_rows ?? documents.length) || 0;
 			selectedDocIds = {};
 		} catch (error) {
@@ -956,7 +901,8 @@
 		}));
 		if (docs.length == 0) return;
 
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete selected documents',
 			`Do you confirm deleting ${docs.length} selected document(s)?`
@@ -1275,7 +1221,8 @@
 		);
 		if (docIds.length == 0) return;
 
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete selected indexes',
 			`Do you confirm deleting ${docIds.length} selected index document(s)?`
@@ -1329,7 +1276,8 @@
 		}));
 		if (docs.length == 0) return;
 
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete selected documents',
 			`Do you confirm deleting ${docs.length} selected document(s)?`
@@ -1384,6 +1332,7 @@
 		} else if (!isMetadata && !useIncludeDocs) {
 			currentLayout = 'metadata';
 		}
+		loadedQueryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
 		await refreshDocuments();
 		queryOptionsOpen = false;
 	}
@@ -1406,7 +1355,8 @@
 
 	async function deleteViewAction(event, designDocId, viewName) {
 		if (!database || !designDocId || !viewName || working) return;
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete view',
 			`Do you confirm deleting view "${viewName}" from "${designDocId}"?`
@@ -1513,7 +1463,7 @@
 			await refreshDesignDocs();
 			await goto(fullSyncDbViewHref(database, targetDesignDocId, targetViewName));
 		} catch (error) {
-			cloneViewError = asErrorMessage(error);
+			cloneViewError = fullSyncErrorMessage(error);
 			showError(error);
 		} finally {
 			working = false;
@@ -1576,8 +1526,13 @@
 
 	async function cancelViewEditor() {
 		if (!database) return;
-		if (typeof window != 'undefined' && window.history.length > 1) {
-			window.history.back();
+		if (
+			selectedDesignDocId &&
+			selectedDesignDocId != 'new-doc' &&
+			selectedViewName &&
+			selectedViewName != 'new-view'
+		) {
+			await goto(fullSyncDbViewHref(database, selectedDesignDocId, selectedViewName));
 			return;
 		}
 		await goto(fullSyncDbTabHref(database, 'all'));
@@ -1723,6 +1678,7 @@
 		queryOptionsOpen = false;
 		quickDocId = '';
 		selectedDocIds = {};
+		docsQueryType = isViewQuery ? 'view' : 'all';
 		currentLayout = isViewQuery ? 'table' : 'metadata';
 		docsIncludeDocs = isViewQuery;
 		docsReduce = false;
@@ -1732,7 +1688,6 @@
 		docsKeyValue = '';
 		docsStartKeyValue = '';
 		docsEndKeyValue = '';
-		docsQueryType = '';
 		viewEditorLoadedKey = '';
 		loadMangoHistory();
 		if (currentTab == 'all') {
@@ -2051,8 +2006,11 @@
 					</ActionBar>
 				</header>
 
-				<form class="layout-y-stretch gap-4" onsubmit={saveViewEditor}>
-					<fieldset class="layout-y-stretch gap-3" disabled={savingView || working}>
+				<form class="view-editor-form layout-y-stretch gap-4" onsubmit={saveViewEditor}>
+					<fieldset
+						class="view-editor-fieldset layout-y-stretch gap-3"
+						disabled={savingView || working}
+					>
 						<div class="view-editor-fields">
 							<PropertyType
 								type="combo"
@@ -2084,7 +2042,7 @@
 							/>
 						</div>
 
-						<label class="layout-y-stretch gap-1">
+						<label class="view-editor-field layout-y-stretch gap-1">
 							<span class="label-common">Map function</span>
 							<div class="editor-shell view-editor-map-shell">
 								<Editor
@@ -2113,7 +2071,7 @@
 						</div>
 
 						{#if viewEditorReduceOption == 'CUSTOM'}
-							<label class="layout-y-stretch gap-1">
+							<label class="view-editor-field layout-y-stretch gap-1">
 								<span class="label-common">Custom reduce function</span>
 								<div class="editor-shell view-editor-reduce-shell">
 									<Editor
@@ -2341,14 +2299,10 @@
 												docsSkip = 0;
 											}}
 										>
-											<option value="5">5</option>
-											<option value="10">10</option>
-											<option value="20">20</option>
-											<option value="30">30</option>
-											<option value="50">50</option>
-											<option value="100">100</option>
-											<option value="500">500</option>
-											<option value="none">None</option>
+											{#each FULLSYNC_PAGE_OPTIONS_WITH_500_AND_NONE as pageSizeOption (pageSizeOption)}
+												<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option
+												>
+											{/each}
 										</select>
 									</label>
 									<label class="layout-x-low items-center text-strong">
@@ -2519,13 +2473,9 @@
 									void refreshDocuments();
 								}}
 							>
-								<option value="5">5</option>
-								<option value="10">10</option>
-								<option value="20">20</option>
-								<option value="30">30</option>
-								<option value="50">50</option>
-								<option value="100">100</option>
-								<option value="500">500</option>
+								{#each FULLSYNC_PAGE_OPTIONS_WITH_500 as pageSizeOption (pageSizeOption)}
+									<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option>
+								{/each}
 							</select>
 						</label>
 						<button
@@ -2785,14 +2735,9 @@
 											mangoSelectedDocIds = {};
 										}}
 									>
-										<option value="5">5</option>
-										<option value="10">10</option>
-										<option value="20">20</option>
-										<option value="30">30</option>
-										<option value="50">50</option>
-										<option value="100">100</option>
-										<option value="500">500</option>
-										<option value="none">None</option>
+										{#each FULLSYNC_PAGE_OPTIONS_WITH_500_AND_NONE as pageSizeOption (pageSizeOption)}
+											<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option>
+										{/each}
 									</select>
 								</label>
 								<button
@@ -2977,13 +2922,9 @@
 										mangoIndexesSelection = {};
 									}}
 								>
-									<option value="5">5</option>
-									<option value="10">10</option>
-									<option value="20">20</option>
-									<option value="30">30</option>
-									<option value="50">50</option>
-									<option value="100">100</option>
-									<option value="none">None</option>
+									{#each FULLSYNC_PAGE_OPTIONS_BASE as pageSizeOption (pageSizeOption)}
+										<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option>
+									{/each}
 								</select>
 							</label>
 							<button
@@ -3236,6 +3177,25 @@
 
 	.view-editor-panel {
 		padding: calc(var(--spacing) * 2);
+		min-width: 0;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+
+	.view-editor-form,
+	.view-editor-fieldset,
+	.view-editor-field,
+	.view-editor-fields {
+		min-width: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.view-editor-fieldset {
+		border: 0;
+		margin: 0;
+		padding: 0;
+		min-inline-size: 0;
 	}
 
 	.view-editor-header {
@@ -3245,6 +3205,7 @@
 		gap: calc(var(--spacing) * 1);
 		padding-bottom: calc(var(--spacing) * 1);
 		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		min-width: 0;
 	}
 
 	.view-editor-fields {
@@ -3257,9 +3218,16 @@
 		height: 20rem;
 		min-height: 18rem;
 		min-width: 0;
+		max-width: 100%;
 		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
 		border-radius: var(--radius-base);
 		overflow: hidden;
+	}
+
+	.view-editor-panel .editor-shell :global(.monaco-editor),
+	.view-editor-panel .editor-shell :global(.overflow-guard),
+	.view-editor-panel .editor-shell :global(.monaco-scrollable-element) {
+		max-width: 100%;
 	}
 
 	.view-editor-map-shell {
@@ -3488,66 +3456,6 @@
 
 	.mango-result-body pre {
 		margin: 0;
-	}
-
-	.mango-json-list {
-		display: grid;
-		gap: calc(var(--spacing) * 0.75);
-		overflow: auto;
-	}
-
-	.mango-json-row {
-		display: grid;
-		grid-template-columns: 2.4rem minmax(0, 1fr);
-		gap: calc(var(--spacing) * 0.5);
-		align-items: start;
-	}
-
-	.mango-json-select {
-		display: inline-flex;
-		align-items: flex-start;
-		justify-content: center;
-		padding-top: calc(var(--spacing) * 1);
-	}
-
-	.mango-json-card {
-		border: 1px solid light-dark(var(--color-surface-400), var(--color-surface-700));
-		border-radius: var(--radius-base);
-		background: light-dark(var(--color-surface-50), var(--color-surface-800));
-		overflow: hidden;
-	}
-
-	.mango-json-card-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: calc(var(--spacing) * 0.75);
-		padding: calc(var(--spacing) * 0.6) calc(var(--spacing) * 0.9);
-		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
-		background: light-dark(var(--color-surface-200), var(--color-surface-900));
-	}
-
-	.mango-json-id {
-		font-family:
-			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-			monospace;
-		font-size: 0.95rem;
-		color: var(--color-primary-500);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.mango-json-content {
-		margin: 0;
-		padding: calc(var(--spacing) * 0.9);
-		font-size: 0.8rem;
-		line-height: 1.45;
-		font-family:
-			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-			monospace;
-		overflow: auto;
-		max-height: 14rem;
 	}
 
 	.mango-empty {

@@ -1,10 +1,11 @@
 import { resolve } from '$app/paths';
 
 export function decodeRouteParam(value = '') {
+	const normalize = (input) => (input == '_' ? '' : input);
 	try {
-		return decodeURIComponent(String(value ?? ''));
+		return normalize(decodeURIComponent(String(value ?? '')));
 	} catch {
-		return String(value ?? '');
+		return normalize(String(value ?? ''));
 	}
 }
 

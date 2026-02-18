@@ -16,7 +16,7 @@ function withQuery(path, query = {}) {
 	return queryString ? `${path}?${queryString}` : path;
 }
 
-function encodeDocId(docId) {
+export function encodeFullSyncDocPath(docId) {
 	const raw = String(docId ?? '');
 	if (raw.startsWith('_design/')) {
 		return `_design/${encodeURIComponent(raw.slice('_design/'.length))}`;
@@ -27,7 +27,7 @@ function encodeDocId(docId) {
 		.join('/');
 }
 
-function encodeDesignDocPath(designDocId) {
+export function encodeFullSyncDesignDocPath(designDocId) {
 	const raw = String(designDocId ?? '').replace(/^_design\//, '');
 	return `_design/${encodeURIComponent(raw)}`;
 }
@@ -290,7 +290,7 @@ export async function runViewQuery(
 		query.endkey = JSON.stringify(endkey);
 	}
 
-	const path = `${dbPath(dbName)}/${encodeDesignDocPath(designDocId)}/_view/${encodeURIComponent(viewName)}`;
+	const path = `${dbPath(dbName)}/${encodeFullSyncDesignDocPath(designDocId)}/_view/${encodeURIComponent(viewName)}`;
 	const usePostKeys = Array.isArray(keys) && keys.length > 0;
 	return request(path, {
 		method: usePostKeys ? 'POST' : 'GET',
@@ -300,7 +300,7 @@ export async function runViewQuery(
 }
 
 export async function getDocument(dbName, docId, { rev = '' } = {}) {
-	return request(`${dbPath(dbName)}/${encodeDocId(docId)}`, {
+	return request(`${dbPath(dbName)}/${encodeFullSyncDocPath(docId)}`, {
 		query: rev ? { rev } : undefined
 	});
 }
@@ -310,7 +310,10 @@ export async function createDocument(dbName, content) {
 }
 
 export async function updateDocument(dbName, docId, content) {
-	return request(`${dbPath(dbName)}/${encodeDocId(docId)}`, { method: 'PUT', body: content });
+	return request(`${dbPath(dbName)}/${encodeFullSyncDocPath(docId)}`, {
+		method: 'PUT',
+		body: content
+	});
 }
 
 export async function cloneDocument(dbName, sourceDocument, newId) {
@@ -356,7 +359,7 @@ export async function uploadAttachment(dbName, docId, rev, file) {
 		throw new Error('Missing file to upload');
 	}
 	const normalized = normalizePath(
-		`${dbPath(dbName)}/${encodeDocId(docId)}/${encodeURIComponent(file.name)}`
+		`${dbPath(dbName)}/${encodeFullSyncDocPath(docId)}/${encodeURIComponent(file.name)}`
 	);
 	const url = withQuery(`${FULLSYNC_BASE}${normalized}`, { rev });
 	const headers = buildHeaders();

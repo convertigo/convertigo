@@ -1,4 +1,5 @@
 <script>
+	import { building } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -7,21 +8,22 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { toaster } from '$lib/utils/service';
-	import { getContext, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { fullSyncBaseUrl, getDatabaseInfo, listDatabases, removeDatabase } from './fullsync-api';
+	import { createFullSyncFeedback } from './fullsync-feedback';
+	import { FULLSYNC_DOCS } from './fullsync-links';
+	import { getFullSyncConfirmModal, openFullSyncConfirmation } from './fullsync-modal';
 	import { fullSyncDbHref } from './fullsync-route';
+	import { FULLSYNC_DB_LIST_PAGE_OPTIONS, fullSyncOptionLabel } from './fullsync-ui';
 
-	let modalYesNo;
-	try {
-		modalYesNo = getContext('modalYesNo');
-	} catch {
-		modalYesNo = undefined;
-	}
+	const modalYesNo = getFullSyncConfirmModal();
 
 	let loadingDatabases = $state(true);
 	let working = $state(false);
 	let lastError = $state('');
+	const { showError, showSuccess } = createFullSyncFeedback((message) => {
+		lastError = message;
+	});
 
 	let databases = $state([]);
 	let databaseFilter = $state('');
@@ -30,6 +32,7 @@
 	let dbPerPage = $state(20);
 	let dbInfoRequestCounter = 0;
 	let dbSearchListId = $state('fullsync-db-search-list');
+	let allDbsJsonHref = $derived(building ? '#' : `${fullSyncBaseUrl()}_all_dbs`);
 
 	let filteredDatabases = $derived(
 		databases.filter((db) => db.toLowerCase().includes(databaseFilter.trim().toLowerCase()))
@@ -74,32 +77,10 @@
 		void loadDatabaseInfos(names);
 	});
 
-	function asErrorMessage(error) {
-		if (typeof error == 'string') return error;
-		if (error?.message) return error.message;
-		return 'Unknown FullSync error';
-	}
-
-	function showError(error) {
-		const message = asErrorMessage(error);
-		lastError = message;
-		toaster.error({
-			description: message,
-			duration: 4200
-		});
-	}
-
-	function showSuccess(message) {
-		toaster.success({
-			description: message,
-			duration: 2400
-		});
-	}
-
 	function formatSizeInK(bytes) {
-		if (bytes == null) return null;
+		if (bytes == null) return 'n/a';
 		const num = Number(bytes);
-		if (!Number.isFinite(num) || num < 0) return '?';
+		if (!Number.isFinite(num) || num < 0) return 'n/a';
 		const kilo = num / 1024;
 		if (kilo >= 1000) {
 			const mega = kilo / 1000;
@@ -121,13 +102,6 @@
 
 	function detailsForDb(name) {
 		return dbInfoByName[name] ?? null;
-	}
-
-	async function askConfirmation(event, title, message) {
-		if (modalYesNo?.open) {
-			return await modalYesNo.open({ event, title, message });
-		}
-		return window.confirm(`${title}\n\n${message}`);
 	}
 
 	async function openDatabase(dbName) {
@@ -183,7 +157,8 @@
 	}
 
 	async function removeDatabaseAction(event, dbName) {
-		const ok = await askConfirmation(
+		const ok = await openFullSyncConfirmation(
+			modalYesNo,
 			event,
 			'Delete database',
 			`Do you confirm deleting "${dbName}" and all its documents?`
@@ -260,7 +235,7 @@
 					label="JSON"
 					icon="mdi:code-braces"
 					class="db-json-btn button-secondary h-9 w-fit!"
-					href={`${fullSyncBaseUrl()}_all_dbs`}
+					href={allDbsJsonHref}
 					target="_blank"
 					rel="noopener noreferrer"
 				/>
@@ -269,7 +244,7 @@
 					class="db-doc-btn button-secondary h-9 w-fit! px-2!"
 					title="CouchDB documentation"
 					ariaLabel="CouchDB documentation"
-					href="https://docs.couchdb.org/en/stable/api/server/common.html#get--_all_dbs"
+					href={FULLSYNC_DOCS.serverAllDbs}
 					target="_blank"
 					rel="noopener noreferrer"
 				/>
@@ -349,9 +324,9 @@
 								dbPage = 1;
 							}}
 						>
-							<option value="20">20</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
+							{#each FULLSYNC_DB_LIST_PAGE_OPTIONS as pageSizeOption (pageSizeOption)}
+								<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option>
+							{/each}
 						</select>
 					</label>
 					<button
