@@ -79,7 +79,7 @@
 			<PagesRailToggle class="max-md:hidden" bind:state={showLeft} />
 		</section>
 
-		<section class="layout-x justify-center md:justify-start md:pl-3 text-primary-500">
+		<section class="layout-x justify-center text-primary-500 md:justify-start md:pl-3">
 			<Ico icon="convertigo:logo" alt="logo convertigo" size={7} />
 			<h2 class="font-medium max-md:hidden">{computedTitle}</h2>
 		</section>

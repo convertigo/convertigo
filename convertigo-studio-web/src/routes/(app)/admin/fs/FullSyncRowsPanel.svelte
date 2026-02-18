@@ -28,10 +28,19 @@
 		onCopyRow = () => {},
 		onOpenRow = (row) => onOpenDocument(String(row?.id ?? '')),
 		formatCellValue = (value) => String(value ?? ''),
+		getCellValue = (row, column) => row?.raw?.[column],
+		columnLabel = (column) => String(column ?? ''),
 		showJsonOpenButton = true,
 		jsonHeaderText = (row) => `id "${String(row?.id ?? '')}"`,
 		jsonHeaderTitle = (row) => String(row?.id ?? ''),
 		getSelectionKey = (row) => String(row?.id ?? ''),
+		showAttachmentCountColumn = false,
+		getAttachmentCount = () => 0,
+		attachmentCountTitle = 'Attachments',
+		getConflictCount = () => 0,
+		conflictCountTitle = 'Conflicts',
+		isIdColumn = (column) =>
+			idColumnMode == 'id-or-_id' ? column == '_id' || column == 'id' : column == '_id',
 		isRowSelectable = (row, rowId, rowRev) =>
 			Boolean(rowId) && (!hideSelectWithoutRev || Boolean(rowRev))
 	} = $props();
@@ -144,11 +153,15 @@
 									onchange={(event) => onColumnSelect(columnIndex, event.currentTarget.value)}
 								>
 									{#each displayableColumns as candidate (`${columnSelectionPrefix}-candidate-${candidate}`)}
-										<option value={candidate}>{candidate}</option>
+										<option value={candidate}>{columnLabel(candidate)}</option>
 									{/each}
 								</select>
 							</th>
 						{/each}
+						{#if showAttachmentCountColumn}
+							<th class="attachments-col" title={`${conflictCountTitle} / ${attachmentCountTitle}`}
+							></th>
+						{/if}
 					</tr>
 				{/if}
 			</thead>
@@ -182,14 +195,18 @@
 							</td>
 							{#if layoutMode == 'metadata'}
 								<td class="metadata-col-id">
-									<button
-										type="button"
-										class="metadata-link text-left text-primary-500 transition-surface hover:underline"
-										title={rowId}
-										onclick={() => onOpenDocument(rowId)}
-									>
-										<span class="metadata-ellipsis">{rowId}</span>
-									</button>
+									{#if rowId}
+										<button
+											type="button"
+											class="metadata-link text-left text-primary-500 transition-surface hover:underline"
+											title={rowId}
+											onclick={() => onOpenDocument(rowId)}
+										>
+											<span class="metadata-ellipsis">{rowId}</span>
+										</button>
+									{:else}
+										<span class="metadata-ellipsis"></span>
+									{/if}
 								</td>
 								<td class="metadata-col-key">
 									<span class="metadata-ellipsis" title={row.key}>{row.key}</span>
@@ -199,13 +216,10 @@
 								</td>
 							{:else}
 								{#each visibleColumns as column (`${columnSelectionPrefix}-row-${column}-${rowIndex}`)}
-									{@const cellValue = formatCellValue(row.raw?.[column])}
-									{@const isIdColumn =
-										idColumnMode == 'id-or-_id'
-											? column == '_id' || column == 'id'
-											: column == '_id'}
+									{@const cellValue = formatCellValue(getCellValue(row, column))}
+									{@const isIdCell = isIdColumn(column)}
 									<td>
-										{#if isIdColumn && rowId}
+										{#if isIdCell && rowId}
 											<button
 												type="button"
 												class="metadata-link text-left text-primary-500 transition-surface hover:underline"
@@ -219,6 +233,24 @@
 										{/if}
 									</td>
 								{/each}
+								{#if showAttachmentCountColumn}
+									{@const conflictCount = Number(getConflictCount(row)) || 0}
+									{@const attachmentCount = Number(getAttachmentCount(row)) || 0}
+									<td class="attachments-col-value">
+										{#if conflictCount > 0}
+											<span class="conflict-count">
+												<Ico icon="mdi:source-branch" size={4} />
+												<span>{conflictCount}</span>
+											</span>
+										{/if}
+										{#if attachmentCount > 0}
+											<span class="attachment-count">
+												<Ico icon="mdi:attachment" size={4} />
+												<span>{attachmentCount}</span>
+											</span>
+										{/if}
+									</td>
+								{/if}
 							{/if}
 						</tr>
 					{/each}
@@ -330,6 +362,28 @@
 		padding-top: 0.35rem;
 		padding-bottom: 0.35rem;
 		overflow: visible;
+	}
+
+	.attachments-col {
+		width: 3.75rem;
+		text-align: right;
+	}
+
+	.attachments-col-value {
+		text-align: right;
+	}
+
+	.conflict-count,
+	.attachment-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: calc(var(--spacing) * 0.3);
+		color: var(--convertigo-text-strong);
+	}
+
+	.attachments-col-value > span + span {
+		margin-left: calc(var(--spacing) * 0.6);
 	}
 
 	.mango-result-body {

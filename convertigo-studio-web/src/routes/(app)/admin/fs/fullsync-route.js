@@ -79,7 +79,7 @@ export function fullSyncDbViewEditHref(database, designDocId, viewName) {
 	if (!db || !design || !view) {
 		return fullSyncDbAllDocsHref(database);
 	}
-	return resolve('/(app)/admin/fs/[database]/_design/[design]/_view/[view]/_edit', {
+	return resolve('/(app)/admin/fs/[database]/_design/[design]/_view/[view]/edit', {
 		database: db,
 		design,
 		view

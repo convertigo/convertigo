@@ -10,7 +10,7 @@
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { toaster } from '$lib/utils/service';
-	import { getContext } from 'svelte';
+	import { getContext, tick } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {
 		cloneDocument,
@@ -49,6 +49,7 @@
 	let cloneDocId = $state('');
 	let cloneError = $state('');
 	let uploadError = $state('');
+	let uploadHasFile = $state(false);
 	let attachmentsPopoverOpen = $state(false);
 
 	let isNewDocument = $derived(currentDocId == '_new');
@@ -249,14 +250,6 @@
 
 	async function cancelDocumentEdit(event) {
 		event?.preventDefault?.();
-		if (isNewDocument) {
-			await goto(fullSyncDbTabHref(database, 'all'));
-			return;
-		}
-		if (typeof window != 'undefined' && window.history.length > 1) {
-			window.history.back();
-			return;
-		}
 		await goto(fullSyncDbTabHref(database, 'all'));
 	}
 
@@ -267,6 +260,7 @@
 
 	function closeUploadModal(value = false) {
 		uploadError = '';
+		uploadHasFile = false;
 		uploadModal?.close(value);
 	}
 
@@ -277,12 +271,31 @@
 		cloneDocId = await suggestCloneId(partitionPrefix);
 		cloneError = '';
 		await cloneModal?.open({ event });
+		await tick();
+		if (typeof document != 'undefined') {
+			const input = document.querySelector('#fullsync-clone-doc-id');
+			if (input instanceof HTMLInputElement) {
+				input.focus();
+			}
+		}
 	}
 
 	async function openUploadModal(event) {
 		if (!database || isNewDocument || working || loadingDocument || uploadingAttachment) return;
 		uploadError = '';
+		uploadHasFile = false;
 		await uploadModal?.open({ event });
+	}
+
+	function updateUploadFileState(target) {
+		const form = /** @type {HTMLFormElement | null} */ (target ?? null);
+		if (!form) {
+			uploadHasFile = false;
+			return;
+		}
+		const formData = new FormData(form);
+		const fileValue = formData.get('attachment');
+		uploadHasFile = fileValue instanceof File && String(fileValue.name ?? '').trim().length > 0;
 	}
 
 	async function cloneDocumentAction() {
@@ -304,14 +317,13 @@
 		working = true;
 		lastError = '';
 		cloneError = '';
+		closeCloneModal(false);
 		try {
 			await cloneDocument(database, sourceDocument, targetId);
 			showSuccess(`Document "${targetId}" cloned`);
-			closeCloneModal(true);
 			await goto(fullSyncDocHref(database, targetId));
 		} catch (error) {
-			cloneError = asErrorMessage(error);
-			showError(error);
+			showError(`Could not duplicate document, reason: ${asErrorMessage(error)}.`);
 		} finally {
 			working = false;
 		}
@@ -322,8 +334,12 @@
 		const target = /** @type {HTMLFormElement | null} */ (event?.currentTarget ?? null);
 		const formData = target ? new FormData(target) : new FormData();
 		const fileValue = formData.get('attachment');
-		const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+		const file =
+			fileValue instanceof File && String(fileValue.name ?? '').trim().length > 0
+				? fileValue
+				: null;
 		if (!file) {
+			uploadHasFile = false;
 			uploadError = 'Please select a file to upload.';
 			return;
 		}
@@ -360,6 +376,12 @@
 			showError('The document must contain "_id"');
 			return;
 		}
+		if (!isNewDocument && document._id != currentDocId) {
+			showError(
+				"You cannot edit the _id of an existing document. Try this: Click 'Clone Document', then change the _id on the clone before saving."
+			);
+			return;
+		}
 
 		working = true;
 		lastError = '';
@@ -383,25 +405,26 @@
 
 	async function deleteDocument(event) {
 		if (isNewDocument) return;
-		const document = parseJson(documentText, 'Document editor');
-		if (!document) return;
-		if (!document._id || !document._rev) {
-			showError('The document must contain "_id" and "_rev"');
+		const sourceDocument = parseJsonSilent(originalDocumentText);
+		const sourceId = String(sourceDocument?._id ?? '').trim();
+		const sourceRev = String(sourceDocument?._rev ?? '').trim();
+		if (!sourceId || !sourceRev) {
+			showError('The saved document must contain "_id" and "_rev"');
 			return;
 		}
 
 		const ok = await askConfirmation(
 			event,
 			'Delete document',
-			`Do you confirm deleting "${document._id}"?`
+			`Do you confirm deleting "${sourceId}"?`
 		);
 		if (!ok) return;
 
 		working = true;
 		lastError = '';
 		try {
-			await removeDocument(database, document._id, document._rev);
-			showSuccess(`Document "${document._id}" deleted`);
+			await removeDocument(database, sourceId, sourceRev);
+			showSuccess(`Document "${sourceId}" deleted`);
 			await goto(fullSyncDbTabHref(database, 'all'));
 		} catch (error) {
 			showError(error);
@@ -422,6 +445,7 @@
 		cloneError = '';
 		uploadError = '';
 		attachmentsPopoverOpen = false;
+		uploadHasFile = false;
 		void refreshDocument();
 	});
 </script>
@@ -485,30 +509,27 @@
 
 			{#if !isNewDocument}
 				<ActionBar full={false} wrap={true} justify="start" class="w-fit gap-2 max-md:w-full">
-					<Popover
-						open={attachmentsPopoverOpen}
-						onOpenChange={(event) => (attachmentsPopoverOpen = event.open)}
-					>
-						<Popover.Trigger
-							class="button-secondary inline-flex h-9 items-center gap-2 px-3 text-sm"
-							title={attachmentItems.length > 0 ? 'View attachments' : 'No attachments'}
-							aria-label="View attachments"
-							disabled={attachmentItems.length == 0}
+					{#if attachmentItems.length > 0}
+						<Popover
+							open={attachmentsPopoverOpen}
+							onOpenChange={(event) => (attachmentsPopoverOpen = event.open)}
 						>
-							<Ico icon="mdi:paperclip" size={4.4} />
-							<span>View Attachments</span>
-							<Ico icon="mdi:chevron-down" size={4} />
-						</Popover.Trigger>
-						<Portal>
-							<Popover.Positioner class="z-[250]" style="z-index: 250;">
-								<Popover.Content class="border-none bg-transparent p-0 shadow-none">
-									<Card
-										class="border-none! p-0! shadow-follow"
-										style="width: min(28rem, calc(100vw - (var(--spacing) * 4)));"
-									>
-										{#if attachmentItems.length == 0}
-											<div class="attachment-menu-empty">No attachments</div>
-										{:else}
+							<Popover.Trigger
+								class="button-secondary inline-flex h-9 items-center gap-2 px-3 text-sm"
+								title="View attachments"
+								aria-label="View attachments"
+							>
+								<Ico icon="mdi:paperclip" size={4.4} />
+								<span>View Attachments</span>
+								<Ico icon="mdi:chevron-down" size={4} />
+							</Popover.Trigger>
+							<Portal>
+								<Popover.Positioner class="z-[250]" style="z-index: 250;">
+									<Popover.Content class="border-none bg-transparent p-0 shadow-none">
+										<Card
+											class="border-none! p-0! shadow-follow"
+											style="width: min(28rem, calc(100vw - (var(--spacing) * 4)));"
+										>
 											<div class="attachment-menu-list">
 												{#each attachmentItems as attachment (attachment.name)}
 													<button
@@ -524,13 +545,13 @@
 													</button>
 												{/each}
 											</div>
-										{/if}
-									</Card>
-									<Popover.Arrow class="fill-primary-100-900" />
-								</Popover.Content>
-							</Popover.Positioner>
-						</Portal>
-					</Popover>
+										</Card>
+										<Popover.Arrow class="fill-primary-100-900" />
+									</Popover.Content>
+								</Popover.Positioner>
+							</Portal>
+						</Popover>
+					{/if}
 					<Button
 						label="Upload Attachment"
 						icon="mdi:briefcase-upload-outline"
@@ -590,6 +611,7 @@
 					event.preventDefault();
 					await uploadAttachmentAction(event);
 				}}
+				onchange={(event) => updateUploadFileState(event.currentTarget)}
 			>
 				<fieldset class="layout-y-stretch gap-3" disabled={uploadingAttachment}>
 					<p class="text-sm text-strong">
@@ -621,6 +643,7 @@
 							disabled={uploadingAttachment}
 							onclick={() => {
 								uploadError = '';
+								uploadHasFile = false;
 								close(false);
 							}}
 						/>
@@ -628,7 +651,7 @@
 							label="Upload Attachment"
 							icon="mdi:briefcase-upload-outline"
 							class="button-primary w-fit!"
-							disabled={uploadingAttachment}
+							disabled={uploadingAttachment || !uploadHasFile}
 							type="submit"
 						/>
 					</ActionBar>
@@ -646,10 +669,14 @@
 					Document cloning copies the saved version of the document. Unsaved document changes will
 					be discarded.
 				</p>
+				<p class="text-sm text-strong">
+					You can modify the following generated ID for your new document.
+				</p>
 				<label class="layout-y-stretch gap-1">
 					<span class="label-common">New document ID</span>
 					<input
 						type="text"
+						id="fullsync-clone-doc-id"
 						class="h-10 input-common px-3 text-sm"
 						bind:value={cloneDocId}
 						disabled={working}
@@ -788,12 +815,6 @@
 		border: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
 		border-radius: var(--radius-base);
 		overflow: hidden;
-	}
-
-	.attachment-menu-empty {
-		padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1.5);
-		color: var(--convertigo-text-muted);
-		font-size: 0.85rem;
 	}
 
 	.attachment-menu-list {

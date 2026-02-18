@@ -232,7 +232,9 @@ export async function listDocuments(
  * 	startkey?: any,
  * 	endkey?: any,
  * 	conflicts?: boolean,
- * 	reduce?: boolean
+ * 	reduce?: boolean,
+ * 	group?: boolean,
+ * 	groupLevel?: number
  * }} [options]
  */
 export async function runViewQuery(
@@ -251,20 +253,32 @@ export async function runViewQuery(
 		startkey = undefined,
 		endkey = undefined,
 		conflicts = false,
-		reduce = false
+		reduce = false,
+		group = undefined,
+		groupLevel = undefined
 	} = {}
 ) {
+	const reduceEnabled = reduce === true || reduce === 'true';
+	const includeDocsEnabled = includeDocs === true;
+	const effectiveIncludeDocs = includeDocsEnabled && !reduceEnabled;
+	const effectiveReduce = reduceEnabled && !includeDocsEnabled;
 	const query = {
-		include_docs: includeDocs || undefined,
+		include_docs: effectiveIncludeDocs || undefined,
 		limit,
 		skip: skip || 0,
 		descending: descending || undefined,
-		conflicts: conflicts || undefined,
+		conflicts: effectiveIncludeDocs && conflicts ? true : undefined,
 		stable: stable || undefined,
 		update: update == 'true' ? undefined : update
 	};
-	if (reduce !== undefined) {
-		query.reduce = reduce === false ? 'false' : reduce === true ? 'true' : String(reduce);
+	if (reduce !== undefined || includeDocs !== undefined) {
+		query.reduce = effectiveReduce ? 'true' : 'false';
+	}
+	if (effectiveReduce && group === true) {
+		query.group = 'true';
+	}
+	if (effectiveReduce && Number.isInteger(Number(groupLevel)) && Number(groupLevel) >= 0) {
+		query.group_level = String(Number(groupLevel));
 	}
 	if (key !== undefined) {
 		query.key = JSON.stringify(key);
@@ -314,10 +328,24 @@ export async function cloneDocument(dbName, sourceDocument, newId) {
 }
 
 export async function removeDocument(dbName, docId, rev) {
-	return request(`${dbPath(dbName)}/${encodeDocId(docId)}`, {
-		method: 'DELETE',
-		query: { rev }
-	});
+	const id = String(docId ?? '').trim();
+	const revision = String(rev ?? '').trim();
+	if (!id || !revision) {
+		throw new Error('Missing document id or revision');
+	}
+
+	const result = await removeDocuments(dbName, [{ _id: id, _rev: revision }]);
+	if (Array.isArray(result)) {
+		const first = result[0] ?? {};
+		if (first?.ok) {
+			return first;
+		}
+		const message = first?.reason || first?.error || 'Unable to delete document';
+		const error = new Error(message);
+		error.payload = first;
+		throw error;
+	}
+	return result;
 }
 
 export async function uploadAttachment(dbName, docId, rev, file) {

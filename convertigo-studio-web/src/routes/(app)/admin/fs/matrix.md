@@ -9,6 +9,16 @@ Suivre la parite **feature / look / URL** entre:
 
 Mise a jour iterative: **une page a 100% avant de passer a la suivante**.
 
+### Scope de reference (iframe patchee)
+
+La reference est le mode iframe **avec script d'injection** (`/src/routes/(app)/admin/fullsync/+page.svelte`), pas Fauxton upstream brut.
+
+Effets de cette injection:
+
+- suppression des entrees `Permissions` et `Changes` dans la sidebar DB
+- suppression des liens `Metadata` dans les design docs
+- suppression de la colonne `Size` sur la table legacy des bases
+
 ## Regles d'iteration
 
 1. Ouvrir la page iframe de reference.
@@ -39,22 +49,26 @@ Une page est `DONE` quand:
 - `IN_PROGRESS`: en cours de verification/correction
 - `DONE`: parite validee sur la page
 - `BLOCKED`: bloque par dependance (backend, composant, decision UX)
+- `N/A`: hors perimetre (absent dans la reference iframe patchee)
 
 ## Matrice de correspondance
 
-| ID     | Page / Ecran                         | URL host iframe    | URL interne iframe (reference)                                              | URL native FS cible                                | URL parity       | Look parity            | Feature parity     | Statut      | Sorties vers pages non traitees | Notes                                                                                                |
-| ------ | ------------------------------------ | ------------------ | --------------------------------------------------------------------------- | -------------------------------------------------- | ---------------- | ---------------------- | ------------------ | ----------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| FS-001 | Liste des bases                      | `/admin/fullsync/` | `/convertigo/admin_/_utils/#`                                               | `/admin/fs/`                                       | OK               | DELTA (intentionnelle) | OK (scope convenu) | DONE        | FS-002                          | Deltas valides: pas de colonne Partitioned, pas d'action lock/permissions, ajout Search + Size + Seq |
-| FS-002 | Base: All Docs (`{db}`)              | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_all_docs`                        | `/admin/fs/{db}`                                   | OK (segment URL) | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-003, FS-005, FS-007, FS-008  | Audit en cours: alignement sidebar/toolbar/options/selection                                         |
-| FS-003 | Mango Query (`_find`)                | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_find`                            | `/admin/fs/{db}/_find`                             | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-004, FS-008                  | Run/Explain + history + modes de rendu                                                               |
-| FS-004 | Mango Indexes (`_index`)             | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_index`                           | `/admin/fs/{db}/_index`                            | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-003, FS-008                  | Create index + selection + delete                                                                    |
-| FS-005 | Query d'une vue (`_design/_view`)    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_design/{ddoc}/_view/{view}`     | `/admin/fs/{db}/_design/{ddoc}/_view/{view}`       | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-006, FS-007, FS-008          | URL segmentee obligatoire; robustesse ajoutee sur 401/403 initiaux (retry auth)                      |
-| FS-006 | Edition d'une vue                    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_view/{view}/edit` | `/admin/fs/{db}/_design/{ddoc}/_view/{view}/_edit` | DELTA (segment)  | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-005                          | Route iframe confirmee; `Cancel` revient bien a la page de view                                      |
-| FS-007 | Edition document (`{docid}`)         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/{docid}`                         | `/admin/fs/{db}/{docid}`                           | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-009, FS-010, FS-011          | Ecran sans sidebar (comme convenu), actions doc presentes                                            |
-| FS-008 | Nouveau document (`_new`)            | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_new`                            | `/admin/fs/{db}/_new`                              | OK               | OK                     | OK                 | DONE        | FS-007                          | Route dediee + titre `New Document` + bouton `Create Document`                                       |
-| FS-009 | Dialogue Upload Attachment           | `/admin/fullsync/` | Depuis ecran doc (`Upload Attachment`)                                      | Depuis ecran doc (`Upload Attachment`)             | N/A              | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | -                               | Ouverture du dialogue OK; upload reel encore a valider sur bout en bout                              |
-| FS-010 | Action Clone Document                | `/admin/fullsync/` | Depuis ecran doc (`Clone Document`)                                         | Depuis ecran doc (`Clone Document`)                | N/A              | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-007                          | Dialogue clone + ID auto presents; valider parcours complet apres confirmation                       |
-| FS-011 | View Attachments (liste + ouverture) | `/admin/fullsync/` | Depuis ecran doc (`View Attachments`)                                       | Depuis ecran doc (`View attachments`)              | N/A              | IN_PROGRESS            | OK (scope courant) | IN_PROGRESS | -                               | Liste visible + clic piece jointe ouvre bien un nouvel onglet                                        |
+| ID     | Page / Ecran                         | URL host iframe    | URL interne iframe (reference)                                              | URL native FS cible                               | URL parity       | Look parity            | Feature parity     | Statut      | Sorties vers pages non traitees | Notes                                                                                                                       |
+| ------ | ------------------------------------ | ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------- | ---------------- | ---------------------- | ------------------ | ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| FS-001 | Liste des bases                      | `/admin/fullsync/` | `/convertigo/admin_/_utils/#`                                               | `/admin/fs/`                                      | OK               | DELTA (intentionnelle) | OK (scope convenu) | DONE        | FS-002                          | Deltas valides: pas de colonne Partitioned, pas d'action lock/permissions, ajout Search + Size + Seq                        |
+| FS-002 | Base: All Docs (`{db}`)              | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_all_docs`                        | `/admin/fs/{db}`                                  | OK (segment URL) | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-003, FS-005, FS-007, FS-008  | Audit en cours: alignement sidebar/toolbar/options/selection                                                                |
+| FS-003 | Mango Query (`_find`)                | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_find`                            | `/admin/fs/{db}/_find`                            | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-004, FS-008                  | Run/Explain + history + modes de rendu                                                                                      |
+| FS-004 | Mango Indexes (`_index`)             | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_index`                           | `/admin/fs/{db}/_index`                           | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-003, FS-008                  | Create index + selection + delete                                                                                           |
+| FS-005 | Query d'une vue (`_design/_view`)    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_design/{ddoc}/_view/{view}`     | `/admin/fs/{db}/_design/{ddoc}/_view/{view}`      | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-006, FS-007, FS-008          | URL segmentee obligatoire; robustesse ajoutee sur 401/403 initiaux (retry auth)                                             |
+| FS-006 | Edition d'une vue                    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_view/{view}/edit` | `/admin/fs/{db}/_design/{ddoc}/_view/{view}/edit` | OK               | IN_PROGRESS            | IN_PROGRESS        | IN_PROGRESS | FS-005                          | Route iframe confirmee; `Cancel` revient bien a la page de view                                                             |
+| FS-007 | Edition document (`{docid}`)         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/{docid}`                         | `/admin/fs/{db}/{docid}`                          | OK               | OK                     | OK                 | DONE        | -                               | Validation UI complete en session admin: save persistant + delete (No/Yes) + suppression effective (404 apres delete)       |
+| FS-008 | Nouveau document (`_new`)            | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_new`                            | `/admin/fs/{db}/_new`                             | OK               | OK                     | OK                 | DONE        | FS-007                          | Route dediee + titre `New Document` + bouton `Create Document`                                                              |
+| FS-009 | Dialogue Upload Attachment           | `/admin/fullsync/` | Depuis ecran doc (`Upload Attachment`)                                      | Depuis ecran doc (`Upload Attachment`)            | N/A              | OK                     | OK                 | DONE        | -                               | Dialogue valide (`Esc`, clic externe), upload API valide, acceptation fichier 0 octet alignee Fauxton                       |
+| FS-010 | Action Clone Document                | `/admin/fullsync/` | Depuis ecran doc (`Clone Document`)                                         | Depuis ecran doc (`Clone Document`)               | N/A              | OK                     | OK                 | DONE        | FS-007                          | Flux UI valide en session admin (`modal -> clone -> redirection clone -> save`); comportement `missing_stub` aligne Fauxton |
+| FS-011 | View Attachments (liste + ouverture) | `/admin/fullsync/` | Depuis ecran doc (`View Attachments`)                                       | Depuis ecran doc (`View attachments`)             | N/A              | OK                     | OK                 | DONE        | -                               | Menu visible si pieces jointes, masque sinon; fermeture menu `Esc`/clic externe; ouverture nouvel onglet OK                 |
+| FS-012 | Permissions DB                       | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_security`                        | `/admin/fs/{db}/_security`                        | N/A              | N/A                    | N/A                | N/A         | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Permissions`)                                   |
+| FS-013 | Changes feed                         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_changes`                         | `/admin/fs/{db}/_changes`                         | N/A              | N/A                    | N/A                | N/A         | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Changes`)                                       |
+| FS-014 | Design Doc Metadata (`_info`)        | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_info`             | `/admin/fs/{db}/_design/{ddoc}/_info`             | N/A              | N/A                    | N/A                | N/A         | -                               | Hors scope: lien retire par l'injection iframe (`.design-doc-body li a` contenant `Metadata`)                               |
 
 ## Validation detaillee FS-001 (DONE)
 
@@ -92,6 +106,9 @@ Une page est `DONE` quand:
   - reference iframe observee: meme pattern.
 - Corrige: listage design docs aligne.
   - natif: `/_all_docs?include_docs=true&limit=501&startkey=%22_design%2F%22&endkey=%22_design0%22`
+- Corrige: filtrage des design docs Mango aligne Fauxton.
+  - les design docs avec `language: "query"` sont exclus de la sidebar (comme dans Fauxton `sidebar/reducers.js`).
+- Corrige: ordre des design docs stabilise par ID (`_design/...`) pour rester coherent avec la navigation iframe.
 - Corrige: all docs par defaut aligne.
   - natif: `/_all_docs?limit=21&skip=0`
 
@@ -99,6 +116,10 @@ Une page est `DONE` quand:
 
 - Validation manuelle exhaustive desktop/mobile des etats toolbar (Options ouvert/ferme, Include docs on/off, Descending, Skip).
 - Validation pagination (next/prev) avec et sans `Query Options > Limit`.
+- Ecrans Fauxton upstream non implementes volontairement (hors scope iframe patchee):
+  - `Permissions` (`_security`) -> FS-012 (N/A)
+  - `Changes` (`_changes`) -> FS-013 (N/A)
+  - `Metadata` design doc (`_design/{ddoc}/_info`) -> FS-014 (N/A)
 
 ## Avancement FS-003 (iteration en cours)
 
@@ -164,9 +185,9 @@ Une page est `DONE` quand:
 - Corrige: layout par defaut en route view.
   - natif demarre maintenant en mode `Table` (plus `Metadata`).
 - Corrige: table view par defaut alignee Fauxton.
-  - colonnes visibles initiales `key` / `value` (2 sur 3).
+  - schema de colonnes derive de `row.doc` (comme all_docs) + champs de `row.value` quand presents.
   - colonne copy reintroduite en mode table.
-  - selection de lignes desactivee tant que `Include Docs` est off (comme attendu sans `_rev`).
+  - `include_docs` active par defaut a l'ouverture d'une route `_view`.
 - Correctif transversal applique pendant l'audit:
   - logo topbar passe en `convertigo:logo` (plus de chemin relatif casse sur routes profondes).
 
@@ -181,10 +202,15 @@ Une page est `DONE` quand:
 ### Validation FS-005 complementaire (session courante)
 
 - Comparee au rendu iframe `#/database/offchat_fullsync/_design/OffChat/_view/getChat`:
-  - `Table` affiche la selection de colonnes (par defaut `key` + `value`).
+  - `Table` affiche la selection de colonnes basee sur les champs documents (`include_docs` actif par defaut sur une route `_view`).
+  - les champs issus de `row.value` sont injectes dans le schema de colonnes table (avec des labels alignes Fauxton).
+  - colonne finale "attachements" ajoutee en bout de tableau (compteur).
   - `Metadata` affiche les colonnes fixes `id / key / value`.
+  - valeurs `null` en metadata conservees comme `null` (plus converties en `{}`).
   - bascule `Table / Metadata / JSON` debloquee sur route `_view` (plus de reset force sur `Table`).
   - clic design doc dans la sidebar ouvre bien l'accordion cible.
+  - ordre des views trie alphabetiquement dans chaque design doc.
+  - footer table: label + select `Documents per page` elargis (plus de wrap/troncature).
 - Limite de validation locale:
   - sur ma session native actuelle, les routes `_view` retournent `HTTP 403` (alors que l'iframe reste alimentee),
     ce qui bloque la validation E2E de certaines actions sur les resultats de view (selection/suppression sur data reelle).
@@ -198,27 +224,29 @@ Une page est `DONE` quand:
 
 ## Avancement FS-006 (iteration en cours)
 
+- Corrige: URL native d'edition alignee sur l'iframe (`.../_view/{view}/edit`).
+  - compatibilite conservatrice maintenue avec la route legacy interne `.../_edit`.
 - URL edit capturee en iframe au clic sur l'action view (wrench):
   - `#/database/offchat_fullsync/_design/OffChat/_view/checkUsername/edit`
 - URL edit native correspondante:
-  - `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/_edit/`
+  - `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
 - Comportement compare:
   - le formulaire `Design Document / Index name / Map / Reduce` est present des 2 cotes.
   - `Cancel` retourne bien sur la page de query de la view dans les deux versions.
 
 ### Reste FS-006 avant DONE
 
-- Aligner la convention URL (`edit` vs `_edit`) ou documenter le delta final.
+- Verifier les liens profonds historiques `_edit` (compatibilite conservatrice) + nouveaux liens `/edit`.
 - Verifier visuellement la densite/hauteur Monaco (cas de hauteur compressee deja signales).
 - Valider `Save` sur une view de test (sans impact metier) puis retour automatique.
 
 ### Validation FS-006 complementaire (session courante)
 
 - Correctif applique sur le composant Monaco partage pour eviter les rendus "editor ecrase" lors de transitions de page/layout.
-- Recontrole visuel sur `/admin/fs/offchat_fullsync/_design/c8o/_view/hash/_edit/` et
-  `/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/_edit/`: hauteur editeur stable.
+- Recontrole visuel sur `/admin/fs/offchat_fullsync/_design/c8o/_view/hash/edit/` et
+  `/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/edit/`: hauteur editeur stable.
 
-## Avancement FS-007 (iteration en cours)
+## Validation detaillee FS-007 (DONE)
 
 - URL de doc existant verifiee:
   - iframe: `#/database/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy`
@@ -226,12 +254,17 @@ Une page est `DONE` quand:
 - Controles presents et compares:
   - `Save Changes`, `Cancel`, `View attachments`, `Upload Attachment`, `Clone Document`, `Delete`.
   - editeur JSON Monaco present.
+  - validation alignee Fauxton: `_id` non modifiable pour un document existant (message d'erreur avec consigne de cloner).
+- Validation completee en session admin:
+  - `Save Changes`: modification JSON + toast `saved` + `_rev` incremente.
+  - `Delete`: dialogue confirme (`No` annule, `Yes` supprime), redirection liste + toast `deleted`.
+  - verification backend post-delete: `GET /convertigo/fullsync/{db}/{docid}` retourne `404` (`not_found/deleted`).
+- Correctif d'implementation:
+  - `removeDocument()` aligne sur une suppression fiable via `_bulk_docs` (retour `201`) au lieu d'un `DELETE` pouvant renvoyer `200` vide sans suppression effective.
 
 ### Reste FS-007 avant DONE
 
-- Valider `Save Changes` (modif + persistance + retour attendu).
-- Valider `Delete` (dialogue + annulation + confirmation) sur doc de test seulement.
-- Verifier details look header (tailles police + largeur utile avant ellipsis).
+- Aucun: FS-007 est valide et cloture.
 
 ## Validation detaillee FS-008 (DONE)
 
@@ -267,9 +300,24 @@ Une page est `DONE` quand:
 
 ### Reste FS-009 / FS-010 / FS-011 avant DONE
 
-- FS-009: valider upload effectif (selection fichier + requete + apparition dans menu attachments).
-- FS-010: valider flux complet clone (confirmation -> ouverture nouveau doc -> save).
-- FS-011: verifier etat vide (aucune attachment) + fermeture menu/dialogue clavier/souris.
+- Aucun: FS-009, FS-010 et FS-011 sont valides et clotures.
+
+### Validation API complementaire (session courante)
+
+- Base testee: `http://localhost:5173/convertigo/fullsync` (DB `alerts`).
+- FS-009 (upload attachment):
+  - create doc: OK
+  - upload `file.txt`: OK
+  - relecture doc: `_attachments` present (`count=1`)
+  - ouverture direct attachment (`/{db}/{docid}/file.txt`): OK
+- FS-010 (clone):
+  - clone d'un doc sans attachment: OK
+  - clone d'un doc avec attachment stub: `412 missing_stub` (`Invalid attachment stub ...`)
+  - comportement coherent avec la logique Fauxton `doc.copy()` (copie brute JSON + suppression `_rev`).
+- FS-004/FS-003 (mango):
+  - create index `_index`: OK
+  - delete bulk `_index/_bulk_delete`: OK
+  - `_find` avec `execution_stats=true`: OK (`execution_stats` present dans la reponse)
 
 ## Verification URL deja observee (session courante)
 
@@ -285,7 +333,7 @@ Une page est `DONE` quand:
 - Iframe new doc: `http://localhost:5173/convertigo/admin_/_utils/#/database/offchat_fullsync/_new`
 - Native view (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/`
 - Native view (exemple 2): `http://localhost:5173/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/`
-- Native view edit (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/_edit/`
+- Native view edit (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
 - Native doc link (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy/`
 - Native new doc: `http://localhost:5173/admin/fs/offchat_fullsync/_new/`
 
@@ -345,3 +393,124 @@ Une page est `DONE` quand:
   - all docs: `/_all_docs?limit=21&skip=0`
   - design docs: `/_all_docs?include_docs=true&limit=501&startkey=%22_design%2F%22&endkey=%22_design0%22`
   - view query: `/_design/OffChat/_view/getChat?limit=21&skip=0&reduce=false`
+
+## Session update (2026-02-17, hygiene tooling)
+
+- Verification relancee sur le cas signale:
+  - `npm run format` puis `npm run check:admin` -> OK (`0 errors, 0 warnings`).
+- Build complet:
+  - `npm run build` -> OK (warnings connus hors scope FS).
+
+## Session update (2026-02-17, alignement fonctions Fauxton)
+
+- Alignement table "dernier Fauxton" sur les ecrans FS natifs (sans toucher le scope masque iframe):
+  - colonne de fin "attachements" visible en mode `Table` sur `all_docs`, `_view` et `_find` (header vide comme Fauxton).
+  - compteur de pieces jointes alimente depuis `_attachments` quand disponible.
+- Alignement edition document:
+  - blocage de la modification `_id` sur document existant, avec message explicite recommandant `Clone Document` (comme Fauxton).
+- Scope iframe patchee conserve sans changement:
+  - `Permissions`, `Changes`, `Metadata` design doc restent hors perimetre (`N/A`).
+
+## Session update (2026-02-17, alignement doc-editor + table trailing column)
+
+- Alignement table `Table` avec le Fauxton recent:
+  - colonne de fin enrichie avec l'indicateur de conflits (`_conflicts`) en plus des pieces jointes (`_attachments`).
+  - affichage applique sur `all_docs`, `_view` (quand `include_docs`) et `_find`.
+- Alignement ecran document:
+  - `View Attachments` masque quand le document n'a aucune piece jointe (comme `AttachmentsPanelButton` Fauxton).
+  - dialogue `Upload Attachment`: bouton `Upload Attachment` desactive tant qu'aucun fichier n'est selectionne.
+  - dialogue `Clone Document`: texte d'aide complete sur l'ID genere + focus automatique du champ ID.
+- Scope masque iframe conserve:
+  - aucun ajout sur `Permissions`, `Changes`, `Metadata` design doc (`N/A` inchanges).
+
+## Session update (2026-02-17, view query reduce/group level)
+
+- Alignement Query Options sur les routes `_view`:
+  - ajout du toggle `Reduce` (comme Fauxton), avec exclusion mutuelle `Include Docs` <-> `Reduce`.
+  - ajout de `Group Level` (`Exact`, `1..9`) actif quand `Reduce` est coche.
+- Alignement requetes `_view`:
+  - en mode reduce: envoi `reduce=true` + `group=true` (Exact) ou `group_level=n`.
+  - en mode include docs: envoi `include_docs=true` + `reduce=false`.
+- Alignement layout:
+  - quand `Reduce` est actif, le layout est force sur `Metadata` (pas de `Table/JSON`, comme Fauxton).
+  - le schema table de view conserve aussi `key` quand disponible pour les cas non-`include_docs`.
+- Scope iframe patchee conserve:
+  - aucun ajout sur `Permissions`, `Changes`, `Metadata` design doc (`N/A` inchanges).
+
+## Session update (2026-02-17, layout/query-options parity)
+
+- Alignement comportement header/layout comme Fauxton:
+  - changement de layout `Table/Metadata/JSON` synchronise maintenant `include_docs`.
+  - `Metadata` force `include_docs=false`; `Table/JSON` force `include_docs=true` (hors mode `reduce`).
+- Alignement `Group Level` sur `_view`:
+  - ajout de l'option `None` (`0`) en plus de `1..9` et `Exact`.
+  - en mode `reduce`, la requete peut envoyer `group_level=0` (parite Fauxton).
+- Correctif rendu metadata:
+  - en resultats `reduce/group` sans `id`, la cellule `id` n'est plus un lien vide cliquable.
+
+## Session update (2026-02-17, doc upload parity)
+
+- Alignement `Upload Attachment` sur Fauxton:
+  - un fichier selectionne est maintenant accepte meme si sa taille est `0` octet.
+  - le bouton `Upload Attachment` se base sur la presence d'un nom de fichier, pas sur `size > 0`.
+
+## Session update (2026-02-17, doc delete parity)
+
+- Alignement `Delete` sur le comportement Fauxton:
+  - la suppression utilise la version sauvegardee du document (`_id` / `_rev` d'origine),
+    pas le brouillon JSON en cours d'edition.
+  - impact: une edition locale non sauvegardee ne peut plus casser la suppression.
+
+## Session update (2026-02-18, clone E2E)
+
+- Validation E2E API `Clone Document` (base `alerts`) :
+  - creation doc source -> clone -> ouverture clone -> sauvegarde clone : OK.
+  - verification post-save: champs modifies persistes (`count=2`, `saved_after_clone=true`).
+- Validation clone avec attachment:
+  - clone d'un doc contenant un attachment stub retourne `412 missing_stub` (`Invalid attachment stub ...`),
+    comportement coherent avec la logique Fauxton `doc.copy()`.
+- Alignement UX clone:
+  - au clic `Clone Document`, le dialogue se ferme immediatement avant execution (comme Fauxton).
+  - en echec, une notification globale est affichee (`Could not duplicate document, reason: ...`).
+- Limite de validation UI automatisee dans cette session:
+  - Playwright est redirige vers `/login/?redirect=...` sans session admin partagee; le parcours UI click-by-click
+    reste a confirmer en session authentifiee pour passer FS-010 en `DONE`.
+
+## Session update (2026-02-18, cancel navigation parity)
+
+- Alignement bouton `Cancel` sur l'editeur document:
+  - retour direct vers `/admin/fs/{db}` (liste all docs), au lieu d'un `history.back()` contextuel.
+  - comportement aligne avec le flux Fauxton (retour deterministic vers la liste).
+
+## Session update (2026-02-18, clone UI final)
+
+- Validation UI complete FS-010 en session admin (`admin/admin`) :
+  - ouverture modal `Clone Document`,
+  - edition ID cible,
+  - soumission clone,
+  - redirection automatique vers `/admin/fs/{db}/{newId}/`,
+  - sauvegarde du clone via `Save Changes` (nouvelle revision visible).
+- Nettoyage effectue:
+  - suppression des documents de test `codex_clone_src_*` et `codex_clone_ui_*` dans `alerts`.
+
+## Session update (2026-02-18, upload/attachments UI final)
+
+- Validation UI complete FS-009 (`Upload Attachment`) en session admin:
+  - ouverture dialogue,
+  - fermeture par `Esc`,
+  - fermeture par clic exterieur (backdrop),
+  - bouton upload active uniquement quand un fichier est selectionne.
+- Validation UI complete FS-011 (`View Attachments`) en session admin:
+  - bouton visible seulement si `_attachments` present, masque sinon,
+  - ouverture du menu, fermeture `Esc` et clic exterieur,
+  - clic sur la piece jointe ouvre bien un nouvel onglet (`/convertigo/fullsync/{db}/{doc}/{file}`).
+
+## Session update (2026-02-18, FS-007 final)
+
+- Validation UI complete FS-007 en session admin:
+  - creation doc de test depuis `/_new`,
+  - edition JSON + `Save Changes` (rev passe a `2-*`),
+  - test suppression `Delete` avec annulation puis confirmation.
+- Validation reseau post-correctif:
+  - suppression via `POST /convertigo/fullsync/alerts/_bulk_docs` (`201`),
+  - verification immediate: `GET /convertigo/fullsync/alerts/{docid}` retourne `404`.

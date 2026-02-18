@@ -65,6 +65,8 @@
 	let docsQueryLimitValue = $state('none');
 	let docsDescending = $state(false);
 	let docsIncludeDocs = $state(false);
+	let docsReduce = $state(false);
+	let docsGroupLevel = $state('exact');
 	let docsShowAllColumns = $state(false);
 	let docsColumnSelection = $state(/** @type {string[]} */ ([]));
 	let docsHasNextPage = $state(false);
@@ -83,6 +85,7 @@
 	let loadedDatabase = $state('');
 	let loadedQueryScope = $state('');
 	let loadedMangoIndexScope = $state('');
+	let docsQueryType = $state('');
 
 	let designDocs = $state(
 		/** @type {Array<{id: string, name: string, views: Array<{name: string, map?: string, reduce?: string}>, doc: any}>} */ ([])
@@ -172,35 +175,85 @@
 
 	let documentRows = $derived(
 		documents.map((row) => {
-			const value = row?.value ?? {};
+			const hasValue = Boolean(row && typeof row == 'object' && 'value' in row);
+			const value = hasValue ? row.value : {};
 			const key = row?.key ?? row?.id ?? '';
 			const doc = row?.doc ?? null;
-			const raw = isViewQuery ? row : (doc ?? row);
-			const rowId = row?.id ?? doc?._id ?? '';
-			const rowRev = value?.rev ?? doc?._rev ?? '';
-			const rowType = doc?.type ?? (rowId.startsWith('_design/') ? 'design' : '');
+			const docRaw = doc && typeof doc == 'object' ? doc : null;
+			const rowId = row?.id ?? docRaw?._id ?? '';
+			const rowRev = value?.rev ?? docRaw?._rev ?? '';
+			const rowType = docRaw?.type ?? (rowId.startsWith('_design/') ? 'design' : '');
+			const raw = isViewQuery ? row : (docRaw ?? row);
+			const tableRaw = isViewQuery
+				? (() => {
+						const base =
+							docRaw && typeof docRaw == 'object'
+								? parseJsonSilent(JSON.stringify(docRaw), {})
+								: {};
+						if (rowId && !Object.prototype.hasOwnProperty.call(base, 'id')) {
+							base.id = rowId;
+						}
+						if (rowRev && !Object.prototype.hasOwnProperty.call(base, 'rev')) {
+							base.rev = rowRev;
+						}
+						if (row?.key !== undefined && !Object.prototype.hasOwnProperty.call(base, 'key')) {
+							base.key = row.key;
+						}
+						if (value !== null && value !== undefined) {
+							if (value && typeof value == 'object' && !Array.isArray(value)) {
+								for (const [field, fieldValue] of Object.entries(value)) {
+									const name = String(field ?? '');
+									if (!name) continue;
+									if (Object.prototype.hasOwnProperty.call(base, name)) {
+										base[`value:${name}`] = fieldValue;
+									} else {
+										base[name] = fieldValue;
+									}
+								}
+							} else if (Object.prototype.hasOwnProperty.call(base, 'value')) {
+								base['value:value'] = value;
+							} else {
+								base.value = value;
+							}
+						}
+						return base;
+					})()
+				: (docRaw ?? row);
+			const attachments = docRaw?._attachments;
+			const attachmentCount = countEntries(attachments);
+			const conflictCount = countEntries(docRaw?._conflicts);
 			return {
 				id: rowId,
 				key: typeof key == 'string' ? key : JSON.stringify(key),
 				rev: rowRev,
 				type: rowType,
 				valueText: pretty(value),
-				valuePreview: JSON.stringify(value ?? {}),
+				valuePreview: formatMetadataValue(value),
 				jsonText: pretty(raw),
 				hasDocument: Boolean(rowId),
-				raw
+				raw,
+				tableRaw,
+				attachmentCount,
+				conflictCount
 			};
 		})
 	);
 	let mangoRows = $derived.by(() => {
 		const docs = Array.isArray(mangoResult?.docs) ? mangoResult.docs : [];
-		return docs.map((doc) => ({
-			id: doc?._id ?? '',
-			rev: doc?._rev ?? '',
-			type: doc?.type ?? '',
-			jsonText: pretty(doc),
-			raw: doc
-		}));
+		return docs.map((doc) => {
+			const attachments = doc?._attachments;
+			const attachmentCount = countEntries(attachments);
+			const conflictCount = countEntries(doc?._conflicts);
+			return {
+				id: doc?._id ?? '',
+				rev: doc?._rev ?? '',
+				type: doc?.type ?? '',
+				jsonText: pretty(doc),
+				raw: doc,
+				attachmentCount,
+				conflictCount
+			};
+		});
 	});
 	let hasMangoDocs = $derived(mangoRows.length > 0);
 	let mangoHasLimit = $derived(mangoLimitValue != 'none');
@@ -249,7 +302,7 @@
 		mangoSelectableRows.length > 0 &&
 			mangoSelectableRows.every((row) => Boolean(mangoSelectedDocIds[row.id]))
 	);
-	let mangoTableColspan = $derived(mangoVisibleColumns.length + 2);
+	let mangoTableColspan = $derived(mangoVisibleColumns.length + 3);
 	let mangoIndexRows = $derived.by(() =>
 		mangoIndexes.map((index, indexPosition) => {
 			const ddoc = typeof index?.ddoc == 'string' ? index.ddoc : null;
@@ -320,7 +373,9 @@
 			selectableDocumentRows.every((row) => Boolean(selectedDocIds[row.id]))
 	);
 	let docsSchemaRows = $derived(
-		documentRows.map((row) => row?.raw).filter((doc) => Boolean(doc) && typeof doc == 'object')
+		documentRows
+			.map((row) => (isViewQuery ? row?.tableRaw : row?.raw))
+			.filter((doc) => Boolean(doc) && typeof doc == 'object')
 	);
 	let docsSchema = $derived(getPseudoSchema(docsSchemaRows));
 	let docsDisplayableColumns = $derived(
@@ -329,22 +384,10 @@
 		)
 	);
 	let docsDefaultColumns = $derived.by(() => {
-		if (isViewQuery) {
-			const preferred = ['key', 'value'].filter((column) =>
-				docsDisplayableColumns.includes(column)
-			);
-			if (preferred.length > 0) {
-				return preferred;
-			}
-		}
 		return getPrioritizedFields(docsSchemaRows, 5);
 	});
 	let docsVisibleColumnCount = $derived(
-		docsShowAllColumns
-			? docsDisplayableColumns.length
-			: isViewQuery
-				? Math.min(2, docsDisplayableColumns.length)
-				: Math.min(5, docsDisplayableColumns.length)
+		docsShowAllColumns ? docsDisplayableColumns.length : Math.min(5, docsDisplayableColumns.length)
 	);
 	let docsVisibleColumns = $derived(
 		resolveVisibleColumns(
@@ -354,8 +397,13 @@
 			docsVisibleColumnCount
 		)
 	);
+	let showDocsAttachmentColumn = $derived(currentLayout == 'table');
 	let tableColspan = $derived(
-		currentLayout == 'metadata' ? 5 : currentLayout == 'table' ? docsVisibleColumns.length + 2 : 3
+		currentLayout == 'metadata'
+			? 5
+			: currentLayout == 'table'
+				? docsVisibleColumns.length + 2 + (showDocsAttachmentColumn ? 1 : 0)
+				: 3
 	);
 	let quickDocDatalistId = $derived(`fullsync-doc-ids-${database.replace(/[^a-zA-Z0-9_-]/g, '-')}`);
 	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
@@ -375,6 +423,15 @@
 			: `${encodeURIComponent(database)}/_all_docs`;
 		return `${fullSyncBaseUrl()}${path}${queryString ? `?${queryString}` : ''}`;
 	});
+	let docsLayoutOptions = $derived.by(() =>
+		isViewQuery && docsReduce
+			? [{ value: 'metadata', text: 'Metadata' }]
+			: [
+					{ value: 'table', text: 'Table' },
+					{ value: 'metadata', text: 'Metadata' },
+					{ value: 'json', text: 'JSON' }
+				]
+	);
 	let mangoIndexesUrl = $derived.by(() => {
 		if (!database || currentTab != 'mango') return '#';
 		return fullSyncDbIndexHref(database);
@@ -591,6 +648,58 @@
 		}
 	}
 
+	function formatMetadataValue(value) {
+		if (value === undefined) return '';
+		if (value === null) return 'null';
+		if (typeof value == 'string') return value;
+		if (typeof value == 'number' || typeof value == 'boolean') return String(value);
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
+	}
+
+	function countEntries(value) {
+		if (!value || typeof value != 'object') return 0;
+		if (Array.isArray(value)) return value.length;
+		return Object.keys(value).length;
+	}
+
+	function docsColumnLabel(column) {
+		const value = String(column ?? '');
+		if (isViewQuery && value.startsWith('value:')) {
+			return value.slice('value:'.length);
+		}
+		return value;
+	}
+
+	function getDocsCellValue(row, column) {
+		const key = String(column ?? '');
+		return row?.tableRaw?.[key];
+	}
+
+	function isDocsIdColumn(column) {
+		const value = String(column ?? '');
+		return value == 'id' || value == '_id';
+	}
+
+	function getDocsAttachmentCount(row) {
+		return Number(row?.attachmentCount) || 0;
+	}
+
+	function getDocsConflictCount(row) {
+		return Number(row?.conflictCount) || 0;
+	}
+
+	function getMangoAttachmentCount(row) {
+		return Number(row?.attachmentCount) || 0;
+	}
+
+	function getMangoConflictCount(row) {
+		return Number(row?.conflictCount) || 0;
+	}
+
 	function encodeDesignDocPath(designDocId) {
 		const raw = String(designDocId ?? '').replace(/^_design\//, '');
 		return `_design/${encodeURIComponent(raw)}`;
@@ -626,26 +735,64 @@
 		return 'function (doc) {\n  emit(doc._id, doc);\n}';
 	}
 
+	function buildViewGroupingQuery() {
+		if (!isViewQuery || !docsReduce) {
+			return {
+				group: undefined,
+				groupLevel: undefined
+			};
+		}
+		const raw = String(docsGroupLevel ?? 'exact')
+			.trim()
+			.toLowerCase();
+		if (!raw || raw == 'exact') {
+			return {
+				group: true,
+				groupLevel: undefined
+			};
+		}
+		const parsed = Number(raw);
+		if (Number.isInteger(parsed) && parsed >= 0) {
+			return {
+				group: undefined,
+				groupLevel: parsed
+			};
+		}
+		return {
+			group: true,
+			groupLevel: undefined
+		};
+	}
+
 	function buildDocsQuery() {
 		const viewKeyQuery = buildViewKeyQuery(false) ?? {};
+		const useIncludeDocs = docsIncludeDocs && (!isViewQuery || !docsReduce);
+		const groupingQuery = buildViewGroupingQuery();
 		return {
-			include_docs: docsIncludeDocs ? true : undefined,
+			include_docs: useIncludeDocs ? true : undefined,
 			descending: docsDescending ? true : undefined,
 			stable: docsStable || undefined,
 			update: docsUpdate == 'true' ? undefined : docsUpdate,
 			limit: docsFetchLimit,
 			skip: docsSkip,
-			conflicts: docsIncludeDocs ? true : undefined,
-			reduce: isViewQuery ? false : undefined,
+			conflicts: useIncludeDocs ? true : undefined,
+			reduce: isViewQuery ? docsReduce : undefined,
+			group: groupingQuery.group,
+			group_level: groupingQuery.groupLevel,
 			...viewKeyQuery
 		};
 	}
 
 	function setLayout(layout) {
+		if (isViewQuery && docsReduce && layout != 'metadata') {
+			layout = 'metadata';
+		}
 		if (layout == currentLayout) return;
 		currentLayout = layout;
 		docsSkip = 0;
 		if (currentTab == 'all' && !isViewEditor) {
+			const nextIncludeDocs = layout != 'metadata';
+			docsIncludeDocs = isViewQuery && docsReduce ? false : nextIncludeDocs;
 			void refreshDocuments();
 		}
 	}
@@ -730,6 +877,23 @@
 
 	function onIncludeDocsToggle(value) {
 		docsIncludeDocs = value;
+		if (value && docsReduce) {
+			docsReduce = false;
+		}
+	}
+
+	function onReduceToggle(value) {
+		docsReduce = value;
+		if (!isViewQuery) {
+			docsReduce = false;
+			return;
+		}
+		if (value) {
+			docsIncludeDocs = false;
+			if (currentLayout != 'metadata') {
+				currentLayout = 'metadata';
+			}
+		}
 	}
 
 	async function refreshDocuments() {
@@ -745,20 +909,24 @@
 				selectedDocIds = {};
 				return;
 			}
+			const useIncludeDocs = docsIncludeDocs && (!isViewQuery || !docsReduce);
+			const groupingQuery = buildViewGroupingQuery();
 			const query = {
 				limit: docsFetchLimit,
 				skip: docsSkip,
-				includeDocs: docsIncludeDocs,
+				includeDocs: useIncludeDocs,
 				descending: docsDescending,
 				stable: docsStable,
 				update: docsUpdate,
-				conflicts: docsIncludeDocs,
+				conflicts: useIncludeDocs,
 				...viewKeyQuery
 			};
 			const response = isViewQuery
 				? await runViewQuery(database, selectedDesignDocId, selectedViewName, {
 						...query,
-						reduce: false
+						reduce: docsReduce,
+						group: groupingQuery.group,
+						groupLevel: groupingQuery.groupLevel
 					})
 				: await listDocuments(database, query);
 			if (requestId != docsRequestCounter) return;
@@ -828,6 +996,7 @@
 						map: typeof view?.map == 'string' ? view.map : undefined,
 						reduce: typeof view?.reduce == 'string' ? view.reduce : undefined
 					}));
+					views.sort((left, right) => left.name.localeCompare(right.name));
 					return {
 						id,
 						name: id.replace('_design/', ''),
@@ -835,7 +1004,19 @@
 						doc
 					};
 				})
-				.filter((designDoc) => Boolean(designDoc.id));
+				.filter((designDoc) => {
+					if (!designDoc?.id) return false;
+					const language = String(designDoc?.doc?.language ?? '')
+						.trim()
+						.toLowerCase();
+					return language != 'query';
+				})
+				.sort((left, right) => {
+					const a = String(left?.id ?? '');
+					const b = String(right?.id ?? '');
+					if (a == b) return 0;
+					return a < b ? -1 : 1;
+				});
 		} catch {
 			designDocs = [];
 		} finally {
@@ -1196,6 +1377,13 @@
 	}
 
 	async function executeOptionsQuery() {
+		const useIncludeDocs = docsIncludeDocs && (!isViewQuery || !docsReduce);
+		const isMetadata = currentLayout == 'metadata';
+		if (isMetadata && useIncludeDocs) {
+			currentLayout = 'table';
+		} else if (!isMetadata && !useIncludeDocs) {
+			currentLayout = 'metadata';
+		}
 		await refreshDocuments();
 		queryOptionsOpen = false;
 	}
@@ -1489,6 +1677,20 @@
 	}
 
 	$effect(() => {
+		if (!isViewQuery) {
+			if (docsReduce) docsReduce = false;
+			if (docsGroupLevel != 'exact') docsGroupLevel = 'exact';
+			return;
+		}
+		if (docsReduce && docsIncludeDocs) {
+			docsIncludeDocs = false;
+		}
+		if (docsReduce && currentLayout != 'metadata') {
+			currentLayout = 'metadata';
+		}
+	});
+
+	$effect(() => {
 		if (!database) return;
 		if (database == loadedDatabase) return;
 		loadedDatabase = database;
@@ -1522,12 +1724,15 @@
 		quickDocId = '';
 		selectedDocIds = {};
 		currentLayout = isViewQuery ? 'table' : 'metadata';
-		docsIncludeDocs = false;
+		docsIncludeDocs = isViewQuery;
+		docsReduce = false;
+		docsGroupLevel = 'exact';
 		docsDescending = false;
 		docsKeyMode = 'by-keys';
 		docsKeyValue = '';
 		docsStartKeyValue = '';
 		docsEndKeyValue = '';
+		docsQueryType = '';
 		viewEditorLoadedKey = '';
 		loadMangoHistory();
 		if (currentTab == 'all') {
@@ -1548,6 +1753,13 @@
 		const queryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
 		if (queryScope == loadedQueryScope) return;
 		loadedQueryScope = queryScope;
+		const nextQueryType = isViewQuery ? 'view' : 'all';
+		if (docsQueryType != nextQueryType) {
+			docsQueryType = nextQueryType;
+			docsIncludeDocs = isViewQuery;
+			docsReduce = false;
+			docsGroupLevel = 'exact';
+		}
 		docsSkip = 0;
 		quickDocId = '';
 		selectedDocIds = {};
@@ -2003,8 +2215,42 @@
 									fit={true}
 									label="Include Docs"
 									checked={docsIncludeDocs}
+									disabled={isViewQuery && docsReduce}
 									onCheckedChange={(event) => onIncludeDocsToggle(event.checked)}
 								/>
+								{#if isViewQuery}
+									<div class="layout-x-wrap items-center gap-2 text-sm">
+										<PropertyType
+											type="check"
+											fit={true}
+											label="Reduce"
+											checked={docsReduce}
+											onCheckedChange={(event) => onReduceToggle(event.checked)}
+										/>
+										{#if docsReduce}
+											<label class="layout-x-low items-center text-strong">
+												<span>Group Level</span>
+												<select
+													class="query-options-select h-9 input-common px-2 pr-8 text-sm"
+													value={docsGroupLevel}
+													onchange={(event) => (docsGroupLevel = event.currentTarget.value)}
+												>
+													<option value="0">None</option>
+													<option value="1">1</option>
+													<option value="2">2</option>
+													<option value="3">3</option>
+													<option value="4">4</option>
+													<option value="5">5</option>
+													<option value="6">6</option>
+													<option value="7">7</option>
+													<option value="8">8</option>
+													<option value="9">9</option>
+													<option value="exact">Exact</option>
+												</select>
+											</label>
+										{/if}
+									</div>
+								{/if}
 								<div class="layout-x-wrap items-center gap-2 text-sm">
 									<PropertyType
 										type="check"
@@ -2174,11 +2420,7 @@
 						type="segment"
 						fit={true}
 						name="layoutMode"
-						item={[
-							{ value: 'table', text: 'Table' },
-							{ value: 'metadata', text: 'Metadata' },
-							{ value: 'json', text: 'JSON' }
-						]}
+						item={docsLayoutOptions}
 						value={currentLayout}
 						onValueChange={(event) => setLayout(event.value ?? 'metadata')}
 					/>
@@ -2226,6 +2468,12 @@
 						hideSelectWithoutRev={true}
 						disableSelectWithoutRev={false}
 						idColumnMode="id-or-_id"
+						columnLabel={docsColumnLabel}
+						getCellValue={getDocsCellValue}
+						isIdColumn={isDocsIdColumn}
+						showAttachmentCountColumn={showDocsAttachmentColumn}
+						getAttachmentCount={getDocsAttachmentCount}
+						getConflictCount={getDocsConflictCount}
 						{working}
 						onSelectionChange={setRowSelection}
 						onColumnSelect={setDocsColumn}
@@ -2260,10 +2508,10 @@
 						>
 					</div>
 					<div class="layout-x-wrap items-center gap-2">
-						<label class="layout-x-low items-center text-sm text-muted">
+						<label class="docs-per-page-control layout-x-low items-center text-sm text-muted">
 							<span>Documents per page:</span>
 							<select
-								class="h-9 input-common px-2 text-sm"
+								class="docs-per-page-select h-9 input-common px-2 pr-8 text-sm"
 								value={docsPageSizeValue}
 								onchange={(event) => {
 									docsPageSizeValue = event.currentTarget.value;
@@ -2487,6 +2735,9 @@
 							hideSelectWithoutRev={false}
 							disableSelectWithoutRev={true}
 							idColumnMode="_id-only"
+							showAttachmentCountColumn={true}
+							getAttachmentCount={getMangoAttachmentCount}
+							getConflictCount={getMangoConflictCount}
 							{working}
 							onSelectionChange={setMangoRowSelection}
 							onColumnSelect={setMangoColumn}
@@ -2523,10 +2774,10 @@
 								{/if}
 							</div>
 							<div class="layout-x-wrap items-center gap-2">
-								<label class="layout-x-low items-center text-sm text-muted">
+								<label class="docs-per-page-control layout-x-low items-center text-sm text-muted">
 									<span>Documents per page:</span>
 									<select
-										class="h-9 input-common px-2 text-sm"
+										class="docs-per-page-select h-9 input-common px-2 pr-8 text-sm"
 										value={mangoLimitValue}
 										onchange={(event) => {
 											mangoLimitValue = event.currentTarget.value;
@@ -2715,10 +2966,10 @@
 								mangoIndexPagedRows.length}.
 						</div>
 						<div class="layout-x-wrap items-center gap-2">
-							<label class="layout-x-low items-center text-sm text-muted">
+							<label class="docs-per-page-control layout-x-low items-center text-sm text-muted">
 								<span>Documents per page:</span>
 								<select
-									class="h-9 input-common px-2 text-sm"
+									class="docs-per-page-select h-9 input-common px-2 pr-8 text-sm"
 									value={mangoIndexLimitValue}
 									onchange={(event) => {
 										mangoIndexLimitValue = event.currentTarget.value;
@@ -3052,6 +3303,15 @@
 		justify-content: space-between;
 		gap: calc(var(--spacing) * 1.5);
 		padding-top: calc(var(--spacing) * 0.75);
+	}
+
+	.docs-per-page-control {
+		flex-wrap: nowrap;
+		white-space: nowrap;
+	}
+
+	.docs-per-page-select {
+		min-width: 4.5rem;
 	}
 
 	.doc-open-form {

@@ -211,6 +211,7 @@
 		'mdi:moon-and-stars': MdiMoonAndStars,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
 		'mdi:paperclip': MdiPaperclip,
+		'mdi:attachment': MdiPaperclip,
 		'mdi:pencil-outline': MdiPencilOutline,
 		'mdi:palette-outline': MdiPaletteOutline,
 		'mdi:open-in-new-variant': MdiOpenInNew,
